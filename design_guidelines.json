@@ -1,0 +1,61 @@
+{
+  "theme": "dark",
+  "archetype": "Archetype 5: Jewel & Luxury",
+  "domain": "Mobile App UI for Premium Music Festival / Lifestyle in Cartagena",
+  "vibe": "Moody, tropical luxury, rhythmic tension, high-end nightlife",
+  "colors": {
+    "background": "#050814",
+    "surface": "#0F1423",
+    "surface_glass": "rgba(15, 20, 35, 0.6)",
+    "primary": "#D97706",
+    "primary_hover": "#F59E0B",
+    "text_main": "#FAFAF9",
+    "text_muted": "#A8B2C1",
+    "border": "rgba(255, 255, 255, 0.1)"
+  },
+  "typography": {
+    "heading_font": "Outfit",
+    "body_font": "Manrope",
+    "h1": "text-4xl sm:text-5xl tracking-tight font-light",
+    "h2": "text-2xl sm:text-3xl tracking-tight font-medium",
+    "h3": "text-xl sm:text-2xl tracking-tight",
+    "body": "text-base leading-relaxed",
+    "label": "text-xs uppercase tracking-[0.2em]"
+  },
+  "spacing_and_layout": {
+    "section_padding": "py-12 px-6",
+    "card_padding": "p-6",
+    "gap_standard": "gap-6",
+    "border_radius_container": "rounded-3xl",
+    "border_radius_element": "rounded-full"
+  },
+  "components": {
+    "navigation_tab_bar": "fixed bottom-0 left-0 right-0 z-50 backdrop-blur-2xl bg-[#050814]/70 border-t border-white/10 pb-safe pt-4 px-6 flex justify-between",
+    "event_card": "relative overflow-hidden rounded-3xl bg-[#0F1423] border border-white/5",
+    "button_primary": "bg-[#D97706] text-white hover:bg-[#F59E0B] rounded-full px-6 py-3 font-medium transition-colors",
+    "filter_chip": "px-4 py-2 rounded-full border border-white/20 text-sm hover:bg-white/10"
+  },
+  "motion": {
+    "hover_state": "transition-transform duration-300 ease-out hover:-translate-y-1",
+    "tap_state": "active:scale-95 transition-transform"
+  },
+  "media": {
+    "hero_background": "https://static.prod-images.emergentagent.com/jobs/32dad071-4fb0-440b-90c6-bb16ae39bea1/images/2dee6fa4415e057ea67df10585454bc47023ea1133b28fa1c91e8ee307f1d323.png",
+    "texture_overlay": "https://static.prod-images.emergentagent.com/jobs/32dad071-4fb0-440b-90c6-bb16ae39bea1/images/4f979e7ba4b32872c4b07dadcb054eb78f999948cb9373a70a78567dea9e65ab.png",
+    "cartagena_city": "https://images.unsplash.com/photo-1651421479936-e24edc3e3143?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwyfHxjYXJ0YWdlbmElMjBjb2xvbWJpYSUyMHN1bnNldHxlbnwwfHx8fDE3NzU5OTY5MTV8MA&ixlib=rb-4.1.0&q=85",
+    "concert_crowd": "https://images.unsplash.com/photo-1762788109662-1442ea1cdaf3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzN8MHwxfHNlYXJjaHwyfHxtdXNpYyUyMGZlc3RpdmFsJTIwY3Jvd2QlMjBuaWdodHxlbnwwfHx8fDE3NzU5OTY5MTV8MA&ixlib=rb-4.1.0&q=85",
+    "beach_club": "https://images.pexels.com/photos/21856218/pexels-photo-21856218.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+  },
+  "instructions_to_main_agent": [
+    "Design a mobile-first UI wrapper (Progressive Web App / Web-based Mobile Simulator) considering this is meant for a mobile environment but rendered here via React JS + Tailwind.",
+    "Do not use generic Inter font. Apply Outfit for headings and Manrope for body text. Enforce tracking and leading adjustments.",
+    "Create a fixed bottom navigation tab bar mimicking mobile UX (Home, Agenda, Mapa, Partners, Perfil). Ensure enough padding at the bottom of main content so it is not hidden.",
+    "Use 'hero_background' for the main 'What to do today' hero header area, overlaying it with bg-black/50 to guarantee text readability.",
+    "For the 'Official Agenda', implement sleek glassmorphism or 1px border cards over the dark theme.",
+    "Integrate the 'beach_club' image into the curated lifestyle itinerary card.",
+    "Incorporate the 'texture_overlay' in specific areas (e.g., user profile header or high-end certified partners section) for depth.",
+    "Do NOT use teal blue or purple. Instead, rely on Midnight Blue (#050814) for base and Sunset Gold (#D97706) for primary interactive actions.",
+    "Add 'data-testid' to EVERY interactive element (buttons, tabs, filter chips, booking links).",
+    "Ensure 'Certified Partners' show a premium metallic or golden border/seal indicator."
+  ]
+}
