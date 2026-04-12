@@ -308,9 +308,100 @@ async def partner_categories():
     return ["restaurant", "club", "beach_club", "hotel", "wellness", "cultural"]
 
 
+# ── Seasons (Multi-event platform) ──────────────────────────
+@api_router.get("/seasons")
+async def list_seasons(active: Optional[bool] = None):
+    query = {}
+    if active is not None:
+        query["is_active"] = active
+    seasons = await db.seasons.find(query, {"_id": 0}).sort("start_date", 1).to_list(50)
+    return seasons
+
+
+@api_router.get("/seasons/{season_id}")
+async def get_season(season_id: str):
+    season = await db.seasons.find_one({"season_id": season_id}, {"_id": 0})
+    if not season:
+        raise HTTPException(status_code=404, detail="Season not found")
+    return season
+
+
+@api_router.get("/seasons/{season_id}/events")
+async def season_events(season_id: str, date: Optional[str] = None):
+    query = {"season_id": season_id}
+    if date:
+        query["date"] = date
+    events = await db.events.find(query, {"_id": 0}).sort("start_time", 1).to_list(200)
+    return events
+
+
+# ── Analytics ───────────────────────────────────────────────
+class AnalyticsEvent(BaseModel):
+    event_type: str  # page_view, event_click, partner_click, booking_click, search, filter
+    target_id: Optional[str] = None
+    target_type: Optional[str] = None  # event, venue, partner, season, itinerary
+    metadata: Optional[dict] = None
+
+@api_router.post("/analytics/track")
+async def track_analytics(body: AnalyticsEvent, request: Request):
+    user_id = None
+    try:
+        user = await get_current_user(request)
+        user_id = user["user_id"]
+    except:
+        pass  # Anonymous tracking OK
+
+    doc = {
+        "analytics_id": f"an_{uuid.uuid4().hex[:12]}",
+        "user_id": user_id,
+        "event_type": body.event_type,
+        "target_id": body.target_id,
+        "target_type": body.target_type,
+        "metadata": body.metadata or {},
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "user_agent": request.headers.get("user-agent", ""),
+    }
+    await db.analytics.insert_one(doc)
+    return {"ok": True}
+
+
+@api_router.get("/analytics/summary")
+async def analytics_summary(request: Request):
+    """Dashboard summary for admins - event popularity, user engagement, etc."""
+    total_users = await db.users.count_documents({})
+    total_events = await db.events.count_documents({})
+    total_partners = await db.partners.count_documents({})
+    total_interactions = await db.analytics.count_documents({})
+
+    # Top viewed events
+    pipeline = [
+        {"$match": {"event_type": "event_click"}},
+        {"$group": {"_id": "$target_id", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10}
+    ]
+    top_events = await db.analytics.aggregate(pipeline).to_list(10)
+
+    # Interactions by type
+    type_pipeline = [
+        {"$group": {"_id": "$event_type", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}}
+    ]
+    interactions_by_type = await db.analytics.aggregate(type_pipeline).to_list(20)
+
+    return {
+        "total_users": total_users,
+        "total_events": total_events,
+        "total_partners": total_partners,
+        "total_interactions": total_interactions,
+        "top_events": [{"event_id": e["_id"], "views": e["count"]} for e in top_events],
+        "interactions_by_type": [{"type": e["_id"], "count": e["count"]} for e in interactions_by_type],
+    }
+
+
 # ── Seed Data ───────────────────────────────────────────────
 async def seed_database():
-    count = await db.events.count_documents({})
+    count = await db.seasons.count_documents({})
     if count > 0:
         logger.info("Database already seeded")
         return
@@ -329,6 +420,65 @@ async def seed_database():
     IMG_JAZZ = "https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800"
     IMG_DJ = "https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=800"
     IMG_CLOSING = "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800"
+    IMG_FOOD = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800"
+    IMG_FILM = "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=800"
+    IMG_WELLNESS = "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800"
+
+    # ── Seasons ──
+    seasons = [
+        {
+            "season_id": "season_001",
+            "name": "Music Week",
+            "subtitle": "La experiencia de ciudad",
+            "description": "La semana de música más importante de Cartagena. Sunsets, Templo, beach clubs, cultura y wellness.",
+            "start_date": "2026-01-12",
+            "end_date": "2026-01-16",
+            "image_url": IMG_SUNSET,
+            "color": "#D97706",
+            "tags": ["Sunset", "Templo", "Beach", "Cultura", "Wellness"],
+            "is_active": True,
+            "event_count": 15,
+        },
+        {
+            "season_id": "season_002",
+            "name": "Semana Gastronómica",
+            "subtitle": "Sabores del Caribe",
+            "description": "Los mejores chefs y restaurantes de Cartagena se unen para una semana de experiencias gastronómicas únicas.",
+            "start_date": "2026-02-09",
+            "end_date": "2026-02-15",
+            "image_url": IMG_FOOD,
+            "color": "#DC2626",
+            "tags": ["Gastronomía", "Chefs", "Maridaje", "Street Food", "Fine Dining"],
+            "is_active": True,
+            "event_count": 0,
+        },
+        {
+            "season_id": "season_003",
+            "name": "Festival de Cine",
+            "subtitle": "Cartagena en pantalla",
+            "description": "Proyecciones al aire libre, charlas con directores y premieres exclusivas en venues históricos.",
+            "start_date": "2026-03-02",
+            "end_date": "2026-03-08",
+            "image_url": IMG_FILM,
+            "color": "#7C3AED",
+            "tags": ["Cine", "Documentales", "Premieres", "Directores", "Al Aire Libre"],
+            "is_active": True,
+            "event_count": 0,
+        },
+        {
+            "season_id": "season_004",
+            "name": "Wellness Week",
+            "subtitle": "Reconecta cuerpo y mente",
+            "description": "Yoga, meditación, sound healing, retiros y experiencias de bienestar en los lugares más hermosos de Cartagena.",
+            "start_date": "2026-04-06",
+            "end_date": "2026-04-12",
+            "image_url": IMG_WELLNESS,
+            "color": "#059669",
+            "tags": ["Yoga", "Meditación", "Sound Healing", "Retiros", "Spa"],
+            "is_active": False,
+            "event_count": 0,
+        },
+    ]
 
     events = [
         {"event_id":"evt_001","title":"Sunset Session","description":"Live DJ set contra el telón del legendario atardecer de Cartagena desde las murallas coloniales. Música chill, cócteles y vistas increíbles.","date":"2026-01-12","start_time":"17:00","end_time":"20:00","venue_id":"ven_001","venue_name":"La Muralla","type":"sunset","is_free":True,"price":0,"image_url":IMG_SUNSET,"booking_link":"","capacity":500,"tags":["outdoor","music","sunset","free"],"location":{"lat":10.4236,"lng":-75.5483},"featured":True},
@@ -424,12 +574,20 @@ async def seed_database():
         {"notification_id":"ntf_004","user_id":None,"title":"Templo Night I - Sold Out","message":"Templo Night I está sold out. Quedan pocas mesas VIP disponibles.","type":"event_reminder","event_id":"evt_003","is_read":False,"created_at":datetime.now(timezone.utc).isoformat()},
     ]
 
+    await db.seasons.insert_many(seasons)
     await db.events.insert_many(events)
     await db.venues.insert_many(venues)
     await db.partners.insert_many(partners)
     await db.itineraries.insert_many(itineraries)
     await db.transport.insert_many(transport_data)
     await db.notifications.insert_many(notifications)
+
+    # Create indexes for analytics
+    await db.analytics.create_index("event_type")
+    await db.analytics.create_index("timestamp")
+    await db.analytics.create_index("user_id")
+    await db.events.create_index("season_id")
+
     logger.info("Database seeded successfully!")
 
 

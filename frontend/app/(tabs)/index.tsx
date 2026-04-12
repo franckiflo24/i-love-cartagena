@@ -1,11 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, RefreshControl } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, RefreshControl, Dimensions, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS, IMAGES } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
+
+type Season = {
+  season_id: string; name: string; subtitle: string; description: string;
+  start_date: string; end_date: string; image_url: string; color: string;
+  tags: string[]; is_active: boolean; event_count: number;
+};
 
 type Event = {
   event_id: string; title: string; description: string; date: string;
@@ -13,20 +22,32 @@ type Event = {
   is_free: boolean; price: number; image_url: string; featured?: boolean;
 };
 
+const formatDateRange = (start: string, end: string) => {
+  const months = ['', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+  const s = new Date(start + 'T00:00:00');
+  const e = new Date(end + 'T00:00:00');
+  return `${s.getDate()} - ${e.getDate()} ${months[s.getMonth() + 1]} ${s.getFullYear()}`;
+};
+
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const [seasons, setSeasons] = useState<Season[]>([]);
   const [featured, setFeatured] = useState<Event[]>([]);
   const [todayEvents, setTodayEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [activeSeasonIdx, setActiveSeasonIdx] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
 
   const fetchData = async () => {
     try {
-      const [f, t] = await Promise.all([
+      const [s, f, t] = await Promise.all([
+        api.get('/seasons?active=true'),
         api.get('/events/featured'),
         api.get('/events?date=2026-01-12'),
       ]);
+      setSeasons(s);
       setFeatured(f);
       setTodayEvents(t);
     } catch (e) {
@@ -39,9 +60,22 @@ export default function HomeScreen() {
 
   useEffect(() => { fetchData(); }, []);
 
+  const trackEvent = async (eventType: string, targetId?: string, targetType?: string) => {
+    try {
+      await api.post('/analytics/track', { event_type: eventType, target_id: targetId, target_type: targetType });
+    } catch {}
+  };
+
   const formatPrice = (price: number) => {
     if (price === 0) return 'Gratis';
     return `$${(price / 1000).toFixed(0)}K COP`;
+  };
+
+  const onSeasonScroll = (e: any) => {
+    const idx = Math.round(e.nativeEvent.contentOffset.x / (HERO_WIDTH + SPACING.md));
+    if (idx !== activeSeasonIdx && idx >= 0 && idx < seasons.length) {
+      setActiveSeasonIdx(idx);
+    }
   };
 
   if (loading) {
@@ -51,6 +85,31 @@ export default function HomeScreen() {
       </SafeAreaView>
     );
   }
+
+  const renderSeasonCard = ({ item, index }: { item: Season; index: number }) => (
+    <TouchableOpacity
+      testID={`season-${item.season_id}`}
+      style={[styles.heroCard, { width: HERO_WIDTH }]}
+      activeOpacity={0.9}
+      onPress={() => {
+        trackEvent('season_click', item.season_id, 'season');
+        if (item.event_count > 0) router.push('/(tabs)/agenda');
+      }}
+    >
+      <Image source={{ uri: item.image_url }} style={styles.heroImage} />
+      <View style={styles.heroOverlay} />
+      <View style={styles.heroContent}>
+        <Text style={[styles.heroLabel, { color: item.color }]}>{formatDateRange(item.start_date, item.end_date)}</Text>
+        <Text style={styles.heroTitle}>{item.name}</Text>
+        <Text style={styles.heroSub}>{item.tags.join(' · ')}</Text>
+        {item.event_count === 0 && (
+          <View style={[styles.comingSoonBadge, { backgroundColor: item.color }]}>
+            <Text style={styles.comingSoonText}>PRÓXIMAMENTE</Text>
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -69,16 +128,33 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Hero */}
-        <TouchableOpacity testID="hero-banner" style={styles.heroCard} activeOpacity={0.9}>
-          <Image source={{ uri: IMAGES.hero }} style={styles.heroImage} />
-          <View style={styles.heroOverlay} />
-          <View style={styles.heroContent}>
-            <Text style={styles.heroLabel}>12 - 16 ENERO 2026</Text>
-            <Text style={styles.heroTitle}>La experiencia{'\n'}de ciudad</Text>
-            <Text style={styles.heroSub}>Sunset · Templo · Beach · Cultura · Wellness</Text>
+        {/* Season Carousel */}
+        <FlatList
+          ref={flatListRef}
+          data={seasons}
+          renderItem={renderSeasonCard}
+          keyExtractor={(item) => item.season_id}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={HERO_WIDTH + SPACING.md}
+          decelerationRate="fast"
+          contentContainerStyle={{ paddingHorizontal: SPACING.lg, gap: SPACING.md }}
+          onScroll={onSeasonScroll}
+          scrollEventThrottle={16}
+        />
+
+        {/* Pagination Dots */}
+        {seasons.length > 1 && (
+          <View style={styles.dotsContainer}>
+            {seasons.map((s, i) => (
+              <View
+                key={s.season_id}
+                style={[styles.dot, i === activeSeasonIdx ? [styles.dotActive, { backgroundColor: s.color }] : null]}
+              />
+            ))}
           </View>
-        </TouchableOpacity>
+        )}
 
         {/* Quick Access */}
         <View style={styles.quickAccess}>
@@ -92,7 +168,10 @@ export default function HomeScreen() {
               key={item.label}
               testID={`quick-${item.label.toLowerCase()}`}
               style={styles.quickItem}
-              onPress={() => router.push(item.route as any)}
+              onPress={() => {
+                trackEvent('quick_access', item.label, 'navigation');
+                router.push(item.route as any);
+              }}
             >
               <View style={styles.quickIcon}>
                 <Ionicons name={item.icon as any} size={22} color={COLORS.primary} />
@@ -116,7 +195,10 @@ export default function HomeScreen() {
                 key={event.event_id}
                 testID={`featured-${event.event_id}`}
                 style={styles.featuredCard}
-                onPress={() => router.push(`/event/${event.event_id}`)}
+                onPress={() => {
+                  trackEvent('event_click', event.event_id, 'event');
+                  router.push(`/event/${event.event_id}`);
+                }}
                 activeOpacity={0.8}
               >
                 <Image source={{ uri: event.image_url }} style={styles.featuredImage} />
@@ -149,7 +231,10 @@ export default function HomeScreen() {
               key={event.event_id}
               testID={`today-${event.event_id}`}
               style={styles.eventRow}
-              onPress={() => router.push(`/event/${event.event_id}`)}
+              onPress={() => {
+                trackEvent('event_click', event.event_id, 'event');
+                router.push(`/event/${event.event_id}`);
+              }}
               activeOpacity={0.7}
             >
               <View style={styles.eventTime}>
@@ -181,10 +266,13 @@ export default function HomeScreen() {
           <TouchableOpacity
             testID="partners-cta"
             style={styles.partnersCta}
-            onPress={() => router.push('/(tabs)/partners')}
+            onPress={() => {
+              trackEvent('partner_section_click', undefined, 'navigation');
+              router.push('/(tabs)/partners');
+            }}
             activeOpacity={0.8}
           >
-            <Image source={{ uri: IMAGES.texture }} style={styles.partnersCtaImage} />
+            <Image source={{ uri: 'https://static.prod-images.emergentagent.com/jobs/32dad071-4fb0-440b-90c6-bb16ae39bea1/images/4f979e7ba4b32872c4b07dadcb054eb78f999948cb9373a70a78567dea9e65ab.png' }} style={styles.partnersCtaImage} />
             <View style={styles.partnersCtaOverlay} />
             <View style={styles.partnersCtaContent}>
               <Ionicons name="diamond" size={28} color={COLORS.primary} />
@@ -206,13 +294,18 @@ const styles = StyleSheet.create({
   greeting: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular },
   headerTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, marginTop: 2 },
   notifBtn: { width: 44, height: 44, borderRadius: RADIUS.full, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
-  heroCard: { marginHorizontal: SPACING.lg, borderRadius: RADIUS.xl, overflow: 'hidden', height: 220, marginBottom: SPACING.lg },
+  heroCard: { borderRadius: RADIUS.xl, overflow: 'hidden', height: 220 },
   heroImage: { width: '100%', height: '100%', position: 'absolute' },
   heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5,8,20,0.5)' },
   heroContent: { flex: 1, justifyContent: 'flex-end', padding: SPACING.lg },
-  heroLabel: { fontSize: 11, color: COLORS.primary, letterSpacing: 3, ...FONTS.semibold },
+  heroLabel: { fontSize: 11, letterSpacing: 3, ...FONTS.semibold },
   heroTitle: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.xs, lineHeight: 34 },
   heroSub: { fontSize: 13, color: COLORS.textMuted, marginTop: SPACING.sm, ...FONTS.regular },
+  comingSoonBadge: { alignSelf: 'flex-start', borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 4, marginTop: SPACING.sm },
+  comingSoonText: { fontSize: 10, color: COLORS.white, ...FONTS.bold, letterSpacing: 2 },
+  dotsContainer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, paddingVertical: SPACING.md },
+  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.2)' },
+  dotActive: { width: 24, height: 8, borderRadius: 4 },
   quickAccess: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: SPACING.lg, marginBottom: SPACING.lg },
   quickItem: { alignItems: 'center', gap: SPACING.sm },
   quickIcon: { width: 52, height: 52, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.border },
