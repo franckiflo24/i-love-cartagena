@@ -44,7 +44,7 @@ export default function PartnersScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Partners</Text>
-        <Text style={styles.subtitle}>Lugares certificados por CMW</Text>
+        <Text style={styles.subtitle}>Lugares certificados por I ❤️ Cartagena</Text>
       </View>
 
       {/* Category Filter */}

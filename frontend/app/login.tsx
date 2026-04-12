@@ -33,8 +33,9 @@ export default function LoginScreen() {
       <View style={styles.overlay} />
       <View style={styles.content}>
         <View style={styles.logoArea}>
-          <Text style={styles.logoPrefix}>CARTAGENA</Text>
-          <Text style={styles.logoMain}>MUSIC WEEK</Text>
+          <Text style={styles.logoPrefix}>I</Text>
+          <Text style={styles.logoHeart}>❤️</Text>
+          <Text style={styles.logoMain}>CARTAGENA</Text>
           <View style={styles.divider} />
           <Text style={styles.tagline}>La experiencia oficial de ciudad</Text>
         </View>
@@ -64,7 +65,7 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           <Text style={styles.disclaimer}>
-            Al continuar, aceptas los términos y condiciones de CMW
+            Al continuar, aceptas los términos y condiciones de I ❤️ Cartagena
           </Text>
         </View>
       </View>
@@ -79,7 +80,8 @@ const styles = StyleSheet.create({
   overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(5, 8, 20, 0.7)' },
   content: { flex: 1, justifyContent: 'space-between', paddingHorizontal: SPACING.lg, paddingTop: SPACING.xxl * 2, paddingBottom: SPACING.xl },
   logoArea: { alignItems: 'center' },
-  logoPrefix: { fontSize: 14, letterSpacing: 8, color: COLORS.primary, ...FONTS.medium },
+  logoPrefix: { fontSize: 32, letterSpacing: 4, color: COLORS.textMain, ...FONTS.light },
+  logoHeart: { fontSize: 48, marginVertical: SPACING.xs },
   logoMain: { fontSize: 42, letterSpacing: 2, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.xs },
   divider: { width: 60, height: 2, backgroundColor: COLORS.primary, marginTop: SPACING.md, borderRadius: 1 },
   tagline: { fontSize: 15, color: COLORS.textMuted, marginTop: SPACING.md, ...FONTS.light, letterSpacing: 1 },
