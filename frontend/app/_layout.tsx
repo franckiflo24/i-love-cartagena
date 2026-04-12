@@ -14,6 +14,8 @@ export default function RootLayout() {
         <Stack.Screen name="transport" options={{ presentation: 'modal' }} />
         <Stack.Screen name="itineraries" options={{ presentation: 'modal' }} />
         <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="admin" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="city-pass" options={{ presentation: 'modal' }} />
       </Stack>
     </AuthProvider>
   );

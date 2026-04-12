@@ -72,8 +72,10 @@ export default function PerfilScreen() {
         <View style={styles.quickActions}>
           {[
             { icon: 'notifications-outline', label: 'Notificaciones', route: '/notifications' },
+            { icon: 'ticket-outline', label: 'City Pass', route: '/city-pass' },
             { icon: 'boat-outline', label: 'Transporte', route: '/transport' },
             { icon: 'trail-sign-outline', label: 'Itinerarios', route: '/itineraries' },
+            { icon: 'bar-chart-outline', label: 'Dashboard', route: '/admin' },
           ].map(item => (
             <TouchableOpacity
               key={item.label}
@@ -165,8 +167,8 @@ const styles = StyleSheet.create({
   avatarText: { fontSize: 32, color: COLORS.white, ...FONTS.bold },
   userName: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.md },
   userEmail: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 4 },
-  quickActions: { flexDirection: 'row', justifyContent: 'center', gap: SPACING.lg, paddingHorizontal: SPACING.lg, marginBottom: SPACING.lg },
-  actionBtn: { alignItems: 'center', gap: SPACING.xs, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.md, minWidth: 90, borderWidth: 1, borderColor: COLORS.border },
+  quickActions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: SPACING.sm, paddingHorizontal: SPACING.lg, marginBottom: SPACING.lg },
+  actionBtn: { alignItems: 'center', gap: SPACING.xs, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.sm, minWidth: 80, borderWidth: 1, borderColor: COLORS.border },
   actionLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
   tabs: { flexDirection: 'row', marginHorizontal: SPACING.lg, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, padding: 4, marginBottom: SPACING.md },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: RADIUS.md },

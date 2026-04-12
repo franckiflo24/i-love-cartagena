@@ -372,6 +372,8 @@ async def analytics_summary(request: Request):
     total_events = await db.events.count_documents({})
     total_partners = await db.partners.count_documents({})
     total_interactions = await db.analytics.count_documents({})
+    total_seasons = await db.seasons.count_documents({})
+    total_passes = await db.city_passes.count_documents({})
 
     # Top viewed events
     pipeline = [
@@ -380,7 +382,11 @@ async def analytics_summary(request: Request):
         {"$sort": {"count": -1}},
         {"$limit": 10}
     ]
-    top_events = await db.analytics.aggregate(pipeline).to_list(10)
+    top_events_raw = await db.analytics.aggregate(pipeline).to_list(10)
+    top_events = []
+    for e in top_events_raw:
+        evt = await db.events.find_one({"event_id": e["_id"]}, {"_id": 0, "event_id": 1, "title": 1, "type": 1, "venue_name": 1})
+        top_events.append({"event_id": e["_id"], "views": e["count"], "title": evt["title"] if evt else "Unknown", "type": evt.get("type", "") if evt else "", "venue": evt.get("venue_name", "") if evt else ""})
 
     # Interactions by type
     type_pipeline = [
@@ -389,14 +395,89 @@ async def analytics_summary(request: Request):
     ]
     interactions_by_type = await db.analytics.aggregate(type_pipeline).to_list(20)
 
+    # Top partners clicked
+    partner_pipeline = [
+        {"$match": {"event_type": "partner_click"}},
+        {"$group": {"_id": "$target_id", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 5}
+    ]
+    top_partners_raw = await db.analytics.aggregate(partner_pipeline).to_list(5)
+    top_partners = []
+    for p in top_partners_raw:
+        ptr = await db.partners.find_one({"partner_id": p["_id"]}, {"_id": 0, "partner_id": 1, "name": 1, "category": 1})
+        top_partners.append({"partner_id": p["_id"], "clicks": p["count"], "name": ptr["name"] if ptr else "Unknown", "category": ptr.get("category", "") if ptr else ""})
+
+    # Events per season
+    season_pipeline = [
+        {"$group": {"_id": "$season_id", "count": {"$sum": 1}}},
+    ]
+    events_per_season_raw = await db.events.aggregate(season_pipeline).to_list(20)
+    events_per_season = []
+    for s in events_per_season_raw:
+        ssn = await db.seasons.find_one({"season_id": s["_id"]}, {"_id": 0, "season_id": 1, "name": 1, "color": 1}) if s["_id"] else None
+        events_per_season.append({"season_id": s["_id"] or "none", "count": s["count"], "name": ssn["name"] if ssn else "Sin temporada", "color": ssn.get("color", "#666") if ssn else "#666"})
+
+    # Booking clicks (revenue potential)
+    booking_clicks = await db.analytics.count_documents({"event_type": "booking_click"})
+
     return {
         "total_users": total_users,
         "total_events": total_events,
         "total_partners": total_partners,
         "total_interactions": total_interactions,
-        "top_events": [{"event_id": e["_id"], "views": e["count"]} for e in top_events],
-        "interactions_by_type": [{"type": e["_id"], "count": e["count"]} for e in interactions_by_type],
+        "total_seasons": total_seasons,
+        "total_passes": total_passes,
+        "booking_clicks": booking_clicks,
+        "top_events": top_events,
+        "top_partners": top_partners,
+        "interactions_by_type": [{"type": e["_id"] or "unknown", "count": e["count"]} for e in interactions_by_type],
+        "events_per_season": events_per_season,
     }
+
+
+# ── City Pass ───────────────────────────────────────────────
+@api_router.get("/city-pass/plans")
+async def city_pass_plans():
+    return [
+        {"plan_id": "pass_basic", "name": "Explorer Pass", "price": 99000, "currency": "COP", "duration_days": 7, "color": "#D97706",
+         "benefits": ["Welcome drink en partners", "Prioridad de reserva", "5% descuento en experiencias", "Transporte nocturno gratis", "Acceso anticipado a eventos"]},
+        {"plan_id": "pass_premium", "name": "VIP Pass", "price": 299000, "currency": "COP", "duration_days": 7, "color": "#EAB308",
+         "benefits": ["Todo lo del Explorer Pass", "15% descuento en experiencias", "Mesa prioritaria en restaurantes", "Acceso VIP a venues", "Concierge personal", "Boat transfer incluido"]},
+        {"plan_id": "pass_ultimate", "name": "Ultimate Pass", "price": 599000, "currency": "COP", "duration_days": 7, "color": "#F59E0B",
+         "benefits": ["Todo lo del VIP Pass", "30% descuento en experiencias", "Acceso backstage", "Experiencias exclusivas", "Chef privado una noche", "Transfer aeropuerto incluido"]},
+    ]
+
+
+@api_router.post("/city-pass/activate")
+async def activate_city_pass(request: Request):
+    user = await get_current_user(request)
+    body = await request.json()
+    plan_id = body.get("plan_id")
+    if not plan_id:
+        raise HTTPException(status_code=400, detail="plan_id required")
+
+    existing = await db.city_passes.find_one({"user_id": user["user_id"], "is_active": True}, {"_id": 0})
+    if existing:
+        return {"status": "already_active", "pass": existing}
+
+    pass_doc = {
+        "pass_id": f"cp_{uuid.uuid4().hex[:12]}",
+        "user_id": user["user_id"],
+        "plan_id": plan_id,
+        "activated_at": datetime.now(timezone.utc).isoformat(),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),
+        "is_active": True,
+    }
+    await db.city_passes.insert_one(pass_doc)
+    return {"status": "activated", "pass": {k: v for k, v in pass_doc.items() if k != "_id"}}
+
+
+@api_router.get("/city-pass/mine")
+async def my_city_pass(request: Request):
+    user = await get_current_user(request)
+    active = await db.city_passes.find_one({"user_id": user["user_id"], "is_active": True}, {"_id": 0})
+    return active
 
 
 # ── Seed Data ───────────────────────────────────────────────
