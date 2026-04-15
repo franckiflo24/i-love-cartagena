@@ -24,6 +24,7 @@ export default function RootLayout() {
         <Stack.Screen name="concerts" options={{ presentation: 'modal' }} />
         <Stack.Screen name="favorites" options={{ presentation: 'modal' }} />
         <Stack.Screen name="complete-profile" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="search" options={{ presentation: 'modal' }} />
       </Stack>
       </FavoritesProvider>
       </LanguageProvider>

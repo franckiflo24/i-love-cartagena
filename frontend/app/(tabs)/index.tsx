@@ -135,6 +135,12 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Search Bar */}
+        <TouchableOpacity style={styles.searchBar} onPress={() => router.push('/search')} activeOpacity={0.8}>
+          <Ionicons name="search" size={18} color={COLORS.textMuted} />
+          <Text style={styles.searchPlaceholder}>Buscar artistas, venues, eventos...</Text>
+        </TouchableOpacity>
+
         {/* Season Carousel */}
         <FlatList
           ref={flatListRef}
@@ -302,6 +308,8 @@ const styles = StyleSheet.create({
   greeting: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular },
   headerTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, marginTop: 2 },
   notifBtn: { width: 44, height: 44, borderRadius: RADIUS.full, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
+  searchBar: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, paddingHorizontal: SPACING.md, paddingVertical: 12, borderWidth: 1, borderColor: COLORS.border },
+  searchPlaceholder: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular },
   heroCard: { borderRadius: RADIUS.xl, overflow: 'hidden', height: 220 },
   heroImage: { width: '100%', height: '100%', position: 'absolute' },
   heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5,8,20,0.5)' },
