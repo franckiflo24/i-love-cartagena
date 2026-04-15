@@ -6,6 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
+import { useLang } from '../../src/context/LanguageContext';
+import { LANG_LABELS, LANG_FLAGS, Lang } from '../../src/i18n/translations';
 
 type Event = {
   event_id: string; title: string; date: string; start_time: string;
@@ -16,6 +18,7 @@ type Event = {
 export default function PerfilScreen() {
   const router = useRouter();
   const { user, login, logout } = useAuth();
+  const { lang, setLang, s } = useLang();
   const [favorites, setFavorites] = useState<Event[]>([]);
   const [myWeek, setMyWeek] = useState<Event[]>([]);
   const [activeTab, setActiveTab] = useState<'week' | 'favorites'>('week');
@@ -71,10 +74,10 @@ export default function PerfilScreen() {
         {/* Quick Actions */}
         <View style={styles.quickActions}>
           {[
-            { icon: 'notifications-outline', label: 'Notificaciones', route: '/notifications' },
+            { icon: 'notifications-outline', label: s('profile_notifications'), route: '/notifications' },
             { icon: 'ticket-outline', label: 'City Pass', route: '/city-pass' },
-            { icon: 'boat-outline', label: 'Transporte', route: '/transport' },
-            { icon: 'trail-sign-outline', label: 'Itinerarios', route: '/itineraries' },
+            { icon: 'boat-outline', label: s('home_transport'), route: '/transport' },
+            { icon: 'trail-sign-outline', label: s('home_routes'), route: '/itineraries' },
             { icon: 'bar-chart-outline', label: 'Dashboard', route: '/admin' },
           ].map(item => (
             <TouchableOpacity
@@ -87,6 +90,29 @@ export default function PerfilScreen() {
               <Text style={styles.actionLabel}>{item.label}</Text>
             </TouchableOpacity>
           ))}
+        </View>
+
+        {/* Language Selector */}
+        <View style={styles.langSection}>
+          <View style={styles.langHeader}>
+            <Ionicons name="globe-outline" size={18} color={COLORS.textMuted} />
+            <Text style={styles.langTitle}>{s('profile_language')}</Text>
+          </View>
+          <View style={styles.langRow}>
+            {(['es', 'en', 'fr'] as Lang[]).map(l => {
+              const isActive = lang === l;
+              return (
+                <TouchableOpacity
+                  key={l}
+                  style={[styles.langBtn, isActive && styles.langBtnActive]}
+                  onPress={() => setLang(l)}
+                >
+                  <Text style={styles.langFlag}>{LANG_FLAGS[l]}</Text>
+                  <Text style={[styles.langLabel, isActive && styles.langLabelActive]}>{LANG_LABELS[l]}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
 
         {/* Tabs */}
@@ -170,6 +196,15 @@ const styles = StyleSheet.create({
   quickActions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: SPACING.sm, paddingHorizontal: SPACING.lg, marginBottom: SPACING.lg },
   actionBtn: { alignItems: 'center', gap: SPACING.xs, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.sm, minWidth: 80, borderWidth: 1, borderColor: COLORS.border },
   actionLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
+  langSection: { marginHorizontal: SPACING.lg, marginBottom: SPACING.lg },
+  langHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.sm },
+  langTitle: { fontSize: 14, color: COLORS.textMuted, ...FONTS.semibold },
+  langRow: { flexDirection: 'row', gap: SPACING.sm },
+  langBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, borderWidth: 1.5, borderColor: COLORS.border },
+  langBtnActive: { borderColor: COLORS.primary, backgroundColor: `${COLORS.primary}12` },
+  langFlag: { fontSize: 20 },
+  langLabel: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
+  langLabelActive: { color: COLORS.primary, ...FONTS.bold },
   tabs: { flexDirection: 'row', marginHorizontal: SPACING.lg, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, padding: 4, marginBottom: SPACING.md },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: RADIUS.md },
   tabActive: { backgroundColor: COLORS.primary },

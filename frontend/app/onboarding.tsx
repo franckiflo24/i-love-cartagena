@@ -7,36 +7,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
+import { useLang } from '../src/context/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
-const SLIDES = [
-  {
-    emoji: '🎵',
-    title: 'Toda la música\nen un solo lugar',
-    description: 'Descubre conciertos, DJs, jazz, salsa y más. Filtra por fecha, género y guarda tus favoritos.',
-    color: '#D97706',
-    pills: ['Conciertos', 'Filtros', 'Favoritos'],
-  },
-  {
-    emoji: '📍',
-    title: 'Explora\nCartagena',
-    description: 'Mapa interactivo con todos los venues, partners y puntos de interés. Encuentra qué hay cerca de ti.',
-    color: '#3B82F6',
-    pills: ['Venues', 'Partners', 'Navegación'],
-  },
-  {
-    emoji: '🎫',
-    title: 'City Pass\nexclusivo',
-    description: 'Descuentos en restaurantes, clubs y hoteles. Tu QR code personal para disfrutar Cartagena sin límites.',
-    color: '#22C55E',
-    pills: ['QR Code', 'Descuentos', 'Premium'],
-  },
-];
-
 export default function OnboardingScreen() {
   const router = useRouter();
+  const { s } = useLang();
   const [index, setIndex] = useState(0);
+
+  const SLIDES = [
+    { emoji: '🎵', title: s('onboard_1_title'), description: s('onboard_1_desc'), color: '#D97706', pills: ['Conciertos', 'Filtros', 'Favoritos'] },
+    { emoji: '📍', title: s('onboard_2_title'), description: s('onboard_2_desc'), color: '#3B82F6', pills: ['Venues', 'Partners', 'Navegación'] },
+    { emoji: '🎫', title: s('onboard_3_title'), description: s('onboard_3_desc'), color: '#22C55E', pills: ['QR Code', 'Descuentos', 'Premium'] },
+  ];
 
   const slide = SLIDES[index];
   const isLast = index === SLIDES.length - 1;
@@ -61,7 +45,7 @@ export default function OnboardingScreen() {
         <View />
         {!isLast && (
           <TouchableOpacity onPress={completeOnboarding} style={styles.skipBtn}>
-            <Text style={styles.skipText}>Saltar</Text>
+            <Text style={styles.skipText}>{s('onboard_skip')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -108,11 +92,11 @@ export default function OnboardingScreen() {
           {isLast ? (
             <>
               <Ionicons name="rocket" size={20} color="#FFF" />
-              <Text style={styles.nextBtnText}>Empezar</Text>
+              <Text style={styles.nextBtnText}>{s('onboard_start')}</Text>
             </>
           ) : (
             <>
-              <Text style={styles.nextBtnText}>Siguiente</Text>
+              <Text style={styles.nextBtnText}>{s('onboard_next')}</Text>
               <Ionicons name="arrow-forward" size={20} color="#FFF" />
             </>
           )}

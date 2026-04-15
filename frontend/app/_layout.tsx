@@ -2,10 +2,12 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '../src/context/AuthContext';
 import { FavoritesProvider } from '../src/context/FavoritesContext';
+import { LanguageProvider } from '../src/context/LanguageContext';
 
 export default function RootLayout() {
   return (
     <AuthProvider>
+      <LanguageProvider>
       <FavoritesProvider>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
@@ -21,9 +23,9 @@ export default function RootLayout() {
         <Stack.Screen name="city-pass" options={{ presentation: 'modal' }} />
         <Stack.Screen name="concerts" options={{ presentation: 'modal' }} />
         <Stack.Screen name="favorites" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="search" options={{ presentation: 'modal' }} />
       </Stack>
       </FavoritesProvider>
+      </LanguageProvider>
     </AuthProvider>
   );
 }

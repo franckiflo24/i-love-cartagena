@@ -5,10 +5,12 @@ import { useAuth } from '../src/context/AuthContext';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useLang } from '../src/context/LanguageContext';
 
 export default function LoginScreen() {
   const { user, isLoading, login } = useAuth();
   const router = useRouter();
+  const { s } = useLang();
 
   useEffect(() => {
     if (user && !isLoading) {
@@ -35,15 +37,15 @@ export default function LoginScreen() {
         <View style={styles.logoArea}>
           <Text style={styles.logoPrefix}>I</Text>
           <Text style={styles.logoHeart}>❤️</Text>
-          <Text style={styles.logoMusic}>MÚSICA</Text>
+          <Text style={styles.logoMusic}>{s('login_music')}</Text>
           <Text style={styles.logoMain}>CARTAGENA</Text>
           <View style={styles.divider} />
-          <Text style={styles.tagline}>La experiencia musical de la ciudad</Text>
+          <Text style={styles.tagline}>{s('login_tagline')}</Text>
         </View>
 
         <View style={styles.bottomArea}>
           <Text style={styles.welcomeText}>
-            Conciertos, agenda, partners y reservas en un solo lugar
+            {s('login_welcome')}
           </Text>
 
           <TouchableOpacity
@@ -53,7 +55,7 @@ export default function LoginScreen() {
             activeOpacity={0.8}
           >
             <Ionicons name="logo-google" size={20} color={COLORS.white} />
-            <Text style={styles.googleButtonText}>Continuar con Google</Text>
+            <Text style={styles.googleButtonText}>{s('login_google')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -62,11 +64,11 @@ export default function LoginScreen() {
             onPress={() => router.replace('/(tabs)')}
             activeOpacity={0.8}
           >
-            <Text style={styles.guestButtonText}>Explorar como invitado</Text>
+            <Text style={styles.guestButtonText}>{s('login_guest')}</Text>
           </TouchableOpacity>
 
           <Text style={styles.disclaimer}>
-            Al continuar, aceptas los términos y condiciones de Música Cartagena
+            {s('login_terms')}
           </Text>
         </View>
       </View>
