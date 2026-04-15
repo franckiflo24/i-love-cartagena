@@ -303,23 +303,23 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
 
   // Date filter
-  dateScroll: { marginBottom: SPACING.xs },
+  dateScroll: { marginBottom: SPACING.sm },
   dateScrollContent: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, paddingVertical: 4 },
-  dateChip: { alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, minWidth: 52 },
-  dateChipActive: { backgroundColor: `${COLORS.primary}20`, borderColor: COLORS.primary },
-  dateChipDay: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
-  dateChipDate: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold },
-  dateChipMonth: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
-  dateChipText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold },
+  dateChip: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18, paddingVertical: 18, borderRadius: RADIUS.xl, backgroundColor: COLORS.surface, borderWidth: 1.5, borderColor: COLORS.border, minWidth: 64, minHeight: 80 },
+  dateChipActive: { backgroundColor: `${COLORS.primary}15`, borderColor: COLORS.primary },
+  dateChipDay: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
+  dateChipDate: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold, lineHeight: 34 },
+  dateChipMonth: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
+  dateChipText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.semibold },
   dateChipTextActive: { color: COLORS.primary },
 
   // Genre filter
   genreScroll: { marginBottom: SPACING.md },
-  genreScrollContent: { paddingHorizontal: SPACING.lg, gap: SPACING.xs, paddingVertical: 4 },
-  genreChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
+  genreScrollContent: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, paddingVertical: 4 },
+  genreChip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 18, paddingVertical: 20, borderRadius: RADIUS.xl, borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: COLORS.surface, minHeight: 64 },
   genreChipActive: { backgroundColor: `${COLORS.primary}20`, borderColor: COLORS.primary },
-  genreDot: { width: 8, height: 8, borderRadius: 4 },
-  genreChipText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
+  genreDot: { width: 10, height: 10, borderRadius: 5 },
+  genreChipText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.semibold },
   genreChipTextActive: { color: COLORS.primary },
 
   // Concert card
