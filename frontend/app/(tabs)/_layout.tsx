@@ -19,7 +19,7 @@ export default function TabLayout() {
           height: Platform.OS === 'ios' ? 85 : 65,
         },
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: '600',
           letterSpacing: 0.3,
         },
@@ -44,9 +44,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="mapa"
         options={{
-          title: 'Mapa',
-          tabBarIcon: ({ color, size }) => <Ionicons name="map" size={size} color={color} />,
-          tabBarTestID: 'tab-mapa',
+          href: null,
         }}
       />
       <Tabs.Screen

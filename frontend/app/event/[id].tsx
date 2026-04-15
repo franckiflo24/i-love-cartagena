@@ -120,7 +120,7 @@ export default function EventDetail() {
               <Text style={styles.infoValue}>{event.start_time} - {event.end_time}</Text>
             </View>
           </View>
-          <View style={styles.infoRow}>
+          <TouchableOpacity style={styles.infoRow} onPress={openMaps} activeOpacity={0.7}>
             <View style={styles.infoIcon}>
               <Ionicons name="location-outline" size={20} color={COLORS.primary} />
             </View>
@@ -128,7 +128,11 @@ export default function EventDetail() {
               <Text style={styles.infoLabel}>Lugar</Text>
               <Text style={styles.infoValue}>{event.venue_name}</Text>
             </View>
-          </View>
+            <View style={styles.mapCta}>
+              <Ionicons name="map" size={14} color={COLORS.primary} />
+              <Text style={styles.mapCtaText}>Ver mapa</Text>
+            </View>
+          </TouchableOpacity>
           <View style={styles.infoRow}>
             <View style={styles.infoIcon}>
               <Ionicons name="cash-outline" size={20} color={COLORS.primary} />
@@ -216,6 +220,8 @@ const styles = StyleSheet.create({
   infoIcon: { width: 40, height: 40, borderRadius: RADIUS.md, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.border },
   infoLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
   infoValue: { fontSize: 15, color: COLORS.textMain, ...FONTS.semibold },
+  mapCta: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: `${COLORS.primary}15`, paddingHorizontal: 10, paddingVertical: 6, borderRadius: RADIUS.full, borderWidth: 1, borderColor: `${COLORS.primary}30` },
+  mapCtaText: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },
   descSection: { paddingHorizontal: SPACING.lg, marginBottom: SPACING.lg },
   descTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, marginBottom: SPACING.sm },
   descText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 22 },

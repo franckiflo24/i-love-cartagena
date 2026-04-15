@@ -219,6 +219,16 @@ export default function ConcertsScreen() {
                       )}
                     </View>
 
+                    {/* Location CTA - Opens Google Maps */}
+                    <TouchableOpacity
+                      style={styles.locationCta}
+                      onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(concert.venue_name + ' Cartagena Colombia')}`)}
+                    >
+                      <Ionicons name="map" size={16} color={COLORS.primary} />
+                      <Text style={styles.locationCtaText}>{concert.venue_name}</Text>
+                      <Ionicons name="open-outline" size={14} color={COLORS.textMuted} />
+                    </TouchableOpacity>
+
                     {/* Buy Ticket CTA */}
                     {concert.ticket_link ? (
                       <TouchableOpacity
@@ -296,6 +306,8 @@ const styles = StyleSheet.create({
   infoText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
   ticketBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, paddingVertical: 14, borderRadius: RADIUS.full, marginTop: 4 },
   ticketBtnText: { fontSize: 15, color: '#FFF', ...FONTS.bold },
+  locationCta: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: `${COLORS.primary}10`, paddingHorizontal: 12, paddingVertical: 10, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: `${COLORS.primary}25` },
+  locationCtaText: { flex: 1, fontSize: 13, color: COLORS.primary, ...FONTS.semibold },
 
   // Empty
   emptyState: { alignItems: 'center', paddingTop: 80, gap: SPACING.md },
