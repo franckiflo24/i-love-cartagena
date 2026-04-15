@@ -39,6 +39,17 @@ const GENRE_COLORS: Record<string, string> = {
   'Multi-género': '#D97706',
 };
 
+const GENRE_FILTERS = [
+  { key: 'house', label: 'Electro', color: '#D97706' },
+  { key: 'reggaeton', label: 'Reggaeton', color: '#EC4899' },
+  { key: 'salsa', label: 'Salsa', color: '#EF4444' },
+  { key: 'jazz', label: 'Jazz', color: '#F59E0B' },
+  { key: 'techno', label: 'Techno', color: '#22C55E' },
+  { key: 'cumbia', label: 'Cumbia', color: '#F97316' },
+  { key: 'chill', label: 'Chill', color: '#06B6D4' },
+  { key: 'afro', label: 'Afro House', color: '#8B5CF6' },
+];
+
 const getGenreColor = (genre: string) => {
   for (const [key, color] of Object.entries(GENRE_COLORS)) {
     if (genre.toLowerCase().includes(key.toLowerCase())) return color;
@@ -62,29 +73,34 @@ export default function ConcertsScreen() {
   const router = useRouter();
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [dates, setDates] = useState<string[]>([]);
+  const [genres, setGenres] = useState<string[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [d, c] = await Promise.all([
+        const [d, c, g] = await Promise.all([
           api.get('/concerts/dates'),
           api.get('/concerts'),
+          api.get('/concerts/genres'),
         ]);
         setDates(d);
         setConcerts(c);
-        if (d.length > 0) setSelectedDate(null); // Show all initially
+        setGenres(g);
       } catch (e) { console.error(e); }
       setLoading(false);
     };
     load();
   }, []);
 
-  const filteredConcerts = selectedDate
-    ? concerts.filter(c => c.date === selectedDate)
-    : concerts;
+  const filteredConcerts = concerts.filter(c => {
+    if (selectedDate && c.date !== selectedDate) return false;
+    if (selectedGenre && !c.genre.toLowerCase().includes(selectedGenre.toLowerCase())) return false;
+    return true;
+  });
 
   const openTicketLink = (url: string) => {
     if (url) Linking.openURL(url).catch(() => {});
@@ -124,6 +140,30 @@ export default function ConcertsScreen() {
               <Text style={[styles.dateChipDay, isActive && styles.dateChipTextActive]}>{day}</Text>
               <Text style={[styles.dateChipDate, isActive && styles.dateChipTextActive]}>{date}</Text>
               <Text style={[styles.dateChipMonth, isActive && styles.dateChipTextActive]}>{month}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      {/* Genre Filter */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.genreScroll} contentContainerStyle={styles.genreScrollContent}>
+        <TouchableOpacity
+          style={[styles.genreChip, !selectedGenre && styles.genreChipActive]}
+          onPress={() => setSelectedGenre(null)}
+        >
+          <Ionicons name="musical-notes" size={14} color={!selectedGenre ? COLORS.primary : COLORS.textMuted} />
+          <Text style={[styles.genreChipText, !selectedGenre && styles.genreChipTextActive]}>Todos</Text>
+        </TouchableOpacity>
+        {GENRE_FILTERS.map(g => {
+          const isActive = selectedGenre === g.key;
+          return (
+            <TouchableOpacity
+              key={g.key}
+              style={[styles.genreChip, isActive && { backgroundColor: `${g.color}20`, borderColor: g.color }]}
+              onPress={() => setSelectedGenre(isActive ? null : g.key)}
+            >
+              <View style={[styles.genreDot, { backgroundColor: g.color }]} />
+              <Text style={[styles.genreChipText, isActive && { color: g.color }]}>{g.label}</Text>
             </TouchableOpacity>
           );
         })}
@@ -272,6 +312,15 @@ const styles = StyleSheet.create({
   dateChipMonth: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
   dateChipText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold },
   dateChipTextActive: { color: COLORS.primary },
+
+  // Genre filter
+  genreScroll: { maxHeight: 42, marginBottom: SPACING.sm },
+  genreScrollContent: { paddingHorizontal: SPACING.lg, gap: SPACING.xs },
+  genreChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
+  genreChipActive: { backgroundColor: `${COLORS.primary}20`, borderColor: COLORS.primary },
+  genreDot: { width: 8, height: 8, borderRadius: 4 },
+  genreChipText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
+  genreChipTextActive: { color: COLORS.primary },
 
   // Concert card
   concertCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
