@@ -42,12 +42,35 @@ export default function PerfilScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loginPrompt}>
           <Ionicons name="person-circle-outline" size={80} color={COLORS.textMuted} />
-          <Text style={styles.loginTitle}>Inicia sesión</Text>
-          <Text style={styles.loginDesc}>Guarda tus eventos favoritos y planifica tu semana</Text>
+          <Text style={styles.loginTitle}>{s('profile_login')}</Text>
+          <Text style={styles.loginDesc}>{s('fav_empty_desc')}</Text>
           <TouchableOpacity testID="profile-login-btn" style={styles.loginBtn} onPress={login}>
             <Ionicons name="logo-google" size={18} color={COLORS.white} />
-            <Text style={styles.loginBtnText}>Continuar con Google</Text>
+            <Text style={styles.loginBtnText}>{s('login_google')}</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Language Selector for guests */}
+        <View style={styles.langSectionGuest}>
+          <View style={styles.langHeader}>
+            <Ionicons name="globe-outline" size={18} color={COLORS.textMuted} />
+            <Text style={styles.langTitle}>{s('profile_language')}</Text>
+          </View>
+          <View style={styles.langRow}>
+            {(['es', 'en', 'fr'] as Lang[]).map(l => {
+              const isActive = lang === l;
+              return (
+                <TouchableOpacity
+                  key={l}
+                  style={[styles.langBtn, isActive && styles.langBtnActive]}
+                  onPress={() => setLang(l)}
+                >
+                  <Text style={styles.langFlag}>{LANG_FLAGS[l]}</Text>
+                  <Text style={[styles.langLabel, isActive && styles.langLabelActive]}>{LANG_LABELS[l]}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -197,6 +220,7 @@ const styles = StyleSheet.create({
   actionBtn: { alignItems: 'center', gap: SPACING.xs, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.sm, minWidth: 80, borderWidth: 1, borderColor: COLORS.border },
   actionLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
   langSection: { marginHorizontal: SPACING.lg, marginBottom: SPACING.lg },
+  langSectionGuest: { paddingHorizontal: SPACING.xl, paddingBottom: SPACING.xl },
   langHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.sm },
   langTitle: { fontSize: 14, color: COLORS.textMuted, ...FONTS.semibold },
   langRow: { flexDirection: 'row', gap: SPACING.sm },
