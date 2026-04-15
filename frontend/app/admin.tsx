@@ -37,8 +37,8 @@ type DashboardData = {
   events_per_season: { season_id: string; count: number; name: string; color: string }[];
 };
 
-const TABS = ['General', 'Usuarios', 'Engagement', 'Revenue'];
-const TAB_ICONS: Record<string, string> = { General: 'grid', Usuarios: 'people', Engagement: 'pulse', Revenue: 'card' };
+const TABS = ['General', 'CRM', 'Engagement', 'Revenue'];
+const TAB_ICONS: Record<string, string> = { General: 'grid', CRM: 'people', Engagement: 'pulse', Revenue: 'card' };
 
 const TYPE_LABELS: Record<string, string> = {
   event_click: 'Eventos', season_click: 'Temporadas', partner_click: 'Partners',
@@ -135,14 +135,19 @@ const RankRow = ({ rank, title, subtitle, value, valueLabel }: { rank: number; t
 export default function AdminDashboard() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
+  const [usersData, setUsersData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
 
   const fetchData = useCallback(async () => {
     try {
-      const d = await api.get('/analytics/dashboard');
+      const [d, u] = await Promise.all([
+        api.get('/analytics/dashboard'),
+        api.get('/admin/users').catch(() => null),
+      ]);
       setData(d);
+      if (u) setUsersData(u);
     } catch (e) { console.error('Dashboard fetch error:', e); }
     setLoading(false);
     setRefreshing(false);
@@ -273,101 +278,106 @@ export default function AdminDashboard() {
     </>
   );
 
-  const renderUsuarios = () => (
-    <>
-      {/* Demographics Header */}
-      <View style={styles.demoHeader}>
-        <View style={styles.demoHeaderCard}>
-          <Ionicons name="earth" size={28} color="#3B82F6" />
-          <Text style={styles.demoHeaderValue}>{data.demographics.total_profiled}</Text>
-          <Text style={styles.demoHeaderLabel}>Perfiles analizados</Text>
+  const renderCRM = () => {
+    const users = usersData?.users || [];
+    const stats = usersData?.stats || {};
+    return (
+      <>
+        {/* CRM KPIs */}
+        <View style={styles.kpiGrid}>
+          <KPICard icon="people" label="Registrados" value={usersData?.total || 0} color="#3B82F6" />
+          <KPICard icon="person-circle" label="Perfiles" value={stats.with_profile || 0} color="#22C55E" />
+          <KPICard icon="logo-instagram" label="Instagram" value={stats.with_instagram || 0} color="#EC4899" />
+          <KPICard icon="flag" label="Países" value={stats.countries?.length || 0} color="#F59E0B" />
         </View>
-        <View style={styles.demoHeaderCard}>
-          <Ionicons name="flag" size={28} color="#22C55E" />
-          <Text style={styles.demoHeaderValue}>{data.demographics.nationalities.length}</Text>
-          <Text style={styles.demoHeaderLabel}>Nacionalidades</Text>
-        </View>
-      </View>
 
-      {/* Nationality Distribution */}
-      <View style={styles.section}>
-        <SectionHeader title="Nacionalidades" icon="globe-outline" />
-        <Card>
-          <View style={styles.donutContainer}>
-            {data.demographics.nationalities.slice(0, 6).map((n, i) => {
-              const pct = n.percentage;
-              return (
-                <View key={n.country} style={styles.donutItem}>
-                  <View style={[styles.donutBar, { width: `${Math.max(pct, 5)}%`, backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }]}>
-                    <Text style={styles.donutBarText}>{COUNTRY_FLAGS[n.country] || '🏳️'} {n.country}</Text>
-                  </View>
-                  <Text style={styles.donutPct}>{pct}%</Text>
+        {/* Countries breakdown */}
+        {stats.countries && stats.countries.length > 0 && (
+          <View style={styles.section}>
+            <SectionHeader title="Países de origen" icon="globe-outline" />
+            <Card>
+              {stats.countries.slice(0, 8).map((c: any, i: number) => (
+                <View key={c.country} style={styles.countryRow}>
+                  <Text style={styles.countryRank}>{i + 1}</Text>
+                  <Text style={styles.countryFlag}>{COUNTRY_FLAGS[c.country] || '🏳️'}</Text>
+                  <Text style={styles.countryName}>{c.country}</Text>
+                  <Text style={styles.countryPct}>{c.count}</Text>
                 </View>
-              );
-            })}
+              ))}
+            </Card>
           </View>
-        </Card>
-      </View>
+        )}
 
-      {/* Nationality Ranking */}
-      <View style={styles.section}>
-        <SectionHeader title="Top países" icon="flag-outline" />
-        <Card>
-          {data.demographics.nationalities.slice(0, 10).map((n, i) => (
-            <View key={n.country} style={styles.countryRow}>
-              <Text style={styles.countryRank}>{i + 1}</Text>
-              <Text style={styles.countryFlag}>{COUNTRY_FLAGS[n.country] || '🏳️'}</Text>
-              <Text style={styles.countryName}>{n.country}</Text>
-              <View style={styles.countryBarTrack}>
-                <View style={[styles.countryBarFill, { width: `${n.percentage}%`, backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }]} />
-              </View>
-              <Text style={styles.countryPct}>{n.percentage}%</Text>
-            </View>
-          ))}
-        </Card>
-      </View>
-
-      {/* Age Groups */}
-      <View style={styles.section}>
-        <SectionHeader title="Grupos de edad" icon="people-outline" />
-        <Card>
-          {data.demographics.age_groups.map((a, i) => {
-            const total = data.demographics.age_groups.reduce((s, x) => s + x.count, 0);
-            const pct = total > 0 ? ((a.count / total) * 100).toFixed(1) : 0;
-            return (
-              <View key={a.group} style={styles.genderRow}>
-                <Text style={styles.genderLabel}>{a.group}</Text>
-                <View style={styles.genderTrack}>
-                  <View style={[styles.genderFill, { width: `${pct}%`, backgroundColor: PIE_COLORS[i] }]} />
+        {/* Age Groups */}
+        {stats.age_groups && stats.age_groups.length > 0 && (
+          <View style={styles.section}>
+            <SectionHeader title="Edades" icon="people-outline" />
+            <Card>
+              {stats.age_groups.map((a: any, i: number) => (
+                <View key={a.group} style={styles.genderRow}>
+                  <Text style={styles.genderLabel}>{a.group}</Text>
+                  <View style={styles.genderTrack}>
+                    <View style={[styles.genderFill, { width: `${Math.max((a.count / Math.max(usersData?.total || 1, 1)) * 100, 5)}%`, backgroundColor: PIE_COLORS[i] }]} />
+                  </View>
+                  <Text style={styles.genderPct}>{a.count}</Text>
                 </View>
-                <Text style={styles.genderPct}>{pct}%</Text>
-              </View>
-            );
-          })}
-        </Card>
-      </View>
+              ))}
+            </Card>
+          </View>
+        )}
 
-      {/* Gender */}
-      <View style={styles.section}>
-        <SectionHeader title="Género" icon="male-female-outline" />
-        <Card>
-          {data.demographics.genders.map((g, i) => {
-            const total = data.demographics.genders.reduce((s, x) => s + x.count, 0);
-            const pct = total > 0 ? ((g.count / total) * 100).toFixed(1) : 0;
-            return (
-              <View key={g.gender} style={styles.genderRow}>
-                <Text style={styles.genderLabel}>{g.gender}</Text>
-                <View style={styles.genderTrack}>
-                  <View style={[styles.genderFill, { width: `${pct}%`, backgroundColor: PIE_COLORS[i] }]} />
+        {/* User List - CRM Table */}
+        <View style={styles.section}>
+          <SectionHeader title={`Usuarios registrados (${users.length})`} icon="list-outline" />
+          <Card>
+            {users.length === 0 ? (
+              <Text style={styles.emptyText}>Cuando los usuarios se registren, sus datos aparecerán aquí.</Text>
+            ) : (
+              users.slice(0, 20).map((u: any, i: number) => (
+                <View key={u.user_id || i} style={styles.userRow}>
+                  <View style={styles.userAvatar}>
+                    <Text style={styles.userAvatarText}>{(u.full_name || u.email || '?')[0].toUpperCase()}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.userName} numberOfLines={1}>{u.full_name || 'Sin nombre'}</Text>
+                    <Text style={styles.userEmail} numberOfLines={1}>{u.email}</Text>
+                    <View style={styles.userTags}>
+                      {u.nationality && (
+                        <View style={styles.userTag}>
+                          <Text style={styles.userTagText}>{COUNTRY_FLAGS[u.nationality] || '🏳️'} {u.nationality}</Text>
+                        </View>
+                      )}
+                      {u.age_group && (
+                        <View style={styles.userTag}>
+                          <Text style={styles.userTagText}>{u.age_group}</Text>
+                        </View>
+                      )}
+                      {u.instagram && (
+                        <View style={[styles.userTag, { borderColor: '#EC489940' }]}>
+                          <Text style={[styles.userTagText, { color: '#EC4899' }]}>@{u.instagram}</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
                 </View>
-                <Text style={styles.genderPct}>{pct}%</Text>
-              </View>
-            );
-          })}
-        </Card>
-      </View>
-    </>
-  );
+              ))
+            )}
+          </Card>
+        </View>
+
+        {/* Data for Alcaldía */}
+        <View style={styles.govCard}>
+          <Ionicons name="shield-checkmark" size={22} color="#3B82F6" />
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text style={styles.govTitle}>Datos para la Alcaldía</Text>
+            <Text style={styles.govDesc}>
+              {usersData?.total || 0} usuarios registrados, {stats.with_profile || 0} perfiles completos, {stats.countries?.length || 0} países representados, {stats.with_instagram || 0} con Instagram.
+            </Text>
+          </View>
+        </View>
+      </>
+    );
+  };
 
   const renderEngagement = () => (
     <>
@@ -541,7 +551,7 @@ export default function AdminDashboard() {
     </>
   );
 
-  const tabContent = [renderGeneral, renderUsuarios, renderEngagement, renderRevenue];
+  const tabContent = [renderGeneral, renderCRM, renderEngagement, renderRevenue];
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -706,6 +716,16 @@ const styles = StyleSheet.create({
   govCard: { flexDirection: 'row', alignItems: 'flex-start', marginHorizontal: SPACING.lg, marginTop: SPACING.sm, marginBottom: SPACING.md, backgroundColor: 'rgba(59,130,246,0.08)', borderRadius: RADIUS.lg, padding: SPACING.md, borderWidth: 1, borderColor: 'rgba(59,130,246,0.2)' },
   govTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
   govDesc: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+
+  // User CRM rows
+  userRow: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.sm, paddingVertical: SPACING.sm, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  userAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
+  userAvatarText: { fontSize: 15, color: '#FFF', ...FONTS.bold },
+  userName: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
+  userEmail: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
+  userTags: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
+  userTag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border },
+  userTagText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
 
   // Footer
   footer: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, paddingHorizontal: SPACING.lg, marginTop: SPACING.md, justifyContent: 'center' },

@@ -114,6 +114,70 @@ async def auth_me(request: Request):
     return UserOut(**user)
 
 
+# ── User Profile ─────────────────────────────────────────────
+class ProfileUpdate(BaseModel):
+    nationality: Optional[str] = None
+    age_group: Optional[str] = None
+    instagram: Optional[str] = None
+    phone: Optional[str] = None
+    interests: Optional[list] = None
+
+@api_router.put("/profile")
+async def update_profile(body: ProfileUpdate, request: Request):
+    user = await get_current_user(request)
+    update = {}
+    if body.nationality is not None: update["nationality"] = body.nationality
+    if body.age_group is not None: update["age_group"] = body.age_group
+    if body.instagram is not None: update["instagram"] = body.instagram
+    if body.phone is not None: update["phone"] = body.phone
+    if body.interests is not None: update["interests"] = body.interests
+    if update:
+        update["profile_completed"] = True
+        update["profile_updated_at"] = datetime.now(timezone.utc).isoformat()
+        await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
+    updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    return updated
+
+@api_router.get("/profile")
+async def get_profile(request: Request):
+    user = await get_current_user(request)
+    return user
+
+
+# ── Admin: Users Management ──────────────────────────────────
+@api_router.get("/admin/users")
+async def admin_list_users(request: Request):
+    """List all registered users with full profile data - admin only."""
+    users = await db.users.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+    total = len(users)
+    countries = {}
+    age_groups = {}
+    with_instagram = 0
+    with_profile = 0
+    for u in users:
+        nat = u.get("nationality", "")
+        if nat:
+            countries[nat] = countries.get(nat, 0) + 1
+        age = u.get("age_group", "")
+        if age:
+            age_groups[age] = age_groups.get(age, 0) + 1
+        if u.get("instagram"):
+            with_instagram += 1
+        if u.get("profile_completed"):
+            with_profile += 1
+
+    return {
+        "total": total,
+        "users": users,
+        "stats": {
+            "with_profile": with_profile,
+            "with_instagram": with_instagram,
+            "countries": [{"country": k, "count": v} for k, v in sorted(countries.items(), key=lambda x: -x[1])],
+            "age_groups": [{"group": k, "count": v} for k, v in sorted(age_groups.items())],
+        }
+    }
+
+
 @api_router.post("/auth/logout")
 async def logout(request: Request, response: Response):
     token = request.cookies.get("session_token")
