@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions, Share } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import QRCode from 'react-native-qrcode-svg';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
@@ -61,17 +62,54 @@ export default function CityPassTab() {
         {loading ? (
           <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 80 }} />
         ) : myPass ? (
-          /* ── Active Pass View ── */
+          /* ── Active Pass with QR Code ── */
           <View style={styles.activeSection}>
-            <View style={styles.activeCard}>
-              <View style={styles.activeIconCircle}>
-                <Ionicons name="shield-checkmark" size={36} color={COLORS.primary} />
+            {/* QR Card */}
+            <View style={styles.qrCard}>
+              <View style={styles.qrHeader}>
+                <View style={styles.qrBadge}>
+                  <Ionicons name="shield-checkmark" size={14} color="#22C55E" />
+                  <Text style={styles.qrBadgeText}>PASS ACTIVO</Text>
+                </View>
+                <TouchableOpacity onPress={() => {
+                  const planName = plans.find(p => p.plan_id === myPass.plan_id)?.name || '';
+                  Share.share({ message: `🎫 Mi City Pass ${planName} de Música Cartagena está activo! Descarga la app 🎧` });
+                }}>
+                  <Ionicons name="share-social-outline" size={20} color={COLORS.textMuted} />
+                </TouchableOpacity>
               </View>
-              <Text style={styles.activeLabel}>PASS ACTIVO</Text>
-              <Text style={styles.activePlanName}>{plans.find(p => p.plan_id === myPass.plan_id)?.name || myPass.plan_id}</Text>
-              <Text style={styles.activeExpiry}>Válido hasta: {new Date(myPass.expires_at).toLocaleDateString('es-CO')}</Text>
-              <View style={styles.activeDivider} />
-              <Text style={styles.activeBenefitsTitle}>Tus beneficios</Text>
+
+              <Text style={styles.qrPlanName}>{plans.find(p => p.plan_id === myPass.plan_id)?.name || 'City Pass'}</Text>
+              <Text style={styles.qrExpiry}>Válido hasta: {new Date(myPass.expires_at).toLocaleDateString('es-CO')}</Text>
+
+              {/* QR Code */}
+              <View style={styles.qrContainer}>
+                <View style={styles.qrWhiteBg}>
+                  <QRCode
+                    value={JSON.stringify({
+                      type: 'city_pass',
+                      pass_id: myPass.pass_id,
+                      plan: myPass.plan_id,
+                      user: myPass.user_id,
+                      exp: myPass.expires_at,
+                      app: 'musica_cartagena',
+                    })}
+                    size={180}
+                    color="#1a1a2e"
+                    backgroundColor="#FFFFFF"
+                  />
+                </View>
+                <Text style={styles.qrHint}>Muestra este código en los partners</Text>
+              </View>
+
+              <View style={styles.qrPassId}>
+                <Text style={styles.qrPassIdText}>ID: {myPass.pass_id?.toUpperCase()?.slice(0, 12)}</Text>
+              </View>
+            </View>
+
+            {/* Benefits */}
+            <View style={styles.benefitsCard}>
+              <Text style={styles.benefitsTitle}>Tus beneficios</Text>
               {(plans.find(p => p.plan_id === myPass.plan_id)?.benefits || []).map((b, i) => (
                 <View key={i} style={styles.benefitRow}>
                   <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
@@ -251,15 +289,21 @@ const styles = StyleSheet.create({
   ctaBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, marginHorizontal: SPACING.md, marginBottom: SPACING.md, borderRadius: RADIUS.full, paddingVertical: 14 },
   ctaBtnText: { fontSize: 15, color: '#FFF', ...FONTS.bold },
 
-  // Active pass
+  // Active pass with QR
   activeSection: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.md },
-  activeCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 2, borderColor: COLORS.primary, padding: SPACING.xl, alignItems: 'center', gap: SPACING.sm },
-  activeIconCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: `${COLORS.primary}15`, alignItems: 'center', justifyContent: 'center' },
-  activeLabel: { fontSize: 12, color: COLORS.primary, ...FONTS.bold, letterSpacing: 2 },
-  activePlanName: { fontSize: 24, color: COLORS.textMain, ...FONTS.bold },
-  activeExpiry: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
-  activeDivider: { width: '100%', height: 1, backgroundColor: COLORS.border, marginVertical: SPACING.sm },
-  activeBenefitsTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold, alignSelf: 'flex-start' },
+  qrCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 2, borderColor: COLORS.primary, padding: SPACING.lg, marginBottom: SPACING.md },
+  qrHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.sm },
+  qrBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(34,197,94,0.12)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.full },
+  qrBadgeText: { fontSize: 11, color: '#22C55E', ...FONTS.bold, letterSpacing: 1 },
+  qrPlanName: { fontSize: 24, color: COLORS.textMain, ...FONTS.bold },
+  qrExpiry: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginBottom: SPACING.md },
+  qrContainer: { alignItems: 'center', marginVertical: SPACING.md },
+  qrWhiteBg: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: RADIUS.lg },
+  qrHint: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium, marginTop: SPACING.sm, textAlign: 'center' },
+  qrPassId: { alignItems: 'center', marginTop: SPACING.sm, paddingTop: SPACING.sm, borderTopWidth: 1, borderTopColor: COLORS.border },
+  qrPassIdText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, letterSpacing: 1 },
+  benefitsCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, padding: SPACING.md, borderWidth: 1, borderColor: COLORS.border, marginBottom: SPACING.md, gap: SPACING.xs },
+  benefitsTitle: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold, marginBottom: 4 },
 
   // Discover CTA
   discoverCTA: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginHorizontal: SPACING.lg, marginTop: SPACING.md, padding: SPACING.md, backgroundColor: `${COLORS.primary}10`, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: `${COLORS.primary}30` },
