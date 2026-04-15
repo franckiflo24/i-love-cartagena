@@ -19,9 +19,9 @@ export default function TabLayout() {
           height: Platform.OS === 'ios' ? 85 : 65,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '600',
-          letterSpacing: 0.5,
+          letterSpacing: 0.3,
         },
       }}
     >
@@ -55,6 +55,14 @@ export default function TabLayout() {
           title: 'Partners',
           tabBarIcon: ({ color, size }) => <Ionicons name="diamond" size={size} color={color} />,
           tabBarTestID: 'tab-partners',
+        }}
+      />
+      <Tabs.Screen
+        name="citypass"
+        options={{
+          title: 'City Pass',
+          tabBarIcon: ({ color, size }) => <Ionicons name="ticket" size={size} color={color} />,
+          tabBarTestID: 'tab-citypass',
         }}
       />
       <Tabs.Screen

@@ -1,0 +1,273 @@
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
+import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
+import { api } from '../../src/constants/api';
+import { useAuth } from '../../src/context/AuthContext';
+
+const { width: screenWidth } = Dimensions.get('window');
+
+type Plan = {
+  plan_id: string; name: string; price: number; currency: string;
+  duration_days: number; color: string; benefits: string[];
+};
+
+const PLAN_ICONS: Record<string, string> = {
+  pass_basic: 'compass',
+  pass_premium: 'star',
+  pass_ultimate: 'diamond',
+};
+
+export default function CityPassTab() {
+  const router = useRouter();
+  const { user, login } = useAuth();
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [myPass, setMyPass] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [activating, setActivating] = useState<string | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const p = await api.get('/city-pass/plans');
+        setPlans(p);
+        if (user) {
+          const mp = await api.get('/city-pass/mine').catch(() => null);
+          setMyPass(mp);
+        }
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    };
+    load();
+  }, [user]);
+
+  const activatePass = async (planId: string) => {
+    if (!user) { login(); return; }
+    setActivating(planId);
+    try {
+      const res = await api.post('/city-pass/activate', { plan_id: planId });
+      if (res.pass) setMyPass(res.pass);
+    } catch (e) { console.error(e); }
+    setActivating(null);
+  };
+
+  const formatPrice = (p: number) => `$${(p / 1000).toFixed(0)}K`;
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30 }}>
+        {loading ? (
+          <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 80 }} />
+        ) : myPass ? (
+          /* ── Active Pass View ── */
+          <View style={styles.activeSection}>
+            <View style={styles.activeCard}>
+              <View style={styles.activeIconCircle}>
+                <Ionicons name="shield-checkmark" size={36} color={COLORS.primary} />
+              </View>
+              <Text style={styles.activeLabel}>PASS ACTIVO</Text>
+              <Text style={styles.activePlanName}>{plans.find(p => p.plan_id === myPass.plan_id)?.name || myPass.plan_id}</Text>
+              <Text style={styles.activeExpiry}>Válido hasta: {new Date(myPass.expires_at).toLocaleDateString('es-CO')}</Text>
+              <View style={styles.activeDivider} />
+              <Text style={styles.activeBenefitsTitle}>Tus beneficios</Text>
+              {(plans.find(p => p.plan_id === myPass.plan_id)?.benefits || []).map((b, i) => (
+                <View key={i} style={styles.benefitRow}>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
+                  <Text style={styles.benefitText}>{b}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Quick Access CTA */}
+            <TouchableOpacity style={styles.discoverCTA} onPress={() => router.push('/partners' as any)}>
+              <Ionicons name="gift" size={20} color={COLORS.primary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.discoverCTATitle}>Descubre ofertas exclusivas</Text>
+                <Text style={styles.discoverCTADesc}>Usa tu pass en partners certificados</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          /* ── Plans View ── */
+          <>
+            {/* Hero */}
+            <View style={styles.hero}>
+              <View style={styles.heroIconRow}>
+                <Ionicons name="sparkles" size={28} color={COLORS.primary} />
+                <Ionicons name="heart" size={22} color="#EF4444" />
+              </View>
+              <Text style={styles.heroTitle}>City Pass</Text>
+              <Text style={styles.heroSubtitle}>Vive Cartagena sin límites</Text>
+              <Text style={styles.heroDesc}>
+                Acceso preferente, descuentos exclusivos y beneficios en todos los partners certificados de I ❤️ Cartagena.
+              </Text>
+            </View>
+
+            {/* Highlights */}
+            <View style={styles.highlightsRow}>
+              <View style={styles.highlightItem}>
+                <Ionicons name="restaurant" size={22} color="#22C55E" />
+                <Text style={styles.highlightLabel}>Restaurantes</Text>
+              </View>
+              <View style={styles.highlightItem}>
+                <Ionicons name="musical-notes" size={22} color="#8B5CF6" />
+                <Text style={styles.highlightLabel}>Eventos</Text>
+              </View>
+              <View style={styles.highlightItem}>
+                <Ionicons name="boat" size={22} color="#3B82F6" />
+                <Text style={styles.highlightLabel}>Transporte</Text>
+              </View>
+              <View style={styles.highlightItem}>
+                <Ionicons name="bed" size={22} color="#EC4899" />
+                <Text style={styles.highlightLabel}>Hoteles</Text>
+              </View>
+            </View>
+
+            {/* Plans */}
+            {plans.map((plan, idx) => (
+              <View key={plan.plan_id} style={[styles.planCard, idx === 1 && styles.planCardFeatured]}>
+                {idx === 1 && (
+                  <View style={styles.popularBadge}>
+                    <Ionicons name="flame" size={12} color="#FFF" />
+                    <Text style={styles.popularText}>MÁS POPULAR</Text>
+                  </View>
+                )}
+
+                <View style={styles.planTop}>
+                  <View style={[styles.planIconCircle, { backgroundColor: `${plan.color}20` }]}>
+                    <Ionicons name={(PLAN_ICONS[plan.plan_id] || 'ticket') as any} size={22} color={plan.color} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.planName, { color: plan.color }]}>{plan.name}</Text>
+                    <Text style={styles.planDuration}>{plan.duration_days} días de beneficios</Text>
+                  </View>
+                  <View style={styles.priceBox}>
+                    <Text style={styles.planPrice}>{formatPrice(plan.price)}</Text>
+                    <Text style={styles.planCurrency}>COP</Text>
+                  </View>
+                </View>
+
+                <View style={styles.planBenefits}>
+                  {plan.benefits.slice(0, 4).map((b, i) => (
+                    <View key={i} style={styles.benefitRow}>
+                      <Ionicons name="checkmark-circle" size={15} color={plan.color} />
+                      <Text style={styles.benefitText}>{b}</Text>
+                    </View>
+                  ))}
+                  {plan.benefits.length > 4 && (
+                    <Text style={[styles.moreBenefits, { color: plan.color }]}>+{plan.benefits.length - 4} beneficios más</Text>
+                  )}
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.ctaBtn, { backgroundColor: plan.color }]}
+                  onPress={() => activatePass(plan.plan_id)}
+                  disabled={!!activating}
+                  activeOpacity={0.8}
+                >
+                  {activating === plan.plan_id ? (
+                    <ActivityIndicator size="small" color="#FFF" />
+                  ) : (
+                    <>
+                      <Ionicons name="flash" size={18} color="#FFF" />
+                      <Text style={styles.ctaBtnText}>
+                        {user ? 'Activar ahora' : 'Inicia sesión para activar'}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            ))}
+
+            {/* Discover CTA */}
+            <TouchableOpacity style={styles.discoverCTA} onPress={() => router.push('/partners' as any)}>
+              <Ionicons name="gift" size={20} color={COLORS.primary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.discoverCTATitle}>Descubre las ofertas</Text>
+                <Text style={styles.discoverCTADesc}>Ver todos los partners y experiencias</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+            </TouchableOpacity>
+
+            {/* Trust badges */}
+            <View style={styles.trustRow}>
+              <View style={styles.trustItem}>
+                <Ionicons name="shield-checkmark" size={18} color={COLORS.textMuted} />
+                <Text style={styles.trustText}>Pago seguro</Text>
+              </View>
+              <View style={styles.trustItem}>
+                <Ionicons name="refresh" size={18} color={COLORS.textMuted} />
+                <Text style={styles.trustText}>Reembolso 24h</Text>
+              </View>
+              <View style={styles.trustItem}>
+                <Ionicons name="headset" size={18} color={COLORS.textMuted} />
+                <Text style={styles.trustText}>Soporte 24/7</Text>
+              </View>
+            </View>
+          </>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: COLORS.background },
+
+  // Hero
+  hero: { alignItems: 'center', paddingTop: SPACING.lg, paddingHorizontal: SPACING.lg, paddingBottom: SPACING.md },
+  heroIconRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.sm },
+  heroTitle: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold },
+  heroSubtitle: { fontSize: 16, color: COLORS.primary, ...FONTS.semibold, marginTop: 2 },
+  heroDesc: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 20, marginTop: SPACING.sm },
+
+  // Highlights
+  highlightsRow: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md, marginBottom: SPACING.sm },
+  highlightItem: { alignItems: 'center', gap: 4 },
+  highlightLabel: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
+
+  // Plan Card
+  planCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, borderRadius: RADIUS.xl, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden' },
+  planCardFeatured: { borderColor: COLORS.primary, borderWidth: 2 },
+  popularBadge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: COLORS.primary, paddingVertical: 6 },
+  popularText: { fontSize: 11, color: '#FFF', ...FONTS.bold, letterSpacing: 1 },
+
+  planTop: { flexDirection: 'row', alignItems: 'center', padding: SPACING.md, gap: SPACING.sm },
+  planIconCircle: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  planName: { fontSize: 16, ...FONTS.bold },
+  planDuration: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
+  priceBox: { alignItems: 'flex-end' },
+  planPrice: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold },
+  planCurrency: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
+
+  planBenefits: { paddingHorizontal: SPACING.md, paddingBottom: SPACING.sm, gap: 6 },
+  benefitRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  benefitText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, flex: 1 },
+  moreBenefits: { fontSize: 12, ...FONTS.semibold, marginLeft: 28, marginTop: 2 },
+
+  ctaBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, marginHorizontal: SPACING.md, marginBottom: SPACING.md, borderRadius: RADIUS.full, paddingVertical: 14 },
+  ctaBtnText: { fontSize: 15, color: '#FFF', ...FONTS.bold },
+
+  // Active pass
+  activeSection: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.md },
+  activeCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 2, borderColor: COLORS.primary, padding: SPACING.xl, alignItems: 'center', gap: SPACING.sm },
+  activeIconCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: `${COLORS.primary}15`, alignItems: 'center', justifyContent: 'center' },
+  activeLabel: { fontSize: 12, color: COLORS.primary, ...FONTS.bold, letterSpacing: 2 },
+  activePlanName: { fontSize: 24, color: COLORS.textMain, ...FONTS.bold },
+  activeExpiry: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
+  activeDivider: { width: '100%', height: 1, backgroundColor: COLORS.border, marginVertical: SPACING.sm },
+  activeBenefitsTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold, alignSelf: 'flex-start' },
+
+  // Discover CTA
+  discoverCTA: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginHorizontal: SPACING.lg, marginTop: SPACING.md, padding: SPACING.md, backgroundColor: `${COLORS.primary}10`, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: `${COLORS.primary}30` },
+  discoverCTATitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
+  discoverCTADesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
+
+  // Trust
+  trustRow: { flexDirection: 'row', justifyContent: 'center', gap: SPACING.lg, paddingVertical: SPACING.lg, paddingHorizontal: SPACING.lg },
+  trustItem: { alignItems: 'center', gap: 4 },
+  trustText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
+});
