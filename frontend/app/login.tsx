@@ -35,14 +35,15 @@ export default function LoginScreen() {
         <View style={styles.logoArea}>
           <Text style={styles.logoPrefix}>I</Text>
           <Text style={styles.logoHeart}>❤️</Text>
+          <Text style={styles.logoMusic}>MÚSICA</Text>
           <Text style={styles.logoMain}>CARTAGENA</Text>
           <View style={styles.divider} />
-          <Text style={styles.tagline}>La experiencia oficial de ciudad</Text>
+          <Text style={styles.tagline}>La experiencia musical de la ciudad</Text>
         </View>
 
         <View style={styles.bottomArea}>
           <Text style={styles.welcomeText}>
-            Agenda, mapa, partners y reservas en un solo lugar
+            Conciertos, agenda, partners y reservas en un solo lugar
           </Text>
 
           <TouchableOpacity
@@ -65,7 +66,7 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           <Text style={styles.disclaimer}>
-            Al continuar, aceptas los términos y condiciones de I ❤️ Cartagena
+            Al continuar, aceptas los términos y condiciones de Música Cartagena
           </Text>
         </View>
       </View>
@@ -82,6 +83,7 @@ const styles = StyleSheet.create({
   logoArea: { alignItems: 'center' },
   logoPrefix: { fontSize: 32, letterSpacing: 4, color: COLORS.textMain, ...FONTS.light },
   logoHeart: { fontSize: 48, marginVertical: SPACING.xs },
+  logoMusic: { fontSize: 22, letterSpacing: 6, color: COLORS.primary, ...FONTS.bold, textTransform: 'uppercase' },
   logoMain: { fontSize: 42, letterSpacing: 2, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.xs },
   divider: { width: 60, height: 2, backgroundColor: COLORS.primary, marginTop: SPACING.md, borderRadius: 1 },
   tagline: { fontSize: 15, color: COLORS.textMuted, marginTop: SPACING.md, ...FONTS.light, letterSpacing: 1 },

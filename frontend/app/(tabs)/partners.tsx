@@ -32,7 +32,7 @@ export default function PartnersScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Partners</Text>
-        <Text style={styles.subtitle}>Lugares certificados por I ❤️ Cartagena</Text>
+        <Text style={styles.subtitle}>Lugares certificados por Música Cartagena</Text>
       </View>
 
       <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>

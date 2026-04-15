@@ -102,7 +102,7 @@ export default function CityPassTab() {
               <Text style={styles.heroTitle}>City Pass</Text>
               <Text style={styles.heroSubtitle}>Vive Cartagena sin límites</Text>
               <Text style={styles.heroDesc}>
-                Acceso preferente, descuentos exclusivos y beneficios en todos los partners certificados de I ❤️ Cartagena.
+                Acceso preferente, descuentos exclusivos y beneficios en todos los partners certificados de Música Cartagena.
               </Text>
             </View>
 

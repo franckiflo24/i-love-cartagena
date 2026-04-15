@@ -43,7 +43,7 @@ export default function TransportScreen() {
         </TouchableOpacity>
         <View>
           <Text style={styles.title}>Transporte</Text>
-          <Text style={styles.subtitle}>Movilidad oficial I ❤️ Cartagena</Text>
+          <Text style={styles.subtitle}>Movilidad oficial Música Cartagena</Text>
         </View>
       </View>
 

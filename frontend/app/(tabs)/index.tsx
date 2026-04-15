@@ -128,7 +128,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>{user ? `Hola, ${user.name.split(' ')[0]}` : 'Bienvenido'}</Text>
-            <Text style={styles.headerTitle}>I ❤️ Cartagena</Text>
+            <Text style={styles.headerTitle}>I ❤️ Música Cartagena</Text>
           </View>
           <TouchableOpacity testID="notifications-btn" onPress={() => router.push('/notifications')} style={styles.notifBtn}>
             <Ionicons name="notifications-outline" size={24} color={COLORS.textMain} />
@@ -284,7 +284,7 @@ export default function HomeScreen() {
             <View style={styles.partnersCtaContent}>
               <Ionicons name="diamond" size={28} color={COLORS.primary} />
               <Text style={styles.partnersCtaTitle}>Lugares certificados</Text>
-              <Text style={styles.partnersCtaDesc}>Restaurantes, clubs, hoteles y más validados por I ❤️ Cartagena</Text>
+              <Text style={styles.partnersCtaDesc}>Restaurantes, clubs, hoteles y más validados por Música Cartagena</Text>
             </View>
           </TouchableOpacity>
         </View>
