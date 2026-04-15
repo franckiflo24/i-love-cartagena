@@ -1,50 +1,39 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Image, ActivityIndicator, Linking, Dimensions, Platform,
+  View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
+  Dimensions, Platform, ScrollView, Linking,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
+import { WebView } from 'react-native-webview';
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 type Place = {
   id: string;
   name: string;
   description: string;
-  category: 'venue' | 'partner' | 'concert';
+  category: string;
   type: string;
   address: string;
-  location: { lat: number; lng: number };
+  lat: number;
+  lng: number;
   image_url: string;
-  price_range?: string;
-  hours?: string;
-  booking_link?: string;
-  extra?: string;
+  price: string;
+  link: string;
+  extra: string;
 };
 
-const CATEGORIES = [
-  { key: 'all', label: 'Todos', icon: 'grid', color: COLORS.primary },
+const FILTERS = [
+  { key: 'all', label: 'Todos', icon: 'grid', color: '#D97706' },
   { key: 'venue', label: 'Venues', icon: 'location', color: '#3B82F6' },
   { key: 'partner', label: 'Partners', icon: 'diamond', color: '#8B5CF6' },
   { key: 'concert', label: 'Conciertos', icon: 'musical-notes', color: '#EC4899' },
 ];
 
-const TYPE_ICONS: Record<string, string> = {
-  historic: 'flag',
-  nightclub: 'musical-notes',
-  restaurant: 'restaurant',
-  beach_club: 'sunny',
-  hotel: 'bed',
-  cultural: 'color-palette',
-  club: 'wine',
-  wellness: 'leaf',
-};
-
-const TYPE_COLORS: Record<string, string> = {
+const MARKER_COLORS: Record<string, string> = {
   historic: '#F59E0B',
   nightclub: '#EC4899',
   restaurant: '#EF4444',
@@ -54,28 +43,69 @@ const TYPE_COLORS: Record<string, string> = {
   club: '#D97706',
   wellness: '#22C55E',
   concert: '#EC4899',
+  partner: '#8B5CF6',
 };
 
-// Cartagena center
-const CARTAGENA_CENTER = { lat: 10.4225, lng: -75.5480 };
+function buildMapHTML(places: Place[], filter: string) {
+  const filtered = filter === 'all' ? places : places.filter(p => p.category === filter);
 
-let MapView: any = null;
-let Marker: any = null;
-try {
-  const maps = require('react-native-maps');
-  MapView = maps.default;
-  Marker = maps.Marker;
-} catch (e) {
-  // Maps not available on web
+  const markers = filtered.map(p => {
+    const color = MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || '#D97706';
+    const safeName = p.name.replace(/'/g, "").replace(/"/g, "");
+    const safeDesc = (p.extra || p.description || '').replace(/'/g, "").replace(/"/g, "").substring(0, 80);
+    const safeAddr = p.address.replace(/'/g, "").replace(/"/g, "");
+    const safePrice = p.price.replace(/'/g, "").replace(/"/g, "");
+    const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng;
+
+    const priceHtml = safePrice ? '<span style="font-size:12px;color:#D97706;font-weight:700;">' + safePrice + '</span><br>' : '';
+
+    const popupContent = '<div style=font-family:sans-serif;min-width:180px>'
+      + '<div style=display:flex;align-items:center;gap:6px;margin-bottom:6px>'
+      + '<div style=width:10px;height:10px;border-radius:50%;background:' + color + ';flex-shrink:0></div>'
+      + '<span style=font-size:10px;color:' + color + ';text-transform:uppercase;font-weight:700>' + p.type + '</span>'
+      + '</div>'
+      + '<b style=font-size:15px;color:#1a1a2e>' + safeName + '</b><br>'
+      + '<span style=font-size:11px;color:#666>' + safeDesc + '</span><br>'
+      + '<span style=font-size:11px;color:#888>📍 ' + safeAddr + '</span><br>'
+      + priceHtml
+      + '<a href=' + mapsUrl + ' target=_blank style=display:inline-block;margin-top:6px;padding:6px_14px;background:#D97706;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600>Como llegar</a>'
+      + '</div>';
+
+    return "L.circleMarker([" + p.lat + ", " + p.lng + "], {"
+      + "radius: 10, fillColor: '" + color + "', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9"
+      + "}).addTo(map).bindPopup('" + popupContent.replace(/'/g, "\\'") + "', {maxWidth: 260});";
+  }).join('\n');
+
+  return '<!DOCTYPE html><html><head>'
+    + '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'
+    + '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />'
+    + '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>'
+    + '<style>'
+    + '* { margin: 0; padding: 0; box-sizing: border-box; }'
+    + 'body { background: #050814; }'
+    + '#map { width: 100vw; height: 100vh; }'
+    + '.leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }'
+    + '.leaflet-popup-tip { display: none; }'
+    + '.leaflet-control-zoom { border: none !important; }'
+    + '.leaflet-control-zoom a { background: #1a1a2e !important; color: #D97706 !important; border: 1px solid #2a2a4e !important; font-weight: 700; }'
+    + '.leaflet-control-zoom a:hover { background: #2a2a4e !important; }'
+    + '.leaflet-control-attribution { display: none; }'
+    + '</style>'
+    + '</head><body>'
+    + '<div id="map"></div>'
+    + '<script>'
+    + 'var map = L.map("map", {zoomControl: true, attributionControl: false}).setView([10.4225, -75.5480], 14);'
+    + 'L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {maxZoom: 19}).addTo(map);'
+    + markers
+    + '<\/script>'
+    + '</body></html>';
 }
 
 export default function MapaScreen() {
-  const router = useRouter();
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
-  const mapRef = useRef<any>(null);
+  const [filter, setFilter] = useState('all');
+  const webViewRef = useRef<any>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -87,310 +117,140 @@ export default function MapaScreen() {
         ]);
 
         const allPlaces: Place[] = [];
+        const seenNames = new Set<string>();
 
-        // Add venues
         venues.forEach((v: any) => {
+          seenNames.add(v.name.toLowerCase());
           allPlaces.push({
-            id: v.venue_id,
-            name: v.name,
-            description: v.description,
-            category: 'venue',
-            type: v.type,
-            address: v.address,
-            location: v.location,
-            image_url: v.images?.[0] || '',
-            price_range: v.price_range,
-            hours: v.hours,
-            booking_link: v.booking_link,
+            id: v.venue_id, name: v.name, description: v.description,
+            category: 'venue', type: v.type, address: v.address,
+            lat: v.location?.lat || 0, lng: v.location?.lng || 0,
+            image_url: v.images?.[0] || '', price: v.price_range || '',
+            link: v.booking_link || '', extra: '',
           });
         });
 
-        // Add partners (avoid duplicates with venues by checking name)
-        const venueNames = new Set(venues.map((v: any) => v.name.toLowerCase()));
+        const venueLocs: Record<string, { lat: number; lng: number }> = {};
+        venues.forEach((v: any) => { venueLocs[v.venue_id] = v.location; });
+
         partners.forEach((p: any) => {
-          if (!venueNames.has(p.name.toLowerCase()) && p.location) {
+          if (!seenNames.has(p.name.toLowerCase()) && p.location) {
             allPlaces.push({
-              id: p.partner_id,
-              name: p.name,
-              description: p.description,
-              category: 'partner',
-              type: p.category,
-              address: p.address,
-              location: p.location,
-              image_url: p.image_url,
-              price_range: p.price_range,
-              booking_link: p.booking_link,
-              extra: p.experience,
+              id: p.partner_id, name: p.name, description: p.description,
+              category: 'partner', type: p.category || 'partner', address: p.address,
+              lat: p.location?.lat || 0, lng: p.location?.lng || 0,
+              image_url: p.image_url || '', price: p.price_range || '',
+              link: p.booking_link || '', extra: p.experience || '',
             });
           }
         });
 
-        // Add concerts (use venue location)
-        const venueLocMap: Record<string, any> = {};
-        venues.forEach((v: any) => { venueLocMap[v.venue_id] = v.location; });
         concerts.forEach((c: any) => {
-          const loc = venueLocMap[c.venue_id];
+          const loc = venueLocs[c.venue_id];
           if (loc) {
-            // Slightly offset to avoid overlap
-            const offset = (Math.random() - 0.5) * 0.001;
+            const offset = (Math.random() - 0.5) * 0.002;
             allPlaces.push({
-              id: c.concert_id,
-              name: c.artist,
-              description: c.title,
-              category: 'concert',
-              type: 'concert',
-              address: c.venue_name,
-              location: { lat: loc.lat + offset, lng: loc.lng + offset },
-              image_url: c.image_url,
-              extra: `${c.genre} · ${c.date} · ${c.start_time}`,
-              booking_link: c.ticket_link,
-              price_range: c.is_free ? 'Gratis' : `$${(c.price / 1000).toFixed(0)}K COP`,
+              id: c.concert_id, name: c.artist, description: c.title,
+              category: 'concert', type: 'concert', address: c.venue_name,
+              lat: loc.lat + offset, lng: loc.lng + offset,
+              image_url: c.image_url || '', 
+              price: c.is_free ? 'GRATIS' : `$${(c.price / 1000).toFixed(0)}K COP`,
+              link: c.ticket_link || '', extra: `${c.genre} · ${c.start_time}`,
             });
           }
         });
 
-        setPlaces(allPlaces);
+        setPlaces(allPlaces.filter(p => p.lat !== 0));
       } catch (e) { console.error(e); }
       setLoading(false);
     };
     load();
   }, []);
 
-  const filtered = selectedCategory === 'all'
-    ? places
-    : places.filter(p => p.category === selectedCategory);
-
-  const openGoogleMaps = (place: Place) => {
-    Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${place.location.lat},${place.location.lng}&query_place_id=${encodeURIComponent(place.name + ' Cartagena')}`);
+  const counts = {
+    all: places.length,
+    venue: places.filter(p => p.category === 'venue').length,
+    partner: places.filter(p => p.category === 'partner').length,
+    concert: places.filter(p => p.category === 'concert').length,
   };
 
-  const onMarkerPress = (place: Place) => {
-    setSelectedPlace(place);
-    if (mapRef.current) {
-      mapRef.current.animateToRegion({
-        latitude: place.location.lat,
-        longitude: place.location.lng,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      }, 300);
-    }
-  };
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.loadingBox}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text style={styles.loadingText}>Cargando mapa de Cartagena...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-  const getMarkerColor = (place: Place) => {
-    if (place.category === 'concert') return '#EC4899';
-    return TYPE_COLORS[place.type] || COLORS.primary;
-  };
-
-  const canRenderMap = MapView && Platform.OS !== 'web';
+  const html = buildMapHTML(places, filter);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Cargando mapa...</Text>
-        </View>
-      ) : canRenderMap ? (
-        /* ── Native Map View ── */
-        <View style={styles.mapContainer}>
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            initialRegion={{
-              latitude: CARTAGENA_CENTER.lat,
-              longitude: CARTAGENA_CENTER.lng,
-              latitudeDelta: 0.045,
-              longitudeDelta: 0.045,
-            }}
-            showsUserLocation
-            showsMyLocationButton
-          >
-            {filtered.map(place => (
-              <Marker
-                key={place.id}
-                coordinate={{ latitude: place.location.lat, longitude: place.location.lng }}
-                onPress={() => onMarkerPress(place)}
-                pinColor={getMarkerColor(place)}
-                title={place.name}
-              />
-            ))}
-          </MapView>
-
-          {/* Category Filters Overlay */}
-          <View style={styles.filterOverlay}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterContent}>
-              {CATEGORIES.map(c => {
-                const isActive = selectedCategory === c.key;
-                return (
-                  <TouchableOpacity
-                    key={c.key}
-                    style={[styles.filterChip, isActive && { backgroundColor: c.color, borderColor: c.color }]}
-                    onPress={() => { setSelectedCategory(c.key); setSelectedPlace(null); }}
-                  >
-                    <Ionicons name={c.icon as any} size={14} color={isActive ? '#FFF' : COLORS.textMuted} />
-                    <Text style={[styles.filterText, isActive && { color: '#FFF' }]}>{c.label}</Text>
-                    {c.key !== 'all' && (
-                      <View style={[styles.filterCount, isActive && { backgroundColor: 'rgba(255,255,255,0.3)' }]}>
-                        <Text style={[styles.filterCountText, isActive && { color: '#FFF' }]}>
-                          {places.filter(p => p.category === c.key).length}
-                        </Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-
-          {/* Selected Place Card */}
-          {selectedPlace && (
-            <View style={styles.placeCard}>
-              <TouchableOpacity style={styles.placeCardClose} onPress={() => setSelectedPlace(null)}>
-                <Ionicons name="close" size={18} color={COLORS.textMuted} />
-              </TouchableOpacity>
-              <View style={styles.placeCardRow}>
-                <Image source={{ uri: selectedPlace.image_url }} style={styles.placeCardImage} />
-                <View style={styles.placeCardInfo}>
-                  <View style={[styles.placeCardBadge, { backgroundColor: `${getMarkerColor(selectedPlace)}20` }]}>
-                    <View style={[styles.placeCardDot, { backgroundColor: getMarkerColor(selectedPlace) }]} />
-                    <Text style={[styles.placeCardBadgeText, { color: getMarkerColor(selectedPlace) }]}>
-                      {selectedPlace.category === 'concert' ? 'Concierto' : selectedPlace.type}
-                    </Text>
-                  </View>
-                  <Text style={styles.placeCardName} numberOfLines={1}>{selectedPlace.name}</Text>
-                  <Text style={styles.placeCardDesc} numberOfLines={1}>{selectedPlace.extra || selectedPlace.description}</Text>
-                  {selectedPlace.price_range && (
-                    <Text style={styles.placeCardPrice}>{selectedPlace.price_range}</Text>
-                  )}
-                </View>
-              </View>
-              <View style={styles.placeCardActions}>
-                <TouchableOpacity style={styles.placeCardBtn} onPress={() => openGoogleMaps(selectedPlace)}>
-                  <Ionicons name="navigate" size={16} color={COLORS.primary} />
-                  <Text style={styles.placeCardBtnText}>Cómo llegar</Text>
-                </TouchableOpacity>
-                {selectedPlace.booking_link ? (
-                  <TouchableOpacity
-                    style={[styles.placeCardBtn, styles.placeCardBtnPrimary]}
-                    onPress={() => Linking.openURL(selectedPlace.booking_link!)}
-                  >
-                    <Ionicons name="ticket" size={16} color="#FFF" />
-                    <Text style={styles.placeCardBtnTextPrimary}>Reservar</Text>
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-            </View>
-          )}
-        </View>
-      ) : (
-        /* ── Web Fallback: List View ── */
-        <>
-          <View style={styles.header}>
-            <Text style={styles.title}>Mapa</Text>
-            <Text style={styles.subtitle}>Todos los lugares · {places.length} puntos</Text>
-          </View>
-
-          {/* Category Filters */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterBarList}>
-            {CATEGORIES.map(c => {
-              const isActive = selectedCategory === c.key;
-              return (
-                <TouchableOpacity
-                  key={c.key}
-                  style={[styles.filterChipList, isActive && { backgroundColor: `${c.color}20`, borderColor: c.color }]}
-                  onPress={() => setSelectedCategory(c.key)}
-                >
-                  <Ionicons name={c.icon as any} size={14} color={isActive ? c.color : COLORS.textMuted} />
-                  <Text style={[styles.filterTextList, isActive && { color: c.color }]}>{c.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-
-          <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
-            {filtered.map(place => (
+      {/* Filter Bar */}
+      <View style={styles.filterBar}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+          {FILTERS.map(f => {
+            const isActive = filter === f.key;
+            const count = counts[f.key as keyof typeof counts] || 0;
+            return (
               <TouchableOpacity
-                key={place.id}
-                style={styles.listCard}
-                onPress={() => openGoogleMaps(place)}
-                activeOpacity={0.8}
+                key={f.key}
+                style={[styles.chip, isActive && { backgroundColor: `${f.color}20`, borderColor: f.color }]}
+                onPress={() => setFilter(f.key)}
               >
-                <Image source={{ uri: place.image_url }} style={styles.listImage} />
-                <View style={styles.listInfo}>
-                  <View style={[styles.listBadge, { backgroundColor: `${getMarkerColor(place)}20` }]}>
-                    <View style={[styles.listDot, { backgroundColor: getMarkerColor(place) }]} />
-                    <Text style={[styles.listBadgeText, { color: getMarkerColor(place) }]}>
-                      {place.category === 'concert' ? 'Concierto' : place.type}
-                    </Text>
-                  </View>
-                  <Text style={styles.listName} numberOfLines={1}>{place.name}</Text>
-                  <Text style={styles.listDesc} numberOfLines={1}>{place.address}</Text>
-                  <View style={styles.listMeta}>
-                    {place.price_range && <Text style={styles.listPrice}>{place.price_range}</Text>}
-                    <Ionicons name="navigate-outline" size={14} color={COLORS.primary} />
-                  </View>
+                <Ionicons name={f.icon as any} size={14} color={isActive ? f.color : COLORS.textMuted} />
+                <Text style={[styles.chipText, isActive && { color: f.color }]}>{f.label}</Text>
+                <View style={[styles.chipCount, isActive && { backgroundColor: `${f.color}30` }]}>
+                  <Text style={[styles.chipCountText, isActive && { color: f.color }]}>{count}</Text>
                 </View>
               </TouchableOpacity>
-            ))}
-            <View style={{ height: SPACING.xxl }} />
-          </ScrollView>
-        </>
-      )}
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {/* Map */}
+      <View style={styles.mapWrap}>
+        {Platform.OS === 'web' ? (
+          <iframe
+            key={filter}
+            srcDoc={html}
+            style={{ width: '100%', height: '100%', border: 'none', backgroundColor: '#050814' } as any}
+          />
+        ) : (
+          <WebView
+            ref={webViewRef}
+            key={filter}
+            source={{ html }}
+            style={styles.webview}
+            javaScriptEnabled={true}
+            originWhitelist={['*']}
+            scrollEnabled={false}
+            bounces={false}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+          />
+        )}
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: SPACING.md },
+  loadingBox: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: SPACING.md },
   loadingText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular },
 
-  // Map
-  mapContainer: { flex: 1, position: 'relative' },
-  map: { flex: 1 },
+  filterBar: { paddingVertical: SPACING.xs, backgroundColor: COLORS.background },
+  filterScroll: { paddingHorizontal: SPACING.md, gap: SPACING.xs },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
+  chipText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold },
+  chipCount: { backgroundColor: COLORS.border, borderRadius: 10, paddingHorizontal: 6, paddingVertical: 1 },
+  chipCountText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.bold },
 
-  // Filter overlay on map
-  filterOverlay: { position: 'absolute', top: SPACING.sm, left: 0, right: 0, zIndex: 10 },
-  filterContent: { paddingHorizontal: SPACING.md, gap: SPACING.xs },
-  filterChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: RADIUS.full, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4 },
-  filterText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold },
-  filterCount: { backgroundColor: COLORS.border, borderRadius: 10, paddingHorizontal: 6, paddingVertical: 1, marginLeft: 2 },
-  filterCountText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.bold },
-
-  // Place Card (bottom)
-  placeCard: { position: 'absolute', bottom: SPACING.md, left: SPACING.md, right: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, padding: SPACING.md, borderWidth: 1, borderColor: COLORS.border, elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.3, shadowRadius: 8 },
-  placeCardClose: { position: 'absolute', top: 8, right: 8, zIndex: 1, width: 28, height: 28, borderRadius: 14, backgroundColor: COLORS.background, alignItems: 'center', justifyContent: 'center' },
-  placeCardRow: { flexDirection: 'row', gap: SPACING.sm },
-  placeCardImage: { width: 80, height: 80, borderRadius: RADIUS.md },
-  placeCardInfo: { flex: 1, gap: 2 },
-  placeCardBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.full },
-  placeCardDot: { width: 6, height: 6, borderRadius: 3 },
-  placeCardBadgeText: { fontSize: 10, ...FONTS.bold, textTransform: 'uppercase', letterSpacing: 0.5 },
-  placeCardName: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold },
-  placeCardDesc: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
-  placeCardPrice: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold, marginTop: 2 },
-  placeCardActions: { flexDirection: 'row', gap: SPACING.sm, marginTop: SPACING.sm },
-  placeCardBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary },
-  placeCardBtnText: { fontSize: 13, color: COLORS.primary, ...FONTS.semibold },
-  placeCardBtnPrimary: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  placeCardBtnTextPrimary: { fontSize: 13, color: '#FFF', ...FONTS.semibold },
-
-  // Web Fallback List
-  header: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, paddingBottom: SPACING.sm },
-  title: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold },
-  subtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
-  filterBarList: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, paddingVertical: SPACING.sm },
-  filterChipList: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: SPACING.md, paddingVertical: 8, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border },
-  filterTextList: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
-  list: { flex: 1, paddingHorizontal: SPACING.lg },
-  listCard: { flexDirection: 'row', backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, overflow: 'hidden', marginBottom: SPACING.sm, borderWidth: 1, borderColor: COLORS.border },
-  listImage: { width: 90, height: 90 },
-  listInfo: { flex: 1, padding: SPACING.sm, gap: 2 },
-  listBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 1, borderRadius: RADIUS.full },
-  listDot: { width: 6, height: 6, borderRadius: 3 },
-  listBadgeText: { fontSize: 9, ...FONTS.bold, textTransform: 'uppercase', letterSpacing: 0.5 },
-  listName: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
-  listDesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
-  listMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 },
-  listPrice: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },
+  mapWrap: { flex: 1, overflow: 'hidden', borderTopWidth: 1, borderTopColor: COLORS.border },
+  webview: { flex: 1, backgroundColor: '#050814' },
 });
