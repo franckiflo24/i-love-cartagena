@@ -1015,6 +1015,44 @@ async def startup():
     analytics_count = await db.analytics_demographics.count_documents({})
     if analytics_count == 0:
         await seed_analytics_demo_data()
+    # Seed Ruta Musical if missing
+    music_itn = await db.itineraries.find_one({"itinerary_id": "itn_004"})
+    if not music_itn:
+        IMG_CONCERT = "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+        await db.itineraries.insert_one({
+            "itinerary_id": "itn_004",
+            "name": "Ruta Musical",
+            "description": "El programa musical completo de Cartagena. Conciertos, DJ sets, jazz y after parties.",
+            "type": "music",
+            "image_url": IMG_CONCERT,
+            "stops": [
+                {"time": "16:00", "title": "Electronic Sunset", "event_id": "evt_002", "venue": "Café del Mar", "price": 150000, "is_free": False},
+                {"time": "17:00", "title": "Sunset Session", "event_id": "evt_001", "venue": "La Muralla", "price": 0, "is_free": True},
+                {"time": "20:00", "title": "Jazz & Wine Night", "event_id": "evt_010", "venue": "Bellini", "price": 220000, "is_free": False},
+                {"time": "22:00", "title": "Templo Night I", "event_id": "evt_003", "venue": "Templo", "price": 250000, "is_free": False},
+                {"time": "22:00", "title": "Templo Night II", "event_id": "evt_008", "venue": "Templo", "price": 280000, "is_free": False},
+                {"time": "14:00", "title": "DJ Set Blue Apple", "event_id": "evt_015", "venue": "Blue Apple Beach", "price": 400000, "is_free": False},
+                {"time": "01:00", "title": "After Party Fénix", "event_id": "evt_013", "venue": "Fénix", "price": 120000, "is_free": False},
+                {"time": "17:00", "title": "Sunset Closing", "event_id": "evt_014", "venue": "La Muralla", "price": 0, "is_free": True},
+            ]
+        })
+        logger.info("Ruta Musical seeded!")
+    # Add price info to existing itinerary stops if missing
+    existing_itns = await db.itineraries.find({}).to_list(20)
+    for itn in existing_itns:
+        updated = False
+        for stop in itn.get("stops", []):
+            if "is_free" not in stop:
+                evt = await db.events.find_one({"event_id": stop.get("event_id")}, {"_id": 0, "is_free": 1, "price": 1})
+                if evt:
+                    stop["is_free"] = evt.get("is_free", True)
+                    stop["price"] = evt.get("price", 0)
+                else:
+                    stop["is_free"] = True
+                    stop["price"] = 0
+                updated = True
+        if updated:
+            await db.itineraries.update_one({"_id": itn["_id"]}, {"$set": {"stops": itn["stops"]}})
 
 
 @app.on_event("shutdown")

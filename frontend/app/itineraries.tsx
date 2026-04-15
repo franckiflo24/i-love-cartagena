@@ -10,6 +10,7 @@ const TYPE_COLORS: Record<string, string> = {
   lifestyle: '#D97706',
   culture: '#8B5CF6',
   premium: '#EAB308',
+  music: '#EC4899',
 };
 
 export default function ItinerariesScreen() {
@@ -83,7 +84,14 @@ export default function ItinerariesScreen() {
                           <Text style={styles.stopTitle}>{stop.title}</Text>
                           <Text style={styles.stopVenue}>{stop.venue}</Text>
                         </View>
-                        {stop.event_id ? <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} /> : null}
+                        {stop.is_free ? (
+                          <View style={styles.freeBadge}>
+                            <Text style={styles.freeText}>GRATIS</Text>
+                          </View>
+                        ) : stop.price ? (
+                          <Text style={styles.priceText}>${(stop.price / 1000).toFixed(0)}K</Text>
+                        ) : null}
+                        {stop.event_id ? <Ionicons name="chevron-forward" size={14} color={COLORS.textMuted} /> : null}
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -122,4 +130,7 @@ const styles = StyleSheet.create({
   stopInfo: { flex: 1 },
   stopTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
   stopVenue: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
+  freeBadge: { backgroundColor: 'rgba(34,197,94,0.15)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: RADIUS.full },
+  freeText: { fontSize: 9, color: '#22C55E', ...FONTS.bold, letterSpacing: 1 },
+  priceText: { fontSize: 12, color: COLORS.primary, ...FONTS.bold, minWidth: 40, textAlign: 'right' },
 });
