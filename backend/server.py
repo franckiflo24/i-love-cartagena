@@ -335,6 +335,38 @@ async def season_events(season_id: str, date: Optional[str] = None):
     return events
 
 
+# ── Concerts ─────────────────────────────────────────────────
+@api_router.get("/concerts")
+async def list_concerts(date: Optional[str] = None, genre: Optional[str] = None):
+    query = {}
+    if date:
+        query["date"] = date
+    if genre:
+        query["genre"] = genre
+    concerts = await db.concerts.find(query, {"_id": 0}).sort([("date", 1), ("start_time", 1)]).to_list(100)
+    return concerts
+
+
+@api_router.get("/concerts/dates")
+async def concert_dates():
+    dates = await db.concerts.distinct("date")
+    return sorted(dates)
+
+
+@api_router.get("/concerts/genres")
+async def concert_genres():
+    genres = await db.concerts.distinct("genre")
+    return sorted(genres)
+
+
+@api_router.get("/concerts/{concert_id}")
+async def get_concert(concert_id: str):
+    concert = await db.concerts.find_one({"concert_id": concert_id}, {"_id": 0})
+    if not concert:
+        raise HTTPException(status_code=404, detail="Concert not found")
+    return concert
+
+
 # ── Analytics ───────────────────────────────────────────────
 class AnalyticsEvent(BaseModel):
     event_type: str  # page_view, event_click, partner_click, booking_click, search, filter
@@ -1040,6 +1072,273 @@ async def startup():
                 updated = True
         if updated:
             await db.itineraries.update_one({"_id": itn["_id"]}, {"$set": {"stops": itn["stops"]}})
+
+
+    # Seed concerts if not yet seeded
+    concerts_count = await db.concerts.count_documents({})
+    if concerts_count == 0:
+        await seed_concerts()
+
+
+async def seed_concerts():
+    """Seed concerts with artists, genres, lineups for Music Week."""
+    logger.info("Seeding concerts...")
+
+    IMG_CONCERT = "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
+    IMG_DJ = "https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=800"
+    IMG_NIGHT = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800"
+    IMG_JAZZ = "https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800"
+    IMG_SUNSET = "https://images.unsplash.com/photo-1651421479936-e24edc3e3143?w=800"
+    IMG_BEACH = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800"
+    IMG_CLOSING = "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800"
+
+    concerts = [
+        {
+            "concert_id": "con_001",
+            "artist": "Solomun",
+            "title": "Solomun Live",
+            "genre": "Deep House / Melodic Techno",
+            "description": "El legendario DJ bosnio-alemán trae su set signature a Cartagena. Una experiencia inmersiva de deep house bajo las estrellas.",
+            "date": "2026-12-30",
+            "start_time": "22:00",
+            "end_time": "04:00",
+            "venue_id": "ven_002",
+            "venue_name": "Templo",
+            "is_free": False,
+            "price": 350000,
+            "currency": "COP",
+            "image_url": IMG_CONCERT,
+            "ticket_link": "https://templo.co/solomun",
+            "lineup": ["Solomun", "Local Support TBA"],
+            "capacity": 2000,
+            "tags": ["headliner", "electronic", "deep house"],
+        },
+        {
+            "concert_id": "con_002",
+            "artist": "Karol G",
+            "title": "Karol G - Mañana Será Bonito Tour",
+            "genre": "Reggaeton / Latin Pop",
+            "description": "La Bichota llega a Cartagena con su gira más exitosa. Reggaeton, perreo y hits que mueven al mundo.",
+            "date": "2027-01-02",
+            "start_time": "21:00",
+            "end_time": "01:00",
+            "venue_id": "ven_002",
+            "venue_name": "Templo",
+            "is_free": False,
+            "price": 450000,
+            "currency": "COP",
+            "image_url": IMG_NIGHT,
+            "ticket_link": "https://templo.co/karolg",
+            "lineup": ["Karol G", "DJ invitado sorpresa"],
+            "capacity": 2500,
+            "tags": ["headliner", "reggaeton", "latin"],
+        },
+        {
+            "concert_id": "con_003",
+            "artist": "Disclosure",
+            "title": "Disclosure DJ Set",
+            "genre": "UK Garage / House",
+            "description": "El dúo británico de música electrónica presenta un set exclusivo de house y garage en el beach club más exclusivo.",
+            "date": "2027-01-03",
+            "start_time": "15:00",
+            "end_time": "21:00",
+            "venue_id": "ven_009",
+            "venue_name": "Blue Apple Beach",
+            "is_free": False,
+            "price": 400000,
+            "currency": "COP",
+            "image_url": IMG_BEACH,
+            "ticket_link": "https://blueapple.co/disclosure",
+            "lineup": ["Disclosure", "Warm-up: DJ Local"],
+            "capacity": 300,
+            "tags": ["electronic", "house", "beach"],
+        },
+        {
+            "concert_id": "con_004",
+            "artist": "Celia Cruz Tribute Band",
+            "title": "Noche de Salsa - Tributo a Celia",
+            "genre": "Salsa / Son Cubano",
+            "description": "Una noche mágica de salsa en vivo rindiendo homenaje a la reina. Orquesta en vivo de 12 músicos.",
+            "date": "2026-12-31",
+            "start_time": "20:00",
+            "end_time": "02:00",
+            "venue_id": "ven_003",
+            "venue_name": "Casa Bohème",
+            "is_free": False,
+            "price": 180000,
+            "currency": "COP",
+            "image_url": IMG_JAZZ,
+            "ticket_link": "https://casaboheme.co/salsa",
+            "lineup": ["Orquesta Tributo Celia Cruz", "DJ Salsa"],
+            "capacity": 150,
+            "tags": ["salsa", "live band", "cultural"],
+        },
+        {
+            "concert_id": "con_005",
+            "artist": "Sunset Sounds",
+            "title": "Sunset Sessions - Opening",
+            "genre": "Chill / Downtempo",
+            "description": "La sesión de apertura oficial de Music Week. DJs locales e internacionales con el atardecer de Cartagena de fondo.",
+            "date": "2026-12-30",
+            "start_time": "16:00",
+            "end_time": "21:00",
+            "venue_id": "ven_005",
+            "venue_name": "Café del Mar",
+            "is_free": True,
+            "price": 0,
+            "currency": "COP",
+            "image_url": IMG_SUNSET,
+            "ticket_link": "",
+            "lineup": ["DJ Raíz", "Tropical Collective", "Sunset Sounds Residents"],
+            "capacity": 500,
+            "tags": ["free", "sunset", "chill", "opening"],
+        },
+        {
+            "concert_id": "con_006",
+            "artist": "Boris Brejcha",
+            "title": "Boris Brejcha - High-Tech Minimal",
+            "genre": "Minimal Techno",
+            "description": "El hombre de la máscara presenta su minimal techno único. Producción visual inmersiva.",
+            "date": "2027-01-04",
+            "start_time": "23:00",
+            "end_time": "06:00",
+            "venue_id": "ven_002",
+            "venue_name": "Templo",
+            "is_free": False,
+            "price": 320000,
+            "currency": "COP",
+            "image_url": IMG_DJ,
+            "ticket_link": "https://templo.co/boris",
+            "lineup": ["Boris Brejcha", "Ann Clue"],
+            "capacity": 2000,
+            "tags": ["techno", "minimal", "headliner"],
+        },
+        {
+            "concert_id": "con_007",
+            "artist": "Jazz Cartagena Ensemble",
+            "title": "Jazz Under the Stars",
+            "genre": "Jazz / Bossa Nova",
+            "description": "Noche de jazz en vivo con músicos locales e internacionales. Maridaje con vinos premium incluido.",
+            "date": "2027-01-01",
+            "start_time": "20:00",
+            "end_time": "00:00",
+            "venue_id": "ven_004",
+            "venue_name": "Bellini",
+            "is_free": False,
+            "price": 220000,
+            "currency": "COP",
+            "image_url": IMG_JAZZ,
+            "ticket_link": "https://bellini.co/jazz",
+            "lineup": ["Jazz Cartagena Ensemble", "Invitada: Voz Femenina"],
+            "capacity": 80,
+            "tags": ["jazz", "intimate", "wine"],
+        },
+        {
+            "concert_id": "con_008",
+            "artist": "Feid",
+            "title": "Feid - Ferxxocalipsis",
+            "genre": "Reggaeton / Trap Latino",
+            "description": "Ferxxo llega a Cartagena con toda su energía. Reggaeton, trap y los hits que dominan las playlists.",
+            "date": "2027-01-05",
+            "start_time": "22:00",
+            "end_time": "03:00",
+            "venue_id": "ven_002",
+            "venue_name": "Templo",
+            "is_free": False,
+            "price": 380000,
+            "currency": "COP",
+            "image_url": IMG_NIGHT,
+            "ticket_link": "https://templo.co/feid",
+            "lineup": ["Feid", "DJ invitado"],
+            "capacity": 2500,
+            "tags": ["reggaeton", "trap", "headliner"],
+        },
+        {
+            "concert_id": "con_009",
+            "artist": "Adriatique",
+            "title": "Adriatique Sunset Set",
+            "genre": "Melodic House / Progressive",
+            "description": "El dúo suizo de melodic house en una sesión sunset exclusiva sobre las murallas.",
+            "date": "2027-01-06",
+            "start_time": "16:00",
+            "end_time": "22:00",
+            "venue_id": "ven_001",
+            "venue_name": "La Muralla",
+            "is_free": True,
+            "price": 0,
+            "currency": "COP",
+            "image_url": IMG_SUNSET,
+            "ticket_link": "",
+            "lineup": ["Adriatique", "Warm-up local"],
+            "capacity": 800,
+            "tags": ["free", "sunset", "melodic house"],
+        },
+        {
+            "concert_id": "con_010",
+            "artist": "Beach Club All Stars",
+            "title": "Beach Day Festival",
+            "genre": "House / Afro House",
+            "description": "Festival de día en la playa con los mejores DJs de la escena afro house y house tropical.",
+            "date": "2027-01-07",
+            "start_time": "11:00",
+            "end_time": "19:00",
+            "venue_id": "ven_008",
+            "venue_name": "Isla Barú Beach Club",
+            "is_free": False,
+            "price": 280000,
+            "currency": "COP",
+            "image_url": IMG_BEACH,
+            "ticket_link": "https://barubeach.com/festival",
+            "lineup": ["Keinemusik", "Black Coffee", "Residents"],
+            "capacity": 500,
+            "tags": ["beach", "afro house", "day party"],
+        },
+        {
+            "concert_id": "con_011",
+            "artist": "Cumbia Digital Collective",
+            "title": "Cumbia Electrónica",
+            "genre": "Cumbia / Electrónica Tropical",
+            "description": "Fusión de cumbia tradicional con beats electrónicos. La nueva ola del sonido colombiano.",
+            "date": "2027-01-08",
+            "start_time": "19:00",
+            "end_time": "01:00",
+            "venue_id": "ven_010",
+            "venue_name": "Fénix",
+            "is_free": False,
+            "price": 120000,
+            "currency": "COP",
+            "image_url": IMG_CLOSING,
+            "ticket_link": "https://fenix.co/cumbia",
+            "lineup": ["Cumbia Digital Collective", "Systema Solar", "DJ Raíz"],
+            "capacity": 400,
+            "tags": ["cumbia", "colombian", "electronic"],
+        },
+        {
+            "concert_id": "con_012",
+            "artist": "Grand Closing",
+            "title": "Music Week Closing Ceremony",
+            "genre": "Multi-género",
+            "description": "La ceremonia de cierre de Music Week. DJs, artistas en vivo y un show de luces sobre las murallas.",
+            "date": "2027-01-10",
+            "start_time": "17:00",
+            "end_time": "02:00",
+            "venue_id": "ven_001",
+            "venue_name": "La Muralla",
+            "is_free": True,
+            "price": 0,
+            "currency": "COP",
+            "image_url": IMG_CLOSING,
+            "ticket_link": "",
+            "lineup": ["Artistas sorpresa", "Orquesta en vivo", "DJ Residents", "Show de luces"],
+            "capacity": 2000,
+            "tags": ["free", "closing", "special", "multi-genre"],
+        },
+    ]
+
+    await db.concerts.insert_many(concerts)
+    await db.concerts.create_index("date")
+    await db.concerts.create_index("genre")
+    logger.info(f"Seeded {len(concerts)} concerts!")
 
 
 @app.on_event("shutdown")

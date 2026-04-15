@@ -167,6 +167,7 @@ export default function HomeScreen() {
         <View style={styles.quickAccess}>
           {[
             { icon: 'calendar', label: 'Agenda', route: '/(tabs)/agenda' },
+            { icon: 'musical-notes', label: 'Conciertos', route: '/concerts' },
             { icon: 'map', label: 'Mapa', route: '/(tabs)/mapa' },
             { icon: 'boat', label: 'Transporte', route: '/transport' },
             { icon: 'trail-sign', label: 'Rutas', route: '/itineraries' },

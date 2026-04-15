@@ -1,0 +1,303 @@
+import React, { useEffect, useState, useCallback } from 'react';
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  Image, ActivityIndicator, FlatList, Linking,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
+import { api } from '../src/constants/api';
+
+type Concert = {
+  concert_id: string; artist: string; title: string; genre: string;
+  description: string; date: string; start_time: string; end_time: string;
+  venue_name: string; is_free: boolean; price: number; currency: string;
+  image_url: string; ticket_link: string; lineup: string[];
+  capacity: number; tags: string[];
+};
+
+const GENRE_COLORS: Record<string, string> = {
+  'Deep House': '#D97706',
+  'Melodic Techno': '#D97706',
+  'Reggaeton': '#EC4899',
+  'Latin Pop': '#EC4899',
+  'Trap Latino': '#EC4899',
+  'UK Garage': '#8B5CF6',
+  'House': '#8B5CF6',
+  'Afro House': '#8B5CF6',
+  'Salsa': '#EF4444',
+  'Son Cubano': '#EF4444',
+  'Chill': '#06B6D4',
+  'Downtempo': '#06B6D4',
+  'Minimal Techno': '#22C55E',
+  'Jazz': '#F59E0B',
+  'Bossa Nova': '#F59E0B',
+  'Cumbia': '#F97316',
+  'Melodic House': '#3B82F6',
+  'Progressive': '#3B82F6',
+  'Multi-género': '#D97706',
+};
+
+const getGenreColor = (genre: string) => {
+  for (const [key, color] of Object.entries(GENRE_COLORS)) {
+    if (genre.toLowerCase().includes(key.toLowerCase())) return color;
+  }
+  return COLORS.primary;
+};
+
+const formatDateLabel = (dateStr: string) => {
+  const d = new Date(dateStr + 'T00:00:00');
+  const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  return { day: days[d.getDay()], date: d.getDate(), month: months[d.getMonth()] };
+};
+
+const formatPrice = (price: number) => {
+  if (price >= 1000) return `$${(price / 1000).toFixed(0)}K`;
+  return `$${price}`;
+};
+
+export default function ConcertsScreen() {
+  const router = useRouter();
+  const [concerts, setConcerts] = useState<Concert[]>([]);
+  const [dates, setDates] = useState<string[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [d, c] = await Promise.all([
+          api.get('/concerts/dates'),
+          api.get('/concerts'),
+        ]);
+        setDates(d);
+        setConcerts(c);
+        if (d.length > 0) setSelectedDate(null); // Show all initially
+      } catch (e) { console.error(e); }
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  const filteredConcerts = selectedDate
+    ? concerts.filter(c => c.date === selectedDate)
+    : concerts;
+
+  const openTicketLink = (url: string) => {
+    if (url) Linking.openURL(url).catch(() => {});
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>Conciertos</Text>
+          <Text style={styles.subtitle}>Programa musical · {concerts.length} shows</Text>
+        </View>
+        <Ionicons name="musical-notes" size={24} color={COLORS.primary} />
+      </View>
+
+      {/* Date Filter */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dateScroll} contentContainerStyle={styles.dateScrollContent}>
+        <TouchableOpacity
+          style={[styles.dateChip, !selectedDate && styles.dateChipActive]}
+          onPress={() => setSelectedDate(null)}
+        >
+          <Text style={[styles.dateChipText, !selectedDate && styles.dateChipTextActive]}>Todos</Text>
+        </TouchableOpacity>
+        {dates.map(d => {
+          const { day, date, month } = formatDateLabel(d);
+          const isActive = selectedDate === d;
+          return (
+            <TouchableOpacity
+              key={d}
+              style={[styles.dateChip, isActive && styles.dateChipActive]}
+              onPress={() => setSelectedDate(d)}
+            >
+              <Text style={[styles.dateChipDay, isActive && styles.dateChipTextActive]}>{day}</Text>
+              <Text style={[styles.dateChipDate, isActive && styles.dateChipTextActive]}>{date}</Text>
+              <Text style={[styles.dateChipMonth, isActive && styles.dateChipTextActive]}>{month}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      {/* Concert List */}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+        {loading ? (
+          <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 60 }} />
+        ) : filteredConcerts.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="musical-notes-outline" size={48} color={COLORS.textMuted} />
+            <Text style={styles.emptyText}>No hay conciertos para esta fecha</Text>
+          </View>
+        ) : (
+          filteredConcerts.map(concert => {
+            const isExpanded = expanded === concert.concert_id;
+            const genreColor = getGenreColor(concert.genre);
+            return (
+              <TouchableOpacity
+                key={concert.concert_id}
+                style={styles.concertCard}
+                onPress={() => setExpanded(isExpanded ? null : concert.concert_id)}
+                activeOpacity={0.85}
+              >
+                {/* Image */}
+                <Image source={{ uri: concert.image_url }} style={styles.concertImage} />
+                <View style={styles.imageOverlay} />
+
+                {/* Price Badge */}
+                {concert.is_free ? (
+                  <View style={styles.freeBadge}>
+                    <Text style={styles.freeBadgeText}>GRATIS</Text>
+                  </View>
+                ) : (
+                  <View style={[styles.priceBadge, { backgroundColor: COLORS.primary }]}>
+                    <Text style={styles.priceBadgeText}>{formatPrice(concert.price)} COP</Text>
+                  </View>
+                )}
+
+                {/* Content over image */}
+                <View style={styles.concertOverlay}>
+                  <View style={[styles.genreBadge, { backgroundColor: genreColor }]}>
+                    <Text style={styles.genreText}>{concert.genre}</Text>
+                  </View>
+                  <Text style={styles.artistName}>{concert.artist}</Text>
+                  <Text style={styles.concertTitle} numberOfLines={1}>{concert.title}</Text>
+                  <View style={styles.concertMeta}>
+                    <View style={styles.metaItem}>
+                      <Ionicons name="location-outline" size={13} color={COLORS.textMuted} />
+                      <Text style={styles.metaText}>{concert.venue_name}</Text>
+                    </View>
+                    <View style={styles.metaItem}>
+                      <Ionicons name="time-outline" size={13} color={COLORS.textMuted} />
+                      <Text style={styles.metaText}>{concert.start_time} - {concert.end_time}</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Expanded Details */}
+                {isExpanded && (
+                  <View style={styles.expandedSection}>
+                    <Text style={styles.descriptionText}>{concert.description}</Text>
+
+                    {/* Lineup */}
+                    {concert.lineup && concert.lineup.length > 0 && (
+                      <View style={styles.lineupSection}>
+                        <Text style={styles.lineupTitle}>Lineup</Text>
+                        {concert.lineup.map((artist, i) => (
+                          <View key={i} style={styles.lineupItem}>
+                            <Ionicons name="musical-note" size={14} color={genreColor} />
+                            <Text style={styles.lineupText}>{artist}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+
+                    {/* Info Row */}
+                    <View style={styles.infoRow}>
+                      <View style={styles.infoItem}>
+                        <Ionicons name="calendar-outline" size={16} color={COLORS.textMuted} />
+                        <Text style={styles.infoText}>{formatDateLabel(concert.date).date} {formatDateLabel(concert.date).month}</Text>
+                      </View>
+                      <View style={styles.infoItem}>
+                        <Ionicons name="people-outline" size={16} color={COLORS.textMuted} />
+                        <Text style={styles.infoText}>{concert.capacity} cap.</Text>
+                      </View>
+                      {!concert.is_free && (
+                        <View style={styles.infoItem}>
+                          <Ionicons name="cash-outline" size={16} color={COLORS.primary} />
+                          <Text style={[styles.infoText, { color: COLORS.primary }]}>{formatPrice(concert.price)} COP</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Buy Ticket CTA */}
+                    {concert.ticket_link ? (
+                      <TouchableOpacity
+                        style={[styles.ticketBtn, { backgroundColor: genreColor }]}
+                        onPress={() => openTicketLink(concert.ticket_link)}
+                      >
+                        <Ionicons name="ticket" size={18} color="#FFF" />
+                        <Text style={styles.ticketBtnText}>Comprar entrada</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={[styles.ticketBtn, { backgroundColor: '#22C55E' }]}>
+                        <Ionicons name="checkmark-circle" size={18} color="#FFF" />
+                        <Text style={styles.ticketBtnText}>Entrada libre</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: COLORS.background },
+  header: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold },
+  subtitle: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
+
+  // Date filter
+  dateScroll: { maxHeight: 70, marginBottom: SPACING.sm },
+  dateScrollContent: { paddingHorizontal: SPACING.lg, gap: SPACING.sm },
+  dateChip: { alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, minWidth: 52 },
+  dateChipActive: { backgroundColor: `${COLORS.primary}20`, borderColor: COLORS.primary },
+  dateChipDay: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
+  dateChipDate: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold },
+  dateChipMonth: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
+  dateChipText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold },
+  dateChipTextActive: { color: COLORS.primary },
+
+  // Concert card
+  concertCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
+  concertImage: { width: '100%', height: 180 },
+  imageOverlay: { position: 'absolute', top: 0, left: 0, right: 0, height: 180, backgroundColor: 'rgba(0,0,0,0.45)' },
+
+  // Badges
+  freeBadge: { position: 'absolute', top: 12, right: 12, backgroundColor: '#22C55E', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
+  freeBadgeText: { fontSize: 11, color: '#FFF', ...FONTS.bold, letterSpacing: 1 },
+  priceBadge: { position: 'absolute', top: 12, right: 12, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
+  priceBadgeText: { fontSize: 11, color: '#FFF', ...FONTS.bold },
+
+  // Overlay content
+  concertOverlay: { position: 'absolute', top: 0, left: 0, right: 0, height: 180, padding: SPACING.md, justifyContent: 'flex-end' },
+  genreBadge: { alignSelf: 'flex-start', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 3, marginBottom: 4 },
+  genreText: { fontSize: 10, color: '#FFF', ...FONTS.bold, letterSpacing: 0.5 },
+  artistName: { fontSize: 22, color: '#FFF', ...FONTS.bold },
+  concertTitle: { fontSize: 13, color: 'rgba(255,255,255,0.8)', ...FONTS.regular },
+  concertMeta: { flexDirection: 'row', gap: SPACING.md, marginTop: 4 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  metaText: { fontSize: 11, color: 'rgba(255,255,255,0.7)', ...FONTS.medium },
+
+  // Expanded
+  expandedSection: { padding: SPACING.md, gap: SPACING.sm },
+  descriptionText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 20 },
+  lineupSection: { gap: 4 },
+  lineupTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold, marginBottom: 2 },
+  lineupItem: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  lineupText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium },
+  infoRow: { flexDirection: 'row', gap: SPACING.lg, paddingVertical: SPACING.xs },
+  infoItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  infoText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
+  ticketBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, paddingVertical: 14, borderRadius: RADIUS.full, marginTop: 4 },
+  ticketBtnText: { fontSize: 15, color: '#FFF', ...FONTS.bold },
+
+  // Empty
+  emptyState: { alignItems: 'center', paddingTop: 80, gap: SPACING.md },
+  emptyText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular },
+});
