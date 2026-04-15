@@ -9,6 +9,7 @@ export default function RootLayout() {
       <FavoritesProvider>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+        <Stack.Screen name="onboarding" />
         <Stack.Screen name="login" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="event/[id]" options={{ presentation: 'modal' }} />
