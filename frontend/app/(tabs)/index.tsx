@@ -23,10 +23,15 @@ type Event = {
 };
 
 const formatDateRange = (start: string, end: string) => {
-  const months = ['', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+  const months = ['', 'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
   const s = new Date(start + 'T00:00:00');
   const e = new Date(end + 'T00:00:00');
-  return `${s.getDate()} - ${e.getDate()} ${months[s.getMonth() + 1]} ${s.getFullYear()}`;
+  const sMonth = months[s.getMonth() + 1];
+  const eMonth = months[e.getMonth() + 1];
+  if (sMonth === eMonth) {
+    return `${s.getDate()} - ${e.getDate()} ${sMonth} ${s.getFullYear()}`;
+  }
+  return `${s.getDate()} ${sMonth} - ${e.getDate()} ${eMonth}`;
 };
 
 export default function HomeScreen() {
@@ -42,13 +47,15 @@ export default function HomeScreen() {
 
   const fetchData = async () => {
     try {
-      const [s, f, t] = await Promise.all([
+      const [s, f] = await Promise.all([
         api.get('/seasons?active=true'),
         api.get('/events/featured'),
-        api.get('/events?date=2026-01-12'),
       ]);
       setSeasons(s);
       setFeatured(f);
+      // Fetch events for the first date of the active season
+      const firstDate = s.length > 0 ? s[0].start_date : '2025-12-30';
+      const t = await api.get(`/events?date=${firstDate}`);
       setTodayEvents(t);
     } catch (e) {
       console.error(e);
@@ -224,7 +231,7 @@ export default function HomeScreen() {
         {/* Today's Events */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Hoy · 12 Enero</Text>
+            <Text style={styles.sectionTitle}>Programa · {seasons.length > 0 ? (() => { const d = new Date(seasons[0].start_date + 'T00:00:00'); const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']; return `${d.getDate()} ${meses[d.getMonth()]}`; })() : '30 Dic'}</Text>
           </View>
           {todayEvents.slice(0, 4).map((event) => (
             <TouchableOpacity
