@@ -57,7 +57,7 @@ export default function PerfilScreen() {
             <Text style={styles.langTitle}>{s('profile_language')}</Text>
           </View>
           <View style={styles.langRow}>
-            {(['es', 'en', 'fr'] as Lang[]).map(l => {
+            {(['es', 'en', 'fr', 'pt'] as Lang[]).map(l => {
               const isActive = lang === l;
               return (
                 <TouchableOpacity
@@ -122,7 +122,7 @@ export default function PerfilScreen() {
             <Text style={styles.langTitle}>{s('profile_language')}</Text>
           </View>
           <View style={styles.langRow}>
-            {(['es', 'en', 'fr'] as Lang[]).map(l => {
+            {(['es', 'en', 'fr', 'pt'] as Lang[]).map(l => {
               const isActive = lang === l;
               return (
                 <TouchableOpacity
@@ -223,8 +223,8 @@ const styles = StyleSheet.create({
   langSectionGuest: { paddingHorizontal: SPACING.xl, paddingBottom: SPACING.xl },
   langHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.sm },
   langTitle: { fontSize: 14, color: COLORS.textMuted, ...FONTS.semibold },
-  langRow: { flexDirection: 'row', gap: SPACING.sm },
-  langBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, borderWidth: 1.5, borderColor: COLORS.border },
+  langRow: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
+  langBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, paddingHorizontal: 12, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, borderWidth: 1.5, borderColor: COLORS.border, width: '47%' },
   langBtnActive: { borderColor: COLORS.primary, backgroundColor: `${COLORS.primary}12` },
   langFlag: { fontSize: 20 },
   langLabel: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },

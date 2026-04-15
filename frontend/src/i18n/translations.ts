@@ -1,15 +1,17 @@
-export type Lang = 'es' | 'en' | 'fr';
+export type Lang = 'es' | 'en' | 'fr' | 'pt';
 
 export const LANG_LABELS: Record<Lang, string> = {
   es: 'Español',
   en: 'English',
   fr: 'Français',
+  pt: 'Português',
 };
 
 export const LANG_FLAGS: Record<Lang, string> = {
   es: '🇪🇸',
   en: '🇬🇧',
   fr: '🇫🇷',
+  pt: '🇧🇷',
 };
 
 type Translations = Record<Lang, Record<string, string>>;
@@ -287,5 +289,93 @@ export const t: Translations = {
     common_book: 'Réserver',
     common_loading: 'Chargement...',
     common_see_map: 'Voir carte',
+  },
+
+  pt: {
+    tab_home: 'Início',
+    tab_agenda: 'Agenda',
+    tab_map: 'Mapa',
+    tab_partners: 'Parceiros',
+    tab_citypass: 'City Pass',
+    tab_profile: 'Perfil',
+
+    home_quickaccess: 'Acesso rápido',
+    home_agenda: 'Agenda',
+    home_concerts: 'Concertos',
+    home_my_agenda: 'Minha Agenda',
+    home_transport: 'Transporte',
+    home_routes: 'Roteiros',
+    home_program: 'Programa',
+    home_featured: 'Destaques',
+    home_see_all: 'Ver tudo',
+
+    concerts_title: 'Concertos',
+    concerts_subtitle: 'Programa musical',
+    concerts_shows: 'shows',
+    concerts_all: 'Todos',
+    concerts_buy: 'Comprar ingresso',
+    concerts_free_entry: 'Entrada gratuita',
+    concerts_lineup: 'Lineup',
+    concerts_directions: 'Como chegar',
+    concerts_free: 'GRÁTIS',
+
+    onboard_1_title: 'Toda a música\nem um só lugar',
+    onboard_1_desc: 'Descubra concertos, DJs, jazz, salsa e muito mais. Filtre por data, gênero e salve seus favoritos.',
+    onboard_2_title: 'Explore\nCartagena',
+    onboard_2_desc: 'Mapa interativo com todos os locais, parceiros e pontos de interesse. Encontre o que há perto de você.',
+    onboard_3_title: 'City Pass\nexclusivo',
+    onboard_3_desc: 'Descontos em restaurantes, clubs e hotéis. Seu QR code pessoal para curtir Cartagena sem limites.',
+    onboard_skip: 'Pular',
+    onboard_next: 'Próximo',
+    onboard_start: 'Começar',
+
+    fav_title: 'Minha Agenda',
+    fav_saved: 'salvos',
+    fav_empty_title: 'Sua agenda está vazia',
+    fav_empty_desc: 'Toque no coração ❤️ em eventos e concertos para salvá-los aqui.',
+    fav_explore: 'Explorar concertos',
+    fav_concerts: 'Concertos',
+    fav_events: 'Eventos',
+
+    pass_title: 'City Pass',
+    pass_subtitle: 'Viva Cartagena sem limites',
+    pass_active: 'PASS ATIVO',
+    pass_valid: 'Válido até',
+    pass_show_qr: 'Mostre este código nos parceiros',
+    pass_benefits: 'Seus benefícios',
+    pass_discover: 'Descubra ofertas exclusivas',
+    pass_discover_desc: 'Use seu pass nos parceiros certificados',
+    pass_activate: 'Ativar agora',
+    pass_login_activate: 'Faça login para ativar',
+    pass_popular: 'MAIS POPULAR',
+
+    profile_title: 'Perfil',
+    profile_language: 'Idioma',
+    profile_notifications: 'Notificações',
+    profile_admin: 'Painel Admin',
+    profile_logout: 'Sair',
+    profile_guest: 'Visitante',
+    profile_login: 'Entrar',
+
+    map_title: 'Mapa',
+    map_all_places: 'Todos os lugares',
+    map_points: 'pontos',
+    map_venues: 'Locais',
+    map_partners: 'Parceiros',
+    map_concerts: 'Concertos',
+
+    login_music: 'MÚSICA',
+    login_tagline: 'A experiência musical da cidade',
+    login_welcome: 'Concertos, agenda, parceiros e reservas em um só lugar',
+    login_google: 'Continuar com Google',
+    login_guest: 'Explorar como visitante',
+    login_terms: 'Ao continuar, você aceita os termos e condições de Música Cartagena',
+
+    common_back: 'Voltar',
+    common_share: 'Compartilhar',
+    common_directions: 'Como chegar',
+    common_book: 'Reservar',
+    common_loading: 'Carregando...',
+    common_see_map: 'Ver mapa',
   },
 };

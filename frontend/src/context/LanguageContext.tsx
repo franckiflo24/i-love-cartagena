@@ -23,7 +23,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then(val => {
-      if (val && (val === 'es' || val === 'en' || val === 'fr')) {
+      if (val && (val === 'es' || val === 'en' || val === 'fr' || val === 'pt')) {
         setLangState(val as Lang);
       }
     });
