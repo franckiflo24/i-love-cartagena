@@ -436,6 +436,185 @@ async def analytics_summary(request: Request):
     }
 
 
+@api_router.get("/analytics/dashboard")
+async def analytics_dashboard_v2(request: Request):
+    """Enhanced dashboard for government/sponsors - comprehensive city data."""
+    import random
+
+    # ── Core KPIs ──
+    total_users = await db.users.count_documents({})
+    total_events = await db.events.count_documents({})
+    total_partners = await db.partners.count_documents({})
+    total_interactions = await db.analytics.count_documents({})
+    total_seasons = await db.seasons.count_documents({})
+    total_passes = await db.city_passes.count_documents({})
+    booking_clicks = await db.analytics.count_documents({"event_type": "booking_click"})
+
+    # ── User Demographics (from analytics_demographics collection) ──
+    demographics = await db.analytics_demographics.find({}, {"_id": 0}).to_list(500)
+    nationality_counts = {}
+    age_counts = {}
+    gender_counts = {}
+    for d in demographics:
+        nat = d.get("nationality", "Desconocido")
+        nationality_counts[nat] = nationality_counts.get(nat, 0) + 1
+        age = d.get("age_group", "Desconocido")
+        age_counts[age] = age_counts.get(age, 0) + 1
+        gen = d.get("gender", "Desconocido")
+        gender_counts[gen] = gender_counts.get(gen, 0) + 1
+
+    nationalities = [{"country": k, "count": v, "percentage": round(v / max(len(demographics), 1) * 100, 1)} for k, v in sorted(nationality_counts.items(), key=lambda x: -x[1])]
+    age_groups = [{"group": k, "count": v} for k, v in sorted(age_counts.items())]
+    genders = [{"gender": k, "count": v} for k, v in sorted(gender_counts.items(), key=lambda x: -x[1])]
+
+    # ── Daily Activity (last 14 days from analytics) ──
+    daily_data = await db.analytics_daily.find({}, {"_id": 0}).sort("date", 1).to_list(30)
+
+    # ── Hourly Heatmap ──
+    hourly_data = await db.analytics_hourly.find({}, {"_id": 0}).to_list(24)
+
+    # ── Conversion Funnel ──
+    page_views = await db.analytics.count_documents({"event_type": "page_view"})
+    event_clicks = await db.analytics.count_documents({"event_type": "event_click"})
+    partner_clicks = await db.analytics.count_documents({"event_type": "partner_click"})
+
+    funnel = [
+        {"stage": "Visitas", "count": page_views, "color": "#3B82F6"},
+        {"stage": "Clicks eventos", "count": event_clicks, "color": "#D97706"},
+        {"stage": "Clicks partners", "count": partner_clicks, "color": "#8B5CF6"},
+        {"stage": "Clicks reserva", "count": booking_clicks, "color": "#22C55E"},
+    ]
+
+    # ── Revenue Estimates ──
+    passes_by_tier = await db.city_passes.aggregate([
+        {"$group": {"_id": "$plan_id", "count": {"$sum": 1}}}
+    ]).to_list(10)
+    tier_prices = {"pass_basic": 99000, "pass_premium": 299000, "pass_ultimate": 599000}
+    tier_names = {"pass_basic": "Explorer", "pass_premium": "VIP", "pass_ultimate": "Ultimate"}
+    revenue_data = []
+    total_revenue = 0
+    for t in passes_by_tier:
+        plan = t["_id"] or "unknown"
+        count = t["count"]
+        price = tier_prices.get(plan, 0)
+        rev = count * price
+        total_revenue += rev
+        revenue_data.append({
+            "tier": tier_names.get(plan, plan),
+            "count": count,
+            "unit_price": price,
+            "total": rev,
+        })
+
+    # ── Top Events ──
+    top_events_pipeline = [
+        {"$match": {"event_type": "event_click"}},
+        {"$group": {"_id": "$target_id", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10}
+    ]
+    top_events_raw = await db.analytics.aggregate(top_events_pipeline).to_list(10)
+    top_events = []
+    for e in top_events_raw:
+        evt = await db.events.find_one({"event_id": e["_id"]}, {"_id": 0, "event_id": 1, "title": 1, "type": 1, "venue_name": 1})
+        top_events.append({
+            "event_id": e["_id"], "views": e["count"],
+            "title": evt["title"] if evt else "Unknown",
+            "type": evt.get("type", "") if evt else "",
+            "venue": evt.get("venue_name", "") if evt else ""
+        })
+
+    # ── Top Partners ──
+    partner_pipeline = [
+        {"$match": {"event_type": "partner_click"}},
+        {"$group": {"_id": "$target_id", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 8}
+    ]
+    top_partners_raw = await db.analytics.aggregate(partner_pipeline).to_list(8)
+    top_partners = []
+    for p in top_partners_raw:
+        ptr = await db.partners.find_one({"partner_id": p["_id"]}, {"_id": 0, "partner_id": 1, "name": 1, "category": 1})
+        top_partners.append({
+            "partner_id": p["_id"], "clicks": p["count"],
+            "name": ptr["name"] if ptr else "Unknown",
+            "category": ptr.get("category", "") if ptr else ""
+        })
+
+    # ── Interactions by Type ──
+    type_pipeline = [
+        {"$group": {"_id": "$event_type", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}}
+    ]
+    interactions_by_type = await db.analytics.aggregate(type_pipeline).to_list(20)
+
+    # ── Events per Season ──
+    season_pipeline = [{"$group": {"_id": "$season_id", "count": {"$sum": 1}}}]
+    eps_raw = await db.events.aggregate(season_pipeline).to_list(20)
+    events_per_season = []
+    for s in eps_raw:
+        ssn = await db.seasons.find_one({"season_id": s["_id"]}, {"_id": 0, "season_id": 1, "name": 1, "color": 1}) if s["_id"] else None
+        events_per_season.append({
+            "season_id": s["_id"] or "none", "count": s["count"],
+            "name": ssn["name"] if ssn else "Sin temporada",
+            "color": ssn.get("color", "#666") if ssn else "#666"
+        })
+
+    # ── Venue Heatmap (top venues by interactions) ──
+    venue_pipeline = [
+        {"$match": {"target_type": "venue"}},
+        {"$group": {"_id": "$target_id", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10}
+    ]
+    top_venues_raw = await db.analytics.aggregate(venue_pipeline).to_list(10)
+    top_venues = []
+    for v in top_venues_raw:
+        ven = await db.venues.find_one({"venue_id": v["_id"]}, {"_id": 0, "venue_id": 1, "name": 1, "type": 1})
+        top_venues.append({
+            "venue_id": v["_id"], "interactions": v["count"],
+            "name": ven["name"] if ven else "Unknown",
+            "type": ven.get("type", "") if ven else ""
+        })
+
+    # ── Transport Usage ──
+    transport_usage = await db.analytics.count_documents({"event_type": "transport_view"})
+    map_views = await db.analytics.count_documents({"event_type": "map_view"})
+
+    return {
+        "kpis": {
+            "total_users": total_users,
+            "total_events": total_events,
+            "total_partners": total_partners,
+            "total_interactions": total_interactions,
+            "total_seasons": total_seasons,
+            "total_passes": total_passes,
+            "booking_clicks": booking_clicks,
+            "total_revenue_cop": total_revenue,
+            "transport_views": transport_usage,
+            "map_views": map_views,
+        },
+        "demographics": {
+            "nationalities": nationalities,
+            "age_groups": age_groups,
+            "genders": genders,
+            "total_profiled": len(demographics),
+        },
+        "daily_activity": daily_data,
+        "hourly_activity": hourly_data,
+        "funnel": funnel,
+        "revenue": {
+            "total_cop": total_revenue,
+            "by_tier": revenue_data,
+        },
+        "top_events": top_events,
+        "top_partners": top_partners,
+        "top_venues": top_venues,
+        "interactions_by_type": [{"type": e["_id"] or "unknown", "count": e["count"]} for e in interactions_by_type],
+        "events_per_season": events_per_season,
+    }
+
+
 # ── City Pass ───────────────────────────────────────────────
 @api_router.get("/city-pass/plans")
 async def city_pass_plans():
@@ -669,7 +848,153 @@ async def seed_database():
     await db.analytics.create_index("user_id")
     await db.events.create_index("season_id")
 
+    # ── Seed Analytics Demo Data (for government/sponsor dashboard) ──
+    await seed_analytics_demo_data()
+
     logger.info("Database seeded successfully!")
+
+
+async def seed_analytics_demo_data():
+    """Seed realistic analytics data for the admin dashboard demo."""
+    import random
+
+    logger.info("Seeding analytics demo data...")
+
+    event_ids = [f"evt_{str(i).zfill(3)}" for i in range(1, 16)]
+    partner_ids = [f"ptr_{str(i).zfill(3)}" for i in range(1, 9)]
+    venue_ids = [f"ven_{str(i).zfill(3)}" for i in range(1, 11)]
+    event_types_list = ["page_view", "event_click", "partner_click", "booking_click",
+                        "season_click", "quick_access", "partner_section_click",
+                        "transport_view", "map_view", "search", "filter"]
+
+    # Generate ~500 analytics events over 14 days
+    analytics_docs = []
+    base_date = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    for i in range(500):
+        day_offset = random.randint(0, 13)
+        hour = random.choices(range(24), weights=[
+            2, 1, 1, 1, 1, 2, 4, 6, 8, 10, 12, 14,
+            12, 10, 8, 10, 14, 16, 18, 16, 14, 12, 8, 4
+        ])[0]
+        minute = random.randint(0, 59)
+        ts = base_date + timedelta(days=day_offset, hours=hour, minutes=minute)
+
+        etype = random.choices(event_types_list, weights=[25, 20, 12, 5, 8, 6, 5, 4, 5, 6, 4])[0]
+        target_id = None
+        target_type = None
+        if etype == "event_click":
+            target_id = random.choice(event_ids)
+            target_type = "event"
+        elif etype == "partner_click":
+            target_id = random.choice(partner_ids)
+            target_type = "partner"
+        elif etype == "booking_click":
+            target_id = random.choice(event_ids[:8])
+            target_type = "event"
+        elif etype == "season_click":
+            target_id = random.choice(["season_001", "season_002", "season_003"])
+            target_type = "season"
+        elif etype in ("transport_view", "map_view"):
+            target_id = random.choice(venue_ids)
+            target_type = "venue"
+
+        analytics_docs.append({
+            "analytics_id": f"an_{uuid.uuid4().hex[:12]}",
+            "user_id": f"user_{random.choice(['demo1', 'demo2', 'demo3', 'demo4', 'demo5', None])}",
+            "event_type": etype,
+            "target_id": target_id,
+            "target_type": target_type,
+            "metadata": {},
+            "timestamp": ts.isoformat(),
+            "user_agent": random.choice([
+                "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)",
+                "Mozilla/5.0 (Linux; Android 14)",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X)",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+            ]),
+        })
+
+    if analytics_docs:
+        await db.analytics.insert_many(analytics_docs)
+
+    # ── Demographics Data ──
+    nationalities_pool = [
+        ("Colombia", 35), ("USA", 15), ("México", 10), ("Argentina", 8),
+        ("España", 7), ("Brasil", 6), ("Chile", 5), ("Perú", 4),
+        ("Francia", 3), ("Alemania", 3), ("UK", 2), ("Italia", 2),
+    ]
+    age_groups_pool = [("18-24", 15), ("25-34", 35), ("35-44", 25), ("45-54", 15), ("55+", 10)]
+    gender_pool = [("Masculino", 48), ("Femenino", 47), ("No binario", 3), ("Prefiero no decir", 2)]
+
+    demographics_docs = []
+    for i in range(200):
+        nat = random.choices([n[0] for n in nationalities_pool], weights=[n[1] for n in nationalities_pool])[0]
+        age = random.choices([a[0] for a in age_groups_pool], weights=[a[1] for a in age_groups_pool])[0]
+        gen = random.choices([g[0] for g in gender_pool], weights=[g[1] for g in gender_pool])[0]
+        demographics_docs.append({
+            "demo_id": f"dm_{uuid.uuid4().hex[:12]}",
+            "nationality": nat,
+            "age_group": age,
+            "gender": gen,
+            "created_at": (base_date + timedelta(days=random.randint(0, 13))).isoformat(),
+        })
+
+    if demographics_docs:
+        await db.analytics_demographics.insert_many(demographics_docs)
+
+    # ── Daily Activity Summary ──
+    daily_docs = []
+    for day in range(14):
+        d = base_date + timedelta(days=day)
+        date_str = d.strftime("%Y-%m-%d")
+        # Realistic curve: ramp up, peak, slight decline
+        base_users = int(30 + 25 * (1 - abs(day - 7) / 7) + random.randint(-5, 10))
+        base_interactions = int(base_users * random.uniform(3.5, 6.0))
+        base_bookings = int(base_interactions * random.uniform(0.04, 0.10))
+        daily_docs.append({
+            "date": date_str,
+            "users": base_users,
+            "interactions": base_interactions,
+            "bookings": base_bookings,
+            "page_views": int(base_interactions * random.uniform(0.35, 0.50)),
+            "event_clicks": int(base_interactions * random.uniform(0.20, 0.30)),
+            "partner_clicks": int(base_interactions * random.uniform(0.10, 0.18)),
+        })
+
+    if daily_docs:
+        await db.analytics_daily.insert_many(daily_docs)
+
+    # ── Hourly Activity Pattern ──
+    hourly_docs = []
+    hour_weights = [8, 5, 3, 2, 2, 4, 12, 18, 25, 30, 35, 40,
+                    38, 35, 28, 30, 38, 45, 52, 48, 42, 35, 25, 15]
+    for h in range(24):
+        hourly_docs.append({
+            "hour": h,
+            "avg_interactions": hour_weights[h] + random.randint(-3, 5),
+            "label": f"{str(h).zfill(2)}:00",
+        })
+
+    if hourly_docs:
+        await db.analytics_hourly.insert_many(hourly_docs)
+
+    # ── Seed some City Passes for revenue demo ──
+    pass_docs = []
+    for i in range(25):
+        plan = random.choices(["pass_basic", "pass_premium", "pass_ultimate"], weights=[50, 35, 15])[0]
+        pass_docs.append({
+            "pass_id": f"cp_{uuid.uuid4().hex[:12]}",
+            "user_id": f"user_demo{random.randint(1, 50)}",
+            "plan_id": plan,
+            "activated_at": (base_date + timedelta(days=random.randint(0, 13))).isoformat(),
+            "expires_at": (base_date + timedelta(days=random.randint(7, 20))).isoformat(),
+            "is_active": True,
+        })
+
+    if pass_docs:
+        await db.city_passes.insert_many(pass_docs)
+
+    logger.info("Analytics demo data seeded!")
 
 
 app.include_router(api_router)
@@ -686,6 +1011,10 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     await seed_database()
+    # Seed analytics demo data separately if not yet seeded
+    analytics_count = await db.analytics_demographics.count_documents({})
+    if analytics_count == 0:
+        await seed_analytics_demo_data()
 
 
 @app.on_event("shutdown")
