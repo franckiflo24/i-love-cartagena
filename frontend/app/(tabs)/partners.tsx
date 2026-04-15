@@ -12,20 +12,10 @@ type Partner = {
   price_range: string; experience: string; is_certified: boolean;
 };
 
-const CATEGORIES = [
-  { key: 'all', label: 'Todos' },
-  { key: 'restaurant', label: 'Restaurantes' },
-  { key: 'club', label: 'Clubs' },
-  { key: 'beach_club', label: 'Beach Clubs' },
-  { key: 'hotel', label: 'Hoteles' },
-  { key: 'wellness', label: 'Wellness' },
-];
-
 export default function PartnersScreen() {
   const router = useRouter();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('all');
 
   useEffect(() => {
     const load = async () => {
@@ -38,8 +28,6 @@ export default function PartnersScreen() {
     load();
   }, []);
 
-  const filtered = selectedCategory === 'all' ? partners : partners.filter(p => p.category === selectedCategory);
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
@@ -47,25 +35,11 @@ export default function PartnersScreen() {
         <Text style={styles.subtitle}>Lugares certificados por I ❤️ Cartagena</Text>
       </View>
 
-      {/* Category Filter */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterBar}>
-        {CATEGORIES.map(c => (
-          <TouchableOpacity
-            key={c.key}
-            testID={`partner-filter-${c.key}`}
-            style={[styles.filterChip, selectedCategory === c.key && styles.filterChipActive]}
-            onPress={() => setSelectedCategory(c.key)}
-          >
-            <Text style={[styles.filterText, selectedCategory === c.key && styles.filterTextActive]}>{c.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
       <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
         {loading ? (
           <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
         ) : (
-          filtered.map(partner => (
+          partners.map(partner => (
             <TouchableOpacity
               key={partner.partner_id}
               testID={`partner-${partner.partner_id}`}
@@ -138,11 +112,6 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, paddingBottom: SPACING.sm },
   title: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold },
   subtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
-  filterBar: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, paddingVertical: SPACING.sm },
-  filterChip: { paddingHorizontal: SPACING.md, paddingVertical: 8, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border },
-  filterChipActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(217, 119, 6, 0.15)' },
-  filterText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
-  filterTextActive: { color: COLORS.primary },
   list: { flex: 1, paddingHorizontal: SPACING.lg },
   partnerCard: { borderRadius: RADIUS.xl, overflow: 'hidden', marginBottom: SPACING.md, borderWidth: 1, borderColor: 'rgba(217, 119, 6, 0.2)' },
   partnerImage: { width: '100%', height: 160 },
