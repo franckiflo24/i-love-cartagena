@@ -367,6 +367,89 @@ async def get_concert(concert_id: str):
     return concert
 
 
+# ── Favorites / Mi Agenda ─────────────────────────────────────
+class FavoriteToggle(BaseModel):
+    item_id: str
+    item_type: str  # event, concert
+
+@api_router.post("/favorites/toggle")
+async def toggle_favorite(body: FavoriteToggle, request: Request):
+    user = await get_current_user(request)
+    user_id = user["user_id"]
+    existing = await db.favorites.find_one({"user_id": user_id, "item_id": body.item_id, "item_type": body.item_type})
+    if existing:
+        await db.favorites.delete_one({"_id": existing["_id"]})
+        return {"status": "removed", "item_id": body.item_id}
+    else:
+        await db.favorites.insert_one({
+            "fav_id": f"fav_{uuid.uuid4().hex[:12]}",
+            "user_id": user_id,
+            "item_id": body.item_id,
+            "item_type": body.item_type,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+        return {"status": "added", "item_id": body.item_id}
+
+@api_router.get("/favorites")
+async def get_favorites(request: Request):
+    user = await get_current_user(request)
+    user_id = user["user_id"]
+    favs = await db.favorites.find({"user_id": user_id}, {"_id": 0}).to_list(200)
+
+    # Enrich with full data
+    result = []
+    for f in favs:
+        item = None
+        if f["item_type"] == "event":
+            item = await db.events.find_one({"event_id": f["item_id"]}, {"_id": 0})
+        elif f["item_type"] == "concert":
+            item = await db.concerts.find_one({"concert_id": f["item_id"]}, {"_id": 0})
+        if item:
+            item["_fav_type"] = f["item_type"]
+            item["_fav_id"] = f["fav_id"]
+            result.append(item)
+
+    return result
+
+@api_router.get("/favorites/ids")
+async def get_favorite_ids(request: Request):
+    user = await get_current_user(request)
+    user_id = user["user_id"]
+    favs = await db.favorites.find({"user_id": user_id}, {"_id": 0, "item_id": 1, "item_type": 1}).to_list(200)
+    return [{"item_id": f["item_id"], "item_type": f["item_type"]} for f in favs]
+
+
+# ── Search ────────────────────────────────────────────────────
+@api_router.get("/search")
+async def global_search(q: str = ""):
+    if not q or len(q) < 2:
+        return {"events": [], "concerts": [], "partners": [], "venues": []}
+
+    regex = {"$regex": q, "$options": "i"}
+
+    events = await db.events.find(
+        {"$or": [{"title": regex}, {"description": regex}, {"venue_name": regex}, {"type": regex}]},
+        {"_id": 0}
+    ).limit(10).to_list(10)
+
+    concerts = await db.concerts.find(
+        {"$or": [{"artist": regex}, {"title": regex}, {"genre": regex}, {"venue_name": regex}]},
+        {"_id": 0}
+    ).limit(10).to_list(10)
+
+    partners = await db.partners.find(
+        {"$or": [{"name": regex}, {"description": regex}, {"category": regex}]},
+        {"_id": 0}
+    ).limit(10).to_list(10)
+
+    venues = await db.venues.find(
+        {"$or": [{"name": regex}, {"description": regex}, {"type": regex}]},
+        {"_id": 0}
+    ).limit(10).to_list(10)
+
+    return {"events": events, "concerts": concerts, "partners": partners, "venues": venues}
+
+
 # ── Analytics ───────────────────────────────────────────────
 class AnalyticsEvent(BaseModel):
     event_type: str  # page_view, event_click, partner_click, booking_click, search, filter

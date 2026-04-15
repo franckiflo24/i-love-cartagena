@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
+import { useFavorites } from '../src/context/FavoritesContext';
 
 type Concert = {
   concert_id: string; artist: string; title: string; genre: string;
@@ -71,6 +72,7 @@ const formatPrice = (price: number) => {
 
 export default function ConcertsScreen() {
   const router = useRouter();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const [concerts, setConcerts] = useState<Concert[]>([]);
   const [dates, setDates] = useState<string[]>([]);
   const [genres, setGenres] = useState<string[]>([]);
@@ -204,6 +206,14 @@ export default function ConcertsScreen() {
                   </View>
                 )}
 
+                {/* Heart Button */}
+                <TouchableOpacity
+                  style={styles.heartBtn}
+                  onPress={(e) => { e.stopPropagation(); toggleFavorite(concert.concert_id, 'concert'); }}
+                >
+                  <Ionicons name={isFavorite(concert.concert_id) ? 'heart' : 'heart-outline'} size={22} color={isFavorite(concert.concert_id) ? '#EF4444' : '#FFF'} />
+                </TouchableOpacity>
+
                 {/* Content over image */}
                 <View style={styles.concertOverlay}>
                   <View style={[styles.genreBadge, { backgroundColor: genreColor }]}>
@@ -332,6 +342,7 @@ const styles = StyleSheet.create({
   freeBadgeText: { fontSize: 11, color: '#FFF', ...FONTS.bold, letterSpacing: 1 },
   priceBadge: { position: 'absolute', top: 12, right: 12, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
   priceBadgeText: { fontSize: 11, color: '#FFF', ...FONTS.bold },
+  heartBtn: { position: 'absolute', top: 12, left: 12, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', zIndex: 2 },
 
   // Overlay content
   concertOverlay: { position: 'absolute', top: 0, left: 0, right: 0, height: 180, padding: SPACING.md, justifyContent: 'flex-end' },
