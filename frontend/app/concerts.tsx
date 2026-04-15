@@ -303,8 +303,8 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
 
   // Date filter
-  dateScroll: { maxHeight: 70, marginBottom: SPACING.sm },
-  dateScrollContent: { paddingHorizontal: SPACING.lg, gap: SPACING.sm },
+  dateScroll: { marginBottom: SPACING.xs },
+  dateScrollContent: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, paddingVertical: 4 },
   dateChip: { alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, minWidth: 52 },
   dateChipActive: { backgroundColor: `${COLORS.primary}20`, borderColor: COLORS.primary },
   dateChipDay: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
@@ -314,8 +314,8 @@ const styles = StyleSheet.create({
   dateChipTextActive: { color: COLORS.primary },
 
   // Genre filter
-  genreScroll: { maxHeight: 42, marginBottom: SPACING.sm },
-  genreScrollContent: { paddingHorizontal: SPACING.lg, gap: SPACING.xs },
+  genreScroll: { marginBottom: SPACING.md },
+  genreScrollContent: { paddingHorizontal: SPACING.lg, gap: SPACING.xs, paddingVertical: 4 },
   genreChip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
   genreChipActive: { backgroundColor: `${COLORS.primary}20`, borderColor: COLORS.primary },
   genreDot: { width: 8, height: 8, borderRadius: 4 },
