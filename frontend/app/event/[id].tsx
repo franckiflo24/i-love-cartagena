@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking as RNLinking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking as RNLinking, Share } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
+import { useFavorites } from '../../src/context/FavoritesContext';
 
 export default function EventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuth();
+  const { isFavorite: checkFav, toggleFavorite } = useFavorites();
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [inMyWeek, setInMyWeek] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -27,19 +27,13 @@ export default function EventDetail() {
     load();
   }, [id]);
 
-  const toggleFavorite = async () => {
-    if (!user) return;
+  const shareEvent = async () => {
+    if (!event) return;
+    const priceText = event.is_free ? 'GRATIS' : `$${(event.price / 1000).toFixed(0)}K COP`;
     try {
-      const res = await api.post('/favorites/toggle', { event_id: id });
-      setIsFavorite(res.action === 'added');
-    } catch (e) { console.error(e); }
-  };
-
-  const toggleMyWeek = async () => {
-    if (!user) return;
-    try {
-      const res = await api.post('/my-week/toggle', { event_id: id });
-      setInMyWeek(res.action === 'added');
+      await Share.share({
+        message: `🎉 ${event.title}\n📍 ${event.venue_name}\n🗓 ${event.date} · ${event.start_time}\n💰 ${priceText}\n\nDescarga Música Cartagena para ver todo el programa 🎧`,
+      });
     } catch (e) { console.error(e); }
   };
 
@@ -80,16 +74,12 @@ export default function EventDetail() {
               <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
             </TouchableOpacity>
             <View style={styles.heroNavRight}>
-              {user && (
-                <>
-                  <TouchableOpacity testID="event-fav-btn" style={styles.navBtn} onPress={toggleFavorite}>
-                    <Ionicons name={isFavorite ? 'heart' : 'heart-outline'} size={22} color={isFavorite ? COLORS.error : COLORS.textMain} />
-                  </TouchableOpacity>
-                  <TouchableOpacity testID="event-week-btn" style={styles.navBtn} onPress={toggleMyWeek}>
-                    <Ionicons name={inMyWeek ? 'calendar' : 'calendar-outline'} size={22} color={inMyWeek ? COLORS.primary : COLORS.textMain} />
-                  </TouchableOpacity>
-                </>
-              )}
+              <TouchableOpacity testID="event-fav-btn" style={styles.navBtn} onPress={() => toggleFavorite(event.event_id, 'event')}>
+                <Ionicons name={checkFav(event.event_id) ? 'heart' : 'heart-outline'} size={22} color={checkFav(event.event_id) ? '#EF4444' : COLORS.textMain} />
+              </TouchableOpacity>
+              <TouchableOpacity testID="event-share-btn" style={styles.navBtn} onPress={shareEvent}>
+                <Ionicons name="share-social-outline" size={22} color={COLORS.textMain} />
+              </TouchableOpacity>
             </View>
           </View>
           <View style={styles.heroContent}>

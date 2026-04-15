@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Image, ActivityIndicator, FlatList, Linking,
+  Image, ActivityIndicator, FlatList, Linking, Share,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -108,6 +108,15 @@ export default function ConcertsScreen() {
     if (url) Linking.openURL(url).catch(() => {});
   };
 
+  const shareConcert = async (concert: Concert) => {
+    const priceText = concert.is_free ? 'GRATIS' : `$${(concert.price / 1000).toFixed(0)}K COP`;
+    try {
+      await Share.share({
+        message: `🎵 ${concert.artist} - ${concert.title}\n📍 ${concert.venue_name}\n🗓 ${concert.date} · ${concert.start_time}-${concert.end_time}\n🎶 ${concert.genre}\n💰 ${priceText}\n\nDescarga Música Cartagena para ver todo el programa 🎧`,
+      });
+    } catch (e) { console.error(e); }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
@@ -212,6 +221,14 @@ export default function ConcertsScreen() {
                   onPress={(e) => { e.stopPropagation(); toggleFavorite(concert.concert_id, 'concert'); }}
                 >
                   <Ionicons name={isFavorite(concert.concert_id) ? 'heart' : 'heart-outline'} size={22} color={isFavorite(concert.concert_id) ? '#EF4444' : '#FFF'} />
+                </TouchableOpacity>
+
+                {/* Share Button */}
+                <TouchableOpacity
+                  style={styles.shareBtn}
+                  onPress={(e) => { e.stopPropagation(); shareConcert(concert); }}
+                >
+                  <Ionicons name="share-social-outline" size={20} color="#FFF" />
                 </TouchableOpacity>
 
                 {/* Content over image */}
@@ -343,6 +360,7 @@ const styles = StyleSheet.create({
   priceBadge: { position: 'absolute', top: 12, right: 12, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
   priceBadgeText: { fontSize: 11, color: '#FFF', ...FONTS.bold },
   heartBtn: { position: 'absolute', top: 12, left: 12, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', zIndex: 2 },
+  shareBtn: { position: 'absolute', top: 56, left: 12, width: 38, height: 38, borderRadius: 19, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', zIndex: 2 },
 
   // Overlay content
   concertOverlay: { position: 'absolute', top: 0, left: 0, right: 0, height: 180, padding: SPACING.md, justifyContent: 'flex-end' },
