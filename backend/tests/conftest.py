@@ -5,7 +5,7 @@ from pathlib import Path
 
 # Load BASE_URL from frontend .env
 frontend_env = Path('/app/frontend/.env')
-BASE_URL = 'https://music-week-ctg.preview.emergentagent.com'
+BASE_URL = 'https://cartagena-week.preview.emergentagent.com'
 if frontend_env.exists():
     for line in frontend_env.read_text().splitlines():
         if line.startswith('EXPO_PUBLIC_BACKEND_URL='):

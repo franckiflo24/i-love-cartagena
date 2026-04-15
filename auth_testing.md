@@ -31,28 +31,28 @@ print('User ID: ' + userId);
 
 ```bash
 # Test auth endpoint
-curl -X GET "https://music-week-ctg.preview.emergentagent.com/api/auth/me" \
+curl -X GET "https://cartagena-week.preview.emergentagent.com/api/auth/me" \
   -H "Authorization: Bearer YOUR_SESSION_TOKEN"
 
 # Test events
-curl "https://music-week-ctg.preview.emergentagent.com/api/events"
-curl "https://music-week-ctg.preview.emergentagent.com/api/events/featured"
-curl "https://music-week-ctg.preview.emergentagent.com/api/events?date=2026-01-12"
+curl "https://cartagena-week.preview.emergentagent.com/api/events"
+curl "https://cartagena-week.preview.emergentagent.com/api/events/featured"
+curl "https://cartagena-week.preview.emergentagent.com/api/events?date=2026-01-12"
 
 # Test venues
-curl "https://music-week-ctg.preview.emergentagent.com/api/venues"
+curl "https://cartagena-week.preview.emergentagent.com/api/venues"
 
 # Test partners
-curl "https://music-week-ctg.preview.emergentagent.com/api/partners"
+curl "https://cartagena-week.preview.emergentagent.com/api/partners"
 
 # Test itineraries
-curl "https://music-week-ctg.preview.emergentagent.com/api/itineraries"
+curl "https://cartagena-week.preview.emergentagent.com/api/itineraries"
 
 # Test transport
-curl "https://music-week-ctg.preview.emergentagent.com/api/transport"
+curl "https://cartagena-week.preview.emergentagent.com/api/transport"
 
 # Test favorites (authenticated)
-curl -X POST "https://music-week-ctg.preview.emergentagent.com/api/favorites/toggle" \
+curl -X POST "https://cartagena-week.preview.emergentagent.com/api/favorites/toggle" \
   -H "Authorization: Bearer YOUR_SESSION_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"event_id": "evt_001"}'
@@ -71,5 +71,5 @@ await page.context.add_cookies([{
     "secure": True,
     "sameSite": "None"
 }]);
-await page.goto("https://music-week-ctg.preview.emergentagent.com");
+await page.goto("https://cartagena-week.preview.emergentagent.com");
 ```
