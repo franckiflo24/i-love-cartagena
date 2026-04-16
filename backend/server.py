@@ -399,6 +399,13 @@ async def season_events(season_id: str, date: Optional[str] = None):
     return events
 
 
+# ── Sponsors ─────────────────────────────────────────────────
+@api_router.get("/sponsors")
+async def list_sponsors():
+    sponsors = await db.sponsors.find({"is_active": True}, {"_id": 0}).sort("order", 1).to_list(20)
+    return sponsors
+
+
 # ── Concerts ─────────────────────────────────────────────────
 @api_router.get("/concerts")
 async def list_concerts(date: Optional[str] = None, genre: Optional[str] = None):
@@ -1225,6 +1232,19 @@ async def startup():
     concerts_count = await db.concerts.count_documents({})
     if concerts_count == 0:
         await seed_concerts()
+    # Seed sponsors if not yet seeded
+    sponsors_count = await db.sponsors.count_documents({})
+    if sponsors_count == 0:
+        sponsors = [
+            {"sponsor_id": "sp_001", "name": "Avianca", "logo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Avianca_Logo.svg/320px-Avianca_Logo.svg.png", "tagline": "Aerolínea oficial", "color": "#E31837", "url": "https://avianca.com", "tier": "gold", "is_active": True, "order": 1},
+            {"sponsor_id": "sp_002", "name": "Aguila", "logo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Cerveza_%C3%81guila_logo.svg/320px-Cerveza_%C3%81guila_logo.svg.png", "tagline": "La cerveza de Colombia", "color": "#FFD700", "url": "https://cervezaaguila.com", "tier": "gold", "is_active": True, "order": 2},
+            {"sponsor_id": "sp_003", "name": "Alcaldía de Cartagena", "logo_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Escudo_de_Cartagena_de_Indias.svg/200px-Escudo_de_Cartagena_de_Indias.svg.png", "tagline": "Ciudad patrimonio", "color": "#1B4F72", "url": "https://cartagena.gov.co", "tier": "institutional", "is_active": True, "order": 3},
+            {"sponsor_id": "sp_004", "name": "Ron Cartagena", "logo_url": "", "tagline": "El sabor del Caribe", "color": "#8B4513", "url": "", "tier": "silver", "is_active": True, "order": 4},
+            {"sponsor_id": "sp_005", "name": "Hotel Santa Clara", "logo_url": "", "tagline": "Lujo en la ciudad amurallada", "color": "#C9A96E", "url": "https://hotelsantaclara.com", "tier": "silver", "is_active": True, "order": 5},
+            {"sponsor_id": "sp_006", "name": "Templo", "logo_url": "", "tagline": "La catedral de la música", "color": "#EC4899", "url": "https://templo.co", "tier": "silver", "is_active": True, "order": 6},
+        ]
+        await db.sponsors.insert_many(sponsors)
+        logger.info(f"Seeded {len(sponsors)} sponsors!")
 
 
 async def seed_concerts():

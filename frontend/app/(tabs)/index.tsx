@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, RefreshControl, Dimensions, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, RefreshControl, Dimensions, FlatList, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -40,6 +40,8 @@ export default function HomeScreen() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [featured, setFeatured] = useState<Event[]>([]);
   const [todayEvents, setTodayEvents] = useState<Event[]>([]);
+  const [sponsors, setSponsors] = useState<any[]>([]);
+  const [activeSponsor, setActiveSponsor] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeSeasonIdx, setActiveSeasonIdx] = useState(0);
@@ -47,13 +49,14 @@ export default function HomeScreen() {
 
   const fetchData = async () => {
     try {
-      const [s, f] = await Promise.all([
+      const [s, f, sp] = await Promise.all([
         api.get('/seasons?active=true'),
         api.get('/events/featured'),
+        api.get('/sponsors').catch(() => []),
       ]);
       setSeasons(s);
       setFeatured(f);
-      // Fetch events for the first date of the active season
+      setSponsors(sp);
       const firstDate = s.length > 0 ? s[0].start_date : '2025-12-30';
       const t = await api.get(`/events?date=${firstDate}`);
       setTodayEvents(t);
@@ -66,6 +69,15 @@ export default function HomeScreen() {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  // Sponsor rotation every 10 seconds
+  useEffect(() => {
+    if (sponsors.length <= 1) return;
+    const timer = setInterval(() => {
+      setActiveSponsor(prev => (prev + 1) % sponsors.length);
+    }, 10000);
+    return () => clearInterval(timer);
+  }, [sponsors.length]);
 
   const trackEvent = async (eventType: string, targetId?: string, targetType?: string) => {
     try {
@@ -140,6 +152,40 @@ export default function HomeScreen() {
           <Ionicons name="search" size={18} color={COLORS.textMuted} />
           <Text style={styles.searchPlaceholder}>Buscar artistas, venues, eventos...</Text>
         </TouchableOpacity>
+
+        {/* Sponsor Banner */}
+        {sponsors.length > 0 && (
+          <TouchableOpacity
+            style={styles.sponsorBanner}
+            onPress={() => sponsors[activeSponsor]?.url ? Linking.openURL(sponsors[activeSponsor].url) : null}
+            activeOpacity={0.9}
+          >
+            <View style={styles.sponsorContent}>
+              {sponsors[activeSponsor]?.logo_url ? (
+                <Image source={{ uri: sponsors[activeSponsor].logo_url }} style={styles.sponsorLogo} resizeMode="contain" />
+              ) : (
+                <View style={[styles.sponsorIconCircle, { backgroundColor: `${sponsors[activeSponsor]?.color || COLORS.primary}20` }]}>
+                  <Ionicons name="business" size={18} color={sponsors[activeSponsor]?.color || COLORS.primary} />
+                </View>
+              )}
+              <View style={{ flex: 1 }}>
+                <Text style={styles.sponsorName}>{sponsors[activeSponsor]?.name}</Text>
+                <Text style={styles.sponsorTagline}>{sponsors[activeSponsor]?.tagline}</Text>
+              </View>
+              <View style={[styles.sponsorTierBadge, { backgroundColor: `${sponsors[activeSponsor]?.color || COLORS.primary}20` }]}>
+                <Text style={[styles.sponsorTierText, { color: sponsors[activeSponsor]?.color || COLORS.primary }]}>
+                  {sponsors[activeSponsor]?.tier === 'gold' ? 'GOLD' : sponsors[activeSponsor]?.tier === 'institutional' ? 'OFICIAL' : 'PARTNER'}
+                </Text>
+              </View>
+            </View>
+            {/* Progress dots */}
+            <View style={styles.sponsorDots}>
+              {sponsors.map((_, i) => (
+                <View key={i} style={[styles.sponsorDot, i === activeSponsor && { backgroundColor: sponsors[activeSponsor]?.color || COLORS.primary, width: 12 }]} />
+              ))}
+            </View>
+          </TouchableOpacity>
+        )}
 
         {/* Season Carousel */}
         <FlatList
@@ -310,6 +356,18 @@ const styles = StyleSheet.create({
   notifBtn: { width: 44, height: 44, borderRadius: RADIUS.full, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
   searchBar: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, paddingHorizontal: SPACING.md, paddingVertical: 12, borderWidth: 1, borderColor: COLORS.border },
   searchPlaceholder: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular },
+
+  // Sponsor Banner
+  sponsorBanner: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm },
+  sponsorContent: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  sponsorLogo: { width: 36, height: 36, borderRadius: 8 },
+  sponsorIconCircle: { width: 36, height: 36, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  sponsorName: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
+  sponsorTagline: { fontSize: 10, color: COLORS.textMuted, ...FONTS.regular },
+  sponsorTierBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: RADIUS.full },
+  sponsorTierText: { fontSize: 9, ...FONTS.bold, letterSpacing: 0.5 },
+  sponsorDots: { flexDirection: 'row', justifyContent: 'center', gap: 4, marginTop: 6 },
+  sponsorDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: COLORS.border },
   heroCard: { borderRadius: RADIUS.xl, overflow: 'hidden', height: 220 },
   heroImage: { width: '100%', height: '100%', position: 'absolute' },
   heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5,8,20,0.5)' },
