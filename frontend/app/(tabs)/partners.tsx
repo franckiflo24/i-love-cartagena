@@ -18,7 +18,7 @@ const CATEGORIES = [
   { key: 'club', label: 'Bar & Night Clubs', icon: 'wine', color: '#8B5CF6', image: 'https://images.unsplash.com/photo-1645496761317-d4122dfc2264?w=600&h=300&fit=crop' },
   { key: 'hotel', label: 'Hoteles', icon: 'bed', color: '#3B82F6', image: 'https://images.unsplash.com/photo-1488345979593-09db0f85545f?w=600&h=300&fit=crop' },
   { key: 'shopping', label: 'Shopping', icon: 'bag-handle', color: '#EC4899', image: 'https://images.unsplash.com/photo-1777628530456-bb93d3a03faf?w=600&h=300&fit=crop' },
-  { key: 'transport', label: 'Transporte', icon: 'car-sport', color: '#22C55E', image: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0afe?w=600&h=300&fit=crop' },
+  { key: 'transport', label: 'Transporte', icon: 'car-sport', color: '#22C55E', image: 'https://images.unsplash.com/photo-1554672408-730436b60dde?w=600&h=300&fit=crop' },
   { key: 'tech', label: 'Tech & Wifi', icon: 'wifi', color: '#6366F1', image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&h=300&fit=crop' },
   { key: 'concierge', label: 'Concierge', icon: 'diamond', color: '#F59E0B', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=300&fit=crop' },
   { key: 'charity', label: 'Fondaciones', icon: 'heart', color: '#F97316', image: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=600&h=300&fit=crop' },
