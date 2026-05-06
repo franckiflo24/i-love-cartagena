@@ -100,7 +100,7 @@ export const t: Translations = {
 
     // Login
     login_music: 'VIVA',
-    login_tagline: 'La experiencia musical de la ciudad',
+    login_tagline: 'La experiencia completa de la ciudad',
     login_welcome: 'Conciertos, agenda, partners y reservas en un solo lugar',
     login_google: 'Continuar con Google',
     login_guest: 'Explorar como invitado',
