@@ -250,7 +250,7 @@ async def get_venue(venue_id: str):
 @api_router.get("/partners")
 async def list_partners(category: Optional[str] = None):
     query = {"category": category} if category else {}
-    partners = await db.partners.find(query, {"_id": 0}).to_list(100)
+    partners = await db.partners.find(query, {"_id": 0}).sort("order", 1).to_list(100)
     return partners
 
 
