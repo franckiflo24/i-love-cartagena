@@ -70,12 +70,12 @@ export default function HomeScreen() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // Sponsor rotation every 10 seconds
+  // Sponsor rotation every 5 seconds
   useEffect(() => {
     if (sponsors.length <= 1) return;
     const timer = setInterval(() => {
       setActiveSponsor(prev => (prev + 1) % sponsors.length);
-    }, 10000);
+    }, 5000);
     return () => clearInterval(timer);
   }, [sponsors.length]);
 
@@ -181,7 +181,7 @@ export default function HomeScreen() {
             {/* Progress dots */}
             <View style={styles.sponsorDots}>
               {sponsors.map((_, i) => (
-                <View key={i} style={[styles.sponsorDot, i === activeSponsor && { backgroundColor: sponsors[activeSponsor]?.color || COLORS.primary, width: 12 }]} />
+                <View key={i} style={[styles.sponsorDot, i === activeSponsor && { backgroundColor: sponsors[activeSponsor]?.color || COLORS.primary, width: 20, borderRadius: 5 }]} />
               ))}
             </View>
           </TouchableOpacity>
@@ -358,16 +358,16 @@ const styles = StyleSheet.create({
   searchPlaceholder: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular },
 
   // Sponsor Banner
-  sponsorBanner: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm },
-  sponsorContent: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
-  sponsorLogo: { width: 36, height: 36, borderRadius: 8 },
-  sponsorIconCircle: { width: 36, height: 36, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  sponsorName: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
-  sponsorTagline: { fontSize: 10, color: COLORS.textMuted, ...FONTS.regular },
-  sponsorTierBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: RADIUS.full },
-  sponsorTierText: { fontSize: 9, ...FONTS.bold, letterSpacing: 0.5 },
-  sponsorDots: { flexDirection: 'row', justifyContent: 'center', gap: 4, marginTop: 6 },
-  sponsorDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: COLORS.border },
+  sponsorBanner: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.08)', overflow: 'hidden', paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md },
+  sponsorContent: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
+  sponsorLogo: { width: 56, height: 56, borderRadius: RADIUS.lg },
+  sponsorIconCircle: { width: 56, height: 56, borderRadius: RADIUS.lg, alignItems: 'center', justifyContent: 'center' },
+  sponsorName: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold },
+  sponsorTagline: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+  sponsorTierBadge: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: RADIUS.full },
+  sponsorTierText: { fontSize: 11, ...FONTS.bold, letterSpacing: 0.5 },
+  sponsorDots: { flexDirection: 'row', justifyContent: 'center', gap: 5, marginTop: SPACING.sm },
+  sponsorDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.border },
   heroCard: { borderRadius: RADIUS.xl, overflow: 'hidden', height: 220 },
   heroImage: { width: '100%', height: '100%', position: 'absolute' },
   heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5,8,20,0.5)' },
