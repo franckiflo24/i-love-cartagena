@@ -12,10 +12,19 @@ type Partner = {
   price_range: string; experience: string; is_certified: boolean;
 };
 
+const CATEGORIES = [
+  { key: 'restaurant', label: 'Restaurantes', icon: 'restaurant', color: '#EF4444', emoji: '🍽️' },
+  { key: 'beach_club', label: 'Beach Club', icon: 'sunny', color: '#06B6D4', emoji: '🏖️' },
+  { key: 'club', label: 'Bar - Night Clubs', icon: 'wine', color: '#8B5CF6', emoji: '🍸' },
+  { key: 'hotel', label: 'Hoteles', icon: 'bed', color: '#3B82F6', emoji: '🏨' },
+  { key: 'shopping', label: 'Shopping', icon: 'bag', color: '#EC4899', emoji: '🛍️' },
+];
+
 export default function PartnersScreen() {
   const router = useRouter();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -28,80 +37,119 @@ export default function PartnersScreen() {
     load();
   }, []);
 
+  const filtered = selectedCategory
+    ? partners.filter(p => p.category === selectedCategory)
+    : [];
+
+  const getCategoryCount = (key: string) => partners.filter(p => p.category === key).length;
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Partners</Text>
-        <Text style={styles.subtitle}>Lugares certificados por Música Cartagena</Text>
+        {selectedCategory ? (
+          <View style={styles.headerWithBack}>
+            <TouchableOpacity onPress={() => setSelectedCategory(null)} style={styles.backBtn}>
+              <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
+            </TouchableOpacity>
+            <View>
+              <Text style={styles.title}>{CATEGORIES.find(c => c.key === selectedCategory)?.label}</Text>
+              <Text style={styles.subtitle}>{filtered.length} partner{filtered.length !== 1 ? 's' : ''} certificado{filtered.length !== 1 ? 's' : ''}</Text>
+            </View>
+          </View>
+        ) : (
+          <>
+            <Text style={styles.title}>Partners</Text>
+            <Text style={styles.subtitle}>Lugares certificados por Música Cartagena</Text>
+          </>
+        )}
       </View>
 
-      <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {loading ? (
           <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
+        ) : !selectedCategory ? (
+          /* ── Category Grid ── */
+          <View style={styles.categoryGrid}>
+            {CATEGORIES.map(cat => (
+              <TouchableOpacity
+                key={cat.key}
+                style={styles.categoryCard}
+                onPress={() => setSelectedCategory(cat.key)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.categoryIconCircle, { backgroundColor: `${cat.color}15` }]}>
+                  <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
+                </View>
+                <Text style={styles.categoryName}>{cat.label}</Text>
+                <Text style={styles.categoryCount}>{getCategoryCount(cat.key)} lugares</Text>
+                <Ionicons name="chevron-forward" size={16} color={cat.color} style={styles.categoryArrow} />
+              </TouchableOpacity>
+            ))}
+          </View>
         ) : (
-          partners.map(partner => (
-            <TouchableOpacity
-              key={partner.partner_id}
-              testID={`partner-${partner.partner_id}`}
-              style={styles.partnerCard}
-              onPress={() => router.push(`/partner/${partner.partner_id}`)}
-              activeOpacity={0.8}
-            >
-              <Image source={{ uri: partner.image_url }} style={styles.partnerImage} />
-              <View style={styles.partnerOverlay} />
-
-              {/* Certified Seal */}
-              {partner.is_certified && (
-                <View style={styles.certifiedBadge}>
-                  <Ionicons name="shield-checkmark" size={14} color={COLORS.primary} />
-                  <Text style={styles.certifiedText}>CERTIFICADO</Text>
-                </View>
-              )}
-
-              <View style={styles.partnerContent}>
-                <View style={styles.categoryBadge}>
-                  <Text style={styles.categoryText}>
-                    {PARTNER_CATEGORY_LABELS[partner.category] || partner.category}
-                  </Text>
-                </View>
-                <Text style={styles.partnerName}>{partner.name}</Text>
-                <Text style={styles.partnerDesc} numberOfLines={2}>{partner.description}</Text>
-
-                <View style={styles.partnerMeta}>
-                  <View style={styles.metaItem}>
-                    <Ionicons name="location-outline" size={13} color={COLORS.textMuted} />
-                    <Text style={styles.metaText} numberOfLines={1}>{partner.address}</Text>
-                  </View>
-                  <View style={styles.metaItem}>
-                    <Ionicons name="cash-outline" size={13} color={COLORS.textMuted} />
-                    <Text style={styles.metaText}>{partner.price_range}</Text>
-                  </View>
-                </View>
-
-                <View style={styles.partnerActions}>
-                  <TouchableOpacity
-                    testID={`partner-detail-${partner.partner_id}`}
-                    style={styles.detailBtn}
-                    onPress={() => router.push(`/partner/${partner.partner_id}`)}
-                  >
-                    <Text style={styles.detailText}>Ver más</Text>
-                  </TouchableOpacity>
-                  {partner.booking_link ? (
-                    <TouchableOpacity
-                      testID={`partner-book-${partner.partner_id}`}
-                      style={styles.bookBtn}
-                      onPress={() => RNLinking.openURL(partner.booking_link)}
-                    >
-                      <Text style={styles.bookText}>Reservar</Text>
-                      <Ionicons name="arrow-forward" size={14} color={COLORS.white} />
-                    </TouchableOpacity>
-                  ) : null}
-                </View>
+          /* ── Partner List ── */
+          <View style={styles.list}>
+            {filtered.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="business-outline" size={48} color={COLORS.textMuted} />
+                <Text style={styles.emptyText}>Próximamente en esta categoría</Text>
               </View>
-            </TouchableOpacity>
-          ))
+            ) : (
+              filtered.map(partner => (
+                <TouchableOpacity
+                  key={partner.partner_id}
+                  style={styles.partnerCard}
+                  onPress={() => router.push(`/partner/${partner.partner_id}`)}
+                  activeOpacity={0.8}
+                >
+                  <Image source={{ uri: partner.image_url }} style={styles.partnerImage} />
+                  <View style={styles.partnerOverlay} />
+
+                  {partner.is_certified && (
+                    <View style={styles.certifiedBadge}>
+                      <Ionicons name="shield-checkmark" size={14} color={COLORS.primary} />
+                      <Text style={styles.certifiedText}>CERTIFICADO</Text>
+                    </View>
+                  )}
+
+                  <View style={styles.partnerContent}>
+                    <Text style={styles.partnerName}>{partner.name}</Text>
+                    <Text style={styles.partnerDesc} numberOfLines={2}>{partner.description}</Text>
+
+                    <View style={styles.partnerMeta}>
+                      <View style={styles.metaItem}>
+                        <Ionicons name="location-outline" size={13} color={COLORS.textMuted} />
+                        <Text style={styles.metaText} numberOfLines={1}>{partner.address}</Text>
+                      </View>
+                      <View style={styles.metaItem}>
+                        <Ionicons name="cash-outline" size={13} color={COLORS.textMuted} />
+                        <Text style={styles.metaText}>{partner.price_range}</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.partnerActions}>
+                      <TouchableOpacity
+                        style={styles.detailBtn}
+                        onPress={() => router.push(`/partner/${partner.partner_id}`)}
+                      >
+                        <Text style={styles.detailText}>Ver más</Text>
+                      </TouchableOpacity>
+                      {partner.booking_link ? (
+                        <TouchableOpacity
+                          style={styles.bookBtn}
+                          onPress={() => RNLinking.openURL(partner.booking_link)}
+                        >
+                          <Text style={styles.bookText}>Reservar</Text>
+                          <Ionicons name="arrow-forward" size={14} color={COLORS.white} />
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
         )}
-        <View style={{ height: SPACING.xxl }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -110,17 +158,32 @@ export default function PartnersScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, paddingBottom: SPACING.sm },
+  headerWithBack: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold },
   subtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
-  list: { flex: 1, paddingHorizontal: SPACING.lg },
+
+  // Category Grid
+  categoryGrid: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, marginTop: SPACING.sm },
+  categoryCard: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, padding: SPACING.md, borderWidth: 1, borderColor: COLORS.border },
+  categoryIconCircle: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
+  categoryEmoji: { fontSize: 26 },
+  categoryName: { flex: 1, fontSize: 16, color: COLORS.textMain, ...FONTS.bold },
+  categoryCount: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium, marginRight: 4 },
+  categoryArrow: { marginLeft: 'auto' },
+
+  // Empty
+  emptyState: { alignItems: 'center', paddingTop: 60, gap: SPACING.md },
+  emptyText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular },
+
+  // Partner List
+  list: { paddingHorizontal: SPACING.lg },
   partnerCard: { borderRadius: RADIUS.xl, overflow: 'hidden', marginBottom: SPACING.md, borderWidth: 1, borderColor: 'rgba(217, 119, 6, 0.2)' },
   partnerImage: { width: '100%', height: 160 },
   partnerOverlay: { position: 'absolute', top: 0, left: 0, right: 0, height: 160, backgroundColor: 'rgba(0,0,0,0.2)' },
   certifiedBadge: { position: 'absolute', top: SPACING.md, right: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(5,8,20,0.85)', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: COLORS.primary },
   certifiedText: { fontSize: 9, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1 },
   partnerContent: { padding: SPACING.md, backgroundColor: COLORS.surface },
-  categoryBadge: { alignSelf: 'flex-start', backgroundColor: 'rgba(217, 119, 6, 0.15)', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 3, marginBottom: SPACING.xs },
-  categoryText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1, textTransform: 'uppercase' },
   partnerName: { fontSize: 20, color: COLORS.textMain, ...FONTS.bold },
   partnerDesc: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 4, lineHeight: 20 },
   partnerMeta: { marginTop: SPACING.sm, gap: 4 },
