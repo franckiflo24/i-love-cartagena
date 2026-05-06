@@ -63,7 +63,7 @@ export default function PartnersScreen() {
         ) : (
           <>
             <Text style={styles.title}>Partners</Text>
-            <Text style={styles.subtitle}>Lugares certificados por Música Cartagena</Text>
+            <Text style={styles.subtitle}>Lugares certificados por Viva Cartagena</Text>
           </>
         )}
       </View>

@@ -99,12 +99,12 @@ export const t: Translations = {
     map_concerts: 'Conciertos',
 
     // Login
-    login_music: 'MÚSICA',
+    login_music: 'VIVA',
     login_tagline: 'La experiencia musical de la ciudad',
     login_welcome: 'Conciertos, agenda, partners y reservas en un solo lugar',
     login_google: 'Continuar con Google',
     login_guest: 'Explorar como invitado',
-    login_terms: 'Al continuar, aceptas los términos y condiciones de Música Cartagena',
+    login_terms: 'Al continuar, aceptas los términos y condiciones de Viva Cartagena',
 
     // Common
     common_back: 'Volver',
@@ -188,12 +188,12 @@ export const t: Translations = {
     map_partners: 'Partners',
     map_concerts: 'Concerts',
 
-    login_music: 'MUSIC',
+    login_music: 'VIVA',
     login_tagline: 'The city\'s music experience',
     login_welcome: 'Concerts, agenda, partners and bookings in one place',
     login_google: 'Continue with Google',
     login_guest: 'Explore as guest',
-    login_terms: 'By continuing, you accept the terms and conditions of Música Cartagena',
+    login_terms: 'By continuing, you accept the terms and conditions of Viva Cartagena',
 
     common_back: 'Back',
     common_share: 'Share',
@@ -276,12 +276,12 @@ export const t: Translations = {
     map_partners: 'Partenaires',
     map_concerts: 'Concerts',
 
-    login_music: 'MUSIQUE',
+    login_music: 'VIVA',
     login_tagline: 'L\'expérience musicale de la ville',
     login_welcome: 'Concerts, agenda, partenaires et réservations en un seul endroit',
     login_google: 'Continuer avec Google',
     login_guest: 'Explorer en tant qu\'invité',
-    login_terms: 'En continuant, vous acceptez les termes et conditions de Música Cartagena',
+    login_terms: 'En continuant, vous acceptez les termes et conditions de Viva Cartagena',
 
     common_back: 'Retour',
     common_share: 'Partager',
@@ -364,12 +364,12 @@ export const t: Translations = {
     map_partners: 'Parceiros',
     map_concerts: 'Concertos',
 
-    login_music: 'MÚSICA',
+    login_music: 'VIVA',
     login_tagline: 'A experiência musical da cidade',
     login_welcome: 'Concertos, agenda, parceiros e reservas em um só lugar',
     login_google: 'Continuar com Google',
     login_guest: 'Explorar como visitante',
-    login_terms: 'Ao continuar, você aceita os termos e condições de Música Cartagena',
+    login_terms: 'Ao continuar, você aceita os termos e condições de Viva Cartagena',
 
     common_back: 'Voltar',
     common_share: 'Compartilhar',

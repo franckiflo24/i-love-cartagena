@@ -55,7 +55,7 @@ export default function AgendaScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Agenda</Text>
-        <Text style={styles.subtitle}>Programación oficial Música Cartagena</Text>
+        <Text style={styles.subtitle}>Programación oficial Viva Cartagena</Text>
       </View>
 
       {/* Date Selector */}

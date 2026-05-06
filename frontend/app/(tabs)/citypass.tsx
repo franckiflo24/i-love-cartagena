@@ -73,7 +73,7 @@ export default function CityPassTab() {
                 </View>
                 <TouchableOpacity onPress={() => {
                   const planName = plans.find(p => p.plan_id === myPass.plan_id)?.name || '';
-                  Share.share({ message: `🎫 Mi City Pass ${planName} de Música Cartagena está activo! Descarga la app 🎧` });
+                  Share.share({ message: `🎫 Mi City Pass ${planName} de Viva Cartagena está activo! Descarga la app 🎧` });
                 }}>
                   <Ionicons name="share-social-outline" size={20} color={COLORS.textMuted} />
                 </TouchableOpacity>
@@ -140,7 +140,7 @@ export default function CityPassTab() {
               <Text style={styles.heroTitle}>City Pass</Text>
               <Text style={styles.heroSubtitle}>Vive Cartagena sin límites</Text>
               <Text style={styles.heroDesc}>
-                Acceso preferente, descuentos exclusivos y beneficios en todos los partners certificados de Música Cartagena.
+                Acceso preferente, descuentos exclusivos y beneficios en todos los partners certificados de Viva Cartagena.
               </Text>
             </View>
 

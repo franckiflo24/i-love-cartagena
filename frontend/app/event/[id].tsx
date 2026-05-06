@@ -32,7 +32,7 @@ export default function EventDetail() {
     const priceText = event.is_free ? 'GRATIS' : `$${(event.price / 1000).toFixed(0)}K COP`;
     try {
       await Share.share({
-        message: `🎉 ${event.title}\n📍 ${event.venue_name}\n🗓 ${event.date} · ${event.start_time}\n💰 ${priceText}\n\nDescarga Música Cartagena para ver todo el programa 🎧`,
+        message: `🎉 ${event.title}\n📍 ${event.venue_name}\n🗓 ${event.date} · ${event.start_time}\n💰 ${priceText}\n\nDescarga Viva Cartagena para ver todo el programa 🎧`,
       });
     } catch (e) { console.error(e); }
   };

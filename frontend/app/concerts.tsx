@@ -112,7 +112,7 @@ export default function ConcertsScreen() {
     const priceText = concert.is_free ? 'GRATIS' : `$${(concert.price / 1000).toFixed(0)}K COP`;
     try {
       await Share.share({
-        message: `🎵 ${concert.artist} - ${concert.title}\n📍 ${concert.venue_name}\n🗓 ${concert.date} · ${concert.start_time}-${concert.end_time}\n🎶 ${concert.genre}\n💰 ${priceText}\n\nDescarga Música Cartagena para ver todo el programa 🎧`,
+        message: `🎵 ${concert.artist} - ${concert.title}\n📍 ${concert.venue_name}\n🗓 ${concert.date} · ${concert.start_time}-${concert.end_time}\n🎶 ${concert.genre}\n💰 ${priceText}\n\nDescarga Viva Cartagena para ver todo el programa 🎧`,
       });
     } catch (e) { console.error(e); }
   };
