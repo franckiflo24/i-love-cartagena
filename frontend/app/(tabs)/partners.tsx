@@ -13,11 +13,11 @@ type Partner = {
 };
 
 const CATEGORIES = [
-  { key: 'restaurant', label: 'Restaurantes', icon: 'restaurant', color: '#EF4444', emoji: '🍽️' },
-  { key: 'beach_club', label: 'Beach Club', icon: 'sunny', color: '#06B6D4', emoji: '🏖️' },
-  { key: 'club', label: 'Bar - Night Clubs', icon: 'wine', color: '#8B5CF6', emoji: '🍸' },
-  { key: 'hotel', label: 'Hoteles', icon: 'bed', color: '#3B82F6', emoji: '🏨' },
-  { key: 'shopping', label: 'Shopping', icon: 'bag', color: '#EC4899', emoji: '🛍️' },
+  { key: 'restaurant', label: 'Restaurantes', icon: 'restaurant', color: '#EF4444', image: 'https://images.unsplash.com/photo-1644621972139-cec33bf68a60?w=600&h=300&fit=crop' },
+  { key: 'beach_club', label: 'Beach Club', icon: 'sunny', color: '#06B6D4', image: 'https://images.unsplash.com/photo-1546484458-6904289cd4f0?w=600&h=300&fit=crop' },
+  { key: 'club', label: 'Bar & Night Clubs', icon: 'wine', color: '#8B5CF6', image: 'https://images.unsplash.com/photo-1645496761317-d4122dfc2264?w=600&h=300&fit=crop' },
+  { key: 'hotel', label: 'Hoteles', icon: 'bed', color: '#3B82F6', image: 'https://images.unsplash.com/photo-1488345979593-09db0f85545f?w=600&h=300&fit=crop' },
+  { key: 'shopping', label: 'Shopping', icon: 'bag-handle', color: '#EC4899', image: 'https://images.unsplash.com/photo-1777628530456-bb93d3a03faf?w=600&h=300&fit=crop' },
 ];
 
 export default function PartnersScreen() {
@@ -75,14 +75,22 @@ export default function PartnersScreen() {
                 key={cat.key}
                 style={styles.categoryCard}
                 onPress={() => setSelectedCategory(cat.key)}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
               >
-                <View style={[styles.categoryIconCircle, { backgroundColor: `${cat.color}15` }]}>
-                  <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
+                <Image source={{ uri: cat.image }} style={styles.categoryImage} />
+                <View style={styles.categoryOverlay} />
+                <View style={styles.categoryContent}>
+                  <View style={[styles.categoryIconBadge, { backgroundColor: `${cat.color}30` }]}>
+                    <Ionicons name={cat.icon as any} size={20} color={cat.color} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.categoryName}>{cat.label}</Text>
+                    <Text style={styles.categoryCount}>{getCategoryCount(cat.key)} lugares</Text>
+                  </View>
+                  <View style={[styles.categoryArrowCircle, { backgroundColor: `${cat.color}25` }]}>
+                    <Ionicons name="chevron-forward" size={18} color={cat.color} />
+                  </View>
                 </View>
-                <Text style={styles.categoryName}>{cat.label}</Text>
-                <Text style={styles.categoryCount}>{getCategoryCount(cat.key)} lugares</Text>
-                <Ionicons name="chevron-forward" size={16} color={cat.color} style={styles.categoryArrow} />
               </TouchableOpacity>
             ))}
           </View>
@@ -165,12 +173,14 @@ const styles = StyleSheet.create({
 
   // Category Grid
   categoryGrid: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, marginTop: SPACING.sm },
-  categoryCard: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, padding: SPACING.md, borderWidth: 1, borderColor: COLORS.border },
-  categoryIconCircle: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
-  categoryEmoji: { fontSize: 26 },
-  categoryName: { flex: 1, fontSize: 16, color: COLORS.textMain, ...FONTS.bold },
-  categoryCount: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium, marginRight: 4 },
-  categoryArrow: { marginLeft: 'auto' },
+  categoryCard: { borderRadius: RADIUS.xl, overflow: 'hidden', height: 100, position: 'relative', borderWidth: 1, borderColor: COLORS.border },
+  categoryImage: { width: '100%', height: '100%', position: 'absolute' },
+  categoryOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(5,8,20,0.6)' },
+  categoryContent: { flex: 1, flexDirection: 'row', alignItems: 'center', paddingHorizontal: SPACING.md, gap: SPACING.md },
+  categoryIconBadge: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  categoryName: { fontSize: 18, color: '#FFF', ...FONTS.bold },
+  categoryCount: { fontSize: 12, color: 'rgba(255,255,255,0.7)', ...FONTS.medium, marginTop: 1 },
+  categoryArrowCircle: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
 
   // Empty
   emptyState: { alignItems: 'center', paddingTop: 60, gap: SPACING.md },
