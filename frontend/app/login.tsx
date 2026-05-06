@@ -35,10 +35,9 @@ export default function LoginScreen() {
       <View style={styles.overlay} />
       <View style={styles.content}>
         <View style={styles.logoArea}>
-          <Text style={styles.logoPrefix}>I</Text>
-          <Text style={styles.logoHeart}>❤️</Text>
-          <Text style={styles.logoMusic}>{s('login_music')}</Text>
+          <Text style={styles.logoMain}>VIVA</Text>
           <Text style={styles.logoMain}>CARTAGENA</Text>
+          <Text style={styles.logoHeart}>❤️</Text>
           <View style={styles.divider} />
           <Text style={styles.tagline}>{s('login_tagline')}</Text>
         </View>
