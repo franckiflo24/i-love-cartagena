@@ -749,6 +749,47 @@ async def get_partner_event(event_id: str):
     return event
 
 
+# ── Promotions (ofertas del día publicadas por partners) ────────────
+@api_router.get("/promotions/today")
+async def list_today_promotions(category: Optional[str] = None):
+    """Return active promotions valid today, sorted by partner tier + recency.
+
+    Each promotion includes: promo_id, partner_id, title, description, category,
+    discount_pct (or 0 if not %-based), original_price, promo_price, valid_until,
+    image_url, is_active, partner_name, partner_tier, partner_image, partner_address.
+    """
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    query: dict = {"is_active": True, "valid_until": {"$gte": today_str}}
+    if category and category != "all":
+        query["category"] = category
+    promos = await db.partner_promotions.find(query, {"_id": 0}).sort([("created_at", -1)]).to_list(50)
+    # Enrich with partner info
+    partner_ids = list({p["partner_id"] for p in promos})
+    partners_map: dict = {}
+    if partner_ids:
+        async for p in db.partners.find({"partner_id": {"$in": partner_ids}}, {"_id": 0, "partner_id": 1, "name": 1, "tier": 1, "category": 1, "image_url": 1, "address": 1}):
+            partners_map[p["partner_id"]] = p
+    # Tier ordering for sort
+    TIER_ORDER = {"elite": 0, "premium": 1, "popular": 2}
+    for promo in promos:
+        p = partners_map.get(promo["partner_id"], {})
+        promo["partner_name"] = p.get("name", "")
+        promo["partner_tier"] = p.get("tier", "popular")
+        promo["partner_image"] = p.get("image_url", "")
+        promo["partner_address"] = p.get("address", "")
+    promos.sort(key=lambda x: TIER_ORDER.get(x.get("partner_tier", "popular"), 3))
+    return promos
+
+
+@api_router.post("/promotions/{promo_id}/track-click")
+async def track_promotion_click(promo_id: str):
+    promo = await db.partner_promotions.find_one({"promo_id": promo_id}, {"_id": 0})
+    if not promo:
+        raise HTTPException(status_code=404, detail="Promotion not found")
+    await db.partner_promotions.update_one({"promo_id": promo_id}, {"$inc": {"click_count": 1}})
+    return {"ok": True, "partner_id": promo["partner_id"]}
+
+
 @api_router.post("/partner-events/{event_id}/track-reserve")
 async def track_partner_event_reserve(event_id: str, request: Request):
     """Track a reservation click and return the booking URL with UTM params so the partner knows it came from Amo Cartagena."""
@@ -1955,6 +1996,118 @@ async def startup():
     }
     for old_id, new_id in PARTNER_ID_REMAP.items():
         await db.partner_events.update_many({"partner_id": old_id}, {"$set": {"partner_id": new_id}})
+
+    # ── Seed: Partner Promotions (ofertas del día) ──
+    promo_count = await db.partner_promotions.count_documents({})
+    if promo_count == 0:
+        logger.info("Seeding partner promotions...")
+        today = datetime.now(timezone.utc).date()
+        def d(offset: int) -> str:
+            return (today + timedelta(days=offset)).strftime("%Y-%m-%d")
+
+        IMG_COCKTAIL = "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=800&h=800&fit=crop"
+        IMG_PIZZA = "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&h=800&fit=crop"
+        IMG_SPA = "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&h=800&fit=crop"
+        IMG_ROOFTOP = "https://images.unsplash.com/photo-1529417305485-480f579e7578?w=800&h=800&fit=crop"
+        IMG_BEACH_DAY = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=800&fit=crop"
+        IMG_FASHION = "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&h=800&fit=crop"
+        IMG_DINNER2 = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=800&fit=crop"
+        IMG_COFFEE = "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&h=800&fit=crop"
+
+        promotions_seed = [
+            {
+                "promo_id": "promo_001", "partner_id": "ptr_nc_007",
+                "title": "2x1 en cocteles signature",
+                "description": "Disfruta dos cocteles por el precio de uno todos los días entre 17:00 y 19:00. Válido en barra y mesas.",
+                "category": "gastronomy",
+                "discount_pct": 50, "original_price": 60000, "promo_price": 30000,
+                "valid_until": d(7), "image_url": IMG_COCKTAIL,
+                "tag_label": "Happy Hour",
+            },
+            {
+                "promo_id": "promo_002", "partner_id": "ptr_005",
+                "title": "Pizza + cerveza por $45K",
+                "description": "Combo pizza personal + cerveza artesanal local. Solo hoy en Café del Mar.",
+                "category": "gastronomy",
+                "discount_pct": 30, "original_price": 65000, "promo_price": 45000,
+                "valid_until": d(0), "image_url": IMG_PIZZA,
+                "tag_label": "Combo del día",
+            },
+            {
+                "promo_id": "promo_003", "partner_id": "ptr_006",
+                "title": "Masaje 60 min + acceso al spa",
+                "description": "Masaje relajante de aromaterapia + uso de sauna y piscina termal. Reserva con 24h de anticipación.",
+                "category": "wellness",
+                "discount_pct": 25, "original_price": 280000, "promo_price": 210000,
+                "valid_until": d(5), "image_url": IMG_SPA,
+                "tag_label": "Wellness Pack",
+            },
+            {
+                "promo_id": "promo_004", "partner_id": "ptr_007",
+                "title": "Día de piscina rooftop incluido",
+                "description": "Acceso a la piscina rooftop con cóctel de bienvenida si reservas almuerzo. Mejor vista de la ciudad amurallada.",
+                "category": "party",
+                "discount_pct": 0, "original_price": 0, "promo_price": 0,
+                "valid_until": d(3), "image_url": IMG_ROOFTOP,
+                "tag_label": "Bonus rooftop",
+            },
+            {
+                "promo_id": "promo_005", "partner_id": "ptr_nc_009",
+                "title": "Beach Day pass 30% off",
+                "description": "Pase de día con tumbona, almuerzo y bebida de bienvenida en Blue Apple. Reserva online.",
+                "category": "party",
+                "discount_pct": 30, "original_price": 220000, "promo_price": 154000,
+                "valid_until": d(2), "image_url": IMG_BEACH_DAY,
+                "tag_label": "-30%",
+            },
+            {
+                "promo_id": "promo_006", "partner_id": "ptr_nc_011",
+                "title": "Pop-up con descuentos diseñadores locales",
+                "description": "Hasta 40% off en piezas seleccionadas de la nueva colección de 10 diseñadores colombianos.",
+                "category": "popup",
+                "discount_pct": 40, "original_price": 0, "promo_price": 0,
+                "valid_until": d(4), "image_url": IMG_FASHION,
+                "tag_label": "Hasta -40%",
+            },
+            {
+                "promo_id": "promo_007", "partner_id": "ptr_002",
+                "title": "Botella de vino gratis con menú degustación",
+                "description": "Por cada menú degustación 5 tiempos para 2, regalamos una botella de vino italiano seleccionada por nuestro sommelier.",
+                "category": "gastronomy",
+                "discount_pct": 0, "original_price": 0, "promo_price": 0,
+                "valid_until": d(6), "image_url": IMG_DINNER2,
+                "tag_label": "Botella gratis",
+            },
+            {
+                "promo_id": "promo_008", "partner_id": "ptr_nc_003",
+                "title": "Café + croissant — $18K",
+                "description": "Combo desayuno francés todas las mañanas hasta las 11. Espresso o filtrado + croissant artesanal.",
+                "category": "gastronomy",
+                "discount_pct": 25, "original_price": 24000, "promo_price": 18000,
+                "valid_until": d(10), "image_url": IMG_COFFEE,
+                "tag_label": "Brunch deal",
+            },
+        ]
+        for promo in promotions_seed:
+            promo["is_active"] = True
+            promo["currency"] = "COP"
+            promo["created_at"] = datetime.now(timezone.utc).isoformat()
+            promo["click_count"] = 0
+            promo["view_count"] = 0
+        await db.partner_promotions.insert_many(promotions_seed)
+        await db.partner_promotions.create_index("valid_until")
+        await db.partner_promotions.create_index("partner_id")
+        await db.partner_promotions.create_index("category")
+        logger.info(f"Seeded {len(promotions_seed)} partner promotions!")
+
+    # Always refresh `valid_until` of existing demo promos so they stay valid for testing
+    today_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    if (await db.partner_promotions.find_one({"valid_until": {"$lt": today_iso}}, {"_id": 0})):
+        future = (datetime.now(timezone.utc).date() + timedelta(days=10)).strftime("%Y-%m-%d")
+        await db.partner_promotions.update_many(
+            {"valid_until": {"$lt": today_iso}},
+            {"$set": {"valid_until": future}}
+        )
 
     # ── Seed: Business Accounts (cuentas de partners para el dashboard) ──
     biz_count = await db.business_users.count_documents({})

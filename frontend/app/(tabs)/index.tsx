@@ -74,6 +74,7 @@ export default function HomeScreen() {
   const [featured, setFeatured] = useState<Event[]>([]);
   const [todayEvents, setTodayEvents] = useState<Event[]>([]);
   const [todayPEvents, setTodayPEvents] = useState<PEvent[]>([]);
+  const [promotions, setPromotions] = useState<any[]>([]);
   const [sponsors, setSponsors] = useState<any[]>([]);
   const [activeSponsor, setActiveSponsor] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -85,16 +86,18 @@ export default function HomeScreen() {
   const fetchData = async () => {
     try {
       const today = todayIso();
-      const [s, f, sp, pe] = await Promise.all([
+      const [s, f, sp, pe, promos] = await Promise.all([
         api.get('/seasons?active=true'),
         api.get('/events/featured'),
         api.get('/sponsors').catch(() => []),
         api.get(`/partner-events?date=${today}`).catch(() => []),
+        api.get('/promotions/today').catch(() => []),
       ]);
       setSeasons(s);
       setFeatured(f);
       setSponsors(sp);
       setTodayPEvents(pe || []);
+      setPromotions(promos || []);
       // Festival programación (kept for back-compat; no longer rendered as a section)
       const firstDate = s.length > 0 ? s[0].start_date : '2025-12-30';
       const t = await api.get(`/events?date=${firstDate}`).catch(() => []);
@@ -493,31 +496,80 @@ export default function HomeScreen() {
           );
         })()}
 
-        {/* Partners Preview */}
+        {/* Ofertas del día - Promociones partners */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Partners oficiales</Text>
-            <TouchableOpacity testID="see-all-partners" onPress={() => router.push('/(tabs)/partners')}>
-              <Text style={styles.seeAll}>Ver todos</Text>
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity
-            testID="partners-cta"
-            style={styles.partnersCta}
-            onPress={() => {
-              trackEvent('partner_section_click', undefined, 'navigation');
-              router.push('/(tabs)/partners');
-            }}
-            activeOpacity={0.8}
-          >
-            <Image source={{ uri: 'https://static.prod-images.emergentagent.com/jobs/32dad071-4fb0-440b-90c6-bb16ae39bea1/images/4f979e7ba4b32872c4b07dadcb054eb78f999948cb9373a70a78567dea9e65ab.png' }} style={styles.partnersCtaImage} />
-            <View style={styles.partnersCtaOverlay} />
-            <View style={styles.partnersCtaContent}>
-              <Ionicons name="diamond" size={28} color={COLORS.primary} />
-              <Text style={styles.partnersCtaTitle}>Lugares certificados</Text>
-              <Text style={styles.partnersCtaDesc}>Restaurantes, clubs, hoteles y más validados por Amo Cartagena</Text>
+            <View style={styles.sectionTitleRow}>
+              <Ionicons name="pricetag" size={18} color="#EF4444" />
+              <Text style={styles.sectionTitle}>Ofertas del día</Text>
+              {promotions.length > 0 && <Text style={styles.sectionCount}>{promotions.length}</Text>}
             </View>
-          </TouchableOpacity>
+          </View>
+          {promotions.length === 0 ? (
+            <View style={styles.emptySlot}>
+              <Ionicons name="pricetags-outline" size={26} color={COLORS.textMuted} />
+              <Text style={styles.emptySlotText}>No hay ofertas activas hoy</Text>
+            </View>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}
+            >
+              {promotions.map((promo) => {
+                const cat = CAT_COLORS[promo.category] || { main: COLORS.primary, bg: 'rgba(217,119,6,0.15)', label: promo.category };
+                const tierColors = promo.partner_tier ? TIER_COLORS[promo.partner_tier as Tier] : null;
+                return (
+                  <TouchableOpacity
+                    key={promo.promo_id}
+                    style={[styles.promoCard, tierColors && { borderColor: tierColors.border }]}
+                    activeOpacity={0.85}
+                    onPress={async () => {
+                      try { await api.post(`/promotions/${promo.promo_id}/track-click`); } catch {}
+                      trackEvent('promo_click', promo.promo_id, 'promotion');
+                      router.push(`/partner/${promo.partner_id}` as any);
+                    }}
+                  >
+                    <Image source={{ uri: promo.image_url }} style={styles.promoImage} />
+                    <View style={styles.promoOverlay} />
+                    {tierColors && <View style={[styles.promoTierStripe, { backgroundColor: tierColors.main }]} />}
+                    {promo.tag_label ? (
+                      <View style={styles.promoDealBadge}>
+                        <Ionicons name="flash" size={11} color={COLORS.white} />
+                        <Text style={styles.promoDealText}>{promo.tag_label}</Text>
+                      </View>
+                    ) : null}
+                    <View style={styles.promoContent}>
+                      {/* Category badge - ALWAYS visible per requirement */}
+                      <View style={[styles.promoCatBadge, { backgroundColor: cat.bg, borderColor: cat.main }]}>
+                        <View style={[styles.peCatDot, { backgroundColor: cat.main }]} />
+                        <Text style={[styles.peCatText, { color: cat.main }]}>{cat.label}</Text>
+                      </View>
+                      <Text style={styles.promoTitle} numberOfLines={2}>{promo.title}</Text>
+                      <View style={styles.promoPartnerRow}>
+                        <Ionicons name="storefront-outline" size={11} color="rgba(255,255,255,0.7)" />
+                        <Text style={styles.promoPartnerName} numberOfLines={1}>{promo.partner_name}</Text>
+                      </View>
+                      <View style={styles.promoBottomRow}>
+                        {promo.promo_price > 0 ? (
+                          <View style={styles.promoPriceRow}>
+                            {promo.original_price > 0 && promo.original_price !== promo.promo_price && (
+                              <Text style={styles.promoOldPrice}>${(promo.original_price/1000).toFixed(0)}K</Text>
+                            )}
+                            <Text style={styles.promoNewPrice}>${(promo.promo_price/1000).toFixed(0)}K</Text>
+                          </View>
+                        ) : promo.discount_pct > 0 ? (
+                          <Text style={styles.promoNewPrice}>-{promo.discount_pct}%</Text>
+                        ) : (
+                          <Text style={styles.promoNewPrice}>BONUS</Text>
+                        )}
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          )}
         </View>
 
         <View style={{ height: SPACING.xxl }} />
@@ -608,7 +660,83 @@ const styles = StyleSheet.create({
   partnersCtaTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold },
   partnersCtaDesc: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular },
 
-  // Hoy/Esta noche - PE Cards
+  // Promo cards
+  promoCard: {
+    width: 220,
+    height: 280,
+    borderRadius: RADIUS.xl,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+    position: 'relative',
+    backgroundColor: COLORS.surface,
+  },
+  promoImage: { width: '100%', height: '100%', position: 'absolute' },
+  promoOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5,8,20,0.55)' },
+  promoTierStripe: { position: 'absolute', top: 0, left: 0, right: 0, height: 3 },
+  promoDealBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: RADIUS.full,
+  },
+  promoDealText: { fontSize: 10, color: COLORS.white, ...FONTS.bold, letterSpacing: 0.4 },
+  promoContent: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: SPACING.sm,
+    gap: 5,
+  },
+  promoCatBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+    alignSelf: 'flex-start',
+  },
+  promoTitle: {
+    fontSize: 14,
+    color: COLORS.white,
+    ...FONTS.bold,
+    lineHeight: 18,
+    marginTop: 2,
+  },
+  promoPartnerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  promoPartnerName: { fontSize: 11, color: 'rgba(255,255,255,0.85)', ...FONTS.medium, flex: 1 },
+  promoBottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginTop: 4,
+  },
+  promoPriceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
+  promoOldPrice: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.55)',
+    ...FONTS.medium,
+    textDecorationLine: 'line-through',
+  },
+  promoNewPrice: {
+    fontSize: 17,
+    color: COLORS.primary,
+    ...FONTS.bold,
+  },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionCount: {
     fontSize: 11,
