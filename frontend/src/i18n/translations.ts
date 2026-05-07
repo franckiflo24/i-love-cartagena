@@ -113,6 +113,16 @@ export const t: Translations = {
     common_book: 'Reservar',
     common_loading: 'Cargando...',
     common_see_map: 'Ver mapa',
+
+    // Tiers (perfiles de partner)
+    tier_popular: 'Popular',
+    tier_premium: 'Premium',
+    tier_elite: 'Elite',
+    tier_filter_all: 'Todos',
+    tier_filter_label: 'Filtrar por presupuesto',
+    tier_popular_desc: 'Accesible y auténtico',
+    tier_premium_desc: 'Experiencia elevada',
+    tier_elite_desc: 'Lujo exclusivo',
   },
 
   en: {
@@ -201,6 +211,15 @@ export const t: Translations = {
     common_book: 'Book',
     common_loading: 'Loading...',
     common_see_map: 'See map',
+
+    tier_popular: 'Popular',
+    tier_premium: 'Premium',
+    tier_elite: 'Elite',
+    tier_filter_all: 'All',
+    tier_filter_label: 'Filter by budget',
+    tier_popular_desc: 'Accessible & authentic',
+    tier_premium_desc: 'Elevated experience',
+    tier_elite_desc: 'Exclusive luxury',
   },
 
   fr: {
@@ -289,6 +308,15 @@ export const t: Translations = {
     common_book: 'Réserver',
     common_loading: 'Chargement...',
     common_see_map: 'Voir carte',
+
+    tier_popular: 'Populaire',
+    tier_premium: 'Premium',
+    tier_elite: 'Elite',
+    tier_filter_all: 'Tous',
+    tier_filter_label: 'Filtrer par budget',
+    tier_popular_desc: 'Accessible et authentique',
+    tier_premium_desc: 'Expérience élevée',
+    tier_elite_desc: 'Luxe exclusif',
   },
 
   pt: {
@@ -377,5 +405,14 @@ export const t: Translations = {
     common_book: 'Reservar',
     common_loading: 'Carregando...',
     common_see_map: 'Ver mapa',
+
+    tier_popular: 'Popular',
+    tier_premium: 'Premium',
+    tier_elite: 'Elite',
+    tier_filter_all: 'Todos',
+    tier_filter_label: 'Filtrar por orçamento',
+    tier_popular_desc: 'Acessível e autêntico',
+    tier_premium_desc: 'Experiência elevada',
+    tier_elite_desc: 'Luxo exclusivo',
   },
 };

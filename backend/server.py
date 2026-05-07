@@ -943,14 +943,14 @@ async def seed_database():
     ]
 
     partners = [
-        {"partner_id":"ptr_001","name":"Casa Bohème","description":"Restaurante & cócteles de autor. Brunch oficial de Amo Cartagena.","category":"restaurant","image_url":IMG_BRUNCH,"location":{"lat":10.4228,"lng":-75.5510},"address":"Calle de la Iglesia #35-76","booking_link":"https://casaboheme.co","price_range":"$$ - $$$","experience":"Brunch & Beats, cenas temáticas, cócteles de autor","is_certified":True},
-        {"partner_id":"ptr_002","name":"Bellini","description":"Fine dining mediterráneo con fusión caribeña. Jazz & Wine nights.","category":"restaurant","image_url":IMG_JAZZ,"location":{"lat":10.4240,"lng":-75.5475},"address":"Calle del Arsenal #10-40","booking_link":"https://bellini.co","price_range":"$$$","experience":"Menú degustación, Jazz & Wine Night, cena pre-Templo","is_certified":True},
-        {"partner_id":"ptr_003","name":"Blue Apple Beach","description":"Beach club exclusivo en las Islas del Rosario. Wellness y fiestas privadas.","category":"beach_club","image_url":IMG_BEACH,"location":{"lat":10.1780,"lng":-75.5800},"address":"Isla del Encanto, Islas del Rosario","booking_link":"https://blueapple.co","price_range":"$$$$","experience":"Day pass, spinning frente al mar, DJ sets exclusivos","is_certified":True},
-        {"partner_id":"ptr_004","name":"Hotel Santa Clara","description":"Hotel boutique de lujo. Pop-ups artísticos y experiencias exclusivas.","category":"hotel","image_url":IMG_POPUP,"location":{"lat":10.4232,"lng":-75.5502},"address":"Calle del Torno #39-29","booking_link":"https://hotelsantaclara.com","price_range":"$$$$","experience":"Habitaciones premium, pop-ups de arte, spa","is_certified":True},
-        {"partner_id":"ptr_005","name":"Café del Mar","description":"El sunset bar más icónico de Cartagena sobre las murallas.","category":"club","image_url":IMG_SUNSET,"location":{"lat":10.4260,"lng":-75.5490},"address":"Baluarte de Santo Domingo","booking_link":"https://cafedelmar.com","price_range":"$$ - $$$","experience":"Sunset sessions, cócteles signature, DJ sets","is_certified":True},
-        {"partner_id":"ptr_006","name":"El Arsenal Wellness","description":"Centro de bienestar con yoga, meditación y terapias holísticas.","category":"wellness","image_url":IMG_YOGA,"location":{"lat":10.4215,"lng":-75.5470},"address":"Calle del Arsenal #8-12, Getsemaní","booking_link":"https://elarsenal.co/wellness","price_range":"$$","experience":"Yoga sunrise, meditación, masajes, sound healing","is_certified":True},
-        {"partner_id":"ptr_007","name":"Movich Hotel Cartagena","description":"Hotel moderno con rooftop pool y vistas al centro histórico.","category":"hotel","image_url":IMG_CLOSING,"location":{"lat":10.4210,"lng":-75.5440},"address":"Calle del Porvenir #35-66","booking_link":"https://movich.co/cartagena","price_range":"$$$","experience":"Rooftop bar, pool party, paquete Amo Cartagena","is_certified":True},
-        {"partner_id":"ptr_008","name":"Isla Barú Beach Club","description":"Beach club all-inclusive en la playa más hermosa de Colombia.","category":"beach_club","image_url":IMG_BEACH,"location":{"lat":10.1817,"lng":-75.5847},"address":"Playa Blanca, Isla Barú","booking_link":"https://barubeach.com","price_range":"$$$","experience":"Beach party, gastronomía de mar, transporte en lancha","is_certified":True},
+        {"partner_id":"ptr_001","name":"Casa Bohème","description":"Restaurante & cócteles de autor. Brunch oficial de Amo Cartagena.","category":"restaurant","tier":"premium","image_url":IMG_BRUNCH,"location":{"lat":10.4228,"lng":-75.5510},"address":"Calle de la Iglesia #35-76","booking_link":"https://casaboheme.co","price_range":"$$ - $$$","experience":"Brunch & Beats, cenas temáticas, cócteles de autor","is_certified":True},
+        {"partner_id":"ptr_002","name":"Bellini","description":"Fine dining mediterráneo con fusión caribeña. Jazz & Wine nights.","category":"restaurant","tier":"elite","image_url":IMG_JAZZ,"location":{"lat":10.4240,"lng":-75.5475},"address":"Calle del Arsenal #10-40","booking_link":"https://bellini.co","price_range":"$$$","experience":"Menú degustación, Jazz & Wine Night, cena pre-Templo","is_certified":True},
+        {"partner_id":"ptr_003","name":"Blue Apple Beach","description":"Beach club exclusivo en las Islas del Rosario. Wellness y fiestas privadas.","category":"beach_club","tier":"elite","image_url":IMG_BEACH,"location":{"lat":10.1780,"lng":-75.5800},"address":"Isla del Encanto, Islas del Rosario","booking_link":"https://blueapple.co","price_range":"$$$$","experience":"Day pass, spinning frente al mar, DJ sets exclusivos","is_certified":True},
+        {"partner_id":"ptr_004","name":"Hotel Santa Clara","description":"Hotel boutique de lujo. Pop-ups artísticos y experiencias exclusivas.","category":"hotel","tier":"elite","image_url":IMG_POPUP,"location":{"lat":10.4232,"lng":-75.5502},"address":"Calle del Torno #39-29","booking_link":"https://hotelsantaclara.com","price_range":"$$$$","experience":"Habitaciones premium, pop-ups de arte, spa","is_certified":True},
+        {"partner_id":"ptr_005","name":"Café del Mar","description":"El sunset bar más icónico de Cartagena sobre las murallas.","category":"club","tier":"premium","image_url":IMG_SUNSET,"location":{"lat":10.4260,"lng":-75.5490},"address":"Baluarte de Santo Domingo","booking_link":"https://cafedelmar.com","price_range":"$$ - $$$","experience":"Sunset sessions, cócteles signature, DJ sets","is_certified":True},
+        {"partner_id":"ptr_006","name":"El Arsenal Wellness","description":"Centro de bienestar con yoga, meditación y terapias holísticas.","category":"wellness","tier":"popular","image_url":IMG_YOGA,"location":{"lat":10.4215,"lng":-75.5470},"address":"Calle del Arsenal #8-12, Getsemaní","booking_link":"https://elarsenal.co/wellness","price_range":"$$","experience":"Yoga sunrise, meditación, masajes, sound healing","is_certified":True},
+        {"partner_id":"ptr_007","name":"Movich Hotel Cartagena","description":"Hotel moderno con rooftop pool y vistas al centro histórico.","category":"hotel","tier":"premium","image_url":IMG_CLOSING,"location":{"lat":10.4210,"lng":-75.5440},"address":"Calle del Porvenir #35-66","booking_link":"https://movich.co/cartagena","price_range":"$$$","experience":"Rooftop bar, pool party, paquete Amo Cartagena","is_certified":True},
+        {"partner_id":"ptr_008","name":"Isla Barú Beach Club","description":"Beach club all-inclusive en la playa más hermosa de Colombia.","category":"beach_club","tier":"popular","image_url":IMG_BEACH,"location":{"lat":10.1817,"lng":-75.5847},"address":"Playa Blanca, Isla Barú","booking_link":"https://barubeach.com","price_range":"$$$","experience":"Beach party, gastronomía de mar, transporte en lancha","is_certified":True},
     ]
 
     itineraries = [
@@ -1230,6 +1230,44 @@ async def startup():
     concerts_count = await db.concerts.count_documents({})
     if concerts_count == 0:
         await seed_concerts()
+
+    # ── Migration: Add tier field to existing partners ──
+    PARTNER_TIERS = {
+        # Original 8
+        "ptr_001": "premium", "ptr_002": "elite",   "ptr_003": "elite",
+        "ptr_004": "elite",   "ptr_005": "premium", "ptr_006": "popular",
+        "ptr_007": "premium", "ptr_008": "popular",
+        # NuestraCartagena partners
+        "ptr_nc_001": "premium",  # Carmen (restaurante destacado)
+        "ptr_nc_002": "premium",  # El Beso
+        "ptr_nc_003": "popular",  # Nia Bakery
+        "ptr_nc_004": "premium",  # Salon Tropical
+        "ptr_nc_005": "elite",    # Casa Carolina (boutique hotel)
+        "ptr_nc_006": "premium",  # Townhouse
+        "ptr_nc_007": "premium",  # Casa Bohème
+        "ptr_nc_008": "elite",    # Members Only (exclusivo)
+        "ptr_nc_009": "elite",    # Blue Apple
+        "ptr_nc_010": "premium",  # The Pink Mango
+        "ptr_nc_011": "elite",    # La Serrezuela (lujo)
+        "ptr_nc_012": "elite",    # Lucy Jewelry
+        "ptr_nc_013": "elite",    # Lunático Experience
+        "ptr_nc_014": "elite",    # Boating Cartagena (yates)
+        "ptr_nc_015": "popular",  # Green Apple Foundation
+        "ptr_nc_016": "premium",  # Casa Bohème (duplicado)
+        # LAGO
+        "ptr_lago_001": "premium",
+        # Monumentos & Museos (cultura accesible)
+        "ptr_mon_001": "popular", "ptr_mon_002": "popular",
+        "ptr_mon_003": "popular", "ptr_mon_004": "popular",
+        "ptr_mon_005": "popular", "ptr_mon_006": "popular",
+        "ptr_mon_007": "popular", "ptr_mon_008": "popular",
+    }
+    # Always ensure tiers are correctly set for known partner IDs
+    for pid, tier in PARTNER_TIERS.items():
+        await db.partners.update_one({"partner_id": pid}, {"$set": {"tier": tier}})
+    # Default any remaining partners without explicit tier to popular
+    await db.partners.update_many({"tier": {"$exists": False}}, {"$set": {"tier": "popular"}})
+    logger.info("Partner tier migration applied!")
     # Seed sponsors if not yet seeded
     sponsors_count = await db.sponsors.count_documents({})
     if sponsors_count == 0:

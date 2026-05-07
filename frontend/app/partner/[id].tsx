@@ -3,12 +3,15 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIn
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, PARTNER_CATEGORY_LABELS } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, PARTNER_CATEGORY_LABELS, TIER_COLORS, Tier } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
+import { TierBadge } from '../../src/components/TierBadge';
+import { useLang } from '../../src/context/LanguageContext';
 
 export default function PartnerDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { s } = useLang();
   const [partner, setPartner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -52,14 +55,32 @@ export default function PartnerDetail() {
             </View>
           )}
           <View style={styles.heroBottom}>
-            <View style={styles.catBadge}>
-              <Text style={styles.catText}>{PARTNER_CATEGORY_LABELS[partner.category] || partner.category}</Text>
+            <View style={styles.heroBadgeRow}>
+              <View style={styles.catBadge}>
+                <Text style={styles.catText}>{PARTNER_CATEGORY_LABELS[partner.category] || partner.category}</Text>
+              </View>
+              <TierBadge tier={partner.tier} size="sm" />
             </View>
             <Text style={styles.heroTitle}>{partner.name}</Text>
           </View>
         </View>
 
         <View style={styles.body}>
+          {partner.tier && TIER_COLORS[partner.tier as Tier] ? (
+            <View style={[styles.tierCallout, { backgroundColor: TIER_COLORS[partner.tier as Tier].bg, borderColor: TIER_COLORS[partner.tier as Tier].border }]}>
+              <Ionicons
+                name={partner.tier === 'elite' ? 'diamond' : partner.tier === 'premium' ? 'star' : 'leaf'}
+                size={20}
+                color={TIER_COLORS[partner.tier as Tier].main}
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.tierCalloutTitle, { color: TIER_COLORS[partner.tier as Tier].main }]}>
+                  {s(`tier_${partner.tier}`)}
+                </Text>
+                <Text style={styles.tierCalloutDesc}>{s(`tier_${partner.tier}_desc`)}</Text>
+              </View>
+            </View>
+          ) : null}
           <Text style={styles.description}>{partner.description}</Text>
 
           <View style={styles.infoGrid}>
@@ -107,11 +128,15 @@ const styles = StyleSheet.create({
   backBtn: { position: 'absolute', top: SPACING.md, left: SPACING.md, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(5,8,20,0.6)', alignItems: 'center', justifyContent: 'center' },
   sealBadge: { position: 'absolute', top: SPACING.md, right: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(5,8,20,0.85)', borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.primary },
   sealText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1 },
-  heroBottom: { position: 'absolute', bottom: SPACING.lg, left: SPACING.lg },
+  heroBottom: { position: 'absolute', bottom: SPACING.lg, left: SPACING.lg, right: SPACING.lg },
+  heroBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flexWrap: 'wrap' },
   catBadge: { alignSelf: 'flex-start', backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 4 },
   catText: { fontSize: 10, color: COLORS.white, ...FONTS.bold, letterSpacing: 1, textTransform: 'uppercase' },
   heroTitle: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.sm },
   body: { padding: SPACING.lg },
+  tierCallout: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, borderRadius: RADIUS.lg, borderWidth: 1, marginBottom: SPACING.md },
+  tierCalloutTitle: { fontSize: 14, ...FONTS.bold, letterSpacing: 0.5 },
+  tierCalloutDesc: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
   description: { fontSize: 15, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 24 },
   infoGrid: { flexDirection: 'row', gap: SPACING.md, marginTop: SPACING.lg },
   infoCard: { flex: 1, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.md, gap: SPACING.xs, borderWidth: 1, borderColor: COLORS.border },
