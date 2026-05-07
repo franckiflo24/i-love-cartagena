@@ -94,7 +94,7 @@ function buildMapHTML(places: Place[], filter: string) {
     + '</head><body>'
     + '<div id="map"></div>'
     + '<script>'
-    + 'var map = L.map("map", {zoomControl: true, attributionControl: false}).setView([10.4225, -75.5480], 14);'
+    + 'var map = L.map("map", {zoomControl: true, attributionControl: false}).setView([10.35, -75.55], 11);'
     + 'L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {maxZoom: 19}).addTo(map);'
     + markers
     + '<\/script>'
