@@ -14,12 +14,18 @@ export default function PartnerDetail() {
   const { s } = useLang();
   const [partner, setPartner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [partnerEvents, setPartnerEvents] = useState<any[]>([]);
+  const [reserving, setReserving] = useState(false);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const data = await api.get(`/partners/${id}`);
-        setPartner(data);
+        const [pData, eData] = await Promise.all([
+          api.get(`/partners/${id}`),
+          api.get(`/partner-events?partner_id=${id}&upcoming=true`).catch(() => []),
+        ]);
+        setPartner(pData);
+        setPartnerEvents(eData || []);
       } catch (e) { console.error(e); }
       setLoading(false);
     };
@@ -38,6 +44,28 @@ export default function PartnerDetail() {
     if (!partner?.location) return;
     RNLinking.openURL(`https://www.google.com/maps/search/?api=1&query=${partner.location.lat},${partner.location.lng}`);
   };
+
+  const handleReserve = async () => {
+    setReserving(true);
+    try {
+      const res = await api.post(`/partners/${id}/track-reserve`);
+      if (res.booking_url) RNLinking.openURL(res.booking_url);
+    } catch (e) {
+      console.error(e);
+      if (partner.booking_link) RNLinking.openURL(partner.booking_link);
+    }
+    setReserving(false);
+  };
+
+  const formatShortDate = (iso: string) => {
+    try {
+      const d = new Date(iso + 'T12:00:00');
+      const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+    } catch { return iso; }
+  };
+  const formatPrice = (p: number) => p === 0 ? 'GRATIS' : `$${(p / 1000).toFixed(0)}K`;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -100,6 +128,62 @@ export default function PartnerDetail() {
             <Text style={styles.sectionTitle}>Experiencia</Text>
             <Text style={styles.expText}>{partner.experience}</Text>
           </View>
+
+          {/* Instagram */}
+          {partner.instagram ? (
+            <TouchableOpacity
+              style={styles.instagramBtn}
+              onPress={() => RNLinking.openURL(`https://instagram.com/${partner.instagram}`)}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="logo-instagram" size={20} color={COLORS.primary} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.instagramLabel}>Síguelos en Instagram</Text>
+                <Text style={styles.instagramHandle}>@{partner.instagram}</Text>
+              </View>
+              <Ionicons name="open-outline" size={18} color={COLORS.textMuted} />
+            </TouchableOpacity>
+          ) : null}
+
+          {/* Calendar of upcoming events */}
+          <View style={styles.calendarSection}>
+            <View style={styles.calendarHeader}>
+              <Ionicons name="calendar" size={16} color={COLORS.primary} />
+              <Text style={styles.sectionTitle}>Próximos eventos</Text>
+              {partnerEvents.length > 0 && (
+                <View style={styles.calendarCount}>
+                  <Text style={styles.calendarCountText}>{partnerEvents.length}</Text>
+                </View>
+              )}
+            </View>
+            {partnerEvents.length === 0 ? (
+              <View style={styles.calendarEmpty}>
+                <Ionicons name="calendar-outline" size={28} color={COLORS.textMuted} />
+                <Text style={styles.calendarEmptyText}>Sin eventos publicados próximamente</Text>
+              </View>
+            ) : (
+              partnerEvents.slice(0, 6).map((ev: any) => (
+                <TouchableOpacity
+                  key={ev.event_id}
+                  style={styles.calendarItem}
+                  onPress={() => router.push(`/partner-event/${ev.event_id}`)}
+                  activeOpacity={0.85}
+                >
+                  <Image source={{ uri: ev.flyer_url }} style={styles.calendarFlyer} />
+                  <View style={styles.calendarItemBody}>
+                    <Text style={styles.calendarItemDate}>{formatShortDate(ev.date)} · {ev.start_time}</Text>
+                    <Text style={styles.calendarItemTitle} numberOfLines={1}>{ev.title}</Text>
+                    <View style={styles.calendarItemFooter}>
+                      <View style={[styles.calendarPriceTag, ev.is_free ? styles.calendarFree : styles.calendarPaid]}>
+                        <Text style={styles.calendarPriceText}>{ev.is_free ? 'GRATIS' : formatPrice(ev.price)}</Text>
+                      </View>
+                    </View>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+                </TouchableOpacity>
+              ))
+            )}
+          </View>
         </View>
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -110,9 +194,15 @@ export default function PartnerDetail() {
           <Text style={styles.dirText}>Cómo llegar</Text>
         </TouchableOpacity>
         {partner.booking_link ? (
-          <TouchableOpacity testID="partner-reserve-btn" style={styles.bookBtn} onPress={() => RNLinking.openURL(partner.booking_link)}>
-            <Text style={styles.bookText}>Reservar</Text>
-            <Ionicons name="arrow-forward" size={16} color={COLORS.white} />
+          <TouchableOpacity testID="partner-reserve-btn" style={[styles.bookBtn, reserving && { opacity: 0.6 }]} onPress={handleReserve} disabled={reserving}>
+            {reserving ? (
+              <ActivityIndicator size="small" color={COLORS.white} />
+            ) : (
+              <>
+                <Text style={styles.bookText}>Reservar</Text>
+                <Ionicons name="arrow-forward" size={16} color={COLORS.white} />
+              </>
+            )}
           </TouchableOpacity>
         ) : null}
       </View>
@@ -145,6 +235,39 @@ const styles = StyleSheet.create({
   expSection: { marginTop: SPACING.lg },
   sectionTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, marginBottom: SPACING.sm },
   expText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 22 },
+
+  // Instagram
+  instagramBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    padding: SPACING.md,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(217,119,6,0.3)',
+    marginTop: SPACING.lg,
+  },
+  instagramLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, letterSpacing: 0.5, textTransform: 'uppercase' },
+  instagramHandle: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold, marginTop: 2 },
+
+  // Calendar section
+  calendarSection: { marginTop: SPACING.lg },
+  calendarHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, marginBottom: SPACING.sm },
+  calendarCount: { backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 2 },
+  calendarCountText: { fontSize: 11, color: COLORS.white, ...FONTS.bold },
+  calendarEmpty: { alignItems: 'center', paddingVertical: SPACING.lg, gap: SPACING.xs, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border },
+  calendarEmptyText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
+  calendarItem: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, marginBottom: SPACING.xs },
+  calendarFlyer: { width: 56, height: 56, borderRadius: RADIUS.md },
+  calendarItemBody: { flex: 1, gap: 2 },
+  calendarItemDate: { fontSize: 11, color: COLORS.primary, ...FONTS.bold, letterSpacing: 0.3 },
+  calendarItemTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.semibold },
+  calendarItemFooter: { flexDirection: 'row', marginTop: 2 },
+  calendarPriceTag: { borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 2 },
+  calendarFree: { backgroundColor: 'rgba(34,197,94,0.2)' },
+  calendarPaid: { backgroundColor: 'rgba(217,119,6,0.2)' },
+  calendarPriceText: { fontSize: 10, color: COLORS.textMain, ...FONTS.bold },
   bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', padding: SPACING.lg, gap: SPACING.md, backgroundColor: COLORS.background, borderTopWidth: 1, borderTopColor: COLORS.border },
   dirBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary, paddingVertical: 14 },
   dirText: { fontSize: 14, color: COLORS.primary, ...FONTS.semibold },

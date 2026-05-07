@@ -262,6 +262,118 @@ async def get_partner(partner_id: str):
     return partner
 
 
+# ── Partner Events (publicados por los partners) ────────────
+@api_router.get("/partner-events")
+async def list_partner_events(
+    date: Optional[str] = None,
+    category: Optional[str] = None,
+    partner_id: Optional[str] = None,
+    upcoming: Optional[bool] = None,
+):
+    """List partner-published events. Filter by date (YYYY-MM-DD), category, partner_id, or upcoming=true."""
+    query: dict = {"is_published": True}
+    if date:
+        query["date"] = date
+    if category and category != "all":
+        query["category"] = category
+    if partner_id:
+        query["partner_id"] = partner_id
+    if upcoming:
+        today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        query["date"] = {"$gte": today_str}
+    events = await db.partner_events.find(query, {"_id": 0}).sort([("date", 1), ("start_time", 1)]).to_list(200)
+    # enrich with partner info
+    partner_ids = list({e["partner_id"] for e in events})
+    partners_map = {}
+    if partner_ids:
+        async for p in db.partners.find({"partner_id": {"$in": partner_ids}}, {"_id": 0, "partner_id": 1, "name": 1, "tier": 1, "category": 1, "image_url": 1}):
+            partners_map[p["partner_id"]] = p
+    for e in events:
+        p = partners_map.get(e["partner_id"], {})
+        e["partner_name"] = p.get("name", "")
+        e["partner_tier"] = p.get("tier", "popular")
+        e["partner_category"] = p.get("category", "")
+        e["partner_image"] = p.get("image_url", "")
+    return events
+
+
+@api_router.get("/partner-events/{event_id}")
+async def get_partner_event(event_id: str):
+    event = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0})
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    # Increment views asynchronously
+    await db.partner_events.update_one({"event_id": event_id}, {"$inc": {"views_count": 1}})
+    # enrich with partner
+    p = await db.partners.find_one({"partner_id": event["partner_id"]}, {"_id": 0})
+    if p:
+        event["partner"] = p
+    return event
+
+
+@api_router.post("/partner-events/{event_id}/track-reserve")
+async def track_partner_event_reserve(event_id: str, request: Request):
+    """Track a reservation click and return the booking URL with UTM params so the partner knows it came from Amo Cartagena."""
+    event = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0})
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    await db.partner_events.update_one({"event_id": event_id}, {"$inc": {"reserve_clicks": 1}})
+    # Try to identify user (optional)
+    try:
+        user = await get_current_user(request)
+        user_id = user.get("user_id")
+    except Exception:
+        user_id = None
+    # Log analytics
+    await db.analytics.insert_one({
+        "event_type": "partner_event_reserve_click",
+        "event_id": event_id,
+        "partner_id": event.get("partner_id"),
+        "user_id": user_id,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })
+    # Build tracking URL
+    booking_link = event.get("booking_link") or ""
+    if not booking_link:
+        # fallback to partner booking link
+        partner = await db.partners.find_one({"partner_id": event["partner_id"]}, {"_id": 0, "booking_link": 1})
+        booking_link = (partner or {}).get("booking_link", "") or ""
+    if booking_link:
+        sep = "&" if "?" in booking_link else "?"
+        tracking = f"utm_source=amocartagena&utm_medium=app&utm_campaign=partner_event&utm_content={event_id}"
+        if user_id:
+            tracking += f"&ref_user={user_id}"
+        booking_link = f"{booking_link}{sep}{tracking}"
+    return {"booking_url": booking_link, "tracked": True}
+
+
+@api_router.post("/partners/{partner_id}/track-reserve")
+async def track_partner_reserve(partner_id: str, request: Request):
+    """Track a reservation click on the partner's profile (not tied to a specific event)."""
+    partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    try:
+        user = await get_current_user(request)
+        user_id = user.get("user_id")
+    except Exception:
+        user_id = None
+    await db.analytics.insert_one({
+        "event_type": "partner_reserve_click",
+        "partner_id": partner_id,
+        "user_id": user_id,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })
+    booking_link = partner.get("booking_link", "") or ""
+    if booking_link:
+        sep = "&" if "?" in booking_link else "?"
+        tracking = f"utm_source=amocartagena&utm_medium=app&utm_campaign=partner_profile"
+        if user_id:
+            tracking += f"&ref_user={user_id}"
+        booking_link = f"{booking_link}{sep}{tracking}"
+    return {"booking_url": booking_link, "tracked": True}
+
+
 # ── Itineraries ─────────────────────────────────────────────
 @api_router.get("/itineraries")
 async def list_itineraries():
@@ -1268,6 +1380,102 @@ async def startup():
     # Default any remaining partners without explicit tier to popular
     await db.partners.update_many({"tier": {"$exists": False}}, {"$set": {"tier": "popular"}})
     logger.info("Partner tier migration applied!")
+
+    # ── Migration: Add Instagram + extended fields to partners ──
+    PARTNER_INSTAGRAM = {
+        "ptr_001": "casaboheme.cartagena", "ptr_002": "bellini.cartagena",
+        "ptr_003": "blueapplebeach", "ptr_004": "hotelsantaclara",
+        "ptr_005": "cafedelmar.cartagena", "ptr_006": "elarsenalwellness",
+        "ptr_007": "movichcartagena", "ptr_008": "barubeachclub",
+        "ptr_nc_001": "carmen.cartagena", "ptr_nc_002": "elbeso.cartagena",
+        "ptr_nc_003": "niabakery", "ptr_nc_004": "salontropical.co",
+        "ptr_nc_005": "casacarolinacartagena", "ptr_nc_006": "townhouse.cartagena",
+        "ptr_nc_007": "casaboheme.cartagena", "ptr_nc_008": "membersonly.cartagena",
+        "ptr_nc_009": "blueapplebeach", "ptr_nc_010": "thepinkmango",
+        "ptr_nc_011": "laserrezuela", "ptr_nc_012": "lucyjewelry",
+        "ptr_nc_013": "lunatico.experience", "ptr_nc_014": "boatingcartagena",
+        "ptr_nc_015": "greenapplefoundation", "ptr_nc_016": "casaboheme.cartagena",
+        "ptr_lago_001": "lagocartagena",
+    }
+    for pid, ig in PARTNER_INSTAGRAM.items():
+        await db.partners.update_one(
+            {"partner_id": pid, "instagram": {"$exists": False}},
+            {"$set": {"instagram": ig}}
+        )
+
+    # ── Seed: Partner Events (eventos publicados por partners) ──
+    pe_count = await db.partner_events.count_documents({})
+    if pe_count == 0:
+        logger.info("Seeding partner events...")
+        from datetime import date as _date
+        today = datetime.now(timezone.utc).date()
+        # Helper to compute date string offset from today
+        def d(offset: int) -> str:
+            return (today + timedelta(days=offset)).strftime("%Y-%m-%d")
+
+        FLYER_BRUNCH = "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=1000&fit=crop"
+        FLYER_DJ = "https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=800&h=1000&fit=crop"
+        FLYER_DINNER = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=1000&fit=crop"
+        FLYER_BEACH = "https://images.unsplash.com/photo-1540541338287-41700207dee6?w=800&h=1000&fit=crop"
+        FLYER_YOGA = "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&h=1000&fit=crop"
+        FLYER_SUNSET = "https://images.unsplash.com/photo-1495567720989-cebdbdd97913?w=800&h=1000&fit=crop"
+        FLYER_JAZZ = "https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800&h=1000&fit=crop"
+        FLYER_PARTY = "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&h=1000&fit=crop"
+        FLYER_ART = "https://images.unsplash.com/photo-1531058020387-3be344556be6?w=800&h=1000&fit=crop"
+        FLYER_SHOPPING = "https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?w=800&h=1000&fit=crop"
+
+        partner_events_seed = [
+            # Hoy
+            {"event_id": "pe_001", "partner_id": "ptr_001", "title": "Brunch & Beats — Sunday Edition", "description": "Brunch dominical con DJ en vivo. Mimosas ilimitadas hasta las 14:00. Reserva tu mesa.", "category": "gastronomy", "date": d(0), "start_time": "11:00", "end_time": "15:00", "flyer_url": FLYER_BRUNCH, "is_free": False, "price": 95000, "currency": "COP", "booking_link": "https://casaboheme.co/reservar"},
+            {"event_id": "pe_002", "partner_id": "ptr_005", "title": "Sunset Sessions ft. DJ Local", "description": "Las mejores vistas de la ciudad amurallada con un set de deep house. Cócteles signature al 2x1 hasta las 19:00.", "category": "music", "date": d(0), "start_time": "17:00", "end_time": "22:00", "flyer_url": FLYER_SUNSET, "is_free": False, "price": 60000, "currency": "COP", "booking_link": "https://cafedelmar.com/reservar"},
+            {"event_id": "pe_003", "partner_id": "ptr_006", "title": "Yoga al amanecer", "description": "Sesión de yoga frente al mar guiada por instructora certificada. Incluye té matcha y fruta tropical.", "category": "wellness", "date": d(0), "start_time": "06:30", "end_time": "08:00", "flyer_url": FLYER_YOGA, "is_free": False, "price": 45000, "currency": "COP", "booking_link": "https://elarsenal.co/wellness"},
+            # Mañana
+            {"event_id": "pe_004", "partner_id": "ptr_002", "title": "Jazz & Wine Night", "description": "Trío de jazz en vivo + maridaje de vinos italianos. Menú degustación 5 tiempos.", "category": "music", "date": d(1), "start_time": "20:00", "end_time": "23:30", "flyer_url": FLYER_JAZZ, "is_free": False, "price": 220000, "currency": "COP", "booking_link": "https://bellini.co/reservar"},
+            {"event_id": "pe_005", "partner_id": "ptr_003", "title": "Pool Party — White Edition", "description": "Vístete de blanco y disfruta de DJs internacionales, cocteles infusionados y la mejor piscina de Cartagena.", "category": "party", "date": d(1), "start_time": "13:00", "end_time": "20:00", "flyer_url": FLYER_PARTY, "is_free": False, "price": 280000, "currency": "COP", "booking_link": "https://blueapple.co/reservar"},
+            {"event_id": "pe_006", "partner_id": "ptr_nc_001", "title": "Cena Maridaje — Sabores del Caribe", "description": "5 platos del chef ejecutivo maridados con vinos de la región. Cupos limitados.", "category": "gastronomy", "date": d(1), "start_time": "19:30", "end_time": "23:00", "flyer_url": FLYER_DINNER, "is_free": False, "price": 280000, "currency": "COP", "booking_link": "https://carmen.com.co/reservar"},
+            # +2
+            {"event_id": "pe_007", "partner_id": "ptr_nc_011", "title": "Pop-Up Diseñadores Locales", "description": "10 diseñadores colombianos exhiben sus colecciones cápsula. Acceso libre con cocktail de bienvenida.", "category": "popup", "date": d(2), "start_time": "16:00", "end_time": "21:00", "flyer_url": FLYER_SHOPPING, "is_free": True, "price": 0, "currency": "COP", "booking_link": ""},
+            {"event_id": "pe_008", "partner_id": "ptr_nc_008", "title": "Members Only — Disco Night", "description": "Una noche de pura disco music. Lista exclusiva, dress code obligatorio.", "category": "party", "date": d(2), "start_time": "23:00", "end_time": "04:00", "flyer_url": FLYER_DJ, "is_free": False, "price": 150000, "currency": "COP", "booking_link": "https://membersonly.co/reservar"},
+            {"event_id": "pe_009", "partner_id": "ptr_004", "title": "Pop-Up Art Gallery", "description": "Exposición de arte contemporáneo del Caribe colombiano. Coctel de inauguración.", "category": "art", "date": d(2), "start_time": "18:00", "end_time": "22:00", "flyer_url": FLYER_ART, "is_free": True, "price": 0, "currency": "COP", "booking_link": "https://hotelsantaclara.com"},
+            # +3
+            {"event_id": "pe_010", "partner_id": "ptr_007", "title": "Rooftop Pool Sunday", "description": "Tarde de domingo en la piscina rooftop con DJ acústico. Brunch buffet disponible.", "category": "party", "date": d(3), "start_time": "12:00", "end_time": "19:00", "flyer_url": FLYER_BEACH, "is_free": False, "price": 120000, "currency": "COP", "booking_link": "https://movich.co/cartagena"},
+            {"event_id": "pe_011", "partner_id": "ptr_nc_003", "title": "Workshop de pastelería francesa", "description": "Aprende a hacer croissants y pain au chocolat con la chef Camille. Te llevas tus creaciones.", "category": "gastronomy", "date": d(3), "start_time": "09:00", "end_time": "12:00", "flyer_url": FLYER_BRUNCH, "is_free": False, "price": 180000, "currency": "COP", "booking_link": "https://niabakery.com/reservar"},
+            # +4
+            {"event_id": "pe_012", "partner_id": "ptr_nc_013", "title": "Lunático Experience — Cena Inmersiva", "description": "Una experiencia gastronómica multisensorial con proyecciones, música y cocina molecular.", "category": "gastronomy", "date": d(4), "start_time": "20:00", "end_time": "23:30", "flyer_url": FLYER_DINNER, "is_free": False, "price": 380000, "currency": "COP", "booking_link": "https://lunatico.co/reservar"},
+            {"event_id": "pe_013", "partner_id": "ptr_nc_014", "title": "Yacht Day — Islas del Rosario", "description": "Día completo en yate privado: snorkeling, almuerzo a bordo, open bar. 12 personas máximo.", "category": "party", "date": d(4), "start_time": "09:00", "end_time": "17:00", "flyer_url": FLYER_BEACH, "is_free": False, "price": 750000, "currency": "COP", "booking_link": "https://boatingcartagena.com/reservar"},
+            # +5
+            {"event_id": "pe_014", "partner_id": "ptr_nc_009", "title": "Wellness Retreat Day", "description": "Día completo de bienestar: yoga, meditación, masaje, almuerzo plant-based y acceso a la playa privada.", "category": "wellness", "date": d(5), "start_time": "08:00", "end_time": "17:00", "flyer_url": FLYER_YOGA, "is_free": False, "price": 320000, "currency": "COP", "booking_link": "https://blueapple.co/wellness"},
+            # +6
+            {"event_id": "pe_015", "partner_id": "ptr_nc_004", "title": "Salsa & Rumba Tropical", "description": "Noche de salsa con orquesta en vivo y clases gratuitas para principiantes desde las 21:00.", "category": "music", "date": d(6), "start_time": "21:00", "end_time": "02:00", "flyer_url": FLYER_PARTY, "is_free": False, "price": 50000, "currency": "COP", "booking_link": "https://salontropical.co/reservar"},
+            # +7
+            {"event_id": "pe_016", "partner_id": "ptr_nc_005", "title": "Brunch en el patio colonial", "description": "Brunch a la carta en el patio del hotel boutique Casa Carolina. Reserva una mesa al sol.", "category": "gastronomy", "date": d(7), "start_time": "10:00", "end_time": "14:00", "flyer_url": FLYER_BRUNCH, "is_free": False, "price": 110000, "currency": "COP", "booking_link": "https://casacarolina.com/reservar"},
+            {"event_id": "pe_017", "partner_id": "ptr_nc_002", "title": "Late Night Tapas", "description": "Tapas españolas + DJ set hasta tarde. Ambientazo y cocktails creativos.", "category": "gastronomy", "date": d(7), "start_time": "22:00", "end_time": "02:00", "flyer_url": FLYER_DINNER, "is_free": False, "price": 80000, "currency": "COP", "booking_link": "https://elbeso.co/reservar"},
+            # +10
+            {"event_id": "pe_018", "partner_id": "ptr_lago_001", "title": "LAGO Music Festival — Day 1", "description": "Festival de música electrónica con line-up internacional. 3 stages, food trucks y pool zone.", "category": "music", "date": d(10), "start_time": "16:00", "end_time": "04:00", "flyer_url": FLYER_DJ, "is_free": False, "price": 320000, "currency": "COP", "booking_link": "https://lago.co/festival"},
+            {"event_id": "pe_019", "partner_id": "ptr_nc_010", "title": "Tropical Cocktail Masterclass", "description": "Aprende a preparar 3 cocteles tropicales con el bartender residente. Incluye degustación.", "category": "gastronomy", "date": d(10), "start_time": "18:00", "end_time": "20:30", "flyer_url": FLYER_DINNER, "is_free": False, "price": 95000, "currency": "COP", "booking_link": "https://thepinkmango.co/reservar"},
+            # +14
+            {"event_id": "pe_020", "partner_id": "ptr_001", "title": "Cena Tematica — Marruecos en Cartagena", "description": "Menú degustación de inspiración marroquí con música oriental en vivo.", "category": "gastronomy", "date": d(14), "start_time": "20:00", "end_time": "23:30", "flyer_url": FLYER_DINNER, "is_free": False, "price": 240000, "currency": "COP", "booking_link": "https://casaboheme.co/reservar"},
+        ]
+        # Add common fields
+        for pe in partner_events_seed:
+            pe["is_published"] = True
+            pe["created_at"] = datetime.now(timezone.utc).isoformat()
+            pe["views_count"] = 0
+            pe["reserve_clicks"] = 0
+        await db.partner_events.insert_many(partner_events_seed)
+        await db.partner_events.create_index("date")
+        await db.partner_events.create_index("category")
+        await db.partner_events.create_index("partner_id")
+        logger.info(f"Seeded {len(partner_events_seed)} partner events!")
+
+    # ── Migration: Re-map partner events with non-existent partner IDs ──
+    PARTNER_ID_REMAP = {
+        "ptr_001": "ptr_nc_007",   # Casa Bohème
+        "ptr_003": "ptr_nc_009",   # Blue Apple
+        "ptr_008": "ptr_nc_009",   # Isla Barú → Blue Apple (closest match)
+    }
+    for old_id, new_id in PARTNER_ID_REMAP.items():
+        await db.partner_events.update_many({"partner_id": old_id}, {"$set": {"partner_id": new_id}})
     # Seed sponsors if not yet seeded
     sponsors_count = await db.sponsors.count_documents({})
     if sponsors_count == 0:
