@@ -1860,11 +1860,6 @@ async def seed_database():
             {"departure":"08:30","arrival":"09:30","notes":"Servicio directo"},
             {"departure":"10:00","arrival":"11:00","notes":"Segunda salida"},
         ],"departure_point":"Muelle Turístico de la Bodeguita","departure_location":{"lat":10.4200,"lng":-75.5500},"price":"70,000 COP ida / 120,000 COP ida y vuelta","notes":"Regreso última lancha 17:00. Incluye chaleco salvavidas.","partner_name":"Lanchas Amo Cartagena","last_return":"17:00"},
-        {"transport_id":"trn_003","type":"night_transport","route":"Transporte nocturno Centro → Venues","schedule":[
-            {"departure":"21:00","arrival":"","notes":"Inicio servicio nocturno"},
-            {"departure":"Cada 30 min","arrival":"","notes":"Frecuencia de vans"},
-            {"departure":"05:00","arrival":"","notes":"Último servicio"},
-        ],"departure_point":"Múltiples paradas en Centro Histórico y Getsemaní","departure_location":{"lat":10.4220,"lng":-75.5470},"price":"Gratis con brazalete Amo Cartagena","notes":"Identificar vans con logo Amo Cartagena. Rutas: Centro-Templo, Centro-Getsemaní, Bocagrande-Centro.","partner_name":"Amo Cartagena Mobility","last_return":"05:00"},
         {"transport_id":"trn_004","type":"shuttle","route":"Shuttle Aeropuerto → Centro Histórico","schedule":[
             {"departure":"Cada hora","arrival":"","notes":"Desde las 06:00 hasta 22:00"},
         ],"departure_point":"Aeropuerto Rafael Núñez","departure_location":{"lat":10.4427,"lng":-75.5130},"price":"25,000 COP","notes":"Reserva previa recomendada. Duración aprox. 20 min.","partner_name":"Amo Cartagena Transfer","last_return":"22:00"},
@@ -2479,8 +2474,8 @@ async def startup():
         {"$set": {"subcategory": "spa"}}
     )
 
-    # ── Migration: Replace night transport (trn_003) with Taxi Boat ──
-    await db.transport.delete_one({"transport_id": "trn_003"})
+    # ── Migration: Ensure Taxi Boat exists as trn_003 (replaces legacy night_transport) ──
+    await db.transport.delete_many({"type": "night_transport"})
     TAXI_BOAT_ROUTE = {
         "transport_id": "trn_003",
         "type": "boat",
