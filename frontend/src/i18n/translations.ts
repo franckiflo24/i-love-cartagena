@@ -123,6 +123,11 @@ export const t: Translations = {
     tier_popular_desc: 'Accesible y auténtico',
     tier_premium_desc: 'Experiencia elevada',
     tier_elite_desc: 'Lujo exclusivo',
+    add_to_calendar: 'Añadir a mi agenda',
+    in_my_calendar: 'En mi agenda',
+    my_calendar_title: 'Mi Agenda',
+    my_calendar_empty: 'Aún no tienes eventos en tu agenda',
+    my_calendar_empty_hint: 'Cuando veas un evento que te guste, pulsa "Añadir a mi agenda" para guardarlo aquí.',
   },
 
   en: {
@@ -220,6 +225,11 @@ export const t: Translations = {
     tier_popular_desc: 'Accessible & authentic',
     tier_premium_desc: 'Elevated experience',
     tier_elite_desc: 'Exclusive luxury',
+    add_to_calendar: 'Add to my calendar',
+    in_my_calendar: 'In my calendar',
+    my_calendar_title: 'My Calendar',
+    my_calendar_empty: 'No events in your calendar yet',
+    my_calendar_empty_hint: 'When you see an event you like, tap "Add to my calendar" to save it here.',
   },
 
   fr: {
@@ -317,6 +327,11 @@ export const t: Translations = {
     tier_popular_desc: 'Accessible et authentique',
     tier_premium_desc: 'Expérience élevée',
     tier_elite_desc: 'Luxe exclusif',
+    add_to_calendar: 'Ajouter à mon agenda',
+    in_my_calendar: 'Dans mon agenda',
+    my_calendar_title: 'Mon Agenda',
+    my_calendar_empty: "Aucun événement dans votre agenda",
+    my_calendar_empty_hint: 'Quand vous voyez un événement qui vous plaît, appuyez sur "Ajouter à mon agenda".',
   },
 
   pt: {
@@ -414,5 +429,10 @@ export const t: Translations = {
     tier_popular_desc: 'Acessível e autêntico',
     tier_premium_desc: 'Experiência elevada',
     tier_elite_desc: 'Luxo exclusivo',
+    add_to_calendar: 'Adicionar à minha agenda',
+    in_my_calendar: 'Na minha agenda',
+    my_calendar_title: 'Minha Agenda',
+    my_calendar_empty: 'Nenhum evento na sua agenda ainda',
+    my_calendar_empty_hint: 'Quando vir um evento que goste, toque em "Adicionar à minha agenda".',
   },
 };

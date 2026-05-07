@@ -4,6 +4,7 @@ import { AuthProvider } from '../src/context/AuthContext';
 import { FavoritesProvider } from '../src/context/FavoritesContext';
 import { LanguageProvider } from '../src/context/LanguageContext';
 import { BusinessAuthProvider } from '../src/context/BusinessAuthContext';
+import { MyCalendarProvider } from '../src/context/MyCalendarContext';
 
 export default function RootLayout() {
   return (
@@ -11,6 +12,7 @@ export default function RootLayout() {
       <BusinessAuthProvider>
       <LanguageProvider>
       <FavoritesProvider>
+      <MyCalendarProvider>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
         <Stack.Screen name="onboarding" />
@@ -33,7 +35,9 @@ export default function RootLayout() {
         <Stack.Screen name="business/dashboard" options={{ presentation: 'modal' }} />
         <Stack.Screen name="business/event-form" options={{ presentation: 'modal' }} />
         <Stack.Screen name="business/profile-edit" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="my-calendar" options={{ presentation: 'modal' }} />
       </Stack>
+      </MyCalendarProvider>
       </FavoritesProvider>
       </LanguageProvider>
       </BusinessAuthProvider>

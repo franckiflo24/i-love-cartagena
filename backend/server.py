@@ -1040,6 +1040,47 @@ async def get_favorite_ids(request: Request):
     return [{"item_id": f["item_id"], "item_type": f["item_type"]} for f in favs]
 
 
+# ── My Calendar (personal schedule for users) ────────────────────
+@api_router.get("/calendar")
+async def get_my_calendar(request: Request):
+    user = await get_current_user(request)
+    items = await db.user_calendar.find({"user_id": user["user_id"]}, {"_id": 0}).sort("date", 1).to_list(500)
+    return items
+
+
+@api_router.post("/calendar")
+async def add_to_calendar(request: Request):
+    user = await get_current_user(request)
+    body = await request.json()
+    item_id = body.get("item_id")
+    if not item_id:
+        raise HTTPException(status_code=400, detail="item_id required")
+    existing = await db.user_calendar.find_one({"user_id": user["user_id"], "item_id": item_id}, {"_id": 0})
+    if existing:
+        return existing
+    record = {
+        "user_id": user["user_id"],
+        "item_id": item_id,
+        "item_type": body.get("item_type", "partner_event"),
+        "date": body.get("date", ""),
+        "start_time": body.get("start_time", ""),
+        "end_time": body.get("end_time", ""),
+        "title": body.get("title", ""),
+        "source": body.get("source", "manual"),
+        "added_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.user_calendar.insert_one(record)
+    record.pop("_id", None)
+    return record
+
+
+@api_router.delete("/calendar/{item_id}")
+async def remove_from_calendar(item_id: str, request: Request):
+    user = await get_current_user(request)
+    res = await db.user_calendar.delete_one({"user_id": user["user_id"], "item_id": item_id})
+    return {"deleted": res.deleted_count > 0}
+
+
 # ── Search ────────────────────────────────────────────────────
 @api_router.get("/search")
 async def global_search(q: str = ""):

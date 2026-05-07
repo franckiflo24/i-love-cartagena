@@ -7,6 +7,8 @@ import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../../src/con
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
 import { useFavorites } from '../../src/context/FavoritesContext';
+import { useMyCalendar } from '../../src/context/MyCalendarContext';
+import { useLang } from '../../src/context/LanguageContext';
 
 const CAT_ICONS: Record<string, string> = {
   gastronomy: 'restaurant',
@@ -38,6 +40,8 @@ export default function PartnerEventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { isInCalendar, addToCalendar, removeFromCalendar } = useMyCalendar();
+  const { s } = useLang();
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [reserving, setReserving] = useState(false);
@@ -139,6 +143,35 @@ export default function PartnerEventDetail() {
           <Text style={styles.sectionTitle}>Sobre el evento</Text>
           <Text style={styles.description}>{event.description}</Text>
 
+          {/* Add to My Calendar */}
+          <TouchableOpacity
+            style={[styles.calendarBtn, isInCalendar(event.event_id) && styles.calendarBtnActive]}
+            onPress={async () => {
+              if (isInCalendar(event.event_id)) {
+                await removeFromCalendar(event.event_id);
+              } else {
+                await addToCalendar({
+                  item_id: event.event_id,
+                  item_type: 'partner_event',
+                  date: event.date,
+                  start_time: event.start_time,
+                  end_time: event.end_time,
+                  title: event.title,
+                  source: 'manual',
+                });
+              }
+            }}
+          >
+            <Ionicons
+              name={isInCalendar(event.event_id) ? 'checkmark-circle' : 'calendar'}
+              size={18}
+              color={isInCalendar(event.event_id) ? '#22C55E' : COLORS.primary}
+            />
+            <Text style={[styles.calendarBtnText, isInCalendar(event.event_id) && { color: '#22C55E' }]}>
+              {isInCalendar(event.event_id) ? s('in_my_calendar') : s('add_to_calendar')}
+            </Text>
+          </TouchableOpacity>
+
           {/* Partner Card */}
           <Text style={styles.sectionTitle}>Organizado por</Text>
           <TouchableOpacity
@@ -233,6 +266,10 @@ const styles = StyleSheet.create({
 
   sectionTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold, marginBottom: SPACING.sm, marginTop: SPACING.md, letterSpacing: 0.3 },
   description: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 22 },
+
+  calendarBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: SPACING.lg, paddingVertical: 12, borderRadius: RADIUS.full, borderWidth: 1.5, borderColor: COLORS.primary, backgroundColor: 'rgba(217,119,6,0.1)' },
+  calendarBtnActive: { borderColor: '#22C55E', backgroundColor: 'rgba(34,197,94,0.12)' },
+  calendarBtnText: { fontSize: 14, color: COLORS.primary, ...FONTS.bold, letterSpacing: 0.3 },
 
   partnerCard: { borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface, position: 'relative', height: 140 },
   partnerImage: { position: 'absolute', width: '100%', height: '100%' },
