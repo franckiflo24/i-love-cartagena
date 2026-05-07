@@ -255,7 +255,7 @@ export default function HomeScreen() {
             { icon: 'calendar', label: 'Agenda', route: '/(tabs)/agenda' },
             { icon: 'musical-notes', label: 'Conciertos', route: '/concerts' },
             { icon: 'heart', label: 'Favoritos', route: '/favorites' },
-            { icon: 'calendar', label: 'Mi Agenda', route: '/my-calendar' },
+            { icon: 'bookmark', label: 'Mi Agenda', route: '/(tabs)/agenda?mode=mi_agenda' },
             { icon: 'boat', label: 'Transporte', route: '/transport' },
             { icon: 'trail-sign', label: 'Rutas', route: '/itineraries' },
           ].map((item) => (

@@ -12,6 +12,12 @@ export type CalendarItem = {
   start_time?: string;
   end_time?: string;
   title?: string;
+  flyer_url?: string;
+  category?: string;
+  partner_name?: string;
+  partner_tier?: string;
+  is_free?: boolean;
+  price?: number;
   source?: 'manual' | 'reservation';
   added_at: string;
 };

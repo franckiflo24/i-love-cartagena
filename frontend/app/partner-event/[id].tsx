@@ -157,6 +157,12 @@ export default function PartnerEventDetail() {
                   start_time: event.start_time,
                   end_time: event.end_time,
                   title: event.title,
+                  flyer_url: event.flyer_url,
+                  category: event.category,
+                  partner_name: partner.name || event.partner_name,
+                  partner_tier: partner.tier || event.partner_tier,
+                  is_free: event.is_free,
+                  price: event.price,
                   source: 'manual',
                 });
               }
