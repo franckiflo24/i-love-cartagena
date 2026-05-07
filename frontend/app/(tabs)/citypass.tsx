@@ -138,7 +138,7 @@ export default function CityPassTab() {
                 <Ionicons name="heart" size={22} color="#EF4444" />
               </View>
               <Text style={styles.heroTitle}>City Pass</Text>
-              <Text style={styles.heroSubtitle}>Vive Cartagena sin límites</Text>
+              <Text style={styles.heroSubtitle}>Vive la cultura sin límite</Text>
               <Text style={styles.heroDesc}>
                 Acceso preferente, descuentos exclusivos y beneficios en todos los partners certificados de Amo Cartagena.
               </Text>
