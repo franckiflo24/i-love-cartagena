@@ -79,13 +79,16 @@ export default function PartnerDetail() {
             <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.heartBtn}
+            testID="partner-fav-btn"
+            style={[styles.heartBtn, isFavorite(partner.partner_id) && styles.heartBtnActive]}
             onPress={() => toggleFavorite(partner.partner_id, 'partner')}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}
           >
             <Ionicons
               name={isFavorite(partner.partner_id) ? 'heart' : 'heart-outline'}
               size={22}
-              color={isFavorite(partner.partner_id) ? '#EF4444' : COLORS.white}
+              color={isFavorite(partner.partner_id) ? '#EF4444' : '#FFFFFF'}
             />
           </TouchableOpacity>
           {partner.is_certified && (
@@ -228,8 +231,25 @@ const styles = StyleSheet.create({
   heroImage: { width: '100%', height: '100%' },
   heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5,8,20,0.4)' },
   backBtn: { position: 'absolute', top: SPACING.md, left: SPACING.md, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(5,8,20,0.6)', alignItems: 'center', justifyContent: 'center' },
-  heartBtn: { position: 'absolute', top: SPACING.md, right: SPACING.md, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(5,8,20,0.6)', alignItems: 'center', justifyContent: 'center' },
-  sealBadge: { position: 'absolute', top: SPACING.md, right: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(5,8,20,0.85)', borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.primary },
+  heartBtn: {
+    position: 'absolute',
+    top: SPACING.md,
+    right: SPACING.md,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(5,8,20,0.7)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 5,
+  },
+  heartBtnActive: {
+    backgroundColor: 'rgba(239,68,68,0.18)',
+    borderColor: '#EF4444',
+  },
+  sealBadge: { position: 'absolute', top: SPACING.md + 56, right: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(5,8,20,0.85)', borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.primary },
   sealText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1 },
   heroBottom: { position: 'absolute', bottom: SPACING.lg, left: SPACING.lg, right: SPACING.lg },
   heroBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flexWrap: 'wrap' },
