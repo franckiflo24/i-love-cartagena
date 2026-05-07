@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Switch, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Switch, ActivityIndicator, Alert, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
+import { pickAndUploadImage } from '../../src/lib/uploadImage';
 
 const CATEGORIES = [
   { key: 'gastronomy', label: 'Gastronomía', icon: 'restaurant' },
@@ -44,6 +45,7 @@ export default function EventForm() {
   const [isPublished, setIsPublished] = useState(true);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (!isEdit || !token) return;
@@ -85,12 +87,21 @@ export default function EventForm() {
         booking_link: bookingLink || partner?.booking_link || '',
         is_published: isPublished,
       };
+      let result: any;
       if (isEdit) {
-        await api.put(`/business/events/${params.eventId}`, payload, { headers: { Authorization: `Bearer ${token}` } });
+        result = await api.put(`/business/events/${params.eventId}`, payload, { headers: { Authorization: `Bearer ${token}` } });
       } else {
-        await api.post('/business/events', payload, { headers: { Authorization: `Bearer ${token}` } });
+        result = await api.post('/business/events', payload, { headers: { Authorization: `Bearer ${token}` } });
       }
-      router.back();
+      const verdict = result?._remoderation?.verdict || result?.moderation_verdict;
+      const reason = result?._remoderation?.reason || result?.moderation_reason;
+      if (verdict === 'NEEDS_REVIEW') {
+        Alert.alert('⏳ En revisión', reason || 'La IA marcó tu evento para revisión manual del admin. Te avisaremos cuando se apruebe.', [{ text: 'OK', onPress: () => router.back() }]);
+      } else if (verdict === 'REJECT') {
+        Alert.alert('❌ Rechazado', reason || 'La IA detectó contenido no apto.', [{ text: 'OK', onPress: () => router.back() }]);
+      } else {
+        Alert.alert(isEdit ? '✅ Cambios guardados' : '✅ Publicado', `La IA aprobó tu evento al instante.\n\n${reason || ''}`, [{ text: 'OK', onPress: () => router.back() }]);
+      }
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'No se pudo guardar');
     }
@@ -165,16 +176,59 @@ export default function EventForm() {
 
           {/* Flyer */}
           <Text style={styles.label}>Flyer del evento</Text>
+          <View style={styles.flyerPreviewBox}>
+            {flyerUrl ? (
+              <Image source={{ uri: flyerUrl }} style={styles.flyerPreview} resizeMode="cover" />
+            ) : (
+              <View style={[styles.flyerPreview, { alignItems: 'center', justifyContent: 'center' }]}>
+                <Ionicons name="image-outline" size={36} color={COLORS.textMuted} />
+                <Text style={{ fontSize: 11, color: COLORS.textMuted, marginTop: 4 }}>Sin flyer</Text>
+              </View>
+            )}
+            <TouchableOpacity
+              style={[styles.uploadBtn, uploading && { opacity: 0.6 }]}
+              onPress={async () => {
+                try {
+                  setUploading(true);
+                  const res = await pickAndUploadImage(token!, 'flyer', [4, 5]);
+                  if (res === null) { setUploading(false); return; }
+                  if (res.verdict === 'REJECT') {
+                    Alert.alert('Imagen no apta', res.reason || 'La IA detectó contenido no apropiado.');
+                  } else {
+                    setFlyerUrl(res.url || flyerUrl);
+                    Alert.alert(
+                      res.verdict === 'AUTO_APPROVE' ? '✅ Flyer aprobado por la IA' : '⏳ Flyer en revisión',
+                      `${res.caption || ''}${res.tags?.length ? '\n\nTags: ' + res.tags.join(', ') : ''}\n\n${res.reason || ''}`,
+                    );
+                  }
+                } catch (e: any) {
+                  Alert.alert('Error', e?.message || 'No se pudo subir la imagen');
+                } finally {
+                  setUploading(false);
+                }
+              }}
+              disabled={uploading}
+            >
+              {uploading ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : (
+                <>
+                  <Ionicons name="cloud-upload" size={16} color={COLORS.white} />
+                  <Text style={styles.uploadBtnText}>Subir desde mi dispositivo</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.hint}>🤖 La IA revisa tu flyer al instante (caption, tags y verifica que sea apropiado).</Text>
+
+          <Text style={[styles.label, { marginTop: SPACING.md }]}>O elige uno sugerido</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.flyerRow} contentContainerStyle={{ gap: SPACING.xs }}>
             {SUGGESTED_FLYERS.map(url => (
               <TouchableOpacity key={url} onPress={() => setFlyerUrl(url)} style={[styles.flyerOption, flyerUrl === url && styles.flyerActive]}>
-                <View style={styles.flyerThumb}>
-                  <View style={{ flex: 1, backgroundColor: '#222', borderRadius: 6 }} />
-                </View>
+                <Image source={{ uri: url }} style={styles.flyerThumb} />
               </TouchableOpacity>
             ))}
           </ScrollView>
-          <TextInput style={styles.input} value={flyerUrl} onChangeText={setFlyerUrl} placeholder="O pega la URL de tu propio flyer" placeholderTextColor={COLORS.textMuted} autoCapitalize="none" />
 
           {/* Price */}
           <View style={styles.row}>
@@ -237,7 +291,12 @@ const styles = StyleSheet.create({
   flyerRow: { marginVertical: SPACING.sm },
   flyerOption: { borderWidth: 2, borderColor: COLORS.border, borderRadius: RADIUS.md, overflow: 'hidden', padding: 2 },
   flyerActive: { borderColor: COLORS.primary },
-  flyerThumb: { width: 60, height: 75, borderRadius: 6, overflow: 'hidden', backgroundColor: '#222' },
+  flyerThumb: { width: 60, height: 75, borderRadius: 6 },
+
+  flyerPreviewBox: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.md, alignItems: 'center', gap: SPACING.sm },
+  flyerPreview: { width: 160, height: 200, borderRadius: RADIUS.lg, backgroundColor: '#222' },
+  uploadBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.primary, paddingHorizontal: 16, paddingVertical: 10, borderRadius: RADIUS.full, marginTop: SPACING.xs },
+  uploadBtnText: { color: COLORS.white, fontSize: 12, ...FONTS.bold },
 
   saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 15, marginTop: SPACING.xl },
   saveText: { color: COLORS.white, fontSize: 14, ...FONTS.bold },

@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
+import { pickAndUploadImage } from '../../src/lib/uploadImage';
 
 export default function ProfileEdit() {
   const router = useRouter();
@@ -19,6 +20,28 @@ export default function ProfileEdit() {
   const [experience, setExperience] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async () => {
+    try {
+      setUploading(true);
+      const res = await pickAndUploadImage(token!, 'profile', [4, 3]);
+      if (res === null) return;
+      if (res.verdict === 'REJECT') {
+        Alert.alert('Imagen no apta', res.reason || 'La IA detectó contenido no apropiado.');
+      } else {
+        setImageUrl(res.url || imageUrl);
+        Alert.alert(
+          res.verdict === 'AUTO_APPROVE' ? '✅ Imagen aprobada' : '⏳ Imagen en revisión',
+          `${res.caption || ''}${res.tags?.length ? '\n\nTags: ' + res.tags.join(', ') : ''}`,
+        );
+      }
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'No se pudo subir');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     if (partner) {
@@ -69,8 +92,22 @@ export default function ProfileEdit() {
             </View>
           </View>
 
-          <Text style={styles.label}>URL de imagen principal</Text>
-          <TextInput style={styles.input} value={imageUrl} onChangeText={setImageUrl} placeholder="https://..." placeholderTextColor={COLORS.textMuted} autoCapitalize="none" />
+          <Text style={styles.label}>Imagen principal</Text>
+          <TouchableOpacity
+            style={[styles.uploadBtn, uploading && { opacity: 0.6 }]}
+            onPress={handleUpload}
+            disabled={uploading}
+          >
+            {uploading ? (
+              <ActivityIndicator size="small" color={COLORS.white} />
+            ) : (
+              <>
+                <Ionicons name="cloud-upload" size={16} color={COLORS.white} />
+                <Text style={styles.uploadBtnText}>Subir foto · IA modera</Text>
+              </>
+            )}
+          </TouchableOpacity>
+          <TextInput style={[styles.input, { marginTop: SPACING.xs }]} value={imageUrl} onChangeText={setImageUrl} placeholder="O pega URL externa" placeholderTextColor={COLORS.textMuted} autoCapitalize="none" />
 
           <Text style={styles.label}>Descripción</Text>
           <TextInput style={[styles.input, styles.textarea]} value={description} onChangeText={setDescription} placeholder="Describe tu negocio en pocas líneas" placeholderTextColor={COLORS.textMuted} multiline numberOfLines={4} textAlignVertical="top" />
@@ -139,4 +176,7 @@ const styles = StyleSheet.create({
 
   saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 15, marginTop: SPACING.xl },
   saveText: { color: COLORS.white, fontSize: 14, ...FONTS.bold },
+
+  uploadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.primary, paddingHorizontal: 16, paddingVertical: 12, borderRadius: RADIUS.full },
+  uploadBtnText: { color: COLORS.white, fontSize: 13, ...FONTS.bold },
 });

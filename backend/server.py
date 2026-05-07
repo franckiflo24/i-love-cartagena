@@ -278,6 +278,67 @@ async def business_create_event(request: Request):
     return event
 
 
+@api_router.post("/business/upload-image")
+async def business_upload_image(request: Request):
+    """Upload + AI-moderate a business image (flyer / profile).
+
+    Body: { "image_base64": "data:image/jpeg;base64,...", "purpose": "flyer"|"profile" }
+    Returns: { url, verdict, caption, tags, reason } — url is the data URL ready to use.
+    """
+    biz = await get_current_business(request)
+    body = await request.json()
+    image_b64 = body.get("image_base64", "")
+    purpose = body.get("purpose", "flyer")
+    if not image_b64:
+        raise HTTPException(status_code=400, detail="image_base64 is required")
+    # Detect mime
+    mime = "image/jpeg"
+    if image_b64.startswith("data:"):
+        try:
+            mime = image_b64.split(";")[0].replace("data:", "")
+        except Exception:
+            pass
+
+    # Run AI image moderation
+    from ai_image_moderation import moderate_image_base64
+    result = await moderate_image_base64(image_b64, mime=mime)
+
+    # If REJECTED, do not return URL
+    if result["verdict"] == "REJECT":
+        return {
+            "uploaded": False,
+            "verdict": "REJECT",
+            "reason": result["reason"],
+            "issues": result.get("issues", []),
+        }
+
+    # Ensure a data URL is returned
+    data_url = image_b64 if image_b64.startswith("data:") else f"data:{mime};base64,{image_b64}"
+
+    # Persist record (optional — for tracking in admin)
+    await db.uploaded_images.insert_one({
+        "image_id": f"img_{uuid.uuid4().hex[:10]}",
+        "partner_id": biz["partner_id"],
+        "purpose": purpose,
+        "verdict": result["verdict"],
+        "caption": result.get("caption", ""),
+        "tags": result.get("tags", []),
+        "reason": result.get("reason", ""),
+        "uploaded_at": datetime.now(timezone.utc).isoformat(),
+        "data_url_preview": data_url[:80],  # don't save full image to keep DB lean
+    })
+
+    return {
+        "uploaded": True,
+        "url": data_url,
+        "verdict": result["verdict"],
+        "caption": result.get("caption", ""),
+        "tags": result.get("tags", []),
+        "reason": result.get("reason", ""),
+        "issues": result.get("issues", []),
+    }
+
+
 @api_router.put("/business/events/{event_id}")
 async def business_update_event(event_id: str, request: Request):
     biz = await get_current_business(request)
@@ -293,8 +354,61 @@ async def business_update_event(event_id: str, request: Request):
         update["price"] = int(update["price"] or 0)
     if "is_free" in update:
         update["is_free"] = bool(update["is_free"])
+
+    # ── Re-moderation if substantial fields changed ──
+    needs_remoderation = any(
+        k in update and update[k] != existing.get(k)
+        for k in ("title", "description", "category", "flyer_url")
+    )
+    if needs_remoderation:
+        from ai_moderation import moderate_event
+        partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "name": 1})
+        new_title = update.get("title", existing["title"])
+        new_desc = update.get("description", existing["description"])
+        new_cat = update.get("category", existing["category"])
+        mod = await moderate_event(
+            title=new_title, description=new_desc, category=new_cat,
+            partner_name=(partner or {}).get("name", ""),
+        )
+        verdict = mod["verdict"]
+        update["moderation_status"] = {"AUTO_APPROVE": "approved", "NEEDS_REVIEW": "pending", "REJECT": "rejected"}[verdict]
+        update["moderation_verdict"] = verdict
+        update["moderation_reason"] = mod.get("reason", "")
+        update["moderation_issues"] = mod.get("issues", [])
+        update["moderation_score"] = mod.get("completeness_score", 0)
+        update["moderation_tags"] = mod.get("tags", [])
+        update["is_published"] = (verdict == "AUTO_APPROVE")
+        if verdict == "AUTO_APPROVE" and mod.get("category") in ("gastronomy","music","party","wellness","art","popup"):
+            update["category"] = mod["category"]
+            if mod.get("category") != new_cat:
+                update["category_auto_corrected"] = True
+        update["last_remoderation_at"] = datetime.now(timezone.utc).isoformat()
+
+        # Notify admin if needs review or rejected
+        if verdict != "AUTO_APPROVE":
+            await db.admin_notifications.insert_one({
+                "notification_id": f"notif_{uuid.uuid4().hex[:10]}",
+                "type": "event_remoderation",
+                "event_id": event_id,
+                "partner_id": biz["partner_id"],
+                "partner_name": (partner or {}).get("name", ""),
+                "event_title": new_title,
+                "verdict": verdict,
+                "reason": mod.get("reason", ""),
+                "issues": mod.get("issues", []),
+                "is_read": False,
+                "is_resolved": False,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            })
+
     await db.partner_events.update_one({"event_id": event_id}, {"$set": update})
     updated = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0})
+    # add a hint flag for the frontend if remoderation happened
+    if needs_remoderation:
+        updated["_remoderation"] = {
+            "verdict": update.get("moderation_verdict"),
+            "reason": update.get("moderation_reason"),
+        }
     return updated
 
 
