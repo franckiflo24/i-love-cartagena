@@ -108,6 +108,179 @@ async def get_current_user(request: Request) -> dict:
     return user
 
 
+# ── Business (Partner) Auth ─────────────────────────────────
+import bcrypt as _bcrypt
+
+
+async def get_current_business(request: Request) -> dict:
+    """Authenticate a partner business user via Bearer token."""
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header[7:] if auth_header.startswith("Bearer ") else None
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated as business")
+    session = await db.business_sessions.find_one({"token": token}, {"_id": 0})
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid business session")
+    expires_at = session.get("expires_at")
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    if expires_at and expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at and expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=401, detail="Business session expired")
+    biz = await db.business_users.find_one({"business_id": session["business_id"]}, {"_id": 0, "password_hash": 0})
+    if not biz:
+        raise HTTPException(status_code=404, detail="Business user not found")
+    return biz
+
+
+@api_router.post("/business/login")
+async def business_login(request: Request):
+    body = await request.json()
+    email = (body.get("email") or "").strip().lower()
+    password = body.get("password") or ""
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="Email and password are required")
+    biz = await db.business_users.find_one({"email": email}, {"_id": 0})
+    if not biz:
+        raise HTTPException(status_code=401, detail="Credenciales inválidas")
+    pw_hash = biz.get("password_hash", "").encode("utf-8")
+    if not pw_hash or not _bcrypt.checkpw(password.encode("utf-8"), pw_hash):
+        raise HTTPException(status_code=401, detail="Credenciales inválidas")
+    token = f"biz_{uuid.uuid4().hex}"
+    await db.business_sessions.insert_one({
+        "token": token,
+        "business_id": biz["business_id"],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat(),
+    })
+    biz_safe = {k: v for k, v in biz.items() if k != "password_hash"}
+    partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0})
+    return {"token": token, "business": biz_safe, "partner": partner}
+
+
+@api_router.post("/business/logout")
+async def business_logout(request: Request):
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header[7:] if auth_header.startswith("Bearer ") else None
+    if token:
+        await db.business_sessions.delete_one({"token": token})
+    return {"ok": True}
+
+
+@api_router.get("/business/me")
+async def business_me(request: Request):
+    biz = await get_current_business(request)
+    partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0})
+    return {"business": biz, "partner": partner}
+
+
+@api_router.put("/business/profile")
+async def update_business_profile(request: Request):
+    biz = await get_current_business(request)
+    body = await request.json()
+    allowed = {"description", "address", "instagram", "booking_link", "price_range", "experience", "image_url"}
+    update = {k: v for k, v in body.items() if k in allowed}
+    if not update:
+        return {"updated": False}
+    await db.partners.update_one({"partner_id": biz["partner_id"]}, {"$set": update})
+    partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0})
+    return {"updated": True, "partner": partner}
+
+
+@api_router.get("/business/events")
+async def business_list_events(request: Request):
+    biz = await get_current_business(request)
+    events = await db.partner_events.find({"partner_id": biz["partner_id"]}, {"_id": 0}).sort("date", -1).to_list(200)
+    return events
+
+
+@api_router.post("/business/events")
+async def business_create_event(request: Request):
+    biz = await get_current_business(request)
+    body = await request.json()
+    required = ["title", "description", "category", "date", "start_time", "end_time"]
+    for r in required:
+        if not body.get(r):
+            raise HTTPException(status_code=400, detail=f"{r} is required")
+    event = {
+        "event_id": f"pe_{uuid.uuid4().hex[:10]}",
+        "partner_id": biz["partner_id"],
+        "title": body["title"],
+        "description": body["description"],
+        "category": body["category"],
+        "date": body["date"],
+        "start_time": body["start_time"],
+        "end_time": body["end_time"],
+        "flyer_url": body.get("flyer_url", ""),
+        "is_free": bool(body.get("is_free", False)),
+        "price": int(body.get("price", 0) or 0),
+        "currency": body.get("currency", "COP"),
+        "booking_link": body.get("booking_link", ""),
+        "is_published": bool(body.get("is_published", True)),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "views_count": 0,
+        "reserve_clicks": 0,
+    }
+    await db.partner_events.insert_one(event)
+    event.pop("_id", None)
+    return event
+
+
+@api_router.put("/business/events/{event_id}")
+async def business_update_event(event_id: str, request: Request):
+    biz = await get_current_business(request)
+    existing = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Event not found")
+    if existing["partner_id"] != biz["partner_id"]:
+        raise HTTPException(status_code=403, detail="Not your event")
+    body = await request.json()
+    allowed = {"title", "description", "category", "date", "start_time", "end_time", "flyer_url", "is_free", "price", "booking_link", "is_published"}
+    update = {k: v for k, v in body.items() if k in allowed}
+    if "price" in update:
+        update["price"] = int(update["price"] or 0)
+    if "is_free" in update:
+        update["is_free"] = bool(update["is_free"])
+    await db.partner_events.update_one({"event_id": event_id}, {"$set": update})
+    updated = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0})
+    return updated
+
+
+@api_router.delete("/business/events/{event_id}")
+async def business_delete_event(event_id: str, request: Request):
+    biz = await get_current_business(request)
+    existing = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Event not found")
+    if existing["partner_id"] != biz["partner_id"]:
+        raise HTTPException(status_code=403, detail="Not your event")
+    await db.partner_events.delete_one({"event_id": event_id})
+    return {"deleted": True}
+
+
+@api_router.get("/business/stats")
+async def business_stats(request: Request):
+    biz = await get_current_business(request)
+    pid = biz["partner_id"]
+    total_events = await db.partner_events.count_documents({"partner_id": pid})
+    pipeline = [
+        {"$match": {"partner_id": pid}},
+        {"$group": {"_id": None, "views": {"$sum": "$views_count"}, "reserves": {"$sum": "$reserve_clicks"}}}
+    ]
+    agg = await db.partner_events.aggregate(pipeline).to_list(1)
+    stats = agg[0] if agg else {"views": 0, "reserves": 0}
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    upcoming = await db.partner_events.count_documents({"partner_id": pid, "date": {"$gte": today_str}})
+    return {
+        "total_events": total_events,
+        "upcoming_events": upcoming,
+        "total_views": stats.get("views", 0),
+        "total_reserves": stats.get("reserves", 0),
+    }
+
+
+
 @api_router.get("/auth/me")
 async def auth_me(request: Request):
     user = await get_current_user(request)
@@ -1476,6 +1649,23 @@ async def startup():
     }
     for old_id, new_id in PARTNER_ID_REMAP.items():
         await db.partner_events.update_many({"partner_id": old_id}, {"$set": {"partner_id": new_id}})
+
+    # ── Seed: Business Accounts (cuentas de partners para el dashboard) ──
+    biz_count = await db.business_users.count_documents({})
+    if biz_count == 0:
+        logger.info("Seeding business accounts...")
+        DEMO_PASSWORD = "amocartagena2026"
+        pw_hash = _bcrypt.hashpw(DEMO_PASSWORD.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+        demo_accounts = [
+            {"business_id": "biz_001", "email": "casaboheme@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_nc_007", "full_name": "Casa Bohème", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
+            {"business_id": "biz_002", "email": "bellini@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_002", "full_name": "Bellini", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
+            {"business_id": "biz_003", "email": "cafedelmar@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_005", "full_name": "Café del Mar", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
+            {"business_id": "biz_004", "email": "blueapple@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_nc_009", "full_name": "Blue Apple Beach", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
+            {"business_id": "biz_005", "email": "elarsenal@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_006", "full_name": "El Arsenal Wellness", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
+        ]
+        await db.business_users.insert_many(demo_accounts)
+        await db.business_users.create_index("email", unique=True)
+        logger.info(f"Seeded {len(demo_accounts)} business accounts!")
     # Seed sponsors if not yet seeded
     sponsors_count = await db.sponsors.count_documents({})
     if sponsors_count == 0:

@@ -3,10 +3,12 @@ import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '../src/context/AuthContext';
 import { FavoritesProvider } from '../src/context/FavoritesContext';
 import { LanguageProvider } from '../src/context/LanguageContext';
+import { BusinessAuthProvider } from '../src/context/BusinessAuthContext';
 
 export default function RootLayout() {
   return (
     <AuthProvider>
+      <BusinessAuthProvider>
       <LanguageProvider>
       <FavoritesProvider>
       <StatusBar style="light" />
@@ -16,6 +18,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="event/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="partner/[id]" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="partner-event/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="transport" options={{ presentation: 'modal' }} />
         <Stack.Screen name="itineraries" options={{ presentation: 'modal' }} />
         <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
@@ -25,9 +28,14 @@ export default function RootLayout() {
         <Stack.Screen name="favorites" options={{ presentation: 'modal' }} />
         <Stack.Screen name="complete-profile" options={{ presentation: 'modal' }} />
         <Stack.Screen name="search" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="business/login" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="business/dashboard" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="business/event-form" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="business/profile-edit" options={{ presentation: 'modal' }} />
       </Stack>
       </FavoritesProvider>
       </LanguageProvider>
+      </BusinessAuthProvider>
     </AuthProvider>
   );
 }

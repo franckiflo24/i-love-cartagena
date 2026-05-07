@@ -72,6 +72,18 @@ export default function PerfilScreen() {
             })}
           </View>
         </View>
+
+        {/* Business / Partner Access */}
+        <TouchableOpacity style={styles.businessAccessCard} onPress={() => router.push('/business/login')} activeOpacity={0.85}>
+          <View style={styles.businessIconWrap}>
+            <Ionicons name="business" size={20} color={COLORS.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.businessTitle}>¿Eres partner de Amo Cartagena?</Text>
+            <Text style={styles.businessDesc}>Accede a tu dashboard y publica eventos</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }
@@ -137,6 +149,18 @@ export default function PerfilScreen() {
             })}
           </View>
         </View>
+
+        {/* Business Access (auth user) */}
+        <TouchableOpacity style={styles.businessAccessCard} onPress={() => router.push('/business/login')} activeOpacity={0.85}>
+          <View style={styles.businessIconWrap}>
+            <Ionicons name="business" size={20} color={COLORS.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.businessTitle}>Acceso Partners</Text>
+            <Text style={styles.businessDesc}>Dashboard y gestión de eventos</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+        </TouchableOpacity>
 
         {/* Tabs */}
         <View style={styles.tabs}>
@@ -247,4 +271,28 @@ const styles = StyleSheet.create({
   eventVenue: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 1 },
   logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, marginTop: SPACING.xl, paddingVertical: SPACING.md },
   logoutText: { fontSize: 14, color: COLORS.error, ...FONTS.medium },
+
+  // Business access card
+  businessAccessCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.lg,
+    padding: SPACING.md,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(217,119,6,0.4)',
+  },
+  businessIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(217,119,6,0.15)',
+  },
+  businessTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
+  businessDesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
 });
