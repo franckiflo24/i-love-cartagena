@@ -23,6 +23,7 @@ export default function RootLayout() {
         <Stack.Screen name="itineraries" options={{ presentation: 'modal' }} />
         <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
         <Stack.Screen name="admin" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="admin/moderation" options={{ presentation: 'modal' }} />
         <Stack.Screen name="city-pass" options={{ presentation: 'modal' }} />
         <Stack.Screen name="concerts" options={{ presentation: 'modal' }} />
         <Stack.Screen name="favorites" options={{ presentation: 'modal' }} />

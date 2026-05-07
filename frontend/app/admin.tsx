@@ -135,6 +135,7 @@ const RankRow = ({ rank, title, subtitle, value, valueLabel }: { rank: number; t
 export default function AdminDashboard() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
+  const [modStats, setModStats] = useState<{ pending: number; unread_notifications: number; auto_corrected_categories: number } | null>(null);
   const [usersData, setUsersData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -142,12 +143,14 @@ export default function AdminDashboard() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [d, u] = await Promise.all([
+      const [d, u, ms] = await Promise.all([
         api.get('/analytics/dashboard'),
         api.get('/admin/users').catch(() => null),
+        api.get('/admin/moderation/stats').catch(() => null),
       ]);
       setData(d);
       if (u) setUsersData(u);
+      if (ms) setModStats(ms);
     } catch (e) { console.error('Dashboard fetch error:', e); }
     setLoading(false);
     setRefreshing(false);
@@ -192,6 +195,33 @@ export default function AdminDashboard() {
 
   const renderGeneral = () => (
     <>
+      {/* AI Moderation Banner */}
+      <TouchableOpacity
+        style={[styles.modBanner, modStats && modStats.pending > 0 && styles.modBannerAlert]}
+        onPress={() => router.push('/admin/moderation')}
+        activeOpacity={0.85}
+      >
+        <View style={styles.modBannerLeft}>
+          <View style={[styles.modBannerIcon, modStats && modStats.pending > 0 && { backgroundColor: 'rgba(245,158,11,0.25)' }]}>
+            <Ionicons name="sparkles" size={20} color={modStats && modStats.pending > 0 ? '#F59E0B' : COLORS.primary} />
+            {modStats && modStats.pending > 0 && (
+              <View style={styles.modBadge}>
+                <Text style={styles.modBadgeText}>{modStats.pending}</Text>
+              </View>
+            )}
+          </View>
+          <View>
+            <Text style={styles.modBannerTitle}>Moderación IA</Text>
+            <Text style={styles.modBannerSubtitle}>
+              {modStats && modStats.pending > 0
+                ? `${modStats.pending} evento${modStats.pending > 1 ? 's' : ''} esperan tu revisión`
+                : `Todo en orden · ${modStats?.auto_corrected_categories || 0} auto-correcciones IA`}
+            </Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
+      </TouchableOpacity>
+
       {/* KPI Grid */}
       <View style={styles.kpiGrid}>
         <KPICard icon="people" label="Usuarios" value={data.kpis.total_users} color="#3B82F6" />
@@ -618,6 +648,16 @@ const styles = StyleSheet.create({
 
   // KPI Grid
   kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: SPACING.lg, gap: SPACING.sm, marginBottom: SPACING.md },
+
+  // AI Moderation Banner
+  modBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(217,119,6,0.3)' },
+  modBannerAlert: { borderColor: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.08)' },
+  modBannerLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, flex: 1 },
+  modBannerIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(217,119,6,0.15)', position: 'relative' },
+  modBadge: { position: 'absolute', top: -4, right: -4, minWidth: 20, height: 20, borderRadius: 10, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  modBadgeText: { color: '#FFF', fontSize: 11, ...FONTS.bold },
+  modBannerTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
+  modBannerSubtitle: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
   kpiCard: { width: '31%', backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.sm, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', gap: 2 },
   kpiIcon: { width: 32, height: 32, borderRadius: RADIUS.sm, alignItems: 'center', justifyContent: 'center' },
   kpiValue: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, marginTop: 2 },

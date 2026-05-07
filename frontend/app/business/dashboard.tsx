@@ -168,7 +168,24 @@ export default function BusinessDashboard() {
                     <View style={styles.eventTopRow}>
                       <Text style={styles.eventDate}>{ev.date} · {ev.start_time}</Text>
                       {isPast && <Text style={styles.pastTag}>FINALIZADO</Text>}
-                      {!ev.is_published && <Text style={styles.draftTag}>BORRADOR</Text>}
+                      {ev.moderation_status === 'pending' && (
+                        <View style={[styles.modTag, { backgroundColor: 'rgba(245,158,11,0.15)' }]}>
+                          <Ionicons name="time" size={9} color="#F59E0B" />
+                          <Text style={[styles.modTagText, { color: '#F59E0B' }]}>EN REVISIÓN</Text>
+                        </View>
+                      )}
+                      {ev.moderation_status === 'rejected' && (
+                        <View style={[styles.modTag, { backgroundColor: 'rgba(239,68,68,0.15)' }]}>
+                          <Ionicons name="close-circle" size={9} color="#EF4444" />
+                          <Text style={[styles.modTagText, { color: '#EF4444' }]}>RECHAZADO</Text>
+                        </View>
+                      )}
+                      {ev.moderation_status === 'approved' && ev.category_auto_corrected && (
+                        <View style={[styles.modTag, { backgroundColor: 'rgba(168,85,247,0.15)' }]}>
+                          <Ionicons name="sparkles" size={9} color="#A855F7" />
+                          <Text style={[styles.modTagText, { color: '#A855F7' }]}>IA AJUSTÓ</Text>
+                        </View>
+                      )}
                     </View>
                     <Text style={styles.eventTitle} numberOfLines={1}>{ev.title}</Text>
                     <View style={styles.eventStats}>
@@ -238,6 +255,8 @@ const styles = StyleSheet.create({
   eventDate: { fontSize: 11, color: COLORS.primary, ...FONTS.bold, letterSpacing: 0.3 },
   pastTag: { fontSize: 9, color: COLORS.textMuted, ...FONTS.bold, letterSpacing: 0.5 },
   draftTag: { fontSize: 9, color: '#F59E0B', ...FONTS.bold, letterSpacing: 0.5, backgroundColor: 'rgba(245,158,11,0.15)', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 },
+  modTag: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  modTagText: { fontSize: 9, ...FONTS.bold, letterSpacing: 0.5 },
   eventTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold, marginVertical: 4 },
   eventStats: { flexDirection: 'row', gap: 4, alignItems: 'center', flexWrap: 'wrap' },
   eventCat: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },

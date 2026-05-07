@@ -203,12 +203,35 @@ async def business_create_event(request: Request):
     for r in required:
         if not body.get(r):
             raise HTTPException(status_code=400, detail=f"{r} is required")
+
+    # ── AI Moderation ──
+    from ai_moderation import moderate_event
+    partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "name": 1})
+    mod = await moderate_event(
+        title=body["title"],
+        description=body["description"],
+        category=body["category"],
+        partner_name=(partner or {}).get("name", ""),
+    )
+    verdict = mod["verdict"]
+    final_category = mod["category"] if verdict == "AUTO_APPROVE" else body["category"]
+    final_description = body["description"]
+    if verdict == "AUTO_APPROVE" and mod.get("improved_description") and mod["completeness_score"] < 70:
+        final_description = mod["improved_description"]
+
+    is_published = (verdict == "AUTO_APPROVE")
+    moderation_status = {
+        "AUTO_APPROVE": "approved",
+        "NEEDS_REVIEW": "pending",
+        "REJECT": "rejected",
+    }[verdict]
+
     event = {
         "event_id": f"pe_{uuid.uuid4().hex[:10]}",
         "partner_id": biz["partner_id"],
         "title": body["title"],
-        "description": body["description"],
-        "category": body["category"],
+        "description": final_description,
+        "category": final_category,
         "date": body["date"],
         "start_time": body["start_time"],
         "end_time": body["end_time"],
@@ -217,13 +240,41 @@ async def business_create_event(request: Request):
         "price": int(body.get("price", 0) or 0),
         "currency": body.get("currency", "COP"),
         "booking_link": body.get("booking_link", ""),
-        "is_published": bool(body.get("is_published", True)),
+        "is_published": is_published,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "views_count": 0,
         "reserve_clicks": 0,
+        # Moderation metadata
+        "moderation_status": moderation_status,
+        "moderation_verdict": verdict,
+        "moderation_reason": mod.get("reason", ""),
+        "moderation_issues": mod.get("issues", []),
+        "moderation_score": mod.get("completeness_score", 0),
+        "moderation_tags": mod.get("tags", []),
+        "category_auto_corrected": mod.get("category_changed", False),
+        "original_category": body["category"],
+        "description_auto_improved": (final_description != body["description"]),
     }
     await db.partner_events.insert_one(event)
     event.pop("_id", None)
+
+    # If needs review or rejected, create admin notification
+    if verdict != "AUTO_APPROVE":
+        await db.admin_notifications.insert_one({
+            "notification_id": f"notif_{uuid.uuid4().hex[:10]}",
+            "type": "event_moderation",
+            "event_id": event["event_id"],
+            "partner_id": biz["partner_id"],
+            "partner_name": (partner or {}).get("name", ""),
+            "event_title": event["title"],
+            "verdict": verdict,
+            "reason": mod.get("reason", ""),
+            "issues": mod.get("issues", []),
+            "is_read": False,
+            "is_resolved": False,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+
     return event
 
 
@@ -272,11 +323,111 @@ async def business_stats(request: Request):
     stats = agg[0] if agg else {"views": 0, "reserves": 0}
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     upcoming = await db.partner_events.count_documents({"partner_id": pid, "date": {"$gte": today_str}})
+    pending = await db.partner_events.count_documents({"partner_id": pid, "moderation_status": "pending"})
+    rejected = await db.partner_events.count_documents({"partner_id": pid, "moderation_status": "rejected"})
     return {
         "total_events": total_events,
         "upcoming_events": upcoming,
         "total_views": stats.get("views", 0),
         "total_reserves": stats.get("reserves", 0),
+        "pending_review": pending,
+        "rejected": rejected,
+    }
+
+
+# ── Admin Moderation Endpoints ──────────────────────────────
+@api_router.get("/admin/moderation/notifications")
+async def admin_notifications(unread_only: bool = False):
+    """List moderation notifications for admin."""
+    query: dict = {} if not unread_only else {"is_resolved": False}
+    notifs = await db.admin_notifications.find(query, {"_id": 0}).sort("created_at", -1).to_list(200)
+    unread_count = await db.admin_notifications.count_documents({"is_resolved": False})
+    return {"notifications": notifs, "unread_count": unread_count}
+
+
+@api_router.get("/admin/moderation/pending")
+async def admin_pending_events():
+    """List events that need moderator review."""
+    events = await db.partner_events.find(
+        {"moderation_status": {"$in": ["pending", "rejected"]}},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    # enrich with partner info
+    partner_ids = list({e["partner_id"] for e in events})
+    partners_map = {}
+    if partner_ids:
+        async for p in db.partners.find({"partner_id": {"$in": partner_ids}}, {"_id": 0, "partner_id": 1, "name": 1, "tier": 1, "image_url": 1}):
+            partners_map[p["partner_id"]] = p
+    for e in events:
+        p = partners_map.get(e["partner_id"], {})
+        e["partner_name"] = p.get("name", "")
+        e["partner_tier"] = p.get("tier", "")
+        e["partner_image"] = p.get("image_url", "")
+    return events
+
+
+@api_router.post("/admin/moderation/{event_id}/approve")
+async def admin_approve_event(event_id: str, request: Request):
+    body = {}
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    update: dict = {
+        "moderation_status": "approved",
+        "is_published": True,
+        "moderated_by_admin": True,
+        "moderated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    if body.get("category"):
+        update["category"] = body["category"]
+    if body.get("description"):
+        update["description"] = body["description"]
+    res = await db.partner_events.update_one({"event_id": event_id}, {"$set": update})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Event not found")
+    await db.admin_notifications.update_many({"event_id": event_id}, {"$set": {"is_resolved": True, "is_read": True, "resolution": "approved"}})
+    return {"approved": True}
+
+
+@api_router.post("/admin/moderation/{event_id}/reject")
+async def admin_reject_event(event_id: str, request: Request):
+    body = {}
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    res = await db.partner_events.update_one(
+        {"event_id": event_id},
+        {"$set": {
+            "moderation_status": "rejected",
+            "is_published": False,
+            "moderated_by_admin": True,
+            "moderated_at": datetime.now(timezone.utc).isoformat(),
+            "rejection_reason": body.get("reason", "Contenido no apto"),
+        }},
+    )
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Event not found")
+    await db.admin_notifications.update_many({"event_id": event_id}, {"$set": {"is_resolved": True, "is_read": True, "resolution": "rejected"}})
+    return {"rejected": True}
+
+
+@api_router.get("/admin/moderation/stats")
+async def admin_moderation_stats():
+    pending = await db.partner_events.count_documents({"moderation_status": "pending"})
+    approved = await db.partner_events.count_documents({"moderation_status": "approved"})
+    rejected = await db.partner_events.count_documents({"moderation_status": "rejected"})
+    auto_corrected = await db.partner_events.count_documents({"category_auto_corrected": True})
+    descriptions_improved = await db.partner_events.count_documents({"description_auto_improved": True})
+    unread = await db.admin_notifications.count_documents({"is_resolved": False})
+    return {
+        "pending": pending,
+        "approved": approved,
+        "rejected": rejected,
+        "auto_corrected_categories": auto_corrected,
+        "auto_improved_descriptions": descriptions_improved,
+        "unread_notifications": unread,
     }
 
 

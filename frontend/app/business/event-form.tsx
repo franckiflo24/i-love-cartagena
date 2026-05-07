@@ -111,6 +111,18 @@ export default function EventForm() {
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ padding: SPACING.lg, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
+          {/* AI Hero */}
+          <View style={styles.aiBanner}>
+            <Ionicons name="sparkles" size={18} color={COLORS.primary} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.aiBannerTitle}>Moderación IA activa</Text>
+              <Text style={styles.aiBannerText}>
+                {isEdit ? 'Tus cambios pasarán por revisión IA. ' : 'La IA revisará y publicará tu evento al instante. '}
+                Si detecta dudas, lo enviará al admin para aprobación manual.
+              </Text>
+            </View>
+          </View>
+
           {/* Title */}
           <Text style={styles.label}>Título del evento *</Text>
           <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Ej: Brunch & Beats Sunday Edition" placeholderTextColor={COLORS.textMuted} />
@@ -229,4 +241,8 @@ const styles = StyleSheet.create({
 
   saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 15, marginTop: SPACING.xl },
   saveText: { color: COLORS.white, fontSize: 14, ...FONTS.bold },
+
+  aiBanner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, backgroundColor: 'rgba(217,119,6,0.1)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(217,119,6,0.4)', marginBottom: SPACING.sm },
+  aiBannerTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
+  aiBannerText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2, lineHeight: 16 },
 });
