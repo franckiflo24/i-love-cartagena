@@ -74,7 +74,19 @@ export default function PartnersScreen() {
           <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
         ) : !selectedCategory ? (
           /* ── Category Grid ── */
-          <View style={styles.categoryGrid}>
+          <>
+            {/* Certified Hero Banner */}
+            <View style={styles.heroBanner}>
+              <Image source={{ uri: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=300&fit=crop' }} style={styles.heroBannerImage} />
+              <View style={styles.heroBannerOverlay} />
+              <View style={styles.heroBannerContent}>
+                <Ionicons name="diamond" size={32} color={COLORS.primary} />
+                <Text style={styles.heroBannerTitle}>Lugares certificados</Text>
+                <Text style={styles.heroBannerDesc}>Restaurantes, clubs, hoteles y más validados por Amo Cartagena</Text>
+              </View>
+            </View>
+
+            <View style={styles.categoryGrid}>
             {CATEGORIES.map(cat => (
               <TouchableOpacity
                 key={cat.key}
@@ -98,7 +110,8 @@ export default function PartnersScreen() {
                 </View>
               </TouchableOpacity>
             ))}
-          </View>
+            </View>
+          </>
         ) : (
           /* ── Partner List ── */
           <View style={styles.list}>
@@ -175,6 +188,14 @@ const styles = StyleSheet.create({
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold },
   subtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+
+  // Hero Banner
+  heroBanner: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, borderRadius: RADIUS.xl, overflow: 'hidden', height: 140, position: 'relative' },
+  heroBannerImage: { width: '100%', height: '100%', position: 'absolute' },
+  heroBannerOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(5,8,20,0.65)' },
+  heroBannerContent: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: SPACING.xs, paddingHorizontal: SPACING.lg },
+  heroBannerTitle: { fontSize: 22, color: '#FFF', ...FONTS.bold, textAlign: 'center' },
+  heroBannerDesc: { fontSize: 12, color: 'rgba(255,255,255,0.75)', ...FONTS.regular, textAlign: 'center' },
 
   // Category Grid
   categoryGrid: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, marginTop: SPACING.sm },
