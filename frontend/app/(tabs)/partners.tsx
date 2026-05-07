@@ -55,19 +55,27 @@ const RESTAURANT_SUBCATEGORIES = [
   { key: 'vegetarian', label: 'Vegetariano', icon: 'leaf', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&h=400&fit=crop' },
 ];
 
+const HOTEL_SUBCATEGORIES = [
+  { key: 'popular', label: 'Popular', icon: 'bed', image: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=600&h=400&fit=crop' },
+  { key: 'premium', label: 'Premium', icon: 'star', image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=600&h=400&fit=crop' },
+  { key: 'lujo',    label: 'Lujo',    icon: 'diamond', image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&h=400&fit=crop' },
+];
+
 // Categories that REQUIRE subcategory selection before showing partners
-const REQUIRE_SUBCAT_PICK = new Set(['wellness', 'restaurant']);
+const REQUIRE_SUBCAT_PICK = new Set(['wellness', 'restaurant', 'hotel']);
 
 // Map of category → subcategory list (extensible)
 const SUBCATEGORIES_BY_CAT: Record<string, { key: string; label: string; icon: string; image?: string }[]> = {
   wellness: WELLNESS_SUBCATEGORIES,
   restaurant: RESTAURANT_SUBCATEGORIES,
+  hotel: HOTEL_SUBCATEGORIES,
 };
 
 // Color theme per subcategory parent (for pill styling)
 const SUBCAT_THEME: Record<string, string> = {
   wellness: '#10B981',
   restaurant: '#EF4444',
+  hotel: '#3B82F6',
 };
 
 export default function PartnersScreen() {

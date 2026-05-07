@@ -2642,6 +2642,95 @@ async def startup():
         upsert=True,
     )
 
+    # ── Migration: Hotel sub-categories (Popular / Premium / Lujo) ──
+    # Map existing hotel partners by tier
+    TIER_TO_HOTEL_SUBCAT = {"popular": "popular", "premium": "premium", "elite": "lujo"}
+    async for h in db.partners.find({"category": "hotel"}, {"_id": 0}):
+        if not h.get("subcategory"):
+            sub = TIER_TO_HOTEL_SUBCAT.get(h.get("tier"), "popular")
+            await db.partners.update_one(
+                {"partner_id": h["partner_id"]},
+                {"$set": {"subcategory": sub}},
+            )
+
+    # Add 1-2 demo hotels per subcategory if missing, so each has good content
+    HOTEL_DEMO = [
+        # POPULAR
+        {
+            "partner_id": "ptr_ho_001", "subcategory": "popular",
+            "name": "Hotel Casa del Reloj",
+            "description": "Hotel boutique acogedor en pleno Centro Histórico. Habitaciones cómodas, terraza con vista a las murallas y desayuno incluido.",
+            "category": "hotel", "tier": "popular",
+            "image_url": "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4232, "lng": -75.5510},
+            "address": "Calle del Cuartel, Centro Histórico",
+            "booking_link": "https://hotelcasareloj.com",
+            "price_range": "$$",
+            "experience": "Boutique acogedor, terraza con vista, desayuno típico",
+            "is_certified": True, "instagram": "@hotelcasareloj",
+        },
+        {
+            "partner_id": "ptr_ho_002", "subcategory": "popular",
+            "name": "Casa Getsemaní Hostal",
+            "description": "Hostal con encanto en Getsemaní. Patio interior, habitaciones limpias y a 2 cuadras de la zona de la rumba.",
+            "category": "hotel", "tier": "popular",
+            "image_url": "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4198, "lng": -75.5468},
+            "address": "Calle de la Sierpe, Getsemaní",
+            "booking_link": "https://casagetsemani.co",
+            "price_range": "$$",
+            "experience": "Hostal con patio, ubicación en zona rumba, desayuno tropical",
+            "is_certified": True, "instagram": "@casagetsemani",
+        },
+        # PREMIUM
+        {
+            "partner_id": "ptr_ho_003", "subcategory": "premium",
+            "name": "Bastión Luxury Hotel",
+            "description": "Hotel premium frente al Mar Caribe. Spa, piscina infinity y restaurante con cocina de autor.",
+            "category": "hotel", "tier": "premium",
+            "image_url": "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4225, "lng": -75.5500},
+            "address": "Calle del Sargento Mayor, Centro",
+            "booking_link": "https://bastionhotel.com",
+            "price_range": "$$$",
+            "experience": "Spa de lujo, piscina infinity, cocina de autor",
+            "is_certified": True, "instagram": "@bastionhotel",
+        },
+        # LUJO
+        {
+            "partner_id": "ptr_ho_004", "subcategory": "lujo",
+            "name": "Sofitel Legend Santa Clara",
+            "description": "Convento del siglo XVII convertido en hotel 5 estrellas. Patio histórico, spa So Spa y gastronomía Michelin.",
+            "category": "hotel", "tier": "elite",
+            "image_url": "https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4255, "lng": -75.5482},
+            "address": "Calle del Torno, Centro",
+            "booking_link": "https://sofitel-legend-santaclara.com",
+            "price_range": "$$$$",
+            "experience": "Hotel 5★ histórico, So Spa, restaurante 1621 con estrella Michelin",
+            "is_certified": True, "instagram": "@sofitelsantaclara",
+        },
+        {
+            "partner_id": "ptr_ho_005", "subcategory": "lujo",
+            "name": "Casa San Agustín",
+            "description": "Tres casonas coloniales del siglo XVII convertidas en hotel ultra-luxury. Biblioteca, piscina entre arcos y restaurante Alma.",
+            "category": "hotel", "tier": "elite",
+            "image_url": "https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4239, "lng": -75.5502},
+            "address": "Calle de la Universidad, Centro",
+            "booking_link": "https://hotelcasasanagustin.com",
+            "price_range": "$$$$",
+            "experience": "Casonas coloniales restauradas, restaurante Alma, biblioteca privada",
+            "is_certified": True, "instagram": "@casasanagustin",
+        },
+    ]
+    for h in HOTEL_DEMO:
+        await db.partners.update_one(
+            {"partner_id": h["partner_id"]},
+            {"$set": h},
+            upsert=True,
+        )
+
     # ── Migration: Seed Cafés (subcategory of Restaurantes) ──
     CAFE_PARTNERS = [
         {
