@@ -8,6 +8,7 @@ import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useLang } from '../../src/context/LanguageContext';
 import { LANG_LABELS, LANG_FLAGS, Lang } from '../../src/i18n/translations';
+import { useFavorites } from '../../src/context/FavoritesContext';
 
 type Event = {
   event_id: string; title: string; date: string; start_time: string;
@@ -19,10 +20,35 @@ export default function PerfilScreen() {
   const router = useRouter();
   const { user, login, logout } = useAuth();
   const { lang, setLang, s } = useLang();
+  const { favorites: favIds } = useFavorites();
   const [favorites, setFavorites] = useState<Event[]>([]);
   const [myWeek, setMyWeek] = useState<Event[]>([]);
   const [activeTab, setActiveTab] = useState<'week' | 'favorites'>('week');
   const [loading, setLoading] = useState(false);
+  const [aiProfile, setAiProfile] = useState<any>(null);
+  const [profileBuilding, setProfileBuilding] = useState(false);
+
+  const loadAiProfile = async () => {
+    if (!user?.user_id) return;
+    try {
+      const data = await api.get(`/profile/me?user_id=${user.user_id}`);
+      setAiProfile(data);
+    } catch (e) { /* silent */ }
+  };
+
+  const buildAiProfile = async () => {
+    if (!user?.user_id) return;
+    if (favIds.length < 2) return;
+    setProfileBuilding(true);
+    try {
+      const data = await api.post('/profile/build', {
+        user_id: user.user_id,
+        favorites: favIds,
+      });
+      setAiProfile(data);
+    } catch (e) { console.error(e); }
+    setProfileBuilding(false);
+  };
 
   useEffect(() => {
     if (user) {
@@ -34,8 +60,17 @@ export default function PerfilScreen() {
         setFavorites(f);
         setMyWeek(w);
       }).finally(() => setLoading(false));
+      loadAiProfile();
     }
   }, [user]);
+
+  // Refresh AI profile when favorites change (in addition to passive auto-build via context)
+  useEffect(() => {
+    if (user && favIds.length >= 2) {
+      const timer = setTimeout(loadAiProfile, 4000); // wait for context-driven build
+      return () => clearTimeout(timer);
+    }
+  }, [favIds.length, user]);
 
   if (!user) {
     return (
@@ -104,6 +139,71 @@ export default function PerfilScreen() {
           )}
           <Text style={styles.userName}>{user.name}</Text>
           <Text style={styles.userEmail}>{user.email}</Text>
+        </View>
+
+        {/* AI Profile Card - generated from favorites by Emergent LLM */}
+        <View style={styles.aiCard}>
+          <View style={styles.aiCardHeader}>
+            <View style={styles.aiBadge}>
+              <Ionicons name="sparkles" size={12} color={COLORS.primary} />
+              <Text style={styles.aiBadgeText}>IA · Tu perfil</Text>
+            </View>
+            <TouchableOpacity
+              onPress={buildAiProfile}
+              disabled={profileBuilding || favIds.length < 2}
+              style={[styles.refreshAiBtn, (profileBuilding || favIds.length < 2) && { opacity: 0.4 }]}
+            >
+              {profileBuilding ? (
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              ) : (
+                <Ionicons name="refresh" size={14} color={COLORS.primary} />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {!aiProfile || aiProfile.ai_status === 'not_built' || (aiProfile.data_points || 0) === 0 ? (
+            <View style={styles.aiEmpty}>
+              <Ionicons name="heart-circle-outline" size={32} color={COLORS.textMuted} />
+              <Text style={styles.aiEmptyTitle}>Tu perfil aún está vacío</Text>
+              <Text style={styles.aiEmptyDesc}>
+                Guarda al menos 2 lugares o eventos como favoritos y la IA construirá tu perfil personalizado.
+              </Text>
+            </View>
+          ) : (
+            <>
+              <Text style={styles.aiPersona}>{aiProfile.persona_label}</Text>
+              <Text style={styles.aiSummary}>{aiProfile.summary}</Text>
+
+              {aiProfile.interests && aiProfile.interests.length > 0 && (
+                <View style={styles.aiTagRow}>
+                  {aiProfile.interests.slice(0, 6).map((tag: string, idx: number) => (
+                    <View key={idx} style={styles.aiTag}>
+                      <Text style={styles.aiTagText}>#{tag}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              <View style={styles.aiStatsRow}>
+                {aiProfile.preferred_budget && (
+                  <View style={styles.aiStat}>
+                    <Ionicons name="wallet-outline" size={12} color={COLORS.primary} />
+                    <Text style={styles.aiStatText}>{aiProfile.preferred_budget}</Text>
+                  </View>
+                )}
+                {aiProfile.preferred_time_slots && aiProfile.preferred_time_slots.length > 0 && (
+                  <View style={styles.aiStat}>
+                    <Ionicons name="time-outline" size={12} color={COLORS.primary} />
+                    <Text style={styles.aiStatText}>{aiProfile.preferred_time_slots.join(' · ')}</Text>
+                  </View>
+                )}
+                <View style={styles.aiStat}>
+                  <Ionicons name="heart" size={12} color={COLORS.primary} />
+                  <Text style={styles.aiStatText}>{aiProfile.data_points} señales</Text>
+                </View>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Quick Actions */}
@@ -240,6 +340,60 @@ const styles = StyleSheet.create({
   avatarText: { fontSize: 32, color: COLORS.white, ...FONTS.bold },
   userName: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.md },
   userEmail: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 4 },
+
+  // AI Profile Card
+  aiCard: {
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.lg,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '40',
+    gap: SPACING.xs,
+  },
+  aiCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  aiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: COLORS.primary + '20',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '50',
+  },
+  aiBadgeText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold, letterSpacing: 0.4 },
+  refreshAiBtn: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: COLORS.primary + '15',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  aiPersona: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, marginTop: 4 },
+  aiSummary: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 19, marginTop: 2 },
+  aiTagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: SPACING.xs },
+  aiTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  aiTagText: { fontSize: 10, color: COLORS.textMain, ...FONTS.semibold },
+  aiStatsRow: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm,
+    marginTop: SPACING.sm,
+    paddingTop: SPACING.sm,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  aiStat: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  aiStatText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, textTransform: 'capitalize' },
+  aiEmpty: { alignItems: 'center', paddingVertical: SPACING.md, gap: 6 },
+  aiEmptyTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold, marginTop: 4 },
+  aiEmptyDesc: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 17, paddingHorizontal: SPACING.md },
   quickActions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: SPACING.sm, paddingHorizontal: SPACING.lg, marginBottom: SPACING.lg },
   actionBtn: { alignItems: 'center', gap: SPACING.xs, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.sm, minWidth: 80, borderWidth: 1, borderColor: COLORS.border },
   actionLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },

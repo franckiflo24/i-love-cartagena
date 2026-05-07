@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
-  Dimensions, Platform, ScrollView, Linking,
+  Dimensions, Platform, ScrollView, Linking, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { WebView } from 'react-native-webview';
+import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -46,7 +48,7 @@ const MARKER_COLORS: Record<string, string> = {
   partner: '#8B5CF6',
 };
 
-function buildMapHTML(places: Place[], filter: string) {
+function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null) {
   const filtered = filter === 'all' ? places : places.filter(p => p.category === filter);
 
   const markers = filtered.map(p => {
@@ -76,6 +78,20 @@ function buildMapHTML(places: Place[], filter: string) {
       + "}).addTo(map).bindPopup('" + popupContent.replace(/'/g, "\\'") + "', {maxWidth: 260});";
   }).join('\n');
 
+  // User location: pulsing blue dot + accuracy ring
+  const userMarker = userLoc ? `
+    var userIcon = L.divIcon({
+      className: 'user-pulse-icon',
+      html: '<div class="pulse-ring"></div><div class="pulse-dot"></div>',
+      iconSize: [22, 22],
+      iconAnchor: [11, 11],
+    });
+    L.marker([${userLoc.lat}, ${userLoc.lng}], {icon: userIcon, zIndexOffset: 1000})
+      .addTo(map)
+      .bindPopup('<b style="color:#1a1a2e">📍 Tu ubicación</b>');
+    map.setView([${userLoc.lat}, ${userLoc.lng}], 14);
+  ` : '';
+
   return '<!DOCTYPE html><html><head>'
     + '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'
     + '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />'
@@ -90,22 +106,82 @@ function buildMapHTML(places: Place[], filter: string) {
     + '.leaflet-control-zoom a { background: #1a1a2e !important; color: #D97706 !important; border: 1px solid #2a2a4e !important; font-weight: 700; }'
     + '.leaflet-control-zoom a:hover { background: #2a2a4e !important; }'
     + '.leaflet-control-attribution { display: none; }'
+    + '.user-pulse-icon { position: relative; width: 22px; height: 22px; }'
+    + '.pulse-dot { position: absolute; top: 4px; left: 4px; width: 14px; height: 14px; border-radius: 50%; background: #2563EB; border: 2px solid #fff; box-shadow: 0 0 6px rgba(37,99,235,0.7); z-index: 2; }'
+    + '.pulse-ring { position: absolute; top: 0; left: 0; width: 22px; height: 22px; border-radius: 50%; background: rgba(37,99,235,0.25); animation: pulse 1.6s ease-out infinite; z-index: 1; }'
+    + '@keyframes pulse { 0% { transform: scale(0.6); opacity: 1; } 100% { transform: scale(2.4); opacity: 0; } }'
     + '</style>'
     + '</head><body>'
     + '<div id="map"></div>'
     + '<script>'
-    + 'var map = L.map("map", {zoomControl: true, attributionControl: false}).setView([10.35, -75.55], 11);'
+    + 'var map = L.map("map", {zoomControl: true, attributionControl: false}).setView([10.4, -75.55], 12);'
     + 'L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {maxZoom: 19}).addTo(map);'
     + markers
+    + userMarker
     + '<\/script>'
     + '</body></html>';
+}
+
+// Approximate Cartagena zone classifier (very rough)
+function detectZone(lat: number, lng: number): string {
+  if (lat >= 10.418 && lat <= 10.435 && lng >= -75.555 && lng <= -75.535) return 'centro_historico';
+  if (lat >= 10.395 && lat <= 10.415 && lng >= -75.560 && lng <= -75.545) return 'bocagrande';
+  if (lat >= 10.410 && lat <= 10.420 && lng >= -75.545 && lng <= -75.530) return 'getsemani';
+  if (lat >= 10.390 && lat <= 10.405 && lng >= -75.560 && lng <= -75.555) return 'castillogrande';
+  if (lat >= 10.405 && lat <= 10.420 && lng >= -75.535 && lng <= -75.525) return 'manga';
+  if (lat >= 10.430 && lat <= 10.470 && lng >= -75.520 && lng <= -75.500) return 'aeropuerto_norte';
+  if (lat <= 10.20 || lat >= 11.0) return 'fuera_cartagena';
+  return 'cartagena_general';
 }
 
 export default function MapaScreen() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
+  const [locStatus, setLocStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle');
   const webViewRef = useRef<any>(null);
+
+  // Request location permission and track ping → backend analytics
+  const requestLocation = async () => {
+    setLocStatus('requesting');
+    try {
+      // expo-location web fallback uses navigator.geolocation
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setLocStatus('denied');
+        Alert.alert(
+          'Permiso de ubicación',
+          'Activa el permiso para ver lugares cerca de ti y mejorar tus recomendaciones.',
+        );
+        return;
+      }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      setUserLoc(loc);
+      setLocStatus('granted');
+      // Send ping to backend for analytics + AI personalization
+      try {
+        const userRaw = await AsyncStorage.getItem('user_data');
+        const user = userRaw ? JSON.parse(userRaw) : null;
+        await fetch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/analytics/location`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: user?.user_id || null,
+            lat: loc.lat,
+            lng: loc.lng,
+            accuracy: pos.coords.accuracy,
+            zone: detectZone(loc.lat, loc.lng),
+            context: 'map_open',
+          }),
+        });
+      } catch (e) { console.warn('location ping failed', e); }
+    } catch (e) {
+      console.error(e);
+      setLocStatus('denied');
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -165,6 +241,8 @@ export default function MapaScreen() {
       setLoading(false);
     };
     load();
+    // Auto-request location on mount (gives best UX)
+    requestLocation();
   }, []);
 
   const counts = {
@@ -185,7 +263,7 @@ export default function MapaScreen() {
     );
   }
 
-  const html = buildMapHTML(places, filter);
+  const html = buildMapHTML(places, filter, userLoc);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -216,14 +294,14 @@ export default function MapaScreen() {
       <View style={styles.mapWrap}>
         {Platform.OS === 'web' ? (
           <iframe
-            key={filter}
+            key={filter + (userLoc ? `_u${userLoc.lat}` : '')}
             srcDoc={html}
             style={{ width: '100%', height: '100%', border: 'none', backgroundColor: '#050814' } as any}
           />
         ) : (
           <WebView
             ref={webViewRef}
-            key={filter}
+            key={filter + (userLoc ? `_u${userLoc.lat}` : '')}
             source={{ html }}
             style={styles.webview}
             javaScriptEnabled={true}
@@ -233,6 +311,34 @@ export default function MapaScreen() {
             showsVerticalScrollIndicator={false}
             showsHorizontalScrollIndicator={false}
           />
+        )}
+
+        {/* Floating "Locate me" button */}
+        <TouchableOpacity
+          style={[styles.locateBtn, locStatus === 'granted' && styles.locateBtnActive]}
+          onPress={requestLocation}
+          activeOpacity={0.85}
+        >
+          {locStatus === 'requesting' ? (
+            <ActivityIndicator size="small" color={COLORS.white} />
+          ) : (
+            <Ionicons
+              name={locStatus === 'granted' ? 'navigate' : 'locate'}
+              size={20}
+              color={locStatus === 'granted' ? COLORS.white : COLORS.primary}
+            />
+          )}
+        </TouchableOpacity>
+
+        {/* Permission denied banner */}
+        {locStatus === 'denied' && (
+          <View style={styles.locDeniedBanner}>
+            <Ionicons name="information-circle" size={14} color={COLORS.primary} />
+            <Text style={styles.locDeniedText}>Activa la ubicación para ver lugares cerca de ti</Text>
+            <TouchableOpacity onPress={requestLocation}>
+              <Text style={styles.locDeniedAction}>Reintentar</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </SafeAreaView>
@@ -253,4 +359,41 @@ const styles = StyleSheet.create({
 
   mapWrap: { flex: 1, overflow: 'hidden', borderTopWidth: 1, borderTopColor: COLORS.border },
   webview: { flex: 1, backgroundColor: '#050814' },
+
+  locateBtn: {
+    position: 'absolute',
+    bottom: 24,
+    right: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  locateBtnActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  locDeniedBanner: {
+    position: 'absolute',
+    bottom: 24,
+    left: 16,
+    right: 80,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(5,8,20,0.92)',
+    borderRadius: RADIUS.full,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  locDeniedText: { flex: 1, fontSize: 11, color: COLORS.textMain, ...FONTS.medium },
+  locDeniedAction: { fontSize: 11, color: COLORS.primary, ...FONTS.bold },
 });

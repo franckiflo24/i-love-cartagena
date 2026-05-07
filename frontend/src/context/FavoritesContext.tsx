@@ -67,6 +67,22 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         await api.post('/favorites/toggle', { item_id: id, item_type: type });
       } catch (e) { console.error('Favorite sync error:', e); }
     }
+
+    // Trigger AI profile rebuild (debounced) — fire-and-forget
+    try {
+      const userRaw = await AsyncStorage.getItem('user_data');
+      const cachedUser = userRaw ? JSON.parse(userRaw) : null;
+      const userId = cachedUser?.user_id || user?.user_id;
+      if (userId && newFavs.length >= 2) {
+        // Cancel any prior pending rebuild
+        if ((globalThis as any).__profileRebuildTimer) {
+          clearTimeout((globalThis as any).__profileRebuildTimer);
+        }
+        (globalThis as any).__profileRebuildTimer = setTimeout(() => {
+          api.post('/profile/build', { user_id: userId, favorites: newFavs }).catch(() => {});
+        }, 1500); // debounce: wait 1.5s after last change
+      }
+    } catch (e) { /* silent */ }
   }, [favorites, user]);
 
   return (

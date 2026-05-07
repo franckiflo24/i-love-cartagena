@@ -1183,6 +1183,137 @@ async def track_analytics(body: AnalyticsEvent, request: Request):
     return {"ok": True}
 
 
+# ── Geolocation tracking + AI user profile ─────────────────────────
+class LocationPing(BaseModel):
+    user_id: Optional[str] = None
+    lat: float
+    lng: float
+    accuracy: Optional[float] = None
+    zone: Optional[str] = None  # rough zone label e.g. "centro", "bocagrande"
+    context: Optional[str] = None  # e.g. "map_open", "near_partner"
+
+
+@api_router.post("/analytics/location")
+async def track_location(body: LocationPing, request: Request):
+    """Store user geolocation pings while they are on the map. Used to:
+    1. Personalize partner suggestions based on proximity.
+    2. Build aggregate heatmaps for the government/sponsor dashboard.
+    """
+    user_id = body.user_id
+    if not user_id:
+        try:
+            user = await get_current_user(request)
+            user_id = user.get("user_id") if user else None
+        except Exception:
+            user_id = None
+
+    doc = {
+        "ping_id": f"geo_{uuid.uuid4().hex[:12]}",
+        "user_id": user_id,
+        "lat": body.lat,
+        "lng": body.lng,
+        "accuracy": body.accuracy,
+        "zone": body.zone,
+        "context": body.context or "map_open",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.location_pings.insert_one(doc)
+    return {"ok": True, "ping_id": doc["ping_id"]}
+
+
+@api_router.post("/profile/build")
+async def build_or_refresh_user_profile(request: Request):
+    """Trigger AI profile generation for the current user using their
+    favorites + saved agenda + visited zones.
+
+    Body (optional): {"user_id": "...", "favorites": [...], "calendar": [...]}
+    Anonymous/guest users can pass user_id (e.g. local_xxx) and inline data.
+    """
+    body = {}
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    user_id = body.get("user_id")
+    if not user_id:
+        try:
+            user = await get_current_user(request)
+            if user:
+                user_id = user.get("user_id")
+        except Exception:
+            user_id = None
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id required")
+
+    # Pull favorites: prefer DB, fallback to inline payload (for guest users)
+    favs_data: list = body.get("favorites") or []
+    if not favs_data:
+        async for f in db.favorites.find({"user_id": user_id}, {"_id": 0}):
+            favs_data.append(f)
+
+    # Hydrate favorite items with full metadata so the LLM has signal
+    enriched: list = []
+    for f in favs_data[:50]:  # cap for prompt size
+        item_id = f.get("item_id")
+        item_type = f.get("item_type")
+        meta: dict = {"item_type": item_type, "item_id": item_id}
+        try:
+            if item_type == "partner":
+                p = await db.partners.find_one({"partner_id": item_id}, {"_id": 0, "name": 1, "category": 1, "tier": 1, "price_range": 1, "experience": 1})
+                if p: meta.update(p)
+            elif item_type == "partner_event":
+                e = await db.partner_events.find_one({"event_id": item_id}, {"_id": 0, "title": 1, "category": 1, "is_free": 1, "price": 1, "start_time": 1})
+                if e: meta.update(e)
+            elif item_type == "concert":
+                c = await db.concerts.find_one({"concert_id": item_id}, {"_id": 0, "artist": 1, "genre": 1, "price": 1, "is_free": 1, "start_time": 1})
+                if c: meta.update(c)
+            elif item_type == "event":
+                ev = await db.events.find_one({"event_id": item_id}, {"_id": 0, "title": 1, "type": 1, "is_free": 1, "price": 1, "start_time": 1})
+                if ev: meta.update(ev)
+        except Exception:
+            pass
+        enriched.append(meta)
+
+    calendar_data: list = body.get("calendar") or []
+
+    # Recent zones from location pings
+    locations_seen: list = []
+    async for lp in db.location_pings.find({"user_id": user_id, "zone": {"$ne": None}}, {"_id": 0, "zone": 1}).limit(50):
+        if lp.get("zone"):
+            locations_seen.append(lp["zone"])
+    locations_seen = list(set(locations_seen))
+
+    from ai_user_profile import build_user_profile
+    profile = await build_user_profile(user_id, enriched, calendar_data, locations_seen)
+    profile["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+    await db.user_profiles.update_one(
+        {"user_id": user_id},
+        {"$set": profile},
+        upsert=True,
+    )
+    return profile
+
+
+@api_router.get("/profile/me")
+async def get_user_profile(request: Request):
+    """Get the cached AI profile for the current/specified user."""
+    user_id = request.query_params.get("user_id")
+    if not user_id:
+        try:
+            user = await get_current_user(request)
+            user_id = user.get("user_id") if user else None
+        except Exception:
+            user_id = None
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id required")
+    profile = await db.user_profiles.find_one({"user_id": user_id}, {"_id": 0})
+    if not profile:
+        return {"user_id": user_id, "ai_status": "not_built", "summary": "", "data_points": 0}
+    return profile
+
+
 @api_router.get("/analytics/summary")
 async def analytics_summary(request: Request):
     """Dashboard summary for admins - event popularity, user engagement, etc."""
