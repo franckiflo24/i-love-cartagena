@@ -37,6 +37,7 @@ const WELLNESS_SUBCATEGORIES = [
   { key: 'nails', label: 'Uñas', icon: 'hand-left', image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&h=400&fit=crop' },
   { key: 'recovery', label: 'Recuperación', icon: 'medkit', image: 'https://images.unsplash.com/photo-1599447421416-3414500d18a5?w=600&h=400&fit=crop' },
   { key: 'fitness', label: 'Fitness', icon: 'barbell', image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=400&fit=crop' },
+  { key: 'sport', label: 'Sport', icon: 'football', image: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&h=400&fit=crop' },
   { key: 'yoga', label: 'Yoga', icon: 'leaf', image: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=600&h=400&fit=crop' },
 ];
 
