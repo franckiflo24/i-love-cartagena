@@ -143,8 +143,6 @@ export default function LoginScreen() {
 
         {/* Auth area - well organized */}
         <View style={styles.bottomArea}>
-          <Text style={styles.welcomeText}>{s('login_welcome')}</Text>
-
           {/* PRIMARY: Continue with Google */}
           <TouchableOpacity
             testID="login-google-btn"
