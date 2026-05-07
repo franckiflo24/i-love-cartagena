@@ -21,6 +21,7 @@ const CATEGORIES = [
   { key: 'club', label: 'Bar & Night Clubs', icon: 'wine', color: '#8B5CF6', image: 'https://images.unsplash.com/photo-1645496761317-d4122dfc2264?w=600&h=300&fit=crop' },
   { key: 'hotel', label: 'Hoteles', icon: 'bed', color: '#3B82F6', image: 'https://images.unsplash.com/photo-1488345979593-09db0f85545f?w=600&h=300&fit=crop' },
   { key: 'shopping', label: 'Shopping', icon: 'bag-handle', color: '#EC4899', image: 'https://images.unsplash.com/photo-1777628530456-bb93d3a03faf?w=600&h=300&fit=crop' },
+  { key: 'wellness', label: 'Wellness & Spa', icon: 'leaf', color: '#10B981', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=300&fit=crop' },
   { key: 'transport', label: 'Transporte', icon: 'car-sport', color: '#22C55E', image: 'https://images.unsplash.com/photo-1554672408-730436b60dde?w=600&h=300&fit=crop' },
   { key: 'tech', label: 'Tech & Wifi', icon: 'wifi', color: '#6366F1', image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&h=300&fit=crop' },
   { key: 'concierge', label: 'Concierge', icon: 'diamond', color: '#F59E0B', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=300&fit=crop' },
@@ -29,12 +30,24 @@ const CATEGORIES = [
   { key: 'realestate', label: 'Inmobiliario', icon: 'key', color: '#0EA5E9', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=300&fit=crop' },
 ];
 
+const WELLNESS_SUBCATEGORIES = [
+  { key: 'all', label: 'Todos', icon: 'apps' },
+  { key: 'spa', label: 'Spa', icon: 'water' },
+  { key: 'beauty', label: 'Beauty', icon: 'sparkles' },
+  { key: 'hair', label: 'Hair', icon: 'cut' },
+  { key: 'nails', label: 'Nails', icon: 'hand-left' },
+  { key: 'recovery', label: 'Recovery', icon: 'medkit' },
+  { key: 'fitness', label: 'Fitness', icon: 'barbell' },
+  { key: 'yoga', label: 'Yoga', icon: 'leaf' },
+];
+
 export default function PartnersScreen() {
   const router = useRouter();
   const { s } = useLang();
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSubcat, setSelectedSubcat] = useState<string>('all');
   const [tierFilter, setTierFilter] = useState<Tier | null>(null);
 
   useEffect(() => {
@@ -48,9 +61,21 @@ export default function PartnersScreen() {
     load();
   }, []);
 
+  // Reset subcategory when category changes
+  useEffect(() => { setSelectedSubcat('all'); }, [selectedCategory]);
+
+  const isWellness = selectedCategory === 'wellness';
   const filtered = selectedCategory
-    ? partners.filter(p => p.category === selectedCategory && (!tierFilter || p.tier === tierFilter))
+    ? partners.filter(p => {
+        if (p.category !== selectedCategory) return false;
+        if (tierFilter && p.tier !== tierFilter) return false;
+        if (isWellness && selectedSubcat !== 'all' && (p as any).subcategory !== selectedSubcat) return false;
+        return true;
+      })
     : [];
+
+  const wellnessSubcatCount = (key: string) =>
+    partners.filter(p => p.category === 'wellness' && (key === 'all' || (p as any).subcategory === key)).length;
 
   const getCategoryCount = (key: string) => partners.filter(p => p.category === key).length;
 
@@ -141,6 +166,38 @@ export default function PartnersScreen() {
         ) : (
           /* ── Partner List ── */
           <View style={styles.list}>
+            {/* Wellness sub-categories pills */}
+            {isWellness && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.subcatRow}
+              >
+                {WELLNESS_SUBCATEGORIES.map(sc => {
+                  const active = selectedSubcat === sc.key;
+                  const count = wellnessSubcatCount(sc.key);
+                  return (
+                    <TouchableOpacity
+                      key={sc.key}
+                      onPress={() => setSelectedSubcat(sc.key)}
+                      style={[styles.subcatPill, active && styles.subcatPillActive]}
+                      activeOpacity={0.85}
+                    >
+                      <Ionicons name={sc.icon as any} size={14} color={active ? COLORS.white : '#10B981'} />
+                      <Text style={[styles.subcatText, active && styles.subcatTextActive]}>
+                        {sc.label}
+                      </Text>
+                      <View style={[styles.subcatBadge, active && styles.subcatBadgeActive]}>
+                        <Text style={[styles.subcatBadgeText, active && styles.subcatBadgeTextActive]}>
+                          {count}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+
             {/* Tier Filter Pills */}
             <View style={styles.tierFilterRow}>
               <TouchableOpacity
@@ -286,6 +343,42 @@ const styles = StyleSheet.create({
 
   // Partner List
   list: { paddingHorizontal: SPACING.lg },
+
+  // Wellness sub-categories
+  subcatRow: { gap: 6, paddingVertical: 4, marginBottom: SPACING.xs },
+  subcatPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: 7,
+    paddingHorizontal: 11,
+    borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(16,185,129,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(16,185,129,0.30)',
+  },
+  subcatPillActive: {
+    backgroundColor: '#10B981',
+    borderColor: '#10B981',
+  },
+  subcatText: {
+    fontSize: 12,
+    color: '#10B981',
+    ...FONTS.semibold,
+  },
+  subcatTextActive: { color: COLORS.white },
+  subcatBadge: {
+    minWidth: 18,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 9,
+    backgroundColor: 'rgba(16,185,129,0.20)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subcatBadgeActive: { backgroundColor: 'rgba(255,255,255,0.25)' },
+  subcatBadgeText: { fontSize: 10, color: '#10B981', ...FONTS.bold },
+  subcatBadgeTextActive: { color: COLORS.white },
   partnerCard: { borderRadius: RADIUS.xl, overflow: 'hidden', marginBottom: SPACING.md, borderWidth: 1, borderColor: 'rgba(217, 119, 6, 0.2)', position: 'relative' },
   partnerImage: { width: '100%', height: 160 },
   partnerOverlay: { position: 'absolute', top: 0, left: 0, right: 0, height: 160, backgroundColor: 'rgba(0,0,0,0.2)' },

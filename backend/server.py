@@ -2183,6 +2183,153 @@ async def startup():
             upsert=True,
         )
 
+    # ── Migration: Seed Wellness & Spa partners with subcategories (idempotent) ──
+    WELLNESS_PARTNERS = [
+        # SPA
+        {
+            "partner_id": "ptr_wn_001", "subcategory": "spa",
+            "name": "Cartagena Spa & Wellness",
+            "description": "Centro de bienestar holístico con masajes, faciales, sauna y piscina termal. Ambiente sereno frente al mar.",
+            "category": "wellness", "tier": "premium",
+            "image_url": "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4192, "lng": -75.5538},
+            "address": "Centro Histórico, Cartagena",
+            "booking_link": "https://cartagenaspa.com",
+            "price_range": "$$$",
+            "experience": "Masajes signature, ritual de chocolate, piscina termal",
+            "is_certified": True, "instagram": "@cartagenaspa",
+        },
+        # YOGA
+        {
+            "partner_id": "ptr_wn_002", "subcategory": "yoga",
+            "name": "Yoga Caribe Studio",
+            "description": "Clases de yoga y meditación en rooftop con vista al mar. Sesiones diarias al amanecer y atardecer.",
+            "category": "wellness", "tier": "popular",
+            "image_url": "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4255, "lng": -75.5482},
+            "address": "Getsemaní, Cartagena",
+            "booking_link": "https://yogacaribe.com",
+            "price_range": "$$",
+            "experience": "Hatha, vinyasa, meditación guiada, sound healing",
+            "is_certified": True, "instagram": "@yogacaribe",
+        },
+        # FITNESS
+        {
+            "partner_id": "ptr_wn_003", "subcategory": "fitness",
+            "name": "Pilates Studio Bocagrande",
+            "description": "Estudio boutique de Pilates con reformer, mat y barre. Entrenadores certificados, ambiente premium.",
+            "category": "wellness", "tier": "premium",
+            "image_url": "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4001, "lng": -75.5552},
+            "address": "Avenida San Martín, Bocagrande",
+            "booking_link": "https://pilatesbocagrande.com",
+            "price_range": "$$",
+            "experience": "Clases privadas, grupales y plan mensual",
+            "is_certified": True, "instagram": "@pilatesbocagrande",
+        },
+        # BEAUTY
+        {
+            "partner_id": "ptr_wn_004", "subcategory": "beauty",
+            "name": "Glow Beauty Lounge",
+            "description": "Salón de belleza integral: faciales, depilación, maquillaje profesional para eventos.",
+            "category": "wellness", "tier": "popular",
+            "image_url": "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4198, "lng": -75.5512},
+            "address": "Manga, Cartagena",
+            "booking_link": "https://glowbeauty.co",
+            "price_range": "$$",
+            "experience": "Tratamientos faciales con productos coreanos, maquillaje pro",
+            "is_certified": True, "instagram": "@glowbeauty",
+        },
+        # HAIR
+        {
+            "partner_id": "ptr_wn_005", "subcategory": "hair",
+            "name": "Salón Tropical Hair Studio",
+            "description": "Hair stylists especialistas en cabello tropical. Cortes, color, balayage, tratamientos hidratantes.",
+            "category": "wellness", "tier": "premium",
+            "image_url": "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4221, "lng": -75.5530},
+            "address": "Centro, Cartagena",
+            "booking_link": "https://tropicalhair.co",
+            "price_range": "$$$",
+            "experience": "Color, balayage, brushing, novia",
+            "is_certified": True, "instagram": "@tropicalhair",
+        },
+        # NAILS
+        {
+            "partner_id": "ptr_wn_006", "subcategory": "nails",
+            "name": "Bella Nails Bar",
+            "description": "Bar de uñas premium: manicura, pedicura, gel, nail art y nail spa con cócteles incluidos.",
+            "category": "wellness", "tier": "popular",
+            "image_url": "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4068, "lng": -75.5491},
+            "address": "Bocagrande, Cartagena",
+            "booking_link": "https://bellanails.co",
+            "price_range": "$$",
+            "experience": "Mani-pedi spa, gel, acrílico, nail art tropical",
+            "is_certified": True, "instagram": "@bellanails",
+        },
+        # RECOVERY
+        {
+            "partner_id": "ptr_wn_007", "subcategory": "recovery",
+            "name": "RecoveryLab Cartagena",
+            "description": "Centro de recuperación deportiva: crioterapia, presoterapia, baños de hielo, infrarrojos.",
+            "category": "wellness", "tier": "elite",
+            "image_url": "https://images.unsplash.com/photo-1599447421416-3414500d18a5?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4012, "lng": -75.5543},
+            "address": "Castillogrande, Cartagena",
+            "booking_link": "https://recoverylab.co",
+            "price_range": "$$$",
+            "experience": "Crioterapia full body, presoterapia, sauna infrarroja, masaje deportivo",
+            "is_certified": True, "instagram": "@recoverylab",
+        },
+        # FITNESS extra
+        {
+            "partner_id": "ptr_wn_008", "subcategory": "fitness",
+            "name": "CrossFit Cartagena",
+            "description": "Box de CrossFit con coaches certificados L1/L2. Clases grupales, open gym y personal training.",
+            "category": "wellness", "tier": "popular",
+            "image_url": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4045, "lng": -75.5503},
+            "address": "Manga, Cartagena",
+            "booking_link": "https://crossfitcartagena.co",
+            "price_range": "$$",
+            "experience": "WOD diario, mobility, gymnastics, weightlifting",
+            "is_certified": True, "instagram": "@crossfitcartagena",
+        },
+        # SPA extra
+        {
+            "partner_id": "ptr_wn_009", "subcategory": "spa",
+            "name": "Sereno Spa Boutique",
+            "description": "Spa boutique con cabinas privadas. Rituales de aromaterapia, masaje balinés y faciales personalizados.",
+            "category": "wellness", "tier": "premium",
+            "image_url": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4175, "lng": -75.5495},
+            "address": "Getsemaní, Cartagena",
+            "booking_link": "https://serenospa.com",
+            "price_range": "$$$",
+            "experience": "Aromaterapia, balinés, hot stone, ritual de novia",
+            "is_certified": True, "instagram": "@serenospa",
+        },
+    ]
+    for partner in WELLNESS_PARTNERS:
+        await db.partners.update_one(
+            {"partner_id": partner["partner_id"]},
+            {"$setOnInsert": partner},
+            upsert=True,
+        )
+    # Always backfill subcategory on existing wellness partners (idempotent)
+    for partner in WELLNESS_PARTNERS:
+        await db.partners.update_one(
+            {"partner_id": partner["partner_id"], "subcategory": {"$exists": False}},
+            {"$set": {"subcategory": partner["subcategory"]}}
+        )
+    # Tag the original El Arsenal Wellness with subcategory
+    await db.partners.update_one(
+        {"partner_id": "ptr_006", "category": "wellness"},
+        {"$set": {"subcategory": "spa"}}
+    )
+
     # ── Seed: Partner Promotions (ofertas del día) ──
     promo_count = await db.partner_promotions.count_documents({})
     if promo_count == 0:
