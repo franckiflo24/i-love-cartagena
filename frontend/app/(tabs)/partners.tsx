@@ -42,15 +42,21 @@ const WELLNESS_SUBCATEGORIES = [
 ];
 
 const RESTAURANT_SUBCATEGORIES = [
-  { key: 'all', label: 'Todos', icon: 'apps' },
-  { key: 'restaurant', label: 'Restaurante', icon: 'restaurant' },
-  { key: 'cafe', label: 'Café', icon: 'cafe' },
-  { key: 'brunch', label: 'Brunch', icon: 'sunny' },
-  { key: 'bakery', label: 'Bakery', icon: 'pizza' },
+  { key: 'cafe', label: 'Café', icon: 'cafe', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&h=400&fit=crop' },
+  { key: 'mediterranean', label: 'Mediterráneo', icon: 'wine', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&h=400&fit=crop' },
+  { key: 'fastfood', label: 'Fast Food', icon: 'fast-food', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&h=400&fit=crop' },
+  { key: 'italian', label: 'Italiano', icon: 'pizza', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop' },
+  { key: 'asian', label: 'Asiático', icon: 'restaurant', image: 'https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=600&h=400&fit=crop' },
+  { key: 'colombian', label: 'Colombiano', icon: 'flag', image: 'https://images.unsplash.com/photo-1518176258769-f227c798150e?w=600&h=400&fit=crop' },
+  { key: 'seafood', label: 'Del Mar', icon: 'fish', image: 'https://images.unsplash.com/photo-1559737558-2f5a35f4523b?w=600&h=400&fit=crop' },
+  { key: 'international', label: 'Internacional', icon: 'globe', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop' },
+  { key: 'arab', label: 'Árabe', icon: 'cafe', image: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=600&h=400&fit=crop' },
+  { key: 'gastronomic', label: 'Gastronómicos', icon: 'star', image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop' },
+  { key: 'vegetarian', label: 'Vegetariano', icon: 'leaf', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&h=400&fit=crop' },
 ];
 
 // Categories that REQUIRE subcategory selection before showing partners
-const REQUIRE_SUBCAT_PICK = new Set(['wellness']);
+const REQUIRE_SUBCAT_PICK = new Set(['wellness', 'restaurant']);
 
 // Map of category → subcategory list (extensible)
 const SUBCATEGORIES_BY_CAT: Record<string, { key: string; label: string; icon: string; image?: string }[]> = {

@@ -2447,8 +2447,55 @@ async def startup():
     # Backfill 'restaurant' subcategory on existing restaurant partners that lack it
     await db.partners.update_many(
         {"category": "restaurant", "subcategory": {"$exists": False}},
-        {"$set": {"subcategory": "restaurant"}}
+        {"$set": {"subcategory": "international"}}
     )
+    # Migrate old subcategory keys to new picker keys
+    await db.partners.update_many({"category": "restaurant", "subcategory": "restaurant"}, {"$set": {"subcategory": "international"}})
+    await db.partners.update_many({"category": "restaurant", "subcategory": "brunch"}, {"$set": {"subcategory": "cafe"}})
+    await db.partners.update_many({"category": "restaurant", "subcategory": "bakery"}, {"$set": {"subcategory": "cafe"}})
+
+    # Manual reassignments of known restaurants to proper cuisines
+    CUISINE_REMAP = {
+        "ptr_001": "mediterranean",   # Casa Bohème → mediterránea
+        "ptr_002": "gastronomic",     # Bellini (italiano de autor) — gastronómico
+        "ptr_004": "international",   # El Beso → internacional
+        "ptr_007": "international",   # Movich Hotel (resto)
+        "ptr_nc_007": "mediterranean",  # Casa Bohème NC
+    }
+    for pid, sub in CUISINE_REMAP.items():
+        await db.partners.update_one({"partner_id": pid, "category": "restaurant"}, {"$set": {"subcategory": sub}})
+
+    # ── Seed: Cuisine partners (idempotent) — at least 1 per subcategory ──
+    CUISINE_PARTNERS = [
+        # ITALIANO
+        {"partner_id":"ptr_cu_001","subcategory":"italian","name":"Trattoria del Mare","description":"Auténtica trattoria italiana con pasta fresca hecha a mano y horno de leña.","category":"restaurant","tier":"premium","image_url":"https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=800&h=600&fit=crop","location":{"lat":10.4218,"lng":-75.5512},"address":"Calle de la Iglesia, Centro","booking_link":"https://trattoriadelmare.co","price_range":"$$$","experience":"Pasta fresca, pizza al horno de leña, vinos italianos","is_certified":True,"instagram":"@trattoriadelmare"},
+        # ASIATICO
+        {"partner_id":"ptr_cu_002","subcategory":"asian","name":"Nikkei Cartagena","description":"Cocina nikkei: fusión peruano-japonesa. Sushi de autor, ceviches, tiraditos.","category":"restaurant","tier":"elite","image_url":"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=800&h=600&fit=crop","location":{"lat":10.4189,"lng":-75.5491},"address":"Centro Histórico","booking_link":"https://nikkei.co","price_range":"$$$","experience":"Sushi omakase, tiraditos, sake premium","is_certified":True,"instagram":"@nikkeicartagena"},
+        # COLOMBIANO
+        {"partner_id":"ptr_cu_003","subcategory":"colombian","name":"La Cevichería","description":"Restaurante icónico de cocina caribeña-colombiana. Ceviches, pescado frito, arroz con coco.","category":"restaurant","tier":"popular","image_url":"https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&h=600&fit=crop","location":{"lat":10.4231,"lng":-75.5510},"address":"Calle Stuart, Centro","booking_link":"https://lacevicheria.co","price_range":"$$","experience":"Ceviche cartagenero, pescado frito, patacones","is_certified":True,"instagram":"@lacevicheria"},
+        {"partner_id":"ptr_cu_004","subcategory":"colombian","name":"Restaurante Donde Olano","description":"Cocina tradicional caribeña en casa colonial. Arroz con coco, mojarra, sancocho.","category":"restaurant","tier":"popular","image_url":"https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=800&h=600&fit=crop","location":{"lat":10.4221,"lng":-75.5530},"address":"Calle Santo Domingo","booking_link":"https://dondeolano.co","price_range":"$$","experience":"Cocina tradicional cartagenera","is_certified":True,"instagram":"@dondeolano"},
+        # DEL MAR
+        {"partner_id":"ptr_cu_005","subcategory":"seafood","name":"Marea by Rausch","description":"Mariscos y pescados frescos del Caribe colombiano. Cocina del chef Jorge Rausch.","category":"restaurant","tier":"elite","image_url":"https://images.unsplash.com/photo-1559737558-2f5a35f4523b?w=800&h=600&fit=crop","location":{"lat":10.4015,"lng":-75.5556},"address":"Bocagrande","booking_link":"https://marea.co","price_range":"$$$","experience":"Pescado del día, langosta, ostra fresca","is_certified":True,"instagram":"@marea"},
+        # MEDITERRANEO extra
+        {"partner_id":"ptr_cu_006","subcategory":"mediterranean","name":"Aluna","description":"Cocina mediterránea contemporánea con productos locales. Tapas, paella, vinos españoles.","category":"restaurant","tier":"premium","image_url":"https://images.unsplash.com/photo-1544025162-d76694265947?w=800&h=600&fit=crop","location":{"lat":10.4205,"lng":-75.5519},"address":"Calle del Coliseo","booking_link":"https://aluna.co","price_range":"$$$","experience":"Tapas, paella valenciana, vinos","is_certified":True,"instagram":"@alunarestaurante"},
+        # ARABE
+        {"partner_id":"ptr_cu_007","subcategory":"arab","name":"Layla Cocina Árabe","description":"Cocina árabe-libanesa auténtica: hummus, kibbe, shawarma, tajine y postres tradicionales.","category":"restaurant","tier":"popular","image_url":"https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=800&h=600&fit=crop","location":{"lat":10.4198,"lng":-75.5508},"address":"Centro Histórico","booking_link":"https://layla.co","price_range":"$$","experience":"Hummus, kibbe, shawarma, tajine de cordero","is_certified":True,"instagram":"@laylaarabe"},
+        # FAST FOOD
+        {"partner_id":"ptr_cu_008","subcategory":"fastfood","name":"Burger Cartagena","description":"Smash burgers de autor con carne 100% colombiana. Papas trufadas y milkshakes.","category":"restaurant","tier":"popular","image_url":"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&h=600&fit=crop","location":{"lat":10.4186,"lng":-75.5495},"address":"Getsemaní","booking_link":"https://burgercartagena.co","price_range":"$$","experience":"Smash burger, papas trufadas, milkshakes","is_certified":True,"instagram":"@burgercartagena"},
+        {"partner_id":"ptr_cu_009","subcategory":"fastfood","name":"Tropical Tacos","description":"Tacos al pastor, quesadillas y nachos con un toque caribeño. Cocteles de tequila.","category":"restaurant","tier":"popular","image_url":"https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&h=600&fit=crop","location":{"lat":10.4234,"lng":-75.5478},"address":"Plaza Trinidad, Getsemaní","booking_link":"https://tropicaltacos.co","price_range":"$","experience":"Tacos al pastor, quesadillas, margaritas","is_certified":True,"instagram":"@tropicaltacos"},
+        # GASTRONOMICOS
+        {"partner_id":"ptr_cu_010","subcategory":"gastronomic","name":"Carmen","description":"Restaurante de alta cocina con menú degustación. Concepto: 'Coastal Caribbean Fine Dining'.","category":"restaurant","tier":"elite","image_url":"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=600&fit=crop","location":{"lat":10.4239,"lng":-75.5489},"address":"Plaza San Pedro","booking_link":"https://carmencartagena.com","price_range":"$$$","experience":"Menú degustación 7 tiempos, maridaje","is_certified":True,"instagram":"@carmencartagena"},
+        # VEGETARIANO
+        {"partner_id":"ptr_cu_011","subcategory":"vegetarian","name":"Verde Cartagena","description":"Cocina 100% vegetariana y vegana. Bowls, smoothies, hamburguesas plant-based, postres crudos.","category":"restaurant","tier":"popular","image_url":"https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&h=600&fit=crop","location":{"lat":10.4256,"lng":-75.5485},"address":"Getsemaní","booking_link":"https://verdecartagena.co","price_range":"$$","experience":"Bowls, hamburguesas vegetales, raw cakes","is_certified":True,"instagram":"@verdecartagena"},
+        # INTERNACIONAL extra
+        {"partner_id":"ptr_cu_012","subcategory":"international","name":"Bistró 1621","description":"Bistró europeo en hotel boutique 1621. Cocina internacional con influencias francesas.","category":"restaurant","tier":"premium","image_url":"https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop","location":{"lat":10.4230,"lng":-75.5525},"address":"Hotel Sofitel Legend Santa Clara","booking_link":"https://hotel1621.co","price_range":"$$$","experience":"Cocina internacional, cava, terraza colonial","is_certified":True,"instagram":"@bistro1621"},
+    ]
+    for partner in CUISINE_PARTNERS:
+        await db.partners.update_one(
+            {"partner_id": partner["partner_id"]},
+            {"$setOnInsert": partner},
+            upsert=True,
+        )
 
     # ── Seed: Partner Promotions (ofertas del día) ──
     promo_count = await db.partner_promotions.count_documents({})
