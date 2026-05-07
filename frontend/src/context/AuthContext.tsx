@@ -68,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (cached) {
           try {
             const parsed = JSON.parse(cached);
-            if (parsed?.provider === 'email_local') {
+            if (parsed?.provider === 'email_local' || parsed?.provider === 'whatsapp_local') {
               setUser(parsed);
               setIsLoading(false);
               return;

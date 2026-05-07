@@ -20,8 +20,10 @@ export default function LoginScreen() {
   const { s, lang, setLang } = useLang();
 
   const [showSignup, setShowSignup] = useState(false);
+  const [showWhatsapp, setShowWhatsapp] = useState(false);
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
+  const [signupPhone, setSignupPhone] = useState('');
   const [savingSignup, setSavingSignup] = useState(false);
 
   useEffect(() => {
@@ -38,6 +40,7 @@ export default function LoginScreen() {
           const u = JSON.parse(raw);
           if (u?.email) setSignupEmail(u.email);
           if (u?.name) setSignupName(u.name);
+          if (u?.phone) setSignupPhone(u.phone);
         } catch {}
       }
     });
@@ -51,7 +54,6 @@ export default function LoginScreen() {
       return;
     }
     setSavingSignup(true);
-    // Local guest profile (auto-saved). Will be merged on real Google login later.
     const localUser = {
       user_id: `local_${Date.now()}`,
       email,
@@ -63,7 +65,29 @@ export default function LoginScreen() {
     await AsyncStorage.setItem('local_user_email', email);
     setSavingSignup(false);
     setShowSignup(false);
-    // Hard reload so AuthContext picks up the cached user
+    router.replace('/(tabs)');
+  };
+
+  const handleWhatsappSignup = async () => {
+    const phoneRaw = signupPhone.trim().replace(/[^\d+]/g, '');
+    const phone = phoneRaw.startsWith('+') ? phoneRaw : `+${phoneRaw}`;
+    const name = signupName.trim() || `Usuario ${phone.slice(-4)}`;
+    if (!phone || phone.length < 8) {
+      Alert.alert('Teléfono inválido', 'Por favor introduce un número de WhatsApp válido (incluye código de país).');
+      return;
+    }
+    setSavingSignup(true);
+    const localUser = {
+      user_id: `wa_${Date.now()}`,
+      email: '',
+      name,
+      phone,
+      picture: '',
+      provider: 'whatsapp_local',
+    };
+    await AsyncStorage.setItem('user_data', JSON.stringify(localUser));
+    setSavingSignup(false);
+    setShowWhatsapp(false);
     router.replace('/(tabs)');
   };
 
@@ -139,26 +163,36 @@ export default function LoginScreen() {
             <View style={styles.orLine} />
           </View>
 
-          {/* SECONDARY: Other methods */}
-          <View style={styles.otherMethodsRow}>
-            {Platform.OS === 'ios' && (
-              <TouchableOpacity
-                style={styles.iconBtn}
-                onPress={login}
-                activeOpacity={0.85}
-              >
-                <Ionicons name="logo-apple" size={20} color={COLORS.white} />
-                <Text style={styles.iconBtnText}>Apple</Text>
-              </TouchableOpacity>
-            )}
+          {/* SECONDARY: Other methods - stacked for clarity */}
+          <View style={styles.otherMethodsCol}>
             <TouchableOpacity
-              style={[styles.iconBtn, { flex: 1 }]}
+              style={[styles.methodBtn, styles.whatsappBtn]}
+              onPress={() => setShowWhatsapp(true)}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="logo-whatsapp" size={20} color={COLORS.white} />
+              <Text style={styles.methodBtnText}>{s('login_whatsapp')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.methodBtn, styles.outlineMethodBtn]}
               onPress={() => setShowSignup(true)}
               activeOpacity={0.85}
             >
               <Ionicons name="mail-outline" size={18} color={COLORS.white} />
-              <Text style={styles.iconBtnText}>{s('login_email_signup')}</Text>
+              <Text style={styles.methodBtnText}>{s('login_email_signup')}</Text>
             </TouchableOpacity>
+
+            {Platform.OS === 'ios' && (
+              <TouchableOpacity
+                style={[styles.methodBtn, styles.appleBtn]}
+                onPress={login}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="logo-apple" size={20} color={COLORS.white} />
+                <Text style={styles.methodBtnText}>{s('login_apple')}</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* TERTIARY: Already have account? Sign in */}
@@ -248,6 +282,78 @@ export default function LoginScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* WhatsApp signup modal */}
+      <Modal
+        visible={showWhatsapp}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowWhatsapp(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.modalCard}>
+            <View style={styles.modalHandle} />
+            <View style={styles.waHeaderRow}>
+              <View style={styles.waIconCircle}>
+                <Ionicons name="logo-whatsapp" size={24} color={COLORS.white} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.modalTitle}>{s('login_whatsapp_title')}</Text>
+                <Text style={styles.modalSubtitle}>{s('login_whatsapp_subtitle')}</Text>
+              </View>
+            </View>
+
+            <View style={styles.inputWrap}>
+              <Ionicons name="person-outline" size={18} color={COLORS.textMuted} />
+              <TextInput
+                style={styles.input}
+                placeholder={s('login_name_placeholder')}
+                placeholderTextColor={COLORS.textMuted}
+                value={signupName}
+                onChangeText={setSignupName}
+                autoCapitalize="words"
+              />
+            </View>
+            <View style={styles.inputWrap}>
+              <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
+              <TextInput
+                style={styles.input}
+                placeholder={s('login_phone_placeholder')}
+                placeholderTextColor={COLORS.textMuted}
+                value={signupPhone}
+                onChangeText={setSignupPhone}
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.modalSaveBtn, styles.modalWaBtn, savingSignup && { opacity: 0.6 }]}
+              onPress={handleWhatsappSignup}
+              disabled={savingSignup}
+              activeOpacity={0.85}
+            >
+              {savingSignup ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <>
+                  <Ionicons name="logo-whatsapp" size={18} color={COLORS.white} />
+                  <Text style={styles.modalSaveBtnText}>{s('login_save')}</Text>
+                </>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalCancelBtn}
+              onPress={() => setShowWhatsapp(false)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.modalCancelText}>{s('login_cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -310,17 +416,24 @@ const styles = StyleSheet.create({
   orText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, letterSpacing: 0.4, textTransform: 'uppercase' },
 
   // Other methods
-  otherMethodsRow: { flexDirection: 'row', gap: SPACING.sm },
-  iconBtn: {
-    flex: 1,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+  otherMethodsCol: { gap: 10 },
+  methodBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: RADIUS.full,
+    paddingVertical: 13,
+    width: '100%',
+  },
+  whatsappBtn: { backgroundColor: '#25D366' },
+  outlineMethodBtn: {
     backgroundColor: 'rgba(255,255,255,0.08)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.18)',
-    borderRadius: RADIUS.full,
-    paddingVertical: 12,
   },
-  iconBtnText: { fontSize: 13, color: COLORS.white, ...FONTS.semibold },
+  appleBtn: { backgroundColor: '#000000', borderWidth: 1, borderColor: '#1a1a1a' },
+  methodBtnText: { fontSize: 14, color: COLORS.white, ...FONTS.semibold },
 
   // Have account?
   haveAccountRow: {
@@ -368,7 +481,25 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary, borderRadius: RADIUS.full,
     paddingVertical: 14, marginTop: SPACING.sm,
   },
+  modalWaBtn: { backgroundColor: '#25D366' },
   modalSaveBtnText: { fontSize: 15, color: COLORS.white, ...FONTS.bold },
   modalCancelBtn: { alignItems: 'center', paddingVertical: 10, marginTop: 4 },
   modalCancelText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium },
+
+  // WhatsApp modal header
+  waHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.xs,
+  },
+  waIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#25D366',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
