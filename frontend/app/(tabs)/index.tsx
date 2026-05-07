@@ -140,7 +140,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>{user ? `Hola, ${user.name.split(' ')[0]}` : 'Bienvenido'}</Text>
-            <Text style={styles.headerTitle}>I ❤️ Amo Cartagena</Text>
+            <Text style={styles.headerTitle}>Amo Cartagena ❤️</Text>
           </View>
           <TouchableOpacity testID="notifications-btn" onPress={() => router.push('/notifications')} style={styles.notifBtn}>
             <Ionicons name="notifications-outline" size={24} color={COLORS.textMain} />
