@@ -144,26 +144,6 @@ export default function CityPassTab() {
               </Text>
             </View>
 
-            {/* Highlights */}
-            <View style={styles.highlightsRow}>
-              <View style={styles.highlightItem}>
-                <Ionicons name="restaurant" size={22} color="#22C55E" />
-                <Text style={styles.highlightLabel}>Restaurantes</Text>
-              </View>
-              <View style={styles.highlightItem}>
-                <Ionicons name="musical-notes" size={22} color="#8B5CF6" />
-                <Text style={styles.highlightLabel}>Eventos</Text>
-              </View>
-              <View style={styles.highlightItem}>
-                <Ionicons name="boat" size={22} color="#3B82F6" />
-                <Text style={styles.highlightLabel}>Transporte</Text>
-              </View>
-              <View style={styles.highlightItem}>
-                <Ionicons name="bed" size={22} color="#EC4899" />
-                <Text style={styles.highlightLabel}>Hoteles</Text>
-              </View>
-            </View>
-
             {/* Plans */}
             {plans.map((plan, idx) => (
               <View key={plan.plan_id} style={[styles.planCard, idx === 1 && styles.planCardFeatured]}>
