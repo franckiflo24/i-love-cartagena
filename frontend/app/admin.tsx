@@ -562,7 +562,7 @@ export default function AdminDashboard() {
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>Back Office</Text>
-          <Text style={styles.subtitle}>Viva Cartagena · Analytics</Text>
+          <Text style={styles.subtitle}>Amo Cartagena · Analytics</Text>
         </View>
         <TouchableOpacity onPress={onRefresh} style={styles.refreshBtn}>
           <Ionicons name="refresh" size={20} color={COLORS.primary} />
