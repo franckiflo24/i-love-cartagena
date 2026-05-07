@@ -2479,6 +2479,36 @@ async def startup():
         {"$set": {"subcategory": "spa"}}
     )
 
+    # ── Migration: Replace night transport (trn_003) with Taxi Boat ──
+    await db.transport.delete_one({"transport_id": "trn_003"})
+    TAXI_BOAT_ROUTE = {
+        "transport_id": "trn_003",
+        "type": "boat",
+        "partner": "Taxi Boat Cartagena",
+        "route_name": "Taxi Boat — Muelle Bodeguita / Manga / Bocagrande",
+        "description": "Servicio de taxi boat regular conectando Muelle de la Bodeguita, Manga y Bocagrande. Ideal para evitar el tráfico y disfrutar la bahía.",
+        "schedule": [
+            {"time": "07:00", "destination": "Bodeguita → Manga → Bocagrande", "note": "Primer servicio"},
+            {"time": "Cada 30 min", "destination": "Loop continuo", "note": "Frecuencia diurna"},
+            {"time": "22:00", "destination": "Último servicio", "note": "Cierre del día"},
+        ],
+        "price": "15,000 COP por trayecto / 25,000 COP ida y vuelta",
+        "duration": "10–15 min entre paradas",
+        "departure_location": {"lat": 10.4188, "lng": -75.5523},  # Muelle Bodeguita
+        "stops": [
+            {"name": "Muelle Bodeguita", "lat": 10.4188, "lng": -75.5523, "zone": "Centro"},
+            {"name": "Manga (Muelle Pegaso)", "lat": 10.4108, "lng": -75.5380, "zone": "Manga"},
+            {"name": "Bocagrande (Muelle La Bodeguita BG)", "lat": 10.4019, "lng": -75.5550, "zone": "Bocagrande"},
+        ],
+        "phone": "+57 300 000 0000",
+        "instructions": "Aborde en cualquiera de las 3 paradas. Pague online y muestre el QR al capitán para evitar fila en el muelle.",
+    }
+    await db.transport.update_one(
+        {"transport_id": "trn_003"},
+        {"$set": TAXI_BOAT_ROUTE},
+        upsert=True,
+    )
+
     # ── Migration: Seed Cafés (subcategory of Restaurantes) ──
     CAFE_PARTNERS = [
         {

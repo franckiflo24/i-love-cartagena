@@ -123,8 +123,8 @@ export default function TransportScreen() {
                     <Ionicons name={TRANSPORT_ICONS[route.type] as any || 'car'} size={22} color={COLORS.primary} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.routeName}>{route.route_name || route.partner}</Text>
-                    <Text style={styles.routePartner}>{route.partner}</Text>
+                    <Text style={styles.routeName}>{route.route_name || route.route || route.partner || route.partner_name}</Text>
+                    <Text style={styles.routePartner}>{route.partner || route.partner_name || ''}</Text>
                   </View>
                   {canPay && (
                     <View style={styles.qrBadge}>
