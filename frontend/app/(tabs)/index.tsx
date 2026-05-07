@@ -262,6 +262,40 @@ export default function HomeScreen() {
           </TouchableOpacity>
         )}
 
+        {/* Quick Access — moved right after sponsors, prominent + colorful */}
+        <View style={styles.quickAccessHero}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.quickAccessRow}
+          >
+            {[
+              { icon: 'calendar',       label: 'Agenda',     subtitle: 'Hoy',       color: '#F97316', route: '/(tabs)/agenda' },
+              { icon: 'musical-notes',  label: 'Conciertos', subtitle: 'Live',      color: '#A855F7', route: '/concerts' },
+              { icon: 'heart',          label: 'Favoritos',  subtitle: 'Mi lista',  color: '#EF4444', route: '/favorites' },
+              { icon: 'boat',           label: 'Transporte', subtitle: 'Boats',     color: '#06B6D4', route: '/transport' },
+              { icon: 'trail-sign',     label: 'Rutas',      subtitle: 'IA',        color: '#10B981', route: '/itineraries' },
+            ].map((item) => (
+              <TouchableOpacity
+                key={item.label}
+                testID={`quick-${item.label.toLowerCase()}`}
+                style={[styles.quickItemHero, { backgroundColor: item.color + '1A', borderColor: item.color + '4D' }]}
+                onPress={() => {
+                  trackEvent('quick_access', item.label, 'navigation');
+                  router.push(item.route as any);
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.quickIconHero, { backgroundColor: item.color }]}>
+                  <Ionicons name={item.icon as any} size={22} color={COLORS.white} />
+                </View>
+                <Text style={[styles.quickLabelHero, { color: item.color }]}>{item.label}</Text>
+                <Text style={styles.quickSubtitleHero}>{item.subtitle}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
         {/* Season Carousel */}
         <FlatList
           ref={flatListRef}
@@ -290,31 +324,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Quick Access */}
-        <View style={styles.quickAccess}>
-          {[
-            { icon: 'calendar', label: 'Agenda', route: '/(tabs)/agenda' },
-            { icon: 'musical-notes', label: 'Conciertos', route: '/concerts' },
-            { icon: 'heart', label: 'Favoritos', route: '/favorites' },
-            { icon: 'boat', label: 'Transporte', route: '/transport' },
-            { icon: 'trail-sign', label: 'Rutas', route: '/itineraries' },
-          ].map((item) => (
-            <TouchableOpacity
-              key={item.label}
-              testID={`quick-${item.label.toLowerCase()}`}
-              style={styles.quickItem}
-              onPress={() => {
-                trackEvent('quick_access', item.label, 'navigation');
-                router.push(item.route as any);
-              }}
-            >
-              <View style={styles.quickIcon}>
-                <Ionicons name={item.icon as any} size={22} color={COLORS.primary} />
-              </View>
-              <Text style={styles.quickLabel}>{item.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {/* Quick Access — moved to top of screen */}
 
         {/* My Favorites */}
         {favItems.length > 0 && (
@@ -575,6 +585,12 @@ const styles = StyleSheet.create({
   quickItem: { alignItems: 'center', gap: SPACING.sm },
   quickIcon: { width: 52, height: 52, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.border },
   quickLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
+  quickAccessHero: { marginBottom: SPACING.lg },
+  quickAccessRow: { paddingHorizontal: SPACING.lg, gap: SPACING.sm },
+  quickItemHero: { width: 92, height: 110, borderRadius: RADIUS.xl, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', paddingVertical: SPACING.sm, gap: 6 },
+  quickIconHero: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  quickLabelHero: { fontSize: 12, ...FONTS.bold, letterSpacing: 0.3 },
+  quickSubtitleHero: { fontSize: 9, color: COLORS.textMuted, ...FONTS.medium, textTransform: 'uppercase', letterSpacing: 0.8 },
   section: { marginBottom: SPACING.lg },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACING.lg, marginBottom: SPACING.md },
   sectionTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold },
