@@ -354,46 +354,6 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Featured Events */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Eventos destacados</Text>
-            <TouchableOpacity testID="see-all-events" onPress={() => router.push('/(tabs)/agenda')}>
-              <Text style={styles.seeAll}>Ver todos</Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
-            {featured.map((event) => (
-              <TouchableOpacity
-                key={event.event_id}
-                testID={`featured-${event.event_id}`}
-                style={styles.featuredCard}
-                onPress={() => {
-                  trackEvent('event_click', event.event_id, 'event');
-                  router.push(`/event/${event.event_id}`);
-                }}
-                activeOpacity={0.8}
-              >
-                <Image source={{ uri: event.image_url }} style={styles.featuredImage} />
-                <View style={styles.featuredOverlay} />
-                <View style={styles.featuredBadge}>
-                  <Text style={styles.badgeText}>{event.is_free ? 'GRATIS' : formatPrice(event.price)}</Text>
-                </View>
-                <View style={styles.featuredInfo}>
-                  <Text style={styles.featuredType}>{EVENT_TYPE_LABELS[event.type] || event.type}</Text>
-                  <Text style={styles.featuredTitle} numberOfLines={2}>{event.title}</Text>
-                  <View style={styles.featuredMeta}>
-                    <Ionicons name="time-outline" size={12} color={COLORS.textMuted} />
-                    <Text style={styles.metaText}>{event.start_time} - {event.end_time}</Text>
-                    <Ionicons name="location-outline" size={12} color={COLORS.textMuted} />
-                    <Text style={styles.metaText}>{event.venue_name}</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
         {/* Hoy & Esta noche - Partner Events */}
         {(() => {
           const dayPE = todayPEvents.filter(e => !isNightTime(e.start_time));
