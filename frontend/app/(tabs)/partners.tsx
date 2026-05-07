@@ -41,6 +41,26 @@ const WELLNESS_SUBCATEGORIES = [
   { key: 'yoga', label: 'Yoga', icon: 'leaf' },
 ];
 
+const RESTAURANT_SUBCATEGORIES = [
+  { key: 'all', label: 'Todos', icon: 'apps' },
+  { key: 'restaurant', label: 'Restaurante', icon: 'restaurant' },
+  { key: 'cafe', label: 'Café', icon: 'cafe' },
+  { key: 'brunch', label: 'Brunch', icon: 'sunny' },
+  { key: 'bakery', label: 'Bakery', icon: 'pizza' },
+];
+
+// Map of category → subcategory list (extensible)
+const SUBCATEGORIES_BY_CAT: Record<string, { key: string; label: string; icon: string }[]> = {
+  wellness: WELLNESS_SUBCATEGORIES,
+  restaurant: RESTAURANT_SUBCATEGORIES,
+};
+
+// Color theme per subcategory parent (for pill styling)
+const SUBCAT_THEME: Record<string, string> = {
+  wellness: '#10B981',
+  restaurant: '#EF4444',
+};
+
 export default function PartnersScreen() {
   const router = useRouter();
   const { s } = useLang();
@@ -64,18 +84,21 @@ export default function PartnersScreen() {
   // Reset subcategory when category changes
   useEffect(() => { setSelectedSubcat('all'); }, [selectedCategory]);
 
-  const isWellness = selectedCategory === 'wellness';
+  const subcatList = selectedCategory ? SUBCATEGORIES_BY_CAT[selectedCategory] : null;
+  const subcatTheme = selectedCategory ? SUBCAT_THEME[selectedCategory] || COLORS.primary : COLORS.primary;
   const filtered = selectedCategory
     ? partners.filter(p => {
         if (p.category !== selectedCategory) return false;
         if (tierFilter && p.tier !== tierFilter) return false;
-        if (isWellness && selectedSubcat !== 'all' && (p as any).subcategory !== selectedSubcat) return false;
+        if (subcatList && selectedSubcat !== 'all' && (p as any).subcategory !== selectedSubcat) return false;
         return true;
       })
     : [];
 
-  const wellnessSubcatCount = (key: string) =>
-    partners.filter(p => p.category === 'wellness' && (key === 'all' || (p as any).subcategory === key)).length;
+  const subcatCount = (key: string) =>
+    selectedCategory
+      ? partners.filter(p => p.category === selectedCategory && (key === 'all' || (p as any).subcategory === key)).length
+      : 0;
 
   const getCategoryCount = (key: string) => partners.filter(p => p.category === key).length;
 
@@ -166,29 +189,41 @@ export default function PartnersScreen() {
         ) : (
           /* ── Partner List ── */
           <View style={styles.list}>
-            {/* Wellness sub-categories pills */}
-            {isWellness && (
+            {/* Sub-categories pills (wellness, restaurant, etc.) */}
+            {subcatList && (
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.subcatRow}
               >
-                {WELLNESS_SUBCATEGORIES.map(sc => {
+                {subcatList.map(sc => {
                   const active = selectedSubcat === sc.key;
-                  const count = wellnessSubcatCount(sc.key);
+                  const count = subcatCount(sc.key);
                   return (
                     <TouchableOpacity
                       key={sc.key}
                       onPress={() => setSelectedSubcat(sc.key)}
-                      style={[styles.subcatPill, active && styles.subcatPillActive]}
+                      style={[
+                        styles.subcatPill,
+                        { backgroundColor: subcatTheme + '1A', borderColor: subcatTheme + '4D' },
+                        active && { backgroundColor: subcatTheme, borderColor: subcatTheme },
+                      ]}
                       activeOpacity={0.85}
                     >
-                      <Ionicons name={sc.icon as any} size={14} color={active ? COLORS.white : '#10B981'} />
-                      <Text style={[styles.subcatText, active && styles.subcatTextActive]}>
+                      <Ionicons name={sc.icon as any} size={14} color={active ? COLORS.white : subcatTheme} />
+                      <Text style={[styles.subcatText, { color: subcatTheme }, active && styles.subcatTextActive]}>
                         {sc.label}
                       </Text>
-                      <View style={[styles.subcatBadge, active && styles.subcatBadgeActive]}>
-                        <Text style={[styles.subcatBadgeText, active && styles.subcatBadgeTextActive]}>
+                      <View style={[
+                        styles.subcatBadge,
+                        { backgroundColor: subcatTheme + '33' },
+                        active && styles.subcatBadgeActive,
+                      ]}>
+                        <Text style={[
+                          styles.subcatBadgeText,
+                          { color: subcatTheme },
+                          active && styles.subcatBadgeTextActive,
+                        ]}>
                           {count}
                         </Text>
                       </View>

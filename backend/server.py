@@ -2330,6 +2330,86 @@ async def startup():
         {"$set": {"subcategory": "spa"}}
     )
 
+    # ── Migration: Seed Cafés (subcategory of Restaurantes) ──
+    CAFE_PARTNERS = [
+        {
+            "partner_id": "ptr_cf_001", "subcategory": "cafe",
+            "name": "Niabakery & Café",
+            "description": "Café de especialidad y panadería francesa. Croissants, pain au chocolat y espresso de origen colombiano.",
+            "category": "restaurant", "tier": "popular",
+            "image_url": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4218, "lng": -75.5505},
+            "address": "Calle del Arzobispado, Centro",
+            "booking_link": "https://niabakery.co",
+            "price_range": "$$",
+            "experience": "Brunch francés, café de especialidad, panadería artesanal",
+            "is_certified": True, "instagram": "@niabakery",
+        },
+        {
+            "partner_id": "ptr_cf_002", "subcategory": "cafe",
+            "name": "Abacus Coffee Lab",
+            "description": "Coffee lab con baristas campeones nacionales. Métodos V60, Chemex, AeroPress y cold brew de la casa.",
+            "category": "restaurant", "tier": "premium",
+            "image_url": "https://images.unsplash.com/photo-1453614512568-c4024d13c247?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4256, "lng": -75.5478},
+            "address": "Calle del Pozo, Getsemaní",
+            "booking_link": "https://abacuscoffee.co",
+            "price_range": "$$",
+            "experience": "Catación de café, V60, AeroPress, postres de autor",
+            "is_certified": True, "instagram": "@abacuscoffee",
+        },
+        {
+            "partner_id": "ptr_cf_003", "subcategory": "cafe",
+            "name": "Café del Pueblo",
+            "description": "Café local en plaza colonial. Tinto típico, jugos naturales, arepas con huevo y desayunos costeños.",
+            "category": "restaurant", "tier": "popular",
+            "image_url": "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4202, "lng": -75.5538},
+            "address": "Plaza San Diego, Centro",
+            "booking_link": "https://cafedelpueblo.co",
+            "price_range": "$",
+            "experience": "Desayuno costeño, arepa de huevo, café tinto, jugo de corozo",
+            "is_certified": True, "instagram": "@cafedelpueblo",
+        },
+        {
+            "partner_id": "ptr_cf_004", "subcategory": "cafe",
+            "name": "Café San Alberto",
+            "description": "Café boutique en la muralla. Granos colombianos premium, ambiente moderno con vista al mar.",
+            "category": "restaurant", "tier": "premium",
+            "image_url": "https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4248, "lng": -75.5520},
+            "address": "Plaza Santo Domingo, Centro",
+            "booking_link": "https://cafesanalberto.com",
+            "price_range": "$$",
+            "experience": "Café de origen, latte art, postres con cacao",
+            "is_certified": True, "instagram": "@cafesanalberto",
+        },
+        {
+            "partner_id": "ptr_cf_005", "subcategory": "brunch",
+            "name": "Mila Pastelería",
+            "description": "Pastelería boutique francesa para brunch dominical. Tartas, eclairs y degustación de chocolate.",
+            "category": "restaurant", "tier": "premium",
+            "image_url": "https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4240, "lng": -75.5513},
+            "address": "Calle de la Iglesia, Centro",
+            "booking_link": "https://milapasteleria.com",
+            "price_range": "$$$",
+            "experience": "Brunch francés, pastelería autoral, té de tarde",
+            "is_certified": True, "instagram": "@milapasteleria",
+        },
+    ]
+    for partner in CAFE_PARTNERS:
+        await db.partners.update_one(
+            {"partner_id": partner["partner_id"]},
+            {"$setOnInsert": partner},
+            upsert=True,
+        )
+    # Backfill 'restaurant' subcategory on existing restaurant partners that lack it
+    await db.partners.update_many(
+        {"category": "restaurant", "subcategory": {"$exists": False}},
+        {"$set": {"subcategory": "restaurant"}}
+    )
+
     # ── Seed: Partner Promotions (ofertas del día) ──
     promo_count = await db.partner_promotions.count_documents({})
     if promo_count == 0:
