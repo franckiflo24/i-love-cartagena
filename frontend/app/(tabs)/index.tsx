@@ -23,6 +23,37 @@ type Event = {
   is_free: boolean; price: number; image_url: string; featured?: boolean;
 };
 
+type PEvent = {
+  event_id: string; partner_id: string; title: string; category: string;
+  date: string; start_time: string; end_time: string; flyer_url: string;
+  is_free: boolean; price: number; partner_name?: string; partner_tier?: string;
+  partner_image?: string;
+};
+
+const CAT_COLORS: Record<string, { main: string; bg: string; label: string }> = {
+  gastronomy: { main: '#F97316', bg: 'rgba(249,115,22,0.15)', label: 'Gastronomía' },
+  music:      { main: '#A855F7', bg: 'rgba(168,85,247,0.15)', label: 'Música' },
+  party:      { main: '#EC4899', bg: 'rgba(236,72,153,0.15)', label: 'Fiesta' },
+  wellness:   { main: '#22C55E', bg: 'rgba(34,197,94,0.15)',  label: 'Wellness' },
+  art:        { main: '#3B82F6', bg: 'rgba(59,130,246,0.15)', label: 'Arte' },
+  popup:      { main: '#06B6D4', bg: 'rgba(6,182,212,0.15)',  label: 'Pop-up' },
+};
+
+const getBudgetStyle = (isFree: boolean, price: number) => {
+  if (isFree) return { main: '#22C55E', bg: 'rgba(34,197,94,0.18)', label: 'GRATIS' };
+  if (price <= 30000) return { main: '#3B82F6', bg: 'rgba(59,130,246,0.18)', label: `$${(price/1000).toFixed(0)}K` };
+  if (price <= 80000) return { main: '#F97316', bg: 'rgba(249,115,22,0.18)', label: `$${(price/1000).toFixed(0)}K` };
+  return { main: '#EF4444', bg: 'rgba(239,68,68,0.18)', label: `$${(price/1000).toFixed(0)}K` };
+};
+
+const todayIso = () => new Date().toISOString().slice(0, 10);
+const isNightTime = (t: string) => {
+  // Considera "noche" eventos que arrancan a partir de las 17:00 (sunset, cena, fiesta)
+  if (!t) return false;
+  const hh = parseInt(t.split(':')[0], 10);
+  return hh >= 17 || hh < 5; // 5am es transición (after-party)
+};
+
 const formatDateRange = (start: string, end: string) => {
   const months = ['', 'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
   const s = new Date(start + 'T00:00:00');
@@ -42,6 +73,7 @@ export default function HomeScreen() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [featured, setFeatured] = useState<Event[]>([]);
   const [todayEvents, setTodayEvents] = useState<Event[]>([]);
+  const [todayPEvents, setTodayPEvents] = useState<PEvent[]>([]);
   const [sponsors, setSponsors] = useState<any[]>([]);
   const [activeSponsor, setActiveSponsor] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -52,16 +84,20 @@ export default function HomeScreen() {
 
   const fetchData = async () => {
     try {
-      const [s, f, sp] = await Promise.all([
+      const today = todayIso();
+      const [s, f, sp, pe] = await Promise.all([
         api.get('/seasons?active=true'),
         api.get('/events/featured'),
         api.get('/sponsors').catch(() => []),
+        api.get(`/partner-events?date=${today}`).catch(() => []),
       ]);
       setSeasons(s);
       setFeatured(f);
       setSponsors(sp);
+      setTodayPEvents(pe || []);
+      // Festival programación (kept for back-compat; no longer rendered as a section)
       const firstDate = s.length > 0 ? s[0].start_date : '2025-12-30';
-      const t = await api.get(`/events?date=${firstDate}`);
+      const t = await api.get(`/events?date=${firstDate}`).catch(() => []);
       setTodayEvents(t);
     } catch (e) {
       console.error(e);
@@ -356,39 +392,106 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        {/* Today's Events */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Programa · {seasons.length > 0 ? (() => { const d = new Date(seasons[0].start_date + 'T00:00:00'); const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']; return `${d.getDate()} ${meses[d.getMonth()]}`; })() : '30 Dic'}</Text>
-          </View>
-          {todayEvents.slice(0, 4).map((event) => (
-            <TouchableOpacity
-              key={event.event_id}
-              testID={`today-${event.event_id}`}
-              style={styles.eventRow}
-              onPress={() => {
-                trackEvent('event_click', event.event_id, 'event');
-                router.push(`/event/${event.event_id}`);
-              }}
-              activeOpacity={0.7}
-            >
-              <View style={styles.eventTime}>
-                <Text style={styles.timeText}>{event.start_time}</Text>
-              </View>
-              <Image source={{ uri: event.image_url }} style={styles.eventThumb} />
-              <View style={styles.eventInfo}>
-                <Text style={styles.eventTitle} numberOfLines={1}>{event.title}</Text>
-                <Text style={styles.eventVenue}>{event.venue_name}</Text>
-                <View style={styles.eventTags}>
-                  <View style={[styles.tag, event.is_free ? styles.tagFree : styles.tagPaid]}>
-                    <Text style={styles.tagText}>{event.is_free ? 'Gratis' : formatPrice(event.price)}</Text>
+        {/* Hoy & Esta noche - Partner Events */}
+        {(() => {
+          const dayPE = todayPEvents.filter(e => !isNightTime(e.start_time));
+          const nightPE = todayPEvents.filter(e => isNightTime(e.start_time));
+          const renderPECard = (event: PEvent) => {
+            const cat = CAT_COLORS[event.category] || { main: COLORS.primary, bg: 'rgba(217,119,6,0.15)', label: event.category };
+            const budget = getBudgetStyle(event.is_free, event.price);
+            return (
+              <TouchableOpacity
+                key={event.event_id}
+                style={styles.peCard}
+                onPress={() => {
+                  trackEvent('event_click', event.event_id, 'partner_event');
+                  router.push(`/partner-event/${event.event_id}` as any);
+                }}
+                activeOpacity={0.85}
+              >
+                <View style={styles.peThumbWrap}>
+                  <Image source={{ uri: event.flyer_url }} style={styles.peThumb} />
+                  <View style={[styles.peTimeChip]}>
+                    <Text style={styles.peTimeChipText}>{event.start_time}</Text>
                   </View>
                 </View>
+                <View style={styles.peBody}>
+                  <Text style={styles.peTitle} numberOfLines={2}>{event.title}</Text>
+                  <TouchableOpacity
+                    style={styles.pePartnerBtn}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      trackEvent('partner_click', event.partner_id, 'partner');
+                      router.push(`/partner/${event.partner_id}` as any);
+                    }}
+                    activeOpacity={0.7}
+                    hitSlop={{ top: 6, bottom: 6 }}
+                  >
+                    <Ionicons name="storefront-outline" size={11} color={COLORS.textMuted} />
+                    <Text style={styles.pePartner} numberOfLines={1}>{event.partner_name}</Text>
+                    <Ionicons name="chevron-forward" size={11} color={COLORS.textMuted} />
+                  </TouchableOpacity>
+                  <View style={styles.peTagsRow}>
+                    <View style={[styles.peCatBadge, { backgroundColor: cat.bg, borderColor: cat.main }]}>
+                      <View style={[styles.peCatDot, { backgroundColor: cat.main }]} />
+                      <Text style={[styles.peCatText, { color: cat.main }]}>{cat.label}</Text>
+                    </View>
+                    <View style={[styles.peBudgetBadge, { backgroundColor: budget.bg, borderColor: budget.main }]}>
+                      <Text style={[styles.peBudgetText, { color: budget.main }]}>{budget.label}</Text>
+                    </View>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          };
+          return (
+            <>
+              {/* Qué pasa hoy */}
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <View style={styles.sectionTitleRow}>
+                    <Ionicons name="sunny" size={18} color="#F97316" />
+                    <Text style={styles.sectionTitle}>Qué pasa hoy</Text>
+                    {dayPE.length > 0 && <Text style={styles.sectionCount}>{dayPE.length}</Text>}
+                  </View>
+                  <TouchableOpacity onPress={() => router.push('/(tabs)/agenda' as any)}>
+                    <Text style={styles.seeAll}>Ver todos</Text>
+                  </TouchableOpacity>
+                </View>
+                {dayPE.length === 0 ? (
+                  <View style={styles.emptySlot}>
+                    <Ionicons name="cafe-outline" size={26} color={COLORS.textMuted} />
+                    <Text style={styles.emptySlotText}>Sin planes de día por ahora</Text>
+                  </View>
+                ) : (
+                  dayPE.slice(0, 4).map(renderPECard)
+                )}
               </View>
-              <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
-            </TouchableOpacity>
-          ))}
-        </View>
+
+              {/* Qué pasa esta noche */}
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <View style={styles.sectionTitleRow}>
+                    <Ionicons name="moon" size={18} color="#A855F7" />
+                    <Text style={styles.sectionTitle}>Qué pasa esta noche</Text>
+                    {nightPE.length > 0 && <Text style={styles.sectionCount}>{nightPE.length}</Text>}
+                  </View>
+                  <TouchableOpacity onPress={() => router.push('/(tabs)/agenda' as any)}>
+                    <Text style={styles.seeAll}>Ver todos</Text>
+                  </TouchableOpacity>
+                </View>
+                {nightPE.length === 0 ? (
+                  <View style={styles.emptySlot}>
+                    <Ionicons name="wine-outline" size={26} color={COLORS.textMuted} />
+                    <Text style={styles.emptySlotText}>Sin planes de noche por ahora</Text>
+                  </View>
+                ) : (
+                  nightPE.slice(0, 4).map(renderPECard)
+                )}
+              </View>
+            </>
+          );
+        })()}
 
         {/* Partners Preview */}
         <View style={styles.section}>
@@ -504,4 +607,82 @@ const styles = StyleSheet.create({
   partnersCtaContent: { flex: 1, justifyContent: 'center', padding: SPACING.lg, gap: SPACING.xs },
   partnersCtaTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold },
   partnersCtaDesc: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular },
+
+  // Hoy/Esta noche - PE Cards
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  sectionCount: {
+    fontSize: 11,
+    color: COLORS.textMuted,
+    ...FONTS.bold,
+    backgroundColor: COLORS.surface,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    overflow: 'hidden',
+  },
+  emptySlot: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginHorizontal: SPACING.lg,
+    paddingVertical: 14,
+    paddingHorizontal: SPACING.md,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderStyle: 'dashed',
+  },
+  emptySlotText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
+  peCard: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    overflow: 'hidden',
+  },
+  peThumbWrap: { width: 84, height: 92, position: 'relative' },
+  peThumb: { width: '100%', height: '100%' },
+  peTimeChip: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    backgroundColor: 'rgba(5,8,20,0.85)',
+    borderRadius: RADIUS.full,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  peTimeChipText: { fontSize: 10, color: COLORS.white, ...FONTS.bold, letterSpacing: 0.4 },
+  peBody: { flex: 1, padding: 10, justifyContent: 'space-between' },
+  peTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold, lineHeight: 17 },
+  pePartnerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-start',
+    marginTop: 2,
+  },
+  pePartner: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, maxWidth: 140 },
+  peTagsRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 },
+  peCatBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+  },
+  peCatDot: { width: 6, height: 6, borderRadius: 3 },
+  peCatText: { fontSize: 9, ...FONTS.bold, letterSpacing: 0.3 },
+  peBudgetBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+  },
+  peBudgetText: { fontSize: 9, ...FONTS.bold, letterSpacing: 0.4 },
 });
