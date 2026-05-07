@@ -805,12 +805,10 @@ async def analytics_dashboard_v2(request: Request):
 @api_router.get("/city-pass/plans")
 async def city_pass_plans():
     return [
-        {"plan_id": "pass_basic", "name": "Explorer Pass", "price": 99000, "currency": "COP", "duration_days": 7, "color": "#D97706",
-         "benefits": ["Welcome drink en partners", "Prioridad de reserva", "5% descuento en experiencias", "Transporte nocturno gratis", "Acceso anticipado a eventos"]},
-        {"plan_id": "pass_premium", "name": "VIP Pass", "price": 299000, "currency": "COP", "duration_days": 7, "color": "#EAB308",
-         "benefits": ["Todo lo del Explorer Pass", "15% descuento en experiencias", "Mesa prioritaria en restaurantes", "Acceso VIP a venues", "Concierge personal", "Boat transfer incluido"]},
-        {"plan_id": "pass_ultimate", "name": "Ultimate Pass", "price": 599000, "currency": "COP", "duration_days": 7, "color": "#F59E0B",
-         "benefits": ["Todo lo del VIP Pass", "30% descuento en experiencias", "Acceso backstage", "Experiencias exclusivas", "Chef privado una noche", "Transfer aeropuerto incluido"]},
+        {"plan_id": "pass_classic", "name": "Classic Pass", "price": 200000, "currency": "COP", "duration_days": 12, "color": "#3B82F6",
+         "benefits": ["Acceso a todos los lugares culturales", "Entrada a museos y monumentos", "Mapa interactivo con guía cultural", "Soporte 24/7"]},
+        {"plan_id": "pass_premium", "name": "Premium Pass", "price": 400000, "currency": "COP", "duration_days": 12, "color": "#D97706",
+         "benefits": ["Todo lo del Classic Pass", "Shuttle aeropuerto incluido", "Acceso a eventos culturales exclusivos", "Acceso prioritario sin filas", "Transporte nocturno gratis"]},
     ]
 
 

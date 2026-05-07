@@ -119,11 +119,11 @@ export default function CityPassTab() {
             </View>
 
             {/* Quick Access CTA */}
-            <TouchableOpacity style={styles.discoverCTA} onPress={() => router.push('/partners' as any)}>
-              <Ionicons name="gift" size={20} color={COLORS.primary} />
+            <TouchableOpacity style={styles.discoverCTA} onPress={() => router.push('/(tabs)/agenda' as any)}>
+              <Ionicons name="calendar" size={20} color={COLORS.primary} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.discoverCTATitle}>Descubre ofertas exclusivas</Text>
-                <Text style={styles.discoverCTADesc}>Usa tu pass en partners certificados</Text>
+                <Text style={styles.discoverCTATitle}>Ver agenda cultural</Text>
+                <Text style={styles.discoverCTADesc}>Accede a los eventos con tu pass</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
             </TouchableOpacity>
@@ -140,19 +140,13 @@ export default function CityPassTab() {
               <Text style={styles.heroTitle}>City Pass</Text>
               <Text style={styles.heroSubtitle}>Vive la cultura sin límite</Text>
               <Text style={styles.heroDesc}>
-                Acceso preferente, descuentos exclusivos y beneficios en todos los partners certificados de Amo Cartagena.
+                Tu pase cultural para vivir Cartagena al máximo. Acceso a museos, monumentos y eventos culturales.
               </Text>
             </View>
 
             {/* Plans */}
             {plans.map((plan, idx) => (
               <View key={plan.plan_id} style={[styles.planCard, idx === 1 && styles.planCardFeatured]}>
-                {idx === 1 && (
-                  <View style={styles.popularBadge}>
-                    <Ionicons name="flame" size={12} color="#FFF" />
-                    <Text style={styles.popularText}>MÁS POPULAR</Text>
-                  </View>
-                )}
 
                 <View style={styles.planTop}>
                   <View style={[styles.planIconCircle, { backgroundColor: `${plan.color}20` }]}>
@@ -199,16 +193,6 @@ export default function CityPassTab() {
                 </TouchableOpacity>
               </View>
             ))}
-
-            {/* Discover CTA */}
-            <TouchableOpacity style={styles.discoverCTA} onPress={() => router.push('/partners' as any)}>
-              <Ionicons name="gift" size={20} color={COLORS.primary} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.discoverCTATitle}>Descubre las ofertas</Text>
-                <Text style={styles.discoverCTADesc}>Ver todos los partners y experiencias</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
-            </TouchableOpacity>
 
             {/* Trust badges */}
             <View style={styles.trustRow}>
