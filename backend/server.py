@@ -853,15 +853,153 @@ async def track_partner_reserve(partner_id: str, request: Request):
     return {"booking_url": booking_link, "tracked": True}
 
 
-# ── Itineraries ─────────────────────────────────────────────
+# ── Itineraries (AI Daily Routes) ───────────────────────────
+ITINERARY_CATEGORIES = {"lifestyle", "cultura", "musical"}
+
+# Mapping from itinerary category to partner categories used to build the pool
+_LIFESTYLE_PCATS = {"restaurant", "beach_club", "wellness", "hotel", "shopping"}
+_CULTURA_PCATS   = {"culture", "concierge"}
+_MUSICAL_PCATS   = {"club", "restaurant"}  # restaurants with live music + clubs
+
+# Mapping to partner_events categories
+_LIFESTYLE_ECATS = {"gastronomy", "wellness", "lifestyle", "beach"}
+_CULTURA_ECATS   = {"culture", "art", "history"}
+_MUSICAL_ECATS   = {"music", "party", "concert", "dj"}
+
+
+def _pcats_for(category: str) -> set:
+    return {
+        "lifestyle": _LIFESTYLE_PCATS,
+        "cultura":   _CULTURA_PCATS,
+        "musical":   _MUSICAL_PCATS,
+    }.get(category, _LIFESTYLE_PCATS)
+
+
+def _ecats_for(category: str) -> set:
+    return {
+        "lifestyle": _LIFESTYLE_ECATS,
+        "cultura":   _CULTURA_ECATS,
+        "musical":   _MUSICAL_ECATS,
+    }.get(category, _LIFESTYLE_ECATS)
+
+
+async def _get_optional_user(request: Request) -> Optional[dict]:
+    try:
+        return await get_current_user(request)
+    except HTTPException:
+        return None
+
+
+async def _build_user_profile_for_routes(user_id: str) -> tuple[Optional[dict], list]:
+    """Return (profile, favorites_data) for a given user. Light queries only."""
+    profile = await db.ai_user_profiles.find_one({"user_id": user_id}, {"_id": 0})
+    favs_cur = db.favorites.find({"user_id": user_id}, {"_id": 0})
+    fav_docs = await favs_cur.to_list(50)
+    enriched = []
+    for f in fav_docs:
+        item_type = f.get("item_type") or f.get("type")
+        item_id = f.get("item_id") or f.get("id")
+        if item_type == "partner":
+            p = await db.partners.find_one({"partner_id": item_id}, {"_id": 0})
+            if p:
+                enriched.append({"item_type": "partner", "name": p.get("name"), "category": p.get("category"), "subcategory": p.get("subcategory"), "tier": p.get("tier")})
+        elif item_type == "event":
+            e = await db.events.find_one({"event_id": item_id}, {"_id": 0}) or await db.partner_events.find_one({"event_id": item_id}, {"_id": 0})
+            if e:
+                enriched.append({"item_type": "event", "name": e.get("title") or e.get("name"), "category": e.get("category"), "tier": "event"})
+        elif item_type == "venue":
+            v = await db.venues.find_one({"venue_id": item_id}, {"_id": 0})
+            if v:
+                enriched.append({"item_type": "venue", "name": v.get("name"), "category": v.get("type"), "tier": "venue"})
+    return profile, enriched
+
+
+async def _generate_daily_itinerary(user: Optional[dict], category: str, force: bool = False) -> dict:
+    from ai_itinerary import generate_itinerary
+
+    cat = (category or "lifestyle").lower()
+    if cat not in ITINERARY_CATEGORIES:
+        cat = "lifestyle"
+
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    user_id = (user or {}).get("user_id") or "guest"
+    cache_key = f"{user_id}:{cat}:{today}"
+
+    if not force:
+        cached = await db.ai_itineraries.find_one({"cache_key": cache_key}, {"_id": 0})
+        if cached:
+            return cached
+
+    # Build partner pool for this category
+    pcats = list(_pcats_for(cat))
+    partners_pool = await db.partners.find({"category": {"$in": pcats}}, {"_id": 0}).to_list(40)
+
+    # Fetch today's partner events for category
+    ecats = list(_ecats_for(cat))
+    today_events = await db.partner_events.find(
+        {"date": today, "category": {"$in": ecats}, "status": {"$in": ["approved", None]}},
+        {"_id": 0},
+    ).to_list(20)
+
+    profile, favorites = (None, [])
+    if user:
+        profile, favorites = await _build_user_profile_for_routes(user["user_id"])
+
+    result = await generate_itinerary(
+        user_id=user_id,
+        category=cat,
+        user_profile=profile,
+        favorites_data=favorites,
+        partners_pool=partners_pool,
+        today_events=today_events,
+    )
+
+    record = {
+        "cache_key": cache_key,
+        "user_id": user_id,
+        "category": cat,
+        "date": today,
+        "itinerary_id": f"itn_ai_{cat}_{user_id[:8]}_{today.replace('-', '')}",
+        **result,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.ai_itineraries.update_one({"cache_key": cache_key}, {"$set": record}, upsert=True)
+    record.pop("_id", None)
+    return record
+
+
 @api_router.get("/itineraries")
-async def list_itineraries():
-    return await db.itineraries.find({}, {"_id": 0}).to_list(20)
+async def list_itineraries(request: Request, category: Optional[str] = None):
+    """If `category` is provided returns the user's AI-generated daily route for that category.
+    Otherwise returns the 3 default routes (one per category) for the home grid."""
+    user = await _get_optional_user(request)
+    if category:
+        return await _generate_daily_itinerary(user, category, force=False)
+
+    out = []
+    for cat in ["lifestyle", "cultura", "musical"]:
+        try:
+            it = await _generate_daily_itinerary(user, cat, force=False)
+            out.append(it)
+        except Exception as e:
+            logger.error(f"itinerary {cat} failed: {e}")
+    return out
+
+
+@api_router.post("/itineraries/regenerate")
+async def regenerate_itinerary(request: Request):
+    body = await request.json() if await request.body() else {}
+    category = (body.get("category") or "lifestyle").lower()
+    user = await _get_optional_user(request)
+    return await _generate_daily_itinerary(user, category, force=True)
 
 
 @api_router.get("/itineraries/{itinerary_id}")
 async def get_itinerary(itinerary_id: str):
     it = await db.itineraries.find_one({"itinerary_id": itinerary_id}, {"_id": 0})
+    if it:
+        return it
+    it = await db.ai_itineraries.find_one({"itinerary_id": itinerary_id}, {"_id": 0})
     if not it:
         raise HTTPException(status_code=404, detail="Itinerary not found")
     return it
