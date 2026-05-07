@@ -86,6 +86,7 @@ export default function PartnersScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSubcat, setSelectedSubcat] = useState<string | null>(null);
   const [tierFilter, setTierFilter] = useState<Tier | null>(null);
+  const [tierShowcase, setTierShowcase] = useState<Tier | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -132,7 +133,25 @@ export default function PartnersScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        {selectedCategory ? (
+        {tierShowcase ? (
+          <View style={styles.headerWithBack}>
+            <TouchableOpacity
+              testID="tier-showcase-back"
+              onPress={() => setTierShowcase(null)}
+              style={styles.backBtn}
+            >
+              <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
+            </TouchableOpacity>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.title, { color: TIER_COLORS[tierShowcase].main }]}>
+                {s(`tier_${tierShowcase}`)}
+              </Text>
+              <Text style={styles.subtitle}>
+                {s(`tier_${tierShowcase}_desc`)} · {partners.filter(p => p.tier === tierShowcase).length} lugares
+              </Text>
+            </View>
+          </View>
+        ) : selectedCategory ? (
           <View style={styles.headerWithBack}>
             <TouchableOpacity
               onPress={() => {
@@ -174,6 +193,76 @@ export default function PartnersScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {loading ? (
           <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
+        ) : tierShowcase ? (
+          /* ── Tier Showcase: all partners of a tier across categories ── */
+          <View style={styles.list}>
+            <View style={[styles.tierShowcaseHero, { borderColor: TIER_COLORS[tierShowcase].main }]}>
+              <View style={[styles.tierShowcaseDot, { backgroundColor: TIER_COLORS[tierShowcase].main }]} />
+              <Text style={[styles.tierShowcaseTitle, { color: TIER_COLORS[tierShowcase].main }]}>
+                {s(`tier_${tierShowcase}`)}
+              </Text>
+              <Text style={styles.tierShowcaseDesc}>{s(`tier_${tierShowcase}_desc`)}</Text>
+            </View>
+            {(() => {
+              const tierPartners = partners.filter(p => p.tier === tierShowcase);
+              if (tierPartners.length === 0) {
+                return (
+                  <View style={styles.emptyState}>
+                    <Ionicons name="business-outline" size={48} color={COLORS.textMuted} />
+                    <Text style={styles.emptyText}>Próximamente</Text>
+                  </View>
+                );
+              }
+              return tierPartners.map(partner => {
+                const tierColor = TIER_COLORS[tierShowcase];
+                const catLabel = CATEGORIES.find(c => c.key === partner.category)?.label || partner.category;
+                return (
+                  <TouchableOpacity
+                    key={partner.partner_id}
+                    style={[styles.partnerCard, { borderColor: tierColor.border, borderWidth: 1.5 }]}
+                    onPress={() => router.push(`/partner/${partner.partner_id}`)}
+                    activeOpacity={0.8}
+                  >
+                    <Image source={{ uri: partner.image_url }} style={styles.partnerImage} />
+                    <View style={styles.partnerOverlay} />
+                    <View style={[styles.tierStripe, { backgroundColor: tierColor.main }]} />
+                    <View style={styles.topBadgeRow}>
+                      <TierBadge tier={partner.tier} size="sm" />
+                    </View>
+                    <View style={[styles.certifiedBadge, { backgroundColor: tierColor.bg, borderColor: tierColor.border }]}>
+                      <Ionicons name="pricetag" size={11} color={tierColor.main} />
+                      <Text style={[styles.certifiedText, { color: tierColor.main }]}>{(catLabel || '').toUpperCase()}</Text>
+                    </View>
+                    <View style={styles.partnerContent}>
+                      <Text style={styles.partnerName}>{partner.name}</Text>
+                      <Text style={styles.partnerDesc} numberOfLines={2}>{partner.description}</Text>
+                      <View style={styles.partnerMeta}>
+                        <View style={styles.metaItem}>
+                          <Ionicons name="location-outline" size={13} color={COLORS.textMuted} />
+                          <Text style={styles.metaText} numberOfLines={1}>{partner.address}</Text>
+                        </View>
+                        <View style={styles.metaItem}>
+                          <Ionicons name="cash-outline" size={13} color={COLORS.textMuted} />
+                          <Text style={styles.metaText}>{partner.price_range}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.partnerActions}>
+                        <TouchableOpacity style={styles.detailBtn} onPress={() => router.push(`/partner/${partner.partner_id}`)}>
+                          <Text style={styles.detailText}>Ver más</Text>
+                        </TouchableOpacity>
+                        {partner.booking_link ? (
+                          <TouchableOpacity style={styles.bookBtn} onPress={() => RNLinking.openURL(partner.booking_link)}>
+                            <Text style={styles.bookText}>Reservar</Text>
+                            <Ionicons name="arrow-forward" size={14} color={COLORS.white} />
+                          </TouchableOpacity>
+                        ) : null}
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              });
+            })()}
+          </View>
         ) : !selectedCategory ? (
           /* ── Category Grid ── */
           <>
@@ -188,12 +277,18 @@ export default function PartnersScreen() {
               </View>
             </View>
 
-            {/* Tier Legend */}
+            {/* Tier Legend - now clickable */}
             <View style={styles.tierLegend}>
               <Text style={styles.tierLegendTitle}>{s('tier_filter_label')}</Text>
               <View style={styles.tierLegendRow}>
                 {TIER_ORDER.map(t => (
-                  <View key={t} style={styles.tierLegendItem}>
+                  <TouchableOpacity
+                    key={t}
+                    testID={`tier-legend-${t}`}
+                    style={styles.tierLegendItem}
+                    onPress={() => setTierShowcase(t)}
+                    activeOpacity={0.7}
+                  >
                     <View style={[styles.tierLegendDot, { backgroundColor: TIER_COLORS[t].main }]} />
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.tierLegendName, { color: TIER_COLORS[t].main }]}>
@@ -201,7 +296,8 @@ export default function PartnersScreen() {
                       </Text>
                       <Text style={styles.tierLegendDesc}>{s(`tier_${t}_desc`)}</Text>
                     </View>
-                  </View>
+                    <Ionicons name="chevron-forward" size={18} color={TIER_COLORS[t].main} />
+                  </TouchableOpacity>
                 ))}
               </View>
             </View>
@@ -600,10 +696,14 @@ const styles = StyleSheet.create({
   tierLegend: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border },
   tierLegendTitle: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold, letterSpacing: 1, textTransform: 'uppercase', marginBottom: SPACING.sm },
   tierLegendRow: { gap: SPACING.sm },
-  tierLegendItem: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  tierLegendItem: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, paddingVertical: 4 },
   tierLegendDot: { width: 10, height: 10, borderRadius: 5 },
   tierLegendName: { fontSize: 13, ...FONTS.bold, letterSpacing: 0.5 },
   tierLegendDesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 1 },
+  tierShowcaseHero: { marginBottom: SPACING.md, padding: SPACING.lg, borderRadius: RADIUS.lg, borderWidth: 1.5, backgroundColor: COLORS.surface, alignItems: 'center' },
+  tierShowcaseDot: { width: 14, height: 14, borderRadius: 7, marginBottom: 6 },
+  tierShowcaseTitle: { fontSize: 18, ...FONTS.bold, letterSpacing: 1 },
+  tierShowcaseDesc: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 4, textAlign: 'center' },
 
   // Tier Filter Pills (en lista)
   tierFilterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.xs, marginBottom: SPACING.md },
