@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
+import { useFavorites } from '../../src/context/FavoritesContext';
 
 const CAT_ICONS: Record<string, string> = {
   gastronomy: 'restaurant',
@@ -36,6 +37,7 @@ const formatPrice = (p: number) => p === 0 ? 'GRATIS' : `$${p.toLocaleString('es
 export default function PartnerEventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [reserving, setReserving] = useState(false);
@@ -87,6 +89,16 @@ export default function PartnerEventDetail() {
           <View style={styles.flyerOverlay} />
           <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={22} color={COLORS.white} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.heartBtn}
+            onPress={() => event?.event_id && toggleFavorite(event.event_id, 'partner_event')}
+          >
+            <Ionicons
+              name={event?.event_id && isFavorite(event.event_id) ? 'heart' : 'heart-outline'}
+              size={22}
+              color={event?.event_id && isFavorite(event.event_id) ? '#EF4444' : COLORS.white}
+            />
           </TouchableOpacity>
           <View style={[styles.priceBadgeBig, event.is_free ? styles.priceFree : styles.pricePaid]}>
             <Text style={styles.priceBigText}>{formatPrice(event.price)}</Text>
@@ -201,6 +213,7 @@ const styles = StyleSheet.create({
   flyer: { width: '100%', height: '100%' },
   flyerOverlay: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '60%', backgroundColor: 'rgba(5,8,20,0.85)' },
   backBtn: { position: 'absolute', top: SPACING.md, left: SPACING.md, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
+  heartBtn: { position: 'absolute', top: SPACING.md, left: 64, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
   priceBadgeBig: { position: 'absolute', top: SPACING.md, right: SPACING.md, borderRadius: RADIUS.full, paddingHorizontal: 14, paddingVertical: 7 },
   priceFree: { backgroundColor: COLORS.success },
   pricePaid: { backgroundColor: 'rgba(5,8,20,0.85)', borderWidth: 1, borderColor: COLORS.primary },

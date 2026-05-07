@@ -7,11 +7,13 @@ import { COLORS, SPACING, RADIUS, FONTS, PARTNER_CATEGORY_LABELS, TIER_COLORS, T
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
 import { useLang } from '../../src/context/LanguageContext';
+import { useFavorites } from '../../src/context/FavoritesContext';
 
 export default function PartnerDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { s } = useLang();
+  const { isFavorite, toggleFavorite } = useFavorites();
   const [partner, setPartner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [partnerEvents, setPartnerEvents] = useState<any[]>([]);
@@ -75,6 +77,16 @@ export default function PartnerDetail() {
           <View style={styles.heroOverlay} />
           <TouchableOpacity testID="partner-back-btn" style={styles.backBtn} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.heartBtn}
+            onPress={() => toggleFavorite(partner.partner_id, 'partner')}
+          >
+            <Ionicons
+              name={isFavorite(partner.partner_id) ? 'heart' : 'heart-outline'}
+              size={22}
+              color={isFavorite(partner.partner_id) ? '#EF4444' : COLORS.white}
+            />
           </TouchableOpacity>
           {partner.is_certified && (
             <View style={styles.sealBadge}>
@@ -216,6 +228,7 @@ const styles = StyleSheet.create({
   heroImage: { width: '100%', height: '100%' },
   heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5,8,20,0.4)' },
   backBtn: { position: 'absolute', top: SPACING.md, left: SPACING.md, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(5,8,20,0.6)', alignItems: 'center', justifyContent: 'center' },
+  heartBtn: { position: 'absolute', top: SPACING.md, right: SPACING.md, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(5,8,20,0.6)', alignItems: 'center', justifyContent: 'center' },
   sealBadge: { position: 'absolute', top: SPACING.md, right: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(5,8,20,0.85)', borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.primary },
   sealText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1 },
   heroBottom: { position: 'absolute', bottom: SPACING.lg, left: SPACING.lg, right: SPACING.lg },

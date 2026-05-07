@@ -3,9 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIn
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS, TIER_COLORS, Tier } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
+import { useFavorites } from '../../src/context/FavoritesContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
@@ -37,6 +38,7 @@ const formatDateRange = (start: string, end: string) => {
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { favorites } = useFavorites();
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [featured, setFeatured] = useState<Event[]>([]);
   const [todayEvents, setTodayEvents] = useState<Event[]>([]);
@@ -45,6 +47,7 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeSeasonIdx, setActiveSeasonIdx] = useState(0);
+  const [favItems, setFavItems] = useState<any[]>([]);
   const flatListRef = useRef<FlatList>(null);
 
   const fetchData = async () => {
@@ -68,7 +71,38 @@ export default function HomeScreen() {
     }
   };
 
+  // Hydrate favorites with their actual data (partners + partner-events)
+  const fetchFavorites = async () => {
+    if (!favorites || favorites.length === 0) { setFavItems([]); return; }
+    try {
+      const results: any[] = [];
+      // Group by type for batch fetch
+      const partnerIds = favorites.filter(f => f.item_type === 'partner').map(f => f.item_id);
+      const peIds = favorites.filter(f => f.item_type === 'partner_event').map(f => f.item_id);
+      // Partners: fetch all then filter (avoids N requests)
+      if (partnerIds.length > 0) {
+        try {
+          const allPartners = await api.get('/partners');
+          for (const p of allPartners) {
+            if (partnerIds.includes(p.partner_id)) {
+              results.push({ kind: 'partner', id: p.partner_id, title: p.name, image: p.image_url, subtitle: (p.category || '').toUpperCase(), tier: p.tier });
+            }
+          }
+        } catch {}
+      }
+      // Partner-events: fetch one by one (small numbers)
+      for (const id of peIds) {
+        try {
+          const ev = await api.get(`/partner-events/${id}`);
+          results.push({ kind: 'partner_event', id, title: ev.title, image: ev.flyer_url, subtitle: `${ev.date} · ${ev.start_time}`, tier: ev.partner?.tier || ev.partner_tier });
+        } catch {}
+      }
+      setFavItems(results);
+    } catch (e) { console.error('favs hydrate', e); }
+  };
+
   useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchFavorites(); /* eslint-disable-next-line */ }, [favorites]);
 
   // Sponsor rotation every 5 seconds
   useEffect(() => {
@@ -241,6 +275,46 @@ export default function HomeScreen() {
           ))}
         </View>
 
+        {/* My Favorites */}
+        {favItems.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="heart" size={18} color="#EF4444" />
+                <Text style={styles.sectionTitle}>Mis favoritos</Text>
+                <View style={styles.favCountBubble}><Text style={styles.favCountText}>{favItems.length}</Text></View>
+              </View>
+              <TouchableOpacity onPress={() => router.push('/favorites')}>
+                <Text style={styles.seeAll}>Ver todos</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+              {favItems.map((item) => {
+                const tier = item.tier ? TIER_COLORS[item.tier as Tier] : null;
+                return (
+                  <TouchableOpacity
+                    key={`${item.kind}-${item.id}`}
+                    style={[styles.favCard, tier && { borderColor: tier.border }]}
+                    onPress={() => router.push(item.kind === 'partner' ? `/partner/${item.id}` : `/partner-event/${item.id}`)}
+                    activeOpacity={0.85}
+                  >
+                    <Image source={{ uri: item.image }} style={styles.favImage} />
+                    <View style={styles.favOverlay} />
+                    <View style={styles.favHeartBadge}>
+                      <Ionicons name="heart" size={11} color="#EF4444" />
+                    </View>
+                    {tier && <View style={[styles.favTierStripe, { backgroundColor: tier.main }]} />}
+                    <View style={styles.favInfo}>
+                      <Text style={styles.favSubtitle} numberOfLines={1}>{item.subtitle}</Text>
+                      <Text style={styles.favTitle} numberOfLines={2}>{item.title}</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
+
         {/* Featured Events */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -388,7 +462,19 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACING.lg, marginBottom: SPACING.md },
   sectionTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold },
   seeAll: { fontSize: 13, color: COLORS.primary, ...FONTS.semibold },
-  horizontalList: { paddingLeft: SPACING.lg, gap: SPACING.md },
+  horizontalList: { paddingLeft: SPACING.lg, gap: SPACING.md, paddingRight: SPACING.lg },
+
+  // Favorites carousel
+  favCountBubble: { backgroundColor: '#EF4444', minWidth: 22, paddingHorizontal: 6, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  favCountText: { color: COLORS.white, fontSize: 11, ...FONTS.bold },
+  favCard: { width: 160, height: 200, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: 1.5, borderColor: COLORS.border, position: 'relative' },
+  favImage: { position: 'absolute', width: '100%', height: '100%' },
+  favOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5,8,20,0.55)' },
+  favHeartBadge: { position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.95)', alignItems: 'center', justifyContent: 'center' },
+  favTierStripe: { position: 'absolute', top: 0, left: 0, right: 0, height: 3 },
+  favInfo: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: SPACING.sm },
+  favSubtitle: { fontSize: 9, color: COLORS.primary, ...FONTS.bold, letterSpacing: 0.8 },
+  favTitle: { fontSize: 13, color: COLORS.white, ...FONTS.bold, marginTop: 4, lineHeight: 17 },
   featuredCard: { width: 260, height: 200, borderRadius: RADIUS.xl, overflow: 'hidden' },
   featuredImage: { width: '100%', height: '100%', position: 'absolute' },
   featuredOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' },
