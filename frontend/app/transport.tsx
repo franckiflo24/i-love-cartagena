@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking as RNLinking } from 'react-native';
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator,
+  Linking as RNLinking, Modal, Image, KeyboardAvoidingView, Platform, Alert,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 
@@ -14,10 +18,25 @@ const TRANSPORT_ICONS: Record<string, string> = {
   taxi: 'car',
 };
 
+function parsePrice(s: string): { oneWay: number; roundTrip: number } {
+  if (!s) return { oneWay: 0, roundTrip: 0 };
+  const nums = (s.match(/(\d{1,3}(?:,\d{3})+|\d+)/g) || []).map(n => parseInt(n.replace(/,/g, ''), 10));
+  if (nums.length === 0) return { oneWay: 0, roundTrip: 0 };
+  if (nums.length === 1) return { oneWay: nums[0], roundTrip: nums[0] };
+  return { oneWay: nums[0], roundTrip: nums[1] };
+}
+
 export default function TransportScreen() {
   const router = useRouter();
   const [routes, setRoutes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Buy modal state
+  const [buyModalRoute, setBuyModalRoute] = useState<any | null>(null);
+  const [tripType, setTripType] = useState<'one_way' | 'round_trip'>('round_trip');
+  const [passengers, setPassengers] = useState(1);
+  const [paying, setPaying] = useState(false);
+  const [resultTicket, setResultTicket] = useState<any | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -35,82 +54,304 @@ export default function TransportScreen() {
     RNLinking.openURL(`https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}`);
   };
 
+  const openBuyModal = (route: any) => {
+    setBuyModalRoute(route);
+    setTripType('round_trip');
+    setPassengers(1);
+    setResultTicket(null);
+  };
+
+  const closeAll = () => { setBuyModalRoute(null); setResultTicket(null); };
+
+  const handlePay = async () => {
+    if (!buyModalRoute) return;
+    setPaying(true);
+    try {
+      const userRaw = await AsyncStorage.getItem('user_data');
+      const user = userRaw ? JSON.parse(userRaw) : null;
+      const today = new Date().toISOString().slice(0, 10);
+      const ticket = await api.post(`/transport/${buyModalRoute.transport_id}/buy`, {
+        user_id: user?.user_id || `guest_${Date.now()}`,
+        user_name: user?.name || 'Visitante',
+        user_email: user?.email,
+        trip_type: tripType,
+        passengers,
+        departure_date: today,
+        port_tax_included: true,
+      });
+      setResultTicket(ticket);
+    } catch (e: any) {
+      Alert.alert('Error en el pago', e?.message || 'Intenta de nuevo más tarde.');
+    }
+    setPaying(false);
+  };
+
+  // Compute totals for the modal
+  const prices = buyModalRoute ? parsePrice(buyModalRoute.price || '') : { oneWay: 0, roundTrip: 0 };
+  const basePrice = tripType === 'round_trip' ? prices.roundTrip : prices.oneWay;
+  const subtotal = basePrice * passengers;
+  const portTax = 25000 * passengers;
+  const total = subtotal + portTax;
+  const isPayable = basePrice > 0;
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <TouchableOpacity testID="transport-back-btn" onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
         </TouchableOpacity>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={styles.title}>Transporte</Text>
-          <Text style={styles.subtitle}>Movilidad oficial Amo Cartagena</Text>
+          <Text style={styles.subtitle}>Compra tu ticket en línea — sin filas</Text>
         </View>
+        <TouchableOpacity onPress={() => router.push('/my-tickets' as any)} style={styles.ticketsBtn}>
+          <Ionicons name="ticket" size={18} color={COLORS.primary} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
         {loading ? (
           <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
         ) : (
-          routes.map(route => (
-            <View key={route.transport_id} style={styles.card} testID={`transport-${route.transport_id}`}>
-              <View style={styles.cardHeader}>
-                <View style={styles.iconWrap}>
-                  <Ionicons name={TRANSPORT_ICONS[route.type] as any || 'car'} size={22} color={COLORS.primary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.routeName}>{route.route}</Text>
-                  <Text style={styles.routePartner}>{route.partner_name}</Text>
-                </View>
-              </View>
-
-              <View style={styles.scheduleSection}>
-                <Text style={styles.scheduleTitle}>Horarios</Text>
-                {route.schedule.map((s: any, i: number) => (
-                  <View key={i} style={styles.scheduleRow}>
-                    <View style={styles.dot} />
-                    <Text style={styles.scheduleTime}>{s.departure}</Text>
-                    {s.arrival ? <Text style={styles.scheduleArrow}>→ {s.arrival}</Text> : null}
-                    <Text style={styles.scheduleNote}>{s.notes}</Text>
+          routes.map(route => {
+            const p = parsePrice(route.price || '');
+            const canPay = p.oneWay > 0 && (route.type === 'boat' || route.type === 'shuttle');
+            return (
+              <View key={route.transport_id} style={styles.card} testID={`transport-${route.transport_id}`}>
+                <View style={styles.cardHeader}>
+                  <View style={styles.iconWrap}>
+                    <Ionicons name={TRANSPORT_ICONS[route.type] as any || 'car'} size={22} color={COLORS.primary} />
                   </View>
-                ))}
-              </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.routeName}>{route.route_name || route.partner}</Text>
+                    <Text style={styles.routePartner}>{route.partner}</Text>
+                  </View>
+                  {canPay && (
+                    <View style={styles.qrBadge}>
+                      <Ionicons name="qr-code" size={11} color="#22C55E" />
+                      <Text style={styles.qrBadgeText}>QR</Text>
+                    </View>
+                  )}
+                </View>
 
-              <View style={styles.details}>
-                <View style={styles.detailRow}>
-                  <Ionicons name="location-outline" size={14} color={COLORS.textMuted} />
-                  <Text style={styles.detailText}>{route.departure_point}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Ionicons name="cash-outline" size={14} color={COLORS.textMuted} />
-                  <Text style={styles.detailText}>{route.price}</Text>
-                </View>
-                {route.last_return && (
-                  <View style={styles.detailRow}>
-                    <Ionicons name="alert-circle-outline" size={14} color={COLORS.primary} />
-                    <Text style={[styles.detailText, { color: COLORS.primary }]}>Última salida: {route.last_return}</Text>
+                {route.schedule && route.schedule.length > 0 && (
+                  <View style={styles.scheduleSection}>
+                    <Text style={styles.scheduleTitle}>Horarios</Text>
+                    {route.schedule.slice(0, 3).map((sc: any, i: number) => (
+                      <View key={i} style={styles.scheduleRow}>
+                        <View style={styles.dot} />
+                        <Text style={styles.scheduleTime}>{sc.time}</Text>
+                        <Text style={styles.scheduleArrow}>→</Text>
+                        <Text style={styles.scheduleNote} numberOfLines={1}>{sc.note || sc.destination || ''}</Text>
+                      </View>
+                    ))}
                   </View>
                 )}
-                {route.notes && (
-                  <View style={styles.detailRow}>
-                    <Ionicons name="information-circle-outline" size={14} color={COLORS.textMuted} />
-                    <Text style={styles.detailText}>{route.notes}</Text>
-                  </View>
-                )}
-              </View>
 
-              <TouchableOpacity
-                testID={`transport-map-${route.transport_id}`}
-                style={styles.mapBtn}
-                onPress={() => openMaps(route.departure_location)}
-              >
-                <Ionicons name="navigate" size={14} color={COLORS.primary} />
-                <Text style={styles.mapBtnText}>Ver punto de salida</Text>
-              </TouchableOpacity>
-            </View>
-          ))
+                <View style={styles.details}>
+                  <View style={styles.detailRow}>
+                    <Ionicons name="cash-outline" size={14} color={COLORS.primary} />
+                    <Text style={styles.detailText}>{route.price || 'Consulta tarifa'}</Text>
+                  </View>
+                  {route.duration && (
+                    <View style={styles.detailRow}>
+                      <Ionicons name="time-outline" size={14} color={COLORS.primary} />
+                      <Text style={styles.detailText}>{route.duration}</Text>
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.actionsRow}>
+                  <TouchableOpacity
+                    testID={`transport-map-${route.transport_id}`}
+                    style={styles.mapBtn}
+                    onPress={() => openMaps(route.departure_location)}
+                  >
+                    <Ionicons name="navigate" size={14} color={COLORS.primary} />
+                    <Text style={styles.mapBtnText}>Punto de salida</Text>
+                  </TouchableOpacity>
+
+                  {canPay && (
+                    <TouchableOpacity
+                      style={styles.payBtn}
+                      onPress={() => openBuyModal(route)}
+                      activeOpacity={0.85}
+                    >
+                      <Ionicons name="card" size={14} color={COLORS.white} />
+                      <Text style={styles.payBtnText}>Pagar en línea</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            );
+          })
         )}
         <View style={{ height: SPACING.xxl }} />
       </ScrollView>
+
+      {/* Buy modal */}
+      <Modal
+        visible={buyModalRoute !== null}
+        animationType="slide"
+        transparent
+        onRequestClose={closeAll}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.modalCard}>
+            <View style={styles.modalHandle} />
+            {!resultTicket ? (
+              <>
+                <Text style={styles.modalTitle}>Comprar ticket</Text>
+                <Text style={styles.modalSubtitle}>{buyModalRoute?.route_name || buyModalRoute?.partner}</Text>
+
+                {/* Trip type */}
+                <Text style={styles.modalLabel}>Tipo de viaje</Text>
+                <View style={styles.optionsRow}>
+                  {isPayable && prices.oneWay !== prices.roundTrip && (
+                    <TouchableOpacity
+                      style={[styles.optionBtn, tripType === 'one_way' && styles.optionBtnActive]}
+                      onPress={() => setTripType('one_way')}
+                    >
+                      <Text style={[styles.optionLabel, tripType === 'one_way' && styles.optionLabelActive]}>
+                        Solo ida
+                      </Text>
+                      <Text style={[styles.optionPrice, tripType === 'one_way' && styles.optionPriceActive]}>
+                        ${prices.oneWay.toLocaleString()} COP
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity
+                    style={[styles.optionBtn, tripType === 'round_trip' && styles.optionBtnActive]}
+                    onPress={() => setTripType('round_trip')}
+                  >
+                    <Text style={[styles.optionLabel, tripType === 'round_trip' && styles.optionLabelActive]}>
+                      Ida y vuelta
+                    </Text>
+                    <Text style={[styles.optionPrice, tripType === 'round_trip' && styles.optionPriceActive]}>
+                      ${prices.roundTrip.toLocaleString()} COP
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Passengers */}
+                <Text style={styles.modalLabel}>Pasajeros</Text>
+                <View style={styles.paxRow}>
+                  <TouchableOpacity
+                    style={styles.paxBtn}
+                    onPress={() => setPassengers(Math.max(1, passengers - 1))}
+                  >
+                    <Ionicons name="remove" size={18} color={COLORS.textMain} />
+                  </TouchableOpacity>
+                  <Text style={styles.paxValue}>{passengers}</Text>
+                  <TouchableOpacity
+                    style={styles.paxBtn}
+                    onPress={() => setPassengers(Math.min(10, passengers + 1))}
+                  >
+                    <Ionicons name="add" size={18} color={COLORS.textMain} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Summary */}
+                <View style={styles.summary}>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Subtotal ({passengers}× ${basePrice.toLocaleString()})</Text>
+                    <Text style={styles.summaryValue}>${subtotal.toLocaleString()}</Text>
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}>
+                      <Text style={styles.summaryLabel}>Impuesto portuario</Text>
+                      <View style={styles.portTaxBadge}>
+                        <Text style={styles.portTaxBadgeText}>INCLUIDO</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.summaryValue}>${portTax.toLocaleString()}</Text>
+                  </View>
+                  <View style={[styles.summaryRow, styles.totalRow]}>
+                    <Text style={styles.totalLabel}>Total</Text>
+                    <Text style={styles.totalValue}>${total.toLocaleString()} COP</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.savingsNote}>
+                  💡 Pagando aquí evitas la fila para el impuesto portuario en la bodeguita.
+                </Text>
+
+                <TouchableOpacity
+                  style={[styles.confirmBtn, paying && { opacity: 0.6 }]}
+                  onPress={handlePay}
+                  disabled={paying}
+                  activeOpacity={0.85}
+                >
+                  {paying ? (
+                    <ActivityIndicator color={COLORS.white} />
+                  ) : (
+                    <>
+                      <Ionicons name="lock-closed" size={16} color={COLORS.white} />
+                      <Text style={styles.confirmBtnText}>Pagar ${total.toLocaleString()} COP</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.cancelBtn} onPress={closeAll}>
+                  <Text style={styles.cancelText}>Cancelar</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              /* QR result */
+              <ScrollView contentContainerStyle={{ paddingBottom: SPACING.lg }}>
+                <View style={styles.successHero}>
+                  <View style={styles.successCircle}>
+                    <Ionicons name="checkmark" size={32} color={COLORS.white} />
+                  </View>
+                  <Text style={styles.successTitle}>¡Pago exitoso!</Text>
+                  <Text style={styles.successSubtitle}>
+                    Muestra este QR en la entrada de la bodeguita
+                  </Text>
+                </View>
+
+                <View style={styles.qrCard}>
+                  <Image source={{ uri: resultTicket.qr_url }} style={styles.qrImage} />
+                  <Text style={styles.ticketIdText}>{resultTicket.ticket_id}</Text>
+                </View>
+
+                <View style={styles.ticketDetails}>
+                  <View style={styles.ticketRow}>
+                    <Ionicons name="boat" size={14} color={COLORS.primary} />
+                    <Text style={styles.ticketRowText}>{resultTicket.route_name || buyModalRoute?.partner}</Text>
+                  </View>
+                  <View style={styles.ticketRow}>
+                    <Ionicons name="people" size={14} color={COLORS.primary} />
+                    <Text style={styles.ticketRowText}>
+                      {resultTicket.passengers} pasajero{resultTicket.passengers !== 1 ? 's' : ''} · {resultTicket.trip_type === 'round_trip' ? 'Ida y vuelta' : 'Solo ida'}
+                    </Text>
+                  </View>
+                  <View style={styles.ticketRow}>
+                    <Ionicons name="calendar" size={14} color={COLORS.primary} />
+                    <Text style={styles.ticketRowText}>Válido: {resultTicket.valid_until}</Text>
+                  </View>
+                  <View style={styles.ticketRow}>
+                    <Ionicons name="cash" size={14} color={COLORS.success} />
+                    <Text style={styles.ticketRowText}>
+                      Total: ${resultTicket.total.toLocaleString()} COP (incluye impuesto portuario)
+                    </Text>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.confirmBtn}
+                  onPress={closeAll}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.white} />
+                  <Text style={styles.confirmBtnText}>Listo</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            )}
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -119,6 +360,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md },
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
+  ticketsBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 24, color: COLORS.textMain, ...FONTS.bold },
   subtitle: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
   list: { flex: 1, paddingHorizontal: SPACING.lg },
@@ -127,6 +369,8 @@ const styles = StyleSheet.create({
   iconWrap: { width: 44, height: 44, borderRadius: RADIUS.md, backgroundColor: 'rgba(217, 119, 6, 0.15)', alignItems: 'center', justifyContent: 'center' },
   routeName: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold },
   routePartner: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
+  qrBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(34,197,94,0.15)', borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: 'rgba(34,197,94,0.4)' },
+  qrBadgeText: { fontSize: 9, color: '#22C55E', ...FONTS.bold, letterSpacing: 0.4 },
   scheduleSection: { marginBottom: SPACING.md },
   scheduleTitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold, marginBottom: SPACING.sm, letterSpacing: 1, textTransform: 'uppercase' },
   scheduleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
@@ -137,6 +381,53 @@ const styles = StyleSheet.create({
   details: { gap: 6, marginBottom: SPACING.md },
   detailRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   detailText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, flex: 1, lineHeight: 20 },
-  mapBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary },
-  mapBtnText: { fontSize: 13, color: COLORS.primary, ...FONTS.semibold },
+  actionsRow: { flexDirection: 'row', gap: SPACING.sm },
+  mapBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary },
+  mapBtnText: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold },
+  payBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: RADIUS.full, backgroundColor: COLORS.primary },
+  payBtnText: { fontSize: 12, color: COLORS.white, ...FONTS.bold },
+
+  // Modal
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalCard: { backgroundColor: COLORS.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: SPACING.lg, paddingBottom: SPACING.xl, maxHeight: '92%' },
+  modalHandle: { width: 44, height: 4, borderRadius: 2, backgroundColor: COLORS.border, alignSelf: 'center' },
+  modalTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.sm },
+  modalSubtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginBottom: SPACING.md },
+  modalLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.bold, letterSpacing: 1, marginTop: SPACING.sm, marginBottom: 6, textTransform: 'uppercase' },
+  optionsRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.xs },
+  optionBtn: { flex: 1, padding: SPACING.sm, backgroundColor: COLORS.background, borderRadius: RADIUS.lg, borderWidth: 1.5, borderColor: COLORS.border, alignItems: 'center' },
+  optionBtnActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(217,119,6,0.1)' },
+  optionLabel: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold },
+  optionLabelActive: { color: COLORS.textMain },
+  optionPrice: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold, marginTop: 2 },
+  optionPriceActive: { color: COLORS.primary },
+  paxRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', backgroundColor: COLORS.background, borderRadius: RADIUS.lg, paddingVertical: 10, borderWidth: 1, borderColor: COLORS.border },
+  paxBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
+  paxValue: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, minWidth: 60, textAlign: 'center' },
+  summary: { marginTop: SPACING.md, padding: SPACING.md, backgroundColor: COLORS.background, borderRadius: RADIUS.lg, gap: 8 },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  summaryLabel: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
+  summaryValue: { fontSize: 13, color: COLORS.textMain, ...FONTS.semibold },
+  portTaxBadge: { backgroundColor: COLORS.success, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  portTaxBadgeText: { fontSize: 8, color: COLORS.white, ...FONTS.bold, letterSpacing: 0.5 },
+  totalRow: { borderTopWidth: 1, borderTopColor: COLORS.border, paddingTop: SPACING.sm, marginTop: 4 },
+  totalLabel: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
+  totalValue: { fontSize: 18, color: COLORS.primary, ...FONTS.bold },
+  savingsNote: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: SPACING.sm, textAlign: 'center', lineHeight: 16 },
+  confirmBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 14, marginTop: SPACING.md },
+  confirmBtnText: { fontSize: 15, color: COLORS.white, ...FONTS.bold },
+  cancelBtn: { alignItems: 'center', paddingVertical: 10, marginTop: 4 },
+  cancelText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium },
+
+  // QR result
+  successHero: { alignItems: 'center', paddingVertical: SPACING.md, gap: 8 },
+  successCircle: { width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.success, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  successTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold },
+  successSubtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center' },
+  qrCard: { alignItems: 'center', padding: SPACING.lg, backgroundColor: COLORS.white, borderRadius: RADIUS.xl, marginVertical: SPACING.md },
+  qrImage: { width: 220, height: 220 },
+  ticketIdText: { fontSize: 13, color: '#1a1a2e', ...FONTS.bold, marginTop: 8, letterSpacing: 1 },
+  ticketDetails: { gap: 8, padding: SPACING.md, backgroundColor: COLORS.background, borderRadius: RADIUS.lg },
+  ticketRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  ticketRowText: { fontSize: 13, color: COLORS.textMain, ...FONTS.medium, flex: 1 },
 });

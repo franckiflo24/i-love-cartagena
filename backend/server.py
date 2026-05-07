@@ -1314,6 +1314,115 @@ async def get_user_profile(request: Request):
     return profile
 
 
+# ── Transport tickets (online payment + QR for port entry) ──────────
+class TransportTicketBody(BaseModel):
+    user_id: Optional[str] = None
+    user_name: Optional[str] = None
+    user_email: Optional[str] = None
+    trip_type: str = "round_trip"  # 'one_way' | 'round_trip'
+    passengers: int = 1
+    departure_time: Optional[str] = None
+    departure_date: Optional[str] = None  # YYYY-MM-DD
+    port_tax_included: bool = True
+
+
+def _parse_price(price_str: str) -> tuple[int, int]:
+    """Extract (one_way, round_trip) from a string like
+    '90,000 COP ida / 160,000 COP ida y vuelta' or '25,000 COP'."""
+    import re
+    nums = [int(n.replace(",", "")) for n in re.findall(r"(\d{1,3}(?:,\d{3})+|\d+)", price_str or "")]
+    if not nums:
+        return (0, 0)
+    if len(nums) == 1:
+        return (nums[0], nums[0])
+    return (nums[0], nums[1] if len(nums) > 1 else nums[0] * 2)
+
+
+PORT_TAX_PER_PERSON = 25000  # COP — impuesto portuario aproximado
+
+
+@api_router.post("/transport/{transport_id}/buy")
+async def buy_transport_ticket(transport_id: str, body: TransportTicketBody):
+    """Create a paid ticket + QR for the port entry. MOCK PAYMENT (Stripe to come)."""
+    route = await db.transport.find_one({"transport_id": transport_id}, {"_id": 0})
+    if not route:
+        raise HTTPException(status_code=404, detail="Transport route not found")
+
+    one_way, round_trip = _parse_price(route.get("price", ""))
+    base_price = round_trip if body.trip_type == "round_trip" else one_way
+    if base_price <= 0:
+        raise HTTPException(status_code=400, detail="This transport is not paid online (free service)")
+
+    subtotal = base_price * max(1, body.passengers)
+    port_tax = (PORT_TAX_PER_PERSON * max(1, body.passengers)) if body.port_tax_included else 0
+    total = subtotal + port_tax
+
+    ticket_id = f"TKT-{uuid.uuid4().hex[:10].upper()}"
+    qr_payload = {
+        "type": "amo_cartagena_transport",
+        "ticket_id": ticket_id,
+        "route": route.get("route_name", ""),
+        "transport_id": transport_id,
+        "passengers": body.passengers,
+        "trip_type": body.trip_type,
+        "departure_date": body.departure_date,
+        "departure_time": body.departure_time,
+        "port_tax_paid": body.port_tax_included,
+        "valid_until": body.departure_date or datetime.now(timezone.utc).date().isoformat(),
+        "issued_at": datetime.now(timezone.utc).isoformat(),
+    }
+    qr_data_obj = qr_payload
+    import json as _json
+    qr_data = _json.dumps(qr_data_obj)
+
+    ticket = {
+        "ticket_id": ticket_id,
+        "user_id": body.user_id,
+        "user_name": body.user_name or "Visitante",
+        "user_email": body.user_email,
+        "transport_id": transport_id,
+        "route_name": route.get("route_name", ""),
+        "route_partner": route.get("partner", ""),
+        "departure_location": route.get("departure_location"),
+        "trip_type": body.trip_type,
+        "passengers": body.passengers,
+        "departure_date": body.departure_date,
+        "departure_time": body.departure_time,
+        "subtotal": subtotal,
+        "port_tax": port_tax,
+        "total": total,
+        "currency": "COP",
+        "payment_status": "paid",     # MOCK — replace with Stripe webhook on real impl
+        "payment_method": "mock_card",
+        "qr_data": qr_data,
+        "qr_url": f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={uuid.uuid4().hex}{ticket_id}",
+        "purchased_at": datetime.now(timezone.utc).isoformat(),
+        "valid_until": body.departure_date or datetime.now(timezone.utc).date().isoformat(),
+    }
+    # Use deterministic QR URL embedding the payload
+    import urllib.parse as _u
+    ticket["qr_url"] = "https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=10&data=" + _u.quote(qr_data)
+
+    await db.transport_tickets.insert_one(ticket)
+    ticket.pop("_id", None)
+    return ticket
+
+
+@api_router.get("/transport/tickets")
+async def list_transport_tickets(user_id: str):
+    """List user's purchased tickets, most recent first."""
+    tickets = await db.transport_tickets.find({"user_id": user_id}, {"_id": 0}).sort([("purchased_at", -1)]).to_list(50)
+    return tickets
+
+
+@api_router.get("/transport/tickets/{ticket_id}")
+async def get_transport_ticket(ticket_id: str):
+    t = await db.transport_tickets.find_one({"ticket_id": ticket_id}, {"_id": 0})
+    if not t:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    return t
+
+
 @api_router.get("/analytics/summary")
 async def analytics_summary(request: Request):
     """Dashboard summary for admins - event popularity, user engagement, etc."""
