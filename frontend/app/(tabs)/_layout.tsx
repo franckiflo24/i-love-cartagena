@@ -6,12 +6,13 @@ import { Platform } from 'react-native';
 export default function TabLayout() {
   return (
     <Tabs
+      sceneContainerStyle={{ backgroundColor: 'transparent' }}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.textMuted,
         tabBarStyle: {
-          backgroundColor: COLORS.background,
+          backgroundColor: 'rgba(5, 8, 20, 0.92)',
           borderTopColor: COLORS.border,
           borderTopWidth: 1,
           paddingBottom: Platform.OS === 'ios' ? 20 : 8,

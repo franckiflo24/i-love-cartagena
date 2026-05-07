@@ -1,5 +1,6 @@
 export const COLORS = {
-  background: '#050814',
+  background: 'rgba(5, 8, 20, 0.45)',
+  backgroundSolid: '#050814',
   surface: '#0F1423',
   surfaceGlass: 'rgba(15, 20, 35, 0.6)',
   primary: '#D97706',
@@ -109,4 +110,5 @@ export const IMAGES = {
   cartagena: 'https://images.unsplash.com/photo-1651421479936-e24edc3e3143?w=800',
   concert: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800',
   beach: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
+  cathedralSunset: 'https://images.pexels.com/photos/11815897/pexels-photo-11815897.jpeg',
 };
