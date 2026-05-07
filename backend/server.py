@@ -1998,9 +1998,6 @@ async def seed_database():
             {"departure":"08:30","arrival":"09:30","notes":"Servicio directo"},
             {"departure":"10:00","arrival":"11:00","notes":"Segunda salida"},
         ],"departure_point":"Muelle Turístico de la Bodeguita","departure_location":{"lat":10.4200,"lng":-75.5500},"price":"70,000 COP ida / 120,000 COP ida y vuelta","notes":"Regreso última lancha 17:00. Incluye chaleco salvavidas.","partner_name":"Lanchas Amo Cartagena","last_return":"17:00"},
-        {"transport_id":"trn_004","type":"shuttle","route":"Shuttle Aeropuerto → Centro Histórico","schedule":[
-            {"departure":"Cada hora","arrival":"","notes":"Desde las 06:00 hasta 22:00"},
-        ],"departure_point":"Aeropuerto Rafael Núñez","departure_location":{"lat":10.4427,"lng":-75.5130},"price":"25,000 COP","notes":"Reserva previa recomendada. Duración aprox. 20 min.","partner_name":"Amo Cartagena Transfer","last_return":"22:00"},
     ]
 
     notifications = [
@@ -2614,6 +2611,9 @@ async def startup():
 
     # ── Migration: Ensure Taxi Boat exists as trn_003 (replaces legacy night_transport) ──
     await db.transport.delete_many({"type": "night_transport"})
+    # ── Migration: Remove airport shuttle (trn_004) per product decision ──
+    await db.transport.delete_many({"transport_id": "trn_004"})
+    await db.transport.delete_many({"type": "shuttle"})
     TAXI_BOAT_ROUTE = {
         "transport_id": "trn_003",
         "type": "boat",
