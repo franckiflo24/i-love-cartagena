@@ -1997,6 +1997,61 @@ async def startup():
     for old_id, new_id in PARTNER_ID_REMAP.items():
         await db.partner_events.update_many({"partner_id": old_id}, {"$set": {"partner_id": new_id}})
 
+    # ── Migration: Seed Real Estate (Inmobiliario) partners (idempotent) ──
+    REALESTATE_PARTNERS = [
+        {
+            "partner_id": "ptr_re_001",
+            "name": "Cartagena Luxury Rentals",
+            "description": "Apartamentos y casas de lujo en el Centro Histórico, Bocagrande y Manga. Estancias cortas y largas.",
+            "category": "realestate",
+            "tier": "premium",
+            "image_url": "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4231, "lng": -75.5519},
+            "address": "Centro Histórico, Cartagena",
+            "booking_link": "https://cartagenaluxuryrentals.com",
+            "price_range": "$$$",
+            "experience": "Apartamentos boutique, casas coloniales restauradas, concierge incluido",
+            "is_certified": True,
+            "instagram": "@cartagenaluxuryrentals",
+        },
+        {
+            "partner_id": "ptr_re_002",
+            "name": "Inmobiliaria Centro",
+            "description": "Compra, venta y alquiler de propiedades en el Centro Histórico de Cartagena. Inversiones turísticas.",
+            "category": "realestate",
+            "tier": "popular",
+            "image_url": "https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4239, "lng": -75.5489},
+            "address": "Calle de la Factoría, Centro",
+            "booking_link": "https://inmobiliariacentro.co",
+            "price_range": "$$",
+            "experience": "Casas coloniales, lofts modernos, asesoría legal completa",
+            "is_certified": True,
+            "instagram": "@inmobiliariacentro",
+        },
+        {
+            "partner_id": "ptr_re_003",
+            "name": "Bocagrande Properties",
+            "description": "Propiedades premium frente al mar en Bocagrande y Castillogrande. Vistas espectaculares al Caribe.",
+            "category": "realestate",
+            "tier": "elite",
+            "image_url": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&h=600&fit=crop",
+            "location": {"lat": 10.3989, "lng": -75.5547},
+            "address": "Avenida San Martín, Bocagrande",
+            "booking_link": "https://bocagrandeproperties.com",
+            "price_range": "$$$",
+            "experience": "Penthouses, apartamentos vista al mar, asesoría para extranjeros, gestión 360°",
+            "is_certified": True,
+            "instagram": "@bocagrandeproperties",
+        },
+    ]
+    for partner in REALESTATE_PARTNERS:
+        await db.partners.update_one(
+            {"partner_id": partner["partner_id"]},
+            {"$setOnInsert": partner},
+            upsert=True,
+        )
+
     # ── Seed: Partner Promotions (ofertas del día) ──
     promo_count = await db.partner_promotions.count_documents({})
     if promo_count == 0:

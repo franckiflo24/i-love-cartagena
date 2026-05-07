@@ -26,6 +26,7 @@ const CATEGORIES = [
   { key: 'concierge', label: 'Concierge', icon: 'diamond', color: '#F59E0B', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=300&fit=crop' },
   { key: 'charity', label: 'Fondaciones', icon: 'heart', color: '#F97316', image: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=600&h=300&fit=crop' },
   { key: 'culture', label: 'Cultura & Museos', icon: 'library', color: '#A855F7', image: 'https://images.unsplash.com/photo-1583531172005-592f2b1905f0?w=600&h=300&fit=crop' },
+  { key: 'realestate', label: 'Inmobiliario', icon: 'key', color: '#0EA5E9', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=300&fit=crop' },
 ];
 
 export default function PartnersScreen() {
