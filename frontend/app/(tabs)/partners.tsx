@@ -31,14 +31,13 @@ const CATEGORIES = [
 ];
 
 const WELLNESS_SUBCATEGORIES = [
-  { key: 'all', label: 'Todos', icon: 'apps' },
-  { key: 'spa', label: 'Spa', icon: 'water' },
-  { key: 'beauty', label: 'Beauty', icon: 'sparkles' },
-  { key: 'hair', label: 'Hair', icon: 'cut' },
-  { key: 'nails', label: 'Nails', icon: 'hand-left' },
-  { key: 'recovery', label: 'Recovery', icon: 'medkit' },
-  { key: 'fitness', label: 'Fitness', icon: 'barbell' },
-  { key: 'yoga', label: 'Yoga', icon: 'leaf' },
+  { key: 'spa', label: 'Spa', icon: 'water', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=400&fit=crop' },
+  { key: 'beauty', label: 'Belleza', icon: 'sparkles', image: 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=600&h=400&fit=crop' },
+  { key: 'hair', label: 'Cabello', icon: 'cut', image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&h=400&fit=crop' },
+  { key: 'nails', label: 'Uñas', icon: 'hand-left', image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&h=400&fit=crop' },
+  { key: 'recovery', label: 'Recuperación', icon: 'medkit', image: 'https://images.unsplash.com/photo-1599447421416-3414500d18a5?w=600&h=400&fit=crop' },
+  { key: 'fitness', label: 'Fitness', icon: 'barbell', image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=400&fit=crop' },
+  { key: 'yoga', label: 'Yoga', icon: 'leaf', image: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=600&h=400&fit=crop' },
 ];
 
 const RESTAURANT_SUBCATEGORIES = [
@@ -49,8 +48,11 @@ const RESTAURANT_SUBCATEGORIES = [
   { key: 'bakery', label: 'Bakery', icon: 'pizza' },
 ];
 
+// Categories that REQUIRE subcategory selection before showing partners
+const REQUIRE_SUBCAT_PICK = new Set(['wellness']);
+
 // Map of category → subcategory list (extensible)
-const SUBCATEGORIES_BY_CAT: Record<string, { key: string; label: string; icon: string }[]> = {
+const SUBCATEGORIES_BY_CAT: Record<string, { key: string; label: string; icon: string; image?: string }[]> = {
   wellness: WELLNESS_SUBCATEGORIES,
   restaurant: RESTAURANT_SUBCATEGORIES,
 };
@@ -67,7 +69,7 @@ export default function PartnersScreen() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedSubcat, setSelectedSubcat] = useState<string>('all');
+  const [selectedSubcat, setSelectedSubcat] = useState<string | null>(null);
   const [tierFilter, setTierFilter] = useState<Tier | null>(null);
 
   useEffect(() => {
@@ -82,15 +84,23 @@ export default function PartnersScreen() {
   }, []);
 
   // Reset subcategory when category changes
-  useEffect(() => { setSelectedSubcat('all'); }, [selectedCategory]);
+  useEffect(() => {
+    if (selectedCategory && !REQUIRE_SUBCAT_PICK.has(selectedCategory)) {
+      setSelectedSubcat('all'); // optional pills, default 'all'
+    } else {
+      setSelectedSubcat(null);  // wellness: no auto-select, force pick
+    }
+  }, [selectedCategory]);
 
   const subcatList = selectedCategory ? SUBCATEGORIES_BY_CAT[selectedCategory] : null;
   const subcatTheme = selectedCategory ? SUBCAT_THEME[selectedCategory] || COLORS.primary : COLORS.primary;
-  const filtered = selectedCategory
+  const requireSubcatPick = selectedCategory && REQUIRE_SUBCAT_PICK.has(selectedCategory) && !selectedSubcat;
+
+  const filtered = selectedCategory && !requireSubcatPick
     ? partners.filter(p => {
         if (p.category !== selectedCategory) return false;
         if (tierFilter && p.tier !== tierFilter) return false;
-        if (subcatList && selectedSubcat !== 'all' && (p as any).subcategory !== selectedSubcat) return false;
+        if (subcatList && selectedSubcat && selectedSubcat !== 'all' && (p as any).subcategory !== selectedSubcat) return false;
         return true;
       })
     : [];
@@ -109,12 +119,33 @@ export default function PartnersScreen() {
       <View style={styles.header}>
         {selectedCategory ? (
           <View style={styles.headerWithBack}>
-            <TouchableOpacity onPress={() => setSelectedCategory(null)} style={styles.backBtn}>
+            <TouchableOpacity
+              onPress={() => {
+                if (selectedSubcat && REQUIRE_SUBCAT_PICK.has(selectedCategory!)) {
+                  // Step back to subcat picker (instead of leaving wellness)
+                  setSelectedSubcat(null);
+                } else {
+                  setSelectedCategory(null);
+                }
+              }}
+              style={styles.backBtn}
+            >
               <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
             </TouchableOpacity>
-            <View>
-              <Text style={styles.title}>{CATEGORIES.find(c => c.key === selectedCategory)?.label}</Text>
-              <Text style={styles.subtitle}>{filtered.length} partner{filtered.length !== 1 ? 's' : ''} certificado{filtered.length !== 1 ? 's' : ''}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.title}>
+                {requireSubcatPick
+                  ? CATEGORIES.find(c => c.key === selectedCategory)?.label
+                  : (subcatList && selectedSubcat && selectedSubcat !== 'all'
+                      ? subcatList.find(s => s.key === selectedSubcat)?.label
+                      : CATEGORIES.find(c => c.key === selectedCategory)?.label)
+                }
+              </Text>
+              <Text style={styles.subtitle}>
+                {requireSubcatPick
+                  ? 'Elige una sub-categoría'
+                  : `${filtered.length} partner${filtered.length !== 1 ? 's' : ''} certificado${filtered.length !== 1 ? 's' : ''}`}
+              </Text>
             </View>
           </View>
         ) : (
@@ -186,6 +217,64 @@ export default function PartnersScreen() {
             ))}
             </View>
           </>
+        ) : requireSubcatPick && subcatList ? (
+          /* ── Subcategory Picker (Wellness, etc.) ── */
+          <View style={styles.subcatPickerWrap}>
+            <View style={styles.subcatPickerHero}>
+              <Image
+                source={{ uri: CATEGORIES.find(c => c.key === selectedCategory)?.image }}
+                style={styles.subcatPickerHeroImg}
+              />
+              <View style={styles.subcatPickerOverlay} />
+              <View style={styles.subcatPickerHeroContent}>
+                <View style={[styles.subcatPickerIconCircle, { backgroundColor: subcatTheme + '40' }]}>
+                  <Ionicons
+                    name={CATEGORIES.find(c => c.key === selectedCategory)?.icon as any}
+                    size={26}
+                    color={subcatTheme}
+                  />
+                </View>
+                <Text style={styles.subcatPickerHeroTitle}>
+                  {CATEGORIES.find(c => c.key === selectedCategory)?.label}
+                </Text>
+                <Text style={styles.subcatPickerHeroDesc}>
+                  Selecciona una sub-categoría para ver los partners
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.subcatGrid}>
+              {subcatList.map(sc => {
+                const count = subcatCount(sc.key);
+                return (
+                  <TouchableOpacity
+                    key={sc.key}
+                    style={[styles.subcatCard, { borderColor: subcatTheme + '40' }]}
+                    onPress={() => setSelectedSubcat(sc.key)}
+                    activeOpacity={0.85}
+                    disabled={count === 0}
+                  >
+                    {sc.image && <Image source={{ uri: sc.image }} style={styles.subcatCardImg} />}
+                    <View style={styles.subcatCardOverlay} />
+                    <View style={styles.subcatCardContent}>
+                      <View style={[styles.subcatCardIconBadge, { backgroundColor: subcatTheme + '40' }]}>
+                        <Ionicons name={sc.icon as any} size={20} color={subcatTheme} />
+                      </View>
+                      <Text style={styles.subcatCardLabel}>{sc.label}</Text>
+                      <View style={[styles.subcatCardCountBadge, { backgroundColor: subcatTheme }]}>
+                        <Text style={styles.subcatCardCountText}>{count}</Text>
+                      </View>
+                    </View>
+                    {count === 0 && (
+                      <View style={styles.subcatCardComingSoon}>
+                        <Text style={styles.subcatCardComingSoonText}>Próximamente</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
         ) : (
           /* ── Partner List ── */
           <View style={styles.list}>
@@ -378,6 +467,65 @@ const styles = StyleSheet.create({
 
   // Partner List
   list: { paddingHorizontal: SPACING.lg },
+
+  // Subcategory Picker (Wellness)
+  subcatPickerWrap: { paddingHorizontal: SPACING.lg, paddingBottom: SPACING.lg },
+  subcatPickerHero: {
+    borderRadius: RADIUS.xl,
+    overflow: 'hidden',
+    height: 130,
+    marginBottom: SPACING.md,
+    position: 'relative',
+  },
+  subcatPickerHeroImg: { width: '100%', height: '100%', position: 'absolute' },
+  subcatPickerOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5,8,20,0.7)' },
+  subcatPickerHeroContent: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6, padding: SPACING.md },
+  subcatPickerIconCircle: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center' },
+  subcatPickerHeroTitle: { fontSize: 20, color: COLORS.white, ...FONTS.bold },
+  subcatPickerHeroDesc: { fontSize: 12, color: 'rgba(255,255,255,0.75)', ...FONTS.regular, textAlign: 'center' },
+
+  subcatGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
+  subcatCard: {
+    width: '48%',
+    height: 130,
+    borderRadius: RADIUS.xl,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    position: 'relative',
+    backgroundColor: COLORS.surface,
+  },
+  subcatCardImg: { width: '100%', height: '100%', position: 'absolute' },
+  subcatCardOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5,8,20,0.55)' },
+  subcatCardContent: {
+    flex: 1,
+    padding: SPACING.sm,
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  subcatCardIconBadge: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  subcatCardLabel: { fontSize: 16, color: COLORS.white, ...FONTS.bold },
+  subcatCardCountBadge: {
+    position: 'absolute',
+    bottom: SPACING.sm,
+    right: SPACING.sm,
+    minWidth: 26,
+    height: 22,
+    borderRadius: 11,
+    paddingHorizontal: 7,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subcatCardCountText: { fontSize: 11, color: COLORS.white, ...FONTS.bold },
+  subcatCardComingSoon: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: RADIUS.full,
+  },
+  subcatCardComingSoonText: { fontSize: 9, color: '#FFC107', ...FONTS.bold, letterSpacing: 0.4 },
 
   // Wellness sub-categories
   subcatRow: { gap: 6, paddingVertical: 4, marginBottom: SPACING.xs },
