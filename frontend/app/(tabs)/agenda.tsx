@@ -13,14 +13,30 @@ type Event = {
 };
 
 const DATES = [
-  { key: '2026-01-12', label: 'Lun 12' },
-  { key: '2026-01-13', label: 'Mar 13' },
-  { key: '2026-01-14', label: 'Mié 14' },
-  { key: '2026-01-15', label: 'Jue 15' },
-  { key: '2026-01-16', label: 'Vie 16' },
+  { key: '2026-12-30', day: 'Mié', date: '30', month: 'Dic' },
+  { key: '2026-12-31', day: 'Jue', date: '31', month: 'Dic' },
+  { key: '2027-01-01', day: 'Vie', date: '1', month: 'Ene' },
+  { key: '2027-01-02', day: 'Sáb', date: '2', month: 'Ene' },
+  { key: '2027-01-03', day: 'Dom', date: '3', month: 'Ene' },
+  { key: '2027-01-04', day: 'Lun', date: '4', month: 'Ene' },
+  { key: '2027-01-05', day: 'Mar', date: '5', month: 'Ene' },
+  { key: '2027-01-06', day: 'Mié', date: '6', month: 'Ene' },
+  { key: '2027-01-07', day: 'Jue', date: '7', month: 'Ene' },
+  { key: '2027-01-08', day: 'Vie', date: '8', month: 'Ene' },
+  { key: '2027-01-09', day: 'Sáb', date: '9', month: 'Ene' },
+  { key: '2027-01-10', day: 'Dom', date: '10', month: 'Ene' },
 ];
 
-const TYPES = ['all', 'sunset', 'concert', 'wellness', 'brunch', 'beach_club', 'after_party', 'cultural', 'candlelight', 'pop_up'];
+const TYPES = [
+  { key: 'all', label: 'Todos', image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=200&h=200&fit=crop' },
+  { key: 'sunset', label: 'Sunset', image: 'https://images.unsplash.com/photo-1651421479936-e24edc3e3143?w=200&h=200&fit=crop' },
+  { key: 'concert', label: 'Concierto', image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=200&h=200&fit=crop' },
+  { key: 'wellness', label: 'Wellness', image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=200&h=200&fit=crop' },
+  { key: 'brunch', label: 'Brunch', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200&h=200&fit=crop' },
+  { key: 'beach_club', label: 'Beach Club', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&h=200&fit=crop' },
+  { key: 'after_party', label: 'After Party', image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=200&h=200&fit=crop' },
+  { key: 'cultural', label: 'Cultural', image: 'https://images.unsplash.com/photo-1583531172005-592f2b1905f0?w=200&h=200&fit=crop' },
+];
 
 export default function AgendaScreen() {
   const router = useRouter();
@@ -28,7 +44,6 @@ export default function AgendaScreen() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(DATES[0].key);
   const [selectedType, setSelectedType] = useState('all');
-  const [showFreeOnly, setShowFreeOnly] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -43,11 +58,9 @@ export default function AgendaScreen() {
   }, [selectedDate]);
 
   const filtered = useMemo(() => {
-    let list = events;
-    if (selectedType !== 'all') list = list.filter(e => e.type === selectedType);
-    if (showFreeOnly) list = list.filter(e => e.is_free);
-    return list;
-  }, [events, selectedType, showFreeOnly]);
+    if (selectedType === 'all') return events;
+    return events.filter(e => e.type === selectedType);
+  }, [events, selectedType]);
 
   const formatPrice = (p: number) => p === 0 ? 'Gratis' : `$${(p / 1000).toFixed(0)}K`;
 
@@ -58,41 +71,40 @@ export default function AgendaScreen() {
         <Text style={styles.subtitle}>Programación oficial Amo Cartagena</Text>
       </View>
 
-      {/* Date Selector */}
+      {/* Date Selector with Month */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dateBar}>
-        {DATES.map(d => (
-          <TouchableOpacity
-            key={d.key}
-            testID={`date-${d.key}`}
-            style={[styles.dateChip, selectedDate === d.key && styles.dateChipActive]}
-            onPress={() => setSelectedDate(d.key)}
-          >
-            <Text style={[styles.dateText, selectedDate === d.key && styles.dateTextActive]}>{d.label}</Text>
-          </TouchableOpacity>
-        ))}
+        {DATES.map(d => {
+          const isActive = selectedDate === d.key;
+          return (
+            <TouchableOpacity
+              key={d.key}
+              style={[styles.dateChip, isActive && styles.dateChipActive]}
+              onPress={() => setSelectedDate(d.key)}
+            >
+              <Text style={[styles.dateDay, isActive && styles.dateTextActive]}>{d.day}</Text>
+              <Text style={[styles.dateNum, isActive && styles.dateTextActive]}>{d.date}</Text>
+              <Text style={[styles.dateMonth, isActive && styles.dateTextActive]}>{d.month}</Text>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
-      {/* Type Filters */}
+      {/* Category Filters with Photos */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterBar}>
-        {TYPES.map(t => (
-          <TouchableOpacity
-            key={t}
-            testID={`filter-${t}`}
-            style={[styles.filterChip, selectedType === t && styles.filterChipActive]}
-            onPress={() => setSelectedType(t)}
-          >
-            <Text style={[styles.filterText, selectedType === t && styles.filterTextActive]}>
-              {t === 'all' ? 'Todos' : EVENT_TYPE_LABELS[t] || t}
-            </Text>
-          </TouchableOpacity>
-        ))}
-        <TouchableOpacity
-          testID="filter-free"
-          style={[styles.filterChip, showFreeOnly && styles.filterChipFree]}
-          onPress={() => setShowFreeOnly(!showFreeOnly)}
-        >
-          <Text style={[styles.filterText, showFreeOnly && styles.filterTextFree]}>Gratis</Text>
-        </TouchableOpacity>
+        {TYPES.map(t => {
+          const isActive = selectedType === t.key;
+          return (
+            <TouchableOpacity
+              key={t.key}
+              style={[styles.filterChip, isActive && styles.filterChipActive]}
+              onPress={() => setSelectedType(t.key)}
+            >
+              <Image source={{ uri: t.image }} style={styles.filterImage} />
+              <View style={[styles.filterImageOverlay, isActive && { backgroundColor: 'rgba(217,119,6,0.3)' }]} />
+              <Text style={[styles.filterText, isActive && styles.filterTextActive]}>{t.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
       {/* Events List */}
@@ -108,7 +120,6 @@ export default function AgendaScreen() {
           filtered.map(event => (
             <TouchableOpacity
               key={event.event_id}
-              testID={`agenda-${event.event_id}`}
               style={styles.eventCard}
               onPress={() => router.push(`/event/${event.event_id}`)}
               activeOpacity={0.8}
@@ -148,20 +159,28 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, paddingBottom: SPACING.sm },
   title: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold },
   subtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
-  dateBar: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, paddingVertical: SPACING.sm },
-  dateChip: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, borderRadius: RADIUS.full, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border },
+
+  // Date chips with month
+  dateBar: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, paddingVertical: SPACING.xs },
+  dateChip: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: RADIUS.xl, backgroundColor: COLORS.surface, borderWidth: 1.5, borderColor: COLORS.border, minWidth: 56 },
   dateChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  dateText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold },
-  dateTextActive: { color: COLORS.white },
+  dateDay: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
+  dateNum: { fontSize: 20, color: COLORS.textMain, ...FONTS.bold, lineHeight: 24 },
+  dateMonth: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
+  dateTextActive: { color: '#FFF' },
+
+  // Type filters with photos
   filterBar: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, paddingVertical: SPACING.sm },
-  filterChip: { paddingHorizontal: SPACING.md, paddingVertical: 6, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border },
-  filterChipActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(217, 119, 6, 0.15)' },
-  filterChipFree: { borderColor: COLORS.success, backgroundColor: 'rgba(34, 197, 94, 0.15)' },
-  filterText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
+  filterChip: { borderRadius: RADIUS.xl, overflow: 'hidden', width: 90, height: 110, borderWidth: 1.5, borderColor: COLORS.border, position: 'relative', alignItems: 'center', justifyContent: 'flex-end' },
+  filterChipActive: { borderColor: COLORS.primary, borderWidth: 2 },
+  filterImage: { position: 'absolute', width: '100%', height: '100%' },
+  filterImageOverlay: { position: 'absolute', width: '100%', height: '100%', backgroundColor: 'rgba(5,8,20,0.55)' },
+  filterText: { fontSize: 12, color: '#FFF', ...FONTS.bold, paddingBottom: 10, textAlign: 'center', zIndex: 1 },
   filterTextActive: { color: COLORS.primary },
-  filterTextFree: { color: COLORS.success },
+
+  // Events list
   list: { flex: 1, paddingHorizontal: SPACING.lg },
-  eventCard: { borderRadius: RADIUS.xl, overflow: 'hidden', height: 180, marginBottom: SPACING.md },
+  eventCard: { borderRadius: RADIUS.xl, overflow: 'hidden', height: 160, marginBottom: SPACING.md },
   eventImage: { width: '100%', height: '100%', position: 'absolute' },
   eventOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.45)' },
   eventContent: { flex: 1, justifyContent: 'space-between', padding: SPACING.md },
@@ -173,7 +192,7 @@ const styles = StyleSheet.create({
   paidBadge: { backgroundColor: COLORS.primary },
   priceText: { fontSize: 11, color: COLORS.white, ...FONTS.bold },
   eventBottom: {},
-  eventTitle: { fontSize: 20, color: COLORS.textMain, ...FONTS.bold },
+  eventTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold },
   eventMeta: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: SPACING.xs },
   eventMetaText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginRight: 8 },
   empty: { alignItems: 'center', marginTop: 60, gap: SPACING.md },
