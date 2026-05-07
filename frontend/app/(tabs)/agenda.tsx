@@ -19,6 +19,8 @@ const PARTNER_CATEGORIES = [
   { key: 'wellness', label: 'Wellness', icon: 'leaf' },
   { key: 'art', label: 'Arte & Cultura', icon: 'color-palette' },
   { key: 'popup', label: 'Pop-up', icon: 'bag-handle' },
+  { key: 'daypass', label: 'Pasa día', icon: 'sunny-outline' },
+  { key: 'sunset', label: 'Sunset Experience', icon: 'partly-sunny' },
 ];
 
 const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];

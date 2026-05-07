@@ -28,20 +28,6 @@ const CATEGORIES = [
   { key: 'charity', label: 'Fondaciones', icon: 'heart', color: '#F97316', image: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=600&h=300&fit=crop' },
   { key: 'culture', label: 'Cultura & Museos', icon: 'library', color: '#A855F7', image: 'https://images.unsplash.com/photo-1583531172005-592f2b1905f0?w=600&h=300&fit=crop' },
   { key: 'realestate', label: 'Inmobiliario', icon: 'key', color: '#0EA5E9', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=300&fit=crop' },
-  { key: 'daypass', label: 'Pasa día', icon: 'sunny-outline', color: '#F59E0B', image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&h=300&fit=crop' },
-  { key: 'sunset', label: 'Sunset Experience', icon: 'partly-sunny', color: '#FB923C', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=300&fit=crop' },
-];
-
-const DAYPASS_SUBCATEGORIES = [
-  { key: 'beach_tierrabomba', label: 'Beach club Tierra Bomba', icon: 'sunny',  image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=400&fit=crop' },
-  { key: 'beach_island',      label: 'Beach club Island',      icon: 'boat',   image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=600&h=400&fit=crop' },
-  { key: 'pool_hotel',        label: 'Piscina hotel',          icon: 'water',  image: 'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=600&h=400&fit=crop' },
-  { key: 'boat_tour',         label: 'Boat tour',              icon: 'boat-outline', image: 'https://images.unsplash.com/photo-1605281317010-fe5ffe798166?w=600&h=400&fit=crop' },
-];
-
-const SUNSET_SUBCATEGORIES = [
-  { key: 'rooftop',         label: 'Roof top',         icon: 'business',     image: 'https://images.unsplash.com/photo-1519214605650-76a613ee3245?w=600&h=400&fit=crop' },
-  { key: 'boat_experience', label: 'Boat experience',  icon: 'boat',         image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600&h=400&fit=crop' },
 ];
 
 const WELLNESS_SUBCATEGORIES = [
@@ -76,15 +62,13 @@ const HOTEL_SUBCATEGORIES = [
 ];
 
 // Categories that REQUIRE subcategory selection before showing partners
-const REQUIRE_SUBCAT_PICK = new Set(['wellness', 'restaurant', 'hotel', 'daypass', 'sunset']);
+const REQUIRE_SUBCAT_PICK = new Set(['wellness', 'restaurant', 'hotel']);
 
 // Map of category → subcategory list (extensible)
 const SUBCATEGORIES_BY_CAT: Record<string, { key: string; label: string; icon: string; image?: string }[]> = {
   wellness: WELLNESS_SUBCATEGORIES,
   restaurant: RESTAURANT_SUBCATEGORIES,
   hotel: HOTEL_SUBCATEGORIES,
-  daypass: DAYPASS_SUBCATEGORIES,
-  sunset: SUNSET_SUBCATEGORIES,
 };
 
 // Color theme per subcategory parent (for pill styling)
@@ -92,8 +76,6 @@ const SUBCAT_THEME: Record<string, string> = {
   wellness: '#10B981',
   restaurant: '#EF4444',
   hotel: '#3B82F6',
-  daypass: '#F59E0B',
-  sunset: '#FB923C',
 };
 
 export default function PartnersScreen() {

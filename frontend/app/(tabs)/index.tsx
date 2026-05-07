@@ -37,6 +37,8 @@ const CAT_COLORS: Record<string, { main: string; bg: string; label: string }> = 
   wellness:   { main: '#22C55E', bg: 'rgba(34,197,94,0.15)',  label: 'Wellness' },
   art:        { main: '#3B82F6', bg: 'rgba(59,130,246,0.15)', label: 'Arte' },
   popup:      { main: '#06B6D4', bg: 'rgba(6,182,212,0.15)',  label: 'Pop-up' },
+  daypass:    { main: '#F59E0B', bg: 'rgba(245,158,11,0.15)', label: 'Pasa día' },
+  sunset:     { main: '#FB923C', bg: 'rgba(251,146,60,0.15)', label: 'Sunset' },
 };
 
 const getBudgetStyle = (isFree: boolean, price: number) => {
