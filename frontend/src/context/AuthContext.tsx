@@ -63,6 +63,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const token = await AsyncStorage.getItem('session_token');
       if (!token) {
+        // No session token — check for local (email signup) cached user
+        const cached = await AsyncStorage.getItem('user_data');
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            if (parsed?.provider === 'email_local') {
+              setUser(parsed);
+              setIsLoading(false);
+              return;
+            }
+          } catch {}
+        }
         setUser(null);
         setIsLoading(false);
         return;
