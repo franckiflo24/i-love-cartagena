@@ -173,7 +173,12 @@ export default function AgendaScreen() {
 
       {mode === 'salir' ? (
         <>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dateBar}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.dateBar}
+            style={styles.barScroll}
+          >
             {upcomingDates.map(d => {
               const isActive = selectedSalirDate === d.key;
               return (
@@ -182,15 +187,22 @@ export default function AgendaScreen() {
                   style={[styles.dateChip, isActive && styles.dateChipActive, d.isToday && styles.dateChipToday]}
                   onPress={() => setSelectedSalirDate(d.key)}
                 >
-                  <Text style={[styles.dateDay, isActive && styles.dateTextActive]}>{d.day}</Text>
                   <Text style={[styles.dateNum, isActive && styles.dateTextActive]}>{d.date}</Text>
-                  <Text style={[styles.dateMonth, isActive && styles.dateTextActive]}>{d.month}</Text>
+                  <View style={styles.dateMeta}>
+                    <Text style={[styles.dateDay, isActive && styles.dateTextActive]}>{d.day}</Text>
+                    <Text style={[styles.dateMonth, isActive && styles.dateTextActive]}>{d.month}</Text>
+                  </View>
                 </TouchableOpacity>
               );
             })}
           </ScrollView>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catBar}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.catBar}
+            style={styles.barScroll}
+          >
             {PARTNER_CATEGORIES.map(c => {
               const isActive = selectedSalirCat === c.key;
               return (
@@ -199,7 +211,7 @@ export default function AgendaScreen() {
                   style={[styles.catChip, isActive && styles.catChipActive]}
                   onPress={() => setSelectedSalirCat(c.key)}
                 >
-                  <Ionicons name={c.icon as any} size={13} color={isActive ? COLORS.white : COLORS.textMuted} />
+                  <Ionicons name={c.icon as any} size={12} color={isActive ? COLORS.white : COLORS.textMuted} />
                   <Text style={[styles.catChipText, isActive && styles.catChipTextActive]}>
                     {c.label}
                   </Text>
@@ -418,29 +430,43 @@ const styles = StyleSheet.create({
   badgeTextActive: { color: COLORS.white },
 
   // Date chips
-  dateBar: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, paddingVertical: SPACING.sm },
-  dateChip: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: RADIUS.xl, backgroundColor: COLORS.surface, borderWidth: 1.5, borderColor: COLORS.border, minWidth: 56 },
+  barScroll: { flexGrow: 0, flexShrink: 0 },
+  dateBar: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, paddingVertical: SPACING.xs },
+  dateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+    gap: 6,
+    minWidth: 70,
+  },
   dateChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   dateChipToday: { borderColor: 'rgba(217,119,6,0.5)' },
-  dateDay: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
-  dateNum: { fontSize: 20, color: COLORS.textMain, ...FONTS.bold, lineHeight: 24 },
-  dateMonth: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
+  dateMeta: { alignItems: 'flex-start', justifyContent: 'center' },
+  dateDay: { fontSize: 10, color: COLORS.textMuted, ...FONTS.semibold, lineHeight: 12, textTransform: 'uppercase', letterSpacing: 0.4 },
+  dateNum: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, lineHeight: 20 },
+  dateMonth: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium, lineHeight: 12, textTransform: 'uppercase', letterSpacing: 0.4 },
   dateTextActive: { color: '#FFF' },
 
-  catBar: { paddingHorizontal: SPACING.lg, gap: SPACING.xs, paddingVertical: SPACING.xs },
+  catBar: { paddingHorizontal: SPACING.lg, gap: 6, paddingVertical: SPACING.xs },
   catChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: RADIUS.full,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
   catChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  catChipText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold },
+  catChipText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold },
   catChipTextActive: { color: COLORS.white },
 
   list: { flex: 1, paddingHorizontal: SPACING.lg, marginTop: SPACING.xs },
