@@ -1,5 +1,5 @@
 export const COLORS = {
-  background: 'rgba(5, 8, 20, 0.45)',
+  background: '#050814',
   backgroundSolid: '#050814',
   surface: '#0F1423',
   surfaceGlass: 'rgba(15, 20, 35, 0.6)',
