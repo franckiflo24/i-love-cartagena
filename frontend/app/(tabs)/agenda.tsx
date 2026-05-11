@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -28,18 +28,33 @@ const DAYS_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 const generateUpcomingDates = () => {
   const today = new Date();
-  const dates = [];
-  for (let i = 0; i < 14; i++) {
+  // End at December 31 of the current year. If we're in the last 2 months
+  // of the year, extend through December 31 of NEXT year so the user
+  // always has at least ~2 months of horizon to scroll through.
+  const endYear = today.getMonth() >= 10 ? today.getFullYear() + 1 : today.getFullYear();
+  const end = new Date(endYear, 11, 31, 23, 59, 59);
+  const dates: Array<{
+    key: string; day: string; date: string; month: string; isToday: boolean;
+    isFirstOfMonth: boolean;
+  }> = [];
+  let lastMonth = -1;
+  for (let i = 0; ; i++) {
     const dt = new Date(today);
     dt.setDate(today.getDate() + i);
+    if (dt > end) break;
     const iso = dt.toISOString().slice(0, 10);
+    const m = dt.getMonth();
     dates.push({
       key: iso,
       day: i === 0 ? 'Hoy' : i === 1 ? 'Mañ' : DAYS_ES[dt.getDay()],
       date: String(dt.getDate()),
-      month: MONTHS_ES[dt.getMonth()],
+      month: MONTHS_ES[m],
       isToday: i === 0,
+      isFirstOfMonth: m !== lastMonth,
     });
+    lastMonth = m;
+    // Safety break: hard cap at 400 days just in case.
+    if (i > 400) break;
   }
   return dates;
 };
@@ -67,7 +82,22 @@ export default function AgendaScreen() {
 
   // Salir (Partner) state
   const upcomingDates = useMemo(() => generateUpcomingDates(), []);
+  const dateScrollRef = useRef<ScrollView | null>(null);
+  // Unique months derived from upcomingDates — used as a quick "jump" bar
+  const availableMonths = useMemo(() => {
+    const seen = new Set<string>();
+    const out: Array<{ key: string; label: string; firstDateKey: string }> = [];
+    for (const d of upcomingDates) {
+      const [yyyy, mm] = d.key.split('-');
+      const key = `${yyyy}-${mm}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ key, label: `${d.month} ${yyyy}`, firstDateKey: d.key });
+    }
+    return out;
+  }, [upcomingDates]);
   const [selectedSalirDate, setSelectedSalirDate] = useState(upcomingDates[0].key);
+  const selectedMonthKey = useMemo(() => selectedSalirDate.slice(0, 7), [selectedSalirDate]);
   const [selectedSalirCat, setSelectedSalirCat] = useState('all');
   const [partnerEvents, setPartnerEvents] = useState<PartnerEvent[]>([]);
   const [loadingSalir, setLoadingSalir] = useState(false);
@@ -173,7 +203,38 @@ export default function AgendaScreen() {
 
       {mode === 'salir' ? (
         <>
+          {/* Month jump bar — quickly scroll the date strip to a given month */}
           <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.monthBar}
+            style={styles.barScroll}
+          >
+            {availableMonths.map((m) => {
+              const isActive = selectedMonthKey === m.key;
+              return (
+                <TouchableOpacity
+                  key={m.key}
+                  style={[styles.monthChip, isActive && styles.monthChipActive]}
+                  onPress={() => {
+                    setSelectedSalirDate(m.firstDateKey);
+                    // Scroll the dates strip to that month
+                    const idx = upcomingDates.findIndex(d => d.key === m.firstDateKey);
+                    if (idx >= 0 && dateScrollRef.current) {
+                      dateScrollRef.current.scrollTo({ x: Math.max(0, idx * 78 - 40), animated: true });
+                    }
+                  }}
+                >
+                  <Text style={[styles.monthChipText, isActive && styles.monthChipTextActive]}>
+                    {m.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          <ScrollView
+            ref={dateScrollRef}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.dateBar}
@@ -431,6 +492,15 @@ const styles = StyleSheet.create({
 
   // Date chips
   barScroll: { flexGrow: 0, flexShrink: 0 },
+  monthBar: { paddingHorizontal: SPACING.lg, gap: 6, paddingVertical: 4 },
+  monthChip: {
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: RADIUS.full, backgroundColor: COLORS.surface,
+    borderWidth: 1, borderColor: COLORS.border,
+  },
+  monthChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  monthChipText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold, textTransform: 'capitalize', letterSpacing: 0.3 },
+  monthChipTextActive: { color: '#FFF' },
   dateBar: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, paddingVertical: SPACING.xs },
   dateChip: {
     flexDirection: 'row',
