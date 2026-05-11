@@ -2588,7 +2588,8 @@ async def wompi_port_tax_checkout(request: Request):
     """Initiate a Wompi checkout for the Tasa Portuaria."""
     user = await get_current_user(request)
     body = await request.json()
-    qty = int(body.get("qty") or 1)
+    qty_raw = body.get("qty")
+    qty = int(qty_raw if qty_raw is not None else 1)
     travel_date = (body.get("travel_date") or "").strip()
     passengers = body.get("passengers") or []
     redirect_url = (body.get("redirect_url") or "").strip() or f"{(os.environ.get('PUBLIC_APP_URL') or 'https://cartagena-live.preview.emergentagent.com')}/payments/return"
