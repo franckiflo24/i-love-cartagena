@@ -1262,9 +1262,17 @@ async def remove_from_calendar(item_id: str, request: Request):
 
 # ── Search ────────────────────────────────────────────────────
 @api_router.get("/search")
-async def global_search(q: str = ""):
+async def global_search(q: str = "", request: Request = None):
+    """
+    Global search across the whole app + AI assistant.
+    Saves every query in `search_history` for analytics.
+    """
     if not q or len(q) < 2:
-        return {"events": [], "concerts": [], "partners": [], "venues": []}
+        return {
+            "events": [], "concerts": [], "partners": [], "venues": [],
+            "transport": [], "partner_events": [],
+            "ai": {"query": q, "intent": "general", "answer": "", "highlights": []},
+        }
 
     regex = {"$regex": q, "$options": "i"}
 
@@ -1279,16 +1287,99 @@ async def global_search(q: str = ""):
     ).limit(10).to_list(10)
 
     partners = await db.partners.find(
-        {"$or": [{"name": regex}, {"description": regex}, {"category": regex}]},
+        {"$or": [
+            {"name": regex}, {"description": regex}, {"category": regex},
+            {"subcategory": regex}, {"cuisine": regex}, {"address": regex},
+        ]},
         {"_id": 0}
-    ).limit(10).to_list(10)
+    ).limit(15).to_list(15)
 
     venues = await db.venues.find(
         {"$or": [{"name": regex}, {"description": regex}, {"type": regex}]},
         {"_id": 0}
     ).limit(10).to_list(10)
 
-    return {"events": events, "concerts": concerts, "partners": partners, "venues": venues}
+    transport = await db.transport.find(
+        {"$or": [
+            {"route": regex}, {"type": regex}, {"departure_point": regex},
+            {"notes": regex}, {"partner_name": regex},
+        ]},
+        {"_id": 0}
+    ).limit(10).to_list(10)
+
+    partner_events = await db.partner_events.find(
+        {"$or": [
+            {"title": regex}, {"description": regex},
+            {"category": regex}, {"partner_name": regex},
+        ]},
+        {"_id": 0}
+    ).limit(10).to_list(10)
+
+    matches = {
+        "events": events, "concerts": concerts, "partners": partners,
+        "venues": venues, "transport": transport, "partner_events": partner_events,
+    }
+
+    # Resolve user (best-effort) for analytics
+    user_id = None
+    try:
+        if request is not None:
+            u = await get_current_user(request)
+            user_id = u.get("user_id") if u else None
+    except Exception:
+        pass
+
+    # AI summary (best-effort; never blocks the response)
+    ai_payload = {"query": q, "intent": "general", "answer": "", "highlights": []}
+    try:
+        from ai_search import ai_search_answer  # type: ignore
+        ai_payload = await ai_search_answer(q, matches)
+    except Exception as exc:
+        logger.warning(f"ai_search_answer failed: {exc}")
+
+    # Persist the query in search_history
+    try:
+        await db.search_history.insert_one({
+            "history_id": f"sh_{uuid.uuid4().hex[:10]}",
+            "user_id": user_id,
+            "query": q,
+            "query_lower": q.strip().lower(),
+            "result_counts": {k: len(v) for k, v in matches.items()},
+            "ai_intent": ai_payload.get("intent"),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+    except Exception as exc:
+        logger.warning(f"search_history insert failed: {exc}")
+
+    return {**matches, "ai": ai_payload}
+
+
+@api_router.get("/admin/search/analytics")
+async def search_analytics(request: Request, limit: int = 50, days: int = 30):
+    """Top searched queries + intents for the admin/CRM dashboard."""
+    user = await get_current_user(request)
+    if not user.get("is_admin"):
+        raise HTTPException(status_code=403, detail="Admin only")
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    pipeline = [
+        {"$match": {"created_at": {"$gte": cutoff}}},
+        {"$group": {
+            "_id": "$query_lower",
+            "count": {"$sum": 1},
+            "last_seen": {"$max": "$created_at"},
+            "intents": {"$addToSet": "$ai_intent"},
+            "unique_users": {"$addToSet": "$user_id"},
+        }},
+        {"$project": {
+            "_id": 0, "query": "$_id", "count": 1, "last_seen": 1, "intents": 1,
+            "unique_users": {"$size": "$unique_users"},
+        }},
+        {"$sort": {"count": -1}},
+        {"$limit": limit},
+    ]
+    top = await db.search_history.aggregate(pipeline).to_list(limit)
+    total = await db.search_history.count_documents({"created_at": {"$gte": cutoff}})
+    return {"window_days": days, "total_searches": total, "top_queries": top}
 
 
 # ── Analytics ───────────────────────────────────────────────
