@@ -688,7 +688,7 @@ async def get_venue(venue_id: str):
 @api_router.get("/partners")
 async def list_partners(category: Optional[str] = None):
     query = {"category": category} if category else {}
-    partners = await db.partners.find(query, {"_id": 0}).sort("order", 1).to_list(100)
+    partners = await db.partners.find(query, {"_id": 0}).sort("order", 1).to_list(500)
     return partners
 
 
@@ -2831,6 +2831,61 @@ async def startup():
         {"category": "restaurant", "subcategory": "arab"},
         {"$set": {"subcategory": "international"}},
     )
+
+    # ── Curated restaurant catalog (Feb 2026 user-provided list) ──
+    # Delete all previous restaurant filler partners except those still
+    # referenced by partner_events (Carmen, El Beso, Nia Bakery, Salon Tropical
+    # have events scheduled). Keep their IDs intact to avoid orphan references.
+    PROTECTED_RESTAURANT_IDS = {"ptr_nc_001", "ptr_nc_002", "ptr_nc_003", "ptr_nc_004"}
+    await db.partners.delete_many({
+        "category": "restaurant",
+        "partner_id": {"$nin": list(PROTECTED_RESTAURANT_IDS)},
+    })
+    try:
+        from restaurants_seed import RESTAURANTS as _RESTAURANTS_CATALOG
+    except Exception as _e:
+        logger.warning(f"restaurants_seed import failed: {_e}")
+        _RESTAURANTS_CATALOG = []
+    for r in _RESTAURANTS_CATALOG:
+        await db.partners.update_one(
+            {"partner_id": r["partner_id"]},
+            {"$set": r},
+            upsert=True,
+        )
+    # Re-classify the 4 protected legacy IDs so they appear under the right barrio/cuisine
+    LEGACY_NC_OVERRIDES = {
+        "ptr_nc_001": {  # Carmen
+            "subcategory": "gastronomic",
+            "rating": 4.7, "reviews": 1850,
+            "cuisine": "Cocina de autor",
+            "instagram": "carmencartagena",
+            "booking_link": "https://carmen.com.co",
+        },
+        "ptr_nc_002": {  # El Beso (mantén como international/popular)
+            "subcategory": "international",
+            "rating": 4.3, "reviews": 240,
+            "cuisine": "Tapas · Internacional",
+            "instagram": "elbesocartagena",
+        },
+        "ptr_nc_003": {  # Nia Bakery
+            "subcategory": "cafe",
+            "rating": 4.6, "reviews": 720,
+            "cuisine": "Panadería · Pastelería",
+            "instagram": "niabakery",
+            "booking_link": "https://niabakery.co",
+        },
+        "ptr_nc_004": {  # Salon Tropical (no es restaurante puro, sino lounge)
+            "subcategory": "international",
+            "rating": 4.2, "reviews": 180,
+            "cuisine": "Salsa · Cocktails",
+            "instagram": "salontropicalcartagena",
+        },
+    }
+    for pid, payload in LEGACY_NC_OVERRIDES.items():
+        await db.partners.update_one(
+            {"partner_id": pid},
+            {"$set": payload},
+        )
 
     # ── Migration: Ensure Taxi Boat exists as trn_003 (replaces legacy night_transport) ──
     await db.transport.delete_many({"type": "night_transport"})
