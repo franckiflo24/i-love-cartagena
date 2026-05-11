@@ -34,6 +34,11 @@ export default function BusinessLogin() {
     setPassword('amocartagena2026');
   };
 
+  const fillAlcaldia = () => {
+    setEmail('alcaldia@amocartagena.app');
+    setPassword('AlcaldiaCTG2026!');
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
@@ -98,6 +103,10 @@ export default function BusinessLogin() {
             <TouchableOpacity onPress={fillDemo}>
               <Text style={styles.demoLink}>Probar con cuenta demo</Text>
             </TouchableOpacity>
+            <TouchableOpacity onPress={fillAlcaldia} style={styles.alcaldiaBtn}>
+              <Ionicons name="shield-checkmark" size={14} color="#1B4F72" />
+              <Text style={styles.alcaldiaLink}>Acceso Alcaldía de Cartagena</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.helpBox}>
@@ -127,6 +136,8 @@ const styles = StyleSheet.create({
   loginBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 14, marginTop: SPACING.md },
   loginText: { color: COLORS.white, fontSize: 14, ...FONTS.bold },
   demoLink: { textAlign: 'center', color: COLORS.primary, fontSize: 13, ...FONTS.semibold, marginTop: SPACING.sm },
+  alcaldiaBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, marginTop: SPACING.xs, backgroundColor: 'rgba(27,79,114,0.12)', borderWidth: 1, borderColor: '#1B4F72', borderRadius: RADIUS.full },
+  alcaldiaLink: { color: '#1B4F72', fontSize: 12, ...FONTS.bold, letterSpacing: 0.3 },
   helpBox: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.sm, padding: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, marginTop: SPACING.xl, width: '100%' },
   helpText: { flex: 1, fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 18 },
 });

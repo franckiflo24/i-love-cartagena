@@ -449,6 +449,368 @@ async def business_stats(request: Request):
     }
 
 
+# ── Government (Alcaldía) Admin Endpoints ───────────────────
+async def _require_government_role(request: Request) -> dict:
+    """Ensure the requesting business user has the `government` role."""
+    biz = await get_current_business(request)
+    if biz.get("role") != "government":
+        raise HTTPException(status_code=403, detail="Access restricted to government accounts")
+    return biz
+
+
+CITY_PASS_PLAN_PRICES = {
+    "pass_classic": 200000,
+    "pass_premium": 350000,
+    "pass_basic": 99000,
+    "pass_ultimate": 599000,
+}
+
+
+@api_router.get("/business/admin/analytics")
+async def admin_alcaldia_analytics(request: Request, days: int = 30):
+    """Aggregate analytics for the Alcaldía dashboard.
+    Focused on tourists / app users (NOT individual partners).
+    Returns: KPIs, demographics, payments (City Pass + Port Tax), user growth.
+    """
+    await _require_government_role(request)
+
+    now = datetime.now(timezone.utc)
+    days = max(1, min(days, 365))
+    since = now - timedelta(days=days)
+    since_iso = since.isoformat()
+
+    # ── User KPIs ──
+    total_users = await db.users.count_documents({})
+    new_users_period = await db.users.count_documents({"created_at": {"$gte": since_iso}})
+    new_users_7d = await db.users.count_documents({"created_at": {"$gte": (now - timedelta(days=7)).isoformat()}})
+    new_users_30d = await db.users.count_documents({"created_at": {"$gte": (now - timedelta(days=30)).isoformat()}})
+
+    # ── City Pass ──
+    total_passes = await db.city_passes.count_documents({})
+    active_passes = await db.city_passes.count_documents({"is_active": True})
+    passes_period = await db.city_passes.count_documents({"activated_at": {"$gte": since_iso}})
+
+    passes_by_plan = await db.city_passes.aggregate([
+        {"$group": {"_id": "$plan_id", "count": {"$sum": 1}}}
+    ]).to_list(20)
+    citypass_revenue = 0
+    citypass_breakdown = []
+    for row in passes_by_plan:
+        plan = row["_id"] or "unknown"
+        cnt = row["count"]
+        price = CITY_PASS_PLAN_PRICES.get(plan, 0)
+        rev = cnt * price
+        citypass_revenue += rev
+        citypass_breakdown.append({
+            "plan_id": plan,
+            "count": cnt,
+            "unit_price": price,
+            "total_revenue": rev,
+        })
+
+    # ── Port Tax (Tasa Portuaria) ──
+    pt_total = await db.port_tax_tickets.count_documents({})
+    pt_paid = await db.port_tax_tickets.count_documents({"status": {"$in": ["paid", "used"]}})
+    pt_used = await db.port_tax_tickets.count_documents({"status": "used"})
+    pt_period = await db.port_tax_tickets.count_documents({"created_at": {"$gte": since_iso}})
+
+    pt_revenue_agg = await db.port_tax_tickets.aggregate([
+        {"$match": {"status": {"$in": ["paid", "used"]}}},
+        {"$group": {"_id": None, "total": {"$sum": "$total_amount"}, "passengers": {"$sum": "$qty"}}}
+    ]).to_list(1)
+    pt_revenue = pt_revenue_agg[0]["total"] if pt_revenue_agg else 0
+    pt_passengers = pt_revenue_agg[0]["passengers"] if pt_revenue_agg else 0
+
+    # ── Demographics ──
+    demographics = await db.analytics_demographics.find({}, {"_id": 0}).to_list(2000)
+    nationality_counts: dict = {}
+    age_counts: dict = {}
+    gender_counts: dict = {}
+    for d in demographics:
+        nat = d.get("nationality", "Desconocido")
+        nationality_counts[nat] = nationality_counts.get(nat, 0) + 1
+        age = d.get("age_group", "Desconocido")
+        age_counts[age] = age_counts.get(age, 0) + 1
+        gen = d.get("gender", "Desconocido")
+        gender_counts[gen] = gender_counts.get(gen, 0) + 1
+    profiled = max(len(demographics), 1)
+    nationalities = sorted(
+        [{"country": k, "count": v, "percentage": round(v / profiled * 100, 1)} for k, v in nationality_counts.items()],
+        key=lambda x: -x["count"]
+    )
+    age_groups = [{"group": k, "count": v} for k, v in sorted(age_counts.items())]
+    genders = sorted(
+        [{"gender": k, "count": v} for k, v in gender_counts.items()],
+        key=lambda x: -x["count"]
+    )
+
+    # ── User Growth Daily (last `days` days) ──
+    user_growth_pipeline = [
+        {"$match": {"created_at": {"$gte": since_iso}}},
+        {"$group": {"_id": {"$substr": ["$created_at", 0, 10]}, "count": {"$sum": 1}}},
+        {"$sort": {"_id": 1}}
+    ]
+    user_growth_raw = await db.users.aggregate(user_growth_pipeline).to_list(400)
+    user_growth = [{"date": r["_id"], "users": r["count"]} for r in user_growth_raw]
+
+    # ── Top events users engaged with ──
+    top_events_pipeline = [
+        {"$match": {"event_type": "event_click"}},
+        {"$group": {"_id": "$target_id", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 8}
+    ]
+    top_events_raw = await db.analytics.aggregate(top_events_pipeline).to_list(8)
+    top_events = []
+    for e in top_events_raw:
+        evt = await db.events.find_one({"event_id": e["_id"]}, {"_id": 0, "title": 1, "type": 1, "venue_name": 1})
+        top_events.append({
+            "event_id": e["_id"],
+            "views": e["count"],
+            "title": evt["title"] if evt else "—",
+            "type": evt.get("type", "") if evt else "",
+            "venue": evt.get("venue_name", "") if evt else "",
+        })
+
+    # ── Most visited zones ──
+    zone_pipeline = [
+        {"$match": {"zone": {"$ne": None}}},
+        {"$group": {"_id": "$zone", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 10}
+    ]
+    top_zones_raw = await db.location_pings.aggregate(zone_pipeline).to_list(10)
+    top_zones = [{"zone": z["_id"], "count": z["count"]} for z in top_zones_raw]
+
+    # ── Activity funnel ──
+    page_views = await db.analytics.count_documents({"event_type": "page_view"})
+    event_clicks = await db.analytics.count_documents({"event_type": "event_click"})
+    booking_clicks = await db.analytics.count_documents({"event_type": "booking_click"})
+
+    total_revenue = citypass_revenue + pt_revenue
+
+    return {
+        "period_days": days,
+        "generated_at": now.isoformat(),
+        "kpis": {
+            "total_users": total_users,
+            "new_users_period": new_users_period,
+            "new_users_7d": new_users_7d,
+            "new_users_30d": new_users_30d,
+            "total_passes_sold": total_passes,
+            "active_passes": active_passes,
+            "passes_period": passes_period,
+            "port_tax_tickets": pt_total,
+            "port_tax_paid": pt_paid,
+            "port_tax_used": pt_used,
+            "port_tax_period": pt_period,
+            "port_tax_passengers": pt_passengers,
+            "total_revenue_cop": total_revenue,
+            "citypass_revenue_cop": citypass_revenue,
+            "port_tax_revenue_cop": pt_revenue,
+        },
+        "demographics": {
+            "nationalities": nationalities,
+            "age_groups": age_groups,
+            "genders": genders,
+            "total_profiled": len(demographics),
+        },
+        "city_pass": {
+            "by_plan": citypass_breakdown,
+            "total_revenue": citypass_revenue,
+        },
+        "port_tax": {
+            "total_tickets": pt_total,
+            "total_passengers": pt_passengers,
+            "total_revenue": pt_revenue,
+            "used": pt_used,
+            "paid": pt_paid - pt_used,
+        },
+        "user_growth": user_growth,
+        "top_events": top_events,
+        "top_zones": top_zones,
+        "funnel": {
+            "page_views": page_views,
+            "event_clicks": event_clicks,
+            "booking_clicks": booking_clicks,
+        },
+    }
+
+
+@api_router.get("/business/admin/users")
+async def admin_alcaldia_users(request: Request, limit: int = 100, skip: int = 0):
+    """Paginated list of users (aggregate / privacy-friendly view)."""
+    await _require_government_role(request)
+    limit = max(1, min(limit, 500))
+    skip = max(0, skip)
+    cursor = db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "name": 1, "picture": 1, "created_at": 1}).sort("created_at", -1).skip(skip).limit(limit)
+    rows = await cursor.to_list(limit)
+    # Enrich with profile snippets (nationality, age, persona) if available
+    enriched = []
+    for u in rows:
+        prof = await db.user_profiles.find_one({"user_id": u["user_id"]}, {"_id": 0, "persona": 1, "interests": 1, "nationality": 1, "age_group": 1})
+        # has_pass / has_port_tax
+        has_pass = await db.city_passes.count_documents({"user_id": u["user_id"], "is_active": True}) > 0
+        pt_count = await db.port_tax_tickets.count_documents({"user_id": u["user_id"]})
+        enriched.append({
+            **u,
+            "has_active_pass": has_pass,
+            "port_tax_tickets": pt_count,
+            "persona": (prof or {}).get("persona", ""),
+            "nationality": (prof or {}).get("nationality", ""),
+            "age_group": (prof or {}).get("age_group", ""),
+            "interests": (prof or {}).get("interests", []),
+        })
+    total = await db.users.count_documents({})
+    return {"users": enriched, "total": total, "limit": limit, "skip": skip}
+
+
+@api_router.get("/business/admin/payments")
+async def admin_alcaldia_payments(request: Request, limit: int = 200):
+    """Combined payment history (City Pass purchases + Port Tax tickets)."""
+    await _require_government_role(request)
+    limit = max(1, min(limit, 1000))
+
+    # City Pass purchases
+    passes = await db.city_passes.find({}, {"_id": 0}).sort("activated_at", -1).limit(limit).to_list(limit)
+    pt_tickets = await db.port_tax_tickets.find({}, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(limit)
+
+    # Build a unified payment log
+    payments = []
+    for p in passes:
+        plan = p.get("plan_id", "unknown")
+        amount = CITY_PASS_PLAN_PRICES.get(plan, 0)
+        user = await db.users.find_one({"user_id": p.get("user_id")}, {"_id": 0, "name": 1, "email": 1}) or {}
+        payments.append({
+            "id": p.get("pass_id"),
+            "type": "city_pass",
+            "label": f"City Pass {plan.replace('pass_', '').title()}",
+            "user_id": p.get("user_id"),
+            "user_name": user.get("name", "—"),
+            "user_email": user.get("email", "—"),
+            "amount": amount,
+            "currency": "COP",
+            "status": "active" if p.get("is_active") else "expired",
+            "created_at": p.get("activated_at"),
+            "metadata": {"plan_id": plan, "expires_at": p.get("expires_at")},
+        })
+    for t in pt_tickets:
+        user = await db.users.find_one({"user_id": t.get("user_id")}, {"_id": 0, "name": 1, "email": 1}) or {}
+        payments.append({
+            "id": t.get("ticket_id"),
+            "type": "port_tax",
+            "label": f"Tasa Portuaria ({t.get('qty', 1)} pax)",
+            "user_id": t.get("user_id"),
+            "user_name": user.get("name", "—"),
+            "user_email": user.get("email", "—"),
+            "amount": t.get("total_amount", 0),
+            "currency": t.get("currency", "COP"),
+            "status": t.get("status", "paid"),
+            "created_at": t.get("created_at"),
+            "metadata": {"travel_date": t.get("travel_date"), "qty": t.get("qty", 1)},
+        })
+    payments.sort(key=lambda x: x.get("created_at") or "", reverse=True)
+    return {"payments": payments[:limit], "count": len(payments)}
+
+
+def _csv_escape(v) -> str:
+    if v is None:
+        return ""
+    s = str(v).replace('"', '""')
+    if any(c in s for c in [",", "\n", "\r", '"']):
+        return f'"{s}"'
+    return s
+
+
+@api_router.get("/business/admin/export/users.csv")
+async def admin_export_users_csv(request: Request):
+    await _require_government_role(request)
+    users = await db.users.find({}, {"_id": 0}).sort("created_at", -1).to_list(5000)
+    headers = ["user_id", "email", "name", "created_at", "nationality", "age_group", "persona", "has_active_pass", "port_tax_tickets"]
+    rows_out = [",".join(headers)]
+    for u in users:
+        prof = await db.user_profiles.find_one({"user_id": u.get("user_id")}, {"_id": 0, "persona": 1, "nationality": 1, "age_group": 1}) or {}
+        has_pass = await db.city_passes.count_documents({"user_id": u.get("user_id"), "is_active": True}) > 0
+        pt_count = await db.port_tax_tickets.count_documents({"user_id": u.get("user_id")})
+        row = [
+            _csv_escape(u.get("user_id")),
+            _csv_escape(u.get("email")),
+            _csv_escape(u.get("name")),
+            _csv_escape(u.get("created_at")),
+            _csv_escape(prof.get("nationality", "")),
+            _csv_escape(prof.get("age_group", "")),
+            _csv_escape(prof.get("persona", "")),
+            _csv_escape("yes" if has_pass else "no"),
+            _csv_escape(pt_count),
+        ]
+        rows_out.append(",".join(row))
+    csv_body = "\n".join(rows_out)
+    return Response(
+        content=csv_body,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=usuarios_amocartagena.csv"},
+    )
+
+
+@api_router.get("/business/admin/export/payments.csv")
+async def admin_export_payments_csv(request: Request):
+    await _require_government_role(request)
+    # Reuse the aggregated list
+    passes = await db.city_passes.find({}, {"_id": 0}).sort("activated_at", -1).to_list(5000)
+    pt_tickets = await db.port_tax_tickets.find({}, {"_id": 0}).sort("created_at", -1).to_list(5000)
+
+    headers = ["id", "type", "label", "user_email", "user_name", "amount_cop", "status", "created_at", "metadata"]
+    rows_out = [",".join(headers)]
+    all_rows = []
+    for p in passes:
+        plan = p.get("plan_id", "unknown")
+        amount = CITY_PASS_PLAN_PRICES.get(plan, 0)
+        user = await db.users.find_one({"user_id": p.get("user_id")}, {"_id": 0, "name": 1, "email": 1}) or {}
+        all_rows.append({
+            "id": p.get("pass_id"),
+            "type": "city_pass",
+            "label": f"City Pass {plan}",
+            "user_email": user.get("email", ""),
+            "user_name": user.get("name", ""),
+            "amount": amount,
+            "status": "active" if p.get("is_active") else "expired",
+            "created_at": p.get("activated_at", ""),
+            "metadata": f"plan={plan}",
+        })
+    for t in pt_tickets:
+        user = await db.users.find_one({"user_id": t.get("user_id")}, {"_id": 0, "name": 1, "email": 1}) or {}
+        all_rows.append({
+            "id": t.get("ticket_id"),
+            "type": "port_tax",
+            "label": f"Tasa Portuaria x{t.get('qty', 1)}",
+            "user_email": user.get("email", ""),
+            "user_name": user.get("name", ""),
+            "amount": t.get("total_amount", 0),
+            "status": t.get("status", ""),
+            "created_at": t.get("created_at", ""),
+            "metadata": f"travel_date={t.get('travel_date', '')};qty={t.get('qty', 1)}",
+        })
+    all_rows.sort(key=lambda x: x.get("created_at") or "", reverse=True)
+    for r in all_rows:
+        rows_out.append(",".join([
+            _csv_escape(r["id"]),
+            _csv_escape(r["type"]),
+            _csv_escape(r["label"]),
+            _csv_escape(r["user_email"]),
+            _csv_escape(r["user_name"]),
+            _csv_escape(r["amount"]),
+            _csv_escape(r["status"]),
+            _csv_escape(r["created_at"]),
+            _csv_escape(r["metadata"]),
+        ]))
+    csv_body = "\n".join(rows_out)
+    return Response(
+        content=csv_body,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=pagos_amocartagena.csv"},
+    )
+
+
 # ── Admin Moderation Endpoints ──────────────────────────────
 @api_router.get("/admin/moderation/notifications")
 async def admin_notifications(unread_only: bool = False):
@@ -3459,6 +3821,50 @@ async def startup():
         await db.business_users.insert_many(demo_accounts)
         await db.business_users.create_index("email", unique=True)
         logger.info(f"Seeded {len(demo_accounts)} business accounts!")
+
+    # ── Seed: Alcaldía de Cartagena (Government / Admin Account) ──
+    # Idempotent: ensures the Alcaldía partner + business user always exist.
+    ALCALDIA_PARTNER_ID = "ptr_alcaldia"
+    ALCALDIA_EMAIL = "alcaldia@amocartagena.app"
+    ALCALDIA_PASSWORD = "AlcaldiaCTG2026!"
+    alcaldia_partner = await db.partners.find_one({"partner_id": ALCALDIA_PARTNER_ID})
+    if not alcaldia_partner:
+        logger.info("Seeding Alcaldía partner profile...")
+        await db.partners.insert_one({
+            "partner_id": ALCALDIA_PARTNER_ID,
+            "name": "Alcaldía de Cartagena",
+            "description": "Cuenta oficial de la Alcaldía Mayor de Cartagena de Indias. Publicamos la agenda cultural oficial, anuncios, programas turísticos y noticias de la ciudad patrimonio.",
+            "category": "institutional",
+            "subcategory": "government",
+            "tier": "institutional",
+            "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Escudo_de_Cartagena_de_Indias.svg/400px-Escudo_de_Cartagena_de_Indias.svg.png",
+            "location": {"lat": 10.4236, "lng": -75.5519},
+            "address": "Plaza de la Aduana, Centro Histórico",
+            "booking_link": "https://cartagena.gov.co",
+            "instagram": "alcaldiacartagena",
+            "price_range": "Gratis",
+            "experience": "Agenda oficial de la ciudad, eventos culturales, anuncios institucionales.",
+            "is_certified": True,
+            "is_government": True,
+        })
+        logger.info("Alcaldía partner seeded!")
+    alcaldia_biz = await db.business_users.find_one({"email": ALCALDIA_EMAIL})
+    if not alcaldia_biz:
+        pw_hash = _bcrypt.hashpw(ALCALDIA_PASSWORD.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+        await db.business_users.insert_one({
+            "business_id": "biz_alcaldia",
+            "email": ALCALDIA_EMAIL,
+            "password_hash": pw_hash,
+            "partner_id": ALCALDIA_PARTNER_ID,
+            "full_name": "Alcaldía de Cartagena",
+            "role": "government",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+        try:
+            await db.business_users.create_index("email", unique=True)
+        except Exception:
+            pass
+        logger.info("Alcaldía business account seeded!")
     # Seed sponsors if not yet seeded
     sponsors_count = await db.sponsors.count_documents({})
     if sponsors_count == 0:

@@ -7,6 +7,7 @@ import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../../src/con
 import { api } from '../../src/constants/api';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { TierBadge } from '../../src/components/TierBadge';
+import AlcaldiaDashboard from '../../src/components/AlcaldiaDashboard';
 
 type Stats = { total_events: number; upcoming_events: number; total_views: number; total_reserves: number; };
 
@@ -22,6 +23,7 @@ export default function BusinessDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [forcePartnerView, setForcePartnerView] = useState(false);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -77,14 +79,48 @@ export default function BusinessDashboard() {
   }
 
   const tierColors = partner?.tier ? TIER_COLORS[partner.tier as Tier] : null;
+  const isGovernment = business?.role === 'government';
+
+  if (isGovernment && token && !forcePartnerView) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
+            <Ionicons name="close" size={22} color={COLORS.textMain} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Panel Alcaldía</Text>
+          <TouchableOpacity onPress={handleLogout} style={styles.headerBtn}>
+            <Ionicons name="log-out-outline" size={22} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        </View>
+        <AlcaldiaDashboard
+          token={token}
+          business={business}
+          partner={partner}
+          onEditProfile={() => router.push('/business/profile-edit')}
+          onCreateEvent={() => router.push('/business/event-form')}
+          onMyEvents={() => setForcePartnerView(true)}
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name="close" size={22} color={COLORS.textMain} />
+        <TouchableOpacity
+          onPress={() => {
+            if (isGovernment) {
+              setForcePartnerView(false);
+            } else {
+              router.back();
+            }
+          }}
+          style={styles.headerBtn}
+        >
+          <Ionicons name={isGovernment ? 'arrow-back' : 'close'} size={22} color={COLORS.textMain} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Dashboard</Text>
+        <Text style={styles.headerTitle}>{isGovernment ? 'Mis publicaciones' : 'Dashboard'}</Text>
         <TouchableOpacity onPress={handleLogout} style={styles.headerBtn}>
           <Ionicons name="log-out-outline" size={22} color={COLORS.textMuted} />
         </TouchableOpacity>
