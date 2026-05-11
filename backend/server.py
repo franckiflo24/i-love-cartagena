@@ -1920,7 +1920,8 @@ async def port_tax_checkout(request: Request):
     """
     user = await get_current_user(request)
     body = await request.json()
-    qty = int(body.get("qty") or 1)
+    qty_raw = body.get("qty")
+    qty = int(qty_raw if qty_raw is not None else 1)
     travel_date = (body.get("travel_date") or "").strip()
     passengers = body.get("passengers") or []
     if qty < 1 or qty > 20:
@@ -2005,7 +2006,10 @@ async def port_tax_redeem(ticket_id: str, request: Request):
     accepts an optional 'operator_id' in body for analytics.
     """
     user = await get_current_user(request)
-    body = await request.json() if request.headers.get("content-length") else {}
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
     operator_id = (body or {}).get("operator_id")
     t = await db.port_tax_tickets.find_one(
         {"ticket_id": ticket_id, "user_id": user["user_id"]}, {"_id": 0}
