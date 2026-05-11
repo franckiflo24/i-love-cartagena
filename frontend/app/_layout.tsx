@@ -35,6 +35,7 @@ export default function RootLayout() {
         <Stack.Screen name="business/dashboard" options={{ presentation: 'modal' }} />
         <Stack.Screen name="business/event-form" options={{ presentation: 'modal' }} />
         <Stack.Screen name="business/profile-edit" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="port-tax" options={{ presentation: 'modal' }} />
       </Stack>
       </MyCalendarProvider>
       </FavoritesProvider>

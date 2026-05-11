@@ -1853,6 +1853,183 @@ async def my_city_pass(request: Request):
     return active
 
 
+# ─────────────────────────────────────────────────────────────
+# Port Tax (Tasa Portuaria — La Bodeguita → Islas)
+# ─────────────────────────────────────────────────────────────
+DEFAULT_PORT_TAX_PRICE = 31500  # COP (referencia 2026, Corpoturismo)
+
+async def _get_active_port_tax_config():
+    """Return the currently active port-tax config, seeding a default if missing."""
+    cfg = await db.port_tax_config.find_one({"active": True}, {"_id": 0})
+    if not cfg:
+        cfg = {
+            "config_id": f"ptc_{uuid.uuid4().hex[:8]}",
+            "price_per_person": DEFAULT_PORT_TAX_PRICE,
+            "currency": "COP",
+            "season_label": "Temporada actual 2026",
+            "note": "Tasa portuaria oficial Muelle La Bodeguita — Islas del Rosario / Barú / Tierra Bomba.",
+            "active": True,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.port_tax_config.insert_one(dict(cfg))
+    cfg.pop("_id", None)
+    return cfg
+
+
+@api_router.get("/port-tax/config")
+async def port_tax_config():
+    """Public endpoint returning current price + season metadata."""
+    cfg = await _get_active_port_tax_config()
+    return cfg
+
+
+@api_router.put("/admin/port-tax/config")
+async def admin_update_port_tax_config(request: Request):
+    """Admin can adjust the price per person and season label."""
+    user = await get_current_user(request)
+    if not user.get("is_admin"):
+        raise HTTPException(status_code=403, detail="Admin only")
+    body = await request.json()
+    price = int(body.get("price_per_person") or DEFAULT_PORT_TAX_PRICE)
+    if price <= 0 or price > 200000:
+        raise HTTPException(status_code=400, detail="Invalid price")
+    # Deactivate any previous configs
+    await db.port_tax_config.update_many({"active": True}, {"$set": {"active": False}})
+    new_cfg = {
+        "config_id": f"ptc_{uuid.uuid4().hex[:8]}",
+        "price_per_person": price,
+        "currency": "COP",
+        "season_label": body.get("season_label") or "Temporada actual",
+        "note": body.get("note") or "Tasa portuaria oficial Muelle La Bodeguita.",
+        "active": True,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.port_tax_config.insert_one(dict(new_cfg))
+    return new_cfg
+
+
+@api_router.post("/port-tax/checkout")
+async def port_tax_checkout(request: Request):
+    """
+    Create a port-tax ticket purchase.
+    Body: { qty: int, travel_date: 'YYYY-MM-DD', passengers?: [name,...] }
+    NOTE: payment integration (Stripe/Wompi) is intentionally left to a follow-up.
+    For now we mark the ticket as 'paid' immediately so the QR can be generated and
+    the full UX validated. When the real payment provider is wired in, the
+    'status' should be set to 'pending' until the webhook confirms payment.
+    """
+    user = await get_current_user(request)
+    body = await request.json()
+    qty = int(body.get("qty") or 1)
+    travel_date = (body.get("travel_date") or "").strip()
+    passengers = body.get("passengers") or []
+    if qty < 1 or qty > 20:
+        raise HTTPException(status_code=400, detail="qty must be between 1 and 20")
+    if not travel_date:
+        raise HTTPException(status_code=400, detail="travel_date required (YYYY-MM-DD)")
+    try:
+        datetime.strptime(travel_date, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="travel_date must be YYYY-MM-DD")
+
+    cfg = await _get_active_port_tax_config()
+    price_per_person = int(cfg["price_per_person"])
+    total = price_per_person * qty
+    ticket_id = f"pt_{uuid.uuid4().hex[:14]}"
+    qr_payload = {
+        "type": "port_tax",
+        "ticket_id": ticket_id,
+        "user_id": user["user_id"],
+        "qty": qty,
+        "travel_date": travel_date,
+        "issued_at": datetime.now(timezone.utc).isoformat(),
+        "app": "amo_cartagena",
+    }
+    ticket = {
+        "ticket_id": ticket_id,
+        "user_id": user["user_id"],
+        "qty": qty,
+        "passengers": passengers[:qty] if isinstance(passengers, list) else [],
+        "price_per_person": price_per_person,
+        "total_amount": total,
+        "currency": cfg["currency"],
+        "travel_date": travel_date,
+        "status": "paid",  # TODO: set 'pending' once payment provider is wired
+        "qr_payload": qr_payload,
+        "paid_at": datetime.now(timezone.utc).isoformat(),
+        "used_at": None,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.port_tax_tickets.insert_one(dict(ticket))
+    ticket.pop("_id", None)
+    return ticket
+
+
+@api_router.get("/port-tax/my-tickets")
+async def port_tax_my_tickets(request: Request):
+    user = await get_current_user(request)
+    cursor = db.port_tax_tickets.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1)
+    tickets = await cursor.to_list(length=200)
+    # Auto-expire tickets whose travel_date has passed by more than 1 day and never used
+    today = datetime.now(timezone.utc).date()
+    for t in tickets:
+        if t.get("status") == "paid":
+            try:
+                td = datetime.strptime(t["travel_date"], "%Y-%m-%d").date()
+                if (today - td).days > 1:
+                    t["status"] = "expired"
+                    await db.port_tax_tickets.update_one(
+                        {"ticket_id": t["ticket_id"]},
+                        {"$set": {"status": "expired"}},
+                    )
+            except Exception:
+                pass
+    return tickets
+
+
+@api_router.get("/port-tax/tickets/{ticket_id}")
+async def port_tax_ticket_detail(ticket_id: str, request: Request):
+    user = await get_current_user(request)
+    t = await db.port_tax_tickets.find_one(
+        {"ticket_id": ticket_id, "user_id": user["user_id"]}, {"_id": 0}
+    )
+    if not t:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    return t
+
+
+@api_router.post("/port-tax/tickets/{ticket_id}/redeem")
+async def port_tax_redeem(ticket_id: str, request: Request):
+    """Mark a ticket as USED (one-time redemption).
+    Returns 409 if already used or expired. Future-proof for a partner scanner app:
+    accepts an optional 'operator_id' in body for analytics.
+    """
+    user = await get_current_user(request)
+    body = await request.json() if request.headers.get("content-length") else {}
+    operator_id = (body or {}).get("operator_id")
+    t = await db.port_tax_tickets.find_one(
+        {"ticket_id": ticket_id, "user_id": user["user_id"]}, {"_id": 0}
+    )
+    if not t:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+    if t.get("status") == "used":
+        raise HTTPException(status_code=409, detail="Ticket already used")
+    if t.get("status") == "expired":
+        raise HTTPException(status_code=409, detail="Ticket expired")
+    if t.get("status") != "paid":
+        raise HTTPException(status_code=409, detail=f"Ticket not redeemable (status={t.get('status')})")
+    now = datetime.now(timezone.utc).isoformat()
+    update = {"status": "used", "used_at": now}
+    if operator_id:
+        update["redeemed_by"] = operator_id
+    await db.port_tax_tickets.update_one({"ticket_id": ticket_id}, {"$set": update})
+    t.update(update)
+    return t
+
+
+# ─────────────────────────────────────────────────────────────
+
+
 # ── Seed Data ───────────────────────────────────────────────
 async def seed_database():
     count = await db.seasons.count_documents({})
