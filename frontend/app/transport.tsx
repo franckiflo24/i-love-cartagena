@@ -136,15 +136,69 @@ export default function TransportScreen() {
 
                 {route.schedule && route.schedule.length > 0 && (
                   <View style={styles.scheduleSection}>
-                    <Text style={styles.scheduleTitle}>Horarios</Text>
-                    {route.schedule.slice(0, 3).map((sc: any, i: number) => (
-                      <View key={i} style={styles.scheduleRow}>
-                        <View style={styles.dot} />
-                        <Text style={styles.scheduleTime}>{sc.time}</Text>
-                        <Text style={styles.scheduleArrow}>→</Text>
-                        <Text style={styles.scheduleNote} numberOfLines={1}>{sc.note || sc.destination || ''}</Text>
+                    <View style={styles.scheduleHeader}>
+                      <Ionicons name="time" size={12} color={COLORS.primary} />
+                      <Text style={styles.scheduleTitle}>Salidas</Text>
+                      <View style={styles.scheduleCount}>
+                        <Text style={styles.scheduleCountText}>{route.schedule.length}</Text>
                       </View>
-                    ))}
+                    </View>
+                    <View style={styles.scheduleList}>
+                      {route.schedule.slice(0, 4).map((sc: any, i: number) => {
+                        const departure = sc.departure || sc.time || '--:--';
+                        const arrival = sc.arrival || '';
+                        const note = sc.notes || sc.note || sc.destination || '';
+                        const duration = (() => {
+                          if (!departure || !arrival || departure === '--:--') return '';
+                          try {
+                            const [h1, m1] = departure.split(':').map(Number);
+                            const [h2, m2] = arrival.split(':').map(Number);
+                            const mins = (h2 * 60 + m2) - (h1 * 60 + m1);
+                            if (mins <= 0) return '';
+                            const h = Math.floor(mins / 60);
+                            const m = mins % 60;
+                            return h > 0 ? `${h}h${m ? ` ${m}m` : ''}` : `${m} min`;
+                          } catch { return ''; }
+                        })();
+                        return (
+                          <View key={i} style={styles.scheduleRow}>
+                            <View style={styles.timePill}>
+                              <Text style={styles.timePillText}>{departure}</Text>
+                            </View>
+                            {!!arrival && (
+                              <>
+                                <View style={styles.routeLine}>
+                                  <View style={styles.routeDot} />
+                                  <View style={styles.routeDash} />
+                                  <Ionicons name="boat" size={11} color={COLORS.textMuted} />
+                                  <View style={styles.routeDash} />
+                                  <View style={styles.routeDot} />
+                                </View>
+                                <View style={[styles.timePill, styles.timePillArrival]}>
+                                  <Text style={styles.timePillText}>{arrival}</Text>
+                                </View>
+                              </>
+                            )}
+                            {!!duration && (
+                              <View style={styles.durationChip}>
+                                <Text style={styles.durationChipText}>{duration}</Text>
+                              </View>
+                            )}
+                            {!!note && !arrival && (
+                              <Text style={styles.scheduleNote} numberOfLines={1}>{note}</Text>
+                            )}
+                          </View>
+                        );
+                      })}
+                    </View>
+                    {!!route.last_return && (
+                      <View style={styles.lastReturnRow}>
+                        <Ionicons name="alert-circle" size={12} color="#F59E0B" />
+                        <Text style={styles.lastReturnText}>
+                          Última lancha de regreso: <Text style={styles.lastReturnBold}>{route.last_return}</Text>
+                        </Text>
+                      </View>
+                    )}
                   </View>
                 )}
 
@@ -371,13 +425,48 @@ const styles = StyleSheet.create({
   routePartner: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
   qrBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(34,197,94,0.15)', borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: 'rgba(34,197,94,0.4)' },
   qrBadgeText: { fontSize: 9, color: '#22C55E', ...FONTS.bold, letterSpacing: 0.4 },
-  scheduleSection: { marginBottom: SPACING.md },
-  scheduleTitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold, marginBottom: SPACING.sm, letterSpacing: 1, textTransform: 'uppercase' },
-  scheduleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
+  scheduleSection: { marginBottom: SPACING.md, marginTop: SPACING.xs },
+  scheduleHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: SPACING.sm },
+  scheduleTitle: { fontSize: 11, color: COLORS.textMain, ...FONTS.bold, letterSpacing: 1, textTransform: 'uppercase' },
+  scheduleCount: {
+    backgroundColor: 'rgba(217,119,6,0.18)', borderRadius: 999,
+    paddingHorizontal: 8, paddingVertical: 1, minWidth: 22, alignItems: 'center',
+  },
+  scheduleCountText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold },
+  scheduleList: { gap: 8 },
+  scheduleRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    paddingVertical: 6, paddingHorizontal: 10,
+    backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: RADIUS.md,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
+  },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.primary },
+  timePill: {
+    backgroundColor: 'rgba(217,119,6,0.15)', paddingHorizontal: 10, paddingVertical: 4,
+    borderRadius: RADIUS.md, minWidth: 56, alignItems: 'center',
+  },
+  timePillArrival: { backgroundColor: 'rgba(255,255,255,0.06)' },
+  timePillText: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold, letterSpacing: 0.3 },
+  routeLine: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  routeDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: COLORS.primary },
+  routeDash: { flex: 1, height: 1, backgroundColor: 'rgba(217,119,6,0.35)' },
+  durationChip: {
+    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 999,
+    paddingHorizontal: 8, paddingVertical: 2,
+  },
+  durationChipText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.semibold },
   scheduleTime: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold, minWidth: 50 },
   scheduleArrow: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular },
   scheduleNote: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, flex: 1 },
+  lastReturnRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    marginTop: SPACING.sm,
+    paddingHorizontal: 10, paddingVertical: 6,
+    backgroundColor: 'rgba(245,158,11,0.10)', borderRadius: RADIUS.md,
+    borderWidth: 1, borderColor: 'rgba(245,158,11,0.25)',
+  },
+  lastReturnText: { flex: 1, fontSize: 11, color: '#F59E0B', ...FONTS.regular },
+  lastReturnBold: { ...FONTS.bold },
   details: { gap: 6, marginBottom: SPACING.md },
   detailRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   detailText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, flex: 1, lineHeight: 20 },
