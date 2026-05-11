@@ -77,11 +77,12 @@ export default function PortTaxCheckoutScreen() {
 
   const onConfirm = async () => {
     if (!user) {
-      Alert.alert(
-        'Inicia sesión',
-        'Necesitas una cuenta para guardar tu tiquete y mostrar el QR.',
-        [{ text: 'Cancelar', style: 'cancel' }, { text: 'Iniciar sesión', onPress: () => login() }],
-      );
+      // Not logged in: jump straight to the login/create-account flow.
+      // Pass `?next=...` so the login screen can return here after auth.
+      router.push({
+        pathname: '/login' as any,
+        params: { next: '/port-tax/checkout' },
+      });
       return;
     }
     if (!travelDate) {

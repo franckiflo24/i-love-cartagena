@@ -51,7 +51,10 @@ export default function CityPassTab() {
   }, [user]);
 
   const activatePass = async (planId: string) => {
-    if (!user) { login(); return; }
+    if (!user) {
+      router.push({ pathname: '/login' as any, params: { next: '/(tabs)/citypass' } });
+      return;
+    }
     setActivating(planId);
     try {
       const res = await api.post('/city-pass/activate', { plan_id: planId });

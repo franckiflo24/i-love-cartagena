@@ -4,7 +4,7 @@ import {
   Modal, TextInput, KeyboardAvoidingView, Platform, Alert, ScrollView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +18,7 @@ export default function LoginScreen() {
   const { user, isLoading, login } = useAuth();
   const router = useRouter();
   const { s, lang, setLang } = useLang();
+  const { next } = useLocalSearchParams<{ next?: string }>();
 
   const [showSignup, setShowSignup] = useState(false);
   const [showWhatsapp, setShowWhatsapp] = useState(false);
@@ -28,9 +29,13 @@ export default function LoginScreen() {
 
   useEffect(() => {
     if (user && !isLoading) {
-      router.replace('/(tabs)');
+      if (typeof next === 'string' && next.startsWith('/')) {
+        router.replace(next as any);
+      } else {
+        router.replace('/(tabs)');
+      }
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, next]);
 
   // Auto-fill signup with previously cached info if any
   useEffect(() => {
