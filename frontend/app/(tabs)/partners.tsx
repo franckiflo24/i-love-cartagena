@@ -50,7 +50,6 @@ const RESTAURANT_SUBCATEGORIES = [
   { key: 'colombian', label: 'Colombiano', icon: 'flag', image: 'https://images.unsplash.com/photo-1518176258769-f227c798150e?w=600&h=400&fit=crop' },
   { key: 'seafood', label: 'Del Mar', icon: 'fish', image: 'https://images.unsplash.com/photo-1559737558-2f5a35f4523b?w=600&h=400&fit=crop' },
   { key: 'international', label: 'Internacional', icon: 'globe', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop' },
-  { key: 'arab', label: 'Árabe', icon: 'cafe', image: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=600&h=400&fit=crop' },
   { key: 'gastronomic', label: 'Gastronómicos', icon: 'star', image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop' },
   { key: 'vegetarian', label: 'Vegetariano', icon: 'leaf', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&h=400&fit=crop' },
 ];

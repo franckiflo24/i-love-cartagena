@@ -2810,7 +2810,8 @@ async def startup():
     CUISINE_LABEL_TO_KEY = {
         "cafe": "cafe", "italian": "italian", "asian": "asian",
         "colombian": "colombian", "seafood": "seafood", "mediterranean": "mediterranean",
-        "arab": "arab", "fastfood": "fastfood", "gastronomic": "gastronomic",
+        "arab": "international",  # Árabe ahora va dentro de Internacional
+        "fastfood": "fastfood", "gastronomic": "gastronomic",
         "vegetarian": "vegetarian", "international": "international",
         "brunch": "brunch", "bakery": "bakery",
     }
@@ -2824,6 +2825,12 @@ async def startup():
             {"partner_id": p["partner_id"]},
             {"$set": {"subcategory": new_sub}},
         )
+
+    # Merge legacy "arab" subcategory into "international"
+    await db.partners.update_many(
+        {"category": "restaurant", "subcategory": "arab"},
+        {"$set": {"subcategory": "international"}},
+    )
 
     # ── Migration: Ensure Taxi Boat exists as trn_003 (replaces legacy night_transport) ──
     await db.transport.delete_many({"type": "night_transport"})
