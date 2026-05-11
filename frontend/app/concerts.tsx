@@ -148,9 +148,11 @@ export default function ConcertsScreen() {
               style={[styles.dateChip, isActive && styles.dateChipActive]}
               onPress={() => setSelectedDate(d)}
             >
-              <Text style={[styles.dateChipDay, isActive && styles.dateChipTextActive]}>{day}</Text>
               <Text style={[styles.dateChipDate, isActive && styles.dateChipTextActive]}>{date}</Text>
-              <Text style={[styles.dateChipMonth, isActive && styles.dateChipTextActive]}>{month}</Text>
+              <View style={styles.dateChipMeta}>
+                <Text style={[styles.dateChipDay, isActive && styles.dateChipTextActive]}>{day}</Text>
+                <Text style={[styles.dateChipMonth, isActive && styles.dateChipTextActive]}>{month}</Text>
+              </View>
             </TouchableOpacity>
           );
         })}
@@ -330,20 +332,31 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
 
   // Date filter
-  dateScroll: { marginBottom: SPACING.xs },
+  dateScroll: { marginBottom: SPACING.xs, flexGrow: 0, flexShrink: 0 },
   dateScrollContent: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, paddingVertical: 4 },
-  dateChip: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 12, borderRadius: RADIUS.xl, backgroundColor: COLORS.surface, borderWidth: 1.5, borderColor: COLORS.border, minWidth: 58, minHeight: 65 },
+  dateChip: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 12, paddingVertical: 8, borderRadius: RADIUS.full,
+    backgroundColor: COLORS.surface, borderWidth: 1.5, borderColor: COLORS.border,
+    gap: 6, minWidth: 70,
+  },
   dateChipActive: { backgroundColor: `${COLORS.primary}15`, borderColor: COLORS.primary },
-  dateChipDay: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
-  dateChipDate: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, lineHeight: 26 },
-  dateChipMonth: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
-  dateChipText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold },
+  dateChipMeta: { alignItems: 'flex-start', justifyContent: 'center' },
+  dateChipDay: { fontSize: 10, color: COLORS.textMuted, ...FONTS.semibold, lineHeight: 12, textTransform: 'uppercase', letterSpacing: 0.4 },
+  dateChipDate: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, lineHeight: 20 },
+  dateChipMonth: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium, lineHeight: 12, textTransform: 'uppercase', letterSpacing: 0.4 },
+  dateChipText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold },
   dateChipTextActive: { color: COLORS.primary },
 
   // Genre filter
-  genreScroll: { marginBottom: SPACING.sm },
-  genreScrollContent: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, paddingVertical: 4 },
-  genreChip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 12, borderRadius: RADIUS.xl, borderWidth: 1.5, borderColor: COLORS.border, backgroundColor: COLORS.surface, minHeight: 44 },
+  genreScroll: { marginBottom: SPACING.sm, flexGrow: 0, flexShrink: 0 },
+  genreScrollContent: { paddingHorizontal: SPACING.lg, gap: 6, paddingVertical: 4 },
+  genreChip: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 4, paddingHorizontal: 10, paddingVertical: 6,
+    borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border,
+    backgroundColor: COLORS.surface,
+  },
   genreChipActive: { backgroundColor: `${COLORS.primary}20`, borderColor: COLORS.primary },
   genreDot: { width: 10, height: 10, borderRadius: 5 },
   genreChipText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold },
