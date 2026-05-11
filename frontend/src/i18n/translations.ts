@@ -100,8 +100,8 @@ export const t: Translations = {
 
     // Login
     login_music: 'AMO',
-    login_tagline: 'La experiencia completa de la ciudad',
-    login_welcome: 'Conciertos, agenda, partners y reservas en un solo lugar',
+    login_tagline: 'Toda Cartagena en un solo lugar',
+    login_welcome: 'Cultura · Música · Arte · Lifestyle',
     login_google: 'Continuar con Google',
     login_guest: 'Explorar como invitado',
     login_terms: 'Al continuar, aceptas los términos y condiciones de Amo Cartagena',
@@ -220,8 +220,8 @@ export const t: Translations = {
     map_concerts: 'Concerts',
 
     login_music: 'AMO',
-    login_tagline: 'The city\'s music experience',
-    login_welcome: 'Concerts, agenda, partners and bookings in one place',
+    login_tagline: 'All of Cartagena in one place',
+    login_welcome: 'Culture · Music · Art · Lifestyle',
     login_google: 'Continue with Google',
     login_guest: 'Explore as guest',
     login_terms: 'By continuing, you accept the terms and conditions of Amo Cartagena',
@@ -338,8 +338,8 @@ export const t: Translations = {
     map_concerts: 'Concerts',
 
     login_music: 'AMO',
-    login_tagline: 'L\'expérience musicale de la ville',
-    login_welcome: 'Concerts, agenda, partenaires et réservations en un seul endroit',
+    login_tagline: 'Toute Cartagena en un seul endroit',
+    login_welcome: 'Culture · Musique · Art · Lifestyle',
     login_google: 'Continuer avec Google',
     login_guest: 'Explorer en tant qu\'invité',
     login_terms: 'En continuant, vous acceptez les termes et conditions de Amo Cartagena',
@@ -456,8 +456,8 @@ export const t: Translations = {
     map_concerts: 'Concertos',
 
     login_music: 'AMO',
-    login_tagline: 'A experiência musical da cidade',
-    login_welcome: 'Concertos, agenda, parceiros e reservas em um só lugar',
+    login_tagline: 'Toda Cartagena em um só lugar',
+    login_welcome: 'Cultura · Música · Arte · Lifestyle',
     login_google: 'Continuar com Google',
     login_guest: 'Explorar como visitante',
     login_terms: 'Ao continuar, você aceita os termos e condições de Amo Cartagena',
