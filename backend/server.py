@@ -2621,7 +2621,8 @@ async def wompi_partner_event_checkout(request: Request):
     user = await get_current_user(request)
     body = await request.json()
     event_id = (body.get("event_id") or "").strip()
-    qty = int(body.get("qty") or 1)
+    qty_raw = body.get("qty")
+    qty = int(qty_raw if qty_raw is not None else 1)
     redirect_url = (body.get("redirect_url") or "").strip() or f"{(os.environ.get('PUBLIC_APP_URL') or 'https://cartagena-live.preview.emergentagent.com')}/payments/return"
     if not event_id:
         raise HTTPException(status_code=400, detail="event_id required")

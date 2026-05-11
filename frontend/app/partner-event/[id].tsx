@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking as RNLinking, Alert } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking as RNLinking, Alert, Modal, Pressable } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,8 @@ import { TierBadge } from '../../src/components/TierBadge';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useMyCalendar } from '../../src/context/MyCalendarContext';
 import { useLang } from '../../src/context/LanguageContext';
+import { useAuth } from '../../src/context/AuthContext';
+import { openWompiCheckout, checkWompiEnabled, notConfiguredAlert } from '../../src/lib/wompi';
 
 const CAT_ICONS: Record<string, string> = {
   gastronomy: 'restaurant',
@@ -42,20 +44,29 @@ export default function PartnerEventDetail() {
   const { isFavorite, toggleFavorite } = useFavorites();
   const { isInCalendar, addToCalendar, removeFromCalendar } = useMyCalendar();
   const { s } = useLang();
+  const { user } = useAuth();
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [reserving, setReserving] = useState(false);
+  const [payModalOpen, setPayModalOpen] = useState(false);
+  const [payQty, setPayQty] = useState(1);
+  const [payProcessing, setPayProcessing] = useState(false);
+  const [wompiEnabled, setWompiEnabled] = useState<boolean | null>(null);
 
   useEffect(() => {
     const load = async () => {
       try {
         const data = await api.get(`/partner-events/${id}`);
         setEvent(data);
+        const cfg = await checkWompiEnabled().catch(() => ({ enabled: false } as any));
+        setWompiEnabled(!!cfg.enabled);
       } catch (e) { console.error(e); }
       setLoading(false);
     };
     load();
   }, [id]);
+
+  const total = useMemo(() => (event ? Number(event.price || 0) * payQty : 0), [event, payQty]);
 
   const handleReserve = async () => {
     if (!event) return;
@@ -72,6 +83,46 @@ export default function PartnerEventDetail() {
       Alert.alert('Error', 'No se pudo procesar la reserva');
     }
     setReserving(false);
+  };
+
+  const handleWompiPay = async () => {
+    if (!event) return;
+    if (!user) {
+      setPayModalOpen(false);
+      router.push({ pathname: '/login' as any, params: { next: `/partner-event/${event.event_id}` } });
+      return;
+    }
+    setPayProcessing(true);
+    try {
+      const cfg = await checkWompiEnabled();
+      if (!cfg.enabled) {
+        notConfiguredAlert();
+        setPayProcessing(false);
+        return;
+      }
+      const redirect = (process.env.EXPO_PUBLIC_BACKEND_URL || '') + '/payments/return';
+      const order = await api.post('/payments/wompi/partner-event', {
+        event_id: event.event_id,
+        qty: payQty,
+        redirect_url: redirect,
+      });
+      setPayModalOpen(false);
+      await openWompiCheckout(order.checkout_url, order.reference);
+      router.push({ pathname: '/payments/return' as any, params: { reference: order.reference } });
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'No se pudo iniciar el pago.');
+    }
+    setPayProcessing(false);
+  };
+
+  const openPayModal = () => {
+    if (!event) return;
+    if (!user) {
+      router.push({ pathname: '/login' as any, params: { next: `/partner-event/${event.event_id}` } });
+      return;
+    }
+    setPayQty(1);
+    setPayModalOpen(true);
   };
 
   if (loading) {
@@ -227,21 +278,141 @@ export default function PartnerEventDetail() {
         >
           <Ionicons name="person-outline" size={18} color={COLORS.primary} />
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.reserveBtn, reserving && { opacity: 0.6 }]}
-          onPress={handleReserve}
-          disabled={reserving}
-        >
-          {reserving ? (
-            <ActivityIndicator size="small" color={COLORS.white} />
-          ) : (
-            <>
-              <Text style={styles.reserveText}>Reservar online</Text>
-              <Ionicons name="arrow-forward" size={16} color={COLORS.white} />
-            </>
-          )}
-        </TouchableOpacity>
+        {event.is_free ? (
+          <TouchableOpacity
+            style={[styles.reserveBtn, reserving && { opacity: 0.6 }]}
+            onPress={handleReserve}
+            disabled={reserving}
+          >
+            {reserving ? (
+              <ActivityIndicator size="small" color={COLORS.white} />
+            ) : (
+              <>
+                <Text style={styles.reserveText}>Reservar online</Text>
+                <Ionicons name="arrow-forward" size={16} color={COLORS.white} />
+              </>
+            )}
+          </TouchableOpacity>
+        ) : (
+          <View style={{ flex: 1, flexDirection: 'row', gap: SPACING.xs }}>
+            <TouchableOpacity
+              style={[styles.reserveBtn, { flex: 1.5 }, payProcessing && { opacity: 0.6 }]}
+              onPress={openPayModal}
+              disabled={payProcessing}
+            >
+              {payProcessing ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : (
+                <>
+                  <Ionicons name="card" size={16} color={COLORS.white} />
+                  <Text style={styles.reserveText}>Reservar y pagar</Text>
+                </>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.externalBtn]}
+              onPress={handleReserve}
+              disabled={reserving}
+            >
+              {reserving ? (
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              ) : (
+                <Ionicons name="open-outline" size={18} color={COLORS.primary} />
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
+
+      {/* Wompi Reserve & Pay Modal */}
+      <Modal
+        visible={payModalOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setPayModalOpen(false)}
+      >
+        <Pressable style={styles.modalBackdrop} onPress={() => !payProcessing && setPayModalOpen(false)}>
+          <Pressable style={styles.modalCard} onPress={(e) => e.stopPropagation?.()}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.modalTitle}>Reservar y pagar</Text>
+                <Text style={styles.modalSubtitle} numberOfLines={1}>{event.title}</Text>
+              </View>
+              <TouchableOpacity onPress={() => !payProcessing && setPayModalOpen(false)} style={styles.modalClose}>
+                <Ionicons name="close" size={20} color={COLORS.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalRow}>
+              <View style={styles.modalRowLabel}>
+                <Ionicons name="calendar" size={14} color={COLORS.textMuted} />
+                <Text style={styles.modalLabelText}>{formatDate(event.date)} · {event.start_time}</Text>
+              </View>
+            </View>
+
+            <View style={styles.qtyBox}>
+              <Text style={styles.qtyTitle}>Personas</Text>
+              <View style={styles.qtyStepper}>
+                <TouchableOpacity
+                  style={[styles.qtyBtn, payQty <= 1 && styles.qtyBtnDisabled]}
+                  onPress={() => setPayQty(q => Math.max(1, q - 1))}
+                  disabled={payQty <= 1}
+                >
+                  <Ionicons name="remove" size={18} color={payQty <= 1 ? COLORS.textMuted : COLORS.white} />
+                </TouchableOpacity>
+                <Text style={styles.qtyValue}>{payQty}</Text>
+                <TouchableOpacity
+                  style={[styles.qtyBtn, payQty >= 50 && styles.qtyBtnDisabled]}
+                  onPress={() => setPayQty(q => Math.min(50, q + 1))}
+                  disabled={payQty >= 50}
+                >
+                  <Ionicons name="add" size={18} color={payQty >= 50 ? COLORS.textMuted : COLORS.white} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.totalBox}>
+              <View>
+                <Text style={styles.totalLabel}>Total a pagar</Text>
+                <Text style={styles.totalHint}>${Number(event.price || 0).toLocaleString('es-CO')} × {payQty}</Text>
+              </View>
+              <Text style={styles.totalValue}>${total.toLocaleString('es-CO')} COP</Text>
+            </View>
+
+            {wompiEnabled === false ? (
+              <View style={styles.warnBox}>
+                <Ionicons name="warning" size={14} color="#F59E0B" />
+                <Text style={styles.warnText}>Wompi aún no está configurado. El pago no se puede procesar.</Text>
+              </View>
+            ) : (
+              <View style={styles.secureBox}>
+                <Ionicons name="lock-closed" size={12} color="#22C55E" />
+                <Text style={styles.secureText}>Pago seguro vía Wompi · Tarjeta, Nequi, PSE</Text>
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={[styles.payCta, (payProcessing || wompiEnabled === false) && { opacity: 0.6 }]}
+              onPress={handleWompiPay}
+              disabled={payProcessing || wompiEnabled === false}
+            >
+              {payProcessing ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : (
+                <>
+                  <Ionicons name="card" size={18} color={COLORS.white} />
+                  <Text style={styles.payCtaText}>Pagar ${total.toLocaleString('es-CO')} COP</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            <Text style={styles.payNote}>
+              Al continuar serás redirigido a Wompi para completar el pago de forma segura.
+            </Text>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -295,4 +466,33 @@ const styles = StyleSheet.create({
   partnerProfileBtn: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.primary },
   reserveBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 14 },
   reserveText: { fontSize: 14, color: COLORS.white, ...FONTS.bold },
+  externalBtn: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.primary, backgroundColor: 'rgba(217,119,6,0.08)' },
+
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
+  modalCard: { backgroundColor: COLORS.surface || '#0F1426', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: SPACING.lg, paddingBottom: SPACING.xl, borderWidth: 1, borderColor: COLORS.border },
+  modalHandle: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: COLORS.border, marginBottom: SPACING.md },
+  modalHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: SPACING.md },
+  modalTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold },
+  modalSubtitle: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+  modalClose: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)' },
+  modalRow: { marginBottom: SPACING.md },
+  modalRowLabel: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  modalLabelText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
+  qtyBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: RADIUS.lg, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, borderWidth: 1, borderColor: COLORS.border, marginBottom: SPACING.sm },
+  qtyTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.semibold },
+  qtyStepper: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
+  qtyBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primary },
+  qtyBtnDisabled: { backgroundColor: 'rgba(255,255,255,0.08)' },
+  qtyValue: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, minWidth: 26, textAlign: 'center' },
+  totalBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(217,119,6,0.10)', borderRadius: RADIUS.lg, paddingHorizontal: SPACING.md, paddingVertical: SPACING.md, borderWidth: 1, borderColor: COLORS.primary, marginBottom: SPACING.sm, marginTop: SPACING.xs },
+  totalLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, letterSpacing: 0.5, textTransform: 'uppercase' },
+  totalHint: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+  totalValue: { fontSize: 18, color: COLORS.primary, ...FONTS.bold },
+  secureBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: SPACING.md, marginTop: 4 },
+  secureText: { fontSize: 11, color: 'rgba(34,197,94,0.85)', ...FONTS.medium },
+  warnBox: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(245,158,11,0.15)', borderColor: '#F59E0B', borderWidth: 1, paddingHorizontal: 10, paddingVertical: 8, borderRadius: RADIUS.md, marginBottom: SPACING.md },
+  warnText: { fontSize: 11, color: '#F59E0B', ...FONTS.medium, flex: 1 },
+  payCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 16 },
+  payCtaText: { fontSize: 15, color: COLORS.white, ...FONTS.bold },
+  payNote: { fontSize: 10, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', marginTop: SPACING.sm, paddingHorizontal: SPACING.md },
 });
