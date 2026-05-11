@@ -2790,6 +2790,41 @@ async def startup():
         {"$set": {"subcategory": "spa"}}
     )
 
+    # ── Cleanup: revert previous neighborhood-based restaurant experiment ──
+    # (Delete the ptr_rs_* partners that were added when subcategories were
+    # neighborhoods, and restore legacy cuisine subcategories on rows that
+    # were temporarily remapped to a barrio.)
+    await db.partners.delete_many({"partner_id": {"$regex": "^ptr_rs_"}})
+    BARRIO_TO_CUISINE_REVERT = [
+        ("ptr_001", "cafe"),               # Casa Bohème
+        ("ptr_002", "mediterranean"),      # Bellini
+        ("ptr_005", "gastronomic"),        # Café del Mar
+    ]
+    for pid, cuisine in BARRIO_TO_CUISINE_REVERT:
+        await db.partners.update_one(
+            {"partner_id": pid, "subcategory": {"$in": ["centro", "getsemani", "bocagrande", "castillogrande"]}},
+            {"$set": {"subcategory": cuisine}},
+        )
+    # For any restaurant whose subcategory got remapped to a barrio,
+    # restore it from the saved `cuisine` field (lowercased), or default to "gastronomic".
+    CUISINE_LABEL_TO_KEY = {
+        "cafe": "cafe", "italian": "italian", "asian": "asian",
+        "colombian": "colombian", "seafood": "seafood", "mediterranean": "mediterranean",
+        "arab": "arab", "fastfood": "fastfood", "gastronomic": "gastronomic",
+        "vegetarian": "vegetarian", "international": "international",
+        "brunch": "brunch", "bakery": "bakery",
+    }
+    barrio_remapped = db.partners.find(
+        {"category": "restaurant", "subcategory": {"$in": ["centro", "getsemani", "bocagrande", "castillogrande"]}}
+    )
+    async for p in barrio_remapped:
+        cuisine = (p.get("cuisine") or "").strip().lower()
+        new_sub = CUISINE_LABEL_TO_KEY.get(cuisine, "gastronomic")
+        await db.partners.update_one(
+            {"partner_id": p["partner_id"]},
+            {"$set": {"subcategory": new_sub}},
+        )
+
     # ── Migration: Ensure Taxi Boat exists as trn_003 (replaces legacy night_transport) ──
     await db.transport.delete_many({"type": "night_transport"})
     # ── Migration: Remove airport shuttle (trn_004) per product decision ──
