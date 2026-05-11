@@ -2484,6 +2484,392 @@ async def port_tax_redeem(ticket_id: str, request: Request):
     return t
 
 
+
+# ─────────────────────────────────────────────────────────────
+# Wompi Payments (Colombia) — Cards, Nequi, PSE, Bancolombia, Daviplata
+# ─────────────────────────────────────────────────────────────
+import wompi as _wompi
+
+
+@api_router.get("/payments/config")
+async def payments_config():
+    """Lightweight public config consumed by the frontend to know if Wompi is enabled and which env."""
+    return {
+        "enabled": _wompi.is_configured(),
+        "env": _wompi.env(),
+        "public_key": (os.environ.get("WOMPI_PUBLIC_KEY") or "") if _wompi.is_configured() else "",
+        "commission_pct": _wompi.app_commission_pct(),
+    }
+
+
+async def _create_payment_record(*, user, kind: str, partner_id: Optional[str], amount_cop: int, currency: str, description: str, metadata: dict, redirect_url: str):
+    """Shared helper: builds the Wompi checkout URL and stores a `payments` document."""
+    if not _wompi.is_configured():
+        raise HTTPException(status_code=503, detail="Wompi no está configurado. Pega las llaves en backend/.env y reinicia el backend.")
+
+    # Determine commission split
+    is_gov = False
+    if partner_id:
+        p = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "is_government": 1, "name": 1})
+        is_gov = bool((p or {}).get("is_government"))
+    split = _wompi.compute_app_commission(amount_cop, is_government=is_gov, kind=kind)
+
+    reference = f"PAY-{uuid.uuid4().hex[:18].upper()}"
+    checkout = _wompi.build_checkout_url(
+        reference=reference,
+        amount_cop=amount_cop,
+        currency=currency,
+        customer_email=(user or {}).get("email", ""),
+        redirect_url=redirect_url,
+        customer_data={"name": (user or {}).get("name", "")},
+    )
+
+    payment_doc = {
+        "payment_id": f"pay_{uuid.uuid4().hex[:12]}",
+        "reference": reference,
+        "user_id": (user or {}).get("user_id"),
+        "user_email": (user or {}).get("email"),
+        "user_name": (user or {}).get("name"),
+        "kind": kind,  # 'city_pass' | 'port_tax' | 'partner_event' | 'partner_reservation'
+        "partner_id": partner_id,
+        "is_government": is_gov,
+        "amount_cop": int(amount_cop),
+        "currency": currency,
+        "split": split,
+        "description": description,
+        "metadata": metadata or {},
+        "status": "pending",  # pending → approved | declined | error | voided
+        "provider": "wompi",
+        "wompi_env": _wompi.env(),
+        "wompi_transaction_id": None,
+        "wompi_status": None,
+        "wompi_payment_method_type": None,
+        "checkout_url": checkout["checkout_url"],
+        "webhook_received": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "paid_at": None,
+    }
+    await db.payments.insert_one(dict(payment_doc))
+    payment_doc.pop("_id", None)
+    return payment_doc
+
+
+@api_router.post("/payments/wompi/city-pass")
+async def wompi_city_pass_checkout(request: Request):
+    """Initiate a Wompi checkout for a City Pass plan."""
+    user = await get_current_user(request)
+    body = await request.json()
+    plan_id = (body.get("plan_id") or "").strip()
+    redirect_url = (body.get("redirect_url") or "").strip() or f"{(os.environ.get('PUBLIC_APP_URL') or 'https://cartagena-live.preview.emergentagent.com')}/payments/return"
+    plans = {
+        "pass_classic": {"name": "Classic Pass", "price": 200000},
+        "pass_premium": {"name": "Premium Pass", "price": 350000},
+        "pass_basic": {"name": "Explorer Pass", "price": 99000},
+        "pass_ultimate": {"name": "Ultimate Pass", "price": 599000},
+    }
+    plan = plans.get(plan_id)
+    if not plan:
+        raise HTTPException(status_code=400, detail="plan_id inválido")
+    return await _create_payment_record(
+        user=user,
+        kind="city_pass",
+        partner_id=None,
+        amount_cop=plan["price"],
+        currency="COP",
+        description=f"City Pass · {plan['name']}",
+        metadata={"plan_id": plan_id, "plan_name": plan["name"]},
+        redirect_url=redirect_url,
+    )
+
+
+@api_router.post("/payments/wompi/port-tax")
+async def wompi_port_tax_checkout(request: Request):
+    """Initiate a Wompi checkout for the Tasa Portuaria."""
+    user = await get_current_user(request)
+    body = await request.json()
+    qty = int(body.get("qty") or 1)
+    travel_date = (body.get("travel_date") or "").strip()
+    passengers = body.get("passengers") or []
+    redirect_url = (body.get("redirect_url") or "").strip() or f"{(os.environ.get('PUBLIC_APP_URL') or 'https://cartagena-live.preview.emergentagent.com')}/payments/return"
+    if qty < 1 or qty > 20:
+        raise HTTPException(status_code=400, detail="qty must be between 1 and 20")
+    if not travel_date:
+        raise HTTPException(status_code=400, detail="travel_date required (YYYY-MM-DD)")
+    try:
+        datetime.strptime(travel_date, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="travel_date must be YYYY-MM-DD")
+    cfg = await _get_active_port_tax_config()
+    price = int(cfg["price_per_person"]) * qty
+    return await _create_payment_record(
+        user=user,
+        kind="port_tax",
+        partner_id=None,
+        amount_cop=price,
+        currency="COP",
+        description=f"Tasa Portuaria · {qty} pax · {travel_date}",
+        metadata={"qty": qty, "travel_date": travel_date, "passengers": passengers[:qty] if isinstance(passengers, list) else []},
+        redirect_url=redirect_url,
+    )
+
+
+@api_router.post("/payments/wompi/partner-event")
+async def wompi_partner_event_checkout(request: Request):
+    """Initiate a Wompi checkout for booking a partner event (e.g. dinner, beach day pass)."""
+    user = await get_current_user(request)
+    body = await request.json()
+    event_id = (body.get("event_id") or "").strip()
+    qty = int(body.get("qty") or 1)
+    redirect_url = (body.get("redirect_url") or "").strip() or f"{(os.environ.get('PUBLIC_APP_URL') or 'https://cartagena-live.preview.emergentagent.com')}/payments/return"
+    if not event_id:
+        raise HTTPException(status_code=400, detail="event_id required")
+    if qty < 1 or qty > 50:
+        raise HTTPException(status_code=400, detail="qty must be 1..50")
+    ev = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0})
+    if not ev:
+        raise HTTPException(status_code=404, detail="Event not found")
+    if ev.get("is_free"):
+        raise HTTPException(status_code=400, detail="Event is free, no payment required")
+    price = int(ev.get("price") or 0) * qty
+    if price <= 0:
+        raise HTTPException(status_code=400, detail="Event has no price configured")
+    return await _create_payment_record(
+        user=user,
+        kind="partner_event",
+        partner_id=ev.get("partner_id"),
+        amount_cop=price,
+        currency=ev.get("currency", "COP"),
+        description=f"{ev.get('title', 'Evento')} · {qty} pax",
+        metadata={"event_id": event_id, "qty": qty, "event_title": ev.get("title")},
+        redirect_url=redirect_url,
+    )
+
+
+@api_router.get("/payments/{payment_id}")
+async def get_payment(payment_id: str, request: Request):
+    """Get current status of a payment (used by the success/return page)."""
+    user = await get_current_user(request)
+    p = await db.payments.find_one({"payment_id": payment_id, "user_id": user["user_id"]}, {"_id": 0})
+    if not p:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    # If still pending, poll Wompi to refresh status
+    if p["status"] == "pending" and not p.get("webhook_received"):
+        tx = await _wompi.fetch_transaction_by_reference(p["reference"])
+        if tx:
+            await _apply_wompi_transaction(p["reference"], tx)
+            p = await db.payments.find_one({"payment_id": payment_id, "user_id": user["user_id"]}, {"_id": 0})
+    return p
+
+
+@api_router.get("/payments/by-reference/{reference}")
+async def get_payment_by_reference(reference: str, request: Request):
+    """Public lookup by reference (used by the post-payment screen)."""
+    user = await get_current_user(request)
+    p = await db.payments.find_one({"reference": reference, "user_id": user["user_id"]}, {"_id": 0})
+    if not p:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    if p["status"] == "pending" and not p.get("webhook_received"):
+        tx = await _wompi.fetch_transaction_by_reference(reference)
+        if tx:
+            await _apply_wompi_transaction(reference, tx)
+            p = await db.payments.find_one({"reference": reference, "user_id": user["user_id"]}, {"_id": 0})
+    return p
+
+
+@api_router.get("/payments/my/list")
+async def list_my_payments(request: Request):
+    user = await get_current_user(request)
+    cursor = db.payments.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1)
+    return await cursor.to_list(length=200)
+
+
+async def _apply_wompi_transaction(reference: str, tx: dict):
+    """Update our payment doc with the latest Wompi transaction state and trigger fulfillment if APPROVED."""
+    if not tx:
+        return
+    wompi_status = (tx.get("status") or "").upper()
+    status_map = {"APPROVED": "approved", "DECLINED": "declined", "VOIDED": "voided", "ERROR": "error", "PENDING": "pending"}
+    new_status = status_map.get(wompi_status, "pending")
+    payment_method = (tx.get("payment_method") or {}).get("type")
+
+    p = await db.payments.find_one({"reference": reference}, {"_id": 0})
+    if not p:
+        return
+    # Idempotency: if already approved + fulfilled, no-op
+    if p.get("status") == "approved" and p.get("paid_at"):
+        return
+
+    update = {
+        "wompi_transaction_id": tx.get("id"),
+        "wompi_status": wompi_status,
+        "wompi_payment_method_type": payment_method,
+        "wompi_raw": tx,
+        "status": new_status,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    if new_status == "approved":
+        update["paid_at"] = datetime.now(timezone.utc).isoformat()
+
+    await db.payments.update_one({"reference": reference}, {"$set": update})
+
+    # Trigger fulfillment on first approval
+    if new_status == "approved":
+        await _fulfill_payment(p, tx)
+
+
+async def _fulfill_payment(payment: dict, tx: dict):
+    """Provision the product (City Pass / Port Tax ticket / Event booking) after a successful Wompi payment."""
+    kind = payment.get("kind")
+    user_id = payment.get("user_id")
+    metadata = payment.get("metadata") or {}
+    try:
+        if kind == "city_pass":
+            existing = await db.city_passes.find_one({"user_id": user_id, "is_active": True}, {"_id": 0})
+            if not existing:
+                pass_doc = {
+                    "pass_id": f"cp_{uuid.uuid4().hex[:12]}",
+                    "user_id": user_id,
+                    "plan_id": metadata.get("plan_id"),
+                    "activated_at": datetime.now(timezone.utc).isoformat(),
+                    "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),
+                    "is_active": True,
+                    "payment_id": payment.get("payment_id"),
+                    "wompi_transaction_id": tx.get("id"),
+                }
+                await db.city_passes.insert_one(pass_doc)
+                await db.payments.update_one({"payment_id": payment["payment_id"]}, {"$set": {"fulfillment.pass_id": pass_doc["pass_id"]}})
+        elif kind == "port_tax":
+            cfg = await _get_active_port_tax_config()
+            ticket_id = f"pt_{uuid.uuid4().hex[:14]}"
+            qty = int(metadata.get("qty") or 1)
+            travel_date = metadata.get("travel_date") or ""
+            qr_payload = {
+                "type": "port_tax",
+                "ticket_id": ticket_id,
+                "user_id": user_id,
+                "qty": qty,
+                "travel_date": travel_date,
+                "issued_at": datetime.now(timezone.utc).isoformat(),
+                "app": "amo_cartagena",
+            }
+            ticket = {
+                "ticket_id": ticket_id,
+                "user_id": user_id,
+                "qty": qty,
+                "passengers": metadata.get("passengers", [])[:qty] if isinstance(metadata.get("passengers"), list) else [],
+                "price_per_person": int(cfg["price_per_person"]),
+                "total_amount": payment["amount_cop"],
+                "currency": payment["currency"],
+                "travel_date": travel_date,
+                "status": "paid",
+                "qr_payload": qr_payload,
+                "paid_at": datetime.now(timezone.utc).isoformat(),
+                "used_at": None,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "payment_id": payment.get("payment_id"),
+                "wompi_transaction_id": tx.get("id"),
+            }
+            await db.port_tax_tickets.insert_one(dict(ticket))
+            await db.payments.update_one({"payment_id": payment["payment_id"]}, {"$set": {"fulfillment.ticket_id": ticket_id}})
+        elif kind == "partner_event":
+            booking_id = f"bk_{uuid.uuid4().hex[:12]}"
+            booking = {
+                "booking_id": booking_id,
+                "user_id": user_id,
+                "partner_id": payment.get("partner_id"),
+                "event_id": metadata.get("event_id"),
+                "qty": int(metadata.get("qty") or 1),
+                "total_amount": payment["amount_cop"],
+                "currency": payment["currency"],
+                "status": "confirmed",
+                "payment_id": payment.get("payment_id"),
+                "wompi_transaction_id": tx.get("id"),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            await db.partner_bookings.insert_one(dict(booking))
+            await db.payments.update_one({"payment_id": payment["payment_id"]}, {"$set": {"fulfillment.booking_id": booking_id}})
+    except Exception as e:
+        logger.error(f"Fulfillment failed for payment {payment.get('payment_id')}: {e}")
+
+
+@api_router.post("/webhooks/wompi")
+async def wompi_webhook(request: Request):
+    """Receive Wompi event notifications. Signature verified via SHA-256 of the configured properties."""
+    raw = await request.body()
+    try:
+        body = (await request.json()) if raw else {}
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+
+    sig = (body.get("signature") or {}).get("checksum") or ""
+    if not _wompi.verify_event_signature(body, sig):
+        # Log & 401 — never trust an unverified event
+        logger.warning("Wompi webhook with invalid signature received")
+        raise HTTPException(status_code=401, detail="Invalid signature")
+
+    event = body.get("event")
+    data = (body.get("data") or {})
+    tx = data.get("transaction") or {}
+    reference = tx.get("reference")
+    if event == "transaction.updated" and reference:
+        # Mark webhook received and apply state
+        await db.payments.update_one({"reference": reference}, {"$set": {"webhook_received": True}})
+        await _apply_wompi_transaction(reference, tx)
+
+    return {"ok": True}
+
+
+# Government-only: payouts / liquidaciones reconciliation report
+@api_router.get("/business/admin/payouts")
+async def admin_alcaldia_payouts(request: Request, status: Optional[str] = None):
+    """Aggregate of money owed to each partner (APPROVED payments minus app commission)."""
+    await _require_government_role(request)
+    match = {"status": "approved", "kind": {"$in": ["partner_event", "partner_reservation"]}}
+    pipeline = [
+        {"$match": match},
+        {"$group": {
+            "_id": "$partner_id",
+            "transactions": {"$sum": 1},
+            "gross": {"$sum": "$amount_cop"},
+            "app_commission": {"$sum": "$split.app_commission"},
+            "partner_amount": {"$sum": "$split.partner_amount"},
+        }},
+        {"$sort": {"partner_amount": -1}},
+    ]
+    rows = await db.payments.aggregate(pipeline).to_list(500)
+    enriched = []
+    total_gross = 0
+    total_commission = 0
+    total_owed = 0
+    for r in rows:
+        pid = r["_id"]
+        partner = await db.partners.find_one({"partner_id": pid}, {"_id": 0, "name": 1, "tier": 1, "category": 1}) if pid else None
+        enriched.append({
+            "partner_id": pid,
+            "partner_name": (partner or {}).get("name", "—"),
+            "tier": (partner or {}).get("tier"),
+            "category": (partner or {}).get("category"),
+            "transactions": r["transactions"],
+            "gross_cop": r["gross"],
+            "app_commission_cop": r["app_commission"],
+            "partner_amount_cop": r["partner_amount"],
+        })
+        total_gross += r["gross"]
+        total_commission += r["app_commission"]
+        total_owed += r["partner_amount"]
+    return {
+        "rows": enriched,
+        "totals": {
+            "gross_cop": total_gross,
+            "app_commission_cop": total_commission,
+            "partner_owed_cop": total_owed,
+        },
+        "currency": "COP",
+    }
+
+
+
 # ─────────────────────────────────────────────────────────────
 
 

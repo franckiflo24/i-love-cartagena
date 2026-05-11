@@ -7,6 +7,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
+import { openWompiCheckout, checkWompiEnabled, notConfiguredAlert } from '../../src/lib/wompi';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -57,8 +58,31 @@ export default function CityPassTab() {
     }
     setActivating(planId);
     try {
-      const res = await api.post('/city-pass/activate', { plan_id: planId });
-      if (res.pass) setMyPass(res.pass);
+      const cfg = await checkWompiEnabled();
+      if (!cfg.enabled) {
+        // Fallback to legacy demo activation if Wompi is not configured yet.
+        notConfiguredAlert();
+        const res = await api.post('/city-pass/activate', { plan_id: planId });
+        if (res.pass) setMyPass(res.pass);
+      } else {
+        // Real Wompi checkout
+        const redirect = (process.env.EXPO_PUBLIC_BACKEND_URL || '') + '/payments/return';
+        const order = await api.post('/payments/wompi/city-pass', {
+          plan_id: planId,
+          redirect_url: redirect,
+        });
+        const result = await openWompiCheckout(order.checkout_url, order.reference);
+        if (result.status === 'approved') {
+          // Refresh active pass
+          const me = await api.get('/city-pass/mine');
+          if (me && me.pass) setMyPass(me.pass);
+          router.push({ pathname: '/payments/return' as any, params: { reference: order.reference } });
+        } else if (result.status === 'pending') {
+          router.push({ pathname: '/payments/return' as any, params: { reference: order.reference } });
+        } else {
+          router.push({ pathname: '/payments/return' as any, params: { reference: order.reference } });
+        }
+      }
     } catch (e) { console.error(e); }
     setActivating(null);
   };

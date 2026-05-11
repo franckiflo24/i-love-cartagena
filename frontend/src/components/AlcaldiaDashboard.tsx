@@ -17,7 +17,7 @@ import * as Sharing from 'expo-sharing';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { api } from '../constants/api';
 
-type Tab = 'overview' | 'users' | 'payments' | 'demographics';
+type Tab = 'overview' | 'users' | 'payments' | 'demographics' | 'payouts';
 
 const fmtCOP = (n: number) =>
   '$ ' + (Number(n) || 0).toLocaleString('es-CO', { maximumFractionDigits: 0 });
@@ -28,6 +28,7 @@ const fmtNum = (n: number) =>
 const tabs: { key: Tab; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { key: 'overview', label: 'Resumen', icon: 'stats-chart' },
   { key: 'payments', label: 'Pagos', icon: 'card' },
+  { key: 'payouts', label: 'Liquidaciones', icon: 'cash' },
   { key: 'demographics', label: 'Turistas', icon: 'globe' },
   { key: 'users', label: 'Usuarios', icon: 'people' },
 ];
@@ -53,6 +54,7 @@ export default function AlcaldiaDashboard({
   const [analytics, setAnalytics] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
+  const [payouts, setPayouts] = useState<any>(null);
   const [eventsCount, setEventsCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -61,16 +63,18 @@ export default function AlcaldiaDashboard({
   const load = useCallback(async () => {
     const headers = { Authorization: `Bearer ${token}` };
     try {
-      const [a, u, p, ev] = await Promise.all([
+      const [a, u, p, ev, po] = await Promise.all([
         api.get('/business/admin/analytics?days=30', { headers }),
         api.get('/business/admin/users?limit=200', { headers }),
         api.get('/business/admin/payments?limit=200', { headers }),
         api.get('/business/events', { headers }),
+        api.get('/business/admin/payouts', { headers }).catch(() => null),
       ]);
       setAnalytics(a);
       setUsers(u.users || []);
       setPayments(p.payments || []);
       setEventsCount((ev || []).length);
+      setPayouts(po);
     } catch (e) {
       console.error('Alcaldia load error', e);
     }
@@ -426,6 +430,57 @@ export default function AlcaldiaDashboard({
             <Text style={styles.helpText}>
               Los datos demográficos provienen del módulo IA de perfilamiento de usuarios (basado en
               favoritos, agenda y zonas visitadas). Anónimos y agregados.
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {tab === 'payouts' && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Liquidaciones a partners</Text>
+          <Text style={styles.sectionSub}>
+            Comisión 3% retenida por la app · Alcaldía y Tasa Portuaria sin comisión
+          </Text>
+
+          {payouts?.totals && (
+            <View style={styles.summaryRow}>
+              <SummaryItem label="Total bruto" value={fmtCOP(payouts.totals.gross_cop)} />
+              <SummaryItem label="Comisión app" value={fmtCOP(payouts.totals.app_commission_cop)} />
+              <SummaryItem label="A pagar partners" value={fmtCOP(payouts.totals.partner_owed_cop)} />
+            </View>
+          )}
+
+          {!payouts || (payouts.rows || []).length === 0 ? (
+            <Text style={styles.emptyMsg}>
+              Aún no hay pagos a partners. Cuando un usuario pague una reserva, aparecerá aquí
+              el monto a transferir al partner.
+            </Text>
+          ) : (
+            payouts.rows.map((r: any) => (
+              <View key={r.partner_id || r.partner_name} style={styles.payRow}>
+                <View style={[styles.payIcon, { backgroundColor: 'rgba(217,119,6,0.18)' }]}>
+                  <Ionicons name="business" size={16} color={COLORS.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.payLabel} numberOfLines={1}>{r.partner_name}</Text>
+                  <Text style={styles.paySub} numberOfLines={1}>
+                    {r.transactions} pagos · Bruto {fmtCOP(r.gross_cop)} · Comisión {fmtCOP(r.app_commission_cop)}
+                  </Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={[styles.payAmount, { color: '#22C55E' }]}>{fmtCOP(r.partner_amount_cop)}</Text>
+                  <Text style={{ fontSize: 9, color: COLORS.textMuted }}>a transferir</Text>
+                </View>
+              </View>
+            ))
+          )}
+
+          <View style={styles.helpBox}>
+            <Ionicons name="information-circle" size={14} color={COLORS.textMuted} />
+            <Text style={styles.helpText}>
+              Estos montos representan el 97% del valor cobrado a usuarios por reservas en cada
+              partner. Realiza las transferencias bancarias correspondientes y marca los pagos como
+              liquidados (próximamente). El 3% restante queda en la cuenta de la app como comisión.
             </Text>
           </View>
         </View>

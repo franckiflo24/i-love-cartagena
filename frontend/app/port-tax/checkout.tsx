@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
+import { openWompiCheckout, checkWompiEnabled, notConfiguredAlert } from '../../src/lib/wompi';
 
 type Cfg = {
   price_per_person: number;
@@ -91,15 +92,31 @@ export default function PortTaxCheckoutScreen() {
     }
     setSubmitting(true);
     try {
-      const res = await api.post('/port-tax/checkout', {
-        qty,
-        travel_date: travelDate,
-        passengers: passengers.filter(Boolean),
-      });
-      if (res?.ticket_id) {
-        router.replace({ pathname: '/port-tax/ticket/[id]' as any, params: { id: res.ticket_id, fromCheckout: '1' } });
+      const cfg = await checkWompiEnabled();
+      if (!cfg.enabled) {
+        // Fallback to legacy demo flow if Wompi not configured
+        notConfiguredAlert();
+        const res = await api.post('/port-tax/checkout', {
+          qty,
+          travel_date: travelDate,
+          passengers: passengers.filter(Boolean),
+        });
+        if (res?.ticket_id) {
+          router.replace({ pathname: '/port-tax/ticket/[id]' as any, params: { id: res.ticket_id, fromCheckout: '1' } });
+        } else {
+          Alert.alert('Error', 'No se pudo generar el tiquete.');
+        }
       } else {
-        Alert.alert('Error', 'No se pudo generar el tiquete.');
+        // Real Wompi checkout
+        const redirect = (process.env.EXPO_PUBLIC_BACKEND_URL || '') + '/payments/return';
+        const order = await api.post('/payments/wompi/port-tax', {
+          qty,
+          travel_date: travelDate,
+          passengers: passengers.filter(Boolean),
+          redirect_url: redirect,
+        });
+        await openWompiCheckout(order.checkout_url, order.reference);
+        router.replace({ pathname: '/payments/return' as any, params: { reference: order.reference } });
       }
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'No se pudo procesar la compra.');
