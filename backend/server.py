@@ -2174,11 +2174,11 @@ async def seed_database():
             {"departure":"08:00","arrival":"09:30","notes":"Primera salida"},
             {"departure":"09:30","arrival":"11:00","notes":"Segunda salida"},
             {"departure":"10:30","arrival":"12:00","notes":"Última salida mañana"},
-        ],"departure_point":"Muelle Turístico de la Bodeguita","departure_location":{"lat":10.4200,"lng":-75.5500},"price":"90,000 COP ida / 160,000 COP ida y vuelta","notes":"Llevar protector solar. Regreso última lancha 16:00.","partner_name":"Transporte Oficial Amo Cartagena","last_return":"16:00"},
+        ],"departure_point":"Muelle Turístico de la Bodeguita","departure_location":{"lat":10.4200,"lng":-75.5500},"price":"","notes":"Llevar protector solar. Regreso última lancha 16:00.","partner_name":"Transporte Oficial Amo Cartagena","last_return":"16:00"},
         {"transport_id":"trn_002","type":"boat","route":"Muelle Turístico → Isla Barú (Playa Blanca)","schedule":[
             {"departure":"08:30","arrival":"09:30","notes":"Servicio directo"},
             {"departure":"10:00","arrival":"11:00","notes":"Segunda salida"},
-        ],"departure_point":"Muelle Turístico de la Bodeguita","departure_location":{"lat":10.4200,"lng":-75.5500},"price":"70,000 COP ida / 120,000 COP ida y vuelta","notes":"Regreso última lancha 17:00. Incluye chaleco salvavidas.","partner_name":"Lanchas Amo Cartagena","last_return":"17:00"},
+        ],"departure_point":"Muelle Turístico de la Bodeguita","departure_location":{"lat":10.4200,"lng":-75.5500},"price":"","notes":"Regreso última lancha 17:00. Incluye chaleco salvavidas.","partner_name":"Lanchas Amo Cartagena","last_return":"17:00"},
     ]
 
     notifications = [

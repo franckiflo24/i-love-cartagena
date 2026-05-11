@@ -204,8 +204,8 @@ export default function TransportScreen() {
 
                 <View style={styles.details}>
                   <View style={styles.detailRow}>
-                    <Ionicons name="cash-outline" size={14} color={COLORS.primary} />
-                    <Text style={styles.detailText}>{route.price || 'Consulta tarifa'}</Text>
+                    <Ionicons name="information-circle-outline" size={14} color={COLORS.textMuted} />
+                    <Text style={styles.detailTextMuted}>Tarifa de lancha según operador · tasa portuaria aparte</Text>
                   </View>
                   {route.duration && (
                     <View style={styles.detailRow}>
@@ -225,7 +225,7 @@ export default function TransportScreen() {
                     <Text style={styles.mapBtnText}>Punto de salida</Text>
                   </TouchableOpacity>
 
-                  {canPay && (
+                  {canPay ? (
                     <TouchableOpacity
                       style={styles.payBtn}
                       onPress={() => openBuyModal(route)}
@@ -234,7 +234,16 @@ export default function TransportScreen() {
                       <Ionicons name="card" size={14} color={COLORS.white} />
                       <Text style={styles.payBtnText}>Pagar en línea</Text>
                     </TouchableOpacity>
-                  )}
+                  ) : route.type === 'boat' ? (
+                    <TouchableOpacity
+                      style={styles.payBtn}
+                      onPress={() => router.push('/port-tax/checkout' as any)}
+                      activeOpacity={0.85}
+                    >
+                      <Ionicons name="qr-code" size={14} color={COLORS.white} />
+                      <Text style={styles.payBtnText}>Pagar tasa portuaria</Text>
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
               </View>
             );
@@ -470,6 +479,7 @@ const styles = StyleSheet.create({
   details: { gap: 6, marginBottom: SPACING.md },
   detailRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   detailText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, flex: 1, lineHeight: 20 },
+  detailTextMuted: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, flex: 1, lineHeight: 18, fontStyle: 'italic' },
   actionsRow: { flexDirection: 'row', gap: SPACING.sm },
   mapBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary },
   mapBtnText: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold },
