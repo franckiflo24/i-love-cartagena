@@ -3903,6 +3903,78 @@ async def startup():
             {"$set": payload},
         )
 
+    # ── Migration: Merge full Cartagena directory (Excel feb 2026) ──
+    await _merge_cartagena_directory()
+
+
+async def _merge_cartagena_directory():
+    """Idempotent merger of the full Cartagena directory from Excel.
+    Runs on every startup (cheap — only touches matched/new docs)."""
+    try:
+        from restaurants_extra import build_extra_partners, normalize_name
+    except Exception as _e:
+        logger.warning(f"Cartagena directory merge skipped (import): {_e}")
+        return
+    directory_entries = build_extra_partners()
+    # Build a lookup of existing partners by normalized name
+    existing_by_norm: dict = {}
+    async for p in db.partners.find(
+        {"category": {"$in": ["restaurant", "club"]}},
+        {"_id": 0, "partner_id": 1, "name": 1, "subcategory": 1,
+         "category": 1, "instagram": 1, "rating": 1, "tier": 1, "reviews": 1}
+    ):
+        nk = normalize_name(p.get("name") or "")
+        if not nk:
+            continue
+        # Dedup within DB: keep the richest doc
+        if nk in existing_by_norm:
+            prev = existing_by_norm[nk]
+
+            def score(x):
+                return (
+                    int(bool(x.get("instagram"))) * 2
+                    + int(bool(x.get("rating") and (x.get("rating") or 0) >= 4.0))
+                    + (3 if x.get("tier") in ("premium", "elite") else 0)
+                    + int((x.get("reviews") or 0) > 100)
+                )
+            if score(p) > score(prev):
+                await db.partners.delete_one({"partner_id": prev["partner_id"]})
+                existing_by_norm[nk] = p
+            else:
+                await db.partners.delete_one({"partner_id": p["partner_id"]})
+        else:
+            existing_by_norm[nk] = p
+
+    merged = 0
+    created = 0
+    for entry in directory_entries:
+        nk = entry["_normalized_name"]
+        existing = existing_by_norm.get(nk)
+        if existing:
+            patch = {}
+            if not existing.get("subcategory"):
+                patch["subcategory"] = entry["subcategory"]
+            cur_sub = existing.get("subcategory") or ""
+            new_sub = entry["subcategory"]
+            # Upgrade overly-generic subcategories
+            if cur_sub == "gastronomic" and new_sub not in ("gastronomic", "international"):
+                patch["subcategory"] = new_sub
+            if new_sub == "bar" and existing.get("category") != "club":
+                patch["category"] = "club"
+                patch["subcategory"] = "bar"
+            if patch:
+                await db.partners.update_one({"partner_id": existing["partner_id"]}, {"$set": patch})
+                merged += 1
+        else:
+            entry_clean = {k: v for k, v in entry.items() if not k.startswith("_")}
+            await db.partners.update_one(
+                {"partner_id": entry["partner_id"]},
+                {"$set": entry_clean},
+                upsert=True,
+            )
+            created += 1
+    logger.info(f"Cartagena directory merge: {merged} updated, {created} new partners.")
+
     # ── Migration: Ensure Taxi Boat exists as trn_003 (replaces legacy night_transport) ──
     await db.transport.delete_many({"type": "night_transport"})
     # ── Migration: Remove airport shuttle (trn_004) per product decision ──
