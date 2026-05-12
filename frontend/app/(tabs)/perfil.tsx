@@ -1,14 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator,
+  Modal, TextInput, KeyboardAvoidingView, Platform, Alert,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useLang } from '../../src/context/LanguageContext';
 import { LANG_LABELS, LANG_FLAGS, Lang } from '../../src/i18n/translations';
 import { useFavorites } from '../../src/context/FavoritesContext';
+
+const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
 
 type Event = {
   event_id: string; title: string; date: string; start_time: string;
@@ -27,6 +33,59 @@ export default function PerfilScreen() {
   const [loading, setLoading] = useState(false);
   const [aiProfile, setAiProfile] = useState<any>(null);
   const [profileBuilding, setProfileBuilding] = useState(false);
+
+  // Guest signup modal state (same UX as /login)
+  const [showSignup, setShowSignup] = useState(false);
+  const [showWhatsapp, setShowWhatsapp] = useState(false);
+  const [signupName, setSignupName] = useState('');
+  const [signupEmail, setSignupEmail] = useState('');
+  const [signupPhone, setSignupPhone] = useState('');
+  const [savingSignup, setSavingSignup] = useState(false);
+
+  const handleEmailSignup = async () => {
+    const email = signupEmail.trim();
+    const name = signupName.trim() || email.split('@')[0];
+    if (!email || !email.includes('@')) {
+      Alert.alert('Email inválido', 'Por favor introduce un email válido.');
+      return;
+    }
+    setSavingSignup(true);
+    const localUser = {
+      user_id: `local_${Date.now()}`,
+      email,
+      name,
+      picture: '',
+      provider: 'email_local',
+    };
+    await AsyncStorage.setItem('user_data', JSON.stringify(localUser));
+    await AsyncStorage.setItem('local_user_email', email);
+    setSavingSignup(false);
+    setShowSignup(false);
+    router.replace('/(tabs)');
+  };
+
+  const handleWhatsappSignup = async () => {
+    const phoneRaw = signupPhone.trim().replace(/[^\d+]/g, '');
+    const phone = phoneRaw.startsWith('+') ? phoneRaw : `+${phoneRaw}`;
+    const name = signupName.trim() || `Usuario ${phone.slice(-4)}`;
+    if (!phone || phone.length < 8) {
+      Alert.alert('Teléfono inválido', 'Por favor introduce un número de WhatsApp válido (incluye código de país).');
+      return;
+    }
+    setSavingSignup(true);
+    const localUser = {
+      user_id: `wa_${Date.now()}`,
+      email: '',
+      name,
+      phone,
+      picture: '',
+      provider: 'whatsapp_local',
+    };
+    await AsyncStorage.setItem('user_data', JSON.stringify(localUser));
+    setSavingSignup(false);
+    setShowWhatsapp(false);
+    router.replace('/(tabs)');
+  };
 
   const loadAiProfile = async () => {
     if (!user?.user_id) return;
@@ -74,51 +133,250 @@ export default function PerfilScreen() {
 
   if (!user) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loginPrompt}>
-          <Ionicons name="person-circle-outline" size={80} color={COLORS.textMuted} />
-          <Text style={styles.loginTitle}>{s('profile_login')}</Text>
-          <Text style={styles.loginDesc}>{s('fav_empty_desc')}</Text>
-          <TouchableOpacity testID="profile-login-btn" style={styles.loginBtn} onPress={login}>
-            <Ionicons name="logo-google" size={18} color={COLORS.white} />
-            <Text style={styles.loginBtnText}>{s('login_google')}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Language Selector for guests */}
-        <View style={styles.langSectionGuest}>
-          <View style={styles.langHeader}>
-            <Ionicons name="globe-outline" size={18} color={COLORS.textMuted} />
-            <Text style={styles.langTitle}>{s('profile_language')}</Text>
-          </View>
-          <View style={styles.langRow}>
-            {(['es', 'en', 'fr', 'pt'] as Lang[]).map(l => {
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.guestScroll}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Compact language pills - top right */}
+          <View style={styles.guestLangRow}>
+            {(Object.keys(LANG_CODES) as Lang[]).map((l) => {
               const isActive = lang === l;
               return (
                 <TouchableOpacity
                   key={l}
-                  style={[styles.langBtn, isActive && styles.langBtnActive]}
+                  style={[styles.guestLangPill, isActive && styles.guestLangPillActive]}
                   onPress={() => setLang(l)}
+                  activeOpacity={0.85}
                 >
-                  <Text style={styles.langFlag}>{LANG_FLAGS[l]}</Text>
-                  <Text style={[styles.langLabel, isActive && styles.langLabelActive]}>{LANG_LABELS[l]}</Text>
+                  <Text style={styles.guestLangFlag}>{LANG_FLAGS[l]}</Text>
+                  <Text style={[styles.guestLangCode, isActive && styles.guestLangCodeActive]}>
+                    {LANG_CODES[l]}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
-        </View>
 
-        {/* Business / Partner Access */}
-        <TouchableOpacity style={styles.businessAccessCard} onPress={() => router.push('/business/login')} activeOpacity={0.85}>
-          <View style={styles.businessIconWrap}>
-            <Ionicons name="business" size={20} color={COLORS.primary} />
+          {/* Hero / title */}
+          <View style={styles.guestHero}>
+            <View style={styles.guestAvatarCircle}>
+              <Ionicons name="person-circle-outline" size={64} color={COLORS.primary} />
+            </View>
+            <Text style={styles.guestTitle}>{s('profile_login')}</Text>
+            <Text style={styles.guestTagline}>
+              Toca el corazón ❤️ en eventos y partners para guardarlos aquí.
+            </Text>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.businessTitle}>¿Eres partner de Amo Cartagena?</Text>
-            <Text style={styles.businessDesc}>Accede a tu dashboard y publica eventos</Text>
+
+          {/* Auth section */}
+          <View style={styles.guestAuthArea}>
+            {/* PRIMARY: Google */}
+            <TouchableOpacity
+              testID="profile-login-btn"
+              style={styles.guestGoogleBtn}
+              onPress={login}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="logo-google" size={20} color={COLORS.white} />
+              <Text style={styles.guestGoogleText}>{s('login_google')}</Text>
+            </TouchableOpacity>
+
+            {/* OR divider */}
+            <View style={styles.guestOrRow}>
+              <View style={styles.guestOrLine} />
+              <Text style={styles.guestOrText}>{s('login_other_methods')}</Text>
+              <View style={styles.guestOrLine} />
+            </View>
+
+            {/* Secondary methods */}
+            <View style={styles.guestMethodsCol}>
+              <TouchableOpacity
+                style={[styles.guestMethodBtn, styles.guestWhatsappBtn]}
+                onPress={() => setShowWhatsapp(true)}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="logo-whatsapp" size={20} color={COLORS.white} />
+                <Text style={styles.guestMethodText}>{s('login_whatsapp')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.guestMethodBtn, styles.guestOutlineBtn]}
+                onPress={() => setShowSignup(true)}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="mail-outline" size={18} color={COLORS.white} />
+                <Text style={styles.guestMethodText}>{s('login_email_signup')}</Text>
+              </TouchableOpacity>
+
+              {Platform.OS === 'ios' && (
+                <TouchableOpacity
+                  style={[styles.guestMethodBtn, styles.guestAppleBtn]}
+                  onPress={login}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="logo-apple" size={20} color={COLORS.white} />
+                  <Text style={styles.guestMethodText}>{s('login_apple')}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
-          <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
-        </TouchableOpacity>
+
+          {/* Partner access — at the bottom */}
+          <TouchableOpacity
+            style={styles.businessAccessCard}
+            onPress={() => router.push('/business/login')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.businessIconWrap}>
+              <Ionicons name="business" size={20} color={COLORS.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.businessTitle}>¿Eres partner de Amo Cartagena?</Text>
+              <Text style={styles.businessDesc}>Accede a tu dashboard y publica eventos</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        </ScrollView>
+
+        {/* Email signup modal */}
+        <Modal
+          visible={showSignup}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setShowSignup(false)}
+        >
+          <KeyboardAvoidingView
+            style={styles.modalOverlay}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
+            <View style={styles.modalCard}>
+              <View style={styles.modalHandle} />
+              <Text style={styles.modalTitle}>{s('login_signup_title')}</Text>
+              <Text style={styles.modalSubtitle}>{s('login_signup_subtitle')}</Text>
+
+              <View style={styles.inputWrap}>
+                <Ionicons name="person-outline" size={18} color={COLORS.textMuted} />
+                <TextInput
+                  style={styles.input}
+                  placeholder={s('login_name_placeholder')}
+                  placeholderTextColor={COLORS.textMuted}
+                  value={signupName}
+                  onChangeText={setSignupName}
+                  autoCapitalize="words"
+                />
+              </View>
+              <View style={styles.inputWrap}>
+                <Ionicons name="mail-outline" size={18} color={COLORS.textMuted} />
+                <TextInput
+                  style={styles.input}
+                  placeholder={s('login_email_placeholder')}
+                  placeholderTextColor={COLORS.textMuted}
+                  value={signupEmail}
+                  onChangeText={setSignupEmail}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                />
+              </View>
+
+              <TouchableOpacity
+                style={[styles.modalSaveBtn, savingSignup && { opacity: 0.6 }]}
+                onPress={handleEmailSignup}
+                disabled={savingSignup}
+                activeOpacity={0.85}
+              >
+                {savingSignup ? (
+                  <ActivityIndicator color={COLORS.white} />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark-circle" size={18} color={COLORS.white} />
+                    <Text style={styles.modalSaveBtnText}>{s('login_save')}</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setShowSignup(false)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.modalCancelText}>{s('login_cancel')}</Text>
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
+
+        {/* WhatsApp signup modal */}
+        <Modal
+          visible={showWhatsapp}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setShowWhatsapp(false)}
+        >
+          <KeyboardAvoidingView
+            style={styles.modalOverlay}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          >
+            <View style={styles.modalCard}>
+              <View style={styles.modalHandle} />
+              <View style={styles.waHeaderRow}>
+                <View style={styles.waIconCircle}>
+                  <Ionicons name="logo-whatsapp" size={24} color={COLORS.white} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalTitle}>{s('login_whatsapp_title')}</Text>
+                  <Text style={styles.modalSubtitle}>{s('login_whatsapp_subtitle')}</Text>
+                </View>
+              </View>
+
+              <View style={styles.inputWrap}>
+                <Ionicons name="person-outline" size={18} color={COLORS.textMuted} />
+                <TextInput
+                  style={styles.input}
+                  placeholder={s('login_name_placeholder')}
+                  placeholderTextColor={COLORS.textMuted}
+                  value={signupName}
+                  onChangeText={setSignupName}
+                  autoCapitalize="words"
+                />
+              </View>
+              <View style={styles.inputWrap}>
+                <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
+                <TextInput
+                  style={styles.input}
+                  placeholder={s('login_phone_placeholder')}
+                  placeholderTextColor={COLORS.textMuted}
+                  value={signupPhone}
+                  onChangeText={setSignupPhone}
+                  keyboardType="phone-pad"
+                />
+              </View>
+
+              <TouchableOpacity
+                style={[styles.modalSaveBtn, styles.modalWaBtn, savingSignup && { opacity: 0.6 }]}
+                onPress={handleWhatsappSignup}
+                disabled={savingSignup}
+                activeOpacity={0.85}
+              >
+                {savingSignup ? (
+                  <ActivityIndicator color={COLORS.white} />
+                ) : (
+                  <>
+                    <Ionicons name="logo-whatsapp" size={18} color={COLORS.white} />
+                    <Text style={styles.modalSaveBtnText}>{s('login_save')}</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setShowWhatsapp(false)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.modalCancelText}>{s('login_cancel')}</Text>
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+        </Modal>
       </SafeAreaView>
     );
   }
@@ -449,4 +707,87 @@ const styles = StyleSheet.create({
   },
   businessTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
   businessDesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+
+  // ── Guest (unauthenticated) view — matches /login style ──
+  guestScroll: { flexGrow: 1, paddingHorizontal: SPACING.lg, paddingBottom: SPACING.lg },
+  guestLangRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 6, paddingTop: SPACING.xs, flexWrap: 'wrap' },
+  guestLangPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingVertical: 6, paddingHorizontal: 10,
+    borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+  },
+  guestLangPillActive: {
+    backgroundColor: 'rgba(217,119,6,0.25)',
+    borderColor: COLORS.primary,
+  },
+  guestLangFlag: { fontSize: 14 },
+  guestLangCode: { fontSize: 11, color: 'rgba(255,255,255,0.7)', ...FONTS.bold, letterSpacing: 0.4 },
+  guestLangCodeActive: { color: COLORS.white },
+
+  guestHero: { alignItems: 'center', marginTop: SPACING.xl, marginBottom: SPACING.lg, gap: SPACING.xs },
+  guestAvatarCircle: {
+    width: 96, height: 96, borderRadius: 48,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(217,119,6,0.10)',
+    borderWidth: 1.5, borderColor: 'rgba(217,119,6,0.35)',
+    marginBottom: SPACING.sm,
+  },
+  guestTitle: { fontSize: 24, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
+  guestTagline: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 19, paddingHorizontal: SPACING.lg, marginTop: 2 },
+
+  guestAuthArea: { gap: SPACING.sm, marginTop: SPACING.md },
+  guestGoogleBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: COLORS.primary, borderRadius: RADIUS.full,
+    paddingVertical: 15, paddingHorizontal: SPACING.xl, width: '100%', gap: SPACING.sm,
+  },
+  guestGoogleText: { fontSize: 16, color: COLORS.white, ...FONTS.bold },
+
+  guestOrRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginVertical: SPACING.xs },
+  guestOrLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.15)' },
+  guestOrText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, letterSpacing: 0.4, textTransform: 'uppercase' },
+
+  guestMethodsCol: { gap: 10 },
+  guestMethodBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    borderRadius: RADIUS.full, paddingVertical: 13, width: '100%',
+  },
+  guestWhatsappBtn: { backgroundColor: '#25D366' },
+  guestOutlineBtn: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)',
+  },
+  guestAppleBtn: { backgroundColor: '#000000', borderWidth: 1, borderColor: '#1a1a1a' },
+  guestMethodText: { fontSize: 14, color: COLORS.white, ...FONTS.semibold },
+
+  // Modals (reused from /login)
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalCard: {
+    backgroundColor: COLORS.surface,
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    padding: SPACING.lg, paddingBottom: SPACING.xl, gap: SPACING.sm,
+  },
+  modalHandle: { width: 44, height: 4, borderRadius: 2, backgroundColor: COLORS.border, alignSelf: 'center' },
+  modalTitle: { fontSize: 20, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.sm },
+  modalSubtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginBottom: SPACING.sm },
+  inputWrap: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: COLORS.background,
+    borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.lg,
+    paddingHorizontal: SPACING.sm,
+  },
+  input: { flex: 1, fontSize: 14, color: COLORS.textMain, ...FONTS.regular, paddingVertical: 12 },
+  modalSaveBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: COLORS.primary, borderRadius: RADIUS.full,
+    paddingVertical: 14, marginTop: SPACING.sm,
+  },
+  modalWaBtn: { backgroundColor: '#25D366' },
+  modalSaveBtnText: { fontSize: 15, color: COLORS.white, ...FONTS.bold },
+  modalCancelBtn: { alignItems: 'center', paddingVertical: 10, marginTop: 4 },
+  modalCancelText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium },
+  waHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: SPACING.sm, marginBottom: SPACING.xs },
+  waIconCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#25D366', alignItems: 'center', justifyContent: 'center' },
 });
