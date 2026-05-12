@@ -16,8 +16,9 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { api } from '../constants/api';
+import AlcaldiaHeatmap from './AlcaldiaHeatmap';
 
-type Tab = 'overview' | 'users' | 'payments' | 'demographics' | 'payouts';
+type Tab = 'overview' | 'heatmap' | 'users' | 'payments' | 'demographics' | 'payouts';
 
 const fmtCOP = (n: number) =>
   '$ ' + (Number(n) || 0).toLocaleString('es-CO', { maximumFractionDigits: 0 });
@@ -27,6 +28,7 @@ const fmtNum = (n: number) =>
 
 const tabs: { key: Tab; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { key: 'overview', label: 'Resumen', icon: 'stats-chart' },
+  { key: 'heatmap', label: 'Mapa', icon: 'map' },
   { key: 'payments', label: 'Pagos', icon: 'card' },
   { key: 'payouts', label: 'Liquidaciones', icon: 'cash' },
   { key: 'demographics', label: 'Turistas', icon: 'globe' },
@@ -293,6 +295,8 @@ export default function AlcaldiaDashboard({
           )}
         </View>
       )}
+
+      {tab === 'heatmap' && <AlcaldiaHeatmap token={token} />}
 
       {tab === 'payments' && (
         <View style={styles.section}>

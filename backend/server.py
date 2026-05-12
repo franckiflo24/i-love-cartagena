@@ -811,6 +811,178 @@ async def admin_export_payments_csv(request: Request):
     )
 
 
+# ── Government Heatmap (Mapa de Calor de Turistas) ──────────
+CARTAGENA_ZONES = {
+    "centro_historico": {"label": "Centro Histórico", "lat": 10.4236, "lng": -75.5500, "radius_km": 0.6, "color": "#EF4444"},
+    "getsemani":        {"label": "Getsemaní",         "lat": 10.4196, "lng": -75.5475, "radius_km": 0.4, "color": "#F59E0B"},
+    "bocagrande":       {"label": "Bocagrande",        "lat": 10.3970, "lng": -75.5560, "radius_km": 0.8, "color": "#3B82F6"},
+    "manga":            {"label": "Manga",             "lat": 10.4090, "lng": -75.5375, "radius_km": 0.5, "color": "#8B5CF6"},
+    "castillogrande":   {"label": "Castillogrande",    "lat": 10.3920, "lng": -75.5520, "radius_km": 0.4, "color": "#10B981"},
+    "laguito":          {"label": "Laguito",           "lat": 10.3870, "lng": -75.5600, "radius_km": 0.4, "color": "#06B6D4"},
+    "marbella":         {"label": "Marbella",          "lat": 10.4338, "lng": -75.5447, "radius_km": 0.4, "color": "#EC4899"},
+    "crespo":           {"label": "Crespo",            "lat": 10.4500, "lng": -75.5180, "radius_km": 0.6, "color": "#F97316"},
+    "la_boquilla":      {"label": "La Boquilla",       "lat": 10.4630, "lng": -75.5050, "radius_km": 0.8, "color": "#84CC16"},
+    "pie_de_la_popa":   {"label": "Pie de la Popa",    "lat": 10.4150, "lng": -75.5300, "radius_km": 0.4, "color": "#A855F7"},
+    "san_diego":        {"label": "San Diego",         "lat": 10.4275, "lng": -75.5480, "radius_km": 0.3, "color": "#22D3EE"},
+    "la_bodeguita":     {"label": "Muelle La Bodeguita", "lat": 10.4180, "lng": -75.5510, "radius_km": 0.2, "color": "#FACC15"},
+}
+
+ZONE_LABELS = {k: v["label"] for k, v in CARTAGENA_ZONES.items()}
+ZONE_COLORS = {k: v["color"] for k, v in CARTAGENA_ZONES.items()}
+
+
+@api_router.get("/business/admin/heatmap")
+async def admin_alcaldia_heatmap(request: Request, days: int = 30):
+    """Tourist activity heatmap for the Alcaldía. Aggregates anonymized location pings.
+    Returns:
+      - points: list of {lat, lng, weight} for the heatmap layer (~100m grid cells)
+      - zones: list of {zone, label, count, percentage, color, lat, lng} (sorted desc)
+      - peak_hours: list of {hour, count} (0-23)
+      - kpis: total_pings, unique_users, period_days
+    """
+    await _require_government_role(request)
+    days = max(1, min(int(days or 30), 365))
+    since = datetime.now(timezone.utc) - timedelta(days=days)
+    since_iso = since.isoformat()
+
+    # ── Fetch all pings in window ──
+    pings = await db.location_pings.find(
+        {"timestamp": {"$gte": since_iso}},
+        {"_id": 0, "lat": 1, "lng": 1, "zone": 1, "user_id": 1, "timestamp": 1},
+    ).to_list(20000)
+
+    total_pings = len(pings)
+    unique_users = len({p.get("user_id") for p in pings if p.get("user_id")})
+
+    # ── Heatmap points: round to 3 decimals (~110m grid) and aggregate weight ──
+    grid: dict = {}
+    zone_counts: dict = {}
+    hour_counts: dict = {h: 0 for h in range(24)}
+    for p in pings:
+        lat = p.get("lat")
+        lng = p.get("lng")
+        if lat is None or lng is None:
+            continue
+        key = (round(float(lat), 3), round(float(lng), 3))
+        grid[key] = grid.get(key, 0) + 1
+        z = p.get("zone") or "otra"
+        zone_counts[z] = zone_counts.get(z, 0) + 1
+        ts = p.get("timestamp") or ""
+        try:
+            hr = datetime.fromisoformat(ts.replace("Z", "+00:00")).hour
+            hour_counts[hr] = hour_counts.get(hr, 0) + 1
+        except Exception:
+            pass
+
+    points = [
+        {"lat": lat, "lng": lng, "weight": w}
+        for (lat, lng), w in grid.items()
+    ]
+    # Normalize weights to 0..1 for heatmap layer (but keep raw count too)
+    max_w = max((p["weight"] for p in points), default=1)
+    for p in points:
+        p["intensity"] = round(p["weight"] / max_w, 3)
+
+    # ── Zone breakdown (sorted desc) ──
+    zones_sorted = sorted(zone_counts.items(), key=lambda x: x[1], reverse=True)
+    zones_out = []
+    for z_key, count in zones_sorted:
+        zone_meta = CARTAGENA_ZONES.get(z_key, {})
+        zones_out.append({
+            "zone": z_key,
+            "label": zone_meta.get("label") or z_key.replace("_", " ").title(),
+            "count": count,
+            "percentage": round((count / total_pings) * 100, 1) if total_pings else 0.0,
+            "color": zone_meta.get("color") or "#6B7280",
+            "lat": zone_meta.get("lat"),
+            "lng": zone_meta.get("lng"),
+        })
+
+    # ── Peak hours ──
+    peak_hours = [{"hour": h, "count": hour_counts[h]} for h in range(24)]
+    busiest_hour = max(peak_hours, key=lambda x: x["count"]) if total_pings else {"hour": None, "count": 0}
+
+    return {
+        "period_days": days,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "kpis": {
+            "total_pings": total_pings,
+            "unique_users": unique_users,
+            "active_zones": len([z for z, c in zone_counts.items() if c > 0]),
+            "busiest_hour": busiest_hour.get("hour"),
+            "busiest_hour_count": busiest_hour.get("count", 0),
+        },
+        "points": points,
+        "zones": zones_out,
+        "peak_hours": peak_hours,
+        "city_center": {"lat": 10.4236, "lng": -75.5500, "zoom": 13},
+    }
+
+
+async def _seed_demo_location_pings():
+    """Idempotent: seed ~250 demo location pings spread across Cartagena tourist zones.
+    Only runs if there are fewer than 50 real pings in the DB."""
+    existing = await db.location_pings.count_documents({})
+    if existing >= 50:
+        return  # already enough data, no-op
+
+    import random
+    random.seed(42)  # deterministic demo data
+
+    # Weighted distribution: tourist hotspots get more pings
+    distribution = [
+        ("centro_historico", 80),
+        ("getsemani", 50),
+        ("bocagrande", 60),
+        ("manga", 18),
+        ("castillogrande", 25),
+        ("laguito", 22),
+        ("marbella", 15),
+        ("crespo", 10),
+        ("la_boquilla", 18),
+        ("pie_de_la_popa", 12),
+        ("san_diego", 20),
+        ("la_bodeguita", 28),
+    ]
+
+    now = datetime.now(timezone.utc)
+    contexts = ["map_open", "partner_view", "event_view", "search"]
+    fake_users = [f"demo_user_{i:03d}" for i in range(60)]
+
+    pings_to_insert = []
+    for zone_key, count in distribution:
+        zone_meta = CARTAGENA_ZONES[zone_key]
+        center_lat = zone_meta["lat"]
+        center_lng = zone_meta["lng"]
+        spread_deg = zone_meta["radius_km"] / 111.0  # ~111km per degree
+        for _ in range(count):
+            jitter_lat = random.gauss(0, spread_deg / 2)
+            jitter_lng = random.gauss(0, spread_deg / 2)
+            # Weight hours toward tourist patterns: peak 10-12, 17-20
+            hour = random.choices(
+                list(range(24)),
+                weights=[1, 1, 1, 1, 1, 2, 3, 4, 5, 7, 9, 8, 7, 6, 6, 7, 9, 11, 10, 9, 7, 5, 3, 2],
+                k=1
+            )[0]
+            ts_offset = random.randint(0, 30 * 24 * 60 * 60)  # within last 30 days
+            ts = now - timedelta(seconds=ts_offset)
+            ts = ts.replace(hour=hour, minute=random.randint(0, 59))
+            pings_to_insert.append({
+                "ping_id": f"geo_demo_{uuid.uuid4().hex[:10]}",
+                "user_id": random.choice(fake_users),
+                "lat": round(center_lat + jitter_lat, 5),
+                "lng": round(center_lng + jitter_lng, 5),
+                "accuracy": random.uniform(8, 40),
+                "zone": zone_key,
+                "context": random.choice(contexts),
+                "timestamp": ts.isoformat(),
+                "is_demo": True,
+            })
+    if pings_to_insert:
+        await db.location_pings.insert_many(pings_to_insert)
+        logger.info(f"Seeded {len(pings_to_insert)} demo location pings for Alcaldía heatmap")
+
+
 # ── Admin Moderation Endpoints ──────────────────────────────
 @api_router.get("/admin/moderation/notifications")
 async def admin_notifications(unread_only: bool = False):
@@ -3210,6 +3382,8 @@ async def startup():
     analytics_count = await db.analytics_demographics.count_documents({})
     if analytics_count == 0:
         await seed_analytics_demo_data()
+    # Seed Alcaldía heatmap demo pings (idempotent — only if < 50 existing)
+    await _seed_demo_location_pings()
     # Seed Ruta Musical if missing
     music_itn = await db.itineraries.find_one({"itinerary_id": "itn_004"})
     if not music_itn:
