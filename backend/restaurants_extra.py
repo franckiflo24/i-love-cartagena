@@ -271,12 +271,13 @@ RAW_ENTRIES: List[tuple] = [
     ("EL CORO LOUNGE BAR", "BAR Y DISCOTECAS"),
     ("EIVISSA", "BAR Y DISCOTECAS"),
     ("BOURBON ST RD DISCO", "BAR Y DISCOTECAS"),
+    ("RD DISCO", "BAR Y DISCOTECAS"),
     ("FUBAR", "BAR Y DISCOTECAS"),
     ("PRESTIGE", "BAR Y DISCOTECAS"),
     ("AJENO ROOFTOP BAR", "BAR Y DISCOTECAS"),
     ("MONKEY BAR", "BAR Y DISCOTECAS"),
     ("BAR SELINA", "BAR Y DISCOTECAS"),
-    ("CAFÉ HAVANA", "CAFÉ"),
+    ("CAFÉ HAVANA", "BAR Y DISCOTECAS"),
     ("SKAPATE HOOKAH BAR", "BAR Y DISCOTECAS"),
     ("ALQUIMICO", "BAR Y DISCOTECAS"),
     ("SALON DE DESPECHO", "BAR Y DISCOTECAS"),
@@ -289,6 +290,10 @@ RAW_ENTRIES: List[tuple] = [
     ("TEMPO", "BAR Y DISCOTECAS"),
     ("EL RINCÓN DE GETSEMANI", "BAR Y DISCOTECAS"),
     ("CASA D", "BAR Y DISCOTECAS"),
+    # ── Venues that appear in BOTH the RESTAURANTES and BARES tabs ──
+    # (priority dedup will pick BAR over GASTRONOMICOS for these)
+    ("LA CHULA", "BAR Y DISCOTECAS"),
+    ("TOWNHOUSE", "BAR Y DISCOTECAS"),
 ]
 
 
@@ -324,14 +329,40 @@ def slug_handle(name: str) -> str:
 
 
 def build_extra_partners() -> List[Dict[str, Any]]:
-    """Return the deduplicated list as partner-shaped dicts."""
-    seen = set()
-    partners = []
+    """Return the deduplicated list as partner-shaped dicts.
+
+    Dedup priority: when a name appears in multiple sub-categories,
+    prefer BAR Y DISCOTECAS over anything else (some venues are both
+    restaurant + bar; the bar tab is more specific).
+    Then prefer specific subs over GASTRONOMICOS (overly generic).
+    """
+    PRIORITY = {
+        "BAR Y DISCOTECAS": 1,
+        "CAFÉ": 2,
+        "COFFEE SHOP": 2,
+        "ARABE/MEDITERRANEO": 2,
+        "VEGETARIANOS/HEALTY": 2,
+        "ITALIANO": 2,
+        "FAST FOOD": 2,
+        "COLOMBIANO": 2,
+        "ASIATICO": 2,
+        "GASTRONOMICOS": 9,  # generic fallback (lowest priority)
+    }
+    # First pass: choose best sub for each normalized name
+    best: dict = {}
+    first_idx: dict = {}
     for idx, (name, excel_sub) in enumerate(RAW_ENTRIES):
-        key = normalize_name(name)
-        if not key or key in seen:
+        nk = normalize_name(name)
+        if not nk:
             continue
-        seen.add(key)
+        prio = PRIORITY.get(excel_sub.strip().upper(), 5)
+        if nk not in best or prio < best[nk][1]:
+            best[nk] = (name, prio, excel_sub)
+            first_idx[nk] = idx
+
+    partners = []
+    for nk, (name, _, excel_sub) in best.items():
+        idx = first_idx[nk]
         sub = SUB_MAP.get(excel_sub.strip().upper(), "gastronomic")
         is_bar = sub == "bar"
         category = "club" if is_bar else "restaurant"
@@ -341,7 +372,7 @@ def build_extra_partners() -> List[Dict[str, Any]]:
         sub_label = SUB_LABELS_ES.get(sub, sub.capitalize())
         partners.append({
             "partner_id": partner_id,
-            "_normalized_name": key,  # used by merger
+            "_normalized_name": nk,
             "name": name.title().replace("´", "'"),
             "category": category,
             "subcategory": sub,
@@ -357,8 +388,8 @@ def build_extra_partners() -> List[Dict[str, Any]]:
             "rating": 4.3,
             "reviews": 0,
             "experience": f"{sub_label} · Cartagena",
-            "is_certified": False,  # directory-only (not yet partnered)
-            "directory_only": True,  # flag the merger uses
+            "is_certified": False,
+            "directory_only": True,
             "order": 5000 + idx,
         })
     return partners
