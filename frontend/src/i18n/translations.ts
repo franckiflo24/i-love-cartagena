@@ -49,8 +49,8 @@ export const t: Translations = {
     concerts_free: 'GRATIS',
 
     // Onboarding
-    onboard_1_title: 'Toda la música\nen un solo lugar',
-    onboard_1_desc: 'Descubre conciertos, DJs, jazz, salsa y más. Filtra por fecha, género y guarda tus favoritos.',
+    onboard_1_title: 'Toda Cartagena\nen un solo lugar',
+    onboard_1_desc: 'Cultura, música, arte y lifestyle. Tu city guide oficial: descubre, filtra y guarda lo mejor de la ciudad.',
     onboard_2_title: 'Explora\nCartagena',
     onboard_2_desc: 'Mapa interactivo con todos los venues, partners y puntos de interés. Encuentra qué hay cerca de ti.',
     onboard_3_title: 'City Pass\nexclusivo',
@@ -174,8 +174,8 @@ export const t: Translations = {
     concerts_directions: 'Get directions',
     concerts_free: 'FREE',
 
-    onboard_1_title: 'All the music\nin one place',
-    onboard_1_desc: 'Discover concerts, DJs, jazz, salsa and more. Filter by date, genre and save your favorites.',
+    onboard_1_title: 'All of Cartagena\nin one place',
+    onboard_1_desc: 'Culture, music, art and lifestyle. Your official city guide: discover, filter and save the best of the city.',
     onboard_2_title: 'Explore\nCartagena',
     onboard_2_desc: 'Interactive map with all venues, partners and points of interest. Find what\'s near you.',
     onboard_3_title: 'Exclusive\nCity Pass',
@@ -292,8 +292,8 @@ export const t: Translations = {
     concerts_directions: 'Itinéraire',
     concerts_free: 'GRATUIT',
 
-    onboard_1_title: 'Toute la musique\nen un seul endroit',
-    onboard_1_desc: 'Découvrez concerts, DJs, jazz, salsa et plus. Filtrez par date, genre et sauvez vos favoris.',
+    onboard_1_title: 'Toute Carthagène\nen un seul endroit',
+    onboard_1_desc: 'Culture, musique, art et lifestyle. Votre city guide officiel : découvrez, filtrez et sauvegardez le meilleur de la ville.',
     onboard_2_title: 'Explorez\nCartagena',
     onboard_2_desc: 'Carte interactive avec tous les lieux, partenaires et points d\'intérêt. Trouvez ce qui est près de vous.',
     onboard_3_title: 'City Pass\nexclusif',
@@ -410,8 +410,8 @@ export const t: Translations = {
     concerts_directions: 'Como chegar',
     concerts_free: 'GRÁTIS',
 
-    onboard_1_title: 'Toda a música\nem um só lugar',
-    onboard_1_desc: 'Descubra concertos, DJs, jazz, salsa e muito mais. Filtre por data, gênero e salve seus favoritos.',
+    onboard_1_title: 'Toda Cartagena\nem um só lugar',
+    onboard_1_desc: 'Cultura, música, arte e lifestyle. Seu city guide oficial: descubra, filtre e salve o melhor da cidade.',
     onboard_2_title: 'Explore\nCartagena',
     onboard_2_desc: 'Mapa interativo com todos os locais, parceiros e pontos de interesse. Encontre o que há perto de você.',
     onboard_3_title: 'City Pass\nexclusivo',

@@ -17,7 +17,7 @@ export default function OnboardingScreen() {
   const [index, setIndex] = useState(0);
 
   const SLIDES = [
-    { emoji: '🎵', title: s('onboard_1_title'), description: s('onboard_1_desc'), color: '#D97706', pills: ['Conciertos', 'Filtros', 'Favoritos'] },
+    { emoji: '🏛️', title: s('onboard_1_title'), description: s('onboard_1_desc'), color: '#D97706', pills: ['Cultura', 'Música', 'Arte', 'Lifestyle', 'City Guide'] },
     { emoji: '📍', title: s('onboard_2_title'), description: s('onboard_2_desc'), color: '#3B82F6', pills: ['Venues', 'Partners', 'Navegación'] },
     { emoji: '🎫', title: s('onboard_3_title'), description: s('onboard_3_desc'), color: '#22C55E', pills: ['QR Code', 'Descuentos', 'Premium'] },
   ];
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   emoji: { fontSize: 48 },
   slideTitle: { fontSize: 32, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center', lineHeight: 40 },
   slideDesc: { fontSize: 15, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 24, paddingHorizontal: SPACING.md },
-  pillsRow: { flexDirection: 'row', gap: SPACING.sm, marginTop: SPACING.sm },
+  pillsRow: { flexDirection: 'row', gap: SPACING.sm, marginTop: SPACING.sm, flexWrap: 'wrap', justifyContent: 'center' },
   pill: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: RADIUS.full, borderWidth: 1 },
   pillText: { fontSize: 12, ...FONTS.semibold },
 
