@@ -841,7 +841,8 @@ async def admin_alcaldia_heatmap(request: Request, days: int = 30):
       - kpis: total_pings, unique_users, period_days
     """
     await _require_government_role(request)
-    days = max(1, min(int(days or 30), 365))
+    days_raw = days if days is not None else 30
+    days = max(1, min(int(days_raw), 365))
     since = datetime.now(timezone.utc) - timedelta(days=days)
     since_iso = since.isoformat()
 
