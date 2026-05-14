@@ -3916,6 +3916,21 @@ async def _merge_cartagena_directory():
         logger.warning(f"Cartagena directory merge skipped (import): {_e}")
         return
     directory_entries = build_extra_partners()
+    # ── Cleanup: remove stale directory_only partners that are no longer
+    # in the current RAW_ENTRIES (e.g., after re-categorisation of Excel).
+    current_norm_set = {e["_normalized_name"] for e in directory_entries}
+    stale = []
+    async for p in db.partners.find(
+        {"directory_only": True, "category": {"$in": ["restaurant", "club"]}},
+        {"_id": 0, "partner_id": 1, "name": 1},
+    ):
+        nk = normalize_name(p.get("name") or "")
+        if nk not in current_norm_set:
+            stale.append(p["partner_id"])
+    if stale:
+        await db.partners.delete_many({"partner_id": {"$in": stale}})
+        logger.info(f"Cartagena directory cleanup: removed {len(stale)} stale directory_only partners.")
+
     # Build a lookup of existing partners by normalized name
     existing_by_norm: dict = {}
     async for p in db.partners.find(

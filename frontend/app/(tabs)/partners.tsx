@@ -47,6 +47,7 @@ const RESTAURANT_SUBCATEGORIES = [
   { key: 'fastfood', label: 'Fast Food', icon: 'fast-food', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&h=400&fit=crop' },
   { key: 'italian', label: 'Italiano', icon: 'pizza', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop' },
   { key: 'asian', label: 'Asiático', icon: 'restaurant', image: 'https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=600&h=400&fit=crop' },
+  { key: 'peruvian', label: 'Perú / Fusión', icon: 'flame', image: 'https://images.unsplash.com/photo-1547573854-74d2a71d0826?w=600&h=400&fit=crop' },
   { key: 'colombian', label: 'Colombiano', icon: 'flag', image: 'https://images.unsplash.com/photo-1518176258769-f227c798150e?w=600&h=400&fit=crop' },
   { key: 'seafood', label: 'Del Mar', icon: 'fish', image: 'https://images.unsplash.com/photo-1559737558-2f5a35f4523b?w=600&h=400&fit=crop' },
   { key: 'international', label: 'Internacional', icon: 'globe', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop' },
