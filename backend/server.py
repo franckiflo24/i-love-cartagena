@@ -3909,6 +3909,8 @@ async def startup():
 
     # ── Migration: Merge full Cartagena directory (Excel feb 2026) ──
     await _merge_cartagena_directory()
+    # ── Migration: Merge Wellness / Beach Club / Hotel directory ────
+    await _merge_wellness_directory()
 
 
 async def _merge_cartagena_directory():
@@ -3993,6 +3995,72 @@ async def _merge_cartagena_directory():
             )
             created += 1
     logger.info(f"Cartagena directory merge: {merged} updated, {created} new partners.")
+
+
+async def _merge_wellness_directory():
+    """Idempotent merger of Wellness / Beach Club / Hotel directory."""
+    try:
+        from wellness_seed import build_wellness_partners, normalize_name
+    except Exception as _e:
+        logger.warning(f"Wellness directory merge skipped (import): {_e}")
+        return
+    directory_entries = build_wellness_partners()
+
+    # Cleanup: remove stale directory_only partners in (wellness, beach_club, hotel)
+    # whose normalized name is no longer in the current RAW.
+    current_norm = {e["_normalized_name"] for e in directory_entries}
+    stale = []
+    async for p in db.partners.find(
+        {"directory_only": True,
+         "category": {"$in": ["wellness", "beach_club", "hotel"]}},
+        {"_id": 0, "partner_id": 1, "name": 1},
+    ):
+        nk = normalize_name(p.get("name") or "")
+        if nk not in current_norm:
+            stale.append(p["partner_id"])
+    if stale:
+        await db.partners.delete_many({"partner_id": {"$in": stale}})
+        logger.info(f"Wellness/Hotel/Beach cleanup: removed {len(stale)} stale partners.")
+
+    # Build existing lookup by normalized name
+    existing_by_norm: dict = {}
+    async for p in db.partners.find(
+        {"category": {"$in": ["wellness", "beach_club", "hotel"]}},
+        {"_id": 0, "partner_id": 1, "name": 1, "subcategory": 1,
+         "category": 1, "instagram": 1, "tier": 1, "rating": 1, "reviews": 1},
+    ):
+        nk = normalize_name(p.get("name") or "")
+        if nk:
+            existing_by_norm[nk] = p
+
+    merged = 0
+    created = 0
+    for entry in directory_entries:
+        nk = entry["_normalized_name"]
+        existing = existing_by_norm.get(nk)
+        if existing:
+            # Upgrade subcategory/category if generic or missing
+            patch = {}
+            if not existing.get("subcategory"):
+                patch["subcategory"] = entry["subcategory"]
+            if existing.get("category") != entry["category"]:
+                patch["category"] = entry["category"]
+            # For hotels: upgrade tier if computed tier is more specific
+            if entry["category"] == "hotel" and existing.get("tier") == "popular" and entry["tier"] != "popular":
+                patch["tier"] = entry["tier"]
+                patch["subcategory"] = entry["subcategory"]
+            if patch:
+                await db.partners.update_one({"partner_id": existing["partner_id"]}, {"$set": patch})
+                merged += 1
+        else:
+            entry_clean = {k: v for k, v in entry.items() if not k.startswith("_")}
+            await db.partners.update_one(
+                {"partner_id": entry["partner_id"]},
+                {"$set": entry_clean},
+                upsert=True,
+            )
+            created += 1
+    logger.info(f"Wellness/Beach/Hotel directory merge: {merged} updated, {created} new partners.")
 
     # ── Migration: Ensure Taxi Boat exists as trn_003 (replaces legacy night_transport) ──
     await db.transport.delete_many({"type": "night_transport"})
