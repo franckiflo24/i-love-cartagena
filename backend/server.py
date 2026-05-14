@@ -2489,6 +2489,7 @@ async def port_tax_redeem(ticket_id: str, request: Request):
 # Wompi Payments (Colombia) — Cards, Nequi, PSE, Bancolombia, Daviplata
 # ─────────────────────────────────────────────────────────────
 import wompi as _wompi
+import ai_agent as _ai_agent
 
 
 @api_router.get("/payments/config")
@@ -2821,7 +2822,6 @@ async def wompi_webhook(request: Request):
     return {"ok": True}
 
 
-# Government-only: payouts / liquidaciones reconciliation report
 @api_router.get("/business/admin/payouts")
 async def admin_alcaldia_payouts(request: Request, status: Optional[str] = None):
     """Aggregate of money owed to each partner (APPROVED payments minus app commission)."""
@@ -2868,6 +2868,107 @@ async def admin_alcaldia_payouts(request: Request, status: Optional[str] = None)
         },
         "currency": "COP",
     }
+
+
+# ─────────────────────────────────────────────────────────────
+# AI Concierge Agent — "Amo"
+# ─────────────────────────────────────────────────────────────
+
+async def _get_optional_user(request: Request) -> Optional[dict]:
+    """Like get_current_user but returns None if no/invalid token (doesn't raise)."""
+    try:
+        return await get_current_user(request)
+    except HTTPException:
+        return None
+
+
+@api_router.post("/agent/chat")
+async def agent_chat(request: Request):
+    """Send a message to the AI concierge. Anonymous users are allowed (no checkout actions).
+    Body: { message: str, session_id?: str, screen_context?: str }
+    Returns: { session_id, assistant: {message, language, actions, suggestions}, messages_count }
+    """
+    body = await request.json()
+    user_text = (body.get("message") or "").strip()
+    session_id = body.get("session_id")
+    if not user_text:
+        raise HTTPException(status_code=400, detail="message required")
+    if len(user_text) > 1000:
+        raise HTTPException(status_code=400, detail="message too long (max 1000 chars)")
+
+    user = await _get_optional_user(request)
+    user_id = (user or {}).get("user_id")
+
+    session = await _ai_agent.get_or_create_session(db, user_id, session_id)
+    history = session.get("messages", [])
+    short_history = [
+        {"role": m.get("role"), "content": m.get("content")}
+        for m in history[-20:]
+        if m.get("role") in ("user", "assistant") and m.get("content")
+    ]
+
+    assistant_payload = await _ai_agent.run_agent_turn(
+        db,
+        user=user,
+        user_text=user_text,
+        history=short_history,
+    )
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    user_msg = {"role": "user", "content": user_text, "created_at": now_iso}
+    assistant_msg = {
+        "role": "assistant",
+        "content": assistant_payload["message"],
+        "language": assistant_payload.get("language", "es"),
+        "actions": assistant_payload.get("actions", []),
+        "suggestions": assistant_payload.get("suggestions", []),
+        "created_at": now_iso,
+    }
+    await _ai_agent.append_messages(db, session["session_id"], user_msg, assistant_msg)
+
+    # Auto-title the session from the first user message
+    if not session.get("title") or session["title"] == "Nuevo chat":
+        title = user_text[:60]
+        await db.chat_sessions.update_one(
+            {"session_id": session["session_id"]},
+            {"$set": {"title": title}},
+        )
+
+    return {
+        "session_id": session["session_id"],
+        "assistant": assistant_msg,
+        "messages_count": len(history) + 2,
+    }
+
+
+@api_router.get("/agent/session/{session_id}")
+async def agent_get_session(session_id: str, request: Request):
+    user = await _get_optional_user(request)
+    s = await db.chat_sessions.find_one({"session_id": session_id}, {"_id": 0})
+    if not s:
+        raise HTTPException(status_code=404, detail="Session not found")
+    # If session has a user_id, only that user can read it
+    if s.get("user_id") and s["user_id"] != (user or {}).get("user_id"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return s
+
+
+@api_router.get("/agent/sessions")
+async def agent_list_sessions(request: Request):
+    user = await get_current_user(request)
+    cursor = db.chat_sessions.find(
+        {"user_id": user["user_id"]},
+        {"_id": 0, "session_id": 1, "title": 1, "created_at": 1, "updated_at": 1, "messages": {"$slice": -1}},
+    ).sort("updated_at", -1).limit(50)
+    rows = await cursor.to_list(50)
+    return {"sessions": rows}
+
+
+@api_router.delete("/agent/session/{session_id}")
+async def agent_delete_session(session_id: str, request: Request):
+    user = await get_current_user(request)
+    res = await db.chat_sessions.delete_one({"session_id": session_id, "user_id": user["user_id"]})
+    return {"deleted": res.deleted_count}
 
 
 

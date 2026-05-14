@@ -1,11 +1,13 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../src/constants/theme';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
+import AssistantFab from '../../src/components/AssistantFab';
 
 export default function TabLayout() {
   return (
-    <Tabs
+    <View style={{ flex: 1 }}>
+      <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: COLORS.primary,
@@ -74,5 +76,7 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    <AssistantFab />
+    </View>
   );
 }
