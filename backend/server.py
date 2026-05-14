@@ -1227,7 +1227,7 @@ async def list_partners(category: Optional[str] = None, subcategory: Optional[st
         query["category"] = category
     if subcategory:
         query["subcategory"] = subcategory
-    partners = await db.partners.find(query, {"_id": 0}).sort("order", 1).to_list(500)
+    partners = await db.partners.find(query, {"_id": 0}).sort("order", 1).to_list(2000)
     return partners
 
 
