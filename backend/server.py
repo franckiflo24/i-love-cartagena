@@ -1221,8 +1221,12 @@ async def get_venue(venue_id: str):
 
 # ── Partners ────────────────────────────────────────────────
 @api_router.get("/partners")
-async def list_partners(category: Optional[str] = None):
-    query = {"category": category} if category else {}
+async def list_partners(category: Optional[str] = None, subcategory: Optional[str] = None):
+    query: Dict[str, Any] = {}
+    if category:
+        query["category"] = category
+    if subcategory:
+        query["subcategory"] = subcategory
     partners = await db.partners.find(query, {"_id": 0}).sort("order", 1).to_list(500)
     return partners
 
