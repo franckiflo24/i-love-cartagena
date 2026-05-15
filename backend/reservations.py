@@ -323,6 +323,20 @@ async def create_reservation(request: Request):
         ref={"reservation_id": reservation_id, "locked": not is_pro},
     )
 
+    # Notify the END USER too so they see "Reserva enviada" in their notifications inbox.
+    partner_name = (partner or {}).get("name") or "el partner"
+    if is_pro:
+        user_notif_body = f"Tu solicitud para {partner_name} el {date}" + (f" a las {time}" if time else "") + " fue enviada. Te avisaremos cuando confirmen."
+    else:
+        user_notif_body = f"Tu solicitud para {partner_name} fue enviada. Este partner aún no gestiona reservas en la app — te avisaremos si activan su cuenta."
+    await _notify_user(
+        user.get("user_id"),
+        title="Reserva enviada",
+        body=user_notif_body,
+        kind="reservation_created",
+        ref={"reservation_id": reservation_id, "partner_id": partner_id},
+    )
+
     hydrated = await _hydrate_reservation(doc)
     if is_pro:
         message = "Tu solicitud fue enviada al partner. Te avisaremos cuando confirme y verás su link de pago en la app."
