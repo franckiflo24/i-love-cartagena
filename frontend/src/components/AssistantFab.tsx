@@ -79,7 +79,7 @@ function usePulse() {
   return scale;
 }
 
-export default function AssistantFab() {
+export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } = {}) {
   const router = useRouter();
   const pathname = usePathname();
   const { lang, s } = useLang();
@@ -90,6 +90,18 @@ export default function AssistantFab() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const pulse = usePulse();
+
+  // Allow opening the assistant from anywhere via DeviceEventEmitter
+  useEffect(() => {
+    const { DeviceEventEmitter } = require('react-native');
+    const sub = DeviceEventEmitter.addListener('openAssistant', (initialQuery?: string) => {
+      setOpen(true);
+      if (initialQuery && typeof initialQuery === 'string' && initialQuery.trim()) {
+        setInput(initialQuery);
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   // Restore last session from localStorage / AsyncStorage
   useEffect(() => {
@@ -308,18 +320,20 @@ export default function AssistantFab() {
 
   return (
     <>
-      {/* Floating Action Button */}
-      <Animated.View style={[styles.fab, { transform: [{ scale: pulse }] }]} pointerEvents="box-none">
-        <TouchableOpacity
-          accessibilityLabel="Asistente Amo"
-          activeOpacity={0.85}
-          onPress={() => setOpen(true)}
-          style={styles.fabBtn}
-        >
-          <View style={styles.fabBadge}><Text style={styles.fabBadgeText}>AI</Text></View>
-          <Ionicons name="sparkles" size={22} color={COLORS.white} />
-        </TouchableOpacity>
-      </Animated.View>
+      {/* Floating Action Button — hidden when hideFab=true (e.g. on home tab where the search bar handles it) */}
+      {!hideFab ? (
+        <Animated.View style={[styles.fab, { transform: [{ scale: pulse }] }]} pointerEvents="box-none">
+          <TouchableOpacity
+            accessibilityLabel="Asistente Amo"
+            activeOpacity={0.85}
+            onPress={() => setOpen(true)}
+            style={styles.fabBtn}
+          >
+            <View style={styles.fabBadge}><Text style={styles.fabBadgeText}>AI</Text></View>
+            <Ionicons name="sparkles" size={22} color={COLORS.white} />
+          </TouchableOpacity>
+        </Animated.View>
+      ) : null}
 
       {/* Chat Modal */}
       <Modal

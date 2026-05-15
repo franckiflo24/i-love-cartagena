@@ -224,11 +224,30 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Search Bar */}
-        <TouchableOpacity style={styles.searchBar} onPress={() => router.push('/search')} activeOpacity={0.8}>
-          <Ionicons name="search" size={18} color={COLORS.textMuted} />
-          <Text style={styles.searchPlaceholder}>Buscar artistas, venues, eventos...</Text>
-        </TouchableOpacity>
+        {/* Unified AI + Search Bar — tap left side for keyword search, right side opens AI Concierge */}
+        <View style={styles.searchBar}>
+          <TouchableOpacity
+            style={styles.searchTapZone}
+            onPress={() => router.push('/search')}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="search" size={18} color={COLORS.textMuted} />
+            <Text style={styles.searchPlaceholder} numberOfLines={1}>
+              Pregunta a Amo o busca…
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.aiInlineBtn}
+            onPress={() => {
+              const { DeviceEventEmitter } = require('react-native');
+              DeviceEventEmitter.emit('openAssistant');
+            }}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="sparkles" size={15} color={COLORS.white} />
+            <Text style={styles.aiInlineBtnText}>Amo IA</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Sponsor Banner */}
         {sponsors.length > 0 && (
@@ -557,8 +576,11 @@ const styles = StyleSheet.create({
   greeting: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular },
   headerTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, marginTop: 2 },
   notifBtn: { width: 44, height: 44, borderRadius: RADIUS.full, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
-  searchBar: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, paddingHorizontal: SPACING.md, paddingVertical: 12, borderWidth: 1, borderColor: COLORS.border },
-  searchPlaceholder: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular },
+  searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, paddingLeft: SPACING.md, paddingRight: 6, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.border },
+  searchTapZone: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, flex: 1, paddingVertical: 6 },
+  searchPlaceholder: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, flex: 1 },
+  aiInlineBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 7, borderRadius: RADIUS.full, backgroundColor: COLORS.primary },
+  aiInlineBtnText: { color: COLORS.white, fontSize: 11.5, ...FONTS.bold, letterSpacing: 0.4 },
 
   // Sponsor Banner
   sponsorBanner: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.08)', overflow: 'hidden', paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md },

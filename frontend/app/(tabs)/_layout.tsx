@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../src/constants/theme';
 import { Platform, View } from 'react-native';
@@ -7,6 +7,10 @@ import { useLang } from '../../src/context/LanguageContext';
 
 export default function TabLayout() {
   const { s } = useLang();
+  const pathname = usePathname();
+  // Hide the floating Amo button on the home tab — the home page has its inline "Amo IA" pill
+  // in the search bar that replaces the FAB. The FAB stays available on all other tabs.
+  const hideFab = pathname === '/' || pathname === '/index' || pathname.endsWith('/(tabs)') || pathname === '';
   return (
     <View style={{ flex: 1 }}>
       <Tabs
@@ -78,7 +82,7 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-      <AssistantFab />
+      <AssistantFab hideFab={hideFab} />
     </View>
   );
 }
