@@ -57,21 +57,20 @@ export default function PartnerEventDetail() {
     load();
   }, [id]);
 
-  const handleReserve = async () => {
+  const handleReserve = () => {
     if (!event) return;
-    setReserving(true);
+    // Route to the in-app reservation form. The form auto-detects prepaid (because event_id is set).
     try {
-      const res = await api.post(`/partner-events/${event.event_id}/track-reserve`);
-      if (res.booking_url) {
-        RNLinking.openURL(res.booking_url);
-      } else {
-        Alert.alert('Reservas', 'Este partner aún no tiene un sistema de reserva online. Contáctalo directamente.');
-      }
-    } catch (e) {
-      console.error(e);
-      Alert.alert('Error', 'No se pudo procesar la reserva');
-    }
-    setReserving(false);
+      api.post(`/partner-events/${event.event_id}/track-reserve`).catch(() => {});
+    } catch {}
+    router.push({
+      pathname: '/reservation/new' as any,
+      params: {
+        partner_id: event.partner_id,
+        event_id: event.event_id,
+        type: event.is_free ? 'table' : 'prepaid',
+      },
+    });
   };
 
   if (loading) {

@@ -251,12 +251,13 @@ export default function PartnersScreen() {
                         <TouchableOpacity style={styles.detailBtn} onPress={() => router.push(`/partner/${partner.partner_id}`)}>
                           <Text style={styles.detailText}>{tr('Ver más')}</Text>
                         </TouchableOpacity>
-                        {partner.booking_link ? (
-                          <TouchableOpacity style={styles.bookBtn} onPress={() => RNLinking.openURL(partner.booking_link)}>
-                            <Text style={styles.bookText}>{tr('Reservar')}</Text>
-                            <Ionicons name="arrow-forward" size={14} color={COLORS.white} />
-                          </TouchableOpacity>
-                        ) : null}
+                        <TouchableOpacity
+                          style={styles.bookBtn}
+                          onPress={() => router.push({ pathname: '/reservation/new' as any, params: { partner_id: partner.partner_id } })}
+                        >
+                          <Text style={styles.bookText}>{tr('Reservar')}</Text>
+                          <Ionicons name="arrow-forward" size={14} color={COLORS.white} />
+                        </TouchableOpacity>
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -524,15 +525,13 @@ export default function PartnersScreen() {
                       >
                         <Text style={styles.detailText}>{tr('Ver más')}</Text>
                       </TouchableOpacity>
-                      {partner.booking_link ? (
-                        <TouchableOpacity
-                          style={styles.bookBtn}
-                          onPress={() => RNLinking.openURL(partner.booking_link)}
-                        >
-                          <Text style={styles.bookText}>{tr('Reservar')}</Text>
-                          <Ionicons name="arrow-forward" size={14} color={COLORS.white} />
-                        </TouchableOpacity>
-                      ) : null}
+                      <TouchableOpacity
+                        style={styles.bookBtn}
+                        onPress={() => router.push({ pathname: '/reservation/new' as any, params: { partner_id: partner.partner_id } })}
+                      >
+                        <Text style={styles.bookText}>{tr('Reservar')}</Text>
+                        <Ionicons name="arrow-forward" size={14} color={COLORS.white} />
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </TouchableOpacity>
