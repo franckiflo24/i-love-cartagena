@@ -25,23 +25,28 @@ type Reservation = {
   reservation_id: string;
   partner_id: string;
   partner_name: string;
-  partner?: { name?: string; image_url?: string; address?: string };
+  partner?: { name?: string; image_url?: string; address?: string; phone?: string; whatsapp?: string; instagram?: string; email?: string };
   event?: { event_id?: string; title?: string; flyer_url?: string } | null;
-  type: 'table' | 'prepaid';
+  type: string;
   date: string;
   time?: string | null;
   party_size: number;
   notes?: string;
   status: string;
-  amount_cop?: number;
-  app_commission_cop?: number;
-  payment_id?: string | null;
-  checkout_url?: string;
+  payment_info?: {
+    payment_link?: string | null;
+    whatsapp?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    instagram?: string | null;
+    note?: string | null;
+  } | null;
+  partner_note?: string;
+  partner_rejection_reason?: string;
   created_at: string;
 };
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
-  pending_payment: { label: 'Pendiente de pago', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
   pending_confirmation: { label: 'Esperando confirmación', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
   confirmed: { label: 'Confirmada', color: '#22C55E', bg: 'rgba(34,197,94,0.12)' },
   rejected_by_partner: { label: 'Rechazada', color: '#EF4444', bg: 'rgba(239,68,68,0.12)' },
@@ -209,29 +214,83 @@ export default function MyReservations() {
                   </View>
                 </View>
 
-                {r.type === 'prepaid' && r.amount_cop ? (
-                  <View style={styles.amountRow}>
-                    <Text style={styles.amountLabel}>{tr('Total pagado')}</Text>
-                    <Text style={styles.amountValue}>${(r.amount_cop || 0).toLocaleString('es-CO')} COP</Text>
-                  </View>
-                ) : null}
-
                 {r.notes ? (
                   <Text style={styles.notes} numberOfLines={2}>📝 {r.notes}</Text>
                 ) : null}
 
-                {r.status === 'pending_payment' && r.checkout_url ? (
-                  <TouchableOpacity
-                    style={styles.payBtn}
-                    onPress={() => {
-                      if (r.checkout_url) {
-                        import('react-native').then((m) => m.Linking.openURL(r.checkout_url!).catch(() => {}));
-                      }
-                    }}
-                  >
-                    <Ionicons name="card" size={16} color={COLORS.white} />
-                    <Text style={styles.payBtnText}>{tr('Continuar al pago')}</Text>
-                  </TouchableOpacity>
+                {/* ── CONFIRMED → show partner payment info + contacts ── */}
+                {r.status === 'confirmed' && r.payment_info ? (
+                  <View style={styles.payInfoCard}>
+                    <View style={styles.payInfoHeader}>
+                      <Ionicons name="checkmark-circle" size={18} color="#22C55E" />
+                      <Text style={styles.payInfoTitle}>{tr('Reserva confirmada')}</Text>
+                    </View>
+                    {r.payment_info.note ? (
+                      <Text style={styles.payInfoNote}>"{r.payment_info.note}"</Text>
+                    ) : null}
+                    {r.payment_info.payment_link ? (
+                      <TouchableOpacity
+                        style={styles.payBtn}
+                        onPress={() => {
+                          if (r.payment_info?.payment_link) {
+                            import('react-native').then((m) => m.Linking.openURL(r.payment_info!.payment_link!).catch(() => {}));
+                          }
+                        }}
+                      >
+                        <Ionicons name="card" size={16} color={COLORS.white} />
+                        <Text style={styles.payBtnText}>{tr('Pagar reserva')}</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <Text style={styles.payInfoHint}>
+                        {tr('El partner te contactará para coordinar el pago.')}
+                      </Text>
+                    )}
+                    <View style={styles.contactRow}>
+                      {r.payment_info.whatsapp ? (
+                        <TouchableOpacity
+                          style={styles.contactBtn}
+                          onPress={() => {
+                            const phone = (r.payment_info!.whatsapp || '').replace(/[^\d+]/g, '');
+                            const msg = encodeURIComponent(`Hola, soy ${r.partner_name ? '' : ''}cliente de Amo Cartagena. Reserva ${r.reservation_id} para ${r.date} ${r.time || ''}. ¿Cómo coordinamos el pago?`);
+                            import('react-native').then((m) => m.Linking.openURL(`https://wa.me/${phone}?text=${msg}`).catch(() => {}));
+                          }}
+                        >
+                          <Ionicons name="logo-whatsapp" size={14} color="#25D366" />
+                          <Text style={styles.contactBtnText}>WhatsApp</Text>
+                        </TouchableOpacity>
+                      ) : null}
+                      {r.payment_info.phone && !r.payment_info.whatsapp ? (
+                        <TouchableOpacity
+                          style={styles.contactBtn}
+                          onPress={() => {
+                            import('react-native').then((m) => m.Linking.openURL(`tel:${r.payment_info!.phone}`).catch(() => {}));
+                          }}
+                        >
+                          <Ionicons name="call" size={14} color={COLORS.primary} />
+                          <Text style={styles.contactBtnText}>{tr('Llamar')}</Text>
+                        </TouchableOpacity>
+                      ) : null}
+                      {r.payment_info.instagram ? (
+                        <TouchableOpacity
+                          style={styles.contactBtn}
+                          onPress={() => {
+                            import('react-native').then((m) => m.Linking.openURL(`https://instagram.com/${r.payment_info!.instagram}`).catch(() => {}));
+                          }}
+                        >
+                          <Ionicons name="logo-instagram" size={14} color="#E1306C" />
+                          <Text style={styles.contactBtnText}>Instagram</Text>
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+                  </View>
+                ) : null}
+
+                {/* ── REJECTED → show reason ── */}
+                {r.status === 'rejected_by_partner' && r.partner_rejection_reason ? (
+                  <View style={styles.rejectedCard}>
+                    <Ionicons name="information-circle" size={16} color="#EF4444" />
+                    <Text style={styles.rejectedText}>{r.partner_rejection_reason}</Text>
+                  </View>
                 ) : null}
 
                 <View style={styles.actions}>
@@ -328,16 +387,55 @@ const styles = StyleSheet.create({
 
   notes: { color: COLORS.textMuted, fontSize: 11.5, fontStyle: 'italic' },
 
+  payInfoCard: {
+    backgroundColor: 'rgba(34,197,94,0.08)',
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: 'rgba(34,197,94,0.4)',
+    padding: 12,
+    gap: 8,
+  },
+  payInfoHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  payInfoTitle: { color: '#22C55E', fontSize: 13, ...FONTS.bold },
+  payInfoNote: { color: COLORS.textMain, fontSize: 12, fontStyle: 'italic', lineHeight: 16 },
+  payInfoHint: { color: COLORS.textMuted, fontSize: 11.5, fontStyle: 'italic' },
+
   payBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 10,
+    paddingVertical: 11,
     borderRadius: RADIUS.md,
     backgroundColor: '#22C55E',
   },
-  payBtnText: { color: COLORS.white, fontSize: 13, ...FONTS.bold },
+  payBtnText: { color: COLORS.white, fontSize: 14, ...FONTS.bold },
+
+  contactRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  contactBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  contactBtnText: { color: COLORS.textMain, fontSize: 11.5, ...FONTS.medium },
+
+  rejectedCard: {
+    flexDirection: 'row',
+    gap: 6,
+    backgroundColor: 'rgba(239,68,68,0.08)',
+    borderRadius: RADIUS.md,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.3)',
+    alignItems: 'flex-start',
+  },
+  rejectedText: { color: COLORS.textMain, fontSize: 11.5, flex: 1, lineHeight: 16 },
 
   actions: { flexDirection: 'row', gap: 8 },
   detailBtn: {

@@ -68,7 +68,6 @@ export default function PartnerEventDetail() {
       params: {
         partner_id: event.partner_id,
         event_id: event.event_id,
-        type: event.is_free ? 'table' : 'prepaid',
       },
     });
   };

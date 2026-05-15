@@ -21,6 +21,10 @@ export default function ProfileEdit() {
   const [priceRange, setPriceRange] = useState('');
   const [experience, setExperience] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [defaultPaymentLink, setDefaultPaymentLink] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [phone, setPhone] = useState('');
+  const [emailContact, setEmailContact] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -54,6 +58,10 @@ export default function ProfileEdit() {
       setPriceRange(partner.price_range || '');
       setExperience(partner.experience || '');
       setImageUrl(partner.image_url || '');
+      setDefaultPaymentLink((partner as any).default_payment_link || '');
+      setWhatsapp((partner as any).whatsapp || '');
+      setPhone((partner as any).phone || '');
+      setEmailContact((partner as any).email || '');
     }
   }, [partner]);
 
@@ -63,6 +71,10 @@ export default function ProfileEdit() {
       await api.put('/business/profile', {
         description, address, instagram, booking_link: bookingLink,
         price_range: priceRange, experience, image_url: imageUrl,
+        default_payment_link: defaultPaymentLink.trim(),
+        whatsapp: whatsapp.trim(),
+        phone: phone.trim(),
+        email: emailContact.trim(),
       }, { headers: { Authorization: `Bearer ${token}` } });
       await refresh();
       Alert.alert('¡Listo!', 'Tu perfil fue actualizado');
@@ -139,6 +151,55 @@ export default function ProfileEdit() {
           <Text style={styles.label}>Experiencia ofrecida</Text>
           <TextInput style={styles.input} value={experience} onChangeText={setExperience} placeholder="Coctel de bienvenida, mesa preferencial..." placeholderTextColor={COLORS.textMuted} />
 
+          {/* ── Reservations section ── */}
+          <View style={styles.sectionHeader}>
+            <Ionicons name="card" size={16} color="#22C55E" />
+            <Text style={styles.sectionHeaderText}>Reservas y pagos</Text>
+          </View>
+
+          <Text style={styles.label}>Link de pago para reservas</Text>
+          <TextInput
+            style={styles.input}
+            value={defaultPaymentLink}
+            onChangeText={setDefaultPaymentLink}
+            placeholder="https://checkout.wompi.co/l/XXXX o https://bold.co/..."
+            placeholderTextColor={COLORS.textMuted}
+            autoCapitalize="none"
+            keyboardType="url"
+          />
+          <Text style={styles.hint}>💳 Cuando confirmes una reserva, el cliente verá este link directamente en su app para pagar. Funciona con Wompi, Bold, PSE, etc.</Text>
+
+          <Text style={styles.label}>WhatsApp (con código país, ej: +57300...)</Text>
+          <TextInput
+            style={styles.input}
+            value={whatsapp}
+            onChangeText={setWhatsapp}
+            placeholder="+573001234567"
+            placeholderTextColor={COLORS.textMuted}
+            keyboardType="phone-pad"
+          />
+
+          <Text style={styles.label}>Teléfono</Text>
+          <TextInput
+            style={styles.input}
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="+57 5 660 1234"
+            placeholderTextColor={COLORS.textMuted}
+            keyboardType="phone-pad"
+          />
+
+          <Text style={styles.label}>Email de contacto</Text>
+          <TextInput
+            style={styles.input}
+            value={emailContact}
+            onChangeText={setEmailContact}
+            placeholder="reservas@tunegocio.com"
+            placeholderTextColor={COLORS.textMuted}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+
           <TouchableOpacity style={[styles.saveBtn, saving && { opacity: 0.6 }]} onPress={handleSave} disabled={saving}>
             {saving ? <ActivityIndicator size="small" color={COLORS.white} /> : (
               <>
@@ -170,6 +231,17 @@ const styles = StyleSheet.create({
   input: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: SPACING.md, paddingVertical: 12, color: COLORS.textMain, fontSize: 14, ...FONTS.regular },
   textarea: { minHeight: 100 },
   hint: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 4, lineHeight: 16 },
+
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: SPACING.lg,
+    paddingTop: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  sectionHeaderText: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold, letterSpacing: 0.3 },
 
   priceRow: { flexDirection: 'row', gap: SPACING.xs },
   pricePill: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border },

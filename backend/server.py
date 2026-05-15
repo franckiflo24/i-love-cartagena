@@ -179,7 +179,8 @@ async def business_me(request: Request):
 async def update_business_profile(request: Request):
     biz = await get_current_business(request)
     body = await request.json()
-    allowed = {"description", "address", "instagram", "booking_link", "price_range", "experience", "image_url"}
+    allowed = {"description", "address", "instagram", "booking_link", "price_range",
+               "experience", "image_url", "default_payment_link", "phone", "whatsapp", "email"}
     update = {k: v for k, v in body.items() if k in allowed}
     if not update:
         return {"updated": False}
@@ -2792,11 +2793,6 @@ async def _fulfill_payment(payment: dict, tx: dict):
             }
             await db.partner_bookings.insert_one(dict(booking))
             await db.payments.update_one({"payment_id": payment["payment_id"]}, {"$set": {"fulfillment.booking_id": booking_id}})
-        elif kind == "partner_reservation":
-            # Move reservation from pending_payment → pending_confirmation
-            payment_with_tx = dict(payment)
-            payment_with_tx["wompi_transaction_id"] = tx.get("id")
-            await _reservations.fulfill_prepaid_reservation(payment_with_tx)
     except Exception as e:
         logger.error(f"Fulfillment failed for payment {payment.get('payment_id')}: {e}")
 

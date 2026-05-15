@@ -1,28 +1,25 @@
 """
-Reservations module — Direct in-app bookings with 5% app commission.
+Reservations module — Direct in-app reservation REQUESTS.
 
-Two flows supported (single collection `reservations`):
-  • table   → Reserva de mesa en restaurante. Sin prepago. Partner confirma manualmente.
-  • prepaid → Day Pass, Tour a islas, hotel, cena fija. Cobro 100% vía Wompi al reservar.
-              Comisión 5% al partner (0% si es Alcaldía).
+Business model: the app is a SaaS marketplace. Partners pay a monthly membership fee
+to be listed. The app does NOT touch reservation payments — each reservation is a
+"request" sent to the partner, who confirms manually and points the user to their own
+payment link (Wompi/Bold/transfer/etc., stored as `default_payment_link` on the partner).
 
 State machine:
-  pending_payment       (prepaid esperando webhook de Wompi)
-  pending_confirmation  (table esperando que el partner acepte)
-  confirmed             (prepaid pagado, o table aceptado por el partner)
-  rejected_by_partner   (el partner rechazó — si era prepaid: pendiente de reembolso manual)
-  cancelled_by_user     (usuario canceló dentro del plazo)
-  cancelled_late        (usuario canceló fuera del plazo — no reembolso)
-  completed             (fecha pasó, marcado como utilizado)
-  no_show               (el partner marcó no-show)
-  expired               (prepaid no pagado en 30 min)
+  pending_confirmation  → request sent, awaiting the partner
+  confirmed             → partner accepted. Client sees the partner's payment link + contacts.
+  rejected_by_partner   → partner declined.
+  cancelled_by_user     → user cancelled within the cancellation window (free).
+  cancelled_late        → user cancelled too late (kept for analytics).
+  completed             → partner marked it as honoured.
+  no_show               → partner marked it as no-show.
 
-Cancellation windows (default):
-  table   → hasta 2h antes de date+time
-  prepaid → hasta 24h antes de date
+Cancellation window:
+  Free cancellation up to CANCELLATION_HOURS_TABLE (default 2h) before reservation time.
 
-All routes are mounted on the `router` exported by this module. `init(deps)` must be
-called from server.py before `app.include_router(router, prefix='/api')`.
+Routes are mounted on `router`. `init(deps)` must be called from server.py before
+`app.include_router(router, prefix='/api')`.
 """
 
 from __future__ import annotations
@@ -46,14 +43,13 @@ _deps: dict[str, Any] = {}
 
 
 def init(*, db, get_current_user, get_current_business, require_government_role,
-         wompi, create_payment_record: Callable):
-    """Wire dependencies from server.py."""
+         wompi=None, create_payment_record: Optional[Callable] = None):
+    """Wire dependencies from server.py. (wompi/create_payment_record kept for backward
+    compatibility but no longer used — reservations never touch app payments now.)"""
     _deps["db"] = db
     _deps["get_current_user"] = get_current_user
     _deps["get_current_business"] = get_current_business
     _deps["require_government_role"] = require_government_role
-    _deps["wompi"] = wompi
-    _deps["create_payment_record"] = create_payment_record
 
 
 def _db():
@@ -64,23 +60,23 @@ def _db():
 # Helpers
 # ─────────────────────────────────────────────────────────────
 
-CANCELLATION_HOURS_TABLE = 2
-CANCELLATION_HOURS_PREPAID = 24
-PREPAID_PAYMENT_TIMEOUT_MIN = 30
+CANCELLATION_HOURS_TABLE = 2  # universal cutoff — applies to ALL reservation types now
 
-VALID_TYPES = {"table", "prepaid"}
-ACTIVE_STATUSES = {"pending_payment", "pending_confirmation", "confirmed"}
+VALID_TYPES = {"table", "request"}  # accepts both for backward compatibility
+ACTIVE_STATUSES = {"pending_confirmation", "confirmed"}
+TERMINAL_STATUSES = {
+    "cancelled_by_user", "cancelled_late", "rejected_by_partner",
+    "completed", "no_show", "expired",
+}
 
 
 def _parse_iso_local(date_str: str, time_str: str = "") -> Optional[datetime]:
-    """Parse 'YYYY-MM-DD' + optional 'HH:MM' as a Bogota-naive datetime. We treat times
-    as local Cartagena (UTC-5) and convert to UTC for comparisons."""
+    """Parse 'YYYY-MM-DD' + optional 'HH:MM' as Cartagena local (UTC-5) → UTC."""
     try:
         if time_str:
             dt_local = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
         else:
             dt_local = datetime.strptime(date_str, "%Y-%m-%d")
-        # Cartagena is UTC-5
         return dt_local.replace(tzinfo=timezone(timedelta(hours=-5))).astimezone(timezone.utc)
     except Exception:
         return None
@@ -102,7 +98,8 @@ async def _enrich_partner(partner_id: str) -> dict:
     p = await _db().partners.find_one(
         {"partner_id": partner_id},
         {"_id": 0, "name": 1, "category": 1, "tier": 1, "image_url": 1, "address": 1,
-         "instagram": 1, "phone": 1, "is_government": 1, "partner_id": 1},
+         "instagram": 1, "phone": 1, "whatsapp": 1, "email": 1, "is_government": 1,
+         "default_payment_link": 1, "partner_id": 1},
     )
     return p or {}
 
@@ -111,7 +108,19 @@ async def _hydrate_reservation(r: dict) -> dict:
     r = dict(r)
     r.pop("_id", None)
     if r.get("partner_id"):
-        r["partner"] = await _enrich_partner(r["partner_id"])
+        partner = await _enrich_partner(r["partner_id"])
+        r["partner"] = partner
+        # Surface payment info + contacts ONLY when confirmed (so the client knows
+        # exactly when to pay). Pending requests don't get payment info yet.
+        if r.get("status") == "confirmed":
+            r["payment_info"] = {
+                "payment_link": partner.get("default_payment_link") or None,
+                "whatsapp": partner.get("whatsapp") or partner.get("phone") or None,
+                "phone": partner.get("phone") or None,
+                "email": partner.get("email") or None,
+                "instagram": partner.get("instagram") or None,
+                "note": r.get("partner_note") or None,
+            }
     if r.get("event_id"):
         ev = await _db().partner_events.find_one(
             {"event_id": r["event_id"]},
@@ -123,16 +132,14 @@ async def _hydrate_reservation(r: dict) -> dict:
 
 
 def _can_cancel(r: dict) -> tuple[bool, str]:
-    """Return (allowed, reason). Reason is non-empty when not allowed."""
-    if r.get("status") not in {"pending_payment", "pending_confirmation", "confirmed"}:
+    if r.get("status") not in ACTIVE_STATUSES:
         return False, "Esta reserva ya no se puede cancelar."
     dt = _parse_iso_local(r.get("date", ""), r.get("time", "") or "")
     if not dt:
-        return True, ""  # malformed date: be lenient
+        return True, ""
     hrs = _hours_until(dt)
-    cutoff = CANCELLATION_HOURS_PREPAID if r.get("type") == "prepaid" else CANCELLATION_HOURS_TABLE
-    if hrs < cutoff:
-        return False, f"Cancelación gratuita hasta {cutoff}h antes de la reserva."
+    if hrs < CANCELLATION_HOURS_TABLE:
+        return False, f"Cancelación gratuita hasta {CANCELLATION_HOURS_TABLE}h antes de la reserva."
     return True, ""
 
 
@@ -142,46 +149,51 @@ def _can_cancel(r: dict) -> tuple[bool, str]:
 
 @router.post("/reservations")
 async def create_reservation(request: Request):
-    """Create a new reservation.
+    """Create a new reservation REQUEST. The app does NOT process payment — the partner
+    will share their own payment link once they confirm.
+
     Body:
       partner_id (str, required)
-      type ('table'|'prepaid', required)
+      type ('table' | 'request', optional — defaults to 'table' for backward compat)
       date 'YYYY-MM-DD' (required)
-      time 'HH:MM' (required for table; optional for prepaid)
-      party_size (int >=1, default 1)
+      time 'HH:MM' (required)
+      party_size (int 1-30, default 2)
       notes (str, optional, max 280)
-      event_id (str, optional — if linked to a partner_event)
-      qty (int, for prepaid — defaults to party_size)
-      amount_cop (int, prepaid only — server validates against event/partner pricing if event_id provided)
+      event_id (str, optional — link to a partner_event)
 
     Returns:
-      table   → {reservation, requires_payment: false}
-      prepaid → {reservation, requires_payment: true, checkout_url, payment_id, reference, split}
+      { reservation, message }
     """
     user = await _deps["get_current_user"](request)
     body = await request.json()
 
     partner_id = (body.get("partner_id") or "").strip()
-    rtype = (body.get("type") or "").strip().lower()
+    rtype = (body.get("type") or "table").strip().lower()
+    if rtype == "prepaid":
+        # Legacy clients — reject. The new model never charges through the app.
+        raise HTTPException(
+            status_code=400,
+            detail="El pago ya no se procesa en la app. El partner enviará su link de pago al confirmar.",
+        )
     date = (body.get("date") or "").strip()
     time = (body.get("time") or "").strip()
     party_size_raw = body.get("party_size")
-    party_size = int(party_size_raw if party_size_raw is not None else 1)
+    party_size = int(party_size_raw if party_size_raw is not None else 2)
     notes = (body.get("notes") or "").strip()[:280]
     event_id = (body.get("event_id") or "").strip() or None
 
     if not partner_id:
         raise HTTPException(status_code=400, detail="partner_id requerido")
     if rtype not in VALID_TYPES:
-        raise HTTPException(status_code=400, detail="type debe ser 'table' o 'prepaid'")
+        raise HTTPException(status_code=400, detail="type inválido")
     if not date or len(date) != 10:
         raise HTTPException(status_code=400, detail="date 'YYYY-MM-DD' requerido")
-    if rtype == "table" and not time:
-        raise HTTPException(status_code=400, detail="time 'HH:MM' requerido para reservas de mesa")
+    if not time:
+        raise HTTPException(status_code=400, detail="time 'HH:MM' requerido")
     if party_size < 1 or party_size > 30:
         raise HTTPException(status_code=400, detail="party_size debe estar entre 1 y 30")
 
-    dt = _parse_iso_local(date, time or "12:00")
+    dt = _parse_iso_local(date, time)
     if not dt:
         raise HTTPException(status_code=400, detail="fecha/hora inválida")
     if dt < _now() - timedelta(hours=1):
@@ -193,115 +205,51 @@ async def create_reservation(request: Request):
     if not partner:
         raise HTTPException(status_code=404, detail="Partner no encontrado")
 
-    # Validate event if provided
-    event_doc = None
     if event_id:
-        event_doc = await _db().partner_events.find_one({"event_id": event_id, "partner_id": partner_id}, {"_id": 0})
-        if not event_doc:
+        ev = await _db().partner_events.find_one({"event_id": event_id, "partner_id": partner_id}, {"_id": 0})
+        if not ev:
             raise HTTPException(status_code=404, detail="Evento del partner no encontrado")
 
     reservation_id = f"res_{uuid.uuid4().hex[:12]}"
-    base_doc = {
+    doc = {
         "reservation_id": reservation_id,
         "user_id": user["user_id"],
         "user_email": user.get("email"),
         "user_name": user.get("name"),
         "user_phone": user.get("phone"),
+        "user_whatsapp": user.get("whatsapp") or user.get("phone"),
         "partner_id": partner_id,
         "partner_name": partner.get("name"),
         "event_id": event_id,
-        "type": rtype,
+        "type": "table",  # normalised — there's only one type now
         "date": date,
-        "time": time or None,
+        "time": time,
         "datetime_utc": dt.isoformat(),
         "party_size": party_size,
         "notes": notes,
-        "status": "pending_payment" if rtype == "prepaid" else "pending_confirmation",
+        "status": "pending_confirmation",
         "created_at": _iso(),
         "updated_at": _iso(),
         "confirmed_at": None,
         "cancelled_at": None,
         "partner_confirmed_by": None,
-        "payment_id": None,
+        # Legacy fields kept at 0 — kept for backward compatibility with existing aggregations.
         "amount_cop": 0,
         "currency": "COP",
         "commission_pct": 0.0,
         "app_commission_cop": 0,
         "partner_amount_cop": 0,
     }
-
-    if rtype == "table":
-        await _db().reservations.insert_one(dict(base_doc))
-        hydrated = await _hydrate_reservation(base_doc)
-        return {"reservation": hydrated, "requires_payment": False}
-
-    # ── PREPAID ──
-    # Determine amount: from event price * qty, or explicit amount_cop * party_size for fallback.
-    qty_raw = body.get("qty")
-    qty = int(qty_raw if qty_raw is not None else party_size)
-    if qty < 1:
-        raise HTTPException(status_code=400, detail="qty debe ser al menos 1")
-    unit_price = 0
-    if event_doc and not event_doc.get("is_free"):
-        unit_price = int(event_doc.get("price") or 0)
-    if unit_price == 0:
-        unit_price = int(body.get("amount_cop") or 0)
-    if unit_price < 1000:
-        raise HTTPException(status_code=400, detail="amount_cop inválido (mínimo 1000 COP por unidad)")
-    amount_cop = unit_price * qty
-    if amount_cop > 50_000_000:
-        raise HTTPException(status_code=400, detail="monto excede el máximo permitido")
-
-    base_doc["amount_cop"] = amount_cop
-    base_doc["qty"] = qty
-    base_doc["expires_at"] = (_now() + timedelta(minutes=PREPAID_PAYMENT_TIMEOUT_MIN)).isoformat()
-
-    # Create Wompi payment via shared helper. We use kind='partner_reservation' so wompi.py
-    # applies the 5% reservation commission.
-    payment = await _deps["create_payment_record"](
-        user=user,
-        kind="partner_reservation",
-        partner_id=partner_id,
-        amount_cop=amount_cop,
-        currency="COP",
-        description=f"Reserva en {partner.get('name')} · {date}" + (f" {time}" if time else ""),
-        metadata={
-            "reservation_id": reservation_id,
-            "party_size": party_size,
-            "qty": qty,
-            "date": date,
-            "time": time or "",
-            "event_id": event_id,
-        },
-        redirect_url=f"/payments/return?reservation_id={reservation_id}",
-    )
-
-    base_doc["payment_id"] = payment["payment_id"]
-    base_doc["payment_reference"] = payment["reference"]
-    base_doc["commission_pct"] = float(payment["split"].get("commission_pct") or 0)
-    base_doc["app_commission_cop"] = int(payment["split"].get("app_commission") or 0)
-    base_doc["partner_amount_cop"] = int(payment["split"].get("partner_amount") or 0)
-    await _db().reservations.insert_one(dict(base_doc))
-    # Cross-link payment → reservation
-    await _db().payments.update_one(
-        {"payment_id": payment["payment_id"]},
-        {"$set": {"reservation_id": reservation_id, "metadata.reservation_id": reservation_id}},
-    )
-
-    hydrated = await _hydrate_reservation(base_doc)
+    await _db().reservations.insert_one(dict(doc))
+    hydrated = await _hydrate_reservation(doc)
     return {
         "reservation": hydrated,
-        "requires_payment": True,
-        "checkout_url": payment["checkout_url"],
-        "payment_id": payment["payment_id"],
-        "reference": payment["reference"],
-        "split": payment["split"],
+        "message": "Tu solicitud fue enviada al partner. Te avisaremos cuando confirme y verás su link de pago en la app.",
     }
 
 
 @router.get("/reservations/my")
 async def my_reservations(request: Request):
-    """List the calling user's reservations grouped into 'upcoming' & 'past'."""
     user = await _deps["get_current_user"](request)
     now = _now()
     cursor = _db().reservations.find({"user_id": user["user_id"]}, {"_id": 0}).sort("datetime_utc", -1)
@@ -334,10 +282,7 @@ async def user_cancel_reservation(reservation_id: str, request: Request):
     if not r:
         raise HTTPException(status_code=404, detail="Reserva no encontrada")
 
-    # Terminal states are not re-cancellable. Return 400 so admin stats are not corrupted.
-    terminal = {"cancelled_by_user", "cancelled_late", "rejected_by_partner",
-                "completed", "no_show", "expired"}
-    if r.get("status") in terminal:
+    if r.get("status") in TERMINAL_STATUSES:
         raise HTTPException(
             status_code=400,
             detail=f"La reserva ya está en estado '{r['status']}' y no se puede volver a cancelar.",
@@ -345,23 +290,18 @@ async def user_cancel_reservation(reservation_id: str, request: Request):
 
     allowed, reason = _can_cancel(r)
     new_status = "cancelled_by_user" if allowed else "cancelled_late"
-    refund_pending = (r.get("type") == "prepaid" and r.get("status") in {"confirmed", "pending_confirmation"} and allowed)
-
     update = {
         "status": new_status,
         "cancelled_at": _iso(),
         "cancelled_reason": "user",
         "updated_at": _iso(),
     }
-    if refund_pending:
-        update["refund_status"] = "pending"
     await _db().reservations.update_one({"reservation_id": reservation_id}, {"$set": update})
 
     updated = await _db().reservations.find_one({"reservation_id": reservation_id}, {"_id": 0})
     return {
         "reservation": await _hydrate_reservation(updated),
         "free_cancellation": allowed,
-        "refund_status": "pending" if refund_pending else None,
         "message": reason or "Reserva cancelada correctamente.",
     }
 
@@ -380,29 +320,24 @@ async def business_list_reservations(request: Request, status: str = "", limit: 
     cursor = _db().reservations.find(q, {"_id": 0}).sort("datetime_utc", -1).limit(min(max(int(limit), 1), 500))
     docs = await cursor.to_list(500)
 
-    # Lightweight stats
     pending = await _db().reservations.count_documents({"partner_id": partner_id, "status": "pending_confirmation"})
     confirmed_upcoming = await _db().reservations.count_documents({
         "partner_id": partner_id,
         "status": "confirmed",
         "datetime_utc": {"$gte": _iso()},
     })
-    total_commission = 0
-    paid_total = 0
-    async for r in _db().reservations.find(
-        {"partner_id": partner_id, "type": "prepaid", "status": {"$in": ["confirmed", "completed"]}},
-        {"_id": 0, "amount_cop": 1, "app_commission_cop": 1},
-    ):
-        paid_total += int(r.get("amount_cop") or 0)
-        total_commission += int(r.get("app_commission_cop") or 0)
+    completed_30d = await _db().reservations.count_documents({
+        "partner_id": partner_id,
+        "status": "completed",
+        "datetime_utc": {"$gte": (_now() - timedelta(days=30)).isoformat()},
+    })
 
     return {
         "reservations": [await _hydrate_reservation(r) for r in docs],
         "stats": {
             "pending_count": pending,
             "confirmed_upcoming_count": confirmed_upcoming,
-            "prepaid_revenue_cop": paid_total,
-            "prepaid_app_commission_cop": total_commission,
+            "completed_last_30d": completed_30d,
         },
     }
 
@@ -411,7 +346,8 @@ async def business_list_reservations(request: Request, status: str = "", limit: 
 async def business_update_reservation(reservation_id: str, request: Request):
     """Partner confirms / rejects / completes / marks no-show.
     Body: { action: 'confirm' | 'reject' | 'complete' | 'no_show', note?: string }
-    """
+    Confirmation does NOT trigger any payment — the user will see the partner's
+    `default_payment_link` (saved on the partner profile) in the reservation card."""
     biz = await _deps["get_current_business"](request)
     body = await request.json()
     action = (body.get("action") or "").strip().lower()
@@ -423,19 +359,17 @@ async def business_update_reservation(reservation_id: str, request: Request):
 
     update = {"updated_at": _iso(), "partner_confirmed_by": biz.get("email")}
     if action == "confirm":
-        if r["status"] not in {"pending_confirmation", "pending_payment"}:
+        if r["status"] != "pending_confirmation":
             raise HTTPException(status_code=400, detail=f"No se puede confirmar una reserva en estado '{r['status']}'")
         update["status"] = "confirmed"
         update["confirmed_at"] = _iso()
         if note:
             update["partner_note"] = note
     elif action == "reject":
-        if r["status"] in {"cancelled_by_user", "cancelled_late", "completed", "no_show"}:
+        if r["status"] in TERMINAL_STATUSES:
             raise HTTPException(status_code=400, detail=f"No se puede rechazar una reserva en estado '{r['status']}'")
         update["status"] = "rejected_by_partner"
         update["cancelled_at"] = _iso()
-        if r.get("type") == "prepaid" and r.get("payment_id"):
-            update["refund_status"] = "pending"
         if note:
             update["partner_rejection_reason"] = note
     elif action == "complete":
@@ -487,66 +421,22 @@ async def admin_reservations_stats(request: Request, days: int = 30):
         s = r.get("status") or "unknown"
         by_status[s] = by_status.get(s, 0) + 1
 
-    pipeline = [
-        {"$match": {**base, "type": "prepaid", "status": {"$in": ["confirmed", "completed"]}}},
-        {"$group": {
-            "_id": None,
-            "revenue": {"$sum": "$amount_cop"},
-            "app_commission": {"$sum": "$app_commission_cop"},
-            "count": {"$sum": 1},
-        }},
-    ]
-    agg = await _db().reservations.aggregate(pipeline).to_list(1)
-    revenue = int(agg[0]["revenue"]) if agg else 0
-    app_commission = int(agg[0]["app_commission"]) if agg else 0
-    prepaid_count = int(agg[0]["count"]) if agg else 0
+    # Distinct partners with at least 1 reservation in the period
+    active_partners = len(await _db().reservations.distinct("partner_id", base))
 
-    table_count = await _db().reservations.count_documents({**base, "type": "table"})
+    # Acceptance rate
+    confirmed = by_status.get("confirmed", 0) + by_status.get("completed", 0) + by_status.get("no_show", 0)
+    rejected = by_status.get("rejected_by_partner", 0)
+    decided = confirmed + rejected
+    acceptance_rate = round(confirmed / decided * 100, 1) if decided else 0.0
 
     return {
         "period_days": days,
         "total": total,
         "by_status": by_status,
-        "by_type": {"table": table_count, "prepaid": prepaid_count},
-        "prepaid_revenue_cop": revenue,
-        "prepaid_app_commission_cop": app_commission,
-        "currency": "COP",
+        "active_partners": active_partners,
+        "acceptance_rate_pct": acceptance_rate,
     }
-
-
-# ─────────────────────────────────────────────────────────────
-# Fulfillment — called by server.py when a Wompi webhook arrives
-# ─────────────────────────────────────────────────────────────
-
-async def fulfill_prepaid_reservation(payment: dict) -> Optional[str]:
-    """Called from server.py `_fulfill_payment` when kind=='partner_reservation'.
-    Moves reservation from pending_payment → pending_confirmation (manual confirm by partner)
-    UNLESS the user opted out of partner confirmation. For MVP we keep manual confirmation."""
-    reservation_id = (payment.get("metadata") or {}).get("reservation_id") or payment.get("reservation_id")
-    if not reservation_id:
-        logger.warning("partner_reservation payment without reservation_id: %s", payment.get("payment_id"))
-        return None
-    r = await _db().reservations.find_one({"reservation_id": reservation_id}, {"_id": 0})
-    if not r:
-        logger.warning("Reservation %s not found for payment %s", reservation_id, payment.get("payment_id"))
-        return None
-    # Already fulfilled?
-    if r.get("status") not in {"pending_payment"}:
-        return reservation_id  # idempotent
-    await _db().reservations.update_one(
-        {"reservation_id": reservation_id},
-        {"$set": {
-            "status": "pending_confirmation",
-            "paid_at": _iso(),
-            "updated_at": _iso(),
-            "wompi_transaction_id": payment.get("wompi_transaction_id"),
-        }},
-    )
-    await _db().payments.update_one(
-        {"payment_id": payment.get("payment_id")},
-        {"$set": {"fulfillment.reservation_id": reservation_id}},
-    )
-    return reservation_id
 
 
 # ─────────────────────────────────────────────────────────────
