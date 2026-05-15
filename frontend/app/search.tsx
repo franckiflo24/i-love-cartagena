@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, Image, ActivityIndicator, Keyboard,
+  TextInput, Image, ActivityIndicator, Keyboard, Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,14 +9,43 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
+import { useLang } from '../src/context/LanguageContext';
 
 type AIHighlight = { type: string; id: string; reason: string };
+type AIRecommendation = {
+  kind: 'partner' | 'event';
+  partner_id?: string;
+  event_id?: string;
+  name: string;
+  type?: string;
+  vibe?: string;
+  price_range?: string;
+  address?: string;
+  reason?: string;
+};
+type AIAction = {
+  type: string;
+  label?: string;
+  partner_id?: string;
+  event_id?: string;
+  screen?: string;
+  filters?: Record<string, any>;
+  qty?: number;
+  travel_date?: string;
+  plan_id?: string;
+  category?: string;
+  url?: string;
+};
 type AIPayload = {
   query: string;
   intent: string;
   answer: string;
+  language?: string;
   suggested_tab?: string;
   highlights: AIHighlight[];
+  recommendations?: AIRecommendation[];
+  actions?: AIAction[];
+  suggestions?: string[];
 };
 
 type Results = {
@@ -51,6 +80,7 @@ const TAB_TO_ROUTE: Record<string, string> = {
 export default function SearchScreen() {
   const tr = useTr();
   const router = useRouter();
+  const { lang } = useLang();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Results | null>(null);
   const [loading, setLoading] = useState(false);
@@ -61,12 +91,12 @@ export default function SearchScreen() {
     setLoading(true);
     setSearched(true);
     try {
-      const data = await api.get(`/search?q=${encodeURIComponent(q)}`);
+      const data = await api.get(`/search?q=${encodeURIComponent(q)}&lang=${lang || 'es'}`);
       setResults(data);
     } catch (e) { console.error(e); }
     setLoading(false);
     Keyboard.dismiss();
-  }, []);
+  }, [lang]);
 
   const totalResults = results
     ? results.events.length + results.concerts.length + results.partners.length
@@ -90,6 +120,90 @@ export default function SearchScreen() {
     if (!tab) return;
     const route = TAB_TO_ROUTE[tab];
     if (route) router.push(route as any);
+  };
+
+  // ── Concierge action handlers (recommendations + actions) ──
+  const openRecommendation = (r: AIRecommendation) => {
+    if (r.kind === 'event' && r.event_id) {
+      router.push(`/event/${r.event_id}` as any);
+    } else if (r.kind === 'partner' && r.partner_id) {
+      router.push(`/partner/${r.partner_id}` as any);
+    }
+  };
+
+  const handleAction = (a: AIAction) => {
+    switch (a.type) {
+      case 'open_partner':
+        if (a.partner_id) router.push(`/partner/${a.partner_id}` as any);
+        break;
+      case 'open_event':
+        if (a.event_id) router.push(`/event/${a.event_id}` as any);
+        break;
+      case 'show_partners': {
+        const f = a.filters || {};
+        const qs: string[] = [];
+        if (f.category) qs.push(`category=${encodeURIComponent(f.category)}`);
+        if (f.subcategory) qs.push(`subcategory=${encodeURIComponent(f.subcategory)}`);
+        if (f.tier) qs.push(`tier=${encodeURIComponent(f.tier)}`);
+        router.push(`/(tabs)/partners${qs.length ? '?' + qs.join('&') : ''}` as any);
+        break;
+      }
+      case 'show_events': {
+        const f = a.filters || {};
+        const qs: string[] = [];
+        if (f.category) qs.push(`category=${encodeURIComponent(f.category)}`);
+        if (f.date) qs.push(`date=${encodeURIComponent(f.date)}`);
+        router.push(`/(tabs)/agenda${qs.length ? '?' + qs.join('&') : ''}` as any);
+        break;
+      }
+      case 'open_port_tax_checkout':
+        router.push('/port-tax/checkout' as any);
+        break;
+      case 'open_city_pass':
+        router.push('/(tabs)/citypass' as any);
+        break;
+      case 'show_itinerary':
+        router.push('/itineraries' as any);
+        break;
+      case 'reservation_link':
+        if (a.partner_id) router.push(`/reservation/new?partnerId=${a.partner_id}` as any);
+        break;
+      case 'external_link':
+        if (a.url) Linking.openURL(a.url).catch(() => {});
+        break;
+      case 'navigate': {
+        const screenMap: Record<string, string> = {
+          agenda: '/(tabs)/agenda',
+          concerts: '/concerts',
+          partners: '/(tabs)/partners',
+          citypass: '/(tabs)/citypass',
+          transport: '/transport',
+          itineraries: '/itineraries',
+          search: '/search',
+        };
+        const route = screenMap[a.screen || ''];
+        if (route) router.push(route as any);
+        break;
+      }
+      default:
+        break;
+    }
+  };
+
+  const iconForAction = (type: string): keyof typeof Ionicons.glyphMap => {
+    const map: Record<string, keyof typeof Ionicons.glyphMap> = {
+      open_partner: 'business',
+      open_event: 'calendar',
+      show_partners: 'grid',
+      show_events: 'calendar-outline',
+      open_port_tax_checkout: 'boat',
+      open_city_pass: 'ticket',
+      show_itinerary: 'map',
+      reservation_link: 'restaurant',
+      external_link: 'open-outline',
+      navigate: 'arrow-forward',
+    };
+    return map[type] || 'sparkles';
   };
 
   return (
@@ -148,55 +262,99 @@ export default function SearchScreen() {
           </View>
         ) : (
           <>
-            {/* AI Answer Card — always at the top of any result page */}
-            {results?.ai?.answer ? (
+            {/* AI Concierge Card — Amo's answer + rich recommendation cards */}
+            {(results?.ai?.answer || (results?.ai?.recommendations && results.ai.recommendations.length > 0)) ? (
               <View style={styles.aiCard}>
                 <View style={styles.aiHeaderRow}>
                   <View style={[
                     styles.aiIntentChip,
-                    { backgroundColor: `${INTENT_META[results.ai.intent]?.color || COLORS.primary}22` },
+                    { backgroundColor: `${INTENT_META[results!.ai!.intent]?.color || COLORS.primary}22` },
                   ]}>
                     <Ionicons
-                      name={(INTENT_META[results.ai.intent]?.icon || 'sparkles') as any}
+                      name={(INTENT_META[results!.ai!.intent]?.icon || 'sparkles') as any}
                       size={12}
-                      color={INTENT_META[results.ai.intent]?.color || COLORS.primary}
+                      color={INTENT_META[results!.ai!.intent]?.color || COLORS.primary}
                     />
                     <Text style={[
                       styles.aiIntentText,
-                      { color: INTENT_META[results.ai.intent]?.color || COLORS.primary },
+                      { color: INTENT_META[results!.ai!.intent]?.color || COLORS.primary },
                     ]}>
-                      {INTENT_META[results.ai.intent]?.label || 'AI'}
+                      {INTENT_META[results!.ai!.intent]?.label || 'AI'}
                     </Text>
                   </View>
-                  <Text style={styles.aiBadge}>RESPUESTA IA</Text>
+                  <Text style={styles.aiBadge}>AMO IA</Text>
                 </View>
-                <Text style={styles.aiAnswer}>{results.ai.answer}</Text>
 
-                {results.ai.highlights?.length > 0 && (
-                  <View style={styles.aiHighlights}>
-                    {results.ai.highlights.map((h, i) => (
-                      <TouchableOpacity key={`${h.type}-${h.id}-${i}`} style={styles.aiPick} onPress={() => openHighlight(h)}>
-                        <Ionicons name="star" size={12} color="#FBBF24" />
-                        <Text style={styles.aiPickText} numberOfLines={1}>{h.reason}</Text>
-                        <Ionicons name="chevron-forward" size={12} color={COLORS.textMuted} />
+                {!!results!.ai!.answer && (
+                  <Text style={styles.aiAnswer}>{results!.ai!.answer}</Text>
+                )}
+
+                {/* Rich recommendation cards (5-8 from the concierge) */}
+                {!!(results!.ai!.recommendations && results!.ai!.recommendations!.length > 0) && (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.recsScrollContent}
+                    style={styles.recsScroll}
+                  >
+                    {results!.ai!.recommendations!.map((r, i) => (
+                      <RecommendationCard
+                        key={`rec-${i}-${r.partner_id || r.event_id}`}
+                        rec={r}
+                        onPress={() => openRecommendation(r)}
+                      />
+                    ))}
+                  </ScrollView>
+                )}
+
+                {/* Action pills (navigation, checkout, etc.) */}
+                {!!(results!.ai!.actions && results!.ai!.actions!.length > 0) && (
+                  <View style={styles.actionsWrap}>
+                    {results!.ai!.actions!.slice(0, 4).map((a, i) => (
+                      <TouchableOpacity
+                        key={`act-${i}`}
+                        style={styles.actionBtn}
+                        onPress={() => handleAction(a)}
+                        activeOpacity={0.85}
+                      >
+                        <Ionicons name={iconForAction(a.type)} size={13} color={COLORS.primary} />
+                        <Text style={styles.actionBtnText} numberOfLines={1}>
+                          {a.label || a.type.replace(/_/g, ' ')}
+                        </Text>
                       </TouchableOpacity>
                     ))}
                   </View>
                 )}
 
-                {!!results.ai.suggested_tab && (
+                {/* Quick reply suggestions */}
+                {!!(results!.ai!.suggestions && results!.ai!.suggestions!.length > 0) && (
+                  <View style={styles.suggestionsWrap}>
+                    {results!.ai!.suggestions!.slice(0, 4).map((s, i) => (
+                      <TouchableOpacity
+                        key={`sug-${i}`}
+                        style={styles.suggestionPill}
+                        onPress={() => { setQuery(s); doSearch(s); }}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={styles.suggestionText} numberOfLines={1}>{s}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+
+                {!!results!.ai!.suggested_tab && (
                   <TouchableOpacity
                     style={styles.suggestedTabBtn}
-                    onPress={() => openSuggestedTab(results.ai!.suggested_tab)}
+                    onPress={() => openSuggestedTab(results!.ai!.suggested_tab)}
                   >
                     <Ionicons name="arrow-forward-circle" size={16} color="#FFF" />
-                    <Text style={styles.suggestedTabText}>Ir a {results.ai.suggested_tab}</Text>
+                    <Text style={styles.suggestedTabText}>Ir a {results!.ai!.suggested_tab}</Text>
                   </TouchableOpacity>
                 )}
               </View>
             ) : null}
 
-            {totalResults === 0 ? (
+            {totalResults === 0 && !((results?.ai?.recommendations && results.ai.recommendations.length > 0) || (results?.ai?.actions && results.ai.actions.length > 0)) ? (
               <View style={styles.emptyState}>
                 <Ionicons name="search-outline" size={48} color={COLORS.textMuted} />
                 <Text style={styles.emptyTitle}>Sin resultados directos</Text>
@@ -204,7 +362,7 @@ export default function SearchScreen() {
                   Pero la IA tiene una sugerencia arriba. Prueba con otras palabras o navega a la pestaña sugerida.
                 </Text>
               </View>
-            ) : (
+            ) : totalResults === 0 ? null : (
               <>
                 <Text style={styles.resultCount}>{totalResults} resultado{totalResults !== 1 ? 's' : ''}</Text>
 
@@ -336,6 +494,58 @@ export default function SearchScreen() {
   );
 }
 
+// ── Rich Recommendation Card (concierge partner/event picks) ──
+function RecommendationCard({
+  rec,
+  onPress,
+}: {
+  rec: AIRecommendation;
+  onPress: () => void;
+}) {
+  const isEvent = rec.kind === 'event';
+  const accent = isEvent ? '#7C3AED' : COLORS.primary;
+  return (
+    <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={styles.recCard}>
+      <View style={[styles.recHeader, { backgroundColor: accent + '22', borderColor: accent + '55' }]}>
+        <View style={[styles.recIcon, { backgroundColor: accent }]}>
+          <Ionicons name={isEvent ? 'calendar' : 'business'} size={13} color={COLORS.white} />
+        </View>
+        <Text style={[styles.recKindLabel, { color: accent }]} numberOfLines={1}>
+          {isEvent ? 'Evento' : 'Partner'}
+        </Text>
+        {!!rec.price_range && (
+          <View style={styles.recPriceBadge}>
+            <Text style={styles.recPriceText}>{rec.price_range}</Text>
+          </View>
+        )}
+      </View>
+      <View style={styles.recBody}>
+        <Text style={styles.recName} numberOfLines={2}>{rec.name}</Text>
+        {!!rec.type && <Text style={styles.recType} numberOfLines={1}>{rec.type}</Text>}
+        {!!rec.vibe && (
+          <View style={styles.recMetaRow}>
+            <Ionicons name="sparkles" size={11} color={COLORS.textMuted} />
+            <Text style={styles.recVibe} numberOfLines={2}>{rec.vibe}</Text>
+          </View>
+        )}
+        {!!rec.reason && (
+          <Text style={styles.recReason} numberOfLines={3}>{rec.reason}</Text>
+        )}
+        {!!rec.address && (
+          <View style={styles.recMetaRow}>
+            <Ionicons name="location-outline" size={11} color={COLORS.textMuted} />
+            <Text style={styles.recVibe} numberOfLines={1}>{rec.address}</Text>
+          </View>
+        )}
+      </View>
+      <View style={styles.recCta}>
+        <Text style={styles.recCtaText}>Ver detalle</Text>
+        <Ionicons name="arrow-forward" size={12} color={COLORS.white} />
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm },
@@ -411,4 +621,71 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
   },
   ratingText: { fontSize: 11, color: '#FBBF24', ...FONTS.bold },
+
+  // ── Concierge: recommendation cards (horizontal scroll) ──
+  recsScroll: { marginHorizontal: -SPACING.md, marginTop: SPACING.xs },
+  recsScrollContent: { paddingHorizontal: SPACING.md, gap: 10 },
+  recCard: {
+    width: 240,
+    backgroundColor: COLORS.background,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    overflow: 'hidden',
+  },
+  recHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderBottomWidth: 1,
+  },
+  recIcon: {
+    width: 22, height: 22, borderRadius: 11,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  recKindLabel: { fontSize: 11, ...FONTS.bold, letterSpacing: 0.4, flex: 1 },
+  recPriceBadge: {
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    paddingHorizontal: 7, paddingVertical: 2,
+    borderRadius: RADIUS.full,
+  },
+  recPriceText: { fontSize: 10, color: COLORS.textMain, ...FONTS.bold, letterSpacing: 0.3 },
+  recBody: { padding: 10, gap: 4 },
+  recName: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold, lineHeight: 18 },
+  recType: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold, textTransform: 'capitalize' },
+  recMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  recVibe: { flex: 1, fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
+  recReason: { fontSize: 11, color: COLORS.textMain, ...FONTS.regular, lineHeight: 15, marginTop: 4 },
+  recCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    backgroundColor: COLORS.primary,
+    paddingVertical: 9,
+  },
+  recCtaText: { fontSize: 12, color: COLORS.white, ...FONTS.bold, letterSpacing: 0.3 },
+
+  // ── Action pills ──
+  actionsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: SPACING.xs },
+  actionBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    backgroundColor: 'rgba(217,119,6,0.12)',
+    borderWidth: 1, borderColor: 'rgba(217,119,6,0.4)',
+    paddingHorizontal: 10, paddingVertical: 7,
+    borderRadius: RADIUS.full,
+  },
+  actionBtnText: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold },
+
+  // ── Quick reply suggestions ──
+  suggestionsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: SPACING.xs },
+  suggestionPill: {
+    backgroundColor: COLORS.background,
+    borderWidth: 1, borderColor: COLORS.border,
+    paddingHorizontal: 10, paddingVertical: 6,
+    borderRadius: RADIUS.full,
+  },
+  suggestionText: { fontSize: 11, color: COLORS.textMain, ...FONTS.medium },
 });

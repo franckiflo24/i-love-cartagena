@@ -5,7 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os, logging, uuid, httpx
 from pathlib import Path
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone, timedelta
 
 ROOT_DIR = Path(__file__).parent
@@ -1790,22 +1790,81 @@ async def global_search(q: str = "", request: Request = None):
         "venues": venues, "transport": transport, "partner_events": partner_events,
     }
 
-    # Resolve user (best-effort) for analytics
+    # Resolve user (best-effort) for analytics + agent personalization
+    user_obj = None
     user_id = None
     try:
         if request is not None:
             u = await get_current_user(request)
-            user_id = u.get("user_id") if u else None
+            if u:
+                user_obj = u
+                user_id = u.get("user_id")
     except Exception:
         pass
 
-    # AI summary (best-effort; never blocks the response)
-    ai_payload = {"query": q, "intent": "general", "answer": "", "highlights": []}
+    # ── FULL CONCIERGE AGENT ──
+    # Run the Amo agent so the search bar feels like a real concierge:
+    # rich partner/event recommendation cards, conversational answer, quick replies, actions.
+    ai_payload: Dict[str, Any] = {
+        "query": q, "intent": "general", "answer": "",
+        "highlights": [], "recommendations": [], "actions": [], "suggestions": [],
+    }
     try:
-        from ai_search import ai_search_answer  # type: ignore
-        ai_payload = await ai_search_answer(q, matches)
+        from ai_agent import run_agent_turn  # type: ignore
+        # Honor user-selected UI language if passed as a query param
+        forced_lang = None
+        try:
+            if request is not None:
+                forced_lang = request.query_params.get("lang") or None
+        except Exception:
+            forced_lang = None
+        agent_payload = await run_agent_turn(
+            db,
+            user=user_obj,
+            user_text=q,
+            history=[],
+            forced_language=forced_lang,
+        )
+        # Derive a coarse intent from the first recommendation kind (or "general")
+        recs = agent_payload.get("recommendations") or []
+        intent = "general"
+        if recs:
+            first_kind = (recs[0].get("kind") or "").lower()
+            if first_kind == "partner":
+                intent = "partner"
+            elif first_kind == "event":
+                intent = "event"
+        # Build highlights list (for the small "AI picks" pill row, back-compat).
+        highlights = []
+        for r in recs[:3]:
+            if r.get("partner_id"):
+                highlights.append({"type": "partner", "id": r["partner_id"], "reason": r.get("reason") or r.get("vibe") or ""})
+            elif r.get("event_id"):
+                highlights.append({"type": "event", "id": r["event_id"], "reason": r.get("reason") or r.get("vibe") or ""})
+        ai_payload = {
+            "query": q,
+            "intent": intent,
+            "answer": agent_payload.get("message") or "",
+            "language": agent_payload.get("language") or "es",
+            "recommendations": recs,
+            "actions": agent_payload.get("actions") or [],
+            "suggestions": agent_payload.get("suggestions") or [],
+            "highlights": highlights,
+        }
     except Exception as exc:
-        logger.warning(f"ai_search_answer failed: {exc}")
+        logger.warning(f"amo agent search call failed, falling back: {exc}")
+        # Fallback to the legacy lite ai_search
+        try:
+            from ai_search import ai_search_answer  # type: ignore
+            lite = await ai_search_answer(q, matches)
+            ai_payload.update({
+                "intent": lite.get("intent") or "general",
+                "answer": lite.get("answer") or "",
+                "highlights": lite.get("highlights") or [],
+                "suggested_tab": lite.get("suggested_tab"),
+            })
+        except Exception as exc2:
+            logger.warning(f"ai_search lite fallback also failed: {exc2}")
 
     # Persist the query in search_history
     try:
@@ -1816,6 +1875,7 @@ async def global_search(q: str = "", request: Request = None):
             "query_lower": q.strip().lower(),
             "result_counts": {k: len(v) for k, v in matches.items()},
             "ai_intent": ai_payload.get("intent"),
+            "ai_recs": len(ai_payload.get("recommendations") or []),
             "created_at": datetime.now(timezone.utc).isoformat(),
         })
     except Exception as exc:
