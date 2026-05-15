@@ -57,12 +57,15 @@ type Stats = {
   pending_count: number;
   confirmed_upcoming_count: number;
   completed_last_30d: number;
+  locked_leads_count?: number;
+  estimated_locked_value_cop?: number;
 };
 
 type FilterTab = 'pending' | 'upcoming' | 'history';
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
   pending_confirmation: { label: 'Pendiente', color: '#F59E0B', bg: 'rgba(245,158,11,0.15)' },
+  pending_partner_activation: { label: '🔒 Lead bloqueado', color: '#F59E0B', bg: 'rgba(245,158,11,0.15)' },
   confirmed: { label: 'Confirmada', color: '#22C55E', bg: 'rgba(34,197,94,0.15)' },
   rejected_by_partner: { label: 'Rechazada', color: '#EF4444', bg: 'rgba(239,68,68,0.15)' },
   cancelled_by_user: { label: 'Cancelada (cliente)', color: '#94A3B8', bg: 'rgba(148,163,184,0.15)' },
@@ -105,6 +108,7 @@ export default function BusinessReservations() {
 
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [membershipPlan, setMembershipPlan] = useState<'free' | 'pro'>('free');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tab, setTab] = useState<FilterTab>('pending');
@@ -115,6 +119,8 @@ export default function BusinessReservations() {
   const [modalNote, setModalNote] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
+  const isPro = membershipPlan === 'pro';
+
   const load = useCallback(async () => {
     if (!token) return;
     try {
@@ -123,6 +129,7 @@ export default function BusinessReservations() {
       });
       setReservations(res.reservations || []);
       setStats(res.stats || null);
+      setMembershipPlan((res.membership_plan as 'free' | 'pro') || 'free');
     } catch (e: any) {
       console.error('Load reservations:', e);
       Alert.alert(tr('Error'), String(e?.message || 'No se pudieron cargar las reservas'));
@@ -231,7 +238,9 @@ export default function BusinessReservations() {
 
   // Filter by tab
   const filtered = reservations.filter((r) => {
-    if (tab === 'pending') return r.status === 'pending_confirmation';
+    if (tab === 'pending') {
+      return ['pending_confirmation', 'pending_partner_activation'].includes(r.status);
+    }
     if (tab === 'upcoming') {
       if (r.status !== 'confirmed') return false;
       try {
@@ -274,6 +283,51 @@ export default function BusinessReservations() {
             <Text style={[styles.statValue, { color: COLORS.textMain }]}>{stats.completed_last_30d}</Text>
             <Text style={styles.statLabel}>{tr('Completadas 30d')}</Text>
           </View>
+        </View>
+      ) : null}
+
+      {/* FREE PARTNER: Upgrade banner */}
+      {!isPro && stats && (stats.locked_leads_count || 0) > 0 ? (
+        <View style={styles.upgradeBanner}>
+          <View style={styles.upgradeHeader}>
+            <Ionicons name="trending-up" size={20} color="#22C55E" />
+            <Text style={styles.upgradeTitle}>
+              {tr(`Tienes ${stats.locked_leads_count} solicitud(es) esperándote`)}
+            </Text>
+          </View>
+          <Text style={styles.upgradeValue}>
+            {tr('Valor estimado:')}{' '}
+            <Text style={{ color: '#22C55E', ...FONTS.bold }}>
+              ${Math.round((stats.estimated_locked_value_cop || 0) / 1000)}.000 COP
+            </Text>
+          </Text>
+          <Text style={styles.upgradeBody}>
+            {tr('Activa PRO para ver al cliente, confirmar reservas y recibir su contacto directo.')}
+          </Text>
+          <TouchableOpacity
+            style={styles.upgradeBtn}
+            onPress={() => {
+              const msg = encodeURIComponent(
+                'Hola Amo Cartagena, quiero activar mi cuenta PRO. Mi negocio: ' +
+                  (reservations[0]?.partner_name || ''),
+              );
+              Linking.openURL(`https://wa.me/573001112233?text=${msg}`).catch(() => {});
+            }}
+          >
+            <Ionicons name="flash" size={16} color={COLORS.white} />
+            <Text style={styles.upgradeBtnText}>{tr('Activar PRO')}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+
+      {/* FREE PARTNER without leads: soft prompt */}
+      {!isPro && stats && (stats.locked_leads_count || 0) === 0 ? (
+        <View style={styles.upgradeBannerSoft}>
+          <Ionicons name="lock-closed" size={16} color={COLORS.primary} />
+          <Text style={styles.upgradeSoftText}>
+            {tr('Cuenta FREE — tu perfil está visible pero aún no recibes solicitudes activas. ')}
+            <Text style={{ color: COLORS.primary, ...FONTS.bold }}>{tr('Activar PRO')}</Text>
+          </Text>
         </View>
       ) : null}
 
@@ -372,7 +426,7 @@ export default function BusinessReservations() {
                 ) : null}
 
                 {/* Action buttons by status */}
-                {r.status === 'pending_confirmation' ? (
+                {r.status === 'pending_confirmation' && isPro ? (
                   <View style={styles.actionRow}>
                     <TouchableOpacity style={styles.confirmBtn} onPress={() => openModal(r, 'confirm')}>
                       <Ionicons name="checkmark" size={16} color={COLORS.white} />
@@ -383,6 +437,20 @@ export default function BusinessReservations() {
                       <Text style={styles.rejectBtnText}>{tr('Rechazar')}</Text>
                     </TouchableOpacity>
                   </View>
+                ) : r.status === 'pending_partner_activation' || (r.status === 'pending_confirmation' && !isPro) ? (
+                  <TouchableOpacity
+                    style={styles.lockedActionRow}
+                    onPress={() => {
+                      const msg = encodeURIComponent('Hola Amo Cartagena, quiero activar PRO para responder mis reservas.');
+                      Linking.openURL(`https://wa.me/573001112233?text=${msg}`).catch(() => {});
+                    }}
+                  >
+                    <Ionicons name="lock-closed" size={14} color={COLORS.primary} />
+                    <Text style={styles.lockedActionText}>
+                      {tr('Activa PRO para ver al cliente y confirmar')}
+                    </Text>
+                    <Ionicons name="arrow-forward" size={14} color={COLORS.primary} />
+                  </TouchableOpacity>
                 ) : r.status === 'confirmed' ? (
                   <View style={styles.actionRow}>
                     <TouchableOpacity style={styles.whatsappBtn} onPress={() => openWhatsApp(r)}>
@@ -500,6 +568,60 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 22, ...FONTS.bold },
   statLabel: { color: COLORS.textMuted, fontSize: 10.5, ...FONTS.medium, textAlign: 'center' },
   statDivider: { width: 1, backgroundColor: COLORS.border, marginVertical: 6 },
+
+  upgradeBanner: {
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.md,
+    padding: 14,
+    borderRadius: RADIUS.lg,
+    backgroundColor: 'rgba(34,197,94,0.10)',
+    borderWidth: 1.5,
+    borderColor: '#22C55E',
+    gap: 8,
+  },
+  upgradeHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  upgradeTitle: { color: COLORS.textMain, fontSize: 14, ...FONTS.bold, flex: 1 },
+  upgradeValue: { color: COLORS.textMain, fontSize: 13 },
+  upgradeBody: { color: COLORS.textMuted, fontSize: 12, lineHeight: 16 },
+  upgradeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 11,
+    borderRadius: RADIUS.md,
+    backgroundColor: '#22C55E',
+    marginTop: 4,
+  },
+  upgradeBtnText: { color: COLORS.white, fontSize: 14, ...FONTS.bold, letterSpacing: 0.4 },
+
+  upgradeBannerSoft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.md,
+    padding: 10,
+    borderRadius: RADIUS.md,
+    backgroundColor: 'rgba(217,119,6,0.08)',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  upgradeSoftText: { color: COLORS.textMain, fontSize: 11.5, flex: 1, lineHeight: 16 },
+
+  lockedActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 11,
+    borderRadius: RADIUS.md,
+    backgroundColor: 'rgba(217,119,6,0.12)',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    borderStyle: 'dashed',
+  },
+  lockedActionText: { color: COLORS.primary, fontSize: 12.5, ...FONTS.bold, flex: 1, textAlign: 'center' },
 
   tabRow: {
     flexDirection: 'row',

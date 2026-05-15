@@ -47,6 +47,7 @@ type Reservation = {
 };
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
+  pending_partner_activation: { label: 'Solicitud enviada', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
   pending_confirmation: { label: 'Esperando confirmación', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
   confirmed: { label: 'Confirmada', color: '#22C55E', bg: 'rgba(34,197,94,0.12)' },
   rejected_by_partner: { label: 'Rechazada', color: '#EF4444', bg: 'rgba(239,68,68,0.12)' },
@@ -218,6 +219,16 @@ export default function MyReservations() {
                   <Text style={styles.notes} numberOfLines={2}>📝 {r.notes}</Text>
                 ) : null}
 
+                {/* ── LOCKED LEAD → friendly notice ── */}
+                {r.status === 'pending_partner_activation' ? (
+                  <View style={styles.lockedNotice}>
+                    <Ionicons name="time-outline" size={16} color="#F59E0B" />
+                    <Text style={styles.lockedNoticeText}>
+                      {tr('Este partner aún no gestiona reservas en Amo. Le hemos enviado tu solicitud — te avisaremos si activa su cuenta.')}
+                    </Text>
+                  </View>
+                ) : null}
+
                 {/* ── CONFIRMED → show partner payment info + contacts ── */}
                 {r.status === 'confirmed' && r.payment_info ? (
                   <View style={styles.payInfoCard}>
@@ -386,6 +397,18 @@ const styles = StyleSheet.create({
   amountValue: { color: COLORS.textMain, fontSize: 14, ...FONTS.bold },
 
   notes: { color: COLORS.textMuted, fontSize: 11.5, fontStyle: 'italic' },
+
+  lockedNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    backgroundColor: 'rgba(245,158,11,0.08)',
+    borderRadius: RADIUS.md,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.4)',
+  },
+  lockedNoticeText: { color: COLORS.textMain, fontSize: 11.5, flex: 1, lineHeight: 16 },
 
   payInfoCard: {
     backgroundColor: 'rgba(34,197,94,0.08)',

@@ -156,9 +156,12 @@ export default function ReservationNew() {
       };
       if (eventId) body.event_id = eventId;
       const res = await api.post('/reservations', body);
+      const lockedNote = res.locked
+        ? '\n\n🔒 Este partner aún no gestiona reservas en Amo. Le notificamos tu pedido y te avisaremos si activa su cuenta.'
+        : '';
       Alert.alert(
         tr('Solicitud enviada'),
-        String(res.message || tr('Tu solicitud fue enviada al partner. Te avisaremos cuando confirme.')),
+        String(res.message || tr('Tu solicitud fue enviada al partner. Te avisaremos cuando confirme.')) + lockedNote,
         [
           {
             text: 'OK',

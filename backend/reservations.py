@@ -63,11 +63,15 @@ def _db():
 CANCELLATION_HOURS_TABLE = 2  # universal cutoff — applies to ALL reservation types now
 
 VALID_TYPES = {"table", "request"}  # accepts both for backward compatibility
-ACTIVE_STATUSES = {"pending_confirmation", "confirmed"}
+ACTIVE_STATUSES = {"pending_confirmation", "pending_partner_activation", "confirmed"}
 TERMINAL_STATUSES = {
     "cancelled_by_user", "cancelled_late", "rejected_by_partner",
     "completed", "no_show", "expired",
 }
+
+# Estimated commercial value per locked lead (COP). Used in dashboard "locked value" metrics
+# to drive partner upgrade. Conservative: avg restaurant ticket ~$80,000 COP × 2 pax.
+LOCKED_LEAD_VALUE_COP = 160_000
 
 
 def _parse_iso_local(date_str: str, time_str: str = "") -> Optional[datetime]:
@@ -104,14 +108,25 @@ async def _enrich_partner(partner_id: str) -> dict:
     return p or {}
 
 
-async def _hydrate_reservation(r: dict) -> dict:
+async def _hydrate_reservation(r: dict, *, censor: bool = False) -> dict:
+    """Hydrate a reservation with partner/event info.
+    censor=True (used for FREE partners viewing their own leads) masks user contact fields,
+    forcing the partner to upgrade to PRO to see who is requesting."""
     r = dict(r)
     r.pop("_id", None)
+    if censor:
+        # Mask user identity / contact channels — keep date/party/notes visible as proof of value
+        full_name = r.get("user_name") or ""
+        r["user_name"] = (full_name[:1].upper() + "•••") if full_name else "Cliente"
+        r["user_email"] = "•••@•••"
+        r["user_phone"] = "+57 ••• •• •••"
+        r["user_whatsapp"] = "+57 ••• •• •••"
+        r["is_locked"] = True
     if r.get("partner_id"):
         partner = await _enrich_partner(r["partner_id"])
         r["partner"] = partner
         # Surface payment info + contacts ONLY when confirmed (so the client knows
-        # exactly when to pay). Pending requests don't get payment info yet.
+        # exactly when to pay). Pending/locked requests don't get payment info yet.
         if r.get("status") == "confirmed":
             r["payment_info"] = {
                 "payment_link": partner.get("default_payment_link") or None,
@@ -121,6 +136,8 @@ async def _hydrate_reservation(r: dict) -> dict:
                 "instagram": partner.get("instagram") or None,
                 "note": r.get("partner_note") or None,
             }
+        # Expose partner plan so the user UI can render the right copy
+        r["partner_plan"] = partner.get("membership_plan") or "free"
     if r.get("event_id"):
         ev = await _db().partner_events.find_one(
             {"event_id": r["event_id"]},
@@ -246,12 +263,19 @@ async def create_reservation(request: Request):
     if not partner:
         raise HTTPException(status_code=404, detail="Partner no encontrado")
 
+    partner_plan = partner.get("membership_plan") or "free"
+    is_pro = partner_plan == "pro"
+
     if event_id:
         ev = await _db().partner_events.find_one({"event_id": event_id, "partner_id": partner_id}, {"_id": 0})
         if not ev:
             raise HTTPException(status_code=404, detail="Evento del partner no encontrado")
 
     reservation_id = f"res_{uuid.uuid4().hex[:12]}"
+    # PRO partners → 'pending_confirmation' (they can confirm in their dashboard)
+    # FREE partners → 'pending_partner_activation' (lead captured; partner sees it locked until upgrade)
+    initial_status = "pending_confirmation" if is_pro else "pending_partner_activation"
+
     doc = {
         "reservation_id": reservation_id,
         "user_id": user["user_id"],
@@ -261,6 +285,7 @@ async def create_reservation(request: Request):
         "user_whatsapp": user.get("whatsapp") or user.get("phone"),
         "partner_id": partner_id,
         "partner_name": partner.get("name"),
+        "partner_plan_at_request": partner_plan,
         "event_id": event_id,
         "type": "table",  # normalised — there's only one type now
         "date": date,
@@ -268,7 +293,7 @@ async def create_reservation(request: Request):
         "datetime_utc": dt.isoformat(),
         "party_size": party_size,
         "notes": notes,
-        "status": "pending_confirmation",
+        "status": initial_status,
         "created_at": _iso(),
         "updated_at": _iso(),
         "confirmed_at": None,
@@ -283,19 +308,31 @@ async def create_reservation(request: Request):
     }
     await _db().reservations.insert_one(dict(doc))
 
-    # Notify the partner about the new request
+    # Notify the partner about the new request — message differs based on plan to drive upgrade
+    if is_pro:
+        notif_title = "Nueva solicitud de reserva"
+        notif_body = f"{user.get('name') or 'Un cliente'} pidió mesa para {party_size} el {date}" + (f" a las {time}" if time else "")
+    else:
+        notif_title = "🔒 Solicitud recibida — Activa PRO para responder"
+        notif_body = f"Una nueva solicitud para {party_size} personas el {date}. Activa tu cuenta PRO para ver al cliente y confirmar."
     await _notify_partner(
         partner_id,
-        title="Nueva solicitud de reserva",
-        body=f"{user.get('name') or 'Un cliente'} pidió mesa para {party_size} el {date}" + (f" a las {time}" if time else ""),
-        kind="reservation_request",
-        ref={"reservation_id": reservation_id},
+        title=notif_title,
+        body=notif_body,
+        kind="reservation_request" if is_pro else "locked_lead",
+        ref={"reservation_id": reservation_id, "locked": not is_pro},
     )
 
     hydrated = await _hydrate_reservation(doc)
+    if is_pro:
+        message = "Tu solicitud fue enviada al partner. Te avisaremos cuando confirme y verás su link de pago en la app."
+    else:
+        message = "Solicitud enviada. Este partner aún no gestiona reservas vía Amo Cartagena — le hemos notificado tu pedido y te avisaremos si activa su cuenta."
     return {
         "reservation": hydrated,
-        "message": "Tu solicitud fue enviada al partner. Te avisaremos cuando confirme y verás su link de pago en la app.",
+        "locked": not is_pro,
+        "partner_plan": partner_plan,
+        "message": message,
     }
 
 
@@ -400,13 +437,20 @@ async def business_mark_all_read(request: Request):
 async def business_list_reservations(request: Request, status: str = "", limit: int = 100):
     biz = await _deps["get_current_business"](request)
     partner_id = biz["partner_id"]
+    partner = await _db().partners.find_one({"partner_id": partner_id}, {"_id": 0, "membership_plan": 1, "tier": 1})
+    plan = (partner or {}).get("membership_plan") or "free"
+    is_pro = plan == "pro"
+
     q: dict[str, Any] = {"partner_id": partner_id}
     if status:
         q["status"] = status
     cursor = _db().reservations.find(q, {"_id": 0}).sort("datetime_utc", -1).limit(min(max(int(limit), 1), 500))
     docs = await cursor.to_list(500)
 
-    pending = await _db().reservations.count_documents({"partner_id": partner_id, "status": "pending_confirmation"})
+    pending = await _db().reservations.count_documents({
+        "partner_id": partner_id,
+        "status": {"$in": ["pending_confirmation", "pending_partner_activation"]},
+    })
     confirmed_upcoming = await _db().reservations.count_documents({
         "partner_id": partner_id,
         "status": "confirmed",
@@ -417,23 +461,35 @@ async def business_list_reservations(request: Request, status: str = "", limit: 
         "status": "completed",
         "datetime_utc": {"$gte": (_now() - timedelta(days=30)).isoformat()},
     })
+    # Total locked leads ever (for upgrade pitch)
+    locked_leads = await _db().reservations.count_documents({
+        "partner_id": partner_id,
+        "status": "pending_partner_activation",
+    })
+
+    # Hydrate; censor when partner is free
+    hydrated = [await _hydrate_reservation(r, censor=not is_pro) for r in docs]
 
     return {
-        "reservations": [await _hydrate_reservation(r) for r in docs],
+        "reservations": hydrated,
         "stats": {
             "pending_count": pending,
             "confirmed_upcoming_count": confirmed_upcoming,
             "completed_last_30d": completed_30d,
+            "locked_leads_count": locked_leads,
+            "estimated_locked_value_cop": locked_leads * LOCKED_LEAD_VALUE_COP,
         },
+        "membership_plan": plan,
+        "upgrade_required": not is_pro,
     }
 
 
 @router.patch("/business/reservations/{reservation_id}")
 async def business_update_reservation(reservation_id: str, request: Request):
     """Partner confirms / rejects / completes / marks no-show.
-    Body: { action: 'confirm' | 'reject' | 'complete' | 'no_show', note?: string }
     Confirmation does NOT trigger any payment — the user will see the partner's
-    `default_payment_link` (saved on the partner profile) in the reservation card."""
+    `default_payment_link` (saved on the partner profile) in the reservation card.
+    Locked behind PRO membership: FREE partners receive 402 and a CTA to upgrade."""
     biz = await _deps["get_current_business"](request)
     body = await request.json()
     action = (body.get("action") or "").strip().lower()
@@ -442,6 +498,15 @@ async def business_update_reservation(reservation_id: str, request: Request):
     r = await _db().reservations.find_one({"reservation_id": reservation_id, "partner_id": biz["partner_id"]}, {"_id": 0})
     if not r:
         raise HTTPException(status_code=404, detail="Reserva no encontrada")
+
+    # ── Freemium gate ──
+    partner = await _db().partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "membership_plan": 1})
+    plan = (partner or {}).get("membership_plan") or "free"
+    if plan != "pro":
+        raise HTTPException(
+            status_code=402,
+            detail="Activa tu cuenta PRO para gestionar reservas. Toca 'Activar PRO' en tu panel.",
+        )
 
     update = {"updated_at": _iso(), "partner_confirmed_by": biz.get("email")}
     if action == "confirm":

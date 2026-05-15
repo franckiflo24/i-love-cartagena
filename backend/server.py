@@ -4511,7 +4511,20 @@ async def startup():
             {"$set": {"membership_tier": p.get("tier") or "popular"}},
         )
         miss_tier_count += 1
-    logger.info(f"Membership migration: {miss_status.modified_count} status, {miss_tier_count} tier updates")
+
+    # ── Freemium plan migration ──
+    # Every partner gets membership_plan='free' by default. Alcaldía promotes them to 'pro'
+    # manually. Demo partners are pre-seeded as pro for testing the flow end-to-end.
+    DEMO_PRO_PARTNERS = {"ptr_001", "ptr_002", "ptr_nc_007", "ptr_nc_009", "ptr_005"}  # Casa Bohème, Bellini, Casa Bohème (NC), Blue Apple, Café del Mar
+    miss_plan = await db.partners.update_many(
+        {"membership_plan": {"$exists": False}},
+        {"$set": {"membership_plan": "free"}},
+    )
+    pro_upd = await db.partners.update_many(
+        {"partner_id": {"$in": list(DEMO_PRO_PARTNERS)}},
+        {"$set": {"membership_plan": "pro"}},
+    )
+    logger.info(f"Membership migration: {miss_status.modified_count} status, {miss_tier_count} tier, {miss_plan.modified_count} plan-defaulted, {pro_upd.modified_count} promoted to PRO")
 
 
 async def seed_concerts():
