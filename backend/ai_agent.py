@@ -113,12 +113,22 @@ KEYWORD_FILTERS: Dict[str, Dict[str, Any]] = {
     "music": {"event_category": "music"}, "música": {"event_category": "music"},
     "musique": {"event_category": "music"}, "concierto": {"event_category": "music"},
     "concert": {"event_category": "music"}, "show": {"event_category": "music"},
-    "sunset": {"event_category": "sunset"}, "atardecer": {"event_category": "sunset"},
-    "coucher de soleil": {"event_category": "sunset"}, "pôr do sol": {"event_category": "sunset"},
+    "sunset": {"event_category": "sunset", "vibe": "sunset"}, "atardecer": {"event_category": "sunset", "vibe": "sunset"},
+    "coucher de soleil": {"event_category": "sunset", "vibe": "sunset"}, "pôr do sol": {"event_category": "sunset", "vibe": "sunset"},
     "pasa día": {"event_category": "daypass"}, "passa o dia": {"event_category": "daypass"},
     "day pass": {"event_category": "daypass"}, "journée": {"event_category": "daypass"},
     "cultura": {"event_category": "culture"}, "culture": {"event_category": "culture"},
     "arte": {"event_category": "culture"}, "art": {"event_category": "culture"},
+    # Rooftop / aperitivo / vista al mar
+    "rooftop": {"vibe": "rooftop"}, "terraza": {"vibe": "rooftop"}, "terrasse": {"vibe": "rooftop"},
+    "azotea": {"vibe": "rooftop"}, "skybar": {"vibe": "rooftop"}, "terraço": {"vibe": "rooftop"},
+    "apero": {"vibe": "aperitivo"}, "apéro": {"vibe": "aperitivo"}, "aperitivo": {"vibe": "aperitivo"},
+    "aperitif": {"vibe": "aperitivo"}, "aperitif's": {"vibe": "aperitivo"}, "happy hour": {"vibe": "aperitivo"},
+    "drinks": {"category": "bar", "vibe": "aperitivo"}, "tragos": {"category": "bar", "vibe": "aperitivo"},
+    "cocktail": {"category": "bar"}, "cocktails": {"category": "bar"}, "coctel": {"category": "bar"},
+    "cócteles": {"category": "bar"}, "bar": {"category": "bar"}, "bares": {"category": "bar"},
+    "vista al mar": {"vibe": "sea_view"}, "vue mer": {"vibe": "sea_view"},
+    "ocean view": {"vibe": "sea_view"}, "vista mar": {"vibe": "sea_view"},
 }
 
 
@@ -138,7 +148,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Lis
     """
     Build a relevance-filtered partner list based on the user's question.
 
-    1. Extract semantic filters (cuisine, category, tier) from the user message.
+    1. Extract semantic filters (cuisine, category, tier, vibe) from the user message.
     2. Build a Mongo query honoring those filters.
     3. If no specific filter found, return a diverse top-50 sample.
     """
@@ -146,7 +156,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Lis
         "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
         "tier": 1, "price_range": 1, "address": 1, "cuisine": 1, "rating": 1,
         "is_government": 1, "experience": 1, "instagram": 1, "booking_link": 1,
-        "phone": 1, "schedule": 1,
+        "phone": 1, "schedule": 1, "features": 1,
     }
     semantic = _extract_filters_from_text(user_text)
     query: Dict[str, Any] = {}
@@ -156,6 +166,32 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Lis
         query["subcategory"] = semantic["subcategory"]
     if "tier" in semantic:
         query["tier"] = semantic["tier"]
+    # ── Vibe-based fuzzy filter: rooftop / aperitivo / sunset / sea_view ──
+    # We don't store a structured "vibe" field, so we match by regex over
+    # name + experience + features + subcategory across multiple synonyms.
+    vibe = semantic.get("vibe")
+    if vibe:
+        vibe_regex_map = {
+            "rooftop": r"rooftop|terraza|terrasse|skybar|azotea|terra[cç]o|roof top|sky bar",
+            "aperitivo": r"apero|ap[eé]ro|aperitivo|aperitif|happy hour|cocktail|coctel|bar|lounge",
+            "sunset": r"sunset|atardecer|coucher de soleil|p[oô]r do sol|crep[uú]sculo|golden hour",
+            "sea_view": r"vista al mar|sea view|ocean view|vue mer|vista mar|frente al mar|beachfront",
+        }
+        regex = vibe_regex_map.get(vibe)
+        if regex:
+            # OR across several text fields
+            or_clause = [
+                {"name": {"$regex": regex, "$options": "i"}},
+                {"experience": {"$regex": regex, "$options": "i"}},
+                {"subcategory": {"$regex": regex, "$options": "i"}},
+                {"features": {"$regex": regex, "$options": "i"}},
+                {"address": {"$regex": regex, "$options": "i"}},
+            ]
+            # Combine with existing category/tier constraints
+            if query:
+                query = {"$and": [query, {"$or": or_clause}]}
+            else:
+                query = {"$or": or_clause}
     free_text = (user_text or "").strip()
     if free_text and len(free_text) > 2 and not query:
         # Free text fallback (search across name + experience)
@@ -165,7 +201,14 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Lis
         ]
     cursor = db.partners.find(query, fields).limit(max_results)
     rows = await cursor.to_list(max_results)
-    # If query returned empty (no semantic match), fall back to diverse sample
+    # If query returned empty (no semantic match), fall back to a broader bar/restaurant pool
+    # so the LLM still has lots of cards to pick from for "apero/sunset" style queries.
+    if not rows and vibe in {"aperitivo", "sunset", "rooftop", "sea_view"}:
+        cursor = db.partners.find(
+            {"category": {"$in": ["bar", "beach_club", "nightclub", "restaurant"]}},
+            fields,
+        ).limit(max_results)
+        rows = await cursor.to_list(max_results)
     if not rows:
         cursor = db.partners.find({}, fields).limit(max_results)
         rows = await cursor.to_list(max_results)
@@ -329,7 +372,8 @@ TU TRABAJO
   • `semantic_filters_detected`: filtros que el backend detectó del mensaje del usuario.
   • `upcoming_events` (14 días) + `partner_curated_events` (Daypass/Sunset/Cenas especiales).
 - **NUNCA INVENTÉS** partners o eventos. SOLO recomendá los que aparecen en el contexto.
-- ⚠️ **GENERÁ MÍNIMO 5 TARJETAS** en `recommendations` cuando `relevant_partners` o `all_partners_directory` tengan 5+ candidatos relevantes. Apuntá a 6-8 para que el usuario pueda comparar vibe, ubicación y presupuesto.
+- ⚠️ **OBLIGATORIO: GENERÁ MÍNIMO 5 TARJETAS y APUNTÁ A 6-8** en `recommendations` siempre que el catálogo lo permita (casi siempre). Mezclá libremente partners **Y** eventos en la misma lista cuando la consulta sea ambigua (ej: "apéro", "sunset", "rooftop", "cena", "donde salir").
+- ⚠️ **NUNCA devuelvas 1 sola tarjeta** cuando el usuario pide ideas/sugerencias. Si solo hay 1 match perfecto, completá con 4-7 alternativas relevantes (mismo vibe, categoría parecida, partners cercanos, eventos del día, etc.).
 - Variá los `tier`/`price_range` dentro de las tarjetas (mezclá popular/premium/luxe) para cubrir distintos presupuestos.
 - Si no hay match preciso, sugerí explorar con `show_partners` filtrado o `navigate` al tab.
 - Si la consulta es ambigua, hacé UNA pregunta corta de aclaración (ej: "¿Para cuántas personas?" / "How many people?" / "Pour combien de personnes ?").

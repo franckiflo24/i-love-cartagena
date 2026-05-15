@@ -302,22 +302,12 @@ export default function SearchScreen() {
                   <Text style={styles.aiAnswer}>{results!.ai!.answer}</Text>
                 )}
 
-                {/* Rich recommendation cards (5-8 from the concierge) */}
+                {/* Rich recommendation cards (5-8 from the concierge) — fluid horizontal carousel */}
                 {!!(results!.ai!.recommendations && results!.ai!.recommendations!.length > 0) && (
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.recsScrollContent}
-                    style={styles.recsScroll}
-                  >
-                    {results!.ai!.recommendations!.map((r, i) => (
-                      <RecommendationCard
-                        key={`rec-${i}-${r.partner_id || r.event_id}`}
-                        rec={r}
-                        onPress={() => openRecommendation(r)}
-                      />
-                    ))}
-                  </ScrollView>
+                  <RecommendationsCarousel
+                    recs={results!.ai!.recommendations!}
+                    onPress={openRecommendation}
+                  />
                 )}
 
                 {/* Action pills (navigation, checkout, etc.) */}
@@ -508,6 +498,69 @@ export default function SearchScreen() {
   );
 }
 
+// ── Recommendations Carousel (snap-to-card + page dots) ──
+const CARD_WIDTH = 260;
+const CARD_GAP = 12;
+const CARD_SNAP = CARD_WIDTH + CARD_GAP;
+
+function RecommendationsCarousel({
+  recs,
+  onPress,
+}: {
+  recs: AIRecommendation[];
+  onPress: (r: AIRecommendation) => void;
+}) {
+  const [activeIdx, setActiveIdx] = React.useState(0);
+  const onScroll = (e: any) => {
+    const x = e.nativeEvent.contentOffset.x as number;
+    const idx = Math.round(x / CARD_SNAP);
+    if (idx !== activeIdx) setActiveIdx(Math.max(0, Math.min(recs.length - 1, idx)));
+  };
+  return (
+    <View style={{ marginTop: 4 }}>
+      <View style={styles.carouselHeader}>
+        <Text style={styles.carouselTitle}>
+          ✨ {recs.length} opciones para ti
+        </Text>
+        <Text style={styles.carouselHint}>Desliza →</Text>
+      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={CARD_SNAP}
+        decelerationRate="fast"
+        snapToAlignment="start"
+        contentContainerStyle={styles.recsScrollContent}
+        style={styles.recsScroll}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+      >
+        {recs.map((r, i) => (
+          <RecommendationCard
+            key={`rec-${i}-${r.partner_id || r.event_id}`}
+            rec={r}
+            onPress={() => onPress(r)}
+          />
+        ))}
+      </ScrollView>
+      {/* Page dots */}
+      {recs.length > 1 && (
+        <View style={styles.dotsRow}>
+          {recs.map((_, i) => (
+            <View
+              key={`dot-${i}`}
+              style={[
+                styles.dot,
+                i === activeIdx && styles.dotActive,
+              ]}
+            />
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
 // ── Rich Recommendation Card (concierge partner/event picks) ──
 function RecommendationCard({
   rec,
@@ -660,9 +713,33 @@ const styles = StyleSheet.create({
 
   // ── Concierge: recommendation cards (horizontal scroll) ──
   recsScroll: { marginHorizontal: -SPACING.md, marginTop: SPACING.xs },
-  recsScrollContent: { paddingHorizontal: SPACING.md, gap: 10 },
+  recsScrollContent: { paddingHorizontal: SPACING.md, paddingRight: SPACING.lg },
+  carouselHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: SPACING.sm,
+    marginBottom: 6,
+  },
+  carouselTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold, letterSpacing: 0.2 },
+  carouselHint: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold, letterSpacing: 0.3 },
+  dotsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 5,
+    marginTop: 10,
+  },
+  dot: {
+    width: 6, height: 6, borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+  },
+  dotActive: {
+    width: 18,
+    backgroundColor: COLORS.primary,
+  },
   recCard: {
-    width: 240,
+    width: 260,
+    marginRight: 12,
     backgroundColor: COLORS.background,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
