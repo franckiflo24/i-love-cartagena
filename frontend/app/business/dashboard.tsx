@@ -23,6 +23,8 @@ export default function BusinessDashboard() {
   const { token, business, partner, loading: authLoading, logout, refresh } = useBusinessAuth();
   const [events, setEvents] = useState<any[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [reservationStats, setReservationStats] = useState<{ pending_count?: number } | null>(null);
+  const [membership, setMembership] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [forcePartnerView, setForcePartnerView] = useState(false);
@@ -30,12 +32,16 @@ export default function BusinessDashboard() {
   const load = useCallback(async () => {
     if (!token) return;
     try {
-      const [eventsData, statsData] = await Promise.all([
+      const [eventsData, statsData, reservData, memData] = await Promise.all([
         api.get('/business/events', { headers: { Authorization: `Bearer ${token}` } }),
         api.get('/business/stats', { headers: { Authorization: `Bearer ${token}` } }),
+        api.get('/business/reservations?limit=1', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
+        api.get('/business/membership', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
       ]);
       setEvents(eventsData);
       setStats(statsData);
+      setReservationStats(reservData?.stats || null);
+      setMembership(memData || null);
     } catch (e) { console.error(e); }
   }, [token]);
 
@@ -176,6 +182,103 @@ export default function BusinessDashboard() {
           </View>
         </View>
 
+        {/* Reservations CTA Card */}
+        <TouchableOpacity
+          style={styles.reservationsCta}
+          onPress={() => router.push('/business/reservations' as any)}
+          activeOpacity={0.85}
+        >
+          <View style={styles.reservationsIcon}>
+            <Ionicons name="calendar" size={22} color={COLORS.white} />
+            {reservationStats && (reservationStats.pending_count || 0) > 0 ? (
+              <View style={styles.reservationsBadge}>
+                <Text style={styles.reservationsBadgeText}>
+                  {Math.min(99, reservationStats.pending_count || 0)}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.reservationsTitle}>{tr('Reservas entrantes')}</Text>
+            <Text style={styles.reservationsSub}>
+              {reservationStats && (reservationStats.pending_count || 0) > 0
+                ? tr(`${reservationStats.pending_count} solicitud(es) por confirmar`)
+                : tr('Confirma o rechaza solicitudes de tus clientes')}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.primary} />
+        </TouchableOpacity>
+
+        {/* Membership Card */}
+        {membership ? (
+          <View style={styles.membershipCard}>
+            <View style={styles.membershipHeader}>
+              <Ionicons name="ribbon" size={18} color={COLORS.primary} />
+              <Text style={styles.membershipTitle}>{tr('Tu membresía')}</Text>
+              <View
+                style={[
+                  styles.memberStatusBadge,
+                  {
+                    backgroundColor:
+                      membership.membership_status === 'active'
+                        ? 'rgba(34,197,94,0.15)'
+                        : membership.membership_status === 'suspended' || membership.membership_status === 'expired'
+                        ? 'rgba(239,68,68,0.15)'
+                        : 'rgba(245,158,11,0.15)',
+                    borderColor:
+                      membership.membership_status === 'active'
+                        ? '#22C55E'
+                        : membership.membership_status === 'suspended' || membership.membership_status === 'expired'
+                        ? '#EF4444'
+                        : '#F59E0B',
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.memberStatusText,
+                    {
+                      color:
+                        membership.membership_status === 'active'
+                          ? '#22C55E'
+                          : membership.membership_status === 'suspended' || membership.membership_status === 'expired'
+                          ? '#EF4444'
+                          : '#F59E0B',
+                    },
+                  ]}
+                >
+                  {tr(membership.membership_status === 'active'
+                    ? 'Activa'
+                    : membership.membership_status === 'pending'
+                    ? 'Pendiente'
+                    : membership.membership_status === 'suspended'
+                    ? 'Suspendida'
+                    : 'Expirada')}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.membershipBody}>
+              <Text style={styles.membershipTier}>
+                {tr('Plan')}: <Text style={{ ...FONTS.bold, color: COLORS.primary }}>
+                  {String(membership.membership_tier || 'popular').toUpperCase()}
+                </Text>
+              </Text>
+              <Text style={styles.membershipFee}>
+                {membership.monthly_fee_cop > 0
+                  ? `$${Number(membership.monthly_fee_cop).toLocaleString('es-CO')} COP / ${tr('mes')}`
+                  : tr('Gratis')}
+              </Text>
+              {membership.days_left !== null && membership.days_left !== undefined ? (
+                <Text style={styles.membershipExpiry}>
+                  {membership.days_left > 0
+                    ? tr(`Vence en ${membership.days_left} días`)
+                    : tr('Tu membresía venció. Contacta a Alcaldía.')}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        ) : null}
+
         {/* Events Section */}
         <View style={styles.eventsSection}>
           <View style={styles.sectionHeader}>
@@ -275,6 +378,64 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium, letterSpacing: 0.3, textTransform: 'uppercase' },
 
   eventsSection: { paddingHorizontal: SPACING.lg, marginTop: SPACING.lg },
+
+  reservationsCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: SPACING.lg,
+    marginTop: SPACING.md,
+    padding: 14,
+    borderRadius: RADIUS.lg,
+    backgroundColor: 'rgba(217,119,6,0.12)',
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
+  },
+  reservationsIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  reservationsBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.background,
+  },
+  reservationsBadgeText: { color: COLORS.white, fontSize: 11, ...FONTS.bold },
+  reservationsTitle: { color: COLORS.textMain, fontSize: 14, ...FONTS.bold },
+  reservationsSub: { color: COLORS.textMuted, fontSize: 11.5, marginTop: 2 },
+
+  membershipCard: {
+    marginHorizontal: SPACING.lg,
+    marginTop: SPACING.md,
+    padding: 14,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 10,
+  },
+  membershipHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  membershipTitle: { color: COLORS.textMain, fontSize: 14, ...FONTS.bold, flex: 1 },
+  memberStatusBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: RADIUS.full, borderWidth: 1 },
+  memberStatusText: { fontSize: 10.5, ...FONTS.bold, letterSpacing: 0.3 },
+  membershipBody: { gap: 4 },
+  membershipTier: { color: COLORS.textMain, fontSize: 13 },
+  membershipFee: { color: COLORS.textMain, fontSize: 16, ...FONTS.bold },
+  membershipExpiry: { color: COLORS.textMuted, fontSize: 11.5, fontStyle: 'italic' },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.md },
   sectionTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold },
   newBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: COLORS.primary, paddingHorizontal: 14, paddingVertical: 8, borderRadius: RADIUS.full },

@@ -143,6 +143,47 @@ def _can_cancel(r: dict) -> tuple[bool, str]:
     return True, ""
 
 
+async def _notify_user(user_id: str, title: str, body: str, kind: str, ref: dict | None = None):
+    """Insert a notification for an end user. Reuses the existing `notifications` collection
+    consumed by /api/notifications and the user app's notifications screen."""
+    if not user_id:
+        return
+    try:
+        await _db().notifications.insert_one({
+            "notification_id": f"notif_{uuid.uuid4().hex[:10]}",
+            "user_id": user_id,
+            "audience": "user",
+            "kind": kind,
+            "title": title,
+            "body": body,
+            "ref": ref or {},
+            "is_read": False,
+            "created_at": _iso(),
+        })
+    except Exception as e:
+        logger.warning("Could not insert user notification: %s", e)
+
+
+async def _notify_partner(partner_id: str, title: str, body: str, kind: str, ref: dict | None = None):
+    """Insert a notification for a partner. Stored in the same collection with audience='partner'."""
+    if not partner_id:
+        return
+    try:
+        await _db().notifications.insert_one({
+            "notification_id": f"notif_{uuid.uuid4().hex[:10]}",
+            "partner_id": partner_id,
+            "audience": "partner",
+            "kind": kind,
+            "title": title,
+            "body": body,
+            "ref": ref or {},
+            "is_read": False,
+            "created_at": _iso(),
+        })
+    except Exception as e:
+        logger.warning("Could not insert partner notification: %s", e)
+
+
 # ─────────────────────────────────────────────────────────────
 # Public — User-facing routes
 # ─────────────────────────────────────────────────────────────
@@ -241,6 +282,16 @@ async def create_reservation(request: Request):
         "partner_amount_cop": 0,
     }
     await _db().reservations.insert_one(dict(doc))
+
+    # Notify the partner about the new request
+    await _notify_partner(
+        partner_id,
+        title="Nueva solicitud de reserva",
+        body=f"{user.get('name') or 'Un cliente'} pidió mesa para {party_size} el {date}" + (f" a las {time}" if time else ""),
+        kind="reservation_request",
+        ref={"reservation_id": reservation_id},
+    )
+
     hydrated = await _hydrate_reservation(doc)
     return {
         "reservation": hydrated,
@@ -304,6 +355,41 @@ async def user_cancel_reservation(reservation_id: str, request: Request):
         "free_cancellation": allowed,
         "message": reason or "Reserva cancelada correctamente.",
     }
+
+
+@router.get("/business/notifications")
+async def business_list_notifications(request: Request, unread_only: bool = False, limit: int = 50):
+    """List notifications addressed to the calling partner."""
+    biz = await _deps["get_current_business"](request)
+    q: dict[str, Any] = {"partner_id": biz["partner_id"], "audience": "partner"}
+    if unread_only:
+        q["is_read"] = False
+    cursor = _db().notifications.find(q, {"_id": 0}).sort("created_at", -1).limit(min(max(int(limit), 1), 200))
+    docs = await cursor.to_list(200)
+    unread_count = await _db().notifications.count_documents({
+        "partner_id": biz["partner_id"], "audience": "partner", "is_read": False,
+    })
+    return {"notifications": docs, "unread_count": unread_count}
+
+
+@router.put("/business/notifications/{notification_id}/read")
+async def business_mark_notification_read(notification_id: str, request: Request):
+    biz = await _deps["get_current_business"](request)
+    await _db().notifications.update_one(
+        {"notification_id": notification_id, "partner_id": biz["partner_id"], "audience": "partner"},
+        {"$set": {"is_read": True}},
+    )
+    return {"ok": True}
+
+
+@router.put("/business/notifications/read-all")
+async def business_mark_all_read(request: Request):
+    biz = await _deps["get_current_business"](request)
+    res = await _db().notifications.update_many(
+        {"partner_id": biz["partner_id"], "audience": "partner", "is_read": False},
+        {"$set": {"is_read": True}},
+    )
+    return {"ok": True, "marked": res.modified_count}
 
 
 # ─────────────────────────────────────────────────────────────
@@ -385,6 +471,26 @@ async def business_update_reservation(reservation_id: str, request: Request):
 
     await _db().reservations.update_one({"reservation_id": reservation_id}, {"$set": update})
     updated = await _db().reservations.find_one({"reservation_id": reservation_id}, {"_id": 0})
+
+    # Emit user-facing notification on partner decision
+    user_id = r.get("user_id")
+    if action == "confirm":
+        await _notify_user(
+            user_id,
+            title="¡Reserva confirmada!",
+            body=f"{r.get('partner_name') or 'El partner'} confirmó tu reserva del {r.get('date')}{' a las ' + r.get('time') if r.get('time') else ''}. Toca para ver el link de pago.",
+            kind="reservation_confirmed",
+            ref={"reservation_id": reservation_id, "partner_id": r.get("partner_id")},
+        )
+    elif action == "reject":
+        await _notify_user(
+            user_id,
+            title="Reserva rechazada",
+            body=(note or f"{r.get('partner_name') or 'El partner'} no pudo aceptar tu reserva. Prueba con otra fecha."),
+            kind="reservation_rejected",
+            ref={"reservation_id": reservation_id, "partner_id": r.get("partner_id")},
+        )
+
     return await _hydrate_reservation(updated)
 
 

@@ -175,6 +175,108 @@ async def business_me(request: Request):
     return {"business": biz, "partner": partner}
 
 
+@api_router.get("/business/membership")
+async def business_membership(request: Request):
+    """Return the calling partner's membership status. SaaS model — partners pay a
+    monthly fee to be listed. For now this is managed manually by the Alcaldía."""
+    biz = await get_current_business(request)
+    partner = await db.partners.find_one(
+        {"partner_id": biz["partner_id"]},
+        {"_id": 0, "partner_id": 1, "name": 1, "membership_tier": 1, "membership_status": 1,
+         "membership_paid_until": 1, "tier": 1},
+    )
+    if not partner:
+        raise HTTPException(status_code=404, detail="Partner no encontrado")
+
+    tier = partner.get("membership_tier") or partner.get("tier") or "popular"
+    status = partner.get("membership_status") or "active"
+    paid_until = partner.get("membership_paid_until")
+    days_left = None
+    if paid_until:
+        try:
+            dt = datetime.fromisoformat(paid_until.replace("Z", "+00:00"))
+            days_left = max(0, (dt - datetime.now(timezone.utc)).days)
+        except Exception:
+            pass
+
+    # Membership pricing reference (monthly fees, COP). Used for display only.
+    PRICING = {"popular": 0, "premium": 150_000, "elite": 500_000}
+    return {
+        "partner_id": partner.get("partner_id"),
+        "membership_tier": tier,
+        "membership_status": status,
+        "membership_paid_until": paid_until,
+        "days_left": days_left,
+        "monthly_fee_cop": PRICING.get(tier, 0),
+        "currency": "COP",
+    }
+
+
+@api_router.patch("/business/admin/partners/{partner_id}/membership")
+async def admin_update_membership(partner_id: str, request: Request):
+    """Alcaldía-only: update a partner's membership tier/status/paid_until."""
+    await _require_government_role(request)
+    body = await request.json()
+    update: dict = {}
+    if "membership_tier" in body:
+        tier = (body["membership_tier"] or "").strip().lower()
+        if tier not in {"popular", "premium", "elite"}:
+            raise HTTPException(status_code=400, detail="membership_tier inválido")
+        update["membership_tier"] = tier
+    if "membership_status" in body:
+        st = (body["membership_status"] or "").strip().lower()
+        if st not in {"active", "pending", "suspended", "expired"}:
+            raise HTTPException(status_code=400, detail="membership_status inválido")
+        update["membership_status"] = st
+    if "membership_paid_until" in body:
+        val = body["membership_paid_until"]
+        if val:
+            try:
+                # accept YYYY-MM-DD or ISO
+                if len(val) == 10:
+                    val = f"{val}T23:59:59+00:00"
+                datetime.fromisoformat(val.replace("Z", "+00:00"))
+                update["membership_paid_until"] = val
+            except Exception:
+                raise HTTPException(status_code=400, detail="membership_paid_until inválido")
+        else:
+            update["membership_paid_until"] = None
+    if not update:
+        raise HTTPException(status_code=400, detail="Sin campos a actualizar")
+    update["membership_updated_at"] = datetime.now(timezone.utc).isoformat()
+    result = await db.partners.update_one({"partner_id": partner_id}, {"$set": update})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Partner no encontrado")
+    partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0})
+    return {"updated": True, "partner": partner}
+
+
+@api_router.get("/business/admin/memberships")
+async def admin_list_memberships(request: Request, status: str = "", tier: str = ""):
+    """Alcaldía-only: list all partners with their membership state for monthly billing."""
+    await _require_government_role(request)
+    q: dict = {}
+    if status:
+        q["membership_status"] = status
+    if tier:
+        q["membership_tier"] = tier
+    cursor = db.partners.find(
+        q,
+        {"_id": 0, "partner_id": 1, "name": 1, "category": 1, "tier": 1,
+         "membership_tier": 1, "membership_status": 1, "membership_paid_until": 1,
+         "email": 1, "whatsapp": 1, "phone": 1},
+    ).sort("name", 1)
+    docs = await cursor.to_list(1000)
+    by_status: dict = {}
+    by_tier: dict = {}
+    for d in docs:
+        s = d.get("membership_status") or "unknown"
+        t = d.get("membership_tier") or d.get("tier") or "popular"
+        by_status[s] = by_status.get(s, 0) + 1
+        by_tier[t] = by_tier.get(t, 0) + 1
+    return {"partners": docs, "count": len(docs), "by_status": by_status, "by_tier": by_tier}
+
+
 @api_router.put("/business/profile")
 async def update_business_profile(request: Request):
     biz = await get_current_business(request)
@@ -1379,7 +1481,12 @@ async def list_transport():
 async def list_notifications(request: Request):
     user = await get_current_user(request)
     notifs = await db.notifications.find(
-        {"$or": [{"user_id": user["user_id"]}, {"user_id": None}]},
+        {
+            "$and": [
+                {"$or": [{"user_id": user["user_id"]}, {"user_id": None}]},
+                {"$or": [{"audience": "user"}, {"audience": {"$exists": False}}]},
+            ]
+        },
         {"_id": 0}
     ).sort("created_at", -1).to_list(50)
     return notifs
@@ -3410,6 +3517,26 @@ async def startup():
     # Default any remaining partners without explicit tier to popular
     await db.partners.update_many({"tier": {"$exists": False}}, {"$set": {"tier": "popular"}})
     logger.info("Partner tier migration applied!")
+
+    # ── Migration: Initialise membership fields on partners ──
+    # SaaS billing model: every active partner has a membership. Tier mirrors the partner
+    # visual tier by default (popular/premium/elite). Status defaults to 'active' so existing
+    # partners are not retroactively hidden.
+    await db.partners.update_many(
+        {"membership_status": {"$exists": False}},
+        {"$set": {
+            "membership_status": "active",
+            "membership_paid_until": None,
+            "default_payment_link": "",
+        }},
+    )
+    # Ensure membership_tier mirrors visible tier when missing
+    async for p in db.partners.find({"membership_tier": {"$exists": False}}, {"partner_id": 1, "tier": 1}):
+        await db.partners.update_one(
+            {"partner_id": p["partner_id"]},
+            {"$set": {"membership_tier": p.get("tier") or "popular"}},
+        )
+    logger.info("Membership migration applied!")
 
     # ── Migration: Add Instagram + extended fields to partners ──
     PARTNER_INSTAGRAM = {
