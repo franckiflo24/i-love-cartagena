@@ -1502,6 +1502,84 @@ async def mark_notification_read(notification_id: str, request: Request):
     return {"ok": True}
 
 
+# ── Push Notification Token Registration ────────────────────
+@api_router.post("/users/push-token")
+async def register_user_push_token(request: Request):
+    """Register/refresh an Expo push token for the current user."""
+    user = await get_current_user(request)
+    body = await request.json()
+    token = (body.get("token") or "").strip()
+    platform = body.get("platform")
+    device_name = body.get("device_name")
+    if not token:
+        raise HTTPException(status_code=400, detail="token required")
+    try:
+        from push import register_push_token, is_expo_token  # type: ignore
+        if not is_expo_token(token):
+            raise HTTPException(status_code=400, detail="Invalid Expo push token")
+        ok = await register_push_token(db, "user", user["user_id"], token, platform, device_name)
+        return {"ok": ok}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.warning(f"register push token failed: {exc}")
+        raise HTTPException(status_code=500, detail="Could not register token")
+
+
+@api_router.delete("/users/push-token")
+async def deregister_user_push_token(request: Request):
+    """Remove a push token (e.g. on logout)."""
+    await get_current_user(request)
+    body = await request.json()
+    token = (body.get("token") or "").strip()
+    if not token:
+        raise HTTPException(status_code=400, detail="token required")
+    try:
+        from push import deregister_push_token  # type: ignore
+        await deregister_push_token(db, token)
+    except Exception as exc:
+        logger.warning(f"deregister push token failed: {exc}")
+    return {"ok": True}
+
+
+@api_router.post("/business/push-token")
+async def register_business_push_token(request: Request):
+    """Register/refresh an Expo push token for the current partner business."""
+    biz = await get_current_business(request)
+    body = await request.json()
+    token = (body.get("token") or "").strip()
+    platform = body.get("platform")
+    device_name = body.get("device_name")
+    if not token:
+        raise HTTPException(status_code=400, detail="token required")
+    try:
+        from push import register_push_token, is_expo_token  # type: ignore
+        if not is_expo_token(token):
+            raise HTTPException(status_code=400, detail="Invalid Expo push token")
+        ok = await register_push_token(db, "partner", biz["partner_id"], token, platform, device_name)
+        return {"ok": ok}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.warning(f"register partner push token failed: {exc}")
+        raise HTTPException(status_code=500, detail="Could not register token")
+
+
+@api_router.delete("/business/push-token")
+async def deregister_business_push_token(request: Request):
+    await get_current_business(request)
+    body = await request.json()
+    token = (body.get("token") or "").strip()
+    if not token:
+        raise HTTPException(status_code=400, detail="token required")
+    try:
+        from push import deregister_push_token  # type: ignore
+        await deregister_push_token(db, token)
+    except Exception as exc:
+        logger.warning(f"deregister partner push token failed: {exc}")
+    return {"ok": True}
+
+
 # ── Favorites ───────────────────────────────────────────────
 @api_router.post("/favorites/toggle")
 async def toggle_favorite(request: Request):
@@ -3491,6 +3569,12 @@ async def startup():
     await seed_database()
     # Ensure indexes for the reservations module
     await _reservations.ensure_indexes()
+    # ── Start the favorite-event reminder scheduler (24h push reminders) ──
+    try:
+        from reminders import start_reminder_scheduler  # type: ignore
+        start_reminder_scheduler(db)
+    except Exception as exc:
+        logger.warning(f"Could not start reminder scheduler: {exc}")
     # Seed analytics demo data separately if not yet seeded
     analytics_count = await db.analytics_demographics.count_documents({})
     if analytics_count == 0:
@@ -4850,4 +4934,9 @@ async def seed_concerts():
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    try:
+        from reminders import stop_reminder_scheduler  # type: ignore
+        stop_reminder_scheduler()
+    except Exception:
+        pass
     client.close()

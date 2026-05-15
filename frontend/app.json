@@ -24,8 +24,17 @@
       "edgeToEdgeEnabled": true,
       "permissions": [
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
       ]
+    },
+    "notification": {
+      "icon": "./assets/images/icon.png",
+      "color": "#D97706",
+      "androidMode": "default",
+      "androidCollapsedTitle": "Amo Cartagena",
+      "iosDisplayInForeground": true
     },
     "web": {
       "bundler": "metro",
@@ -43,7 +52,15 @@
           "backgroundColor": "#000"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#D97706",
+          "sounds": []
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

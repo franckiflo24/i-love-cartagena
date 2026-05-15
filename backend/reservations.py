@@ -161,8 +161,8 @@ def _can_cancel(r: dict) -> tuple[bool, str]:
 
 
 async def _notify_user(user_id: str, title: str, body: str, kind: str, ref: dict | None = None):
-    """Insert a notification for an end user. Reuses the existing `notifications` collection
-    consumed by /api/notifications and the user app's notifications screen."""
+    """Insert a notification for an end user AND send a real push notification
+    to all of their registered devices via Expo Push Service."""
     if not user_id:
         return
     try:
@@ -179,10 +179,17 @@ async def _notify_user(user_id: str, title: str, body: str, kind: str, ref: dict
         })
     except Exception as e:
         logger.warning("Could not insert user notification: %s", e)
+    # Fire real push notification (non-blocking on failure)
+    try:
+        from push import push_to_user  # type: ignore
+        await push_to_user(_db(), user_id, title, body, data={"kind": kind, **(ref or {})})
+    except Exception as e:
+        logger.warning("push_to_user failed: %s", e)
 
 
 async def _notify_partner(partner_id: str, title: str, body: str, kind: str, ref: dict | None = None):
-    """Insert a notification for a partner. Stored in the same collection with audience='partner'."""
+    """Insert a notification for a partner AND send a real push notification
+    to all of the partner's registered devices."""
     if not partner_id:
         return
     try:
@@ -199,6 +206,12 @@ async def _notify_partner(partner_id: str, title: str, body: str, kind: str, ref
         })
     except Exception as e:
         logger.warning("Could not insert partner notification: %s", e)
+    # Fire real push notification (non-blocking on failure)
+    try:
+        from push import push_to_partner  # type: ignore
+        await push_to_partner(_db(), partner_id, title, body, data={"kind": kind, **(ref or {})})
+    except Exception as e:
+        logger.warning("push_to_partner failed: %s", e)
 
 
 # ─────────────────────────────────────────────────────────────

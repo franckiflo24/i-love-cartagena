@@ -71,11 +71,12 @@ export const api = {
     }
     return res.json();
   },
-  delete: async (path: string, opts?: Opts) => {
+  delete: async (path: string, body?: any, opts?: Opts) => {
     const headers = await buildHeaders(opts?.headers);
     const res = await fetch(`${BACKEND_URL}/api${path}`, {
       method: 'DELETE',
       headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
       credentials: 'include',
     });
     if (!res.ok) throw new Error(`DELETE ${path} failed: ${res.status}`);
