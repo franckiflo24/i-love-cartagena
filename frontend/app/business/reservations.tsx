@@ -119,6 +119,9 @@ export default function BusinessReservations() {
   const [modalNote, setModalNote] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
+  // Plan picker modal state (shown when a FREE partner taps a locked CTA)
+  const [planPickerOpen, setPlanPickerOpen] = useState(false);
+
   const isPro = membershipPlan === 'pro';
 
   const load = useCallback(async () => {
@@ -306,13 +309,7 @@ export default function BusinessReservations() {
           </Text>
           <TouchableOpacity
             style={styles.upgradeBtn}
-            onPress={() => {
-              const msg = encodeURIComponent(
-                'Hola Amo Cartagena, quiero activar mi cuenta PRO. Mi negocio: ' +
-                  (reservations[0]?.partner_name || ''),
-              );
-              Linking.openURL(`https://wa.me/573001112233?text=${msg}`).catch(() => {});
-            }}
+            onPress={() => setPlanPickerOpen(true)}
           >
             <Ionicons name="flash" size={16} color={COLORS.white} />
             <Text style={styles.upgradeBtnText}>{tr('Activar PRO')}</Text>
@@ -322,13 +319,13 @@ export default function BusinessReservations() {
 
       {/* FREE PARTNER without leads: soft prompt */}
       {!isPro && stats && (stats.locked_leads_count || 0) === 0 ? (
-        <View style={styles.upgradeBannerSoft}>
+        <TouchableOpacity onPress={() => setPlanPickerOpen(true)} style={styles.upgradeBannerSoft}>
           <Ionicons name="lock-closed" size={16} color={COLORS.primary} />
           <Text style={styles.upgradeSoftText}>
             {tr('Cuenta FREE — tu perfil está visible pero aún no recibes solicitudes activas. ')}
             <Text style={{ color: COLORS.primary, ...FONTS.bold }}>{tr('Activar PRO')}</Text>
           </Text>
-        </View>
+        </TouchableOpacity>
       ) : null}
 
       {/* Tab selector */}
@@ -440,10 +437,7 @@ export default function BusinessReservations() {
                 ) : r.status === 'pending_partner_activation' || (r.status === 'pending_confirmation' && !isPro) ? (
                   <TouchableOpacity
                     style={styles.lockedActionRow}
-                    onPress={() => {
-                      const msg = encodeURIComponent('Hola Amo Cartagena, quiero activar PRO para responder mis reservas.');
-                      Linking.openURL(`https://wa.me/573001112233?text=${msg}`).catch(() => {});
-                    }}
+                    onPress={() => setPlanPickerOpen(true)}
                   >
                     <Ionicons name="lock-closed" size={14} color={COLORS.primary} />
                     <Text style={styles.lockedActionText}>
@@ -472,6 +466,124 @@ export default function BusinessReservations() {
           })
         )}
       </ScrollView>
+
+      {/* Plan Picker Modal — shown when FREE partner taps a locked CTA */}
+      <Modal visible={planPickerOpen} transparent animationType="slide" onRequestClose={() => setPlanPickerOpen(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.planModalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.planModalTitle}>{tr('Elige tu plan')}</Text>
+              <TouchableOpacity onPress={() => setPlanPickerOpen(false)}>
+                <Ionicons name="close" size={22} color={COLORS.textMuted} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.planModalSub}>
+              {tr('Activa tu cuenta para gestionar reservas y desbloquear todas las solicitudes.')}
+            </Text>
+            <ScrollView style={{ maxHeight: 460 }} showsVerticalScrollIndicator={false}>
+              {([
+                {
+                  key: 'free',
+                  name: 'FREE',
+                  price: 'Gratis',
+                  highlight: false,
+                  features: [
+                    { ok: true, label: tr('Perfil visible en el app') },
+                    { ok: true, label: tr('Recibes notificaciones de demanda') },
+                    { ok: false, label: tr('Ver datos de cliente') },
+                    { ok: false, label: tr('Confirmar reservas') },
+                    { ok: false, label: tr('Eventos y promociones') },
+                  ],
+                },
+                {
+                  key: 'pro',
+                  name: 'PRO',
+                  price: '$150.000 COP/mes',
+                  highlight: true,
+                  badge: tr('Recomendado'),
+                  features: [
+                    { ok: true, label: tr('Todo lo de FREE') },
+                    { ok: true, label: tr('Ver nombre, WhatsApp y email del cliente') },
+                    { ok: true, label: tr('Confirmar / rechazar reservas') },
+                    { ok: true, label: tr('Link de pago directo al cliente') },
+                    { ok: true, label: tr('WhatsApp con saludo pre-llenado') },
+                    { ok: true, label: tr('Publicar eventos y promociones') },
+                    { ok: true, label: tr('Estadísticas completas') },
+                  ],
+                },
+                {
+                  key: 'elite',
+                  name: 'ELITE',
+                  price: '$500.000 COP/mes',
+                  highlight: false,
+                  features: [
+                    { ok: true, label: tr('Todo lo de PRO') },
+                    { ok: true, label: tr('Posición destacada en categorías') },
+                    { ok: true, label: tr('Banner de patrocinador en home') },
+                    { ok: true, label: tr('Acceso a datos demográficos de Alcaldía') },
+                    { ok: true, label: tr('Soporte prioritario WhatsApp 24/7') },
+                    { ok: true, label: tr('CRM con segmentación de clientes') },
+                  ],
+                },
+              ] as const).map((plan) => (
+                <View
+                  key={plan.key}
+                  style={[styles.planCard, plan.highlight && styles.planCardHighlight]}
+                >
+                  <View style={styles.planCardHeader}>
+                    <Text style={[styles.planCardName, plan.highlight && { color: COLORS.primary }]}>
+                      {plan.name}
+                    </Text>
+                    {plan.highlight && (plan as any).badge ? (
+                      <View style={styles.planBadge}>
+                        <Text style={styles.planBadgeText}>{(plan as any).badge}</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                  <Text style={styles.planPrice}>{plan.price}</Text>
+                  <View style={{ gap: 5, marginTop: 4 }}>
+                    {plan.features.map((f, i) => (
+                      <View key={i} style={styles.featureRow}>
+                        <Ionicons
+                          name={f.ok ? 'checkmark-circle' : 'close-circle'}
+                          size={14}
+                          color={f.ok ? '#22C55E' : '#94A3B8'}
+                        />
+                        <Text style={[styles.featureText, !f.ok && { opacity: 0.5 }]}>{f.label}</Text>
+                      </View>
+                    ))}
+                  </View>
+                  {plan.key !== 'free' ? (
+                    <TouchableOpacity
+                      style={[
+                        styles.planActivateBtn,
+                        { backgroundColor: plan.highlight ? COLORS.primary : '#1F2937' },
+                      ]}
+                      onPress={() => {
+                        const msg = encodeURIComponent(
+                          `Hola Amo Cartagena, quiero activar el plan ${plan.name} ($${plan.price}) para mi negocio "${reservations[0]?.partner_name || ''}". ¿Cómo procedo?`,
+                        );
+                        Linking.openURL(`https://wa.me/573001112233?text=${msg}`).catch(() => {});
+                        setPlanPickerOpen(false);
+                      }}
+                    >
+                      <Ionicons name="flash" size={15} color={COLORS.white} />
+                      <Text style={styles.planActivateText}>
+                        {tr(`Activar ${plan.name}`)}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <View style={styles.planCurrentBadge}>
+                      <Ionicons name="checkmark" size={13} color={COLORS.textMuted} />
+                      <Text style={styles.planCurrentText}>{tr('Tu plan actual')}</Text>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       {/* Confirm / Reject Modal */}
       <Modal visible={!!modalRes} transparent animationType="slide" onRequestClose={closeModal}>
@@ -814,4 +926,61 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   modalSubmitText: { color: COLORS.white, fontSize: 15, ...FONTS.bold },
+
+  // Plan picker modal
+  planModalCard: {
+    backgroundColor: COLORS.background,
+    borderTopLeftRadius: RADIUS.xl,
+    borderTopRightRadius: RADIUS.xl,
+    padding: SPACING.md,
+    paddingBottom: Platform.OS === 'ios' ? 36 : SPACING.md,
+    maxHeight: '92%',
+  },
+  planModalTitle: { color: COLORS.textMain, fontSize: 19, ...FONTS.bold },
+  planModalSub: { color: COLORS.textMuted, fontSize: 12.5, marginBottom: 12, lineHeight: 17 },
+  planCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: 14,
+    marginBottom: 12,
+    gap: 6,
+  },
+  planCardHighlight: {
+    borderColor: COLORS.primary,
+    borderWidth: 2,
+    backgroundColor: 'rgba(217,119,6,0.05)',
+  },
+  planCardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  planCardName: { color: COLORS.textMain, fontSize: 18, ...FONTS.bold, letterSpacing: 1 },
+  planBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.primary,
+  },
+  planBadgeText: { color: COLORS.white, fontSize: 10, ...FONTS.bold, letterSpacing: 0.3 },
+  planPrice: { color: COLORS.textMain, fontSize: 16, ...FONTS.bold, marginBottom: 6 },
+  featureRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  featureText: { color: COLORS.textMain, fontSize: 12, flex: 1, lineHeight: 17 },
+  planActivateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 11,
+    borderRadius: RADIUS.md,
+    marginTop: 8,
+  },
+  planActivateText: { color: COLORS.white, fontSize: 13, ...FONTS.bold, letterSpacing: 0.3 },
+  planCurrentBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    marginTop: 8,
+    paddingVertical: 7,
+  },
+  planCurrentText: { color: COLORS.textMuted, fontSize: 11.5, ...FONTS.medium },
 });

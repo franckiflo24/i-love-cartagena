@@ -12,7 +12,7 @@
  *   - partner_id (required)
  *   - event_id   (optional)
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Animated,
+  Easing,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -93,6 +95,13 @@ export default function ReservationNew() {
   const [partySize, setPartySize] = useState<number>(2);
   const [notes, setNotes] = useState<string>('');
 
+  // Success overlay state
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [successLocked, setSuccessLocked] = useState(false);
+  const successOpacity = useRef(new Animated.Value(0)).current;
+  const successScale = useRef(new Animated.Value(0.6)).current;
+
   useEffect(() => {
     if (!partnerId) return;
     (async () => {
@@ -156,23 +165,29 @@ export default function ReservationNew() {
       };
       if (eventId) body.event_id = eventId;
       const res = await api.post('/reservations', body);
-      const lockedNote = res.locked
-        ? '\n\n🔒 Este partner aún no gestiona reservas en Amo. Le notificamos tu pedido y te avisaremos si activa su cuenta.'
-        : '';
-      Alert.alert(
-        tr('Solicitud enviada'),
-        String(res.message || tr('Tu solicitud fue enviada al partner. Te avisaremos cuando confirme.')) + lockedNote,
-        [
-          {
-            text: 'OK',
-            onPress: () =>
-              router.replace({
-                pathname: '/reservations',
-                params: { highlight: res.reservation?.reservation_id || '' },
-              } as any),
-          },
-        ],
+      // Show animated green success overlay
+      setSuccessLocked(!!res.locked);
+      setSuccessMessage(
+        res.locked
+          ? tr('Solicitud enviada al partner. Te avisaremos si activa su cuenta.')
+          : tr('Solicitud enviada. Te avisaremos cuando el partner confirme.'),
       );
+      setShowSuccess(true);
+      Animated.parallel([
+        Animated.timing(successOpacity, {
+          toValue: 1, duration: 220, useNativeDriver: true,
+        }),
+        Animated.spring(successScale, {
+          toValue: 1, friction: 5, tension: 80, useNativeDriver: true,
+        }),
+      ]).start();
+      // Auto-navigate after 2s
+      setTimeout(() => {
+        router.replace({
+          pathname: '/reservations',
+          params: { highlight: res.reservation?.reservation_id || '' },
+        } as any);
+      }, 2200);
     } catch (e: any) {
       Alert.alert(tr('Error'), String(e?.message || 'No se pudo enviar la solicitud'));
     } finally {
@@ -351,6 +366,41 @@ export default function ReservationNew() {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Green Success Overlay */}
+      {showSuccess ? (
+        <Animated.View
+          pointerEvents="auto"
+          style={[
+            StyleSheet.absoluteFill,
+            styles.successBackdrop,
+            { opacity: successOpacity },
+          ]}
+        >
+          <Animated.View
+            style={[
+              styles.successCard,
+              { transform: [{ scale: successScale }] },
+            ]}
+          >
+            <View style={styles.successCheck}>
+              <Ionicons name="checkmark" size={48} color={COLORS.white} />
+            </View>
+            <Text style={styles.successTitle}>
+              {tr('¡Solicitud enviada!')}
+            </Text>
+            <Text style={styles.successText}>{successMessage}</Text>
+            {successLocked ? (
+              <View style={styles.successLockedTag}>
+                <Ionicons name="time-outline" size={14} color="#F59E0B" />
+                <Text style={styles.successLockedTagText}>
+                  {tr('Esperando activación del partner')}
+                </Text>
+              </View>
+            ) : null}
+          </Animated.View>
+        </Animated.View>
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -509,4 +559,57 @@ const styles = StyleSheet.create({
   submitText: { color: COLORS.white, fontSize: 15, ...FONTS.bold },
 
   errText: { color: COLORS.textMain, fontSize: 14 },
+
+  // Success overlay
+  successBackdrop: {
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 100,
+  },
+  successCard: {
+    width: '82%',
+    maxWidth: 340,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
+    padding: 24,
+    alignItems: 'center',
+    gap: 14,
+    borderWidth: 1,
+    borderColor: '#22C55E',
+  },
+  successCheck: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: '#22C55E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  successTitle: {
+    color: COLORS.textMain,
+    fontSize: 20,
+    ...FONTS.bold,
+    textAlign: 'center',
+  },
+  successText: {
+    color: COLORS.textMain,
+    fontSize: 13.5,
+    lineHeight: 19,
+    textAlign: 'center',
+    opacity: 0.85,
+  },
+  successLockedTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(245,158,11,0.15)',
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    marginTop: 4,
+  },
+  successLockedTagText: { color: '#F59E0B', fontSize: 11, ...FONTS.bold, letterSpacing: 0.3 },
 });
