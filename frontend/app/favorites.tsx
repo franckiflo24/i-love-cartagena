@@ -9,7 +9,31 @@ import { api } from '../src/constants/api';
 import { TierBadge } from '../src/components/TierBadge';
 import { useTr } from '../src/i18n/autoTr';
 
-type Tab = 'agenda' | 'partners';
+type Tab = 'agenda' | 'partners' | 'reservations';
+
+type Reservation = {
+  reservation_id: string;
+  partner_id: string;
+  partner_name: string;
+  partner?: { name?: string; image_url?: string; address?: string };
+  event?: { event_id?: string; title?: string; flyer_url?: string } | null;
+  type: string;
+  date: string;
+  time?: string | null;
+  party_size: number;
+  status: string;
+};
+
+const RES_STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
+  pending_partner_activation: { label: 'Solicitud enviada', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
+  pending_confirmation: { label: 'Esperando', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
+  confirmed: { label: 'Confirmada', color: '#22C55E', bg: 'rgba(34,197,94,0.12)' },
+  rejected_by_partner: { label: 'Rechazada', color: '#EF4444', bg: 'rgba(239,68,68,0.12)' },
+  cancelled_by_user: { label: 'Cancelada', color: '#94A3B8', bg: 'rgba(148,163,184,0.12)' },
+  cancelled_late: { label: 'Cancelada tarde', color: '#EF4444', bg: 'rgba(239,68,68,0.12)' },
+  completed: { label: 'Completada', color: '#22C55E', bg: 'rgba(34,197,94,0.12)' },
+  expired: { label: 'Expirada', color: '#94A3B8', bg: 'rgba(148,163,184,0.12)' },
+};
 
 const CAT_LABELS: Record<string, string> = {
   gastronomy: 'Gastronomía',
@@ -31,6 +55,8 @@ export default function FavoritesScreen() {
   const [concerts, setConcerts] = useState<any[]>([]);
   const [partnerEvents, setPartnerEvents] = useState<any[]>([]);
   const [partners, setPartners] = useState<any[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [resLoading, setResLoading] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Group favorite IDs by type
@@ -81,8 +107,21 @@ export default function FavoritesScreen() {
     return () => { cancelled = true; };
   }, [ids]);
 
+  // ── Fetch reservations once, refresh when tab is opened ──
+  const loadReservations = async () => {
+    setResLoading(true);
+    try {
+      const data = await api.get('/reservations/my').catch(() => []);
+      setReservations(Array.isArray(data) ? data : []);
+    } catch (e) { console.error(e); }
+    setResLoading(false);
+  };
+  useEffect(() => { loadReservations(); }, []);
+  useEffect(() => { if (tab === 'reservations') loadReservations(); }, [tab]);
+
   const agendaCount = ids.event.size + ids.concert.size + ids.partner_event.length;
   const partnersCount = ids.partner.length;
+  const reservationsCount = reservations.length;
   const total = agendaCount + partnersCount;
 
   return (
@@ -120,6 +159,18 @@ export default function FavoritesScreen() {
           <Text style={[styles.tabText, tab === 'partners' && styles.tabTextActive]}>{tr('Partners')}</Text>
           <View style={[styles.tabBadge, tab === 'partners' && styles.tabBadgeActive]}>
             <Text style={[styles.tabBadgeText, tab === 'partners' && styles.tabBadgeTextActive]}>{partnersCount}</Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          testID="favorites-tab-reservations"
+          style={[styles.tab, tab === 'reservations' && styles.tabActive]}
+          onPress={() => setTab('reservations')}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="bookmark" size={14} color={tab === 'reservations' ? COLORS.white : COLORS.textMuted} />
+          <Text style={[styles.tabText, tab === 'reservations' && styles.tabTextActive]}>{tr('Reservas')}</Text>
+          <View style={[styles.tabBadge, tab === 'reservations' && styles.tabBadgeActive]}>
+            <Text style={[styles.tabBadgeText, tab === 'reservations' && styles.tabBadgeTextActive]}>{reservationsCount}</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -239,7 +290,7 @@ export default function FavoritesScreen() {
               )}
             </>
           )
-        ) : (
+        ) : tab === 'partners' ? (
           // Partners tab
           partnersCount === 0 ? (
             <View style={styles.emptyState}>
@@ -290,6 +341,71 @@ export default function FavoritesScreen() {
                   </TouchableOpacity>
                 );
               })}
+            </View>
+          )
+        ) : (
+          // Reservations tab
+          resLoading ? (
+            <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 60 }} />
+          ) : reservationsCount === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="bookmark-outline" size={56} color={COLORS.textMuted} />
+              <Text style={styles.emptyTitle}>{tr('Sin reservas todavía')}</Text>
+              <Text style={styles.emptyDesc}>{tr('Cuando reserves una mesa o experiencia con un partner, aparecerá aquí con su estado en tiempo real.')}</Text>
+              <TouchableOpacity style={styles.exploreCta} onPress={() => router.push('/(tabs)/partners' as any)}>
+                <Ionicons name="sparkles" size={16} color={COLORS.primary} />
+                <Text style={styles.exploreText}>{tr('Explorar partners')}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>📋 {tr('Tus reservas')} ({reservationsCount})</Text>
+              {reservations.map(r => {
+                const meta = RES_STATUS_META[r.status] || { label: r.status, color: COLORS.textMuted, bg: 'rgba(148,163,184,0.12)' };
+                const isUpcoming = ['pending_partner_activation', 'pending_confirmation', 'confirmed'].includes(r.status);
+                return (
+                  <TouchableOpacity
+                    key={r.reservation_id}
+                    style={styles.resCard}
+                    onPress={() => router.push('/reservations' as any)}
+                    activeOpacity={0.85}
+                  >
+                    <View style={[styles.resStripe, { backgroundColor: meta.color }]} />
+                    <View style={styles.resBody}>
+                      <View style={styles.resTopRow}>
+                        <Text style={styles.resPartnerName} numberOfLines={1}>{r.partner?.name || r.partner_name}</Text>
+                        <View style={[styles.resStatusBadge, { backgroundColor: meta.bg }]}>
+                          <View style={[styles.resStatusDot, { backgroundColor: meta.color }]} />
+                          <Text style={[styles.resStatusText, { color: meta.color }]}>{tr(meta.label)}</Text>
+                        </View>
+                      </View>
+                      {r.event?.title ? (
+                        <Text style={styles.resEvent} numberOfLines={1}>🎉 {r.event.title}</Text>
+                      ) : null}
+                      <View style={styles.resMetaRow}>
+                        <View style={styles.resMetaItem}>
+                          <Ionicons name="calendar-outline" size={12} color={COLORS.textMuted} />
+                          <Text style={styles.resMetaText}>{r.date}{r.time ? ` · ${r.time}` : ''}</Text>
+                        </View>
+                        <View style={styles.resMetaItem}>
+                          <Ionicons name="people-outline" size={12} color={COLORS.textMuted} />
+                          <Text style={styles.resMetaText}>{r.party_size} {r.party_size === 1 ? tr('persona') : tr('personas')}</Text>
+                        </View>
+                        {isUpcoming && <View style={styles.resUpcomingDot} />}
+                      </View>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} style={{ alignSelf: 'center', marginRight: SPACING.sm }} />
+                  </TouchableOpacity>
+                );
+              })}
+              <TouchableOpacity
+                style={styles.viewAllResBtn}
+                onPress={() => router.push('/reservations' as any)}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="open-outline" size={14} color={COLORS.primary} />
+                <Text style={styles.viewAllResText}>{tr('Ver detalle completo y gestionar')}</Text>
+              </TouchableOpacity>
             </View>
           )
         )}
@@ -415,4 +531,51 @@ const styles = StyleSheet.create({
   partnerTopRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
   partnerName: { fontSize: 18, color: '#FFF', ...FONTS.bold, flex: 1 },
   partnerCategory: { fontSize: 10, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1, marginTop: 4 },
+
+  // Reservation card (tab 3)
+  resCard: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: SPACING.sm,
+    overflow: 'hidden',
+  },
+  resStripe: { width: 4, alignSelf: 'stretch' },
+  resBody: { flex: 1, padding: SPACING.md, gap: 4 },
+  resTopRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
+  resPartnerName: { flex: 1, fontSize: 15, color: COLORS.textMain, ...FONTS.bold },
+  resStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: RADIUS.full,
+  },
+  resStatusDot: { width: 6, height: 6, borderRadius: 3 },
+  resStatusText: { fontSize: 10, ...FONTS.bold, letterSpacing: 0.3 },
+  resEvent: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold, marginTop: 2 },
+  resMetaRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, marginTop: 4 },
+  resMetaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  resMetaText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
+  resUpcomingDot: {
+    width: 7, height: 7, borderRadius: 4,
+    backgroundColor: COLORS.success,
+    marginLeft: 'auto',
+  },
+  viewAllResBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 11,
+    borderRadius: RADIUS.full,
+    backgroundColor: `${COLORS.primary}15`,
+    borderWidth: 1,
+    borderColor: `${COLORS.primary}30`,
+    marginTop: SPACING.xs,
+  },
+  viewAllResText: { fontSize: 12, color: COLORS.primary, ...FONTS.bold },
 });

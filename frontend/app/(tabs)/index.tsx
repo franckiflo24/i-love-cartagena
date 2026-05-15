@@ -292,10 +292,8 @@ export default function HomeScreen() {
           >
             {[
               { icon: 'calendar',       label: s('home_agenda'),     subtitle: s('home_today'),       color: '#F97316', route: '/(tabs)/agenda' },
-              { icon: 'business',       label: 'Partners',           subtitle: 'Explorar',            color: '#D97706', route: '/(tabs)/partners' },
               { icon: 'musical-notes',  label: s('home_concerts'),   subtitle: s('home_live'),        color: '#A855F7', route: '/concerts' },
               { icon: 'heart',          label: s('home_favorites'),  subtitle: s('home_my_list'),     color: '#EF4444', route: '/favorites' },
-              { icon: 'bookmark',       label: s('home_reservations'), subtitle: s('home_my_bookings'), color: '#22C55E', route: '/reservations' },
               { icon: 'boat',           label: s('home_transport'),  subtitle: s('home_boats'),       color: '#06B6D4', route: '/transport' },
               { icon: 'trail-sign',     label: s('home_routes'),     subtitle: 'IA',                  color: '#10B981', route: '/itineraries' },
             ].map((item) => (
