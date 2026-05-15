@@ -165,7 +165,8 @@ async def create_reservation(request: Request):
     rtype = (body.get("type") or "").strip().lower()
     date = (body.get("date") or "").strip()
     time = (body.get("time") or "").strip()
-    party_size = int(body.get("party_size") or 1)
+    party_size_raw = body.get("party_size")
+    party_size = int(party_size_raw if party_size_raw is not None else 1)
     notes = (body.get("notes") or "").strip()[:280]
     event_id = (body.get("event_id") or "").strip() or None
 
@@ -236,9 +237,10 @@ async def create_reservation(request: Request):
 
     # ── PREPAID ──
     # Determine amount: from event price * qty, or explicit amount_cop * party_size for fallback.
-    qty = int(body.get("qty") or party_size)
+    qty_raw = body.get("qty")
+    qty = int(qty_raw if qty_raw is not None else party_size)
     if qty < 1:
-        qty = 1
+        raise HTTPException(status_code=400, detail="qty debe ser al menos 1")
     unit_price = 0
     if event_doc and not event_doc.get("is_free"):
         unit_price = int(event_doc.get("price") or 0)
@@ -331,6 +333,15 @@ async def user_cancel_reservation(reservation_id: str, request: Request):
     r = await _db().reservations.find_one({"reservation_id": reservation_id, "user_id": user["user_id"]}, {"_id": 0})
     if not r:
         raise HTTPException(status_code=404, detail="Reserva no encontrada")
+
+    # Terminal states are not re-cancellable. Return 400 so admin stats are not corrupted.
+    terminal = {"cancelled_by_user", "cancelled_late", "rejected_by_partner",
+                "completed", "no_show", "expired"}
+    if r.get("status") in terminal:
+        raise HTTPException(
+            status_code=400,
+            detail=f"La reserva ya está en estado '{r['status']}' y no se puede volver a cancelar.",
+        )
 
     allowed, reason = _can_cancel(r)
     new_status = "cancelled_by_user" if allowed else "cancelled_late"
