@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Image, ActivityIndicator, Keyboard, Linking,
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -208,16 +209,20 @@ export default function SearchScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Search Header */}
-      <View style={styles.header}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        {/* Search Header — Big, comfortable, multi-line capable */}
+        <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
         </TouchableOpacity>
         <View style={styles.searchBox}>
-          <Ionicons name="search" size={18} color={COLORS.textMuted} />
+          <Ionicons name="search" size={20} color={COLORS.primary} style={{ marginTop: 14 }} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Pregunta cualquier cosa…"
+            placeholder="Pregunta a Amo: cena romántica, paseo a Barú, mariscos…"
             placeholderTextColor={COLORS.textMuted}
             value={query}
             onChangeText={setQuery}
@@ -226,15 +231,23 @@ export default function SearchScreen() {
             autoFocus
             autoCapitalize="none"
             autoCorrect={false}
+            multiline
+            numberOfLines={2}
+            blurOnSubmit
+            textAlignVertical="top"
           />
           {query.length > 0 && (
-            <TouchableOpacity onPress={() => { setQuery(''); setResults(null); setSearched(false); }}>
-              <Ionicons name="close-circle" size={18} color={COLORS.textMuted} />
+            <TouchableOpacity
+              onPress={() => { setQuery(''); setResults(null); setSearched(false); }}
+              style={{ marginTop: 14 }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="close-circle" size={20} color={COLORS.textMuted} />
             </TouchableOpacity>
           )}
         </View>
-        <TouchableOpacity onPress={() => doSearch(query)} style={styles.searchBtn}>
-          <Ionicons name="sparkles" size={20} color="#FFF" />
+        <TouchableOpacity onPress={() => doSearch(query)} style={styles.searchBtn} activeOpacity={0.85}>
+          <Ionicons name="sparkles" size={22} color="#FFF" />
         </TouchableOpacity>
       </View>
 
@@ -490,6 +503,7 @@ export default function SearchScreen() {
           </>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -548,11 +562,33 @@ function RecommendationCard({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  header: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm },
-  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
-  searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, paddingHorizontal: SPACING.md, borderWidth: 1, borderColor: COLORS.border, height: 44 },
-  searchInput: { flex: 1, fontSize: 14, color: COLORS.textMain, ...FONTS.regular },
-  searchBtn: { width: 44, height: 44, borderRadius: RADIUS.lg, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
+  header: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.sm, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm },
+  backBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
+  searchBox: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.sm,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 4,
+    borderWidth: 1.5,
+    borderColor: COLORS.primary + '55',
+    minHeight: 48,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: COLORS.textMain,
+    ...FONTS.regular,
+    paddingTop: 12,
+    paddingBottom: 12,
+    minHeight: 48,
+    maxHeight: 96,
+    lineHeight: 22,
+  },
+  searchBtn: { width: 48, height: 48, borderRadius: RADIUS.lg, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
 
   loadingWrap: { alignItems: 'center', paddingTop: 60, gap: SPACING.sm },
   loadingText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium },
