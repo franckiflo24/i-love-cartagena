@@ -41,10 +41,23 @@ type Action = {
   url?: string;
 };
 
+type Recommendation = {
+  kind: 'partner' | 'event';
+  partner_id?: string;
+  event_id?: string;
+  name: string;
+  type?: string;
+  vibe?: string;
+  price_range?: string;
+  address?: string;
+  reason?: string;
+};
+
 type Message = {
   role: 'user' | 'assistant';
   content: string;
   actions?: Action[];
+  recommendations?: Recommendation[];
   suggestions?: string[];
   language?: string;
   created_at?: string;

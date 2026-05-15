@@ -340,29 +340,56 @@ FORMATO DE RESPUESTA (JSON estricto, sin markdown, sin código de bloque)
 {
   "message": "<respuesta conversacional, máximo 3 frases, EN EL IDIOMA DETECTADO DEL USUARIO>",
   "language": "<es|en|fr|pt>",
+  "recommendations": [
+    // 0 a 8 tarjetas ricas. Úsalas SIEMPRE que tengas matches del catálogo (partners o eventos).
+    // Cada tarjeta DEBE tener partner_id O event_id real del contexto.
+    // SUGERÍ AL MENOS 5 cuando haya matches suficientes para que el usuario tenga variedad.
+    {
+      "kind": "partner",                    // 'partner' o 'event'
+      "partner_id": "ptr_R025",             // requerido si kind=partner
+      "event_id": null,                     // requerido si kind=event
+      "name": "Marea Restaurant",           // nombre real del contexto
+      "type": "Mariscos · Premium",         // tipo de lugar (categoría · subcat · tier humano)
+      "vibe": "Romántico con vista al mar", // 1 línea de "onda" (en idioma del usuario)
+      "price_range": "$$$",                 // $, $$, $$$, $$$$ basado en tier (popular=$$, premium=$$$, luxe=$$$$)
+      "address": "Calle del Arsenal",       // si está en contexto
+      "reason": "Su ceviche es legendario y atardeceres únicos." // por qué lo recomendás (1 frase)
+    }
+  ],
   "actions": [
-    // 0 a 4 acciones. Las labels TAMBIÉN van en el idioma detectado.
+    // 0 a 4 acciones de navegación general (NO duplicar lo que ya está en recommendations).
     // Tipos disponibles:
-    // {"type": "show_partners", "filters": {"category": "restaurant", "subcategory": "italiana", "tier": "premium"}, "label": "Ver restaurantes italianos" / "See Italian restaurants" / "Voir restaurants italiens" / "Ver restaurantes italianos"}
-    // {"type": "show_events", "filters": {"category": "music", "date": "2026-05-15"}, "label": "..."}
-    // {"type": "open_partner", "partner_id": "ptr_002", "label": "..."}
-    // {"type": "open_event", "event_id": "evt_xxx", "label": "..."}
-    // {"type": "open_port_tax_checkout", "qty": 2, "travel_date": "2026-05-15", "label": "..."}
-    // {"type": "open_city_pass", "plan_id": "pass_premium", "label": "..."}
+    // {"type": "show_partners", "filters": {"category": "restaurant", "subcategory": "italiana", "tier": "premium"}, "label": "Ver todos los italianos"}
+    // {"type": "show_events", "filters": {"category": "music", "date": "2026-05-15"}, "label": "Ver agenda"}
+    // {"type": "open_port_tax_checkout", "qty": 2, "travel_date": "2026-05-15", "label": "Comprar Tasa Portuaria"}
+    // {"type": "open_city_pass", "plan_id": "pass_premium", "label": "Comprar Premium Pass"}
     // {"type": "navigate", "screen": "agenda" | "concerts" | "partners" | "citypass" | "transport" | "itineraries", "label": "..."}
-    // {"type": "reservation_link", "partner_id": "ptr_002", "label": "..."}
     // {"type": "show_itinerary", "category": "cultura" | "lifestyle" | "musical", "label": "..."}
   ],
   "suggestions": ["<3 quick-replies EN EL IDIOMA DETECTADO>"]
 }
 
+REGLAS DE recommendations:
+- ⚠️ **DEBES proponer entre 5 y 8 tarjetas** cuando haya suficientes matches en `relevant_partners` o `all_partners_directory`.
+- ⚠️ **PRECISIÓN MÁXIMA**: cada tarjeta apunta a un partner_id (o event_id) EXACTO del contexto. NUNCA inventés IDs.
+- Variá los tiers para dar opciones de distintos presupuestos (1 popular + 2 premium + 1 luxe por ejemplo).
+- `price_range`: derivá de `tier` → popular=$$, premium=$$$, luxe=$$$$, elite=$$$$$.
+- `vibe` y `reason` SIEMPRE en el idioma detectado del usuario.
+- Si la consulta es por evento (concert, sunset, daypass) usá kind="event" y event_id de `upcoming_events` o `partner_curated_events`.
+
 EJEMPLOS DE COMPORTAMIENTO COMPLETOS:
 
 ES: User: "Quiero comer italiano hoy"
 {
-  "message": "Te recomiendo Bellini o Carmen, ambos excelentes opciones italianas. ¿Querés ver los detalles?",
+  "message": "Tenemos varias opciones italianas según tu vibe y presupuesto. Mirá las recomendaciones:",
   "language": "es",
-  "actions": [{"type":"open_partner","partner_id":"ptr_002","label":"Ver Bellini"}],
+  "recommendations": [
+    {"kind":"partner","partner_id":"ptr_R025","name":"Norma","type":"Italiana · Premium","vibe":"Romántico con pasta artesanal","price_range":"$$$","reason":"Ravioli de mariscos imperdible."},
+    {"kind":"partner","partner_id":"ptr_R060","name":"Trattoria del Mare","type":"Italiana · Premium","vibe":"Casual con vista","price_range":"$$$","reason":"Pasta al mare con productos locales."},
+    {"kind":"partner","partner_id":"ptr_R142","name":"Bellini","type":"Italiana · Premium","vibe":"Música en vivo","price_range":"$$$","reason":"Jazz & wine los jueves."},
+    {"kind":"partner","partner_id":"ptr_R078","name":"Pizzeria Toscana","type":"Italiana · Popular","vibe":"Familiar y económico","price_range":"$$","reason":"Pizza al horno de leña, ideal para grupos."}
+  ],
+  "actions": [{"type":"show_partners","filters":{"category":"restaurant","subcategory":"italiana"},"label":"Ver todos los italianos"}],
   "suggestions": ["¿Para cuántas personas?", "Reservar mesa", "Otra cocina"]
 }
 
@@ -477,6 +504,42 @@ ALLOWED_ACTIONS = {
 ALLOWED_TABS = {"agenda", "concerts", "partners", "citypass", "transport", "itineraries", "search"}
 
 
+def _sanitize_recommendations(recs: List[Dict[str, Any]], valid_partner_ids: set, valid_event_ids: set) -> List[Dict[str, Any]]:
+    """Keep only recs that reference a real partner_id or event_id in the current context."""
+    out: List[Dict[str, Any]] = []
+    for r in recs or []:
+        if not isinstance(r, dict):
+            continue
+        kind = r.get("kind") or ("partner" if r.get("partner_id") else "event" if r.get("event_id") else None)
+        pid = r.get("partner_id")
+        eid = r.get("event_id")
+        if kind == "partner" and pid and pid in valid_partner_ids:
+            out.append({
+                "kind": "partner",
+                "partner_id": pid,
+                "name": str(r.get("name") or "")[:80],
+                "type": str(r.get("type") or "")[:60],
+                "vibe": str(r.get("vibe") or "")[:120],
+                "price_range": str(r.get("price_range") or "")[:8],
+                "address": str(r.get("address") or "")[:100],
+                "reason": str(r.get("reason") or "")[:160],
+            })
+        elif kind == "event" and eid and eid in valid_event_ids:
+            out.append({
+                "kind": "event",
+                "event_id": eid,
+                "name": str(r.get("name") or "")[:80],
+                "type": str(r.get("type") or "")[:60],
+                "vibe": str(r.get("vibe") or "")[:120],
+                "price_range": str(r.get("price_range") or "")[:8],
+                "address": str(r.get("address") or "")[:100],
+                "reason": str(r.get("reason") or "")[:160],
+            })
+        if len(out) >= 8:
+            break
+    return out
+
+
 def _sanitize_actions(actions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
     for a in actions or []:
@@ -583,11 +646,18 @@ async def run_agent_turn(
     if forced:
         language = forced
     actions = _sanitize_actions(parsed.get("actions") or [])
+    # Build valid IDs from context for sanitizing recommendations
+    valid_partner_ids = {p.get("partner_id") for p in (context.get("relevant_partners") or [])}
+    valid_partner_ids.update(p.get("partner_id") for p in (context.get("all_partners_directory") or []))
+    valid_event_ids = {e.get("event_id") for e in (context.get("upcoming_events") or [])}
+    valid_event_ids.update(e.get("event_id") for e in (context.get("partner_curated_events") or []))
+    recommendations = _sanitize_recommendations(parsed.get("recommendations") or [], valid_partner_ids, valid_event_ids)
     suggestions = [str(s)[:80] for s in (parsed.get("suggestions") or [])[:4] if s]
 
     return {
         "message": message,
         "language": language,
         "actions": actions,
+        "recommendations": recommendations,
         "suggestions": suggestions,
     }

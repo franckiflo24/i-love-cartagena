@@ -2923,6 +2923,7 @@ async def agent_chat(request: Request):
         "content": assistant_payload["message"],
         "language": assistant_payload.get("language", "es"),
         "actions": assistant_payload.get("actions", []),
+        "recommendations": assistant_payload.get("recommendations", []),
         "suggestions": assistant_payload.get("suggestions", []),
         "created_at": now_iso,
     }
