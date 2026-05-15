@@ -137,38 +137,47 @@ export default function FavoritesScreen() {
         <Ionicons name="heart" size={24} color="#EF4444" />
       </View>
 
-      {/* Segmented tabs */}
+      {/* Segmented tabs — compact with distinct colors per category */}
       <View style={styles.tabBar}>
         <TouchableOpacity
-          style={[styles.tab, tab === 'agenda' && styles.tabActive]}
+          style={[
+            styles.tab,
+            tab === 'agenda' && [styles.tabActive, { backgroundColor: '#F97316' }],
+          ]}
           onPress={() => setTab('agenda')}
           activeOpacity={0.85}
         >
-          <Ionicons name="calendar" size={14} color={tab === 'agenda' ? COLORS.white : COLORS.textMuted} />
-          <Text style={[styles.tabText, tab === 'agenda' && styles.tabTextActive]}>{tr('Agenda')}</Text>
+          <Ionicons name="calendar" size={12} color={tab === 'agenda' ? COLORS.white : '#F97316'} />
+          <Text style={[styles.tabText, tab === 'agenda' && styles.tabTextActive]} numberOfLines={1}>{tr('Agenda')}</Text>
           <View style={[styles.tabBadge, tab === 'agenda' && styles.tabBadgeActive]}>
             <Text style={[styles.tabBadgeText, tab === 'agenda' && styles.tabBadgeTextActive]}>{agendaCount}</Text>
           </View>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, tab === 'partners' && styles.tabActive]}
+          style={[
+            styles.tab,
+            tab === 'partners' && [styles.tabActive, { backgroundColor: '#A855F7' }],
+          ]}
           onPress={() => setTab('partners')}
           activeOpacity={0.85}
         >
-          <Ionicons name="storefront" size={14} color={tab === 'partners' ? COLORS.white : COLORS.textMuted} />
-          <Text style={[styles.tabText, tab === 'partners' && styles.tabTextActive]}>{tr('Partners')}</Text>
+          <Ionicons name="storefront" size={12} color={tab === 'partners' ? COLORS.white : '#A855F7'} />
+          <Text style={[styles.tabText, tab === 'partners' && styles.tabTextActive]} numberOfLines={1}>{tr('Partners')}</Text>
           <View style={[styles.tabBadge, tab === 'partners' && styles.tabBadgeActive]}>
             <Text style={[styles.tabBadgeText, tab === 'partners' && styles.tabBadgeTextActive]}>{partnersCount}</Text>
           </View>
         </TouchableOpacity>
         <TouchableOpacity
           testID="favorites-tab-reservations"
-          style={[styles.tab, tab === 'reservations' && styles.tabActive]}
+          style={[
+            styles.tab,
+            tab === 'reservations' && [styles.tabActive, { backgroundColor: '#22C55E' }],
+          ]}
           onPress={() => setTab('reservations')}
           activeOpacity={0.85}
         >
-          <Ionicons name="bookmark" size={14} color={tab === 'reservations' ? COLORS.white : COLORS.textMuted} />
-          <Text style={[styles.tabText, tab === 'reservations' && styles.tabTextActive]}>{tr('Reservas')}</Text>
+          <Ionicons name="bookmark" size={12} color={tab === 'reservations' ? COLORS.white : '#22C55E'} />
+          <Text style={[styles.tabText, tab === 'reservations' && styles.tabTextActive]} numberOfLines={1}>{tr('Reservas')}</Text>
           <View style={[styles.tabBadge, tab === 'reservations' && styles.tabBadgeActive]}>
             <Text style={[styles.tabBadgeText, tab === 'reservations' && styles.tabBadgeTextActive]}>{reservationsCount}</Text>
           </View>
@@ -421,41 +430,43 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold },
   subtitle: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
 
-  // Tabs
+  // Tabs — compact
   tabBar: {
     flexDirection: 'row',
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.full,
-    padding: 4,
+    padding: 3,
     marginHorizontal: SPACING.lg,
     marginTop: SPACING.xs,
     marginBottom: SPACING.sm,
     borderWidth: 1,
     borderColor: COLORS.border,
+    gap: 2,
   },
   tab: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 9,
+    gap: 4,
+    paddingVertical: 7,
+    paddingHorizontal: 4,
     borderRadius: RADIUS.full,
   },
   tabActive: { backgroundColor: COLORS.primary },
-  tabText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold },
+  tabText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold, letterSpacing: 0.2 },
   tabTextActive: { color: COLORS.white, ...FONTS.bold },
   tabBadge: {
-    minWidth: 20,
-    height: 18,
-    borderRadius: 9,
-    paddingHorizontal: 6,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    paddingHorizontal: 5,
     backgroundColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tabBadgeActive: { backgroundColor: 'rgba(255,255,255,0.25)' },
-  tabBadgeText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.bold },
+  tabBadgeActive: { backgroundColor: 'rgba(255,255,255,0.3)' },
+  tabBadgeText: { fontSize: 9, color: COLORS.textMuted, ...FONTS.bold },
   tabBadgeTextActive: { color: COLORS.white },
 
   emptyState: { alignItems: 'center', paddingTop: 60, paddingHorizontal: SPACING.xl, gap: SPACING.sm },
