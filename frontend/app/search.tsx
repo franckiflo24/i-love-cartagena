@@ -232,7 +232,7 @@ export default function SearchScreen() {
             autoCapitalize="none"
             autoCorrect={false}
             multiline
-            numberOfLines={2}
+            numberOfLines={4}
             blurOnSubmit
             textAlignVertical="top"
           />
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 12,
     minHeight: 48,
-    maxHeight: 96,
+    maxHeight: 140,
     lineHeight: 22,
   },
   searchBtn: { width: 48, height: 48, borderRadius: RADIUS.lg, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
