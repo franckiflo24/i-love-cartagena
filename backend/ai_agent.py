@@ -52,23 +52,152 @@ AGENT_BIO = (
 )
 
 # ────────────────────────────────────────────────
-# Context builders — pull a slim snapshot of the DB
+# Context builders — pull a smart snapshot of the DB
 # ────────────────────────────────────────────────
 
-async def _slim_partners(db, limit: int = 30) -> List[Dict[str, Any]]:
-    cursor = db.partners.find({}, {
+# Spanish/English/Portuguese/French keyword → canonical filter
+KEYWORD_FILTERS: Dict[str, Dict[str, Any]] = {
+    # Cuisines
+    "italian": {"subcategory": "italiana"}, "italiana": {"subcategory": "italiana"},
+    "italien": {"subcategory": "italiana"}, "italienne": {"subcategory": "italiana"},
+    "italiano": {"subcategory": "italiana"},
+    "japanese": {"subcategory": "asiatica"}, "japonesa": {"subcategory": "asiatica"},
+    "asian": {"subcategory": "asiatica"}, "asiatica": {"subcategory": "asiatica"},
+    "asiática": {"subcategory": "asiatica"}, "asiatique": {"subcategory": "asiatica"},
+    "sushi": {"subcategory": "asiatica"},
+    "marisco": {"subcategory": "mariscos"}, "mariscos": {"subcategory": "mariscos"},
+    "seafood": {"subcategory": "mariscos"}, "frutos do mar": {"subcategory": "mariscos"},
+    "fruits de mer": {"subcategory": "mariscos"}, "fish": {"subcategory": "mariscos"},
+    "ceviche": {"subcategory": "mariscos"},
+    "vegetarian": {"subcategory": "vegetariana"}, "vegana": {"subcategory": "vegetariana"},
+    "vegano": {"subcategory": "vegetariana"}, "vegetariana": {"subcategory": "vegetariana"},
+    "végétarien": {"subcategory": "vegetariana"}, "vegano": {"subcategory": "vegetariana"},
+    "arab": {"subcategory": "arabe"}, "árabe": {"subcategory": "arabe"},
+    "arabe": {"subcategory": "arabe"}, "libanesa": {"subcategory": "arabe"},
+    "gastro": {"subcategory": "gastro"}, "gourmet": {"subcategory": "gastro"},
+    "international": {"subcategory": "internacional"}, "internacional": {"subcategory": "internacional"},
+    "internacional": {"subcategory": "internacional"},
+    "local": {"subcategory": "local"}, "típica": {"subcategory": "local"},
+    "tipica": {"subcategory": "local"}, "criolla": {"subcategory": "local"},
+    "colombiana": {"subcategory": "local"},
+    # Categories
+    "restaurant": {"category": "restaurant"}, "restaurante": {"category": "restaurant"},
+    "restaurants": {"category": "restaurant"}, "comer": {"category": "restaurant"},
+    "comida": {"category": "restaurant"}, "eat": {"category": "restaurant"},
+    "manger": {"category": "restaurant"}, "dîner": {"category": "restaurant"},
+    "almuerzo": {"category": "restaurant"}, "lunch": {"category": "restaurant"},
+    "cena": {"category": "restaurant"}, "dinner": {"category": "restaurant"},
+    "hotel": {"category": "hotel"}, "hoteles": {"category": "hotel"},
+    "hotels": {"category": "hotel"}, "hôtel": {"category": "hotel"}, "hostel": {"category": "hotel"},
+    "alojamiento": {"category": "hotel"}, "stay": {"category": "hotel"}, "logement": {"category": "hotel"},
+    "beach": {"category": "beach_club"}, "playa": {"category": "beach_club"},
+    "praia": {"category": "beach_club"}, "plage": {"category": "beach_club"},
+    "beach club": {"category": "beach_club"}, "beach_club": {"category": "beach_club"},
+    "isla": {"category": "tour"}, "islas": {"category": "tour"}, "island": {"category": "tour"},
+    "islands": {"category": "tour"}, "îles": {"category": "tour"}, "ilha": {"category": "tour"},
+    "baru": {"category": "tour"}, "barú": {"category": "tour"}, "rosario": {"category": "tour"},
+    "wellness": {"category": "wellness"}, "spa": {"category": "wellness"}, "yoga": {"category": "wellness"},
+    "massage": {"category": "wellness"}, "masaje": {"category": "wellness"},
+    "fiesta": {"category": "nightclub"}, "party": {"category": "nightclub"},
+    "fête": {"category": "nightclub"}, "festa": {"category": "nightclub"},
+    "club": {"category": "nightclub"}, "discoteca": {"category": "nightclub"},
+    "night": {"category": "nightclub"}, "noche": {"category": "nightclub"},
+    # Tiers
+    "luxury": {"tier": "luxe"}, "lujo": {"tier": "luxe"}, "luxe": {"tier": "luxe"},
+    "luxo": {"tier": "luxe"}, "alto": {"tier": "luxe"},
+    "premium": {"tier": "premium"},
+    "popular": {"tier": "popular"}, "barato": {"tier": "popular"},
+    "económico": {"tier": "popular"}, "cheap": {"tier": "popular"},
+    "elite": {"tier": "elite"}, "élite": {"tier": "elite"},
+    # Music / events
+    "music": {"event_category": "music"}, "música": {"event_category": "music"},
+    "musique": {"event_category": "music"}, "concierto": {"event_category": "music"},
+    "concert": {"event_category": "music"}, "show": {"event_category": "music"},
+    "sunset": {"event_category": "sunset"}, "atardecer": {"event_category": "sunset"},
+    "coucher de soleil": {"event_category": "sunset"}, "pôr do sol": {"event_category": "sunset"},
+    "pasa día": {"event_category": "daypass"}, "passa o dia": {"event_category": "daypass"},
+    "day pass": {"event_category": "daypass"}, "journée": {"event_category": "daypass"},
+    "cultura": {"event_category": "culture"}, "culture": {"event_category": "culture"},
+    "arte": {"event_category": "culture"}, "art": {"event_category": "culture"},
+}
+
+
+def _extract_filters_from_text(text: str) -> Dict[str, Any]:
+    """Use simple keyword matching to extract semantic filters from the user message."""
+    t = (text or "").lower()
+    filters: Dict[str, Any] = {}
+    for kw, fil in KEYWORD_FILTERS.items():
+        if kw in t:
+            for k, v in fil.items():
+                if k not in filters:
+                    filters[k] = v
+    return filters
+
+
+async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> List[Dict[str, Any]]:
+    """
+    Build a relevance-filtered partner list based on the user's question.
+
+    1. Extract semantic filters (cuisine, category, tier) from the user message.
+    2. Build a Mongo query honoring those filters.
+    3. If no specific filter found, return a diverse top-50 sample.
+    """
+    fields = {
         "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
         "tier": 1, "price_range": 1, "address": 1, "cuisine": 1, "rating": 1,
-        "is_government": 1,
+        "is_government": 1, "experience": 1, "instagram": 1, "booking_link": 1,
+        "phone": 1, "schedule": 1,
+    }
+    semantic = _extract_filters_from_text(user_text)
+    query: Dict[str, Any] = {}
+    if "category" in semantic:
+        query["category"] = semantic["category"]
+    if "subcategory" in semantic:
+        query["subcategory"] = semantic["subcategory"]
+    if "tier" in semantic:
+        query["tier"] = semantic["tier"]
+    free_text = (user_text or "").strip()
+    if free_text and len(free_text) > 2 and not query:
+        # Free text fallback (search across name + experience)
+        query["$or"] = [
+            {"name": {"$regex": free_text[:50], "$options": "i"}},
+            {"experience": {"$regex": free_text[:50], "$options": "i"}},
+        ]
+    cursor = db.partners.find(query, fields).limit(max_results)
+    rows = await cursor.to_list(max_results)
+    # If query returned empty (no semantic match), fall back to diverse sample
+    if not rows:
+        cursor = db.partners.find({}, fields).limit(max_results)
+        rows = await cursor.to_list(max_results)
+    return rows
+
+
+async def _slim_all_partners_compact(db, limit: int = 200) -> List[Dict[str, Any]]:
+    """Compact list of ALL partners — minimal fields, used as the 'master directory' the LLM scans."""
+    cursor = db.partners.find({}, {
+        "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
+        "tier": 1, "price_range": 1,
     }).limit(limit)
     return await cursor.to_list(limit)
 
 
-async def _slim_today_events(db, limit: int = 20) -> List[Dict[str, Any]]:
+async def _slim_upcoming_events(db, days: int = 14, limit: int = 60) -> List[Dict[str, Any]]:
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     cursor = db.events.find(
         {"date": {"$gte": today_str}},
-        {"_id": 0, "event_id": 1, "title": 1, "type": 1, "date": 1, "time": 1, "venue_name": 1, "category": 1, "price": 1},
+        {"_id": 0, "event_id": 1, "title": 1, "type": 1, "date": 1, "time": 1,
+         "venue_name": 1, "category": 1, "price": 1, "is_free": 1},
+    ).sort("date", 1).limit(limit)
+    return await cursor.to_list(limit)
+
+
+async def _slim_partner_events(db, limit: int = 40) -> List[Dict[str, Any]]:
+    """Pull upcoming partner-curated events (Daypass / Sunset / Cena especial / etc.)"""
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    cursor = db.partner_events.find(
+        {"date": {"$gte": today_str}, "moderation_status": {"$in": ["approved", None]}},
+        {"_id": 0, "event_id": 1, "title": 1, "date": 1, "time": 1, "partner_id": 1,
+         "category": 1, "subcategory": 1, "price": 1, "is_free": 1},
     ).sort("date", 1).limit(limit)
     return await cursor.to_list(limit)
 
@@ -78,15 +207,30 @@ async def _port_tax_price(db) -> int:
     return int((cfg or {}).get("price_per_person", 31500))
 
 
-async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """Pull the data the agent needs to reason about."""
-    partners = await _slim_partners(db, 40)
-    events = await _slim_today_events(db, 25)
+async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user_text: str = "") -> Dict[str, Any]:
+    """Pull the data the agent needs to reason about, focused on relevance to user_text."""
+    # All partners, compact (directory)
+    all_partners = await _slim_all_partners_compact(db, 200)
+    # Relevance-filtered partners (rich data) — pre-filtered using simple keyword extraction
+    relevant_partners = await _smart_partner_query(db, user_text, max_results=40)
+    # Events
+    upcoming_events = await _slim_upcoming_events(db, days=14, limit=50)
+    partner_events = await _slim_partner_events(db, limit=30)
     port_tax_price = await _port_tax_price(db)
     has_pass = False
     if user and user.get("user_id"):
         cnt = await db.city_passes.count_documents({"user_id": user["user_id"], "is_active": True})
         has_pass = cnt > 0
+    # Aggregate counts per category/subcategory so the LLM knows the full inventory
+    cat_counts = await db.partners.aggregate([
+        {"$group": {"_id": {"category": "$category", "subcategory": "$subcategory"}, "n": {"$sum": 1}}},
+        {"$sort": {"n": -1}},
+    ]).to_list(50)
+    inventory_summary = [
+        {"category": (r["_id"] or {}).get("category"), "subcategory": (r["_id"] or {}).get("subcategory"), "count": r["n"]}
+        for r in cat_counts if r.get("_id")
+    ]
+    semantic_filters = _extract_filters_from_text(user_text)
     return {
         "today": datetime.now(timezone.utc).strftime("%A %Y-%m-%d"),
         "user": {"name": (user or {}).get("name"), "is_logged_in": bool(user), "has_active_city_pass": has_pass} if user else {"is_logged_in": False},
@@ -98,8 +242,12 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None) -> D
             {"plan_id": "pass_ultimate", "name": "Ultimate", "price_cop": 599000},
         ],
         "partner_categories": ["restaurant", "hotel", "beach_club", "nightclub", "wellness", "tour", "transport"],
-        "partner_sample": partners[:25],
-        "today_events": events[:20],
+        "inventory_summary": inventory_summary,  # counts per category/subcategory
+        "semantic_filters_detected": semantic_filters,
+        "relevant_partners": relevant_partners,  # rich data for top matches
+        "all_partners_directory": all_partners,  # full catalog (compact)
+        "upcoming_events": upcoming_events,
+        "partner_curated_events": partner_events,  # daypass / sunset etc
         "tabs": ["agenda", "concerts", "partners", "citypass", "transport", "itineraries"],
     }
 
@@ -174,8 +322,17 @@ TU TRABAJO
 - Recomendás eventos, restaurantes, hoteles, beach clubs, paseos a las islas.
 - Iniciás compras (Tasa Portuaria, City Pass) cuando el usuario lo pide claramente.
 - Si el usuario pregunta algo general de Cartagena (historia, clima, seguridad) respondés con conocimiento local.
-- NUNCA inventés precios o partners. Solo recomendá los que aparecen en el `context.partner_sample` o `context.today_events`. Si no hay match, sugerí navegar a la pestaña adecuada.
+- ⚠️ **Usá EL CONTEXTO COMPLETO** que recibís en cada mensaje. Tenés:
+  • `relevant_partners` (rich data): los 40 partners MÁS RELEVANTES para la consulta del usuario, pre-filtrados por el backend con keywords. **CITÁ partners de esta lista por nombre con su partner_id exacto.**
+  • `all_partners_directory`: catálogo completo (200 partners en formato compacto) — usalo cuando `relevant_partners` no tenga match exacto.
+  • `inventory_summary`: cuántos partners hay por categoría/subcategoría (ej: "hay 12 restaurantes italianos").
+  • `semantic_filters_detected`: filtros que el backend detectó del mensaje del usuario.
+  • `upcoming_events` (14 días) + `partner_curated_events` (Daypass/Sunset/Cenas especiales).
+- **NUNCA INVENTÉS** partners o eventos. SOLO recomendá los que aparecen en el contexto.
+- Si hay >3 buenos candidatos en `relevant_partners`, RECOMENDÁ 2-3 con sus nombres reales y `open_partner` action por cada uno (max 4 actions total).
+- Si no hay match preciso, sugerí explorar con `show_partners` filtrado o `navigate` al tab.
 - Si la consulta es ambigua, hacé UNA pregunta corta de aclaración (ej: "¿Para cuántas personas?" / "How many people?" / "Pour combien de personnes ?").
+- **PRECISIÓN > GENERALIDAD**. Si el usuario dice "italiano" y `relevant_partners` tiene 8 italianos, sugerí los 2-3 mejores por tier/rating, no digas "tenemos italianos" en general.
 
 ══════════════════════════════════════════
 FORMATO DE RESPUESTA (JSON estricto, sin markdown, sin código de bloque)
@@ -267,16 +424,20 @@ def _safe_json_parse(text: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-def _fallback_response(user_text: str) -> Dict[str, Any]:
+def _fallback_response(user_text: str, forced_language: Optional[str] = None) -> Dict[str, Any]:
     """If the LLM fails, return a useful canned response."""
     t = (user_text or "").lower()
-    lang = "es"
-    if any(w in t for w in ["hello", "hi ", "hi.", "the ", "where", "how"]):
-        lang = "en"
-    elif any(w in t for w in ["bonjour", "salut", "où", "comment"]):
-        lang = "fr"
-    elif any(w in t for w in ["olá", "como", "onde"]):
-        lang = "pt"
+    lang = "es"  # default
+    if forced_language and forced_language in {"es", "en", "fr", "pt"}:
+        lang = forced_language
+    else:
+        # Strong detection: French first (most unique words), then PT, then EN, default ES
+        if any(w in t for w in [" je ", "je v", "bonjour", "salut", "où", "comment", "où", "voudrais"]):
+            lang = "fr"
+        elif any(w in t for w in [" você", " olá", "obrigad", " quero ", "ilhas", "amanhã", "vegetarian"]):
+            lang = "pt"
+        elif any(w in t for w in [" the ", "where", "how ", "tonight", "tomorrow", "want to", " can ", " i "]):
+            lang = "en"
     msg = {
         "es": "Soy Amo, tu concierge de Cartagena. ¿Querés ver la agenda de hoy, restaurantes, conciertos o un paseo a las islas?",
         "en": "I'm Amo, your Cartagena concierge. Want to see today's agenda, restaurants, concerts or a boat ride to the islands?",
@@ -349,26 +510,27 @@ async def run_agent_turn(
     concierge always answers in that language regardless of the message's language.
     """
 
+    forced = (forced_language or "").lower().strip()
+    if forced not in {"es", "en", "fr", "pt"}:
+        forced = ""
+
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage  # type: ignore
     except Exception as exc:
         logger.warning(f"emergentintegrations unavailable for ai_agent: {exc}")
-        return _fallback_response(user_text)
+        return _fallback_response(user_text, forced or None)
 
     api_key = os.environ.get("EMERGENT_LLM_KEY", "").strip()
     if not api_key:
-        return _fallback_response(user_text)
+        return _fallback_response(user_text, forced or None)
 
-    context = await build_context_snapshot(db, user=user)
+    context = await build_context_snapshot(db, user=user, user_text=user_text)
 
     # Compress history to last 10 user/assistant pairs
     short_history = history[-20:] if isinstance(history, list) else []
 
     # Build the user payload as a single JSON string. We send it all as one
     # UserMessage, since LlmChat manages session state internally.
-    forced = (forced_language or "").lower().strip()
-    if forced not in {"es", "en", "fr", "pt"}:
-        forced = ""
     user_payload = {
         "now": context["today"],
         "context": context,
@@ -404,16 +566,16 @@ async def run_agent_turn(
         response = await chat.send_message(UserMessage(text=json.dumps(user_payload, ensure_ascii=False)))
     except Exception as exc:
         logger.warning(f"ai_agent LLM call failed: {exc}")
-        return _fallback_response(user_text)
+        return _fallback_response(user_text, forced or None)
 
     parsed = _safe_json_parse(response or "")
     if not parsed or not isinstance(parsed, dict):
-        return _fallback_response(user_text)
+        return _fallback_response(user_text, forced or None)
 
     # Validate keys
     message = (parsed.get("message") or "").strip()
     if not message:
-        return _fallback_response(user_text)
+        return _fallback_response(user_text, forced or None)
     language = parsed.get("language") or "es"
     if language not in {"es", "en", "fr", "pt"}:
         language = "es"
