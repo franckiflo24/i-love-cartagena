@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
@@ -10,11 +10,20 @@ import { useTr } from '../../src/i18n/autoTr';
 export default function BusinessLogin() {
   const tr = useTr();
   const router = useRouter();
+  const { role } = useLocalSearchParams<{ role?: string }>();
   const { login } = useBusinessAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const isAlcaldia = role === 'alcaldia';
+
+  useEffect(() => {
+    if (isAlcaldia) {
+      setEmail('alcaldia@amocartagena.app');
+    }
+  }, [isAlcaldia]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -51,12 +60,14 @@ export default function BusinessLogin() {
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <View style={styles.heroIcon}>
-            <Ionicons name="business" size={42} color={COLORS.primary} />
+          <View style={[styles.heroIcon, isAlcaldia && styles.heroIconAlcaldia]}>
+            <Ionicons name={isAlcaldia ? 'shield-checkmark' : 'business'} size={42} color={isAlcaldia ? '#1B4F72' : COLORS.primary} />
           </View>
-          <Text style={styles.title}>{tr('Acceso Partners')}</Text>
+          <Text style={styles.title}>{isAlcaldia ? tr('Alcaldía de Cartagena') : tr('Acceso Partners')}</Text>
           <Text style={styles.subtitle}>
-            Gestiona tu agenda, publica eventos y monitorea reservas en Amo Cartagena.
+            {isAlcaldia
+              ? tr('Acceso institucional al dashboard oficial de la ciudad.')
+              : tr('Gestiona tu agenda, publica eventos y monitorea reservas en Amo Cartagena.')}
           </Text>
 
           <View style={styles.form}>
@@ -129,6 +140,7 @@ const styles = StyleSheet.create({
   backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border },
   scroll: { padding: SPACING.lg, alignItems: 'center' },
   heroIcon: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(217,119,6,0.15)', borderWidth: 1.5, borderColor: COLORS.primary, marginTop: SPACING.lg },
+  heroIconAlcaldia: { backgroundColor: 'rgba(27,79,114,0.18)', borderColor: '#1B4F72' },
   title: { fontSize: 26, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.lg, textAlign: 'center' },
   subtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 20, paddingHorizontal: SPACING.md, marginTop: SPACING.xs },
   form: { width: '100%', marginTop: SPACING.xl, gap: SPACING.sm },

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +10,8 @@ import { useLang } from '../../src/context/LanguageContext';
 import { LANG_LABELS, LANG_FLAGS, Lang } from '../../src/i18n/translations';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
+
+const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
 
 type Event = {
   event_id: string; title: string; date: string; start_time: string;
@@ -77,50 +79,138 @@ export default function PerfilScreen() {
   if (!user) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.loginPrompt}>
-          <Ionicons name="person-circle-outline" size={80} color={COLORS.textMuted} />
-          <Text style={styles.loginTitle}>{s('profile_login')}</Text>
-          <Text style={styles.loginDesc}>{s('fav_empty_desc')}</Text>
-          <TouchableOpacity testID="profile-login-btn" style={styles.loginBtn} onPress={login}>
-            <Ionicons name="logo-google" size={18} color={COLORS.white} />
-            <Text style={styles.loginBtnText}>{s('login_google')}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Language Selector for guests */}
-        <View style={styles.langSectionGuest}>
-          <View style={styles.langHeader}>
-            <Ionicons name="globe-outline" size={18} color={COLORS.textMuted} />
-            <Text style={styles.langTitle}>{s('profile_language')}</Text>
-          </View>
-          <View style={styles.langRow}>
-            {(['es', 'en', 'fr', 'pt'] as Lang[]).map(l => {
+        <ScrollView
+          contentContainerStyle={styles.guestScroll}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Compact language pills - top right, one row */}
+          <View style={styles.langPillsRow}>
+            {(Object.keys(LANG_CODES) as Lang[]).map((l) => {
               const isActive = lang === l;
               return (
                 <TouchableOpacity
                   key={l}
-                  style={[styles.langBtn, isActive && styles.langBtnActive]}
+                  testID={`guest-lang-${l}`}
+                  style={[styles.langPill, isActive && styles.langPillActive]}
                   onPress={() => setLang(l)}
+                  activeOpacity={0.85}
+                  hitSlop={{ top: 6, bottom: 6, left: 4, right: 4 }}
                 >
-                  <Text style={styles.langFlag}>{LANG_FLAGS[l]}</Text>
-                  <Text style={[styles.langLabel, isActive && styles.langLabelActive]}>{LANG_LABELS[l]}</Text>
+                  <Text style={styles.langPillFlag}>{LANG_FLAGS[l]}</Text>
+                  <Text style={[styles.langPillCode, isActive && styles.langPillCodeActive]}>
+                    {LANG_CODES[l]}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
-        </View>
 
-        {/* Business / Partner Access */}
-        <TouchableOpacity style={styles.businessAccessCard} onPress={() => router.push('/business/login')} activeOpacity={0.85}>
-          <View style={styles.businessIconWrap}>
-            <Ionicons name="business" size={20} color={COLORS.primary} />
+          {/* Welcome header */}
+          <View style={styles.guestHero}>
+            <View style={styles.guestAvatarCircle}>
+              <Ionicons name="person-circle-outline" size={56} color={COLORS.primary} />
+            </View>
+            <Text style={styles.guestTitle}>{s('profile_login')}</Text>
+            <Text style={styles.guestSubtitle}>{tr('Inicia sesión para guardar favoritos, recibir recomendaciones IA y acceder a tu City Pass.')}</Text>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.businessTitle}>¿Eres partner de Amo Cartagena?</Text>
-            <Text style={styles.businessDesc}>Accede a tu dashboard y publica eventos</Text>
+
+          {/* PRIMARY: Continue with Google */}
+          <TouchableOpacity
+            testID="profile-login-google"
+            style={styles.googleButton}
+            onPress={login}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="logo-google" size={20} color={COLORS.white} />
+            <Text style={styles.googleButtonText}>{s('login_google')}</Text>
+          </TouchableOpacity>
+
+          {/* OR divider */}
+          <View style={styles.orRow}>
+            <View style={styles.orLine} />
+            <Text style={styles.orText}>{s('login_other_methods')}</Text>
+            <View style={styles.orLine} />
           </View>
-          <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
-        </TouchableOpacity>
+
+          {/* SECONDARY: Other login methods */}
+          <View style={styles.otherMethodsCol}>
+            <TouchableOpacity
+              testID="profile-login-whatsapp"
+              style={[styles.methodBtn, styles.whatsappBtn]}
+              onPress={() => router.push('/login')}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="logo-whatsapp" size={20} color={COLORS.white} />
+              <Text style={styles.methodBtnText}>{s('login_whatsapp')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              testID="profile-login-email"
+              style={[styles.methodBtn, styles.outlineMethodBtn]}
+              onPress={() => router.push('/login')}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="mail-outline" size={18} color={COLORS.white} />
+              <Text style={styles.methodBtnText}>{s('login_email_signup')}</Text>
+            </TouchableOpacity>
+
+            {Platform.OS === 'ios' && (
+              <TouchableOpacity
+                testID="profile-login-apple"
+                style={[styles.methodBtn, styles.appleBtn]}
+                onPress={login}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="logo-apple" size={20} color={COLORS.white} />
+                <Text style={styles.methodBtnText}>{s('login_apple')}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Section separator */}
+          <View style={styles.sectionSep}>
+            <Text style={styles.sectionSepText}>{tr('Accesos especiales')}</Text>
+          </View>
+
+          {/* Partner Access */}
+          <TouchableOpacity
+            testID="guest-partner-access"
+            style={styles.specialCard}
+            onPress={() => router.push('/business/login')}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.specialIconWrap, { backgroundColor: 'rgba(217,119,6,0.15)' }]}>
+              <Ionicons name="business" size={22} color={COLORS.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.specialTitle}>{tr('¿Eres partner de Amo Cartagena?')}</Text>
+              <Text style={styles.specialDesc}>{tr('Accede a tu dashboard y publica eventos')}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+          </TouchableOpacity>
+
+          {/* Alcaldía Access - Special profile */}
+          <TouchableOpacity
+            testID="guest-alcaldia-access"
+            style={[styles.specialCard, styles.alcaldiaCard]}
+            onPress={() => router.push('/business/login?role=alcaldia' as any)}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.specialIconWrap, { backgroundColor: 'rgba(59,130,246,0.18)' }]}>
+              <Ionicons name="shield-checkmark" size={22} color="#3B82F6" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.specialTitle}>{tr('Alcaldía de Cartagena')}</Text>
+              <Text style={styles.specialDesc}>{tr('Perfil institucional · Dashboard oficial')}</Text>
+            </View>
+            <View style={styles.officialBadge}>
+              <Ionicons name="ribbon" size={10} color="#3B82F6" />
+              <Text style={styles.officialBadgeText}>{tr('Oficial')}</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View style={{ height: SPACING.xl }} />
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -452,4 +542,141 @@ const styles = StyleSheet.create({
   },
   businessTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
   businessDesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+
+  // ── Guest view (not logged in) ──
+  guestScroll: {
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.xs,
+    paddingBottom: SPACING.xl,
+  },
+  langPillsRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 6,
+  },
+  langPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 5,
+    paddingHorizontal: 9,
+    borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+  },
+  langPillActive: {
+    backgroundColor: 'rgba(217,119,6,0.22)',
+    borderColor: COLORS.primary,
+  },
+  langPillFlag: { fontSize: 13 },
+  langPillCode: { fontSize: 10, color: 'rgba(255,255,255,0.7)', ...FONTS.bold, letterSpacing: 0.4 },
+  langPillCodeActive: { color: COLORS.white },
+
+  guestHero: {
+    alignItems: 'center',
+    marginTop: SPACING.lg,
+    marginBottom: SPACING.lg,
+    gap: SPACING.xs,
+  },
+  guestAvatarCircle: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: 'rgba(217,119,6,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.xs,
+    borderWidth: 1,
+    borderColor: 'rgba(217,119,6,0.3)',
+  },
+  guestTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
+  guestSubtitle: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+    ...FONTS.regular,
+    textAlign: 'center',
+    lineHeight: 19,
+    paddingHorizontal: SPACING.md,
+  },
+
+  googleButton: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: COLORS.primary, borderRadius: RADIUS.full,
+    paddingVertical: 14, paddingHorizontal: SPACING.xl, width: '100%', gap: SPACING.sm,
+    shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 6,
+  },
+  googleButtonText: { fontSize: 16, color: COLORS.white, ...FONTS.bold },
+
+  orRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginVertical: SPACING.sm },
+  orLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.12)' },
+  orText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, letterSpacing: 0.4, textTransform: 'uppercase' },
+
+  otherMethodsCol: { gap: 10 },
+  methodBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: RADIUS.full,
+    paddingVertical: 13,
+    width: '100%',
+  },
+  whatsappBtn: { backgroundColor: '#25D366' },
+  outlineMethodBtn: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+  },
+  appleBtn: { backgroundColor: '#000000', borderWidth: 1, borderColor: '#1a1a1a' },
+  methodBtnText: { fontSize: 14, color: COLORS.white, ...FONTS.semibold },
+
+  sectionSep: {
+    marginTop: SPACING.xl,
+    marginBottom: SPACING.sm,
+    alignItems: 'center',
+  },
+  sectionSepText: {
+    fontSize: 11,
+    color: COLORS.textMuted,
+    ...FONTS.bold,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+
+  specialCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.md,
+    padding: SPACING.md,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(217,119,6,0.3)',
+    marginBottom: SPACING.sm,
+  },
+  alcaldiaCard: {
+    borderColor: 'rgba(59,130,246,0.35)',
+  },
+  specialIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  specialTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
+  specialDesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+  officialBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(59,130,246,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(59,130,246,0.4)',
+  },
+  officialBadgeText: { fontSize: 9, color: '#3B82F6', ...FONTS.bold, letterSpacing: 0.4 },
 });
