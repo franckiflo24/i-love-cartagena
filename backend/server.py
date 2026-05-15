@@ -3518,26 +3518,6 @@ async def startup():
     await db.partners.update_many({"tier": {"$exists": False}}, {"$set": {"tier": "popular"}})
     logger.info("Partner tier migration applied!")
 
-    # ── Migration: Initialise membership fields on partners ──
-    # SaaS billing model: every active partner has a membership. Tier mirrors the partner
-    # visual tier by default (popular/premium/elite). Status defaults to 'active' so existing
-    # partners are not retroactively hidden.
-    await db.partners.update_many(
-        {"membership_status": {"$exists": False}},
-        {"$set": {
-            "membership_status": "active",
-            "membership_paid_until": None,
-            "default_payment_link": "",
-        }},
-    )
-    # Ensure membership_tier mirrors visible tier when missing
-    async for p in db.partners.find({"membership_tier": {"$exists": False}}, {"partner_id": 1, "tier": 1}):
-        await db.partners.update_one(
-            {"partner_id": p["partner_id"]},
-            {"$set": {"membership_tier": p.get("tier") or "popular"}},
-        )
-    logger.info("Membership migration applied!")
-
     # ── Migration: Add Instagram + extended fields to partners ──
     PARTNER_INSTAGRAM = {
         "ptr_001": "casaboheme.cartagena", "ptr_002": "bellini.cartagena",
@@ -4511,6 +4491,27 @@ async def startup():
         ]
         await db.sponsors.insert_many(sponsors)
         logger.info(f"Seeded {len(sponsors)} sponsors!")
+
+    # ── FINAL MIGRATION: Membership fields ──
+    # MUST run at the very end of startup because earlier migration blocks delete &
+    # re-insert restaurant partners (lines 3924-3940 area), which would wipe membership_*
+    # fields if applied earlier. Idempotent: only writes to partners missing the fields.
+    miss_status = await db.partners.update_many(
+        {"membership_status": {"$exists": False}},
+        {"$set": {
+            "membership_status": "active",
+            "membership_paid_until": None,
+            "default_payment_link": "",
+        }},
+    )
+    miss_tier_count = 0
+    async for p in db.partners.find({"membership_tier": {"$exists": False}}, {"partner_id": 1, "tier": 1}):
+        await db.partners.update_one(
+            {"partner_id": p["partner_id"]},
+            {"$set": {"membership_tier": p.get("tier") or "popular"}},
+        )
+        miss_tier_count += 1
+    logger.info(f"Membership migration: {miss_status.modified_count} status, {miss_tier_count} tier updates")
 
 
 async def seed_concerts():
