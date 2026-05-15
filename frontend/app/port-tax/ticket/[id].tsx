@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../../src/constants/theme';
 import { api } from '../../../src/constants/api';
+import { useTr } from '../../../src/i18n/autoTr';
 
 type Ticket = {
   ticket_id: string;
@@ -45,6 +46,7 @@ function formatHumanDate(ymd: string): string {
 }
 
 export default function PortTaxTicketScreen() {
+  const tr = useTr();
   const router = useRouter();
   const { id, fromCheckout } = useLocalSearchParams<{ id: string; fromCheckout?: string }>();
   const [ticket, setTicket] = useState<Ticket | null>(null);
@@ -81,7 +83,7 @@ export default function PortTaxTicketScreen() {
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>Tu tiquete</Text>
-          <Text style={styles.subtitle}>Tasa Portuaria</Text>
+          <Text style={styles.subtitle}>{tr('Tasa Portuaria')}</Text>
         </View>
         <TouchableOpacity
           onPress={() => Share.share({ message: `Tiquete Tasa Portuaria — ID ${ticket.ticket_id.toUpperCase()} · ${ticket.qty} pax · ${formatHumanDate(ticket.travel_date)}` })}
@@ -105,7 +107,7 @@ export default function PortTaxTicketScreen() {
             <Text style={[styles.statusText, { color: status.fg }]}>{status.label}</Text>
           </View>
 
-          <Text style={styles.planName}>Tasa Portuaria</Text>
+          <Text style={styles.planName}>{tr('Tasa Portuaria')}</Text>
           <Text style={styles.routeName}>La Bodeguita → Islas</Text>
 
           <View style={styles.qrWrap}>
@@ -136,7 +138,7 @@ export default function PortTaxTicketScreen() {
 
           <View style={styles.detailRow}>
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Pasajeros</Text>
+              <Text style={styles.detailLabel}>{tr('Pasajeros')}</Text>
               <Text style={styles.detailVal}>{ticket.qty}</Text>
             </View>
             <View style={styles.detailItem}>
@@ -158,7 +160,7 @@ export default function PortTaxTicketScreen() {
 
           {!!ticket.passengers?.length && (
             <View style={styles.paxList}>
-              <Text style={styles.paxTitle}>Pasajeros</Text>
+              <Text style={styles.paxTitle}>{tr('Pasajeros')}</Text>
               {ticket.passengers.map((p, i) => (
                 <View key={i} style={styles.paxRow}>
                   <Ionicons name="person-circle-outline" size={16} color={COLORS.textMuted} />

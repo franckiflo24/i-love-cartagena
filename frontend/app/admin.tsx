@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
+import { useTr } from '../src/i18n/autoTr';
 
 const screenWidth = Dimensions.get('window').width;
 const chartWidth = screenWidth - 48;
@@ -133,6 +134,7 @@ const RankRow = ({ rank, title, subtitle, value, valueLabel }: { rank: number; t
 
 // ── Main Dashboard ──
 export default function AdminDashboard() {
+  const tr = useTr();
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [modStats, setModStats] = useState<{ pending: number; unread_notifications: number; auto_corrected_categories: number } | null>(null);
@@ -226,9 +228,9 @@ export default function AdminDashboard() {
       <View style={styles.kpiGrid}>
         <KPICard icon="people" label="Usuarios" value={data.kpis.total_users} color="#3B82F6" />
         <KPICard icon="pulse" label="Interacciones" value={data.kpis.total_interactions} color="#D97706" />
-        <KPICard icon="calendar" label="Eventos" value={data.kpis.total_events} color="#22C55E" />
-        <KPICard icon="diamond" label="Partners" value={data.kpis.total_partners} color="#8B5CF6" />
-        <KPICard icon="ticket" label="City Pass" value={data.kpis.total_passes} color="#F59E0B" />
+        <KPICard icon="calendar" label={tr('Eventos')} value={data.kpis.total_events} color="#22C55E" />
+        <KPICard icon="diamond" label={tr('Partners')} value={data.kpis.total_partners} color="#8B5CF6" />
+        <KPICard icon="ticket" label={tr('City Pass')} value={data.kpis.total_passes} color="#F59E0B" />
         <KPICard icon="cash" label="Revenue" value={formatCOP(data.kpis.total_revenue_cop)} color="#22C55E" subtitle="COP" />
       </View>
 
@@ -414,9 +416,9 @@ export default function AdminDashboard() {
       {/* Quick Stats */}
       <View style={styles.kpiGrid}>
         <KPICard icon="eye" label="Page Views" value={data.funnel.find(f => f.stage === 'Visitas')?.count || 0} color="#3B82F6" />
-        <KPICard icon="map" label="Mapa" value={data.kpis.map_views} color="#8B5CF6" />
-        <KPICard icon="bus" label="Transporte" value={data.kpis.transport_views} color="#06B6D4" />
-        <KPICard icon="bookmark" label="Reservas" value={data.kpis.booking_clicks} color="#22C55E" />
+        <KPICard icon="map" label={tr('Mapa')} value={data.kpis.map_views} color="#8B5CF6" />
+        <KPICard icon="bus" label={tr('Transporte')} value={data.kpis.transport_views} color="#06B6D4" />
+        <KPICard icon="bookmark" label={tr('Reservas')} value={data.kpis.booking_clicks} color="#22C55E" />
       </View>
 
       {/* Hourly Activity */}

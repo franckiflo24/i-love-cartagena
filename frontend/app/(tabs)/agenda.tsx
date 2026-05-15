@@ -8,6 +8,7 @@ import { api } from '../../src/constants/api';
 import { PartnerEventCard, PartnerEvent } from '../../src/components/PartnerEventCard';
 import { useMyCalendar, CalendarItem } from '../../src/context/MyCalendarContext';
 import { TierBadge } from '../../src/components/TierBadge';
+import { useTr } from '../../src/i18n/autoTr';
 
 type Mode = 'salir' | 'mi_agenda';
 
@@ -26,7 +27,7 @@ const PARTNER_CATEGORIES = [
 const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 const DAYS_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
-const generateUpcomingDates = () => {
+const generateUpcomingDates = (tr: (s: string) => string) => {
   const today = new Date();
   // End at December 31 of the current year. If we're in the last 2 months
   // of the year, extend through December 31 of NEXT year so the user
@@ -46,9 +47,9 @@ const generateUpcomingDates = () => {
     const m = dt.getMonth();
     dates.push({
       key: iso,
-      day: i === 0 ? 'Hoy' : i === 1 ? 'Mañ' : DAYS_ES[dt.getDay()],
+      day: i === 0 ? tr('Hoy') : i === 1 ? tr('Mañ') : tr(DAYS_ES[dt.getDay()]),
       date: String(dt.getDate()),
-      month: MONTHS_ES[m],
+      month: tr(MONTHS_ES[m]),
       isToday: i === 0,
       isFirstOfMonth: m !== lastMonth,
     });
@@ -69,6 +70,7 @@ const formatLongDate = (iso: string) => {
 const todayIso = () => new Date().toISOString().slice(0, 10);
 
 export default function AgendaScreen() {
+  const tr = useTr();
   const router = useRouter();
   const params = useLocalSearchParams<{ mode?: string }>();
   const [mode, setMode] = useState<Mode>('salir');
@@ -81,7 +83,7 @@ export default function AgendaScreen() {
   }, [params.mode]);
 
   // Salir (Partner) state
-  const upcomingDates = useMemo(() => generateUpcomingDates(), []);
+  const upcomingDates = useMemo(() => generateUpcomingDates(tr), [tr]);
   const dateScrollRef = useRef<ScrollView | null>(null);
   // Unique months derived from upcomingDates — used as a quick "jump" bar
   const availableMonths = useMemo(() => {
@@ -166,7 +168,7 @@ export default function AgendaScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header with segmented control */}
       <View style={styles.header}>
-        <Text style={styles.title}>Agenda</Text>
+        <Text style={styles.title}>{tr('Agenda')}</Text>
         <Text style={styles.subtitle}>
           {mode === 'salir' ? 'Qué hacer hoy en Cartagena' : 'Tus eventos guardados'}
         </Text>
@@ -226,7 +228,7 @@ export default function AgendaScreen() {
                   }}
                 >
                   <Text style={[styles.monthChipText, isActive && styles.monthChipTextActive]}>
-                    {m.label}
+                    {tr(m.label)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -274,7 +276,7 @@ export default function AgendaScreen() {
                 >
                   <Ionicons name={c.icon as any} size={12} color={isActive ? COLORS.white : COLORS.textMuted} />
                   <Text style={[styles.catChipText, isActive && styles.catChipTextActive]}>
-                    {c.label}
+                    {tr(c.label)}
                   </Text>
                 </TouchableOpacity>
               );

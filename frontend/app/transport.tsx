@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
+import { useTr } from '../src/i18n/autoTr';
 
 const TRANSPORT_ICONS: Record<string, string> = {
   boat: 'boat',
@@ -27,6 +28,7 @@ function parsePrice(s: string): { oneWay: number; roundTrip: number } {
 }
 
 export default function TransportScreen() {
+  const tr = useTr();
   const router = useRouter();
   const [routes, setRoutes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -101,7 +103,7 @@ export default function TransportScreen() {
           <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title}>Transporte</Text>
+          <Text style={styles.title}>{tr('Transporte')}</Text>
           <Text style={styles.subtitle}>Compra tu ticket en línea — sin filas</Text>
         </View>
         <TouchableOpacity onPress={() => router.push('/my-tickets' as any)} style={styles.ticketsBtn}>
@@ -300,7 +302,7 @@ export default function TransportScreen() {
                 </View>
 
                 {/* Passengers */}
-                <Text style={styles.modalLabel}>Pasajeros</Text>
+                <Text style={styles.modalLabel}>{tr('Pasajeros')}</Text>
                 <View style={styles.paxRow}>
                   <TouchableOpacity
                     style={styles.paxBtn}
@@ -333,7 +335,7 @@ export default function TransportScreen() {
                     <Text style={styles.summaryValue}>${portTax.toLocaleString()}</Text>
                   </View>
                   <View style={[styles.summaryRow, styles.totalRow]}>
-                    <Text style={styles.totalLabel}>Total</Text>
+                    <Text style={styles.totalLabel}>{tr('Total')}</Text>
                     <Text style={styles.totalValue}>${total.toLocaleString()} COP</Text>
                   </View>
                 </View>
@@ -358,7 +360,7 @@ export default function TransportScreen() {
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.cancelBtn} onPress={closeAll}>
-                  <Text style={styles.cancelText}>Cancelar</Text>
+                  <Text style={styles.cancelText}>{tr('Cancelar')}</Text>
                 </TouchableOpacity>
               </>
             ) : (

@@ -5,8 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
+import { useTr } from '../../src/i18n/autoTr';
 
 export default function BusinessLogin() {
+  const tr = useTr();
   const router = useRouter();
   const { login } = useBusinessAuth();
   const [email, setEmail] = useState('');
@@ -52,7 +54,7 @@ export default function BusinessLogin() {
           <View style={styles.heroIcon}>
             <Ionicons name="business" size={42} color={COLORS.primary} />
           </View>
-          <Text style={styles.title}>Acceso Partners</Text>
+          <Text style={styles.title}>{tr('Acceso Partners')}</Text>
           <Text style={styles.subtitle}>
             Gestiona tu agenda, publica eventos y monitorea reservas en Amo Cartagena.
           </Text>
@@ -73,7 +75,7 @@ export default function BusinessLogin() {
               />
             </View>
 
-            <Text style={styles.label}>Contraseña</Text>
+            <Text style={styles.label}>{tr('Contraseña')}</Text>
             <View style={styles.inputWrap}>
               <Ionicons name="lock-closed-outline" size={18} color={COLORS.textMuted} />
               <TextInput

@@ -8,8 +8,10 @@ import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
 import { useLang } from '../../src/context/LanguageContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
+import { useTr } from '../../src/i18n/autoTr';
 
 export default function PartnerDetail() {
+  const tr = useTr();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { s } = useLang();
@@ -129,7 +131,7 @@ export default function PartnerDetail() {
           <View style={styles.infoGrid}>
             <View style={styles.infoCard}>
               <Ionicons name="location-outline" size={20} color={COLORS.primary} />
-              <Text style={styles.infoLabel}>Ubicación</Text>
+              <Text style={styles.infoLabel}>{tr('Ubicación')}</Text>
               <Text style={styles.infoValue}>{partner.address}</Text>
             </View>
             <View style={styles.infoCard}>
@@ -206,7 +208,7 @@ export default function PartnerDetail() {
       <View style={styles.bottomBar}>
         <TouchableOpacity testID="partner-directions-btn" style={styles.dirBtn} onPress={openMaps}>
           <Ionicons name="navigate" size={18} color={COLORS.primary} />
-          <Text style={styles.dirText}>Cómo llegar</Text>
+          <Text style={styles.dirText}>{tr('Cómo llegar')}</Text>
         </TouchableOpacity>
         {partner.booking_link ? (
           <TouchableOpacity testID="partner-reserve-btn" style={[styles.bookBtn, reserving && { opacity: 0.6 }]} onPress={handleReserve} disabled={reserving}>
@@ -214,7 +216,7 @@ export default function PartnerDetail() {
               <ActivityIndicator size="small" color={COLORS.white} />
             ) : (
               <>
-                <Text style={styles.bookText}>Reservar</Text>
+                <Text style={styles.bookText}>{tr('Reservar')}</Text>
                 <Ionicons name="arrow-forward" size={16} color={COLORS.white} />
               </>
             )}

@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useAuth } from '../src/context/AuthContext';
+import { useTr } from '../src/i18n/autoTr';
 
 const NOTIF_ICONS: Record<string, string> = {
   general: 'megaphone',
@@ -15,6 +16,7 @@ const NOTIF_ICONS: Record<string, string> = {
 };
 
 export default function NotificationsScreen() {
+  const tr = useTr();
   const router = useRouter();
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -48,7 +50,7 @@ export default function NotificationsScreen() {
         <TouchableOpacity testID="notif-back-btn" onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
         </TouchableOpacity>
-        <Text style={styles.title}>Notificaciones</Text>
+        <Text style={styles.title}>{tr('Notificaciones')}</Text>
       </View>
 
       <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>

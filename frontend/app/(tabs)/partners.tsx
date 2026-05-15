@@ -7,6 +7,7 @@ import { COLORS, SPACING, RADIUS, FONTS, PARTNER_CATEGORY_LABELS, TIER_COLORS, T
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
 import { useLang } from '../../src/context/LanguageContext';
+import { useTr } from '../../src/i18n/autoTr';
 
 type Partner = {
   partner_id: string; name: string; description: string; category: string;
@@ -78,6 +79,7 @@ const SUBCAT_THEME: Record<string, string> = {
 };
 
 export default function PartnersScreen() {
+  const tr = useTr();
   const router = useRouter();
   const { s } = useLang();
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -183,7 +185,7 @@ export default function PartnersScreen() {
           </View>
         ) : (
           <>
-            <Text style={styles.title}>Partners</Text>
+            <Text style={styles.title}>{tr('Partners')}</Text>
             <Text style={styles.subtitle}>Lugares certificados por Amo Cartagena</Text>
           </>
         )}
@@ -208,7 +210,7 @@ export default function PartnersScreen() {
                 return (
                   <View style={styles.emptyState}>
                     <Ionicons name="business-outline" size={48} color={COLORS.textMuted} />
-                    <Text style={styles.emptyText}>Próximamente</Text>
+                    <Text style={styles.emptyText}>{tr('Próximamente')}</Text>
                   </View>
                 );
               }
@@ -247,11 +249,11 @@ export default function PartnersScreen() {
                       </View>
                       <View style={styles.partnerActions}>
                         <TouchableOpacity style={styles.detailBtn} onPress={() => router.push(`/partner/${partner.partner_id}`)}>
-                          <Text style={styles.detailText}>Ver más</Text>
+                          <Text style={styles.detailText}>{tr('Ver más')}</Text>
                         </TouchableOpacity>
                         {partner.booking_link ? (
                           <TouchableOpacity style={styles.bookBtn} onPress={() => RNLinking.openURL(partner.booking_link)}>
-                            <Text style={styles.bookText}>Reservar</Text>
+                            <Text style={styles.bookText}>{tr('Reservar')}</Text>
                             <Ionicons name="arrow-forward" size={14} color={COLORS.white} />
                           </TouchableOpacity>
                         ) : null}
@@ -377,7 +379,7 @@ export default function PartnersScreen() {
                     </View>
                     {count === 0 && (
                       <View style={styles.subcatCardComingSoon}>
-                        <Text style={styles.subcatCardComingSoonText}>Próximamente</Text>
+                        <Text style={styles.subcatCardComingSoonText}>{tr('Próximamente')}</Text>
                       </View>
                     )}
                   </TouchableOpacity>
@@ -520,14 +522,14 @@ export default function PartnersScreen() {
                         style={styles.detailBtn}
                         onPress={() => router.push(`/partner/${partner.partner_id}`)}
                       >
-                        <Text style={styles.detailText}>Ver más</Text>
+                        <Text style={styles.detailText}>{tr('Ver más')}</Text>
                       </TouchableOpacity>
                       {partner.booking_link ? (
                         <TouchableOpacity
                           style={styles.bookBtn}
                           onPress={() => RNLinking.openURL(partner.booking_link)}
                         >
-                          <Text style={styles.bookText}>Reservar</Text>
+                          <Text style={styles.bookText}>{tr('Reservar')}</Text>
                           <Ionicons name="arrow-forward" size={14} color={COLORS.white} />
                         </TouchableOpacity>
                       ) : null}

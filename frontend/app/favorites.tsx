@@ -7,6 +7,7 @@ import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../src/consta
 import { useFavorites } from '../src/context/FavoritesContext';
 import { api } from '../src/constants/api';
 import { TierBadge } from '../src/components/TierBadge';
+import { useTr } from '../src/i18n/autoTr';
 
 type Tab = 'agenda' | 'partners';
 
@@ -20,6 +21,7 @@ const CAT_LABELS: Record<string, string> = {
 };
 
 export default function FavoritesScreen() {
+  const tr = useTr();
   const router = useRouter();
   const { favorites, toggleFavorite } = useFavorites();
   const [tab, setTab] = useState<Tab>('agenda');
@@ -104,7 +106,7 @@ export default function FavoritesScreen() {
           activeOpacity={0.85}
         >
           <Ionicons name="calendar" size={14} color={tab === 'agenda' ? COLORS.white : COLORS.textMuted} />
-          <Text style={[styles.tabText, tab === 'agenda' && styles.tabTextActive]}>Agenda</Text>
+          <Text style={[styles.tabText, tab === 'agenda' && styles.tabTextActive]}>{tr('Agenda')}</Text>
           <View style={[styles.tabBadge, tab === 'agenda' && styles.tabBadgeActive]}>
             <Text style={[styles.tabBadgeText, tab === 'agenda' && styles.tabBadgeTextActive]}>{agendaCount}</Text>
           </View>
@@ -115,7 +117,7 @@ export default function FavoritesScreen() {
           activeOpacity={0.85}
         >
           <Ionicons name="storefront" size={14} color={tab === 'partners' ? COLORS.white : COLORS.textMuted} />
-          <Text style={[styles.tabText, tab === 'partners' && styles.tabTextActive]}>Partners</Text>
+          <Text style={[styles.tabText, tab === 'partners' && styles.tabTextActive]}>{tr('Partners')}</Text>
           <View style={[styles.tabBadge, tab === 'partners' && styles.tabBadgeActive]}>
             <Text style={[styles.tabBadgeText, tab === 'partners' && styles.tabBadgeTextActive]}>{partnersCount}</Text>
           </View>

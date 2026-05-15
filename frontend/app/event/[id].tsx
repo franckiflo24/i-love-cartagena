@@ -7,8 +7,10 @@ import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS } from '../../src/con
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
+import { useTr } from '../../src/i18n/autoTr';
 
 export default function EventDetail() {
+  const tr = useTr();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuth();
@@ -171,7 +173,7 @@ export default function EventDetail() {
       <View style={styles.bottomBar}>
         <TouchableOpacity testID="event-directions-btn" style={styles.dirBtn} onPress={openMaps}>
           <Ionicons name="navigate" size={18} color={COLORS.primary} />
-          <Text style={styles.dirText}>Cómo llegar</Text>
+          <Text style={styles.dirText}>{tr('Cómo llegar')}</Text>
         </TouchableOpacity>
         {event.booking_link ? (
           <TouchableOpacity
@@ -179,7 +181,7 @@ export default function EventDetail() {
             style={styles.bookBtn}
             onPress={() => RNLinking.openURL(event.booking_link)}
           >
-            <Text style={styles.bookText}>Reservar</Text>
+            <Text style={styles.bookText}>{tr('Reservar')}</Text>
             <Ionicons name="arrow-forward" size={16} color={COLORS.white} />
           </TouchableOpacity>
         ) : (

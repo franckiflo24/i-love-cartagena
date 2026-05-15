@@ -9,6 +9,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { useLang } from '../../src/context/LanguageContext';
 import { LANG_LABELS, LANG_FLAGS, Lang } from '../../src/i18n/translations';
 import { useFavorites } from '../../src/context/FavoritesContext';
+import { useTr } from '../../src/i18n/autoTr';
 
 type Event = {
   event_id: string; title: string; date: string; start_time: string;
@@ -17,6 +18,7 @@ type Event = {
 };
 
 export default function PerfilScreen() {
+  const tr = useTr();
   const router = useRouter();
   const { user, login, logout } = useAuth();
   const { lang, setLang, s } = useLang();
@@ -256,7 +258,7 @@ export default function PerfilScreen() {
             <Ionicons name="business" size={20} color={COLORS.primary} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.businessTitle}>Acceso Partners</Text>
+            <Text style={styles.businessTitle}>{tr('Acceso Partners')}</Text>
             <Text style={styles.businessDesc}>Dashboard y gestión de eventos</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
@@ -318,7 +320,7 @@ export default function PerfilScreen() {
         {/* Logout */}
         <TouchableOpacity testID="logout-btn" style={styles.logoutBtn} onPress={logout}>
           <Ionicons name="log-out-outline" size={18} color={COLORS.error} />
-          <Text style={styles.logoutText}>Cerrar sesión</Text>
+          <Text style={styles.logoutText}>{tr('Cerrar sesión')}</Text>
         </TouchableOpacity>
 
         <View style={{ height: SPACING.xxl }} />

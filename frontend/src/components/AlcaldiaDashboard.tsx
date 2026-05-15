@@ -16,6 +16,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { api } from '../constants/api';
+import { useTr } from '../i18n/autoTr';
 
 type Tab = 'overview' | 'users' | 'payments' | 'demographics' | 'payouts';
 
@@ -50,6 +51,7 @@ export default function AlcaldiaDashboard({
   onCreateEvent,
   onMyEvents,
 }: Props) {
+  const tr = useTr();
   const [tab, setTab] = useState<Tab>('overview');
   const [analytics, setAnalytics] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
@@ -189,7 +191,7 @@ export default function AlcaldiaDashboard({
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionBtnAlt} onPress={onEditProfile}>
           <Ionicons name="create" size={16} color={COLORS.primary} />
-          <Text style={styles.actionBtnAltText}>Editar perfil</Text>
+          <Text style={styles.actionBtnAltText}>{tr('Editar perfil')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -226,7 +228,7 @@ export default function AlcaldiaDashboard({
               <View style={styles.kpiSplitItem}>
                 <Ionicons name="ticket" size={14} color="#22C55E" />
                 <View>
-                  <Text style={styles.kpiSplitLabel}>City Pass</Text>
+                  <Text style={styles.kpiSplitLabel}>{tr('City Pass')}</Text>
                   <Text style={styles.kpiSplitValue}>{fmtCOP(k.citypass_revenue_cop)}</Text>
                 </View>
               </View>
@@ -234,7 +236,7 @@ export default function AlcaldiaDashboard({
               <View style={styles.kpiSplitItem}>
                 <Ionicons name="boat" size={14} color="#3B82F6" />
                 <View>
-                  <Text style={styles.kpiSplitLabel}>Tasa Portuaria</Text>
+                  <Text style={styles.kpiSplitLabel}>{tr('Tasa Portuaria')}</Text>
                   <Text style={styles.kpiSplitValue}>{fmtCOP(k.port_tax_revenue_cop)}</Text>
                 </View>
               </View>
@@ -315,7 +317,7 @@ export default function AlcaldiaDashboard({
           </View>
 
           <View style={styles.summaryRow}>
-            <SummaryItem label="City Pass" value={fmtNum(k.total_passes_sold)} />
+            <SummaryItem label={tr('City Pass')} value={fmtNum(k.total_passes_sold)} />
             <SummaryItem label="Tasa Port." value={fmtNum(k.port_tax_tickets)} />
             <SummaryItem label="Ingresos" value={fmtCOP(k.total_revenue_cop)} />
           </View>
@@ -530,7 +532,7 @@ export default function AlcaldiaDashboard({
                   <View style={styles.userMetaRow}>
                     {u.has_active_pass && (
                       <View style={[styles.tag, { backgroundColor: 'rgba(34,197,94,0.18)' }]}>
-                        <Text style={[styles.tagText, { color: '#22C55E' }]}>City Pass</Text>
+                        <Text style={[styles.tagText, { color: '#22C55E' }]}>{tr('City Pass')}</Text>
                       </View>
                     )}
                     {u.port_tax_tickets > 0 && (

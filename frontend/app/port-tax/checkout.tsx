@@ -10,6 +10,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { openWompiCheckout, checkWompiEnabled, notConfiguredAlert } from '../../src/lib/wompi';
+import { useTr } from '../../src/i18n/autoTr';
 
 type Cfg = {
   price_per_person: number;
@@ -42,6 +43,7 @@ function formatHumanDate(ymd: string): string {
 }
 
 export default function PortTaxCheckoutScreen() {
+  const tr = useTr();
   const router = useRouter();
   const { user, login } = useAuth();
   const [cfg, setCfg] = useState<Cfg | null>(null);
@@ -139,7 +141,7 @@ export default function PortTaxCheckoutScreen() {
           <Ionicons name="arrow-back" size={20} color={COLORS.textMain} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title}>Tasa Portuaria</Text>
+          <Text style={styles.title}>{tr('Tasa Portuaria')}</Text>
           <Text style={styles.subtitle}>Muelle La Bodeguita → Islas</Text>
         </View>
       </View>
@@ -161,7 +163,7 @@ export default function PortTaxCheckoutScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pasajeros</Text>
+          <Text style={styles.sectionTitle}>{tr('Pasajeros')}</Text>
           <View style={styles.qtyRow}>
             <TouchableOpacity
               style={[styles.qtyBtn, qty <= 1 && styles.qtyBtnDisabled]}
@@ -205,7 +207,7 @@ export default function PortTaxCheckoutScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Fecha de viaje</Text>
+          <Text style={styles.sectionTitle}>{tr('Fecha de viaje')}</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -267,7 +269,7 @@ export default function PortTaxCheckoutScreen() {
 
       <View style={styles.bottomBar}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.bottomLabel}>Total</Text>
+          <Text style={styles.bottomLabel}>{tr('Total')}</Text>
           <Text style={styles.bottomTotal}>{formatPrice(total)}</Text>
         </View>
         <TouchableOpacity

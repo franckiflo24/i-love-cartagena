@@ -7,8 +7,10 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { pickAndUploadImage } from '../../src/lib/uploadImage';
+import { useTr } from '../../src/i18n/autoTr';
 
 export default function ProfileEdit() {
+  const tr = useTr();
   const router = useRouter();
   const { token, partner, refresh } = useBusinessAuth();
 
@@ -77,7 +79,7 @@ export default function ProfileEdit() {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
           <Ionicons name="close" size={22} color={COLORS.textMain} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Editar perfil</Text>
+        <Text style={styles.headerTitle}>{tr('Editar perfil')}</Text>
         <View style={styles.headerBtn} />
       </View>
 
@@ -112,7 +114,7 @@ export default function ProfileEdit() {
           <Text style={styles.label}>Descripción</Text>
           <TextInput style={[styles.input, styles.textarea]} value={description} onChangeText={setDescription} placeholder="Describe tu negocio en pocas líneas" placeholderTextColor={COLORS.textMuted} multiline numberOfLines={4} textAlignVertical="top" />
 
-          <Text style={styles.label}>Dirección</Text>
+          <Text style={styles.label}>{tr('Dirección')}</Text>
           <TextInput style={styles.input} value={address} onChangeText={setAddress} placeholder="Calle del Arsenal #10-40, Getsemaní" placeholderTextColor={COLORS.textMuted} />
 
           <Text style={styles.label}>Instagram (sin @)</Text>

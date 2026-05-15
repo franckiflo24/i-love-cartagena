@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useAuth } from '../src/context/AuthContext';
+import { useTr } from '../src/i18n/autoTr';
 
 type Plan = {
   plan_id: string; name: string; price: number; currency: string;
@@ -13,6 +14,7 @@ type Plan = {
 };
 
 export default function CityPassScreen() {
+  const tr = useTr();
   const router = useRouter();
   const { user, login } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -54,7 +56,7 @@ export default function CityPassScreen() {
           <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
         </TouchableOpacity>
         <View>
-          <Text style={styles.title}>City Pass</Text>
+          <Text style={styles.title}>{tr('City Pass')}</Text>
           <Text style={styles.subtitle}>Tu pase a Cartagena</Text>
         </View>
       </View>

@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useFavorites } from '../src/context/FavoritesContext';
+import { useTr } from '../src/i18n/autoTr';
 
 type Concert = {
   concert_id: string; artist: string; title: string; genre: string;
@@ -71,6 +72,7 @@ const formatPrice = (price: number) => {
 };
 
 export default function ConcertsScreen() {
+  const tr = useTr();
   const router = useRouter();
   const { isFavorite, toggleFavorite } = useFavorites();
   const [concerts, setConcerts] = useState<Concert[]>([]);
@@ -125,7 +127,7 @@ export default function ConcertsScreen() {
           <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title}>Conciertos</Text>
+          <Text style={styles.title}>{tr('Conciertos')}</Text>
           <Text style={styles.subtitle}>Programa musical · {concerts.length} shows</Text>
         </View>
         <Ionicons name="musical-notes" size={24} color={COLORS.primary} />
@@ -137,7 +139,7 @@ export default function ConcertsScreen() {
           style={[styles.dateChip, !selectedDate && styles.dateChipActive]}
           onPress={() => setSelectedDate(null)}
         >
-          <Text style={[styles.dateChipText, !selectedDate && styles.dateChipTextActive]}>Todos</Text>
+          <Text style={[styles.dateChipText, !selectedDate && styles.dateChipTextActive]}>{tr('Todos')}</Text>
         </TouchableOpacity>
         {dates.map(d => {
           const { day, date, month } = formatDateLabel(d);
@@ -165,7 +167,7 @@ export default function ConcertsScreen() {
           onPress={() => setSelectedGenre(null)}
         >
           <Ionicons name="musical-notes" size={14} color={!selectedGenre ? COLORS.primary : COLORS.textMuted} />
-          <Text style={[styles.genreChipText, !selectedGenre && styles.genreChipTextActive]}>Todos</Text>
+          <Text style={[styles.genreChipText, !selectedGenre && styles.genreChipTextActive]}>{tr('Todos')}</Text>
         </TouchableOpacity>
         {GENRE_FILTERS.map(g => {
           const isActive = selectedGenre === g.key;
@@ -209,7 +211,7 @@ export default function ConcertsScreen() {
                 {/* Price Badge */}
                 {concert.is_free ? (
                   <View style={styles.freeBadge}>
-                    <Text style={styles.freeBadgeText}>GRATIS</Text>
+                    <Text style={styles.freeBadgeText}>{tr('GRATIS')}</Text>
                   </View>
                 ) : (
                   <View style={[styles.priceBadge, { backgroundColor: COLORS.primary }]}>
@@ -260,7 +262,7 @@ export default function ConcertsScreen() {
                     {/* Lineup */}
                     {concert.lineup && concert.lineup.length > 0 && (
                       <View style={styles.lineupSection}>
-                        <Text style={styles.lineupTitle}>Lineup</Text>
+                        <Text style={styles.lineupTitle}>{tr('Lineup')}</Text>
                         {concert.lineup.map((artist, i) => (
                           <View key={i} style={styles.lineupItem}>
                             <Ionicons name="musical-note" size={14} color={genreColor} />
@@ -305,12 +307,12 @@ export default function ConcertsScreen() {
                         onPress={() => openTicketLink(concert.ticket_link)}
                       >
                         <Ionicons name="ticket" size={18} color="#FFF" />
-                        <Text style={styles.ticketBtnText}>Comprar entrada</Text>
+                        <Text style={styles.ticketBtnText}>{tr('Comprar entrada')}</Text>
                       </TouchableOpacity>
                     ) : (
                       <View style={[styles.ticketBtn, { backgroundColor: '#22C55E' }]}>
                         <Ionicons name="checkmark-circle" size={18} color="#FFF" />
-                        <Text style={styles.ticketBtnText}>Entrada libre</Text>
+                        <Text style={styles.ticketBtnText}>{tr('Entrada libre')}</Text>
                       </View>
                     )}
                   </View>

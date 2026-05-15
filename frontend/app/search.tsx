@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
+import { useTr } from '../src/i18n/autoTr';
 
 type AIHighlight = { type: string; id: string; reason: string };
 type AIPayload = {
@@ -48,6 +49,7 @@ const TAB_TO_ROUTE: Record<string, string> = {
 };
 
 export default function SearchScreen() {
+  const tr = useTr();
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Results | null>(null);
@@ -244,7 +246,7 @@ export default function SearchScreen() {
                           <Text style={styles.resultSub} numberOfLines={1}>{c.venue_name} · {c.start_time || c.date}</Text>
                         </View>
                         {c.is_free
-                          ? <Text style={styles.resultPrice}>GRATIS</Text>
+                          ? <Text style={styles.resultPrice}>{tr('GRATIS')}</Text>
                           : c.price ? <Text style={styles.resultPrice}>${(c.price / 1000).toFixed(0)}K</Text> : null}
                       </TouchableOpacity>
                     ))}

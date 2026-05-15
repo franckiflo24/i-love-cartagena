@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
+import { useTr } from '../../src/i18n/autoTr';
 
 type Ticket = {
   ticket_id: string;
@@ -38,6 +39,7 @@ function formatHumanDate(ymd: string): string {
 }
 
 export default function PortTaxTicketsScreen() {
+  const tr = useTr();
   const router = useRouter();
   const { user, login } = useAuth();
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -86,7 +88,7 @@ export default function PortTaxTicketsScreen() {
             <Ionicons name="boat" size={20} color={COLORS.primary} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.ticketTitle}>Tasa Portuaria</Text>
+            <Text style={styles.ticketTitle}>{tr('Tasa Portuaria')}</Text>
             <Text style={styles.ticketSub}>La Bodeguita → Islas</Text>
           </View>
           <View style={[styles.statusChip, { backgroundColor: status.bg }]}>
@@ -128,8 +130,8 @@ export default function PortTaxTicketsScreen() {
           <Ionicons name="arrow-back" size={20} color={COLORS.textMain} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title}>Mis tiquetes</Text>
-          <Text style={styles.subtitle}>Tasa Portuaria</Text>
+          <Text style={styles.title}>{tr('Mis tiquetes')}</Text>
+          <Text style={styles.subtitle}>{tr('Tasa Portuaria')}</Text>
         </View>
         <TouchableOpacity
           style={styles.newBtn}
@@ -147,7 +149,7 @@ export default function PortTaxTicketsScreen() {
             Para ver tus tiquetes guardados y volver a abrir tu QR cuando lo necesites.
           </Text>
           <TouchableOpacity style={styles.ctaBtn} onPress={() => login()}>
-            <Text style={styles.ctaBtnText}>Iniciar sesión</Text>
+            <Text style={styles.ctaBtnText}>{tr('Iniciar sesión')}</Text>
           </TouchableOpacity>
         </View>
       ) : loading ? (

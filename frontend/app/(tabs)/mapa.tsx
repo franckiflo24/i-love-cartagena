@@ -10,6 +10,7 @@ import { api } from '../../src/constants/api';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTr } from '../../src/i18n/autoTr';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -135,6 +136,7 @@ function detectZone(lat: number, lng: number): string {
 }
 
 export default function MapaScreen() {
+  const tr = useTr();
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -336,7 +338,7 @@ export default function MapaScreen() {
             <Ionicons name="information-circle" size={14} color={COLORS.primary} />
             <Text style={styles.locDeniedText}>Activa la ubicación para ver lugares cerca de ti</Text>
             <TouchableOpacity onPress={requestLocation}>
-              <Text style={styles.locDeniedAction}>Reintentar</Text>
+              <Text style={styles.locDeniedAction}>{tr('Reintentar')}</Text>
             </TouchableOpacity>
           </View>
         )}

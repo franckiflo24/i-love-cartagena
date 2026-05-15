@@ -8,6 +8,7 @@ import { api } from '../../src/constants/api';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { TierBadge } from '../../src/components/TierBadge';
 import AlcaldiaDashboard from '../../src/components/AlcaldiaDashboard';
+import { useTr } from '../../src/i18n/autoTr';
 
 type Stats = { total_events: number; upcoming_events: number; total_views: number; total_reserves: number; };
 
@@ -17,6 +18,7 @@ const CAT_LABELS: Record<string, string> = {
 };
 
 export default function BusinessDashboard() {
+  const tr = useTr();
   const router = useRouter();
   const { token, business, partner, loading: authLoading, logout, refresh } = useBusinessAuth();
   const [events, setEvents] = useState<any[]>([]);
@@ -146,7 +148,7 @@ export default function BusinessDashboard() {
           </View>
           <TouchableOpacity style={styles.editProfileBtn} onPress={() => router.push('/business/profile-edit')}>
             <Ionicons name="create-outline" size={16} color={COLORS.primary} />
-            <Text style={styles.editProfileText}>Editar perfil</Text>
+            <Text style={styles.editProfileText}>{tr('Editar perfil')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -165,12 +167,12 @@ export default function BusinessDashboard() {
           <View style={styles.statCard}>
             <Ionicons name="flash" size={20} color="#A855F7" />
             <Text style={styles.statValue}>{stats?.total_reserves || 0}</Text>
-            <Text style={styles.statLabel}>Reservas</Text>
+            <Text style={styles.statLabel}>{tr('Reservas')}</Text>
           </View>
           <View style={styles.statCard}>
             <Ionicons name="layers" size={20} color="#F59E0B" />
             <Text style={styles.statValue}>{stats?.total_events || 0}</Text>
-            <Text style={styles.statLabel}>Total</Text>
+            <Text style={styles.statLabel}>{tr('Total')}</Text>
           </View>
         </View>
 
@@ -232,7 +234,7 @@ export default function BusinessDashboard() {
                     <View style={styles.eventActions}>
                       <TouchableOpacity style={styles.editBtn} onPress={() => router.push({ pathname: '/business/event-form', params: { eventId: ev.event_id } })}>
                         <Ionicons name="create-outline" size={14} color={COLORS.primary} />
-                        <Text style={styles.editText}>Editar</Text>
+                        <Text style={styles.editText}>{tr('Editar')}</Text>
                       </TouchableOpacity>
                       <TouchableOpacity style={styles.delBtn} onPress={() => handleDelete(ev.event_id, ev.title)}>
                         <Ionicons name="trash-outline" size={14} color="#EF4444" />

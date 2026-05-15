@@ -13,11 +13,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { describeStatus } from '../../src/lib/wompi';
+import { useTr } from '../../src/i18n/autoTr';
 
 const fmtCOP = (n: number) =>
   '$ ' + (Number(n) || 0).toLocaleString('es-CO', { maximumFractionDigits: 0 });
 
 export default function PaymentReturn() {
+  const tr = useTr();
   const router = useRouter();
   const params = useLocalSearchParams<{
     id?: string;
@@ -162,7 +164,7 @@ export default function PaymentReturn() {
             style={[styles.primaryBtn, { backgroundColor: COLORS.primary }]}
             onPress={() => router.back()}
           >
-            <Text style={styles.primaryBtnText}>Reintentar</Text>
+            <Text style={styles.primaryBtnText}>{tr('Reintentar')}</Text>
           </TouchableOpacity>
         )}
 

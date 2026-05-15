@@ -8,6 +8,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { openWompiCheckout, checkWompiEnabled, notConfiguredAlert } from '../../src/lib/wompi';
+import { useTr } from '../../src/i18n/autoTr';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -23,6 +24,7 @@ const PLAN_ICONS: Record<string, string> = {
 };
 
 export default function CityPassTab() {
+  const tr = useTr();
   const router = useRouter();
   const { user, login } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -175,7 +177,7 @@ export default function CityPassTab() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <View style={styles.portTaxTitleRow}>
-                    <Text style={styles.portTaxTitle}>Tasa Portuaria</Text>
+                    <Text style={styles.portTaxTitle}>{tr('Tasa Portuaria')}</Text>
                     <View style={styles.portTaxBadge}>
                       <Ionicons name="qr-code" size={10} color="#22C55E" />
                       <Text style={styles.portTaxBadgeText}>PAGA Y EMBARCA</Text>
@@ -209,7 +211,7 @@ export default function CityPassTab() {
                 <Ionicons name="sparkles" size={28} color={COLORS.primary} />
                 <Ionicons name="heart" size={22} color="#EF4444" />
               </View>
-              <Text style={styles.heroTitle}>City Pass</Text>
+              <Text style={styles.heroTitle}>{tr('City Pass')}</Text>
               <Text style={styles.heroSubtitle}>Vive la cultura sin límite</Text>
               <Text style={styles.heroDesc}>
                 Tu pase cultural para vivir Cartagena al máximo. Acceso a museos, monumentos y eventos culturales.
@@ -230,7 +232,7 @@ export default function CityPassTab() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <View style={styles.portTaxTitleRow}>
-                    <Text style={styles.portTaxTitle}>Tasa Portuaria</Text>
+                    <Text style={styles.portTaxTitle}>{tr('Tasa Portuaria')}</Text>
                     <View style={styles.portTaxBadge}>
                       <Ionicons name="qr-code" size={10} color="#22C55E" />
                       <Text style={styles.portTaxBadgeText}>PAGA Y EMBARCA</Text>
