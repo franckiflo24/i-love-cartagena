@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, RefreshControl, Dimensions, FlatList, Linking } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS, TIER_COLORS, Tier } from '../../src/constants/theme';
@@ -85,7 +85,27 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeSeasonIdx, setActiveSeasonIdx] = useState(0);
   const [favItems, setFavItems] = useState<any[]>([]);
+  const [unreadNotifs, setUnreadNotifs] = useState<number>(0);
   const flatListRef = useRef<FlatList>(null);
+
+  // Poll unread notification count when the home tab is focused (every 30s while open)
+  useFocusEffect(
+    React.useCallback(() => {
+      let cancelled = false;
+      const fetchUnread = async () => {
+        if (!user) { setUnreadNotifs(0); return; }
+        try {
+          const data = await api.get('/notifications');
+          if (cancelled) return;
+          const unread = Array.isArray(data) ? data.filter((n: any) => !n.is_read).length : 0;
+          setUnreadNotifs(unread);
+        } catch { /* ignore */ }
+      };
+      fetchUnread();
+      const interval = setInterval(fetchUnread, 30000);
+      return () => { cancelled = true; clearInterval(interval); };
+    }, [user])
+  );
 
   const fetchData = async () => {
     try {
@@ -221,6 +241,11 @@ export default function HomeScreen() {
           </View>
           <TouchableOpacity testID="notifications-btn" onPress={() => router.push('/notifications')} style={styles.notifBtn}>
             <Ionicons name="notifications-outline" size={24} color={COLORS.textMain} />
+            {unreadNotifs > 0 && (
+              <View style={styles.notifBadge}>
+                <Text style={styles.notifBadgeText}>{unreadNotifs > 9 ? '9+' : String(unreadNotifs)}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -575,7 +600,22 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md },
   greeting: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular },
   headerTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, marginTop: 2 },
-  notifBtn: { width: 44, height: 44, borderRadius: RADIUS.full, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
+  notifBtn: { width: 44, height: 44, borderRadius: RADIUS.full, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', position: 'relative' },
+  notifBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.background,
+  },
+  notifBadgeText: { fontSize: 9, color: '#FFF', ...FONTS.bold, letterSpacing: 0.2 },
   searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, paddingLeft: SPACING.md, paddingRight: 6, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.border },
   searchTapZone: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, flex: 1, paddingVertical: 6 },
   searchPlaceholder: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, flex: 1 },

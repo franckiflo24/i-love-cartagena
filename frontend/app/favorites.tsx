@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../src/constants/theme';
@@ -118,6 +118,13 @@ export default function FavoritesScreen() {
   };
   useEffect(() => { loadReservations(); }, []);
   useEffect(() => { if (tab === 'reservations') loadReservations(); }, [tab]);
+  // Refresh reservations whenever the favorites screen comes back into focus
+  // (e.g. after the partner confirms and the user taps the notification).
+  useFocusEffect(
+    useCallback(() => {
+      loadReservations();
+    }, [])
+  );
 
   const agendaCount = ids.event.size + ids.concert.size + ids.partner_event.length;
   const partnersCount = ids.partner.length;
