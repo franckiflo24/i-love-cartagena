@@ -212,6 +212,7 @@ export default function PerfilScreen() {
         <View style={styles.quickActions}>
           {[
             { icon: 'notifications-outline', label: s('profile_notifications'), route: '/notifications' },
+            { icon: 'calendar-outline', label: tr('Mis reservas'), route: '/reservations' },
             { icon: 'ticket-outline', label: 'City Pass', route: '/city-pass' },
             { icon: 'boat-outline', label: s('home_transport'), route: '/transport' },
             { icon: 'trail-sign-outline', label: s('home_routes'), route: '/itineraries' },

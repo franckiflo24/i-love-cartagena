@@ -53,6 +53,24 @@ export const api = {
     if (!res.ok) throw new Error(`PUT ${path} failed: ${res.status}`);
     return res.json();
   },
+  patch: async (path: string, body?: any, opts?: Opts) => {
+    const headers = await buildHeaders(opts?.headers);
+    const res = await fetch(`${BACKEND_URL}/api${path}`, {
+      method: 'PATCH',
+      headers,
+      credentials: 'include',
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!res.ok) {
+      let msg = `PATCH ${path} failed: ${res.status}`;
+      try {
+        const err = await res.json();
+        if (err?.detail) msg = err.detail;
+      } catch {}
+      throw new Error(msg);
+    }
+    return res.json();
+  },
   delete: async (path: string, opts?: Opts) => {
     const headers = await buildHeaders(opts?.headers);
     const res = await fetch(`${BACKEND_URL}/api${path}`, {

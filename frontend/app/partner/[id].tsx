@@ -49,16 +49,13 @@ export default function PartnerDetail() {
     RNLinking.openURL(`https://www.google.com/maps/search/?api=1&query=${partner.location.lat},${partner.location.lng}`);
   };
 
-  const handleReserve = async () => {
-    setReserving(true);
+  const handleReserve = () => {
+    // Always route to the in-app reservation form. The form auto-decides type=table vs prepaid
+    // based on partner.category.
     try {
-      const res = await api.post(`/partners/${id}/track-reserve`);
-      if (res.booking_url) RNLinking.openURL(res.booking_url);
-    } catch (e) {
-      console.error(e);
-      if (partner.booking_link) RNLinking.openURL(partner.booking_link);
-    }
-    setReserving(false);
+      api.post(`/partners/${id}/track-reserve`).catch(() => {});
+    } catch {}
+    router.push({ pathname: '/reservation/new' as any, params: { partner_id: String(id) } });
   };
 
   const formatShortDate = (iso: string) => {
@@ -210,18 +207,16 @@ export default function PartnerDetail() {
           <Ionicons name="navigate" size={18} color={COLORS.primary} />
           <Text style={styles.dirText}>{tr('Cómo llegar')}</Text>
         </TouchableOpacity>
-        {partner.booking_link ? (
-          <TouchableOpacity testID="partner-reserve-btn" style={[styles.bookBtn, reserving && { opacity: 0.6 }]} onPress={handleReserve} disabled={reserving}>
-            {reserving ? (
-              <ActivityIndicator size="small" color={COLORS.white} />
-            ) : (
-              <>
-                <Text style={styles.bookText}>{tr('Reservar')}</Text>
-                <Ionicons name="arrow-forward" size={16} color={COLORS.white} />
-              </>
-            )}
-          </TouchableOpacity>
-        ) : null}
+        <TouchableOpacity testID="partner-reserve-btn" style={[styles.bookBtn, reserving && { opacity: 0.6 }]} onPress={handleReserve} disabled={reserving}>
+          {reserving ? (
+            <ActivityIndicator size="small" color={COLORS.white} />
+          ) : (
+            <>
+              <Text style={styles.bookText}>{tr('Reservar')}</Text>
+              <Ionicons name="arrow-forward" size={16} color={COLORS.white} />
+            </>
+          )}
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
