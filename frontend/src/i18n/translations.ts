@@ -18,6 +18,23 @@ type Translations = Record<Lang, Record<string, string>>;
 
 export const t: Translations = {
   es: {
+    // Assistant (AI Concierge "Amo")
+    assistant_subtitle: 'Concierge IA · Cartagena',
+    assistant_placeholder: 'Escribe lo que necesitás…',
+    assistant_new_chat: 'Nuevo chat',
+    assistant_close: 'Cerrar',
+
+    // Greetings
+    greeting_hi: 'Hola',
+    greeting_welcome: 'Bienvenido',
+
+    // Quick access (Home extras)
+    home_today: 'Hoy',
+    home_live: 'Live',
+    home_favorites: 'Favoritos',
+    home_my_list: 'Mi lista',
+    home_boats: 'Boats',
+
     // Tabs
     tab_home: 'Home',
     tab_agenda: 'Agenda',
@@ -147,6 +164,18 @@ export const t: Translations = {
   },
 
   en: {
+    assistant_subtitle: 'AI Concierge · Cartagena',
+    assistant_placeholder: 'Type what you need…',
+    assistant_new_chat: 'New chat',
+    assistant_close: 'Close',
+    greeting_hi: 'Hi',
+    greeting_welcome: 'Welcome',
+    home_today: 'Today',
+    home_live: 'Live',
+    home_favorites: 'Favorites',
+    home_my_list: 'My list',
+    home_boats: 'Boats',
+
     tab_home: 'Home',
     tab_agenda: 'Agenda',
     tab_map: 'Map',
@@ -265,6 +294,18 @@ export const t: Translations = {
   },
 
   fr: {
+    assistant_subtitle: 'Concierge IA · Carthagène',
+    assistant_placeholder: 'Écrivez ce qu\'il vous faut…',
+    assistant_new_chat: 'Nouveau chat',
+    assistant_close: 'Fermer',
+    greeting_hi: 'Salut',
+    greeting_welcome: 'Bienvenue',
+    home_today: "Aujourd'hui",
+    home_live: 'Live',
+    home_favorites: 'Favoris',
+    home_my_list: 'Ma liste',
+    home_boats: 'Bateaux',
+
     tab_home: 'Accueil',
     tab_agenda: 'Agenda',
     tab_map: 'Carte',
@@ -383,6 +424,18 @@ export const t: Translations = {
   },
 
   pt: {
+    assistant_subtitle: 'Concierge IA · Cartagena',
+    assistant_placeholder: 'Escreva o que você precisa…',
+    assistant_new_chat: 'Novo chat',
+    assistant_close: 'Fechar',
+    greeting_hi: 'Olá',
+    greeting_welcome: 'Bem-vindo',
+    home_today: 'Hoje',
+    home_live: 'Live',
+    home_favorites: 'Favoritos',
+    home_my_list: 'Minha lista',
+    home_boats: 'Barcos',
+
     tab_home: 'Início',
     tab_agenda: 'Agenda',
     tab_map: 'Mapa',

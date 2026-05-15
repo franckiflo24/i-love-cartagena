@@ -24,6 +24,7 @@ import { useRouter, usePathname } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { api } from '../constants/api';
+import { useLang } from '../context/LanguageContext';
 
 type Action = {
   type: string;
@@ -68,6 +69,7 @@ function usePulse() {
 export default function AssistantFab() {
   const router = useRouter();
   const pathname = usePathname();
+  const { lang, s } = useLang();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -97,21 +99,28 @@ export default function AssistantFab() {
   // Welcome message when opening with no messages
   useEffect(() => {
     if (open && messages.length === 0 && !sessionId) {
-      setMessages([
-        {
-          role: 'assistant',
-          content:
-            '¡Hola! Soy Amo, tu concierge digital de Cartagena 🌴 Puedo ayudarte a encontrar restaurantes, conciertos, planear tu día, comprar el City Pass o ir a las islas. ¿Qué necesitás?',
-          suggestions: [
-            '¿Qué hay esta noche?',
-            'Comer mariscos cerca',
-            'Ir a las islas mañana',
-            'Comprar City Pass',
-          ],
+      const welcome: Record<string, { msg: string; sugg: string[] }> = {
+        es: {
+          msg: '¡Hola! Soy Amo, tu concierge digital de Cartagena 🌴 Puedo ayudarte a encontrar restaurantes, conciertos, planear tu día, comprar el City Pass o ir a las islas. ¿Qué necesitás?',
+          sugg: ['¿Qué hay esta noche?', 'Comer mariscos cerca', 'Ir a las islas mañana', 'Comprar City Pass'],
         },
-      ]);
+        en: {
+          msg: "Hi! I'm Amo, your digital concierge in Cartagena 🌴 I can help you find restaurants, concerts, plan your day, buy the City Pass or visit the islands. What do you need?",
+          sugg: ["What's on tonight?", 'Find seafood nearby', 'Visit the islands tomorrow', 'Buy City Pass'],
+        },
+        fr: {
+          msg: "Bonjour ! Je suis Amo, votre concierge digital à Carthagène 🌴 Je peux vous aider à trouver des restaurants, concerts, planifier votre journée, acheter le City Pass ou aller aux îles. Que voulez-vous ?",
+          sugg: ['Que faire ce soir ?', 'Fruits de mer à proximité', 'Aller aux îles demain', 'Acheter City Pass'],
+        },
+        pt: {
+          msg: 'Olá! Eu sou Amo, seu concierge digital em Cartagena 🌴 Posso te ajudar a encontrar restaurantes, shows, planejar seu dia, comprar o City Pass ou visitar as ilhas. O que você precisa?',
+          sugg: ['O que tem hoje à noite?', 'Frutos do mar perto', 'Ir às ilhas amanhã', 'Comprar City Pass'],
+        },
+      };
+      const w = welcome[lang] || welcome.es;
+      setMessages([{ role: 'assistant', content: w.msg, suggestions: w.sugg }]);
     }
-  }, [open, messages.length, sessionId]);
+  }, [open, messages.length, sessionId, lang]);
 
   // Load existing session messages when opening
   useEffect(() => {
@@ -156,6 +165,7 @@ export default function AssistantFab() {
           message: trimmed,
           session_id: sessionId,
           screen_context: pathname,
+          language: lang,
         });
         const sid: string = res.session_id;
         if (sid !== sessionId) {
@@ -312,7 +322,7 @@ export default function AssistantFab() {
               </View>
               <View>
                 <Text style={styles.headerTitle}>Amo</Text>
-                <Text style={styles.headerSub}>Concierge IA · Cartagena</Text>
+                <Text style={styles.headerSub}>{s('assistant_subtitle')}</Text>
               </View>
             </View>
             <View style={styles.headerActions}>
@@ -342,7 +352,7 @@ export default function AssistantFab() {
 
             <View style={styles.inputBar}>
               <TextInput
-                placeholder="Escribe lo que necesitás…"
+                placeholder={s('assistant_placeholder')}
                 placeholderTextColor={COLORS.textMuted}
                 value={input}
                 onChangeText={setInput}

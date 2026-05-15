@@ -340,8 +340,14 @@ async def run_agent_turn(
     user: Optional[Dict[str, Any]],
     user_text: str,
     history: List[Dict[str, Any]],
+    forced_language: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """One turn of the conversational agent. Returns the assistant payload."""
+    """One turn of the conversational agent. Returns the assistant payload.
+
+    `forced_language` (es|en|fr|pt) overrides the auto-detection: when the user
+    has explicitly selected a UI language in the app, we honor it strictly so the
+    concierge always answers in that language regardless of the message's language.
+    """
 
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage  # type: ignore
@@ -360,18 +366,39 @@ async def run_agent_turn(
 
     # Build the user payload as a single JSON string. We send it all as one
     # UserMessage, since LlmChat manages session state internally.
+    forced = (forced_language or "").lower().strip()
+    if forced not in {"es", "en", "fr", "pt"}:
+        forced = ""
     user_payload = {
         "now": context["today"],
         "context": context,
         "history": short_history,
         "user_message": user_text,
+        "forced_language": forced or None,
+        "instruction": (
+            f"IMPORTANT: The user has selected language='{forced}' in the app settings. "
+            f"You MUST answer in that language ({forced}) regardless of what language "
+            f"the user typed in. All message text, action labels, and suggestions must "
+            f"be in {forced}."
+        ) if forced else None,
     }
+
+    system_msg = SYSTEM_PROMPT
+    if forced:
+        lang_names = {"es": "Spanish", "en": "English", "fr": "French", "pt": "Portuguese"}
+        system_msg = (
+            f"⚠️ OVERRIDE: The app has language={forced} ({lang_names[forced]}) selected. "
+            f"Ignore the language detection rules below — you MUST respond ONLY in {lang_names[forced]} "
+            f"(language='{forced}') no matter what language the user types in. "
+            f"Every word of the message, action labels, and suggestions MUST be in {lang_names[forced]}.\n\n"
+            + SYSTEM_PROMPT
+        )
 
     try:
         chat = LlmChat(
             api_key=api_key,
             session_id=f"amo-agent-{uuid.uuid4().hex[:10]}",
-            system_message=SYSTEM_PROMPT,
+            system_message=system_msg,
         )
         chat.with_model("openai", "gpt-4o-mini")
         response = await chat.send_message(UserMessage(text=json.dumps(user_payload, ensure_ascii=False)))
@@ -390,6 +417,9 @@ async def run_agent_turn(
     language = parsed.get("language") or "es"
     if language not in {"es", "en", "fr", "pt"}:
         language = "es"
+    # If we forced a language, lock it
+    if forced:
+        language = forced
     actions = _sanitize_actions(parsed.get("actions") or [])
     suggestions = [str(s)[:80] for s in (parsed.get("suggestions") or [])[:4] if s]
 

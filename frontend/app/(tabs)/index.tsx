@@ -7,6 +7,7 @@ import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS, TIER_COLORS, Tier } 
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
+import { useLang } from '../../src/context/LanguageContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
@@ -72,6 +73,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { favorites } = useFavorites();
+  const { s } = useLang();
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [featured, setFeatured] = useState<Event[]>([]);
   const [todayEvents, setTodayEvents] = useState<Event[]>([]);
@@ -214,7 +216,7 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>{user ? `Hola, ${user.name.split(' ')[0]}` : 'Bienvenido'}</Text>
+            <Text style={styles.greeting}>{user ? `${s('greeting_hi')}, ${user.name.split(' ')[0]}` : s('greeting_welcome')}</Text>
             <Text style={styles.headerTitle}>Amo Cartagena ❤️</Text>
           </View>
           <TouchableOpacity testID="notifications-btn" onPress={() => router.push('/notifications')} style={styles.notifBtn}>
@@ -270,11 +272,11 @@ export default function HomeScreen() {
             contentContainerStyle={styles.quickAccessRow}
           >
             {[
-              { icon: 'calendar',       label: 'Agenda',     subtitle: 'Hoy',       color: '#F97316', route: '/(tabs)/agenda' },
-              { icon: 'musical-notes',  label: 'Conciertos', subtitle: 'Live',      color: '#A855F7', route: '/concerts' },
-              { icon: 'heart',          label: 'Favoritos',  subtitle: 'Mi lista',  color: '#EF4444', route: '/favorites' },
-              { icon: 'boat',           label: 'Transporte', subtitle: 'Boats',     color: '#06B6D4', route: '/transport' },
-              { icon: 'trail-sign',     label: 'Rutas',      subtitle: 'IA',        color: '#10B981', route: '/itineraries' },
+              { icon: 'calendar',       label: s('home_agenda'),     subtitle: s('home_today'),       color: '#F97316', route: '/(tabs)/agenda' },
+              { icon: 'musical-notes',  label: s('home_concerts'), subtitle: s('home_live'),      color: '#A855F7', route: '/concerts' },
+              { icon: 'heart',          label: s('home_favorites'),  subtitle: s('home_my_list'),  color: '#EF4444', route: '/favorites' },
+              { icon: 'boat',           label: s('home_transport'), subtitle: s('home_boats'),     color: '#06B6D4', route: '/transport' },
+              { icon: 'trail-sign',     label: s('home_routes'),     subtitle: 'IA',        color: '#10B981', route: '/itineraries' },
             ].map((item) => (
               <TouchableOpacity
                 key={item.label}

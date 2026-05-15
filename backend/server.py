@@ -2891,6 +2891,7 @@ async def agent_chat(request: Request):
     body = await request.json()
     user_text = (body.get("message") or "").strip()
     session_id = body.get("session_id")
+    forced_lang = (body.get("language") or "").strip().lower()
     if not user_text:
         raise HTTPException(status_code=400, detail="message required")
     if len(user_text) > 1000:
@@ -2912,6 +2913,7 @@ async def agent_chat(request: Request):
         user=user,
         user_text=user_text,
         history=short_history,
+        forced_language=forced_lang or None,
     )
 
     now_iso = datetime.now(timezone.utc).isoformat()
