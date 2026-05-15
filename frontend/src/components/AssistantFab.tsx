@@ -194,6 +194,7 @@ export default function AssistantFab() {
               role: 'assistant',
               content: a.content,
               actions: a.actions || [],
+              recommendations: a.recommendations || [],
               suggestions: a.suggestions || [],
               language: a.language,
             },
@@ -420,10 +421,32 @@ function MessageBubble({
     );
   }
   return (
-    <View style={{ alignItems: 'flex-start', gap: 6 }}>
+    <View style={{ alignItems: 'flex-start', gap: 8 }}>
       <View style={[styles.bubble, styles.bubbleAssist]}>
         <Text style={styles.bubbleAssistText}>{m.content}</Text>
       </View>
+      {!!(m.recommendations && m.recommendations.length) && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.recsScrollContent}
+          style={styles.recsScroll}
+        >
+          {m.recommendations.map((r, i) => (
+            <RecommendationCard
+              key={`rec-${i}-${r.partner_id || r.event_id}`}
+              rec={r}
+              onPress={() =>
+                onAction(
+                  r.kind === 'event'
+                    ? { type: 'open_event', event_id: r.event_id }
+                    : { type: 'open_partner', partner_id: r.partner_id },
+                )
+              }
+            />
+          ))}
+        </ScrollView>
+      )}
       {!!(m.actions && m.actions.length) && (
         <View style={styles.actionsWrap}>
           {m.actions.map((a, i) => (
@@ -446,6 +469,72 @@ function MessageBubble({
         </View>
       )}
     </View>
+  );
+}
+
+function RecommendationCard({
+  rec,
+  onPress,
+}: {
+  rec: Recommendation;
+  onPress: () => void;
+}) {
+  const isEvent = rec.kind === 'event';
+  const accent = isEvent ? '#7C3AED' : COLORS.primary;
+  const icon: keyof typeof Ionicons.glyphMap = isEvent ? 'calendar' : 'business';
+  return (
+    <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={styles.recCard}>
+      <View style={[styles.recHeader, { backgroundColor: accent + '22', borderColor: accent }]}>
+        <View style={[styles.recIcon, { backgroundColor: accent }]}>
+          <Ionicons name={icon} size={14} color={COLORS.white} />
+        </View>
+        <Text style={[styles.recKindLabel, { color: accent }]} numberOfLines={1}>
+          {isEvent ? 'Evento' : 'Partner'}
+        </Text>
+        {!!rec.price_range && (
+          <View style={styles.recPriceBadge}>
+            <Text style={styles.recPriceText}>{rec.price_range}</Text>
+          </View>
+        )}
+      </View>
+      <View style={styles.recBody}>
+        <Text style={styles.recName} numberOfLines={2}>
+          {rec.name}
+        </Text>
+        {!!rec.type && (
+          <Text style={styles.recType} numberOfLines={1}>
+            {rec.type}
+          </Text>
+        )}
+        {!!rec.vibe && (
+          <View style={styles.recVibeRow}>
+            <Ionicons name="sparkles" size={11} color={COLORS.textMuted} />
+            <Text style={styles.recVibe} numberOfLines={2}>
+              {rec.vibe}
+            </Text>
+          </View>
+        )}
+        {!!rec.reason && (
+          <Text style={styles.recReason} numberOfLines={3}>
+            {rec.reason}
+          </Text>
+        )}
+        {!!rec.address && (
+          <View style={styles.recVibeRow}>
+            <Ionicons name="location-outline" size={11} color={COLORS.textMuted} />
+            <Text style={styles.recVibe} numberOfLines={1}>
+              {rec.address}
+            </Text>
+          </View>
+        )}
+        <View style={[styles.recCta, { backgroundColor: accent }]}>
+          <Text style={styles.recCtaText}>
+            {isEvent ? 'Ver evento' : 'Ver partner'}
+          </Text>
+          <Ionicons name="arrow-forward" size={13} color={COLORS.white} />
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 }
 
@@ -610,6 +699,67 @@ const styles = StyleSheet.create({
   bubbleAssistText: { color: COLORS.textMain, fontSize: 14, ...FONTS.regular, lineHeight: 19 },
 
   actionsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, maxWidth: '90%' },
+
+  recsScroll: { marginLeft: -SPACING.md, marginRight: -SPACING.md },
+  recsScrollContent: { paddingHorizontal: SPACING.md, gap: 10 },
+  recCard: {
+    width: 240,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    overflow: 'hidden',
+    marginRight: 10,
+  },
+  recHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderBottomWidth: 1,
+  },
+  recIcon: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recKindLabel: { fontSize: 10.5, ...FONTS.bold, textTransform: 'uppercase', letterSpacing: 0.4, flex: 1 },
+  recPriceBadge: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  recPriceText: { color: COLORS.textMain, fontSize: 10.5, ...FONTS.bold, letterSpacing: 0.3 },
+  recBody: { padding: 10, gap: 5 },
+  recName: { color: COLORS.textMain, fontSize: 14, ...FONTS.bold, lineHeight: 18 },
+  recType: { color: COLORS.textMuted, fontSize: 11, ...FONTS.medium },
+  recVibeRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  recVibe: { color: COLORS.textMuted, fontSize: 11, ...FONTS.regular, flex: 1 },
+  recReason: {
+    color: COLORS.textMain,
+    fontSize: 11.5,
+    ...FONTS.regular,
+    lineHeight: 15,
+    marginTop: 3,
+    opacity: 0.92,
+  },
+  recCta: {
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    borderRadius: RADIUS.md,
+  },
+  recCtaText: { color: COLORS.white, fontSize: 12, ...FONTS.bold },
+
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
