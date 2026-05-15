@@ -53,12 +53,21 @@ def app_commission_pct() -> float:
         return 3.0
 
 
+def reservation_commission_pct() -> float:
+    """Commission for direct in-app reservations (5% by default)."""
+    try:
+        return float(os.environ.get("RESERVATION_COMMISSION_PCT") or "5")
+    except Exception:
+        return 5.0
+
+
 def compute_app_commission(amount_cop: int, is_government: bool = False, kind: str = "partner") -> dict:
     """
     Compute commission split.
     - kind='city_pass'  → 100% Alcaldía/app (0% commission)
     - kind='port_tax'   → 100% Alcaldía/app (0% commission)
     - kind='partner' & is_government=True → 0% commission
+    - kind='partner_reservation' & is_government=False → RESERVATION_COMMISSION_PCT (default 5%)
     - kind='partner' & is_government=False → APP_COMMISSION_PCT (default 3%)
 
     Returns: {'app_commission': int, 'partner_amount': int, 'gross': int, 'commission_pct': float}
@@ -66,6 +75,8 @@ def compute_app_commission(amount_cop: int, is_government: bool = False, kind: s
     amount = int(amount_cop)
     if kind in ("city_pass", "port_tax") or is_government:
         pct = 0.0
+    elif kind == "partner_reservation":
+        pct = reservation_commission_pct()
     else:
         pct = app_commission_pct()
     commission = int(round(amount * pct / 100.0))

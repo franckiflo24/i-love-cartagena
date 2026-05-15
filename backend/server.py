@@ -2490,6 +2490,7 @@ async def port_tax_redeem(ticket_id: str, request: Request):
 # ─────────────────────────────────────────────────────────────
 import wompi as _wompi
 import ai_agent as _ai_agent
+import reservations as _reservations
 
 
 @api_router.get("/payments/config")
@@ -2791,6 +2792,11 @@ async def _fulfill_payment(payment: dict, tx: dict):
             }
             await db.partner_bookings.insert_one(dict(booking))
             await db.payments.update_one({"payment_id": payment["payment_id"]}, {"$set": {"fulfillment.booking_id": booking_id}})
+        elif kind == "partner_reservation":
+            # Move reservation from pending_payment → pending_confirmation
+            payment_with_tx = dict(payment)
+            payment_with_tx["wompi_transaction_id"] = tx.get("id")
+            await _reservations.fulfill_prepaid_reservation(payment_with_tx)
     except Exception as e:
         logger.error(f"Fulfillment failed for payment {payment.get('payment_id')}: {e}")
 
@@ -3297,6 +3303,17 @@ async def seed_analytics_demo_data():
 
 app.include_router(api_router)
 
+# Mount the reservations router (separate module — see /app/backend/reservations.py)
+_reservations.init(
+    db=db,
+    get_current_user=get_current_user,
+    get_current_business=get_current_business,
+    require_government_role=_require_government_role,
+    wompi=_wompi,
+    create_payment_record=_create_payment_record,
+)
+app.include_router(_reservations.router, prefix="/api")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -3309,6 +3326,8 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup():
     await seed_database()
+    # Ensure indexes for the reservations module
+    await _reservations.ensure_indexes()
     # Seed analytics demo data separately if not yet seeded
     analytics_count = await db.analytics_demographics.count_documents({})
     if analytics_count == 0:
