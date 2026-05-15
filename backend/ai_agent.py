@@ -98,10 +98,6 @@ KEYWORD_FILTERS: Dict[str, Dict[str, Any]] = {
     "baru": {"category": "tour"}, "barú": {"category": "tour"}, "rosario": {"category": "tour"},
     "wellness": {"category": "wellness"}, "spa": {"category": "wellness"}, "yoga": {"category": "wellness"},
     "massage": {"category": "wellness"}, "masaje": {"category": "wellness"},
-    "fiesta": {"category": "nightclub"}, "party": {"category": "nightclub"},
-    "fête": {"category": "nightclub"}, "festa": {"category": "nightclub"},
-    "club": {"category": "nightclub"}, "discoteca": {"category": "nightclub"},
-    "night": {"category": "nightclub"}, "noche": {"category": "nightclub"},
     # Tiers
     "luxury": {"tier": "luxe"}, "lujo": {"tier": "luxe"}, "luxe": {"tier": "luxe"},
     "luxo": {"tier": "luxe"}, "alto": {"tier": "luxe"},
@@ -119,14 +115,43 @@ KEYWORD_FILTERS: Dict[str, Dict[str, Any]] = {
     "day pass": {"event_category": "daypass"}, "journée": {"event_category": "daypass"},
     "cultura": {"event_category": "culture"}, "culture": {"event_category": "culture"},
     "arte": {"event_category": "culture"}, "art": {"event_category": "culture"},
+    # Bars / clubs / nightlife (mapped to real DB categories: club + beach_club)
+    "bar": {"category_in": ["club", "beach_club"]}, "bares": {"category_in": ["club", "beach_club"]},
+    "bars": {"category_in": ["club", "beach_club"]}, "lounge": {"category_in": ["club", "beach_club"]},
+    "cocktail": {"category_in": ["club", "beach_club"]}, "cocktails": {"category_in": ["club", "beach_club"]},
+    "coctel": {"category_in": ["club", "beach_club"]}, "cócteles": {"category_in": ["club", "beach_club"]},
+    "drinks": {"category_in": ["club", "beach_club"], "vibe": "aperitivo"},
+    "tragos": {"category_in": ["club", "beach_club"], "vibe": "aperitivo"},
+    "nightclub": {"category_in": ["club", "beach_club", "nightclub"]},
+    "discoteca": {"category_in": ["club", "beach_club", "nightclub"]},
+    "fiesta": {"category_in": ["club", "beach_club", "nightclub"]},
+    "party": {"category_in": ["club", "beach_club", "nightclub"]},
+    "club": {"category_in": ["club", "beach_club"]},
+    "clubs": {"category_in": ["club", "beach_club"]},
+    "night": {"category_in": ["club", "beach_club", "nightclub"]},
+    "noche": {"category_in": ["club", "beach_club", "nightclub"]},
+    "nuit": {"category_in": ["club", "beach_club", "nightclub"]},
+    "soir": {"category_in": ["club", "beach_club", "nightclub"]},
+    "soirée": {"category_in": ["club", "beach_club", "nightclub"]},
+    "electro": {"category_in": ["club", "beach_club", "nightclub"], "vibe": "electro"},
+    "électro": {"category_in": ["club", "beach_club", "nightclub"], "vibe": "electro"},
+    "electronic": {"category_in": ["club", "beach_club", "nightclub"], "vibe": "electro"},
+    "electronica": {"category_in": ["club", "beach_club", "nightclub"], "vibe": "electro"},
+    "electrónica": {"category_in": ["club", "beach_club", "nightclub"], "vibe": "electro"},
+    "techno": {"category_in": ["club", "beach_club", "nightclub"], "vibe": "electro"},
+    "house": {"category_in": ["club", "beach_club", "nightclub"], "vibe": "electro"},
+    "dj": {"category_in": ["club", "beach_club", "nightclub"], "vibe": "electro"},
+    "dance": {"category_in": ["club", "beach_club", "nightclub"], "vibe": "electro"},
+    "rumba": {"category_in": ["club", "beach_club", "nightclub"]},
+    "bailar": {"category_in": ["club", "beach_club", "nightclub"]},
+    "salsa": {"category_in": ["club", "beach_club", "nightclub"], "vibe": "salsa"},
+    "reggaeton": {"category_in": ["club", "beach_club", "nightclub"], "vibe": "reggaeton"},
+    "champeta": {"category_in": ["club", "beach_club", "nightclub"], "vibe": "champeta"},
     # Rooftop / aperitivo / vista al mar
     "rooftop": {"vibe": "rooftop"}, "terraza": {"vibe": "rooftop"}, "terrasse": {"vibe": "rooftop"},
     "azotea": {"vibe": "rooftop"}, "skybar": {"vibe": "rooftop"}, "terraço": {"vibe": "rooftop"},
     "apero": {"vibe": "aperitivo"}, "apéro": {"vibe": "aperitivo"}, "aperitivo": {"vibe": "aperitivo"},
-    "aperitif": {"vibe": "aperitivo"}, "aperitif's": {"vibe": "aperitivo"}, "happy hour": {"vibe": "aperitivo"},
-    "drinks": {"category": "bar", "vibe": "aperitivo"}, "tragos": {"category": "bar", "vibe": "aperitivo"},
-    "cocktail": {"category": "bar"}, "cocktails": {"category": "bar"}, "coctel": {"category": "bar"},
-    "cócteles": {"category": "bar"}, "bar": {"category": "bar"}, "bares": {"category": "bar"},
+    "aperitif": {"vibe": "aperitivo"}, "happy hour": {"vibe": "aperitivo"},
     "vista al mar": {"vibe": "sea_view"}, "vue mer": {"vibe": "sea_view"},
     "ocean view": {"vibe": "sea_view"}, "vista mar": {"vibe": "sea_view"},
 }
@@ -162,24 +187,28 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Lis
     query: Dict[str, Any] = {}
     if "category" in semantic:
         query["category"] = semantic["category"]
+    elif "category_in" in semantic:
+        # Multi-category match (e.g., "bar" → club + beach_club)
+        query["category"] = {"$in": semantic["category_in"]}
     if "subcategory" in semantic:
         query["subcategory"] = semantic["subcategory"]
     if "tier" in semantic:
         query["tier"] = semantic["tier"]
-    # ── Vibe-based fuzzy filter: rooftop / aperitivo / sunset / sea_view ──
-    # We don't store a structured "vibe" field, so we match by regex over
-    # name + experience + features + subcategory across multiple synonyms.
+    # ── Vibe-based fuzzy filter: rooftop / aperitivo / sunset / sea_view / electro / salsa / reggaeton ──
     vibe = semantic.get("vibe")
     if vibe:
         vibe_regex_map = {
             "rooftop": r"rooftop|terraza|terrasse|skybar|azotea|terra[cç]o|roof top|sky bar",
             "aperitivo": r"apero|ap[eé]ro|aperitivo|aperitif|happy hour|cocktail|coctel|bar|lounge",
             "sunset": r"sunset|atardecer|coucher de soleil|p[oô]r do sol|crep[uú]sculo|golden hour",
-            "sea_view": r"vista al mar|sea view|ocean view|vue mer|vista mar|frente al mar|beachfront",
+            "sea_view": r"vista al mar|sea view|ocean view|vue mer|vista mar|frente al mar|beachfront|playa",
+            "electro": r"electro|electronic|electr[oó]nica|techno|house|dj|dance|deep house|edm",
+            "salsa": r"salsa|son cubano|son|guaracha",
+            "reggaeton": r"reggaeton|reggaet[oó]n|perreo|urbano",
+            "champeta": r"champeta|caribe|caribbean|afro caribe",
         }
         regex = vibe_regex_map.get(vibe)
         if regex:
-            # OR across several text fields
             or_clause = [
                 {"name": {"$regex": regex, "$options": "i"}},
                 {"experience": {"$regex": regex, "$options": "i"}},
@@ -187,7 +216,6 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Lis
                 {"features": {"$regex": regex, "$options": "i"}},
                 {"address": {"$regex": regex, "$options": "i"}},
             ]
-            # Combine with existing category/tier constraints
             if query:
                 query = {"$and": [query, {"$or": or_clause}]}
             else:
@@ -202,10 +230,14 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Lis
     cursor = db.partners.find(query, fields).limit(max_results)
     rows = await cursor.to_list(max_results)
     # If query returned empty (no semantic match), fall back to a broader bar/restaurant pool
-    # so the LLM still has lots of cards to pick from for "apero/sunset" style queries.
-    if not rows and vibe in {"aperitivo", "sunset", "rooftop", "sea_view"}:
+    # so the LLM still has lots of cards to pick from for "apero/sunset/bar/club" style queries.
+    if not rows and (
+        vibe in {"aperitivo", "sunset", "rooftop", "sea_view", "electro", "salsa", "reggaeton", "champeta"}
+        or "category_in" in semantic
+    ):
+        cats = semantic.get("category_in") or ["club", "beach_club", "nightclub", "restaurant"]
         cursor = db.partners.find(
-            {"category": {"$in": ["bar", "beach_club", "nightclub", "restaurant"]}},
+            {"category": {"$in": cats}},
             fields,
         ).limit(max_results)
         rows = await cursor.to_list(max_results)
