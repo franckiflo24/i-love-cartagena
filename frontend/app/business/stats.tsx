@@ -58,8 +58,14 @@ export default function StatsDetail() {
       if (statType === 'reservations') {
         const data = await api.get('/business/reservations', {
           headers: { Authorization: `Bearer ${token}` },
-        }).catch(() => []);
-        setReservations(Array.isArray(data) ? data : []);
+        }).catch(() => null);
+        // Backend returns { reservations: [...], upgrade_required: bool, ... }
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.reservations)
+            ? data.reservations
+            : [];
+        setReservations(list);
       } else {
         const data = await api.get('/business/events', {
           headers: { Authorization: `Bearer ${token}` },
@@ -297,24 +303,87 @@ function ReservationItem({ r, onPress }: { r: any; onPress: () => void }) {
     no_show: '#EF4444',
   };
   const color = statusColor[r.status] || COLORS.textMuted;
-  const masked = r.user_masked || r.user_name_masked || r.client_name || '';
+  // Backend returns either full user_name (PRO) or user_masked (FREE).
+  const displayName =
+    r.user_name || r.user_masked || r.client_name || r.contact_name || tr('Cliente');
+  const phone = r.user_phone || r.contact_phone;
+  const email = r.user_email || r.contact_email;
+  // Day label
+  let dayLabel = r.date || '';
+  try {
+    if (r.date) {
+      const d = new Date(r.date + 'T00:00:00');
+      dayLabel = d.toLocaleDateString('es-CO', { weekday: 'long', day: '2-digit', month: 'short' });
+      // Capitalize first letter
+      dayLabel = dayLabel.charAt(0).toUpperCase() + dayLabel.slice(1);
+    }
+  } catch { /* ignore */ }
+
   return (
-    <TouchableOpacity style={styles.resItem} onPress={onPress} activeOpacity={0.85}>
+    <TouchableOpacity style={styles.resItemDetailed} onPress={onPress} activeOpacity={0.85}>
       <View style={[styles.resStripe, { backgroundColor: color }]} />
-      <View style={{ flex: 1, padding: SPACING.sm }}>
-        <Text style={styles.resName} numberOfLines={1}>{masked || tr('Cliente')}</Text>
-        <View style={styles.eventMetaRow}>
-          <View style={styles.metaItem}>
-            <Ionicons name="calendar-outline" size={11} color={COLORS.textMuted} />
-            <Text style={styles.metaText}>{formatDate(r.date)}{r.time ? ` · ${r.time}` : ''}</Text>
+      <View style={{ flex: 1, padding: SPACING.md, gap: 6 }}>
+        {/* Top row: name + party size pill */}
+        <View style={styles.resTopRow}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+            <Ionicons name="person-circle" size={18} color={color} />
+            <Text style={styles.resNameBold} numberOfLines={1}>{displayName}</Text>
           </View>
-          <View style={styles.metaItem}>
-            <Ionicons name="people-outline" size={11} color={COLORS.textMuted} />
-            <Text style={styles.metaText}>{r.party_size}</Text>
+          <View style={[styles.partyPill, { backgroundColor: color + '22', borderColor: color + '55' }]}>
+            <Ionicons name="people" size={12} color={color} />
+            <Text style={[styles.partyPillText, { color }]}>
+              {r.party_size} {r.party_size === 1 ? tr('pax') : tr('pax')}
+            </Text>
           </View>
         </View>
+
+        {/* Day + Time row */}
+        <View style={styles.resDayTimeRow}>
+          <View style={styles.resDayTimeItem}>
+            <Ionicons name="calendar-outline" size={13} color={COLORS.textMuted} />
+            <Text style={styles.resDayTimeText}>{dayLabel}</Text>
+          </View>
+          {r.time ? (
+            <View style={styles.resDayTimeItem}>
+              <Ionicons name="time-outline" size={13} color={COLORS.textMuted} />
+              <Text style={[styles.resDayTimeText, { color: COLORS.textMain, ...FONTS.bold }]}>{r.time}</Text>
+            </View>
+          ) : null}
+          {r.event?.title ? (
+            <View style={styles.resDayTimeItem}>
+              <Ionicons name="sparkles" size={12} color="#A855F7" />
+              <Text style={[styles.resDayTimeText, { color: '#A855F7' }]} numberOfLines={1}>{r.event.title}</Text>
+            </View>
+          ) : null}
+        </View>
+
+        {/* Optional: phone / email — only if backend gave us details (PRO partner) */}
+        {(phone || email) ? (
+          <View style={styles.resContactRow}>
+            {phone ? (
+              <View style={styles.resContactItem}>
+                <Ionicons name="call-outline" size={11} color={COLORS.primary} />
+                <Text style={styles.resContactText} numberOfLines={1}>{phone}</Text>
+              </View>
+            ) : null}
+            {email ? (
+              <View style={styles.resContactItem}>
+                <Ionicons name="mail-outline" size={11} color={COLORS.primary} />
+                <Text style={styles.resContactText} numberOfLines={1}>{email}</Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+
+        {/* Notes */}
+        {r.notes ? (
+          <View style={styles.resNotesBlock}>
+            <Ionicons name="chatbox-ellipses-outline" size={11} color={COLORS.textMuted} />
+            <Text style={styles.resNotesText} numberOfLines={3}>"{r.notes}"</Text>
+          </View>
+        ) : null}
       </View>
-      <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} style={{ marginRight: SPACING.sm }} />
+      <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} style={{ marginRight: SPACING.sm, alignSelf: 'center' }} />
     </TouchableOpacity>
   );
 }
@@ -371,8 +440,46 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border,
     marginBottom: SPACING.sm, overflow: 'hidden', alignItems: 'center',
   },
+  resItemDetailed: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: SPACING.sm,
+    overflow: 'hidden',
+  },
   resStripe: { width: 4, alignSelf: 'stretch' },
   resName: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
+  resNameBold: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold, flex: 1 },
+  resTopRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
+  partyPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+  },
+  partyPillText: { fontSize: 11, ...FONTS.bold, letterSpacing: 0.3 },
+  resDayTimeRow: { flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
+  resDayTimeItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  resDayTimeText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
+  resContactRow: { flexDirection: 'row', gap: 12, marginTop: 2, flexWrap: 'wrap' },
+  resContactItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  resContactText: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },
+  resNotesBlock: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 5,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: RADIUS.md,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    marginTop: 2,
+  },
+  resNotesText: { flex: 1, fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, fontStyle: 'italic', lineHeight: 15 },
 
   emptyState: { alignItems: 'center', marginTop: 40, gap: SPACING.sm },
   emptyText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center' },
