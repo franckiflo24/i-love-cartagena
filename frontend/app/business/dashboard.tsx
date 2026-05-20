@@ -158,28 +158,52 @@ export default function BusinessDashboard() {
           </TouchableOpacity>
         </View>
 
-        {/* Stats */}
+        {/* Stats — each card opens a detailed breakdown */}
         <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
+          <TouchableOpacity
+            testID="stat-card-upcoming"
+            style={styles.statCard}
+            onPress={() => router.push('/business/stats?type=upcoming' as any)}
+            activeOpacity={0.85}
+          >
             <Ionicons name="calendar" size={20} color={COLORS.primary} />
             <Text style={styles.statValue}>{stats?.upcoming_events || 0}</Text>
-            <Text style={styles.statLabel}>Próximos</Text>
-          </View>
-          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>{tr('Próximos')}</Text>
+            <Ionicons name="chevron-forward" size={11} color={COLORS.textMuted} style={styles.statChevron} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            testID="stat-card-views"
+            style={styles.statCard}
+            onPress={() => router.push('/business/stats?type=views' as any)}
+            activeOpacity={0.85}
+          >
             <Ionicons name="eye" size={20} color="#22C55E" />
             <Text style={styles.statValue}>{stats?.total_views || 0}</Text>
-            <Text style={styles.statLabel}>Vistas</Text>
-          </View>
-          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>{tr('Vistas')}</Text>
+            <Ionicons name="chevron-forward" size={11} color={COLORS.textMuted} style={styles.statChevron} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            testID="stat-card-reservations"
+            style={styles.statCard}
+            onPress={() => router.push('/business/stats?type=reservations' as any)}
+            activeOpacity={0.85}
+          >
             <Ionicons name="flash" size={20} color="#A855F7" />
             <Text style={styles.statValue}>{stats?.total_reserves || 0}</Text>
             <Text style={styles.statLabel}>{tr('Reservas')}</Text>
-          </View>
-          <View style={styles.statCard}>
+            <Ionicons name="chevron-forward" size={11} color={COLORS.textMuted} style={styles.statChevron} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            testID="stat-card-total"
+            style={styles.statCard}
+            onPress={() => router.push('/business/stats?type=total' as any)}
+            activeOpacity={0.85}
+          >
             <Ionicons name="layers" size={20} color="#F59E0B" />
             <Text style={styles.statValue}>{stats?.total_events || 0}</Text>
             <Text style={styles.statLabel}>{tr('Total')}</Text>
-          </View>
+            <Ionicons name="chevron-forward" size={11} color={COLORS.textMuted} style={styles.statChevron} />
+          </TouchableOpacity>
         </View>
 
         {/* Reservations CTA Card */}
@@ -373,7 +397,8 @@ const styles = StyleSheet.create({
   editProfileText: { fontSize: 11, color: COLORS.primary, ...FONTS.bold, letterSpacing: 0.5 },
 
   statsGrid: { flexDirection: 'row', paddingHorizontal: SPACING.lg, gap: SPACING.sm, flexWrap: 'wrap' },
-  statCard: { flex: 1, minWidth: '22%', alignItems: 'center', backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.sm, borderWidth: 1, borderColor: COLORS.border, gap: 2 },
+  statCard: { flex: 1, minWidth: '22%', alignItems: 'center', backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.sm, borderWidth: 1, borderColor: COLORS.border, gap: 2, position: 'relative' },
+  statChevron: { position: 'absolute', top: 6, right: 6, opacity: 0.7 },
   statValue: { fontSize: 20, color: COLORS.textMain, ...FONTS.bold },
   statLabel: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium, letterSpacing: 0.3, textTransform: 'uppercase' },
 
