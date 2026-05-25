@@ -209,6 +209,22 @@ export default function PerfilScreen() {
             </View>
           </TouchableOpacity>
 
+          {/* Help / Legal footer */}
+          <View style={styles.footerLinksRow}>
+            <TouchableOpacity onPress={() => router.push('/ayuda' as any)} style={styles.footerLink}>
+              <Ionicons name="help-circle-outline" size={13} color={COLORS.textMuted} />
+              <Text style={styles.footerLinkText}>{tr('Ayuda')}</Text>
+            </TouchableOpacity>
+            <Text style={styles.footerSep}>·</Text>
+            <TouchableOpacity onPress={() => router.push('/terminos' as any)} style={styles.footerLink}>
+              <Text style={styles.footerLinkText}>{tr('Términos')}</Text>
+            </TouchableOpacity>
+            <Text style={styles.footerSep}>·</Text>
+            <TouchableOpacity onPress={() => router.push('/privacidad' as any)} style={styles.footerLink}>
+              <Text style={styles.footerLinkText}>{tr('Privacidad')}</Text>
+            </TouchableOpacity>
+          </View>
+
           <View style={{ height: SPACING.xl }} />
         </ScrollView>
       </SafeAreaView>
@@ -679,4 +695,16 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(59,130,246,0.4)',
   },
   officialBadgeText: { fontSize: 9, color: '#3B82F6', ...FONTS.bold, letterSpacing: 0.4 },
+
+  footerLinksRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: SPACING.xl,
+    marginBottom: SPACING.sm,
+  },
+  footerLink: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 4 },
+  footerLinkText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold },
+  footerSep: { fontSize: 11, color: COLORS.textMuted },
 });

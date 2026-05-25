@@ -10,13 +10,21 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.amocartagena.app",
+      "buildNumber": "1",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Mostrar lugares cerca de ti y mejorar recomendaciones",
-        "NSCameraUsageDescription": "Permite tomar fotos para tus eventos",
-        "NSPhotoLibraryUsageDescription": "Adjunta imágenes desde tu galería"
+        "NSLocationWhenInUseUsageDescription": "Te mostramos eventos y partners cerca de ti",
+        "NSCameraUsageDescription": "Sube fotos de tus eventos como partner",
+        "NSPhotoLibraryUsageDescription": "Adjunta imágenes para tus eventos",
+        "NSPhotoLibraryAddUsageDescription": "Guarda tu boarding pass y entradas",
+        "NSUserNotificationsUsageDescription": "Recibe confirmación de reservas y recordatorios",
+        "ITSAppUsesNonExemptEncryption": false,
+        "LSApplicationQueriesSchemes": ["whatsapp", "instagram", "tel", "mailto"]
       }
     },
     "android": {
+      "package": "com.amocartagena.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#000"
@@ -26,7 +34,9 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE"
+        "VIBRATE",
+        "POST_NOTIFICATIONS",
+        "INTERNET"
       ]
     },
     "notification": {

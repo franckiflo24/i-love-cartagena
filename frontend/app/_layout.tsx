@@ -6,9 +6,11 @@ import { LanguageProvider } from '../src/context/LanguageContext';
 import { BusinessAuthProvider } from '../src/context/BusinessAuthContext';
 import { MyCalendarProvider } from '../src/context/MyCalendarContext';
 import PushBootstrap from '../src/components/PushBootstrap';
+import ErrorBoundary from '../src/components/ErrorBoundary';
 
 export default function RootLayout() {
   return (
+    <ErrorBoundary>
     <AuthProvider>
       <BusinessAuthProvider>
       <LanguageProvider>
@@ -44,5 +46,6 @@ export default function RootLayout() {
       </LanguageProvider>
       </BusinessAuthProvider>
     </AuthProvider>
+    </ErrorBoundary>
   );
 }

@@ -1502,7 +1502,49 @@ async def mark_notification_read(notification_id: str, request: Request):
     return {"ok": True}
 
 
-# ── Push Notification Token Registration ────────────────────
+# ── Feedback & Crash Reports (auth-optional) ────────────────
+@api_router.post("/feedback")
+async def submit_feedback(request: Request):
+    """Receive bug reports, suggestions, partner enquiries and automatic
+    crash reports from the ErrorBoundary. Auth is optional."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    kind = (body.get("kind") or "other").strip().lower()
+    if kind not in {"bug", "idea", "partner", "other", "crash"}:
+        kind = "other"
+    message = (body.get("message") or "").strip()[:5000]
+    user_id = None
+    try:
+        u = await get_current_user(request)
+        user_id = u.get("user_id") if u else None
+    except Exception:
+        pass
+    doc = {
+        "feedback_id": f"fb_{uuid.uuid4().hex[:10]}",
+        "kind": kind,
+        "message": message,
+        "stack": (body.get("stack") or "")[:5000] or None,
+        "component_stack": (body.get("component_stack") or "")[:3000] or None,
+        "platform": (body.get("platform") or "unknown")[:30],
+        "app_version": (body.get("app_version") or "unknown")[:30],
+        "user_id": user_id,
+        "user_agent": request.headers.get("user-agent", "")[:300],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "status": "new",
+    }
+    try:
+        await db.feedback.insert_one(doc)
+    except Exception as exc:
+        logger.warning(f"feedback insert failed: {exc}")
+        raise HTTPException(status_code=500, detail="could not save feedback")
+    if kind == "crash":
+        logger.error(f"CRASH report: {message[:200]}")
+    return {"ok": True, "feedback_id": doc["feedback_id"]}
+
+
+
 @api_router.post("/users/push-token")
 async def register_user_push_token(request: Request):
     """Register/refresh an Expo push token for the current user."""
