@@ -1,0 +1,37 @@
+{
+  "summary": "E2E backend testing of Option C — Hybrid Partner Onboarding. Ran 20 focused pytest tests against EXPO_PUBLIC_BACKEND_URL covering admin operator login (good/bad password), partner listing (auth/anon), skeleton creation, duplicate-email 409, public activation fetch (valid/invalid token), activation validations (short password, missing accept_terms), full activation success path, single-use token enforcement, /business/me with new biz token, /business/onboarding-status (~15% post-activation), /business/login with newly-activated credentials, approval workflow (approve/suspend/reactivate + 401 anon) and POST regenerate-invite. ALL 20/20 TESTS PASSED. Test partner + business_users + sessions were cleaned up at teardown (verified empty in mongo).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_admin_operator_onboarding.py",
+    "/app/test_reports/pytest/pytest_onboarding_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "admin_operator.py is well-scoped (~420 lines), uses async/await for all DB ops, excludes Mongo _id from projections, and reads secrets from env with sensible defaults.",
+    "HMAC bearer token has 12h TTL and is constant-time compared via hmac.compare_digest — good.",
+    "Activation token is single-use (cleared via $unset after activate_partner) — verified by the re-use test returning 404.",
+    "biz_token issued at activation matches the existing get_current_business schema (business_id + expires_at) and persists, so /business/me and /business/onboarding-status both work without a second login step.",
+    "Minor (not blocking): /api/admin/operator/login does not enforce a per-IP rate limit; consider adding one before production exposure to mitigate password brute-force.",
+    "Minor: ADMIN_TOKEN_SECRET default value is the literal 'change-me-in-prod-please' — ensure this env var is set with a strong secret in production deployment."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_admin_operator_onboarding.py"
+  ],
+  "success_rate": {
+    "backend": "100% (20/20 tests passed)",
+    "frontend": "not tested (backend-only scope)"
+  },
+  "seed_data_creation": "A unique TEST_ partner (TEST_Onboarding_<uuid8>) and its business_users row were created during the test and removed in the module-scoped cleanup fixture. Verified via mongosh: 0 partners + 0 business_users matching the test prefix remain.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Hybrid Partner Onboarding (Option C) backend is fully working end-to-end. Use /app/backend/tests/test_admin_operator_onboarding.py as the regression suite — it generates a fresh uuid email each run and self-cleans. Admin password lives in ADMIN_OPERATOR_PASSWORD (default 'amocartagena-admin-2026'). Public base URL is EXPO_PUBLIC_BACKEND_URL from /app/frontend/.env."
+}

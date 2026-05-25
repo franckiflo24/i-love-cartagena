@@ -3586,6 +3586,16 @@ async def seed_analytics_demo_data():
 
 app.include_router(api_router)
 
+# ── Admin Operator & Partner Activation routers ──
+try:
+    from admin_operator import router as _admin_op_router, public_router as _biz_activation_router  # type: ignore
+    app.include_router(_admin_op_router, prefix="/api")
+    app.include_router(_biz_activation_router, prefix="/api")
+    # Expose db so admin_operator handlers can reach it
+    app.state.db = db
+except Exception as _exc:
+    logger.warning(f"admin_operator router not loaded: {_exc}")
+
 # Mount the reservations router (separate module — see /app/backend/reservations.py)
 _reservations.init(
     db=db,

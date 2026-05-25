@@ -11,6 +11,20 @@ import AlcaldiaDashboard from '../../src/components/AlcaldiaDashboard';
 import { useTr } from '../../src/i18n/autoTr';
 
 type Stats = { total_events: number; upcoming_events: number; total_views: number; total_reserves: number; };
+type Onboarding = { percent: number; is_public: boolean; status: string; missing: string[] };
+
+const MISSING_LABELS: Record<string, string> = {
+  name: 'Nombre',
+  category: 'Categoría',
+  address: 'Dirección',
+  phone: 'Teléfono',
+  whatsapp: 'WhatsApp',
+  experience: 'Descripción / experiencia',
+  instagram: 'Instagram',
+  schedule: 'Horarios',
+  default_payment_link: 'Link de pago / reserva',
+  photos: 'Fotos del lugar',
+};
 
 const CAT_LABELS: Record<string, string> = {
   gastronomy: 'Gastronomía', music: 'Música', party: 'Fiesta',
@@ -25,6 +39,7 @@ export default function BusinessDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [reservationStats, setReservationStats] = useState<{ pending_count?: number } | null>(null);
   const [membership, setMembership] = useState<any | null>(null);
+  const [onboarding, setOnboarding] = useState<Onboarding | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [forcePartnerView, setForcePartnerView] = useState(false);
@@ -32,16 +47,18 @@ export default function BusinessDashboard() {
   const load = useCallback(async () => {
     if (!token) return;
     try {
-      const [eventsData, statsData, reservData, memData] = await Promise.all([
+      const [eventsData, statsData, reservData, memData, onbData] = await Promise.all([
         api.get('/business/events', { headers: { Authorization: `Bearer ${token}` } }),
         api.get('/business/stats', { headers: { Authorization: `Bearer ${token}` } }),
         api.get('/business/reservations?limit=1', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
         api.get('/business/membership', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
+        api.get('/business/onboarding-status', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
       ]);
       setEvents(eventsData);
       setStats(statsData);
       setReservationStats(reservData?.stats || null);
       setMembership(memData || null);
+      setOnboarding(onbData || null);
     } catch (e) { console.error(e); }
   }, [token]);
 
@@ -158,7 +175,70 @@ export default function BusinessDashboard() {
           </TouchableOpacity>
         </View>
 
-        {/* Stats — each card opens a detailed breakdown */}
+        {/* Onboarding / Approval banner (non-government) */}
+        {!isGovernment && onboarding ? (() => {
+          const pct = onboarding.percent ?? 0;
+          const isApproved = !!onboarding.is_public;
+          const isSuspended = onboarding.status === 'suspended';
+          const missing = onboarding.missing || [];
+          // If everything is done and approved, hide the banner entirely
+          if (isApproved && pct >= 100) return null;
+          let bgColor = 'rgba(245,158,11,0.10)';
+          let borderColor = '#F59E0B';
+          let iconName: any = 'time-outline';
+          let iconColor = '#F59E0B';
+          let title = tr('Completa tu perfil para empezar a recibir reservas');
+          let subtitle = tr(`${pct}% completado · faltan ${missing.length} datos clave`);
+          if (isSuspended) {
+            bgColor = 'rgba(239,68,68,0.10)'; borderColor = '#EF4444'; iconColor = '#EF4444'; iconName = 'pause-circle';
+            title = tr('Tu perfil está suspendido');
+            subtitle = tr('Contacta al equipo Amo Cartagena para reactivarlo.');
+          } else if (pct >= 100 && !isApproved) {
+            bgColor = 'rgba(59,130,246,0.10)'; borderColor = '#3B82F6'; iconColor = '#3B82F6'; iconName = 'shield-checkmark';
+            title = tr('Perfil completo — en revisión');
+            subtitle = tr('El equipo Amo Cartagena revisará tu perfil antes de hacerlo público (suele tomar <24h).');
+          }
+          return (
+            <TouchableOpacity
+              testID="onboarding-banner"
+              style={[styles.onbBanner, { backgroundColor: bgColor, borderColor }]}
+              onPress={() => router.push('/business/profile-edit' as any)}
+              activeOpacity={0.9}
+              disabled={pct >= 100}
+            >
+              <View style={[styles.onbIconWrap, { backgroundColor: borderColor + '22', borderColor }]}>
+                <Ionicons name={iconName} size={20} color={iconColor} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.onbTitle}>{title}</Text>
+                <Text style={styles.onbSub}>{subtitle}</Text>
+                {/* Progress bar */}
+                {!isSuspended && (
+                  <View style={styles.onbProgressTrack}>
+                    <View style={[styles.onbProgressFill, { width: `${pct}%`, backgroundColor: borderColor }]} />
+                  </View>
+                )}
+                {/* Missing fields chips (max 4) */}
+                {!isApproved && pct < 100 && missing.length > 0 && (
+                  <View style={styles.onbChipsRow}>
+                    {missing.slice(0, 4).map(k => (
+                      <View key={k} style={styles.onbChip}>
+                        <Ionicons name="alert-circle" size={10} color={iconColor} />
+                        <Text style={[styles.onbChipText, { color: iconColor }]}>
+                          {MISSING_LABELS[k] || k}
+                        </Text>
+                      </View>
+                    ))}
+                    {missing.length > 4 && (
+                      <Text style={styles.onbMoreText}>+{missing.length - 4}</Text>
+                    )}
+                  </View>
+                )}
+              </View>
+              {pct < 100 && <Ionicons name="chevron-forward" size={20} color={borderColor} />}
+            </TouchableOpacity>
+          );
+        })() : null}
         <View style={styles.statsGrid}>
           <TouchableOpacity
             testID="stat-card-upcoming"
@@ -403,6 +483,37 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium, letterSpacing: 0.3, textTransform: 'uppercase' },
 
   eventsSection: { paddingHorizontal: SPACING.lg, marginTop: SPACING.lg },
+
+  // Onboarding banner
+  onbBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginHorizontal: SPACING.lg,
+    marginTop: SPACING.md,
+    padding: 14,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1.5,
+  },
+  onbIconWrap: {
+    width: 40, height: 40, borderRadius: 20,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1,
+  },
+  onbTitle: { color: COLORS.textMain, fontSize: 14, ...FONTS.bold },
+  onbSub: { color: COLORS.textMuted, fontSize: 11.5, marginTop: 2, lineHeight: 16 },
+  onbProgressTrack: { height: 6, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 3, marginTop: 8, overflow: 'hidden' },
+  onbProgressFill: { height: 6, borderRadius: 3 },
+  onbChipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 8 },
+  onbChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    paddingHorizontal: 7, paddingVertical: 3,
+    borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+  },
+  onbChipText: { fontSize: 10, ...FONTS.bold, letterSpacing: 0.2 },
+  onbMoreText: { fontSize: 10.5, color: COLORS.textMuted, ...FONTS.semibold, alignSelf: 'center' },
 
   reservationsCta: {
     flexDirection: 'row',
