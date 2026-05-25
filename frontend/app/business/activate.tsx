@@ -40,9 +40,9 @@ export default function ActivatePartner() {
     setSubmitting(true);
     try {
       const data = await api.post('/business/activate', { token, password: pw, accept_terms: true });
-      // Save the business token and route to dashboard
-      await AsyncStorage.setItem('biz_token', data.token);
-      await AsyncStorage.setItem('biz_partner_id', data.partner_id);
+      // Save the business token using the SAME key used by BusinessAuthContext
+      // so the partner is auto-authenticated on /business/dashboard.
+      await AsyncStorage.setItem('amocartagena_business_token', data.token);
       Alert.alert(
         '¡Cuenta activada!',
         'Tu perfil ya está creado. Completa tus fotos, horarios y descripción para empezar a recibir reservas. El equipo Amo Cartagena revisará tu perfil antes de hacerlo público.',
