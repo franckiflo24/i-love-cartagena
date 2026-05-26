@@ -386,6 +386,308 @@ cartagena,colombia,turismo,viagem,eventos,mapa,reservas,citypass,salsa,caribe,re
 
 ---
 
+## 🤖 PLAY STORE — Descripciones específicas (sin Concierge IA · foco Partners)
+
+> Por petición del usuario, la versión Play Store **omite la sección de Concierge IA** y le da MÁS peso a los partners certificados.
+> Pega estas descripciones en Google Play Console **en lugar de** las de arriba (mantén las de arriba para App Store iOS).
+
+---
+
+### 🇨🇴 PLAY STORE · Español
+
+**Descripción corta (80 chars)**
+```
+La guía oficial de Cartagena: +150 partners certificados, mapa y reservas.
+```
+
+**Descripción larga (≤4000 chars)**
+```
+🌴 Amo Cartagena — La plataforma oficial de la ciudad amurallada.
+
+La única app que reúne en un solo lugar los mejores restaurantes, clubes, beach clubs, hoteles, experiencias y eventos de Cartagena. Todos certificados, todos verificados, todos reservables directamente.
+
+💎 +150 PARTNERS CERTIFICADOS
+Cada lugar en la app fue validado uno a uno por nuestro equipo. Sabemos qué restaurantes están abiertos, qué clubes son seguros, qué experiencias valen la pena.
+
+Categorías:
+🍽️  Restaurantes — desde Niku (nikkei premium) hasta cebicherías auténticas
+🥂  Beach Clubs & Day Pass — Blue Apple, Bora Bora, Fenix
+🌅  Sunsets icónicos — Café del Mar, Alquímico, Movich rooftop
+🎵  Bares & Night Clubs — Casa Bohème, La Mesa, Quiebra-Canto
+🏨  Hoteles boutique — del Centro Histórico a Bocagrande
+💆  Spa & Wellness — masajes, yoga, beauty
+🛍️  Shopping local — diseñadores, artesanía premium
+🎶  Conciertos & eventos culturales
+
+3 niveles de certificación:
+⭐ Popular · ⭐⭐ Premium · ⭐⭐⭐ Elite
+
+📅 AGENDA OFICIAL
+La única agenda 100% verificada de la ciudad. Eventos culturales, fiestas, pop-ups gastronómicos, day pass en islas, sunset sessions y experiencias exclusivas. Filtra por categoría, fecha, presupuesto.
+
+🗺️ MAPA EN VIVO
+Centro Histórico, Bocagrande, Getsemaní, Manga, Castillo Grande. Ve en tiempo real qué partners están abiertos cerca de ti, sus horarios, fotos y reseñas reales.
+
+🎟️ CITY PASS
+Un solo pase para acceder a privilegios exclusivos en +150 partners: entradas a eventos, descuentos premium, fiestas privadas y experiencias curadas. Disponible en Classic y Premium.
+
+⛴️ TASA PORTUARIA
+Paga la tasa portuaria oficial de Castillogrande sin filas, sin efectivo. Escanea tu boarding pass al embarcar.
+
+📲 RESERVA DIRECTA — SIN COMISIONES OCULTAS
+Mesa de restaurante, day pass, evento, cabina VIP, masaje. Reservas directamente con el partner. Cero comisión para ti. Confirmación inmediata por WhatsApp.
+
+🎵 RUTAS CURADAS
+Itinerarios diseñados por curadores locales: ruta de salsa, ruta caribeña, sunset cocktails, brunch del domingo, gastronomía nikkei…
+
+🌐 4 IDIOMAS
+Disponible en español, inglés, francés y portugués.
+
+🏛️ RESPALDADA POR LA CIUDAD
+Trabajamos en alianza con la Alcaldía de Cartagena y los actores culturales certificados. Cada partner es validado uno a uno antes de aparecer en la app.
+
+🔒 PAGOS SEGUROS con Wompi — la pasarela líder de Colombia.
+
+—
+
+💌 ¿Eres restaurante, bar, hotel o promotor de eventos en Cartagena?
+Escríbenos a partners@amocartagena.app para sumarte a la red oficial certificada.
+
+📬 Soporte: hola@amocartagena.app
+🌐 amocartagena.app
+
+Descarga, descubre, disfruta. Bienvenido a la nueva Cartagena. ❤️
+```
+
+**Notas de la versión 1.0.0**
+```
+🎉 ¡Bienvenidos a Amo Cartagena!
+• +150 partners certificados (restaurantes, clubes, hoteles, experiencias)
+• Agenda oficial diaria de la ciudad
+• Mapa en vivo del Centro Histórico, Bocagrande, Getsemaní
+• Reservas directas sin comisiones
+• City Pass · Tasa Portuaria
+• 4 idiomas: ES · EN · FR · PT
+🌴
+```
+
+---
+
+### 🇺🇸 PLAY STORE · English
+
+**Short description (80 chars)**
+```
+The official Cartagena city guide: 150+ certified partners, map and bookings.
+```
+
+**Long description (≤4000 chars)**
+```
+🌴 Amo Cartagena — The official platform of the walled city.
+
+The only app that brings together in one place the best restaurants, clubs, beach clubs, hotels, experiences and events in Cartagena. All certified, all verified, all bookable directly.
+
+💎 150+ CERTIFIED PARTNERS
+Every venue in the app was validated one by one by our team. We know which restaurants are open, which clubs are safe, which experiences are worth your time.
+
+Categories:
+🍽️  Restaurants — from Niku (premium nikkei) to authentic ceviche spots
+🥂  Beach Clubs & Day Pass — Blue Apple, Bora Bora, Fenix
+🌅  Iconic sunsets — Café del Mar, Alquímico, Movich rooftop
+🎵  Bars & Night Clubs — Casa Bohème, La Mesa, Quiebra-Canto
+🏨  Boutique hotels — from the Old Town to Bocagrande
+💆  Spa & Wellness — massages, yoga, beauty
+🛍️  Local shopping — designers, premium artisan
+🎶  Concerts & cultural events
+
+3 certification tiers:
+⭐ Popular · ⭐⭐ Premium · ⭐⭐⭐ Elite
+
+📅 OFFICIAL AGENDA
+The only 100% verified agenda in town. Cultural events, parties, gastronomic pop-ups, island day passes, sunset sessions and exclusive experiences. Filter by category, date, budget.
+
+🗺️ LIVE MAP
+Old Town, Bocagrande, Getsemaní, Manga, Castillo Grande. See in real time which partners are open near you, their hours, photos and real reviews.
+
+🎟️ CITY PASS
+One pass for exclusive privileges at 150+ partners: event tickets, premium discounts, private parties and curated experiences. Available in Classic and Premium tiers.
+
+⛴️ PORT TAX
+Pay the official Castillogrande port tax without queues or cash. Scan your boarding pass when boarding.
+
+📲 DIRECT BOOKINGS — NO HIDDEN FEES
+Restaurant table, day pass, event, VIP booth, massage. Book directly with the partner. Zero commission for you. Instant WhatsApp confirmation.
+
+🎵 CURATED ROUTES
+Itineraries crafted by local curators: salsa route, Caribbean route, sunset cocktails, Sunday brunch, nikkei gastronomy…
+
+🌐 4 LANGUAGES
+Available in Spanish, English, French and Portuguese.
+
+🏛️ BACKED BY THE CITY
+We work hand-in-hand with the Cartagena City Hall and certified cultural actors. Every partner is validated one by one before appearing in the app.
+
+🔒 SECURE PAYMENTS via Wompi — Colombia's leading gateway.
+
+—
+
+💌 Are you a restaurant, bar, hotel or event promoter in Cartagena?
+Email partners@amocartagena.app to join the official certified network.
+
+📬 Support: hola@amocartagena.app
+🌐 amocartagena.app
+
+Download, discover, enjoy. Welcome to the new Cartagena. ❤️
+```
+
+**Release notes 1.0.0**
+```
+🎉 Welcome to Amo Cartagena!
+• 150+ certified partners (restaurants, clubs, hotels, experiences)
+• Official daily agenda
+• Live map of Old Town, Bocagrande, Getsemaní
+• Direct bookings, zero commission
+• City Pass · Port Tax
+• 4 languages: ES · EN · FR · PT
+🌴
+```
+
+---
+
+### 🇫🇷 PLAY STORE · Français
+
+**Description courte (80 chars)**
+```
+Le guide officiel de Carthagène : +150 partenaires certifiés, carte, réservations.
+```
+
+**Description longue (≤4000 chars)**
+```
+🌴 Amo Cartagena — La plateforme officielle de la ville fortifiée.
+
+La seule app qui réunit en un seul endroit les meilleurs restaurants, clubs, beach clubs, hôtels, expériences et événements de Carthagène. Tous certifiés, tous vérifiés, tous réservables directement.
+
+💎 +150 PARTENAIRES CERTIFIÉS
+Chaque lieu de l'app a été validé un par un par notre équipe.
+
+Catégories :
+🍽️  Restaurants — de Niku (nikkei premium) aux meilleures cevicherias
+🥂  Beach Clubs & Day Pass — Blue Apple, Bora Bora, Fenix
+🌅  Sunsets iconiques — Café del Mar, Alquímico, Movich rooftop
+🎵  Bars & Night Clubs — Casa Bohème, La Mesa, Quiebra-Canto
+🏨  Hôtels boutique — du Centre Historique à Bocagrande
+💆  Spa & Wellness · 🛍️ Shopping local · 🎶 Concerts & culture
+
+3 niveaux : ⭐ Popular · ⭐⭐ Premium · ⭐⭐⭐ Elite
+
+📅 AGENDA OFFICIEL
+Le seul agenda 100% vérifié de la ville. Événements culturels, fêtes, pop-ups, day pass aux îles, sunsets et expériences exclusives.
+
+🗺️ CARTE EN DIRECT
+Centre Historique, Bocagrande, Getsemaní, Manga, Castillo Grande. Voyez en temps réel les partenaires ouverts près de vous.
+
+🎟️ CITY PASS
+Un seul pass pour accéder aux privilèges exclusifs chez +150 partenaires.
+
+⛴️ TAXE PORTUAIRE — payez la taxe Castillogrande sans file et sans espèces.
+
+📲 RÉSERVATION DIRECTE — SANS COMMISSION CACHÉE
+Réservez directement avec le partenaire. Zéro commission pour vous.
+
+🌐 4 LANGUES — espagnol, anglais, français, portugais.
+
+🏛️ SOUTENUE PAR LA VILLE — Partenariat officiel avec la Mairie de Carthagène.
+
+🔒 Paiements sécurisés via Wompi.
+
+—
+
+💌 Partenaire local ? Écrivez à partners@amocartagena.app
+📬 Support : hola@amocartagena.app
+
+Téléchargez, découvrez, profitez. ❤️
+```
+
+**Notes de version 1.0.0**
+```
+🎉 Bienvenue dans Amo Cartagena !
+• +150 partenaires certifiés
+• Agenda officiel quotidien
+• Carte en direct du Centre Historique
+• Réservations directes sans commission
+• City Pass · Taxe portuaire
+• 4 langues : ES · EN · FR · PT
+🌴
+```
+
+---
+
+### 🇧🇷 PLAY STORE · Português
+
+**Descrição curta (80 chars)**
+```
+O guia oficial de Cartagena: +150 parceiros certificados, mapa e reservas.
+```
+
+**Descrição longa (≤4000 chars)**
+```
+🌴 Amo Cartagena — A plataforma oficial da cidade amuralhada.
+
+O único app que reúne em um só lugar os melhores restaurantes, clubes, beach clubs, hotéis, experiências e eventos de Cartagena. Todos certificados, todos verificados, todos reserváveis diretamente.
+
+💎 +150 PARCEIROS CERTIFICADOS
+Cada lugar no app foi validado um a um pela nossa equipe.
+
+Categorias:
+🍽️  Restaurantes — de Niku (nikkei premium) às melhores cebicherias
+🥂  Beach Clubs & Day Pass — Blue Apple, Bora Bora, Fenix
+🌅  Sunsets icônicos — Café del Mar, Alquímico, Movich rooftop
+🎵  Bares & Night Clubs — Casa Bohème, La Mesa, Quiebra-Canto
+🏨  Hotéis boutique · 💆 Spa & Wellness · 🛍️ Shopping · 🎶 Shows & cultura
+
+3 níveis: ⭐ Popular · ⭐⭐ Premium · ⭐⭐⭐ Elite
+
+📅 AGENDA OFICIAL
+A única agenda 100% verificada da cidade.
+
+🗺️ MAPA AO VIVO
+Centro Histórico, Bocagrande, Getsemaní, Manga, Castillo Grande.
+
+🎟️ CITY PASS
+Um único pase para acessar privilégios exclusivos em +150 parceiros.
+
+⛴️ TAXA PORTUÁRIA — pague a taxa Castillogrande sem fila, sem dinheiro.
+
+📲 RESERVA DIRETA — SEM TAXAS OCULTAS
+Reserve direto com o parceiro. Zero comissão para você.
+
+🌐 4 IDIOMAS — espanhol, inglês, francês e português.
+
+🏛️ APOIADO PELA CIDADE — Parceria oficial com a Prefeitura de Cartagena.
+
+🔒 Pagamentos seguros via Wompi.
+
+—
+
+💌 É um parceiro local? Escreva para partners@amocartagena.app
+📬 Suporte: hola@amocartagena.app
+
+Baixe, descubra, aproveite. ❤️
+```
+
+**Notas da versão 1.0.0**
+```
+🎉 Bem-vindo ao Amo Cartagena!
+• +150 parceiros certificados
+• Agenda oficial diária
+• Mapa ao vivo
+• Reservas diretas sem comissão
+• City Pass · Taxa Portuária
+• 4 idiomas: ES · EN · FR · PT
+🌴
+```
+
+---
+
 ## 📋 Checklist final antes de subir
 
 ### App Store Connect (iOS)
