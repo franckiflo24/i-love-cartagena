@@ -70,10 +70,10 @@ Procesamos pagos con Wompi — la pasarela líder de Colombia. Tus datos están 
 —
 
 💌 ¿Eres un partner local (restaurante, bar, hotel, experiencia)?
-Escríbenos a partners@amocartagena.app para sumarte a la red oficial.
+Escríbenos a partners@amocartagena.co para sumarte a la red oficial.
 
-📬 Soporte: hola@amocartagena.app
-🌐 Más info: amocartagena.app
+📬 Soporte: hola@amocartagena.co
+🌐 Más info: amocartagena.co
 
 Descarga, descubre, disfruta. Bienvenidos a la nueva Cartagena. ❤️
 ```
@@ -97,8 +97,8 @@ cartagena,colombia,turismo,eventos,mapa,reservas,citypass,agenda,festival,salsa,
 - **Soporte** → https://cartagena-live.preview.emergentagent.com/ayuda
 - **Política de privacidad** → https://cartagena-live.preview.emergentagent.com/privacidad
 - **Términos** → https://cartagena-live.preview.emergentagent.com/terminos
-- **Sitio web (cuando lo tengas)** → https://amocartagena.app
-- **Email soporte** → hola@amocartagena.app
+- **Sitio web (cuando lo tengas)** → https://amocartagena.co
+- **Email soporte** → hola@amocartagena.co
 
 ### Novedades — Notas de la versión 1.0.0
 ```
@@ -179,10 +179,10 @@ Payments processed by Wompi — Colombia's leading gateway. Your data is protect
 —
 
 💌 Are you a local partner (restaurant, bar, hotel, experience)?
-Email partners@amocartagena.app to join the official network.
+Email partners@amocartagena.co to join the official network.
 
-📬 Support: hola@amocartagena.app
-🌐 More info: amocartagena.app
+📬 Support: hola@amocartagena.co
+🌐 More info: amocartagena.co
 
 Download, discover, enjoy. Welcome to the new Cartagena. ❤️
 ```
@@ -270,9 +270,9 @@ Paiements traités par Wompi — la passerelle leader en Colombie.
 
 —
 
-💌 Vous êtes un partenaire local ? Écrivez-nous à partners@amocartagena.app
+💌 Vous êtes un partenaire local ? Écrivez-nous à partners@amocartagena.co
 
-📬 Support : hola@amocartagena.app
+📬 Support : hola@amocartagena.co
 
 Téléchargez, découvrez, profitez. Bienvenue dans la nouvelle Carthagène. ❤️
 ```
@@ -360,9 +360,9 @@ Pagamentos processados pela Wompi — gateway líder na Colômbia.
 
 —
 
-💌 É um parceiro local? Escreva para partners@amocartagena.app
+💌 É um parceiro local? Escreva para partners@amocartagena.co
 
-📬 Suporte: hola@amocartagena.app
+📬 Suporte: hola@amocartagena.co
 
 Baixe, descubra, aproveite. Bem-vindo à nova Cartagena. ❤️
 ```
@@ -451,10 +451,10 @@ Trabajamos en alianza con la Alcaldía de Cartagena y los actores culturales cer
 —
 
 💌 ¿Eres restaurante, bar, hotel o promotor de eventos en Cartagena?
-Escríbenos a partners@amocartagena.app para sumarte a la red oficial certificada.
+Escríbenos a partners@amocartagena.co para sumarte a la red oficial certificada.
 
-📬 Soporte: hola@amocartagena.app
-🌐 amocartagena.app
+📬 Soporte: hola@amocartagena.co
+🌐 amocartagena.co
 
 Descarga, descubre, disfruta. Bienvenido a la nueva Cartagena. ❤️
 ```
@@ -531,10 +531,10 @@ We work hand-in-hand with the Cartagena City Hall and certified cultural actors.
 —
 
 💌 Are you a restaurant, bar, hotel or event promoter in Cartagena?
-Email partners@amocartagena.app to join the official certified network.
+Email partners@amocartagena.co to join the official certified network.
 
-📬 Support: hola@amocartagena.app
-🌐 amocartagena.app
+📬 Support: hola@amocartagena.co
+🌐 amocartagena.co
 
 Download, discover, enjoy. Welcome to the new Cartagena. ❤️
 ```
@@ -601,8 +601,8 @@ Réservez directement avec le partenaire. Zéro commission pour vous.
 
 —
 
-💌 Partenaire local ? Écrivez à partners@amocartagena.app
-📬 Support : hola@amocartagena.app
+💌 Partenaire local ? Écrivez à partners@amocartagena.co
+📬 Support : hola@amocartagena.co
 
 Téléchargez, découvrez, profitez. ❤️
 ```
@@ -668,8 +668,8 @@ Reserve direto com o parceiro. Zero comissão para você.
 
 —
 
-💌 É um parceiro local? Escreva para partners@amocartagena.app
-📬 Suporte: hola@amocartagena.app
+💌 É um parceiro local? Escreva para partners@amocartagena.co
+📬 Suporte: hola@amocartagena.co
 
 Baixe, descubra, aproveite. ❤️
 ```
@@ -691,7 +691,7 @@ Baixe, descubra, aproveite. ❤️
 ## 📋 Checklist final antes de subir
 
 ### App Store Connect (iOS)
-- [ ] Crear app en App Store Connect → bundle ID `com.amocartagena.app`
+- [ ] Crear app en App Store Connect → bundle ID `com.amocartagena.co`
 - [ ] Subir ipa generado por Emergent
 - [ ] Pegar **Subtítulo**, **Texto promocional**, **Descripción larga**, **Keywords**, **Notas de la versión** en cada idioma
 - [ ] Subir 7 screenshots de `/app/store-assets/app-store/iphone-6.7/`
@@ -704,7 +704,7 @@ Baixe, descubra, aproveite. ❤️
 - [ ] **In-App Purchases**: NO aplica (los pagos de City Pass son externos vía Wompi → NO requiere comisión 30% Apple porque es servicio físico/experiencia, NO contenido digital. Verificar con Guideline 3.1.5(a) de Apple)
 
 ### Google Play Console (Android)
-- [ ] Crear app en Play Console → package `com.amocartagena.app`
+- [ ] Crear app en Play Console → package `com.amocartagena.co`
 - [ ] Subir APK / AAB
 - [ ] Pegar **Descripción corta** (80 chars) y **larga** en cada idioma
 - [ ] Subir 7 screenshots de `/app/store-assets/play-store/phone/`
@@ -717,8 +717,8 @@ Baixe, descubra, aproveite. ❤️
 - [ ] Data safety: declarar **email** y **location** como recolectados, **not shared** con terceros
 
 ### Cosas que necesitas decidir antes de subir
-- [ ] **Dominio definitivo** (`amocartagena.app` o el que escojas) → actualizar `PUBLIC_APP_URL` en backend/.env
-- [ ] **Email de soporte definitivo** (`hola@amocartagena.app` u otro)
+- [ ] **Dominio definitivo** (`amocartagena.co` o el que escojas) → actualizar `PUBLIC_APP_URL` en backend/.env
+- [ ] **Email de soporte definitivo** (`hola@amocartagena.co` u otro)
 - [ ] **Cuenta empresarial Apple Developer** (necesitas DUNS number si registras como empresa)
 
 ---

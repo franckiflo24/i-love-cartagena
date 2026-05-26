@@ -16,7 +16,7 @@ Todo lo demás depende de tener un dominio: el email de soporte, las URLs de pri
 1. Entra a 👉 https://dash.cloudflare.com/sign-up
 2. Crea cuenta (email + password)
 3. Cuando estés logueada → **Domain Registration** → **Register Domains**
-4. Busca `amocartagena.app` (o `amocartagena.com` / `.co`)
+4. Busca `amocartagena.co` (o `amocartagena.com` / `.co`)
 5. Cómpralo con tarjeta (≈$15 USD/año, sin renovaciones engañosas)
 
 **Opción B — Namecheap (también buena, más popular)**
@@ -27,11 +27,11 @@ Todo lo demás depende de tener un dominio: el email de soporte, las URLs de pri
 ### Qué dominio recomiendo
 | Opción | Pros | Contras |
 |---|---|---|
-| **`amocartagena.app`** ⭐ | Moderno, asocia con mobile app, .app fuerza HTTPS | $20/año |
+| **`amocartagena.co`** ⭐ | Moderno, asocia con mobile app, .app fuerza HTTPS | $20/año |
 | `amocartagena.com` | Reconocible universalmente | Más caro ($20-30) y puede estar tomado |
 | `amocartagena.co` | Conexión con Colombia, corto | Disponibilidad limitada |
 
-**Mi recomendación**: cómprate `amocartagena.app` y `amocartagena.co` (los 2 son baratos juntos ~$35/año), apuntas el `.co` al `.app`.
+**Mi recomendación**: cómprate `amocartagena.co` y `amocartagena.co` (los 2 son baratos juntos ~$35/año), apuntas el `.co` al `.app`.
 
 ### Qué hacer cuando lo tengas
 ✏️ Pásame el dominio que compraste — yo actualizo:
@@ -47,12 +47,12 @@ Todo lo demás depende de tener un dominio: el email de soporte, las URLs de pri
 Si compraste el dominio en Cloudflare:
 1. Dashboard Cloudflare → tu dominio → **Email** → **Email Routing**
 2. Click **Get started** → Cloudflare configura los DNS automáticamente
-3. Crea redirección: `hola@amocartagena.app` → tu gmail personal (`juliette@gmail.com` por ejemplo)
+3. Crea redirección: `hola@amocartagena.co` → tu gmail personal (`juliette@gmail.com` por ejemplo)
 4. Verifica el gmail (te llega un email de confirmación)
-5. ✅ Listo: cuando alguien escriba a `hola@amocartagena.app` te llega a tu gmail
+5. ✅ Listo: cuando alguien escriba a `hola@amocartagena.co` te llega a tu gmail
 
 ### Opción PRO — Google Workspace ($6 USD/mes)
-Si quieres una bandeja de entrada real con `@amocartagena.app`:
+Si quieres una bandeja de entrada real con `@amocartagena.co`:
 1. https://workspace.google.com → Sign up
 2. Verifica dominio (DNS TXT record)
 3. Crea cuentas: `hola@`, `partners@`, `legal@`
@@ -61,9 +61,9 @@ Si quieres una bandeja de entrada real con `@amocartagena.app`:
 **Mi recomendación**: empieza con Cloudflare Email Routing (gratis). Cuando tengas tracción y volumen, pasas a Workspace.
 
 ### Emails que vas a necesitar
-- `hola@amocartagena.app` — soporte usuarios (visible en tiendas)
-- `partners@amocartagena.app` — onboarding partners
-- `legal@amocartagena.app` — privacidad / términos (a futuro)
+- `hola@amocartagena.co` — soporte usuarios (visible en tiendas)
+- `partners@amocartagena.co` — onboarding partners
+- `legal@amocartagena.co` — privacidad / términos (a futuro)
 
 ---
 
@@ -112,7 +112,7 @@ Si quieres una bandeja de entrada real con `@amocartagena.app`:
 ## 4️⃣ GOOGLE PLAY CONSOLE ($25 USD una vez · 1–2 días)
 
 ### Pasos
-1. Necesitas una **cuenta Google** (puede ser tu Gmail personal, NO el `@amocartagena.app` todavía porque aún no existe el dominio)
+1. Necesitas una **cuenta Google** (puede ser tu Gmail personal, NO el `@amocartagena.co` todavía porque aún no existe el dominio)
 2. Entra a 👉 https://play.google.com/console/signup
 3. Selecciona **Personal** o **Organization** (mismo criterio que Apple: empresa requiere verificación adicional)
 4. Acepta el Developer Distribution Agreement
@@ -184,7 +184,7 @@ Como vas a recibir pagos:
 ### Inversión total
 | Concepto | Costo |
 |---|---|
-| Dominio `amocartagena.app` | $15 USD/año |
+| Dominio `amocartagena.co` | $15 USD/año |
 | Apple Developer | $99 USD/año |
 | Google Play Console | $25 USD una vez |
 | Wompi | $0 (cobra comisión por transacción) |
@@ -233,7 +233,7 @@ Con eso configuro el `.env` definitivo, ajusto todas las URLs en la app, corro e
 > Yo te ayudo a responder. Lo más común que rechazan: privacy policy incompleta, descripción muy genérica, screenshots con texto incorrecto. Ya tenemos todo eso resuelto.
 
 **¿Puedo usar mi Apple ID personal?**
-> Sí. Pero te recomiendo crear UNO NUEVO con `juliette@amocartagena.app` cuando tengas el dominio, así separas vida personal de negocio.
+> Sí. Pero te recomiendo crear UNO NUEVO con `juliette@amocartagena.co` cuando tengas el dominio, así separas vida personal de negocio.
 
 **¿Tengo que pagar IVA al comprar en Apple/Google?**
 > Apple cobra IVA según país. Google también. Para Colombia es ~19% extra. Presupuesta ~$170 USD el primer año en vez de $139.
