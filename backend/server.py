@@ -1151,9 +1151,13 @@ async def get_venue(venue_id: str):
 
 # ── Partners ────────────────────────────────────────────────
 @api_router.get("/partners")
-async def list_partners(category: Optional[str] = None):
-    query = {"category": category} if category else {}
-    partners = await db.partners.find(query, {"_id": 0}).sort("order", 1).to_list(500)
+async def list_partners(category: Optional[str] = None, subcategory: Optional[str] = None):
+    query: dict = {}
+    if category:
+        query["category"] = category
+    if subcategory:
+        query["subcategory"] = subcategory
+    partners = await db.partners.find(query, {"_id": 0}).sort("order", 1).to_list(1500)
     return partners
 
 
@@ -4097,11 +4101,17 @@ async def startup():
     # ── Curated restaurant catalog (Feb 2026 user-provided list) ──
     # Delete all previous restaurant filler partners except those still
     # referenced by partner_events (Carmen, El Beso, Nia Bakery, Salon Tropical
-    # have events scheduled). Keep their IDs intact to avoid orphan references.
+    # have events scheduled) AND those imported from the official xlsx base.
     PROTECTED_RESTAURANT_IDS = {"ptr_nc_001", "ptr_nc_002", "ptr_nc_003", "ptr_nc_004"}
     await db.partners.delete_many({
         "category": "restaurant",
         "partner_id": {"$nin": list(PROTECTED_RESTAURANT_IDS)},
+        # Preserve partners that came from external sources (e.g. official xlsx)
+        "$or": [
+            {"source": {"$exists": False}},
+            {"source": None},
+            {"source": ""},
+        ],
     })
     try:
         from restaurants_seed import RESTAURANTS as _RESTAURANTS_CATALOG
