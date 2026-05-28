@@ -45,9 +45,39 @@ export default function PartnerDetail() {
   }
 
   const openMaps = () => {
-    if (!partner?.location) return;
-    RNLinking.openURL(`https://www.google.com/maps/search/?api=1&query=${partner.location.lat},${partner.location.lng}`);
+    if (!partner) return;
+    // Prefer a textual search (address > name) over raw lat/lng,
+    // because many partners imported from the official xlsx don't have a
+    // precise location yet — they fall back to the city centre default coords.
+    const addrText = (partner.address || '').trim();
+    const hasRealCoords =
+      partner.location?.lat &&
+      partner.location?.lng &&
+      // exclude the city-centre fallback (10.4236, -75.5378)
+      !(Math.abs(partner.location.lat - 10.4236) < 0.001 && Math.abs(partner.location.lng + 75.5378) < 0.001);
+    let query: string;
+    if (addrText) {
+      query = encodeURIComponent(`${partner.name}, ${addrText}, Cartagena`);
+    } else if (hasRealCoords) {
+      query = `${partner.location.lat},${partner.location.lng}`;
+    } else {
+      query = encodeURIComponent(`${partner.name}, Cartagena, Colombia`);
+    }
+    RNLinking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`);
   };
+
+  const cleanInstagramHandle = (raw: string): string => {
+    if (!raw) return '';
+    let h = String(raw).trim();
+    // Strip protocol + domain if a full URL was stored
+    h = h.replace(/^https?:\/\/(www\.)?instagram\.com\//i, '');
+    // Strip leading @
+    h = h.replace(/^@+/, '');
+    // Strip trailing slash + query
+    h = h.replace(/[/?#].*$/, '');
+    return h.trim();
+  };
+  const igHandle = cleanInstagramHandle(partner?.instagram || '');
 
   const handleReserve = () => {
     // Always route to the in-app reservation form. The form auto-decides type=table vs prepaid
@@ -144,16 +174,17 @@ export default function PartnerDetail() {
           </View>
 
           {/* Instagram */}
-          {partner.instagram ? (
+          {igHandle ? (
             <TouchableOpacity
+              testID="partner-instagram-btn"
               style={styles.instagramBtn}
-              onPress={() => RNLinking.openURL(`https://instagram.com/${partner.instagram}`)}
+              onPress={() => RNLinking.openURL(`https://www.instagram.com/${igHandle}/`)}
               activeOpacity={0.85}
             >
               <Ionicons name="logo-instagram" size={20} color={COLORS.primary} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.instagramLabel}>Síguelos en Instagram</Text>
-                <Text style={styles.instagramHandle}>@{partner.instagram}</Text>
+                <Text style={styles.instagramHandle}>@{igHandle}</Text>
               </View>
               <Ionicons name="open-outline" size={18} color={COLORS.textMuted} />
             </TouchableOpacity>
