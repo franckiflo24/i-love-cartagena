@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking as RNLinking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking as RNLinking, Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,6 +45,32 @@ export default function PartnerDetail() {
     return <SafeAreaView style={styles.container}><View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: COLORS.textMuted }}>Partner no encontrado</Text></View></SafeAreaView>;
   }
 
+  // Robust external link opener:
+  //  1. Try the deep link (Instagram app / Google Maps app) → opens native app if installed.
+  //  2. Fallback to system browser via WebBrowser (Safari View Controller on iOS),
+  //     which works in Expo Go / TestFlight / production build.
+  //  3. Final fallback to plain Linking.openURL (web).
+  const openExternal = async (deepLink: string | null, webUrl: string) => {
+    if (Platform.OS !== 'web' && deepLink) {
+      try {
+        const can = await RNLinking.canOpenURL(deepLink);
+        if (can) {
+          await RNLinking.openURL(deepLink);
+          return;
+        }
+      } catch {}
+    }
+    if (Platform.OS === 'web') {
+      window.open(webUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    try {
+      await WebBrowser.openBrowserAsync(webUrl, { presentationStyle: WebBrowser.WebBrowserPresentationStyle.AUTOMATIC });
+    } catch {
+      try { await RNLinking.openURL(webUrl); } catch {}
+    }
+  };
+
   const openMaps = () => {
     if (!partner) return;
     // Prefer a textual search (address > name) over raw lat/lng,
@@ -53,7 +80,6 @@ export default function PartnerDetail() {
     const hasRealCoords =
       partner.location?.lat &&
       partner.location?.lng &&
-      // exclude the city-centre fallback (10.4236, -75.5378)
       !(Math.abs(partner.location.lat - 10.4236) < 0.001 && Math.abs(partner.location.lng + 75.5378) < 0.001);
     let query: string;
     if (addrText) {
@@ -63,7 +89,10 @@ export default function PartnerDetail() {
     } else {
       query = encodeURIComponent(`${partner.name}, Cartagena, Colombia`);
     }
-    RNLinking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`);
+    const webUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
+    // iOS Maps deep link works when "Google Maps" app is installed
+    const iosDeep = `comgooglemaps://?q=${query}`;
+    openExternal(iosDeep, webUrl);
   };
 
   const cleanInstagramHandle = (raw: string): string => {
@@ -178,7 +207,7 @@ export default function PartnerDetail() {
             <TouchableOpacity
               testID="partner-instagram-btn"
               style={styles.instagramBtn}
-              onPress={() => RNLinking.openURL(`https://www.instagram.com/${igHandle}/`)}
+              onPress={() => openExternal(`instagram://user?username=${igHandle}`, `https://www.instagram.com/${igHandle}/`)}
               activeOpacity={0.85}
             >
               <Ionicons name="logo-instagram" size={20} color={COLORS.primary} />
