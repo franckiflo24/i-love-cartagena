@@ -19,7 +19,12 @@
         "NSPhotoLibraryAddUsageDescription": "Guarda tu boarding pass y entradas",
         "NSUserNotificationsUsageDescription": "Recibe confirmación de reservas y recordatorios",
         "ITSAppUsesNonExemptEncryption": false,
-        "LSApplicationQueriesSchemes": ["whatsapp", "instagram", "tel", "mailto"]
+        "LSApplicationQueriesSchemes": [
+          "whatsapp",
+          "instagram",
+          "tel",
+          "mailto"
+        ]
       }
     },
     "android": {
@@ -70,7 +75,8 @@
           "color": "#D97706",
           "sounds": []
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
