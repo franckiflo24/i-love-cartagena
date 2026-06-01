@@ -373,6 +373,26 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* Static hero fallback — shown when no active season is returned by the API */}
+        {seasons.length === 0 && (
+          <TouchableOpacity
+            style={[styles.heroCard, { width: HERO_WIDTH, marginHorizontal: SPACING.lg, marginBottom: SPACING.md }]}
+            activeOpacity={0.9}
+            onPress={() => router.push('/(tabs)/agenda')}
+          >
+            <Image source={{ uri: IMAGES.hero }} style={styles.heroImage} resizeMode="cover" />
+            <View style={[styles.heroOverlay, { backgroundColor: 'rgba(5,8,20,0.55)' }]} />
+            <View style={styles.heroContent}>
+              <Text style={[styles.heroLabel, { color: COLORS.primary }]}>CARTAGENA DE INDIAS</Text>
+              <Text style={styles.heroTitle}>Descubre la ciudad</Text>
+              <Text style={styles.heroSub}>Gastronomía · Cultura · Vida nocturna · Bienestar</Text>
+              <View style={[styles.comingSoonBadge, { backgroundColor: COLORS.primary, marginTop: 10 }]}>
+                <Text style={styles.comingSoonText}>EXPLORAR AHORA</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        )}
+
         {/* Quick Access — moved to top of screen */}
 
         {/* My Favorites */}

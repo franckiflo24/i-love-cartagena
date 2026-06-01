@@ -29,7 +29,7 @@ export default function RootLayout() {
         <Stack.Screen name="partner-event/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="experience/[id]" options={{ presentation: 'card' }} />
         <Stack.Screen name="experience/booking" options={{ presentation: 'card' }} />
-        <Stack.Screen name="rewards" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="rewards/index" options={{ presentation: 'modal' }} />
         <Stack.Screen name="review/new" options={{ presentation: 'modal' }} />
         <Stack.Screen name="transport" options={{ presentation: 'modal' }} />
         <Stack.Screen name="itineraries" options={{ presentation: 'modal' }} />
@@ -46,7 +46,7 @@ export default function RootLayout() {
         <Stack.Screen name="business/event-form" options={{ presentation: 'modal' }} />
         <Stack.Screen name="business/profile-edit" options={{ presentation: 'modal' }} />
         <Stack.Screen name="port-tax" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="reservations" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="reservations/index" options={{ presentation: 'modal' }} />
         <Stack.Screen name="reservation/new" options={{ presentation: 'modal' }} />
         <Stack.Screen name="rewards/offers" options={{ presentation: 'modal' }} />
       </Stack>

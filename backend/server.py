@@ -3647,12 +3647,17 @@ async def agent_delete_session(session_id: str, request: Request):
 
 # ── Seed Data ───────────────────────────────────────────────
 async def seed_database():
-    count = await db.seasons.count_documents({})
-    if count > 0:
-        logger.info("Database already seeded")
-        return
+    # Always drop and re-seed seasons, events, and partner_events so dates stay current
+    await db.seasons.delete_many({})
+    await db.events.delete_many({})
+    await db.partner_events.delete_many({})
 
     logger.info("Seeding database...")
+
+    # Helper to compute date string offset from today (used by seasons, events, partner_events)
+    today = datetime.now(timezone.utc).date()
+    def d(offset: int) -> str:
+        return (today + timedelta(days=offset)).strftime("%Y-%m-%d")
 
     IMG_SUNSET = "https://images.unsplash.com/photo-1651421479936-e24edc3e3143?w=800"
     IMG_CONCERT = "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
@@ -3677,8 +3682,8 @@ async def seed_database():
             "name": "Music Week",
             "subtitle": "La experiencia de ciudad",
             "description": "La semana de música más importante de Cartagena. Sunsets, Templo, beach clubs, cultura y wellness.",
-            "start_date": "2026-12-30",
-            "end_date": "2027-01-10",
+            "start_date": d(0),
+            "end_date": d(14),
             "image_url": IMG_SUNSET,
             "color": "#D97706",
             "tags": ["Sunset", "Templo", "Beach", "Cultura", "Wellness"],
@@ -3690,8 +3695,8 @@ async def seed_database():
             "name": "Summer Vibes",
             "subtitle": "El verano de Cartagena",
             "description": "Tres semanas de fiesta, playa, música electrónica y experiencias de verano en los mejores venues de Cartagena.",
-            "start_date": "2027-08-01",
-            "end_date": "2027-08-21",
+            "start_date": d(30),
+            "end_date": d(50),
             "image_url": IMG_BEACH,
             "color": "#06B6D4",
             "tags": ["Beach Party", "Pool Party", "DJ Sets", "Sunset", "Summer"],
@@ -3703,8 +3708,8 @@ async def seed_database():
             "name": "Wellness Week",
             "subtitle": "Reconecta cuerpo y mente",
             "description": "Yoga, meditación, sound healing, retiros y experiencias de bienestar en los lugares más hermosos de Cartagena.",
-            "start_date": "2027-04-06",
-            "end_date": "2027-04-12",
+            "start_date": d(60),
+            "end_date": d(66),
             "image_url": IMG_WELLNESS,
             "color": "#059669",
             "tags": ["Yoga", "Meditación", "Sound Healing", "Retiros", "Spa"],
@@ -3714,21 +3719,21 @@ async def seed_database():
     ]
 
     events = [
-        {"event_id":"evt_001","title":"Sunset Session","description":"Live DJ set contra el telón del legendario atardecer de Cartagena desde las murallas coloniales. Música chill, cócteles y vistas increíbles.","date":"2026-01-12","start_time":"17:00","end_time":"20:00","venue_id":"ven_001","venue_name":"La Muralla","type":"sunset","is_free":True,"price":0,"image_url":IMG_SUNSET,"booking_link":"","capacity":500,"tags":["outdoor","music","sunset","free"],"location":{"lat":10.4236,"lng":-75.5483},"featured":True},
-        {"event_id":"evt_002","title":"Electronic Sunset","description":"Sesión electrónica al atardecer con los mejores DJs internacionales. Drinks premium incluidos.","date":"2026-01-12","start_time":"16:00","end_time":"21:00","venue_id":"ven_005","venue_name":"Café del Mar","type":"sunset","is_free":False,"price":150000,"image_url":IMG_DJ,"booking_link":"https://cafeDelmar.com/reserve","capacity":200,"tags":["electronic","sunset","premium"],"location":{"lat":10.4260,"lng":-75.5490},"featured":True},
-        {"event_id":"evt_003","title":"Templo Night I","description":"La primera noche de Templo. Line-up internacional con los artistas más relevantes de la escena electrónica latina.","date":"2026-01-12","start_time":"22:00","end_time":"05:00","venue_id":"ven_002","venue_name":"Templo","type":"concert","is_free":False,"price":250000,"image_url":IMG_CONCERT,"booking_link":"https://templo.co/tickets","capacity":2000,"tags":["electronic","nightlife","headline"],"location":{"lat":10.4195,"lng":-75.5455},"featured":True},
-        {"event_id":"evt_004","title":"Sunrise Yoga","description":"Yoga al amanecer en la muralla con vista al mar Caribe. Incluye mat y agua.","date":"2026-01-13","start_time":"06:00","end_time":"07:30","venue_id":"ven_001","venue_name":"La Muralla","type":"wellness","is_free":True,"price":0,"image_url":IMG_YOGA,"booking_link":"","capacity":60,"tags":["wellness","yoga","free","morning"],"location":{"lat":10.4236,"lng":-75.5483},"featured":False},
-        {"event_id":"evt_005","title":"Brunch & Beats","description":"Brunch gourmet con DJ en vivo. Menú de autor con ingredientes locales y cócteles tropicales.","date":"2026-01-13","start_time":"11:00","end_time":"15:00","venue_id":"ven_003","venue_name":"Casa Bohème","type":"brunch","is_free":False,"price":180000,"image_url":IMG_BRUNCH,"booking_link":"https://casaboheme.co/brunch","capacity":80,"tags":["food","music","brunch"],"location":{"lat":10.4228,"lng":-75.5510},"featured":True},
-        {"event_id":"evt_006","title":"Beach Day Party","description":"Fiesta de día completa en la playa de Barú. Open bar, DJ internacional, comida de mar.","date":"2026-01-13","start_time":"10:00","end_time":"18:00","venue_id":"ven_008","venue_name":"Isla Barú Beach Club","type":"beach_club","is_free":False,"price":350000,"image_url":IMG_BEACH,"booking_link":"https://barubeach.com/party","capacity":300,"tags":["beach","party","all-inclusive"],"location":{"lat":10.1817,"lng":-75.5847},"featured":True},
-        {"event_id":"evt_007","title":"Candlelight Classical","description":"Concierto íntimo de música clásica a la luz de velas en el claustro de San Pedro Claver.","date":"2026-01-13","start_time":"20:00","end_time":"22:00","venue_id":"ven_006","venue_name":"San Pedro Claver","type":"candlelight","is_free":False,"price":200000,"image_url":IMG_CANDLE,"booking_link":"https://candlelight.co/cartagena","capacity":120,"tags":["classical","intimate","cultural"],"location":{"lat":10.4228,"lng":-75.5498},"featured":False},
-        {"event_id":"evt_008","title":"Templo Night II","description":"Segunda noche de Templo. After movie night con artistas sorpresa y producción inmersiva.","date":"2026-01-14","start_time":"22:00","end_time":"06:00","venue_id":"ven_002","venue_name":"Templo","type":"concert","is_free":False,"price":280000,"image_url":IMG_NIGHT,"booking_link":"https://templo.co/tickets","capacity":2000,"tags":["electronic","nightlife","headline"],"location":{"lat":10.4195,"lng":-75.5455},"featured":True},
-        {"event_id":"evt_009","title":"Pop-Up Art Gallery","description":"Exposición de arte contemporáneo colombiano en los salones del Hotel Santa Clara.","date":"2026-01-14","start_time":"10:00","end_time":"20:00","venue_id":"ven_007","venue_name":"Hotel Santa Clara","type":"pop_up","is_free":True,"price":0,"image_url":IMG_POPUP,"booking_link":"","capacity":0,"tags":["art","culture","free"],"location":{"lat":10.4232,"lng":-75.5502},"featured":False},
-        {"event_id":"evt_010","title":"Jazz & Wine Night","description":"Noche de jazz en vivo con maridaje de vinos premium. Artistas locales e internacionales.","date":"2026-01-14","start_time":"20:00","end_time":"00:00","venue_id":"ven_004","venue_name":"Bellini","type":"cultural","is_free":False,"price":220000,"image_url":IMG_JAZZ,"booking_link":"https://bellini.co/jazz","capacity":80,"tags":["jazz","wine","intimate"],"location":{"lat":10.4240,"lng":-75.5475},"featured":False},
-        {"event_id":"evt_011","title":"Morning Spinning","description":"Clase de spinning de alta energía frente al mar. 45 minutos de música y sudor.","date":"2026-01-15","start_time":"07:00","end_time":"08:00","venue_id":"ven_009","venue_name":"Blue Apple Beach","type":"wellness","is_free":False,"price":80000,"image_url":IMG_YOGA,"booking_link":"https://blueapple.co/spinning","capacity":30,"tags":["wellness","fitness","morning"],"location":{"lat":10.1780,"lng":-75.5800},"featured":False},
-        {"event_id":"evt_012","title":"Folklore Show","description":"Show de danzas folclóricas colombianas en la Plaza Santo Domingo. Cultura viva.","date":"2026-01-15","start_time":"18:00","end_time":"20:00","venue_id":"ven_001","venue_name":"Plaza Santo Domingo","type":"cultural","is_free":True,"price":0,"image_url":IMG_CULTURE,"booking_link":"","capacity":500,"tags":["folklore","dance","free","cultural"],"location":{"lat":10.4233,"lng":-75.5512},"featured":False},
-        {"event_id":"evt_013","title":"After Party Fénix","description":"After party oficial en Fénix. Los mejores DJs de la semana se reúnen para una última noche épica.","date":"2026-01-15","start_time":"01:00","end_time":"07:00","venue_id":"ven_010","venue_name":"Fénix","type":"after_party","is_free":False,"price":120000,"image_url":IMG_NIGHT,"booking_link":"https://fenix.co/after","capacity":400,"tags":["nightlife","electronic","after-party"],"location":{"lat":10.4200,"lng":-75.5460},"featured":False},
-        {"event_id":"evt_014","title":"Sunset Closing","description":"Ceremonia de cierre con DJ set y performance artístico en la muralla. El atardecer final de Amo Cartagena.","date":"2026-01-16","start_time":"17:00","end_time":"21:00","venue_id":"ven_001","venue_name":"La Muralla","type":"sunset","is_free":True,"price":0,"image_url":IMG_CLOSING,"booking_link":"","capacity":1000,"tags":["closing","sunset","free","special"],"location":{"lat":10.4236,"lng":-75.5483},"featured":True},
-        {"event_id":"evt_015","title":"DJ Set Blue Apple","description":"Set electrónico en el beach club más exclusivo de las islas. Transporte en lancha incluido.","date":"2026-01-14","start_time":"14:00","end_time":"20:00","venue_id":"ven_009","venue_name":"Blue Apple Beach","type":"beach_club","is_free":False,"price":400000,"image_url":IMG_BEACH,"booking_link":"https://blueapple.co/djset","capacity":150,"tags":["beach","electronic","exclusive"],"location":{"lat":10.1780,"lng":-75.5800},"featured":False},
+        {"event_id":"evt_001","title":"Sunset Session","description":"Live DJ set contra el telón del legendario atardecer de Cartagena desde las murallas coloniales. Música chill, cócteles y vistas increíbles.","date":d(0),"start_time":"17:00","end_time":"20:00","venue_id":"ven_001","venue_name":"La Muralla","type":"sunset","is_free":True,"price":0,"image_url":IMG_SUNSET,"booking_link":"","capacity":500,"tags":["outdoor","music","sunset","free"],"location":{"lat":10.4236,"lng":-75.5483},"featured":True},
+        {"event_id":"evt_002","title":"Electronic Sunset","description":"Sesión electrónica al atardecer con los mejores DJs internacionales. Drinks premium incluidos.","date":d(0),"start_time":"16:00","end_time":"21:00","venue_id":"ven_005","venue_name":"Café del Mar","type":"sunset","is_free":False,"price":150000,"image_url":IMG_DJ,"booking_link":"https://cafeDelmar.com/reserve","capacity":200,"tags":["electronic","sunset","premium"],"location":{"lat":10.4260,"lng":-75.5490},"featured":True},
+        {"event_id":"evt_003","title":"Templo Night I","description":"La primera noche de Templo. Line-up internacional con los artistas más relevantes de la escena electrónica latina.","date":d(0),"start_time":"22:00","end_time":"05:00","venue_id":"ven_002","venue_name":"Templo","type":"concert","is_free":False,"price":250000,"image_url":IMG_CONCERT,"booking_link":"https://templo.co/tickets","capacity":2000,"tags":["electronic","nightlife","headline"],"location":{"lat":10.4195,"lng":-75.5455},"featured":True},
+        {"event_id":"evt_004","title":"Sunrise Yoga","description":"Yoga al amanecer en la muralla con vista al mar Caribe. Incluye mat y agua.","date":d(1),"start_time":"06:00","end_time":"07:30","venue_id":"ven_001","venue_name":"La Muralla","type":"wellness","is_free":True,"price":0,"image_url":IMG_YOGA,"booking_link":"","capacity":60,"tags":["wellness","yoga","free","morning"],"location":{"lat":10.4236,"lng":-75.5483},"featured":False},
+        {"event_id":"evt_005","title":"Brunch & Beats","description":"Brunch gourmet con DJ en vivo. Menú de autor con ingredientes locales y cócteles tropicales.","date":d(1),"start_time":"11:00","end_time":"15:00","venue_id":"ven_003","venue_name":"Casa Bohème","type":"brunch","is_free":False,"price":180000,"image_url":IMG_BRUNCH,"booking_link":"https://casaboheme.co/brunch","capacity":80,"tags":["food","music","brunch"],"location":{"lat":10.4228,"lng":-75.5510},"featured":True},
+        {"event_id":"evt_006","title":"Beach Day Party","description":"Fiesta de día completa en la playa de Barú. Open bar, DJ internacional, comida de mar.","date":d(2),"start_time":"10:00","end_time":"18:00","venue_id":"ven_008","venue_name":"Isla Barú Beach Club","type":"beach_club","is_free":False,"price":350000,"image_url":IMG_BEACH,"booking_link":"https://barubeach.com/party","capacity":300,"tags":["beach","party","all-inclusive"],"location":{"lat":10.1817,"lng":-75.5847},"featured":True},
+        {"event_id":"evt_007","title":"Candlelight Classical","description":"Concierto íntimo de música clásica a la luz de velas en el claustro de San Pedro Claver.","date":d(2),"start_time":"20:00","end_time":"22:00","venue_id":"ven_006","venue_name":"San Pedro Claver","type":"candlelight","is_free":False,"price":200000,"image_url":IMG_CANDLE,"booking_link":"https://candlelight.co/cartagena","capacity":120,"tags":["classical","intimate","cultural"],"location":{"lat":10.4228,"lng":-75.5498},"featured":False},
+        {"event_id":"evt_008","title":"Templo Night II","description":"Segunda noche de Templo. After movie night con artistas sorpresa y producción inmersiva.","date":d(3),"start_time":"22:00","end_time":"06:00","venue_id":"ven_002","venue_name":"Templo","type":"concert","is_free":False,"price":280000,"image_url":IMG_NIGHT,"booking_link":"https://templo.co/tickets","capacity":2000,"tags":["electronic","nightlife","headline"],"location":{"lat":10.4195,"lng":-75.5455},"featured":True},
+        {"event_id":"evt_009","title":"Pop-Up Art Gallery","description":"Exposición de arte contemporáneo colombiano en los salones del Hotel Santa Clara.","date":d(3),"start_time":"10:00","end_time":"20:00","venue_id":"ven_007","venue_name":"Hotel Santa Clara","type":"pop_up","is_free":True,"price":0,"image_url":IMG_POPUP,"booking_link":"","capacity":0,"tags":["art","culture","free"],"location":{"lat":10.4232,"lng":-75.5502},"featured":False},
+        {"event_id":"evt_010","title":"Jazz & Wine Night","description":"Noche de jazz en vivo con maridaje de vinos premium. Artistas locales e internacionales.","date":d(4),"start_time":"20:00","end_time":"00:00","venue_id":"ven_004","venue_name":"Bellini","type":"cultural","is_free":False,"price":220000,"image_url":IMG_JAZZ,"booking_link":"https://bellini.co/jazz","capacity":80,"tags":["jazz","wine","intimate"],"location":{"lat":10.4240,"lng":-75.5475},"featured":False},
+        {"event_id":"evt_011","title":"Morning Spinning","description":"Clase de spinning de alta energía frente al mar. 45 minutos de música y sudor.","date":d(4),"start_time":"07:00","end_time":"08:00","venue_id":"ven_009","venue_name":"Blue Apple Beach","type":"wellness","is_free":False,"price":80000,"image_url":IMG_YOGA,"booking_link":"https://blueapple.co/spinning","capacity":30,"tags":["wellness","fitness","morning"],"location":{"lat":10.1780,"lng":-75.5800},"featured":False},
+        {"event_id":"evt_012","title":"Folklore Show","description":"Show de danzas folclóricas colombianas en la Plaza Santo Domingo. Cultura viva.","date":d(5),"start_time":"18:00","end_time":"20:00","venue_id":"ven_001","venue_name":"Plaza Santo Domingo","type":"cultural","is_free":True,"price":0,"image_url":IMG_CULTURE,"booking_link":"","capacity":500,"tags":["folklore","dance","free","cultural"],"location":{"lat":10.4233,"lng":-75.5512},"featured":False},
+        {"event_id":"evt_013","title":"After Party Fénix","description":"After party oficial en Fénix. Los mejores DJs de la semana se reúnen para una última noche épica.","date":d(5),"start_time":"01:00","end_time":"07:00","venue_id":"ven_010","venue_name":"Fénix","type":"after_party","is_free":False,"price":120000,"image_url":IMG_NIGHT,"booking_link":"https://fenix.co/after","capacity":400,"tags":["nightlife","electronic","after-party"],"location":{"lat":10.4200,"lng":-75.5460},"featured":False},
+        {"event_id":"evt_014","title":"Sunset Closing","description":"Ceremonia de cierre con DJ set y performance artístico en la muralla. El atardecer final de Amo Cartagena.","date":d(6),"start_time":"17:00","end_time":"21:00","venue_id":"ven_001","venue_name":"La Muralla","type":"sunset","is_free":True,"price":0,"image_url":IMG_CLOSING,"booking_link":"","capacity":1000,"tags":["closing","sunset","free","special"],"location":{"lat":10.4236,"lng":-75.5483},"featured":True},
+        {"event_id":"evt_015","title":"DJ Set Blue Apple","description":"Set electrónico en el beach club más exclusivo de las islas. Transporte en lancha incluido.","date":d(6),"start_time":"14:00","end_time":"20:00","venue_id":"ven_009","venue_name":"Blue Apple Beach","type":"beach_club","is_free":False,"price":400000,"image_url":IMG_BEACH,"booking_link":"https://blueapple.co/djset","capacity":150,"tags":["beach","electronic","exclusive"],"location":{"lat":10.1780,"lng":-75.5800},"featured":False},
     ]
 
     venues = [
@@ -4158,14 +4163,8 @@ async def startup():
     logger.info("Partner image migration applied — 17 partners backfilled")
 
     # ── Seed: Partner Events (eventos publicados por partners) ──
-    pe_count = await db.partner_events.count_documents({})
-    if pe_count == 0:
+    if True:
         logger.info("Seeding partner events...")
-        from datetime import date as _date
-        today = datetime.now(timezone.utc).date()
-        # Helper to compute date string offset from today
-        def d(offset: int) -> str:
-            return (today + timedelta(days=offset)).strftime("%Y-%m-%d")
 
         FLYER_BRUNCH = "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=1000&fit=crop"
         FLYER_DJ = "https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=800&h=1000&fit=crop"

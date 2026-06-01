@@ -18,6 +18,23 @@ export default function Root({ children }: PropsWithChildren) {
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <ScrollViewStyleReset />
         <style dangerouslySetInnerHTML={{ __html: `
+          /* ── Icon fonts (Expo static export does not bundle these automatically) ── */
+          @font-face {
+            font-family: 'Ionicons';
+            src: url('https://cdn.jsdelivr.net/npm/@expo/vector-icons@15.0.3/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf') format('truetype');
+            font-display: swap;
+          }
+          @font-face {
+            font-family: 'MaterialIcons';
+            src: url('https://cdn.jsdelivr.net/npm/@expo/vector-icons@15.0.3/build/vendor/react-native-vector-icons/Fonts/MaterialIcons.ttf') format('truetype');
+            font-display: swap;
+          }
+          @font-face {
+            font-family: 'FontAwesome';
+            src: url('https://cdn.jsdelivr.net/npm/@expo/vector-icons@15.0.3/build/vendor/react-native-vector-icons/Fonts/FontAwesome.ttf') format('truetype');
+            font-display: swap;
+          }
+
           @viewport { width: device-width; }
 
           html, body, #root {
