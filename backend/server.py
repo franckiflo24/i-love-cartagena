@@ -4163,8 +4163,12 @@ async def startup():
     logger.info("Partner image migration applied — 17 partners backfilled")
 
     # ── Seed: Partner Events (eventos publicados por partners) ──
+    await db.partner_events.delete_many({})
     if True:
         logger.info("Seeding partner events...")
+        today = datetime.now(timezone.utc).date()
+        def d(offset: int) -> str:
+            return (today + timedelta(days=offset)).strftime("%Y-%m-%d")
 
         FLYER_BRUNCH = "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=1000&fit=crop"
         FLYER_DJ = "https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=800&h=1000&fit=crop"
