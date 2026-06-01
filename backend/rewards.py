@@ -180,161 +180,188 @@ async def award_points(
 @router.get("/rewards/me")
 async def get_my_rewards(request: Request):
     """Get the current user's rewards account, tier info, and benefits."""
-    user = await _deps["get_current_user"](request)
-    db = _db()
+    try:
+        user = await _deps["get_current_user"](request)
+        db = _db()
 
-    account = await db.rewards_accounts.find_one({"user_id": user["user_id"]}, {"_id": 0})
-    if not account:
-        now = datetime.now(timezone.utc).isoformat()
-        account = {
-            "reward_id": f"rwd_{uuid.uuid4().hex[:12]}",
-            "user_id": user["user_id"],
-            "points_balance": 0,
-            "lifetime_points": 0,
-            "tier": "explorer",
-            "tier_updated_at": now,
-            "created_at": now,
-            "updated_at": now,
-        }
-        await db.rewards_accounts.insert_one(account)
         account = await db.rewards_accounts.find_one({"user_id": user["user_id"]}, {"_id": 0})
+        if not account:
+            now = datetime.now(timezone.utc).isoformat()
+            account = {
+                "reward_id": f"rwd_{uuid.uuid4().hex[:12]}",
+                "user_id": user["user_id"],
+                "points_balance": 0,
+                "lifetime_points": 0,
+                "tier": "explorer",
+                "tier_updated_at": now,
+                "created_at": now,
+                "updated_at": now,
+            }
+            await db.rewards_accounts.insert_one(account)
+            account = await db.rewards_accounts.find_one({"user_id": user["user_id"]}, {"_id": 0})
 
-    tier = account["tier"]
-    tier_info = _next_tier_info(tier, account["lifetime_points"])
-    benefits = TIER_BENEFITS.get(tier, TIER_BENEFITS["explorer"])
+        tier = account["tier"]
+        tier_info = _next_tier_info(tier, account["lifetime_points"])
+        benefits = TIER_BENEFITS.get(tier, TIER_BENEFITS["explorer"])
 
-    recent_history = await db.rewards_history.find(
-        {"user_id": user["user_id"]},
-        {"_id": 0},
-    ).sort("created_at", -1).limit(10).to_list(10)
+        recent_history = await db.rewards_history.find(
+            {"user_id": user["user_id"]},
+            {"_id": 0},
+        ).sort("created_at", -1).limit(10).to_list(10)
 
-    return {
-        "account": account,
-        "tier": tier,
-        "tier_label": tier.capitalize(),
-        "points_balance": account["points_balance"],
-        "lifetime_points": account["lifetime_points"],
-        **tier_info,
-        "benefits": benefits,
-        "recent_history": recent_history,
-        "points_config": POINTS_CONFIG,
-    }
+        return {
+            "account": account,
+            "tier": tier,
+            "tierLabel": tier.capitalize(),
+            "tier_label": tier.capitalize(),
+            "points_balance": account["points_balance"],
+            "points": account["points_balance"],
+            "lifetime_points": account["lifetime_points"],
+            **tier_info,
+            "benefits": benefits.get("perks", []) if isinstance(benefits, dict) else benefits,
+            "benefits_full": benefits,
+            "recent_history": recent_history,
+            "points_config": POINTS_CONFIG,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Rewards] get_my_rewards error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load rewards")
 
 
 @router.get("/rewards/history")
 async def get_rewards_history(request: Request):
     """Get paginated points history."""
-    user = await _deps["get_current_user"](request)
-    db = _db()
+    try:
+        user = await _deps["get_current_user"](request)
+        db = _db()
 
-    page = int(request.query_params.get("page", "1"))
-    limit = min(int(request.query_params.get("limit", "20")), 50)
-    skip = (page - 1) * limit
+        page = int(request.query_params.get("page", "1"))
+        limit = min(int(request.query_params.get("limit", "20")), 50)
+        skip = (page - 1) * limit
 
-    total = await db.rewards_history.count_documents({"user_id": user["user_id"]})
-    history = await db.rewards_history.find(
-        {"user_id": user["user_id"]},
-        {"_id": 0},
-    ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+        total = await db.rewards_history.count_documents({"user_id": user["user_id"]})
+        history = await db.rewards_history.find(
+            {"user_id": user["user_id"]},
+            {"_id": 0},
+        ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
 
-    return {
-        "history": history,
-        "total": total,
-        "page": page,
-        "pages": (total + limit - 1) // limit if total > 0 else 1,
-    }
+        return {
+            "history": history,
+            "total": total,
+            "page": page,
+            "pages": (total + limit - 1) // limit if total > 0 else 1,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Rewards] get_rewards_history error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load rewards history")
 
 
 @router.get("/rewards/offers")
 async def get_rewards_offers(request: Request):
     """Get available offers filtered by user's tier eligibility."""
-    user = await _deps["get_current_user"](request)
-    db = _db()
+    try:
+        user = await _deps["get_current_user"](request)
+        db = _db()
 
-    account = await db.rewards_accounts.find_one({"user_id": user["user_id"]}, {"_id": 0})
-    user_tier = account["tier"] if account else "explorer"
-    user_tier_level = TIER_ORDER.get(user_tier, 0)
+        account = await db.rewards_accounts.find_one({"user_id": user["user_id"]}, {"_id": 0})
+        user_tier = account["tier"] if account else "explorer"
+        user_tier_level = TIER_ORDER.get(user_tier, 0)
 
-    all_offers = await db.rewards_offers.find(
-        {"is_active": True},
-        {"_id": 0},
-    ).sort("points_cost", 1).to_list(100)
+        all_offers = await db.rewards_offers.find(
+            {"is_active": True},
+            {"_id": 0},
+        ).sort("points_cost", 1).to_list(100)
 
-    offers = []
-    for offer in all_offers:
-        min_tier = offer.get("min_tier", "explorer")
-        min_level = TIER_ORDER.get(min_tier, 0)
-        eligible = user_tier_level >= min_level
-        max_uses = offer.get("max_uses", 0)
-        uses_count = offer.get("uses_count", 0)
-        available = max_uses == 0 or uses_count < max_uses
-        offers.append({
-            **offer,
-            "eligible": eligible,
-            "available": available,
-        })
+        offers = []
+        for offer in all_offers:
+            min_tier = offer.get("min_tier", "explorer")
+            min_level = TIER_ORDER.get(min_tier, 0)
+            eligible = user_tier_level >= min_level
+            max_uses = offer.get("max_uses", 0)
+            uses_count = offer.get("uses_count", 0)
+            available = max_uses == 0 or uses_count < max_uses
+            offers.append({
+                **offer,
+                "eligible": eligible,
+                "available": available,
+            })
 
-    return {"offers": offers, "user_tier": user_tier}
+        return {"offers": offers, "user_tier": user_tier}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Rewards] get_rewards_offers error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load offers")
 
 
 @router.post("/rewards/redeem")
 async def redeem_offer(request: Request):
     """Redeem an offer using points."""
-    user = await _deps["get_current_user"](request)
-    db = _db()
-    body = await request.json()
-    offer_id = (body.get("offer_id") or "").strip()
+    try:
+        user = await _deps["get_current_user"](request)
+        db = _db()
+        body = await request.json()
+        offer_id = (body.get("offer_id") or "").strip()
 
-    if not offer_id:
-        raise HTTPException(status_code=400, detail="offer_id required")
+        if not offer_id:
+            raise HTTPException(status_code=400, detail="offer_id required")
 
-    offer = await db.rewards_offers.find_one({"offer_id": offer_id, "is_active": True}, {"_id": 0})
-    if not offer:
-        raise HTTPException(status_code=404, detail="Offer not found or inactive")
+        offer = await db.rewards_offers.find_one({"offer_id": offer_id, "is_active": True}, {"_id": 0})
+        if not offer:
+            raise HTTPException(status_code=404, detail="Offer not found or inactive")
 
-    account = await db.rewards_accounts.find_one({"user_id": user["user_id"]}, {"_id": 0})
-    if not account:
-        raise HTTPException(status_code=400, detail="No rewards account")
+        account = await db.rewards_accounts.find_one({"user_id": user["user_id"]}, {"_id": 0})
+        if not account:
+            raise HTTPException(status_code=400, detail="No rewards account")
 
-    min_tier_level = TIER_ORDER.get(offer.get("min_tier", "explorer"), 0)
-    user_tier_level = TIER_ORDER.get(account["tier"], 0)
-    if user_tier_level < min_tier_level:
-        raise HTTPException(status_code=403, detail=f"Requires {offer.get('min_tier', 'explorer')} tier or higher")
+        min_tier_level = TIER_ORDER.get(offer.get("min_tier", "explorer"), 0)
+        user_tier_level = TIER_ORDER.get(account["tier"], 0)
+        if user_tier_level < min_tier_level:
+            raise HTTPException(status_code=403, detail=f"Requires {offer.get('min_tier', 'explorer')} tier or higher")
 
-    points_cost = offer.get("points_cost", 0)
-    if account["points_balance"] < points_cost:
-        raise HTTPException(status_code=400, detail=f"Not enough points. Need {points_cost}, have {account['points_balance']}")
+        points_cost = offer.get("points_cost", 0)
+        if account["points_balance"] < points_cost:
+            raise HTTPException(status_code=400, detail=f"Not enough points. Need {points_cost}, have {account['points_balance']}")
 
-    max_uses = offer.get("max_uses", 0)
-    uses_count = offer.get("uses_count", 0)
-    if max_uses > 0 and uses_count >= max_uses:
-        raise HTTPException(status_code=400, detail="Offer fully redeemed")
+        max_uses = offer.get("max_uses", 0)
+        uses_count = offer.get("uses_count", 0)
+        if max_uses > 0 and uses_count >= max_uses:
+            raise HTTPException(status_code=400, detail="Offer fully redeemed")
 
-    now = datetime.now(timezone.utc).isoformat()
-    redemption = {
-        "redemption_id": f"rdm_{uuid.uuid4().hex[:12]}",
-        "user_id": user["user_id"],
-        "offer_id": offer_id,
-        "points_spent": points_cost,
-        "status": "active",
-        "redeemed_at": now,
-        "used_at": None,
-        "expires_at": offer.get("expires_at"),
-        "qr_payload": f"AMO-RDM-{uuid.uuid4().hex[:8].upper()}",
-    }
-    await db.rewards_redemptions.insert_one(redemption)
+        now = datetime.now(timezone.utc).isoformat()
+        redemption = {
+            "redemption_id": f"rdm_{uuid.uuid4().hex[:12]}",
+            "user_id": user["user_id"],
+            "offer_id": offer_id,
+            "points_spent": points_cost,
+            "status": "active",
+            "redeemed_at": now,
+            "used_at": None,
+            "expires_at": offer.get("expires_at"),
+            "qr_payload": f"AMO-RDM-{uuid.uuid4().hex[:8].upper()}",
+        }
+        await db.rewards_redemptions.insert_one(redemption)
 
-    await db.rewards_offers.update_one(
-        {"offer_id": offer_id},
-        {"$inc": {"uses_count": 1}},
-    )
+        await db.rewards_offers.update_one(
+            {"offer_id": offer_id},
+            {"$inc": {"uses_count": 1}},
+        )
 
-    await award_points(
-        db, user["user_id"], -points_cost, "redeem", redemption["redemption_id"],
-        f"Redeemed: {offer.get('title', 'Offer')}",
-    )
+        await award_points(
+            db, user["user_id"], -points_cost, "redeem", redemption["redemption_id"],
+            f"Redeemed: {offer.get('title', 'Offer')}",
+        )
 
-    return {"redemption": {k: v for k, v in redemption.items() if k != "_id"}, "new_balance": account["points_balance"] - points_cost}
+        return {"redemption": {k: v for k, v in redemption.items() if k != "_id"}, "new_balance": account["points_balance"] - points_cost}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Rewards] redeem error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to redeem offer")
 
 
 # ─────────────────────────────────────────────────────────────

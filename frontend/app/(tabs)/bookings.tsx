@@ -407,10 +407,11 @@ export default function BookingsScreen() {
   const navigateToBooking = (booking: UnifiedBooking) => {
     switch (booking.type) {
       case 'reservation':
-        router.push(`/reservation/${booking.id}` as any);
+        router.push(`/reservations?highlight=${booking.id}` as any);
         break;
       case 'experience':
-        router.push(`/experience-booking/${booking.id}` as any);
+        // No dedicated experience-booking detail screen — go to reservations overview
+        router.push('/reservations' as any);
         break;
       case 'citypass':
         router.push('/city-pass' as any);

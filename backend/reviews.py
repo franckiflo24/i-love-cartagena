@@ -104,100 +104,110 @@ async def _check_verified_booking(db, user_id: str, partner_id: str) -> bool:
 @router.post("/reviews")
 async def submit_review(request: Request):
     """Submit a review for a partner. One review per user per partner."""
-    user = await _deps["get_current_user"](request)
-    db = _db()
-    body = await request.json()
+    try:
+        user = await _deps["get_current_user"](request)
+        db = _db()
+        body = await request.json()
 
-    partner_id = (body.get("partner_id") or "").strip()
-    rating = body.get("rating")
-    text = (body.get("text") or "").strip()
-    photos = body.get("photos") or []
-    subcategories = body.get("subcategories") or {}
+        partner_id = (body.get("partner_id") or "").strip()
+        rating = body.get("rating")
+        text = (body.get("text") or "").strip()
+        photos = body.get("photos") or []
+        subcategories = body.get("subcategories") or {}
 
-    if not partner_id:
-        raise HTTPException(status_code=400, detail="partner_id required")
-    if not rating or not isinstance(rating, (int, float)) or rating < 1 or rating > 5:
-        raise HTTPException(status_code=400, detail="rating must be between 1 and 5")
+        if not partner_id:
+            raise HTTPException(status_code=400, detail="partner_id required")
+        if not rating or not isinstance(rating, (int, float)) or rating < 1 or rating > 5:
+            raise HTTPException(status_code=400, detail="rating must be between 1 and 5")
 
-    partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "partner_id": 1, "name": 1})
-    if not partner:
-        raise HTTPException(status_code=404, detail="Partner not found")
+        partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "partner_id": 1, "name": 1})
+        if not partner:
+            raise HTTPException(status_code=404, detail="Partner not found")
 
-    existing = await db.reviews.find_one(
-        {"user_id": user["user_id"], "partner_id": partner_id},
-        {"_id": 0, "review_id": 1},
-    )
-    if existing:
-        raise HTTPException(status_code=409, detail="You have already reviewed this partner")
+        existing = await db.reviews.find_one(
+            {"user_id": user["user_id"], "partner_id": partner_id},
+            {"_id": 0, "review_id": 1},
+        )
+        if existing:
+            raise HTTPException(status_code=409, detail="You have already reviewed this partner")
 
-    sub = {
-        "experience": min(5, max(1, float(subcategories.get("experience", rating)))),
-        "service": min(5, max(1, float(subcategories.get("service", rating)))),
-        "location": min(5, max(1, float(subcategories.get("location", rating)))),
-        "value": min(5, max(1, float(subcategories.get("value", rating)))),
-    }
+        sub = {
+            "experience": min(5, max(1, float(subcategories.get("experience", rating)))),
+            "service": min(5, max(1, float(subcategories.get("service", rating)))),
+            "location": min(5, max(1, float(subcategories.get("location", rating)))),
+            "value": min(5, max(1, float(subcategories.get("value", rating)))),
+        }
 
-    is_verified = await _check_verified_booking(db, user["user_id"], partner_id)
+        is_verified = await _check_verified_booking(db, user["user_id"], partner_id)
 
-    now = datetime.now(timezone.utc).isoformat()
-    review = {
-        "review_id": f"rev_{uuid.uuid4().hex[:12]}",
-        "user_id": user["user_id"],
-        "user_name": user.get("name", "Anonymous"),
-        "user_picture": user.get("picture", ""),
-        "partner_id": partner_id,
-        "rating": round(float(rating), 1),
-        "subcategories": sub,
-        "text": text[:2000],
-        "photos": photos[:5],
-        "helpful_count": 0,
-        "is_verified_booking": is_verified,
-        "is_moderated": False,
-        "created_at": now,
-        "updated_at": now,
-    }
-    await db.reviews.insert_one(review)
-    await _update_partner_rating(db, partner_id)
+        now = datetime.now(timezone.utc).isoformat()
+        review = {
+            "review_id": f"rev_{uuid.uuid4().hex[:12]}",
+            "user_id": user["user_id"],
+            "user_name": user.get("name", "Anonymous"),
+            "user_picture": user.get("picture", ""),
+            "partner_id": partner_id,
+            "rating": round(float(rating), 1),
+            "subcategories": sub,
+            "text": text[:2000],
+            "photos": photos[:5],
+            "helpful_count": 0,
+            "is_verified_booking": is_verified,
+            "is_moderated": False,
+            "created_at": now,
+            "updated_at": now,
+        }
+        await db.reviews.insert_one(review)
+        await _update_partner_rating(db, partner_id)
 
-    award_fn = _deps.get("award_points")
-    if award_fn:
-        try:
-            await award_fn(db, user["user_id"], 50, "review", review["review_id"], f"Review: {partner.get('name', partner_id)}")
-        except Exception as e:
-            logger.error(f"[Reviews] Failed to award points: {e}")
+        award_fn = _deps.get("award_points")
+        if award_fn:
+            try:
+                await award_fn(db, user["user_id"], 50, "review", review["review_id"], f"Review: {partner.get('name', partner_id)}")
+            except Exception as e:
+                logger.error(f"[Reviews] Failed to award points: {e}")
 
-    return {k: v for k, v in review.items() if k != "_id"}
+        return {k: v for k, v in review.items() if k != "_id"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Reviews] submit_review error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to submit review")
 
 
 @router.get("/reviews/partner/{partner_id}")
 async def get_partner_reviews(request: Request, partner_id: str):
     """Get paginated reviews + aggregate stats for a partner."""
-    db = _db()
+    try:
+        db = _db()
 
-    page = int(request.query_params.get("page", "1"))
-    limit = min(int(request.query_params.get("limit", "15")), 50)
-    skip = (page - 1) * limit
+        page = int(request.query_params.get("page", "1"))
+        limit = min(int(request.query_params.get("limit", "15")), 50)
+        skip = (page - 1) * limit
 
-    total = await db.reviews.count_documents({"partner_id": partner_id})
-    reviews = await db.reviews.find(
-        {"partner_id": partner_id},
-        {"_id": 0},
-    ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+        total = await db.reviews.count_documents({"partner_id": partner_id})
+        reviews = await db.reviews.find(
+            {"partner_id": partner_id},
+            {"_id": 0},
+        ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
 
-    partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "rating": 1, "reviews": 1, "rating_breakdown": 1})
-    aggregate = {
-        "avg_rating": partner.get("rating", 0) if partner else 0,
-        "total_reviews": partner.get("reviews", 0) if partner else 0,
-        "breakdown": partner.get("rating_breakdown", {}) if partner else {},
-    }
+        partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "rating": 1, "reviews": 1, "rating_breakdown": 1})
+        aggregate = {
+            "avg_rating": partner.get("rating", 0) if partner else 0,
+            "total_reviews": partner.get("reviews", 0) if partner else 0,
+            "breakdown": partner.get("rating_breakdown", {}) if partner else {},
+        }
 
-    return {
-        "reviews": reviews,
-        "aggregate": aggregate,
-        "total": total,
-        "page": page,
-        "pages": (total + limit - 1) // limit if total > 0 else 1,
-    }
+        return {
+            "reviews": reviews,
+            "aggregate": aggregate,
+            "total": total,
+            "page": page,
+            "pages": (total + limit - 1) // limit if total > 0 else 1,
+        }
+    except Exception as e:
+        logger.error(f"[Reviews] get_partner_reviews error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load reviews")
 
 
 @router.get("/reviews/me")

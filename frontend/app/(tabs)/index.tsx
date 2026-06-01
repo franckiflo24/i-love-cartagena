@@ -4,6 +4,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS, TIER_COLORS, Tier } from '../../src/constants/theme';
+import { IMAGES, getCategoryImage } from '../../src/constants/images';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
@@ -212,7 +213,7 @@ export default function HomeScreen() {
         if (item.event_count > 0) router.push('/(tabs)/agenda');
       }}
     >
-      <Image source={{ uri: item.image_url }} style={styles.heroImage} />
+      <Image source={{ uri: item.image_url || IMAGES.season_fallback }} style={styles.heroImage} />
       <View style={styles.heroOverlay} />
       <View style={styles.heroContent}>
         <Text style={[styles.heroLabel, { color: item.color }]}>{formatDateRange(item.start_date, item.end_date)}</Text>
@@ -317,7 +318,9 @@ export default function HomeScreen() {
           >
             {[
               { icon: 'calendar',       label: s('home_agenda'),     subtitle: s('home_today'),       color: '#F97316', route: '/(tabs)/agenda' },
+              { icon: 'compass',        label: 'Explorar',           subtitle: 'Lugares',             color: '#3B82F6', route: '/(tabs)/explore' },
               { icon: 'musical-notes',  label: s('home_concerts'),   subtitle: s('home_live'),        color: '#A855F7', route: '/concerts' },
+              { icon: 'star',           label: 'Rewards',            subtitle: 'Puntos',              color: '#F59E0B', route: '/rewards' },
               { icon: 'heart',          label: s('home_favorites'),  subtitle: s('home_my_list'),     color: '#EF4444', route: '/favorites' },
               { icon: 'boat',           label: s('home_transport'),  subtitle: s('home_boats'),       color: '#06B6D4', route: '/transport' },
               { icon: 'trail-sign',     label: s('home_routes'),     subtitle: 'IA',                  color: '#10B981', route: '/itineraries' },
@@ -395,7 +398,7 @@ export default function HomeScreen() {
                     onPress={() => router.push(item.kind === 'partner' ? `/partner/${item.id}` : `/partner-event/${item.id}`)}
                     activeOpacity={0.85}
                   >
-                    <Image source={{ uri: item.image }} style={styles.favImage} />
+                    <Image source={{ uri: item.image || IMAGES.placeholder }} style={styles.favImage} resizeMode="cover" />
                     <View style={styles.favOverlay} />
                     <View style={styles.favHeartBadge}>
                       <Ionicons name="heart" size={11} color="#EF4444" />
@@ -430,7 +433,7 @@ export default function HomeScreen() {
                 activeOpacity={0.85}
               >
                 <View style={styles.peThumbWrap}>
-                  <Image source={{ uri: event.flyer_url }} style={styles.peThumb} />
+                  <Image source={{ uri: event.flyer_url || event.partner_image || getCategoryImage(event.category) }} style={styles.peThumb} resizeMode="cover" />
                   <View style={[styles.peTimeChip]}>
                     <Text style={styles.peTimeChipText}>{event.start_time}</Text>
                   </View>
@@ -547,7 +550,7 @@ export default function HomeScreen() {
                       router.push(`/partner/${promo.partner_id}` as any);
                     }}
                   >
-                    <Image source={{ uri: promo.image_url }} style={styles.promoImage} />
+                    <Image source={{ uri: promo.image_url || getCategoryImage(promo.category) }} style={styles.promoImage} resizeMode="cover" />
                     <View style={styles.promoOverlay} />
                     {tierColors && <View style={[styles.promoTierStripe, { backgroundColor: tierColors.main }]} />}
                     {promo.tag_label ? (

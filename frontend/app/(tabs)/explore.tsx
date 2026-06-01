@@ -23,6 +23,7 @@ import {
   Tier,
 } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
+import { getCategoryImage } from '../../src/constants/images';
 import { TierBadge } from '../../src/components/TierBadge';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
@@ -120,7 +121,7 @@ function FeaturedCard({
       activeOpacity={0.85}
     >
       <Image
-        source={{ uri: item.image_url || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600' }}
+        source={{ uri: item.image_url || getCategoryImage(item.category) }}
         style={styles.featuredImage}
       />
       <View style={styles.featuredOverlay} />
@@ -177,7 +178,7 @@ function PartnerGridCard({
       activeOpacity={0.85}
     >
       <Image
-        source={{ uri: partner.image_url || 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400' }}
+        source={{ uri: partner.image_url || getCategoryImage(partner.category) }}
         style={styles.gridImage}
       />
       <View style={styles.gridOverlay} />

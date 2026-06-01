@@ -2669,7 +2669,6 @@ async def analytics_dashboard_v2(request: Request):
     ]
     booking_channels = await db.payments.aggregate(channels_pipeline).to_list(10)
 
-    hotel_reservations = await db.reservations.count_documents({}) if hasattr(db, 'reservations') else 0
     total_reservations = await db.reservations.count_documents({})
 
     return {
@@ -2719,19 +2718,23 @@ async def analytics_dashboard_v2(request: Request):
 @api_router.get("/analytics/heatmap")
 async def analytics_heatmap():
     """Aggregate location pings into heatmap buckets."""
-    pipeline = [
-        {"$group": {
-            "_id": {
-                "lat": {"$round": ["$lat", 3]},
-                "lng": {"$round": ["$lng", 3]},
-            },
-            "count": {"$sum": 1},
-        }},
-        {"$sort": {"count": -1}},
-        {"$limit": 200},
-    ]
-    buckets = await db.location_pings.aggregate(pipeline).to_list(200)
-    return [{"lat": b["_id"]["lat"], "lng": b["_id"]["lng"], "count": b["count"]} for b in buckets if b["_id"].get("lat")]
+    try:
+        pipeline = [
+            {"$group": {
+                "_id": {
+                    "lat": {"$round": ["$lat", 3]},
+                    "lng": {"$round": ["$lng", 3]},
+                },
+                "count": {"$sum": 1},
+            }},
+            {"$sort": {"count": -1}},
+            {"$limit": 200},
+        ]
+        buckets = await db.location_pings.aggregate(pipeline).to_list(200)
+        return [{"lat": b["_id"]["lat"], "lng": b["_id"]["lng"], "count": b["count"]} for b in buckets if b["_id"].get("lat")]
+    except Exception as e:
+        logger.error(f"[Analytics] heatmap error: {e}")
+        return []
 
 
 # ── City Pass ───────────────────────────────────────────────
@@ -3134,47 +3137,67 @@ async def wompi_partner_event_checkout(request: Request):
 @api_router.get("/experiences")
 async def list_experiences(request: Request):
     """List experiences with optional category filter."""
-    category = request.query_params.get("category")
-    query = {"is_active": True}
-    if category:
-        query["category"] = category
-    experiences = await db.partner_events.find(
-        query,
-        {"_id": 0},
-    ).sort("created_at", -1).to_list(200)
-    return experiences
+    try:
+        category = request.query_params.get("category")
+        query = {"$or": [{"is_active": True}, {"is_published": True}]}
+        if category:
+            query["category"] = category
+        experiences = await db.partner_events.find(
+            query,
+            {"_id": 0},
+        ).sort("created_at", -1).to_list(200)
+        return experiences
+    except Exception as e:
+        logger.error(f"[Experiences] list error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load experiences")
 
 
 @api_router.get("/experiences/featured")
 async def featured_experiences():
     """Return featured experiences (highest rated active events)."""
-    featured = await db.partner_events.find(
-        {"is_active": True},
-        {"_id": 0},
-    ).sort([("is_featured", -1), ("created_at", -1)]).limit(10).to_list(10)
-    return featured
+    try:
+        featured = await db.partner_events.find(
+            {"$or": [{"is_active": True}, {"is_published": True}]},
+            {"_id": 0},
+        ).sort([("is_featured", -1), ("created_at", -1)]).limit(10).to_list(10)
+        return featured
+    except Exception as e:
+        logger.error(f"[Experiences] featured error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load featured experiences")
 
 
 @api_router.get("/experiences/{experience_id}")
 async def get_experience(experience_id: str):
     """Get a single experience by ID."""
-    exp = await db.partner_events.find_one({"event_id": experience_id}, {"_id": 0})
-    if not exp:
-        raise HTTPException(status_code=404, detail="Experience not found")
-    partner = await db.partners.find_one({"partner_id": exp.get("partner_id")}, {"_id": 0, "name": 1, "rating": 1, "reviews": 1, "rating_breakdown": 1, "image_url": 1, "phone": 1, "whatsapp": 1})
-    exp["partner"] = partner
-    return exp
+    try:
+        exp = await db.partner_events.find_one({"event_id": experience_id}, {"_id": 0})
+        if not exp:
+            raise HTTPException(status_code=404, detail="Experience not found")
+        partner = await db.partners.find_one({"partner_id": exp.get("partner_id")}, {"_id": 0, "name": 1, "rating": 1, "reviews": 1, "rating_breakdown": 1, "image_url": 1, "phone": 1, "whatsapp": 1})
+        exp["partner"] = partner
+        return exp
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Experiences] get error for {experience_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load experience")
 
 
 @api_router.get("/experience-bookings")
 async def my_experience_bookings(request: Request):
     """Get the current user's experience bookings."""
-    user = await get_current_user(request)
-    bookings = await db.experience_bookings.find(
-        {"user_id": user["user_id"]},
-        {"_id": 0},
-    ).sort("created_at", -1).to_list(100)
-    return bookings
+    try:
+        user = await get_current_user(request)
+        bookings = await db.experience_bookings.find(
+            {"user_id": user["user_id"]},
+            {"_id": 0},
+        ).sort("created_at", -1).to_list(100)
+        return bookings
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Experiences] bookings error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load bookings")
 
 
 @api_router.post("/payments/wompi/experience")
@@ -3195,7 +3218,7 @@ async def wompi_experience_checkout(request: Request):
     if qty < 1 or qty > 20:
         raise HTTPException(status_code=400, detail="qty must be between 1 and 20")
 
-    exp = await db.partner_events.find_one({"event_id": experience_id, "is_active": True}, {"_id": 0})
+    exp = await db.partner_events.find_one({"event_id": experience_id, "$or": [{"is_active": True}, {"is_published": True}]}, {"_id": 0})
     if not exp:
         raise HTTPException(status_code=404, detail="Experience not found or inactive")
 
@@ -3219,42 +3242,48 @@ async def wompi_experience_checkout(request: Request):
 @api_router.get("/partners/nearby")
 async def nearby_partners(request: Request):
     """Get partners near a location, sorted by distance."""
-    import math
-    lat = float(request.query_params.get("lat", "0"))
-    lng = float(request.query_params.get("lng", "0"))
-    radius = int(request.query_params.get("radius", "5000"))
-    category = request.query_params.get("category")
+    try:
+        import math
+        lat = float(request.query_params.get("lat", "0"))
+        lng = float(request.query_params.get("lng", "0"))
+        radius = int(request.query_params.get("radius", "5000"))
+        category = request.query_params.get("category")
 
-    if lat == 0 and lng == 0:
-        raise HTTPException(status_code=400, detail="lat and lng required")
+        if lat == 0 and lng == 0:
+            raise HTTPException(status_code=400, detail="lat and lng required")
 
-    query: dict = {}
-    if category:
-        query["category"] = category
+        query: dict = {}
+        if category:
+            query["category"] = category
 
-    partners = await db.partners.find(query, {"_id": 0}).to_list(500)
+        partners = await db.partners.find(query, {"_id": 0}).to_list(500)
 
-    def haversine(lat1, lon1, lat2, lon2):
-        R = 6371000
-        phi1, phi2 = math.radians(lat1), math.radians(lat2)
-        dphi = math.radians(lat2 - lat1)
-        dlam = math.radians(lon2 - lon1)
-        a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
-        return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        def haversine(lat1, lon1, lat2, lon2):
+            R = 6371000
+            phi1, phi2 = math.radians(lat1), math.radians(lat2)
+            dphi = math.radians(lat2 - lat1)
+            dlam = math.radians(lon2 - lon1)
+            a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+            return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
-    results = []
-    for p in partners:
-        loc = p.get("location") or {}
-        p_lat = loc.get("lat") or loc.get("latitude")
-        p_lng = loc.get("lng") or loc.get("longitude")
-        if p_lat and p_lng:
-            dist = haversine(lat, lng, float(p_lat), float(p_lng))
-            if dist <= radius:
-                p["distance_m"] = round(dist)
-                results.append(p)
+        results = []
+        for p in partners:
+            loc = p.get("location") or {}
+            p_lat = loc.get("lat") or loc.get("latitude")
+            p_lng = loc.get("lng") or loc.get("longitude")
+            if p_lat and p_lng:
+                dist = haversine(lat, lng, float(p_lat), float(p_lng))
+                if dist <= radius:
+                    p["distance_m"] = round(dist)
+                    results.append(p)
 
-    results.sort(key=lambda x: x.get("distance_m", 999999))
-    return results[:50]
+        results.sort(key=lambda x: x.get("distance_m", 999999))
+        return results[:50]
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Partners] nearby error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load nearby partners")
 
 
 @api_router.get("/payments/{payment_id}")
@@ -3407,6 +3436,7 @@ async def _fulfill_payment(payment: dict, tx: dict):
                 "user_id": user_id,
                 "partner_id": payment.get("partner_id"),
                 "experience_id": metadata.get("experience_id"),
+                "experience_title": metadata.get("experience_title", ""),
                 "qty": int(metadata.get("qty") or 1),
                 "date": metadata.get("date", ""),
                 "total_amount": payment["amount_cop"],
@@ -4156,6 +4186,7 @@ async def startup():
         # Add common fields
         for pe in partner_events_seed:
             pe["is_published"] = True
+            pe["is_active"] = True
             pe["created_at"] = datetime.now(timezone.utc).isoformat()
             pe["views_count"] = 0
             pe["reserve_clicks"] = 0
@@ -4164,6 +4195,12 @@ async def startup():
         await db.partner_events.create_index("category")
         await db.partner_events.create_index("partner_id")
         logger.info(f"Seeded {len(partner_events_seed)} partner events!")
+
+    # ── Migration: Backfill is_active on partner_events that only have is_published ──
+    await db.partner_events.update_many(
+        {"is_published": True, "is_active": {"$exists": False}},
+        {"$set": {"is_active": True}},
+    )
 
     # ── Migration: Re-map partner events with non-existent partner IDs ──
     PARTNER_ID_REMAP = {
@@ -4410,6 +4447,124 @@ async def startup():
             {"partner_id": partner["partner_id"], "subcategory": {"$exists": False}},
             {"$set": {"subcategory": partner["subcategory"]}}
         )
+    # ── Migration: Seed Yacht partners (idempotent) ──
+    YACHT_PARTNERS = [
+        {
+            "partner_id": "ptr_yt_001",
+            "name": "Boating Cartagena Premium",
+            "description": "Yates y veleros de lujo para experiencias privadas en las Islas del Rosario y Barú. Tripulación profesional, chef a bordo.",
+            "category": "yacht", "tier": "elite",
+            "image_url": "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4188, "lng": -75.5523},
+            "address": "Muelle de la Bodeguita, Centro",
+            "booking_link": "https://boatingcartagena.com",
+            "price_range": "$$$$",
+            "experience": "Yate privado, snorkel, almuerzo gourmet, open bar, DJ a bordo",
+            "is_certified": True, "instagram": "boatingcartagena",
+            "rating": 4.8, "reviews": 320,
+        },
+        {
+            "partner_id": "ptr_yt_002",
+            "name": "Sailing Cartagena",
+            "description": "Veleros catamarán para grupos de hasta 20 personas. Sunset sailing, island hopping y fiestas privadas.",
+            "category": "yacht", "tier": "premium",
+            "image_url": "https://images.unsplash.com/photo-1500514966906-fe245eea9344?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4015, "lng": -75.5556},
+            "address": "Marina de Manga, Cartagena",
+            "booking_link": "https://sailingcartagena.co",
+            "price_range": "$$$",
+            "experience": "Catamarán, sunset sailing, island hopping, snorkel, open bar",
+            "is_certified": True, "instagram": "sailingcartagena",
+            "rating": 4.6, "reviews": 185,
+        },
+        {
+            "partner_id": "ptr_yt_003",
+            "name": "Caribbean Yacht Club",
+            "description": "Club náutico exclusivo con flota de yates de lujo. Experiencias VIP, pesca deportiva y tours privados.",
+            "category": "yacht", "tier": "elite",
+            "image_url": "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4108, "lng": -75.5380},
+            "address": "Marina de Manga, Cartagena",
+            "booking_link": "https://caribbeanyachtclub.co",
+            "price_range": "$$$$",
+            "experience": "Yate VIP, pesca deportiva, chef privado, masaje a bordo",
+            "is_certified": True, "instagram": "caribbeanyachtclub",
+            "rating": 4.9, "reviews": 98,
+        },
+    ]
+    for partner in YACHT_PARTNERS:
+        await db.partners.update_one(
+            {"partner_id": partner["partner_id"]},
+            {"$setOnInsert": partner},
+            upsert=True,
+        )
+
+    # ── Migration: Seed Activity partners (idempotent) ──
+    ACTIVITY_PARTNERS = [
+        {
+            "partner_id": "ptr_ac_001",
+            "name": "Cartagena Diving Center",
+            "description": "Centro de buceo PADI 5 estrellas. Cursos, inmersiones y snorkel en los arrecifes de las Islas del Rosario.",
+            "category": "activity", "tier": "premium",
+            "image_url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4188, "lng": -75.5523},
+            "address": "Muelle de la Bodeguita, Centro",
+            "booking_link": "https://cartagenadivers.com",
+            "price_range": "$$$",
+            "experience": "Buceo PADI, snorkel, inmersión nocturna, bautizo submarino",
+            "is_certified": True, "instagram": "cartagenadivers",
+            "rating": 4.7, "reviews": 412,
+        },
+        {
+            "partner_id": "ptr_ac_002",
+            "name": "Cartagena Food Tours",
+            "description": "Tours gastronómicos por el Centro Histórico y Getsemaní. Degustación de comida callejera, mercados y restaurantes locales.",
+            "category": "activity", "tier": "popular",
+            "image_url": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4228, "lng": -75.5510},
+            "address": "Plaza Santo Domingo, Centro Histórico",
+            "booking_link": "https://cartagenafoodtours.com",
+            "price_range": "$$",
+            "experience": "Tour gastronómico, cocina callejera, mercado Bazurto, clase de cocina",
+            "is_certified": True, "instagram": "cartagenafoodtours",
+            "rating": 4.8, "reviews": 567,
+        },
+        {
+            "partner_id": "ptr_ac_003",
+            "name": "Walking Cartagena",
+            "description": "Tours históricos a pie por la ciudad amurallada. Guías bilingües, historia colonial, leyendas y arquitectura.",
+            "category": "activity", "tier": "popular",
+            "image_url": "https://images.unsplash.com/photo-1583037189850-1921ae7c6c22?w=800&h=600&fit=crop",
+            "location": {"lat": 10.4236, "lng": -75.5483},
+            "address": "Torre del Reloj, Centro Histórico",
+            "booking_link": "https://walkingcartagena.co",
+            "price_range": "$",
+            "experience": "Tour colonial, leyendas, foto tour, tour nocturno",
+            "is_certified": True, "instagram": "walkingcartagena",
+            "rating": 4.6, "reviews": 823,
+        },
+        {
+            "partner_id": "ptr_ac_004",
+            "name": "Aventura Rosario Islands",
+            "description": "Kayak, paddleboard, jet ski y banana boat en las Islas del Rosario. Paquetes para familias y grupos.",
+            "category": "activity", "tier": "premium",
+            "image_url": "https://images.unsplash.com/photo-1530053969600-caed2596d242?w=800&h=600&fit=crop",
+            "location": {"lat": 10.1780, "lng": -75.5800},
+            "address": "Islas del Rosario",
+            "booking_link": "https://aventurarosario.co",
+            "price_range": "$$",
+            "experience": "Kayak, paddle board, jet ski, banana boat, snorkel",
+            "is_certified": True, "instagram": "aventurarosario",
+            "rating": 4.5, "reviews": 290,
+        },
+    ]
+    for partner in ACTIVITY_PARTNERS:
+        await db.partners.update_one(
+            {"partner_id": partner["partner_id"]},
+            {"$setOnInsert": partner},
+            upsert=True,
+        )
+
     # Tag the original El Arsenal Wellness with subcategory
     await db.partners.update_one(
         {"partner_id": "ptr_006", "category": "wellness"},
@@ -4736,6 +4891,107 @@ async def startup():
         },
     ]
     for ev in DAY_SUNSET_EVENTS:
+        ev["created_at"] = datetime.now(timezone.utc).isoformat()
+        ev.setdefault("views", 0)
+        ev.setdefault("reserve_clicks", 0)
+        ev.setdefault("is_active", True)
+        await db.partner_events.update_one(
+            {"event_id": ev["event_id"]},
+            {"$set": ev},
+            upsert=True,
+        )
+
+    # ── Migration: Seed Yacht & Activity experience events (idempotent) ──
+    today_yacht = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    YACHT_ACTIVITY_EVENTS = [
+        # YACHT experiences
+        {
+            "event_id": "pe_yt_001", "partner_id": "ptr_yt_001",
+            "title": "Yacht Day — Islas del Rosario VIP",
+            "description": "Día completo en yate de lujo: snorkel en arrecifes, almuerzo gourmet a bordo, open bar premium y DJ. Hasta 12 personas.",
+            "category": "yacht",
+            "date": today_yacht, "start_time": "09:00", "end_time": "17:00",
+            "flyer_url": "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?w=800&h=600&fit=crop",
+            "venue": "Salida Muelle La Bodeguita",
+            "is_free": False, "price": 850000, "price_cop": 850000, "currency": "COP",
+            "booking_link": "https://boatingcartagena.com/vip",
+            "status": "approved", "is_published": True, "is_active": True,
+        },
+        {
+            "event_id": "pe_yt_002", "partner_id": "ptr_yt_002",
+            "title": "Sunset Sailing — Bahía de Cartagena",
+            "description": "Velero catamarán al atardecer por la bahía. Champagne, tabla de quesos y skyline iluminado de Cartagena.",
+            "category": "yacht",
+            "date": today_yacht, "start_time": "16:30", "end_time": "19:30",
+            "flyer_url": "https://images.unsplash.com/photo-1500514966906-fe245eea9344?w=800&h=600&fit=crop",
+            "venue": "Marina de Manga",
+            "is_free": False, "price": 420000, "price_cop": 420000, "currency": "COP",
+            "booking_link": "https://sailingcartagena.co/sunset",
+            "status": "approved", "is_published": True, "is_active": True,
+        },
+        {
+            "event_id": "pe_yt_003", "partner_id": "ptr_yt_003",
+            "title": "Pesca Deportiva — Mar Caribe",
+            "description": "Salida de pesca deportiva en yate equipado. Capitán experto, cañas profesionales, almuerzo incluido. Captura y libera.",
+            "category": "yacht",
+            "date": today_yacht, "start_time": "06:00", "end_time": "14:00",
+            "flyer_url": "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=800&h=600&fit=crop",
+            "venue": "Marina de Manga",
+            "is_free": False, "price": 1200000, "price_cop": 1200000, "currency": "COP",
+            "booking_link": "https://caribbeanyachtclub.co/fishing",
+            "status": "approved", "is_published": True, "is_active": True,
+        },
+        # ACTIVITY experiences
+        {
+            "event_id": "pe_ac_001", "partner_id": "ptr_ac_001",
+            "title": "Bautizo de Buceo — Islas del Rosario",
+            "description": "Primera inmersión con instructor PADI. Incluye equipo, lancha y snack. Sin experiencia previa necesaria.",
+            "category": "activity",
+            "date": today_yacht, "start_time": "08:00", "end_time": "13:00",
+            "flyer_url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
+            "venue": "Islas del Rosario",
+            "is_free": False, "price": 280000, "price_cop": 280000, "currency": "COP",
+            "booking_link": "https://cartagenadivers.com/bautizo",
+            "status": "approved", "is_published": True, "is_active": True,
+        },
+        {
+            "event_id": "pe_ac_002", "partner_id": "ptr_ac_002",
+            "title": "Food Tour Getsemaní",
+            "description": "Recorrido gastronómico de 3 horas por Getsemaní: comida callejera, mercados locales y cocina tradicional. 8 paradas de degustación.",
+            "category": "activity",
+            "date": today_yacht, "start_time": "10:00", "end_time": "13:00",
+            "flyer_url": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=600&fit=crop",
+            "venue": "Getsemaní, Centro Histórico",
+            "is_free": False, "price": 150000, "price_cop": 150000, "currency": "COP",
+            "booking_link": "https://cartagenafoodtours.com/getsemani",
+            "status": "approved", "is_published": True, "is_active": True,
+        },
+        {
+            "event_id": "pe_ac_003", "partner_id": "ptr_ac_003",
+            "title": "Tour Histórico — Ciudad Amurallada",
+            "description": "Recorrido de 2.5 horas por la ciudad colonial. Murallas, palacios, iglesias, leyendas de piratas. Guía bilingüe.",
+            "category": "activity",
+            "date": today_yacht, "start_time": "09:00", "end_time": "11:30",
+            "flyer_url": "https://images.unsplash.com/photo-1583037189850-1921ae7c6c22?w=800&h=600&fit=crop",
+            "venue": "Torre del Reloj, Centro",
+            "is_free": False, "price": 80000, "price_cop": 80000, "currency": "COP",
+            "booking_link": "https://walkingcartagena.co/colonial",
+            "status": "approved", "is_published": True, "is_active": True,
+        },
+        {
+            "event_id": "pe_ac_004", "partner_id": "ptr_ac_004",
+            "title": "Kayak & Paddle Board — Islas del Rosario",
+            "description": "Medio día de deportes acuáticos: kayak, paddle board y snorkel en aguas cristalinas. Incluye transporte en lancha.",
+            "category": "activity",
+            "date": today_yacht, "start_time": "08:30", "end_time": "13:00",
+            "flyer_url": "https://images.unsplash.com/photo-1530053969600-caed2596d242?w=800&h=600&fit=crop",
+            "venue": "Islas del Rosario",
+            "is_free": False, "price": 180000, "price_cop": 180000, "currency": "COP",
+            "booking_link": "https://aventurarosario.co/watersports",
+            "status": "approved", "is_published": True, "is_active": True,
+        },
+    ]
+    for ev in YACHT_ACTIVITY_EVENTS:
         ev["created_at"] = datetime.now(timezone.utc).isoformat()
         ev.setdefault("views", 0)
         ev.setdefault("reserve_clicks", 0)

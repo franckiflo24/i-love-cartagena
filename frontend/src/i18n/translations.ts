@@ -166,8 +166,6 @@ export const t: Translations = {
     my_calendar_empty: 'Aún no tienes eventos en tu agenda',
     my_calendar_empty_hint: 'Cuando veas un evento que te guste, pulsa "Añadir a mi agenda" para guardarlo aquí.',
 
-    tab_explore: 'Explorar',
-    tab_bookings: 'Reservas',
     explore_search: 'Buscar experiencias...',
     explore_featured: 'Destacados',
     explore_all: 'Todo',
@@ -342,8 +340,6 @@ export const t: Translations = {
     my_calendar_empty: 'No events in your calendar yet',
     my_calendar_empty_hint: 'When you see an event you like, tap "Add to my calendar" to save it here.',
 
-    tab_explore: 'Explore',
-    tab_bookings: 'Bookings',
     explore_search: 'Search experiences...',
     explore_featured: 'Featured',
     explore_all: 'All',
@@ -518,8 +514,6 @@ export const t: Translations = {
     my_calendar_empty: "Aucun événement dans votre agenda",
     my_calendar_empty_hint: 'Quand vous voyez un événement qui vous plaît, appuyez sur "Ajouter à mon agenda".',
 
-    tab_explore: 'Explorer',
-    tab_bookings: 'Réservations',
     explore_search: 'Rechercher...',
     explore_featured: 'En vedette',
     explore_all: 'Tout',
@@ -694,8 +688,6 @@ export const t: Translations = {
     my_calendar_empty: 'Nenhum evento na sua agenda ainda',
     my_calendar_empty_hint: 'Quando vir um evento que goste, toque em "Adicionar à minha agenda".',
 
-    tab_explore: 'Explorar',
-    tab_bookings: 'Reservas',
     explore_search: 'Pesquisar...',
     explore_featured: 'Destaques',
     explore_all: 'Tudo',

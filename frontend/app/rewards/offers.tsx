@@ -51,24 +51,24 @@ export default function OffersScreen() {
 
   const handleRedeem = async (offer: Offer) => {
     if (!offer.eligible) {
-      Alert.alert('', `Requires ${offer.min_tier} tier or higher`);
+      Alert.alert('', `Requiere nivel ${offer.min_tier} o superior`);
       return;
     }
     Alert.alert(
-      'Redeem Offer',
-      `Spend ${offer.points_cost} points for "${offer.title}"?`,
+      'Canjear oferta',
+      `¿Gastar ${offer.points_cost} puntos por "${offer.title}"?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Redeem',
+          text: 'Canjear',
           onPress: async () => {
             setRedeeming(offer.offer_id);
             try {
               await api.post('/rewards/redeem', { offer_id: offer.offer_id });
-              Alert.alert('Redeemed!', 'Check your rewards for the redemption QR code.');
+              Alert.alert('¡Canjeado!', 'Revisa tus recompensas para ver el código QR.');
               loadOffers();
             } catch (e: any) {
-              Alert.alert('Error', e.message || 'Failed to redeem');
+              Alert.alert('Error', e.message || 'No se pudo canjear la oferta');
             } finally {
               setRedeeming(null);
             }

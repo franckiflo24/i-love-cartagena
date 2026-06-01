@@ -50,11 +50,11 @@ export default function ExperienceBookingScreen() {
         date: selectedDate,
       });
       if (result.checkout_url && result.reference) {
-        const status = await openWompiCheckout(result.checkout_url, result.reference);
-        if (status === 'approved') {
+        const wompiResult = await openWompiCheckout(result.checkout_url, result.reference);
+        if (wompiResult.status === 'approved') {
           router.replace('/(tabs)/bookings' as any);
         } else {
-          Alert.alert('Payment', `Status: ${status}`);
+          Alert.alert('Pago', `Estado: ${wompiResult.status}`);
         }
       }
     } catch (e: any) {

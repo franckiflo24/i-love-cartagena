@@ -38,7 +38,6 @@ export default function TabLayout() {
           options={{
             title: s('tab_home'),
             tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
-            tabBarTestID: 'tab-home',
           }}
         />
         <Tabs.Screen
@@ -46,7 +45,6 @@ export default function TabLayout() {
           options={{
             title: s('tab_explore') || 'Explore',
             tabBarIcon: ({ color, size }) => <Ionicons name="compass" size={size} color={color} />,
-            tabBarTestID: 'tab-explore',
           }}
         />
         <Tabs.Screen
@@ -54,7 +52,6 @@ export default function TabLayout() {
           options={{
             title: s('tab_map'),
             tabBarIcon: ({ color, size }) => <Ionicons name="map" size={size} color={color} />,
-            tabBarTestID: 'tab-mapa',
           }}
         />
         <Tabs.Screen
@@ -62,7 +59,6 @@ export default function TabLayout() {
           options={{
             title: s('tab_bookings') || 'Bookings',
             tabBarIcon: ({ color, size }) => <Ionicons name="bookmark" size={size} color={color} />,
-            tabBarTestID: 'tab-bookings',
           }}
         />
         <Tabs.Screen
@@ -70,7 +66,6 @@ export default function TabLayout() {
           options={{
             title: s('tab_profile'),
             tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
-            tabBarTestID: 'tab-perfil',
           }}
         />
         {/* Hidden tabs — still accessible via router.push but not in tab bar */}

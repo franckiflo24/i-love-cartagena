@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Dimensions,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -343,7 +344,9 @@ export default function AmoCardScreen() {
               <Animated.View
                 style={[
                   styles.face,
-                  { transform: [{ perspective: 1000 }, { rotateY: frontInterpolate }] },
+                  Platform.OS === 'web'
+                    ? { opacity: isFront ? 1 : 0 }
+                    : { transform: [{ perspective: 1000 }, { rotateY: frontInterpolate }] },
                 ]}
               >
                 <CardFront
@@ -359,7 +362,9 @@ export default function AmoCardScreen() {
                 style={[
                   styles.face,
                   styles.faceBack,
-                  { transform: [{ perspective: 1000 }, { rotateY: backInterpolate }] },
+                  Platform.OS === 'web'
+                    ? { opacity: isFront ? 0 : 1 }
+                    : { transform: [{ perspective: 1000 }, { rotateY: backInterpolate }] },
                 ]}
               >
                 <CardBack tier={tier} benefits={data?.benefits ?? []} />
@@ -465,7 +470,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: SPACING.xs,
-    marginTop: CARD_HEIGHT + SPACING.lg,
+    marginTop: SPACING.lg,
     marginBottom: SPACING.lg,
   },
   dot: {

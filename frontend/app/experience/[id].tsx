@@ -8,6 +8,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/src/constants/theme';
+import { getCategoryImage } from '@/src/constants/images';
 import { api } from '@/src/constants/api';
 import { useLang } from '@/src/context/LanguageContext';
 import { useAuth } from '@/src/context/AuthContext';
@@ -95,7 +96,7 @@ export default function ExperienceDetailScreen() {
         {/* Hero Image */}
         <View style={styles.heroContainer}>
           <Image
-            source={{ uri: experience.image_url || 'https://via.placeholder.com/400x300' }}
+            source={{ uri: experience.image_url || getCategoryImage(experience.category) }}
             style={styles.heroImage}
           />
           <LinearGradient

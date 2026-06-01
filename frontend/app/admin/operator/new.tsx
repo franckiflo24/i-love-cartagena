@@ -58,8 +58,10 @@ export default function OperatorNewPartner() {
   const copy = async () => {
     if (!result) return;
     try {
-      // expo Clipboard fallback
-      const Clip = await import('expo-clipboard').then(m => m).catch(() => null as any);
+      // expo Clipboard fallback — dynamic import handles missing package gracefully
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const Clip = await import('expo-clipboard').then((m: any) => m).catch(() => null);
       if (Clip?.setStringAsync) await Clip.setStringAsync(result.activation_url);
       else (Clipboard as any).setString?.(result.activation_url);
       Alert.alert('Copiado', 'Link copiado al portapapeles');
