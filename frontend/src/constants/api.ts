@@ -20,12 +20,18 @@ const buildHeaders = async (override?: Record<string, string>): Promise<Record<s
   return { ...headers, ...(override || {}) };
 };
 
+// On web with cross-origin backend, credentials: 'include' causes Safari/iOS
+// to block responses unless the server sends Access-Control-Allow-Credentials
+// with a specific origin (not wildcard). Use 'same-origin' for web to avoid
+// this; auth is handled via Bearer token header instead of cookies.
+const CREDS: RequestCredentials = Platform.OS === 'web' ? 'same-origin' : 'include';
+
 type Opts = { headers?: Record<string, string> };
 
 export const api = {
   get: async (path: string, opts?: Opts) => {
     const headers = await buildHeaders(opts?.headers);
-    const res = await fetch(`${BACKEND_URL}/api${path}`, { headers, credentials: 'include' });
+    const res = await fetch(`${BACKEND_URL}/api${path}`, { headers, credentials: CREDS });
     if (!res.ok) throw new Error(`GET ${path} failed: ${res.status}`);
     return res.json();
   },
@@ -34,7 +40,7 @@ export const api = {
     const res = await fetch(`${BACKEND_URL}/api${path}`, {
       method: 'POST',
       headers,
-      credentials: 'include',
+      credentials: CREDS,
       body: body ? JSON.stringify(body) : undefined,
     });
     if (!res.ok) {
@@ -52,7 +58,7 @@ export const api = {
     const res = await fetch(`${BACKEND_URL}/api${path}`, {
       method: 'PUT',
       headers,
-      credentials: 'include',
+      credentials: CREDS,
       body: body ? JSON.stringify(body) : undefined,
     });
     if (!res.ok) throw new Error(`PUT ${path} failed: ${res.status}`);
@@ -63,7 +69,7 @@ export const api = {
     const res = await fetch(`${BACKEND_URL}/api${path}`, {
       method: 'PATCH',
       headers,
-      credentials: 'include',
+      credentials: CREDS,
       body: body ? JSON.stringify(body) : undefined,
     });
     if (!res.ok) {
@@ -82,7 +88,7 @@ export const api = {
       method: 'DELETE',
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
-      credentials: 'include',
+      credentials: CREDS,
     });
     if (!res.ok) throw new Error(`DELETE ${path} failed: ${res.status}`);
     return res.json();
