@@ -209,6 +209,26 @@ async def get_my_rewards(request: Request):
             {"_id": 0},
         ).sort("created_at", -1).limit(10).to_list(10)
 
+        # Include offers so the frontend can read data.offers from this single endpoint
+        user_tier_level = TIER_ORDER.get(tier, 0)
+        all_offers = await db.rewards_offers.find(
+            {"is_active": True},
+            {"_id": 0},
+        ).sort("points_cost", 1).to_list(100)
+        offers = []
+        for offer in all_offers:
+            min_tier = offer.get("min_tier", "explorer")
+            min_level = TIER_ORDER.get(min_tier, 0)
+            eligible = user_tier_level >= min_level
+            max_uses = offer.get("max_uses", 0)
+            uses_count = offer.get("uses_count", 0)
+            available = max_uses == 0 or uses_count < max_uses
+            offers.append({
+                **offer,
+                "eligible": eligible,
+                "available": available,
+            })
+
         return {
             "account": account,
             "tier": tier,
@@ -221,6 +241,7 @@ async def get_my_rewards(request: Request):
             "benefits": benefits.get("perks", []) if isinstance(benefits, dict) else benefits,
             "benefits_full": benefits,
             "recent_history": recent_history,
+            "offers": offers,
             "points_config": POINTS_CONFIG,
         }
     except HTTPException:
