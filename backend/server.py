@@ -4130,6 +4130,33 @@ async def startup():
             {"$set": {"instagram": ig}}
         )
 
+    # ── Migration: Ensure every partner has an image_url ──
+    PARTNER_IMAGES = {
+        "ptr_nc_001": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",   # Carmen — fine dining
+        "ptr_nc_002": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80",       # El Beso — cocktail bar
+        "ptr_nc_003": "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&q=80",    # Nia Bakery — bakery
+        "ptr_nc_004": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80",    # Salon Tropical — restaurant
+        "ptr_nc_005": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80",    # Casa Carolina — boutique hotel
+        "ptr_nc_006": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80",       # Townhouse — bar/restaurant
+        "ptr_nc_007": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80",    # Casa Boheme — brunch/restaurant
+        "ptr_nc_008": "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&q=80",    # Members Only — exclusive club
+        "ptr_nc_009": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80",    # Blue Apple — beach club
+        "ptr_nc_010": "https://images.unsplash.com/photo-1540541338287-41700207dee6?w=600&q=80",    # Pink Mango — beach/pool
+        "ptr_nc_011": "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=600&q=80",    # La Serrezuela — luxury shopping
+        "ptr_nc_012": "https://images.unsplash.com/photo-1515562141589-67f0d382c7b4?w=600&q=80",    # Lucy Jewelry — jewelry
+        "ptr_nc_013": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80",    # Lunatico — nightlife
+        "ptr_nc_014": "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=600&q=80",    # Boating Cartagena — yachts
+        "ptr_nc_015": "https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=600&q=80",    # Green Apple — cultural/charity
+        "ptr_nc_016": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80",    # Casa Boheme dup — restaurant
+        "ptr_lago_001": "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&q=80",     # LAGO — wellness
+    }
+    for pid, img in PARTNER_IMAGES.items():
+        await db.partners.update_one(
+            {"partner_id": pid, "$or": [{"image_url": {"$exists": False}}, {"image_url": ""}, {"image_url": None}]},
+            {"$set": {"image_url": img}}
+        )
+    logger.info("Partner image migration applied — 17 partners backfilled")
+
     # ── Seed: Partner Events (eventos publicados por partners) ──
     pe_count = await db.partner_events.count_documents({})
     if pe_count == 0:

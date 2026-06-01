@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../constants/theme';
+import { getCategoryImage } from '../constants/images';
 import { TierBadge } from './TierBadge';
 
 export type PartnerEvent = {
@@ -52,7 +53,7 @@ export const PartnerEventCard: React.FC<Props> = ({ event, onPress }) => {
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
       {/* Flyer */}
       <View style={styles.flyerWrap}>
-        <Image source={{ uri: event.flyer_url }} style={styles.flyer} />
+        <Image source={{ uri: event.flyer_url || getCategoryImage(event.category) }} style={styles.flyer} resizeMode="cover" />
         <View style={styles.flyerOverlay} />
         {tierColors && <View style={[styles.tierStripe, { backgroundColor: tierColors.main }]} />}
         <View style={[styles.priceTag, event.is_free ? styles.priceFree : styles.pricePaid]}>

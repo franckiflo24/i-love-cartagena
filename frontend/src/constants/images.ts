@@ -4,12 +4,14 @@
 
 export const IMAGES = {
   // Hero & Background — aerial/landmark Cartagena shots
-  hero: 'https://images.unsplash.com/photo-1583997052301-0042b33fc598?w=800&q=80',
-  cartagena_sunset: 'https://images.unsplash.com/photo-1651421479936-e24edc3e3143?w=800&q=80',
-  cartagena_walls: 'https://images.unsplash.com/photo-1558029137-a49d75b36fd8?w=800&q=80',
+  hero:              'https://images.unsplash.com/photo-1583997052301-0042b33fc598?w=800&q=80',
+  cartagena_sunset:  'https://images.unsplash.com/photo-1651421479936-e24edc3e3143?w=800&q=80',
+  cartagena_walls:   'https://images.unsplash.com/photo-1558029137-a49d75b36fd8?w=800&q=80',
+  cartagena_streets: 'https://images.unsplash.com/photo-1536086845612-2a0a0502f498?w=800&q=80',
+  cartagena_aerial:  'https://images.unsplash.com/photo-1583997052301-0042b33fc598?w=1200&q=80',
 
   // Category hero images
-  restaurant: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80',
+  restaurant:  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80',
   beach_club:  'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=600&q=80',
   yacht:       'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=600&q=80',
   hotel:       'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80',
@@ -23,6 +25,22 @@ export const IMAGES = {
   daypass:        'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=600&q=80',
   sunset_session: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80',
   club:           'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80',
+
+  // Partner-specific venue images
+  fine_dining:      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80',
+  cocktail_bar:     'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80',
+  sunset_bar:       'https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=600&q=80',
+  luxury_pool:      'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80',
+  bakery:           'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&q=80',
+  tropical_garden:  'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80',
+  food_tour:        'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80',
+  latin_dance:      'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=600&q=80',
+  cocktail_dark:    'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&q=80',
+  diving:           'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80',
+  walking_tour:     'https://images.unsplash.com/photo-1558029137-a49d75b36fd8?w=600&q=80',
+  jewelry:          'https://images.unsplash.com/photo-1515562141589-67f0d382c7b4?w=600&q=80',
+  shopping:         'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=600&q=80',
+  members_club:     'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&q=80',
 
   // Fallbacks
   placeholder:      'https://images.unsplash.com/photo-1583997052301-0042b33fc598?w=600&q=80',
