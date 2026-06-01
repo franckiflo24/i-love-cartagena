@@ -1,8 +1,32 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
+
+const setToken = async (token: string) => {
+  if (Platform.OS === 'web') {
+    await AsyncStorage.setItem('session_token', token);
+  } else {
+    await SecureStore.setItemAsync('session_token', token);
+  }
+};
+
+const getToken = async (): Promise<string | null> => {
+  if (Platform.OS === 'web') {
+    return AsyncStorage.getItem('session_token');
+  }
+  return SecureStore.getItemAsync('session_token');
+};
+
+const removeToken = async () => {
+  if (Platform.OS === 'web') {
+    await AsyncStorage.removeItem('session_token');
+  } else {
+    await SecureStore.deleteItemAsync('session_token');
+  }
+};
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -46,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!res.ok) throw new Error('Session exchange failed');
       const data = await res.json();
       if (data.session_token) {
-        await AsyncStorage.setItem('session_token', data.session_token);
+        await setToken(data.session_token);
       }
       if (data.user) {
         setUser(data.user);
@@ -61,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const checkAuth = useCallback(async () => {
     try {
-      const token = await AsyncStorage.getItem('session_token');
+      const token = await getToken();
       if (!token) {
         // No session token — check for local (email signup) cached user
         const cached = await AsyncStorage.getItem('user_data');
@@ -88,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(userData);
         await AsyncStorage.setItem('user_data', JSON.stringify(userData));
       } else {
-        await AsyncStorage.removeItem('session_token');
+        await removeToken();
         await AsyncStorage.removeItem('user_data');
         setUser(null);
       }
@@ -140,14 +164,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = useCallback(async () => {
     try {
-      const token = await AsyncStorage.getItem('session_token');
+      const token = await getToken();
       await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token || ''}` },
         credentials: 'include',
       });
     } catch {}
-    await AsyncStorage.removeItem('session_token');
+    await removeToken();
     await AsyncStorage.removeItem('user_data');
     setUser(null);
   }, []);

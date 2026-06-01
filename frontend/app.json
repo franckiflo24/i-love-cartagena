@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
+    "scheme": "amocartagena",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -76,8 +76,16 @@
           "sounds": []
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-secure-store"
     ],
+    "extra": {
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      },
+      "privacyPolicyUrl": "https://amocartagena.com/privacidad",
+      "supportUrl": "https://amocartagena.com/ayuda"
+    },
     "experiments": {
       "typedRoutes": true
     }

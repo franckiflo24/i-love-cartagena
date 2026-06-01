@@ -42,11 +42,11 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="agenda"
+          name="explore"
           options={{
-            title: s('tab_agenda'),
-            tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
-            tabBarTestID: 'tab-agenda',
+            title: s('tab_explore') || 'Explore',
+            tabBarIcon: ({ color, size }) => <Ionicons name="compass" size={size} color={color} />,
+            tabBarTestID: 'tab-explore',
           }}
         />
         <Tabs.Screen
@@ -58,19 +58,11 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="partners"
+          name="bookings"
           options={{
-            title: s('tab_partners'),
-            tabBarIcon: ({ color, size }) => <Ionicons name="diamond" size={size} color={color} />,
-            tabBarTestID: 'tab-partners',
-          }}
-        />
-        <Tabs.Screen
-          name="citypass"
-          options={{
-            title: s('tab_citypass'),
-            tabBarIcon: ({ color, size }) => <Ionicons name="ticket" size={size} color={color} />,
-            tabBarTestID: 'tab-citypass',
+            title: s('tab_bookings') || 'Bookings',
+            tabBarIcon: ({ color, size }) => <Ionicons name="bookmark" size={size} color={color} />,
+            tabBarTestID: 'tab-bookings',
           }}
         />
         <Tabs.Screen
@@ -81,6 +73,10 @@ export default function TabLayout() {
             tabBarTestID: 'tab-perfil',
           }}
         />
+        {/* Hidden tabs — still accessible via router.push but not in tab bar */}
+        <Tabs.Screen name="agenda" options={{ href: null }} />
+        <Tabs.Screen name="partners" options={{ href: null }} />
+        <Tabs.Screen name="citypass" options={{ href: null }} />
       </Tabs>
       <AssistantFab hideFab={hideFab} />
     </View>

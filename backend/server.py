@@ -1692,7 +1692,7 @@ async def event_types():
 
 @api_router.get("/partner-categories")
 async def partner_categories():
-    return ["restaurant", "club", "beach_club", "hotel", "wellness", "cultural"]
+    return ["restaurant", "club", "beach_club", "hotel", "wellness", "cultural", "yacht", "activity"]
 
 
 # ── Seasons (Multi-event platform) ──────────────────────────
@@ -2649,6 +2649,29 @@ async def analytics_dashboard_v2(request: Request):
     transport_usage = await db.analytics.count_documents({"event_type": "transport_view"})
     map_views = await db.analytics.count_documents({"event_type": "map_view"})
 
+    # ── Intelligence Layer: avg spend, visitor count, booking channels, hotel occupancy ──
+    avg_spend_pipeline = [
+        {"$match": {"status": "approved"}},
+        {"$group": {"_id": None, "avg": {"$avg": "$amount_cop"}, "total": {"$sum": "$amount_cop"}, "count": {"$sum": 1}}},
+    ]
+    avg_spend_result = await db.payments.aggregate(avg_spend_pipeline).to_list(1)
+    avg_spend = round(avg_spend_result[0]["avg"]) if avg_spend_result and avg_spend_result[0].get("avg") else 0
+    total_payment_revenue = avg_spend_result[0]["total"] if avg_spend_result else 0
+    total_transactions = avg_spend_result[0]["count"] if avg_spend_result else 0
+
+    visitor_count = await db.location_pings.count_documents({})
+    unique_visitors = await db.users.count_documents({})
+
+    channels_pipeline = [
+        {"$match": {"status": "approved"}},
+        {"$group": {"_id": "$kind", "count": {"$sum": 1}, "revenue": {"$sum": "$amount_cop"}}},
+        {"$sort": {"count": -1}},
+    ]
+    booking_channels = await db.payments.aggregate(channels_pipeline).to_list(10)
+
+    hotel_reservations = await db.reservations.count_documents({}) if hasattr(db, 'reservations') else 0
+    total_reservations = await db.reservations.count_documents({})
+
     return {
         "kpis": {
             "total_users": total_users,
@@ -2680,7 +2703,35 @@ async def analytics_dashboard_v2(request: Request):
         "top_venues": top_venues,
         "interactions_by_type": [{"type": e["_id"] or "unknown", "count": e["count"]} for e in interactions_by_type],
         "events_per_season": events_per_season,
+        "intelligence": {
+            "avg_spend_cop": avg_spend,
+            "total_payment_revenue_cop": total_payment_revenue,
+            "total_transactions": total_transactions,
+            "visitor_count": unique_visitors,
+            "location_pings": visitor_count,
+            "total_reservations": total_reservations,
+            "booking_channels": [{"channel": c["_id"] or "unknown", "count": c["count"], "revenue_cop": c["revenue"]} for c in booking_channels],
+        },
     }
+
+
+# ── Heatmap endpoint for location data ──
+@api_router.get("/analytics/heatmap")
+async def analytics_heatmap():
+    """Aggregate location pings into heatmap buckets."""
+    pipeline = [
+        {"$group": {
+            "_id": {
+                "lat": {"$round": ["$lat", 3]},
+                "lng": {"$round": ["$lng", 3]},
+            },
+            "count": {"$sum": 1},
+        }},
+        {"$sort": {"count": -1}},
+        {"$limit": 200},
+    ]
+    buckets = await db.location_pings.aggregate(pipeline).to_list(200)
+    return [{"lat": b["_id"]["lat"], "lng": b["_id"]["lng"], "count": b["count"]} for b in buckets if b["_id"].get("lat")]
 
 
 # ── City Pass ───────────────────────────────────────────────
@@ -2910,6 +2961,8 @@ async def port_tax_redeem(ticket_id: str, request: Request):
 import wompi as _wompi
 import ai_agent as _ai_agent
 import reservations as _reservations
+import rewards as _rewards
+import reviews as _reviews
 
 
 @api_router.get("/payments/config")
@@ -2982,7 +3035,10 @@ async def wompi_city_pass_checkout(request: Request):
     user = await get_current_user(request)
     body = await request.json()
     plan_id = (body.get("plan_id") or "").strip()
-    redirect_url = (body.get("redirect_url") or "").strip() or f"{(os.environ.get('PUBLIC_APP_URL') or 'https://cartagena-live.preview.emergentagent.com')}/payments/return"
+    _app_url = os.environ.get('PUBLIC_APP_URL')
+    if not _app_url:
+        raise HTTPException(status_code=503, detail="PUBLIC_APP_URL not configured")
+    redirect_url = (body.get("redirect_url") or "").strip() or f"{_app_url}/payments/return"
     plans = {
         "pass_classic": {"name": "Classic Pass", "price": 200000},
         "pass_premium": {"name": "Premium Pass", "price": 350000},
@@ -3013,7 +3069,10 @@ async def wompi_port_tax_checkout(request: Request):
     qty = int(qty_raw if qty_raw is not None else 1)
     travel_date = (body.get("travel_date") or "").strip()
     passengers = body.get("passengers") or []
-    redirect_url = (body.get("redirect_url") or "").strip() or f"{(os.environ.get('PUBLIC_APP_URL') or 'https://cartagena-live.preview.emergentagent.com')}/payments/return"
+    _app_url = os.environ.get('PUBLIC_APP_URL')
+    if not _app_url:
+        raise HTTPException(status_code=503, detail="PUBLIC_APP_URL not configured")
+    redirect_url = (body.get("redirect_url") or "").strip() or f"{_app_url}/payments/return"
     if qty < 1 or qty > 20:
         raise HTTPException(status_code=400, detail="qty must be between 1 and 20")
     if not travel_date:
@@ -3043,7 +3102,10 @@ async def wompi_partner_event_checkout(request: Request):
     body = await request.json()
     event_id = (body.get("event_id") or "").strip()
     qty = int(body.get("qty") or 1)
-    redirect_url = (body.get("redirect_url") or "").strip() or f"{(os.environ.get('PUBLIC_APP_URL') or 'https://cartagena-live.preview.emergentagent.com')}/payments/return"
+    _app_url = os.environ.get('PUBLIC_APP_URL')
+    if not _app_url:
+        raise HTTPException(status_code=503, detail="PUBLIC_APP_URL not configured")
+    redirect_url = (body.get("redirect_url") or "").strip() or f"{_app_url}/payments/return"
     if not event_id:
         raise HTTPException(status_code=400, detail="event_id required")
     if qty < 1 or qty > 50:
@@ -3066,6 +3128,133 @@ async def wompi_partner_event_checkout(request: Request):
         metadata={"event_id": event_id, "qty": qty, "event_title": ev.get("title")},
         redirect_url=redirect_url,
     )
+
+
+# ── Experience Commerce ────────────────────────────────────────
+@api_router.get("/experiences")
+async def list_experiences(request: Request):
+    """List experiences with optional category filter."""
+    category = request.query_params.get("category")
+    query = {"is_active": True}
+    if category:
+        query["category"] = category
+    experiences = await db.partner_events.find(
+        query,
+        {"_id": 0},
+    ).sort("created_at", -1).to_list(200)
+    return experiences
+
+
+@api_router.get("/experiences/featured")
+async def featured_experiences():
+    """Return featured experiences (highest rated active events)."""
+    featured = await db.partner_events.find(
+        {"is_active": True},
+        {"_id": 0},
+    ).sort([("is_featured", -1), ("created_at", -1)]).limit(10).to_list(10)
+    return featured
+
+
+@api_router.get("/experiences/{experience_id}")
+async def get_experience(experience_id: str):
+    """Get a single experience by ID."""
+    exp = await db.partner_events.find_one({"event_id": experience_id}, {"_id": 0})
+    if not exp:
+        raise HTTPException(status_code=404, detail="Experience not found")
+    partner = await db.partners.find_one({"partner_id": exp.get("partner_id")}, {"_id": 0, "name": 1, "rating": 1, "reviews": 1, "rating_breakdown": 1, "image_url": 1, "phone": 1, "whatsapp": 1})
+    exp["partner"] = partner
+    return exp
+
+
+@api_router.get("/experience-bookings")
+async def my_experience_bookings(request: Request):
+    """Get the current user's experience bookings."""
+    user = await get_current_user(request)
+    bookings = await db.experience_bookings.find(
+        {"user_id": user["user_id"]},
+        {"_id": 0},
+    ).sort("created_at", -1).to_list(100)
+    return bookings
+
+
+@api_router.post("/payments/wompi/experience")
+async def wompi_experience_checkout(request: Request):
+    """Initiate a Wompi checkout for an experience booking."""
+    user = await get_current_user(request)
+    body = await request.json()
+    experience_id = (body.get("experience_id") or "").strip()
+    qty = int(body.get("qty") or 1)
+    date = (body.get("date") or "").strip()
+    _app_url = os.environ.get('PUBLIC_APP_URL')
+    if not _app_url:
+        raise HTTPException(status_code=503, detail="PUBLIC_APP_URL not configured")
+    redirect_url = (body.get("redirect_url") or "").strip() or f"{_app_url}/payments/return"
+
+    if not experience_id:
+        raise HTTPException(status_code=400, detail="experience_id required")
+    if qty < 1 or qty > 20:
+        raise HTTPException(status_code=400, detail="qty must be between 1 and 20")
+
+    exp = await db.partner_events.find_one({"event_id": experience_id, "is_active": True}, {"_id": 0})
+    if not exp:
+        raise HTTPException(status_code=404, detail="Experience not found or inactive")
+
+    price_per = exp.get("price_cop") or exp.get("price") or 0
+    total = int(price_per) * qty
+    if total <= 0:
+        raise HTTPException(status_code=400, detail="Experience has no price configured")
+
+    return await _create_payment_record(
+        user=user,
+        kind="experience",
+        partner_id=exp.get("partner_id"),
+        amount_cop=total,
+        currency=exp.get("currency", "COP"),
+        description=f"{exp.get('title', 'Experience')} · {qty} pax",
+        metadata={"experience_id": experience_id, "qty": qty, "date": date, "experience_title": exp.get("title")},
+        redirect_url=redirect_url,
+    )
+
+
+@api_router.get("/partners/nearby")
+async def nearby_partners(request: Request):
+    """Get partners near a location, sorted by distance."""
+    import math
+    lat = float(request.query_params.get("lat", "0"))
+    lng = float(request.query_params.get("lng", "0"))
+    radius = int(request.query_params.get("radius", "5000"))
+    category = request.query_params.get("category")
+
+    if lat == 0 and lng == 0:
+        raise HTTPException(status_code=400, detail="lat and lng required")
+
+    query: dict = {}
+    if category:
+        query["category"] = category
+
+    partners = await db.partners.find(query, {"_id": 0}).to_list(500)
+
+    def haversine(lat1, lon1, lat2, lon2):
+        R = 6371000
+        phi1, phi2 = math.radians(lat1), math.radians(lat2)
+        dphi = math.radians(lat2 - lat1)
+        dlam = math.radians(lon2 - lon1)
+        a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+        return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    results = []
+    for p in partners:
+        loc = p.get("location") or {}
+        p_lat = loc.get("lat") or loc.get("latitude")
+        p_lng = loc.get("lng") or loc.get("longitude")
+        if p_lat and p_lng:
+            dist = haversine(lat, lng, float(p_lat), float(p_lng))
+            if dist <= radius:
+                p["distance_m"] = round(dist)
+                results.append(p)
+
+    results.sort(key=lambda x: x.get("distance_m", 999999))
+    return results[:50]
 
 
 @api_router.get("/payments/{payment_id}")
@@ -3211,6 +3400,34 @@ async def _fulfill_payment(payment: dict, tx: dict):
             }
             await db.partner_bookings.insert_one(dict(booking))
             await db.payments.update_one({"payment_id": payment["payment_id"]}, {"$set": {"fulfillment.booking_id": booking_id}})
+        elif kind == "experience":
+            booking_id = f"eb_{uuid.uuid4().hex[:12]}"
+            booking = {
+                "booking_id": booking_id,
+                "user_id": user_id,
+                "partner_id": payment.get("partner_id"),
+                "experience_id": metadata.get("experience_id"),
+                "qty": int(metadata.get("qty") or 1),
+                "date": metadata.get("date", ""),
+                "total_amount": payment["amount_cop"],
+                "currency": payment["currency"],
+                "status": "confirmed",
+                "payment_id": payment.get("payment_id"),
+                "wompi_transaction_id": tx.get("id"),
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            await db.experience_bookings.insert_one(dict(booking))
+            await db.payments.update_one({"payment_id": payment["payment_id"]}, {"$set": {"fulfillment.booking_id": booking_id}})
+
+        # ── Award loyalty points ──
+        points_map = {"city_pass": 500, "port_tax": 200, "partner_event": 300, "experience": 400}
+        pts = points_map.get(kind, 0)
+        if pts and user_id:
+            try:
+                await _rewards.award_points(db, user_id, pts, kind, payment.get("payment_id", ""), f"Purchase: {kind.replace('_', ' ').title()}")
+            except Exception as rw_err:
+                logger.error(f"[Rewards] Failed to award points for {payment.get('payment_id')}: {rw_err}")
+
     except Exception as e:
         logger.error(f"Fulfillment failed for payment {payment.get('payment_id')}: {e}")
 
@@ -3738,6 +3955,12 @@ _reservations.init(
 )
 app.include_router(_reservations.router, prefix="/api")
 
+_rewards.init(db=db, get_current_user=get_current_user)
+app.include_router(_rewards.router, prefix="/api")
+
+_reviews.init(db=db, get_current_user=get_current_user, award_points=_rewards.award_points)
+app.include_router(_reviews.router, prefix="/api")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -3752,6 +3975,16 @@ async def startup():
     await seed_database()
     # Ensure indexes for the reservations module
     await _reservations.ensure_indexes()
+    # Rewards indexes and seed data
+    await db.rewards_accounts.create_index("user_id", unique=True)
+    await db.rewards_history.create_index([("user_id", 1), ("created_at", -1)])
+    await db.rewards_offers.create_index("offer_id", unique=True)
+    await db.rewards_redemptions.create_index([("user_id", 1), ("created_at", -1)])
+    await _rewards.seed_default_offers(db)
+    # Reviews indexes
+    await db.reviews.create_index([("partner_id", 1), ("created_at", -1)])
+    await db.reviews.create_index([("user_id", 1), ("partner_id", 1)], unique=True)
+    await db.review_reports.create_index([("review_id", 1), ("reporter_user_id", 1)], unique=True)
     # ── Start the favorite-event reminder scheduler (24h push reminders) ──
     try:
         from reminders import start_reminder_scheduler  # type: ignore
@@ -4755,7 +4988,7 @@ async def startup():
     biz_count = await db.business_users.count_documents({})
     if biz_count == 0:
         logger.info("Seeding business accounts...")
-        DEMO_PASSWORD = "amocartagena2026"
+        DEMO_PASSWORD = os.environ.get("DEMO_PARTNER_PASSWORD", "amocartagena2026")
         pw_hash = _bcrypt.hashpw(DEMO_PASSWORD.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
         demo_accounts = [
             {"business_id": "biz_001", "email": "casaboheme@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_nc_007", "full_name": "Casa Bohème", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
@@ -4772,7 +5005,7 @@ async def startup():
     # Idempotent: ensures the Alcaldía partner + business user always exist.
     ALCALDIA_PARTNER_ID = "ptr_alcaldia"
     ALCALDIA_EMAIL = "alcaldia@amocartagena.app"
-    ALCALDIA_PASSWORD = "AlcaldiaCTG2026!"
+    ALCALDIA_PASSWORD = os.environ.get("ALCALDIA_PASSWORD", "AlcaldiaCTG2026!")
     alcaldia_partner = await db.partners.find_one({"partner_id": ALCALDIA_PARTNER_ID})
     if not alcaldia_partner:
         logger.info("Seeding Alcaldía partner profile...")

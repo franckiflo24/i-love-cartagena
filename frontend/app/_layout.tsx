@@ -5,6 +5,7 @@ import { FavoritesProvider } from '../src/context/FavoritesContext';
 import { LanguageProvider } from '../src/context/LanguageContext';
 import { BusinessAuthProvider } from '../src/context/BusinessAuthContext';
 import { MyCalendarProvider } from '../src/context/MyCalendarContext';
+import { RewardsProvider } from '../src/context/RewardsContext';
 import PushBootstrap from '../src/components/PushBootstrap';
 import ErrorBoundary from '../src/components/ErrorBoundary';
 
@@ -16,6 +17,7 @@ export default function RootLayout() {
       <LanguageProvider>
       <FavoritesProvider>
       <MyCalendarProvider>
+      <RewardsProvider>
       <PushBootstrap />
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
@@ -25,6 +27,10 @@ export default function RootLayout() {
         <Stack.Screen name="event/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="partner/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="partner-event/[id]" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="experience/[id]" options={{ presentation: 'card' }} />
+        <Stack.Screen name="experience/booking" options={{ presentation: 'card' }} />
+        <Stack.Screen name="rewards" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="review/new" options={{ presentation: 'modal' }} />
         <Stack.Screen name="transport" options={{ presentation: 'modal' }} />
         <Stack.Screen name="itineraries" options={{ presentation: 'modal' }} />
         <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
@@ -41,6 +47,7 @@ export default function RootLayout() {
         <Stack.Screen name="business/profile-edit" options={{ presentation: 'modal' }} />
         <Stack.Screen name="port-tax" options={{ presentation: 'modal' }} />
       </Stack>
+      </RewardsProvider>
       </MyCalendarProvider>
       </FavoritesProvider>
       </LanguageProvider>

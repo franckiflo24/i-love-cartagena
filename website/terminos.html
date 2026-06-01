@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Términos de Servicio — AMO Cartagena</title>
+  <meta name="description" content="Términos y condiciones de uso de AMO Cartagena. Reservas, pagos, IA y responsabilidades." />
+  <meta name="robots" content="noindex, follow" />
+  <link rel="canonical" href="https://amocartagena.co/terminos.html" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    :root {
+      --bg: #050814;
+      --surface: #0F1423;
+      --primary: #D97706;
+      --primary-hover: #F59E0B;
+      --primary-dim: rgba(217, 119, 6, 0.12);
+      --text: #FAFAF9;
+      --muted: #A8B2C1;
+      --border: rgba(255,255,255,0.08);
+      --border-gold: rgba(217, 119, 6, 0.25);
+      --font-head: 'Outfit', sans-serif;
+      --font-body: 'Manrope', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    nav {
+      background: rgba(5, 8, 20, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: var(--font-head);
+      font-size: 20px;
+      font-weight: 800;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .nav-logo .amo { color: var(--primary); }
+    .nav-logo .heart { color: var(--primary); font-size: 16px; }
+    .nav-logo .city { color: var(--text); }
+    .nav-back {
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--text); }
+
+    .page-hero {
+      background: linear-gradient(135deg, var(--surface) 0%, rgba(15,20,35,0.6) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 56px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      height: 200px;
+      background: radial-gradient(ellipse, rgba(217,119,6,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .page-hero-label {
+      font-family: var(--font-head);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+    .page-hero-title {
+      font-family: var(--font-head);
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .page-hero-meta { font-size: 14px; color: var(--muted); }
+
+    .content-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 56px 24px 80px;
+    }
+
+    .lang-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 40px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 4px;
+      width: fit-content;
+    }
+    .lang-btn {
+      font-family: var(--font-head);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 20px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      transition: background 0.2s, color 0.2s;
+    }
+    .lang-btn.active { background: var(--primary); color: #000; }
+
+    .lang-section { display: none; }
+    .lang-section.active { display: block; }
+
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 48px;
+    }
+    .toc-title {
+      font-family: var(--font-head);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 16px;
+    }
+    .toc-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    @media (min-width: 600px) { .toc-list { grid-template-columns: 1fr 1fr; } }
+    .toc-list a {
+      font-size: 14px;
+      color: var(--muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: color 0.2s;
+    }
+    .toc-list a:hover { color: var(--primary-hover); }
+    .toc-list a::before {
+      content: attr(data-num);
+      width: 24px;
+      height: 24px;
+      background: var(--primary-dim);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--primary);
+      font-weight: 700;
+      flex-shrink: 0;
+      text-align: center;
+      line-height: 24px;
+    }
+
+    .policy-section { margin-bottom: 52px; scroll-margin-top: 80px; }
+    .policy-section h2 {
+      font-family: var(--font-head);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .policy-section h2 .num {
+      width: 32px;
+      height: 32px;
+      background: var(--primary-dim);
+      border: 1px solid var(--border-gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: var(--primary);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .policy-section p {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      line-height: 1.75;
+    }
+    .policy-section p:last-child { margin-bottom: 0; }
+    .policy-section ul {
+      list-style: none;
+      margin: 12px 0 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .policy-section ul li {
+      font-size: 15px;
+      color: var(--muted);
+      padding-left: 24px;
+      position: relative;
+      line-height: 1.65;
+    }
+    .policy-section ul li::before {
+      content: '\2192';
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .policy-section strong { color: var(--text); font-weight: 600; }
+
+    .warning-box {
+      background: rgba(217, 119, 6, 0.06);
+      border: 1px solid var(--border-gold);
+      border-left: 3px solid var(--primary);
+      border-radius: 0 10px 10px 0;
+      padding: 20px 24px;
+      margin: 20px 0;
+    }
+    .warning-box p {
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+    .warning-box p:last-child { margin-bottom: 0; }
+    .warning-box strong { color: var(--primary-hover); }
+
+    .ai-disclaimer {
+      background: rgba(139, 92, 246, 0.06);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-left: 3px solid #8B5CF6;
+      border-radius: 0 10px 10px 0;
+      padding: 20px 24px;
+      margin: 20px 0;
+    }
+    .ai-disclaimer p {
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+    .ai-disclaimer p:last-child { margin-bottom: 0; }
+    .ai-disclaimer strong { color: #A78BFA; }
+
+    .contact-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-top: 48px;
+      text-align: center;
+    }
+    .contact-card h3 {
+      font-family: var(--font-head);
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .contact-card p { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+    .contact-card a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-dim);
+      border: 1px solid var(--border-gold);
+      color: var(--primary-hover);
+      font-family: var(--font-head);
+      font-size: 14px;
+      font-weight: 700;
+      padding: 12px 28px;
+      border-radius: 50px;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .contact-card a:hover { background: rgba(217,119,6,0.2); transform: translateY(-1px); }
+
+    .page-footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .page-footer-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    @media (min-width: 600px) {
+      .page-footer-inner { flex-direction: row; justify-content: space-between; }
+    }
+    .page-footer p { font-size: 13px; color: var(--muted); }
+    .page-footer-links { display: flex; gap: 20px; list-style: none; }
+    .page-footer-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .page-footer-links a:hover { color: var(--primary-hover); }
+
+    ::selection { background: rgba(217,119,6,0.3); color: var(--text); }
+    :focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+  </style>
+</head>
+<body>
+
+  <nav role="navigation" aria-label="Navigation">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo" aria-label="AMO Cartagena home">
+        <span class="amo">AMO</span>
+        <span class="heart">&#9829;</span>
+        <span class="city">CARTAGENA</span>
+      </a>
+      <a href="index.html" class="nav-back" aria-label="Back to home">&#8592; Back to site</a>
+    </div>
+  </nav>
+
+  <div class="page-hero">
+    <p class="page-hero-label">Legal</p>
+    <h1 class="page-hero-title">Terms of Service<br>/ Términos de Servicio</h1>
+    <p class="page-hero-meta">Last updated: June 1, 2025 — Cartagena de Indias, Colombia</p>
+  </div>
+
+  <main class="content-wrap" id="main-content">
+
+    <div class="lang-toggle" role="tablist" aria-label="Select language">
+      <button class="lang-btn active" onclick="setLang('es')" role="tab" aria-selected="true" id="tab-es" aria-controls="lang-es">Español</button>
+      <button class="lang-btn" onclick="setLang('en')" role="tab" aria-selected="false" id="tab-en" aria-controls="lang-en">English</button>
+    </div>
+
+    <!-- ==================== SPANISH ==================== -->
+    <div class="lang-section active" id="lang-es" role="tabpanel" aria-labelledby="tab-es">
+
+      <nav class="toc" aria-label="Tabla de contenidos">
+        <p class="toc-title">Contenidos</p>
+        <ul class="toc-list" role="list">
+          <li><a href="#es-1" data-num="1">Aceptación de los Términos</a></li>
+          <li><a href="#es-2" data-num="2">Uso de la Aplicación</a></li>
+          <li><a href="#es-3" data-num="3">Registro y Cuenta</a></li>
+          <li><a href="#es-4" data-num="4">Reservas</a></li>
+          <li><a href="#es-5" data-num="5">Pagos</a></li>
+          <li><a href="#es-6" data-num="6">Concierge IA</a></li>
+          <li><a href="#es-7" data-num="7">Responsabilidad</a></li>
+          <li><a href="#es-8" data-num="8">Partners y Terceros</a></li>
+          <li><a href="#es-9" data-num="9">Propiedad Intelectual</a></li>
+          <li><a href="#es-10" data-num="10">Ley Aplicable</a></li>
+        </ul>
+      </nav>
+
+      <div class="policy-section" id="es-1">
+        <h2><span class="num" aria-hidden="true">1</span>Aceptación de los Términos</h2>
+        <p>Al descargar, instalar o utilizar la aplicación móvil <strong>AMO Cartagena</strong> o cualquiera de sus servicios asociados, usted acepta quedar vinculado por los presentes Términos de Servicio. Si no está de acuerdo con alguno de estos términos, le rogamos que no utilice nuestra plataforma.</p>
+        <p>Estos Términos constituyen un acuerdo legalmente vinculante entre usted ("Usuario") y <strong>AMO Cartagena</strong> ("la Empresa"), una empresa con domicilio en Cartagena de Indias, Bolívar, Colombia. La Empresa se reserva el derecho de modificar estos Términos en cualquier momento, notificando a los usuarios con al menos <strong>30 días de anticipación</strong> a través de la app o por correo electrónico.</p>
+      </div>
+
+      <div class="policy-section" id="es-2">
+        <h2><span class="num" aria-hidden="true">2</span>Uso de la Aplicación</h2>
+        <p>AMO Cartagena es una plataforma de descubrimiento, reservas y gestión de experiencias turísticas y de ocio en Cartagena de Indias, Colombia. Al usar la plataforma, usted se compromete a:</p>
+        <ul>
+          <li>Utilizar los servicios únicamente para fines lícitos y de acuerdo con estos Términos.</li>
+          <li>No intentar eludir, deshabilitar o interferir con las medidas de seguridad de la plataforma.</li>
+          <li>No utilizar la plataforma para actividades fraudulentas, ilegales o que puedan dañar a terceros.</li>
+          <li>No realizar scraping, extracción masiva de datos o ingeniería inversa de la aplicación.</li>
+          <li>Proporcionar información veraz y actualizada durante el registro y el uso.</li>
+          <li>Ser mayor de 18 años. Los menores de 18 años requieren autorización expresa de sus padres o tutores.</li>
+        </ul>
+        <p>La Empresa se reserva el derecho de suspender o cancelar el acceso de cualquier usuario que incumpla estas condiciones, sin previo aviso y sin derecho a reembolso.</p>
+      </div>
+
+      <div class="policy-section" id="es-3">
+        <h2><span class="num" aria-hidden="true">3</span>Registro y Cuenta de Usuario</h2>
+        <p>Para acceder a ciertas funcionalidades (reservas, pagos, City Pass), es necesario crear una cuenta. Usted es responsable de:</p>
+        <ul>
+          <li>Mantener la confidencialidad de sus credenciales de acceso (correo/contraseña o acceso con Google/Apple).</li>
+          <li>Todas las actividades que ocurran bajo su cuenta.</li>
+          <li>Notificar inmediatamente a la Empresa si sospecha de acceso no autorizado a su cuenta.</li>
+        </ul>
+        <p>La Empresa no será responsable por pérdidas derivadas del uso no autorizado de su cuenta cuando usted no haya notificado oportunamente.</p>
+      </div>
+
+      <div class="policy-section" id="es-4">
+        <h2><span class="num" aria-hidden="true">4</span>Reservas</h2>
+        <p>AMO Cartagena actúa como <strong>intermediario tecnológico</strong> entre el Usuario y los partners (restaurantes, beach clubs, hoteles, organizadores de eventos y otros proveedores de servicios). Al realizar una reserva a través de la plataforma:</p>
+        <ul>
+          <li>La reserva constituye un contrato directo entre usted y el partner correspondiente.</li>
+          <li>AMO Cartagena no es parte en el contrato de servicio entre el Usuario y el partner.</li>
+          <li>La confirmación de la reserva se enviará por WhatsApp y notificación push al número/dispositivo registrado.</li>
+          <li>Las políticas de cancelación y modificación son establecidas por cada partner individualmente y se muestran antes de confirmar.</li>
+          <li>AMO Cartagena no garantiza la disponibilidad en tiempo real de todos los partners; la disponibilidad definitiva es confirmada por el partner.</li>
+        </ul>
+        <div class="warning-box">
+          <p><strong>Cancelaciones:</strong> Para cancelar o modificar una reserva, el Usuario debe hacerlo a través de la app o contactando directamente al partner dentro del plazo establecido por cada partner. AMO Cartagena puede facilitar la comunicación pero no puede forzar al partner a procesar cancelaciones fuera de sus políticas.</p>
+        </div>
+      </div>
+
+      <div class="policy-section" id="es-5">
+        <h2><span class="num" aria-hidden="true">5</span>Pagos</h2>
+        <p>Los pagos en la plataforma son procesados por <strong>Wompi</strong> (operado por Bancolombia S.A.), la pasarela de pagos líder en Colombia. Al realizar un pago:</p>
+        <ul>
+          <li>Usted acepta los Términos y Condiciones de Wompi disponibles en wompi.com.</li>
+          <li>AMO Cartagena no almacena datos de tarjetas de crédito/débito. Estos son manejados exclusivamente por Wompi bajo estándares PCI-DSS.</li>
+          <li>Los precios se muestran en Pesos Colombianos (COP). Para pagos internacionales, la conversión de divisas aplica según la tasa de su entidad bancaria.</li>
+          <li>Una vez procesado el pago y confirmada la reserva, el reembolso depende de la política de cancelación del partner.</li>
+          <li>En caso de error técnico en el procesamiento del pago, el monto debitado sin confirmación de reserva será reembolsado íntegramente en un plazo de 5 a 10 días hábiles.</li>
+        </ul>
+        <p><strong>City Pass:</strong> La adquisición del City Pass es un pago único no reembolsable una vez activado el acceso a beneficios. El pase tiene vigencia según la modalidad seleccionada (Classic o Premium).</p>
+        <p><strong>Tasa Portuaria:</strong> El pago de la tasa portuaria de Castillogrande a través de la app es un servicio de conveniencia. El Usuario sigue siendo responsable de cumplir con la normativa portuaria vigente.</p>
+      </div>
+
+      <div class="policy-section" id="es-6">
+        <h2><span class="num" aria-hidden="true">6</span>Concierge IA — Aviso Importante</h2>
+        <div class="ai-disclaimer">
+          <p><strong>El Concierge IA de AMO Cartagena es una herramienta de asistencia informativa y no constituye asesoramiento profesional</strong> de ningún tipo (médico, legal, financiero, de seguridad, etc.).</p>
+          <p>Las respuestas generadas por la inteligencia artificial son de carácter informativo y orientativo. Pueden contener imprecisiones, información desactualizada o errores.</p>
+          <p><strong>La Empresa no garantiza la exactitud, completitud o vigencia</strong> de la información proporcionada por el Concierge IA.</p>
+        </div>
+        <p>Al utilizar el Concierge IA, usted comprende y acepta que:</p>
+        <ul>
+          <li>Las recomendaciones de lugares, horarios, precios y disponibilidad son orientativas y deben verificarse directamente con el partner.</li>
+          <li>La IA puede cometer errores en la interpretación de preguntas o en la generación de respuestas.</li>
+          <li>No debe basar decisiones importantes (de salud, seguridad o financieras) exclusivamente en las respuestas del Concierge IA.</li>
+          <li>Las conversaciones con el Concierge IA pueden ser revisadas por el equipo de AMO Cartagena para mejorar el servicio, previa anonimización.</li>
+        </ul>
+        <p>El servicio de Concierge IA es proporcionado en la medida de lo posible y la Empresa se reserva el derecho de suspenderlo o modificarlo sin previo aviso.</p>
+      </div>
+
+      <div class="policy-section" id="es-7">
+        <h2><span class="num" aria-hidden="true">7</span>Limitación de Responsabilidad</h2>
+        <p>En la máxima medida permitida por la ley colombiana, <strong>AMO Cartagena no será responsable</strong> por:</p>
+        <ul>
+          <li>Daños indirectos, incidentales, especiales, consecuentes o punitivos derivados del uso o imposibilidad de uso de la plataforma.</li>
+          <li>La calidad, seguridad, legalidad o idoneidad de los servicios prestados por los partners.</li>
+          <li>Incumplimientos de los partners en la prestación de los servicios reservados.</li>
+          <li>Pérdidas derivadas de información incorrecta proporcionada por el Concierge IA.</li>
+          <li>Interrupciones temporales del servicio por mantenimiento, actualizaciones o causas de fuerza mayor.</li>
+          <li>Accesos no autorizados a cuentas de usuario causados por negligencia del propio usuario.</li>
+        </ul>
+        <p>La responsabilidad total de AMO Cartagena frente al Usuario, en cualquier circunstancia, no superará el monto pagado por el Usuario a la Empresa en los <strong>últimos 3 meses</strong>.</p>
+        <p>Estas limitaciones no aplican en casos de dolo o culpa grave de la Empresa, ni cuando la ley colombiana establezca responsabilidad imperativa.</p>
+      </div>
+
+      <div class="policy-section" id="es-8">
+        <h2><span class="num" aria-hidden="true">8</span>Partners y Terceros</h2>
+        <p>AMO Cartagena verifica y certifica a sus partners según criterios propios de calidad y cumplimiento. Sin embargo:</p>
+        <ul>
+          <li>La inclusión de un partner en la plataforma no constituye un aval o garantía absoluta sobre la calidad de sus servicios.</li>
+          <li>AMO Cartagena no asume responsabilidad por accidentes, lesiones, pérdidas o daños que ocurran en las instalaciones de un partner.</li>
+          <li>Los partners son responsables del cumplimiento de todas las normativas legales aplicables (sanitarias, tributarias, de seguridad, etc.).</li>
+          <li>Los enlaces a sitios web de terceros incluidos en la plataforma no implican respaldo de su contenido por parte de AMO Cartagena.</li>
+        </ul>
+      </div>
+
+      <div class="policy-section" id="es-9">
+        <h2><span class="num" aria-hidden="true">9</span>Propiedad Intelectual</h2>
+        <p>Todos los contenidos de la plataforma AMO Cartagena — incluyendo, sin limitación, el logo, nombre, diseño, código fuente, textos, fotografías, videos, marca e identidad visual — son propiedad exclusiva de AMO Cartagena y están protegidos por las leyes colombianas e internacionales de propiedad intelectual.</p>
+        <p>Queda estrictamente prohibido reproducir, distribuir, modificar, crear obras derivadas, comunicar públicamente o explotar comercialmente cualquier contenido de la plataforma sin autorización escrita expresa de la Empresa.</p>
+        <p>El Usuario retiene los derechos sobre el contenido que genere (reseñas, fotos), pero otorga a AMO Cartagena una licencia no exclusiva, gratuita y global para usar dicho contenido con fines de mejora de la plataforma y promoción del destino.</p>
+      </div>
+
+      <div class="policy-section" id="es-10">
+        <h2><span class="num" aria-hidden="true">10</span>Ley Aplicable y Jurisdicción</h2>
+        <p>Estos Términos de Servicio se rigen por las leyes de la <strong>República de Colombia</strong>. Para cualquier controversia derivada de la interpretación o ejecución de estos Términos, las partes se someten a la jurisdicción de los <strong>Juzgados y Tribunales de Cartagena de Indias</strong>, renunciando a cualquier otro fuero que pudiera corresponderles.</p>
+        <p>Antes de iniciar cualquier acción legal, el Usuario y AMO Cartagena se comprometen a intentar resolver la controversia de forma amistosa, notificando el conflicto por correo electrónico a <strong>hello@amocartagena.com</strong> con al menos <strong>30 días de anticipación</strong>.</p>
+        <p>Para consultas sobre estos Términos o para presentar una reclamación, contáctenos en <strong>hello@amocartagena.com</strong>. Respondemos en un plazo máximo de 10 días hábiles.</p>
+      </div>
+
+      <div class="contact-card">
+        <h3>Dudas sobre nuestros Términos</h3>
+        <p>Estamos disponibles para responder cualquier pregunta sobre el uso de nuestra plataforma.</p>
+        <a href="mailto:hello@amocartagena.com">hello@amocartagena.com</a>
+      </div>
+
+    </div>
+
+    <!-- ==================== ENGLISH ==================== -->
+    <div class="lang-section" id="lang-en" role="tabpanel" aria-labelledby="tab-en">
+
+      <nav class="toc" aria-label="Table of contents">
+        <p class="toc-title">Contents</p>
+        <ul class="toc-list" role="list">
+          <li><a href="#en-1" data-num="1">Acceptance of Terms</a></li>
+          <li><a href="#en-2" data-num="2">Use of the Application</a></li>
+          <li><a href="#en-3" data-num="3">Registration &amp; Account</a></li>
+          <li><a href="#en-4" data-num="4">Reservations</a></li>
+          <li><a href="#en-5" data-num="5">Payments</a></li>
+          <li><a href="#en-6" data-num="6">AI Concierge</a></li>
+          <li><a href="#en-7" data-num="7">Limitation of Liability</a></li>
+          <li><a href="#en-8" data-num="8">Partners &amp; Third Parties</a></li>
+          <li><a href="#en-9" data-num="9">Intellectual Property</a></li>
+          <li><a href="#en-10" data-num="10">Governing Law</a></li>
+        </ul>
+      </nav>
+
+      <div class="policy-section" id="en-1">
+        <h2><span class="num" aria-hidden="true">1</span>Acceptance of Terms</h2>
+        <p>By downloading, installing or using the <strong>AMO Cartagena</strong> mobile application or any of its associated services, you agree to be bound by these Terms of Service. If you do not agree with any of these terms, please do not use our platform.</p>
+        <p>These Terms constitute a legally binding agreement between you ("User") and <strong>AMO Cartagena</strong> ("the Company"), a company based in Cartagena de Indias, Bolívar, Colombia. The Company reserves the right to modify these Terms at any time, notifying users with at least <strong>30 days advance notice</strong> via the app or by email.</p>
+      </div>
+
+      <div class="policy-section" id="en-2">
+        <h2><span class="num" aria-hidden="true">2</span>Use of the Application</h2>
+        <p>AMO Cartagena is a platform for discovery, bookings and management of tourism and leisure experiences in Cartagena de Indias, Colombia. By using the platform, you agree to:</p>
+        <ul>
+          <li>Use the services only for lawful purposes and in accordance with these Terms.</li>
+          <li>Not attempt to circumvent, disable or interfere with the platform's security measures.</li>
+          <li>Not use the platform for fraudulent, illegal or harmful activities.</li>
+          <li>Not perform scraping, mass data extraction or reverse engineering of the application.</li>
+          <li>Provide truthful and up-to-date information during registration and use.</li>
+          <li>Be at least 18 years of age. Users under 18 require express authorization from their parents or guardians.</li>
+        </ul>
+        <p>The Company reserves the right to suspend or cancel access for any user who violates these conditions, without prior notice and without entitlement to a refund.</p>
+      </div>
+
+      <div class="policy-section" id="en-3">
+        <h2><span class="num" aria-hidden="true">3</span>Registration &amp; User Account</h2>
+        <p>To access certain features (bookings, payments, City Pass), creating an account is required. You are responsible for:</p>
+        <ul>
+          <li>Maintaining the confidentiality of your access credentials (email/password or Google/Apple sign-in).</li>
+          <li>All activities that occur under your account.</li>
+          <li>Notifying the Company immediately if you suspect unauthorized access to your account.</li>
+        </ul>
+        <p>The Company shall not be liable for losses arising from unauthorized use of your account when you have not provided timely notice.</p>
+      </div>
+
+      <div class="policy-section" id="en-4">
+        <h2><span class="num" aria-hidden="true">4</span>Reservations</h2>
+        <p>AMO Cartagena acts as a <strong>technology intermediary</strong> between the User and partners (restaurants, beach clubs, hotels, event organizers and other service providers). When making a reservation through the platform:</p>
+        <ul>
+          <li>The reservation constitutes a direct contract between you and the relevant partner.</li>
+          <li>AMO Cartagena is not a party to the service contract between the User and the partner.</li>
+          <li>Reservation confirmation will be sent via WhatsApp and push notification to the registered number/device.</li>
+          <li>Cancellation and modification policies are set by each partner individually and are displayed before confirming.</li>
+          <li>AMO Cartagena does not guarantee real-time availability across all partners; final availability is confirmed by the partner.</li>
+        </ul>
+        <div class="warning-box">
+          <p><strong>Cancellations:</strong> To cancel or modify a reservation, the User must do so through the app or by contacting the partner directly within the timeframe established by each partner. AMO Cartagena can facilitate communication but cannot compel the partner to process cancellations outside their policies.</p>
+        </div>
+      </div>
+
+      <div class="policy-section" id="en-5">
+        <h2><span class="num" aria-hidden="true">5</span>Payments</h2>
+        <p>Payments on the platform are processed by <strong>Wompi</strong> (operated by Bancolombia S.A.), Colombia's leading payment gateway. When making a payment:</p>
+        <ul>
+          <li>You accept Wompi's Terms and Conditions available at wompi.com.</li>
+          <li>AMO Cartagena does not store credit/debit card data. These are handled exclusively by Wompi under PCI-DSS standards.</li>
+          <li>Prices are displayed in Colombian Pesos (COP). For international payments, currency conversion applies at your bank's exchange rate.</li>
+          <li>Once payment is processed and the reservation confirmed, refunds depend on the partner's cancellation policy.</li>
+          <li>In case of a technical payment processing error, any amount debited without a reservation confirmation will be refunded in full within 5 to 10 business days.</li>
+        </ul>
+        <p><strong>City Pass:</strong> City Pass purchases are non-refundable once benefits access has been activated. The pass is valid for the period of the selected tier (Classic or Premium) as shown in the purchase flow.</p>
+        <p><strong>Port Tax:</strong> Payment of the Castillogrande port tax through the app is a convenience service. The User remains responsible for complying with current port regulations.</p>
+      </div>
+
+      <div class="policy-section" id="en-6">
+        <h2><span class="num" aria-hidden="true">6</span>AI Concierge — Important Notice</h2>
+        <div class="ai-disclaimer">
+          <p><strong>AMO Cartagena's AI Concierge is an informational assistance tool and does not constitute professional advice</strong> of any kind (medical, legal, financial, security, etc.).</p>
+          <p>Responses generated by artificial intelligence are informational and advisory in nature. They may contain inaccuracies, outdated information or errors.</p>
+          <p><strong>The Company does not guarantee the accuracy, completeness or currency</strong> of information provided by the AI Concierge.</p>
+        </div>
+        <p>By using the AI Concierge, you understand and agree that:</p>
+        <ul>
+          <li>Recommendations for venues, hours, prices and availability are advisory and must be verified directly with the partner.</li>
+          <li>The AI may make errors in interpreting questions or generating responses.</li>
+          <li>You should not base important decisions (health, safety or financial) solely on the AI Concierge's responses.</li>
+          <li>Conversations with the AI Concierge may be reviewed by the AMO Cartagena team to improve the service, after anonymization.</li>
+        </ul>
+        <p>The AI Concierge service is provided on a best-efforts basis and the Company reserves the right to suspend or modify it without prior notice.</p>
+      </div>
+
+      <div class="policy-section" id="en-7">
+        <h2><span class="num" aria-hidden="true">7</span>Limitation of Liability</h2>
+        <p>To the maximum extent permitted by Colombian law, <strong>AMO Cartagena shall not be liable</strong> for:</p>
+        <ul>
+          <li>Indirect, incidental, special, consequential or punitive damages arising from use or inability to use the platform.</li>
+          <li>The quality, safety, legality or suitability of services provided by partners.</li>
+          <li>Partners' failures to deliver booked services.</li>
+          <li>Losses arising from incorrect information provided by the AI Concierge.</li>
+          <li>Temporary service interruptions due to maintenance, updates or force majeure.</li>
+          <li>Unauthorized account access caused by the user's own negligence.</li>
+        </ul>
+        <p>AMO Cartagena's total liability to the User, in any circumstance, shall not exceed the amount paid by the User to the Company in the <strong>last 3 months</strong>.</p>
+        <p>These limitations do not apply in cases of willful misconduct or gross negligence by the Company, nor where Colombian law establishes mandatory liability.</p>
+      </div>
+
+      <div class="policy-section" id="en-8">
+        <h2><span class="num" aria-hidden="true">8</span>Partners &amp; Third Parties</h2>
+        <p>AMO Cartagena verifies and certifies its partners according to its own quality and compliance criteria. However:</p>
+        <ul>
+          <li>A partner's inclusion on the platform does not constitute an absolute endorsement or guarantee of their service quality.</li>
+          <li>AMO Cartagena assumes no responsibility for accidents, injuries, losses or damages occurring at a partner's premises.</li>
+          <li>Partners are responsible for compliance with all applicable legal regulations (health, tax, safety, etc.).</li>
+          <li>Links to third-party websites included on the platform do not imply endorsement of their content by AMO Cartagena.</li>
+        </ul>
+      </div>
+
+      <div class="policy-section" id="en-9">
+        <h2><span class="num" aria-hidden="true">9</span>Intellectual Property</h2>
+        <p>All content on the AMO Cartagena platform — including, without limitation, the logo, name, design, source code, texts, photographs, videos, brand and visual identity — is the exclusive property of AMO Cartagena and is protected by Colombian and international intellectual property laws.</p>
+        <p>It is strictly prohibited to reproduce, distribute, modify, create derivative works, publicly communicate or commercially exploit any platform content without the Company's express written authorization.</p>
+        <p>The User retains rights over the content they generate (reviews, photos), but grants AMO Cartagena a non-exclusive, royalty-free and worldwide license to use said content for platform improvement and destination promotion purposes.</p>
+      </div>
+
+      <div class="policy-section" id="en-10">
+        <h2><span class="num" aria-hidden="true">10</span>Governing Law &amp; Jurisdiction</h2>
+        <p>These Terms of Service are governed by the laws of the <strong>Republic of Colombia</strong>. For any dispute arising from the interpretation or execution of these Terms, the parties submit to the jurisdiction of the <strong>Courts and Tribunals of Cartagena de Indias</strong>, waiving any other jurisdiction that may apply.</p>
+        <p>Before initiating any legal action, the User and AMO Cartagena commit to attempting to resolve the dispute amicably, notifying the conflict by email to <strong>hello@amocartagena.com</strong> at least <strong>30 days in advance</strong>.</p>
+        <p>For questions about these Terms or to submit a complaint, contact us at <strong>hello@amocartagena.com</strong>. We respond within a maximum of 10 business days.</p>
+      </div>
+
+      <div class="contact-card">
+        <h3>Questions about our Terms?</h3>
+        <p>We are available to answer any questions about the use of our platform.</p>
+        <a href="mailto:hello@amocartagena.com">hello@amocartagena.com</a>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="page-footer" role="contentinfo">
+    <div class="page-footer-inner">
+      <p>&copy; 2025 AMO Cartagena. Todos los derechos reservados.</p>
+      <ul class="page-footer-links" role="list">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="privacidad.html">Política de Privacidad</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script>
+    function setLang(lang) {
+      document.querySelectorAll('.lang-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.lang-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      document.getElementById('lang-' + lang).classList.add('active');
+      document.getElementById('tab-' + lang).classList.add('active');
+      document.getElementById('tab-' + lang).setAttribute('aria-selected', 'true');
+    }
+  </script>
+</body>
+</html>

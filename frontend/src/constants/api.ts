@@ -1,9 +1,14 @@
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 const getToken = async (): Promise<string | null> => {
-  return AsyncStorage.getItem('session_token');
+  if (Platform.OS === 'web') {
+    return AsyncStorage.getItem('session_token');
+  }
+  return SecureStore.getItemAsync('session_token');
 };
 
 const buildHeaders = async (override?: Record<string, string>): Promise<Record<string, string>> => {

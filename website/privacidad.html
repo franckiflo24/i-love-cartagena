@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Política de Privacidad — AMO Cartagena</title>
+  <meta name="description" content="Política de privacidad de AMO Cartagena. Cumplimiento con la Ley 1581 de 2012 de Colombia." />
+  <meta name="robots" content="noindex, follow" />
+  <link rel="canonical" href="https://amocartagena.co/privacidad.html" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    :root {
+      --bg: #050814;
+      --surface: #0F1423;
+      --primary: #D97706;
+      --primary-hover: #F59E0B;
+      --primary-dim: rgba(217, 119, 6, 0.12);
+      --text: #FAFAF9;
+      --muted: #A8B2C1;
+      --border: rgba(255,255,255,0.08);
+      --border-gold: rgba(217, 119, 6, 0.25);
+      --font-head: 'Outfit', sans-serif;
+      --font-body: 'Manrope', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    /* NAV */
+    nav {
+      background: rgba(5, 8, 20, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: var(--font-head);
+      font-size: 20px;
+      font-weight: 800;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .nav-logo .amo { color: var(--primary); }
+    .nav-logo .heart { color: var(--primary); font-size: 16px; }
+    .nav-logo .city { color: var(--text); }
+
+    .nav-back {
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--text); }
+
+    /* HERO STRIP */
+    .page-hero {
+      background: linear-gradient(135deg, var(--surface) 0%, rgba(15,20,35,0.6) 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 56px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-hero::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      height: 200px;
+      background: radial-gradient(ellipse, rgba(217,119,6,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .page-hero-label {
+      font-family: var(--font-head);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+    .page-hero-title {
+      font-family: var(--font-head);
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .page-hero-meta {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    /* CONTENT */
+    .content-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 56px 24px 80px;
+    }
+
+    .lang-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 40px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 4px;
+      width: fit-content;
+    }
+    .lang-btn {
+      font-family: var(--font-head);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 20px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      transition: background 0.2s, color 0.2s;
+    }
+    .lang-btn.active {
+      background: var(--primary);
+      color: #000;
+    }
+
+    .lang-section { display: none; }
+    .lang-section.active { display: block; }
+
+    .policy-section {
+      margin-bottom: 48px;
+    }
+
+    .policy-section h2 {
+      font-family: var(--font-head);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .policy-section h2 .num {
+      width: 32px;
+      height: 32px;
+      background: var(--primary-dim);
+      border: 1px solid var(--border-gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: var(--primary);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .policy-section p {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      line-height: 1.75;
+    }
+    .policy-section p:last-child { margin-bottom: 0; }
+
+    .policy-section ul {
+      list-style: none;
+      margin: 12px 0 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .policy-section ul li {
+      font-size: 15px;
+      color: var(--muted);
+      padding-left: 24px;
+      position: relative;
+      line-height: 1.65;
+    }
+    .policy-section ul li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .policy-section strong { color: var(--text); font-weight: 600; }
+
+    .highlight-box {
+      background: var(--surface);
+      border: 1px solid var(--border-gold);
+      border-left: 3px solid var(--primary);
+      border-radius: 0 10px 10px 0;
+      padding: 20px 24px;
+      margin: 24px 0;
+    }
+    .highlight-box p {
+      font-size: 14px;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+    .highlight-box p:last-child { margin-bottom: 0; }
+
+    .contact-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-top: 48px;
+      text-align: center;
+    }
+    .contact-card h3 {
+      font-family: var(--font-head);
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .contact-card p {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .contact-card a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-dim);
+      border: 1px solid var(--border-gold);
+      color: var(--primary-hover);
+      font-family: var(--font-head);
+      font-size: 14px;
+      font-weight: 700;
+      padding: 12px 28px;
+      border-radius: 50px;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .contact-card a:hover {
+      background: rgba(217,119,6,0.2);
+      transform: translateY(-1px);
+    }
+
+    /* FOOTER */
+    .page-footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .page-footer-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    @media (min-width: 600px) {
+      .page-footer-inner { flex-direction: row; justify-content: space-between; }
+    }
+    .page-footer p { font-size: 13px; color: var(--muted); }
+    .page-footer-links { display: flex; gap: 20px; list-style: none; }
+    .page-footer-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .page-footer-links a:hover { color: var(--primary-hover); }
+
+    ::selection { background: rgba(217,119,6,0.3); color: var(--text); }
+    :focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+  </style>
+</head>
+<body>
+
+  <nav role="navigation" aria-label="Navigation">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo" aria-label="AMO Cartagena home">
+        <span class="amo">AMO</span>
+        <span class="heart">&#9829;</span>
+        <span class="city">CARTAGENA</span>
+      </a>
+      <a href="index.html" class="nav-back" aria-label="Back to home">
+        &#8592; Back to site
+      </a>
+    </div>
+  </nav>
+
+  <div class="page-hero">
+    <p class="page-hero-label">Legal</p>
+    <h1 class="page-hero-title">Privacy Policy<br>/ Política de Privacidad</h1>
+    <p class="page-hero-meta">Last updated: June 1, 2025 — Ley 1581 de 2012 (Colombia)</p>
+  </div>
+
+  <main class="content-wrap" id="main-content">
+
+    <div class="lang-toggle" role="tablist" aria-label="Select language">
+      <button class="lang-btn active" onclick="setLang('es')" role="tab" aria-selected="true" id="tab-es" aria-controls="lang-es">Español</button>
+      <button class="lang-btn" onclick="setLang('en')" role="tab" aria-selected="false" id="tab-en" aria-controls="lang-en">English</button>
+    </div>
+
+    <!-- ==================== SPANISH ==================== -->
+    <div class="lang-section active" id="lang-es" role="tabpanel" aria-labelledby="tab-es">
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">1</span>Responsable del Tratamiento</h2>
+        <p><strong>AMO Cartagena</strong> (en adelante, "la Empresa") es la responsable del tratamiento de los datos personales recopilados a través de la aplicación móvil y el sitio web <em>AMO Cartagena</em>. Esta Política de Privacidad cumple con lo establecido en la <strong>Ley 1581 de 2012</strong>, el Decreto 1377 de 2013 y las disposiciones de la Superintendencia de Industria y Comercio de Colombia.</p>
+        <div class="highlight-box">
+          <p><strong>Datos de contacto del Responsable:</strong></p>
+          <p>Email: privacidad@amocartagena.app</p>
+          <p>Ubicación: Cartagena de Indias, Bolívar, Colombia</p>
+        </div>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">2</span>Datos Que Recopilamos</h2>
+        <p>Recopilamos únicamente los datos necesarios para prestar nuestros servicios. Los datos personales que podemos tratar incluyen:</p>
+        <ul>
+          <li><strong>Datos de identificación:</strong> nombre, apellido, correo electrónico, número de teléfono.</li>
+          <li><strong>Datos de ubicación:</strong> ubicación geográfica en tiempo real (solo cuando la funcionalidad de mapa está activa y con consentimiento explícito).</li>
+          <li><strong>Preferencias y comportamiento:</strong> categorías de interés, historial de búsquedas dentro de la app, favoritos guardados.</li>
+          <li><strong>Datos de transacciones:</strong> historial de reservas y pagos realizados a través de la plataforma (no almacenamos datos de tarjetas; los pagos son procesados por Wompi).</li>
+          <li><strong>Datos técnicos:</strong> identificador del dispositivo, sistema operativo, versión de la app, dirección IP anonimizada.</li>
+          <li><strong>Comunicaciones:</strong> mensajes enviados al soporte o a través del chat de la app.</li>
+        </ul>
+        <p>No recopilamos datos sensibles según la definición del artículo 5 de la Ley 1581 de 2012 (origen étnico, orientación sexual, datos de salud, creencias religiosas o políticas).</p>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">3</span>Finalidades del Tratamiento</h2>
+        <p>Sus datos personales serán tratados para las siguientes finalidades:</p>
+        <ul>
+          <li>Gestionar el registro y acceso a la cuenta de usuario.</li>
+          <li>Procesar reservas, pagos y emitir confirmaciones.</li>
+          <li>Enviar notificaciones push relacionadas con reservas y eventos de interés (previo consentimiento).</li>
+          <li>Personalizar el contenido y las recomendaciones del Concierge IA.</li>
+          <li>Mostrar el mapa de partners en tiempo real según ubicación.</li>
+          <li>Cumplir con obligaciones legales y regulatorias.</li>
+          <li>Mejorar la plataforma mediante análisis estadístico agregado y anonimizado.</li>
+          <li>Enviar comunicaciones comerciales y promociones (solo con consentimiento expreso y con opción de baja inmediata).</li>
+        </ul>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">4</span>Terceros que Reciben sus Datos</h2>
+        <p>Sus datos pueden ser compartidos con los siguientes terceros, exclusivamente para prestar los servicios contratados:</p>
+        <ul>
+          <li><strong>Wompi (Bancolombia):</strong> pasarela de pago para procesar transacciones de forma segura. Sus datos de pago son procesados directamente por Wompi bajo sus propios estándares PCI-DSS.</li>
+          <li><strong>Expo Push Notifications (Expo Inc.):</strong> servicio de envío de notificaciones push. Solo se comparte el token de dispositivo anónimo, no datos personales identificables.</li>
+          <li><strong>Supabase Inc.:</strong> proveedor de base de datos y autenticación. Los datos se almacenan en servidores con cifrado en reposo y en tránsito.</li>
+          <li><strong>Anthropic PBC:</strong> proveedor del motor de inteligencia artificial para el Concierge IA. Las consultas son anonimizadas antes de su procesamiento.</li>
+        </ul>
+        <p>No vendemos, arrendamos ni comercializamos datos personales a terceros con fines publicitarios. No compartimos datos con autoridades salvo por obligación legal debidamente fundamentada.</p>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">5</span>Base Legal del Tratamiento</h2>
+        <p>El tratamiento de sus datos se fundamenta en:</p>
+        <ul>
+          <li><strong>Ejecución del contrato:</strong> para gestionar su cuenta, reservas y pagos.</li>
+          <li><strong>Consentimiento:</strong> para notificaciones push, comunicaciones comerciales y uso de datos de ubicación.</li>
+          <li><strong>Interés legítimo:</strong> para mejorar la plataforma y garantizar su seguridad.</li>
+          <li><strong>Cumplimiento legal:</strong> para atender obligaciones tributarias o requerimientos de autoridades competentes.</li>
+        </ul>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">6</span>Sus Derechos (Habeas Data)</h2>
+        <p>De conformidad con la Ley 1581 de 2012, usted tiene los siguientes derechos frente a sus datos personales:</p>
+        <ul>
+          <li><strong>Conocer:</strong> solicitar información sobre los datos que poseemos sobre usted.</li>
+          <li><strong>Actualizar:</strong> solicitar la corrección de datos inexactos o incompletos.</li>
+          <li><strong>Rectificar:</strong> pedir que se corrijan datos erróneos.</li>
+          <li><strong>Suprimir:</strong> solicitar la eliminación de sus datos cuando no sean necesarios para las finalidades declaradas.</li>
+          <li><strong>Revocar el consentimiento:</strong> retirar el consentimiento otorgado para tratamientos no obligatorios.</li>
+          <li><strong>Presentar quejas:</strong> ante la Superintendencia de Industria y Comercio (SIC) si considera que sus derechos han sido vulnerados.</li>
+        </ul>
+        <p>Para ejercer cualquiera de estos derechos, escríbanos a <strong>privacidad@amocartagena.app</strong> indicando su nombre, documento de identidad y la solicitud específica. Respondemos en un plazo máximo de <strong>10 días hábiles</strong>.</p>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">7</span>Retención de Datos</h2>
+        <p>Conservamos sus datos personales durante el tiempo necesario para las finalidades descritas y conforme a los plazos legales aplicables:</p>
+        <ul>
+          <li>Datos de cuenta: durante la vigencia de su relación con AMO Cartagena y hasta 2 años después de la cancelación de la cuenta.</li>
+          <li>Datos de transacciones: hasta 5 años por obligaciones tributarias (Estatuto Tributario colombiano).</li>
+          <li>Datos de comunicaciones de soporte: hasta 2 años.</li>
+          <li>Datos de ubicación: no se almacenan de forma permanente; se procesan en tiempo real y se descartan.</li>
+        </ul>
+        <p>Transcurridos estos plazos, los datos son eliminados o anonimizados de forma segura.</p>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">8</span>Seguridad de los Datos</h2>
+        <p>Implementamos medidas técnicas y organizativas apropiadas para proteger sus datos personales contra acceso no autorizado, pérdida, alteración o divulgación:</p>
+        <ul>
+          <li>Cifrado TLS 1.3 en todas las comunicaciones entre la app y nuestros servidores.</li>
+          <li>Cifrado AES-256 en reposo para todos los datos almacenados.</li>
+          <li>Políticas de seguridad a nivel de fila (Row Level Security) en nuestra base de datos.</li>
+          <li>Autenticación multifactor para el acceso al panel de administración.</li>
+          <li>Auditorías de seguridad periódicas.</li>
+        </ul>
+        <p>En caso de una brecha de seguridad que afecte sus derechos, le notificaremos y reportaremos a la Superintendencia de Industria y Comercio dentro de los plazos establecidos.</p>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">9</span>Cookies y Tecnologías Similares</h2>
+        <p>La aplicación móvil no utiliza cookies. El sitio web utiliza únicamente las siguientes tecnologías:</p>
+        <ul>
+          <li><strong>Cookies esenciales:</strong> necesarias para el funcionamiento del sitio (sesión de autenticación). No requieren consentimiento.</li>
+          <li><strong>Google Fonts:</strong> el sitio carga tipografías desde los servidores de Google, lo cual implica que su dirección IP puede ser registrada por Google bajo sus propias políticas de privacidad.</li>
+        </ul>
+        <p>No utilizamos cookies de seguimiento, publicidad comportamental ni analítica de terceros en nuestro sitio web principal.</p>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">10</span>Menores de Edad</h2>
+        <p>Los servicios de AMO Cartagena no están dirigidos a menores de 18 años. No recopilamos intencionalmente datos de menores. Si somos informados de que hemos recopilado datos de un menor sin consentimiento de sus padres o tutores, eliminaremos dicha información de inmediato.</p>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">11</span>Cambios a esta Política</h2>
+        <p>Nos reservamos el derecho de modificar esta Política de Privacidad para adaptarla a cambios legales, tecnológicos o de negocio. Cuando realicemos cambios materiales, le notificaremos a través de la app o por correo electrónico con al menos <strong>30 días de anticipación</strong>. El uso continuado de la plataforma tras la entrada en vigor de los cambios constituirá su aceptación.</p>
+        <p>La versión actualizada siempre estará disponible en <strong>amocartagena.co/privacidad</strong>.</p>
+      </div>
+
+      <div class="contact-card">
+        <h3>¿Preguntas o solicitudes sobre privacidad?</h3>
+        <p>Nuestro equipo está disponible para atender cualquier consulta sobre el tratamiento de sus datos personales.</p>
+        <a href="mailto:privacidad@amocartagena.app">privacidad@amocartagena.app</a>
+      </div>
+
+    </div>
+
+    <!-- ==================== ENGLISH ==================== -->
+    <div class="lang-section" id="lang-en" role="tabpanel" aria-labelledby="tab-en">
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">1</span>Data Controller</h2>
+        <p><strong>AMO Cartagena</strong> (hereinafter, "the Company") is responsible for the processing of personal data collected through the AMO Cartagena mobile application and website. This Privacy Policy complies with Colombian <strong>Law 1581 of 2012</strong> (Habeas Data Law), Decree 1377 of 2013, and the regulations of the Superintendencia de Industria y Comercio (SIC).</p>
+        <div class="highlight-box">
+          <p><strong>Controller contact details:</strong></p>
+          <p>Email: privacidad@amocartagena.app</p>
+          <p>Location: Cartagena de Indias, Bolívar, Colombia</p>
+        </div>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">2</span>Data We Collect</h2>
+        <p>We collect only the data necessary to provide our services. Personal data we may process includes:</p>
+        <ul>
+          <li><strong>Identification data:</strong> name, surname, email address, phone number.</li>
+          <li><strong>Location data:</strong> real-time geographic location (only when the map feature is active and with explicit consent).</li>
+          <li><strong>Preferences and behavior:</strong> categories of interest, in-app search history, saved favorites.</li>
+          <li><strong>Transaction data:</strong> booking and payment history (we do not store card data; payments are processed by Wompi).</li>
+          <li><strong>Technical data:</strong> device identifier, OS, app version, anonymized IP address.</li>
+          <li><strong>Communications:</strong> messages sent to support or through the in-app chat.</li>
+        </ul>
+        <p>We do not collect sensitive data as defined by Article 5 of Law 1581 of 2012 (ethnic origin, sexual orientation, health data, religious or political beliefs).</p>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">3</span>Purposes of Processing</h2>
+        <p>Your personal data will be processed for the following purposes:</p>
+        <ul>
+          <li>Managing user account registration and access.</li>
+          <li>Processing bookings, payments and issuing confirmations.</li>
+          <li>Sending push notifications related to bookings and events of interest (with prior consent).</li>
+          <li>Personalizing content and AI Concierge recommendations.</li>
+          <li>Displaying the real-time partner map based on location.</li>
+          <li>Complying with legal and regulatory obligations.</li>
+          <li>Improving the platform through aggregated, anonymized statistical analysis.</li>
+          <li>Sending commercial communications and promotions (only with express consent and with immediate opt-out option).</li>
+        </ul>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">4</span>Third Parties that Receive Your Data</h2>
+        <p>Your data may be shared with the following third parties, exclusively to provide the contracted services:</p>
+        <ul>
+          <li><strong>Wompi (Bancolombia):</strong> payment gateway for secure transaction processing. Your payment data is processed directly by Wompi under their own PCI-DSS standards.</li>
+          <li><strong>Expo Push Notifications (Expo Inc.):</strong> push notification delivery service. Only the anonymous device token is shared — no personally identifiable data.</li>
+          <li><strong>Supabase Inc.:</strong> database and authentication provider. Data is stored on servers with encryption at rest and in transit.</li>
+          <li><strong>Anthropic PBC:</strong> AI engine provider for the AI Concierge. Queries are anonymized before processing.</li>
+        </ul>
+        <p>We do not sell, rent or commercialize personal data to third parties for advertising purposes. We do not share data with authorities except under a duly grounded legal obligation.</p>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">5</span>Legal Basis for Processing</h2>
+        <p>The processing of your data is based on:</p>
+        <ul>
+          <li><strong>Contract performance:</strong> to manage your account, bookings and payments.</li>
+          <li><strong>Consent:</strong> for push notifications, commercial communications and use of location data.</li>
+          <li><strong>Legitimate interest:</strong> to improve the platform and ensure its security.</li>
+          <li><strong>Legal compliance:</strong> to meet tax obligations or requirements from competent authorities.</li>
+        </ul>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">6</span>Your Rights (Habeas Data)</h2>
+        <p>In accordance with Law 1581 of 2012, you have the following rights regarding your personal data:</p>
+        <ul>
+          <li><strong>Access:</strong> request information about the data we hold about you.</li>
+          <li><strong>Update:</strong> request correction of inaccurate or incomplete data.</li>
+          <li><strong>Rectify:</strong> ask that erroneous data be corrected.</li>
+          <li><strong>Delete:</strong> request deletion of your data when it is no longer necessary for the declared purposes.</li>
+          <li><strong>Revoke consent:</strong> withdraw consent given for non-mandatory processing.</li>
+          <li><strong>File complaints:</strong> with the Superintendencia de Industria y Comercio (SIC) if you believe your rights have been violated.</li>
+        </ul>
+        <p>To exercise any of these rights, write to us at <strong>privacidad@amocartagena.app</strong> stating your name, ID document and the specific request. We respond within a maximum of <strong>10 business days</strong>.</p>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">7</span>Data Retention</h2>
+        <p>We retain your personal data for the time necessary for the described purposes and in accordance with applicable legal deadlines:</p>
+        <ul>
+          <li>Account data: during the life of your relationship with AMO Cartagena and up to 2 years after account cancellation.</li>
+          <li>Transaction data: up to 5 years due to tax obligations (Colombian Tax Statute).</li>
+          <li>Support communication data: up to 2 years.</li>
+          <li>Location data: not stored permanently; processed in real time and discarded.</li>
+        </ul>
+        <p>After these periods, data is securely deleted or anonymized.</p>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">8</span>Data Security</h2>
+        <p>We implement appropriate technical and organizational measures to protect your personal data against unauthorized access, loss, alteration or disclosure:</p>
+        <ul>
+          <li>TLS 1.3 encryption on all communications between the app and our servers.</li>
+          <li>AES-256 encryption at rest for all stored data.</li>
+          <li>Row Level Security policies on our database.</li>
+          <li>Multi-factor authentication for administration panel access.</li>
+          <li>Regular security audits.</li>
+        </ul>
+        <p>In the event of a security breach affecting your rights, we will notify you and report to the SIC within the established timeframes.</p>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">9</span>Cookies and Similar Technologies</h2>
+        <p>The mobile application does not use cookies. The website uses only the following technologies:</p>
+        <ul>
+          <li><strong>Essential cookies:</strong> necessary for site operation (authentication session). No consent required.</li>
+          <li><strong>Google Fonts:</strong> the site loads typefaces from Google's servers, which means your IP address may be logged by Google under their own privacy policies.</li>
+        </ul>
+        <p>We do not use tracking cookies, behavioral advertising or third-party analytics on our main website.</p>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">10</span>Minors</h2>
+        <p>AMO Cartagena's services are not directed at persons under 18 years of age. We do not intentionally collect data from minors. If we are informed that we have collected data from a minor without parental or guardian consent, we will delete that information immediately.</p>
+      </div>
+
+      <div class="policy-section">
+        <h2><span class="num" aria-hidden="true">11</span>Changes to this Policy</h2>
+        <p>We reserve the right to modify this Privacy Policy to adapt to legal, technological or business changes. When we make material changes, we will notify you through the app or by email with at least <strong>30 days advance notice</strong>. Continued use of the platform after the changes take effect constitutes your acceptance.</p>
+        <p>The updated version will always be available at <strong>amocartagena.co/privacidad</strong>.</p>
+      </div>
+
+      <div class="contact-card">
+        <h3>Questions or privacy requests?</h3>
+        <p>Our team is available to address any questions about the processing of your personal data.</p>
+        <a href="mailto:privacidad@amocartagena.app">privacidad@amocartagena.app</a>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer class="page-footer" role="contentinfo">
+    <div class="page-footer-inner">
+      <p>&copy; 2025 AMO Cartagena. Todos los derechos reservados.</p>
+      <ul class="page-footer-links" role="list">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="terminos.html">Términos de Servicio</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script>
+    function setLang(lang) {
+      document.querySelectorAll('.lang-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.lang-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      document.getElementById('lang-' + lang).classList.add('active');
+      document.getElementById('tab-' + lang).classList.add('active');
+      document.getElementById('tab-' + lang).setAttribute('aria-selected', 'true');
+    }
+  </script>
+</body>
+</html>

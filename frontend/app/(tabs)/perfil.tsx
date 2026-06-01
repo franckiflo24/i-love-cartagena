@@ -9,6 +9,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { useLang } from '../../src/context/LanguageContext';
 import { LANG_LABELS, LANG_FLAGS, Lang } from '../../src/i18n/translations';
 import { useFavorites } from '../../src/context/FavoritesContext';
+import { useRewards } from '../../src/context/RewardsContext';
 import { useTr } from '../../src/i18n/autoTr';
 
 const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
@@ -25,6 +26,7 @@ export default function PerfilScreen() {
   const { user, login, logout } = useAuth();
   const { lang, setLang, s } = useLang();
   const { favorites: favIds } = useFavorites();
+  const rewards = useRewards();
   const [favorites, setFavorites] = useState<Event[]>([]);
   const [myWeek, setMyWeek] = useState<Event[]>([]);
   const [activeTab, setActiveTab] = useState<'week' | 'favorites'>('week');
@@ -247,6 +249,16 @@ export default function PerfilScreen() {
           )}
           <Text style={styles.userName}>{user.name}</Text>
           <Text style={styles.userEmail}>{user.email}</Text>
+          {rewards.tier && (
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6, backgroundColor: COLORS.surface, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, borderWidth: 1, borderColor: COLORS.border }}
+              onPress={() => router.push('/rewards' as any)}
+            >
+              <Ionicons name="trophy" size={14} color={COLORS.primary} />
+              <Text style={{ color: COLORS.primary, fontSize: 13, ...FONTS.bold }}>{rewards.tierLabel}</Text>
+              <Text style={{ color: COLORS.textMuted, fontSize: 12 }}>{rewards.points} pts</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* AI Profile Card - generated from favorites by Emergent LLM */}
@@ -317,6 +329,9 @@ export default function PerfilScreen() {
         {/* Quick Actions */}
         <View style={styles.quickActions}>
           {[
+            { icon: 'trophy-outline', label: s('profile_rewards') || 'My Rewards', route: '/rewards' },
+            { icon: 'card-outline', label: s('profile_amo_card') || 'AMO Card', route: '/rewards/card' },
+            { icon: 'star-outline', label: s('profile_my_reviews') || 'My Reviews', route: '/review/new' },
             { icon: 'notifications-outline', label: s('profile_notifications'), route: '/notifications' },
             { icon: 'calendar-outline', label: tr('Mis reservas'), route: '/reservations' },
             { icon: 'ticket-outline', label: 'City Pass', route: '/city-pass' },

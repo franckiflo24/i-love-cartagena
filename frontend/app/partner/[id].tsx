@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, PARTNER_CATEGORY_LABELS, TIER_COLORS, Tier } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
+import ReviewsList from '../../src/components/ReviewsList';
 import { useLang } from '../../src/context/LanguageContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
@@ -259,6 +260,13 @@ export default function PartnerDetail() {
             )}
           </View>
         </View>
+        {/* Reviews Section */}
+        {partner?.partner_id && (
+          <View style={{ paddingHorizontal: SPACING.md, marginTop: SPACING.lg }}>
+            <ReviewsList partnerId={partner.partner_id} />
+          </View>
+        )}
+
         <View style={{ height: 100 }} />
       </ScrollView>
 
