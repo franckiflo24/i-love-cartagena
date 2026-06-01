@@ -3,12 +3,12 @@
 // Using resizeMode="cover" on every Image component that consumes these.
 
 export const IMAGES = {
-  // Hero & Background — aerial/landmark Cartagena shots
-  hero:              'https://images.unsplash.com/photo-1583997052301-0042b33fc598?w=800&q=80',
+  // Hero & Background — VERIFIED Cartagena images
+  hero:              'https://static.prod-images.emergentagent.com/jobs/32dad071-4fb0-440b-90c6-bb16ae39bea1/images/2dee6fa4415e057ea67df10585454bc47023ea1133b28fa1c91e8ee307f1d323.png',
   cartagena_sunset:  'https://images.unsplash.com/photo-1651421479936-e24edc3e3143?w=800&q=80',
-  cartagena_walls:   'https://images.unsplash.com/photo-1558029137-a49d75b36fd8?w=800&q=80',
-  cartagena_streets: 'https://images.unsplash.com/photo-1536086845612-2a0a0502f498?w=800&q=80',
-  cartagena_aerial:  'https://images.unsplash.com/photo-1583997052301-0042b33fc598?w=1200&q=80',
+  cartagena_walls:   'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=800&q=80',
+  cartagena_streets: 'https://images.unsplash.com/photo-1651421479936-e24edc3e3143?w=800&q=80',
+  cartagena_aerial:  'https://static.prod-images.emergentagent.com/jobs/32dad071-4fb0-440b-90c6-bb16ae39bea1/images/2dee6fa4415e057ea67df10585454bc47023ea1133b28fa1c91e8ee307f1d323.png',
 
   // Category hero images
   restaurant:  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80',
@@ -43,11 +43,11 @@ export const IMAGES = {
   members_club:     'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&q=80',
 
   // Fallbacks
-  placeholder:      'https://images.unsplash.com/photo-1583997052301-0042b33fc598?w=600&q=80',
+  placeholder:      'https://images.unsplash.com/photo-1651421479936-e24edc3e3143?w=600&q=80',
   avatar_fallback:  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80',
   event_fallback:   'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=600&q=80',
   promo_fallback:   'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80',
-  season_fallback:  'https://images.unsplash.com/photo-1583997052301-0042b33fc598?w=800&q=80',
+  season_fallback:  'https://static.prod-images.emergentagent.com/jobs/32dad071-4fb0-440b-90c6-bb16ae39bea1/images/2dee6fa4415e057ea67df10585454bc47023ea1133b28fa1c91e8ee307f1d323.png',
 } as const;
 
 // Maps API category strings (as returned by the backend) to image URLs.
