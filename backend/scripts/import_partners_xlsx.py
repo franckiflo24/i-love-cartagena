@@ -43,14 +43,23 @@ def _slug(s):
 def _subcat_slug(s):
     if not s: return ""
     raw = _norm(s).strip()
+    # Map Spanish XLSX labels → frontend English keys (for filter compatibility)
     mapping = {
-        "del mar": "del_mar", "fast food": "fast_food",
-        "vegetarianos/healty": "healthy", "vegetarianos / healty": "healthy",
-        "unas": "unas", "uñas": "unas",
-        "recuperacion": "recuperacion", "peluqueria": "peluqueria",
-        "cafe": "cafe", "gastronomicos": "gastronomico",
-        "italiano": "italiano", "arabe": "arabe", "internacional": "internacional",
-        "colombiano": "colombiano", "mediterraneo": "mediterraneo",
+        # Restaurants
+        "del mar": "seafood",
+        "fast food": "fastfood",
+        "vegetarianos/healty": "vegetarian", "vegetarianos / healty": "vegetarian",
+        "cafe": "cafe", "café": "cafe",
+        "gastronomicos": "gastronomic", "gastronómicos": "gastronomic",
+        "italiano": "italian",
+        "arabe": "asian", "árabe": "asian",   # closest frontend match
+        "internacional": "international",
+        "colombiano": "colombian",
+        "mediterraneo": "mediterranean", "mediterráneo": "mediterranean",
+        # Wellness
+        "unas": "nails", "uñas": "nails",
+        "recuperacion": "recovery", "recuperación": "recovery",
+        "peluqueria": "hair", "peluquería": "hair",
         "spa": "spa", "fitness": "fitness", "sport": "sport", "yoga": "yoga",
     }
     if raw in mapping: return mapping[raw]
