@@ -4669,6 +4669,18 @@ async def startup():
             {"$set": r},
             upsert=True,
         )
+    # ── Venues seed (bars, cafes, clubs, spas, activities) ──
+    try:
+        from venues_seed import VENUES as _VENUES_CATALOG
+    except Exception as _ve:
+        logger.warning(f"venues_seed import failed: {_ve}")
+        _VENUES_CATALOG = []
+    for v in _VENUES_CATALOG:
+        await db.partners.update_one(
+            {"partner_id": v["partner_id"]},
+            {"$set": v},
+            upsert=True,
+        )
     # Re-classify the 4 protected legacy IDs so they appear under the right barrio/cuisine
     LEGACY_NC_OVERRIDES = {
         "ptr_nc_001": {  # Carmen
