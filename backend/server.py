@@ -1184,11 +1184,21 @@ async def admin_list_users(request: Request):
 
 @api_router.post("/auth/logout")
 async def logout(request: Request, response: Response):
+    # Accept token from cookie OR Authorization: Bearer (mirrors get_current_user).
+    # Previously this only read the cookie, so mobile / Bearer-auth clients
+    # could clear their local token while the server-side session remained
+    # valid for 30 days — stolen tokens were unrevocable.
     token = request.cookies.get("session_token")
+    if not token:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:].strip()
+    deleted = 0
     if token:
-        await db.user_sessions.delete_one({"session_token": token})
+        result = await db.user_sessions.delete_one({"session_token": token})
+        deleted = result.deleted_count
     response.delete_cookie("session_token", path="/")
-    return {"ok": True}
+    return {"ok": True, "session_revoked": bool(deleted)}
 
 
 # ── Events ──────────────────────────────────────────────────
@@ -2447,8 +2457,12 @@ PORT_TAX_PER_PERSON = 25000  # COP — impuesto portuario aproximado
 
 
 @api_router.post("/transport/{transport_id}/buy")
-async def buy_transport_ticket(transport_id: str, body: TransportTicketBody):
-    """Create a paid ticket + QR for the port entry. MOCK PAYMENT (Stripe to come)."""
+async def buy_transport_ticket(transport_id: str, body: TransportTicketBody, request: Request):
+    """Create a transport ticket. Defaults to 'pending_payment' — a Wompi/Stripe
+    webhook must flip it to 'paid' before boarding. Opt-in MOCK_PAY=1 env var
+    preserves legacy demo behaviour."""
+    # Auth required — was also a body-user_id trust bypass (Layer 1 finding)
+    user = await get_current_user(request)
     route = await db.transport.find_one({"transport_id": transport_id}, {"_id": 0})
     if not route:
         raise HTTPException(status_code=404, detail="Transport route not found")
@@ -2480,11 +2494,17 @@ async def buy_transport_ticket(transport_id: str, body: TransportTicketBody):
     import json as _json
     qr_data = _json.dumps(qr_data_obj)
 
+    # Payment status — default to pending_payment, not paid. Stripe/Wompi
+    # webhook flips it to 'paid'. MOCK_PAY=1 env var opt-in for demo only.
+    _mock_pay = os.environ.get("MOCK_PAY") == "1"
+    _payment_status = "paid" if _mock_pay else "pending_payment"
+    _payment_method = "mock_card" if _mock_pay else "pending"
+
     ticket = {
         "ticket_id": ticket_id,
-        "user_id": body.user_id,
-        "user_name": body.user_name or "Visitante",
-        "user_email": body.user_email,
+        "user_id": user["user_id"],     # trust the session, ignore body.user_id
+        "user_name": body.user_name or user.get("name") or "Visitante",
+        "user_email": body.user_email or user.get("email"),
         "transport_id": transport_id,
         "route_name": route.get("route_name", ""),
         "route_partner": route.get("partner", ""),
@@ -2497,8 +2517,8 @@ async def buy_transport_ticket(transport_id: str, body: TransportTicketBody):
         "port_tax": port_tax,
         "total": total,
         "currency": "COP",
-        "payment_status": "paid",     # MOCK — replace with Stripe webhook on real impl
-        "payment_method": "mock_card",
+        "payment_status": _payment_status,
+        "payment_method": _payment_method,
         "qr_data": qr_data,
         "qr_url": f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={uuid.uuid4().hex}{ticket_id}",
         "purchased_at": datetime.now(timezone.utc).isoformat(),
@@ -2845,6 +2865,11 @@ async def city_pass_plans():
 
 @api_router.post("/city-pass/activate")
 async def activate_city_pass(request: Request):
+    """Activate a city pass for the authenticated user.
+
+    Defaults to status='pending_payment' and is_active=False until Wompi/Stripe
+    confirms. MOCK_PAY=1 env var preserves legacy free-activation for demos.
+    """
     user = await get_current_user(request)
     body = await request.json()
     plan_id = body.get("plan_id")
@@ -2855,16 +2880,24 @@ async def activate_city_pass(request: Request):
     if existing:
         return {"status": "already_active", "pass": existing}
 
+    _mock_pay = os.environ.get("MOCK_PAY") == "1"
+    now = datetime.now(timezone.utc)
     pass_doc = {
         "pass_id": f"cp_{uuid.uuid4().hex[:12]}",
         "user_id": user["user_id"],
         "plan_id": plan_id,
-        "activated_at": datetime.now(timezone.utc).isoformat(),
-        "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),
-        "is_active": True,
+        "status": "active" if _mock_pay else "pending_payment",
+        "payment_status": "paid" if _mock_pay else "pending",
+        "activated_at": now.isoformat() if _mock_pay else None,
+        "expires_at": (now + timedelta(days=7)).isoformat() if _mock_pay else None,
+        "is_active": bool(_mock_pay),
+        "created_at": now.isoformat(),
     }
     await db.city_passes.insert_one(pass_doc)
-    return {"status": "activated", "pass": {k: v for k, v in pass_doc.items() if k != "_id"}}
+    return {
+        "status": "activated" if _mock_pay else "pending_payment",
+        "pass": {k: v for k, v in pass_doc.items() if k != "_id"},
+    }
 
 
 @api_router.get("/city-pass/mine")
@@ -4123,12 +4156,34 @@ app.include_router(_rewards.router, prefix="/api")
 _reviews.init(db=db, get_current_user=get_current_user, award_points=_rewards.award_points)
 app.include_router(_reviews.router, prefix="/api")
 
+# ── CORS ─────────────────────────────────────────────────────
+# Browsers REJECT the combination of `allow_credentials=True` + `allow_origins=["*"]`
+# (CORS spec disallows credentialed wildcard). The previous config silently broke
+# cookie-auth from mobile Safari (commit edc0e75 tried to patch the symptom).
+#
+# Strategy:
+#   * Production: explicit origin allow-list from CORS_ALLOWED_ORIGINS env var
+#     (comma-separated). Required if credentials are used.
+#   * Dev fallback: regex matching common local + preview hosts.
+_default_dev_origins = [
+    "http://localhost:8081",
+    "http://localhost:3000",
+    "http://localhost:19006",
+    "https://dist-ten-omega-67.vercel.app",
+]
+_env_origins = [o.strip() for o in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",") if o.strip()]
+_allowed_origins = _env_origins or _default_dev_origins
+# Allow Vercel previews + trycloudflare tunnels via regex so we don't have to
+# rebuild every deploy.
+_origin_regex = r"https://([a-z0-9-]+\.)?(vercel\.app|trycloudflare\.com)$"
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_allowed_origins,
+    allow_origin_regex=_origin_regex,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Requested-With", "Accept", "Cookie"],
 )
 
 
