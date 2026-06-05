@@ -40,8 +40,8 @@ export default function OffersScreen() {
     try {
       const data = await api.get('/rewards/offers');
       setOffers(data.offers || []);
-    } catch (e) {
-      console.error('[Offers]', e);
+    } catch {
+      setOffers([]);
     } finally {
       setLoading(false);
     }
@@ -91,7 +91,7 @@ export default function OffersScreen() {
       <Text style={styles.offerTitle}>{item.title}</Text>
       <Text style={styles.offerDesc}>{item.description}</Text>
       {item.value_cop > 0 && (
-        <Text style={styles.valueText}>Value: ${item.value_cop.toLocaleString()} COP</Text>
+        <Text style={styles.valueText}>Value: ${(item.value_cop ?? 0).toLocaleString()} COP</Text>
       )}
       <TouchableOpacity
         style={[styles.redeemButton, !item.eligible && styles.redeemDisabled]}

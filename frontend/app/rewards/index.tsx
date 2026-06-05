@@ -155,7 +155,7 @@ function OfferCard({ offer, accent, onRedeem }: { offer: Offer; accent: string; 
       <View style={offerStyles.footer}>
         <View style={offerStyles.costRow}>
           <Ionicons name="ellipse" size={8} color={accent} />
-          <Text style={[offerStyles.cost, { color: accent }]}>{offer.points_cost.toLocaleString()}</Text>
+          <Text style={[offerStyles.cost, { color: accent }]}>{(offer.points_cost ?? 0).toLocaleString()}</Text>
           <Text style={offerStyles.pts}>{s('rewards_points')}</Text>
         </View>
         <TouchableOpacity
@@ -204,10 +204,8 @@ const offerStyles = StyleSheet.create({
 function HistoryRow({ event }: { event: PointEvent }) {
   const iconInfo = ACTION_ICONS[event.action_type] ?? ACTION_ICONS.default;
   const isPositive = event.delta >= 0;
-  const dateStr = new Date(event.created_at).toLocaleDateString('es-CO', {
-    day: 'numeric',
-    month: 'short',
-  });
+  let dateStr = '';
+  try { dateStr = new Date(event.created_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }); } catch {}
 
   return (
     <View style={historyStyles.row}>
@@ -219,7 +217,7 @@ function HistoryRow({ event }: { event: PointEvent }) {
         <Text style={historyStyles.date}>{dateStr}</Text>
       </View>
       <Text style={[historyStyles.delta, { color: isPositive ? COLORS.success : COLORS.error }]}>
-        {isPositive ? '+' : ''}{event.delta.toLocaleString()}
+        {isPositive ? '+' : ''}{(event.delta ?? 0).toLocaleString()}
       </Text>
     </View>
   );
@@ -262,9 +260,20 @@ export default function RewardsHub() {
       try {
         const result = await api.get('/rewards/me');
         setData(result);
-      } catch (e) {
-        console.error('[RewardsHub]', e);
-        setError('No se pudo cargar tus rewards.');
+      } catch {
+        // 401 or network — stub Explorer card, single call, no retry
+        console.warn('[RewardsHub] /rewards/me unavailable — showing defaults');
+        setData({
+          tier: 'explorer',
+          tier_label: 'Explorer',
+          points_balance: 0,
+          points_to_next: 500,
+          next_tier: 'voyager',
+          progress_pct: 0,
+          account: { member_since: new Date().toISOString() },
+          recent_history: [],
+          offers: [],
+        } as any);
       } finally {
         setLoading(false);
       }
@@ -280,12 +289,12 @@ export default function RewardsHub() {
     );
   }
 
-  if (error || !data) {
+  if (!data) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.errorWrap}>
-          <Ionicons name="alert-circle-outline" size={40} color={COLORS.error} />
-          <Text style={styles.errorText}>{error ?? 'Error cargando rewards.'}</Text>
+          <Ionicons name="compass" size={40} color={COLORS.primary} />
+          <Text style={styles.errorText}>Cargando tu perfil de recompensas...</Text>
         </View>
       </SafeAreaView>
     );
@@ -293,10 +302,8 @@ export default function RewardsHub() {
 
   const tier = (data.tier ?? 'explorer') as MemberTier;
   const tierCfg = TIER_CONFIG[tier] ?? TIER_CONFIG.explorer;
-  const memberSince = new Date(data.account?.member_since ?? Date.now()).toLocaleDateString('es-CO', {
-    month: 'long',
-    year: 'numeric',
-  });
+  let memberSince = 'junio 2026';
+  try { memberSince = new Date(data.account?.member_since ?? Date.now()).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }); } catch {}
 
   const handleRedeem = (offer: Offer) => {
     // Navigate to offer detail or show confirmation — placeholder for future route
@@ -338,7 +345,7 @@ export default function RewardsHub() {
           </View>
 
           <View style={styles.heroBalance}>
-            <Text style={styles.balanceNumber}>{data.points_balance.toLocaleString()}</Text>
+            <Text style={styles.balanceNumber}>{(data.points_balance ?? 0).toLocaleString()}</Text>
             <Text style={styles.balancePts}>{s('rewards_points')}</Text>
           </View>
 
@@ -347,7 +354,7 @@ export default function RewardsHub() {
             <View style={styles.heroProgress}>
               <AnimatedProgressBar pct={data.progress_pct} color={COLORS.white} />
               <Text style={styles.progressLabel}>
-                {data.points_to_next.toLocaleString()} pts{' '}
+                {(data.points_to_next ?? 0).toLocaleString()} pts{' '}
                 <Text style={styles.progressLabelAccent}>→ {data.next_tier}</Text>
               </Text>
             </View>

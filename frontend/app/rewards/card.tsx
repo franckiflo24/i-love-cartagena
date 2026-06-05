@@ -296,8 +296,10 @@ export default function AmoCardScreen() {
       try {
         const result = await api.get('/rewards/me');
         setData(result);
-      } catch (e) {
-        console.error('[AmoCardScreen]', e);
+      } catch {
+        // 401 or network — stub Explorer card, single call, no retry
+        console.warn('[AmoCard] /rewards/me unavailable — showing defaults');
+        setData({ tier: 'explorer', points_balance: 0, account: { member_since: new Date().toISOString() } } as any);
       } finally {
         setLoading(false);
       }
@@ -307,10 +309,10 @@ export default function AmoCardScreen() {
 
   const tier = ((data?.tier) ?? 'explorer') as MemberTier;
   const cfg = TIER_CONFIG[tier] ?? TIER_CONFIG.explorer;
-  const memberSince = new Date(data?.account?.member_since ?? Date.now()).toLocaleDateString('es-CO', {
-    month: 'long',
-    year: 'numeric',
-  });
+  let memberSince = 'junio 2026';
+  try {
+    memberSince = new Date(data?.account?.member_since ?? Date.now()).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' });
+  } catch { /* fallback already set */ }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

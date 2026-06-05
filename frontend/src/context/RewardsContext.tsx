@@ -91,7 +91,7 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
       const data = await api.get('/rewards/me');
       setTier(data.tier ?? 'explorer');
       setTierLabel(data.tier_label ?? 'Explorer');
-      setPoints(data.points ?? 0);
+      setPoints(data.points_balance ?? data.points ?? 0);
       setPointsToNext(data.points_to_next ?? 0);
       setNextTier(data.next_tier ?? '');
       setProgressPct(data.progress_pct ?? 0);
@@ -99,8 +99,9 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
       setRecentHistory(data.recent_history ?? []);
       setOffers(data.offers ?? []);
       setPointsConfig(data.points_config ?? {});
-    } catch (e) {
-      console.error('[RewardsContext]', e);
+    } catch {
+      // 401 or network error — leave defaults (Explorer, 0 pts), don't retry
+      console.warn('[RewardsContext] /rewards/me unavailable — using defaults');
     } finally {
       setIsLoading(false);
     }

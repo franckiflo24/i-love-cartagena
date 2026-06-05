@@ -89,22 +89,20 @@ export default function HomeScreen() {
   const [unreadNotifs, setUnreadNotifs] = useState<number>(0);
   const flatListRef = useRef<FlatList>(null);
 
-  // Poll unread notification count when the home tab is focused (every 30s while open)
+  // Check unread notifications once on focus (no polling — eliminates 401 spam)
   useFocusEffect(
     React.useCallback(() => {
+      if (!user) { setUnreadNotifs(0); return; }
       let cancelled = false;
-      const fetchUnread = async () => {
-        if (!user) { setUnreadNotifs(0); return; }
+      (async () => {
         try {
           const data = await api.get('/notifications');
           if (cancelled) return;
           const unread = Array.isArray(data) ? data.filter((n: any) => !n.is_read).length : 0;
           setUnreadNotifs(unread);
-        } catch { /* ignore */ }
-      };
-      fetchUnread();
-      const interval = setInterval(fetchUnread, 30000);
-      return () => { cancelled = true; clearInterval(interval); };
+        } catch { setUnreadNotifs(0); }
+      })();
+      return () => { cancelled = true; };
     }, [user])
   );
 
@@ -237,7 +235,7 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>{user ? `${s('greeting_hi')}, ${user.name.split(' ')[0]}` : s('greeting_welcome')}</Text>
+            <Text style={styles.greeting}>{user ? `${s('greeting_hi')}, ${(user.name || '').split(' ')[0] || ''}` : s('greeting_welcome')}</Text>
             <Text style={styles.headerTitle}>Amo Cartagena ❤️</Text>
           </View>
           <TouchableOpacity testID="notifications-btn" onPress={() => router.push('/notifications')} style={styles.notifBtn}>
@@ -264,16 +262,24 @@ export default function HomeScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.aiInlineBtn}
-            onPress={() => {
-              const { DeviceEventEmitter } = require('react-native');
-              DeviceEventEmitter.emit('openAssistant');
-            }}
+            onPress={() => router.push('/concierge' as any)}
             activeOpacity={0.85}
           >
             <Ionicons name="sparkles" size={15} color={COLORS.white} />
             <Text style={styles.aiInlineBtnText}>Amo IA</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Hero Image — Cartagena first impression */}
+        <TouchableOpacity style={styles.heroBanner} activeOpacity={0.95} onPress={() => router.push('/(tabs)/explore' as any)}>
+          <Image source={{ uri: IMAGES.hero }} style={styles.heroBannerImage} />
+          <View style={styles.heroBannerOverlay} />
+          <View style={styles.heroBannerContent}>
+            <Text style={styles.heroBannerLabel}>CARTAGENA DE INDIAS</Text>
+            <Text style={styles.heroBannerTitle}>418 lugares para descubrir</Text>
+            <Text style={styles.heroBannerSub}>Restaurantes · Bares · Beach Clubs · Spas · Nightlife</Text>
+          </View>
+        </TouchableOpacity>
 
         {/* Sponsor Banner */}
         {sponsors.length > 0 && (
@@ -324,6 +330,7 @@ export default function HomeScreen() {
               { icon: 'heart',          label: s('home_favorites'),  subtitle: s('home_my_list'),     color: '#EF4444', route: '/favorites' },
               { icon: 'boat',           label: s('home_transport'),  subtitle: s('home_boats'),       color: '#06B6D4', route: '/transport' },
               { icon: 'trail-sign',     label: s('home_routes'),     subtitle: 'IA',                  color: '#10B981', route: '/itineraries' },
+              { icon: 'shield',         label: 'Emergencias',        subtitle: 'SOS',                 color: '#DC2626', route: '/ayuda' },
             ].map((item) => (
               <TouchableOpacity
                 key={item.label}
@@ -340,6 +347,48 @@ export default function HomeScreen() {
                 </View>
                 <Text style={[styles.quickLabelHero, { color: item.color }]}>{item.label}</Text>
                 <Text style={styles.quickSubtitleHero}>{item.subtitle}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Explore by Category — tappable photo cards */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleRow}>
+              <Ionicons name="compass" size={18} color={COLORS.primary} />
+              <Text style={styles.sectionTitle}>Explorar</Text>
+            </View>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/explore' as any)}>
+              <Text style={styles.seeAll}>Ver todo</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+            {[
+              { uri: IMAGES.cartagena_aerial, label: 'Restaurantes', sub: '112+', cat: 'restaurant', icon: 'restaurant' },
+              { uri: IMAGES.cartagena_streets, label: 'Bares', sub: '46+', cat: 'bar', icon: 'wine' },
+              { uri: IMAGES.umbrellas, label: 'Nightlife', sub: '29 clubs', cat: 'club', icon: 'musical-notes' },
+              { uri: IMAGES.fountain_market, label: 'Cafés', sub: '14 spots', cat: 'cafe', icon: 'cafe' },
+              { uri: IMAGES.flag_rooftops, label: 'Spas', sub: '42+', cat: 'spa', icon: 'leaf' },
+              { uri: IMAGES.wax_palms, label: 'Experiencias', sub: '81 tours', cat: 'activity', icon: 'compass' },
+              { uri: IMAGES.hero, label: 'Hoteles', sub: '95+', cat: 'hotel', icon: 'bed' },
+              { uri: IMAGES.aerial, label: 'Beach Clubs', sub: '6 islas', cat: 'beach_club', icon: 'umbrella' },
+            ].map((item, i) => (
+              <TouchableOpacity
+                key={i}
+                style={styles.photoCard}
+                activeOpacity={0.85}
+                onPress={() => router.push({ pathname: '/(tabs)/explore' as any, params: { category: item.cat } })}
+              >
+                <Image source={{ uri: item.uri }} style={styles.photoImage} resizeMode="cover" />
+                <View style={styles.photoOverlay} />
+                <View style={styles.photoContent}>
+                  <View style={styles.photoCatIcon}>
+                    <Ionicons name={item.icon as any} size={16} color={COLORS.white} />
+                  </View>
+                  <Text style={styles.photoLabel}>{item.label}</Text>
+                  <Text style={styles.photoSub}>{item.sub}</Text>
+                </View>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -656,6 +705,13 @@ const styles = StyleSheet.create({
   sponsorTierText: { fontSize: 11, ...FONTS.bold, letterSpacing: 0.5 },
   sponsorDots: { flexDirection: 'row', justifyContent: 'center', gap: 5, marginTop: SPACING.sm },
   sponsorDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.border },
+  heroBanner: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, borderRadius: RADIUS.xl, overflow: 'hidden', height: 180, position: 'relative' },
+  heroBannerImage: { width: '100%', height: '100%', position: 'absolute' },
+  heroBannerOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(10,10,15,0.5)' },
+  heroBannerContent: { flex: 1, justifyContent: 'flex-end', padding: SPACING.lg },
+  heroBannerLabel: { fontSize: 10, color: COLORS.primary, ...FONTS.bold, letterSpacing: 3 },
+  heroBannerTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, marginTop: 4 },
+  heroBannerSub: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium, marginTop: 4 },
   heroCard: { borderRadius: RADIUS.xl, overflow: 'hidden', height: 220 },
   heroImage: { width: '100%', height: '100%', position: 'absolute' },
   heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5,8,20,0.5)' },
@@ -826,6 +882,13 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
   },
   emptySlotText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
+  photoCard: { width: 140, height: 180, borderRadius: RADIUS.xl, overflow: 'hidden', position: 'relative', borderWidth: 1, borderColor: COLORS.border },
+  photoImage: { width: '100%', height: '100%', position: 'absolute' },
+  photoOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(10,10,15,0.5)' },
+  photoContent: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: SPACING.md, gap: 4 },
+  photoCatIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(212,175,55,0.3)', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  photoLabel: { fontSize: 15, color: COLORS.white, ...FONTS.bold },
+  photoSub: { fontSize: 11, color: 'rgba(255,255,255,0.6)', ...FONTS.medium },
   peCard: {
     flexDirection: 'row',
     backgroundColor: COLORS.surface,

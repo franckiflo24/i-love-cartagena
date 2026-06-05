@@ -1480,6 +1480,25 @@ async def list_transport():
     return await db.transport.find({}, {"_id": 0}).to_list(50)
 
 
+# ── Emergency Contacts ──────────────────────────────────────
+@api_router.get("/emergency-contacts")
+async def list_emergency_contacts():
+    return await db.emergency_contacts.find({}, {"_id": 0}).to_list(50)
+
+
+# ── Concierge (Four-Agent Claude Chat) ──────────────────────
+@api_router.post("/concierge/chat")
+async def concierge_chat_endpoint(request: Request):
+    body = await request.json()
+    agent = body.get("agent", "luna")
+    messages = body.get("messages", [])
+    if not messages:
+        raise HTTPException(400, "messages required")
+    from concierge import concierge_chat
+    result = await concierge_chat(agent, messages, db)
+    return result
+
+
 # ── Notifications ───────────────────────────────────────────
 @api_router.get("/notifications")
 async def list_notifications(request: Request):
@@ -3806,11 +3825,17 @@ async def seed_database():
 
     await db.seasons.insert_many(seasons)
     await db.events.insert_many(events)
-    await db.venues.insert_many(venues)
-    await db.partners.insert_many(partners)
-    await db.itineraries.insert_many(itineraries)
-    await db.transport.insert_many(transport_data)
-    await db.notifications.insert_many(notifications)
+    await db.venues.delete_many({}); await db.venues.insert_many(venues)
+    # Upsert partners to avoid duplicates on restart
+    for p in partners:
+        await db.partners.update_one(
+            {"partner_id": p["partner_id"]},
+            {"$setOnInsert": p},
+            upsert=True,
+        )
+    await db.itineraries.delete_many({}); await db.itineraries.insert_many(itineraries)
+    await db.transport.delete_many({}); await db.transport.insert_many(transport_data)
+    await db.notifications.delete_many({}); await db.notifications.insert_many(notifications)
 
     # Create indexes for analytics
     await db.analytics.create_index("event_type")
@@ -4007,6 +4032,11 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
+    # On Vercel serverless: skip ALL seeding, migrations, and background tasks.
+    # Data is already in Atlas. Indexes were created by local runs.
+    if os.environ.get("VERCEL"):
+        logger.info("Vercel serverless — skipping startup seed/migrations")
+        return
     await seed_database()
     # Ensure indexes for the reservations module
     await _reservations.ensure_indexes()
@@ -4021,15 +4051,18 @@ async def startup():
     await db.reviews.create_index([("user_id", 1), ("partner_id", 1)], unique=True)
     await db.review_reports.create_index([("review_id", 1), ("reporter_user_id", 1)], unique=True)
     # ── Start the favorite-event reminder scheduler (24h push reminders) ──
-    try:
-        from reminders import start_reminder_scheduler  # type: ignore
-        start_reminder_scheduler(db)
-    except Exception as exc:
-        logger.warning(f"Could not start reminder scheduler: {exc}")
-    # Seed analytics demo data separately if not yet seeded
-    analytics_count = await db.analytics_demographics.count_documents({})
-    if analytics_count == 0:
-        await seed_analytics_demo_data()
+    # Skip on Vercel — no persistent process for background tasks
+    if not os.environ.get("VERCEL"):
+        try:
+            from reminders import start_reminder_scheduler  # type: ignore
+            start_reminder_scheduler(db)
+        except Exception as exc:
+            logger.warning(f"Could not start reminder scheduler: {exc}")
+    # Seed analytics demo data separately if not yet seeded (skip on Vercel)
+    if not os.environ.get("VERCEL"):
+        analytics_count = await db.analytics_demographics.count_documents({})
+        if analytics_count == 0:
+            await seed_analytics_demo_data()
     # Seed Ruta Musical if missing
     music_itn = await db.itineraries.find_one({"itinerary_id": "itn_004"})
     if not music_itn:
@@ -4679,6 +4712,18 @@ async def startup():
         await db.partners.update_one(
             {"partner_id": v["partner_id"]},
             {"$set": v},
+            upsert=True,
+        )
+    # ── Venues seed v2 (comprehensive web-researched additions) ──
+    try:
+        from venues_seed_v2 import VENUES_V2 as _VENUES_V2
+    except Exception as _v2e:
+        logger.warning(f"venues_seed_v2 import failed: {_v2e}")
+        _VENUES_V2 = []
+    for v2 in _VENUES_V2:
+        await db.partners.update_one(
+            {"partner_id": v2["partner_id"]},
+            {"$set": v2},
             upsert=True,
         )
     # Re-classify the 4 protected legacy IDs so they appear under the right barrio/cuisine
