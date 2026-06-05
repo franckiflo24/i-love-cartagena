@@ -2,7 +2,7 @@ from fastapi import FastAPI, APIRouter, HTTPException, Request, Response
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-import os, logging, uuid, httpx
+import os, logging, uuid, httpx, hmac
 from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
@@ -86,14 +86,38 @@ class DemoLoginBody(BaseModel):
     name: str = ""
     phone: str = ""
     provider: str = "email_local"
+    signup_code: str = ""  # required in prod (DEMO_SIGNUP_CODE env var)
+
+# Providers this endpoint is allowed to issue sessions for.
+# Real-auth providers (google, apple, password) are NEVER touched here —
+# this is the account-takeover guard.
+DEMO_LOGIN_ALLOWED_PROVIDERS = {"email_local", "whatsapp_local", "guest"}
 
 @api_router.post("/auth/demo-login")
 async def demo_login(body: DemoLoginBody, response: Response):
     """Create a real user + session for demo/local signups.
-    Returns a valid session_token the frontend can store and send."""
+    Returns a valid session_token the frontend can store and send.
+
+    Security model:
+      * If DEMO_SIGNUP_CODE env var is set, the client must pass a matching
+        signup_code. Dev environments leave it unset (open).
+      * Will refuse to log into an existing account whose provider is a
+        real-auth provider (google/apple/password) — prevents takeover.
+      * provider must be one of DEMO_LOGIN_ALLOWED_PROVIDERS.
+    """
     email = body.email.strip().lower()
     if not email:
         raise HTTPException(400, "email required")
+
+    # Provider whitelist
+    if body.provider not in DEMO_LOGIN_ALLOWED_PROVIDERS:
+        raise HTTPException(400, f"provider must be one of {sorted(DEMO_LOGIN_ALLOWED_PROVIDERS)}")
+
+    # Signup code check (skip if env var not set — dev convenience)
+    expected_code = os.environ.get("DEMO_SIGNUP_CODE", "").strip()
+    if expected_code:
+        if not body.signup_code or not hmac.compare_digest(body.signup_code, expected_code):
+            raise HTTPException(403, "Invalid signup code")
 
     user = await db.users.find_one({"email": email}, {"_id": 0})
     if not user:
@@ -112,6 +136,13 @@ async def demo_login(body: DemoLoginBody, response: Response):
         await db.users.insert_one(user)
         user = await db.users.find_one({"email": email}, {"_id": 0})
     else:
+        # Block takeover of accounts created via real-auth providers.
+        existing_provider = user.get("provider", "")
+        if existing_provider and existing_provider not in DEMO_LOGIN_ALLOWED_PROVIDERS:
+            raise HTTPException(
+                403,
+                "This account uses a different sign-in method. Please sign in with that provider.",
+            )
         # Update name if provided
         if body.name and body.name != user.get("name"):
             await db.users.update_one({"email": email}, {"$set": {"name": body.name}})
@@ -160,6 +191,15 @@ async def get_current_user(request: Request) -> dict:
     user = await db.users.find_one({"user_id": session["user_id"]}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+async def require_admin(request: Request) -> dict:
+    """Require an authenticated user with is_admin=True.
+    Use on every /admin/* route. Returns the admin user dict."""
+    user = await get_current_user(request)
+    if not user.get("is_admin"):
+        raise HTTPException(status_code=403, detail="Admin only")
     return user
 
 
@@ -971,8 +1011,9 @@ async def admin_export_payments_csv(request: Request):
 
 # ── Admin Moderation Endpoints ──────────────────────────────
 @api_router.get("/admin/moderation/notifications")
-async def admin_notifications(unread_only: bool = False):
+async def admin_notifications(request: Request, unread_only: bool = False):
     """List moderation notifications for admin."""
+    await require_admin(request)
     query: dict = {} if not unread_only else {"is_resolved": False}
     notifs = await db.admin_notifications.find(query, {"_id": 0}).sort("created_at", -1).to_list(200)
     unread_count = await db.admin_notifications.count_documents({"is_resolved": False})
@@ -980,8 +1021,9 @@ async def admin_notifications(unread_only: bool = False):
 
 
 @api_router.get("/admin/moderation/pending")
-async def admin_pending_events():
+async def admin_pending_events(request: Request):
     """List events that need moderator review."""
+    await require_admin(request)
     events = await db.partner_events.find(
         {"moderation_status": {"$in": ["pending", "rejected"]}},
         {"_id": 0}
@@ -1002,6 +1044,7 @@ async def admin_pending_events():
 
 @api_router.post("/admin/moderation/{event_id}/approve")
 async def admin_approve_event(event_id: str, request: Request):
+    await require_admin(request)
     body = {}
     try:
         body = await request.json()
@@ -1026,6 +1069,7 @@ async def admin_approve_event(event_id: str, request: Request):
 
 @api_router.post("/admin/moderation/{event_id}/reject")
 async def admin_reject_event(event_id: str, request: Request):
+    await require_admin(request)
     body = {}
     try:
         body = await request.json()
@@ -1048,7 +1092,8 @@ async def admin_reject_event(event_id: str, request: Request):
 
 
 @api_router.get("/admin/moderation/stats")
-async def admin_moderation_stats():
+async def admin_moderation_stats(request: Request):
+    await require_admin(request)
     pending = await db.partner_events.count_documents({"moderation_status": "pending"})
     approved = await db.partner_events.count_documents({"moderation_status": "approved"})
     rejected = await db.partner_events.count_documents({"moderation_status": "rejected"})
@@ -1106,6 +1151,7 @@ async def get_profile(request: Request):
 @api_router.get("/admin/users")
 async def admin_list_users(request: Request):
     """List all registered users with full profile data - admin only."""
+    await require_admin(request)
     users = await db.users.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
     total = len(users)
     countries = {}
@@ -1512,9 +1558,10 @@ async def list_itineraries(request: Request, category: Optional[str] = None):
 
 @api_router.post("/itineraries/regenerate")
 async def regenerate_itinerary(request: Request):
+    # Auth required — itinerary regeneration calls the LLM
+    user = await get_current_user(request)
     body = await request.json() if await request.body() else {}
     category = (body.get("category") or "lifestyle").lower()
-    user = await _get_optional_user(request)
     return await _generate_daily_itinerary(user, category, force=True)
 
 
@@ -1544,6 +1591,8 @@ async def list_emergency_contacts():
 # ── Concierge (Four-Agent Claude Chat) ──────────────────────
 @api_router.post("/concierge/chat")
 async def concierge_chat_endpoint(request: Request):
+    # Auth required — prevents anonymous abuse of the Anthropic key
+    await get_current_user(request)
     body = await request.json()
     agent = body.get("agent", "luna")
     messages = body.get("messages", [])
@@ -2091,17 +2140,13 @@ async def global_search(q: str = "", request: Request = None):
             pass
         return {**matches, "ai": ai_payload}
 
-    # Resolve user (best-effort) for analytics + agent personalization
-    user_obj = None
-    user_id = None
-    try:
-        if request is not None:
-            u = await get_current_user(request)
-            if u:
-                user_obj = u
-                user_id = u.get("user_id")
-    except Exception:
-        pass
+    # Resolve user — AUTH REQUIRED before invoking the LLM-backed agent.
+    # The fast-path above (direct partner match) already returned for unauth users.
+    # Beyond this point we will call Anthropic, which costs real money per call.
+    if request is None:
+        raise HTTPException(status_code=401, detail="Authentication required for AI search")
+    user_obj = await get_current_user(request)  # raises 401 on failure
+    user_id = user_obj.get("user_id")
 
     # ── FULL CONCIERGE AGENT ──
     # Run the Amo agent so the search bar feels like a real concierge:
@@ -2889,10 +2934,11 @@ async def port_tax_checkout(request: Request):
     """
     Create a port-tax ticket purchase.
     Body: { qty: int, travel_date: 'YYYY-MM-DD', passengers?: [name,...] }
-    NOTE: payment integration (Stripe/Wompi) is intentionally left to a follow-up.
-    For now we mark the ticket as 'paid' immediately so the QR can be generated and
-    the full UX validated. When the real payment provider is wired in, the
-    'status' should be set to 'pending' until the webhook confirms payment.
+
+    Tickets are created in 'pending_payment' status. A separate Wompi webhook
+    must mark them as 'paid' before they're valid for boarding. To preserve the
+    legacy demo behaviour of auto-paying (for staging/demo only), set
+    PORT_TAX_AUTO_PAY=1 — never enable this in production.
     """
     user = await get_current_user(request)
     body = await request.json()
@@ -2922,6 +2968,10 @@ async def port_tax_checkout(request: Request):
         "issued_at": datetime.now(timezone.utc).isoformat(),
         "app": "amo_cartagena",
     }
+    # Default to pending_payment. Auto-pay is opt-in via env var for demo only.
+    auto_pay = os.environ.get("PORT_TAX_AUTO_PAY") == "1"
+    initial_status = "paid" if auto_pay else "pending_payment"
+    now_iso = datetime.now(timezone.utc).isoformat()
     ticket = {
         "ticket_id": ticket_id,
         "user_id": user["user_id"],
@@ -2931,11 +2981,11 @@ async def port_tax_checkout(request: Request):
         "total_amount": total,
         "currency": cfg["currency"],
         "travel_date": travel_date,
-        "status": "paid",  # TODO: set 'pending' once payment provider is wired
+        "status": initial_status,
         "qr_payload": qr_payload,
-        "paid_at": datetime.now(timezone.utc).isoformat(),
+        "paid_at": now_iso if auto_pay else None,
         "used_at": None,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": now_iso,
     }
     await db.port_tax_tickets.insert_one(dict(ticket))
     ticket.pop("_id", None)
@@ -3601,10 +3651,15 @@ async def _get_optional_user(request: Request) -> Optional[dict]:
 
 @api_router.post("/agent/chat")
 async def agent_chat(request: Request):
-    """Send a message to the AI concierge. Anonymous users are allowed (no checkout actions).
+    """Send a message to the AI concierge. Authentication required —
+    anonymous calls would let anyone drain the Anthropic API key.
     Body: { message: str, session_id?: str, screen_context?: str }
     Returns: { session_id, assistant: {message, language, actions, suggestions}, messages_count }
     """
+    # Auth required to prevent LLM cost abuse
+    user = await get_current_user(request)
+    user_id = user["user_id"]
+
     body = await request.json()
     user_text = (body.get("message") or "").strip()
     session_id = body.get("session_id")
@@ -3613,9 +3668,6 @@ async def agent_chat(request: Request):
         raise HTTPException(status_code=400, detail="message required")
     if len(user_text) > 1000:
         raise HTTPException(status_code=400, detail="message too long (max 1000 chars)")
-
-    user = await _get_optional_user(request)
-    user_id = (user or {}).get("user_id")
 
     session = await _ai_agent.get_or_create_session(db, user_id, session_id)
     history = session.get("messages", [])
@@ -3697,10 +3749,29 @@ async def agent_delete_session(session_id: str, request: Request):
 
 # ── Seed Data ───────────────────────────────────────────────
 async def seed_database():
-    # Always drop and re-seed seasons, events, and partner_events so dates stay current
-    await db.seasons.delete_many({})
-    await db.events.delete_many({})
-    await db.partner_events.delete_many({})
+    # SAFETY: never wipe production data on startup. Seeding only runs when
+    # collections are empty (fresh DB) or when SEED_RESET=1 is set explicitly.
+    # Previous behavior (unconditional delete_many) would erase live data on
+    # every Render restart.
+    force_reset = os.environ.get("SEED_RESET") == "1"
+    seasons_count = await db.seasons.count_documents({})
+    events_count = await db.events.count_documents({})
+    partner_events_count = await db.partner_events.count_documents({})
+    already_seeded = (seasons_count + events_count + partner_events_count) > 0
+
+    if already_seeded and not force_reset:
+        logger.info(
+            f"Seed skipped — DB already populated (seasons={seasons_count}, "
+            f"events={events_count}, partner_events={partner_events_count}). "
+            "Set SEED_RESET=1 to force re-seed."
+        )
+        return
+
+    if force_reset:
+        logger.warning("SEED_RESET=1 — wiping and re-seeding seasons/events/partner_events")
+        await db.seasons.delete_many({})
+        await db.events.delete_many({})
+        await db.partner_events.delete_many({})
 
     logger.info("Seeding database...")
 
@@ -4227,8 +4298,15 @@ async def startup():
     logger.info("Partner image migration applied — 17 partners backfilled")
 
     # ── Seed: Partner Events (eventos publicados por partners) ──
-    await db.partner_events.delete_many({})
-    if True:
+    # Gated: only wipe + re-seed if collection is empty OR SEED_RESET=1.
+    # Prevents data loss on every Render restart.
+    pe_count = await db.partner_events.count_documents({})
+    if pe_count > 0 and os.environ.get("SEED_RESET") != "1":
+        logger.info(f"Partner events already seeded ({pe_count}) — skipping re-seed")
+    else:
+        if pe_count > 0:
+            logger.warning("SEED_RESET=1 — wiping partner_events")
+            await db.partner_events.delete_many({})
         logger.info("Seeding partner events...")
         today = datetime.now(timezone.utc).date()
         def d(offset: int) -> str:
