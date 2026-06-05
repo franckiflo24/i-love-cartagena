@@ -7,7 +7,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
+import { api } from '../src/constants/api';
 import { Ionicons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLang } from '../src/context/LanguageContext';
 import { Lang, LANG_FLAGS } from '../src/i18n/translations';
@@ -51,6 +53,14 @@ export default function LoginScreen() {
     });
   }, []);
 
+  const storeSessionToken = async (token: string) => {
+    if (Platform.OS === 'web') {
+      await AsyncStorage.setItem('session_token', token);
+    } else {
+      await SecureStore.setItemAsync('session_token', token);
+    }
+  };
+
   const handleEmailSignup = async () => {
     const email = signupEmail.trim();
     const name = signupName.trim() || email.split('@')[0];
@@ -59,15 +69,20 @@ export default function LoginScreen() {
       return;
     }
     setSavingSignup(true);
-    const localUser = {
-      user_id: `local_${Date.now()}`,
-      email,
-      name,
-      picture: '',
-      provider: 'email_local',
-    };
-    await AsyncStorage.setItem('user_data', JSON.stringify(localUser));
-    await AsyncStorage.setItem('local_user_email', email);
+    try {
+      // Call backend to create a REAL user + session token
+      const res = await api.post('/auth/demo-login', { email, name, provider: 'email_local' });
+      if (res.session_token) {
+        await storeSessionToken(res.session_token);
+      }
+      if (res.user) {
+        await AsyncStorage.setItem('user_data', JSON.stringify(res.user));
+      }
+    } catch {
+      // Fallback to local-only if backend unreachable
+      const localUser = { user_id: `local_${Date.now()}`, email, name, picture: '', provider: 'email_local' };
+      await AsyncStorage.setItem('user_data', JSON.stringify(localUser));
+    }
     setSavingSignup(false);
     setShowSignup(false);
     router.replace('/(tabs)');
@@ -78,19 +93,24 @@ export default function LoginScreen() {
     const phone = phoneRaw.startsWith('+') ? phoneRaw : `+${phoneRaw}`;
     const name = signupName.trim() || `Usuario ${phone.slice(-4)}`;
     if (!phone || phone.length < 8) {
-      Alert.alert('Teléfono inválido', 'Por favor introduce un número de WhatsApp válido (incluye código de país).');
+      Alert.alert('Teléfono inválido', 'Por favor introduce un número de WhatsApp válido.');
       return;
     }
     setSavingSignup(true);
-    const localUser = {
-      user_id: `wa_${Date.now()}`,
-      email: '',
-      name,
-      phone,
-      picture: '',
-      provider: 'whatsapp_local',
-    };
-    await AsyncStorage.setItem('user_data', JSON.stringify(localUser));
+    try {
+      // Use phone as a pseudo-email for the backend session
+      const pseudoEmail = `${phone.replace(/\+/g, '')}@wa.amo.local`;
+      const res = await api.post('/auth/demo-login', { email: pseudoEmail, name, phone, provider: 'whatsapp_local' });
+      if (res.session_token) {
+        await storeSessionToken(res.session_token);
+      }
+      if (res.user) {
+        await AsyncStorage.setItem('user_data', JSON.stringify(res.user));
+      }
+    } catch {
+      const localUser = { user_id: `wa_${Date.now()}`, email: '', name, phone, picture: '', provider: 'whatsapp_local' };
+      await AsyncStorage.setItem('user_data', JSON.stringify(localUser));
+    }
     setSavingSignup(false);
     setShowWhatsapp(false);
     router.replace('/(tabs)');
@@ -107,7 +127,7 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Image
-        source={{ uri: 'https://static.prod-images.emergentagent.com/jobs/32dad071-4fb0-440b-90c6-bb16ae39bea1/images/2dee6fa4415e057ea67df10585454bc47023ea1133b28fa1c91e8ee307f1d323.png' }}
+        source={{ uri: 'https://website-five-sigma-29.vercel.app/images/login-cathedral.jpg' }}
         style={styles.heroImage}
       />
       <View style={styles.overlay} />

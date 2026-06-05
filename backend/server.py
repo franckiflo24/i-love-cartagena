@@ -81,6 +81,61 @@ async def exchange_session(body: SessionExchange, response: Response):
     return {"user": {k: v for k, v in user.items() if k != "_id"}, "session_token": session_token}
 
 
+class DemoLoginBody(BaseModel):
+    email: str
+    name: str = ""
+    phone: str = ""
+    provider: str = "email_local"
+
+@api_router.post("/auth/demo-login")
+async def demo_login(body: DemoLoginBody, response: Response):
+    """Create a real user + session for demo/local signups.
+    Returns a valid session_token the frontend can store and send."""
+    email = body.email.strip().lower()
+    if not email:
+        raise HTTPException(400, "email required")
+
+    user = await db.users.find_one({"email": email}, {"_id": 0})
+    if not user:
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        user = {
+            "user_id": user_id,
+            "email": email,
+            "name": body.name or email.split("@")[0],
+            "phone": body.phone,
+            "picture": "",
+            "provider": body.provider,
+            "favorites": [],
+            "my_week": [],
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.users.insert_one(user)
+        user = await db.users.find_one({"email": email}, {"_id": 0})
+    else:
+        # Update name if provided
+        if body.name and body.name != user.get("name"):
+            await db.users.update_one({"email": email}, {"$set": {"name": body.name}})
+            user["name"] = body.name
+
+    session_token = f"st_{uuid.uuid4().hex}"
+    await db.user_sessions.insert_one({
+        "session_token": session_token,
+        "user_id": user["user_id"],
+        "expires_at": datetime.now(timezone.utc) + timedelta(days=30),
+        "created_at": datetime.now(timezone.utc),
+    })
+
+    response.set_cookie(
+        key="session_token", value=session_token,
+        httponly=True, secure=True, samesite="none",
+        path="/", max_age=30 * 24 * 3600,
+    )
+    return {
+        "user": {k: v for k, v in user.items() if k != "_id"},
+        "session_token": session_token,
+    }
+
+
 async def get_current_user(request: Request) -> dict:
     token = request.cookies.get("session_token")
     if not token:
@@ -1646,32 +1701,8 @@ async def deregister_business_push_token(request: Request):
 
 
 # ── Favorites ───────────────────────────────────────────────
-@api_router.post("/favorites/toggle")
-async def toggle_favorite(request: Request):
-    user = await get_current_user(request)
-    body = await request.json()
-    event_id = body.get("event_id")
-    if not event_id:
-        raise HTTPException(status_code=400, detail="event_id required")
-    favs = user.get("favorites", [])
-    if event_id in favs:
-        favs.remove(event_id)
-        action = "removed"
-    else:
-        favs.append(event_id)
-        action = "added"
-    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"favorites": favs}})
-    return {"action": action, "favorites": favs}
-
-
-@api_router.get("/favorites")
-async def list_favorites(request: Request):
-    user = await get_current_user(request)
-    favs = user.get("favorites", [])
-    if not favs:
-        return []
-    events = await db.events.find({"event_id": {"$in": favs}}, {"_id": 0}).to_list(100)
-    return events
+# Legacy favorites/toggle and list removed — superseded by the richer
+# version at line ~1843 that uses item_id/item_type and the favorites collection.
 
 
 # ── My Week ─────────────────────────────────────────────────

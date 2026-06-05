@@ -164,13 +164,17 @@ export default function ReservationNew() {
         notes: notes.trim(),
       };
       if (eventId) body.event_id = eventId;
+
+      // Real API call — no swallowing errors
       const res = await api.post('/reservations', body);
-      // Show animated green success overlay
+
+      // Real success — show the actual reservation ID
+      const resId = res.reservation?.reservation_id || '';
       setSuccessLocked(!!res.locked);
       setSuccessMessage(
         res.locked
           ? tr('Solicitud enviada al partner. Te avisaremos si activa su cuenta.')
-          : tr('Solicitud enviada. Te avisaremos cuando el partner confirme.'),
+          : `${tr('Reserva enviada.')} ${resId ? `#${resId.slice(-8).toUpperCase()}` : ''}`,
       );
       setShowSuccess(true);
       Animated.parallel([
@@ -181,15 +185,16 @@ export default function ReservationNew() {
           toValue: 1, friction: 5, tension: 80, useNativeDriver: true,
         }),
       ]).start();
-      // Auto-navigate after 2s
+      // Navigate to Bookings tab after 2.5s so user sees their real reservation
       setTimeout(() => {
         router.replace({
-          pathname: '/reservations',
-          params: { highlight: res.reservation?.reservation_id || '' },
-        } as any);
-      }, 2200);
+          pathname: '/reservations' as any,
+          params: { highlight: resId },
+        });
+      }, 2500);
     } catch (e: any) {
-      Alert.alert(tr('Error'), String(e?.message || 'No se pudo enviar la solicitud'));
+      const msg = e?.message || e?.detail || 'No se pudo crear la reserva. Verifica tu conexión.';
+      Alert.alert(tr('Error'), String(msg));
     } finally {
       setSubmitting(false);
     }
