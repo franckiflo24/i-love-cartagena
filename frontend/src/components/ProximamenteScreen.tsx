@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
+import { useTr } from '../i18n/autoTr';
 
 interface Props {
   title: string;
@@ -17,6 +18,7 @@ export default function ProximamenteScreen({
   description,
 }: Props) {
   const router = useRouter();
+  const tr = useTr();
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -32,9 +34,9 @@ export default function ProximamenteScreen({
         <View style={styles.iconWrap}>
           <Ionicons name={icon} size={36} color={COLORS.primary} />
         </View>
-        <Text style={styles.title}>Próximamente</Text>
+        <Text style={styles.title}>{tr('Próximamente')}</Text>
         <Text style={styles.subtitle}>
-          {description || `${title} estará disponible muy pronto.\nEstamos construyendo esto para ti.`}
+          {description || tr('Estamos construyendo esto para ti.')}
         </Text>
         <TouchableOpacity
           style={styles.btn}
@@ -42,7 +44,7 @@ export default function ProximamenteScreen({
           activeOpacity={0.85}
         >
           <Ionicons name="home" size={16} color={COLORS.black} />
-          <Text style={styles.btnText}>Volver al inicio</Text>
+          <Text style={styles.btnText}>{tr('Volver al inicio')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

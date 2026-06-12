@@ -34,7 +34,7 @@ const formatDate = (iso: string) => {
     return d.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
   } catch { return iso; }
 };
-const formatPrice = (p: number) => p === 0 ? 'GRATIS' : `$${p.toLocaleString('es-CO')} COP`;
+const formatPrice = (p: number | undefined | null) => !p ? 'GRATIS' : `$${(p ?? 0).toLocaleString('es-CO')} COP`;
 
 export default function PartnerEventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -89,9 +89,14 @@ export default function PartnerEventDetail() {
         <View style={styles.flyerWrap}>
           <Image source={{ uri: event.flyer_url }} style={styles.flyer} resizeMode="cover" />
           <View style={styles.flyerOverlay} />
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={22} color={COLORS.white} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', position: 'absolute', top: SPACING.md, left: SPACING.md, gap: 8, zIndex: 5 }}>
+            <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={22} color={COLORS.white} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(tabs)')}>
+              <Ionicons name="home-outline" size={20} color={COLORS.white} />
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity
             style={styles.heartBtn}
             onPress={() => event?.event_id && toggleFavorite(event.event_id, 'partner_event')}
@@ -249,8 +254,8 @@ const styles = StyleSheet.create({
   flyerWrap: { width: '100%', aspectRatio: 0.9, position: 'relative' },
   flyer: { width: '100%', height: '100%' },
   flyerOverlay: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '60%', backgroundColor: 'rgba(5,8,20,0.85)' },
-  backBtn: { position: 'absolute', top: SPACING.md, left: SPACING.md, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
-  heartBtn: { position: 'absolute', top: SPACING.md, left: 64, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
+  heartBtn: { position: 'absolute', top: SPACING.md, left: 104, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
   priceBadgeBig: { position: 'absolute', top: SPACING.md, right: SPACING.md, borderRadius: RADIUS.full, paddingHorizontal: 14, paddingVertical: 7 },
   priceFree: { backgroundColor: COLORS.success },
   pricePaid: { backgroundColor: 'rgba(5,8,20,0.85)', borderWidth: 1, borderColor: COLORS.primary },

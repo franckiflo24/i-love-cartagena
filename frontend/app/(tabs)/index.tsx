@@ -9,6 +9,8 @@ import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useLang } from '../../src/context/LanguageContext';
+import { useTr } from '../../src/i18n/autoTr';
+import { SafeImage } from '../../src/components/SafeImage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
@@ -75,6 +77,7 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const { favorites } = useFavorites();
   const { s } = useLang();
+  const tr = useTr();
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [featured, setFeatured] = useState<Event[]>([]);
   const [todayEvents, setTodayEvents] = useState<Event[]>([]);
@@ -116,15 +119,15 @@ export default function HomeScreen() {
         api.get(`/partner-events?date=${today}`).catch(() => []),
         api.get('/promotions/today').catch(() => []),
       ]);
-      setSeasons(s);
-      setFeatured(f);
-      setSponsors(sp);
-      setTodayPEvents(pe || []);
-      setPromotions(promos || []);
-      // Festival programación (kept for back-compat; no longer rendered as a section)
-      const firstDate = s.length > 0 ? s[0].start_date : '2025-12-30';
+      setSeasons(Array.isArray(s) ? s : []);
+      setFeatured(Array.isArray(f) ? f : []);
+      setSponsors(Array.isArray(sp) ? sp : []);
+      setTodayPEvents(Array.isArray(pe) ? pe : []);
+      setPromotions(Array.isArray(promos) ? promos : []);
+      const sa = Array.isArray(s) ? s : [];
+      const firstDate = sa.length > 0 ? sa[0].start_date : '2025-12-30';
       const t = await api.get(`/events?date=${firstDate}`).catch(() => []);
-      setTodayEvents(t);
+      setTodayEvents(Array.isArray(t) ? t : []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -211,7 +214,7 @@ export default function HomeScreen() {
         if (item.event_count > 0) router.push('/(tabs)/agenda');
       }}
     >
-      <Image source={{ uri: item.image_url || IMAGES.season_fallback }} style={styles.heroImage} />
+      <SafeImage uri={item.image_url} fallbackUri={IMAGES.season_fallback} style={styles.heroImage} />
       <View style={styles.heroOverlay} />
       <View style={styles.heroContent}>
         <Text style={[styles.heroLabel, { color: item.color }]}>{formatDateRange(item.start_date, item.end_date)}</Text>
@@ -257,17 +260,20 @@ export default function HomeScreen() {
           >
             <Ionicons name="search" size={18} color={COLORS.textMuted} />
             <Text style={styles.searchPlaceholder} numberOfLines={1}>
-              Pregunta a Amo o busca…
+              {tr('Buscar en Cartagena…')}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.aiInlineBtn}
-            onPress={() => router.push('/concierge' as any)}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="sparkles" size={15} color={COLORS.white} />
-            <Text style={styles.aiInlineBtnText}>Amo IA</Text>
-          </TouchableOpacity>
+          {/* Amo IA inline button hidden — investor demo */}
+          {false && (
+            <TouchableOpacity
+              style={styles.aiInlineBtn}
+              onPress={() => router.push('/concierge' as any)}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="sparkles" size={15} color={COLORS.white} />
+              <Text style={styles.aiInlineBtnText}>Amo IA</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Hero Image — Cartagena first impression */}
@@ -276,7 +282,7 @@ export default function HomeScreen() {
           <View style={styles.heroBannerOverlay} />
           <View style={styles.heroBannerContent}>
             <Text style={styles.heroBannerLabel}>CARTAGENA DE INDIAS</Text>
-            <Text style={styles.heroBannerTitle}>418 lugares para descubrir</Text>
+            <Text style={styles.heroBannerTitle}>543 lugares para descubrir</Text>
             <Text style={styles.heroBannerSub}>Restaurantes · Bares · Beach Clubs · Spas · Nightlife</Text>
           </View>
         </TouchableOpacity>
@@ -290,7 +296,7 @@ export default function HomeScreen() {
           >
             <View style={styles.sponsorContent}>
               {sponsors[activeSponsor]?.logo_url ? (
-                <Image source={{ uri: sponsors[activeSponsor].logo_url }} style={styles.sponsorLogo} resizeMode="contain" />
+                <SafeImage uri={sponsors[activeSponsor].logo_url} category="institutional" style={styles.sponsorLogo} resizeMode="contain" />
               ) : (
                 <View style={[styles.sponsorIconCircle, { backgroundColor: `${sponsors[activeSponsor]?.color || COLORS.primary}20` }]}>
                   <Ionicons name="business" size={18} color={sponsors[activeSponsor]?.color || COLORS.primary} />
@@ -365,14 +371,14 @@ export default function HomeScreen() {
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
             {[
-              { uri: IMAGES.cartagena_aerial, label: 'Restaurantes', sub: '112+', cat: 'restaurant', icon: 'restaurant' },
-              { uri: IMAGES.cartagena_streets, label: 'Bares', sub: '46+', cat: 'bar', icon: 'wine' },
-              { uri: IMAGES.umbrellas, label: 'Nightlife', sub: '29 clubs', cat: 'club', icon: 'musical-notes' },
-              { uri: IMAGES.fountain_market, label: 'Cafés', sub: '14 spots', cat: 'cafe', icon: 'cafe' },
-              { uri: IMAGES.flag_rooftops, label: 'Spas', sub: '42+', cat: 'spa', icon: 'leaf' },
-              { uri: IMAGES.wax_palms, label: 'Experiencias', sub: '81 tours', cat: 'activity', icon: 'compass' },
-              { uri: IMAGES.hero, label: 'Hoteles', sub: '95+', cat: 'hotel', icon: 'bed' },
-              { uri: IMAGES.aerial, label: 'Beach Clubs', sub: '6 islas', cat: 'beach_club', icon: 'umbrella' },
+              { uri: IMAGES.cartagena_aerial, label: 'Restaurantes', sub: '111+', cat: 'restaurant', icon: 'restaurant' },
+              { uri: IMAGES.cartagena_streets, label: 'Bares', sub: '30+', cat: 'bar', icon: 'wine' },
+              { uri: IMAGES.umbrellas, label: 'Nightlife', sub: '22 clubs', cat: 'club', icon: 'musical-notes' },
+              { uri: IMAGES.fountain_market, label: 'Cafés', sub: '17 spots', cat: 'cafe', icon: 'cafe' },
+              { uri: IMAGES.flag_rooftops, label: 'Wellness', sub: '51+', cat: 'spa', icon: 'leaf' },
+              { uri: IMAGES.wax_palms, label: 'Experiencias', sub: '74 tours', cat: 'activity', icon: 'compass' },
+              { uri: IMAGES.hero, label: 'Hoteles', sub: '80+', cat: 'hotel', icon: 'bed' },
+              { uri: IMAGES.cartagena_aerial, label: 'Beach Clubs', sub: '26 islas', cat: 'beach_club', icon: 'umbrella' },
             ].map((item, i) => (
               <TouchableOpacity
                 key={i}
@@ -467,7 +473,7 @@ export default function HomeScreen() {
                     onPress={() => router.push(item.kind === 'partner' ? `/partner/${item.id}` : `/partner-event/${item.id}`)}
                     activeOpacity={0.85}
                   >
-                    <Image source={{ uri: item.image || IMAGES.placeholder }} style={styles.favImage} resizeMode="cover" />
+                    <SafeImage uri={item.image} fallbackUri={IMAGES.placeholder} style={styles.favImage} resizeMode="cover" />
                     <View style={styles.favOverlay} />
                     <View style={styles.favHeartBadge}>
                       <Ionicons name="heart" size={11} color="#EF4444" />
@@ -502,7 +508,7 @@ export default function HomeScreen() {
                 activeOpacity={0.85}
               >
                 <View style={styles.peThumbWrap}>
-                  <Image source={{ uri: event.flyer_url || event.partner_image || getCategoryImage(event.category) }} style={styles.peThumb} resizeMode="cover" />
+                  <SafeImage uri={event.flyer_url || event.partner_image} category={event.category} style={styles.peThumb} resizeMode="cover" />
                   <View style={[styles.peTimeChip]}>
                     <Text style={styles.peTimeChipText}>{event.start_time}</Text>
                   </View>
@@ -619,7 +625,7 @@ export default function HomeScreen() {
                       router.push(`/partner/${promo.partner_id}` as any);
                     }}
                   >
-                    <Image source={{ uri: promo.image_url || getCategoryImage(promo.category) }} style={styles.promoImage} resizeMode="cover" />
+                    <SafeImage uri={promo.image_url} category={promo.category} style={styles.promoImage} resizeMode="cover" />
                     <View style={styles.promoOverlay} />
                     {tierColors && <View style={[styles.promoTierStripe, { backgroundColor: tierColors.main }]} />}
                     {promo.tag_label ? (
@@ -940,4 +946,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   peBudgetText: { fontSize: 9, ...FONTS.bold, letterSpacing: 0.4 },
+
 });

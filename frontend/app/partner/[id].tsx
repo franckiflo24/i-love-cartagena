@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking as RNLinking, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking as RNLinking, Platform, Share } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, PARTNER_CATEGORY_LABELS, TIER_COLORS, Tier } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, ELEVATION, PARTNER_CATEGORY_LABELS, TIER_COLORS, Tier } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
+import { SafeImage } from '../../src/components/SafeImage';
 import ReviewsList from '../../src/components/ReviewsList';
 import { useLang } from '../../src/context/LanguageContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
@@ -20,30 +21,50 @@ export default function PartnerDetail() {
   const { isFavorite, toggleFavorite } = useFavorites();
   const [partner, setPartner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [partnerEvents, setPartnerEvents] = useState<any[]>([]);
   const [reserving, setReserving] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [pData, eData] = await Promise.all([
-          api.get(`/partners/${id}`),
-          api.get(`/partner-events?partner_id=${id}&upcoming=true`).catch(() => []),
-        ]);
-        setPartner(pData);
-        setPartnerEvents(eData || []);
-      } catch (e) { console.error(e); }
-      setLoading(false);
-    };
-    load();
-  }, [id]);
+  const loadPartner = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const [pData, eData] = await Promise.all([
+        api.get(`/partners/${id}`),
+        api.get(`/partner-events?partner_id=${id}&upcoming=true`).catch(() => []),
+      ]);
+      setPartner(pData);
+      setPartnerEvents(eData || []);
+    } catch (e) {
+      console.error('[PartnerDetail]', e);
+      setError(true);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { loadPartner(); }, [id]);
 
   if (loading) {
     return <SafeAreaView style={styles.container}><ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} /></SafeAreaView>;
   }
 
-  if (!partner) {
-    return <SafeAreaView style={styles.container}><View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}><Text style={{ color: COLORS.textMuted }}>Partner no encontrado</Text></View></SafeAreaView>;
+  if (error || !partner) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.xl, gap: SPACING.md }}>
+          <Ionicons name="cloud-offline-outline" size={48} color={COLORS.textMuted} />
+          <Text style={{ color: COLORS.textMain, fontSize: 18, ...FONTS.bold, textAlign: 'center' }}>
+            {error ? tr('Sin conexión') : tr('No encontrado')}
+          </Text>
+          <Text style={{ color: COLORS.textMuted, fontSize: 14, textAlign: 'center' }}>
+            {error ? tr('Verifica tu conexión e intenta de nuevo') : tr('Este lugar no está disponible')}
+          </Text>
+          <TouchableOpacity onPress={error ? loadPartner : () => router.back()} style={{ backgroundColor: COLORS.primary, paddingHorizontal: SPACING.xl, paddingVertical: SPACING.md, borderRadius: RADIUS.full, marginTop: SPACING.md }}>
+            <Text style={{ color: COLORS.black, ...FONTS.bold }}>{error ? tr('Reintentar') : tr('Volver')}</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   // Robust external link opener:
@@ -72,16 +93,18 @@ export default function PartnerDetail() {
     }
   };
 
+  // Detect if coords are the city-center default (not a real venue location)
+  const isDefaultCoords = (lat?: number, lng?: number): boolean => {
+    if (!lat || !lng) return true;
+    // Default fallback used during import: (10.4220, -75.5482)
+    return Math.abs(lat - 10.4220) < 0.005 && Math.abs(lng + 75.5482) < 0.005;
+  };
+
+  const hasRealCoords = !isDefaultCoords(partner?.location?.lat, partner?.location?.lng);
+
   const openMaps = () => {
     if (!partner) return;
-    // Prefer a textual search (address > name) over raw lat/lng,
-    // because many partners imported from the official xlsx don't have a
-    // precise location yet — they fall back to the city centre default coords.
     const addrText = (partner.address || '').trim();
-    const hasRealCoords =
-      partner.location?.lat &&
-      partner.location?.lng &&
-      !(Math.abs(partner.location.lat - 10.4236) < 0.001 && Math.abs(partner.location.lng + 75.5378) < 0.001);
     let query: string;
     if (addrText) {
       query = encodeURIComponent(`${partner.name}, ${addrText}, Cartagena`);
@@ -91,7 +114,6 @@ export default function PartnerDetail() {
       query = encodeURIComponent(`${partner.name}, Cartagena, Colombia`);
     }
     const webUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
-    // iOS Maps deep link works when "Google Maps" app is installed
     const iosDeep = `comgooglemaps://?q=${query}`;
     openExternal(iosDeep, webUrl);
   };
@@ -110,50 +132,99 @@ export default function PartnerDetail() {
   const igHandle = cleanInstagramHandle(partner?.instagram || '');
 
   const handleReserve = () => {
-    // Always route to the in-app reservation form. The form auto-decides type=table vs prepaid
-    // based on partner.category.
-    try {
-      api.post(`/partners/${id}/track-reserve`).catch(() => {});
-    } catch {}
+    try { api.post(`/partners/${id}/track-reserve`).catch(() => {}); } catch {}
+    // Always go through the reservation form for the rich WhatsApp template
+    // (includes date, time, party size, bilingual message)
     router.push({ pathname: '/reservation/new' as any, params: { partner_id: String(id) } });
+  };
+
+  const handleUber = () => {
+    const name = encodeURIComponent(partner.name);
+    const addrText = (partner.address || '').trim();
+    const addr = encodeURIComponent(addrText ? `${addrText}, Cartagena` : `${partner.name}, Cartagena, Colombia`);
+
+    let uberUrl: string;
+    let uberWeb: string;
+
+    if (hasRealCoords) {
+      // Real coordinates — pass both coords and address for precision
+      const lat = partner.location.lat;
+      const lng = partner.location.lng;
+      uberUrl = `uber://?action=setPickup&pickup=my_location&dropoff[latitude]=${lat}&dropoff[longitude]=${lng}&dropoff[nickname]=${name}&dropoff[formatted_address]=${addr}`;
+      uberWeb = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[latitude]=${lat}&dropoff[longitude]=${lng}&dropoff[nickname]=${name}&dropoff[formatted_address]=${addr}`;
+    } else {
+      // Default coords — omit lat/lng, let Uber geocode from the address
+      uberUrl = `uber://?action=setPickup&pickup=my_location&dropoff[nickname]=${name}&dropoff[formatted_address]=${addr}`;
+      uberWeb = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[nickname]=${name}&dropoff[formatted_address]=${addr}`;
+    }
+    openExternal(uberUrl, uberWeb);
+  };
+
+  const handleShare = async () => {
+    const cat = PARTNER_CATEGORY_LABELS[partner.category] || partner.category || '';
+    const url = `https://dist-ten-omega-67.vercel.app/partner/${partner.partner_id}`;
+    try {
+      await Share.share({
+        message: `${partner.name} — ${cat} ${tr('en Cartagena')}\n${partner.rating ? `⭐ ${Number(partner.rating).toFixed(1)}` : ''} ${partner.price_range || ''}\n\n${partner.description || ''}\n\n${url}`,
+        url,
+        title: partner.name,
+      });
+    } catch {}
+  };
+
+  const handleCall = () => {
+    const phone = (partner.phone || '').replace(/[^\d+]/g, '');
+    if (phone) {
+      RNLinking.openURL(`tel:${phone}`);
+    }
   };
 
   const formatShortDate = (iso: string) => {
     try {
       const d = new Date(iso + 'T12:00:00');
-      const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-      const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      const days = [tr('Dom'), tr('Lun'), tr('Mar'), tr('Mié'), tr('Jue'), tr('Vie'), tr('Sáb')];
+      const months = [tr('Ene'), tr('Feb'), tr('Mar'), tr('Abr'), tr('May'), tr('Jun'), tr('Jul'), tr('Ago'), tr('Sep'), tr('Oct'), tr('Nov'), tr('Dic')];
       return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
     } catch { return iso; }
   };
-  const formatPrice = (p: number) => p === 0 ? 'GRATIS' : `$${(p / 1000).toFixed(0)}K`;
+  const formatPrice = (p: number | undefined | null) => !p ? tr('GRATIS') : `$${(p / 1000).toFixed(0)}K`;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
-          <Image source={{ uri: partner.image_url }} style={styles.heroImage} />
+          <SafeImage uri={partner.image_url} category={partner.category} style={styles.heroImage} />
           <View style={styles.heroOverlay} />
-          <TouchableOpacity testID="partner-back-btn" style={styles.backBtn} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            testID="partner-fav-btn"
-            style={[styles.heartBtn, isFavorite(partner.partner_id) && styles.heartBtnActive]}
-            onPress={() => toggleFavorite(partner.partner_id, 'partner')}
-            activeOpacity={0.7}
-            hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}
-          >
-            <Ionicons
-              name={isFavorite(partner.partner_id) ? 'heart' : 'heart-outline'}
-              size={22}
-              color={isFavorite(partner.partner_id) ? '#EF4444' : '#FFFFFF'}
-            />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', position: 'absolute', top: SPACING.md, left: SPACING.md, gap: 8, zIndex: 5 }}>
+            <TouchableOpacity testID="partner-back-btn" style={styles.navBtn} onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.navBtn} onPress={() => router.replace('/(tabs)')}>
+              <Ionicons name="home-outline" size={20} color={COLORS.textMain} />
+            </TouchableOpacity>
+          </View>
+          <View style={{ flexDirection: 'row', position: 'absolute', top: SPACING.md, right: SPACING.md, gap: 8, zIndex: 5 }}>
+            <TouchableOpacity style={styles.navBtn} onPress={handleShare} accessibilityLabel={tr('Compartir')}>
+              <Ionicons name="share-outline" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              testID="partner-fav-btn"
+              style={[styles.heartBtn, isFavorite(partner.partner_id) && styles.heartBtnActive]}
+              onPress={() => toggleFavorite(partner.partner_id, 'partner')}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}
+            >
+              <Ionicons
+                name={isFavorite(partner.partner_id) ? 'heart' : 'heart-outline'}
+                size={22}
+                color={isFavorite(partner.partner_id) ? '#EF4444' : '#FFFFFF'}
+              />
+            </TouchableOpacity>
+          </View>
           {partner.is_certified && (
             <View style={styles.sealBadge}>
               <Ionicons name="shield-checkmark" size={16} color={COLORS.primary} />
-              <Text style={styles.sealText}>PARTNER CERTIFICADO</Text>
+              <Text style={styles.sealText}>{tr('PARTNER CERTIFICADO')}</Text>
             </View>
           )}
           <View style={styles.heroBottom}>
@@ -162,6 +233,13 @@ export default function PartnerDetail() {
                 <Text style={styles.catText}>{PARTNER_CATEGORY_LABELS[partner.category] || partner.category}</Text>
               </View>
               <TierBadge tier={partner.tier} size="sm" />
+              {partner.rating ? (
+                <View style={styles.ratingBadge}>
+                  <Ionicons name="star" size={12} color={COLORS.primary} />
+                  <Text style={styles.ratingBadgeText}>{Number(partner.rating).toFixed(1)}</Text>
+                  {partner.reviews ? <Text style={styles.ratingBadgeCount}>({partner.reviews})</Text> : null}
+                </View>
+              ) : null}
             </View>
             <Text style={styles.heroTitle}>{partner.name}</Text>
           </View>
@@ -183,25 +261,39 @@ export default function PartnerDetail() {
               </View>
             </View>
           ) : null}
-          <Text style={styles.description}>{partner.description}</Text>
+          {partner.description ? <Text style={styles.description}>{partner.description}</Text> : null}
 
           <View style={styles.infoGrid}>
+            {partner.address ? (
+              <TouchableOpacity style={styles.infoCard} onPress={openMaps} activeOpacity={0.7}>
+                <Ionicons name="location-outline" size={20} color={COLORS.primary} />
+                <Text style={styles.infoLabel}>{tr('Ubicación')}</Text>
+                <Text style={[styles.infoValue, { textDecorationLine: 'underline' }]}>{partner.address}</Text>
+                <Ionicons name="navigate-outline" size={14} color={COLORS.textMuted} style={{ marginTop: 4 }} />
+              </TouchableOpacity>
+            ) : null}
+            {partner.price_range ? (
+              <View style={styles.infoCard}>
+                <Ionicons name="cash-outline" size={20} color={COLORS.primary} />
+                <Text style={styles.infoLabel}>{tr('Rango de precio')}</Text>
+                <Text style={styles.infoValue}>{partner.price_range}</Text>
+              </View>
+            ) : null}
             <View style={styles.infoCard}>
-              <Ionicons name="location-outline" size={20} color={COLORS.primary} />
-              <Text style={styles.infoLabel}>{tr('Ubicación')}</Text>
-              <Text style={styles.infoValue}>{partner.address}</Text>
-            </View>
-            <View style={styles.infoCard}>
-              <Ionicons name="cash-outline" size={20} color={COLORS.primary} />
-              <Text style={styles.infoLabel}>Rango de precio</Text>
-              <Text style={styles.infoValue}>{partner.price_range}</Text>
+              <Ionicons name="time-outline" size={20} color={COLORS.primary} />
+              <Text style={styles.infoLabel}>{tr('Horario')}</Text>
+              <Text style={styles.infoValue}>
+                {(partner as any).hours || tr('Contactar para horarios')}
+              </Text>
             </View>
           </View>
 
-          <View style={styles.expSection}>
-            <Text style={styles.sectionTitle}>Experiencia</Text>
-            <Text style={styles.expText}>{partner.experience}</Text>
-          </View>
+          {partner.experience ? (
+            <View style={styles.expSection}>
+              <Text style={styles.sectionTitle}>{tr('Experiencia')}</Text>
+              <Text style={styles.expText}>{partner.experience}</Text>
+            </View>
+          ) : null}
 
           {/* Instagram */}
           {igHandle ? (
@@ -213,7 +305,7 @@ export default function PartnerDetail() {
             >
               <Ionicons name="logo-instagram" size={20} color={COLORS.primary} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.instagramLabel}>Síguelos en Instagram</Text>
+                <Text style={styles.instagramLabel}>{tr('Síguelos en Instagram')}</Text>
                 <Text style={styles.instagramHandle}>@{igHandle}</Text>
               </View>
               <Ionicons name="open-outline" size={18} color={COLORS.textMuted} />
@@ -224,7 +316,7 @@ export default function PartnerDetail() {
           <View style={styles.calendarSection}>
             <View style={styles.calendarHeader}>
               <Ionicons name="calendar" size={16} color={COLORS.primary} />
-              <Text style={styles.sectionTitle}>Próximos eventos</Text>
+              <Text style={styles.sectionTitle}>{tr('Próximos eventos')}</Text>
               {partnerEvents.length > 0 && (
                 <View style={styles.calendarCount}>
                   <Text style={styles.calendarCountText}>{partnerEvents.length}</Text>
@@ -234,7 +326,7 @@ export default function PartnerDetail() {
             {partnerEvents.length === 0 ? (
               <View style={styles.calendarEmpty}>
                 <Ionicons name="calendar-outline" size={28} color={COLORS.textMuted} />
-                <Text style={styles.calendarEmptyText}>Sin eventos publicados próximamente</Text>
+                <Text style={styles.calendarEmptyText}>{tr('Sin eventos publicados próximamente')}</Text>
               </View>
             ) : (
               partnerEvents.slice(0, 6).map((ev: any) => (
@@ -244,13 +336,13 @@ export default function PartnerDetail() {
                   onPress={() => router.push(`/partner-event/${ev.event_id}`)}
                   activeOpacity={0.85}
                 >
-                  <Image source={{ uri: ev.flyer_url }} style={styles.calendarFlyer} />
+                  <SafeImage uri={ev.flyer_url} category={ev.category} style={styles.calendarFlyer} />
                   <View style={styles.calendarItemBody}>
                     <Text style={styles.calendarItemDate}>{formatShortDate(ev.date)} · {ev.start_time}</Text>
                     <Text style={styles.calendarItemTitle} numberOfLines={1}>{ev.title}</Text>
                     <View style={styles.calendarItemFooter}>
                       <View style={[styles.calendarPriceTag, ev.is_free ? styles.calendarFree : styles.calendarPaid]}>
-                        <Text style={styles.calendarPriceText}>{ev.is_free ? 'GRATIS' : formatPrice(ev.price)}</Text>
+                        <Text style={styles.calendarPriceText}>{ev.is_free ? tr('GRATIS') : formatPrice(ev.price)}</Text>
                       </View>
                     </View>
                   </View>
@@ -271,17 +363,24 @@ export default function PartnerDetail() {
       </ScrollView>
 
       <View style={styles.bottomBar}>
-        <TouchableOpacity testID="partner-directions-btn" style={styles.dirBtn} onPress={openMaps}>
-          <Ionicons name="navigate" size={18} color={COLORS.primary} />
-          <Text style={styles.dirText}>{tr('Cómo llegar')}</Text>
+        <TouchableOpacity style={styles.actionCircle} onPress={handleUber} accessibilityLabel={tr('Pedir Uber')}>
+          <Ionicons name="car" size={20} color={COLORS.textMain} />
         </TouchableOpacity>
-        <TouchableOpacity testID="partner-reserve-btn" style={[styles.bookBtn, reserving && { opacity: 0.6 }]} onPress={handleReserve} disabled={reserving}>
+        <TouchableOpacity style={styles.actionCircle} onPress={openMaps} accessibilityLabel={tr('Cómo llegar')}>
+          <Ionicons name="navigate" size={20} color={COLORS.textMain} />
+        </TouchableOpacity>
+        {partner.phone ? (
+          <TouchableOpacity style={styles.actionCircle} onPress={handleCall} accessibilityLabel={tr('Llamar')}>
+            <Ionicons name="call" size={20} color={COLORS.textMain} />
+          </TouchableOpacity>
+        ) : null}
+        <TouchableOpacity style={[styles.bookBtn, reserving && { opacity: 0.6 }]} onPress={handleReserve} disabled={reserving} accessibilityLabel={tr('Reservar')}>
           {reserving ? (
-            <ActivityIndicator size="small" color={COLORS.white} />
+            <ActivityIndicator size="small" color={COLORS.black} />
           ) : (
             <>
+              <Ionicons name="logo-whatsapp" size={18} color={COLORS.black} />
               <Text style={styles.bookText}>{tr('Reservar')}</Text>
-              <Ionicons name="arrow-forward" size={16} color={COLORS.white} />
             </>
           )}
         </TouchableOpacity>
@@ -296,10 +395,8 @@ const styles = StyleSheet.create({
   heroImage: { width: '100%', height: '100%' },
   heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5,8,20,0.4)' },
   backBtn: { position: 'absolute', top: SPACING.md, left: SPACING.md, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(5,8,20,0.6)', alignItems: 'center', justifyContent: 'center' },
+  navBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(5,8,20,0.6)', alignItems: 'center', justifyContent: 'center' },
   heartBtn: {
-    position: 'absolute',
-    top: SPACING.md,
-    right: SPACING.md,
     width: 44,
     height: 44,
     borderRadius: 22,
@@ -308,7 +405,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 5,
   },
   heartBtnActive: {
     backgroundColor: 'rgba(239,68,68,0.18)',
@@ -366,9 +462,11 @@ const styles = StyleSheet.create({
   calendarFree: { backgroundColor: 'rgba(34,197,94,0.2)' },
   calendarPaid: { backgroundColor: 'rgba(217,119,6,0.2)' },
   calendarPriceText: { fontSize: 10, color: COLORS.textMain, ...FONTS.bold },
-  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', padding: SPACING.lg, gap: SPACING.md, backgroundColor: COLORS.background, borderTopWidth: 1, borderTopColor: COLORS.border },
-  dirBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary, paddingVertical: 14 },
-  dirText: { fontSize: 14, color: COLORS.primary, ...FONTS.semibold },
-  bookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 14 },
-  bookText: { fontSize: 14, color: COLORS.white, ...FONTS.semibold },
+  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', padding: SPACING.md, paddingBottom: SPACING.lg, gap: SPACING.sm, backgroundColor: COLORS.background, borderTopWidth: 1, borderTopColor: COLORS.border },
+  ratingBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(10,10,15,0.8)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: RADIUS.full },
+  ratingBadgeText: { fontSize: 13, color: COLORS.primary, ...FONTS.bold },
+  ratingBadgeCount: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
+  actionCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center' },
+  bookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 14 },
+  bookText: { fontSize: 15, color: COLORS.black, ...FONTS.bold },
 });

@@ -11,7 +11,7 @@ import {
   Dimensions,
   RefreshControl,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -20,11 +20,13 @@ import {
   RADIUS,
   FONTS,
   TIER_COLORS,
+  PARTNER_CATEGORY_LABELS,
   Tier,
 } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
-import { getCategoryImage } from '../../src/constants/images';
+import { IMAGES, getCategoryImage } from '../../src/constants/images';
 import { TierBadge } from '../../src/components/TierBadge';
+import { SafeImage } from '../../src/components/SafeImage';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 
@@ -35,15 +37,20 @@ const FEATURED_CARD_WIDTH = SCREEN_WIDTH * 0.72;
 // ── Types ────────────────────────────────────────────────────────────────────
 
 type Experience = {
-  experience_id: string;
-  title: string;
+  experience_id?: string;
+  partner_id?: string;
+  name?: string;
+  title?: string;
   description: string;
   image_url: string;
-  price: number;
-  is_free: boolean;
+  price?: number;
+  price_range?: string;
+  is_free?: boolean;
   category: string;
   partner_name?: string;
   partner_tier?: string;
+  tier?: string;
+  experience?: string;
 };
 
 type Partner = {
@@ -69,15 +76,82 @@ type CategoryItem = {
 
 const CATEGORIES: CategoryItem[] = [
   { key: 'all',        label: 'Todos',       icon: 'apps',             apiValue: null },
-  { key: 'daypass',    label: 'Day Pass',    icon: 'sunny-outline',    apiValue: 'daypass' },
-  { key: 'yachts',     label: 'Yachts',      icon: 'boat',             apiValue: 'yacht' },
   { key: 'restaurants',label: 'Restaurantes',icon: 'restaurant',       apiValue: 'restaurant' },
+  { key: 'bars',       label: 'Bares',       icon: 'wine',             apiValue: 'bar' },
+  { key: 'cafes',      label: 'Cafés',       icon: 'cafe',             apiValue: 'cafe' },
+  { key: 'nightlife',  label: 'Nightlife',   icon: 'musical-notes',    apiValue: 'club' },
+  { key: 'spas',       label: 'Spa',         icon: 'leaf',             apiValue: 'spa' },
   { key: 'beachclubs', label: 'Beach Clubs', icon: 'umbrella',         apiValue: 'beach_club' },
+  { key: 'yachts',     label: 'Yachts',      icon: 'boat',             apiValue: 'yacht' },
+  { key: 'beauty',     label: 'Belleza',     icon: 'cut',              apiValue: 'beauty' },
+  { key: 'activities', label: 'Experiencias',icon: 'compass',          apiValue: 'activity' },
   { key: 'hotels',     label: 'Hoteles',     icon: 'bed',              apiValue: 'hotel' },
-  { key: 'wellness',   label: 'Wellness',    icon: 'leaf',             apiValue: 'wellness' },
-  { key: 'activities', label: 'Actividades', icon: 'bicycle',          apiValue: 'activity' },
-  { key: 'nightlife',  label: 'Vida Nocturna',icon: 'wine',            apiValue: 'club' },
+  { key: 'daypass',    label: 'Day Pass',    icon: 'sunny-outline',    apiValue: 'daypass' },
 ];
+
+// ── Sub-categories per main category ──────────────────────────────────────────
+type Subcat = { key: string; label: string; icon: string };
+
+const SUBCATEGORIES: Record<string, Subcat[]> = {
+  restaurant: [
+    { key: 'international', label: 'Internacional',  icon: 'globe' },
+    { key: 'seafood',       label: 'Mariscos',       icon: 'fish' },
+    { key: 'colombian',     label: 'Colombiana',     icon: 'flag' },
+    { key: 'italian',       label: 'Italiana',       icon: 'pizza' },
+    { key: 'asian',         label: 'Asiática',       icon: 'restaurant' },
+    { key: 'mediterranean', label: 'Mediterránea',   icon: 'leaf' },
+    { key: 'vegetarian',    label: 'Vegetariana',    icon: 'nutrition' },
+    { key: 'gastronomic',   label: 'Gastronómica',   icon: 'wine' },
+    { key: 'fastfood',      label: 'Rápida',         icon: 'fast-food' },
+    { key: 'arab',          label: 'Árabe',          icon: 'restaurant' },
+  ],
+  bar: [
+    { key: 'cocktail_bar',  label: 'Cocktail Bar',   icon: 'wine' },
+    { key: 'rooftop',       label: 'Rooftop',        icon: 'business' },
+    { key: 'lounge',        label: 'Lounge',         icon: 'cafe' },
+    { key: 'salsa_bar',     label: 'Salsa Bar',      icon: 'musical-notes' },
+  ],
+  club: [
+    { key: 'nightclub',     label: 'Nightclub',      icon: 'musical-notes' },
+    { key: 'live_music',    label: 'Live Music',     icon: 'mic' },
+    { key: 'champeta',      label: 'Champeta',       icon: 'musical-note' },
+    { key: 'lounge',        label: 'Lounge',         icon: 'cafe' },
+  ],
+  cafe: [
+    { key: 'coffee',        label: 'Café',           icon: 'cafe' },
+    { key: 'brunch',        label: 'Brunch',         icon: 'sunny' },
+    { key: 'bakery',        label: 'Panadería',      icon: 'pizza' },
+  ],
+  spa: [
+    { key: 'massage',         label: 'Masajes',         icon: 'hand-right' },
+    { key: 'wellness_center', label: 'Centros Wellness',icon: 'leaf' },
+  ],
+  hotel: [
+    { key: 'lujo',          label: 'Lujo',           icon: 'star' },
+    { key: 'premium',       label: 'Premium',        icon: 'diamond' },
+    { key: 'boutique',      label: 'Boutique',       icon: 'bed' },
+    { key: 'popular',       label: 'Popular',        icon: 'home' },
+  ],
+  activity: [
+    { key: 'cultural',      label: 'Cultural',       icon: 'library' },
+    { key: 'yacht',         label: 'Yates',          icon: 'boat' },
+    { key: 'concierge',     label: 'Concierge',      icon: 'briefcase' },
+  ],
+  beach_club: [
+    { key: 'beach_club',    label: 'Beach Clubs',    icon: 'umbrella' },
+    { key: 'cocktail_bar',  label: 'Cocktails',      icon: 'wine' },
+    { key: 'boutique',      label: 'Boutique',       icon: 'bed' },
+  ],
+  beauty: [
+    { key: 'salon',           label: 'Salón',           icon: 'cut' },
+    { key: 'barbershop',      label: 'Barbería',        icon: 'cut' },
+    { key: 'nails',           label: 'Uñas',            icon: 'color-palette' },
+    { key: 'makeup',          label: 'Maquillaje',      icon: 'brush' },
+    { key: 'facial_spa',      label: 'Facial & Spa',    icon: 'flower' },
+    { key: 'aesthetic_clinic', label: 'Clínica Estética',icon: 'medkit' },
+    { key: 'lashes_brows',   label: 'Cejas & Pestañas', icon: 'eye' },
+  ],
+};
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -95,10 +169,13 @@ function SearchBarButton({ onPress }: { onPress: () => void }) {
     <TouchableOpacity style={styles.searchBar} onPress={onPress} activeOpacity={0.8}>
       <Ionicons name="search" size={16} color={COLORS.textMuted} />
       <Text style={styles.searchPlaceholder}>{tr('Buscar en Cartagena…')}</Text>
-      <View style={styles.searchAiPill}>
-        <Ionicons name="sparkles" size={11} color={COLORS.primary} />
-        <Text style={styles.searchAiText}>IA</Text>
-      </View>
+      {/* IA pill hidden — investor demo */}
+      {false && (
+        <View style={styles.searchAiPill}>
+          <Ionicons name="sparkles" size={11} color={COLORS.primary} />
+          <Text style={styles.searchAiText}>IA</Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 }
@@ -110,18 +187,18 @@ function FeaturedCard({
   item: Experience;
   onPress: () => void;
 }) {
-  const price = formatPrice(item.price, item.is_free);
-  const tierColor = item.partner_tier
-    ? TIER_COLORS[item.partner_tier as Tier]
-    : null;
+  const price = formatPrice(item.price ?? 0, item.is_free ?? !item.price);
+  const tierStr = item.partner_tier || item.tier || '';
+  const tierColor = tierStr ? TIER_COLORS[tierStr as Tier] : null;
   return (
     <TouchableOpacity
       style={styles.featuredCard}
       onPress={onPress}
       activeOpacity={0.85}
     >
-      <Image
-        source={{ uri: item.image_url || getCategoryImage(item.category) }}
+      <SafeImage
+        uri={item.image_url}
+        category={item.category}
         style={styles.featuredImage}
       />
       <View style={styles.featuredOverlay} />
@@ -130,8 +207,8 @@ function FeaturedCard({
       )}
       <View style={styles.featuredContent}>
         <View style={styles.featuredTopRow}>
-          {item.partner_tier && (
-            <TierBadge tier={item.partner_tier} size="xs" />
+          {tierStr && (
+            <TierBadge tier={tierStr} size="xs" />
           )}
           {price && (
             <View
@@ -145,13 +222,13 @@ function FeaturedCard({
           )}
         </View>
         <Text style={styles.featuredTitle} numberOfLines={2}>
-          {item.title}
+          {item.title || item.name || ''}
         </Text>
-        {item.partner_name && (
+        {(item.partner_name || item.experience) && (
           <View style={styles.featuredPartnerRow}>
             <Ionicons name="business-outline" size={11} color="rgba(255,255,255,0.65)" />
             <Text style={styles.featuredPartnerText} numberOfLines={1}>
-              {item.partner_name}
+              {item.partner_name || item.experience || ''}
             </Text>
           </View>
         )}
@@ -177,8 +254,9 @@ function PartnerGridCard({
       onPress={onPress}
       activeOpacity={0.85}
     >
-      <Image
-        source={{ uri: partner.image_url || getCategoryImage(partner.category) }}
+      <SafeImage
+        uri={partner.image_url}
+        category={partner.category}
         style={styles.gridImage}
       />
       <View style={styles.gridOverlay} />
@@ -194,13 +272,24 @@ function PartnerGridCard({
         )}
       </View>
       <View style={styles.gridContent}>
-        {partner.price_range && (
-          <View style={styles.gridPricePill}>
-            <Text style={styles.gridPriceText}>{partner.price_range}</Text>
-          </View>
-        )}
+        <View style={styles.gridMetaRow}>
+          {partner.price_range ? (
+            <View style={styles.gridPricePill}>
+              <Text style={styles.gridPriceText}>{partner.price_range}</Text>
+            </View>
+          ) : null}
+          {(partner as any).rating ? (
+            <View style={styles.gridRatingPill}>
+              <Ionicons name="star" size={10} color={COLORS.primary} />
+              <Text style={styles.gridRatingText}>{Number((partner as any).rating).toFixed(1)}</Text>
+            </View>
+          ) : null}
+        </View>
         <Text style={styles.gridName} numberOfLines={2}>
           {partner.name}
+        </Text>
+        <Text style={styles.gridCategory} numberOfLines={1}>
+          {PARTNER_CATEGORY_LABELS[(partner as any).category] || (partner as any).category || ''}
         </Text>
       </View>
     </TouchableOpacity>
@@ -211,15 +300,36 @@ function PartnerGridCard({
 
 export default function ExploreScreen() {
   const router = useRouter();
+  const { category: routeCategory, subcategory: routeSubcategory } =
+    useLocalSearchParams<{ category?: string; subcategory?: string }>();
   const { s } = useLang();
   const tr = useTr();
 
   const [selectedCategory, setSelectedCategory] = useState<CategoryItem>(CATEGORIES[0]);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [featured, setFeatured] = useState<Experience[]>([]);
-  const [partners, setPartners] = useState<Partner[]>([]);
+  const [allCategoryPartners, setAllCategoryPartners] = useState<Partner[]>([]);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
   const [loadingPartners, setLoadingPartners] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // When navigated with a category param (from home cards), switch to that filter
+  useEffect(() => {
+    if (routeCategory) {
+      const match = CATEGORIES.find(c => c.apiValue === routeCategory);
+      if (match) {
+        setSelectedCategory(match);
+        // Clear any previous sub-category when category param changes
+        setSelectedSubcategory(routeSubcategory || null);
+      }
+    }
+  }, [routeCategory, routeSubcategory]);
+
+  // Wrapper that resets subcategory when category changes via chip strip
+  const selectCategory = useCallback((cat: CategoryItem) => {
+    setSelectedCategory(cat);
+    setSelectedSubcategory(null);
+  }, []);
 
   const loadFeatured = useCallback(async () => {
     try {
@@ -236,15 +346,24 @@ export default function ExploreScreen() {
   const loadPartners = useCallback(async (category: CategoryItem) => {
     setLoadingPartners(true);
     try {
-      const path =
-        category.apiValue
-          ? `/partners?category=${category.apiValue}`
-          : '/partners';
-      const data = await api.get(path);
-      setPartners(Array.isArray(data) ? data : []);
+      // Always fetch full set; filter client-side so static + live both work.
+      const data = await api.get('/partners');
+      const all: Partner[] = Array.isArray(data) ? data : [];
+      const filtered = category.apiValue
+        ? all.filter(p => p.category === category.apiValue)
+        : all;
+      // Sort: elite first, then premium, then by rating descending
+      const tierOrder: Record<string, number> = { elite: 0, premium: 1, popular: 2, standard: 3 };
+      filtered.sort((a, b) => {
+        const ta = tierOrder[(a as any).tier] ?? 3;
+        const tb = tierOrder[(b as any).tier] ?? 3;
+        if (ta !== tb) return ta - tb;
+        return ((b as any).rating || 0) - ((a as any).rating || 0);
+      });
+      setAllCategoryPartners(filtered);
     } catch (e) {
       console.error('[ExploreScreen] partners', e);
-      setPartners([]);
+      setAllCategoryPartners([]);
     } finally {
       setLoadingPartners(false);
     }
@@ -264,25 +383,55 @@ export default function ExploreScreen() {
     setRefreshing(false);
   }, [loadFeatured, loadPartners, selectedCategory]);
 
+  // ── Derived view state ──────────────────────────────────────────
+  // Sub-categories available for the current main category (if any).
+  const availableSubcats: Subcat[] = selectedCategory.apiValue
+    ? (SUBCATEGORIES[selectedCategory.apiValue] || [])
+    : [];
+
+  // Are we showing the sub-category gateway (tiles) or the partner grid?
+  // Gateway shows when: category has subs AND user hasn't picked one yet.
+  const inSubcatGateway =
+    availableSubcats.length > 0 && !selectedSubcategory;
+
+  // Partners shown in the grid: respect subcategory filter when set.
+  // '__all__' sentinel means "show all in this category" (skip subcat filter).
+  const partners: Partner[] =
+    selectedSubcategory && selectedSubcategory !== '__all__'
+      ? allCategoryPartners.filter(p => (p as any).subcategory === selectedSubcategory)
+      : allCategoryPartners;
+
+  // Count of partners per subcategory for tile badges
+  const subcatCounts: Record<string, number> = {};
+  for (const p of allCategoryPartners) {
+    const sk = (p as any).subcategory;
+    if (sk) subcatCounts[sk] = (subcatCounts[sk] || 0) + 1;
+  }
+
+  // Resolved label for currently selected subcategory (for the back-header)
+  const subcatLabel = availableSubcats.find(s => s.key === selectedSubcategory)?.label || '';
+
   // ── List header: title + search + category chips + featured section ────────
 
   const ListHeader = (
     <View>
-      {/* ── Header ── */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.title}>Explorar</Text>
-            <Text style={styles.subtitle}>Descubre lo mejor de Cartagena</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.mapBtn}
-            onPress={() => router.push('/mapa' as any)}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="map-outline" size={18} color={COLORS.primary} />
-          </TouchableOpacity>
+      {/* ── Hero Banner ── */}
+      <View style={styles.exploreHero}>
+        <Image source={{ uri: IMAGES.cartagena_aerial }} style={styles.exploreHeroImg} />
+        <View style={styles.exploreHeroOverlay} />
+        <View style={styles.exploreHeroContent}>
+          <Text style={styles.title}>Explorar</Text>
+          <Text style={styles.subtitle}>Descubre lo mejor de Cartagena</Text>
         </View>
+        <TouchableOpacity
+          style={styles.mapBtn}
+          onPress={() => router.push('/mapa' as any)}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="map-outline" size={18} color={COLORS.primary} />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.header}>
         <SearchBarButton onPress={() => router.push('/search')} />
       </View>
 
@@ -299,7 +448,7 @@ export default function ExploreScreen() {
             <TouchableOpacity
               key={cat.key}
               style={[styles.chip, active && styles.chipActive]}
-              onPress={() => setSelectedCategory(cat)}
+              onPress={() => selectCategory(cat)}
               activeOpacity={0.8}
             >
               <Ionicons
@@ -310,7 +459,7 @@ export default function ExploreScreen() {
               <Text
                 style={[styles.chipText, active && styles.chipTextActive]}
               >
-                {cat.label}
+                {tr(cat.label)}
               </Text>
             </TouchableOpacity>
           );
@@ -342,16 +491,18 @@ export default function ExploreScreen() {
           ) : (
             <FlatList
               data={featured}
-              keyExtractor={(item) => item.experience_id}
+              keyExtractor={(item) => item.experience_id || item.partner_id || item.name || ''}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.featuredList}
               renderItem={({ item }) => (
                 <FeaturedCard
                   item={item}
-                  onPress={() =>
-                    router.push(`/experience/${item.experience_id}` as any)
-                  }
+                  onPress={() => {
+                    const id = item.partner_id || item.experience_id;
+                    const route = item.partner_id ? `/partner/${id}` : `/experience/${id}`;
+                    router.push(route as any);
+                  }}
                 />
               )}
             />
@@ -359,17 +510,68 @@ export default function ExploreScreen() {
         </View>
       )}
 
-      {/* ── Partners grid header ── */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>
-          {selectedCategory.key === 'all' ? 'Todos los Lugares' : selectedCategory.label}
-        </Text>
-        {partners.length > 0 && (
-          <Text style={styles.countText}>
-            {partners.length} lugar{partners.length !== 1 ? 'es' : ''}
-          </Text>
-        )}
-      </View>
+      {/* ── Partners grid header / sub-category gateway ── */}
+      {inSubcatGateway ? (
+        <View>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              Elige tu {selectedCategory.label.replace(/s$/, '').toLowerCase()}
+            </Text>
+            {allCategoryPartners.length > 0 && (
+              <TouchableOpacity onPress={() => setSelectedSubcategory('__all__')} activeOpacity={0.8}>
+                <Text style={styles.seeAll}>Ver todos</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          <View style={styles.subcatGrid}>
+            {availableSubcats.map((sc) => {
+              const count = subcatCounts[sc.key] || 0;
+              if (count === 0) return null;
+              return (
+                <TouchableOpacity
+                  key={sc.key}
+                  style={styles.subcatTile}
+                  activeOpacity={0.85}
+                  onPress={() => setSelectedSubcategory(sc.key)}
+                >
+                  <View style={styles.subcatIconWrap}>
+                    <Ionicons name={sc.icon as any} size={22} color={COLORS.primary} />
+                  </View>
+                  <Text style={styles.subcatLabel} numberOfLines={1}>{tr(sc.label)}</Text>
+                  <Text style={styles.subcatCount}>{count} {count !== 1 ? tr('lugares') : tr('lugar')}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      ) : (
+        <View style={styles.sectionHeader}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+            {selectedSubcategory && availableSubcats.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setSelectedSubcategory(null)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={{ marginRight: SPACING.sm }}
+              >
+                <Ionicons name="chevron-back" size={20} color={COLORS.primary} />
+              </TouchableOpacity>
+            )}
+            <Text style={styles.sectionTitle}>
+              {selectedCategory.key === 'all'
+                ? 'Todos los Lugares'
+                : selectedSubcategory && selectedSubcategory !== '__all__'
+                ? `${selectedCategory.label} · ${subcatLabel}`
+                : selectedCategory.label}
+            </Text>
+          </View>
+          {partners.length > 0 && (
+            <Text style={styles.countText}>
+              {partners.length} {partners.length !== 1 ? tr('lugares') : tr('lugar')}
+            </Text>
+          )}
+        </View>
+      )}
     </View>
   );
 
@@ -401,14 +603,14 @@ export default function ExploreScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <FlatList
-        data={partners}
+        data={inSubcatGateway ? [] : partners}
         keyExtractor={(item) => item.partner_id}
         numColumns={2}
-        columnWrapperStyle={styles.columnWrapper}
+        columnWrapperStyle={inSubcatGateway ? undefined : styles.columnWrapper}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={ListHeader}
-        ListEmptyComponent={ListEmpty}
+        ListEmptyComponent={inSubcatGateway ? null : ListEmpty}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -476,16 +678,22 @@ const styles = StyleSheet.create({
     ...FONTS.regular,
     marginTop: 2,
   },
+  exploreHero: { height: 160, position: 'relative', overflow: 'hidden' },
+  exploreHeroImg: { position: 'absolute', width: '100%', height: '100%' },
+  exploreHeroOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(5,8,20,0.6)' },
+  exploreHeroContent: { position: 'absolute', bottom: SPACING.md, left: SPACING.lg },
   mapBtn: {
+    position: 'absolute',
+    bottom: SPACING.md,
+    right: SPACING.lg,
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.surface,
+    backgroundColor: 'rgba(255,255,255,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: COLORS.border,
-    marginTop: 4,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
 
   // Search bar
@@ -745,11 +953,36 @@ const styles = StyleSheet.create({
     ...FONTS.bold,
     letterSpacing: 0.4,
   },
+  gridMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  gridRatingPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(5,8,20,0.75)',
+    borderRadius: RADIUS.full,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  gridRatingText: {
+    fontSize: 9,
+    color: COLORS.primary,
+    ...FONTS.bold,
+  },
   gridName: {
     fontSize: 13,
     color: COLORS.white,
     ...FONTS.bold,
     lineHeight: 17,
+  },
+  gridCategory: {
+    fontSize: 10,
+    color: COLORS.textMuted,
+    ...FONTS.medium,
+    marginTop: 1,
   },
 
   // Empty state
@@ -806,5 +1039,65 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.primary,
     ...FONTS.semibold,
+  },
+
+  // Subcategory gateway
+  subcatGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: SPACING.lg,
+    gap: SPACING.md,
+    justifyContent: 'space-between',
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.lg,
+  },
+  subcatTile: {
+    width: '47%',
+    backgroundColor: COLORS.surfaceAlt,
+    borderRadius: RADIUS.lg,
+    paddingVertical: SPACING.lg,
+    paddingHorizontal: SPACING.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    minHeight: 130,
+  },
+  subcatIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(212,175,55,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(212,175,55,0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: SPACING.sm,
+  },
+  subcatLabel: {
+    fontSize: 14,
+    color: COLORS.textMain,
+    ...FONTS.semibold,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  subcatCount: {
+    fontSize: 11,
+    color: COLORS.primary,
+    ...FONTS.medium,
+    letterSpacing: 0.3,
+  },
+  subcatBackBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    marginBottom: SPACING.xs,
+  },
+  subcatBackText: {
+    fontSize: 13,
+    color: COLORS.primary,
+    ...FONTS.medium,
   },
 });

@@ -40,9 +40,34 @@ export type ReviewsPayload = {
 
 const REVIEWS_KEY = 'amo_reviews';
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Seed Reviews Cache ──────────────────────────────────────────────────────
+// Reviews seeded in /data/reviews.json are shared across ALL users.
+// They load once and stay cached in memory for the session.
 
-async function getAllReviews(): Promise<StoredReview[]> {
+let seedCache: Record<string, StoredReview[]> | null = null;
+let seedPromise: Promise<Record<string, StoredReview[]>> | null = null;
+
+async function loadSeedReviews(): Promise<Record<string, StoredReview[]>> {
+  if (seedCache) return seedCache;
+  if (seedPromise) return seedPromise;
+  seedPromise = (async () => {
+    try {
+      const res = await fetch('/data/reviews.json');
+      if (!res.ok) return {};
+      const data = await res.json();
+      seedCache = data;
+      return data;
+    } catch {
+      seedCache = {};
+      return {};
+    }
+  })();
+  return seedPromise;
+}
+
+// ─── Local Reviews (user-submitted, device-only) ─────────────────────────────
+
+async function getLocalReviews(): Promise<StoredReview[]> {
   try {
     const raw = await AsyncStorage.getItem(REVIEWS_KEY);
     if (!raw) return [];
@@ -52,7 +77,7 @@ async function getAllReviews(): Promise<StoredReview[]> {
   }
 }
 
-async function saveAllReviews(reviews: StoredReview[]): Promise<void> {
+async function saveLocalReviews(reviews: StoredReview[]): Promise<void> {
   await AsyncStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
 }
 
@@ -77,23 +102,38 @@ export async function submitReview(data: {
     is_verified: false,
   };
 
-  const all = await getAllReviews();
+  const all = await getLocalReviews();
   all.unshift(review);
-  await saveAllReviews(all);
+  await saveLocalReviews(all);
 
   return review;
 }
 
 export async function getPartnerReviews(partnerId: string): Promise<ReviewsPayload> {
-  const all = await getAllReviews();
-  const partnerReviews = all.filter((r) => r.partner_id === partnerId);
+  // Merge seed reviews (shared) + local reviews (user-submitted)
+  const [seeds, locals] = await Promise.all([
+    loadSeedReviews(),
+    getLocalReviews(),
+  ]);
 
-  const total = partnerReviews.length;
+  const seedReviews = seeds[partnerId] || [];
+  const localReviews = locals.filter((r) => r.partner_id === partnerId);
+
+  // Dedupe: local reviews override seeds with same review_id
+  const seedIds = new Set(localReviews.map((r) => r.review_id));
+  const merged = [
+    ...localReviews,
+    ...seedReviews.filter((r) => !seedIds.has(r.review_id)),
+  ];
+
+  // Sort by date descending (newest first)
+  merged.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const total = merged.length;
   const average = total > 0
-    ? partnerReviews.reduce((sum, r) => sum + r.rating, 0) / total
+    ? merged.reduce((sum, r) => sum + r.rating, 0) / total
     : 0;
 
-  // Compute subcategory averages
   const subKeys: { key: keyof SubcategoryRatings; label: string }[] = [
     { key: 'experience', label: 'Experiencia' },
     { key: 'service', label: 'Servicio' },
@@ -103,7 +143,7 @@ export async function getPartnerReviews(partnerId: string): Promise<ReviewsPaylo
 
   const subcategories: SubcategoryScore[] = total > 0
     ? subKeys.map(({ key, label }) => {
-        const scored = partnerReviews.filter((r) => r.subcategories?.[key] > 0);
+        const scored = merged.filter((r) => r.subcategories?.[key] > 0);
         const avg = scored.length > 0
           ? scored.reduce((s, r) => s + r.subcategories[key], 0) / scored.length
           : 0;
@@ -114,6 +154,6 @@ export async function getPartnerReviews(partnerId: string): Promise<ReviewsPaylo
   return {
     partner_id: partnerId,
     aggregate: { average, total, subcategories },
-    reviews: partnerReviews,
+    reviews: merged,
   };
 }

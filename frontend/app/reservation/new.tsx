@@ -31,9 +31,14 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { Linking } from 'react-native';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useTr } from '../../src/i18n/autoTr';
+
+// Fallback AMO Cartagena concierge WhatsApp when partner has no phone
+// TODO: Replace with real AMO operations number
+const AMO_CONCIERGE_PHONE = process.env.EXPO_PUBLIC_AMO_WHATSAPP || '573176481183';
 
 type Partner = {
   partner_id: string;
@@ -42,6 +47,7 @@ type Partner = {
   tier?: string;
   image_url?: string;
   address?: string;
+  phone?: string;
 };
 
 type PEvent = {
@@ -58,22 +64,7 @@ function todayPlus(days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-function fmtDateChip(iso: string): string {
-  try {
-    const d = new Date(iso + 'T12:00:00');
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const target = new Date(iso + 'T00:00:00');
-    const diff = Math.round((target.getTime() - today.getTime()) / 86400000);
-    if (diff === 0) return 'Hoy';
-    if (diff === 1) return 'Mañana';
-    const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
-  } catch {
-    return iso;
-  }
-}
+// Date formatting moved inside component to access tr() hook
 
 const DEFAULT_HOURS = ['12:00', '13:00', '14:00', '19:00', '20:00', '21:00', '22:00'];
 
@@ -96,6 +87,23 @@ export default function ReservationNew() {
   const [notes, setNotes] = useState<string>('');
 
   // Success overlay state
+  const fmtDateChip = (iso: string): string => {
+    try {
+      const d = new Date(iso + 'T12:00:00');
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const target = new Date(iso + 'T00:00:00');
+      const diff = Math.round((target.getTime() - today.getTime()) / 86400000);
+      if (diff === 0) return tr('Hoy');
+      if (diff === 1) return tr('Mañana');
+      const days = [tr('Dom'), tr('Lun'), tr('Mar'), tr('Mié'), tr('Jue'), tr('Vie'), tr('Sáb')];
+      const months = [tr('Ene'), tr('Feb'), tr('Mar'), tr('Abr'), tr('May'), tr('Jun'), tr('Jul'), tr('Ago'), tr('Sep'), tr('Oct'), tr('Nov'), tr('Dic')];
+      return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+    } catch {
+      return iso;
+    }
+  };
+
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [successLocked, setSuccessLocked] = useState(false);
@@ -154,27 +162,35 @@ export default function ReservationNew() {
   const submit = async () => {
     if (submitting) return;
     setSubmitting(true);
+
+    // Build WhatsApp deep link with reservation details
+    const phone = (partner.phone || '').replace(/[^\d+]/g, '').replace('+', '');
+    const waPhone = phone || AMO_CONCIERGE_PHONE;
+    const isAmo = !phone;
+
+    const eventLine = event ? `\nEvento: ${event.title}` : '';
+    const eventLineEn = event ? `\nEvent: ${event.title}` : '';
+    const notesLine = notes.trim() ? `\nNotas: ${notes.trim()}` : '';
+    const notesLineEn = notes.trim() ? `\nNotes: ${notes.trim()}` : '';
+
+    const msgEs = isAmo
+      ? `Hola AMO Cartagena! Quiero reservar en *${partner.name}*.${eventLine}\n\nFecha: ${date}\nHora: ${time}\nPersonas: ${partySize}${notesLine}\n\nVia AMO Cartagena`
+      : `Hola! Reserva via *AMO Cartagena* 🌴\n\nLugar: *${partner.name}*${eventLine}\nFecha: ${date}\nHora: ${time}\nPersonas: ${partySize}${notesLine}\n\nGracias!`;
+
+    const msgEn = isAmo
+      ? `Hi AMO Cartagena! I'd like to book at *${partner.name}*.${eventLineEn}\n\nDate: ${date}\nTime: ${time}\nParty: ${partySize}${notesLineEn}\n\nVia AMO Cartagena`
+      : `Hi! Booking via *AMO Cartagena* 🌴\n\nPlace: *${partner.name}*${eventLineEn}\nDate: ${date}\nTime: ${time}\nParty: ${partySize}${notesLineEn}\n\nThank you!`;
+
+    const msg = encodeURIComponent(`${msgEs}\n\n---\n\n${msgEn}`);
+    const waUrl = `https://wa.me/${waPhone}?text=${msg}`;
+
     try {
-      const body: any = {
-        partner_id: partnerId,
-        type: 'table',
-        date,
-        time,
-        party_size: partySize,
-        notes: notes.trim(),
-      };
-      if (eventId) body.event_id = eventId;
-
-      // Real API call — no swallowing errors
-      const res = await api.post('/reservations', body);
-
-      // Real success — show the actual reservation ID
-      const resId = res.reservation?.reservation_id || '';
-      setSuccessLocked(!!res.locked);
+      await Linking.openURL(waUrl);
+      setSuccessLocked(false);
       setSuccessMessage(
-        res.locked
-          ? tr('Solicitud enviada al partner. Te avisaremos si activa su cuenta.')
-          : `${tr('Reserva enviada.')} ${resId ? `#${resId.slice(-8).toUpperCase()}` : ''}`,
+        isAmo
+          ? tr('Te conectamos con AMO Cartagena por WhatsApp para gestionar tu reserva.')
+          : tr('Te conectamos con el partner por WhatsApp. Confirma tu reserva directamente.'),
       );
       setShowSuccess(true);
       Animated.parallel([
@@ -185,16 +201,8 @@ export default function ReservationNew() {
           toValue: 1, friction: 5, tension: 80, useNativeDriver: true,
         }),
       ]).start();
-      // Navigate to Bookings tab after 2.5s so user sees their real reservation
-      setTimeout(() => {
-        router.replace({
-          pathname: '/reservations' as any,
-          params: { highlight: resId },
-        });
-      }, 2500);
     } catch (e: any) {
-      const msg = e?.message || e?.detail || 'No se pudo crear la reserva. Verifica tu conexión.';
-      Alert.alert(tr('Error'), String(msg));
+      Alert.alert(tr('Error'), tr('No se pudo abrir WhatsApp. Verifica que tengas la app instalada.'));
     } finally {
       setSubmitting(false);
     }
@@ -364,8 +372,8 @@ export default function ReservationNew() {
               <ActivityIndicator size="small" color={COLORS.white} />
             ) : (
               <>
-                <Text style={styles.submitText}>{tr('Enviar solicitud de reserva')}</Text>
-                <Ionicons name="paper-plane" size={16} color={COLORS.white} />
+                <Ionicons name="logo-whatsapp" size={18} color={COLORS.white} />
+                <Text style={styles.submitText}>{tr('Reservar por WhatsApp')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -403,6 +411,21 @@ export default function ReservationNew() {
                 </Text>
               </View>
             ) : null}
+            <TouchableOpacity
+              style={styles.successDismissBtn}
+              onPress={() => router.back()}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="arrow-back" size={16} color={COLORS.black} />
+              <Text style={styles.successDismissBtnText}>{tr('Volver al lugar')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.successHomeBtn}
+              onPress={() => router.replace('/(tabs)')}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.successHomeBtnText}>{tr('Ir al inicio')}</Text>
+            </TouchableOpacity>
           </Animated.View>
         </Animated.View>
       ) : null}
@@ -617,4 +640,22 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   successLockedTagText: { color: '#F59E0B', fontSize: 11, ...FONTS.bold, letterSpacing: 0.3 },
+  successDismissBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.primary,
+    marginTop: 8,
+  },
+  successDismissBtnText: { color: COLORS.black, fontSize: 14, ...FONTS.bold },
+  successHomeBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+  },
+  successHomeBtnText: { color: COLORS.textMuted, fontSize: 12, ...FONTS.medium, textDecorationLine: 'underline' },
 });

@@ -1,0 +1,18 @@
+{
+  "rewrites": [
+    { "source": "/partner/:id", "destination": "/partner/%5Bid%5D" },
+    { "source": "/experience/booking", "destination": "/experience/booking" },
+    { "source": "/experience/:id", "destination": "/experience/%5Bid%5D" },
+    { "source": "/event/:id", "destination": "/event/%5Bid%5D" },
+    { "source": "/partner-event/:id", "destination": "/partner-event/%5Bid%5D" },
+    { "source": "/reservation/new", "destination": "/reservation/new" },
+    { "source": "/review/new", "destination": "/review/new" },
+    { "source": "/port-tax/checkout", "destination": "/port-tax/checkout" },
+    { "source": "/port-tax/ticket/:id", "destination": "/port-tax/ticket/%5Bid%5D" },
+    { "source": "/rewards/card", "destination": "/rewards/card" },
+    { "source": "/rewards/offers", "destination": "/rewards/offers" },
+    { "source": "/admin/operator/:id", "destination": "/admin/operator/index" }
+  ],
+  "trailingSlash": false,
+  "cleanUrls": true
+}

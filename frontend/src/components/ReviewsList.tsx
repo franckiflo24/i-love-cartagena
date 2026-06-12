@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
   ActivityIndicator,
   Animated,
 } from 'react-native';
@@ -165,6 +164,7 @@ export default function ReviewsList({ partnerId }: ReviewsListProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [helpfulMap, setHelpfulMap] = useState<Record<string, number>>({});
+  const [showAll, setShowAll] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -241,25 +241,29 @@ export default function ReviewsList({ partnerId }: ReviewsListProps) {
           <Text style={styles.emptyText}>Sé el primero en dejar una reseña</Text>
         </View>
       ) : (
-        <FlatList
-          data={reviews}
-          keyExtractor={(item) => item.review_id}
-          scrollEnabled={false}
-          contentContainerStyle={styles.list}
-          ItemSeparatorComponent={() => <View style={{ height: SPACING.md }} />}
-          renderItem={({ item }) => (
-            <ReviewCard
-              authorName={item.author_name}
-              authorAvatar={item.author_avatar}
-              rating={item.rating}
-              date={item.date}
-              text={item.text}
-              helpfulCount={(item.helpful_count ?? 0) + (helpfulMap[item.review_id] ?? 0)}
-              isVerified={item.is_verified}
-              onHelpful={() => handleHelpful(item.review_id)}
-            />
+        <View style={styles.list}>
+          {(showAll ? reviews : reviews.slice(0, 3)).map((item, idx) => (
+            <View key={item.review_id}>
+              {idx > 0 && <View style={{ height: SPACING.md }} />}
+              <ReviewCard
+                authorName={item.author_name}
+                authorAvatar={item.author_avatar}
+                rating={item.rating}
+                date={item.date}
+                text={item.text}
+                helpfulCount={(item.helpful_count ?? 0) + (helpfulMap[item.review_id] ?? 0)}
+                isVerified={item.is_verified}
+                onHelpful={() => handleHelpful(item.review_id)}
+              />
+            </View>
+          ))}
+          {reviews.length > 3 && !showAll && (
+            <TouchableOpacity style={styles.showMoreBtn} onPress={() => setShowAll(true)} activeOpacity={0.85}>
+              <Text style={styles.showMoreText}>Ver las {reviews.length - 3} reseñas restantes</Text>
+              <Ionicons name="chevron-down" size={14} color={COLORS.primary} />
+            </TouchableOpacity>
           )}
-        />
+        </View>
       )}
     </View>
   );
@@ -305,4 +309,18 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   emptyText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular },
+
+  showMoreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.xs,
+    paddingVertical: SPACING.md,
+    marginTop: SPACING.sm,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  showMoreText: { fontSize: 13, color: COLORS.primary, ...FONTS.semibold },
 });
