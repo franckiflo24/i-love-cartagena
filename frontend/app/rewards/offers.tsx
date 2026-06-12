@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/src/constants/theme';
 import { api } from '@/src/constants/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLang } from '@/src/context/LanguageContext';
 
 type Offer = {
@@ -64,9 +65,18 @@ export default function OffersScreen() {
           onPress: async () => {
             setRedeeming(offer.offer_id);
             try {
-              await api.post('/rewards/redeem', { offer_id: offer.offer_id });
-              Alert.alert('¡Canjeado!', 'Revisa tus recompensas para ver el código QR.');
-              loadOffers();
+              const result = await api.post('/rewards/redeem', { offer_id: offer.offer_id });
+              // In static mode api.post returns the body with no redemption_id.
+              // Generate one locally so the flow completes.
+              const redemptionId = result?.redemption_id || `rdm_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+              // Persist redemption locally
+              const stored = await AsyncStorage.getItem('amo_redemptions');
+              const redemptions = stored ? JSON.parse(stored) : [];
+              redemptions.unshift({ redemption_id: redemptionId, offer_id: offer.offer_id, title: offer.title, redeemed_at: new Date().toISOString() });
+              await AsyncStorage.setItem('amo_redemptions', JSON.stringify(redemptions));
+              Alert.alert('¡Canjeado!', `Tu código: ${redemptionId.slice(0, 12).toUpperCase()}\nMuéstralo al partner para reclamar tu recompensa.`);
+              // Mark offer as unavailable locally
+              setOffers(prev => prev.map(o => o.offer_id === offer.offer_id ? { ...o, available: false } : o));
             } catch (e: any) {
               Alert.alert('Error', e.message || 'No se pudo canjear la oferta');
             } finally {

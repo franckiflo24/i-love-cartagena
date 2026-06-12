@@ -111,9 +111,17 @@ export default function MyReservations() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const res = await api.post(`/reservations/${r.reservation_id}/cancel`);
-              Alert.alert(tr('Reserva cancelada'), String(res.message || ''));
-              load();
+              await api.post(`/reservations/${r.reservation_id}/cancel`);
+              // Optimistically update local state so the UI reflects cancellation
+              setData(prev => {
+                if (!prev) return prev;
+                const update = (list: Reservation[]) =>
+                  list.map(res => res.reservation_id === r.reservation_id
+                    ? { ...res, status: 'cancelled_by_user' }
+                    : res);
+                return { ...prev, upcoming: update(prev.upcoming), past: update(prev.past) };
+              });
+              Alert.alert(tr('Reserva cancelada'), tr('Tu reserva fue cancelada exitosamente.'));
             } catch (e: any) {
               Alert.alert(tr('Error'), String(e?.message || ''));
             }

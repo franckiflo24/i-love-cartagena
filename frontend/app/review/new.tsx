@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/src/constants/theme';
-import { api } from '@/src/constants/api';
+import { submitReview } from '@/src/services/reviewsStore';
 import { useLang } from '@/src/context/LanguageContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -97,12 +97,13 @@ export default function NewReviewScreen() {
 
     setSubmitting(true);
     try {
-      await api.post('/reviews', {
+      await submitReview({
         partner_id,
         rating: overallRating,
         subcategories: subcategoryRatings,
         text: reviewText.trim(),
       });
+      Alert.alert('¡Gracias!', 'Tu reseña fue enviada.');
       router.back();
     } catch (e) {
       console.error('[NewReviewScreen]', e);

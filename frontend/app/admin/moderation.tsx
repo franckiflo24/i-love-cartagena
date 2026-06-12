@@ -45,7 +45,12 @@ export default function AdminModeration() {
     Alert.alert('Aprobar evento', `¿Publicar "${title}" en la agenda?`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Aprobar', onPress: async () => {
-        try { await api.post(`/admin/moderation/${eventId}/approve`); await load(); }
+        try {
+          await api.post(`/admin/moderation/${eventId}/approve`);
+          // Optimistically remove from pending list
+          setPending(prev => prev.filter((e: any) => (e.event_id || e.id) !== eventId));
+          if (stats) setStats({ ...stats, pending: Math.max(0, stats.pending - 1), approved: stats.approved + 1 });
+        }
         catch (e: any) { Alert.alert('Error', e?.message); }
       } },
     ]);
@@ -55,7 +60,12 @@ export default function AdminModeration() {
     Alert.alert('Rechazar evento', `¿Rechazar "${title}"? El partner verá el rechazo en su dashboard.`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Rechazar', style: 'destructive', onPress: async () => {
-        try { await api.post(`/admin/moderation/${eventId}/reject`, { reason: 'Contenido no apto para la agenda' }); await load(); }
+        try {
+          await api.post(`/admin/moderation/${eventId}/reject`, { reason: 'Contenido no apto para la agenda' });
+          // Optimistically remove from pending list
+          setPending(prev => prev.filter((e: any) => (e.event_id || e.id) !== eventId));
+          if (stats) setStats({ ...stats, pending: Math.max(0, stats.pending - 1), rejected: stats.rejected + 1 });
+        }
         catch (e: any) { Alert.alert('Error', e?.message); }
       } },
     ]);

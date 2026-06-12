@@ -10,8 +10,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/src/constants/theme';
-import { api } from '@/src/constants/api';
+import { getPartnerReviews } from '@/src/services/reviewsStore';
 import { useLang } from '@/src/context/LanguageContext';
 import ReviewCard from './ReviewCard';
 
@@ -94,7 +95,7 @@ function AggregateHeader({
     <View style={aggStyles.wrap}>
       {/* Big rating number */}
       <View style={aggStyles.bigRating}>
-        <Text style={aggStyles.bigNum}>{average.toFixed(1)}</Text>
+        <Text style={aggStyles.bigNum}>{(average || 0).toFixed(1)}</Text>
         <View style={aggStyles.starCol}>
           <View style={{ flexDirection: 'row', gap: 2 }}>
             {[1, 2, 3, 4, 5].map((n) => (
@@ -117,7 +118,7 @@ function AggregateHeader({
             <View key={i} style={aggStyles.subRow}>
               <Text style={aggStyles.subLabel} numberOfLines={1}>{sub.label}</Text>
               <AnimatedBar score={sub.score} color={COLORS.primary} />
-              <Text style={aggStyles.subScore}>{sub.score.toFixed(1)}</Text>
+              <Text style={aggStyles.subScore}>{(sub.score || 0).toFixed(1)}</Text>
             </View>
           ))}
         </View>
@@ -169,7 +170,7 @@ export default function ReviewsList({ partnerId }: ReviewsListProps) {
     setLoading(true);
     setError(null);
     try {
-      const result: ReviewsPayload = await api.get(`/reviews/partner/${partnerId}`);
+      const result = await getPartnerReviews(partnerId);
       setPayload(result);
     } catch (e) {
       console.error('[ReviewsList]', e);
@@ -179,9 +180,11 @@ export default function ReviewsList({ partnerId }: ReviewsListProps) {
     }
   }, [partnerId]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   const handleHelpful = useCallback((reviewId: string) => {
     setHelpfulMap((prev) => ({

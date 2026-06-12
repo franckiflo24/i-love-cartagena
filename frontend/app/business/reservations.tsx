@@ -178,8 +178,14 @@ export default function BusinessReservations() {
         { action: modalAction, note: modalNote.trim() },
         { headers: { Authorization: `Bearer ${token}` } },
       );
+      // Optimistically update local state so the UI reflects the action
+      const newStatus = modalAction === 'confirm' ? 'confirmed' : 'rejected_by_partner';
+      setReservations(prev =>
+        prev.map(r => r.reservation_id === modalRes.reservation_id
+          ? { ...r, status: newStatus, partner_note: modalNote.trim() || r.partner_note }
+          : r),
+      );
       closeModal();
-      load();
       Alert.alert(
         tr('Listo'),
         modalAction === 'confirm'
@@ -209,7 +215,12 @@ export default function BusinessReservations() {
                 { action },
                 { headers: { Authorization: `Bearer ${token}` } },
               );
-              load();
+              // Optimistically update local state
+              setReservations(prev =>
+                prev.map(res => res.reservation_id === r.reservation_id
+                  ? { ...res, status: action === 'complete' ? 'completed' : 'no_show' }
+                  : res),
+              );
             } catch (e: any) {
               Alert.alert(tr('Error'), String(e?.message || ''));
             }

@@ -11,6 +11,7 @@ import { LANG_LABELS, LANG_FLAGS, Lang } from '../../src/i18n/translations';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useRewards } from '../../src/context/RewardsContext';
 import { useTr } from '../../src/i18n/autoTr';
+import { SafeImage } from '../../src/components/SafeImage';
 
 const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
 
@@ -51,7 +52,28 @@ export default function PerfilScreen() {
         user_id: user.user_id,
         favorites: favIds,
       });
-      setAiProfile(data);
+      // In static mode api.post returns the request body — no profile fields.
+      // Detect this and generate a meaningful local profile instead.
+      if (data && !data.traveler_type && !data.vibe && !data.summary) {
+        const typeMap: Record<string, string> = {
+          restaurant: 'Foodie', bar: 'Nightlife Explorer', hotel: 'Luxury Traveler',
+          wellness: 'Wellness Seeker', beauty: 'Self-Care Enthusiast',
+          activity: 'Adventure Seeker', beach_club: 'Beach Lover',
+        };
+        const types = favIds.map(f => f.item_type).filter(Boolean);
+        const topType = types.sort((a, b) =>
+          types.filter(t => t === b).length - types.filter(t => t === a).length
+        )[0] || 'explorer';
+        const localProfile = {
+          traveler_type: typeMap[topType] || 'Cartagena Explorer',
+          vibe: 'Caribbean Luxury',
+          summary: `Based on your ${favIds.length} favorites, you love the best of Cartagena.`,
+          top_zones: ['Centro Histórico', 'Getsemaní', 'Bocagrande'],
+        };
+        setAiProfile(localProfile);
+      } else {
+        setAiProfile(data);
+      }
     } catch (e) { console.error(e); }
     setProfileBuilding(false);
   };
@@ -284,9 +306,9 @@ export default function PerfilScreen() {
           {!aiProfile || aiProfile.ai_status === 'not_built' || (aiProfile.data_points || 0) === 0 ? (
             <View style={styles.aiEmpty}>
               <Ionicons name="heart-circle-outline" size={32} color={COLORS.textMuted} />
-              <Text style={styles.aiEmptyTitle}>Tu perfil aún está vacío</Text>
+              <Text style={styles.aiEmptyTitle}>{tr('Tu perfil aún está vacío')}</Text>
               <Text style={styles.aiEmptyDesc}>
-                Guarda al menos 2 lugares o eventos como favoritos y la IA construirá tu perfil personalizado.
+                {tr('Guarda al menos 2 lugares o eventos como favoritos y la IA construirá tu perfil personalizado.')}
               </Text>
             </View>
           ) : (
@@ -319,7 +341,7 @@ export default function PerfilScreen() {
                 )}
                 <View style={styles.aiStat}>
                   <Ionicons name="heart" size={12} color={COLORS.primary} />
-                  <Text style={styles.aiStatText}>{aiProfile.data_points} señales</Text>
+                  <Text style={styles.aiStatText}>{aiProfile.data_points} {tr('señales')}</Text>
                 </View>
               </View>
             </>
@@ -381,7 +403,7 @@ export default function PerfilScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.businessTitle}>{tr('Acceso Partners')}</Text>
-            <Text style={styles.businessDesc}>Dashboard y gestión de eventos</Text>
+            <Text style={styles.businessDesc}>{tr('Dashboard y gestión de eventos')}</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
         </TouchableOpacity>
@@ -393,14 +415,14 @@ export default function PerfilScreen() {
             style={[styles.tab, activeTab === 'week' && styles.tabActive]}
             onPress={() => setActiveTab('week')}
           >
-            <Text style={[styles.tabText, activeTab === 'week' && styles.tabTextActive]}>Mi Semana ({myWeek.length})</Text>
+            <Text style={[styles.tabText, activeTab === 'week' && styles.tabTextActive]}>{tr('Mi Semana')} ({myWeek.length})</Text>
           </TouchableOpacity>
           <TouchableOpacity
             testID="tab-favorites"
             style={[styles.tab, activeTab === 'favorites' && styles.tabActive]}
             onPress={() => setActiveTab('favorites')}
           >
-            <Text style={[styles.tabText, activeTab === 'favorites' && styles.tabTextActive]}>Favoritos ({favorites.length})</Text>
+            <Text style={[styles.tabText, activeTab === 'favorites' && styles.tabTextActive]}>{tr('Favoritos')} ({favorites.length})</Text>
           </TouchableOpacity>
         </View>
 
@@ -411,13 +433,13 @@ export default function PerfilScreen() {
           <View style={styles.emptyState}>
             <Ionicons name={activeTab === 'week' ? 'calendar-outline' : 'heart-outline'} size={48} color={COLORS.textMuted} />
             <Text style={styles.emptyTitle}>
-              {activeTab === 'week' ? 'Tu semana está vacía' : 'Sin favoritos aún'}
+              {activeTab === 'week' ? tr('Tu semana está vacía') : tr('Sin favoritos aún')}
             </Text>
             <Text style={styles.emptyDesc}>
-              {activeTab === 'week' ? 'Agrega eventos a tu itinerario personal' : 'Marca eventos como favoritos'}
+              {activeTab === 'week' ? tr('Agrega eventos a tu itinerario personal') : tr('Marca eventos como favoritos')}
             </Text>
             <TouchableOpacity testID="explore-events-btn" style={styles.exploreBtn} onPress={() => router.push('/(tabs)/agenda')}>
-              <Text style={styles.exploreBtnText}>Explorar agenda</Text>
+              <Text style={styles.exploreBtnText}>{tr('Explorar agenda')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -428,7 +450,7 @@ export default function PerfilScreen() {
               style={styles.eventRow}
               onPress={() => router.push(`/event/${event.event_id}`)}
             >
-              <Image source={{ uri: event.image_url }} style={styles.eventThumb} />
+              <SafeImage uri={event.image_url} category={(event as any).type} style={styles.eventThumb} />
               <View style={styles.eventInfo}>
                 <Text style={styles.eventTitle} numberOfLines={1}>{event.title}</Text>
                 <Text style={styles.eventMeta}>{event.date} · {event.start_time}</Text>

@@ -56,6 +56,15 @@ export default function ExperienceBookingScreen() {
         } else {
           Alert.alert('Pago', `Estado: ${wompiResult.status}`);
         }
+      } else {
+        // Static mode: no checkout_url. Show clear feedback instead of silent nothing.
+        Alert.alert(
+          'Reserva tu experiencia',
+          `El pago en línea estará disponible pronto.\n\nMientras tanto, contacta al operador por WhatsApp para reservar "${params.title}" el ${selectedDate} para ${guests} persona${guests > 1 ? 's' : ''}.`,
+          [
+            { text: 'OK', onPress: () => router.back() },
+          ],
+        );
       }
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Booking failed');

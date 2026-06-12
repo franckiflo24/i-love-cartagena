@@ -70,9 +70,10 @@ export default function TransportScreen() {
     setPaying(true);
     try {
       const userRaw = await AsyncStorage.getItem('user_data');
-      const user = userRaw ? JSON.parse(userRaw) : null;
+      let user = null;
+      try { if (userRaw) user = JSON.parse(userRaw); } catch {}
       const today = new Date().toISOString().slice(0, 10);
-      const ticket = await api.post(`/transport/${buyModalRoute.transport_id}/buy`, {
+      const result = await api.post(`/transport/${buyModalRoute.transport_id}/buy`, {
         user_id: user?.user_id || `guest_${Date.now()}`,
         user_name: user?.name || 'Visitante',
         user_email: user?.email,
@@ -81,6 +82,26 @@ export default function TransportScreen() {
         departure_date: today,
         port_tax_included: true,
       });
+      // In static mode api.post returns the request body — no ticket_id/qr_url.
+      // Build a proper local ticket so the confirmation screen works.
+      const ticketId = result?.ticket_id || `TKT-${Date.now().toString(36).toUpperCase()}`;
+      const validDate = new Date();
+      validDate.setDate(validDate.getDate() + 1);
+      const ticket = {
+        ticket_id: ticketId,
+        qr_url: `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(ticketId)}`,
+        route_name: buyModalRoute.route_name || buyModalRoute.partner,
+        passengers,
+        trip_type: tripType,
+        valid_until: validDate.toISOString().slice(0, 10),
+        total,
+        ...result,
+      };
+      // Persist locally
+      const stored = await AsyncStorage.getItem('amo_tickets');
+      const tickets = stored ? JSON.parse(stored) : [];
+      tickets.unshift(ticket);
+      await AsyncStorage.setItem('amo_tickets', JSON.stringify(tickets));
       setResultTicket(ticket);
     } catch (e: any) {
       Alert.alert('Error en el pago', e?.message || 'Intenta de nuevo más tarde.');
@@ -106,7 +127,7 @@ export default function TransportScreen() {
           <Text style={styles.title}>{tr('Transporte')}</Text>
           <Text style={styles.subtitle}>Compra tu ticket en línea — sin filas</Text>
         </View>
-        <TouchableOpacity onPress={() => router.push('/my-tickets' as any)} style={styles.ticketsBtn}>
+        <TouchableOpacity onPress={() => router.push('/port-tax/tickets' as any)} style={styles.ticketsBtn}>
           <Ionicons name="ticket" size={18} color={COLORS.primary} />
         </TouchableOpacity>
       </View>

@@ -87,8 +87,9 @@ export default function BusinessDashboard() {
       { text: 'Eliminar', style: 'destructive', onPress: async () => {
         try {
           await api.delete(`/business/events/${eventId}`, { headers: { Authorization: `Bearer ${token}` } });
-          await load();
-        } catch (e: any) { Alert.alert('Error', e?.message || 'No se pudo eliminar'); }
+        } catch (e: any) { Alert.alert('Error', e?.message || 'No se pudo eliminar'); return; }
+        // Optimistically remove from local state (static mode reload returns same list)
+        setEvents((prev: any[]) => prev.filter((e: any) => e.event_id !== eventId));
       } },
     ]);
   };

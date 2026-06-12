@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -73,7 +73,14 @@ export default function ItinerariesScreen() {
     setRegenerating(true);
     try {
       const data = await api.post('/itineraries/regenerate', { category });
-      setItinerary(data);
+      if (data?.stops && Array.isArray(data.stops)) {
+        setItinerary(data);
+      } else {
+        // Static mode: api.post returns the body without stops.
+        // Reload the existing itinerary from static data so the user
+        // sees the curated route instead of a "coming soon" dead end.
+        await load(category, false);
+      }
     } catch (e) {
       console.error('regenerate error', e);
     } finally {

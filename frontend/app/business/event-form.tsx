@@ -96,11 +96,19 @@ export default function EventForm() {
       const verdict = result?._remoderation?.verdict || result?.moderation_verdict;
       const reason = result?._remoderation?.reason || result?.moderation_reason;
       if (verdict === 'NEEDS_REVIEW') {
-        Alert.alert('⏳ En revisión', reason || 'La IA marcó tu evento para revisión manual del admin. Te avisaremos cuando se apruebe.', [{ text: 'OK', onPress: () => router.back() }]);
+        Alert.alert('En revisión', reason || 'La IA marcó tu evento para revisión manual del admin. Te avisaremos cuando se apruebe.', [{ text: 'OK', onPress: () => router.back() }]);
       } else if (verdict === 'REJECT') {
-        Alert.alert('❌ Rechazado', reason || 'La IA detectó contenido no apto.', [{ text: 'OK', onPress: () => router.back() }]);
+        Alert.alert('Rechazado', reason || 'La IA detectó contenido no apto.', [{ text: 'OK', onPress: () => router.back() }]);
       } else {
-        Alert.alert(isEdit ? '✅ Cambios guardados' : '✅ Publicado', `La IA aprobó tu evento al instante.\n\n${reason || ''}`, [{ text: 'OK', onPress: () => router.back() }]);
+        // In static mode, result has no verdict (just the payload back).
+        // Show success so the partner gets clear feedback.
+        Alert.alert(
+          isEdit ? 'Cambios guardados' : 'Evento creado',
+          isEdit
+            ? 'Tu evento fue actualizado exitosamente.'
+            : 'Tu evento fue creado. Aparecerá en la agenda una vez aprobado.',
+          [{ text: 'OK', onPress: () => router.back() }],
+        );
       }
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'No se pudo guardar');

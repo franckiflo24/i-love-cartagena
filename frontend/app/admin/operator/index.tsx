@@ -82,8 +82,14 @@ export default function OperatorIndex() {
     if (!token) return;
     try {
       await api.patch(`/admin/operator/partners/${p.partner_id}/approval`, { action }, { headers: { Authorization: `Bearer ${token}` } });
+      // Optimistically update local state
+      const newStatus = action === 'approve' ? 'active' : action === 'suspend' ? 'suspended' : 'active';
+      setPartners(prev =>
+        prev.map(partner => partner.partner_id === p.partner_id
+          ? { ...partner, status: newStatus, is_approved: action !== 'suspend' }
+          : partner),
+      );
       Alert.alert('Hecho', `${p.name} → ${action === 'approve' ? 'aprobado' : action === 'suspend' ? 'suspendido' : 'reactivado'}`);
-      fetchData(token);
     } catch {
       Alert.alert('Error', 'No se pudo actualizar.');
     }
@@ -93,8 +99,11 @@ export default function OperatorIndex() {
     if (!token) return;
     try {
       const data = await api.post(`/admin/operator/partners/${p.partner_id}/invite`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      // In static mode data has no activation_url. Build a reasonable fallback.
+      const msg = data?.whatsapp_message || data?.activation_url
+        || `Hola ${p.name}! Te invitamos a activar tu perfil de partner en AMO Cartagena. Contacta al admin para tu link de activación.`;
       try {
-        await Share.share({ message: data?.whatsapp_message || data?.activation_url || '' });
+        await Share.share({ message: msg });
       } catch { /* user cancelled */ }
     } catch {
       Alert.alert('Error', 'No se pudo generar invitación.');
