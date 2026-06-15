@@ -10,6 +10,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useFavorites } from '../src/context/FavoritesContext';
 import { useTr } from '../src/i18n/autoTr';
+import { SafeImage } from '../src/components/SafeImage';
 
 type Concert = {
   concert_id: string; artist: string; title: string; genre: string;
@@ -100,10 +101,18 @@ export default function ConcertsScreen() {
     load();
   }, []);
 
+  const todayStr = new Date().toISOString().slice(0, 10);
+
   const filteredConcerts = concerts.filter(c => {
     if (selectedDate && c.date !== selectedDate) return false;
     if (selectedGenre && !c.genre.toLowerCase().includes(selectedGenre.toLowerCase())) return false;
     return true;
+  }).sort((a, b) => {
+    // Upcoming first, past last
+    const aPast = a.date < todayStr ? 1 : 0;
+    const bPast = b.date < todayStr ? 1 : 0;
+    if (aPast !== bPast) return aPast - bPast;
+    return a.date.localeCompare(b.date);
   });
 
   const openTicketLink = (url: string) => {
@@ -197,15 +206,22 @@ export default function ConcertsScreen() {
           filteredConcerts.map(concert => {
             const isExpanded = expanded === concert.concert_id;
             const genreColor = getGenreColor(concert.genre);
+            const isPast = concert.date < todayStr;
             return (
               <TouchableOpacity
                 key={concert.concert_id}
-                style={styles.concertCard}
+                style={[styles.concertCard, isPast && { opacity: 0.6 }]}
                 onPress={() => setExpanded(isExpanded ? null : concert.concert_id)}
                 activeOpacity={0.85}
               >
                 {/* Image */}
-                <Image source={{ uri: concert.image_url }} style={styles.concertImage} />
+                <SafeImage uri={concert.image_url} category="concert" style={styles.concertImage} />
+                {isPast && (
+                  <View style={styles.pastBadge}>
+                    <Ionicons name="time-outline" size={11} color="#FFF" />
+                    <Text style={styles.pastBadgeText}>Finalizado</Text>
+                  </View>
+                )}
                 <View style={styles.imageOverlay} />
 
                 {/* Price Badge */}
@@ -403,6 +419,8 @@ const styles = StyleSheet.create({
   locationCtaText: { flex: 1, fontSize: 13, color: COLORS.primary, ...FONTS.semibold },
 
   // Empty
+  pastBadge: { position: 'absolute', top: 12, left: 60, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4, zIndex: 3 },
+  pastBadgeText: { fontSize: 10, color: '#FFF', ...FONTS.bold, letterSpacing: 0.5 },
   emptyState: { alignItems: 'center', paddingTop: 80, gap: SPACING.md },
   emptyText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular },
 });
