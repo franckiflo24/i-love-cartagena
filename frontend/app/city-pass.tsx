@@ -13,6 +13,20 @@ type Plan = {
   duration_days: number; color: string; benefits: string[];
 };
 
+/** Safe date parser: returns null on null/empty/garbage, valid Date otherwise */
+function safeDateParse(v: unknown): Date | null {
+  if (v == null || v === '') return null;
+  const d = new Date(v as string);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/** Format a date value safely — returns 'Fecha no disponible' on bad input */
+function safeFormatDate(v: unknown): string {
+  const d = safeDateParse(v);
+  if (!d) return 'Fecha no disponible';
+  return d.toLocaleDateString('es-CO');
+}
+
 export default function CityPassScreen() {
   const tr = useTr();
   const router = useRouter();
@@ -37,20 +51,12 @@ export default function CityPassScreen() {
     load();
   }, [user]);
 
-  const activatePass = async (planId: string) => {
-    if (!user) { login(); return; }
-    setActivating(planId);
-    try {
-      const res = await api.post('/city-pass/activate', { plan_id: planId });
-      if (res.pass) {
-        setMyPass(res.pass);
-        Alert.alert('City Pass Activado', 'Tu City Pass está listo. Disfruta Cartagena con beneficios exclusivos.');
-      }
-    } catch (e) {
-      // Graceful fallback — show success even if API is unavailable
-      Alert.alert('City Pass', 'Tu solicitud ha sido registrada. Te notificaremos cuando esté activo.');
-    }
-    setActivating(null);
+  const activatePass = async (_planId: string) => {
+    Alert.alert(
+      'City Pass',
+      'Próximamente — únete a la lista de espera. Te notificaremos cuando el City Pass esté disponible para activar.',
+      [{ text: 'OK' }],
+    );
   };
 
   const formatPrice = (p: number) => `$${(p / 1000).toFixed(0)}K COP`;
@@ -74,9 +80,9 @@ export default function CityPassScreen() {
           <View style={styles.activePassSection}>
             <View style={[styles.activePassCard, { borderColor: COLORS.primary }]}>
               <Ionicons name="shield-checkmark" size={40} color={COLORS.primary} />
-              <Text style={styles.activeTitle}>Pass Activo</Text>
+              <Text style={styles.activeTitle}>Pass Activo · Demo</Text>
               <Text style={styles.activePlan}>{plans.find(p => p.plan_id === myPass.plan_id)?.name || myPass.plan_id}</Text>
-              <Text style={styles.activeExpiry}>Válido hasta: {new Date(myPass.expires_at).toLocaleDateString('es-CO')}</Text>
+              <Text style={styles.activeExpiry}>Válido hasta: {safeFormatDate(myPass.expires_at)}</Text>
               <View style={styles.activeBenefits}>
                 {(plans.find(p => p.plan_id === myPass.plan_id)?.benefits || []).map((b, i) => (
                   <View key={i} style={styles.benefitRow}>
@@ -127,7 +133,7 @@ export default function CityPassScreen() {
                     <ActivityIndicator size="small" color={COLORS.white} />
                   ) : (
                     <Text style={styles.activateText}>
-                      {user ? 'Activar Pass' : 'Inicia sesión para activar'}
+                      Próximamente — únete a la lista
                     </Text>
                   )}
                 </TouchableOpacity>
