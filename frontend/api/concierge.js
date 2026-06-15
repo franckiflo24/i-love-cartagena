@@ -92,7 +92,7 @@ ${partnerList}
 STYLE:
 - Respond in the same language the user writes in (Spanish or English).
 - Be warm, knowledgeable, and concise. 2-4 sentences per recommendation.
-- Use the partner_id in parentheses only internally — never show IDs to users.
+- NEVER show partner_id codes (like ptr_R001) to users. Only use partner names.
 - For reservations, tell users to use the "Reservar" button on the partner's page in the app.`;
 }
 
@@ -144,7 +144,7 @@ module.exports = async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: process.env.CLAUDE_MODEL || 'claude-haiku-4-5-20251001',
         max_tokens: 1024,
         system: systemPrompt,
         messages: messages.slice(-10).map(m => ({
@@ -157,7 +157,7 @@ module.exports = async function handler(req, res) {
     if (!anthropicRes.ok) {
       const errText = await anthropicRes.text().catch(() => '');
       console.error('[concierge] Anthropic error:', anthropicRes.status, errText);
-      return res.status(502).json({ error: 'AI service unavailable' });
+      return res.status(502).json({ error: 'AI service unavailable', status: anthropicRes.status, detail: errText.slice(0, 200) });
     }
 
     const data = await anthropicRes.json();
