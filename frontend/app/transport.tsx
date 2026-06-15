@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator,
-  Linking as RNLinking, Modal, Image, KeyboardAvoidingView, Platform, Alert,
+  Linking as RNLinking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
@@ -33,12 +32,8 @@ export default function TransportScreen() {
   const [routes, setRoutes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Buy modal state
-  const [buyModalRoute, setBuyModalRoute] = useState<any | null>(null);
-  const [tripType, setTripType] = useState<'one_way' | 'round_trip'>('round_trip');
-  const [passengers, setPassengers] = useState(1);
-  const [paying, setPaying] = useState(false);
-  const [resultTicket, setResultTicket] = useState<any | null>(null);
+  // WhatsApp booking helper
+  const AMO_WHATSAPP = '573176481183';
 
   useEffect(() => {
     const load = async () => {
@@ -56,66 +51,24 @@ export default function TransportScreen() {
     RNLinking.openURL(`https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}`);
   };
 
-  const openBuyModal = (route: any) => {
-    setBuyModalRoute(route);
-    setTripType('round_trip');
-    setPassengers(1);
-    setResultTicket(null);
+  const openWhatsAppBooking = (route: any) => {
+    const routeName = route.route_name || route.route || route.partner || route.partner_name || 'Ruta';
+    const p = parsePrice(route.price || '');
+    const priceText = p.roundTrip > 0 ? `$${p.roundTrip.toLocaleString()} COP ida/vuelta` : 'consultar precio';
+    const msg = encodeURIComponent(
+      `Hola! Quiero reservar transporte via *AMO Cartagena* 🌴\n\n`
+      + `Ruta: *${routeName}*\n`
+      + `Precio referencia: ${priceText}\n`
+      + `Pasajeros: 1\n\n`
+      + `¿Disponibilidad?\n\n---\n\n`
+      + `Hi! I'd like to book transport via *AMO Cartagena* 🌴\n\n`
+      + `Route: *${routeName}*\n`
+      + `Ref. price: ${priceText}\n`
+      + `Passengers: 1\n\n`
+      + `Availability?`
+    );
+    RNLinking.openURL(`https://wa.me/${AMO_WHATSAPP}?text=${msg}`);
   };
-
-  const closeAll = () => { setBuyModalRoute(null); setResultTicket(null); };
-
-  const handlePay = async () => {
-    if (!buyModalRoute) return;
-    setPaying(true);
-    try {
-      const userRaw = await AsyncStorage.getItem('user_data');
-      let user = null;
-      try { if (userRaw) user = JSON.parse(userRaw); } catch {}
-      const today = new Date().toISOString().slice(0, 10);
-      const result = await api.post(`/transport/${buyModalRoute.transport_id}/buy`, {
-        user_id: user?.user_id || `guest_${Date.now()}`,
-        user_name: user?.name || 'Visitante',
-        user_email: user?.email,
-        trip_type: tripType,
-        passengers,
-        departure_date: today,
-        port_tax_included: true,
-      });
-      // In static mode api.post returns the request body — no ticket_id/qr_url.
-      // Build a proper local ticket so the confirmation screen works.
-      const ticketId = result?.ticket_id || `TKT-${Date.now().toString(36).toUpperCase()}`;
-      const validDate = new Date();
-      validDate.setDate(validDate.getDate() + 1);
-      const ticket = {
-        ticket_id: ticketId,
-        qr_url: `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(ticketId)}`,
-        route_name: buyModalRoute.route_name || buyModalRoute.partner,
-        passengers,
-        trip_type: tripType,
-        valid_until: validDate.toISOString().slice(0, 10),
-        total,
-        ...result,
-      };
-      // Persist locally
-      const stored = await AsyncStorage.getItem('amo_tickets');
-      const tickets = stored ? JSON.parse(stored) : [];
-      tickets.unshift(ticket);
-      await AsyncStorage.setItem('amo_tickets', JSON.stringify(tickets));
-      setResultTicket(ticket);
-    } catch (e: any) {
-      Alert.alert('Error en el pago', e?.message || 'Intenta de nuevo más tarde.');
-    }
-    setPaying(false);
-  };
-
-  // Compute totals for the modal
-  const prices = buyModalRoute ? parsePrice(buyModalRoute.price || '') : { oneWay: 0, roundTrip: 0 };
-  const basePrice = tripType === 'round_trip' ? prices.roundTrip : prices.oneWay;
-  const subtotal = basePrice * passengers;
-  const portTax = 25000 * passengers;
-  const total = subtotal + portTax;
-  const isPayable = basePrice > 0;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -125,7 +78,7 @@ export default function TransportScreen() {
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>{tr('Transporte')}</Text>
-          <Text style={styles.subtitle}>Compra tu ticket en línea — sin filas</Text>
+          <Text style={styles.subtitle}>Lanchas, shuttles y transfers en Cartagena</Text>
         </View>
         <TouchableOpacity onPress={() => router.push('/port-tax/tickets' as any)} style={styles.ticketsBtn}>
           <Ionicons name="ticket" size={18} color={COLORS.primary} />
@@ -138,7 +91,7 @@ export default function TransportScreen() {
         ) : (
           routes.map(route => {
             const p = parsePrice(route.price || '');
-            const canPay = p.oneWay > 0 && (route.type === 'boat' || route.type === 'shuttle');
+            const _p = p; // price parsed above
             return (
               <View key={route.transport_id} style={styles.card} testID={`transport-${route.transport_id}`}>
                 <View style={styles.cardHeader}>
@@ -149,10 +102,10 @@ export default function TransportScreen() {
                     <Text style={styles.routeName}>{route.route_name || route.route || route.partner || route.partner_name}</Text>
                     <Text style={styles.routePartner}>{route.partner || route.partner_name || ''}</Text>
                   </View>
-                  {canPay && (
+                  {(route.type === 'boat' || route.type === 'shuttle') && (
                     <View style={styles.qrBadge}>
-                      <Ionicons name="qr-code" size={11} color="#22C55E" />
-                      <Text style={styles.qrBadgeText}>QR</Text>
+                      <Ionicons name="logo-whatsapp" size={11} color="#22C55E" />
+                      <Text style={styles.qrBadgeText}>WA</Text>
                     </View>
                   )}
                 </View>
@@ -248,23 +201,14 @@ export default function TransportScreen() {
                     <Text style={styles.mapBtnText}>Punto de salida</Text>
                   </TouchableOpacity>
 
-                  {canPay ? (
+                  {(route.type === 'boat' || route.type === 'shuttle') ? (
                     <TouchableOpacity
                       style={styles.payBtn}
-                      onPress={() => openBuyModal(route)}
+                      onPress={() => openWhatsAppBooking(route)}
                       activeOpacity={0.85}
                     >
-                      <Ionicons name="card" size={14} color={COLORS.white} />
-                      <Text style={styles.payBtnText}>Pagar en línea</Text>
-                    </TouchableOpacity>
-                  ) : route.type === 'boat' ? (
-                    <TouchableOpacity
-                      style={styles.payBtn}
-                      onPress={() => router.push('/port-tax/checkout' as any)}
-                      activeOpacity={0.85}
-                    >
-                      <Ionicons name="qr-code" size={14} color={COLORS.white} />
-                      <Text style={styles.payBtnText}>Pagar tasa portuaria</Text>
+                      <Ionicons name="logo-whatsapp" size={14} color={COLORS.white} />
+                      <Text style={styles.payBtnText}>Reservar vía WhatsApp</Text>
                     </TouchableOpacity>
                   ) : null}
                 </View>
@@ -275,169 +219,7 @@ export default function TransportScreen() {
         <View style={{ height: SPACING.xxl }} />
       </ScrollView>
 
-      {/* Buy modal */}
-      <Modal
-        visible={buyModalRoute !== null}
-        animationType="slide"
-        transparent
-        onRequestClose={closeAll}
-      >
-        <KeyboardAvoidingView
-          style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <View style={styles.modalCard}>
-            <View style={styles.modalHandle} />
-            {!resultTicket ? (
-              <>
-                <Text style={styles.modalTitle}>Comprar ticket</Text>
-                <Text style={styles.modalSubtitle}>{buyModalRoute?.route_name || buyModalRoute?.partner}</Text>
-
-                {/* Trip type */}
-                <Text style={styles.modalLabel}>Tipo de viaje</Text>
-                <View style={styles.optionsRow}>
-                  {isPayable && prices.oneWay !== prices.roundTrip && (
-                    <TouchableOpacity
-                      style={[styles.optionBtn, tripType === 'one_way' && styles.optionBtnActive]}
-                      onPress={() => setTripType('one_way')}
-                    >
-                      <Text style={[styles.optionLabel, tripType === 'one_way' && styles.optionLabelActive]}>
-                        Solo ida
-                      </Text>
-                      <Text style={[styles.optionPrice, tripType === 'one_way' && styles.optionPriceActive]}>
-                        ${prices.oneWay.toLocaleString()} COP
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                  <TouchableOpacity
-                    style={[styles.optionBtn, tripType === 'round_trip' && styles.optionBtnActive]}
-                    onPress={() => setTripType('round_trip')}
-                  >
-                    <Text style={[styles.optionLabel, tripType === 'round_trip' && styles.optionLabelActive]}>
-                      Ida y vuelta
-                    </Text>
-                    <Text style={[styles.optionPrice, tripType === 'round_trip' && styles.optionPriceActive]}>
-                      ${prices.roundTrip.toLocaleString()} COP
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Passengers */}
-                <Text style={styles.modalLabel}>{tr('Pasajeros')}</Text>
-                <View style={styles.paxRow}>
-                  <TouchableOpacity
-                    style={styles.paxBtn}
-                    onPress={() => setPassengers(Math.max(1, passengers - 1))}
-                  >
-                    <Ionicons name="remove" size={18} color={COLORS.textMain} />
-                  </TouchableOpacity>
-                  <Text style={styles.paxValue}>{passengers}</Text>
-                  <TouchableOpacity
-                    style={styles.paxBtn}
-                    onPress={() => setPassengers(Math.min(10, passengers + 1))}
-                  >
-                    <Ionicons name="add" size={18} color={COLORS.textMain} />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Summary */}
-                <View style={styles.summary}>
-                  <View style={styles.summaryRow}>
-                    <Text style={styles.summaryLabel}>Subtotal ({passengers}× ${basePrice.toLocaleString()})</Text>
-                    <Text style={styles.summaryValue}>${subtotal.toLocaleString()}</Text>
-                  </View>
-                  <View style={styles.summaryRow}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flex: 1 }}>
-                      <Text style={styles.summaryLabel}>Impuesto portuario</Text>
-                      <View style={styles.portTaxBadge}>
-                        <Text style={styles.portTaxBadgeText}>INCLUIDO</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.summaryValue}>${portTax.toLocaleString()}</Text>
-                  </View>
-                  <View style={[styles.summaryRow, styles.totalRow]}>
-                    <Text style={styles.totalLabel}>{tr('Total')}</Text>
-                    <Text style={styles.totalValue}>${total.toLocaleString()} COP</Text>
-                  </View>
-                </View>
-
-                <Text style={styles.savingsNote}>
-                  💡 Pagando aquí evitas la fila para el impuesto portuario en la bodeguita.
-                </Text>
-
-                <TouchableOpacity
-                  style={[styles.confirmBtn, paying && { opacity: 0.6 }]}
-                  onPress={handlePay}
-                  disabled={paying}
-                  activeOpacity={0.85}
-                >
-                  {paying ? (
-                    <ActivityIndicator color={COLORS.white} />
-                  ) : (
-                    <>
-                      <Ionicons name="lock-closed" size={16} color={COLORS.white} />
-                      <Text style={styles.confirmBtnText}>Pagar ${total.toLocaleString()} COP</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.cancelBtn} onPress={closeAll}>
-                  <Text style={styles.cancelText}>{tr('Cancelar')}</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              /* QR result */
-              <ScrollView contentContainerStyle={{ paddingBottom: SPACING.lg }}>
-                <View style={styles.successHero}>
-                  <View style={styles.successCircle}>
-                    <Ionicons name="checkmark" size={32} color={COLORS.white} />
-                  </View>
-                  <Text style={styles.successTitle}>¡Pago exitoso!</Text>
-                  <Text style={styles.successSubtitle}>
-                    Muestra este QR en la entrada de la bodeguita
-                  </Text>
-                </View>
-
-                <View style={styles.qrCard}>
-                  <Image source={{ uri: resultTicket.qr_url }} style={styles.qrImage} />
-                  <Text style={styles.ticketIdText}>{resultTicket.ticket_id}</Text>
-                </View>
-
-                <View style={styles.ticketDetails}>
-                  <View style={styles.ticketRow}>
-                    <Ionicons name="boat" size={14} color={COLORS.primary} />
-                    <Text style={styles.ticketRowText}>{resultTicket.route_name || buyModalRoute?.partner}</Text>
-                  </View>
-                  <View style={styles.ticketRow}>
-                    <Ionicons name="people" size={14} color={COLORS.primary} />
-                    <Text style={styles.ticketRowText}>
-                      {resultTicket.passengers} pasajero{resultTicket.passengers !== 1 ? 's' : ''} · {resultTicket.trip_type === 'round_trip' ? 'Ida y vuelta' : 'Solo ida'}
-                    </Text>
-                  </View>
-                  <View style={styles.ticketRow}>
-                    <Ionicons name="calendar" size={14} color={COLORS.primary} />
-                    <Text style={styles.ticketRowText}>Válido: {resultTicket.valid_until}</Text>
-                  </View>
-                  <View style={styles.ticketRow}>
-                    <Ionicons name="cash" size={14} color={COLORS.success} />
-                    <Text style={styles.ticketRowText}>
-                      Total: ${resultTicket.total.toLocaleString()} COP (incluye impuesto portuario)
-                    </Text>
-                  </View>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.confirmBtn}
-                  onPress={closeAll}
-                  activeOpacity={0.85}
-                >
-                  <Ionicons name="checkmark-circle" size={16} color={COLORS.white} />
-                  <Text style={styles.confirmBtnText}>Listo</Text>
-                </TouchableOpacity>
-              </ScrollView>
-            )}
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+      {/* No modal — booking goes to WhatsApp */}
     </SafeAreaView>
   );
 }
@@ -509,47 +291,4 @@ const styles = StyleSheet.create({
   payBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: RADIUS.full, backgroundColor: COLORS.primary },
   payBtnText: { fontSize: 12, color: COLORS.white, ...FONTS.bold },
 
-  // Modal
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalCard: { backgroundColor: COLORS.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: SPACING.lg, paddingBottom: SPACING.xl, maxHeight: '92%' },
-  modalHandle: { width: 44, height: 4, borderRadius: 2, backgroundColor: COLORS.border, alignSelf: 'center' },
-  modalTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.sm },
-  modalSubtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginBottom: SPACING.md },
-  modalLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.bold, letterSpacing: 1, marginTop: SPACING.sm, marginBottom: 6, textTransform: 'uppercase' },
-  optionsRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.xs },
-  optionBtn: { flex: 1, padding: SPACING.sm, backgroundColor: COLORS.background, borderRadius: RADIUS.lg, borderWidth: 1.5, borderColor: COLORS.border, alignItems: 'center' },
-  optionBtnActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(217,119,6,0.1)' },
-  optionLabel: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold },
-  optionLabelActive: { color: COLORS.textMain },
-  optionPrice: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold, marginTop: 2 },
-  optionPriceActive: { color: COLORS.primary },
-  paxRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', backgroundColor: COLORS.background, borderRadius: RADIUS.lg, paddingVertical: 10, borderWidth: 1, borderColor: COLORS.border },
-  paxBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
-  paxValue: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, minWidth: 60, textAlign: 'center' },
-  summary: { marginTop: SPACING.md, padding: SPACING.md, backgroundColor: COLORS.background, borderRadius: RADIUS.lg, gap: 8 },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  summaryLabel: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
-  summaryValue: { fontSize: 13, color: COLORS.textMain, ...FONTS.semibold },
-  portTaxBadge: { backgroundColor: COLORS.success, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  portTaxBadgeText: { fontSize: 8, color: COLORS.white, ...FONTS.bold, letterSpacing: 0.5 },
-  totalRow: { borderTopWidth: 1, borderTopColor: COLORS.border, paddingTop: SPACING.sm, marginTop: 4 },
-  totalLabel: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
-  totalValue: { fontSize: 18, color: COLORS.primary, ...FONTS.bold },
-  savingsNote: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: SPACING.sm, textAlign: 'center', lineHeight: 16 },
-  confirmBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 14, marginTop: SPACING.md },
-  confirmBtnText: { fontSize: 15, color: COLORS.white, ...FONTS.bold },
-  cancelBtn: { alignItems: 'center', paddingVertical: 10, marginTop: 4 },
-  cancelText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium },
-
-  // QR result
-  successHero: { alignItems: 'center', paddingVertical: SPACING.md, gap: 8 },
-  successCircle: { width: 60, height: 60, borderRadius: 30, backgroundColor: COLORS.success, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  successTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold },
-  successSubtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center' },
-  qrCard: { alignItems: 'center', padding: SPACING.lg, backgroundColor: COLORS.white, borderRadius: RADIUS.xl, marginVertical: SPACING.md },
-  qrImage: { width: 220, height: 220 },
-  ticketIdText: { fontSize: 13, color: '#1a1a2e', ...FONTS.bold, marginTop: 8, letterSpacing: 1 },
-  ticketDetails: { gap: 8, padding: SPACING.md, backgroundColor: COLORS.background, borderRadius: RADIUS.lg },
-  ticketRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  ticketRowText: { fontSize: 13, color: COLORS.textMain, ...FONTS.medium, flex: 1 },
 });
