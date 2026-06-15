@@ -369,14 +369,14 @@ export default function RewardsHub() {
         {/* ── Recent History ── */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{s('rewards_history')}</Text>
-          {data.recent_history.length === 0 ? (
+          {(Array.isArray(data.recent_history) ? data.recent_history : []).length === 0 ? (
             <View style={styles.emptyBox}>
               <Ionicons name="time-outline" size={28} color={COLORS.textMuted} />
               <Text style={styles.emptyText}>Sin actividad reciente</Text>
             </View>
           ) : (
             <View style={styles.card}>
-              {data.recent_history.slice(0, 8).map((ev) => (
+              {(Array.isArray(data.recent_history) ? data.recent_history : []).slice(0, 8).map((ev) => (
                 <HistoryRow key={ev.history_id} event={ev} />
               ))}
             </View>
@@ -384,7 +384,7 @@ export default function RewardsHub() {
         </View>
 
         {/* ── Exclusive Offers ── */}
-        {data.offers.length > 0 && (
+        {(Array.isArray(data.offers) ? data.offers : []).length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{s('rewards_offers')}</Text>
             <ScrollView
@@ -392,7 +392,7 @@ export default function RewardsHub() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.offersRow}
             >
-              {data.offers.map((offer) => (
+              {(Array.isArray(data.offers) ? data.offers : []).map((offer) => (
                 <OfferCard
                   key={offer.offer_id}
                   offer={offer}
