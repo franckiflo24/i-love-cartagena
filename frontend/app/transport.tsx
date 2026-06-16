@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator,
   Linking as RNLinking,
@@ -9,6 +9,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
+import PaymentSheet from '../src/components/PaymentSheet';
+import type { PaymentResult } from '../src/lib/payments';
 
 const TRANSPORT_ICONS: Record<string, string> = {
   boat: 'boat',
@@ -31,6 +33,9 @@ export default function TransportScreen() {
   const router = useRouter();
   const [routes, setRoutes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [paySheetVisible, setPaySheetVisible] = useState(false);
+  const [payRoute, setPayRoute] = useState<any>(null);
+  const [payResult, setPayResult] = useState<PaymentResult | null>(null);
 
   // WhatsApp booking helper
   const AMO_WHATSAPP = '573176481183';
@@ -69,6 +74,16 @@ export default function TransportScreen() {
     );
     RNLinking.openURL(`https://wa.me/${AMO_WHATSAPP}?text=${msg}`);
   };
+
+  const openPaySheet = useCallback((route: any) => {
+    setPayRoute(route);
+    setPayResult(null);
+    setPaySheetVisible(true);
+  }, []);
+
+  const handlePaySuccess = useCallback((result: PaymentResult) => {
+    setPayResult(result);
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -202,14 +217,24 @@ export default function TransportScreen() {
                   </TouchableOpacity>
 
                   {(route.type === 'boat' || route.type === 'shuttle') ? (
-                    <TouchableOpacity
-                      style={styles.payBtn}
-                      onPress={() => openWhatsAppBooking(route)}
-                      activeOpacity={0.85}
-                    >
-                      <Ionicons name="logo-whatsapp" size={14} color={COLORS.white} />
-                      <Text style={styles.payBtnText}>Reservar vía WhatsApp</Text>
-                    </TouchableOpacity>
+                    <>
+                      <TouchableOpacity
+                        style={styles.payBtn}
+                        onPress={() => openWhatsAppBooking(route)}
+                        activeOpacity={0.85}
+                      >
+                        <Ionicons name="logo-whatsapp" size={14} color={COLORS.white} />
+                        <Text style={styles.payBtnText}>Reservar vía WhatsApp</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.simBtn}
+                        onPress={() => openPaySheet(route)}
+                        activeOpacity={0.85}
+                      >
+                        <Ionicons name="flask" size={14} color={COLORS.primary} />
+                        <Text style={styles.simBtnText}>Simular pago</Text>
+                      </TouchableOpacity>
+                    </>
                   ) : null}
                 </View>
               </View>
@@ -219,7 +244,16 @@ export default function TransportScreen() {
         <View style={{ height: SPACING.xxl }} />
       </ScrollView>
 
-      {/* No modal — booking goes to WhatsApp */}
+      {/* Payment simulation sheet */}
+      <PaymentSheet
+        visible={paySheetVisible}
+        onClose={() => setPaySheetVisible(false)}
+        amount={payRoute ? parsePrice(payRoute.price || '').roundTrip || parsePrice(payRoute.price || '').oneWay || 50000 : 50000}
+        currency="COP"
+        meta={{ type: 'transport', route: payRoute?.route_name || payRoute?.route || '' }}
+        onSuccess={handlePaySuccess}
+        title="Simular pago — Transporte"
+      />
     </SafeAreaView>
   );
 }
@@ -285,10 +319,12 @@ const styles = StyleSheet.create({
   detailRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
   detailText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, flex: 1, lineHeight: 20 },
   detailTextMuted: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, flex: 1, lineHeight: 18, fontStyle: 'italic' },
-  actionsRow: { flexDirection: 'row', gap: SPACING.sm },
+  actionsRow: { flexDirection: 'row', gap: SPACING.sm, flexWrap: 'wrap' },
   mapBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary },
   mapBtnText: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold },
   payBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: RADIUS.full, backgroundColor: COLORS.primary },
   payBtnText: { fontSize: 12, color: COLORS.white, ...FONTS.bold },
+  simBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 8, paddingHorizontal: 12, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary, backgroundColor: 'rgba(212,175,55,0.08)' },
+  simBtnText: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },
 
 });

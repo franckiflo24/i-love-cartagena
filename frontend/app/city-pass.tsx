@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,6 +7,8 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useAuth } from '../src/context/AuthContext';
 import { useTr } from '../src/i18n/autoTr';
+import PaymentSheet from '../src/components/PaymentSheet';
+import type { PaymentResult } from '../src/lib/payments';
 
 type Plan = {
   plan_id: string; name: string; price: number; currency: string;
@@ -35,6 +37,8 @@ export default function CityPassScreen() {
   const [myPass, setMyPass] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activating, setActivating] = useState<string | null>(null);
+  const [paySheetVisible, setPaySheetVisible] = useState(false);
+  const [payPlan, setPayPlan] = useState<Plan | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -137,12 +141,31 @@ export default function CityPassScreen() {
                     </Text>
                   )}
                 </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.simActivateBtn}
+                  onPress={() => { setPayPlan(plan); setPaySheetVisible(true); }}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="flask" size={14} color={COLORS.primary} />
+                  <Text style={styles.simActivateText}>Simular activación</Text>
+                </TouchableOpacity>
               </View>
             ))}
           </>
         )}
         <View style={{ height: SPACING.xxl }} />
       </ScrollView>
+
+      {/* Payment simulation sheet */}
+      <PaymentSheet
+        visible={paySheetVisible}
+        onClose={() => setPaySheetVisible(false)}
+        amount={payPlan?.price || 100000}
+        currency="COP"
+        meta={{ type: 'city-pass', plan_id: payPlan?.plan_id || '', plan_name: payPlan?.name || '' }}
+        title="Simular activación — City Pass"
+      />
     </SafeAreaView>
   );
 }
@@ -166,8 +189,10 @@ const styles = StyleSheet.create({
   benefitsList: { paddingHorizontal: SPACING.lg, paddingBottom: SPACING.sm, gap: 8 },
   benefitRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
   benefitText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, flex: 1 },
-  activateBtn: { marginHorizontal: SPACING.lg, marginBottom: SPACING.lg, borderRadius: RADIUS.full, paddingVertical: 14, alignItems: 'center' },
+  activateBtn: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, borderRadius: RADIUS.full, paddingVertical: 14, alignItems: 'center' },
   activateText: { fontSize: 15, color: COLORS.white, ...FONTS.bold },
+  simActivateBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, marginHorizontal: SPACING.lg, marginBottom: SPACING.lg, borderRadius: RADIUS.full, paddingVertical: 12, borderWidth: 1, borderColor: COLORS.primary, backgroundColor: 'rgba(212,175,55,0.08)' },
+  simActivateText: { fontSize: 14, color: COLORS.primary, ...FONTS.semibold },
   activePassSection: { padding: SPACING.lg },
   activePassCard: { borderRadius: RADIUS.xl, borderWidth: 2, padding: SPACING.xl, alignItems: 'center', gap: SPACING.sm, backgroundColor: COLORS.surface },
   activeTitle: { fontSize: 14, color: COLORS.primary, ...FONTS.bold, letterSpacing: 2, textTransform: 'uppercase' },

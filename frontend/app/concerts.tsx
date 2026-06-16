@@ -11,6 +11,8 @@ import { api } from '../src/constants/api';
 import { useFavorites } from '../src/context/FavoritesContext';
 import { useTr } from '../src/i18n/autoTr';
 import { SafeImage } from '../src/components/SafeImage';
+import PaymentSheet from '../src/components/PaymentSheet';
+import type { PaymentResult } from '../src/lib/payments';
 
 type Concert = {
   concert_id: string; artist: string; title: string; genre: string;
@@ -83,6 +85,8 @@ export default function ConcertsScreen() {
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [paySheetVisible, setPaySheetVisible] = useState(false);
+  const [payConcert, setPayConcert] = useState<Concert | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -331,6 +335,18 @@ export default function ConcertsScreen() {
                         <Text style={styles.ticketBtnText}>{tr('Entrada libre')}</Text>
                       </View>
                     )}
+
+                    {/* Simulate purchase (paid concerts only) */}
+                    {!concert.is_free && (
+                      <TouchableOpacity
+                        style={styles.simPurchaseBtn}
+                        onPress={() => { setPayConcert(concert); setPaySheetVisible(true); }}
+                        activeOpacity={0.85}
+                      >
+                        <Ionicons name="flask" size={16} color={COLORS.primary} />
+                        <Text style={styles.simPurchaseText}>Simular compra</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 )}
               </TouchableOpacity>
@@ -338,6 +354,16 @@ export default function ConcertsScreen() {
           })
         )}
       </ScrollView>
+
+      {/* Payment simulation sheet */}
+      <PaymentSheet
+        visible={paySheetVisible}
+        onClose={() => setPaySheetVisible(false)}
+        amount={payConcert?.price || 50000}
+        currency="COP"
+        meta={{ type: 'concert', concert_id: payConcert?.concert_id || '', artist: payConcert?.artist || '' }}
+        title="Simular compra — Concierto"
+      />
     </SafeAreaView>
   );
 }
@@ -417,6 +443,10 @@ const styles = StyleSheet.create({
   ticketBtnText: { fontSize: 15, color: '#FFF', ...FONTS.bold },
   locationCta: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: `${COLORS.primary}10`, paddingHorizontal: 12, paddingVertical: 10, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: `${COLORS.primary}25` },
   locationCtaText: { flex: 1, fontSize: 13, color: COLORS.primary, ...FONTS.semibold },
+
+  // Simulate purchase
+  simPurchaseBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, paddingVertical: 12, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary, backgroundColor: 'rgba(212,175,55,0.08)', marginTop: 4 },
+  simPurchaseText: { fontSize: 14, color: COLORS.primary, ...FONTS.semibold },
 
   // Empty
   pastBadge: { position: 'absolute', top: 12, left: 60, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4, zIndex: 3 },
