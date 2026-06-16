@@ -25,8 +25,8 @@
   "description": "Feriado nacional que conmemora la Batalla de Boyaca. Actos civicos y culturales. Muchos cartageneros disfrutan del dia festivo en playas y restaurantes.",
   "description_en": "National holiday commemorating the Battle of Boyaca. Civic and cultural events. Many locals enjoy the holiday at beaches and restaurants.",
   "status": "scheduled",
-  "recurring": true,
-  "recurrence_rule": "annual",
+  "recurring": false,
+  "recurrence_rule": null,
   "expected_attendance": null,
   "last_verified_date": "2026-06-16",
   "source": [

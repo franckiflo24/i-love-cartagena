@@ -3,23 +3,34 @@
   "slug": "virgen-de-la-candelaria-2027",
   "name_es": "Fiesta de la Virgen de la Candelaria",
   "name_en": "Feast of the Virgin of Candelaria",
+  "title": "Fiesta de la Virgen de la Candelaria",
+  "event_id": "virgen-de-la-candelaria-2027",
   "category": "religious",
+  "type": "religious",
   "venue": "Convento de la Popa / Iglesias del Centro",
   "venue_name": "Convento de Santa Cruz de la Popa",
+  "neighborhood": "la-popa",
   "date_start": "2027-02-02",
+  "date": "2027-02-02",
   "date_end": "2027-02-02",
   "time_start": "06:00",
+  "start_time": "06:00",
   "is_free": true,
   "price": 0,
+  "price_min_cop": null,
+  "price_max_cop": null,
   "ticket_url": null,
-  "organizer": "Arquidiócesis de Cartagena",
-  "image_url": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800",
-  "status": "scheduled",
-  "description": "La patrona de Cartagena. Miles de fieles suben al Cerro de la Popa en peregrinación al Convento para venerar a la Virgen de la Candelaria. Misa solemne, procesiones y tradiciones centenarias.",
+  "organizer": "Arquidiocesis de Cartagena",
+  "image_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800",
+  "description": "La patrona de Cartagena. Miles de fieles suben al Cerro de la Popa en peregrinacion al Convento para venerar a la Virgen de la Candelaria. Misa solemne, procesiones y tradiciones centenarias.",
   "description_en": "Cartagena's patron saint feast day. Thousands of faithful make the pilgrimage up La Popa hill to the Convent to venerate the Virgin of Candelaria. Solemn mass, processions, and centuries-old traditions.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 50000,
   "last_verified_date": "2026-06-16",
   "source": [
-    "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+    "https://malokal.com/en/colombia/cartagena/a/events-festivals-cartagena-annual-calendar-2026"
   ],
   "confidence": "high",
   "tags": [
@@ -29,15 +40,9 @@
     "free"
   ],
   "featured": true,
-  "expected_attendance": 50000,
   "location": {
     "lat": 10.4132,
     "lng": -75.5361
   },
-  "title": "Fiesta de la Virgen de la Candelaria",
-  "event_id": "virgen-de-la-candelaria-2027",
-  "date": "2027-02-02",
-  "start_time": "06:00",
-  "type": "religious",
   "end_time": ""
 }

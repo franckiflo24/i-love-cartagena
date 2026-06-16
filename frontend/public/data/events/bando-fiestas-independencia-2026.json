@@ -25,8 +25,8 @@
   "description": "Desfile inaugural de las Fiestas de Noviembre (El Gran Bando). Comparsas, carrozas, musica y baile llenan las calles del centro amurallado en una explosion de color y alegria caribena.",
   "description_en": "The inaugural parade of the November Festivities (The Grand Bando). Comparsas, floats, music, and dance fill the streets of the walled city in an explosion of Caribbean color and joy.",
   "status": "scheduled",
-  "recurring": true,
-  "recurrence_rule": "annual",
+  "recurring": false,
+  "recurrence_rule": null,
   "expected_attendance": 100000,
   "last_verified_date": "2026-06-16",
   "source": [
