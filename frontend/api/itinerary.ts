@@ -9,7 +9,8 @@
 export const config = { runtime: 'edge' };
 
 const ANTHROPIC_URL = 'https://api.anthropic.com/v1/messages';
-const MODEL = process.env.CLAUDE_ITINERARY_MODEL || 'claude-haiku-4-5-20251001';
+const MODEL = (process.env.CLAUDE_ITINERARY_MODEL?.startsWith('claude-')
+  ? process.env.CLAUDE_ITINERARY_MODEL : null) || 'claude-haiku-4-5-20251001';
 const MAX_TOKENS = 2200;
 const MAX_ITEMS_PER_DAY = 6;
 const MAX_DAYS = 7;
@@ -96,7 +97,7 @@ function jsonResponse(status: number, body: unknown) {
     headers: {
       'content-type': 'application/json',
       'cache-control': 'no-store',
-      'access-control-allow-origin': '*',
+      'access-control-allow-origin': process.env.ALLOWED_ORIGIN || '*',
       'access-control-allow-methods': 'POST, OPTIONS',
       'access-control-allow-headers': 'content-type',
     },
@@ -118,7 +119,7 @@ async function handleItinerary(req: Request): Promise<Response> {
     return new Response(null, {
       status: 204,
       headers: {
-        'access-control-allow-origin': '*',
+        'access-control-allow-origin': process.env.ALLOWED_ORIGIN || '*',
         'access-control-allow-methods': 'POST, OPTIONS',
         'access-control-allow-headers': 'content-type',
       },
@@ -126,17 +127,17 @@ async function handleItinerary(req: Request): Promise<Response> {
   }
   if (req.method !== 'POST') return jsonResponse(405, fallback('es'));
 
-  const key = (globalThis as any).process?.env?.ANTHROPIC_API_KEY;
+  const key = process.env.ANTHROPIC_API_KEY;
   let body: any = {};
   try { body = await req.json(); } catch { return jsonResponse(400, fallback('es')); }
 
   const lang = String(body?.language ?? 'es').toLowerCase().startsWith('en') ? 'en' : 'es';
   const days = clampInt(body?.days, 1, MAX_DAYS, 2);
-  const interests: string[] = Array.isArray(body?.interests) ? body.interests.map(String) : [];
-  const budget = String(body?.budget ?? '');
-  const party = String(body?.party ?? '');
-  const pace = String(body?.pace ?? '');
-  const zones = Array.isArray(body?.zones) ? body.zones.join(', ') : String(body?.zones ?? '');
+  const interests: string[] = (Array.isArray(body?.interests) ? body.interests.map(String) : []).slice(0, 8).map(s => s.slice(0, 32));
+  const budget = String(body?.budget ?? '').slice(0, 64);
+  const party = String(body?.party ?? '').slice(0, 64);
+  const pace = String(body?.pace ?? '').slice(0, 64);
+  const zones = (Array.isArray(body?.zones) ? body.zones.join(', ') : String(body?.zones ?? '')).slice(0, 128);
 
   if (!key) {
     console.error('itinerary: ANTHROPIC_API_KEY missing');

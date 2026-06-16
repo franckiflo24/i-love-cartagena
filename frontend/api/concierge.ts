@@ -115,7 +115,7 @@ function pickPersona(p: unknown): string {
 function normalizeMessages(body: any): { role: 'user' | 'assistant'; content: string }[] {
   let msgs: any[] = Array.isArray(body?.messages) ? body.messages : [];
   if (!msgs.length && body?.message) msgs = [{ role: 'user', content: String(body.message) }];
-  const out = msgs
+  const out = msgs.slice(-12)
     .map((m: any) => ({
       role: m?.role === 'assistant' ? 'assistant' as const : 'user' as const,
       content: typeof m?.content === 'string' ? m.content : String(m?.content ?? ''),
@@ -153,7 +153,7 @@ function jsonResponse(status: number, body: unknown) {
     headers: {
       'content-type': 'application/json',
       'cache-control': 'no-store',
-      'access-control-allow-origin': '*',
+      'access-control-allow-origin': process.env.ALLOWED_ORIGIN || '*',
       'access-control-allow-methods': 'POST, OPTIONS',
       'access-control-allow-headers': 'content-type',
     },
@@ -168,7 +168,7 @@ async function handleConcierge(req: Request): Promise<Response> {
     return new Response(null, {
       status: 204,
       headers: {
-        'access-control-allow-origin': '*',
+        'access-control-allow-origin': process.env.ALLOWED_ORIGIN || '*',
         'access-control-allow-methods': 'POST, OPTIONS',
         'access-control-allow-headers': 'content-type',
       },
@@ -176,7 +176,7 @@ async function handleConcierge(req: Request): Promise<Response> {
   }
   if (req.method !== 'POST') return jsonResponse(405, { reply: 'Method not allowed', recommendations: [] });
 
-  const key = (globalThis as any).process?.env?.ANTHROPIC_API_KEY;
+  const key = process.env.ANTHROPIC_API_KEY;
   let body: any = {};
   try {
     body = await req.json();

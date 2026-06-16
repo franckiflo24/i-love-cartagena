@@ -37,8 +37,7 @@ export default function TransportScreen() {
   const [payRoute, setPayRoute] = useState<any>(null);
   const [payResult, setPayResult] = useState<PaymentResult | null>(null);
 
-  // WhatsApp booking helper
-  const AMO_WHATSAPP = '573176481183';
+  const AMO_WHATSAPP = process.env.EXPO_PUBLIC_AMO_WHATSAPP || '573176481183';
 
   useEffect(() => {
     const load = async () => {
@@ -106,7 +105,6 @@ export default function TransportScreen() {
         ) : (
           routes.map(route => {
             const p = parsePrice(route.price || '');
-            const _p = p; // price parsed above
             return (
               <View key={route.transport_id} style={styles.card} testID={`transport-${route.transport_id}`}>
                 <View style={styles.cardHeader}>

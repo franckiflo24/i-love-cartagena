@@ -48,9 +48,11 @@ export default class ErrorBoundary extends React.Component<Props, State> {
             Tuvimos un problema mostrando esta pantalla. Ya enviamos un reporte automático al equipo.
           </Text>
           <TouchableOpacity style={styles.homeBtn} onPress={() => {
-            this.reset();
-            // Navigate home on web
-            if (typeof window !== 'undefined') window.location.href = '/';
+            if (typeof window !== 'undefined') {
+              window.location.href = '/'; // page reload resets state
+            } else {
+              this.reset(); // native only
+            }
           }} activeOpacity={0.85}>
             <Ionicons name="home" size={16} color={COLORS.textMain} />
             <Text style={styles.homeBtnText}>Volver al inicio</Text>

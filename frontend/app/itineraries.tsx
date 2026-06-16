@@ -155,6 +155,7 @@ export default function ItineraryScreen() {
     setMode('loading');
     try {
       const payload = JSON.parse(decodeURIComponent(param));
+      if (!payload || typeof payload !== 'object') { setMode('error'); return; }
       const res = await fetch(`${apiBase}/data/partners.json`);
       const raw = await res.json();
       const list: any[] = Array.isArray(raw) ? raw : raw.partners ?? [];
@@ -171,7 +172,7 @@ export default function ItineraryScreen() {
           }];
         }),
       );
-      const dayArr: Day[] = (payload.d ?? []).map((d: any, i: number) => ({
+      const dayArr: Day[] = (payload.d ?? []).slice(0, 7).map((d: any, i: number) => ({
         day: i + 1, theme: String(d.t ?? ''),
         items: (d.i ?? [])
           .map((it: any) => { const c = bySlug.get(String(it.s)); return c ? { ...c, time: String(it.tm ?? ''), blurb: String(it.b ?? '') } : null; })
