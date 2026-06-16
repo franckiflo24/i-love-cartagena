@@ -1,8 +1,6 @@
 // ============================================================================
 // AMO CARTAGENA — ITINERARY BUILDER  (Build 3 / Blocks 2 + 3 / AUD-024 / AUD-011)
-// FIXED: removed react-native-svg dependency (it was blanking the screen when the
-//        package wasn't installed). Route map now uses plain RN Views — zero
-//        extra packages. Drop-in replacement for app/itinerary.tsx.
+// Pure RN Views for route map — zero extra packages.
 // ============================================================================
 
 import React, { useEffect, useState, useCallback } from 'react';
@@ -66,8 +64,6 @@ function Stepper({ label, value, min, max, onChange }: { label: string; value: n
 
 // ----------------------------------------------------------------------------
 // Day route map — pure React Native Views (no SVG, no external deps).
-// Plots real lat/lng (normalized, north-up) as numbered, ordered stops with
-// connector lines. Measures its own width via onLayout, positions in pixels.
 // ----------------------------------------------------------------------------
 function DayMap({ items }: { items: Item[] }) {
   const pts = items.filter((i) => typeof i.lat === 'number' && typeof i.lng === 'number');
@@ -91,32 +87,17 @@ function DayMap({ items }: { items: Item[] }) {
   return (
     <View style={s.mapWrap}>
       <View style={s.mapBoard} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
-        {/* faint grid */}
         {[0.33, 0.66].map((f) => <View key={'h' + f} style={[s.gridH, { top: H * f }]} />)}
         {[0.33, 0.66].map((f) => <View key={'v' + f} style={[s.gridV, { left: `${f * 100}%` }]} />)}
-
-        {/* connector segments (rotated Views, centered at each midpoint) */}
         {w > 0 && coords.slice(1).map((b, i) => {
           const a = coords[i];
           const dx = b.x - a.x, dy = b.y - a.y;
           const len = Math.hypot(dx, dy);
           const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
           return (
-            <View
-              key={'c' + i}
-              style={{
-                position: 'absolute',
-                left: (a.x + b.x) / 2 - len / 2,
-                top: (a.y + b.y) / 2 - 1,
-                width: len, height: 2,
-                backgroundColor: T.gold, opacity: 0.5, borderRadius: 1,
-                transform: [{ rotate: `${angle}deg` }],
-              }}
-            />
+            <View key={'c' + i} style={{ position: 'absolute', left: (a.x + b.x) / 2 - len / 2, top: (a.y + b.y) / 2 - 1, width: len, height: 2, backgroundColor: T.gold, opacity: 0.5, borderRadius: 1, transform: [{ rotate: `${angle}deg` }] }} />
           );
         })}
-
-        {/* numbered stops */}
         {w > 0 && coords.map((c, i) => (
           <View key={'p' + i} style={[s.pin, { left: c.x - R, top: c.y - R }]}>
             <Text style={s.pinTxt}>{i + 1}</Text>
@@ -129,7 +110,7 @@ function DayMap({ items }: { items: Item[] }) {
 }
 
 // ----------------------------------------------------------------------------
-// Venue card → deep-links to the partner page
+// Venue card
 // ----------------------------------------------------------------------------
 function ItemCard({ item, index, onOpen, onRemove }: { item: Item; index: number; onOpen: () => void; onRemove: () => void }) {
   return (
@@ -157,7 +138,6 @@ export default function ItineraryScreen() {
   const [itin, setItin] = useState<Itinerary | null>(null);
   const [toast, setToast] = useState('');
 
-  // form state
   const [days, setDays] = useState(2);
   const [party, setParty] = useState(2);
   const [interests, setInterests] = useState<string[]>(['Gastronomía', 'Playa']);
@@ -216,6 +196,7 @@ export default function ItineraryScreen() {
           pace: pace.toLowerCase(), zones, language: 'es',
         }),
       });
+      if (!r.ok) { setMode('error'); return; }
       const data = await r.json();
       if (!data?.itinerary?.days?.length) { setMode('error'); return; }
       setItin(data.itinerary); setMode('result');
@@ -231,7 +212,7 @@ export default function ItineraryScreen() {
   const buildShareUrl = () => {
     if (!itin) return shareBase;
     const payload = { ti: itin.title, su: itin.summary, d: itin.days.map((d) => ({ t: d.theme, i: d.items.map((it) => ({ s: it.slug, tm: it.time, b: it.blurb })) })) };
-    return `${shareBase}/itinerary?plan=${encodeURIComponent(JSON.stringify(payload))}`;
+    return `${shareBase}/itineraries?plan=${encodeURIComponent(JSON.stringify(payload))}`;
   };
   const sharePlan = async () => {
     const url = buildShareUrl();
@@ -246,7 +227,6 @@ export default function ItineraryScreen() {
     <View style={s.screen}>
       <Stack.Screen options={{ headerShown: false }} />
 
-      {/* header */}
       <View style={s.header}>
         <Pressable style={s.back} onPress={() => (mode === 'result' && !plan ? setMode('form') : router.back())}>
           <Text style={s.backTxt}>‹</Text>
@@ -268,7 +248,6 @@ export default function ItineraryScreen() {
         </View>
       )}
 
-      {/* ---------- FORM ---------- */}
       {mode === 'form' && (
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
           <Text style={s.lead}>Cuéntame tu viaje y armo un plan con lugares reales de Cartagena.</Text>
@@ -293,7 +272,6 @@ export default function ItineraryScreen() {
         </ScrollView>
       )}
 
-      {/* ---------- RESULT ---------- */}
       {mode === 'result' && itin && (
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
           <Text style={s.resTitle}>{itin.title}</Text>
@@ -314,7 +292,7 @@ export default function ItineraryScreen() {
               <DayMap items={d.items} />
               {d.items.map((it, ii) => (
                 <ItemCard key={it.slug + ii} item={it} index={ii}
-                  onOpen={() => router.push(`/partner/${it.slug}`)}
+                  onOpen={() => router.push(`/partner/${it.slug}` as any)}
                   onRemove={() => removeItem(di, ii)} />
               ))}
             </View>
