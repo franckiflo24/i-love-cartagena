@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, RefreshControl, Dimensions, FlatList, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Dimensions, FlatList, Linking } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ import { useFavorites } from '../../src/context/FavoritesContext';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
+import { SkeletonList } from '../../src/components/Skeleton';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
@@ -43,6 +44,13 @@ const CAT_COLORS: Record<string, { main: string; bg: string; label: string }> = 
   popup:      { main: '#06B6D4', bg: 'rgba(6,182,212,0.15)',  label: 'Pop-up' },
   daypass:    { main: '#F59E0B', bg: 'rgba(245,158,11,0.15)', label: 'Pasa día' },
   sunset:     { main: '#FB923C', bg: 'rgba(251,146,60,0.15)', label: 'Sunset' },
+  festival:   { main: '#F43F5E', bg: 'rgba(244,63,94,0.15)', label: 'Festival' },
+  cultural:   { main: '#8B5CF6', bg: 'rgba(139,92,246,0.15)', label: 'Cultural' },
+  sports:     { main: '#10B981', bg: 'rgba(16,185,129,0.15)', label: 'Deportes' },
+  religious:  { main: '#F59E0B', bg: 'rgba(245,158,11,0.15)', label: 'Religioso' },
+  holiday:    { main: '#EF4444', bg: 'rgba(239,68,68,0.15)', label: 'Festivo' },
+  recurring:  { main: '#06B6D4', bg: 'rgba(6,182,212,0.15)', label: 'Recurrente' },
+  literary:   { main: '#8B5CF6', bg: 'rgba(139,92,246,0.15)', label: 'Literario' },
 };
 
 const getBudgetStyle = (isFree: boolean, price: number) => {
@@ -199,7 +207,7 @@ export default function HomeScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} />
+        <SkeletonList />
       </SafeAreaView>
     );
   }
@@ -278,7 +286,7 @@ export default function HomeScreen() {
 
         {/* Hero Image — Cartagena first impression */}
         <TouchableOpacity style={styles.heroBanner} activeOpacity={0.95} onPress={() => router.push('/(tabs)/explore' as any)}>
-          <Image source={{ uri: IMAGES.hero }} style={styles.heroBannerImage} />
+          <SafeImage uri={IMAGES.hero} style={styles.heroBannerImage} />
           <View style={styles.heroBannerOverlay} />
           <View style={styles.heroBannerContent}>
             <Text style={styles.heroBannerLabel}>CARTAGENA DE INDIAS</Text>
@@ -386,7 +394,7 @@ export default function HomeScreen() {
                 activeOpacity={0.85}
                 onPress={() => router.push({ pathname: '/(tabs)/explore' as any, params: { category: item.cat } })}
               >
-                <Image source={{ uri: item.uri }} style={styles.photoImage} resizeMode="cover" />
+                <SafeImage uri={item.uri} style={styles.photoImage} resizeMode="cover" />
                 <View style={styles.photoOverlay} />
                 <View style={styles.photoContent}>
                   <View style={styles.photoCatIcon}>
@@ -428,6 +436,69 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* Próximos Eventos — major Cartagena events with images */}
+        {featured.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleRow}>
+                <Ionicons name="star" size={18} color={COLORS.primary} />
+                <Text style={styles.sectionTitle}>Próximos eventos</Text>
+                <Text style={styles.sectionCount}>{featured.length}</Text>
+              </View>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/agenda' as any)}>
+                <Text style={styles.seeAll}>Ver todos</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+              {featured.filter(e => e.image_url).slice(0, 10).map((event) => {
+                const cat = CAT_COLORS[event.type] || CAT_COLORS[(event as any).category] || { main: COLORS.primary, bg: 'rgba(212,175,55,0.15)', label: event.type || (event as any).category || '' };
+                const budget = getBudgetStyle(event.is_free, event.price);
+                const displayDate = event.date || (event as any).date_start || '';
+                const months = ['', 'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+                let dateLabel = '';
+                if (displayDate) {
+                  try {
+                    const d = new Date(displayDate + 'T00:00:00');
+                    dateLabel = `${d.getDate()} ${months[d.getMonth() + 1]}`;
+                  } catch { dateLabel = displayDate; }
+                }
+                return (
+                  <TouchableOpacity
+                    key={event.event_id || (event as any).id}
+                    style={styles.featuredCard}
+                    activeOpacity={0.85}
+                    onPress={() => {
+                      trackEvent('event_click', event.event_id, 'event');
+                      router.push(`/event/${event.event_id}` as any);
+                    }}
+                  >
+                    <SafeImage uri={event.image_url} style={styles.featuredImage} resizeMode="cover" />
+                    <View style={styles.featuredOverlay} />
+                    <View style={styles.featuredBadge}>
+                      <Text style={styles.badgeText}>{dateLabel}</Text>
+                    </View>
+                    <View style={styles.featuredInfo}>
+                      <View style={styles.eventTags}>
+                        <View style={[styles.tag, { backgroundColor: cat.bg, borderWidth: 1, borderColor: cat.main }]}>
+                          <Text style={[styles.tagText, { color: cat.main }]}>{cat.label || event.type || (event as any).category}</Text>
+                        </View>
+                        <View style={[styles.tag, { backgroundColor: budget.bg, borderWidth: 1, borderColor: budget.main }]}>
+                          <Text style={[styles.tagText, { color: budget.main }]}>{budget.label}</Text>
+                        </View>
+                      </View>
+                      <Text style={styles.featuredTitle} numberOfLines={2}>{event.title || (event as any).name_es}</Text>
+                      <View style={styles.featuredMeta}>
+                        <Ionicons name="location-outline" size={12} color={COLORS.textMuted} />
+                        <Text style={styles.metaText} numberOfLines={1}>{event.venue_name || (event as any).venue || ''}</Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
+
         {/* Static hero fallback — shown when no active season is returned by the API */}
         {seasons.length === 0 && (
           <TouchableOpacity
@@ -435,7 +506,7 @@ export default function HomeScreen() {
             activeOpacity={0.9}
             onPress={() => router.push('/(tabs)/agenda')}
           >
-            <Image source={{ uri: IMAGES.hero }} style={styles.heroImage} resizeMode="cover" />
+            <SafeImage uri={IMAGES.hero} style={styles.heroImage} resizeMode="cover" />
             <View style={[styles.heroOverlay, { backgroundColor: 'rgba(5,8,20,0.55)' }]} />
             <View style={styles.heroContent}>
               <Text style={[styles.heroLabel, { color: COLORS.primary }]}>CARTAGENA DE INDIAS</Text>

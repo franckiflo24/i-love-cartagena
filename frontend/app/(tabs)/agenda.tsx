@@ -8,6 +8,7 @@ import { api } from '../../src/constants/api';
 import { PartnerEventCard, PartnerEvent } from '../../src/components/PartnerEventCard';
 import { useMyCalendar, CalendarItem } from '../../src/context/MyCalendarContext';
 import { TierBadge } from '../../src/components/TierBadge';
+import { SafeImage } from '../../src/components/SafeImage';
 import { useTr } from '../../src/i18n/autoTr';
 
 type Mode = 'salir' | 'mi_agenda';
@@ -102,6 +103,7 @@ export default function AgendaScreen() {
   const selectedMonthKey = useMemo(() => selectedSalirDate.slice(0, 7), [selectedSalirDate]);
   const [selectedSalirCat, setSelectedSalirCat] = useState('all');
   const [partnerEvents, setPartnerEvents] = useState<PartnerEvent[]>([]);
+  const [cityEvents, setCityEvents] = useState<any[]>([]);
   const [loadingSalir, setLoadingSalir] = useState(false);
 
   // Mi Agenda state
@@ -113,8 +115,23 @@ export default function AgendaScreen() {
     try {
       const params = new URLSearchParams({ date: selectedSalirDate });
       if (selectedSalirCat !== 'all') params.append('category', selectedSalirCat);
-      const data = await api.get(`/partner-events?${params.toString()}`);
-      setPartnerEvents(data);
+      const [peData, evData] = await Promise.all([
+        api.get(`/partner-events?${params.toString()}`),
+        api.get('/events/featured').catch(() => []),
+      ]);
+      setPartnerEvents(Array.isArray(peData) ? peData : []);
+      // Filter city events to match selected date (events may span date ranges)
+      const allEvents = Array.isArray(evData) ? evData : [];
+      const dateFiltered = allEvents.filter((ev: any) => {
+        const start = ev.date_start || ev.date || '';
+        const end = ev.date_end || start;
+        return selectedSalirDate >= start && selectedSalirDate <= end;
+      });
+      // Filter by category if not 'all'
+      const catFiltered = selectedSalirCat === 'all'
+        ? dateFiltered
+        : dateFiltered.filter((ev: any) => (ev.category || ev.type || '') === selectedSalirCat);
+      setCityEvents(catFiltered);
     } catch (e) { console.error(e); }
     setLoadingSalir(false);
   }, [selectedSalirDate, selectedSalirCat]);
@@ -286,7 +303,7 @@ export default function AgendaScreen() {
           <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
             {loadingSalir ? (
               <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
-            ) : partnerEvents.length === 0 ? (
+            ) : partnerEvents.length === 0 && cityEvents.length === 0 ? (
               <View style={styles.empty}>
                 <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
                 <Text style={styles.emptyTitle}>No hay eventos para este día</Text>
@@ -296,9 +313,63 @@ export default function AgendaScreen() {
               <>
                 <View style={styles.resultsHeader}>
                   <Text style={styles.resultsCount}>
-                    {partnerEvents.length} evento{partnerEvents.length !== 1 ? 's' : ''}
+                    {partnerEvents.length + cityEvents.length} evento{(partnerEvents.length + cityEvents.length) !== 1 ? 's' : ''}
                   </Text>
                 </View>
+
+                {/* City events — major Cartagena events with images */}
+                {cityEvents.length > 0 && (
+                  <View style={{ marginBottom: SPACING.md }}>
+                    <Text style={styles.cityEventsLabel}>Eventos de la ciudad</Text>
+                    {cityEvents.map((ev: any) => (
+                      <TouchableOpacity
+                        key={ev.event_id || ev.id}
+                        style={styles.cityEventCard}
+                        activeOpacity={0.85}
+                        onPress={() => router.push(`/event/${ev.event_id || ev.slug}` as any)}
+                      >
+                        <View style={styles.cityEventImageWrap}>
+                          <SafeImage uri={ev.image_url} style={styles.cityEventImage} resizeMode="cover" />
+                          <View style={styles.cityEventImageOverlay} />
+                          {ev.is_free && (
+                            <View style={styles.cityEventFreeBadge}>
+                              <Text style={styles.cityEventFreeText}>GRATIS</Text>
+                            </View>
+                          )}
+                        </View>
+                        <View style={styles.cityEventBody}>
+                          <Text style={styles.cityEventTitle} numberOfLines={2}>
+                            {ev.title || ev.name_es}
+                          </Text>
+                          {ev.venue_name && (
+                            <View style={styles.cityEventVenueRow}>
+                              <Ionicons name="location-outline" size={11} color={COLORS.textMuted} />
+                              <Text style={styles.cityEventVenue} numberOfLines={1}>{ev.venue_name}</Text>
+                            </View>
+                          )}
+                          <View style={styles.cityEventTagRow}>
+                            <View style={styles.cityEventCatBadge}>
+                              <Text style={styles.cityEventCatText}>
+                                {(ev.category || ev.type || '').toUpperCase()}
+                              </Text>
+                            </View>
+                            {ev.time_start && (
+                              <View style={styles.cityEventTimeBadge}>
+                                <Ionicons name="time-outline" size={10} color={COLORS.primary} />
+                                <Text style={styles.cityEventTimeText}>{ev.time_start}</Text>
+                              </View>
+                            )}
+                          </View>
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+
+                {/* Partner events */}
+                {partnerEvents.length > 0 && cityEvents.length > 0 && (
+                  <Text style={styles.cityEventsLabel}>Eventos de partners</Text>
+                )}
                 {partnerEvents.map(e => (
                   <PartnerEventCard
                     key={e.event_id}
@@ -393,7 +464,7 @@ export default function AgendaScreen() {
                         >
                           {it.flyer_url ? (
                             <View style={styles.agendaFlyerWrap}>
-                              <Image source={{ uri: it.flyer_url }} style={styles.agendaFlyer} />
+                              <SafeImage uri={it.flyer_url} category={(it as any).category} style={styles.agendaFlyer} />
                               <View style={styles.agendaFlyerOverlay} />
                               {tierColors && <View style={[styles.tierStripe, { backgroundColor: tierColors.main }]} />}
                             </View>
@@ -659,5 +730,110 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  // City events in Salir mode
+  cityEventsLabel: {
+    fontSize: 12,
+    color: COLORS.primary,
+    ...FONTS.bold,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    marginBottom: SPACING.sm,
+    marginTop: SPACING.xs,
+  },
+  cityEventCard: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    marginBottom: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    overflow: 'hidden',
+  },
+  cityEventImageWrap: {
+    width: 100,
+    height: 100,
+    position: 'relative',
+  },
+  cityEventImage: {
+    width: '100%',
+    height: '100%',
+  },
+  cityEventImageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.15)',
+  },
+  cityEventFreeBadge: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    backgroundColor: COLORS.success,
+    borderRadius: RADIUS.full,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  cityEventFreeText: {
+    fontSize: 8,
+    color: COLORS.white,
+    ...FONTS.bold,
+    letterSpacing: 0.4,
+  },
+  cityEventBody: {
+    flex: 1,
+    padding: SPACING.sm,
+    justifyContent: 'space-between',
+  },
+  cityEventTitle: {
+    fontSize: 13,
+    color: COLORS.textMain,
+    ...FONTS.bold,
+    lineHeight: 17,
+  },
+  cityEventVenueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  cityEventVenue: {
+    fontSize: 11,
+    color: COLORS.textMuted,
+    ...FONTS.medium,
+    flex: 1,
+  },
+  cityEventTagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 4,
+  },
+  cityEventCatBadge: {
+    backgroundColor: 'rgba(244,63,94,0.15)',
+    borderRadius: RADIUS.full,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(244,63,94,0.4)',
+  },
+  cityEventCatText: {
+    fontSize: 9,
+    color: '#F43F5E',
+    ...FONTS.bold,
+    letterSpacing: 0.3,
+  },
+  cityEventTimeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(212,175,55,0.15)',
+    borderRadius: RADIUS.full,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  cityEventTimeText: {
+    fontSize: 9,
+    color: COLORS.primary,
+    ...FONTS.bold,
   },
 });
