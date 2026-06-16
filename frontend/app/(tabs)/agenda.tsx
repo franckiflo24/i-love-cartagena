@@ -210,7 +210,7 @@ export default function AgendaScreen() {
             <Text style={[styles.segmentText, mode === 'mi_agenda' && styles.segmentTextActive]}>
               Mi Agenda
             </Text>
-            {calendarItems.length > 0 && (
+            {Array.isArray(calendarItems) && calendarItems.length > 0 && (
               <View style={[styles.badge, mode === 'mi_agenda' && styles.badgeActive]}>
                 <Text style={[styles.badgeText, mode === 'mi_agenda' && styles.badgeTextActive]}>
                   {calendarItems.length}
@@ -385,7 +385,7 @@ export default function AgendaScreen() {
         </>
       ) : (
         <ScrollView style={styles.list} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: SPACING.xxl }}>
-          {calendarItems.length === 0 ? (
+          {(!Array.isArray(calendarItems) || calendarItems.length === 0) ? (
             <View style={styles.empty}>
               <Ionicons name="calendar-outline" size={56} color={COLORS.textMuted} />
               <Text style={styles.emptyTitle}>Tu agenda está vacía</Text>

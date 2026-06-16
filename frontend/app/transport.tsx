@@ -46,7 +46,7 @@ export default function TransportScreen() {
     const load = async () => {
       try {
         const data = await api.get('/transport');
-        setRoutes(data);
+        setRoutes(Array.isArray(data) ? data : []);
       } catch (e) { console.error(e); }
       setLoading(false);
     };
