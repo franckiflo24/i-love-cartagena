@@ -144,9 +144,10 @@ export default function AgendaScreen() {
   // Group calendar items by date
   const groupedAgenda = useMemo(() => {
     const t = todayIso();
+    const safeItems = Array.isArray(calendarItems) ? calendarItems : [];
     const filtered = showPast
-      ? calendarItems
-      : calendarItems.filter(i => i.date >= t);
+      ? safeItems
+      : safeItems.filter(i => i.date >= t);
     const sorted = [...filtered].sort((a, b) => {
       if (a.date !== b.date) return a.date.localeCompare(b.date);
       return (a.start_time || '').localeCompare(b.start_time || '');
@@ -161,7 +162,7 @@ export default function AgendaScreen() {
 
   const pastCount = useMemo(() => {
     const t = todayIso();
-    return calendarItems.filter(i => i.date < t).length;
+    return (Array.isArray(calendarItems) ? calendarItems : []).filter(i => i.date < t).length;
   }, [calendarItems]);
 
   const handleRemove = (item: CalendarItem) => {
