@@ -15,7 +15,7 @@
   "price_max_cop": 350000,
   "ticket_url": "https://www.cartagenamusicfestival.com",
   "organizer": "Fundación Salvi",
-  "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Cartagena_-Teatro_Heredia.JPG/800px-Cartagena_-Teatro_Heredia.JPG",
+  "image_url": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800",
   "status": "scheduled",
   "description": "El festival de música clásica y de cámara más importante de Latinoamérica. La 21ª edición reúne orquestas, solistas y ensambles de talla mundial en el majestuoso Teatro Adolfo Mejía y otras sedes patrimoniales. Incluye conciertos gratuitos en plazas públicas.",
   "description_en": "Latin America's premier classical and chamber music festival. The 21st edition brings world-class orchestras, soloists, and ensembles to the majestic Teatro Adolfo Mejía and other heritage venues. Includes free public concerts in city plazas.",
@@ -37,5 +37,11 @@
   "location": {
     "lat": 10.426,
     "lng": -75.549
-  }
+  },
+  "title": "XXI Festival Internacional de Música de Cartagena",
+  "event_id": "festival-internacional-musica-cartagena-2027",
+  "date": "2027-01-09",
+  "start_time": "19:00",
+  "type": "cultural",
+  "end_time": ""
 }

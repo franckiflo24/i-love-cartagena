@@ -1,0 +1,51 @@
+{
+  "id": "evt_alquimico_cocktail_fridays",
+  "slug": "alquimico-cocktail-fridays",
+  "name_es": "Viernes de Cocteleria en Alquimico",
+  "name_en": "Cocktail Fridays at Alquimico",
+  "title": "Viernes de Cocteleria en Alquimico",
+  "event_id": "alquimico-cocktail-fridays",
+  "category": "nightlife",
+  "type": "nightlife",
+  "venue": "Alquimico",
+  "venue_name": "Alquimico",
+  "neighborhood": "centro",
+  "date_start": "2026-06-19",
+  "date": "2026-06-19",
+  "date_end": "2027-04-30",
+  "time_start": "19:00",
+  "start_time": "19:00",
+  "is_free": false,
+  "price": 0,
+  "price_min_cop": 45000,
+  "price_max_cop": 120000,
+  "ticket_url": "https://alquimico.com",
+  "organizer": "Alquimico",
+  "image_url": "https://images.unsplash.com/photo-1514362545857-3bc16c8c7f1b?w=800&h=600&fit=crop",
+  "description": "Todos los viernes, el #11 del mundo en World's 50 Best Bars presenta DJ sets en su rooftop de tres niveles (La Mansion, El Balcon, Terraza). Cocteleria de autor con ingredientes caribenos y musica hasta la madrugada. Cocteleria inspirada en los 10 animales mas representativos de Colombia.",
+  "description_en": "Every Friday, the World's 50 Best Bars #11 features DJ sets on its three-level rooftop (La Mansion, El Balcon, Terraza). Craft cocktails with Caribbean ingredients and music until late. Cocktails inspired by Colombia's 10 most representative animals.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "weekly",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://alquimico.com",
+    "https://www.therooftopguide.com/rooftop-bars-in-cartagena/alquimico.html"
+  ],
+  "confidence": "high",
+  "tags": [
+    "cocktails",
+    "nightlife",
+    "rooftop",
+    "dj",
+    "recurring"
+  ],
+  "featured": true,
+  "capacity": 200,
+  "location": {
+    "lat": 10.4227,
+    "lng": -75.5514
+  },
+  "end_time": ""
+}

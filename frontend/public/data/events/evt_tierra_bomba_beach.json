@@ -36,5 +36,11 @@
   "location": {
     "lat": 10.355,
     "lng": -75.575
-  }
+  },
+  "title": "Domingos de Playa — Tierra Bomba Beach Clubs",
+  "event_id": "tierra-bomba-beach-sundays",
+  "date": "2026-07-05",
+  "start_time": "10:00",
+  "type": "concert",
+  "end_time": ""
 }

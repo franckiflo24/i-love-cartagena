@@ -35,5 +35,11 @@
   "location": {
     "lat": 10.426,
     "lng": -75.549
-  }
+  },
+  "title": "Hay Festival — Conversaciones en el Teatro Heredia",
+  "event_id": "hay-festival-teatro-heredia-2027",
+  "date": "2027-01-28",
+  "start_time": "18:00",
+  "type": "cultural",
+  "end_time": ""
 }

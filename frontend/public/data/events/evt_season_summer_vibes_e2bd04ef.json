@@ -31,5 +31,11 @@
   "location": {
     "lat": 10.178,
     "lng": -75.75
-  }
+  },
+  "title": "Yacht Day — Islas Privadas",
+  "event_id": "yacht-day-islas-privadas",
+  "date": "2026-07-17",
+  "start_time": "10:00",
+  "type": "yacht_party",
+  "end_time": ""
 }

@@ -36,5 +36,11 @@
   "location": {
     "lat": 10.175,
     "lng": -75.75
-  }
+  },
+  "title": "Eco-Tours Islas del Rosario — Snorkel y Naturaleza",
+  "event_id": "islas-del-rosario-eco-tours",
+  "date": "2026-07-01",
+  "start_time": "08:00",
+  "type": "cultural",
+  "end_time": ""
 }

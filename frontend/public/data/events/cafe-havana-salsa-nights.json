@@ -1,0 +1,51 @@
+{
+  "id": "evt_cafe_havana_salsa",
+  "slug": "cafe-havana-salsa-nights",
+  "name_es": "Noches de Salsa en Cafe Havana",
+  "name_en": "Salsa Nights at Cafe Havana",
+  "title": "Noches de Salsa en Cafe Havana",
+  "event_id": "cafe-havana-salsa-nights",
+  "category": "nightlife",
+  "type": "nightlife",
+  "venue": "Cafe Havana",
+  "venue_name": "Cafe Havana",
+  "neighborhood": "getsemani",
+  "date_start": "2026-06-16",
+  "date": "2026-06-16",
+  "date_end": "2027-04-30",
+  "time_start": "20:00",
+  "start_time": "20:00",
+  "is_free": false,
+  "price": 30000,
+  "price_min_cop": 25000,
+  "price_max_cop": 50000,
+  "ticket_url": null,
+  "organizer": "Cafe Havana Cartagena",
+  "image_url": "https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800&h=600&fit=crop",
+  "description": "El legendario bar de Getsemani con salsa en vivo de martes a domingo desde las 8pm. Orquestas locales, son cubano, timba y baile hasta las 3am. El lugar donde expresidentes y famosos bailan salsa. Atmosfera cubana vintage con fotos de Benny More, Celia Cruz y Omara Portuondo. Famoso por sus mojitos.",
+  "description_en": "Getsemani's legendary bar with live salsa Tuesday to Sunday from 8pm. Local orchestras, Cuban son, timba, and dancing until 3am. The spot where presidents and celebrities dance salsa. Vintage Cuban atmosphere with photos of Benny More, Celia Cruz, and Omara Portuondo. Famous for its mojitos.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "weekly",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.dancefree.com.co/diario/cafe-havana-bar-de-salsa-cartagena",
+    "https://www.tripadvisor.com/Attraction_Review-g297476-d1193289-Reviews-Cafe_Havana-Cartagena_Cartagena_District_Bolivar_Department.html"
+  ],
+  "confidence": "high",
+  "tags": [
+    "salsa",
+    "live-music",
+    "nightlife",
+    "getsemani",
+    "recurring"
+  ],
+  "featured": true,
+  "capacity": 150,
+  "location": {
+    "lat": 10.4219,
+    "lng": -75.5519
+  },
+  "end_time": ""
+}

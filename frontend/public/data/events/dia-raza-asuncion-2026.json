@@ -1,0 +1,47 @@
+{
+  "id": "evt_race_asuncion_2026",
+  "slug": "dia-raza-asuncion-2026",
+  "name_es": "Dia de la Raza — Feriado Nacional",
+  "name_en": "Columbus Day / Dia de la Raza",
+  "title": "Dia de la Raza — Feriado Nacional",
+  "event_id": "dia-raza-asuncion-2026",
+  "category": "cultural",
+  "type": "cultural",
+  "venue": "Cartagena",
+  "venue_name": "Centro Historico",
+  "neighborhood": "centro",
+  "date_start": "2026-10-12",
+  "date": "2026-10-12",
+  "date_end": "2026-10-12",
+  "time_start": "09:00",
+  "start_time": "09:00",
+  "is_free": true,
+  "price": 0,
+  "price_min_cop": null,
+  "price_max_cop": null,
+  "ticket_url": null,
+  "organizer": "Gobierno Nacional",
+  "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800",
+  "description": "Feriado nacional. Eventos culturales que celebran la diversidad etnica y cultural colombiana. Actividades en museos y centros culturales.",
+  "description_en": "National holiday. Cultural events celebrating Colombian ethnic and cultural diversity. Activities at museums and cultural centers.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "annual",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://en.wikipedia.org/wiki/Public_holidays_in_Colombia"
+  ],
+  "confidence": "high",
+  "tags": [
+    "national-holiday",
+    "free",
+    "cultural"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5483
+  },
+  "end_time": ""
+}

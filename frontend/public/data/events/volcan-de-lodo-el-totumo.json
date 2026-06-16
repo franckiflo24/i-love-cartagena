@@ -1,0 +1,49 @@
+{
+  "id": "evt_volcan_lodo_totumo",
+  "slug": "volcan-de-lodo-el-totumo",
+  "name_es": "Volcan de Lodo El Totumo — Experiencia de Bano de Lodo",
+  "name_en": "El Totumo Mud Volcano — Mud Bath Experience",
+  "title": "Volcan de Lodo El Totumo — Experiencia de Bano de Lodo",
+  "event_id": "volcan-de-lodo-el-totumo",
+  "category": "cultural",
+  "type": "cultural",
+  "venue": "Volcan El Totumo",
+  "venue_name": "Volcan El Totumo",
+  "neighborhood": "afueras",
+  "date_start": "2026-06-16",
+  "date": "2026-06-16",
+  "date_end": "2027-04-30",
+  "time_start": "09:00",
+  "start_time": "09:00",
+  "is_free": false,
+  "price": 80000,
+  "price_min_cop": 50000,
+  "price_max_cop": 150000,
+  "ticket_url": null,
+  "organizer": "Operadores turisticos locales",
+  "image_url": "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800&h=600&fit=crop",
+  "description": "Visita al volcan de lodo activo donde puedes flotar en lodo volcanico con supuestas propiedades curativas. A 45 minutos de Cartagena. Tours diarios disponibles.",
+  "description_en": "Visit the active mud volcano where you can float in volcanic mud said to have healing properties. 45 minutes from Cartagena. Daily tours available.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "weekly",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.machupicchu.org/cartagena-travel-guide-2026-best-things-to-do-in-colombias-caribbean-gem.htm"
+  ],
+  "confidence": "high",
+  "tags": [
+    "nature",
+    "volcano",
+    "mud-bath",
+    "tour",
+    "daily"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.706,
+    "lng": -75.234
+  },
+  "end_time": ""
+}

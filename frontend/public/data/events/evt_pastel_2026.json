@@ -13,7 +13,7 @@
   "price": 0,
   "ticket_url": null,
   "organizer": "IPCC / Asociaciones Gastronómicas",
-  "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Centro_historico_de_Cartagena.jpg/800px-Centro_historico_de_Cartagena.jpg",
+  "image_url": "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=800",
   "status": "scheduled",
   "description": "Festival gastronómico navideño dedicado al pastel cartagenero — el tamal costeño tradicional hecho con arroz, carne y verduras envuelto en hoja de bijao. Concursos de cocina, música y venta masiva de pasteles.",
   "description_en": "Christmas gastronomy festival celebrating the pastel cartagenero — the traditional coastal tamale made with rice, meat, and vegetables wrapped in bijao leaves. Cooking contests, live music, and massive pastel sales.",
@@ -33,5 +33,11 @@
   "location": {
     "lat": 10.4228,
     "lng": -75.5486
-  }
+  },
+  "title": "Festival del Pastel Cartagenero",
+  "event_id": "festival-del-pastel-cartagenero-2026",
+  "date": "2026-12-16",
+  "start_time": "10:00",
+  "type": "market",
+  "end_time": ""
 }

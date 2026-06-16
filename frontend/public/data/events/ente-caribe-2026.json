@@ -1,0 +1,49 @@
+{
+  "id": "evt_ente_caribe_2026",
+  "slug": "ente-caribe-2026",
+  "name_es": "Ente Caribe — Festival de Musica Electronica",
+  "name_en": "Ente Caribe — Electronic Music Festival",
+  "title": "Ente Caribe — Festival de Musica Electronica",
+  "event_id": "ente-caribe-2026",
+  "category": "festival",
+  "type": "festival",
+  "venue": "Multiples sedes en Cartagena",
+  "venue_name": "Cartagena — Multiple Venues",
+  "neighborhood": "centro",
+  "date_start": "2026-12-28",
+  "date": "2026-12-28",
+  "date_end": "2027-01-02",
+  "time_start": "16:00",
+  "start_time": "16:00",
+  "is_free": false,
+  "price": 250000,
+  "price_min_cop": 180000,
+  "price_max_cop": 500000,
+  "ticket_url": "https://entecaribe.com",
+  "organizer": "Ente Caribe",
+  "image_url": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&h=600&fit=crop",
+  "description": "Festival de musica electronica de fin de ano en Cartagena. DJs internacionales y locales en locaciones emblematicas: playas, azoteas y venues del Centro Historico. House, techno, afro house y mas.",
+  "description_en": "End-of-year electronic music festival in Cartagena. International and local DJs at iconic locations: beaches, rooftops, and Historic Center venues. House, techno, afro house and more.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "annual",
+  "expected_attendance": 15000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.facebook.com/people/Festival-ENTE-Caribe/61554286945341/"
+  ],
+  "confidence": "medium",
+  "tags": [
+    "electronic",
+    "house",
+    "techno",
+    "new-years",
+    "dj"
+  ],
+  "featured": true,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5483
+  },
+  "end_time": ""
+}

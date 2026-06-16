@@ -36,5 +36,11 @@
   "location": {
     "lat": 10.4222,
     "lng": -75.5517
-  }
+  },
+  "title": "Noches de Champeta — Bazurto Social Club",
+  "event_id": "bazurto-social-club-champeta-nights",
+  "date": "2026-07-02",
+  "start_time": "21:00",
+  "type": "concert",
+  "end_time": ""
 }

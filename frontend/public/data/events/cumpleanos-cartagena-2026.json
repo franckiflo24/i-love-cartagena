@@ -1,0 +1,48 @@
+{
+  "id": "evt_cumpleanos_cartagena_2026",
+  "slug": "cumpleanos-cartagena-2026",
+  "name_es": "Aniversario de la Fundacion de Cartagena de Indias",
+  "name_en": "Anniversary of the Founding of Cartagena de Indias",
+  "title": "Aniversario de la Fundacion de Cartagena de Indias",
+  "event_id": "cumpleanos-cartagena-2026",
+  "category": "cultural",
+  "type": "cultural",
+  "venue": "Centro Historico",
+  "venue_name": "Centro Historico",
+  "neighborhood": "centro",
+  "date_start": "2026-06-24",
+  "date": "2026-06-24",
+  "date_end": "2026-06-24",
+  "time_start": "09:00",
+  "start_time": "09:00",
+  "is_free": true,
+  "price": 0,
+  "price_min_cop": null,
+  "price_max_cop": null,
+  "ticket_url": null,
+  "organizer": "Alcaldia de Cartagena",
+  "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc0?w=800&h=600&fit=crop",
+  "description": "Cartagena celebra su aniversario de fundacion (1 de junio de 1533). Actos civicos, actividades culturales y eventos institucionales conmemoran la fundacion de la ciudad.",
+  "description_en": "Cartagena celebrates its founding anniversary (June 1, 1533). Civic ceremonies, cultural activities, and institutional events commemorating the city's founding.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "annual",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.myguidecolombia.com/events/june-2026"
+  ],
+  "confidence": "medium",
+  "tags": [
+    "civic",
+    "cultural",
+    "free",
+    "heritage"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5483
+  },
+  "end_time": ""
+}

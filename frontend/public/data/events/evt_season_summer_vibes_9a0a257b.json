@@ -31,5 +31,11 @@
   "location": {
     "lat": 10.424,
     "lng": -75.5475
-  }
+  },
+  "title": "White Pool Party — Hotel Santa Clara",
+  "event_id": "white-pool-party-bocagrande",
+  "date": "2026-07-05",
+  "start_time": "20:00",
+  "type": "pool_party",
+  "end_time": ""
 }

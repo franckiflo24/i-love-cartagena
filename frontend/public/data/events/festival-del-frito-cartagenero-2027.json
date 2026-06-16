@@ -1,0 +1,50 @@
+{
+  "id": "evt_frito_2027",
+  "slug": "festival-del-frito-cartagenero-2027",
+  "name_es": "XLIII Festival del Frito Cartagenero",
+  "name_en": "43rd Cartagena Fried Food Festival",
+  "title": "XLIII Festival del Frito Cartagenero",
+  "event_id": "festival-del-frito-cartagenero-2027",
+  "category": "market",
+  "type": "market",
+  "venue": "Parqueadero de los Zapatos Viejos / Getsemani",
+  "venue_name": "Los Zapatos Viejos",
+  "neighborhood": "getsemani",
+  "date_start": "2027-01-23",
+  "date": "2027-01-23",
+  "date_end": "2027-02-02",
+  "time_start": "10:00",
+  "start_time": "10:00",
+  "is_free": true,
+  "price": 0,
+  "price_min_cop": null,
+  "price_max_cop": null,
+  "ticket_url": null,
+  "organizer": "IPCC / Getsemani Associations",
+  "image_url": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=600&fit=crop",
+  "description": "Celebracion gastronomica de los fritos tradicionales cartageneros: arepas de huevo, carimanolas, bunuelos, empanadas y deditos de queso. Coincide con la novena de la Virgen de la Candelaria. Competencias de cocina y musica en vivo. Horario: 10am-10pm.",
+  "description_en": "Gastronomic celebration of Cartagena's traditional fried foods: arepas de huevo, carimanolas, bunuelos, empanadas, and cheese fingers. Coincides with the Virgen de la Candelaria novena. Cooking competitions and live music. Hours: 10am-10pm.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "annual",
+  "expected_attendance": 80000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.cartagena.gov.co/noticias/espera-termino-este-sabado-24-enero-comienza-el-xlii-festival-frito-cartagenero",
+    "https://thisis.travel/cartagena/events/fried-food-festival"
+  ],
+  "confidence": "high",
+  "tags": [
+    "food",
+    "street-food",
+    "gastronomy",
+    "free",
+    "tradition"
+  ],
+  "featured": true,
+  "location": {
+    "lat": 10.4219,
+    "lng": -75.5511
+  },
+  "end_time": ""
+}

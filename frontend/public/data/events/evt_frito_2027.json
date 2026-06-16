@@ -13,7 +13,7 @@
   "price": 0,
   "ticket_url": null,
   "organizer": "IPCC / Getsemaní Associations",
-  "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/67_-_Carthag%C3%A8ne_-_D%C3%A9cembre_2008.jpg/800px-67_-_Carthag%C3%A8ne_-_D%C3%A9cembre_2008.jpg",
+  "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc0?w=800",
   "status": "scheduled",
   "description": "Celebración gastronómica de los fritos tradicionales cartageneros: arepas de huevo, carimañolas, buñuelos, empanadas y deditos de queso. Coincide con la novena de la Virgen de la Candelaria. Competencias de cocina y música en vivo.",
   "description_en": "Gastronomic celebration of Cartagena's traditional fried foods: arepas de huevo, carimañolas, buñuelos, empanadas, and cheese fingers. Coincides with the Virgen de la Candelaria novena. Cooking competitions and live music.",
@@ -34,5 +34,11 @@
   "location": {
     "lat": 10.4219,
     "lng": -75.5511
-  }
+  },
+  "title": "Festival del Frito Cartagenero",
+  "event_id": "festival-del-frito-cartagenero-2027",
+  "date": "2027-01-22",
+  "start_time": "10:00",
+  "type": "market",
+  "end_time": ""
 }

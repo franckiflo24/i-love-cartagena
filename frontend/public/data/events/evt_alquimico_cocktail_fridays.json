@@ -36,5 +36,11 @@
   "location": {
     "lat": 10.4227,
     "lng": -75.5514
-  }
+  },
+  "title": "Viernes de Coctelería en Alquímico",
+  "event_id": "alquimico-cocktail-fridays",
+  "date": "2026-07-03",
+  "start_time": "19:00",
+  "type": "concert",
+  "end_time": ""
 }

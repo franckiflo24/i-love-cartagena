@@ -13,7 +13,7 @@
   "price": 0,
   "ticket_url": null,
   "organizer": "Arquidiócesis de Cartagena",
-  "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Castillo_de_San_Felipe_de_Barajas_2.jpg/800px-Castillo_de_San_Felipe_de_Barajas_2.jpg",
+  "image_url": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
   "status": "scheduled",
   "description": "Semana Santa vivida con fervor en la ciudad amurallada. Procesiones solemnes por calles coloniales, Vía Crucis, misas en iglesias históricas (San Pedro Claver, Santo Domingo, Catedral). Época de mayor turismo religioso.",
   "description_en": "Holy Week experienced with fervor in the walled city. Solemn processions through colonial streets, Stations of the Cross, masses in historic churches (San Pedro Claver, Santo Domingo, Cathedral). Peak religious tourism season.",
@@ -34,5 +34,11 @@
   "location": {
     "lat": 10.4236,
     "lng": -75.5492
-  }
+  },
+  "title": "Semana Santa en Cartagena",
+  "event_id": "semana-santa-cartagena-2027",
+  "date": "2027-03-29",
+  "start_time": "06:00",
+  "type": "religious",
+  "end_time": ""
 }

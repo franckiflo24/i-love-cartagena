@@ -1,0 +1,48 @@
+{
+  "id": "evt_bando_2026",
+  "slug": "bando-fiestas-independencia-2026",
+  "name_es": "El Bando — Apertura Fiestas de Independencia",
+  "name_en": "El Bando — Independence Festival Opening Parade",
+  "title": "El Bando — Apertura Fiestas de Independencia",
+  "event_id": "bando-fiestas-independencia-2026",
+  "category": "festival",
+  "type": "festival",
+  "venue": "Calles del Centro Historico",
+  "venue_name": "Centro Historico",
+  "neighborhood": "centro",
+  "date_start": "2026-11-12",
+  "date": "2026-11-12",
+  "date_end": "2026-11-12",
+  "time_start": "16:00",
+  "start_time": "16:00",
+  "is_free": true,
+  "price": 0,
+  "price_min_cop": null,
+  "price_max_cop": null,
+  "ticket_url": null,
+  "organizer": "Alcaldia de Cartagena",
+  "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc0?w=800",
+  "description": "Desfile inaugural de las Fiestas de Noviembre (El Gran Bando). Comparsas, carrozas, musica y baile llenan las calles del centro amurallado en una explosion de color y alegria caribena.",
+  "description_en": "The inaugural parade of the November Festivities (The Grand Bando). Comparsas, floats, music, and dance fill the streets of the walled city in an explosion of Caribbean color and joy.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "annual",
+  "expected_attendance": 100000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.cartagenaexplorer.com/programacion-de-fiestas-noviembre-cartagena-2026/"
+  ],
+  "confidence": "high",
+  "tags": [
+    "parade",
+    "independence",
+    "free",
+    "cultural"
+  ],
+  "featured": true,
+  "location": {
+    "lat": 10.4233,
+    "lng": -75.5512
+  },
+  "end_time": ""
+}

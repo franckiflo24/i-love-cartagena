@@ -31,5 +31,11 @@
   "location": {
     "lat": 10.4219,
     "lng": -75.5511
-  }
+  },
+  "title": "Champeta Night — Open Air",
+  "event_id": "champeta-night-open-air",
+  "date": "2026-07-15",
+  "start_time": "21:00",
+  "type": "concert",
+  "end_time": ""
 }

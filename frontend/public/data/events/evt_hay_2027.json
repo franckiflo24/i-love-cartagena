@@ -36,5 +36,11 @@
   "location": {
     "lat": 10.426,
     "lng": -75.549
-  }
+  },
+  "title": "XXII Hay Festival Cartagena",
+  "event_id": "hay-festival-cartagena-2027",
+  "date": "2027-01-28",
+  "start_time": "10:00",
+  "type": "cultural",
+  "end_time": ""
 }

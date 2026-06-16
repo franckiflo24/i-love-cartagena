@@ -36,5 +36,11 @@
   "location": {
     "lat": 10.4219,
     "lng": -75.5519
-  }
+  },
+  "title": "Noches de Salsa en Café Havana",
+  "event_id": "cafe-havana-salsa-nights",
+  "date": "2026-07-04",
+  "start_time": "22:00",
+  "type": "concert",
+  "end_time": ""
 }
