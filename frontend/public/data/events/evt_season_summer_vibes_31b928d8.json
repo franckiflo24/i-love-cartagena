@@ -1,0 +1,35 @@
+{
+  "id": "evt_season_summer_vibes_31b928d8",
+  "slug": "champeta-night-open-air",
+  "name_es": "Champeta Night — Open Air",
+  "name_en": "Champeta Night — Open Air",
+  "category": "concert",
+  "venue": "Getsemaní",
+  "venue_name": "Getsemaní Open Air",
+  "date_start": "2026-07-15",
+  "date_end": "2026-07-15",
+  "time_start": "21:00",
+  "is_free": false,
+  "price": 70000,
+  "ticket_url": null,
+  "organizer": "Cartagena Cultural Events",
+  "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop",
+  "status": "scheduled",
+  "description": "Concierto al aire libre con los reyes de la champeta cartagenera.",
+  "description_en": "Open air concert with the kings of Cartagena champeta.",
+  "last_verified_date": "2026-06-16",
+  "source": [],
+  "confidence": "medium",
+  "tags": [
+    "champeta",
+    "concert",
+    "open-air",
+    "getsemani"
+  ],
+  "featured": true,
+  "capacity": 500,
+  "location": {
+    "lat": 10.4219,
+    "lng": -75.5511
+  }
+}

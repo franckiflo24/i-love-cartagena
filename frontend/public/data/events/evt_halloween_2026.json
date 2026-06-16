@@ -1,0 +1,36 @@
+{
+  "id": "evt_halloween_2026",
+  "slug": "halloween-cartagena-2026",
+  "name_es": "Halloween en Cartagena — Noche de Brujas",
+  "name_en": "Halloween in Cartagena",
+  "category": "festival",
+  "venue": "Centro Histórico y Getsemaní",
+  "venue_name": "Centro Histórico & Getsemaní",
+  "date_start": "2026-10-31",
+  "date_end": "2026-11-01",
+  "time_start": "18:00",
+  "is_free": true,
+  "price": 0,
+  "ticket_url": null,
+  "organizer": "Comerciantes del Centro / Bares de Getsemaní",
+  "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/67_-_Carthag%C3%A8ne_-_D%C3%A9cembre_2008.jpg/800px-67_-_Carthag%C3%A8ne_-_D%C3%A9cembre_2008.jpg",
+  "status": "scheduled",
+  "description": "Cartagena celebra Halloween con desfiles de disfraces por las calles coloniales. Los niños recorren el centro amurallado pidiendo dulces. Fiestas temáticas en bares y rooftops de Getsemaní.",
+  "description_en": "Cartagena celebrates Halloween with costume parades through colonial streets. Children trick-or-treat in the walled city. Themed parties at Getsemaní bars and rooftops.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+  ],
+  "confidence": "high",
+  "tags": [
+    "halloween",
+    "family",
+    "nightlife",
+    "free"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5483
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "id": "evt_frito_2027",
+  "slug": "festival-del-frito-cartagenero-2027",
+  "name_es": "Festival del Frito Cartagenero",
+  "name_en": "Cartagena Fried Food Festival",
+  "category": "market",
+  "venue": "Plaza de la Trinidad, Getsemaní",
+  "venue_name": "Plaza de la Trinidad",
+  "date_start": "2027-01-22",
+  "date_end": "2027-01-31",
+  "time_start": "10:00",
+  "is_free": true,
+  "price": 0,
+  "ticket_url": null,
+  "organizer": "IPCC / Getsemaní Associations",
+  "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/67_-_Carthag%C3%A8ne_-_D%C3%A9cembre_2008.jpg/800px-67_-_Carthag%C3%A8ne_-_D%C3%A9cembre_2008.jpg",
+  "status": "scheduled",
+  "description": "Celebración gastronómica de los fritos tradicionales cartageneros: arepas de huevo, carimañolas, buñuelos, empanadas y deditos de queso. Coincide con la novena de la Virgen de la Candelaria. Competencias de cocina y música en vivo.",
+  "description_en": "Gastronomic celebration of Cartagena's traditional fried foods: arepas de huevo, carimañolas, buñuelos, empanadas, and cheese fingers. Coincides with the Virgen de la Candelaria novena. Cooking competitions and live music.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+  ],
+  "confidence": "high",
+  "tags": [
+    "food",
+    "street-food",
+    "gastronomy",
+    "free",
+    "tradition"
+  ],
+  "featured": true,
+  "expected_attendance": 80000,
+  "location": {
+    "lat": 10.4219,
+    "lng": -75.5511
+  }
+}

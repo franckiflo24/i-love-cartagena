@@ -1,0 +1,38 @@
+{
+  "id": "evt_farex_2027",
+  "slug": "farex-feria-artesanal-2027",
+  "name_es": "FAREX — Feria Artesanal y Empresarial",
+  "name_en": "FAREX — Artisan & Business Fair",
+  "category": "market",
+  "venue": "Centro de Convenciones Cartagena de Indias",
+  "venue_name": "Centro de Convenciones Cartagena de Indias",
+  "date_start": "2027-01-03",
+  "date_end": "2027-01-10",
+  "time_start": "10:00",
+  "is_free": true,
+  "price": 0,
+  "ticket_url": null,
+  "organizer": "Cámara de Comercio de Cartagena",
+  "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Centro_historico_de_Cartagena.jpg/800px-Centro_historico_de_Cartagena.jpg",
+  "status": "scheduled",
+  "description": "La feria artesanal más grande de Cartagena reúne a cientos de artesanos, emprendedores y marcas locales. Artesanías, moda, gastronomía y productos del Caribe colombiano.",
+  "description_en": "Cartagena's largest artisan fair brings together hundreds of artisans, entrepreneurs, and local brands. Handicrafts, fashion, gastronomy, and products from the Colombian Caribbean.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+  ],
+  "confidence": "medium",
+  "tags": [
+    "artisan",
+    "fair",
+    "shopping",
+    "free",
+    "local"
+  ],
+  "featured": false,
+  "expected_attendance": 50000,
+  "location": {
+    "lat": 10.4195,
+    "lng": -75.546
+  }
+}

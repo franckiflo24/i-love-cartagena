@@ -1,0 +1,40 @@
+{
+  "id": "evt_alquimico_cocktail_fridays",
+  "slug": "alquimico-cocktail-fridays",
+  "name_es": "Viernes de Coctelería en Alquímico",
+  "name_en": "Cocktail Fridays at Alquímico",
+  "category": "concert",
+  "venue": "Alquímico",
+  "venue_name": "Alquímico",
+  "date_start": "2026-07-03",
+  "date_end": "2026-12-25",
+  "time_start": "19:00",
+  "is_free": false,
+  "price": 0,
+  "price_min_cop": 45000,
+  "price_max_cop": 120000,
+  "ticket_url": "https://alquimico.com",
+  "organizer": "Alquímico",
+  "image_url": "https://alquimico.com/wp-content/uploads/2025/11/alquimico_logo_sim_cafe.png",
+  "status": "scheduled",
+  "description": "Todos los viernes, el mejor bar de Colombia (World's 50 Best Bars) presenta DJ sets en su rooftop de tres niveles. Coctelería de autor con ingredientes caribeños y música hasta la madrugada.",
+  "description_en": "Every Friday, Colombia's best bar (World's 50 Best Bars) features DJ sets on its three-level rooftop. Craft cocktails with Caribbean ingredients and music until late.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://alquimico.com"
+  ],
+  "confidence": "high",
+  "tags": [
+    "cocktails",
+    "nightlife",
+    "rooftop",
+    "dj",
+    "recurring"
+  ],
+  "featured": true,
+  "capacity": 200,
+  "location": {
+    "lat": 10.4227,
+    "lng": -75.5514
+  }
+}

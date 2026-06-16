@@ -1,0 +1,38 @@
+{
+  "id": "evt_inmaculada_2026",
+  "slug": "dia-velitas-inmaculada-2026",
+  "name_es": "Día de las Velitas / Inmaculada Concepción",
+  "name_en": "Day of the Little Candles / Immaculate Conception",
+  "category": "religious",
+  "venue": "Centro Histórico y barrios",
+  "venue_name": "Toda la ciudad",
+  "date_start": "2026-12-07",
+  "date_end": "2026-12-08",
+  "time_start": "18:00",
+  "is_free": true,
+  "price": 0,
+  "ticket_url": null,
+  "organizer": "Tradición colombiana",
+  "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Centro_historico_de_Cartagena.jpg/800px-Centro_historico_de_Cartagena.jpg",
+  "status": "scheduled",
+  "description": "La noche más mágica de Colombia. Miles de velas y faroles iluminan las calles de Cartagena en la víspera de la Inmaculada Concepción. Los barrios compiten por las mejores decoraciones de luz.",
+  "description_en": "Colombia's most magical night. Thousands of candles and lanterns illuminate Cartagena's streets on the eve of the Immaculate Conception. Neighborhoods compete for the best light decorations.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://en.wikipedia.org/wiki/D%C3%ADa_de_las_velitas"
+  ],
+  "confidence": "high",
+  "tags": [
+    "religious",
+    "candles",
+    "tradition",
+    "free",
+    "christmas"
+  ],
+  "featured": true,
+  "expected_attendance": 300000,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5483
+  }
+}

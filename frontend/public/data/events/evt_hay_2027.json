@@ -1,0 +1,40 @@
+{
+  "id": "evt_hay_2027",
+  "slug": "hay-festival-cartagena-2027",
+  "name_es": "XXII Hay Festival Cartagena",
+  "name_en": "22nd Hay Festival Cartagena",
+  "category": "cultural",
+  "venue": "Teatro Adolfo Mejía / Centro de Convenciones / Múltiples sedes",
+  "venue_name": "Teatro Adolfo Mejía & Multiple Venues",
+  "date_start": "2027-01-28",
+  "date_end": "2027-01-31",
+  "time_start": "10:00",
+  "is_free": false,
+  "price": 30000,
+  "price_min_cop": 0,
+  "price_max_cop": 120000,
+  "ticket_url": "https://www.hayfestival.com/cartagena",
+  "organizer": "Hay Festival Foundation",
+  "image_url": "https://www.hayfestival.com/Cartagena-audience.jpg?cmsotimagehandler=/Uploads/Crops/cd0aaf29-72db-48ee-b140-17d67fc43366/849ef022-aa76-4bd9-b89e-371dbf505832.jpg",
+  "status": "scheduled",
+  "description": "El festival literario más importante de Latinoamérica celebra su 22ª edición. Más de 180 participantes de 25 países: literatura, música, periodismo, filosofía, cine y teatro. Conversaciones gratuitas y de pago en sedes emblemáticas.",
+  "description_en": "Latin America's most important literary festival celebrates its 22nd edition. Over 180 participants from 25 countries: literature, music, journalism, philosophy, film, and theater. Free and ticketed conversations at iconic venues.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.hayfestival.com/cartagena"
+  ],
+  "confidence": "high",
+  "tags": [
+    "literary",
+    "culture",
+    "books",
+    "talks",
+    "international"
+  ],
+  "featured": true,
+  "expected_attendance": 40000,
+  "location": {
+    "lat": 10.426,
+    "lng": -75.549
+  }
+}

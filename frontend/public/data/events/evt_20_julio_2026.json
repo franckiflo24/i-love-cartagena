@@ -1,0 +1,36 @@
+{
+  "id": "evt_20_julio_2026",
+  "slug": "dia-independencia-colombia-2026",
+  "name_es": "Día de la Independencia de Colombia",
+  "name_en": "Colombian Independence Day",
+  "category": "cultural",
+  "venue": "Plaza de Bolívar y Centro Histórico",
+  "venue_name": "Plaza de Bolívar",
+  "date_start": "2026-07-20",
+  "date_end": "2026-07-20",
+  "time_start": "08:00",
+  "is_free": true,
+  "price": 0,
+  "ticket_url": null,
+  "organizer": "Alcaldía de Cartagena",
+  "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Clock_Tower_CTG_11_2019_1352.jpg/800px-Clock_Tower_CTG_11_2019_1352.jpg",
+  "status": "scheduled",
+  "description": "Feriado nacional del 20 de julio. Desfiles militares, actos cívicos en la Plaza de Bolívar, izada de bandera y eventos culturales gratuitos por toda la ciudad.",
+  "description_en": "July 20th national holiday. Military parades, civic ceremonies at Plaza de Bolívar, flag raising, and free cultural events throughout the city.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://en.wikipedia.org/wiki/Colombian_Declaration_of_Independence"
+  ],
+  "confidence": "high",
+  "tags": [
+    "national-holiday",
+    "free",
+    "patriotic",
+    "cultural"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.4231,
+    "lng": -75.5507
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "evt_castillo_san_felipe",
+  "slug": "noches-del-castillo-san-felipe-2026",
+  "name_es": "Noches en el Castillo San Felipe — Recorridos Nocturnos",
+  "name_en": "Nights at San Felipe Castle — Night Tours",
+  "category": "cultural",
+  "venue": "Castillo San Felipe de Barajas",
+  "venue_name": "Castillo San Felipe de Barajas",
+  "date_start": "2026-07-01",
+  "date_end": "2026-12-31",
+  "time_start": "19:00",
+  "is_free": false,
+  "price": 35000,
+  "price_min_cop": 25000,
+  "price_max_cop": 45000,
+  "ticket_url": null,
+  "organizer": "Sociedad de Mejoras Públicas de Cartagena",
+  "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Castillo_de_San_Felipe_de_Barajas_2.jpg/800px-Castillo_de_San_Felipe_de_Barajas_2.jpg",
+  "status": "scheduled",
+  "description": "Recorridos nocturnos iluminados por la mayor fortaleza colonial del continente. Guías narran las batallas contra piratas y la historia del Caribe bajo las estrellas. Experiencia única con sonido envolvente.",
+  "description_en": "Illuminated night tours of the Americas' largest colonial fortress. Guides narrate battles against pirates and Caribbean history under the stars. Unique immersive sound experience.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://en.wikipedia.org/wiki/Castillo_San_Felipe_de_Barajas"
+  ],
+  "confidence": "medium",
+  "tags": [
+    "heritage",
+    "night-tour",
+    "history",
+    "family"
+  ],
+  "featured": false,
+  "capacity": 50,
+  "location": {
+    "lat": 10.4226,
+    "lng": -75.539
+  }
+}

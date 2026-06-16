@@ -1,0 +1,40 @@
+{
+  "id": "evt_cafe_havana_salsa",
+  "slug": "cafe-havana-salsa-nights",
+  "name_es": "Noches de Salsa en Café Havana",
+  "name_en": "Salsa Nights at Café Havana",
+  "category": "concert",
+  "venue": "Café Havana",
+  "venue_name": "Café Havana",
+  "date_start": "2026-07-04",
+  "date_end": "2026-12-26",
+  "time_start": "22:00",
+  "is_free": false,
+  "price": 30000,
+  "price_min_cop": 30000,
+  "price_max_cop": 50000,
+  "ticket_url": null,
+  "organizer": "Café Havana Cartagena",
+  "image_url": "https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800&h=600&fit=crop",
+  "status": "scheduled",
+  "description": "El legendario bar de Getsemaní con salsa en vivo todos los sábados. Orquestas locales, son cubano, timba y baile hasta las 3am. El lugar donde los expresidentes y famosos bailan salsa.",
+  "description_en": "Getsemaní's legendary bar with live salsa every Saturday. Local orchestras, Cuban son, timba, and dancing until 3am. The spot where presidents and celebrities dance salsa.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+  ],
+  "confidence": "high",
+  "tags": [
+    "salsa",
+    "live-music",
+    "nightlife",
+    "getsemani",
+    "recurring"
+  ],
+  "featured": true,
+  "capacity": 150,
+  "location": {
+    "lat": 10.4219,
+    "lng": -75.5519
+  }
+}

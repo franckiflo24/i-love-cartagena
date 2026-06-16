@@ -1,0 +1,38 @@
+{
+  "id": "evt_semana_santa_2027",
+  "slug": "semana-santa-cartagena-2027",
+  "name_es": "Semana Santa en Cartagena",
+  "name_en": "Holy Week in Cartagena",
+  "category": "religious",
+  "venue": "Iglesias y calles del Centro Histórico",
+  "venue_name": "Catedral de Santa Catalina de Alejandría",
+  "date_start": "2027-03-29",
+  "date_end": "2027-04-04",
+  "time_start": "06:00",
+  "is_free": true,
+  "price": 0,
+  "ticket_url": null,
+  "organizer": "Arquidiócesis de Cartagena",
+  "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Castillo_de_San_Felipe_de_Barajas_2.jpg/800px-Castillo_de_San_Felipe_de_Barajas_2.jpg",
+  "status": "scheduled",
+  "description": "Semana Santa vivida con fervor en la ciudad amurallada. Procesiones solemnes por calles coloniales, Vía Crucis, misas en iglesias históricas (San Pedro Claver, Santo Domingo, Catedral). Época de mayor turismo religioso.",
+  "description_en": "Holy Week experienced with fervor in the walled city. Solemn processions through colonial streets, Stations of the Cross, masses in historic churches (San Pedro Claver, Santo Domingo, Cathedral). Peak religious tourism season.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+  ],
+  "confidence": "high",
+  "tags": [
+    "religious",
+    "processions",
+    "heritage",
+    "free",
+    "holy-week"
+  ],
+  "featured": true,
+  "expected_attendance": 150000,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5492
+  }
+}

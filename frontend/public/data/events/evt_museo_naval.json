@@ -1,0 +1,39 @@
+{
+  "id": "evt_museo_naval",
+  "slug": "exposiciones-museo-naval-2026",
+  "name_es": "Exposiciones Permanentes — Museo Naval del Caribe",
+  "name_en": "Permanent Exhibitions — Caribbean Naval Museum",
+  "category": "cultural",
+  "venue": "Museo Naval del Caribe",
+  "venue_name": "Museo Naval del Caribe",
+  "date_start": "2026-07-01",
+  "date_end": "2027-03-31",
+  "time_start": "09:00",
+  "is_free": false,
+  "price": 20000,
+  "price_min_cop": 12000,
+  "price_max_cop": 20000,
+  "ticket_url": null,
+  "organizer": "Museo Naval del Caribe",
+  "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Museo_Naval_del_Caribe.JPG/800px-Museo_Naval_del_Caribe.JPG",
+  "status": "scheduled",
+  "description": "Visitas guiadas y exposiciones sobre la historia marítima de Cartagena, las batallas navales del Caribe y la era colonial. Edificio histórico del siglo XVIII en pleno Centro.",
+  "description_en": "Guided tours and exhibitions on Cartagena's maritime history, Caribbean naval battles, and the colonial era. Historic 18th-century building in the heart of the Centro.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+  ],
+  "confidence": "high",
+  "tags": [
+    "museum",
+    "history",
+    "heritage",
+    "family"
+  ],
+  "featured": false,
+  "capacity": 100,
+  "location": {
+    "lat": 10.4247,
+    "lng": -75.5486
+  }
+}

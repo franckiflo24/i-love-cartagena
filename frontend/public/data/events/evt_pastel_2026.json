@@ -1,0 +1,37 @@
+{
+  "id": "evt_pastel_2026",
+  "slug": "festival-del-pastel-cartagenero-2026",
+  "name_es": "Festival del Pastel Cartagenero",
+  "name_en": "Cartagena Pastel (Tamale) Festival",
+  "category": "market",
+  "venue": "Parque del Centenario / Getsemaní",
+  "venue_name": "Parque del Centenario",
+  "date_start": "2026-12-16",
+  "date_end": "2026-12-25",
+  "time_start": "10:00",
+  "is_free": true,
+  "price": 0,
+  "ticket_url": null,
+  "organizer": "IPCC / Asociaciones Gastronómicas",
+  "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Centro_historico_de_Cartagena.jpg/800px-Centro_historico_de_Cartagena.jpg",
+  "status": "scheduled",
+  "description": "Festival gastronómico navideño dedicado al pastel cartagenero — el tamal costeño tradicional hecho con arroz, carne y verduras envuelto en hoja de bijao. Concursos de cocina, música y venta masiva de pasteles.",
+  "description_en": "Christmas gastronomy festival celebrating the pastel cartagenero — the traditional coastal tamale made with rice, meat, and vegetables wrapped in bijao leaves. Cooking contests, live music, and massive pastel sales.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+  ],
+  "confidence": "high",
+  "tags": [
+    "food",
+    "christmas",
+    "gastronomy",
+    "free",
+    "tradition"
+  ],
+  "featured": true,
+  "location": {
+    "lat": 10.4228,
+    "lng": -75.5486
+  }
+}

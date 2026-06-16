@@ -1,0 +1,35 @@
+{
+  "id": "evt_batalla_boyaca_2026",
+  "slug": "batalla-de-boyaca-2026",
+  "name_es": "Día de la Batalla de Boyacá",
+  "name_en": "Battle of Boyacá Day",
+  "category": "cultural",
+  "venue": "Centro Histórico",
+  "venue_name": "Centro Histórico",
+  "date_start": "2026-08-07",
+  "date_end": "2026-08-07",
+  "time_start": "09:00",
+  "is_free": true,
+  "price": 0,
+  "ticket_url": null,
+  "organizer": "Alcaldía de Cartagena",
+  "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Castillo_de_San_Felipe_de_Barajas_2.jpg/800px-Castillo_de_San_Felipe_de_Barajas_2.jpg",
+  "status": "scheduled",
+  "description": "Feriado nacional que conmemora la Batalla de Boyacá. Actos cívicos y culturales. Muchos cartageneros disfrutan del día festivo en playas y restaurantes.",
+  "description_en": "National holiday commemorating the Battle of Boyacá. Civic and cultural events. Many locals enjoy the holiday at beaches and restaurants.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://en.wikipedia.org/wiki/Battle_of_Boyac%C3%A1"
+  ],
+  "confidence": "high",
+  "tags": [
+    "national-holiday",
+    "free",
+    "patriotic"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5483
+  }
+}

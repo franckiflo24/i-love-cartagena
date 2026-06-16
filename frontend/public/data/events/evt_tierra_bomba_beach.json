@@ -1,0 +1,40 @@
+{
+  "id": "evt_tierra_bomba_beach",
+  "slug": "tierra-bomba-beach-sundays",
+  "name_es": "Domingos de Playa — Tierra Bomba Beach Clubs",
+  "name_en": "Beach Sundays — Tierra Bomba Beach Clubs",
+  "category": "concert",
+  "venue": "Beach clubs de Tierra Bomba",
+  "venue_name": "Tierra Bomba Beach Clubs",
+  "date_start": "2026-07-05",
+  "date_end": "2026-12-27",
+  "time_start": "10:00",
+  "is_free": false,
+  "price": 150000,
+  "price_min_cop": 100000,
+  "price_max_cop": 350000,
+  "ticket_url": null,
+  "organizer": "Beach Clubs de Tierra Bomba",
+  "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
+  "status": "scheduled",
+  "description": "Todos los domingos, los beach clubs de Tierra Bomba ofrecen día de playa con DJ, coctelería, almuerzo caribeño y lanchas desde el muelle de Cartagena. Incluye Pao Pao, Blue Apple y más.",
+  "description_en": "Every Sunday, Tierra Bomba beach clubs offer beach days with DJs, craft cocktails, Caribbean lunch, and boat transfers from Cartagena pier. Includes Pao Pao, Blue Apple, and more.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+  ],
+  "confidence": "high",
+  "tags": [
+    "beach",
+    "dj",
+    "brunch",
+    "boat",
+    "recurring"
+  ],
+  "featured": true,
+  "capacity": 200,
+  "location": {
+    "lat": 10.355,
+    "lng": -75.575
+  }
+}

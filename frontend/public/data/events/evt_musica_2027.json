@@ -1,0 +1,41 @@
+{
+  "id": "evt_musica_2027",
+  "slug": "festival-internacional-musica-cartagena-2027",
+  "name_es": "XXI Festival Internacional de Música de Cartagena",
+  "name_en": "21st Cartagena International Music Festival",
+  "category": "cultural",
+  "venue": "Teatro Adolfo Mejía / Centro de Convenciones / Iglesias Históricas",
+  "venue_name": "Teatro Adolfo Mejía (Teatro Heredia)",
+  "date_start": "2027-01-09",
+  "date_end": "2027-01-17",
+  "time_start": "19:00",
+  "is_free": false,
+  "price": 80000,
+  "price_min_cop": 0,
+  "price_max_cop": 350000,
+  "ticket_url": "https://www.cartagenamusicfestival.com",
+  "organizer": "Fundación Salvi",
+  "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Cartagena_-Teatro_Heredia.JPG/800px-Cartagena_-Teatro_Heredia.JPG",
+  "status": "scheduled",
+  "description": "El festival de música clásica y de cámara más importante de Latinoamérica. La 21ª edición reúne orquestas, solistas y ensambles de talla mundial en el majestuoso Teatro Adolfo Mejía y otras sedes patrimoniales. Incluye conciertos gratuitos en plazas públicas.",
+  "description_en": "Latin America's premier classical and chamber music festival. The 21st edition brings world-class orchestras, soloists, and ensembles to the majestic Teatro Adolfo Mejía and other heritage venues. Includes free public concerts in city plazas.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.cartagenamusicfestival.com",
+    "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+  ],
+  "confidence": "high",
+  "tags": [
+    "classical",
+    "chamber-music",
+    "orchestral",
+    "cultural",
+    "heritage"
+  ],
+  "featured": true,
+  "expected_attendance": 30000,
+  "location": {
+    "lat": 10.426,
+    "lng": -75.549
+  }
+}

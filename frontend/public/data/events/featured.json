@@ -19,12 +19,23 @@
     "description": "Las fiestas más grandes de Cartagena celebrando la independencia del 11 de noviembre de 1811. Desfiles, comparsas, el Reinado Popular, Bando, y champeta al aire libre por toda la ciudad durante 12 días.",
     "description_en": "Cartagena's biggest annual celebration commemorating independence from Spain on November 11, 1811. Twelve days of parades, comparsas, the Popular Beauty Queen contest, champeta concerts, and cultural events citywide.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Cartagena,_Colombia"],
+    "source": [
+      "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+    ],
     "confidence": "high",
-    "tags": ["independence", "parades", "champeta", "comparsas", "free"],
+    "tags": [
+      "independence",
+      "parades",
+      "champeta",
+      "comparsas",
+      "free"
+    ],
     "featured": true,
     "expected_attendance": 500000,
-    "location": { "lat": 10.4236, "lng": -75.5483 }
+    "location": {
+      "lat": 10.4236,
+      "lng": -75.5483
+    }
   },
   {
     "id": "evt_bando_2026",
@@ -46,12 +57,22 @@
     "description": "Desfile inaugural de las Fiestas de Noviembre. Comparsas, carrozas, música y baile llenan las calles del centro amurallado en una explosión de color y alegría caribeña.",
     "description_en": "The inaugural parade of the November Festivities. Comparsas, floats, music, and dance fill the streets of the walled city in an explosion of Caribbean color and joy.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Cartagena,_Colombia"],
+    "source": [
+      "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+    ],
     "confidence": "high",
-    "tags": ["parade", "independence", "free", "cultural"],
+    "tags": [
+      "parade",
+      "independence",
+      "free",
+      "cultural"
+    ],
     "featured": true,
     "expected_attendance": 100000,
-    "location": { "lat": 10.4233, "lng": -75.5512 }
+    "location": {
+      "lat": 10.4233,
+      "lng": -75.5512
+    }
   },
   {
     "id": "evt_pastel_2026",
@@ -73,11 +94,22 @@
     "description": "Festival gastronómico navideño dedicado al pastel cartagenero — el tamal costeño tradicional hecho con arroz, carne y verduras envuelto en hoja de bijao. Concursos de cocina, música y venta masiva de pasteles.",
     "description_en": "Christmas gastronomy festival celebrating the pastel cartagenero — the traditional coastal tamale made with rice, meat, and vegetables wrapped in bijao leaves. Cooking contests, live music, and massive pastel sales.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Cartagena,_Colombia"],
+    "source": [
+      "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+    ],
     "confidence": "high",
-    "tags": ["food", "christmas", "gastronomy", "free", "tradition"],
+    "tags": [
+      "food",
+      "christmas",
+      "gastronomy",
+      "free",
+      "tradition"
+    ],
     "featured": true,
-    "location": { "lat": 10.4228, "lng": -75.5486 }
+    "location": {
+      "lat": 10.4228,
+      "lng": -75.5486
+    }
   },
   {
     "id": "evt_sueno_navidad_2026",
@@ -99,12 +131,22 @@
     "description": "El espectáculo navideño de Cartagena con millones de luces decorando murallas, plazas y parques. Incluye pesebre gigante, villa navideña, shows de luces y actividades para toda la familia.",
     "description_en": "Cartagena's Christmas light spectacular with millions of lights decorating walls, plazas, and parks. Features a giant nativity scene, Christmas village, light shows, and family activities.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Cartagena,_Colombia"],
+    "source": [
+      "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+    ],
     "confidence": "high",
-    "tags": ["christmas", "lights", "free", "family"],
+    "tags": [
+      "christmas",
+      "lights",
+      "free",
+      "family"
+    ],
     "featured": true,
     "expected_attendance": 300000,
-    "location": { "lat": 10.4195, "lng": -75.5460 }
+    "location": {
+      "lat": 10.4195,
+      "lng": -75.546
+    }
   },
   {
     "id": "evt_ente_caribe_2026",
@@ -128,12 +170,23 @@
     "description": "Festival de música electrónica de fin de año en Cartagena. DJs internacionales y locales en locaciones emblemáticas: playas, azoteas y venues del Centro Histórico. House, techno, afro house y más.",
     "description_en": "End-of-year electronic music festival in Cartagena. International and local DJs at iconic locations: beaches, rooftops, and Historic Center venues. House, techno, afro house and more.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://entecaribe.com"],
+    "source": [
+      "https://entecaribe.com"
+    ],
     "confidence": "medium",
-    "tags": ["electronic", "house", "techno", "new-years", "dj"],
+    "tags": [
+      "electronic",
+      "house",
+      "techno",
+      "new-years",
+      "dj"
+    ],
     "featured": true,
     "expected_attendance": 15000,
-    "location": { "lat": 10.4236, "lng": -75.5483 }
+    "location": {
+      "lat": 10.4236,
+      "lng": -75.5483
+    }
   },
   {
     "id": "evt_ano_nuevo_2026",
@@ -155,39 +208,22 @@
     "description": "Celebración de Año Nuevo sobre las murallas coloniales. Fuegos artificiales sobre la bahía, música en vivo, champeta y fiesta colectiva con vista al Caribe.",
     "description_en": "New Year's Eve celebration on the colonial walls. Fireworks over the bay, live music, champeta, and a massive communal party overlooking the Caribbean.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Cartagena,_Colombia"],
+    "source": [
+      "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+    ],
     "confidence": "high",
-    "tags": ["new-years", "fireworks", "free", "party"],
+    "tags": [
+      "new-years",
+      "fireworks",
+      "free",
+      "party"
+    ],
     "featured": true,
     "expected_attendance": 200000,
-    "location": { "lat": 10.4236, "lng": -75.5483 }
-  },
-  {
-    "id": "evt_farex_2027",
-    "slug": "farex-feria-artesanal-2027",
-    "name_es": "FAREX — Feria Artesanal y Empresarial",
-    "name_en": "FAREX — Artisan & Business Fair",
-    "category": "market",
-    "venue": "Centro de Convenciones Cartagena de Indias",
-    "venue_name": "Centro de Convenciones Cartagena de Indias",
-    "date_start": "2027-01-03",
-    "date_end": "2027-01-10",
-    "time_start": "10:00",
-    "is_free": true,
-    "price": 0,
-    "ticket_url": null,
-    "organizer": "Cámara de Comercio de Cartagena",
-    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Centro_historico_de_Cartagena.jpg/800px-Centro_historico_de_Cartagena.jpg",
-    "status": "scheduled",
-    "description": "La feria artesanal más grande de Cartagena reúne a cientos de artesanos, emprendedores y marcas locales. Artesanías, moda, gastronomía y productos del Caribe colombiano.",
-    "description_en": "Cartagena's largest artisan fair brings together hundreds of artisans, entrepreneurs, and local brands. Handicrafts, fashion, gastronomy, and products from the Colombian Caribbean.",
-    "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Cartagena,_Colombia"],
-    "confidence": "medium",
-    "tags": ["artisan", "fair", "shopping", "free", "local"],
-    "featured": false,
-    "expected_attendance": 50000,
-    "location": { "lat": 10.4195, "lng": -75.5460 }
+    "location": {
+      "lat": 10.4236,
+      "lng": -75.5483
+    }
   },
   {
     "id": "evt_musica_2027",
@@ -211,12 +247,24 @@
     "description": "El festival de música clásica y de cámara más importante de Latinoamérica. La 21ª edición reúne orquestas, solistas y ensambles de talla mundial en el majestuoso Teatro Adolfo Mejía y otras sedes patrimoniales. Incluye conciertos gratuitos en plazas públicas.",
     "description_en": "Latin America's premier classical and chamber music festival. The 21st edition brings world-class orchestras, soloists, and ensembles to the majestic Teatro Adolfo Mejía and other heritage venues. Includes free public concerts in city plazas.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://www.cartagenamusicfestival.com", "https://en.wikipedia.org/wiki/Cartagena,_Colombia"],
+    "source": [
+      "https://www.cartagenamusicfestival.com",
+      "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+    ],
     "confidence": "high",
-    "tags": ["classical", "chamber-music", "orchestral", "cultural", "heritage"],
+    "tags": [
+      "classical",
+      "chamber-music",
+      "orchestral",
+      "cultural",
+      "heritage"
+    ],
     "featured": true,
     "expected_attendance": 30000,
-    "location": { "lat": 10.4260, "lng": -75.5490 }
+    "location": {
+      "lat": 10.426,
+      "lng": -75.549
+    }
   },
   {
     "id": "evt_frito_2027",
@@ -238,12 +286,23 @@
     "description": "Celebración gastronómica de los fritos tradicionales cartageneros: arepas de huevo, carimañolas, buñuelos, empanadas y deditos de queso. Coincide con la novena de la Virgen de la Candelaria. Competencias de cocina y música en vivo.",
     "description_en": "Gastronomic celebration of Cartagena's traditional fried foods: arepas de huevo, carimañolas, buñuelos, empanadas, and cheese fingers. Coincides with the Virgen de la Candelaria novena. Cooking competitions and live music.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Cartagena,_Colombia"],
+    "source": [
+      "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+    ],
     "confidence": "high",
-    "tags": ["food", "street-food", "gastronomy", "free", "tradition"],
+    "tags": [
+      "food",
+      "street-food",
+      "gastronomy",
+      "free",
+      "tradition"
+    ],
     "featured": true,
     "expected_attendance": 80000,
-    "location": { "lat": 10.4219, "lng": -75.5511 }
+    "location": {
+      "lat": 10.4219,
+      "lng": -75.5511
+    }
   },
   {
     "id": "evt_hay_2027",
@@ -267,12 +326,23 @@
     "description": "El festival literario más importante de Latinoamérica celebra su 22ª edición. Más de 180 participantes de 25 países: literatura, música, periodismo, filosofía, cine y teatro. Conversaciones gratuitas y de pago en sedes emblemáticas.",
     "description_en": "Latin America's most important literary festival celebrates its 22nd edition. Over 180 participants from 25 countries: literature, music, journalism, philosophy, film, and theater. Free and ticketed conversations at iconic venues.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://www.hayfestival.com/cartagena"],
+    "source": [
+      "https://www.hayfestival.com/cartagena"
+    ],
     "confidence": "high",
-    "tags": ["literary", "culture", "books", "talks", "international"],
+    "tags": [
+      "literary",
+      "culture",
+      "books",
+      "talks",
+      "international"
+    ],
     "featured": true,
     "expected_attendance": 40000,
-    "location": { "lat": 10.4260, "lng": -75.5490 }
+    "location": {
+      "lat": 10.426,
+      "lng": -75.549
+    }
   },
   {
     "id": "evt_candelaria_2027",
@@ -294,12 +364,22 @@
     "description": "La patrona de Cartagena. Miles de fieles suben al Cerro de la Popa en peregrinación al Convento para venerar a la Virgen de la Candelaria. Misa solemne, procesiones y tradiciones centenarias.",
     "description_en": "Cartagena's patron saint feast day. Thousands of faithful make the pilgrimage up La Popa hill to the Convent to venerate the Virgin of Candelaria. Solemn mass, processions, and centuries-old traditions.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Cartagena,_Colombia"],
+    "source": [
+      "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+    ],
     "confidence": "high",
-    "tags": ["religious", "pilgrimage", "tradition", "free"],
+    "tags": [
+      "religious",
+      "pilgrimage",
+      "tradition",
+      "free"
+    ],
     "featured": true,
     "expected_attendance": 50000,
-    "location": { "lat": 10.4132, "lng": -75.5361 }
+    "location": {
+      "lat": 10.4132,
+      "lng": -75.5361
+    }
   },
   {
     "id": "evt_semana_santa_2027",
@@ -321,90 +401,23 @@
     "description": "Semana Santa vivida con fervor en la ciudad amurallada. Procesiones solemnes por calles coloniales, Vía Crucis, misas en iglesias históricas (San Pedro Claver, Santo Domingo, Catedral). Época de mayor turismo religioso.",
     "description_en": "Holy Week experienced with fervor in the walled city. Solemn processions through colonial streets, Stations of the Cross, masses in historic churches (San Pedro Claver, Santo Domingo, Cathedral). Peak religious tourism season.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Cartagena,_Colombia"],
+    "source": [
+      "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+    ],
     "confidence": "high",
-    "tags": ["religious", "processions", "heritage", "free", "holy-week"],
+    "tags": [
+      "religious",
+      "processions",
+      "heritage",
+      "free",
+      "holy-week"
+    ],
     "featured": true,
     "expected_attendance": 150000,
-    "location": { "lat": 10.4236, "lng": -75.5492 }
-  },
-  {
-    "id": "evt_20_julio_2026",
-    "slug": "dia-independencia-colombia-2026",
-    "name_es": "Día de la Independencia de Colombia",
-    "name_en": "Colombian Independence Day",
-    "category": "cultural",
-    "venue": "Plaza de Bolívar y Centro Histórico",
-    "venue_name": "Plaza de Bolívar",
-    "date_start": "2026-07-20",
-    "date_end": "2026-07-20",
-    "time_start": "08:00",
-    "is_free": true,
-    "price": 0,
-    "ticket_url": null,
-    "organizer": "Alcaldía de Cartagena",
-    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Clock_Tower_CTG_11_2019_1352.jpg/800px-Clock_Tower_CTG_11_2019_1352.jpg",
-    "status": "scheduled",
-    "description": "Feriado nacional del 20 de julio. Desfiles militares, actos cívicos en la Plaza de Bolívar, izada de bandera y eventos culturales gratuitos por toda la ciudad.",
-    "description_en": "July 20th national holiday. Military parades, civic ceremonies at Plaza de Bolívar, flag raising, and free cultural events throughout the city.",
-    "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Colombian_Declaration_of_Independence"],
-    "confidence": "high",
-    "tags": ["national-holiday", "free", "patriotic", "cultural"],
-    "featured": false,
-    "location": { "lat": 10.4231, "lng": -75.5507 }
-  },
-  {
-    "id": "evt_batalla_boyaca_2026",
-    "slug": "batalla-de-boyaca-2026",
-    "name_es": "Día de la Batalla de Boyacá",
-    "name_en": "Battle of Boyacá Day",
-    "category": "cultural",
-    "venue": "Centro Histórico",
-    "venue_name": "Centro Histórico",
-    "date_start": "2026-08-07",
-    "date_end": "2026-08-07",
-    "time_start": "09:00",
-    "is_free": true,
-    "price": 0,
-    "ticket_url": null,
-    "organizer": "Alcaldía de Cartagena",
-    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Castillo_de_San_Felipe_de_Barajas_2.jpg/800px-Castillo_de_San_Felipe_de_Barajas_2.jpg",
-    "status": "scheduled",
-    "description": "Feriado nacional que conmemora la Batalla de Boyacá. Actos cívicos y culturales. Muchos cartageneros disfrutan del día festivo en playas y restaurantes.",
-    "description_en": "National holiday commemorating the Battle of Boyacá. Civic and cultural events. Many locals enjoy the holiday at beaches and restaurants.",
-    "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Battle_of_Boyac%C3%A1"],
-    "confidence": "high",
-    "tags": ["national-holiday", "free", "patriotic"],
-    "featured": false,
-    "location": { "lat": 10.4236, "lng": -75.5483 }
-  },
-  {
-    "id": "evt_race_asuncion_2026",
-    "slug": "dia-raza-asuncion-2026",
-    "name_es": "Día de la Raza — Feriado Nacional",
-    "name_en": "Columbus Day / Día de la Raza",
-    "category": "cultural",
-    "venue": "Cartagena",
-    "venue_name": "Centro Histórico",
-    "date_start": "2026-10-12",
-    "date_end": "2026-10-12",
-    "time_start": "09:00",
-    "is_free": true,
-    "price": 0,
-    "ticket_url": null,
-    "organizer": "Gobierno Nacional",
-    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Museo_Naval_del_Caribe.JPG/800px-Museo_Naval_del_Caribe.JPG",
-    "status": "scheduled",
-    "description": "Feriado nacional. Eventos culturales que celebran la diversidad étnica y cultural colombiana. Actividades en museos y centros culturales.",
-    "description_en": "National holiday. Cultural events celebrating Colombian ethnic and cultural diversity. Activities at museums and cultural centers.",
-    "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Public_holidays_in_Colombia"],
-    "confidence": "high",
-    "tags": ["national-holiday", "free", "cultural"],
-    "featured": false,
-    "location": { "lat": 10.4236, "lng": -75.5483 }
+    "location": {
+      "lat": 10.4236,
+      "lng": -75.5492
+    }
   },
   {
     "id": "evt_alquimico_cocktail_fridays",
@@ -428,12 +441,23 @@
     "description": "Todos los viernes, el mejor bar de Colombia (World's 50 Best Bars) presenta DJ sets en su rooftop de tres niveles. Coctelería de autor con ingredientes caribeños y música hasta la madrugada.",
     "description_en": "Every Friday, Colombia's best bar (World's 50 Best Bars) features DJ sets on its three-level rooftop. Craft cocktails with Caribbean ingredients and music until late.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://alquimico.com"],
+    "source": [
+      "https://alquimico.com"
+    ],
     "confidence": "high",
-    "tags": ["cocktails", "nightlife", "rooftop", "dj", "recurring"],
+    "tags": [
+      "cocktails",
+      "nightlife",
+      "rooftop",
+      "dj",
+      "recurring"
+    ],
     "featured": true,
     "capacity": 200,
-    "location": { "lat": 10.4227, "lng": -75.5514 }
+    "location": {
+      "lat": 10.4227,
+      "lng": -75.5514
+    }
   },
   {
     "id": "evt_cafe_havana_salsa",
@@ -457,12 +481,23 @@
     "description": "El legendario bar de Getsemaní con salsa en vivo todos los sábados. Orquestas locales, son cubano, timba y baile hasta las 3am. El lugar donde los expresidentes y famosos bailan salsa.",
     "description_en": "Getsemaní's legendary bar with live salsa every Saturday. Local orchestras, Cuban son, timba, and dancing until 3am. The spot where presidents and celebrities dance salsa.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Cartagena,_Colombia"],
+    "source": [
+      "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+    ],
     "confidence": "high",
-    "tags": ["salsa", "live-music", "nightlife", "getsemani", "recurring"],
+    "tags": [
+      "salsa",
+      "live-music",
+      "nightlife",
+      "getsemani",
+      "recurring"
+    ],
     "featured": true,
     "capacity": 150,
-    "location": { "lat": 10.4219, "lng": -75.5519 }
+    "location": {
+      "lat": 10.4219,
+      "lng": -75.5519
+    }
   },
   {
     "id": "evt_bazurto_champeta",
@@ -486,125 +521,23 @@
     "description": "El templo de la champeta y el picó en Getsemaní. Jueves y sábados con los mejores artistas de champeta criolla, afrobeat y ritmos urbanos cartageneros. Experiencia 100% local.",
     "description_en": "The temple of champeta and picó sound systems in Getsemaní. Thursdays and Saturdays with the best champeta criolla artists, afrobeat, and Cartagena urban rhythms. 100% local experience.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://bazurtosocialclub.com"],
+    "source": [
+      "https://bazurtosocialclub.com"
+    ],
     "confidence": "high",
-    "tags": ["champeta", "afrobeat", "nightlife", "getsemani", "recurring"],
+    "tags": [
+      "champeta",
+      "afrobeat",
+      "nightlife",
+      "getsemani",
+      "recurring"
+    ],
     "featured": true,
     "capacity": 200,
-    "location": { "lat": 10.4222, "lng": -75.5517 }
-  },
-  {
-    "id": "evt_halloween_2026",
-    "slug": "halloween-cartagena-2026",
-    "name_es": "Halloween en Cartagena — Noche de Brujas",
-    "name_en": "Halloween in Cartagena",
-    "category": "festival",
-    "venue": "Centro Histórico y Getsemaní",
-    "venue_name": "Centro Histórico & Getsemaní",
-    "date_start": "2026-10-31",
-    "date_end": "2026-11-01",
-    "time_start": "18:00",
-    "is_free": true,
-    "price": 0,
-    "ticket_url": null,
-    "organizer": "Comerciantes del Centro / Bares de Getsemaní",
-    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/67_-_Carthag%C3%A8ne_-_D%C3%A9cembre_2008.jpg/800px-67_-_Carthag%C3%A8ne_-_D%C3%A9cembre_2008.jpg",
-    "status": "scheduled",
-    "description": "Cartagena celebra Halloween con desfiles de disfraces por las calles coloniales. Los niños recorren el centro amurallado pidiendo dulces. Fiestas temáticas en bares y rooftops de Getsemaní.",
-    "description_en": "Cartagena celebrates Halloween with costume parades through colonial streets. Children trick-or-treat in the walled city. Themed parties at Getsemaní bars and rooftops.",
-    "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Cartagena,_Colombia"],
-    "confidence": "high",
-    "tags": ["halloween", "family", "nightlife", "free"],
-    "featured": false,
-    "location": { "lat": 10.4236, "lng": -75.5483 }
-  },
-  {
-    "id": "evt_hay_teatro_heredia",
-    "slug": "hay-festival-teatro-heredia-2027",
-    "name_es": "Hay Festival — Conversaciones en el Teatro Heredia",
-    "name_en": "Hay Festival — Conversations at Teatro Heredia",
-    "category": "cultural",
-    "venue": "Teatro Adolfo Mejía (Teatro Heredia)",
-    "venue_name": "Teatro Adolfo Mejía",
-    "date_start": "2027-01-28",
-    "date_end": "2027-01-31",
-    "time_start": "18:00",
-    "is_free": false,
-    "price": 50000,
-    "price_min_cop": 30000,
-    "price_max_cop": 120000,
-    "ticket_url": "https://www.hayfestival.com/cartagena",
-    "organizer": "Hay Festival Foundation",
-    "image_url": "https://www.hayfestival.com/TeatroHeredia.jpg?cmsotimagehandler=/Uploads/Crops/3080f847-d799-43e1-8f6a-1a0851ebf9b8/cde9a4d5-622a-4333-8d0c-d628505f665b.jpg",
-    "status": "scheduled",
-    "description": "Las conversaciones estelares del Hay Festival en el icónico Teatro Adolfo Mejía. Autores ganadores del Nobel, periodistas premiados y pensadores globales en diálogos sobre literatura, política y sociedad.",
-    "description_en": "Hay Festival's flagship conversations at the iconic Teatro Adolfo Mejía. Nobel-winning authors, award-winning journalists, and global thinkers in dialogues about literature, politics, and society.",
-    "last_verified_date": "2026-06-16",
-    "source": ["https://www.hayfestival.com/cartagena/home"],
-    "confidence": "high",
-    "tags": ["literary", "talks", "theater", "premium"],
-    "featured": false,
-    "capacity": 800,
-    "location": { "lat": 10.4260, "lng": -75.5490 }
-  },
-  {
-    "id": "evt_museo_naval",
-    "slug": "exposiciones-museo-naval-2026",
-    "name_es": "Exposiciones Permanentes — Museo Naval del Caribe",
-    "name_en": "Permanent Exhibitions — Caribbean Naval Museum",
-    "category": "cultural",
-    "venue": "Museo Naval del Caribe",
-    "venue_name": "Museo Naval del Caribe",
-    "date_start": "2026-07-01",
-    "date_end": "2027-03-31",
-    "time_start": "09:00",
-    "is_free": false,
-    "price": 20000,
-    "price_min_cop": 12000,
-    "price_max_cop": 20000,
-    "ticket_url": null,
-    "organizer": "Museo Naval del Caribe",
-    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Museo_Naval_del_Caribe.JPG/800px-Museo_Naval_del_Caribe.JPG",
-    "status": "scheduled",
-    "description": "Visitas guiadas y exposiciones sobre la historia marítima de Cartagena, las batallas navales del Caribe y la era colonial. Edificio histórico del siglo XVIII en pleno Centro.",
-    "description_en": "Guided tours and exhibitions on Cartagena's maritime history, Caribbean naval battles, and the colonial era. Historic 18th-century building in the heart of the Centro.",
-    "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Cartagena,_Colombia"],
-    "confidence": "high",
-    "tags": ["museum", "history", "heritage", "family"],
-    "featured": false,
-    "capacity": 100,
-    "location": { "lat": 10.4247, "lng": -75.5486 }
-  },
-  {
-    "id": "evt_castillo_san_felipe",
-    "slug": "noches-del-castillo-san-felipe-2026",
-    "name_es": "Noches en el Castillo San Felipe — Recorridos Nocturnos",
-    "name_en": "Nights at San Felipe Castle — Night Tours",
-    "category": "cultural",
-    "venue": "Castillo San Felipe de Barajas",
-    "venue_name": "Castillo San Felipe de Barajas",
-    "date_start": "2026-07-01",
-    "date_end": "2026-12-31",
-    "time_start": "19:00",
-    "is_free": false,
-    "price": 35000,
-    "price_min_cop": 25000,
-    "price_max_cop": 45000,
-    "ticket_url": null,
-    "organizer": "Sociedad de Mejoras Públicas de Cartagena",
-    "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Castillo_de_San_Felipe_de_Barajas_2.jpg/800px-Castillo_de_San_Felipe_de_Barajas_2.jpg",
-    "status": "scheduled",
-    "description": "Recorridos nocturnos iluminados por la mayor fortaleza colonial del continente. Guías narran las batallas contra piratas y la historia del Caribe bajo las estrellas. Experiencia única con sonido envolvente.",
-    "description_en": "Illuminated night tours of the Americas' largest colonial fortress. Guides narrate battles against pirates and Caribbean history under the stars. Unique immersive sound experience.",
-    "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Castillo_San_Felipe_de_Barajas"],
-    "confidence": "medium",
-    "tags": ["heritage", "night-tour", "history", "family"],
-    "featured": false,
-    "capacity": 50,
-    "location": { "lat": 10.4226, "lng": -75.5390 }
+    "location": {
+      "lat": 10.4222,
+      "lng": -75.5517
+    }
   },
   {
     "id": "evt_tierra_bomba_beach",
@@ -628,41 +561,23 @@
     "description": "Todos los domingos, los beach clubs de Tierra Bomba ofrecen día de playa con DJ, coctelería, almuerzo caribeño y lanchas desde el muelle de Cartagena. Incluye Pao Pao, Blue Apple y más.",
     "description_en": "Every Sunday, Tierra Bomba beach clubs offer beach days with DJs, craft cocktails, Caribbean lunch, and boat transfers from Cartagena pier. Includes Pao Pao, Blue Apple, and more.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Cartagena,_Colombia"],
+    "source": [
+      "https://en.wikipedia.org/wiki/Cartagena,_Colombia"
+    ],
     "confidence": "high",
-    "tags": ["beach", "dj", "brunch", "boat", "recurring"],
+    "tags": [
+      "beach",
+      "dj",
+      "brunch",
+      "boat",
+      "recurring"
+    ],
     "featured": true,
     "capacity": 200,
-    "location": { "lat": 10.3550, "lng": -75.5750 }
-  },
-  {
-    "id": "evt_rosario_snorkel",
-    "slug": "islas-del-rosario-eco-tours",
-    "name_es": "Eco-Tours Islas del Rosario — Snorkel y Naturaleza",
-    "name_en": "Rosario Islands Eco-Tours — Snorkel & Nature",
-    "category": "cultural",
-    "venue": "Parque Nacional Natural Corales del Rosario",
-    "venue_name": "Islas del Rosario",
-    "date_start": "2026-07-01",
-    "date_end": "2027-03-31",
-    "time_start": "08:00",
-    "is_free": false,
-    "price": 180000,
-    "price_min_cop": 120000,
-    "price_max_cop": 450000,
-    "ticket_url": null,
-    "organizer": "Operadores turísticos locales",
-    "image_url": "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800&h=600&fit=crop",
-    "status": "scheduled",
-    "description": "Tours diarios a las Islas del Rosario: snorkel en arrecifes de coral, visita al oceanario, almuerzo en playa privada. Salidas diarias desde Muelle de la Bodeguita.",
-    "description_en": "Daily tours to Rosario Islands: snorkeling at coral reefs, oceanarium visit, lunch on a private beach. Daily departures from Muelle de la Bodeguita.",
-    "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/Rosario_Islands"],
-    "confidence": "high",
-    "tags": ["nature", "snorkel", "islands", "eco-tourism", "daily"],
-    "featured": false,
-    "capacity": 30,
-    "location": { "lat": 10.1750, "lng": -75.7500 }
+    "location": {
+      "lat": 10.355,
+      "lng": -75.575
+    }
   },
   {
     "id": "evt_season_wellness_week_aaedabcb",
@@ -686,10 +601,18 @@
     "last_verified_date": "2026-06-16",
     "source": [],
     "confidence": "medium",
-    "tags": ["yoga", "wellness", "sunrise", "murallas"],
+    "tags": [
+      "yoga",
+      "wellness",
+      "sunrise",
+      "murallas"
+    ],
     "featured": true,
     "capacity": 60,
-    "location": { "lat": 10.4236, "lng": -75.5483 }
+    "location": {
+      "lat": 10.4236,
+      "lng": -75.5483
+    }
   },
   {
     "id": "evt_season_summer_vibes_e2bd04ef",
@@ -713,10 +636,18 @@
     "last_verified_date": "2026-06-16",
     "source": [],
     "confidence": "medium",
-    "tags": ["yacht", "islands", "luxury", "party"],
+    "tags": [
+      "yacht",
+      "islands",
+      "luxury",
+      "party"
+    ],
     "featured": true,
     "capacity": 60,
-    "location": { "lat": 10.1780, "lng": -75.7500 }
+    "location": {
+      "lat": 10.178,
+      "lng": -75.75
+    }
   },
   {
     "id": "evt_season_summer_vibes_9a0a257b",
@@ -740,10 +671,18 @@
     "last_verified_date": "2026-06-16",
     "source": [],
     "confidence": "medium",
-    "tags": ["pool-party", "luxury", "hotel", "dj"],
+    "tags": [
+      "pool-party",
+      "luxury",
+      "hotel",
+      "dj"
+    ],
     "featured": true,
     "capacity": 100,
-    "location": { "lat": 10.4240, "lng": -75.5475 }
+    "location": {
+      "lat": 10.424,
+      "lng": -75.5475
+    }
   },
   {
     "id": "evt_season_summer_vibes_31b928d8",
@@ -767,10 +706,18 @@
     "last_verified_date": "2026-06-16",
     "source": [],
     "confidence": "medium",
-    "tags": ["champeta", "concert", "open-air", "getsemani"],
+    "tags": [
+      "champeta",
+      "concert",
+      "open-air",
+      "getsemani"
+    ],
     "featured": true,
     "capacity": 500,
-    "location": { "lat": 10.4219, "lng": -75.5511 }
+    "location": {
+      "lat": 10.4219,
+      "lng": -75.5511
+    }
   },
   {
     "id": "evt_inmaculada_2026",
@@ -792,11 +739,22 @@
     "description": "La noche más mágica de Colombia. Miles de velas y faroles iluminan las calles de Cartagena en la víspera de la Inmaculada Concepción. Los barrios compiten por las mejores decoraciones de luz.",
     "description_en": "Colombia's most magical night. Thousands of candles and lanterns illuminate Cartagena's streets on the eve of the Immaculate Conception. Neighborhoods compete for the best light decorations.",
     "last_verified_date": "2026-06-16",
-    "source": ["https://en.wikipedia.org/wiki/D%C3%ADa_de_las_velitas"],
+    "source": [
+      "https://en.wikipedia.org/wiki/D%C3%ADa_de_las_velitas"
+    ],
     "confidence": "high",
-    "tags": ["religious", "candles", "tradition", "free", "christmas"],
+    "tags": [
+      "religious",
+      "candles",
+      "tradition",
+      "free",
+      "christmas"
+    ],
     "featured": true,
     "expected_attendance": 300000,
-    "location": { "lat": 10.4236, "lng": -75.5483 }
+    "location": {
+      "lat": 10.4236,
+      "lng": -75.5483
+    }
   }
 ]

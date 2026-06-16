@@ -1,0 +1,35 @@
+{
+  "id": "evt_season_wellness_week_aaedabcb",
+  "slug": "sunrise-yoga-murallas",
+  "name_es": "Sunrise Yoga en las Murallas",
+  "name_en": "Sunrise Yoga on the City Walls",
+  "category": "wellness",
+  "venue": "Murallas del Centro Histórico",
+  "venue_name": "Cartagena Spa & Wellness",
+  "date_start": "2026-08-04",
+  "date_end": "2026-08-04",
+  "time_start": "06:00",
+  "is_free": false,
+  "price": 40000,
+  "ticket_url": null,
+  "organizer": "Cartagena Spa & Wellness",
+  "image_url": "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&h=600&fit=crop",
+  "status": "scheduled",
+  "description": "Yoga vinyasa al amanecer sobre las murallas históricas con vista al Caribe.",
+  "description_en": "Sunrise vinyasa yoga on the historic city walls overlooking the Caribbean Sea.",
+  "last_verified_date": "2026-06-16",
+  "source": [],
+  "confidence": "medium",
+  "tags": [
+    "yoga",
+    "wellness",
+    "sunrise",
+    "murallas"
+  ],
+  "featured": true,
+  "capacity": 60,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5483
+  }
+}
