@@ -37,6 +37,9 @@ export default function TransportScreen() {
   const [payRoute, setPayRoute] = useState<any>(null);
   const [payResult, setPayResult] = useState<PaymentResult | null>(null);
 
+  const [officialFares, setOfficialFares] = useState<any[]>([]);
+  const [faresExpanded, setFaresExpanded] = useState(false);
+
   const AMO_WHATSAPP = process.env.EXPO_PUBLIC_AMO_WHATSAPP || '573176481183';
 
   useEffect(() => {
@@ -47,7 +50,14 @@ export default function TransportScreen() {
       } catch (e) { console.error(e); }
       setLoading(false);
     };
+    const loadFares = async () => {
+      try {
+        const data = await api.get('/transport-official');
+        setOfficialFares(Array.isArray(data) ? data : []);
+      } catch (e) { console.error('[TransportScreen] fares', e); }
+    };
     load();
+    loadFares();
   }, []);
 
   const openMaps = (loc: any) => {
@@ -100,6 +110,102 @@ export default function TransportScreen() {
       </View>
 
       <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+        {/* ── Official Taxi Fares ── */}
+        {officialFares.length > 0 && (
+          <View style={styles.faresSection}>
+            <TouchableOpacity
+              style={styles.faresSectionHeader}
+              onPress={() => setFaresExpanded(!faresExpanded)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.faresHeaderLeft}>
+                <View style={styles.faresIconWrap}>
+                  <Ionicons name="car" size={20} color={COLORS.primary} />
+                </View>
+                <View>
+                  <Text style={styles.faresSectionTitle}>{tr('Tarifas Oficiales de Taxi')}</Text>
+                  <Text style={styles.faresSectionSub}>{tr('Decreto DATT 2025 - Aeropuerto y ciudad')}</Text>
+                </View>
+              </View>
+              <Ionicons name={faresExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={COLORS.primary} />
+            </TouchableOpacity>
+
+            {/* Always show airport fares */}
+            {officialFares
+              .filter(f => f.origin_zone?.includes('Aeropuerto') || f.id === 'trf-taxi-min')
+              .map(fare => (
+                <View key={fare.id} style={styles.fareRow}>
+                  <View style={styles.fareRouteCol}>
+                    <View style={styles.fareZonePill}>
+                      <Ionicons name={fare.origin_zone?.includes('Aeropuerto') ? 'airplane' : 'car'} size={10} color={COLORS.primary} />
+                      <Text style={styles.fareZoneText} numberOfLines={1}>
+                        {fare.origin_zone?.includes('Aeropuerto') ? 'Aeropuerto' : fare.origin_zone}
+                      </Text>
+                    </View>
+                    <Ionicons name="arrow-forward" size={10} color={COLORS.textMuted} />
+                    <Text style={styles.fareDestText} numberOfLines={1}>{fare.dest_zone}</Text>
+                  </View>
+                  <View style={styles.farePriceCol}>
+                    <Text style={styles.farePriceText}>
+                      ${(fare.official_fare_cop || fare.app_estimate_cop || 0).toLocaleString()}
+                    </Text>
+                    {fare.duration_min && (
+                      <Text style={styles.fareDuration}>{fare.duration_min} min</Text>
+                    )}
+                  </View>
+                </View>
+              ))}
+
+            {/* Expanded: show all fares including ride apps & transit */}
+            {faresExpanded && officialFares
+              .filter(f => !f.origin_zone?.includes('Aeropuerto') && f.id !== 'trf-taxi-min')
+              .map(fare => (
+                <View key={fare.id} style={styles.fareRow}>
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <View style={styles.fareZonePill}>
+                      <Ionicons
+                        name={
+                          fare.mode === 'transcaribe' ? 'bus' :
+                          fare.mode === 'mototaxi' ? 'bicycle' :
+                          fare.mode === 'indrive' || fare.mode === 'uber' ? 'phone-portrait' : 'car'
+                        }
+                        size={10}
+                        color={COLORS.primary}
+                      />
+                      <Text style={styles.fareZoneText}>
+                        {fare.mode === 'indrive' ? 'InDrive' :
+                         fare.mode === 'uber' ? 'Uber' :
+                         fare.mode === 'transcaribe' ? 'TransCaribe' :
+                         fare.mode === 'mototaxi' ? 'Mototaxi' :
+                         fare.origin_zone || fare.mode}
+                      </Text>
+                    </View>
+                    {fare.dest_zone && (
+                      <Text style={styles.fareDestText} numberOfLines={1}>{fare.dest_zone}</Text>
+                    )}
+                    <Text style={styles.fareNote} numberOfLines={2}>
+                      {fare.legality_note_es || fare.safety_note_es || ''}
+                    </Text>
+                  </View>
+                  {(fare.official_fare_cop || fare.app_estimate_cop) ? (
+                    <View style={styles.farePriceCol}>
+                      <Text style={styles.farePriceText}>
+                        ${(fare.official_fare_cop || fare.app_estimate_cop).toLocaleString()}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+              ))}
+
+            <View style={styles.faresFooter}>
+              <Ionicons name="information-circle-outline" size={12} color={COLORS.textMuted} />
+              <Text style={styles.faresFooterText}>
+                {tr('Tarifas reguladas por la Alcaldía/DATT. Exija taxímetro o acuerde precio antes.')}
+              </Text>
+            </View>
+          </View>
+        )}
+
         {loading ? (
           <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
         ) : (
@@ -325,4 +431,22 @@ const styles = StyleSheet.create({
   simBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 8, paddingHorizontal: 12, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary, backgroundColor: 'rgba(212,175,55,0.08)' },
   simBtnText: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },
 
+  // ── Official Fares Section ──
+  faresSection: { backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, padding: SPACING.lg, marginBottom: SPACING.lg, borderWidth: 1, borderColor: COLORS.border },
+  faresSectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  faresHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, flex: 1 },
+  faresIconWrap: { width: 44, height: 44, borderRadius: RADIUS.md, backgroundColor: 'rgba(212,175,55,0.15)', alignItems: 'center', justifyContent: 'center' },
+  faresSectionTitle: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold },
+  faresSectionSub: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+  fareRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: SPACING.sm, paddingHorizontal: SPACING.sm, marginTop: SPACING.sm, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', gap: SPACING.sm },
+  fareRouteCol: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  fareZonePill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(212,175,55,0.12)', borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 3 },
+  fareZoneText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold },
+  fareDestText: { fontSize: 12, color: COLORS.textMain, ...FONTS.medium, flex: 1 },
+  farePriceCol: { alignItems: 'flex-end', minWidth: 80 },
+  farePriceText: { fontSize: 15, color: COLORS.primary, ...FONTS.bold },
+  fareDuration: { fontSize: 10, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+  fareNote: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 16 },
+  faresFooter: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: SPACING.md, paddingTop: SPACING.sm, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' },
+  faresFooterText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, flex: 1, lineHeight: 16 },
 });
