@@ -31,25 +31,28 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     try {
       if (user) {
         const data = await api.get('/favorites/ids');
-        setFavorites(data);
+        setFavorites(Array.isArray(data) ? data : []);
       } else {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (stored) setFavorites(JSON.parse(stored));
+        if (stored) { try { const p = JSON.parse(stored); if (Array.isArray(p)) setFavorites(p); } catch {} }
       }
-    } catch (e) {
-      // Fallback to local
-      const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      if (stored) setFavorites(JSON.parse(stored));
+    } catch {
+      try {
+        const stored = await AsyncStorage.getItem(STORAGE_KEY);
+        if (stored) { const p = JSON.parse(stored); if (Array.isArray(p)) setFavorites(p); }
+      } catch {}
     }
   }, [user]);
 
   useEffect(() => { loadFavorites(); }, [loadFavorites]);
 
   const isFavorite = useCallback((id: string) => {
+    if (!id || !Array.isArray(favorites)) return false;
     return favorites.some(f => f.item_id === id);
   }, [favorites]);
 
   const toggleFavorite = useCallback(async (id: string, type: string) => {
+    if (!id || !Array.isArray(favorites)) return;
     const exists = favorites.some(f => f.item_id === id);
     let newFavs: FavItem[];
 
