@@ -169,14 +169,20 @@ export default function ConciergeScreen() {
           )}
 
           {/* Messages */}
-          {messages.map((msg, i) => (
-            <View key={i} style={[styles.bubble, msg.role === 'user' ? styles.bubbleUser : styles.bubbleAgent]}>
-              {msg.role === 'assistant' && (
-                <Text style={[styles.bubbleLabel, { color: agent.accent }]}>{agent.emoji} {agent.name}</Text>
-              )}
-              <Text style={[styles.bubbleText, msg.role === 'user' && { color: COLORS.black }]}>{msg.content}</Text>
-            </View>
-          ))}
+          {messages.map((msg, i) => {
+            // Strip any residual markdown ** from AI responses
+            const text = msg.role === 'assistant'
+              ? msg.content.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1')
+              : msg.content;
+            return (
+              <View key={i} style={[styles.bubble, msg.role === 'user' ? styles.bubbleUser : styles.bubbleAgent]}>
+                {msg.role === 'assistant' && (
+                  <Text style={[styles.bubbleLabel, { color: agent.accent }]}>{agent.emoji} {agent.name}</Text>
+                )}
+                <Text style={[styles.bubbleText, msg.role === 'user' && { color: COLORS.black }]}>{text}</Text>
+              </View>
+            );
+          })}
 
           {loading && <TypingDots color={agent.accent} />}
           <View style={{ height: 16 }} />

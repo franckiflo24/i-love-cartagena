@@ -20,6 +20,8 @@ const MODEL = 'claude-haiku-4-5-20251001';
 const MAX_TOKENS = 900;
 const MAX_RECS = 6;
 const CATALOG_PATH = '/data/partners.json';
+const EVENTS_PATH = '/data/events.json';
+const PARTNER_EVENTS_PATH = '/data/partner-events.json';
 
 // ----------------------------------------------------------------------------
 // Personas
@@ -65,12 +67,16 @@ REGLAS INQUEBRANTABLES:
 - Sé concreto, breve y accionable. Menciona los lugares por su nombre EXACTO del catálogo.
 - Mantente en tu dominio de persona; si la consulta es de otro dominio, ayuda igual pero sugiere la persona adecuada.
 
-FORMATO DE SALIDA — responde con SOLO un objeto JSON, sin texto adicional ni markdown:
+FORMATO DE SALIDA — responde con SOLO un objeto JSON, sin texto adicional:
 {
   "reply": "<tu respuesta conversacional, en el idioma de la persona>",
   "recommendations": ["<slug>", "<slug>"]
 }
-"recommendations" contiene solo slugs del catálogo (máximo ${MAX_RECS}); usa [] si ninguno encaja. No incluyas en "recommendations" ningún slug que no esté en el catálogo.`;
+REGLAS DE FORMATO para "reply":
+- NO uses markdown. Nada de asteriscos dobles, asteriscos simples, almohadillas ni bloques de codigo. Solo texto plano.
+- Para enfasis, usa MAYUSCULAS o emojis. Ejemplo: "Te recomiendo ALQUIMICO" en vez de usar asteriscos.
+- Usa saltos de linea para separar recomendaciones.
+"recommendations" contiene solo slugs del catalogo (maximo ${MAX_RECS}); usa [] si ninguno encaja.`;
 
 // ----------------------------------------------------------------------------
 // Catalog — fetched once per warm instance, cached in module scope.
@@ -102,6 +108,53 @@ async function getCatalog(origin: string) {
 
   CATALOG_CACHE = { bySlug, allowlist };
   return CATALOG_CACHE;
+}
+
+// ----------------------------------------------------------------------------
+// Tonight's events — fetched per request (small, changes daily)
+// ----------------------------------------------------------------------------
+async function getTonightEvents(origin: string): Promise<string> {
+  const today = new Date().toISOString().slice(0, 10);
+  const lines: string[] = [];
+  try {
+    // City events
+    const evRes = await fetch(new URL(EVENTS_PATH, origin).toString());
+    if (evRes.ok) {
+      const events: any[] = await evRes.json();
+      if (Array.isArray(events)) {
+        for (const e of events) {
+          const start = e.date_start || e.date || '';
+          const end = e.date_end || start;
+          if (today >= start && today <= end) {
+            const time = e.time_start || e.start_time || '';
+            const name = e.name_es || e.title || '';
+            const venue = e.venue || e.venue_name || '';
+            const price = e.is_free ? 'GRATIS' : (e.price_min_cop ? `$${e.price_min_cop.toLocaleString()} COP` : '');
+            lines.push(`- ${time ? time + ' ' : ''}${name}${venue ? ' @ ' + venue : ''}${price ? ' (' + price + ')' : ''}`);
+          }
+        }
+      }
+    }
+    // Partner events
+    const peRes = await fetch(new URL(PARTNER_EVENTS_PATH, origin).toString());
+    if (peRes.ok) {
+      const pe: any[] = await peRes.json();
+      if (Array.isArray(pe)) {
+        for (const e of pe) {
+          if ((e.date || '') === today || !e.date) {
+            const time = e.start_time || '';
+            const name = e.title || '';
+            const venue = e.partner_name || '';
+            const price = e.is_free ? 'GRATIS' : (e.price ? `$${e.price.toLocaleString()} COP` : '');
+            lines.push(`- ${time ? time + ' ' : ''}${name}${venue ? ' @ ' + venue : ''}${price ? ' (' + price + ')' : ''}`);
+          }
+        }
+      }
+    }
+  } catch { /* silent — tonight awareness is best-effort */ }
+  return lines.length > 0
+    ? `\n\nEVENTOS DE HOY/ESTA NOCHE (${today}):\n${lines.join('\n')}\nCuando pregunten "hoy", "esta noche", "tonight", "qué hago", NOMBRA estos eventos específicos con hora y lugar.`
+    : '';
 }
 
 // ----------------------------------------------------------------------------
@@ -206,8 +259,11 @@ async function handleConcierge(req: Request): Promise<Response> {
     return jsonResponse(200, { reply: fallbackReply(lang), recommendations: [] });
   }
 
+  // Fetch tonight's events (best-effort, non-blocking on failure)
+  const tonightBlock = await getTonightEvents(new URL(req.url).origin);
+
   const system = [
-    { type: 'text', text: BASE_RULES },
+    { type: 'text', text: BASE_RULES + tonightBlock },
     {
       type: 'text',
       text: `CATÁLOGO (allowlist — recomienda SOLO de aquí, por slug):\nslug | nombre | categoría | zona\n${catalog.allowlist}`,
