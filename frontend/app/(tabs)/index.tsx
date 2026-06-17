@@ -122,7 +122,7 @@ export default function HomeScreen() {
       const today = todayIso();
       const [s, f, sp, pe, promos] = await Promise.all([
         api.get('/seasons?active=true'),
-        api.get('/events/featured'),
+        api.get('/events'),
         api.get('/sponsors').catch(() => []),
         api.get(`/partner-events?date=${today}`).catch(() => []),
         api.get('/promotions/today').catch(() => []),

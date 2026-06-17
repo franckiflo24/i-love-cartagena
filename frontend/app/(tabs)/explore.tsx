@@ -579,7 +579,7 @@ export default function ExploreScreen() {
 
   const loadUpcomingEvents = useCallback(async () => {
     try {
-      const data = await api.get('/events/featured');
+      const data = await api.get('/events');
       const events = Array.isArray(data) ? data : [];
       // Sort by date and keep only events with images
       const withImages = events.filter((e: any) => e.image_url);

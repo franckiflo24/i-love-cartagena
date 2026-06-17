@@ -117,7 +117,7 @@ export default function AgendaScreen() {
       if (selectedSalirCat !== 'all') params.append('category', selectedSalirCat);
       const [peData, evData] = await Promise.all([
         api.get(`/partner-events?${params.toString()}`),
-        api.get('/events/featured').catch(() => []),
+        api.get('/events').catch(() => []),
       ]);
       setPartnerEvents(Array.isArray(peData) ? peData : []);
       // Filter city events to match selected date (events may span date ranges)
