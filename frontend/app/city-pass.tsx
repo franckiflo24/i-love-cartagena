@@ -47,7 +47,8 @@ export default function CityPassScreen() {
         setPlans(p);
         if (user) {
           const mp = await api.get('/city-pass/mine').catch(() => null);
-          setMyPass(mp);
+          // Static mode returns [] — treat empty array and non-object as null (no active pass)
+          setMyPass(mp && !Array.isArray(mp) && typeof mp === 'object' && mp.plan_id ? mp : null);
         }
       } catch (e) { console.error(e); }
       setLoading(false);
