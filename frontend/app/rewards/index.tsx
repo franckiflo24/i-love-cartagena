@@ -259,6 +259,10 @@ export default function RewardsHub() {
     const load = async () => {
       try {
         const result = await api.get('/rewards/me');
+        // Static mode returns [] — detect and use defaults instead
+        if (!result || Array.isArray(result) || !result.tier) {
+          throw new Error('invalid rewards data');
+        }
         setData(result);
       } catch {
         // 401 or network — stub Explorer card, single call, no retry

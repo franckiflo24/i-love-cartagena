@@ -115,7 +115,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '</head><body>'
     + '<div id="map"></div>'
     + '<script>'
-    + 'var map = L.map("map", {zoomControl: true, attributionControl: false}).setView([10.3910, -75.4794], 13);'
+    + 'var map = L.map("map", {zoomControl: true, attributionControl: false}).setView([10.4236, -75.5483], 13);'
     + 'L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {maxZoom: 19}).addTo(map);'
     + markers
     + userMarker
