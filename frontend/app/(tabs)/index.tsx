@@ -168,7 +168,7 @@ export default function HomeScreen() {
       if (partnerIds.length > 0) {
         try {
           const allPartners = await api.get('/partners');
-          for (const p of allPartners) {
+          for (const p of (Array.isArray(allPartners) ? allPartners : [])) {
             if (partnerIds.includes(p.partner_id)) {
               results.push({ kind: 'partner', id: p.partner_id, title: p.name, image: p.image_url, subtitle: (p.category || '').toUpperCase(), tier: p.tier });
             }

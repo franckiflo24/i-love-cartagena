@@ -41,8 +41,9 @@ export function MyCalendarProvider({ children }: { children: ReactNode }) {
       if (user) {
         try {
           const remote = await api.get('/calendar');
-          setItems(remote || []);
-          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(remote || []));
+          const safeRemote = Array.isArray(remote) ? remote : [];
+          setItems(safeRemote);
+          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(safeRemote));
           return;
         } catch { /* fallback to local */ }
       }
@@ -59,6 +60,7 @@ export function MyCalendarProvider({ children }: { children: ReactNode }) {
   }, [items]);
 
   const addToCalendar = useCallback(async (item: Omit<CalendarItem, 'added_at'>) => {
+    if (!Array.isArray(items)) return;
     const exists = items.some(i => i.item_id === item.item_id);
     if (exists) return;
     const newItem: CalendarItem = { ...item, added_at: new Date().toISOString() };
