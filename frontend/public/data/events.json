@@ -74,7 +74,7 @@
     "price_max_cop": 150000,
     "ticket_url": null,
     "organizer": "Operadores turisticos locales",
-    "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNIZlOnaznE78DLXNCWhJPaR9gdHMEd1ga180XG0qihjBeHxvOKZC93K5XwbFpjFMBRJNG_kEfDzG2uny4wZuQm0e6mk3UV6vp_tqxd5GSxfc_usikU5XsP3smo5zdh29sxjascQk8SFiKInw=s1600-w800",
+    "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNFyC3hDGxLr1bARDN01rbY9dw0gpY3OIxjOj36sP7W2oo_bjhqpZE3b1jp0N1v4xAManF7Ph9wMiXqWh8PbQiBf-zn_DXmSzfCrkXgsADEzmx2VLDZABWIUNxaxZRyZOO6FVtwgxSxsG32=s1600-w800",
     "description": "Recorrido nocturno en el iconico bus colombiano (Chiva) con musica, aguardiente y recorrido por los principales sitios de Cartagena. Salida desde la Torre del Reloj a las 7:15pm o desde hoteles de Bocagrande a las 8pm. Incluye paradas en bares y discotecas. Precios desde COP $50.000 (basico) hasta COP $150.000 (premium con open bar).",
     "description_en": "Night tour on the iconic Colombian party bus (Chiva) with music, aguardiente, and a tour of Cartagena's main sites. Departure from Clock Tower at 7:15pm or Bocagrande hotels at 8pm. Includes bar and club stops. Prices from COP $50,000 (basic) to COP $150,000 (premium with open bar).",
     "status": "scheduled",
@@ -99,7 +99,7 @@
       "lng": -75.5483
     },
     "end_time": "",
-    "image_source": "category"
+    "image_source": "google_places_specific"
   },
   {
     "id": "evt_rosario_snorkel",
@@ -124,7 +124,7 @@
     "price_max_cop": 450000,
     "ticket_url": null,
     "organizer": "Operadores turisticos locales",
-    "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNReoYZqYfHPKSYt66t54QVipXb7m-EjO7W_t1pf9nMrS3r8hWoqgJJG0-OmGhipICWI_QpmoLIzmRANafJmvxhpVjc0YpDi0km_0U4uwEfluhi34ia8XXymZrkh_SHU4iv3YkMEoIQBb4Vmg=s1600-w800",
+    "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMBz2_YuZONzdRKzvjFB6ZMcRVnisbc9B0FjBw_qWxGSXCSsO-_wrP0rVRSgAM9VACKTUZfO55s21WI2H1rBy_N4jFrx5xw-mwz86onJzOtnvWXNmQEQuYqOVHQQjoOHbdVmmz2tdhJcvWfPA=s1600-w800",
     "description": "Tours diarios a las Islas del Rosario: snorkel en arrecifes de coral, visita al oceanario, almuerzo en playa privada. Salidas diarias desde Muelle de la Bodeguita.",
     "description_en": "Daily tours to Rosario Islands: snorkeling at coral reefs, oceanarium visit, lunch on a private beach. Daily departures from Muelle de la Bodeguita.",
     "status": "scheduled",
@@ -150,7 +150,7 @@
       "lng": -75.75
     },
     "end_time": "",
-    "image_source": "category"
+    "image_source": "google_places_specific"
   },
   {
     "id": "evt_castillo_san_felipe",
@@ -275,7 +275,7 @@
     "price_max_cop": 240000,
     "ticket_url": null,
     "organizer": "Operadores turisticos locales",
-    "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNReoYZqYfHPKSYt66t54QVipXb7m-EjO7W_t1pf9nMrS3r8hWoqgJJG0-OmGhipICWI_QpmoLIzmRANafJmvxhpVjc0YpDi0km_0U4uwEfluhi34ia8XXymZrkh_SHU4iv3YkMEoIQBb4Vmg=s1600-w800",
+    "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOnuU-YpLf2ulwjFZAC-lwweVuRCsFDtDm54igilFc02CGvTXtiuq0QPeYUK3EU9zxS_5lji9oe0ew6moUay75lDoifsH8T6o2_Scg_sH8FYCTJ061EfQP-9MA2CJxTuI2VdgI7nFMltktujg=s1600-w800",
     "description": "Visita al volcan de lodo activo donde puedes flotar en lodo volcanico con supuestas propiedades curativas. A 45 minutos de Cartagena. Tours diarios desde COP $95.000 (basico) hasta COP $240.000 (con beach club). Incluye transporte, entrada, almuerzo tipico y playa de Manzanillo.",
     "description_en": "Visit the active mud volcano where you can float in volcanic mud said to have healing properties. 45 minutes from Cartagena. Daily tours from COP $95,000 (basic) to COP $240,000 (with beach club). Includes transport, entrance, typical lunch, and Manzanillo beach.",
     "status": "scheduled",
@@ -300,7 +300,7 @@
       "lng": -75.234
     },
     "end_time": "",
-    "image_source": "category"
+    "image_source": "google_places_specific"
   },
   {
     "id": "evt_bazurto_champeta",
@@ -377,7 +377,7 @@
     "price_max_cop": 60000,
     "ticket_url": "https://alquimico.com",
     "organizer": "Alquimico",
-    "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNIZlOnaznE78DLXNCWhJPaR9gdHMEd1ga180XG0qihjBeHxvOKZC93K5XwbFpjFMBRJNG_kEfDzG2uny4wZuQm0e6mk3UV6vp_tqxd5GSxfc_usikU5XsP3smo5zdh29sxjascQk8SFiKInw=s1600-w800",
+    "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPpsfqz_JMPL4zepGqfDFovYsyATQm2EZ-0VEduyQNUcMfv2xWQt8MYMdchEnbcmCPF6n6jdwq2XrbkaqC6NdhtI5lww4LgHSCN0NgnI6yPwJyxEC_8lLBtV5G6CtppCevSqcwzEIMro9gtcig=s1600-w800",
     "description": "Todos los viernes, el #11 del mundo en World's 50 Best Bars presenta DJ sets en su rooftop de tres niveles (La Mansion, El Balcon, Terraza). Sin cover. Cocteleria de autor desde COP $19.000 (house) hasta COP $30.000+ (signature). Cocteleria inspirada en los 10 animales mas representativos de Colombia. Dress code: smart casual.",
     "description_en": "Every Friday, the World's 50 Best Bars #11 features DJ sets on its three-level rooftop (La Mansion, El Balcon, Terraza). No cover charge. Craft cocktails from COP $19,000 (house) to COP $30,000+ (signature). Cocktails inspired by Colombia's 10 most representative animals. Dress code: smart casual.",
     "status": "scheduled",
@@ -404,7 +404,7 @@
       "lng": -75.5514
     },
     "end_time": "",
-    "image_source": "category"
+    "image_source": "google_places_specific"
   },
   {
     "id": "evt_la_jugada_nightlife",

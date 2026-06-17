@@ -21,7 +21,7 @@
   "price_max_cop": 450000,
   "ticket_url": null,
   "organizer": "Operadores turisticos locales",
-  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNReoYZqYfHPKSYt66t54QVipXb7m-EjO7W_t1pf9nMrS3r8hWoqgJJG0-OmGhipICWI_QpmoLIzmRANafJmvxhpVjc0YpDi0km_0U4uwEfluhi34ia8XXymZrkh_SHU4iv3YkMEoIQBb4Vmg=s1600-w800",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMBz2_YuZONzdRKzvjFB6ZMcRVnisbc9B0FjBw_qWxGSXCSsO-_wrP0rVRSgAM9VACKTUZfO55s21WI2H1rBy_N4jFrx5xw-mwz86onJzOtnvWXNmQEQuYqOVHQQjoOHbdVmmz2tdhJcvWfPA=s1600-w800",
   "description": "Tours diarios a las Islas del Rosario: snorkel en arrecifes de coral, visita al oceanario, almuerzo en playa privada. Salidas diarias desde Muelle de la Bodeguita.",
   "description_en": "Daily tours to Rosario Islands: snorkeling at coral reefs, oceanarium visit, lunch on a private beach. Daily departures from Muelle de la Bodeguita.",
   "status": "scheduled",
@@ -47,5 +47,5 @@
     "lng": -75.75
   },
   "end_time": "",
-  "image_source": "category"
+  "image_source": "google_places_specific"
 }
