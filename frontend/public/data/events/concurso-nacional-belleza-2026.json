@@ -21,7 +21,7 @@
   "price_max_cop": 1500000,
   "ticket_url": "https://www.srtacolombia.org/",
   "organizer": "Concurso Nacional de Belleza de Colombia",
-  "image_url": "/img/landmarks/centro-convenciones.jpg",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNReoYZqYfHPKSYt66t54QVipXb7m-EjO7W_t1pf9nMrS3r8hWoqgJJG0-OmGhipICWI_QpmoLIzmRANafJmvxhpVjc0YpDi0km_0U4uwEfluhi34ia8XXymZrkh_SHU4iv3YkMEoIQBb4Vmg=s1600-w800",
   "description": "El concurso de belleza mas importante de Colombia, celebrado en Cartagena desde 1934. Las candidatas de cada departamento compiten por el titulo de Senorita Colombia. Semana de eventos: imposicion de bandas, desfile en traje de bano y noche de coronacion. Transmision en vivo por Canal 1. Edicion 92 en 2026.",
   "description_en": "Colombia's most important beauty pageant, held in Cartagena since 1934. Candidates from each department compete for the title of Miss Colombia. Week of events: sash ceremony, swimsuit parade, and coronation night. Live broadcast on Canal 1. 92nd edition in 2026.",
   "status": "scheduled",
@@ -47,5 +47,5 @@
     "lng": -75.5489
   },
   "end_time": "23:00",
-  "image_source": "landmark"
+  "image_source": "category"
 }

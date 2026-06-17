@@ -21,7 +21,7 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "IPCC / Alcaldia de Cartagena",
-  "image_url": "/img/category/festival.jpg",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZO5i6pQE3oK143p305lbWowaKJUpLBQGMD4CNep4wjgv8Uch-41nbW75LXxWjSgxbTbFtwzjQLWDi9GOyBN-4xZdXl_vJXlns6R7bc9U8Y8rOxu_fabl2kQHBsW1LXIkHCvWx4a8nWY-eESgKQ=s1600-w800",
   "description": "Los viernes de octubre calientan motores para las Fiestas de Noviembre. Preludio Universitario (Oct 2), Primer Preludio (Oct 9), Segundo Preludio (Oct 16), Tercer Preludio (Oct 23) y Noche de Candela con Jolgorio de Tambores (Oct 30).",
   "description_en": "October Fridays warm up for the November Festivities. University Prelude (Oct 2), First Prelude (Oct 9), Second Prelude (Oct 16), Third Prelude (Oct 23), and Noche de Candela with Jolgorio de Tambores (Oct 30).",
   "status": "scheduled",
@@ -47,5 +47,5 @@
     "lng": -75.5511
   },
   "end_time": "",
-  "image_source": "category"
+  "image_source": "google_places_cartagena"
 }

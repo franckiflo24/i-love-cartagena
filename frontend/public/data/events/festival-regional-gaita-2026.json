@@ -21,7 +21,7 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "IPCC / Alcaldia de Cartagena",
-  "image_url": "/img/category/festival.jpg",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNBDsk4R3mC-k_melJs0-1PHES_3g2oVP-UH-aYz4y5kuogMmgHoBnOgR-2fDmttNMXcDyEOYmUeF5mhAL2LwihJXGXqAda2fR7Sp5hCx1894LTuufd8zThwVgTAaWrGa7BhEPxILi03XKKdg=s1600-w800",
   "description": "Festival que celebra la gaita colombiana, instrumento ancestral del Caribe. Grupos de gaita de toda la costa compiten y se presentan en plazas publicas.",
   "description_en": "Festival celebrating Colombian gaita, the ancestral instrument of the Caribbean. Gaita groups from across the coast compete and perform in public plazas.",
   "status": "scheduled",
@@ -46,5 +46,5 @@
     "lng": -75.5483
   },
   "end_time": "",
-  "image_source": "category"
+  "image_source": "google_places"
 }

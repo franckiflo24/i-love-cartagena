@@ -21,7 +21,7 @@
   "price_max_cop": 200000,
   "ticket_url": "https://festivalvallenato.com/",
   "organizer": "Fundacion Festival de la Leyenda Vallenata",
-  "image_url": "/img/category/festival.jpg",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNutETzI1YOLEDBkG4XGnp3N23ZjGVTRIkwLIEhKIoFue_ZO1DUNiSW-6U0mJTy9Nw7AG4VKTN7pp42-a5ypp7p05TAwl8Qur7hb5Bdiq-4PSVnImsmplJ2IIbqk1WswiZ0JX5b4omEqy_U=s1600-w800",
   "description": "El evento mas reconocido de la musica vallenata en Colombia y el mundo. 60a edicion historica en Valledupar. Competencias de acordeon, caja y guacharaca. A 5 horas desde Cartagena o 1 hora en vuelo. Patrimonio Cultural Inmaterial (UNESCO).",
   "description_en": "The most recognized vallenato music event in Colombia and the world. Historic 60th edition in Valledupar. Accordion, drum, and guacharaca competitions. 5 hours from Cartagena or 1 hour by flight. Intangible Cultural Heritage (UNESCO).",
   "status": "scheduled",
@@ -47,5 +47,5 @@
     "lng": -73.2502
   },
   "end_time": "23:00",
-  "image_source": "category"
+  "image_source": "google_places_cartagena"
 }

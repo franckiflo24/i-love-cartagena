@@ -21,7 +21,7 @@
   "price_max_cop": 200000,
   "ticket_url": null,
   "organizer": "Voces del Jazz y del Caribe / IPCC",
-  "image_url": "/img/landmarks/teatro-adolfo-mejia.jpg",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMw5Wi00TJHS0yOqLv2xwsOXdKd9xg5iOK6g9VcDpbxQVTQEattgunMlomCZZVkb7gYVTdVhmi8dhOLh4jj9LB-jRSIMfaXzuUdoPOJOZpZlfl-CSAEBXIM-OCqB7WUfn-1e_UKnFU2su7n=s1600-w472",
   "description": "Festival que transforma Cartagena en escenario de improvisacion y virtuosismo jazzistico. Artistas de Colombia, Cuba, Brasil, Francia y Estados Unidos presentan jazz clasico fusionado con ritmos afrocolombianos.",
   "description_en": "Festival that transforms Cartagena into a stage for jazz improvisation and virtuosity. Artists from Colombia, Cuba, Brazil, France, and the US present classic jazz fused with Afro-Colombian rhythms.",
   "status": "scheduled",
@@ -47,5 +47,5 @@
     "lng": -75.549
   },
   "end_time": "",
-  "image_source": "landmark"
+  "image_source": "category"
 }

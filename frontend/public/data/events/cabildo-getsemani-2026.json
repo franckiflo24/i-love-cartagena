@@ -21,7 +21,7 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "Junta de Accion Comunal de Getsemani / IPCC",
-  "image_url": "/img/category/festival.jpg",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZO5i6pQE3oK143p305lbWowaKJUpLBQGMD4CNep4wjgv8Uch-41nbW75LXxWjSgxbTbFtwzjQLWDi9GOyBN-4xZdXl_vJXlns6R7bc9U8Y8rOxu_fabl2kQHBsW1LXIkHCvWx4a8nWY-eESgKQ=s1600-w800",
   "description": "El cabildo mas importante de las Fiestas de Noviembre. Getsemani, barrio donde nacio el grito de independencia, celebra con comparsa callejera, musica champeta y danzas ancestrales.",
   "description_en": "The most important cabildo of the November Festivities. Getsemani, the neighborhood where the independence cry was born, celebrates with street comparsas, champeta music, and ancestral dances.",
   "status": "scheduled",
@@ -46,5 +46,5 @@
     "lng": -75.5511
   },
   "end_time": "",
-  "image_source": "category"
+  "image_source": "google_places_cartagena"
 }

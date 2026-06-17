@@ -21,7 +21,7 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "IPCC / Corporacion Festival de Tambores de Palenque",
-  "image_url": "/img/category/festival.jpg",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNbzQ4kYi2k0dY000o1BctMCzUgOdnumwGQ1bEhz1ytRHF1DlCICYntWuLsTCwCscU12xzW33EaicZNoPa5nYw8hIUOVpZK3C9XhvxPmVPi9as4ACfvw3mmZ5wU1qwhXRCmbzzmE68rnqc-=s1600-w800",
   "description": "Celebracion de la herencia afrocolombiana con grupos de bullerengue, mapale y champeta de toda la Costa Caribe. Talleres de percusion, trenzado y lengua palenquera. Mas de tres decadas de tradicion.",
   "description_en": "Celebration of Afro-Colombian heritage with bullerengue, mapale, and champeta groups from across the Caribbean Coast. Percussion workshops, braiding, and Palenquero language classes. Over three decades of tradition.",
   "status": "scheduled",
@@ -48,5 +48,5 @@
     "lng": -75.5511
   },
   "end_time": "",
-  "image_source": "category"
+  "image_source": "google_places_cartagena"
 }

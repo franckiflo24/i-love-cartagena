@@ -21,7 +21,7 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "Alcaldia de Cartagena / IPCC",
-  "image_url": "/img/category/festival.jpg",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNutETzI1YOLEDBkG4XGnp3N23ZjGVTRIkwLIEhKIoFue_ZO1DUNiSW-6U0mJTy9Nw7AG4VKTN7pp42-a5ypp7p05TAwl8Qur7hb5Bdiq-4PSVnImsmplJ2IIbqk1WswiZ0JX5b4omEqy_U=s1600-w800",
   "description": "Las fiestas mas grandes de Cartagena celebrando la independencia del 11 de noviembre de 1811. Bajo el lema 'La Fiesta que nos une'. Desfiles, comparsas, Reinado Popular, Bando, cabildo de Getsemani, y champeta al aire libre.",
   "description_en": "Cartagena's biggest annual celebration commemorating independence from Spain on November 11, 1811. Under the motto 'The Party that Unites Us'. Parades, comparsas, Popular Beauty Queen contest, Bando, Getsemani cabildo, and open-air champeta.",
   "status": "scheduled",
@@ -47,5 +47,5 @@
     "lng": -75.5483
   },
   "end_time": "",
-  "image_source": "category"
+  "image_source": "google_places_cartagena"
 }

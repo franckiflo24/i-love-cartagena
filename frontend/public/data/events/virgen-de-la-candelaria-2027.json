@@ -21,7 +21,7 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "Arquidiocesis de Cartagena",
-  "image_url": "/img/landmarks/convento-la-popa.jpg",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMfq3TRfb6Gy3eur3qh8do29HJ71qhniTKuHupDAFfsbUX8xfi4UYDUi2nLRtK500x61bL6T7R0k3BlhQ7FQ4jLDaR4y8vvB-vokWPH9ceeq_G9TLKDWwmR3pBTs6-k8X6HvYRDz9uS4JBH7ZSWviB4=s1600-w800",
   "description": "La patrona de Cartagena. Miles de fieles suben al Cerro de la Popa en peregrinacion al Convento para venerar a la Virgen de la Candelaria. Misa solemne, procesiones y tradiciones centenarias.",
   "description_en": "Cartagena's patron saint feast day. Thousands of faithful make the pilgrimage up La Popa hill to the Convent to venerate the Virgin of Candelaria. Solemn mass, processions, and centuries-old traditions.",
   "status": "scheduled",
@@ -45,5 +45,5 @@
     "lng": -75.5361
   },
   "end_time": "",
-  "image_source": "landmark"
+  "image_source": "category"
 }

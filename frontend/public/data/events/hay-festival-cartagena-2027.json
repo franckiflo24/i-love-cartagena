@@ -21,7 +21,7 @@
   "price_max_cop": 120000,
   "ticket_url": "https://www.hayfestival.com/cartagena/tickets",
   "organizer": "Hay Festival Foundation",
-  "image_url": "/img/landmarks/teatro-adolfo-mejia.jpg",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNReoYZqYfHPKSYt66t54QVipXb7m-EjO7W_t1pf9nMrS3r8hWoqgJJG0-OmGhipICWI_QpmoLIzmRANafJmvxhpVjc0YpDi0km_0U4uwEfluhi34ia8XXymZrkh_SHU4iv3YkMEoIQBb4Vmg=s1600-w800",
   "description": "El festival literario mas importante de Latinoamerica. Mas de 180 participantes de 25 paises: literatura, musica, periodismo, filosofia, cine y teatro. 20% de boletas gratuitas para estudiantes universitarios. Boletas desde COP $60.000 por conversacion. Disponibles a partir de noviembre 2026.",
   "description_en": "Latin America's most important literary festival. Over 180 participants from 25 countries: literature, music, journalism, philosophy, film, and theater. 20% of tickets free for university students. Tickets from approx COP $60,000 per conversation. Available from November 2026.",
   "status": "scheduled",
@@ -47,5 +47,5 @@
     "lng": -75.549
   },
   "end_time": "",
-  "image_source": "landmark"
+  "image_source": "category"
 }

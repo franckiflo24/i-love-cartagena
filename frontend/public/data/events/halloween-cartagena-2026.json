@@ -21,7 +21,7 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "Comerciantes del Centro / Bares de Getsemani",
-  "image_url": "/img/category/festival.jpg",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOSkpebhe-jopjR9XU6y6udsR-NET07CSulZwD4x-OwHx-qUfFFVbGDKtEngtkUDqvK5J1zVnxTOmWMD1PPpPvv_el-sXRUz3SydJAZVcLHxx5QtkxymVx7NdHckWgaEaKhs3KVbLvmTHBv1A=s1600-w800",
   "description": "Cartagena celebra Halloween con desfiles de disfraces por las calles coloniales. Los ninos recorren el centro amurallado pidiendo dulces. Fiestas tematicas en bares y rooftops de Getsemani.",
   "description_en": "Cartagena celebrates Halloween with costume parades through colonial streets. Children trick-or-treat in the walled city. Themed parties at Getsemani bars and rooftops.",
   "status": "scheduled",
@@ -45,5 +45,5 @@
     "lng": -75.5483
   },
   "end_time": "",
-  "image_source": "category"
+  "image_source": "google_places"
 }

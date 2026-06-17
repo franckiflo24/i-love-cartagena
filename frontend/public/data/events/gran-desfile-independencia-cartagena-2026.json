@@ -21,7 +21,7 @@
   "price_max_cop": 0,
   "ticket_url": null,
   "organizer": "Alcaldia de Cartagena / IPCC",
-  "image_url": "/img/category/festival.jpg",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNbfKsJj7orclu56byq_q9DgZQHpx81P3F8_qpfY-xNvL6t8iQXyd3GvZD2GjN6P2yXdp3uJIYRKMQv5jjO9ASuyYTYs1nnbljIxTL0wbqPLZhCpu7ecZbXXA65FAgwaguP-rmWuxuqsPDjRQ=s1600-w800",
   "description": "El desfile mas grande de las Fiestas de Noviembre. Carrozas, comparsas, grupos de danza, musica en vivo y la celebracion masiva de la independencia de Cartagena (11 de noviembre de 1811). Recorrido por las calles del Centro Historico y Getsemani. Evento gratuito.",
   "description_en": "The biggest parade of the November Festivities. Floats, troupes, dance groups, live music, and the massive celebration of Cartagena's independence (November 11, 1811). Route through the Historic Center and Getsemani streets. Free and open to the public.",
   "status": "scheduled",
@@ -47,5 +47,5 @@
     "lng": -75.5483
   },
   "end_time": "19:00",
-  "image_source": "category"
+  "image_source": "google_places_cartagena"
 }

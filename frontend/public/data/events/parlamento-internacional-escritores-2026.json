@@ -21,7 +21,7 @@
   "price_max_cop": 80000,
   "ticket_url": null,
   "organizer": "IPCC / Fundaciones Literarias",
-  "image_url": "/img/landmarks/centro-convenciones.jpg",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNReoYZqYfHPKSYt66t54QVipXb7m-EjO7W_t1pf9nMrS3r8hWoqgJJG0-OmGhipICWI_QpmoLIzmRANafJmvxhpVjc0YpDi0km_0U4uwEfluhi34ia8XXymZrkh_SHU4iv3YkMEoIQBb4Vmg=s1600-w800",
   "description": "Encuentro internacional de escritores, poetas y pensadores que debaten sobre literatura, libertad de expresion y el rol del escritor en la sociedad contemporanea.",
   "description_en": "International gathering of writers, poets, and thinkers debating literature, freedom of expression, and the role of the writer in contemporary society.",
   "status": "scheduled",
@@ -45,5 +45,5 @@
     "lng": -75.546
   },
   "end_time": "",
-  "image_source": "landmark"
+  "image_source": "category"
 }
