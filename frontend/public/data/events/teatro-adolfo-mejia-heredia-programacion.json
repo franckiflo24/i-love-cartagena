@@ -1,0 +1,50 @@
+{
+  "id": "evt_teatro_heredia",
+  "slug": "teatro-adolfo-mejia-heredia-programacion",
+  "name_es": "Teatro Adolfo Mejia (Heredia) — Programacion Cultural",
+  "name_en": "Adolfo Mejia Theater (Heredia) — Cultural Programming",
+  "title": "Teatro Adolfo Mejia (Heredia) — Programacion Cultural",
+  "event_id": "teatro-adolfo-mejia-heredia-programacion",
+  "category": "cultural",
+  "type": "cultural",
+  "venue": "Teatro Adolfo Mejia",
+  "venue_name": "Teatro Heredia Adolfo Mejia",
+  "neighborhood": "centro",
+  "date_start": "2026-06-18",
+  "date": "2026-06-18",
+  "date_end": "2027-04-30",
+  "time_start": "19:00",
+  "start_time": "19:00",
+  "is_free": false,
+  "price": 80000,
+  "price_min_cop": 30000,
+  "price_max_cop": 250000,
+  "ticket_url": null,
+  "organizer": "IPCC / Alcaldia de Cartagena",
+  "image_url": "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800",
+  "description": "El teatro mas importante de Cartagena, recientemente restaurado tras 28 anos sin intervencion. Sede de los principales eventos culturales: Festival de Musica, Hay Festival, FICCI. Programacion continua de conciertos, obras de teatro, ballet y eventos culturales. Arquitectura republicana del siglo XIX.",
+  "description_en": "Cartagena's most important theater, recently restored after 28 years without intervention. Home to major cultural events: Music Festival, Hay Festival, FICCI. Continuous programming of concerts, plays, ballet, and cultural events. 19th-century republican architecture.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "weekly",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.cartagena.gov.co/noticias/el-teatro-adolfo-mejia-abrio-su-agenda-cultural-2026-el-cartagena-festival-musica"
+  ],
+  "confidence": "high",
+  "tags": [
+    "theater",
+    "cultural",
+    "music",
+    "heritage",
+    "architecture"
+  ],
+  "featured": false,
+  "capacity": 900,
+  "location": {
+    "lat": 10.426,
+    "lng": -75.5486
+  },
+  "end_time": "22:00"
+}

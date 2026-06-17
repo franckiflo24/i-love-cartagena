@@ -1,0 +1,51 @@
+{
+  "id": "evt_quiebracanto_salsa",
+  "slug": "quiebracanto-salsa-getsemani",
+  "name_es": "Quiebracanto — Salsa Autentica en Getsemani",
+  "name_en": "Quiebracanto — Authentic Salsa in Getsemani",
+  "title": "Quiebracanto — Salsa Autentica en Getsemani",
+  "event_id": "quiebracanto-salsa-getsemani",
+  "category": "nightlife",
+  "type": "nightlife",
+  "venue": "Casa Quiebracanto",
+  "venue_name": "Quiebracanto",
+  "neighborhood": "getsemani",
+  "date_start": "2026-06-18",
+  "date": "2026-06-18",
+  "date_end": "2027-04-30",
+  "time_start": "20:00",
+  "start_time": "20:00",
+  "is_free": false,
+  "price": 20000,
+  "price_min_cop": 0,
+  "price_max_cop": 30000,
+  "ticket_url": "https://www.quiebracanto.com/quiebracanto_cartagena/reservas_casa_quiebracanto_casa_quiebracanto_salsa_bar_la_mejor_rumba_en_cartagena.html",
+  "organizer": "Quiebracanto",
+  "image_url": "https://cartagenaexperience.com/wp-content/uploads/2019/01/Cartagena-Colombia-Cafe-Havana-Getsemani-Bar-Disco-06.jpg",
+  "description": "Club de salsa autentico en Getsemani desde 1993, frente a la Torre del Reloj en el edificio Puerta del Sol. Las parejas de baile se desbordan al balcon y la salsa retumba hasta la madrugada. El piso vibra con el baile colectivo. Tragos economicos, musica en vivo.",
+  "description_en": "Authentic salsa club in Getsemani since 1993, facing the Clock Tower in the Puerta del Sol building. Dancing couples spill onto the balcony and salsa reverberates until dawn. The floor vibrates with collective dancing. Affordable drinks, live music.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "weekly",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.quiebracanto.com/quiebracanto_cartagena/quiebracanto_cartagena_salsa_bar.html"
+  ],
+  "confidence": "high",
+  "tags": [
+    "salsa",
+    "nightlife",
+    "getsemani",
+    "live-music",
+    "authentic",
+    "recurring"
+  ],
+  "featured": false,
+  "capacity": 150,
+  "location": {
+    "lat": 10.4225,
+    "lng": -75.5501
+  },
+  "end_time": "03:00"
+}

@@ -21,7 +21,7 @@
   "price_max_cop": 100000,
   "ticket_url": "https://entecaribe.com",
   "organizer": "Ente Caribe",
-  "image_url": "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800&h=600&fit=crop",
+  "image_url": "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=800",
   "description": "Festival de artes escenicas del Caribe colombiano: teatro, danza, musica, comedia y otras formas escenicas. Multiples sedes en Cartagena con artistas nacionales e internacionales.",
   "description_en": "Colombian Caribbean performing arts festival: theater, dance, music, comedy, and other stage arts. Multiple venues in Cartagena with national and international artists.",
   "status": "scheduled",

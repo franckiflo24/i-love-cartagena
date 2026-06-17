@@ -1,0 +1,51 @@
+{
+  "id": "evt_cholon_daily_boat",
+  "slug": "cholon-island-daily-boat-party",
+  "name_es": "Fiesta en Barco a Isla Cholon — Tour Diario",
+  "name_en": "Cholon Island Boat Party — Daily Tour",
+  "title": "Fiesta en Barco a Isla Cholon — Tour Diario",
+  "event_id": "cholon-island-daily-boat-party",
+  "category": "nightlife",
+  "type": "nightlife",
+  "venue": "Isla Cholon, Islas del Rosario",
+  "venue_name": "Isla Cholon",
+  "neighborhood": "islas",
+  "date_start": "2026-06-18",
+  "date": "2026-06-18",
+  "date_end": "2027-04-30",
+  "time_start": "08:00",
+  "start_time": "08:00",
+  "is_free": false,
+  "price": 180000,
+  "price_min_cop": 120000,
+  "price_max_cop": 350000,
+  "ticket_url": "https://www.viator.com/tours/Cartagena/Cholon-Party-Boat/d4498-34334P13",
+  "organizer": "Operadores turisticos locales",
+  "image_url": "https://images.unsplash.com/photo-1500514966906-fe245eea9344?w=800",
+  "description": "Tour diario a la 'isla de las fiestas' del Caribe colombiano. Salida desde Muelle de La Bodeguita. Parada en Islas del Rosario para nadar, luego fiesta en Cholon con musica crossover, DJ a bordo, bebidas de bienvenida. Almuerzo incluido. Regreso 3:00-3:30pm. Traer: toallas, efectivo, protector solar.",
+  "description_en": "Daily tour to the 'party island' of the Colombian Caribbean. Departure from La Bodeguita Pier. Stop at Rosario Islands for swimming, then party at Cholon with crossover music, onboard DJ, welcome drinks. Lunch included. Return 3:00-3:30pm. Bring: towels, cash, sunscreen.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "daily",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.viator.com/tours/Cartagena/Cholon-Party-Boat/d4498-34334P13"
+  ],
+  "confidence": "high",
+  "tags": [
+    "boat-party",
+    "island",
+    "cholon",
+    "dj",
+    "daily",
+    "beach"
+  ],
+  "featured": false,
+  "capacity": 50,
+  "location": {
+    "lat": 10.172,
+    "lng": -75.766
+  },
+  "end_time": "16:00"
+}

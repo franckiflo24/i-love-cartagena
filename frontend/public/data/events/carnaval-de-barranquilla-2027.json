@@ -1,0 +1,50 @@
+{
+  "id": "evt_carnaval_barranquilla_2027",
+  "slug": "carnaval-de-barranquilla-2027",
+  "name_es": "Carnaval de Barranquilla 2027 — Excursion desde Cartagena",
+  "name_en": "Barranquilla Carnival 2027 — Day Trip from Cartagena",
+  "title": "Carnaval de Barranquilla 2027 — Excursion desde Cartagena",
+  "event_id": "carnaval-de-barranquilla-2027",
+  "category": "festival",
+  "type": "festival",
+  "venue": "Barranquilla (Via Cartagena)",
+  "venue_name": "Barranquilla",
+  "neighborhood": "afueras",
+  "date_start": "2027-02-06",
+  "date": "2027-02-06",
+  "date_end": "2027-02-09",
+  "time_start": "06:00",
+  "start_time": "06:00",
+  "is_free": false,
+  "price": 250000,
+  "price_min_cop": 150000,
+  "price_max_cop": 500000,
+  "ticket_url": "https://carnavaldebarranquilla.org/",
+  "organizer": "Carnaval de Barranquilla S.A.S.",
+  "image_url": "https://images.unsplash.com/photo-1590073242678-70ee3fc28e8e?w=800",
+  "description": "El segundo carnaval mas grande del mundo, Patrimonio Oral e Inmaterial de la Humanidad (UNESCO). A 2 horas de Cartagena por carretera. 4 dias de musica, cumbia, mapale, danzas y desfiles masivos. Sab 6 al mar 9 de febrero 2027. Tours desde Cartagena incluyen transporte, guia y palco.",
+  "description_en": "The world's second-largest carnival, UNESCO Oral and Intangible Heritage of Humanity. 2 hours from Cartagena by road. 4 days of music, cumbia, mapale, dances, and massive parades. Sat Feb 6 to Tue Feb 9, 2027. Tours from Cartagena include transport, guide, and grandstand seats.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 2000000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://carnavaldebarranquilla.org/"
+  ],
+  "confidence": "high",
+  "tags": [
+    "carnival",
+    "barranquilla",
+    "unesco",
+    "cumbia",
+    "excursion"
+  ],
+  "featured": true,
+  "capacity": 2000000,
+  "location": {
+    "lat": 10.9685,
+    "lng": -74.7813
+  },
+  "end_time": "23:00"
+}

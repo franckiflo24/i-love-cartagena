@@ -1,0 +1,50 @@
+{
+  "id": "evt_museo_arte_moderno",
+  "slug": "museo-arte-moderno-cartagena",
+  "name_es": "Museo de Arte Moderno de Cartagena — Exposiciones",
+  "name_en": "Cartagena Museum of Modern Art — Exhibitions",
+  "title": "Museo de Arte Moderno de Cartagena — Exposiciones",
+  "event_id": "museo-arte-moderno-cartagena",
+  "category": "cultural",
+  "type": "cultural",
+  "venue": "Museo de Arte Moderno de Cartagena",
+  "venue_name": "MAMC",
+  "neighborhood": "centro",
+  "date_start": "2026-06-18",
+  "date": "2026-06-18",
+  "date_end": "2027-04-30",
+  "time_start": "09:00",
+  "start_time": "09:00",
+  "is_free": false,
+  "price": 13000,
+  "price_min_cop": 8000,
+  "price_max_cop": 13000,
+  "ticket_url": "https://mamcartagena.org/",
+  "organizer": "Museo de Arte Moderno de Cartagena",
+  "image_url": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=800",
+  "description": "Museo ubicado en la plaza de San Pedro Claver, junto al Bastion de San Ignacio. Exposiciones rotativas de su coleccion permanente con obras de pintores notables, escultura, arte abstracto y muestras temporales. Arte colombiano y caribeno contemporaneo.",
+  "description_en": "Museum located in San Pedro Claver plaza, beside the San Ignacio bastion. Rotating exhibitions from its permanent collection featuring notable painters, sculpture, abstract art, and temporary shows. Contemporary Colombian and Caribbean art.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "weekly",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://mamcartagena.org/"
+  ],
+  "confidence": "high",
+  "tags": [
+    "museum",
+    "art",
+    "modern",
+    "exhibitions",
+    "family"
+  ],
+  "featured": false,
+  "capacity": 80,
+  "location": {
+    "lat": 10.423,
+    "lng": -75.5507
+  },
+  "end_time": "19:00"
+}

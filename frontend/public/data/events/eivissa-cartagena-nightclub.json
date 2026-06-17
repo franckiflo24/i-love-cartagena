@@ -1,0 +1,51 @@
+{
+  "id": "evt_eivissa_nightclub",
+  "slug": "eivissa-cartagena-nightclub",
+  "name_es": "Eivissa Cartagena — Rooftop y Discoteca",
+  "name_en": "Eivissa Cartagena — Rooftop Nightclub",
+  "title": "Eivissa Cartagena — Rooftop y Discoteca",
+  "event_id": "eivissa-cartagena-nightclub",
+  "category": "nightlife",
+  "type": "nightlife",
+  "venue": "Eivissa Cartagena",
+  "venue_name": "Eivissa",
+  "neighborhood": "centro",
+  "date_start": "2026-06-18",
+  "date": "2026-06-18",
+  "date_end": "2027-04-30",
+  "time_start": "21:00",
+  "start_time": "21:00",
+  "is_free": false,
+  "price": 40000,
+  "price_min_cop": 20000,
+  "price_max_cop": 60000,
+  "ticket_url": null,
+  "organizer": "Eivissa Cartagena",
+  "image_url": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800",
+  "description": "Discoteca rooftop popular ubicada en la Plaza de la Torre del Reloj. Abierta 7 noches a la semana. DJs residentes con crossover de electronica, deep house, reggaeton y latin hits clasicos. Noches tematicas y artistas invitados frecuentes. Cel: +57 315 2232710.",
+  "description_en": "Popular rooftop nightclub located on Clock Tower Square. Open 7 nights a week. Resident DJs with crossover electronic, deep house, reggaeton, and classic Latin hits. Themed nights and frequent guest artists. Cell: +57 315 2232710.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "daily",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://evendo.com/locations/colombia/cartagena/nightclub/eivissa-cartagena"
+  ],
+  "confidence": "high",
+  "tags": [
+    "nightclub",
+    "rooftop",
+    "dj",
+    "electronic",
+    "reggaeton",
+    "daily"
+  ],
+  "featured": false,
+  "capacity": 300,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5491
+  },
+  "end_time": "04:00"
+}

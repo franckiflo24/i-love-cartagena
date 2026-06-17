@@ -1,0 +1,51 @@
+{
+  "id": "evt_cafe_del_mar_sunset",
+  "slug": "cafe-del-mar-sunset-sessions",
+  "name_es": "Cafe del Mar — Sesiones de Atardecer en las Murallas",
+  "name_en": "Cafe del Mar — Sunset Sessions on the Walls",
+  "title": "Cafe del Mar — Sesiones de Atardecer en las Murallas",
+  "event_id": "cafe-del-mar-sunset-sessions",
+  "category": "nightlife",
+  "type": "nightlife",
+  "venue": "Cafe del Mar",
+  "venue_name": "Cafe del Mar",
+  "neighborhood": "centro",
+  "date_start": "2026-06-18",
+  "date": "2026-06-18",
+  "date_end": "2027-04-30",
+  "time_start": "17:00",
+  "start_time": "17:00",
+  "is_free": false,
+  "price": 0,
+  "price_min_cop": 25000,
+  "price_max_cop": 60000,
+  "ticket_url": "https://en.cafedelmarcartagena.com.co/eventos",
+  "organizer": "Cafe del Mar Cartagena",
+  "image_url": "https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=800",
+  "description": "El punto de atardecer mas iconico de Cartagena, ubicado sobre las murallas historicas con vista ininterrumpida al Caribe. Cocteles artesanales, musica en vivo (jazz, ritmos caribenos). Puesta de sol entre 5:45-6:15pm (dic-feb) y 6:30-7:00pm (jun-ago). Llegar 30 minutos antes. Cel: +57 320 5424502.",
+  "description_en": "Cartagena's most iconic sunset spot, located on the historic walls with unobstructed Caribbean views. Craft cocktails, live music (jazz, Caribbean rhythms). Sunset between 5:45-6:15pm (Dec-Feb) and 6:30-7:00pm (Jun-Aug). Arrive 30 minutes early. Cell: +57 320 5424502.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "daily",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://en.cafedelmarcartagena.com.co/eventos"
+  ],
+  "confidence": "high",
+  "tags": [
+    "sunset",
+    "cocktails",
+    "live-music",
+    "rooftop",
+    "iconic",
+    "daily"
+  ],
+  "featured": true,
+  "capacity": 200,
+  "location": {
+    "lat": 10.4267,
+    "lng": -75.5469
+  },
+  "end_time": "02:00"
+}

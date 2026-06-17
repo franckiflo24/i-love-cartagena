@@ -1,0 +1,49 @@
+{
+  "id": "evt_media_maraton_2027",
+  "slug": "media-maraton-del-mar-2027",
+  "name_es": "Media Maraton del Mar Sistecredito 2027",
+  "name_en": "Sistecredito Sea Half Marathon 2027",
+  "title": "Media Maraton del Mar Sistecredito 2027",
+  "event_id": "media-maraton-del-mar-2027",
+  "category": "sports",
+  "type": "sports",
+  "venue": "Cartagena de Indias",
+  "venue_name": "Bocagrande / Centro Historico",
+  "neighborhood": "bocagrande",
+  "date_start": "2027-02-21",
+  "date": "2027-02-21",
+  "date_end": "2027-02-21",
+  "time_start": "05:30",
+  "start_time": "05:30",
+  "is_free": false,
+  "price": 120000,
+  "price_min_cop": 80000,
+  "price_max_cop": 180000,
+  "ticket_url": "https://mediamaratondelmar.com/",
+  "organizer": "Media Maraton del Mar / Sistecredito",
+  "image_url": "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=800",
+  "description": "La carrera mas importante del Caribe colombiano. Recorrido de 21.1 km y 10 km por las calles de Cartagena, pasando por el Centro Historico, Bocagrande y la Avenida Santander con vista al mar Caribe. Miles de corredores nacionales e internacionales.",
+  "description_en": "The most important race in the Colombian Caribbean. 21.1 km and 10 km course through Cartagena's streets, passing the Historic Center, Bocagrande, and Santander Avenue with Caribbean Sea views. Thousands of national and international runners.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 15000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://mediamaratondelmar.com/"
+  ],
+  "confidence": "high",
+  "tags": [
+    "running",
+    "marathon",
+    "sports",
+    "outdoor"
+  ],
+  "featured": false,
+  "capacity": 15000,
+  "location": {
+    "lat": 10.3997,
+    "lng": -75.5586
+  },
+  "end_time": "12:00"
+}

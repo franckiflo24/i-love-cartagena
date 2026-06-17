@@ -1,0 +1,50 @@
+{
+  "id": "evt_fenix_beach",
+  "slug": "fenix-beach-club-tierra-bomba",
+  "name_es": "Fenix Beach Club — Pasadia en Tierra Bomba",
+  "name_en": "Fenix Beach Club — Day Pass on Tierra Bomba",
+  "title": "Fenix Beach Club — Pasadia en Tierra Bomba",
+  "event_id": "fenix-beach-club-tierra-bomba",
+  "category": "nightlife",
+  "type": "nightlife",
+  "venue": "Fenix Beach Club & Hotel",
+  "venue_name": "Fenix Beach Club",
+  "neighborhood": "islas",
+  "date_start": "2026-06-18",
+  "date": "2026-06-18",
+  "date_end": "2027-04-30",
+  "time_start": "09:00",
+  "start_time": "09:00",
+  "is_free": false,
+  "price": 180000,
+  "price_min_cop": 120000,
+  "price_max_cop": 300000,
+  "ticket_url": "https://fenix.co/en/",
+  "organizer": "Fenix Beach Cartagena",
+  "image_url": "https://fenix.co/wp-content/uploads/2025/09/fenix_beach_cartagena_villas_42-1536x864-1-e1757432349176-1024x763.webp",
+  "description": "Oasis de arena blanca en Punta Arena, Isla Tierra Bomba, a 10 minutos en lancha desde Cartagena. 14 habitaciones, restaurante, bar y piscina. Pasadia incluye transporte, bebida de bienvenida, piscina, toallas y almuerzo. Paellas, ceviches, fish tacos y pulpo a la brasa.",
+  "description_en": "White sand oasis in Punta Arena, Tierra Bomba Island, 10 minutes by speedboat from Cartagena. 14 rooms, restaurant, bar, and pool. Day pass includes round-trip transport, welcome drink, pool, towels, and lunch. Paellas, ceviches, fish tacos, and grilled octopus.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "daily",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://fenix.co/en/"
+  ],
+  "confidence": "high",
+  "tags": [
+    "beach-club",
+    "island",
+    "tierra-bomba",
+    "restaurant",
+    "daily"
+  ],
+  "featured": false,
+  "capacity": 100,
+  "location": {
+    "lat": 10.364,
+    "lng": -75.574
+  },
+  "end_time": "17:00"
+}

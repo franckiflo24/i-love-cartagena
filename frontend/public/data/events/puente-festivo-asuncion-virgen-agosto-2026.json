@@ -1,0 +1,48 @@
+{
+  "id": "evt_puente_asuncion_2026",
+  "slug": "puente-festivo-asuncion-virgen-agosto-2026",
+  "name_es": "Puente Festivo — Asuncion de la Virgen",
+  "name_en": "Long Weekend — Assumption of the Virgin",
+  "title": "Puente Festivo — Asuncion de la Virgen",
+  "event_id": "puente-festivo-asuncion-virgen-agosto-2026",
+  "category": "cultural",
+  "type": "cultural",
+  "venue": "Cartagena de Indias",
+  "venue_name": "Toda la ciudad",
+  "neighborhood": "centro",
+  "date_start": "2026-08-17",
+  "date": "2026-08-17",
+  "date_end": "2026-08-17",
+  "time_start": "00:00",
+  "start_time": "00:00",
+  "is_free": true,
+  "price": 0,
+  "price_min_cop": 0,
+  "price_max_cop": 0,
+  "ticket_url": null,
+  "organizer": "Gobierno de Colombia",
+  "image_url": "https://images.unsplash.com/photo-1530538095376-a4936b35b5f0?w=800",
+  "description": "Puente festivo por la Asuncion de la Virgen. Lunes festivo. Ideal para escapada de fin de semana largo a las playas e islas de Cartagena.",
+  "description_en": "Long weekend for the Assumption of the Virgin. Monday holiday. Ideal for a long weekend getaway to Cartagena's beaches and islands.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.festivos.com.co/en/2026"
+  ],
+  "confidence": "high",
+  "tags": [
+    "holiday",
+    "puente",
+    "long-weekend"
+  ],
+  "featured": false,
+  "capacity": null,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5483
+  },
+  "end_time": ""
+}
