@@ -21,14 +21,14 @@
   "price_max_cop": 500000,
   "ticket_url": null,
   "organizer": "Operadores turisticos locales",
-  "image_url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800",
+  "image_url": "/img/category/nightlife.jpg",
   "description": "Tour VIP a Cholon con open bar, plataformas flotantes, musica, almuerzo caribeno y fiesta en el agua. Salida en lancha desde Cartagena. La fiesta acuatica mas famosa de Colombia.",
   "description_en": "VIP tour to Cholon with open bar, floating platforms, music, Caribbean lunch, and party on the water. Boat departure from Cartagena. Colombia's most famous water party.",
   "status": "scheduled",
   "recurring": true,
   "recurrence_rule": "weekly",
   "expected_attendance": null,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.getyourguide.com/tierra-bomba-island-l145037/"
   ],
@@ -45,5 +45,6 @@
     "lat": 10.178,
     "lng": -75.75
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

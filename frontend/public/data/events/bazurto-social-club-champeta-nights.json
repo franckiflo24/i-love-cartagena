@@ -21,7 +21,7 @@
   "price_max_cop": 30000,
   "ticket_url": null,
   "organizer": "Bazurto Social Club",
-  "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNVBQpz86Xr5pGmkJJVHdgzdygvYJLYyk4ZUQWd6G_wnmSZ5bI0AocQ3D4WTm2PL1LW2wj8DoRH_T6s7GLiAU0Q_1dOHBmg6WdNTl_j-jDsP-b33-1dO7rBbmI8KwyXaTVzL0idKjSRUCxN2yhte03Ctw=s4800-w1200",
   "description": "El templo de la champeta y el pico en Getsemani. Jueves a sabado con los mejores artistas de champeta criolla, cumbia, reggae y ritmos urbanos cartageneros. Cover: COP $30.000 (gratis antes de las 10pm, COP $20.000 con contrasena). Happy hour de 7-8pm, musica en vivo desde las 10pm. Clases de baile gratis los miercoles. Experiencia 100% local.",
   "description_en": "The temple of champeta and pico sound systems in Getsemani. Thursday to Saturday with the best champeta criolla artists, cumbia, reggae, and Cartagena urban rhythms. Cover: COP $30,000 (free before 10pm, COP $20,000 with password). Happy hour 7-8pm, live music from 10pm. Free dance classes on Wednesdays. 100% local experience.",
   "status": "scheduled",
@@ -47,5 +47,6 @@
     "lat": 10.4222,
     "lng": -75.5517
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "venue"
 }

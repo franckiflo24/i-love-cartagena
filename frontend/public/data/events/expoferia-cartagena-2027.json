@@ -21,14 +21,14 @@
   "price_max_cop": 0,
   "ticket_url": null,
   "organizer": "Camara de Comercio de Cartagena",
-  "image_url": "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=800",
+  "image_url": "/img/category/market.jpg",
   "description": "La vitrina comercial mas importante de Cartagena. 18 dias de exposicion con emprendedores locales, artesanias, gastronomia y productos del Caribe colombiano. Entrada libre. Plaza de la Proclamacion.",
   "description_en": "Cartagena's most important commercial showcase. 18 days of exhibitions with local entrepreneurs, handicrafts, gastronomy, and Colombian Caribbean products. Free entry. Plaza de la Proclamacion.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 100000,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.eluniversal.com.co/cartagena/2026/01/31/expoferia-2026-manana-ultimo-dia-de-la-vitrina-comercial-mas-importante-de-cartagena/"
   ],
@@ -46,5 +46,6 @@
     "lat": 10.424,
     "lng": -75.549
   },
-  "end_time": "20:00"
+  "end_time": "20:00",
+  "image_source": "category"
 }

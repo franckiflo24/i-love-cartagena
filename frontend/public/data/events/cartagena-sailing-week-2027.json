@@ -21,14 +21,14 @@
   "price_max_cop": 500000,
   "ticket_url": "https://www.ligadevelabolivar.org/csw2026",
   "organizer": "Liga de Vela de Bolivar / Club de Pesca",
-  "image_url": "https://images.unsplash.com/photo-1540946485063-a40da27545f8?w=800",
+  "image_url": "/img/category/sports.jpg",
   "description": "Semana de vela en Cartagena durante Semana Santa. Clinicas, regatas de campeonato y actividades de la comunidad nautica. Veleros internacionales y locales compiten en la bahia de Cartagena.",
   "description_en": "Sailing week in Cartagena during Holy Week. Clinics, championship regattas, and nautical community activities. International and local sailboats compete in Cartagena Bay.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 3000,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.ligadevelabolivar.org/csw2026"
   ],
@@ -46,5 +46,6 @@
     "lat": 10.4118,
     "lng": -75.5428
   },
-  "end_time": "17:00"
+  "end_time": "17:00",
+  "image_source": "category"
 }

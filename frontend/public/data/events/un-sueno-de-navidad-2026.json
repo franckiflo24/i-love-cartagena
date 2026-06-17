@@ -21,7 +21,7 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "Alcaldia de Cartagena",
-  "image_url": "https://images.unsplash.com/photo-1512389142860-9c449e58a814?w=800",
+  "image_url": "/img/landmarks/centro-convenciones.jpg",
   "description": "El espectaculo navideno de Cartagena con millones de luces decorando murallas, plazas y parques. Incluye pesebre gigante, villa navidena, shows de luces y actividades para toda la familia. Mas de 800 elementos ornamentales.",
   "description_en": "Cartagena's Christmas light spectacular with millions of lights decorating walls, plazas, and parks. Features a giant nativity scene, Christmas village, light shows, and family activities. Over 800 ornamental elements.",
   "status": "scheduled",
@@ -44,5 +44,6 @@
     "lat": 10.4195,
     "lng": -75.546
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "landmark"
 }

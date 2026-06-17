@@ -21,14 +21,14 @@
   "price_max_cop": 350000,
   "ticket_url": null,
   "organizer": "Beach Clubs de Tierra Bomba",
-  "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
+  "image_url": "/img/category/nightlife.jpg",
   "description": "Todos los domingos, los beach clubs de Tierra Bomba ofrecen dia de playa con DJ, cocteleria, almuerzo caribeno y lanchas desde el muelle de Cartagena. Atolon, Anaho (piscina gigante + jacuzzis), Pao Pao, Blue Apple y mas. Impuesto de muelle: COP $16.000 adicional por persona.",
   "description_en": "Every Sunday, Tierra Bomba beach clubs offer beach days with DJs, craft cocktails, Caribbean lunch, and boat transfers from Cartagena pier. Atolon, Anaho (giant pool + jacuzzis), Pao Pao, Blue Apple, and more. Dock tax: COP $16,000 extra per person.",
   "status": "scheduled",
   "recurring": true,
   "recurrence_rule": "weekly",
   "expected_attendance": null,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.getyourguide.com/cartagena-l362/cartagena-tierra-bomba-at-atolon-beach-club-t1003838/",
     "https://www.tripadvisor.com/Attractions-g1604046-Activities-c61-t47-Isla_Tierra_Bomba_Cartagena_District_Bolivar_Department.html"
@@ -47,5 +47,6 @@
     "lat": 10.355,
     "lng": -75.575
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

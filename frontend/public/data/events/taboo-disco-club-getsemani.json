@@ -21,7 +21,7 @@
   "price_max_cop": 30000,
   "ticket_url": null,
   "organizer": "Taboo Disco Club",
-  "image_url": "https://images.unsplash.com/photo-1571266028243-3716f02d2d58?w=800",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPV0SBQp47Y4pz_V8jotNHm6-3AeEwbJiQ6jMCLNbBfC-1WNCFVE8txHuHtc6hSkbslc0f5cKg-FJW1ntuADwL4GsO264O1l5hBDZBXpyw72Xhok6i7gxi8mE42YerXsE2N4pYNm4zRlp18SPZmt5DmxQ=s4800-w1200",
   "description": "Club nocturno inclusivo y LGBTQ+ friendly en Getsemani, Calle 24 #10-55. Reggaeton, latin pop y crossover. Abierto todas las noches de 8pm a 3am. Especiales diarios hasta las 11pm con descuentos en bebidas. Precios accesibles, seguridad profesional.",
   "description_en": "Inclusive and LGBTQ+ friendly nightclub in Getsemani, Calle 24 #10-55. Reggaeton, Latin pop, and crossover. Open nightly 8pm to 3am. Daily specials until 11pm with drink discounts. Affordable prices, professional security.",
   "status": "scheduled",
@@ -47,5 +47,6 @@
     "lat": 10.422,
     "lng": -75.5512
   },
-  "end_time": "03:00"
+  "end_time": "03:00",
+  "image_source": "venue"
 }

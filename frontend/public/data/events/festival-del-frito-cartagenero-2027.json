@@ -21,14 +21,14 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "IPCC / Getsemani Associations",
-  "image_url": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800",
+  "image_url": "/img/category/market.jpg",
   "description": "Celebracion gastronomica de los fritos tradicionales cartageneros: arepas de huevo, carimanolas, bunuelos, empanadas y deditos de queso. Coincide con la novena de la Virgen de la Candelaria. Competencias de cocina y musica en vivo. Horario: 10am-10pm.",
   "description_en": "Gastronomic celebration of Cartagena's traditional fried foods: arepas de huevo, carimanolas, bunuelos, empanadas, and cheese fingers. Coincides with the Virgen de la Candelaria novena. Cooking competitions and live music. Hours: 10am-10pm.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 80000,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.cartagena.gov.co/noticias/espera-termino-este-sabado-24-enero-comienza-el-xlii-festival-frito-cartagenero",
     "https://thisis.travel/cartagena/events/fried-food-festival"
@@ -46,5 +46,6 @@
     "lat": 10.4219,
     "lng": -75.5511
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

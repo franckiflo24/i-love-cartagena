@@ -21,7 +21,7 @@
   "price_max_cop": 2000000,
   "ticket_url": null,
   "organizer": "CMC Colombia",
-  "image_url": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800",
+  "image_url": "/img/landmarks/centro-convenciones.jpg",
   "description": "Congreso empresarial CMC Colombia en el Centro de Convenciones de Cartagena. Cuatro dias de paneles, networking y exposicion comercial.",
   "description_en": "CMC Colombia business congress at the Cartagena Convention Center. Four days of panels, networking, and commercial exhibition.",
   "status": "scheduled",
@@ -44,5 +44,6 @@
     "lat": 10.4208,
     "lng": -75.5489
   },
-  "end_time": "18:00"
+  "end_time": "18:00",
+  "image_source": "landmark"
 }

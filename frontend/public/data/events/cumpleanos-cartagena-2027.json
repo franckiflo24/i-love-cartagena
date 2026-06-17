@@ -21,14 +21,14 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "Alcaldia de Cartagena",
-  "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc0?w=800",
+  "image_url": "/img/category/cultural.jpg",
   "description": "Cartagena celebra su aniversario de fundacion (1 de junio de 1533 por Pedro de Heredia). En 2027 cumple 494 anos. Actos civicos, actividades culturales y eventos institucionales en las tres localidades de la ciudad.",
   "description_en": "Cartagena celebrates its founding anniversary (June 1, 1533 by Pedro de Heredia). In 2027 it turns 494 years old. Civic ceremonies, cultural activities, and institutional events across the city's three localities.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": null,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.cartagena.gov.co/noticias/cartagena-cumple-491-anos-primera-vez-el-1-junio-celebrara-tres-localidades"
   ],
@@ -44,5 +44,6 @@
     "lat": 10.4236,
     "lng": -75.5483
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

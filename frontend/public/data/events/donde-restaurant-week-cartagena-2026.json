@@ -21,14 +21,14 @@
   "price_max_cop": 109000,
   "ticket_url": "http://restaurantweek.donde.co/en",
   "organizer": "Donde.co / Restaurant Week Colombia",
-  "image_url": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800",
+  "image_url": "/img/category/market.jpg",
   "description": "Los mejores restaurantes de Cartagena ofrecen menus de tres tiempos a precios especiales: COP $50.000, $72.000 y $109.000. Cartagena fue nombrada Mejor Destino Gastronomico 2026 de Colombia.",
   "description_en": "Cartagena's best restaurants offer three-course menus at special prices: COP $50,000, $72,000, and $109,000. Cartagena was named Best Gastronomic Destination 2026 in Colombia.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 20000,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "http://restaurantweek.donde.co/en"
   ],
@@ -45,5 +45,6 @@
     "lat": 10.4236,
     "lng": -75.5483
   },
-  "end_time": "22:00"
+  "end_time": "22:00",
+  "image_source": "category"
 }

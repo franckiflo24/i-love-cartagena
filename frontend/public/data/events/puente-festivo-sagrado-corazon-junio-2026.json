@@ -21,14 +21,14 @@
   "price_max_cop": 0,
   "ticket_url": null,
   "organizer": "Gobierno de Colombia",
-  "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc0?w=800",
+  "image_url": "/img/category/cultural.jpg",
   "description": "Puente festivo (fin de semana largo) por el Sagrado Corazon de Jesus. Lunes festivo. Cartagena se llena de turistas nacionales. Colombia tiene 18 festivos al ano con 11 puentes festivos en 2026.",
   "description_en": "Long weekend (puente festivo) for Sacred Heart of Jesus. Monday holiday. Cartagena fills with domestic tourists. Colombia has 18 holidays per year with 11 long weekends in 2026.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": null,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.festivos.com.co/en/2026"
   ],
@@ -44,5 +44,6 @@
     "lat": 10.4236,
     "lng": -75.5483
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

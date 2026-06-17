@@ -21,14 +21,14 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "Organizadores locales / IPCC",
-  "image_url": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800",
+  "image_url": "/img/category/market.jpg",
   "description": "Festival gastronomico dedicado al chicharron en todas sus preparaciones. Fritangueras de toda la costa presentan sus mejores recetas en el Parque de la Iguana.",
   "description_en": "Gastronomic festival dedicated to chicharron (pork crackling) in all its preparations. Fritangueras from across the coast present their best recipes at Parque de la Iguana.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 20000,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.colombia.com/gastronomia/noticias/festival-del-chicharron-2026-en-cartagena-573198"
   ],
@@ -44,5 +44,6 @@
     "lat": 10.4236,
     "lng": -75.5483
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

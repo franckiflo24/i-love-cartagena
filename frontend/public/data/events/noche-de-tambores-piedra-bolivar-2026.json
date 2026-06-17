@@ -21,14 +21,14 @@
   "price_max_cop": 0,
   "ticket_url": null,
   "organizer": "Alcaldia de Cartagena",
-  "image_url": "https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=800",
+  "image_url": "/img/category/cultural.jpg",
   "description": "Tradicion ancestral donde los sonidos de los tambores resuenan en la Piedra de Bolivar desde las 3pm el 11 de noviembre. Celebracion de la herencia afrodescendiente de Cartagena con bullerengue, cumbia y ritmos del Caribe. Homenaje a artistas como Pabla Flores. Evento gratuito al aire libre.",
   "description_en": "Ancestral tradition where drum sounds resonate at the Piedra de Bolivar from 3pm on November 11th. Celebration of Cartagena's Afro-descendant heritage with bullerengue, cumbia, and Caribbean rhythms. Tribute to artists like Pabla Flores. Free outdoor event.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 15000,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.alertacaribe.com/noticias/bolivar/cartagena-se-prende-al-ritmo-del-bullerengue-este-viernes-noche-de-tambores-rinde-homenaje-pabla-flores"
   ],
@@ -47,5 +47,6 @@
     "lat": 10.418,
     "lng": -75.542
   },
-  "end_time": "23:00"
+  "end_time": "23:00",
+  "image_source": "category"
 }

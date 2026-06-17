@@ -21,14 +21,14 @@
   "price_max_cop": 13000,
   "ticket_url": "https://mamcartagena.org/",
   "organizer": "Museo de Arte Moderno de Cartagena",
-  "image_url": "https://images.unsplash.com/photo-1531243269054-5ebf6f34081e?w=800",
+  "image_url": "/img/category/cultural.jpg",
   "description": "Museo ubicado en la plaza de San Pedro Claver, junto al Bastion de San Ignacio. Exposiciones rotativas de su coleccion permanente con obras de pintores notables, escultura, arte abstracto y muestras temporales. Arte colombiano y caribeno contemporaneo.",
   "description_en": "Museum located in San Pedro Claver plaza, beside the San Ignacio bastion. Rotating exhibitions from its permanent collection featuring notable painters, sculpture, abstract art, and temporary shows. Contemporary Colombian and Caribbean art.",
   "status": "scheduled",
   "recurring": true,
   "recurrence_rule": "weekly",
   "expected_attendance": null,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://mamcartagena.org/"
   ],
@@ -46,5 +46,6 @@
     "lat": 10.423,
     "lng": -75.5507
   },
-  "end_time": "19:00"
+  "end_time": "19:00",
+  "image_source": "category"
 }

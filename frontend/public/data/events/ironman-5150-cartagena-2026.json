@@ -21,14 +21,14 @@
   "price_max_cop": 600000,
   "ticket_url": "https://www.ironman.com",
   "organizer": "IRONMAN",
-  "image_url": "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800",
+  "image_url": "/img/category/sports.jpg",
   "description": "Primera edicion del triatlon IRONMAN 5150 en Cartagena. Nado en la Bahia de las Animas, ciclismo por el noreste de la ciudad y carrera a pie por el Patrimonio de la Humanidad UNESCO. Distancia olimpica: 1.5 km nado, 40 km bici, 10 km carrera.",
   "description_en": "First edition of the IRONMAN 5150 triathlon in Cartagena. Swimming in the Bay of Souls, cycling through the city's northeast, and running through the UNESCO World Heritage Site. Olympic distance: 1.5 km swim, 40 km bike, 10 km run.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 2000,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.endurancesportswire.com/ironman-announces-new-5150-cartagena-triathlon-taking-place-in-cartagena-de-indias-colombia/"
   ],
@@ -47,5 +47,6 @@
     "lat": 10.4195,
     "lng": -75.5465
   },
-  "end_time": "16:00"
+  "end_time": "16:00",
+  "image_source": "category"
 }

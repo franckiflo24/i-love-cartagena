@@ -21,14 +21,14 @@
   "price_max_cop": 0,
   "ticket_url": null,
   "organizer": "Comite para la Revitalizacion de las Fiestas / IPCC",
-  "image_url": "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800",
+  "image_url": "/img/category/cultural.jpg",
   "description": "Encuentro cultural de salsa en la plaza que honra al legendario Joe Arroyo. Mas de 10 orquestas y agrupaciones de salsa rinden homenaje al genero caribeno por excelencia. Evento gratuito como parte de las celebraciones del Dia de la Independencia.",
   "description_en": "Cultural salsa gathering at the plaza honoring the legendary Joe Arroyo. Over 10 salsa orchestras and groups pay tribute to the quintessential Caribbean genre. Free event as part of Independence Day celebrations.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 10000,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.cartagena.gov.co/noticias/cartagena-asistio-masivamente-salsa-plaza"
   ],
@@ -46,5 +46,6 @@
     "lat": 10.423,
     "lng": -75.547
   },
-  "end_time": "22:00"
+  "end_time": "22:00",
+  "image_source": "category"
 }

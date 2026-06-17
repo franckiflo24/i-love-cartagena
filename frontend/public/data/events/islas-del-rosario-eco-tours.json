@@ -21,14 +21,14 @@
   "price_max_cop": 450000,
   "ticket_url": null,
   "organizer": "Operadores turisticos locales",
-  "image_url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800",
+  "image_url": "/img/category/cultural.jpg",
   "description": "Tours diarios a las Islas del Rosario: snorkel en arrecifes de coral, visita al oceanario, almuerzo en playa privada. Salidas diarias desde Muelle de la Bodeguita.",
   "description_en": "Daily tours to Rosario Islands: snorkeling at coral reefs, oceanarium visit, lunch on a private beach. Daily departures from Muelle de la Bodeguita.",
   "status": "scheduled",
   "recurring": true,
   "recurrence_rule": "weekly",
   "expected_attendance": null,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://en.wikipedia.org/wiki/Rosario_Islands"
   ],
@@ -46,5 +46,6 @@
     "lat": 10.175,
     "lng": -75.75
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

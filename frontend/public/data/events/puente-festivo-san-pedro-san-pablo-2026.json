@@ -21,14 +21,14 @@
   "price_max_cop": 0,
   "ticket_url": null,
   "organizer": "Gobierno de Colombia",
-  "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc0?w=800",
+  "image_url": "/img/category/cultural.jpg",
   "description": "Puente festivo por San Pedro y San Pablo. Lunes festivo. Otro fin de semana largo consecutivo en junio — temporada alta de turismo domestico en Cartagena.",
   "description_en": "Long weekend for Saints Peter and Paul. Monday holiday. Another consecutive long weekend in June — peak domestic tourism season in Cartagena.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": null,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.festivos.com.co/en/2026"
   ],
@@ -44,5 +44,6 @@
     "lat": 10.4236,
     "lng": -75.5483
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

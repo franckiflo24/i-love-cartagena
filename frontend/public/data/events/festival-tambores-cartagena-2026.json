@@ -21,14 +21,14 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "IPCC / Corporacion Festival de Tambores de Palenque",
-  "image_url": "https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=800",
+  "image_url": "/img/category/festival.jpg",
   "description": "Celebracion de la herencia afrocolombiana con grupos de bullerengue, mapale y champeta de toda la Costa Caribe. Talleres de percusion, trenzado y lengua palenquera. Mas de tres decadas de tradicion.",
   "description_en": "Celebration of Afro-Colombian heritage with bullerengue, mapale, and champeta groups from across the Caribbean Coast. Percussion workshops, braiding, and Palenquero language classes. Over three decades of tradition.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 30000,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.calendariodecolombia.com/fiestas-nacionales/festival-de-tambores-en-palenque",
     "https://donde.co/es/cartagena/eventos/palenque-5597766"
@@ -47,5 +47,6 @@
     "lat": 10.4219,
     "lng": -75.5511
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

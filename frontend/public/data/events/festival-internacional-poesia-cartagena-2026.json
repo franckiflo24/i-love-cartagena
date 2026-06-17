@@ -21,14 +21,14 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "Festival Internacional de Poesia de Cartagena",
-  "image_url": "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800",
+  "image_url": "/img/category/cultural.jpg",
   "description": "Festival de poesia de larga duracion que ofrece lecturas, recitales y activaciones culturales en plazas y espacios publicos de Cartagena durante varios meses. Poetas nacionales e internacionales.",
   "description_en": "Extended poetry festival offering readings, recitals, and cultural activations in Cartagena's plazas and public spaces over several months. National and international poets.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 15000,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://festivalpoesiacartagena.org/",
     "https://www.cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026"
@@ -46,5 +46,6 @@
     "lat": 10.4236,
     "lng": -75.5483
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

@@ -21,14 +21,14 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "IPCC / Alcaldia de Cartagena",
-  "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800",
+  "image_url": "/img/category/festival.jpg",
   "description": "Los viernes de octubre calientan motores para las Fiestas de Noviembre. Preludio Universitario (Oct 2), Primer Preludio (Oct 9), Segundo Preludio (Oct 16), Tercer Preludio (Oct 23) y Noche de Candela con Jolgorio de Tambores (Oct 30).",
   "description_en": "October Fridays warm up for the November Festivities. University Prelude (Oct 2), First Prelude (Oct 9), Second Prelude (Oct 16), Third Prelude (Oct 23), and Noche de Candela with Jolgorio de Tambores (Oct 30).",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 20000,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.farandahotels.com/blog/eventos",
     "https://www.cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026"
@@ -46,5 +46,6 @@
     "lat": 10.4219,
     "lng": -75.5511
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

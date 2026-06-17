@@ -21,14 +21,14 @@
   "price_max_cop": 400000,
   "ticket_url": null,
   "organizer": "Promotores locales",
-  "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
+  "image_url": "/img/category/concert.jpg",
   "description": "El DJ aleman &ME (Keinemusik) llega a Cartagena con una fiesta electronica exclusiva en Atolon Beach Club, Tierra Bomba. House, minimal techno y afro house frente al mar.",
   "description_en": "German DJ &ME (Keinemusik) comes to Cartagena with an exclusive electronic party at Atolon Beach Club, Tierra Bomba. House, minimal techno, and afro house by the sea.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 1500,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://canaltrece.com.co/noticias/me-llega-a-cartagena-con-una-fiesta-electronica-exclusiva-en-tierra-bomba/"
   ],
@@ -45,5 +45,6 @@
     "lat": 10.355,
     "lng": -75.575
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

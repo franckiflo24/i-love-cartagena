@@ -21,7 +21,7 @@
   "price_max_cop": 80000,
   "ticket_url": "https://ficcifestival.com/",
   "organizer": "Corporacion Festival de Cine de Cartagena de Indias",
-  "image_url": "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800",
+  "image_url": "/img/landmarks/teatro-adolfo-mejia.jpg",
   "description": "El festival de cine mas antiguo de Latinoamerica (desde 1960). La edicion 66 presenta estrenos de cine iberoamericano, cortometrajes, documentales y series de TV. Premio India Catalina al mejor cine. Fechas estimadas (la edicion 65 fue del 14-19 abril 2026).",
   "description_en": "Latin America's oldest film festival (since 1960). The 66th edition presents Ibero-American film premieres, short films, documentaries, and TV series. India Catalina Award for best cinema. Estimated dates (65th edition was April 14-19, 2026).",
   "status": "scheduled",
@@ -46,5 +46,6 @@
     "lat": 10.426,
     "lng": -75.549
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "landmark"
 }

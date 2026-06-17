@@ -21,7 +21,7 @@
   "price_max_cop": null,
   "ticket_url": "https://www.farex.org/",
   "organizer": "FAREX / Camara de Comercio de Cartagena",
-  "image_url": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800",
+  "image_url": "/img/landmarks/centro-convenciones.jpg",
   "description": "La feria artesanal mas importante del Caribe colombiano. Tradicion, cultura y emprendimiento reunen a mas de 250 expositores de moda, artesanias, decoracion y marroquineria. Entrada libre.",
   "description_en": "The most important artisan fair in the Colombian Caribbean. Tradition, culture, and entrepreneurship bring together over 250 exhibitors of fashion, handicrafts, decoration, and leather goods. Free entry.",
   "status": "scheduled",
@@ -46,5 +46,6 @@
     "lat": 10.4195,
     "lng": -75.546
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "landmark"
 }

@@ -21,14 +21,14 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "Alianza Francesa Cartagena",
-  "image_url": "https://images.unsplash.com/photo-1549877452-9c387954fbc2?w=800",
+  "image_url": "/img/category/cultural.jpg",
   "description": "Celebracion del 14 de julio con programacion cultural francofona: cine, musica, exposiciones y gastronomia francesa en Cartagena.",
   "description_en": "July 14th celebration with Francophone cultural programming: cinema, music, exhibitions, and French gastronomy in Cartagena.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 500,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026"
   ],
@@ -44,5 +44,6 @@
     "lat": 10.4236,
     "lng": -75.5483
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

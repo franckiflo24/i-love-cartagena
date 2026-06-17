@@ -21,7 +21,7 @@
   "price_max_cop": 1500000,
   "ticket_url": "https://cccartagena.com/events/ctg-2026/",
   "organizer": "Centro de Convenciones Cartagena",
-  "image_url": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800",
+  "image_url": "/img/landmarks/centro-convenciones.jpg",
   "description": "Evento de negocios y networking en el Centro de Convenciones de Cartagena. Paneles, conferencias y exposicion comercial. Tres dias de intercambio entre lideres empresariales del Caribe colombiano.",
   "description_en": "Business and networking event at the Cartagena Convention Center. Panels, conferences, and commercial exhibition. Three days of exchange between Colombian Caribbean business leaders.",
   "status": "scheduled",
@@ -44,5 +44,6 @@
     "lat": 10.4208,
     "lng": -75.5489
   },
-  "end_time": "18:00"
+  "end_time": "18:00",
+  "image_source": "landmark"
 }

@@ -21,14 +21,14 @@
   "price_max_cop": 0,
   "ticket_url": null,
   "organizer": "IPCC — Instituto de Patrimonio y Cultura de Cartagena",
-  "image_url": "https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=800",
+  "image_url": "/img/category/cultural.jpg",
   "description": "El Reinado Popular es un espacio de participacion comunitaria donde los barrios y corregimientos eligen a sus representantes, que encarnan la belleza integral de la mujer caribena, liderazgo y empoderamiento. Desfile en traje de bano el 7 de noviembre. Tema 2026: 'La Fiesta que nos une'.",
   "description_en": "The Popular Pageant is a community participation space where neighborhoods elect their representatives, embodying the integral beauty of Caribbean women, leadership, and empowerment. Swimsuit parade on November 7th. 2026 theme: 'The Festival That Unites Us'.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 50000,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.cartagena.gov.co/noticias/conoce-el-listado-precandidatas-reinado-popular-fiestas-independencia-11-noviembre-2026-el-proceso-avanza-su-fase-dos"
   ],
@@ -46,5 +46,6 @@
     "lat": 10.4236,
     "lng": -75.5483
   },
-  "end_time": "22:00"
+  "end_time": "22:00",
+  "image_source": "category"
 }

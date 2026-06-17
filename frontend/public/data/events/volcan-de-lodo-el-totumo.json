@@ -21,14 +21,14 @@
   "price_max_cop": 240000,
   "ticket_url": null,
   "organizer": "Operadores turisticos locales",
-  "image_url": "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=800",
+  "image_url": "/img/category/cultural.jpg",
   "description": "Visita al volcan de lodo activo donde puedes flotar en lodo volcanico con supuestas propiedades curativas. A 45 minutos de Cartagena. Tours diarios desde COP $95.000 (basico) hasta COP $240.000 (con beach club). Incluye transporte, entrada, almuerzo tipico y playa de Manzanillo.",
   "description_en": "Visit the active mud volcano where you can float in volcanic mud said to have healing properties. 45 minutes from Cartagena. Daily tours from COP $95,000 (basic) to COP $240,000 (with beach club). Includes transport, entrance, typical lunch, and Manzanillo beach.",
   "status": "scheduled",
   "recurring": true,
   "recurrence_rule": "weekly",
   "expected_attendance": null,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.machupicchu.org/cartagena-travel-guide-2026-best-things-to-do-in-colombias-caribbean-gem.htm"
   ],
@@ -45,5 +45,6 @@
     "lat": 10.706,
     "lng": -75.234
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

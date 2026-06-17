@@ -21,14 +21,14 @@
   "price_max_cop": 350000,
   "ticket_url": null,
   "organizer": "Operadores turisticos locales",
-  "image_url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800",
+  "image_url": "/img/category/nightlife.jpg",
   "description": "Tour nocturno en barco con dress code blanco. Cena tipo buffet caribeno, show de baile y animacion, DJ en vivo y cocteleria. Navegacion por la bahia con vista al skyline iluminado de Cartagena.",
   "description_en": "Night boat tour with all-white dress code. Caribbean buffet dinner, dance and animation show, live DJ, and cocktails. Bay cruise with views of Cartagena's illuminated skyline.",
   "status": "scheduled",
   "recurring": true,
   "recurrence_rule": "weekly",
   "expected_attendance": null,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.getyourguide.com/cartagena-l362/nightlife-bars-tc109/"
   ],
@@ -45,5 +45,6 @@
     "lat": 10.4,
     "lng": -75.555
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

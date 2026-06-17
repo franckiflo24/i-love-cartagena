@@ -21,14 +21,14 @@
   "price_max_cop": 500000,
   "ticket_url": "https://carnavaldebarranquilla.org/",
   "organizer": "Carnaval de Barranquilla S.A.S.",
-  "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800",
+  "image_url": "/img/category/festival.jpg",
   "description": "El segundo carnaval mas grande del mundo, Patrimonio Oral e Inmaterial de la Humanidad (UNESCO). A 2 horas de Cartagena por carretera. 4 dias de musica, cumbia, mapale, danzas y desfiles masivos. Sab 6 al mar 9 de febrero 2027. Tours desde Cartagena incluyen transporte, guia y palco.",
   "description_en": "The world's second-largest carnival, UNESCO Oral and Intangible Heritage of Humanity. 2 hours from Cartagena by road. 4 days of music, cumbia, mapale, dances, and massive parades. Sat Feb 6 to Tue Feb 9, 2027. Tours from Cartagena include transport, guide, and grandstand seats.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 2000000,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://carnavaldebarranquilla.org/"
   ],
@@ -46,5 +46,6 @@
     "lat": 10.9685,
     "lng": -74.7813
   },
-  "end_time": "23:00"
+  "end_time": "23:00",
+  "image_source": "category"
 }

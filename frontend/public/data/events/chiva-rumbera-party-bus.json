@@ -21,14 +21,14 @@
   "price_max_cop": 150000,
   "ticket_url": null,
   "organizer": "Operadores turisticos locales",
-  "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800",
+  "image_url": "/img/category/nightlife.jpg",
   "description": "Recorrido nocturno en el iconico bus colombiano (Chiva) con musica, aguardiente y recorrido por los principales sitios de Cartagena. Salida desde la Torre del Reloj a las 7:15pm o desde hoteles de Bocagrande a las 8pm. Incluye paradas en bares y discotecas. Precios desde COP $50.000 (basico) hasta COP $150.000 (premium con open bar).",
   "description_en": "Night tour on the iconic Colombian party bus (Chiva) with music, aguardiente, and a tour of Cartagena's main sites. Departure from Clock Tower at 7:15pm or Bocagrande hotels at 8pm. Includes bar and club stops. Prices from COP $50,000 (basic) to COP $150,000 (premium with open bar).",
   "status": "scheduled",
   "recurring": true,
   "recurrence_rule": "weekly",
   "expected_attendance": null,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://www.getyourguide.com/cartagena-l362/nightlife-bars-tc109/"
   ],
@@ -45,5 +45,6 @@
     "lat": 10.4236,
     "lng": -75.5483
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

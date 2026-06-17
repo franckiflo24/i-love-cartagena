@@ -21,14 +21,14 @@
   "price_max_cop": null,
   "ticket_url": null,
   "organizer": "Tradicion colombiana",
-  "image_url": "https://images.unsplash.com/photo-1512389142860-9c449e58a814?w=800",
+  "image_url": "/img/category/religious.jpg",
   "description": "La noche mas magica de Colombia. Miles de velas y faroles iluminan las calles de Cartagena en la vispera de la Inmaculada Concepcion. Los barrios compiten por las mejores decoraciones de luz.",
   "description_en": "Colombia's most magical night. Thousands of candles and lanterns illuminate Cartagena's streets on the eve of the Immaculate Conception. Neighborhoods compete for the best light decorations.",
   "status": "scheduled",
   "recurring": false,
   "recurrence_rule": null,
   "expected_attendance": 300000,
-  "last_verified_date": "2026-06-16",
+  "last_verified_date": "2026-06-17",
   "source": [
     "https://en.wikipedia.org/wiki/D%C3%ADa_de_las_velitas"
   ],
@@ -45,5 +45,6 @@
     "lat": 10.4236,
     "lng": -75.5483
   },
-  "end_time": ""
+  "end_time": "",
+  "image_source": "category"
 }

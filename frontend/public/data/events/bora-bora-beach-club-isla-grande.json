@@ -21,7 +21,7 @@
   "price_max_cop": 350000,
   "ticket_url": "https://boraboracartagena.com/en/",
   "organizer": "Bora Bora Cartagena",
-  "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZP20p_V8y_TkayydTIwqT0MjLQ3qA7_QEJ6mbCqvB0Ndf85iDOR2HaOk5NrKVcVa3SKrOBycsHlw9IeNYjUgGbLNx6_Um1A09W-8E9pvwj4_mIy5MzTpeSfhZhqKZ3yGmdEzhkgOlhVJgrJSve-99blBw=s1600-w800",
   "description": "Club de playa privado en Isla Grande, Islas del Rosario. Musica electronica y fiesta todos los dias. Dos niveles con vista al agua y acceso directo a la playa. Ideal para grupos y despedidas. Pasadia incluye transporte, bebida de bienvenida, almuerzo.",
   "description_en": "Private beach club on Isla Grande, Rosario Islands. Electronic music and party every day. Two levels with water views and direct beach access. Ideal for groups and celebrations. Day pass includes transport, welcome drink, lunch.",
   "status": "scheduled",
@@ -46,5 +46,6 @@
     "lat": 10.181,
     "lng": -75.746
   },
-  "end_time": "17:00"
+  "end_time": "17:00",
+  "image_source": "venue"
 }
