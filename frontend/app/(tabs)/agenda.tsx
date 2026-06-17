@@ -10,6 +10,7 @@ import { useMyCalendar, CalendarItem } from '../../src/context/MyCalendarContext
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
 import { useTr } from '../../src/i18n/autoTr';
+import { getUpcomingEvents } from '../../src/lib/data';
 
 type Mode = 'salir' | 'mi_agenda';
 
@@ -115,13 +116,24 @@ export default function AgendaScreen() {
     try {
       const params = new URLSearchParams({ date: selectedSalirDate });
       if (selectedSalirCat !== 'all') params.append('category', selectedSalirCat);
-      const [peData, evData] = await Promise.all([
+      const [peData, allEventsRaw] = await Promise.all([
         api.get(`/partner-events?${params.toString()}`),
-        api.get('/events').catch(() => []),
+        getUpcomingEvents().catch(() => []),
       ]);
       setPartnerEvents(Array.isArray(peData) ? peData : []);
-      // Filter city events to match selected date (events may span date ranges)
-      const allEvents = Array.isArray(evData) ? evData : [];
+      // Map EventRecord fields to compat + filter by date
+      const allEvents = (Array.isArray(allEventsRaw) ? allEventsRaw : []).map((e: any) => ({
+        ...e,
+        event_id: e.slug || e.id || e.event_id,
+        title: e.name_es || e.title || '',
+        date: e.date_start || e.date || '',
+        date_start: e.date_start || e.date || '',
+        date_end: e.date_end || e.date_start || e.date || '',
+        type: e.category || e.type || '',
+        start_time: e.time_start || e.start_time || '',
+        venue_name: e.venue || e.venue_name || '',
+        price: e.price_min_cop || e.price || 0,
+      }));
       const dateFiltered = allEvents.filter((ev: any) => {
         const start = ev.date_start || ev.date || '';
         const end = ev.date_end || start;

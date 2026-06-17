@@ -29,6 +29,7 @@ import { SafeImage } from '../../src/components/SafeImage';
 import { SkeletonFeaturedRow, SkeletonGrid } from '../../src/components/Skeleton';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
+import { getUpcomingEvents } from '../../src/lib/data';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - SPACING.lg * 2 - SPACING.sm) / 2;
@@ -579,12 +580,19 @@ export default function ExploreScreen() {
 
   const loadUpcomingEvents = useCallback(async () => {
     try {
-      const data = await api.get('/events');
-      const events = Array.isArray(data) ? data : [];
-      // Sort by date and keep only events with images
-      const withImages = events.filter((e: any) => e.image_url);
-      withImages.sort((a: any, b: any) => (a.date_start || a.date || '').localeCompare(b.date_start || b.date || ''));
-      setUpcomingEvents(withImages);
+      const evts = await getUpcomingEvents();
+      // Map to compat fields + filter for images
+      const mapped = evts.filter((e: any) => e.image_url).map((e: any) => ({
+        ...e,
+        event_id: e.slug || e.id || e.event_id,
+        title: e.name_es || e.title || '',
+        date: e.date_start || e.date || '',
+        type: e.category || e.type || '',
+        start_time: e.time_start || e.start_time || '',
+        venue_name: e.venue || e.venue_name || '',
+        price: e.price_min_cop || e.price || 0,
+      }));
+      setUpcomingEvents(mapped);
     } catch (e) {
       console.error('[ExploreScreen] upcoming events', e);
       setUpcomingEvents([]);

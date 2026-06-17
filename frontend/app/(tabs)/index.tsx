@@ -12,6 +12,7 @@ import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
 import { SkeletonList } from '../../src/components/Skeleton';
+import { getUpcomingEvents } from '../../src/lib/data';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
@@ -122,13 +123,24 @@ export default function HomeScreen() {
       const today = todayIso();
       const [s, f, sp, pe, promos] = await Promise.all([
         api.get('/seasons?active=true'),
-        api.get('/events'),
+        getUpcomingEvents().catch(() => []),
         api.get('/sponsors').catch(() => []),
         api.get(`/partner-events?date=${today}`).catch(() => []),
         api.get('/promotions/today').catch(() => []),
       ]);
       setSeasons(Array.isArray(s) ? s : []);
-      setFeatured(Array.isArray(f) ? f : []);
+      // Map EventRecord fields to what the render expects
+      const evts = (Array.isArray(f) ? f : []).map((e: any) => ({
+        ...e,
+        event_id: e.slug || e.id || e.event_id,
+        title: e.name_es || e.title || '',
+        date: e.date_start || e.date || '',
+        type: e.category || e.type || '',
+        start_time: e.time_start || e.start_time || '',
+        venue_name: e.venue || e.venue_name || '',
+        price: e.price_min_cop || e.price || 0,
+      }));
+      setFeatured(evts);
       setSponsors(Array.isArray(sp) ? sp : []);
       setTodayPEvents(Array.isArray(pe) ? pe : []);
       setPromotions(Array.isArray(promos) ? promos : []);
