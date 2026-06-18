@@ -89,7 +89,7 @@ CUANDO YA TIENES CONTEXTO:
 type CatItem = {
   slug: string; name: string; category: string; zone: string;
   description?: string; price_range?: string; rating?: number;
-  hours?: string; cuisine?: string; tier?: string;
+  hours?: string; cuisine?: string; tier?: string; dishes?: string;
 };
 let CATALOG_CACHE: { bySlug: Map<string, CatItem>; allowlist: string } | null = null;
 
@@ -112,6 +112,7 @@ async function getCatalog(origin: string) {
       hours: String(p.hours ?? '').trim().slice(0, 80) || undefined,
       cuisine: String(p.cuisine ?? '').trim() || undefined,
       tier: String(p.tier ?? '').trim() || undefined,
+      dishes: Array.isArray(p.signature_dishes) ? p.signature_dishes.slice(0, 3).join(', ') : undefined,
     }))
     .filter((p) => p.slug && p.name);
 
@@ -126,6 +127,7 @@ async function getCatalog(origin: string) {
       if (p.rating) line += ` | ${p.rating}/5`;
       if (p.cuisine) line += ` | ${p.cuisine}`;
       if (p.tier && p.tier !== 'standard') line += ` | ${p.tier.toUpperCase()}`;
+      if (p.dishes) line += ` | PLATOS: ${p.dishes}`;
       if (p.description) line += ` | ${p.description}`;
       return line;
     })
