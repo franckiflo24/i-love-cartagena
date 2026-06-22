@@ -133,7 +133,7 @@ async function handleItinerary(req: Request): Promise<Response> {
 
   const lang = String(body?.language ?? 'es').toLowerCase().startsWith('en') ? 'en' : 'es';
   const days = clampInt(body?.days, 1, MAX_DAYS, 2);
-  const interests: string[] = (Array.isArray(body?.interests) ? body.interests.map(String) : []).slice(0, 8).map(s => s.slice(0, 32));
+  const interests: string[] = (Array.isArray(body?.interests) ? body.interests.map(String) : []).slice(0, 8).map((s: string) => s.slice(0, 32));
   const budget = String(body?.budget ?? '').slice(0, 64);
   const party = String(body?.party ?? '').slice(0, 64);
   const pace = String(body?.pace ?? '').slice(0, 64);

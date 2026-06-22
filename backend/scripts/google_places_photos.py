@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 
 MONGO_URL = os.environ["MONGO_URL"]
 DB_NAME = os.environ["DB_NAME"]
-API_KEY = "AIzaSyD7npiyvw2VbyRkKsTGCv3fQfA4Whss72Q"
+API_KEY = os.environ.get('GOOGLE_API_KEY', '')
 
 PLACES_SEARCH = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json"
 PLACES_PHOTO = "https://maps.googleapis.com/maps/api/place/photo"

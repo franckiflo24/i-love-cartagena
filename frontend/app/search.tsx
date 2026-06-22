@@ -11,6 +11,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
 import { useLang } from '../src/context/LanguageContext';
+import { SafeImage } from '../src/components/SafeImage';
 
 type AIHighlight = { type: string; id: string; reason: string };
 type AIRecommendation = {
@@ -93,15 +94,27 @@ export default function SearchScreen() {
     setSearched(true);
     try {
       const data = await api.get(`/search?q=${encodeURIComponent(q)}&lang=${lang || 'es'}`);
-      setResults(data);
+      // Normalize: backend (or static fallback) may omit keys — coerce to empty arrays
+      const normalized: Results = {
+        events:         Array.isArray(data?.events) ? data.events : [],
+        concerts:       Array.isArray(data?.concerts) ? data.concerts : [],
+        partners:       Array.isArray(data?.partners) ? data.partners : [],
+        venues:         Array.isArray(data?.venues) ? data.venues : [],
+        transport:      Array.isArray(data?.transport) ? data.transport : [],
+        partner_events: Array.isArray(data?.partner_events) ? data.partner_events : [],
+        ai:             data?.ai,
+      };
+      setResults(normalized);
     } catch (e) { console.error(e); }
     setLoading(false);
     Keyboard.dismiss();
   }, [lang]);
 
+  // Defensive: any of these arrays may be missing if backend returns partial shape
+  const len = (a?: any[]) => (Array.isArray(a) ? a.length : 0);
   const totalResults = results
-    ? results.events.length + results.concerts.length + results.partners.length
-      + results.venues.length + results.transport.length + results.partner_events.length
+    ? len(results.events) + len(results.concerts) + len(results.partners)
+      + len(results.venues) + len(results.transport) + len(results.partner_events)
     : 0;
 
   const openHighlight = (h: AIHighlight) => {
@@ -167,7 +180,7 @@ export default function SearchScreen() {
         router.push('/itineraries' as any);
         break;
       case 'reservation_link':
-        if (a.partner_id) router.push(`/reservation/new?partnerId=${a.partner_id}` as any);
+        if (a.partner_id) router.push({ pathname: '/reservation/new' as any, params: { partner_id: a.partner_id } });
         break;
       case 'external_link':
         if (a.url) Linking.openURL(a.url).catch(() => {});
@@ -222,7 +235,7 @@ export default function SearchScreen() {
           <Ionicons name="search" size={20} color={COLORS.primary} style={{ marginTop: 14 }} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Pregunta a Amo: cena romántica, paseo a Barú, mariscos…"
+            placeholder={tr('Pregunta a Amo: cena romántica, paseo a Barú, mariscos…')}
             placeholderTextColor={COLORS.textMuted}
             value={query}
             onChangeText={setQuery}
@@ -255,20 +268,20 @@ export default function SearchScreen() {
         {loading ? (
           <View style={styles.loadingWrap}>
             <ActivityIndicator size="large" color={COLORS.primary} />
-            <Text style={styles.loadingText}>Buscando y pensando…</Text>
+            <Text style={styles.loadingText}>{tr('Buscando y pensando…')}</Text>
           </View>
         ) : !searched ? (
           /* Suggestions */
           <View style={styles.suggestions}>
-            <Text style={styles.suggestTitle}>¿Qué buscas?</Text>
+            <Text style={styles.suggestTitle}>{tr('¿Qué buscas?')}</Text>
             <Text style={styles.suggestSubtitle}>
-              Puedes preguntar: «cena romántica», «cómo llegar a Barú», «conciertos este viernes», «pase cultural», «tasa portuaria»…
+              {tr('Puedes preguntar: «cena romántica», «cómo llegar a Barú», «conciertos este viernes», «pase cultural», «tasa portuaria»…')}
             </Text>
             <View style={styles.suggestRow}>
               {['Cena romántica', 'Conciertos', 'Lancha a Rosario', 'City Pass', 'Tasa portuaria', 'Brunch', 'Salsa'].map(s => (
                 <TouchableOpacity key={s} style={styles.suggestChip} onPress={() => { setQuery(s); doSearch(s); }}>
                   <Ionicons name="sparkles" size={12} color={COLORS.primary} />
-                  <Text style={styles.suggestText}>{s}</Text>
+                  <Text style={styles.suggestText}>{tr(s)}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -351,7 +364,7 @@ export default function SearchScreen() {
                     onPress={() => openSuggestedTab(results!.ai!.suggested_tab)}
                   >
                     <Ionicons name="arrow-forward-circle" size={16} color="#FFF" />
-                    <Text style={styles.suggestedTabText}>Ir a {results!.ai!.suggested_tab}</Text>
+                    <Text style={styles.suggestedTabText}>{tr('Ir a')} {results!.ai!.suggested_tab}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -360,14 +373,14 @@ export default function SearchScreen() {
             {totalResults === 0 && !((results?.ai?.recommendations && results.ai.recommendations.length > 0) || (results?.ai?.actions && results.ai.actions.length > 0)) ? (
               <View style={styles.emptyState}>
                 <Ionicons name="search-outline" size={48} color={COLORS.textMuted} />
-                <Text style={styles.emptyTitle}>Sin resultados directos</Text>
+                <Text style={styles.emptyTitle}>{tr('Sin resultados directos')}</Text>
                 <Text style={styles.emptyDesc}>
-                  Pero la IA tiene una sugerencia arriba. Prueba con otras palabras o navega a la pestaña sugerida.
+                  {tr('Pero la IA tiene una sugerencia arriba. Prueba con otras palabras o navega a la pestaña sugerida.')}
                 </Text>
               </View>
             ) : totalResults === 0 ? null : (
               <>
-                <Text style={styles.resultCount}>{totalResults} resultado{totalResults !== 1 ? 's' : ''}</Text>
+                <Text style={styles.resultCount}>{totalResults} {totalResults !== 1 ? tr('resultados') : tr('resultado')}</Text>
 
                 {/* Partners */}
                 {results!.partners.length > 0 && (
@@ -375,7 +388,7 @@ export default function SearchScreen() {
                     <Text style={styles.sectionTitle}>💎 Partners ({results!.partners.length})</Text>
                     {results!.partners.map(p => (
                       <TouchableOpacity key={p.partner_id} style={styles.resultCard} onPress={() => router.push(`/partner/${p.partner_id}`)}>
-                        <Image source={{ uri: p.image_url }} style={styles.resultImage} />
+                        <SafeImage uri={p.image_url} category={p.category} style={styles.resultImage} />
                         <View style={styles.resultInfo}>
                           <Text style={styles.resultName} numberOfLines={1}>{p.name}</Text>
                           <Text style={styles.resultMeta}>{p.cuisine || p.subcategory || p.category}</Text>
@@ -397,10 +410,10 @@ export default function SearchScreen() {
                 {/* Concerts */}
                 {results!.concerts.length > 0 && (
                   <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>🎵 Conciertos ({results!.concerts.length})</Text>
+                    <Text style={styles.sectionTitle}>🎵 {tr('Conciertos')} ({results!.concerts.length})</Text>
                     {results!.concerts.map(c => (
                       <TouchableOpacity key={c.concert_id} style={styles.resultCard} onPress={() => router.push('/concerts' as any)}>
-                        <Image source={{ uri: c.image_url }} style={styles.resultImage} />
+                        <SafeImage uri={c.image_url} category="concert" style={styles.resultImage} />
                         <View style={styles.resultInfo}>
                           <Text style={styles.resultName} numberOfLines={1}>{c.artist || c.title}</Text>
                           <Text style={styles.resultMeta}>{c.genre}</Text>
@@ -417,10 +430,10 @@ export default function SearchScreen() {
                 {/* Events (city events) */}
                 {results!.events.length > 0 && (
                   <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>📅 Eventos ({results!.events.length})</Text>
+                    <Text style={styles.sectionTitle}>📅 {tr('Eventos')} ({results!.events.length})</Text>
                     {results!.events.map(e => (
                       <TouchableOpacity key={e.event_id} style={styles.resultCard} onPress={() => router.push(`/event/${e.event_id}`)}>
-                        <Image source={{ uri: e.image_url }} style={styles.resultImage} />
+                        <SafeImage uri={e.image_url} category={e.type} style={styles.resultImage} />
                         <View style={styles.resultInfo}>
                           <Text style={styles.resultName} numberOfLines={1}>{e.title}</Text>
                           <Text style={styles.resultMeta}>{e.type}</Text>
@@ -435,10 +448,10 @@ export default function SearchScreen() {
                 {/* Partner Events */}
                 {results!.partner_events.length > 0 && (
                   <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>🎉 Eventos partners ({results!.partner_events.length})</Text>
+                    <Text style={styles.sectionTitle}>🎉 {tr('Eventos partners')} ({results!.partner_events.length})</Text>
                     {results!.partner_events.map(pe => (
                       <TouchableOpacity key={pe.event_id} style={styles.resultCard} onPress={() => router.push(`/partner-event/${pe.event_id}` as any)}>
-                        <Image source={{ uri: pe.image_url || (pe as any).flyer_url }} style={styles.resultImage} />
+                        <SafeImage uri={pe.image_url || (pe as any).flyer_url} category={pe.category} style={styles.resultImage} />
                         <View style={styles.resultInfo}>
                           <Text style={styles.resultName} numberOfLines={1}>{pe.title}</Text>
                           <Text style={styles.resultMeta}>{pe.category}</Text>
@@ -453,7 +466,7 @@ export default function SearchScreen() {
                 {/* Transport */}
                 {results!.transport.length > 0 && (
                   <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>🚤 Transporte ({results!.transport.length})</Text>
+                    <Text style={styles.sectionTitle}>🚤 {tr('Transporte')} ({results!.transport.length})</Text>
                     {results!.transport.map(t => (
                       <TouchableOpacity key={t.transport_id} style={styles.resultCard} onPress={() => router.push('/transport' as any)}>
                         <View style={[styles.resultImage, styles.transportIcon]}>
@@ -510,6 +523,7 @@ function RecommendationsCarousel({
   recs: AIRecommendation[];
   onPress: (r: AIRecommendation) => void;
 }) {
+  const tr = useTr();
   const [activeIdx, setActiveIdx] = React.useState(0);
   const onScroll = (e: any) => {
     const x = e.nativeEvent.contentOffset.x as number;
@@ -520,9 +534,9 @@ function RecommendationsCarousel({
     <View style={{ marginTop: 4 }}>
       <View style={styles.carouselHeader}>
         <Text style={styles.carouselTitle}>
-          ✨ {recs.length} opciones para ti
+          ✨ {recs.length} {tr('opciones para ti')}
         </Text>
-        <Text style={styles.carouselHint}>Desliza →</Text>
+        <Text style={styles.carouselHint}>{tr('Desliza')} →</Text>
       </View>
       <ScrollView
         horizontal
@@ -569,6 +583,7 @@ function RecommendationCard({
   rec: AIRecommendation;
   onPress: () => void;
 }) {
+  const tr = useTr();
   const isEvent = rec.kind === 'event';
   const accent = isEvent ? '#7C3AED' : COLORS.primary;
   return (
@@ -578,7 +593,7 @@ function RecommendationCard({
           <Ionicons name={isEvent ? 'calendar' : 'business'} size={13} color={COLORS.white} />
         </View>
         <Text style={[styles.recKindLabel, { color: accent }]} numberOfLines={1}>
-          {isEvent ? 'Evento' : 'Partner'}
+          {isEvent ? tr('Evento') : 'Partner'}
         </Text>
         {!!rec.price_range && (
           <View style={styles.recPriceBadge}>
@@ -606,7 +621,7 @@ function RecommendationCard({
         )}
       </View>
       <View style={styles.recCta}>
-        <Text style={styles.recCtaText}>Ver detalle</Text>
+        <Text style={styles.recCtaText}>{tr('Ver detalle')}</Text>
         <Ionicons name="arrow-forward" size={12} color={COLORS.white} />
       </View>
     </TouchableOpacity>

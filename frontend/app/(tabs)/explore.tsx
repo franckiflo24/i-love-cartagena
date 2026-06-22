@@ -313,7 +313,7 @@ function PartnerGridCard({
           {partner.name}
         </Text>
         <Text style={styles.gridCategory} numberOfLines={1}>
-          {PARTNER_CATEGORY_LABELS[(partner as any).category] || (partner as any).category || ''}
+          {tr(PARTNER_CATEGORY_LABELS[(partner as any).category] || (partner as any).category || '')}
         </Text>
       </View>
     </TouchableOpacity>

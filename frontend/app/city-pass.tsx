@@ -7,8 +7,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useAuth } from '../src/context/AuthContext';
 import { useTr } from '../src/i18n/autoTr';
-import PaymentSheet from '../src/components/PaymentSheet';
-import type { PaymentResult } from '../src/lib/payments';
+import { openWompiCheckout, checkWompiEnabled, notConfiguredAlert } from '../src/lib/wompi';
 
 type Plan = {
   plan_id: string; name: string; price: number; currency: string;
@@ -56,12 +55,35 @@ export default function CityPassScreen() {
     load();
   }, [user]);
 
-  const activatePass = async (_planId: string) => {
-    Alert.alert(
-      'City Pass',
-      'Próximamente — únete a la lista de espera. Te notificaremos cuando el City Pass esté disponible para activar.',
-      [{ text: 'OK' }],
-    );
+  const [activating, setActivating] = useState(false);
+
+  const activatePass = async (planId: string) => {
+    if (activating) return;
+    setActivating(true);
+    try {
+      const wompi = await checkWompiEnabled();
+      if (!wompi.enabled) {
+        notConfiguredAlert();
+        return;
+      }
+      const res = await api.post('/payments/wompi/city-pass', { plan_id: planId });
+      if (res.checkout_url && res.reference) {
+        const result = await openWompiCheckout(res.checkout_url, res.reference);
+        if (result.status === 'approved') {
+          Alert.alert('¡Listo!', 'Tu City Pass está activo. ¡Disfruta Cartagena!');
+          const pass = await api.get('/city-pass/mine');
+          setMyPass(pass);
+        } else if (result.status === 'declined') {
+          Alert.alert('Pago rechazado', 'Intenta con otro método de pago.');
+        } else if (result.status !== 'pending') {
+          Alert.alert('Pago', `Estado: ${result.status}`);
+        }
+      }
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'No se pudo procesar el pago');
+    } finally {
+      setActivating(false);
+    }
   };
 
   const formatPrice = (p: number) => `$${(p / 1000).toFixed(0)}K COP`;
@@ -134,22 +156,13 @@ export default function CityPassScreen() {
                   onPress={() => activatePass(plan.plan_id)}
                   disabled={!!activating}
                 >
-                  {activating === plan.plan_id ? (
+                  {activating ? (
                     <ActivityIndicator size="small" color={COLORS.white} />
                   ) : (
                     <Text style={styles.activateText}>
-                      Próximamente — únete a la lista
+                      {tr('Activar')} · {formatPrice(plan.price)}
                     </Text>
                   )}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.simActivateBtn}
-                  onPress={() => { setPayPlan(plan); setPaySheetVisible(true); }}
-                  activeOpacity={0.85}
-                >
-                  <Ionicons name="flask" size={14} color={COLORS.primary} />
-                  <Text style={styles.simActivateText}>Simular activación</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -166,6 +179,19 @@ export default function CityPassScreen() {
         currency="COP"
         meta={{ type: 'city-pass', plan_id: payPlan?.plan_id || '', plan_name: payPlan?.name || '' }}
         title="Simular activación — City Pass"
+        onSuccess={(result: PaymentResult) => {
+          setPaySheetVisible(false);
+          if (result.success && payPlan) {
+            setMyPass({
+              plan_id: payPlan.plan_id,
+              plan_name: payPlan.name,
+              status: 'active',
+              activated_at: new Date().toISOString(),
+              expires_at: new Date(Date.now() + payPlan.duration_days * 86400000).toISOString(),
+            });
+            Alert.alert('City Pass activado', `Tu ${payPlan.name} está activo.`);
+          }
+        }}
       />
     </SafeAreaView>
   );

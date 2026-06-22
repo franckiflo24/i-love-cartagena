@@ -247,7 +247,6 @@ export default function ReviewsList({ partnerId }: ReviewsListProps) {
               {idx > 0 && <View style={{ height: SPACING.md }} />}
               <ReviewCard
                 authorName={item.author_name}
-                authorAvatar={item.author_avatar}
                 rating={item.rating}
                 date={item.date}
                 text={item.text}

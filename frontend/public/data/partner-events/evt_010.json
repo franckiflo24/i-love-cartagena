@@ -1,0 +1,16 @@
+{
+  "id": "evt_010",
+  "event_id": "evt_010",
+  "partner_id": "ptr_V008",
+  "title": "Jazz & Wine Night",
+  "category": "art",
+  "date": "2026-07-14",
+  "start_time": "20:00",
+  "end_time": "00:00",
+  "flyer_url": "https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800",
+  "is_free": false,
+  "price": 220000,
+  "partner_name": "Café Havana",
+  "partner_tier": "elite",
+  "partner_image": "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800&h=600&fit=crop"
+}

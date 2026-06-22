@@ -36,8 +36,12 @@ from fastapi import APIRouter, HTTPException, Request
 
 logger = logging.getLogger("amo.admin_operator")
 
-ADMIN_PASSWORD = os.getenv("ADMIN_OPERATOR_PASSWORD", "amocartagena-admin-2026")
-ADMIN_TOKEN_SECRET = os.getenv("ADMIN_TOKEN_SECRET", "change-me-in-prod-please")
+ADMIN_PASSWORD = os.getenv("ADMIN_OPERATOR_PASSWORD")
+if not ADMIN_PASSWORD:
+    raise RuntimeError("ADMIN_OPERATOR_PASSWORD env var is required — never use a hardcoded default")
+ADMIN_TOKEN_SECRET = os.getenv("ADMIN_TOKEN_SECRET")
+if not ADMIN_TOKEN_SECRET:
+    raise RuntimeError("ADMIN_TOKEN_SECRET env var is required — never use a hardcoded default")
 ADMIN_TOKEN_TTL_HOURS = int(os.getenv("ADMIN_TOKEN_TTL_HOURS", "12"))
 ACTIVATION_TOKEN_TTL_DAYS = int(os.getenv("ACTIVATION_TOKEN_TTL_DAYS", "30"))
 
@@ -173,7 +177,7 @@ async def create_partner(request: Request):
     }
     await db.partners.insert_one(doc)
     # Build activation URL (frontend will read &token=)
-    public_base = os.getenv("PUBLIC_APP_URL", "https://cartagena-live.preview.emergentagent.com")
+    public_base = os.getenv("PUBLIC_APP_URL", "https://amocartagena.co")
     activation_url = f"{public_base}/business/activate?token={activation_token}"
     # WhatsApp template (URL-encoded done client-side)
     wa_message = (
@@ -205,7 +209,7 @@ async def regenerate_invite(partner_id: str, request: Request):
             "status": "invited",
         }}
     )
-    public_base = os.getenv("PUBLIC_APP_URL", "https://cartagena-live.preview.emergentagent.com")
+    public_base = os.getenv("PUBLIC_APP_URL", "https://amocartagena.co")
     activation_url = f"{public_base}/business/activate?token={activation_token}"
     wa_message = (
         f"Hola {partner.get('name')} 🌟 Tu link de activación de Amo Cartagena fue actualizado. "

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking as RNLinking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking as RNLinking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, PARTNER_CATEGORY_LABELS, TIER_COLORS, Tier } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
+import { SafeImage } from '../../src/components/SafeImage';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 
@@ -16,20 +17,39 @@ type Partner = {
   tier?: Tier;
 };
 
-const CATEGORIES = [
-  { key: 'restaurant', label: 'Restaurantes', icon: 'restaurant', color: '#EF4444', image: 'https://images.unsplash.com/photo-1644621972139-cec33bf68a60?w=600&h=300&fit=crop' },
-  { key: 'beach_club', label: 'Beach Club', icon: 'sunny', color: '#06B6D4', image: 'https://images.unsplash.com/photo-1546484458-6904289cd4f0?w=600&h=300&fit=crop' },
-  { key: 'club', label: 'Bar & Night Clubs', icon: 'wine', color: '#8B5CF6', image: 'https://images.unsplash.com/photo-1645496761317-d4122dfc2264?w=600&h=300&fit=crop' },
-  { key: 'hotel', label: 'Hoteles', icon: 'bed', color: '#3B82F6', image: 'https://images.unsplash.com/photo-1488345979593-09db0f85545f?w=600&h=300&fit=crop' },
-  { key: 'shopping', label: 'Shopping', icon: 'bag-handle', color: '#EC4899', image: 'https://images.unsplash.com/photo-1777628530456-bb93d3a03faf?w=600&h=300&fit=crop' },
-  { key: 'wellness', label: 'Wellness & Spa', icon: 'leaf', color: '#10B981', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=300&fit=crop' },
-  { key: 'transport', label: 'Transporte', icon: 'car-sport', color: '#22C55E', image: 'https://images.unsplash.com/photo-1554672408-730436b60dde?w=600&h=300&fit=crop' },
-  { key: 'tech', label: 'Tech & Wifi', icon: 'wifi', color: '#6366F1', image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&h=300&fit=crop' },
-  { key: 'concierge', label: 'Concierge', icon: 'diamond', color: '#F59E0B', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&h=300&fit=crop' },
-  { key: 'charity', label: 'Fondaciones', icon: 'heart', color: '#F97316', image: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=600&h=300&fit=crop' },
-  { key: 'culture', label: 'Cultura & Museos', icon: 'library', color: '#A855F7', image: 'https://images.unsplash.com/photo-1583531172005-592f2b1905f0?w=600&h=300&fit=crop' },
-  { key: 'realestate', label: 'Inmobiliario', icon: 'key', color: '#0EA5E9', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=300&fit=crop' },
+// Each card accepts one or more backend `category` values, so closely-related
+// DB categories roll up into a single guest-facing bucket (e.g. café partners
+// appear inside "Restaurantes"). Order = display order on the grid.
+type CategoryCard = {
+  key: string;
+  label: string;
+  icon: string;
+  color: string;
+  image: string;
+  dbKeys: string[];        // backend `category` values that belong to this card
+  tierAsSubcat?: boolean;  // hotel: drill-down by tier instead of subcategory
+};
+
+const CATEGORIES: CategoryCard[] = [
+  { key: 'restaurant', label: 'Restaurantes',  icon: 'restaurant', color: '#EF4444', image: 'https://images.unsplash.com/photo-1644621972139-cec33bf68a60?w=600&h=300&fit=crop',
+    dbKeys: ['restaurant', 'cafe'] },
+  { key: 'hotel',      label: 'Hoteles',       icon: 'bed',        color: '#3B82F6', image: 'https://images.unsplash.com/photo-1488345979593-09db0f85545f?w=600&h=300&fit=crop',
+    dbKeys: ['hotel'], tierAsSubcat: true },
+  { key: 'activity',   label: 'Actividades',   icon: 'compass',    color: '#F59E0B', image: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=600&h=300&fit=crop',
+    dbKeys: ['activity', 'yacht'] },
+  { key: 'wellness',   label: 'Wellness & Spa',icon: 'leaf',       color: '#10B981', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=300&fit=crop',
+    dbKeys: ['wellness', 'spa'] },
+  { key: 'nightlife',  label: 'Bares & Clubs', icon: 'wine',       color: '#8B5CF6', image: 'https://images.unsplash.com/photo-1645496761317-d4122dfc2264?w=600&h=300&fit=crop',
+    dbKeys: ['bar', 'club'] },
+  { key: 'beach_club', label: 'Beach Clubs',   icon: 'sunny',      color: '#06B6D4', image: 'https://images.unsplash.com/photo-1546484458-6904289cd4f0?w=600&h=300&fit=crop',
+    dbKeys: ['beach_club'] },
+  { key: 'realestate', label: 'Inmobiliario',  icon: 'key',        color: '#0EA5E9', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=300&fit=crop',
+    dbKeys: ['realestate'] },
 ];
+
+// Resolve a card key to the set of backend category values it accepts.
+const dbKeysFor = (cardKey: string): string[] =>
+  CATEGORIES.find(c => c.key === cardKey)?.dbKeys ?? [cardKey];
 
 const WELLNESS_SUBCATEGORIES = [
   { key: 'spa', label: 'Spa', icon: 'water', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=400&fit=crop' },
@@ -55,10 +75,13 @@ const RESTAURANT_SUBCATEGORIES = [
   { key: 'vegetarian', label: 'Vegetariano', icon: 'leaf', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&h=400&fit=crop' },
 ];
 
+// Hotel sub-cards filter by TIER (popular/premium/elite), not `subcategory` —
+// the data has tier values but the historic `subcategory='lujo'` is rare.
+// Keys here must match `partner.tier` values.
 const HOTEL_SUBCATEGORIES = [
-  { key: 'popular', label: 'Popular', icon: 'bed', image: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=600&h=400&fit=crop' },
-  { key: 'premium', label: 'Premium', icon: 'star', image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=600&h=400&fit=crop' },
-  { key: 'lujo',    label: 'Lujo',    icon: 'diamond', image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&h=400&fit=crop' },
+  { key: 'popular', label: 'Popular', icon: 'bed',     image: 'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=600&h=400&fit=crop' },
+  { key: 'premium', label: 'Premium', icon: 'star',    image: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=600&h=400&fit=crop' },
+  { key: 'elite',   label: 'Lujo',    icon: 'diamond', image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&h=400&fit=crop' },
 ];
 
 // Categories that REQUIRE subcategory selection before showing partners
@@ -109,25 +132,47 @@ export default function PartnersScreen() {
     }
   }, [selectedCategory]);
 
+  const selectedCard = selectedCategory ? CATEGORIES.find(c => c.key === selectedCategory) ?? null : null;
   const subcatList = selectedCategory ? SUBCATEGORIES_BY_CAT[selectedCategory] : null;
   const subcatTheme = selectedCategory ? SUBCAT_THEME[selectedCategory] || COLORS.primary : COLORS.primary;
-  const requireSubcatPick = selectedCategory && REQUIRE_SUBCAT_PICK.has(selectedCategory) && !selectedSubcat;
+  const requireSubcatPick = !!(selectedCategory && REQUIRE_SUBCAT_PICK.has(selectedCategory) && !selectedSubcat);
 
-  const filtered = selectedCategory && !requireSubcatPick
+  // Does a partner match this sub-key for the active category card?
+  // - Hotel card uses `tier` (popular/premium/elite) instead of `subcategory`.
+  // - Cafe sub-key under Restaurantes ALSO matches top-level category='cafe'.
+  // - Spa sub-key under Wellness ALSO matches top-level category='spa'.
+  const matchesSubcat = (p: Partner, subKey: string): boolean => {
+    if (!subKey || subKey === 'all') return true;
+    if (selectedCard?.tierAsSubcat) return p.tier === subKey;
+    if (subKey === 'cafe' && p.category === 'cafe') return true;
+    if (subKey === 'spa'  && p.category === 'spa')  return true;
+    return (p as any).subcategory === subKey;
+  };
+
+  // Does a partner belong to the active category card?
+  const matchesCard = (p: Partner): boolean => {
+    if (!selectedCard) return false;
+    return selectedCard.dbKeys.includes(p.category);
+  };
+
+  const filtered = selectedCard && !requireSubcatPick
     ? partners.filter(p => {
-        if (p.category !== selectedCategory) return false;
+        if (!matchesCard(p)) return false;
         if (tierFilter && p.tier !== tierFilter) return false;
-        if (subcatList && selectedSubcat && selectedSubcat !== 'all' && (p as any).subcategory !== selectedSubcat) return false;
+        if (subcatList && selectedSubcat && !matchesSubcat(p, selectedSubcat)) return false;
         return true;
       })
     : [];
 
-  const subcatCount = (key: string) =>
-    selectedCategory
-      ? partners.filter(p => p.category === selectedCategory && (key === 'all' || (p as any).subcategory === key)).length
-      : 0;
+  const subcatCount = (key: string): number => {
+    if (!selectedCard) return 0;
+    return partners.filter(p => matchesCard(p) && (key === 'all' || matchesSubcat(p, key))).length;
+  };
 
-  const getCategoryCount = (key: string) => partners.filter(p => p.category === key).length;
+  const getCategoryCount = (cardKey: string): number => {
+    const keys = dbKeysFor(cardKey);
+    return partners.filter(p => keys.includes(p.category)).length;
+  };
 
   const TIER_ORDER: Tier[] = ['popular', 'premium', 'elite'];
 
@@ -224,7 +269,7 @@ export default function PartnersScreen() {
                     onPress={() => router.push(`/partner/${partner.partner_id}`)}
                     activeOpacity={0.8}
                   >
-                    <Image source={{ uri: partner.image_url }} style={styles.partnerImage} />
+                    <SafeImage uri={partner.image_url} category={partner.category} style={styles.partnerImage} />
                     <View style={styles.partnerOverlay} />
                     <View style={[styles.tierStripe, { backgroundColor: tierColor.main }]} />
                     <View style={styles.topBadgeRow}>
@@ -270,7 +315,7 @@ export default function PartnersScreen() {
           <>
             {/* Certified Hero Banner */}
             <View style={styles.heroBanner}>
-              <Image source={{ uri: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=300&fit=crop' }} style={styles.heroBannerImage} />
+              <SafeImage uri="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=300&fit=crop" style={styles.heroBannerImage} />
               <View style={styles.heroBannerOverlay} />
               <View style={styles.heroBannerContent}>
                 <Ionicons name="diamond" size={32} color={COLORS.primary} />
@@ -305,14 +350,17 @@ export default function PartnersScreen() {
             </View>
 
             <View style={styles.categoryGrid}>
-            {CATEGORIES.map(cat => (
+            {CATEGORIES
+              .map(cat => ({ ...cat, count: getCategoryCount(cat.key) }))
+              .filter(cat => cat.count > 0)
+              .map(cat => (
               <TouchableOpacity
                 key={cat.key}
                 style={styles.categoryCard}
                 onPress={() => setSelectedCategory(cat.key)}
                 activeOpacity={0.85}
               >
-                <Image source={{ uri: cat.image }} style={styles.categoryImage} />
+                <SafeImage uri={cat.image} style={styles.categoryImage} />
                 <View style={styles.categoryOverlay} />
                 <View style={styles.categoryContent}>
                   <View style={[styles.categoryIconBadge, { backgroundColor: `${cat.color}30` }]}>
@@ -320,7 +368,7 @@ export default function PartnersScreen() {
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.categoryName}>{cat.label}</Text>
-                    <Text style={styles.categoryCount}>{getCategoryCount(cat.key)} lugares</Text>
+                    <Text style={styles.categoryCount}>{cat.count} lugares</Text>
                   </View>
                   <View style={[styles.categoryArrowCircle, { backgroundColor: `${cat.color}25` }]}>
                     <Ionicons name="chevron-forward" size={18} color={cat.color} />
@@ -334,8 +382,8 @@ export default function PartnersScreen() {
           /* ── Subcategory Picker (Wellness, etc.) ── */
           <View style={styles.subcatPickerWrap}>
             <View style={styles.subcatPickerHero}>
-              <Image
-                source={{ uri: CATEGORIES.find(c => c.key === selectedCategory)?.image }}
+              <SafeImage
+                uri={CATEGORIES.find(c => c.key === selectedCategory)?.image}
                 style={styles.subcatPickerHeroImg}
               />
               <View style={styles.subcatPickerOverlay} />
@@ -367,7 +415,7 @@ export default function PartnersScreen() {
                     activeOpacity={0.85}
                     disabled={count === 0}
                   >
-                    {sc.image && <Image source={{ uri: sc.image }} style={styles.subcatCardImg} />}
+                    {sc.image && <SafeImage uri={sc.image} style={styles.subcatCardImg} />}
                     <View style={styles.subcatCardOverlay} />
                     <View style={styles.subcatCardContent}>
                       <View style={[styles.subcatCardIconBadge, { backgroundColor: subcatTheme + '40' }]}>
@@ -486,7 +534,7 @@ export default function PartnersScreen() {
                   onPress={() => router.push(`/partner/${partner.partner_id}`)}
                   activeOpacity={0.8}
                 >
-                  <Image source={{ uri: partner.image_url }} style={styles.partnerImage} />
+                  <SafeImage uri={partner.image_url} category={partner.category} style={styles.partnerImage} />
                   <View style={styles.partnerOverlay} />
 
                   {/* Tier accent stripe */}

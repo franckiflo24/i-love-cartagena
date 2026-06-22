@@ -1,0 +1,62 @@
+[
+  {
+    "offer_id": "offer_a9382e10",
+    "title": "Free Welcome Drink",
+    "description": "A complimentary cocktail at any participating beach club or restaurant.",
+    "partner_id": null,
+    "min_tier": "explorer",
+    "points_cost": 500,
+    "value_cop": 35000,
+    "expires_at": null,
+    "max_uses": 0,
+    "uses_count": 0,
+    "is_active": true,
+    "image_url": "",
+    "created_at": "2026-06-01T22:07:29.157684+00:00"
+  },
+  {
+    "offer_id": "offer_341826b2",
+    "title": "15% Off Sunset Session",
+    "description": "Enjoy 15% off at select beach clubs during sunset hours.",
+    "partner_id": null,
+    "min_tier": "voyager",
+    "points_cost": 1500,
+    "value_cop": 75000,
+    "expires_at": null,
+    "max_uses": 100,
+    "uses_count": 0,
+    "is_active": true,
+    "image_url": "",
+    "created_at": "2026-06-01T22:07:29.157684+00:00"
+  },
+  {
+    "offer_id": "offer_0e711e4c",
+    "title": "VIP Table Upgrade",
+    "description": "Automatic upgrade to VIP seating at participating restaurants.",
+    "partner_id": null,
+    "min_tier": "elite",
+    "points_cost": 5000,
+    "value_cop": 200000,
+    "expires_at": null,
+    "max_uses": 50,
+    "uses_count": 0,
+    "is_active": true,
+    "image_url": "",
+    "created_at": "2026-06-01T22:07:29.157684+00:00"
+  },
+  {
+    "offer_id": "offer_d922a95f",
+    "title": "Private Yacht Experience",
+    "description": "Exclusive 2-hour private yacht experience for up to 8 guests.",
+    "partner_id": null,
+    "min_tier": "legend",
+    "points_cost": 15000,
+    "value_cop": 800000,
+    "expires_at": null,
+    "max_uses": 10,
+    "uses_count": 0,
+    "is_active": true,
+    "image_url": "",
+    "created_at": "2026-06-01T22:07:29.157684+00:00"
+  }
+]

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Alert, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
+import { SafeImage } from '../../src/components/SafeImage';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -156,7 +157,7 @@ export default function BusinessDashboard() {
         {/* Partner Profile Card */}
         <View style={[styles.profileCard, tierColors && { borderColor: tierColors.border, borderWidth: 1.5 }]}>
           {partner?.image_url ? (
-            <Image source={{ uri: partner.image_url }} style={styles.profileImage} />
+            <SafeImage uri={partner.image_url} style={styles.profileImage} />
           ) : <View style={[styles.profileImage, { backgroundColor: COLORS.surface }]} />}
           <View style={styles.profileOverlay} />
           <View style={styles.profileContent}>
@@ -409,7 +410,7 @@ export default function BusinessDashboard() {
               const isPast = ev.date < today;
               return (
                 <View key={ev.event_id} style={[styles.eventCard, isPast && { opacity: 0.55 }]}>
-                  <Image source={{ uri: ev.flyer_url || partner?.image_url }} style={styles.eventThumb} />
+                  <SafeImage uri={ev.flyer_url || partner?.image_url} style={styles.eventThumb} />
                   <View style={styles.eventBody}>
                     <View style={styles.eventTopRow}>
                       <Text style={styles.eventDate}>{ev.date} · {ev.start_time}</Text>

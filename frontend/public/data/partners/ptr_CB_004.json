@@ -1,0 +1,30 @@
+{
+  "partner_id": "ptr_CB_004",
+  "name": "La Parisienne",
+  "category": "activity",
+  "subcategory": "cultural",
+  "description": "Curated objects, fragrance, the uniforms of the House. A concept store where Parisian taste meets Caribbean craft — opening soon inside Casa Bohème.",
+  "experience": "Concept store · Fragancias · Diseño",
+  "price_range": "$$",
+  "rating": 4.8,
+  "reviews": 85,
+  "cuisine": "",
+  "hours": "Próximamente",
+  "address": "Calle de la Sierpe #9B-70, Getsemaní, Cartagena",
+  "location": {
+    "lat": 10.4228,
+    "lng": -75.5512
+  },
+  "phone": "+573148270592",
+  "instagram": "casaboheme_cartagena",
+  "booking_link": "https://casaboheme.co",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOBtcsHul0G5Fhh4QoL4fvT2fxRtF5sqHj4YjoreWCx1HCrHjNPXjRWHpNRpMtczHV4JfJGPTy9vfiIjjzTvLEo2hL7lzEOhxQ9N7gEu_T8R8MSjhHYHp4diQEk1huvFj6XQvwHMtsKfR4dT8cfyCRb=s4800-w1200",
+  "is_certified": true,
+  "is_government": false,
+  "tier": "elite",
+  "default_payment_link": "",
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "founders",
+  "membership_paid_until": "2027-12-31"
+}

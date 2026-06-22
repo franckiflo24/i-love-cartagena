@@ -10,6 +10,7 @@ import { LineChart, BarChart } from 'react-native-chart-kit';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
+import { useAuth } from '../src/context/AuthContext';
 
 const screenWidth = Dimensions.get('window').width;
 const chartWidth = screenWidth - 48;
@@ -136,6 +137,15 @@ const RankRow = ({ rank, title, subtitle, value, valueLabel }: { rank: number; t
 export default function AdminDashboard() {
   const tr = useTr();
   const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
+
+  // Auth guard: redirect non-admin users
+  useEffect(() => {
+    if (!authLoading && (!user || !user.is_admin)) {
+      router.replace('/');
+    }
+  }, [user, authLoading, router]);
+
   const [data, setData] = useState<DashboardData | null>(null);
   const [modStats, setModStats] = useState<{ pending: number; unread_notifications: number; auto_corrected_categories: number } | null>(null);
   const [usersData, setUsersData] = useState<any>(null);
@@ -164,6 +174,11 @@ export default function AdminDashboard() {
     setRefreshing(true);
     fetchData();
   }, [fetchData]);
+
+  // Block render for non-admin users
+  if (authLoading || !user?.is_admin) {
+    return <View style={styles.container}><ActivityIndicator color={COLORS.primary} /></View>;
+  }
 
   if (loading || !data) {
     return (

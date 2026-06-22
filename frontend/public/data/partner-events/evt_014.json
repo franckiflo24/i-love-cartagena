@@ -1,0 +1,16 @@
+{
+  "id": "evt_014",
+  "event_id": "evt_014",
+  "partner_id": "ptr_W140",
+  "title": "Sunset Closing",
+  "category": "sunset",
+  "date": "2026-07-16",
+  "start_time": "17:00",
+  "end_time": "21:00",
+  "flyer_url": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800",
+  "is_free": true,
+  "price": 0,
+  "partner_name": "Bora Bora Beach Club",
+  "partner_tier": "elite",
+  "partner_image": "https://images.unsplash.com/photo-1540541338287-41700207dee6?w=800&h=600&fit=crop"
+}

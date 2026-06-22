@@ -136,19 +136,3 @@ export const TIER_ICONS: Record<Tier, string> = {
   elite: 'diamond',
 };
 
-const IMG_BASE = 'https://website-five-sigma-29.vercel.app/images';
-
-export const IMAGES = {
-  hero: `${IMG_BASE}/hero-cathedral.jpg`,
-  login: `${IMG_BASE}/login-cathedral.jpg`,
-  aerial: `${IMG_BASE}/aerial-fortress.jpg`,
-  umbrellas: `${IMG_BASE}/umbrella-street.jpg`,
-  flag: `${IMG_BASE}/flag-rooftops.jpg`,
-  fountain: `${IMG_BASE}/fountain-market.jpg`,
-  waxPalms: `${IMG_BASE}/wax-palms.jpg`,
-  texture: 'https://static.prod-images.emergentagent.com/jobs/32dad071-4fb0-440b-90c6-bb16ae39bea1/images/4f979e7ba4b32872c4b07dadcb054eb78f999948cb9373a70a78567dea9e65ab.png',
-  cartagena: 'https://images.unsplash.com/photo-1651421479936-e24edc3e3143?w=800',
-  concert: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800',
-  beach: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800',
-  cathedralSunset: `${IMG_BASE}/hero-cathedral.jpg`,
-};

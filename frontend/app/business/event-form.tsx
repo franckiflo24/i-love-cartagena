@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Switch, ActivityIndicator, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Switch, ActivityIndicator, Alert } from 'react-native';
+import { SafeImage } from '../../src/components/SafeImage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -186,7 +187,7 @@ export default function EventForm() {
           <Text style={styles.label}>Flyer del evento</Text>
           <View style={styles.flyerPreviewBox}>
             {flyerUrl ? (
-              <Image source={{ uri: flyerUrl }} style={styles.flyerPreview} resizeMode="cover" />
+              <SafeImage uri={flyerUrl} category="event" style={styles.flyerPreview} resizeMode="cover" />
             ) : (
               <View style={[styles.flyerPreview, { alignItems: 'center', justifyContent: 'center' }]}>
                 <Ionicons name="image-outline" size={36} color={COLORS.textMuted} />
@@ -233,7 +234,7 @@ export default function EventForm() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.flyerRow} contentContainerStyle={{ gap: SPACING.xs }}>
             {SUGGESTED_FLYERS.map(url => (
               <TouchableOpacity key={url} onPress={() => setFlyerUrl(url)} style={[styles.flyerOption, flyerUrl === url && styles.flyerActive]}>
-                <Image source={{ uri: url }} style={styles.flyerThumb} />
+                <SafeImage uri={url} category="event" style={styles.flyerThumb} />
               </TouchableOpacity>
             ))}
           </ScrollView>

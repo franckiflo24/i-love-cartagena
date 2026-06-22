@@ -1,0 +1,30 @@
+{
+  "partner_id": "ptr_beauty_0534",
+  "name": "Natural Spa Beauty Center",
+  "category": "beauty",
+  "subcategory": "facial_spa",
+  "description": "Natural Spa Beauty Center — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "calle de los siete infantes, San Diego, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4267547,
+    "lng": -75.5463754
+  },
+  "phone": "+573206768925",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOgf0XjIMWDo6q-HTnJKTsu9GfbwErF1DpjL64ihND4mUHE-ArfjiMJmD_vwDqEKbXFR-jCV5U_TATChM-E4FtVSpq04J1Wsz7-nfFWwdy-b8SG3SFmI_lXLuVWKzHZlFNU8I0BRI8qTTO7IA=s4800-w1200",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 4.8,
+  "reviews": 45,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 9:00 AM – 6:30 AM; Tuesday: 9:00 AM – 6:30 AM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

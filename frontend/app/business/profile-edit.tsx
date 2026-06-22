@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
+import { SafeImage } from '../../src/components/SafeImage';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -68,7 +69,7 @@ export default function ProfileEdit() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.put('/business/profile', {
+      const result = await api.put('/business/profile', {
         description, address, instagram, booking_link: bookingLink,
         price_range: priceRange, experience, image_url: imageUrl,
         default_payment_link: defaultPaymentLink.trim(),
@@ -76,6 +77,11 @@ export default function ProfileEdit() {
         phone: phone.trim(),
         email: emailContact.trim(),
       }, { headers: { Authorization: `Bearer ${token}` } });
+      if (!result?.updated_at) {
+        Alert.alert('No disponible', 'La edición de perfil requiere conexión al servidor. Los cambios no se guardaron.');
+        setSaving(false);
+        return;
+      }
       await refresh();
       Alert.alert('¡Listo!', 'Tu perfil fue actualizado');
       router.back();
@@ -98,7 +104,7 @@ export default function ProfileEdit() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ padding: SPACING.lg, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
           <View style={styles.previewCard}>
-            {imageUrl ? <Image source={{ uri: imageUrl }} style={styles.previewImage} /> : <View style={[styles.previewImage, { backgroundColor: COLORS.surface }]} />}
+            {imageUrl ? <SafeImage uri={imageUrl} style={styles.previewImage} /> : <View style={[styles.previewImage, { backgroundColor: COLORS.surface }]} />}
             <View style={styles.previewOverlay} />
             <View style={styles.previewContent}>
               <Text style={styles.previewName}>{partner?.name}</Text>

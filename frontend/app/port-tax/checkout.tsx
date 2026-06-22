@@ -96,20 +96,11 @@ export default function PortTaxCheckoutScreen() {
     try {
       const cfg = await checkWompiEnabled();
       if (!cfg.enabled) {
-        // Fallback to legacy demo flow if Wompi not configured
-        notConfiguredAlert();
-        const res = await api.post('/port-tax/checkout', {
-          qty,
-          travel_date: travelDate,
-          passengers: passengers.filter(Boolean),
-        });
-        if (res?.ticket_id) {
-          router.replace({ pathname: '/port-tax/ticket/[id]' as any, params: { id: res.ticket_id, fromCheckout: '1' } });
-        } else {
-          Alert.alert('Error', 'No se pudo generar el tiquete.');
-        }
+        Alert.alert(
+          'Próximamente',
+          'El pago en línea de la tasa portuaria estará disponible pronto. Por ahora, paga directamente en el Muelle La Bodeguita.',
+        );
       } else {
-        // Real Wompi checkout
         const redirect = (process.env.EXPO_PUBLIC_BACKEND_URL || '') + '/payments/return';
         const order = await api.post('/payments/wompi/port-tax', {
           qty,
@@ -117,8 +108,12 @@ export default function PortTaxCheckoutScreen() {
           passengers: passengers.filter(Boolean),
           redirect_url: redirect,
         });
-        await openWompiCheckout(order.checkout_url, order.reference);
-        router.replace({ pathname: '/payments/return' as any, params: { reference: order.reference } });
+        if (!order?.checkout_url) {
+          Alert.alert('Error', 'No se pudo iniciar el pago. Intenta de nuevo.');
+        } else {
+          await openWompiCheckout(order.checkout_url, order.reference);
+          router.replace({ pathname: '/payments/return' as any, params: { reference: order.reference } });
+        }
       }
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'No se pudo procesar la compra.');

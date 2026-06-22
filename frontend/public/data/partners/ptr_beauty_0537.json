@@ -1,0 +1,30 @@
+{
+  "partner_id": "ptr_beauty_0537",
+  "name": "Denzen Beauty Bar",
+  "category": "beauty",
+  "subcategory": "nails",
+  "description": "Denzen Beauty Bar — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Centro, Cartagena, Bolivar, Colombia",
+  "location": {
+    "lat": 10.425349100000002,
+    "lng": -75.5481356
+  },
+  "phone": "+573028464216",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZO6BRw5HA7fC34dz0DmLd11wsT8fKxS7HNzTqq5k1YbZDNr_cXOcMLIJqZ2WWcV_ukxYIJke-QuyHmzqv-YUm2G149_1i3zGVktOLe0JK-Leu61rV2HzMGSIYq8hz5gtmZgli-xSQxsAaJc4Q=s4800-w1200",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 5,
+  "reviews": 280,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 10:00 AM – 7:00 PM; Tuesday: 10:00 AM – 7:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

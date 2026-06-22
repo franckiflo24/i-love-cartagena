@@ -1,0 +1,35 @@
+[
+  {
+    "plan_id": "day_pass",
+    "name": "Day Pass",
+    "price_cop": 75000,
+    "duration_days": 1,
+    "perks": [
+      "Transporte ilimitado",
+      "Descuentos en restaurantes",
+      "Acceso prioritario"
+    ]
+  },
+  {
+    "plan_id": "weekend",
+    "name": "Weekend Pass",
+    "price_cop": 180000,
+    "duration_days": 3,
+    "perks": [
+      "Day Pass beneficios",
+      "Acceso a beach clubs",
+      "Yacht discount"
+    ]
+  },
+  {
+    "plan_id": "week",
+    "name": "Week Pass",
+    "price_cop": 380000,
+    "duration_days": 7,
+    "perks": [
+      "Weekend Pass beneficios",
+      "Spa session gratis",
+      "Cena de bienvenida"
+    ]
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "id": "evt_013",
+  "event_id": "evt_013",
+  "partner_id": "ptr_W130",
+  "title": "After Party Fénix",
+  "category": "party",
+  "date": "2026-07-15",
+  "start_time": "01:00",
+  "end_time": "07:00",
+  "flyer_url": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
+  "is_free": false,
+  "price": 120000,
+  "partner_name": "Bazurto Social Club",
+  "partner_tier": "elite",
+  "partner_image": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop"
+}

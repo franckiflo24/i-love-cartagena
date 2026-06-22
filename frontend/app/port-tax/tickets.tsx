@@ -108,7 +108,7 @@ export default function PortTaxTicketsScreen() {
           </View>
           <View style={styles.metaItem}>
             <Ionicons name="cash-outline" size={13} color={COLORS.textMuted} />
-            <Text style={styles.metaText}>${t.total_amount.toLocaleString('es-CO')}</Text>
+            <Text style={styles.metaText}>${(t.total_amount ?? 0).toLocaleString('es-CO')}</Text>
           </View>
         </View>
 

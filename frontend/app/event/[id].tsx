@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking as RNLinking, Share } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking as RNLinking, Share } from 'react-native';
+import { SafeImage } from '../../src/components/SafeImage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -40,8 +41,16 @@ export default function EventDetail() {
   };
 
   const openMaps = () => {
-    if (!event?.location) return;
-    RNLinking.openURL(`https://www.google.com/maps/search/?api=1&query=${event.location.lat},${event.location.lng}`);
+    if (!event) return;
+    let query: string;
+    if (event.location?.lat && event.location?.lng) {
+      query = `${event.location.lat},${event.location.lng}`;
+    } else if (event.venue_name) {
+      query = encodeURIComponent(`${event.venue_name}, Cartagena, Colombia`);
+    } else {
+      return;
+    }
+    RNLinking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`);
   };
 
   if (loading) {
@@ -62,14 +71,14 @@ export default function EventDetail() {
     );
   }
 
-  const formatPrice = (p: number) => p === 0 ? 'Gratis' : `$${p.toLocaleString()} COP`;
+  const formatPrice = (p: number | undefined | null) => !p ? 'Gratis' : `$${(p ?? 0).toLocaleString()} COP`;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Hero Image */}
         <View style={styles.hero}>
-          <Image source={{ uri: event.image_url }} style={styles.heroImage} />
+          <SafeImage uri={event.image_url} category={event.type} style={styles.heroImage} />
           <View style={styles.heroOverlay} />
           <View style={styles.heroNav}>
             <TouchableOpacity testID="event-back-btn" style={styles.navBtn} onPress={() => router.back()}>

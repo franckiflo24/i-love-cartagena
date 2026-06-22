@@ -83,8 +83,8 @@
       "eas": {
         "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
       },
-      "privacyPolicyUrl": "https://amocartagena.com/privacidad",
-      "supportUrl": "https://amocartagena.com/ayuda"
+      "privacyPolicyUrl": "https://amocartagena.co/privacidad",
+      "supportUrl": "https://amocartagena.co/ayuda"
     },
     "experiments": {
       "typedRoutes": true

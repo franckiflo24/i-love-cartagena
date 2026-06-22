@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions, Share } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions, Share, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -38,7 +38,7 @@ export default function CityPassTab() {
     const load = async () => {
       try {
         const p = await api.get('/city-pass/plans');
-        setPlans(p);
+        setPlans(Array.isArray(p) ? p : []);
         const pt = await api.get('/port-tax/config').catch(() => null);
         if (pt) setPortTax(pt);
         if (user) {
@@ -53,40 +53,36 @@ export default function CityPassTab() {
     load();
   }, [user]);
 
+  const [activating, setActivating] = useState(false);
+
   const activatePass = async (planId: string) => {
-    if (!user) {
-      router.push({ pathname: '/login' as any, params: { next: '/(tabs)/citypass' } });
-      return;
-    }
-    setActivating(planId);
+    if (activating) return;
+    setActivating(true);
     try {
-      const cfg = await checkWompiEnabled();
-      if (!cfg.enabled) {
-        // Fallback to legacy demo activation if Wompi is not configured yet.
+      const wompi = await checkWompiEnabled();
+      if (!wompi.enabled) {
         notConfiguredAlert();
-        const res = await api.post('/city-pass/activate', { plan_id: planId });
-        if (res.pass) setMyPass(res.pass);
-      } else {
-        // Real Wompi checkout
-        const redirect = (process.env.EXPO_PUBLIC_BACKEND_URL || '') + '/payments/return';
-        const order = await api.post('/payments/wompi/city-pass', {
-          plan_id: planId,
-          redirect_url: redirect,
-        });
-        const result = await openWompiCheckout(order.checkout_url, order.reference);
+        return;
+      }
+      const res = await api.post('/payments/wompi/city-pass', { plan_id: planId });
+      if (res.checkout_url && res.reference) {
+        const result = await openWompiCheckout(res.checkout_url, res.reference);
         if (result.status === 'approved') {
-          // Refresh active pass
-          const me = await api.get('/city-pass/mine');
-          if (me && me.pass) setMyPass(me.pass);
-          router.push({ pathname: '/payments/return' as any, params: { reference: order.reference } });
-        } else if (result.status === 'pending') {
-          router.push({ pathname: '/payments/return' as any, params: { reference: order.reference } });
-        } else {
-          router.push({ pathname: '/payments/return' as any, params: { reference: order.reference } });
+          Alert.alert('¡Listo!', 'Tu City Pass está activo. ¡Disfruta Cartagena!');
+          // Reload pass data
+          const pass = await api.get('/city-pass/mine');
+          setMyPass(pass);
+        } else if (result.status === 'declined') {
+          Alert.alert('Pago rechazado', 'Intenta con otro método de pago.');
+        } else if (result.status !== 'pending') {
+          Alert.alert('Pago', `Estado: ${result.status}. Revisa tu email para más detalles.`);
         }
       }
-    } catch (e) { console.error(e); }
-    setActivating(null);
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'No se pudo procesar el pago');
+    } finally {
+      setActivating(false);
+    }
   };
 
   const formatPrice = (p: number) => `$${(p / 1000).toFixed(0)}K`;
@@ -184,7 +180,7 @@ export default function CityPassTab() {
                     </View>
                   </View>
                   <Text style={styles.portTaxSub}>
-                    ${portTax.price_per_person.toLocaleString('es-CO')} COP / persona · Muelle La Bodeguita
+                    ${(portTax.price_per_person ?? 0).toLocaleString('es-CO')} COP / persona · Muelle La Bodeguita
                   </Text>
                   {activeTickets > 0 && (
                     <TouchableOpacity
@@ -243,7 +239,7 @@ export default function CityPassTab() {
                   </Text>
                   <View style={styles.portTaxMeta}>
                     <Text style={styles.portTaxPrice}>
-                      ${portTax.price_per_person.toLocaleString('es-CO')}
+                      ${(portTax.price_per_person ?? 0).toLocaleString('es-CO')}
                     </Text>
                     <Text style={styles.portTaxUnit}>COP / persona</Text>
                   </View>
@@ -299,13 +295,13 @@ export default function CityPassTab() {
                   disabled={!!activating}
                   activeOpacity={0.8}
                 >
-                  {activating === plan.plan_id ? (
+                  {activating ? (
                     <ActivityIndicator size="small" color="#FFF" />
                   ) : (
                     <>
-                      <Ionicons name="flash" size={18} color="#FFF" />
+                      <Ionicons name="cart-outline" size={18} color="#FFF" />
                       <Text style={styles.ctaBtnText}>
-                        {user ? 'Activar ahora' : 'Inicia sesión para activar'}
+                        {tr('Activar')} · {formatPrice(plan.price)}
                       </Text>
                     </>
                   )}

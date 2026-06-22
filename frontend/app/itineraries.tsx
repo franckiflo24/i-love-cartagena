@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 
-const PROD_HOST = 'https://dist-ten-omega-67.vercel.app';
+const PROD_HOST = process.env.EXPO_PUBLIC_APP_URL || 'https://amocartagena.co';
 const apiBase = Platform.OS === 'web' ? '' : PROD_HOST;
 const shareBase =
   Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.origin : PROD_HOST;

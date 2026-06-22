@@ -7,3 +7,31 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12"
+      - key: MONGO_URL
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: EMERGENT_LLM_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: PUBLIC_APP_URL
+        sync: false
+      - key: ADMIN_OPERATOR_PASSWORD
+        sync: false
+      - key: ADMIN_TOKEN_SECRET
+        sync: false
+      - key: WOMPI_ENV
+        sync: false
+      - key: WOMPI_PUBLIC_KEY
+        sync: false
+      - key: WOMPI_PRIVATE_KEY
+        sync: false
+      - key: WOMPI_EVENTS_SECRET
+        sync: false
+      - key: WOMPI_INTEGRITY_SECRET
+        sync: false

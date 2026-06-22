@@ -28,43 +28,43 @@ export const AGENTS: Record<AgentId, ConciergeAgent> = {
   mare: {
     id: 'mare',
     name: 'Maré',
+    emoji: '🏖️',
+    tagline: 'Playa, islas y bienestar',
+    accent: '#06B6D4',
+    opening:
+      'Hola. Soy Maré, su concierge de playa y bienestar. Conozco cada isla, cada spa escondido y cada atardecer sobre el Caribe. ¿Qué tipo de experiencia marítima busca?',
+    starterChips: [
+      'Un día en las Islas del Rosario',
+      'Spas y bienestar en Cartagena',
+      'Mejores beach clubs',
+    ],
+  },
+  tino: {
+    id: 'tino',
+    name: 'Tino',
     emoji: '🍽️',
     tagline: 'Gastronomía curada',
     accent: '#D4AF37',
     opening:
-      'Buenas. Soy Maré, su guía gastronómica en Cartagena. Desde ceviches frente al mar hasta cocina de autor en casas coloniales — conozco cada mesa que vale la pena. ¿Cuál es la ocasión?',
+      'Buenas. Soy Tino, su guía gastronómico en Cartagena. Desde ceviches frente al mar hasta cocina de autor en casas coloniales — conozco cada mesa que vale la pena. ¿Cuál es la ocasión?',
     starterChips: [
       'Una cena romántica especial',
       'Los mejores mariscos del Centro',
       'Cenar antes de salir esta noche',
     ],
   },
-  tino: {
-    id: 'tino',
-    name: 'Tino',
-    emoji: '💎',
-    tagline: 'Experiencias inteligentes',
-    accent: '#15803D',
-    opening:
-      'Bienvenido. Soy Tino, su asesor de experiencias. Le ayudo a descubrir las mejores ofertas, el City Pass, y cómo aprovechar al máximo cada momento en Cartagena. ¿Qué le interesa?',
-    starterChips: [
-      '¿Qué experiencias recomienda hoy?',
-      'Lo mejor en relación calidad-precio',
-      '¿Cómo funciona el City Pass?',
-    ],
-  },
   ciro: {
     id: 'ciro',
     name: 'Ciro',
     emoji: '🗺️',
-    tagline: 'Itinerarios a medida',
+    tagline: 'Logística y transporte',
     accent: '#3B82F6',
     opening:
-      'Bienvenido. Soy Ciro, su planificador personal. Diseño días perfectos en Cartagena — desde el café de la mañana hasta el último cóctel en las murallas. ¿Cuántos días tiene en la ciudad?',
+      'Bienvenido. Soy Ciro, su planificador logístico. Le ayudo con transporte, itinerarios, hoteles, el City Pass y todo lo que necesita para moverse por Cartagena sin complicaciones. ¿Qué necesita?',
     starterChips: [
-      'Diseña mi fin de semana completo',
-      'Un día perfecto en Cartagena',
-      'Un día de playa en las islas',
+      '¿Cómo llego desde el aeropuerto?',
+      'Diseña mi itinerario de 3 días',
+      '¿Cómo funciona el City Pass?',
     ],
   },
 };

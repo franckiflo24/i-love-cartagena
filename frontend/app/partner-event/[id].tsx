@@ -78,7 +78,7 @@ export default function PartnerEventDetail() {
     try {
       const partnerData = await api.get(`/partners/${event.partner_id}`);
       const phone = (partnerData?.phone || '').replace(/[^\d+]/g, '').replace('+', '');
-      const waPhone = phone || '573176481183'; // fallback to AMO concierge
+      const waPhone = phone || process.env.EXPO_PUBLIC_AMO_WHATSAPP || '573176481183';
       const msg = encodeURIComponent(
         `¡Hola! Reserva via *AMO Cartagena* 🌴\n\n`
         + `Evento: *${event.title}*\n`

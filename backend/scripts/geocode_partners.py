@@ -9,7 +9,7 @@ import httpx
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 log = logging.getLogger()
 
-API_KEY = "AIzaSyD7npiyvw2VbyRkKsTGCv3fQfA4Whss72Q"
+API_KEY = os.environ.get('GOOGLE_API_KEY', '')
 FIND_PLACE = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json"
 DEFAULT_LAT, DEFAULT_LNG = 10.4220, -75.5482
 
@@ -41,8 +41,10 @@ async def geocode(client: httpx.AsyncClient, name: str, address: str) -> dict | 
         return None
 
 async def main():
-    client_db = AsyncIOMotorClient("mongodb://localhost:27017")
-    db = client_db["amo_cartagena"]
+    mongo_url = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
+    db_name = os.environ.get("DB_NAME", "amo_cartagena")
+    client_db = AsyncIOMotorClient(mongo_url)
+    db = client_db[db_name]
 
     partners = await db.partners.find({}).to_list(2000)
 

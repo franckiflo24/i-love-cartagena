@@ -1,0 +1,144 @@
+method,path,file:line,auth_required,admin_only,input_model,response_shape,notes
+POST,/api/auth/session,backend/server.py:35,no,no,SessionExchange,"{user, session_token}",Sets httpOnly cookie. Exchanges external Emergent oauth session.
+POST,/api/auth/demo-login,backend/server.py:90,no,no,DemoLoginBody,"{user, session_token}","Demo/local signup. No password check — creates user from email alone. SECURITY: anyone can claim any email."
+POST,/api/business/login,backend/server.py:192,no,no,raw dict (request.json),"{token, business, partner}",bcrypt password check. Returns bearer token.
+POST,/api/business/logout,backend/server.py:217,no,no,none,{ok: true},Reads Authorization header directly (not via dependency).
+GET,/api/business/me,backend/server.py:226,yes,no (partner),none,"{business, partner}",Uses get_current_business.
+GET,/api/business/membership,backend/server.py:233,yes,no (partner),query params,"{partner_id, membership_tier, status, days_left, ...}",Partner-only.
+PATCH,/api/business/admin/partners/{partner_id}/membership,backend/server.py:270,yes,yes (government),raw dict,"{updated, partner}",_require_government_role check.
+GET,/api/business/admin/memberships,backend/server.py:309,yes,yes (government),query params,"{partners, count, by_status, by_tier}",
+PUT,/api/business/profile,backend/server.py:335,yes,no (partner),raw dict,"{updated, partner}",Whitelist of allowed fields.
+GET,/api/business/events,backend/server.py:349,yes,no (partner),none,list[event],
+POST,/api/business/events,backend/server.py:356,yes,no (partner),raw dict,event,AI moderation hook (ai_moderation.moderate_event).
+POST,/api/business/upload-image,backend/server.py:439,yes,no (partner),raw dict (image_base64),"{uploaded, url, verdict, ...}",AI image moderation. Stores data URL preview only.
+PUT,/api/business/events/{event_id},backend/server.py:500,yes,no (partner),raw dict,event,Ownership check via partner_id match.
+DELETE,/api/business/events/{event_id},backend/server.py:573,yes,no (partner),none,{deleted: true},Ownership check.
+GET,/api/business/stats,backend/server.py:585,yes,no (partner),none,"{total_events, upcoming_events, ...}",
+GET,/api/business/admin/analytics,backend/server.py:627,yes,yes (government),query params (days),"{kpis, demographics, city_pass, port_tax, user_growth, top_events, top_zones, funnel}",
+GET,/api/business/admin/users,backend/server.py:798,yes,yes (government),"query params (limit, skip)","{users, total, limit, skip}",
+GET,/api/business/admin/payments,backend/server.py:826,yes,yes (government),query params (limit),"{payments, count}",
+GET,/api/business/admin/export/users.csv,backend/server.py:883,yes,yes (government),none,CSV Response,Streams text/csv.
+GET,/api/business/admin/export/payments.csv,backend/server.py:913,yes,yes (government),none,CSV Response,Streams text/csv.
+GET,/api/admin/moderation/notifications,backend/server.py:973,no,no,query params (unread_only),"{notifications, unread_count}","RED FLAG: 'admin' endpoint with NO AUTH. Anyone can read all moderation notifications."
+GET,/api/admin/moderation/pending,backend/server.py:982,no,no,none,list[event],"RED FLAG: 'admin' endpoint with NO AUTH. Anyone can list pending-moderation events."
+POST,/api/admin/moderation/{event_id}/approve,backend/server.py:1003,no,no,raw dict,{approved: true},"RED FLAG: anyone can approve any event. Critical privilege escalation."
+POST,/api/admin/moderation/{event_id}/reject,backend/server.py:1027,no,no,raw dict,{rejected: true},"RED FLAG: anyone can reject any event. Critical privilege escalation."
+GET,/api/admin/moderation/stats,backend/server.py:1050,no,no,none,"{pending, approved, rejected, ...}","RED FLAG: 'admin' endpoint with NO AUTH."
+GET,/api/auth/me,backend/server.py:1069,yes,no,none,UserOut,Typed Pydantic response.
+PUT,/api/profile,backend/server.py:1083,yes,no,ProfileUpdate,user dict,
+GET,/api/profile,backend/server.py:1099,yes,no,none,user dict,
+GET,/api/admin/users,backend/server.py:1106,no,no,none,"{total, users, stats}","RED FLAG: 'admin' endpoint with NO AUTH. Leaks ALL user PII (email, nationality, age, instagram)."
+POST,/api/auth/logout,backend/server.py:1139,no,no,none,{ok: true},Deletes cookie session if present.
+GET,/api/events,backend/server.py:1149,no,no,"query params (date, event_type, is_free, venue_id)",list[event],Public.
+GET,/api/events/featured,backend/server.py:1169,no,no,none,list[event],Public.
+GET,/api/events/{event_id},backend/server.py:1177,no,no,none,event,Public.
+GET,/api/events/dates/available,backend/server.py:1185,no,no,none,list[str],Public. NOTE: path collides with /events/{event_id} pattern (FastAPI resolves by order).
+GET,/api/venues,backend/server.py:1192,no,no,query params (venue_type),list[venue],Public.
+GET,/api/venues/{venue_id},backend/server.py:1199,no,no,none,venue,Public.
+GET,/api/partners,backend/server.py:1208,no,no,"query params (category, subcategory)",list[partner],Public.
+GET,/api/partners/{partner_id},backend/server.py:1219,no,no,none,partner,Public.
+GET,/api/partner-events,backend/server.py:1228,no,no,"query params (date, category, partner_id, upcoming)",list[event enriched],Public.
+GET,/api/partner-events/{event_id},backend/server.py:1262,no,no,none,event enriched,Public. Side-effect: increments views_count.
+GET,/api/promotions/today,backend/server.py:1277,no,no,query params (category),list[promo],Public.
+POST,/api/promotions/{promo_id}/track-click,backend/server.py:1308,no,no,none,"{ok, partner_id}",Public. Side-effect: increments click_count. Unauthenticated counter pollution risk.
+POST,/api/partner-events/{event_id}/track-reserve,backend/server.py:1317,no (optional),no,none,"{booking_url, tracked}",Tries get_current_user but swallows errors. UTM-tracked URL.
+POST,/api/partners/{partner_id}/track-reserve,backend/server.py:1353,no (optional),no,none,"{booking_url, tracked}",Auth-optional. UTM-tracked URL.
+GET,/api/itineraries,backend/server.py:1495,no (optional),no,query params (category),itinerary | list[itinerary],Auth-optional via _get_optional_user.
+POST,/api/itineraries/regenerate,backend/server.py:1513,no (optional),no,raw dict,itinerary,Auth-optional. Force-regenerates AI itinerary.
+GET,/api/itineraries/{itinerary_id},backend/server.py:1521,no,no,none,itinerary,Public.
+GET,/api/transport,backend/server.py:1533,no,no,none,list[transport],Public.
+GET,/api/emergency-contacts,backend/server.py:1539,no,no,none,list[contact],Public.
+POST,/api/concierge/chat,backend/server.py:1545,no,no,raw dict,concierge response,"RED FLAG: unauthenticated AI/LLM endpoint — abuse/cost risk. No rate limiting visible."
+GET,/api/notifications,backend/server.py:1558,yes,no,none,list[notification],
+PUT,/api/notifications/{notification_id}/read,backend/server.py:1573,yes,no,none,{ok: true},"NOTE: only verifies auth, doesn't verify ownership of the notification — any auth'd user can mark anyone's notif read."
+POST,/api/feedback,backend/server.py:1584,no (optional),no,raw dict,"{ok, feedback_id}",Auth-optional. Accepts crash reports with stack traces.
+POST,/api/users/push-token,backend/server.py:1626,yes,no,raw dict,{ok: bool},Expo token validation.
+DELETE,/api/users/push-token,backend/server.py:1649,yes,no,raw dict,{ok: true},
+POST,/api/business/push-token,backend/server.py:1665,yes,no (partner),raw dict,{ok: bool},
+DELETE,/api/business/push-token,backend/server.py:1688,yes,no (partner),raw dict,{ok: true},
+POST,/api/my-week/toggle,backend/server.py:1709,yes,no,raw dict (event_id),"{action, my_week}",
+GET,/api/my-week,backend/server.py:1727,yes,no,none,list[event],
+GET,/api/event-types,backend/server.py:1738,no,no,none,list[str],Public hardcoded list.
+GET,/api/partner-categories,backend/server.py:1743,no,no,none,list[str],Public hardcoded list.
+GET,/api/seasons,backend/server.py:1749,no,no,query params (active),list[season],Public.
+GET,/api/seasons/{season_id},backend/server.py:1758,no,no,none,season,Public.
+GET,/api/seasons/{season_id}/events,backend/server.py:1766,no,no,query params (date),list[event],Public.
+GET,/api/sponsors,backend/server.py:1776,no,no,none,list[sponsor],Public.
+GET,/api/concerts,backend/server.py:1783,no,no,"query params (date, genre)",list[concert],Public.
+GET,/api/concerts/dates,backend/server.py:1794,no,no,none,list[str],Public.
+GET,/api/concerts/genres,backend/server.py:1800,no,no,none,list[str],Public.
+GET,/api/concerts/{concert_id},backend/server.py:1806,no,no,none,concert,Public.
+POST,/api/favorites/toggle,backend/server.py:1819,yes,no,FavoriteToggle,"{status, item_id}",
+GET,/api/favorites,backend/server.py:1837,yes,no,none,list[item enriched],
+GET,/api/favorites/ids,backend/server.py:1858,yes,no,none,"list[{item_id, item_type}]",
+GET,/api/calendar,backend/server.py:1867,yes,no,none,list[calendar_item],
+POST,/api/calendar,backend/server.py:1874,yes,no,raw dict,calendar_item,Idempotent on (user_id+item_id).
+DELETE,/api/calendar/{item_id},backend/server.py:1900,yes,no,none,{deleted: bool},
+GET,/api/search,backend/server.py:2012,no (optional),no,query params (q),"{events, concerts, partners, venues, transport, partner_events, ai}","Auth-optional. Heavy LLM endpoint (ai_agent.run_agent_turn). RED FLAG: unauthenticated AI cost/abuse risk."
+GET,/api/admin/search/analytics,backend/server.py:2188,yes,yes (is_admin),"query params (limit, days)","{window_days, total_searches, top_queries}",Uses user.is_admin flag (not partner role).
+POST,/api/analytics/track,backend/server.py:2223,no (optional),no,AnalyticsEvent,{ok: true},Anonymous tracking allowed.
+POST,/api/analytics/location,backend/server.py:2256,no (optional),no,LocationPing,"{ok, ping_id}","RED FLAG: location body accepts user_id — anyone can submit pings for any user_id (no verification)."
+POST,/api/profile/build,backend/server.py:2284,no (optional),no,raw dict,user profile,"RED FLAG: accepts user_id in body — can build profile for arbitrary user_id."
+GET,/api/profile/me,backend/server.py:2359,no (optional),no,query params (user_id),user profile,"RED FLAG: query param user_id bypasses auth — anyone can read anyone's AI profile."
+POST,/api/transport/{transport_id}/buy,backend/server.py:2404,no,no,TransportTicketBody,ticket,"MOCK payment — sets status='paid' immediately. Anyone with user_id field can issue tickets."
+GET,/api/transport/tickets,backend/server.py:2471,no,no,query params (user_id),list[ticket],"RED FLAG: query param user_id, no auth — anyone can list anyone's tickets."
+GET,/api/transport/tickets/{ticket_id},backend/server.py:2478,no,no,none,ticket,"RED FLAG: no auth — anyone can read any ticket by id."
+GET,/api/analytics/summary,backend/server.py:2486,no,no,none,"{kpis, top_events, top_partners, ...}","RED FLAG: docstring says 'for admins' but no auth check. Public PII-free metrics but exposes business data."
+GET,/api/analytics/dashboard,backend/server.py:2557,no,no,none,large dashboard dict,"RED FLAG: docstring says 'for government/sponsors' but no auth check. Exposes revenue, demographics, top partners."
+GET,/api/analytics/heatmap,backend/server.py:2768,no,no,none,"list[{lat, lng, count}]",Public.
+GET,/api/city-pass/plans,backend/server.py:2791,no,no,none,list[plan],Public hardcoded.
+POST,/api/city-pass/activate,backend/server.py:2801,yes,no,raw dict (plan_id),"{status, pass}","MOCK activation — no payment required. Should be removed or gated since wompi flow handles real activation."
+GET,/api/city-pass/mine,backend/server.py:2825,yes,no,none,pass | null,
+GET,/api/port-tax/config,backend/server.py:2855,no,no,none,port_tax_config,Public.
+PUT,/api/admin/port-tax/config,backend/server.py:2862,yes,yes (is_admin),raw dict,port_tax_config,Uses user.is_admin (not partner role).
+POST,/api/port-tax/checkout,backend/server.py:2887,yes,no,raw dict,ticket,"MOCK payment status='paid' immediately. Bypasses Wompi (real flow is /payments/wompi/port-tax)."
+GET,/api/port-tax/my-tickets,backend/server.py:2945,yes,no,none,list[ticket],Auto-expires past tickets.
+GET,/api/port-tax/tickets/{ticket_id},backend/server.py:2967,yes,no,none,ticket,Ownership scoped by user_id.
+POST,/api/port-tax/tickets/{ticket_id}/redeem,backend/server.py:2978,yes,no,raw dict,ticket,"NOTE: only user owns redemption — partner scanner has no auth path."
+GET,/api/payments/config,backend/server.py:3021,no,no,none,"{enabled, env, public_key, commission_pct}",Public Wompi config.
+POST,/api/payments/wompi/city-pass,backend/server.py:3085,yes,no,raw dict,payment doc,Wompi checkout URL builder.
+POST,/api/payments/wompi/port-tax,backend/server.py:3116,yes,no,raw dict,payment doc,
+POST,/api/payments/wompi/partner-event,backend/server.py:3151,yes,no,raw dict,payment doc,
+GET,/api/experiences,backend/server.py:3187,no,no,query params (category),list[experience],"NOTE: queries partner_events collection (not a separate 'experiences' collection)."
+GET,/api/experiences/featured,backend/server.py:3205,no,no,none,list[experience],Same backing collection.
+GET,/api/experiences/{experience_id},backend/server.py:3219,no,no,none,experience+partner,
+GET,/api/experience-bookings,backend/server.py:3236,yes,no,none,list[booking],
+POST,/api/payments/wompi/experience,backend/server.py:3253,yes,no,raw dict,payment doc,
+GET,/api/partners/nearby,backend/server.py:3292,no,no,"query params (lat, lng, radius, category)",list[partner],Public. Haversine in Python — N partners scanned.
+GET,/api/payments/{payment_id},backend/server.py:3339,yes,no,none,payment doc,Scoped by user_id. Polls Wompi if pending.
+GET,/api/payments/by-reference/{reference},backend/server.py:3355,yes,no,none,payment doc,Scoped by user_id. Docstring says 'Public lookup' but actually auth'd.
+GET,/api/payments/my/list,backend/server.py:3370,yes,no,none,list[payment],
+POST,/api/webhooks/wompi,backend/server.py:3515,no,no,raw dict (webhook),{ok: true},Verifies HMAC signature. Correctly public.
+GET,/api/business/admin/payouts,backend/server.py:3542,yes,yes (government),query params (status),"{rows, totals, currency}",Aggregated partner payouts.
+POST,/api/agent/chat,backend/server.py:3602,no (optional),no,raw dict,"{session_id, assistant, messages_count}","Auth-optional. Heavy LLM endpoint. RED FLAG: unauthenticated AI cost/abuse risk, 1000-char input limit only."
+GET,/api/agent/session/{session_id},backend/server.py:3664,no (optional),no,none,session,Owner check if session has user_id.
+GET,/api/agent/sessions,backend/server.py:3676,yes,no,none,{sessions: list},
+DELETE,/api/agent/session/{session_id},backend/server.py:3687,yes,no,none,{deleted: int},
+GET,/api/rewards/me,backend/rewards.py:180,yes,no,none,"{account, tier, points_balance, offers, ...}",Auto-creates account on first call.
+GET,/api/rewards/history,backend/rewards.py:254,yes,no,"query params (page, limit)","{history, total, page, pages}",
+GET,/api/rewards/offers,backend/rewards.py:284,yes,no,none,"{offers, user_tier}",
+POST,/api/rewards/redeem,backend/rewards.py:322,yes,no,raw dict (offer_id),"{redemption, new_balance}",Tier+points gate enforced.
+POST,/api/reviews,backend/reviews.py:104,yes,no,raw dict,review doc,One-per-user enforcement at app level (409).
+GET,/api/reviews/partner/{partner_id},backend/reviews.py:178,no,no,"query params (page, limit)","{reviews, aggregate, total, page, pages}",Public read.
+GET,/api/reviews/me,backend/reviews.py:213,yes,no,none,{reviews: list},
+POST,/api/reviews/{review_id}/helpful,backend/reviews.py:227,yes,no,none,{ok: true},"NOTE: no rate-limit / one-vote-per-user check — any auth'd user can spam helpful_count."
+POST,/api/reviews/{review_id}/report,backend/reviews.py:243,yes,no,raw dict,{ok: true},Auto-moderates when 3 reports received.
+POST,/api/reservations,backend/reservations.py:221,yes,no,raw dict,"{reservation, locked, partner_plan, message}",Validates date/party_size.
+GET,/api/reservations/my,backend/reservations.py:366,yes,no,none,"{upcoming, past, total}",
+GET,/api/reservations/{reservation_id},backend/reservations.py:384,yes,no,none,reservation hydrated,Ownership scoped.
+POST,/api/reservations/{reservation_id}/cancel,backend/reservations.py:393,yes,no,none,"{reservation, free_cancellation, message}",Time-window check.
+GET,/api/business/notifications,backend/reservations.py:424,yes,no (partner),"query params (unread_only, limit)","{notifications, unread_count}","DUPLICATE-ISH: distinct from /api/notifications (user) but path is 'business'."
+PUT,/api/business/notifications/{notification_id}/read,backend/reservations.py:439,yes,no (partner),none,{ok: true},
+PUT,/api/business/notifications/read-all,backend/reservations.py:449,yes,no (partner),none,"{ok, marked}",
+GET,/api/business/reservations,backend/reservations.py:463,yes,no (partner),"query params (status, limit)","{reservations, stats, membership_plan, upgrade_required}",Censors PII for free plan partners (freemium gate).
+PATCH,/api/business/reservations/{reservation_id},backend/reservations.py:514,yes,no (partner),raw dict (action),reservation hydrated,"402 Payment Required if not PRO — freemium gate. Actions: confirm/reject/complete/no_show."
+GET,/api/business/admin/reservations,backend/reservations.py:593,yes,yes (government),"query params (status, days, limit)","{reservations, count}",
+GET,/api/business/admin/reservations/stats,backend/reservations.py:610,yes,yes (government),query params (days),"{period_days, total, by_status, active_partners, acceptance_rate_pct}",
+POST,/api/admin/operator/login,backend/admin_operator.py:93,no,no,raw dict (password),"{token, expires_in_hours}","Single-password HMAC token system. Default password 'amocartagena-admin-2026' if env not set — RED FLAG."
+GET,/api/admin/operator/partners,backend/admin_operator.py:102,yes,yes (admin operator),none,"{partners, summary, total}",Stateless HMAC bearer token check via require_admin.
+POST,/api/admin/operator/partners,backend/admin_operator.py:133,yes,yes (admin operator),raw dict,"{partner, activation_url, whatsapp_message}",Creates partner skeleton + activation token.
+POST,/api/admin/operator/partners/{partner_id}/invite,backend/admin_operator.py:190,yes,yes (admin operator),none,"{activation_url, whatsapp_message}",Regenerates activation token.
+PATCH,/api/admin/operator/partners/{partner_id}/approval,backend/admin_operator.py:217,yes,yes (admin operator),raw dict (action),"{ok, status, is_public}",approve/suspend/reactivate.
+GET,/api/business/activation/{token},backend/admin_operator.py:243,no,no,none,"{partner_id, name, category, owner_email}",Public — magic link lookup. Token in URL path (browser history leak risk).
+POST,/api/business/activate,backend/admin_operator.py:269,no,no,raw dict,"{ok, token, partner_id, name, needs_approval}",Public — partner self-activation. bcrypt password creation.
+GET,/api/business/onboarding-status,backend/admin_operator.py:379,yes,no (partner),none,"{percent, is_public, status, missing}",Uses get_current_business from server.py (lazy import).

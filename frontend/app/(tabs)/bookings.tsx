@@ -185,6 +185,7 @@ function BookingCard({
   booking: UnifiedBooking;
   onPress: () => void;
 }) {
+  const tr = useTr();
   const typeMeta = TYPE_META[booking.type];
   const statusStyle = getStatusStyle(booking.status);
   const dateStr = formatDate(booking.date);
@@ -215,7 +216,7 @@ function BookingCard({
             ]}
           >
             <Text style={[styles.typePillText, { color: typeMeta.color }]}>
-              {typeMeta.label.toUpperCase()}
+              {tr(typeMeta.label).toUpperCase()}
             </Text>
           </View>
           {dateStr ? (
@@ -255,7 +256,7 @@ function BookingCard({
           style={[styles.statusDot, { backgroundColor: statusStyle.color }]}
         />
         <Text style={[styles.statusText, { color: statusStyle.color }]}>
-          {statusStyle.label}
+          {tr(statusStyle.label)}
         </Text>
       </View>
     </TouchableOpacity>
@@ -271,6 +272,7 @@ function EmptyBookings({
   tab: TabKey;
   onExplore: () => void;
 }) {
+  const tr = useTr();
   const EMPTY_CONFIG: Record<TabKey, { icon: string; title: string; text: string; showCTA: boolean }> = {
     upcoming: {
       icon: 'calendar-outline',
@@ -299,8 +301,8 @@ function EmptyBookings({
       <View style={styles.emptyIconCircle}>
         <Ionicons name={cfg.icon as any} size={40} color={COLORS.textMuted} />
       </View>
-      <Text style={styles.emptyTitle}>{cfg.title}</Text>
-      <Text style={styles.emptyText}>{cfg.text}</Text>
+      <Text style={styles.emptyTitle}>{tr(cfg.title)}</Text>
+      <Text style={styles.emptyText}>{tr(cfg.text)}</Text>
       {cfg.showCTA && (
         <TouchableOpacity
           style={styles.emptyBtn}
@@ -308,7 +310,7 @@ function EmptyBookings({
           activeOpacity={0.85}
         >
           <Ionicons name="compass-outline" size={15} color={COLORS.white} />
-          <Text style={styles.emptyBtnText}>Explorar</Text>
+          <Text style={styles.emptyBtnText}>{tr('Explorar')}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -428,11 +430,11 @@ export default function BookingsScreen() {
     <View>
       {/* Screen title */}
       <View style={styles.header}>
-        <Text style={styles.title}>Mis Reservas</Text>
+        <Text style={styles.title}>{tr('Mis Reservas')}</Text>
         <Text style={styles.subtitle}>
           {allBookings.length > 0
-            ? `${allBookings.length} reserva${allBookings.length !== 1 ? 's' : ''} en total`
-            : 'Gestiona tus reservas y tickets'}
+            ? `${allBookings.length} ${tr('reserva')}${allBookings.length !== 1 ? 's' : ''}`
+            : tr('Gestiona tus reservas y tickets')}
         </Text>
       </View>
 
@@ -455,7 +457,7 @@ export default function BookingsScreen() {
                     active && styles.segmentTextActive,
                   ]}
                 >
-                  {tab.label}
+                  {tr(tab.label)}
                 </Text>
                 {count > 0 && (
                   <View

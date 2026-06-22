@@ -53,16 +53,25 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const data = await api.post('/business/login', { email, password });
-    setToken(data.token);
-    setBusiness(data.business);
-    setPartner(data.partner);
-    await AsyncStorage.setItem(BIZ_KEY, data.token);
+    try {
+      const data = await api.post('/business/login', { email, password });
+      setToken(data.token);
+      setBusiness(data.business);
+      setPartner(data.partner);
+      await AsyncStorage.setItem(BIZ_KEY, data.token);
+    } catch (e) {
+      console.error('[BusinessAuth] Login failed — backend unavailable', e);
+      throw new Error('Inicio de sesión no disponible en este momento. / Login is not available right now.');
+    }
   };
 
   const logout = async () => {
     if (token) {
-      try { await api.post('/business/logout', {}, { headers: { Authorization: `Bearer ${token}` } }); } catch {}
+      try {
+        await api.post('/business/logout', {}, { headers: { Authorization: `Bearer ${token}` } });
+      } catch (e) {
+        console.error('[BusinessAuth] Logout call failed — clearing local session', e);
+      }
     }
     await AsyncStorage.removeItem(BIZ_KEY);
     setToken(null);

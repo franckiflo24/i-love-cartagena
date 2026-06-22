@@ -49,6 +49,18 @@ export default function RootLayout() {
         <Stack.Screen name="reservations/index" options={{ presentation: 'modal' }} />
         <Stack.Screen name="reservation/new" options={{ presentation: 'modal' }} />
         <Stack.Screen name="rewards/offers" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="rewards/card" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="concierge" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="port-tax/tickets" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="port-tax/ticket/[id]" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="payments/return" options={{ presentation: 'card' }} />
+        <Stack.Screen name="business/activate" options={{ presentation: 'card' }} />
+        <Stack.Screen name="business/reservations" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="business/stats" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="ayuda" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="privacidad" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="terminos" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="eventos" options={{ presentation: 'modal' }} />
       </Stack>
       </RewardsProvider>
       </MyCalendarProvider>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +7,7 @@ import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../src/consta
 import { useFavorites } from '../src/context/FavoritesContext';
 import { api } from '../src/constants/api';
 import { TierBadge } from '../src/components/TierBadge';
+import { SafeImage } from '../src/components/SafeImage';
 import { useTr } from '../src/i18n/autoTr';
 
 type Tab = 'agenda' | 'partners' | 'reservations';
@@ -221,7 +222,7 @@ export default function FavoritesScreen() {
                         activeOpacity={0.85}
                       >
                         <View style={styles.peFlyerWrap}>
-                          <Image source={{ uri: e.flyer_url }} style={styles.peFlyer} />
+                          <SafeImage uri={e.flyer_url} category={e.category} style={styles.peFlyer} />
                           <View style={styles.peFlyerOverlay} />
                           {tierColors && <View style={[styles.tierStripe, { backgroundColor: tierColors.main }]} />}
                         </View>
@@ -260,7 +261,7 @@ export default function FavoritesScreen() {
                   <Text style={styles.sectionTitle}>🎵 Conciertos ({concerts.length})</Text>
                   {concerts.map(c => (
                     <TouchableOpacity key={c.concert_id} style={styles.card} onPress={() => router.push('/concerts' as any)} activeOpacity={0.85}>
-                      <Image source={{ uri: c.image_url }} style={styles.cardImage} />
+                      <SafeImage uri={c.image_url} category="concert" style={styles.cardImage} />
                       <View style={styles.cardOverlay} />
                       <TouchableOpacity
                         style={styles.heartBtn}
@@ -330,7 +331,7 @@ export default function FavoritesScreen() {
                     onPress={() => router.push(`/partner/${p.partner_id}` as any)}
                     activeOpacity={0.85}
                   >
-                    <Image source={{ uri: p.image_url }} style={styles.partnerImage} />
+                    <SafeImage uri={p.image_url} category={p.category} style={styles.partnerImage} />
                     <View style={styles.partnerOverlay} />
                     {tierColors && <View style={[styles.tierStripe, { backgroundColor: tierColors.main }]} />}
                     <TouchableOpacity
