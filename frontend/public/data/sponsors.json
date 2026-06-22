@@ -1,0 +1,57 @@
+[
+  {
+    "sponsor_id": "sp_001",
+    "name": "Avianca",
+    "logo_url": "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=80",
+    "tagline": "Aerolínea oficial",
+    "color": "#E31837",
+    "url": "https://avianca.com",
+    "tier": "gold",
+    "is_active": true,
+    "order": 1
+  },
+  {
+    "sponsor_id": "sp_002",
+    "name": "Aguila",
+    "logo_url": "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=80",
+    "tagline": "La cerveza de Colombia",
+    "color": "#FFD700",
+    "url": "https://cervezaaguila.com",
+    "tier": "gold",
+    "is_active": true,
+    "order": 2
+  },
+  {
+    "sponsor_id": "sp_003",
+    "name": "Alcaldía de Cartagena",
+    "logo_url": "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=80",
+    "tagline": "Ciudad patrimonio",
+    "color": "#1B4F72",
+    "url": "https://cartagena.gov.co",
+    "tier": "institutional",
+    "is_active": true,
+    "order": 3
+  },
+  {
+    "sponsor_id": "sp_004",
+    "name": "Ron Cartagena",
+    "logo_url": "https://static.cdninstagram.com/rsrc.php/v4/yD/r/R0fBIMurK8v.png",
+    "tagline": "El sabor del Caribe",
+    "color": "#8B4513",
+    "url": "",
+    "tier": "silver",
+    "is_active": true,
+    "order": 4
+  },
+  {
+    "sponsor_id": "sp_006",
+    "name": "Templo",
+    "logo_url": "https://sanpedroclaver.co/wp-content/uploads/2024/08/Group-173.png",
+    "tagline": "La catedral de la música",
+    "color": "#EC4899",
+    "url": "https://templo.co",
+    "tier": "silver",
+    "is_active": true,
+    "order": 6
+  }
+]

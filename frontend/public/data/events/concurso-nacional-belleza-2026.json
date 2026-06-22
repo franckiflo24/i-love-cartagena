@@ -1,0 +1,51 @@
+{
+  "id": "evt_concurso_belleza_2026",
+  "slug": "concurso-nacional-belleza-2026",
+  "name_es": "Concurso Nacional de Belleza — Senorita Colombia 2026",
+  "name_en": "National Beauty Pageant — Miss Colombia 2026",
+  "title": "Concurso Nacional de Belleza — Senorita Colombia 2026",
+  "event_id": "concurso-nacional-belleza-2026",
+  "category": "cultural",
+  "type": "cultural",
+  "venue": "Centro de Convenciones Cartagena de Indias",
+  "venue_name": "Centro de Convenciones",
+  "neighborhood": "getsemani",
+  "date_start": "2026-11-10",
+  "date": "2026-11-10",
+  "date_end": "2026-11-17",
+  "time_start": "19:00",
+  "start_time": "19:00",
+  "is_free": false,
+  "price": 300000,
+  "price_min_cop": 150000,
+  "price_max_cop": 1500000,
+  "ticket_url": "https://www.srtacolombia.org/",
+  "organizer": "Concurso Nacional de Belleza de Colombia",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNReoYZqYfHPKSYt66t54QVipXb7m-EjO7W_t1pf9nMrS3r8hWoqgJJG0-OmGhipICWI_QpmoLIzmRANafJmvxhpVjc0YpDi0km_0U4uwEfluhi34ia8XXymZrkh_SHU4iv3YkMEoIQBb4Vmg=s1600-w800",
+  "description": "El concurso de belleza mas importante de Colombia, celebrado en Cartagena desde 1934. Las candidatas de cada departamento compiten por el titulo de Senorita Colombia. Semana de eventos: imposicion de bandas, desfile en traje de bano y noche de coronacion. Transmision en vivo por Canal 1. Edicion 92 en 2026.",
+  "description_en": "Colombia's most important beauty pageant, held in Cartagena since 1934. Candidates from each department compete for the title of Miss Colombia. Week of events: sash ceremony, swimsuit parade, and coronation night. Live broadcast on Canal 1. 92nd edition in 2026.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 30000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.srtacolombia.org/"
+  ],
+  "confidence": "high",
+  "tags": [
+    "pageant",
+    "beauty",
+    "national",
+    "televised",
+    "independence"
+  ],
+  "featured": true,
+  "capacity": 5000,
+  "location": {
+    "lat": 10.4208,
+    "lng": -75.5489
+  },
+  "end_time": "23:00",
+  "image_source": "category"
+}

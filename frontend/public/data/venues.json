@@ -1,0 +1,210 @@
+[
+  {
+    "venue_id": "ven_001",
+    "name": "La Muralla",
+    "description": "Las icónicas murallas coloniales de Cartagena. Escenario principal de los sunsets y eventos culturales al aire libre.",
+    "type": "historic",
+    "address": "Murallas de Cartagena, Centro Histórico",
+    "location": {
+      "lat": 10.4236,
+      "lng": -75.5483
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1651421479936-e24edc3e3143?w=800",
+      "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800"
+    ],
+    "contact": {
+      "phone": "+57 300 123 4567"
+    },
+    "hours": "Acceso 24h",
+    "price_range": "Gratis",
+    "booking_link": ""
+  },
+  {
+    "venue_id": "ven_002",
+    "name": "Templo",
+    "description": "El venue principal de Cartagena Music Week. Producción de primer nivel mundial con sonido e iluminación inmersiva.",
+    "type": "nightclub",
+    "address": "Av. Pedro de Heredia, Getsemaní",
+    "location": {
+      "lat": 10.4195,
+      "lng": -75.5455
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800",
+      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800"
+    ],
+    "contact": {
+      "phone": "+57 300 234 5678",
+      "email": "info@templo.co"
+    },
+    "hours": "22:00 - 06:00",
+    "price_range": "$$$",
+    "booking_link": "https://templo.co/tickets"
+  },
+  {
+    "venue_id": "ven_003",
+    "name": "Casa Bohème",
+    "description": "Restaurante y bar de diseño en el corazón del centro histórico. Cocina de autor y cócteles artesanales.",
+    "type": "restaurant",
+    "address": "Calle de la Iglesia #35-76, Centro Histórico",
+    "location": {
+      "lat": 10.4228,
+      "lng": -75.551
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800"
+    ],
+    "contact": {
+      "phone": "+57 300 345 6789",
+      "email": "reservas@casaboheme.co"
+    },
+    "hours": "11:00 - 02:00",
+    "price_range": "$$",
+    "booking_link": "https://casaboheme.co"
+  },
+  {
+    "venue_id": "ven_004",
+    "name": "Bellini",
+    "description": "Fine dining con vista al mar. Cocina mediterránea fusión con ingredientes locales del Caribe colombiano.",
+    "type": "restaurant",
+    "address": "Calle del Arsenal #10-40, Getsemaní",
+    "location": {
+      "lat": 10.424,
+      "lng": -75.5475
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800"
+    ],
+    "contact": {
+      "phone": "+57 300 456 7890",
+      "email": "reservas@bellini.co"
+    },
+    "hours": "18:00 - 00:00",
+    "price_range": "$$$",
+    "booking_link": "https://bellini.co"
+  },
+  {
+    "venue_id": "ven_005",
+    "name": "Café del Mar",
+    "description": "Bar icónico sobre las murallas con las mejores vistas del atardecer de Cartagena.",
+    "type": "restaurant",
+    "address": "Baluarte de Santo Domingo, Centro Histórico",
+    "location": {
+      "lat": 10.426,
+      "lng": -75.549
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1651421479936-e24edc3e3143?w=800"
+    ],
+    "contact": {
+      "phone": "+57 300 567 8901"
+    },
+    "hours": "16:00 - 02:00",
+    "price_range": "$$",
+    "booking_link": "https://cafedelmar.com"
+  },
+  {
+    "venue_id": "ven_006",
+    "name": "San Pedro Claver",
+    "description": "Iglesia y claustro del siglo XVII. Escenario de los conciertos candlelight y eventos culturales.",
+    "type": "cultural",
+    "address": "Plaza de San Pedro Claver, Centro Histórico",
+    "location": {
+      "lat": 10.4228,
+      "lng": -75.5498
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1577720580479-7d839d829c73?w=1200&q=80",
+      "https://images.unsplash.com/photo-1583037189850-1921ae7c6c22?w=800"
+    ],
+    "contact": {
+      "phone": "+57 300 678 9012"
+    },
+    "hours": "08:00 - 18:00 (eventos especiales hasta 23:00)",
+    "price_range": "$",
+    "booking_link": ""
+  },
+  {
+    "venue_id": "ven_007",
+    "name": "Hotel Santa Clara",
+    "description": "Hotel boutique de lujo en un convento del siglo XVII. Sede de pop-ups artísticos y experiencias exclusivas.",
+    "type": "hotel",
+    "address": "Calle del Torno #39-29, Centro Histórico",
+    "location": {
+      "lat": 10.4232,
+      "lng": -75.5502
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1531058020387-3be344556be6?w=800"
+    ],
+    "contact": {
+      "phone": "+57 300 789 0123",
+      "email": "events@hotelsantaclara.com"
+    },
+    "hours": "24h",
+    "price_range": "$$$$",
+    "booking_link": "https://hotelsantaclara.com"
+  },
+  {
+    "venue_id": "ven_008",
+    "name": "Isla Barú Beach Club",
+    "description": "Beach club exclusivo en Playa Blanca, Barú. El destino de playa del festival.",
+    "type": "beach_club",
+    "address": "Playa Blanca, Isla Barú",
+    "location": {
+      "lat": 10.1817,
+      "lng": -75.5847
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800"
+    ],
+    "contact": {
+      "phone": "+57 300 890 1234"
+    },
+    "hours": "09:00 - 18:00",
+    "price_range": "$$$",
+    "booking_link": "https://barubeach.com"
+  },
+  {
+    "venue_id": "ven_009",
+    "name": "Blue Apple Beach",
+    "description": "Beach club boutique en la Isla del Encanto. Experiencias wellness, gastronomía y fiestas exclusivas.",
+    "type": "beach_club",
+    "address": "Isla del Encanto, Islas del Rosario",
+    "location": {
+      "lat": 10.178,
+      "lng": -75.58
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800"
+    ],
+    "contact": {
+      "phone": "+57 300 901 2345",
+      "email": "info@blueapple.co"
+    },
+    "hours": "08:00 - 18:00",
+    "price_range": "$$$$",
+    "booking_link": "https://blueapple.co"
+  },
+  {
+    "venue_id": "ven_010",
+    "name": "Fénix",
+    "description": "Club nocturno de diseño en Getsemaní. After parties oficiales de Cartagena Music Week.",
+    "type": "nightclub",
+    "address": "Calle de la Sierpe #9-75, Getsemaní",
+    "location": {
+      "lat": 10.42,
+      "lng": -75.546
+    },
+    "images": [
+      "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800"
+    ],
+    "contact": {
+      "phone": "+57 300 012 3456"
+    },
+    "hours": "00:00 - 07:00",
+    "price_range": "$$",
+    "booking_link": "https://fenix.co"
+  }
+]

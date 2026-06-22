@@ -43,7 +43,7 @@ def api_base() -> str:
 
 
 def checkout_base() -> str:
-    return "https://checkout.wompi.co/p/" if env() == "production" else "https://checkout.wompi.co/p/"
+    return "https://checkout.wompi.co/p/" if env() == "production" else "https://sandbox.checkout.wompi.co/p/"
 
 
 def app_commission_pct() -> float:

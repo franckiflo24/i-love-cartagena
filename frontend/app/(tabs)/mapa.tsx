@@ -115,7 +115,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '</head><body>'
     + '<div id="map"></div>'
     + '<script>'
-    + 'var map = L.map("map", {zoomControl: true, attributionControl: false}).setView([10.4, -75.55], 12);'
+    + 'var map = L.map("map", {zoomControl: true, attributionControl: false}).setView([10.4236, -75.5483], 13);'
     + 'L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {maxZoom: 19}).addTo(map);'
     + markers
     + userMarker
@@ -165,8 +165,11 @@ export default function MapaScreen() {
       // Send ping to backend for analytics + AI personalization
       try {
         const userRaw = await AsyncStorage.getItem('user_data');
-        const user = userRaw ? JSON.parse(userRaw) : null;
-        await fetch(`${process.env.EXPO_PUBLIC_BACKEND_URL}/api/analytics/location`, {
+        let user = null;
+        try { if (userRaw) user = JSON.parse(userRaw); } catch {}
+        const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
+        if (!backendUrl) throw new Error('no backend');
+        await fetch(`${backendUrl}/api/analytics/location`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

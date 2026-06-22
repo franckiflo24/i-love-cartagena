@@ -161,6 +161,7 @@ export default function ReservationNew() {
 
   const submit = async () => {
     if (submitting) return;
+    if (!partner?.name) return; // Never open WhatsApp with undefined name
     setSubmitting(true);
 
     // Build WhatsApp deep link with reservation details

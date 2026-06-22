@@ -1,0 +1,35 @@
+{
+  "season": {
+    "dry_months": ["Dec","Jan","Feb","Mar","Apr"],
+    "rainy_months": ["May","Jun","Jul","Aug","Sep","Oct","Nov"],
+    "wettest_month": "October",
+    "packing_es": "Ropa ligera de lino, protector solar, sombrero, botella reutilizable, repelente (6-8pm), capa ligera para A/C y paraguas compacto.",
+    "packing_en": "Light linen clothes, sunscreen, hat, reusable water bottle, insect repellent (6-8pm), a light layer for A/C and a compact umbrella.",
+    "source": ["https://ideam.gov.co"],
+    "last_verified_date": "2026-06-16"
+  },
+  "cost_benchmarks": [
+    {"item": "Cerveza local (bar)", "price_cop": 6600},
+    {"item": "Cerveza importada", "price_cop": 10000},
+    {"item": "Cappuccino", "price_cop": 6500},
+    {"item": "Menú del día", "price_cop": 12000},
+    {"item": "Cena 2 personas (gama media)", "price_cop": 160000},
+    {"item": "Arepa de huevo", "price_cop": 4500},
+    {"item": "Cóctel en rooftop", "price_cop": 39800},
+    {"item": "Taxi mínimo", "price_cop": 10800},
+    {"item": "Tasa portuaria (islas)", "price_cop": 29000}
+  ],
+  "emergency": [
+    {"label": "Policía", "number": "123"},
+    {"label": "Policía de Turismo", "number": "317 415 5740"},
+    {"label": "Emergencias médicas", "number": "125"},
+    {"label": "Bomberos", "number": "119"}
+  ],
+  "currency": {
+    "code": "COP",
+    "trm_source": "https://www.banrep.gov.co",
+    "tipping_es": "~10% propina voluntaria en restaurantes ('¿servicio incluido?'). No acostumbrado en vendedores ambulantes.",
+    "tipping_en": "~10% voluntary tip at restaurants ('¿servicio incluido?'). Not customary for street vendors."
+  },
+  "last_verified_date": "2026-06-16"
+}

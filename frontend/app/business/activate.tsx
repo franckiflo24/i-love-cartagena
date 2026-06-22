@@ -40,12 +40,15 @@ export default function ActivatePartner() {
     setSubmitting(true);
     try {
       const data = await api.post('/business/activate', { token, password: pw, accept_terms: true });
-      // Save the business token using the SAME key used by BusinessAuthContext
-      // so the partner is auto-authenticated on /business/dashboard.
+      if (!data?.token) {
+        Alert.alert('No disponible', 'La activación de cuentas requiere conexión al servidor. Contacta soporte@amocartagena.app');
+        setSubmitting(false);
+        return;
+      }
       await AsyncStorage.setItem('amocartagena_business_token', data.token);
       Alert.alert(
         '¡Cuenta activada!',
-        'Tu perfil ya está creado. Completa tus fotos, horarios y descripción para empezar a recibir reservas. El equipo Amo Cartagena revisará tu perfil antes de hacerlo público.',
+        'Tu perfil ya está creado. Completa tus fotos, horarios y descripción para empezar a recibir reservas.',
         [{ text: 'Ir al dashboard', onPress: () => router.replace('/business/dashboard' as any) }]
       );
     } catch (e: any) {

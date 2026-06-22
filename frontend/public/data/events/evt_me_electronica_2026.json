@@ -1,0 +1,49 @@
+{
+  "id": "evt_me_electronica_2026",
+  "slug": "me-electronica-tierra-bomba-2026",
+  "name_es": "&ME — Fiesta Electronica en Tierra Bomba",
+  "name_en": "&ME — Electronic Party at Tierra Bomba",
+  "title": "&ME — Fiesta Electronica en Tierra Bomba",
+  "event_id": "me-electronica-tierra-bomba-2026",
+  "category": "concert",
+  "type": "concert",
+  "venue": "Atolon Beach Club, Tierra Bomba",
+  "venue_name": "Atolon Beach Club",
+  "neighborhood": "tierra-bomba",
+  "date_start": "2026-12-29",
+  "date": "2026-12-29",
+  "date_end": "2026-12-29",
+  "time_start": "14:00",
+  "start_time": "14:00",
+  "is_free": false,
+  "price": 200000,
+  "price_min_cop": 150000,
+  "price_max_cop": 400000,
+  "ticket_url": null,
+  "organizer": "Promotores locales",
+  "image_url": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800",
+  "description": "El DJ aleman &ME (Keinemusik) llega a Cartagena con una fiesta electronica exclusiva en Atolon Beach Club, Tierra Bomba. House, minimal techno y afro house frente al mar.",
+  "description_en": "German DJ &ME (Keinemusik) comes to Cartagena with an exclusive electronic party at Atolon Beach Club, Tierra Bomba. House, minimal techno, and afro house by the sea.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 1500,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://canaltrece.com.co/noticias/me-llega-a-cartagena-con-una-fiesta-electronica-exclusiva-en-tierra-bomba/"
+  ],
+  "confidence": "medium",
+  "tags": [
+    "electronic",
+    "dj",
+    "beach",
+    "techno",
+    "keinemusik"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.355,
+    "lng": -75.575
+  },
+  "end_time": ""
+}

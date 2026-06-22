@@ -1,0 +1,49 @@
+{
+  "id": "evt_eteka_nye_2026",
+  "slug": "fin-de-ano-eteka-isla-privada-2026",
+  "name_es": "Fin de Ano en Eteka — Isla Privada",
+  "name_en": "New Year's Eve at Eteka — Private Island",
+  "title": "Fin de Ano en Eteka — Isla Privada",
+  "event_id": "fin-de-ano-eteka-isla-privada-2026",
+  "category": "nightlife",
+  "type": "nightlife",
+  "venue": "Eteka — Isla Privada",
+  "venue_name": "Eteka",
+  "neighborhood": "islas",
+  "date_start": "2026-12-31",
+  "date": "2026-12-31",
+  "date_end": "2027-01-01",
+  "time_start": "18:00",
+  "start_time": "18:00",
+  "is_free": false,
+  "price": 1500000,
+  "price_min_cop": 1000000,
+  "price_max_cop": 3000000,
+  "ticket_url": "https://etekacartagena.com/fin-de-ano-en-cartagena-celebra-en-una-isla-privada-en-eteka/",
+  "organizer": "Eteka Cartagena",
+  "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
+  "description": "Celebra Ano Nuevo en una isla privada exclusiva. Cena gourmet, open bar premium, musica en vivo, DJs y fuegos artificiales privados con vista al Caribe.",
+  "description_en": "Celebrate New Year's Eve on an exclusive private island. Gourmet dinner, premium open bar, live music, DJs, and private fireworks overlooking the Caribbean.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 500,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://etekacartagena.com/fin-de-ano-en-cartagena-celebra-en-una-isla-privada-en-eteka/"
+  ],
+  "confidence": "high",
+  "tags": [
+    "new-years",
+    "luxury",
+    "private-island",
+    "gourmet",
+    "premium"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.35,
+    "lng": -75.58
+  },
+  "end_time": ""
+}

@@ -8,7 +8,6 @@ import { useLang } from '@/src/context/LanguageContext';
 
 export interface ReviewCardProps {
   authorName: string;
-  authorAvatar?: string | null;
   rating: number;
   date: string;
   text: string;

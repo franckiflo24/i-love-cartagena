@@ -9,11 +9,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   Alert,
   RefreshControl,
 } from 'react-native';
+import { SafeImage } from '../../src/components/SafeImage';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -201,7 +201,7 @@ export default function MyReservations() {
               >
                 <View style={styles.cardHeader}>
                   {r.partner?.image_url ? (
-                    <Image source={{ uri: r.partner.image_url }} style={styles.partnerImg} />
+                    <SafeImage uri={r.partner.image_url} style={styles.partnerImg} />
                   ) : (
                     <View style={[styles.partnerImg, { backgroundColor: COLORS.background }]} />
                   )}

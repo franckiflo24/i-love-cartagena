@@ -77,8 +77,11 @@ async def _scan_once(db):
     min_time = now + timedelta(hours=REMINDER_WINDOW_HOURS_MIN)
     max_time = now + timedelta(hours=REMINDER_WINDOW_HOURS_MAX)
 
-    # Pull favorites per user
-    cursor = db.favorites.find({}, {"_id": 0, "user_id": 1, "event_id": 1, "concert_id": 1, "partner_event_id": 1})
+    # Pull favorites per user — favorites use item_id + item_type schema
+    cursor = db.favorites.find(
+        {"item_type": {"$in": ["event", "concert", "partner_event"]}},
+        {"_id": 0, "user_id": 1, "item_id": 1, "item_type": 1},
+    )
     fav_rows = await cursor.to_list(2000)
 
     sent_count = 0
@@ -86,44 +89,48 @@ async def _scan_once(db):
         user_id = fav.get("user_id")
         if not user_id:
             continue
-        # ── Event ──
-        for kind, id_field, collection in (
-            ("event", "event_id", db.events),
-            ("concert", "concert_id", db.concerts),
-            ("partner_event", "partner_event_id", db.partner_events),
-        ):
-            ref_id = fav.get(id_field)
-            if not ref_id:
-                continue
-            id_key = "event_id" if kind in {"event", "partner_event"} else "concert_id"
-            ev = await collection.find_one({id_key: ref_id}, {"_id": 0})
-            if not ev:
-                continue
-            ev_dt = _parse_event_dt(ev)
-            if not ev_dt:
-                continue
-            if not (min_time <= ev_dt <= max_time):
-                continue
-            # Have we already sent this reminder?
-            already = await db.event_reminders.find_one(
-                {"user_id": user_id, "event_id": ref_id},
-                {"_id": 0},
-            )
-            if already:
-                continue
-            title = ev.get("title") or ev.get("name") or "tu evento"
-            hours_away = max(1, int((ev_dt - now).total_seconds() // 3600))
-            when_label = "mañana" if 20 <= hours_away <= 28 else f"en {hours_away}h"
-            await _send_user_reminder(db, user_id, kind, ref_id, title, when_label)
-            await db.event_reminders.insert_one({
-                "reminder_id": f"rem_{uuid.uuid4().hex[:10]}",
-                "user_id": user_id,
-                "event_id": ref_id,
-                "kind": kind,
-                "sent_at": _iso(now),
-                "for_event_at": _iso(ev_dt),
-            })
-            sent_count += 1
+        item_type = fav.get("item_type")
+        ref_id = fav.get("item_id")
+        if not item_type or not ref_id:
+            continue
+        # Map item_type → (kind, db collection, id field in collection)
+        type_map = {
+            "event": ("event", db.events, "event_id"),
+            "concert": ("concert", db.concerts, "concert_id"),
+            "partner_event": ("partner_event", db.partner_events, "event_id"),
+        }
+        mapping = type_map.get(item_type)
+        if not mapping:
+            continue
+        kind, collection, id_key = mapping
+        ev = await collection.find_one({id_key: ref_id}, {"_id": 0})
+        if not ev:
+            continue
+        ev_dt = _parse_event_dt(ev)
+        if not ev_dt:
+            continue
+        if not (min_time <= ev_dt <= max_time):
+            continue
+        # Have we already sent this reminder?
+        already = await db.event_reminders.find_one(
+            {"user_id": user_id, "event_id": ref_id},
+            {"_id": 0},
+        )
+        if already:
+            continue
+        title = ev.get("title") or ev.get("name") or "tu evento"
+        hours_away = max(1, int((ev_dt - now).total_seconds() // 3600))
+        when_label = "mañana" if 20 <= hours_away <= 28 else f"en {hours_away}h"
+        await _send_user_reminder(db, user_id, kind, ref_id, title, when_label)
+        await db.event_reminders.insert_one({
+            "reminder_id": f"rem_{uuid.uuid4().hex[:10]}",
+            "user_id": user_id,
+            "event_id": ref_id,
+            "kind": kind,
+            "sent_at": _iso(now),
+            "for_event_at": _iso(ev_dt),
+        })
+        sent_count += 1
     if sent_count:
         logger.info(f"reminder_scheduler: sent {sent_count} reminders")
 

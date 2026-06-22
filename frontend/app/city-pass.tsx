@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,11 +7,26 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useAuth } from '../src/context/AuthContext';
 import { useTr } from '../src/i18n/autoTr';
+import { openWompiCheckout, checkWompiEnabled, notConfiguredAlert } from '../src/lib/wompi';
 
 type Plan = {
   plan_id: string; name: string; price: number; currency: string;
   duration_days: number; color: string; benefits: string[];
 };
+
+/** Safe date parser: returns null on null/empty/garbage, valid Date otherwise */
+function safeDateParse(v: unknown): Date | null {
+  if (v == null || v === '') return null;
+  const d = new Date(v as string);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/** Format a date value safely — returns 'Fecha no disponible' on bad input */
+function safeFormatDate(v: unknown): string {
+  const d = safeDateParse(v);
+  if (!d) return 'Fecha no disponible';
+  return d.toLocaleDateString('es-CO');
+}
 
 export default function CityPassScreen() {
   const tr = useTr();
@@ -21,6 +36,8 @@ export default function CityPassScreen() {
   const [myPass, setMyPass] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activating, setActivating] = useState<string | null>(null);
+  const [paySheetVisible, setPaySheetVisible] = useState(false);
+  const [payPlan, setPayPlan] = useState<Plan | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -29,7 +46,8 @@ export default function CityPassScreen() {
         setPlans(p);
         if (user) {
           const mp = await api.get('/city-pass/mine').catch(() => null);
-          setMyPass(mp);
+          // Static mode returns [] — treat empty array and non-object as null (no active pass)
+          setMyPass(mp && !Array.isArray(mp) && typeof mp === 'object' && mp.plan_id ? mp : null);
         }
       } catch (e) { console.error(e); }
       setLoading(false);
@@ -37,20 +55,35 @@ export default function CityPassScreen() {
     load();
   }, [user]);
 
+  const [activating, setActivating] = useState(false);
+
   const activatePass = async (planId: string) => {
-    if (!user) { login(); return; }
-    setActivating(planId);
+    if (activating) return;
+    setActivating(true);
     try {
-      const res = await api.post('/city-pass/activate', { plan_id: planId });
-      if (res.pass) {
-        setMyPass(res.pass);
-        Alert.alert('City Pass Activado', 'Tu City Pass está listo. Disfruta Cartagena con beneficios exclusivos.');
+      const wompi = await checkWompiEnabled();
+      if (!wompi.enabled) {
+        notConfiguredAlert();
+        return;
       }
-    } catch (e) {
-      // Graceful fallback — show success even if API is unavailable
-      Alert.alert('City Pass', 'Tu solicitud ha sido registrada. Te notificaremos cuando esté activo.');
+      const res = await api.post('/payments/wompi/city-pass', { plan_id: planId });
+      if (res.checkout_url && res.reference) {
+        const result = await openWompiCheckout(res.checkout_url, res.reference);
+        if (result.status === 'approved') {
+          Alert.alert('¡Listo!', 'Tu City Pass está activo. ¡Disfruta Cartagena!');
+          const pass = await api.get('/city-pass/mine');
+          setMyPass(pass);
+        } else if (result.status === 'declined') {
+          Alert.alert('Pago rechazado', 'Intenta con otro método de pago.');
+        } else if (result.status !== 'pending') {
+          Alert.alert('Pago', `Estado: ${result.status}`);
+        }
+      }
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'No se pudo procesar el pago');
+    } finally {
+      setActivating(false);
     }
-    setActivating(null);
   };
 
   const formatPrice = (p: number) => `$${(p / 1000).toFixed(0)}K COP`;
@@ -74,9 +107,9 @@ export default function CityPassScreen() {
           <View style={styles.activePassSection}>
             <View style={[styles.activePassCard, { borderColor: COLORS.primary }]}>
               <Ionicons name="shield-checkmark" size={40} color={COLORS.primary} />
-              <Text style={styles.activeTitle}>Pass Activo</Text>
+              <Text style={styles.activeTitle}>Pass Activo · Demo</Text>
               <Text style={styles.activePlan}>{plans.find(p => p.plan_id === myPass.plan_id)?.name || myPass.plan_id}</Text>
-              <Text style={styles.activeExpiry}>Válido hasta: {new Date(myPass.expires_at).toLocaleDateString('es-CO')}</Text>
+              <Text style={styles.activeExpiry}>Válido hasta: {safeFormatDate(myPass.expires_at)}</Text>
               <View style={styles.activeBenefits}>
                 {(plans.find(p => p.plan_id === myPass.plan_id)?.benefits || []).map((b, i) => (
                   <View key={i} style={styles.benefitRow}>
@@ -123,11 +156,11 @@ export default function CityPassScreen() {
                   onPress={() => activatePass(plan.plan_id)}
                   disabled={!!activating}
                 >
-                  {activating === plan.plan_id ? (
+                  {activating ? (
                     <ActivityIndicator size="small" color={COLORS.white} />
                   ) : (
                     <Text style={styles.activateText}>
-                      {user ? 'Activar Pass' : 'Inicia sesión para activar'}
+                      {tr('Activar')} · {formatPrice(plan.price)}
                     </Text>
                   )}
                 </TouchableOpacity>
@@ -137,6 +170,29 @@ export default function CityPassScreen() {
         )}
         <View style={{ height: SPACING.xxl }} />
       </ScrollView>
+
+      {/* Payment simulation sheet */}
+      <PaymentSheet
+        visible={paySheetVisible}
+        onClose={() => setPaySheetVisible(false)}
+        amount={payPlan?.price || 100000}
+        currency="COP"
+        meta={{ type: 'city-pass', plan_id: payPlan?.plan_id || '', plan_name: payPlan?.name || '' }}
+        title="Simular activación — City Pass"
+        onSuccess={(result: PaymentResult) => {
+          setPaySheetVisible(false);
+          if (result.success && payPlan) {
+            setMyPass({
+              plan_id: payPlan.plan_id,
+              plan_name: payPlan.name,
+              status: 'active',
+              activated_at: new Date().toISOString(),
+              expires_at: new Date(Date.now() + payPlan.duration_days * 86400000).toISOString(),
+            });
+            Alert.alert('City Pass activado', `Tu ${payPlan.name} está activo.`);
+          }
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -160,8 +216,10 @@ const styles = StyleSheet.create({
   benefitsList: { paddingHorizontal: SPACING.lg, paddingBottom: SPACING.sm, gap: 8 },
   benefitRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
   benefitText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, flex: 1 },
-  activateBtn: { marginHorizontal: SPACING.lg, marginBottom: SPACING.lg, borderRadius: RADIUS.full, paddingVertical: 14, alignItems: 'center' },
+  activateBtn: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, borderRadius: RADIUS.full, paddingVertical: 14, alignItems: 'center' },
   activateText: { fontSize: 15, color: COLORS.white, ...FONTS.bold },
+  simActivateBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, marginHorizontal: SPACING.lg, marginBottom: SPACING.lg, borderRadius: RADIUS.full, paddingVertical: 12, borderWidth: 1, borderColor: COLORS.primary, backgroundColor: 'rgba(212,175,55,0.08)' },
+  simActivateText: { fontSize: 14, color: COLORS.primary, ...FONTS.semibold },
   activePassSection: { padding: SPACING.lg },
   activePassCard: { borderRadius: RADIUS.xl, borderWidth: 2, padding: SPACING.xl, alignItems: 'center', gap: SPACING.sm, backgroundColor: COLORS.surface },
   activeTitle: { fontSize: 14, color: COLORS.primary, ...FONTS.bold, letterSpacing: 2, textTransform: 'uppercase' },

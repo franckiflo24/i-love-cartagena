@@ -1,0 +1,111 @@
+[
+  {
+    "transport_id": "trn_001",
+    "type": "boat",
+    "route": "Muelle Turístico → Islas del Rosario",
+    "schedule": [
+      {
+        "departure": "08:00",
+        "arrival": "09:30",
+        "notes": "Primera salida"
+      },
+      {
+        "departure": "09:30",
+        "arrival": "11:00",
+        "notes": "Segunda salida"
+      },
+      {
+        "departure": "10:30",
+        "arrival": "12:00",
+        "notes": "Última salida mañana"
+      }
+    ],
+    "departure_point": "Muelle Turístico de la Bodeguita",
+    "departure_location": {
+      "lat": 10.42,
+      "lng": -75.55
+    },
+    "price": "80,000 COP por persona ida y vuelta",
+    "notes": "Llevar protector solar. Regreso última lancha 16:00.",
+    "partner_name": "Transporte Oficial Amo Cartagena",
+    "last_return": "16:00"
+  },
+  {
+    "transport_id": "trn_002",
+    "type": "boat",
+    "route": "Muelle Turístico → Isla Barú (Playa Blanca)",
+    "schedule": [
+      {
+        "departure": "08:30",
+        "arrival": "09:30",
+        "notes": "Servicio directo"
+      },
+      {
+        "departure": "10:00",
+        "arrival": "11:00",
+        "notes": "Segunda salida"
+      }
+    ],
+    "departure_point": "Muelle Turístico de la Bodeguita",
+    "departure_location": {
+      "lat": 10.42,
+      "lng": -75.55
+    },
+    "price": "60,000 COP por persona ida y vuelta",
+    "notes": "Regreso última lancha 17:00. Incluye chaleco salvavidas.",
+    "partner_name": "Lanchas Amo Cartagena",
+    "last_return": "17:00"
+  },
+  {
+    "transport_id": "trn_003",
+    "departure_location": {
+      "lat": 10.4188,
+      "lng": -75.5523
+    },
+    "description": "Servicio de taxi boat regular conectando Muelle de la Bodeguita, Manga y Bocagrande. Ideal para evitar el tráfico y disfrutar la bahía.",
+    "duration": "10–15 min entre paradas",
+    "instructions": "Aborde en cualquiera de las 3 paradas. Pague online y muestre el QR al capitán para evitar fila en el muelle.",
+    "partner": "Taxi Boat Cartagena",
+    "phone": "+57 300 000 0000",
+    "price": "15,000 COP por trayecto / 25,000 COP ida y vuelta",
+    "route_name": "Taxi Boat — Muelle Bodeguita / Manga / Bocagrande",
+    "schedule": [
+      {
+        "time": "07:00",
+        "destination": "Bodeguita → Manga → Bocagrande",
+        "note": "Primer servicio"
+      },
+      {
+        "time": "Cada 30 min",
+        "destination": "Loop continuo",
+        "note": "Frecuencia diurna"
+      },
+      {
+        "time": "22:00",
+        "destination": "Último servicio",
+        "note": "Cierre del día"
+      }
+    ],
+    "stops": [
+      {
+        "name": "Muelle Bodeguita",
+        "lat": 10.4188,
+        "lng": -75.5523,
+        "zone": "Centro"
+      },
+      {
+        "name": "Manga (Muelle Pegaso)",
+        "lat": 10.4108,
+        "lng": -75.538,
+        "zone": "Manga"
+      },
+      {
+        "name": "Bocagrande (Muelle La Bodeguita BG)",
+        "lat": 10.4019,
+        "lng": -75.555,
+        "zone": "Bocagrande"
+      }
+    ],
+    "type": "boat"
+  }
+]

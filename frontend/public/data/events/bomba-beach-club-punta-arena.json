@@ -1,0 +1,51 @@
+{
+  "id": "evt_bomba_beach",
+  "slug": "bomba-beach-club-punta-arena",
+  "name_es": "Bomba Beach Club — Playa y Piscina en Punta Arena",
+  "name_en": "Bomba Beach Club — Beach & Pool at Punta Arena",
+  "title": "Bomba Beach Club — Playa y Piscina en Punta Arena",
+  "event_id": "bomba-beach-club-punta-arena",
+  "category": "nightlife",
+  "type": "nightlife",
+  "venue": "Bomba Beach Club",
+  "venue_name": "Bomba Beach Club",
+  "neighborhood": "islas",
+  "date_start": "2026-06-18",
+  "date": "2026-06-18",
+  "date_end": "2027-04-30",
+  "time_start": "09:00",
+  "start_time": "09:00",
+  "is_free": false,
+  "price": 150000,
+  "price_min_cop": 100000,
+  "price_max_cop": 250000,
+  "ticket_url": "https://www.bombabeachcartagena.com/club-de-playa/",
+  "organizer": "Bomba Beach Club",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNIZlOnaznE78DLXNCWhJPaR9gdHMEd1ga180XG0qihjBeHxvOKZC93K5XwbFpjFMBRJNG_kEfDzG2uny4wZuQm0e6mk3UV6vp_tqxd5GSxfc_usikU5XsP3smo5zdh29sxjascQk8SFiKInw=s1600-w800",
+  "description": "Club de playa en Punta Arena, Tierra Bomba, a 15 minutos en lancha desde La Bodeguita. Bar, restaurante, camas colgantes, piscinas y canchas de voleibol. Cocteleria, jugos frescos, mariscos y comida colombiana. Vista espectacular hacia Cartagena.",
+  "description_en": "Beach club at Punta Arena, Tierra Bomba, 15 minutes by speedboat from La Bodeguita Pier. Bar, restaurant, hanging beds, pools, and volleyball courts. Cocktails, fresh juices, seafood, and Colombian food. Spectacular view toward Cartagena.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "daily",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-17",
+  "source": [
+    "https://www.bombabeachcartagena.com/club-de-playa/"
+  ],
+  "confidence": "high",
+  "tags": [
+    "beach-club",
+    "island",
+    "tierra-bomba",
+    "pool",
+    "daily"
+  ],
+  "featured": false,
+  "capacity": 200,
+  "location": {
+    "lat": 10.363,
+    "lng": -75.573
+  },
+  "end_time": "17:00",
+  "image_source": "category"
+}

@@ -1,0 +1,51 @@
+{
+  "id": "evt_salsa_plaza_2026",
+  "slug": "salsa-a-la-plaza-cartagena-2026",
+  "name_es": "Salsa a la Plaza — Plazoleta del Joe Arroyo",
+  "name_en": "Salsa in the Square — Joe Arroyo Plaza",
+  "title": "Salsa a la Plaza — Plazoleta del Joe Arroyo",
+  "event_id": "salsa-a-la-plaza-cartagena-2026",
+  "category": "cultural",
+  "type": "cultural",
+  "venue": "Plazoleta Joe Arroyo",
+  "venue_name": "Plazoleta Joe Arroyo",
+  "neighborhood": "centro",
+  "date_start": "2026-11-11",
+  "date": "2026-11-11",
+  "date_end": "2026-11-11",
+  "time_start": "15:00",
+  "start_time": "15:00",
+  "is_free": true,
+  "price": 0,
+  "price_min_cop": 0,
+  "price_max_cop": 0,
+  "ticket_url": null,
+  "organizer": "Comite para la Revitalizacion de las Fiestas / IPCC",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNReoYZqYfHPKSYt66t54QVipXb7m-EjO7W_t1pf9nMrS3r8hWoqgJJG0-OmGhipICWI_QpmoLIzmRANafJmvxhpVjc0YpDi0km_0U4uwEfluhi34ia8XXymZrkh_SHU4iv3YkMEoIQBb4Vmg=s1600-w800",
+  "description": "Encuentro cultural de salsa en la plaza que honra al legendario Joe Arroyo. Mas de 10 orquestas y agrupaciones de salsa rinden homenaje al genero caribeno por excelencia. Evento gratuito como parte de las celebraciones del Dia de la Independencia.",
+  "description_en": "Cultural salsa gathering at the plaza honoring the legendary Joe Arroyo. Over 10 salsa orchestras and groups pay tribute to the quintessential Caribbean genre. Free event as part of Independence Day celebrations.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 10000,
+  "last_verified_date": "2026-06-17",
+  "source": [
+    "https://www.cartagena.gov.co/noticias/cartagena-asistio-masivamente-salsa-plaza"
+  ],
+  "confidence": "high",
+  "tags": [
+    "salsa",
+    "free",
+    "cultural",
+    "independence",
+    "live-music"
+  ],
+  "featured": false,
+  "capacity": 10000,
+  "location": {
+    "lat": 10.423,
+    "lng": -75.547
+  },
+  "end_time": "22:00",
+  "image_source": "category"
+}

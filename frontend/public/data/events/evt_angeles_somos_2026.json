@@ -1,0 +1,49 @@
+{
+  "id": "evt_angeles_somos_2026",
+  "slug": "angeles-somos-cartagena-2026",
+  "name_es": "Angeles Somos — Tradicion de Noviembre",
+  "name_en": "Angeles Somos — November Tradition",
+  "title": "Angeles Somos — Tradicion de Noviembre",
+  "event_id": "angeles-somos-cartagena-2026",
+  "category": "cultural",
+  "type": "cultural",
+  "venue": "Calles del Centro Historico",
+  "venue_name": "Centro Historico",
+  "neighborhood": "centro",
+  "date_start": "2026-11-01",
+  "date": "2026-11-01",
+  "date_end": "2026-11-01",
+  "time_start": "17:00",
+  "start_time": "17:00",
+  "is_free": true,
+  "price": 0,
+  "price_min_cop": null,
+  "price_max_cop": null,
+  "ticket_url": null,
+  "organizer": "IPCC / Alcaldia de Cartagena",
+  "image_url": "https://images.unsplash.com/photo-1513407030348-c983a97b98d8?w=800",
+  "description": "Tradicion cartagenera donde ninos y jovenes salen disfrazados de angeles, santos y virgenes por las calles del Centro Historico cantando y pidiendo dulces. Marca el inicio informal del mes de noviembre festivo.",
+  "description_en": "Cartagena tradition where children and youth dress as angels, saints, and virgins, singing and asking for sweets through the Historic Center streets. Marks the informal start of the festive November month.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 15000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.cartagenaexplorer.com/programacion-de-fiestas-noviembre-cartagena-2026/"
+  ],
+  "confidence": "high",
+  "tags": [
+    "tradition",
+    "children",
+    "free",
+    "cultural",
+    "november"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5483
+  },
+  "end_time": ""
+}

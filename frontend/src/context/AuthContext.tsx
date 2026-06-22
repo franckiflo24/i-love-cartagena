@@ -35,6 +35,7 @@ type User = {
   email: string;
   name: string;
   picture?: string;
+  is_admin?: boolean;
 };
 
 type AuthContextType = {
@@ -117,8 +118,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
       }
     } catch {
-      const cached = await AsyncStorage.getItem('user_data');
-      if (cached) setUser(JSON.parse(cached));
+      try {
+        const cached = await AsyncStorage.getItem('user_data');
+        if (cached) setUser(JSON.parse(cached));
+      } catch {}
     } finally {
       setIsLoading(false);
     }

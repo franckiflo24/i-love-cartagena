@@ -1,0 +1,30 @@
+{
+  "partner_id": "ptr_beauty_0535",
+  "name": "Yeyanailscartagena",
+  "category": "beauty",
+  "subcategory": "nails",
+  "description": "Yeyanailscartagena — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Ucopin urbanizacion los cocos # 23-14, Ucopin, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.3992664,
+    "lng": -75.4692752
+  },
+  "phone": "+573146572279",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOpfR2mwSG8S3N0Z_o4weMxVJdLlB8DRKiqmVxIhaxkonXsi-Tx7YmTBjiNdcLfMV01Cn92qdyYXllhhBveqXGsvWMyNeJecsYQ9wn3jgtac_-JIVy002fi2_hGmamo_XOj8g5A4SxCTcyuK8OV4A5lfg=s4800-w1200",
+  "instagram": "",
+  "booking_link": "https://yeya-nails-cartagena.webnode.page/servicios/",
+  "rating": 5,
+  "reviews": 50,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 7:00 AM – 6:00 PM; Tuesday: 7:00 AM – 6:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

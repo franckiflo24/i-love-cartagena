@@ -10,6 +10,9 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useFavorites } from '../src/context/FavoritesContext';
 import { useTr } from '../src/i18n/autoTr';
+import { SafeImage } from '../src/components/SafeImage';
+import PaymentSheet from '../src/components/PaymentSheet';
+import type { PaymentResult } from '../src/lib/payments';
 
 type Concert = {
   concert_id: string; artist: string; title: string; genre: string;
@@ -82,6 +85,8 @@ export default function ConcertsScreen() {
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [paySheetVisible, setPaySheetVisible] = useState(false);
+  const [payConcert, setPayConcert] = useState<Concert | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -100,10 +105,18 @@ export default function ConcertsScreen() {
     load();
   }, []);
 
+  const todayStr = new Date().toISOString().slice(0, 10);
+
   const filteredConcerts = concerts.filter(c => {
     if (selectedDate && c.date !== selectedDate) return false;
     if (selectedGenre && !c.genre.toLowerCase().includes(selectedGenre.toLowerCase())) return false;
     return true;
+  }).sort((a, b) => {
+    // Upcoming first, past last
+    const aPast = a.date < todayStr ? 1 : 0;
+    const bPast = b.date < todayStr ? 1 : 0;
+    if (aPast !== bPast) return aPast - bPast;
+    return a.date.localeCompare(b.date);
   });
 
   const openTicketLink = (url: string) => {
@@ -197,15 +210,22 @@ export default function ConcertsScreen() {
           filteredConcerts.map(concert => {
             const isExpanded = expanded === concert.concert_id;
             const genreColor = getGenreColor(concert.genre);
+            const isPast = concert.date < todayStr;
             return (
               <TouchableOpacity
                 key={concert.concert_id}
-                style={styles.concertCard}
+                style={[styles.concertCard, isPast && { opacity: 0.6 }]}
                 onPress={() => setExpanded(isExpanded ? null : concert.concert_id)}
                 activeOpacity={0.85}
               >
                 {/* Image */}
-                <Image source={{ uri: concert.image_url }} style={styles.concertImage} />
+                <SafeImage uri={concert.image_url} category="concert" style={styles.concertImage} />
+                {isPast && (
+                  <View style={styles.pastBadge}>
+                    <Ionicons name="time-outline" size={11} color="#FFF" />
+                    <Text style={styles.pastBadgeText}>Finalizado</Text>
+                  </View>
+                )}
                 <View style={styles.imageOverlay} />
 
                 {/* Price Badge */}
@@ -315,6 +335,18 @@ export default function ConcertsScreen() {
                         <Text style={styles.ticketBtnText}>{tr('Entrada libre')}</Text>
                       </View>
                     )}
+
+                    {/* Simulate purchase (paid concerts only) */}
+                    {!concert.is_free && (
+                      <TouchableOpacity
+                        style={styles.simPurchaseBtn}
+                        onPress={() => { setPayConcert(concert); setPaySheetVisible(true); }}
+                        activeOpacity={0.85}
+                      >
+                        <Ionicons name="flask" size={16} color={COLORS.primary} />
+                        <Text style={styles.simPurchaseText}>Simular compra</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 )}
               </TouchableOpacity>
@@ -322,6 +354,16 @@ export default function ConcertsScreen() {
           })
         )}
       </ScrollView>
+
+      {/* Payment simulation sheet */}
+      <PaymentSheet
+        visible={paySheetVisible}
+        onClose={() => setPaySheetVisible(false)}
+        amount={payConcert?.price || 50000}
+        currency="COP"
+        meta={{ type: 'concert', concert_id: payConcert?.concert_id || '', artist: payConcert?.artist || '' }}
+        title="Simular compra — Concierto"
+      />
     </SafeAreaView>
   );
 }
@@ -402,7 +444,13 @@ const styles = StyleSheet.create({
   locationCta: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: `${COLORS.primary}10`, paddingHorizontal: 12, paddingVertical: 10, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: `${COLORS.primary}25` },
   locationCtaText: { flex: 1, fontSize: 13, color: COLORS.primary, ...FONTS.semibold },
 
+  // Simulate purchase
+  simPurchaseBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, paddingVertical: 12, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary, backgroundColor: 'rgba(212,175,55,0.08)', marginTop: 4 },
+  simPurchaseText: { fontSize: 14, color: COLORS.primary, ...FONTS.semibold },
+
   // Empty
+  pastBadge: { position: 'absolute', top: 12, left: 60, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4, zIndex: 3 },
+  pastBadgeText: { fontSize: 10, color: '#FFF', ...FONTS.bold, letterSpacing: 0.5 },
   emptyState: { alignItems: 'center', paddingTop: 80, gap: SPACING.md },
   emptyText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular },
 });

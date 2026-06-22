@@ -7,8 +7,6 @@ import os
 import json
 import logging
 import uuid
-import base64
-import tempfile
 
 logger = logging.getLogger(__name__)
 

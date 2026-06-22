@@ -1,0 +1,51 @@
+{
+  "id": "evt_expoferia_2027",
+  "slug": "expoferia-cartagena-2027",
+  "name_es": "Expoferia Cartagena 2027 — Vitrina Comercial",
+  "name_en": "Expoferia Cartagena 2027 — Commercial Showcase",
+  "title": "Expoferia Cartagena 2027",
+  "event_id": "expoferia-cartagena-2027",
+  "category": "market",
+  "type": "market",
+  "venue": "Plaza de la Proclamacion",
+  "venue_name": "Plaza de la Proclamacion, Centro Historico",
+  "neighborhood": "centro",
+  "date_start": "2027-01-15",
+  "date": "2027-01-15",
+  "date_end": "2027-02-01",
+  "time_start": "10:00",
+  "start_time": "10:00",
+  "is_free": true,
+  "price": 0,
+  "price_min_cop": 0,
+  "price_max_cop": 0,
+  "ticket_url": null,
+  "organizer": "Camara de Comercio de Cartagena",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZP7SFEmgOQ0LqoBlGfbbIe4WXG-2vBxmR1PDTbZ1LQxWCEGakoEoy_NKtjO2P7iH4ohTIC9Dl7FyCTBLiIV37dd-UuGCy9esTsjjabNEMTeSrM_obXxNwFpfToFRCKco01cEKcPUi-tPlgYYTc=s1600-w800",
+  "description": "La vitrina comercial mas importante de Cartagena. 18 dias de exposicion con emprendedores locales, artesanias, gastronomia y productos del Caribe colombiano. Entrada libre. Plaza de la Proclamacion.",
+  "description_en": "Cartagena's most important commercial showcase. 18 days of exhibitions with local entrepreneurs, handicrafts, gastronomy, and Colombian Caribbean products. Free entry. Plaza de la Proclamacion.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 100000,
+  "last_verified_date": "2026-06-17",
+  "source": [
+    "https://www.eluniversal.com.co/cartagena/2026/01/31/expoferia-2026-manana-ultimo-dia-de-la-vitrina-comercial-mas-importante-de-cartagena/"
+  ],
+  "confidence": "medium",
+  "tags": [
+    "fair",
+    "market",
+    "shopping",
+    "artisan",
+    "free"
+  ],
+  "featured": false,
+  "capacity": 100000,
+  "location": {
+    "lat": 10.424,
+    "lng": -75.549
+  },
+  "end_time": "20:00",
+  "image_source": "category"
+}

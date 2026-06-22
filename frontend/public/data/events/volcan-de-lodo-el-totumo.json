@@ -1,0 +1,50 @@
+{
+  "id": "evt_volcan_lodo_totumo",
+  "slug": "volcan-de-lodo-el-totumo",
+  "name_es": "Volcan de Lodo El Totumo — Experiencia de Bano de Lodo",
+  "name_en": "El Totumo Mud Volcano — Mud Bath Experience",
+  "title": "Volcan de Lodo El Totumo — Experiencia de Bano de Lodo",
+  "event_id": "volcan-de-lodo-el-totumo",
+  "category": "cultural",
+  "type": "cultural",
+  "venue": "Volcan El Totumo",
+  "venue_name": "Volcan El Totumo",
+  "neighborhood": "afueras",
+  "date_start": "2026-06-18",
+  "date": "2026-06-18",
+  "date_end": "2027-04-30",
+  "time_start": "09:00",
+  "start_time": "09:00",
+  "is_free": false,
+  "price": 150000,
+  "price_min_cop": 95000,
+  "price_max_cop": 240000,
+  "ticket_url": null,
+  "organizer": "Operadores turisticos locales",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOnuU-YpLf2ulwjFZAC-lwweVuRCsFDtDm54igilFc02CGvTXtiuq0QPeYUK3EU9zxS_5lji9oe0ew6moUay75lDoifsH8T6o2_Scg_sH8FYCTJ061EfQP-9MA2CJxTuI2VdgI7nFMltktujg=s1600-w800",
+  "description": "Visita al volcan de lodo activo donde puedes flotar en lodo volcanico con supuestas propiedades curativas. A 45 minutos de Cartagena. Tours diarios desde COP $95.000 (basico) hasta COP $240.000 (con beach club). Incluye transporte, entrada, almuerzo tipico y playa de Manzanillo.",
+  "description_en": "Visit the active mud volcano where you can float in volcanic mud said to have healing properties. 45 minutes from Cartagena. Daily tours from COP $95,000 (basic) to COP $240,000 (with beach club). Includes transport, entrance, typical lunch, and Manzanillo beach.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "weekly",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-17",
+  "source": [
+    "https://www.machupicchu.org/cartagena-travel-guide-2026-best-things-to-do-in-colombias-caribbean-gem.htm"
+  ],
+  "confidence": "high",
+  "tags": [
+    "nature",
+    "volcano",
+    "mud-bath",
+    "tour",
+    "daily"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.706,
+    "lng": -75.234
+  },
+  "end_time": "",
+  "image_source": "google_places_specific"
+}

@@ -1,0 +1,51 @@
+{
+  "id": "evt_hay_2027",
+  "slug": "hay-festival-cartagena-2027",
+  "name_es": "Hay Festival Cartagena 2027",
+  "name_en": "Hay Festival Cartagena 2027",
+  "title": "Hay Festival Cartagena 2027",
+  "event_id": "hay-festival-cartagena-2027",
+  "category": "cultural",
+  "type": "cultural",
+  "venue": "Teatro Adolfo Mejia / Centro de Convenciones / Multiples sedes",
+  "venue_name": "Teatro Adolfo Mejia & Multiple Venues",
+  "neighborhood": "centro",
+  "date_start": "2027-01-28",
+  "date": "2027-01-28",
+  "date_end": "2027-01-31",
+  "time_start": "10:00",
+  "start_time": "10:00",
+  "is_free": false,
+  "price": 30000,
+  "price_min_cop": 0,
+  "price_max_cop": 120000,
+  "ticket_url": "https://www.hayfestival.com/cartagena/tickets",
+  "organizer": "Hay Festival Foundation",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNReoYZqYfHPKSYt66t54QVipXb7m-EjO7W_t1pf9nMrS3r8hWoqgJJG0-OmGhipICWI_QpmoLIzmRANafJmvxhpVjc0YpDi0km_0U4uwEfluhi34ia8XXymZrkh_SHU4iv3YkMEoIQBb4Vmg=s1600-w800",
+  "description": "El festival literario mas importante de Latinoamerica. Mas de 180 participantes de 25 paises: literatura, musica, periodismo, filosofia, cine y teatro. 20% de boletas gratuitas para estudiantes universitarios. Boletas desde COP $60.000 por conversacion. Disponibles a partir de noviembre 2026.",
+  "description_en": "Latin America's most important literary festival. Over 180 participants from 25 countries: literature, music, journalism, philosophy, film, and theater. 20% of tickets free for university students. Tickets from approx COP $60,000 per conversation. Available from November 2026.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 40000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.hayfestival.com/cartagena/home",
+    "https://www.hayfestival.com/cartagena/tickets"
+  ],
+  "confidence": "high",
+  "tags": [
+    "literary",
+    "culture",
+    "books",
+    "talks",
+    "international"
+  ],
+  "featured": true,
+  "location": {
+    "lat": 10.426,
+    "lng": -75.549
+  },
+  "end_time": "",
+  "image_source": "category"
+}

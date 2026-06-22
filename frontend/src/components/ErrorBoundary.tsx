@@ -20,6 +20,8 @@ export default class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
+    // Log to console for debugging — never show to user
+    console.error('[ErrorBoundary]', error?.message, error?.stack?.slice(0, 2000));
     // Best-effort backend report. Never crash the boundary itself.
     try {
       api.post('/feedback', {
@@ -45,9 +47,16 @@ export default class ErrorBoundary extends React.Component<Props, State> {
           <Text style={styles.subtitle}>
             Tuvimos un problema mostrando esta pantalla. Ya enviamos un reporte automático al equipo.
           </Text>
-          <ScrollView style={styles.errorBox} contentContainerStyle={{ padding: SPACING.sm }}>
-            <Text style={styles.errorText}>{this.state.error?.message || 'Error desconocido'}</Text>
-          </ScrollView>
+          <TouchableOpacity style={styles.homeBtn} onPress={() => {
+            if (typeof window !== 'undefined') {
+              window.location.href = '/'; // page reload resets state
+            } else {
+              this.reset(); // native only
+            }
+          }} activeOpacity={0.85}>
+            <Ionicons name="home" size={16} color={COLORS.textMain} />
+            <Text style={styles.homeBtnText}>Volver al inicio</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.cta} onPress={this.reset} activeOpacity={0.85}>
             <Ionicons name="refresh" size={16} color="#FFF" />
             <Text style={styles.ctaText}>Reintentar</Text>
@@ -64,8 +73,8 @@ const styles = StyleSheet.create({
   iconWrap: { width: 88, height: 88, borderRadius: 44, backgroundColor: 'rgba(217,119,6,0.12)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(217,119,6,0.3)' },
   title: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
   subtitle: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 20 },
-  errorBox: { maxHeight: 120, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, width: '100%' },
-  errorText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, fontFamily: 'monospace' },
+  homeBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.surface, paddingVertical: 11, paddingHorizontal: 24, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border },
+  homeBtnText: { fontSize: 14, color: COLORS.textMain, ...FONTS.medium },
   cta: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.primary, paddingVertical: 13, paddingHorizontal: 30, borderRadius: RADIUS.full },
   ctaText: { fontSize: 15, color: '#FFF', ...FONTS.bold },
 });

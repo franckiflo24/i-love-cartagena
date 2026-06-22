@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator, Dimensions, Image,
+  ActivityIndicator, Dimensions,
 } from 'react-native';
+import { SafeImage } from '@/src/components/SafeImage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -95,8 +96,9 @@ export default function ExperienceDetailScreen() {
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 100 }}>
         {/* Hero Image */}
         <View style={styles.heroContainer}>
-          <Image
-            source={{ uri: experience.image_url || getCategoryImage(experience.category) }}
+          <SafeImage
+            uri={experience.image_url}
+            category={experience.category}
             style={styles.heroImage}
           />
           <LinearGradient
@@ -133,7 +135,7 @@ export default function ExperienceDetailScreen() {
           {rating > 0 && (
             <View style={styles.ratingRow}>
               <Ionicons name="star" size={16} color={COLORS.primary} />
-              <Text style={styles.ratingText}>{rating.toFixed(1)}</Text>
+              <Text style={styles.ratingText}>{(rating || 0).toFixed(1)}</Text>
               <Text style={styles.reviewCountText}>({reviewCount} reviews)</Text>
             </View>
           )}

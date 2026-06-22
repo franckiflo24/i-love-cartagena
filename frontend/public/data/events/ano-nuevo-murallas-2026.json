@@ -1,0 +1,49 @@
+{
+  "id": "evt_ano_nuevo_2026",
+  "slug": "ano-nuevo-murallas-2026",
+  "name_es": "Ano Nuevo en las Murallas",
+  "name_en": "New Year's Eve on the City Walls",
+  "title": "Ano Nuevo en las Murallas",
+  "event_id": "ano-nuevo-murallas-2026",
+  "category": "festival",
+  "type": "festival",
+  "venue": "Murallas de Cartagena / Baluarte de Santo Domingo",
+  "venue_name": "Murallas de Cartagena",
+  "neighborhood": "centro",
+  "date_start": "2026-12-31",
+  "date": "2026-12-31",
+  "date_end": "2027-01-01",
+  "time_start": "22:00",
+  "start_time": "22:00",
+  "is_free": true,
+  "price": 0,
+  "price_min_cop": null,
+  "price_max_cop": null,
+  "ticket_url": null,
+  "organizer": "Alcaldia de Cartagena",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNbzQ4kYi2k0dY000o1BctMCzUgOdnumwGQ1bEhz1ytRHF1DlCICYntWuLsTCwCscU12xzW33EaicZNoPa5nYw8hIUOVpZK3C9XhvxPmVPi9as4ACfvw3mmZ5wU1qwhXRCmbzzmE68rnqc-=s1600-w800",
+  "description": "Celebracion de Ano Nuevo sobre las murallas coloniales. Fuegos artificiales sobre la bahia, musica en vivo, champeta y fiesta colectiva con vista al Caribe. Tradicion de las 12 uvas.",
+  "description_en": "New Year's Eve celebration on the colonial walls. Fireworks over the bay, live music, champeta, and a massive communal party overlooking the Caribbean. Tradition of the 12 grapes.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 200000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://two.travel/new-year-s-eve-in-cartagena/"
+  ],
+  "confidence": "high",
+  "tags": [
+    "new-years",
+    "fireworks",
+    "free",
+    "party"
+  ],
+  "featured": true,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5483
+  },
+  "end_time": "",
+  "image_source": "landmark"
+}

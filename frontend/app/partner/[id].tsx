@@ -9,6 +9,7 @@ import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
 import ReviewsList from '../../src/components/ReviewsList';
+import { SkeletonPartnerDetail } from '../../src/components/Skeleton';
 import { useLang } from '../../src/context/LanguageContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
@@ -45,7 +46,11 @@ export default function PartnerDetail() {
   useEffect(() => { loadPartner(); }, [id]);
 
   if (loading) {
-    return <SafeAreaView style={styles.container}><ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} /></SafeAreaView>;
+    return (
+      <SafeAreaView style={styles.container}>
+        <SkeletonPartnerDetail />
+      </SafeAreaView>
+    );
   }
 
   if (error || !partner) {
@@ -162,7 +167,8 @@ export default function PartnerDetail() {
 
   const handleShare = async () => {
     const cat = PARTNER_CATEGORY_LABELS[partner.category] || partner.category || '';
-    const url = `https://dist-ten-omega-67.vercel.app/partner/${partner.partner_id}`;
+    const appUrl = process.env.EXPO_PUBLIC_APP_URL || 'https://amocartagena.co';
+    const url = `${appUrl}/partner/${partner.partner_id}`;
     try {
       await Share.share({
         message: `${partner.name} — ${cat} ${tr('en Cartagena')}\n${partner.rating ? `⭐ ${Number(partner.rating).toFixed(1)}` : ''} ${partner.price_range || ''}\n\n${partner.description || ''}\n\n${url}`,
@@ -230,7 +236,7 @@ export default function PartnerDetail() {
           <View style={styles.heroBottom}>
             <View style={styles.heroBadgeRow}>
               <View style={styles.catBadge}>
-                <Text style={styles.catText}>{PARTNER_CATEGORY_LABELS[partner.category] || partner.category}</Text>
+                <Text style={styles.catText}>{tr(PARTNER_CATEGORY_LABELS[partner.category] || partner.category)}</Text>
               </View>
               <TierBadge tier={partner.tier} size="sm" />
               {partner.rating ? (

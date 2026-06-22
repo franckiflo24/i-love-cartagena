@@ -874,7 +874,13 @@
     "membership_status": "active",
     "membership_tier": "elite",
     "membership_plan": "free",
-    "hours": "Mar-Dom 17:00 - 03:00"
+    "hours": "Mar-Dom 17:00 - 03:00",
+    "signature_dishes": [
+      "Yuca (ron, té verde, jerez, feijoa y tintura de yuca)",
+      "Ajonjolí (whisky, pasta de ajonjolí, naranja y zanahoria)",
+      "Salitre (ron de jengibre, sal de rosas y lima tahitiana)",
+      "Coco ahumado"
+    ]
   },
   {
     "partner_id": "ptr_V002",
@@ -902,7 +908,13 @@
     "membership_status": "active",
     "membership_tier": "premium",
     "membership_plan": "free",
-    "hours": "Mar-Dom 17:00 - 03:00"
+    "hours": "Mar-Dom 17:00 - 03:00",
+    "signature_dishes": [
+      "Rosarito (mezcal, cilantro, piña y bitters)",
+      "El Alacrán (cóctel picante de la casa)",
+      "Mojito Providencia",
+      "Cucumis Sour"
+    ]
   },
   {
     "partner_id": "ptr_V003",
@@ -1014,7 +1026,13 @@
     "membership_status": "active",
     "membership_tier": "elite",
     "membership_plan": "free",
-    "hours": "Mar-Dom 17:00 - 03:00"
+    "hours": "Mar-Dom 17:00 - 03:00",
+    "signature_dishes": [
+      "Mojito clásico cubano",
+      "Mojito de maracuyá",
+      "Cuba Libre con ron colombiano",
+      "Daiquirí de frutas tropicales"
+    ]
   },
   {
     "partner_id": "ptr_V009",
@@ -1070,7 +1088,13 @@
     "membership_status": "active",
     "membership_tier": "premium",
     "membership_plan": "free",
-    "hours": "Lun-Dom 07:00 - 20:00"
+    "hours": "Lun-Dom 07:00 - 20:00",
+    "signature_dishes": [
+      "Café de origen en V60 (Quindío)",
+      "Café en sifón de vacío",
+      "Cold brew de especialidad",
+      "Experiencia de cata de café colombiano"
+    ]
   },
   {
     "partner_id": "ptr_V011",
@@ -1098,7 +1122,13 @@
     "membership_status": "active",
     "membership_tier": "premium",
     "membership_plan": "free",
-    "hours": "Lun-Dom 07:00 - 20:00"
+    "hours": "Lun-Dom 07:00 - 20:00",
+    "signature_dishes": [
+      "Pour-over de origen (variedad Punk)",
+      "Cold brew artesanal",
+      "Avocado toast con huevo",
+      "Croissant de almendra"
+    ]
   },
   {
     "partner_id": "ptr_V012",
@@ -1126,7 +1156,13 @@
     "membership_status": "active",
     "membership_tier": "premium",
     "membership_plan": "free",
-    "hours": "Lun-Dom 07:00 - 20:00"
+    "hours": "Lun-Dom 07:00 - 20:00",
+    "signature_dishes": [
+      "Cold brew por goteo lento",
+      "Cappuccino artesanal",
+      "Latte con leche de avena",
+      "Pastelería del día con lectura"
+    ]
   },
   {
     "partner_id": "ptr_V013",
@@ -1154,7 +1190,13 @@
     "membership_status": "active",
     "membership_tier": "popular",
     "membership_plan": "free",
-    "hours": "Lun-Dom 07:00 - 20:00"
+    "hours": "Lun-Dom 07:00 - 20:00",
+    "signature_dishes": [
+      "Mille-feuille de dulce de leche",
+      "Cheesecake de limón",
+      "Pie de coco artesanal",
+      "Monte Cristo sandwich"
+    ]
   },
   {
     "partner_id": "ptr_V014",
@@ -1238,7 +1280,13 @@
     "membership_status": "active",
     "membership_tier": "popular",
     "membership_plan": "free",
-    "hours": "Lun-Dom 07:00 - 20:00"
+    "hours": "Lun-Dom 07:00 - 20:00",
+    "signature_dishes": [
+      "Sourdough bread artesanal con aguacate",
+      "Bowl de frutas tropicales",
+      "Brunch latino con huevos",
+      "Jugo natural de frutas colombianas"
+    ]
   },
   {
     "partner_id": "ptr_V017",
@@ -2218,7 +2266,13 @@
     "membership_status": "active",
     "membership_tier": "premium",
     "membership_plan": "free",
-    "hours": "Mar-Dom 17:00 - 03:00"
+    "hours": "Mar-Dom 17:00 - 03:00",
+    "signature_dishes": [
+      "Cóctel de la casa con frutas colombianas",
+      "Espresso Martini",
+      "Rum Punch caribeño",
+      "Nachos y sliders para compartir"
+    ]
   },
   {
     "partner_id": "ptr_W112",
@@ -2274,7 +2328,13 @@
     "membership_status": "active",
     "membership_tier": "premium",
     "membership_plan": "free",
-    "hours": "Lun-Dom 07:00 - 20:00"
+    "hours": "Lun-Dom 07:00 - 20:00",
+    "signature_dishes": [
+      "Flat white con granos de Jericó, Antioquia",
+      "Chicken waffles con miel sriracha",
+      "Cold brew de especialidad",
+      "Calentado de brunch"
+    ]
   },
   {
     "partner_id": "ptr_W121",
@@ -2302,7 +2362,13 @@
     "membership_status": "active",
     "membership_tier": "popular",
     "membership_plan": "free",
-    "hours": "Lun-Dom 07:00 - 20:00"
+    "hours": "Lun-Dom 07:00 - 20:00",
+    "signature_dishes": [
+      "Affogato colombiano con helado artesanal",
+      "Caribbean mix frío con coco",
+      "Chemex de origen colombiano",
+      "Carrot cake con sabores locales"
+    ]
   },
   {
     "partner_id": "ptr_W122",
@@ -2330,7 +2396,13 @@
     "membership_status": "active",
     "membership_tier": "premium",
     "membership_plan": "free",
-    "hours": "Lun-Dom 07:00 - 20:00"
+    "hours": "Lun-Dom 07:00 - 20:00",
+    "signature_dishes": [
+      "Chemex honey coffee (café de miel)",
+      "Coffee lemonade (limonada de café)",
+      "Cappuccino con granos de Finca La Manchuria",
+      "Pastelería artesanal del día"
+    ]
   },
   {
     "partner_id": "ptr_W123",
@@ -2358,7 +2430,13 @@
     "membership_status": "active",
     "membership_tier": "popular",
     "membership_plan": "free",
-    "hours": "Lun-Dom 07:00 - 20:00"
+    "hours": "Lun-Dom 07:00 - 20:00",
+    "signature_dishes": [
+      "Cold brew colombiano 100% Supremo",
+      "Espresso Martini",
+      "Ceviche de mezcal",
+      "Tabla de quesos y charcutería artesanal"
+    ]
   },
   {
     "partner_id": "ptr_W130",
@@ -2778,7 +2856,13 @@
     "membership_status": "active",
     "membership_tier": "premium",
     "membership_plan": "free",
-    "hours": "Mar-Dom 17:00 - 03:00"
+    "hours": "Mar-Dom 17:00 - 03:00",
+    "signature_dishes": [
+      "Cóctel de autor con frutas tropicales",
+      "Old Fashioned con ron colombiano",
+      "Margarita de maracuyá ahumada",
+      "Negroni caribeño"
+    ]
   },
   {
     "partner_id": "ptr_X1005",
@@ -4626,7 +4710,13 @@
     "membership_status": "active",
     "membership_tier": "premium",
     "membership_plan": "free",
-    "hours": "Mar-Dom 17:00 - 03:00"
+    "hours": "Mar-Dom 17:00 - 03:00",
+    "signature_dishes": [
+      "Degustación de 8 rones colombianos con chocolate",
+      "Sweet Chilli Julep",
+      "Coconut Cream Dream",
+      "Kennedy Martini con ron añejo"
+    ]
   },
   {
     "partner_id": "ptr_X1083",
@@ -4906,7 +4996,13 @@
     "membership_status": "active",
     "membership_tier": "premium",
     "membership_plan": "free",
-    "hours": "Mar-Dom 17:00 - 03:00"
+    "hours": "Mar-Dom 17:00 - 03:00",
+    "signature_dishes": [
+      "Cóctel de autor con vista al atardecer",
+      "Margarita tropical",
+      "Spritz de maracuyá",
+      "Mojito de la casa"
+    ]
   },
   {
     "partner_id": "ptr_X1100",
@@ -8398,7 +8494,13 @@
     "membership_status": "active",
     "membership_tier": "elite",
     "membership_plan": "free",
-    "hours": "16:00 - 02:00"
+    "hours": "16:00 - 02:00",
+    "signature_dishes": [
+      "Piña Colada cremosa",
+      "Champagne con curazao azul (cóctel de la casa)",
+      "Limonada de coco",
+      "Gin Tonic tropical"
+    ]
   },
   {
     "partner_id": "ptr_W142",
@@ -8455,7 +8557,13 @@
     "membership_tier": "premium",
     "membership_plan": "free",
     "phone": "+573103000705",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Rib Eye Wagyu a la brasa con salsa kabayaki",
+      "Tataki de salmón con ponzu",
+      "Tacos Nikkei de atún",
+      "Tartar de atún con aguacate"
+    ]
   },
   {
     "partner_id": "ptr_R002",
@@ -8542,7 +8650,13 @@
     "membership_tier": "premium",
     "membership_plan": "free",
     "phone": "+573017391510",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Tentación Roll (tempura, queso crema, plátano maduro)",
+      "Sashimi de salmón y atún",
+      "Pulpo a la parrilla estilo nikkei",
+      "Poke bowl de salmón"
+    ]
   },
   {
     "partner_id": "ptr_R005",
@@ -8745,7 +8859,13 @@
     "membership_tier": "premium",
     "membership_plan": "free",
     "phone": "+573159883201",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Arroz con coco y mariscos",
+      "Pargo frito con patacones",
+      "Cazuela de mariscos cartagenera",
+      "Ceviche costeño con chips de plátano"
+    ]
   },
   {
     "partner_id": "ptr_R014",
@@ -8803,7 +8923,13 @@
     "membership_tier": "premium",
     "membership_plan": "free",
     "phone": "+573138738936",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Pescado guisado con arroz de cangrejo",
+      "Langostinos en salsa de coco con arroz de grasa",
+      "Ceviche de pescado en leche de tigre con coco y mango",
+      "Carimanolas y tamales de berenjena"
+    ]
   },
   {
     "partner_id": "ptr_R016",
@@ -8919,7 +9045,13 @@
     "membership_tier": "premium",
     "membership_plan": "free",
     "phone": "+573127148778",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Arroz caldoso de langosta al caribe",
+      "Salmón en salsa de tamarindo",
+      "Carpaccio de pulpo",
+      "Atún a la parrilla"
+    ]
   },
   {
     "partner_id": "ptr_R022",
@@ -8948,7 +9080,13 @@
     "membership_tier": "premium",
     "membership_plan": "free",
     "phone": "+573223061025",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Nachos de langosta y camarón",
+      "Robalo curado con cítricos",
+      "Arroz de mariscos al estilo caribe",
+      "Cheesecake con piña asada y coco"
+    ]
   },
   {
     "partner_id": "ptr_R023",
@@ -8977,7 +9115,13 @@
     "membership_tier": "premium",
     "membership_plan": "free",
     "phone": "+573174333372",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Pulpo al carbón (especialidad de la casa)",
+      "Pescado madurado en seco",
+      "Arroz con pato",
+      "Champús con helado de lulo"
+    ]
   },
   {
     "partner_id": "ptr_R024",
@@ -9064,7 +9208,13 @@
     "membership_tier": "elite",
     "membership_plan": "free",
     "phone": "+573226788400",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Langosta a la parrilla con mantequilla de ajo",
+      "Ceviche de pescado con aguacate y cilantro",
+      "Risotto de mariscos con hierbas frescas",
+      "Tacos de pescado con slaw y chipotle"
+    ]
   },
   {
     "partner_id": "ptr_R027",
@@ -9209,7 +9359,13 @@
     "membership_tier": "popular",
     "membership_plan": "free",
     "phone": "+573148949877",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Ceviche peruano con leche de tigre",
+      "Ceviche de pescado con coco y limón",
+      "Cóctel de camarón con chips de plátano",
+      "Ceviche de camarón con mango"
+    ]
   },
   {
     "partner_id": "ptr_R032",
@@ -9267,7 +9423,13 @@
     "membership_tier": "premium",
     "membership_plan": "free",
     "phone": "+573116704668",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Arroz meloso de mariscos",
+      "Pulpo a la parrilla con gazpacho de sandía",
+      "Dúo marino (pargo fresco y pulpo)",
+      "Costillas en miel de corozo"
+    ]
   },
   {
     "partner_id": "ptr_R041",
@@ -9470,7 +9632,13 @@
     "membership_tier": "elite",
     "membership_plan": "free",
     "phone": "+573148270592",
-    "hours": "Mar-Dom 12:00 - 23:00"
+    "hours": "Mar-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Hummus con pan pita artesanal",
+      "Ensalada mediterránea con queso de cabra",
+      "Filete de res con especias del Medio Oriente",
+      "Cóctel artesanal de la casa"
+    ]
   },
   {
     "partner_id": "ptr_R052",
@@ -9499,7 +9667,13 @@
     "membership_tier": "premium",
     "membership_plan": "free",
     "phone": "+573044082600",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Tostadas de cangrejo",
+      "Beef tartare con chips de plátano",
+      "Ceviche costeño con aguacate",
+      "Cazuela de mariscos"
+    ]
   },
   {
     "partner_id": "ptr_R053",
@@ -9557,7 +9731,13 @@
     "membership_tier": "premium",
     "membership_plan": "free",
     "phone": "+573106019117",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Pulpo a la parrilla con ensalada de hierbas",
+      "Arroz de mariscos estilo cartagenero",
+      "Filete con camarones en salsa de maracuyá",
+      "Menú degustación colombiano"
+    ]
   },
   {
     "partner_id": "ptr_R055",
@@ -9586,7 +9766,13 @@
     "membership_tier": "elite",
     "membership_plan": "free",
     "phone": "+576056424100",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Tataki de res con reducción de soya",
+      "Pork belly confitado",
+      "Salmón a la parrilla con vegetales de temporada",
+      "Paloma asada con puré de tubérculos"
+    ]
   },
   {
     "partner_id": "ptr_R056",
@@ -9644,7 +9830,13 @@
     "membership_tier": "elite",
     "membership_plan": "free",
     "phone": "+576056612213",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Ceviche 1811",
+      "Pulpo a la parrilla con puré de yuca",
+      "Robalo con puré de yuca",
+      "Risotto de conejo"
+    ]
   },
   {
     "partner_id": "ptr_R058",
@@ -9847,7 +10039,13 @@
     "membership_tier": "premium",
     "membership_plan": "free",
     "phone": "+576056752565",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Bife de chorizo a la parrilla",
+      "Lechoncito al asador Quebracho",
+      "Entraña con chimichurri",
+      "Langostinos y pulpo a la parrilla"
+    ]
   },
   {
     "partner_id": "ptr_R066",
@@ -10427,7 +10625,13 @@
     "membership_tier": "elite",
     "membership_plan": "free",
     "phone": "+573017420389",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Ensalada de flores del Caribe con anacardos",
+      "Celele de Cerdo (terrina de cerdo confitado)",
+      "Pollo confitado y banano en cazuela",
+      "Chocolate de la Sierra Nevada con gel de borojó"
+    ]
   },
   {
     "partner_id": "ptr_R102",
@@ -10456,7 +10660,13 @@
     "membership_tier": "elite",
     "membership_plan": "free",
     "phone": "+573103949344",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Pargo Platero con curry amarillo y yuca",
+      "Cebiche lamindo con coco fermentado",
+      "Empanada de langosta del Caribe",
+      "Chicharrón glaseado con puré de yuca"
+    ]
   },
   {
     "partner_id": "ptr_R103",
@@ -10485,7 +10695,13 @@
     "membership_tier": "premium",
     "membership_plan": "free",
     "phone": "+573175011415",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Arroz caldoso de langosta al estilo caribe",
+      "Robalo a la parrilla con salsa de mariscos",
+      "Tiradito de salmón con cítricos",
+      "Risotto de camarones"
+    ]
   },
   {
     "partner_id": "ptr_R104",
@@ -10514,7 +10730,13 @@
     "membership_tier": "elite",
     "membership_plan": "free",
     "phone": "+576056810052",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Arroz del pescador estilo paella colombiana",
+      "Langosta a la parrilla con puré de langosta",
+      "Ceviche Eljach con arepa tostada",
+      "Pie de coco con sorbete de limonada de coco"
+    ]
   },
   {
     "partner_id": "ptr_R105",
@@ -10543,7 +10765,13 @@
     "membership_tier": "elite",
     "membership_plan": "free",
     "phone": "+573114912308",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Langosta glaseada con cítricos",
+      "Pechuga de pato con maíz y suero costeño",
+      "Tiradito de pescado blanco con leche de tigre de chontaduro",
+      "Lomo de res con café y pimienta pipilongo"
+    ]
   },
   {
     "partner_id": "ptr_R106",
@@ -10572,7 +10800,13 @@
     "membership_tier": "premium",
     "membership_plan": "free",
     "phone": "+573003137502",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Lomo saltado",
+      "Ceviche mixto peruano",
+      "Arroz con mariscos",
+      "Suspiro limeño"
+    ]
   },
   {
     "partner_id": "ptr_R107",
@@ -10601,7 +10835,13 @@
     "membership_tier": "elite",
     "membership_plan": "free",
     "phone": "+573122734984",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Tartar rolls de langosta con brioche frito",
+      "Croquetas de camarón y jamón",
+      "Pulpo a la gallega con papas",
+      "Flan de vainilla con nata montada"
+    ]
   },
   {
     "partner_id": "ptr_R108",
@@ -10833,7 +11073,13 @@
     "membership_tier": "popular",
     "membership_plan": "free",
     "phone": "+573043018452",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Sourdough bread artesanal con aguacate",
+      "Bowl de frutas tropicales",
+      "Brunch latino con huevos",
+      "Jugo natural de frutas colombianas"
+    ]
   },
   {
     "partner_id": "ptr_R128",
@@ -11151,7 +11397,13 @@
     "membership_status": "active",
     "membership_tier": "elite",
     "membership_plan": "free",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Zarzuela de mariscos en salsa de coco y azafrán",
+      "Ceviche de corvina con hierbas frescas",
+      "Ravioli de camarones",
+      "Pie de coco"
+    ]
   },
   {
     "partner_id": "ptr_W101",
@@ -11207,7 +11459,13 @@
     "membership_status": "active",
     "membership_tier": "premium",
     "membership_plan": "free",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Encocado de camarón con tubérculos",
+      "Posta cartagenera con arroz titoté",
+      "Ceviche de pescado en leche de coco",
+      "Carimañola de posta con suero y menta"
+    ]
   },
   {
     "partner_id": "ptr_W103",
@@ -11263,7 +11521,13 @@
     "membership_status": "active",
     "membership_tier": "popular",
     "membership_plan": "free",
-    "hours": "Lun-Dom 12:00 - 23:00"
+    "hours": "Lun-Dom 12:00 - 23:00",
+    "signature_dishes": [
+      "Paleta artesanal de maracuyá",
+      "Paleta de chocolate con cobertura de Nutella",
+      "Paleta de tamarindo",
+      "Paleta de coco con chocolate blanco"
+    ]
   },
   {
     "partner_id": "ptr_W105",
@@ -15389,7 +15653,13 @@
     "membership_status": "active",
     "membership_tier": "elite",
     "membership_plan": "founders",
-    "membership_paid_until": "2027-12-31"
+    "membership_paid_until": "2027-12-31",
+    "signature_dishes": [
+      "Cóctel artesanal personalizado",
+      "Gin & Tonic con botánicos locales",
+      "Spritz de flor de saúco",
+      "Vino natural de la carta"
+    ]
   },
   {
     "partner_id": "ptr_CB_004",
@@ -15449,7 +15719,13 @@
     "membership_status": "active",
     "membership_tier": "elite",
     "membership_plan": "founders",
-    "membership_paid_until": "2027-12-31"
+    "membership_paid_until": "2027-12-31",
+    "signature_dishes": [
+      "Pad Thai con camarones",
+      "Curry verde tailandés con pollo",
+      "Rolls de verano con salsa de maní",
+      "Tom Kha Gai (sopa de coco)"
+    ]
   },
   {
     "partner_id": "ptr_CB_006",

@@ -1,0 +1,50 @@
+{
+  "id": "evt_la_movida_weekends",
+  "slug": "la-movida-cartagena-weekends",
+  "name_es": "Fines de Semana en La Movida",
+  "name_en": "Weekends at La Movida",
+  "title": "Fines de Semana en La Movida",
+  "event_id": "la-movida-cartagena-weekends",
+  "category": "nightlife",
+  "type": "nightlife",
+  "venue": "La Movida Cartagena",
+  "venue_name": "La Movida",
+  "neighborhood": "centro",
+  "date_start": "2026-06-19",
+  "date": "2026-06-19",
+  "date_end": "2027-04-30",
+  "time_start": "22:00",
+  "start_time": "22:00",
+  "is_free": false,
+  "price": 80000,
+  "price_min_cop": 70000,
+  "price_max_cop": 200000,
+  "ticket_url": null,
+  "organizer": "La Movida Night Experiences",
+  "image_url": "https://classycartagena.com/wp-content/uploads/2022/10/La-Movida-Classy-Cartagena-1.jpg",
+  "description": "El club nocturno mas exclusivo de Cartagena. Atmosfera retro-vintage, fusion de elegancia europea y encanto caribeno. Multiples zonas: Almodovar Patio, Main Room, La Ratonera y Rooftop. Cover desde COP $70.000 (incluye bebida de cortesia). Cocteleria fina, tapas gourmet y musica top-tier.",
+  "description_en": "Cartagena's most exclusive nightclub. Retro-vintage atmosphere, fusion of European elegance and Caribbean charm. Multiple zones: Almodovar Patio, Main Room, La Ratonera, and Rooftop. Cover from COP $70,000 (includes complimentary drink). Fine cocktails, gourmet tapas, and top-tier music.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "weekly",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://hicartagena.com/la-movida/",
+    "https://www.tripadvisor.com/Attraction_Review-g297476-d25572505-Reviews-LA_MOVIDA_NIGHT_EXPERIENCES-Cartagena_Cartagena_District_Bolivar_Department.html"
+  ],
+  "confidence": "high",
+  "tags": [
+    "nightlife",
+    "club",
+    "premium",
+    "cocktails",
+    "recurring"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5483
+  },
+  "end_time": ""
+}

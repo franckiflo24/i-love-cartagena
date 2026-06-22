@@ -41,21 +41,26 @@ export function MyCalendarProvider({ children }: { children: ReactNode }) {
       if (user) {
         try {
           const remote = await api.get('/calendar');
-          setItems(remote || []);
-          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(remote || []));
+          const safeRemote = Array.isArray(remote) ? remote : [];
+          setItems(safeRemote);
+          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(safeRemote));
           return;
         } catch { /* fallback to local */ }
       }
       const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      if (stored) setItems(JSON.parse(stored));
+      if (stored) { try { const p = JSON.parse(stored); if (Array.isArray(p)) setItems(p); } catch {} }
     } catch (e) { console.error('Calendar load error', e); }
   }, [user]);
 
   useEffect(() => { load(); }, [load]);
 
-  const isInCalendar = useCallback((id: string) => items.some(i => i.item_id === id), [items]);
+  const isInCalendar = useCallback((id: string) => {
+    if (!id || !Array.isArray(items)) return false;
+    return items.some(i => i.item_id === id);
+  }, [items]);
 
   const addToCalendar = useCallback(async (item: Omit<CalendarItem, 'added_at'>) => {
+    if (!Array.isArray(items)) return;
     const exists = items.some(i => i.item_id === item.item_id);
     if (exists) return;
     const newItem: CalendarItem = { ...item, added_at: new Date().toISOString() };

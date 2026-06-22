@@ -5,11 +5,10 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
-  ActivityIndicator,
   FlatList,
   Dimensions,
   RefreshControl,
+  Modal,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -27,8 +26,10 @@ import { api } from '../../src/constants/api';
 import { IMAGES, getCategoryImage } from '../../src/constants/images';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
+import { SkeletonFeaturedRow, SkeletonGrid } from '../../src/components/Skeleton';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
+import { getUpcomingEvents } from '../../src/lib/data';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - SPACING.lg * 2 - SPACING.sm) / 2;
@@ -63,6 +64,29 @@ type Partner = {
   price_range: string;
   is_certified: boolean;
   tier?: Tier;
+};
+
+type Neighborhood = {
+  id: string;
+  slug: string;
+  name: string;
+  aka: string[];
+  character_es: string;
+  character_en: string;
+  safety_rating: number;
+  safety_notes_day_es?: string;
+  safety_notes_night_es?: string;
+  safety_notes_day_en?: string;
+  safety_notes_night_en?: string;
+  price_index: number;
+  best_for: string[];
+  how_to_get_there_es?: string;
+  how_to_get_there_en?: string;
+  taxi_fare_from_airport_cop: number;
+  tourist_mistakes_es: string;
+  tourist_mistakes_en: string;
+  centroid_lat: number;
+  centroid_lng: number;
 };
 
 // ── Category definitions ──────────────────────────────────────────────────────
@@ -289,10 +313,178 @@ function PartnerGridCard({
           {partner.name}
         </Text>
         <Text style={styles.gridCategory} numberOfLines={1}>
-          {PARTNER_CATEGORY_LABELS[(partner as any).category] || (partner as any).category || ''}
+          {tr(PARTNER_CATEGORY_LABELS[(partner as any).category] || (partner as any).category || '')}
         </Text>
       </View>
     </TouchableOpacity>
+  );
+}
+
+// ── Best-for label mapping ───────────────────────────────────────────────────
+const BEST_FOR_LABELS: Record<string, string> = {
+  luxury: 'Lujo', romance: 'Romance', culture: 'Cultura', nightlife: 'Nightlife',
+  food: 'Gastronomía', first_timers: 'Primera vez', budget: 'Económico',
+  beach: 'Playa', families: 'Familias', shopping: 'Shopping', couples: 'Parejas',
+  solo: 'Solo', locals: 'Locales', longer_stays: 'Estancias largas',
+  returning_visitors: 'Repetidores', authentic: 'Auténtico', experiences: 'Experiencias',
+  day_trip: 'Plan de día', groups: 'Grupos',
+};
+
+// ── Neighborhood card (horizontal scroll) ────────────────────────────────────
+function NeighborhoodCard({
+  item,
+  onPress,
+}: {
+  item: Neighborhood;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity style={styles.nbCard} onPress={onPress} activeOpacity={0.85}>
+      <View style={styles.nbCardInner}>
+        <Text style={styles.nbName} numberOfLines={1}>{item.name}</Text>
+        <Text style={styles.nbCharacter} numberOfLines={2}>{item.character_es}</Text>
+        <View style={styles.nbRatingsRow}>
+          <View style={styles.nbRatingGroup}>
+            <Ionicons name="shield-checkmark" size={12} color={COLORS.primary} />
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Ionicons
+                key={`s${i}`}
+                name={i < item.safety_rating ? 'star' : 'star-outline'}
+                size={10}
+                color={i < item.safety_rating ? COLORS.primary : COLORS.textMuted}
+              />
+            ))}
+          </View>
+          <Text style={styles.nbPrice}>
+            {'$'.repeat(item.price_index)}
+            <Text style={{ color: COLORS.textMuted }}>{'$'.repeat(5 - item.price_index)}</Text>
+          </Text>
+        </View>
+        <View style={styles.nbTagsRow}>
+          {item.best_for.slice(0, 3).map((tag) => (
+            <View key={tag} style={styles.nbTag}>
+              <Text style={styles.nbTagText}>{BEST_FOR_LABELS[tag] || tag}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+// ── Neighborhood detail modal ────────────────────────────────────────────────
+function NeighborhoodDetailModal({
+  item,
+  visible,
+  onClose,
+}: {
+  item: Neighborhood | null;
+  visible: boolean;
+  onClose: () => void;
+}) {
+  if (!item) return null;
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <View style={styles.nbModalOverlay}>
+        <View style={styles.nbModalSheet}>
+          <View style={styles.nbModalHandle} />
+          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
+            <Text style={styles.nbModalTitle}>{item.name}</Text>
+            {item.aka.length > 0 && (
+              <Text style={styles.nbModalAka}>a.k.a. {item.aka.join(', ')}</Text>
+            )}
+
+            <Text style={styles.nbModalDesc}>{item.character_es}</Text>
+            <Text style={[styles.nbModalDesc, { marginTop: SPACING.xs, color: COLORS.textMuted }]}>
+              {item.character_en}
+            </Text>
+
+            {/* Safety */}
+            <View style={styles.nbModalSection}>
+              <View style={styles.nbModalSectionHeader}>
+                <Ionicons name="shield-checkmark" size={16} color={COLORS.primary} />
+                <Text style={styles.nbModalSectionTitle}>Seguridad</Text>
+              </View>
+              <View style={styles.nbModalStarsRow}>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Ionicons
+                    key={`ms${i}`}
+                    name={i < item.safety_rating ? 'star' : 'star-outline'}
+                    size={16}
+                    color={i < item.safety_rating ? COLORS.primary : COLORS.textMuted}
+                  />
+                ))}
+                <Text style={styles.nbModalRatingText}>{item.safety_rating}/5</Text>
+              </View>
+              {item.safety_notes_day_es && (
+                <Text style={styles.nbModalNote}>
+                  <Ionicons name="sunny-outline" size={12} color={COLORS.textMuted} /> {item.safety_notes_day_es}
+                </Text>
+              )}
+              {item.safety_notes_night_es && (
+                <Text style={styles.nbModalNote}>
+                  <Ionicons name="moon-outline" size={12} color={COLORS.textMuted} /> {item.safety_notes_night_es}
+                </Text>
+              )}
+            </View>
+
+            {/* Price Level */}
+            <View style={styles.nbModalSection}>
+              <View style={styles.nbModalSectionHeader}>
+                <Ionicons name="cash-outline" size={16} color={COLORS.primary} />
+                <Text style={styles.nbModalSectionTitle}>Nivel de precios</Text>
+              </View>
+              <Text style={styles.nbModalPriceLevel}>
+                {'$'.repeat(item.price_index)}
+                <Text style={{ color: COLORS.textMuted }}>{'$'.repeat(5 - item.price_index)}</Text>
+              </Text>
+            </View>
+
+            {/* Airport taxi fare */}
+            <View style={styles.nbModalSection}>
+              <View style={styles.nbModalSectionHeader}>
+                <Ionicons name="car-outline" size={16} color={COLORS.primary} />
+                <Text style={styles.nbModalSectionTitle}>Taxi desde el aeropuerto</Text>
+              </View>
+              <Text style={styles.nbModalFare}>
+                ${item.taxi_fare_from_airport_cop.toLocaleString()} COP
+              </Text>
+            </View>
+
+            {/* Best for */}
+            <View style={styles.nbModalSection}>
+              <View style={styles.nbModalSectionHeader}>
+                <Ionicons name="heart-outline" size={16} color={COLORS.primary} />
+                <Text style={styles.nbModalSectionTitle}>Ideal para</Text>
+              </View>
+              <View style={styles.nbModalTags}>
+                {item.best_for.map((tag) => (
+                  <View key={tag} style={styles.nbModalTag}>
+                    <Text style={styles.nbModalTagText}>{BEST_FOR_LABELS[tag] || tag}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Tourist mistake */}
+            <View style={styles.nbModalSection}>
+              <View style={styles.nbModalSectionHeader}>
+                <Ionicons name="warning-outline" size={16} color="#F59E0B" />
+                <Text style={styles.nbModalSectionTitle}>Error de turista</Text>
+              </View>
+              <Text style={styles.nbModalNote}>{item.tourist_mistakes_es}</Text>
+              <Text style={[styles.nbModalNote, { color: COLORS.textMuted, marginTop: 4 }]}>{item.tourist_mistakes_en}</Text>
+            </View>
+
+            <View style={{ height: SPACING.xl }} />
+          </ScrollView>
+
+          <TouchableOpacity style={styles.nbModalCloseBtn} onPress={onClose} activeOpacity={0.85}>
+            <Text style={styles.nbModalCloseBtnText}>Cerrar</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -308,10 +500,15 @@ export default function ExploreScreen() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryItem>(CATEGORIES[0]);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [featured, setFeatured] = useState<Experience[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [allCategoryPartners, setAllCategoryPartners] = useState<Partner[]>([]);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
   const [loadingPartners, setLoadingPartners] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>([]);
+  const [loadingNeighborhoods, setLoadingNeighborhoods] = useState(true);
+  const [selectedNeighborhood, setSelectedNeighborhood] = useState<Neighborhood | null>(null);
+  const [nbModalVisible, setNbModalVisible] = useState(false);
 
   // When navigated with a category param (from home cards), switch to that filter
   useEffect(() => {
@@ -369,9 +566,44 @@ export default function ExploreScreen() {
     }
   }, []);
 
+  const loadNeighborhoods = useCallback(async () => {
+    try {
+      const data = await api.get('/neighborhoods');
+      setNeighborhoods(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error('[ExploreScreen] neighborhoods', e);
+      setNeighborhoods([]);
+    } finally {
+      setLoadingNeighborhoods(false);
+    }
+  }, []);
+
+  const loadUpcomingEvents = useCallback(async () => {
+    try {
+      const evts = await getUpcomingEvents();
+      // Map to compat fields + filter for images
+      const mapped = evts.filter((e: any) => e.image_url).map((e: any) => ({
+        ...e,
+        event_id: e.slug || e.id || e.event_id,
+        title: e.name_es || e.title || '',
+        date: e.date_start || e.date || '',
+        type: e.category || e.type || '',
+        start_time: e.time_start || e.start_time || '',
+        venue_name: e.venue || e.venue_name || '',
+        price: e.price_min_cop || e.price || 0,
+      }));
+      setUpcomingEvents(mapped);
+    } catch (e) {
+      console.error('[ExploreScreen] upcoming events', e);
+      setUpcomingEvents([]);
+    }
+  }, []);
+
   useEffect(() => {
     loadFeatured();
-  }, [loadFeatured]);
+    loadNeighborhoods();
+    loadUpcomingEvents();
+  }, [loadFeatured, loadNeighborhoods, loadUpcomingEvents]);
 
   useEffect(() => {
     loadPartners(selectedCategory);
@@ -379,9 +611,9 @@ export default function ExploreScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([loadFeatured(), loadPartners(selectedCategory)]);
+    await Promise.all([loadFeatured(), loadPartners(selectedCategory), loadNeighborhoods(), loadUpcomingEvents()]);
     setRefreshing(false);
-  }, [loadFeatured, loadPartners, selectedCategory]);
+  }, [loadFeatured, loadPartners, loadNeighborhoods, loadUpcomingEvents, selectedCategory]);
 
   // ── Derived view state ──────────────────────────────────────────
   // Sub-categories available for the current main category (if any).
@@ -417,7 +649,7 @@ export default function ExploreScreen() {
     <View>
       {/* ── Hero Banner ── */}
       <View style={styles.exploreHero}>
-        <Image source={{ uri: IMAGES.cartagena_aerial }} style={styles.exploreHeroImg} />
+        <SafeImage uri={IMAGES.cartagena_aerial} style={styles.exploreHeroImg} />
         <View style={styles.exploreHeroOverlay} />
         <View style={styles.exploreHeroContent}>
           <Text style={styles.title}>Explorar</Text>
@@ -483,11 +715,7 @@ export default function ExploreScreen() {
           </View>
 
           {loadingFeatured ? (
-            <ActivityIndicator
-              size="small"
-              color={COLORS.primary}
-              style={{ marginVertical: SPACING.lg }}
-            />
+            <SkeletonFeaturedRow />
           ) : (
             <FlatList
               data={featured}
@@ -502,6 +730,105 @@ export default function ExploreScreen() {
                     const id = item.partner_id || item.experience_id;
                     const route = item.partner_id ? `/partner/${id}` : `/experience/${id}`;
                     router.push(route as any);
+                  }}
+                />
+              )}
+            />
+          )}
+        </View>
+      )}
+
+      {/* ── Eventos destacados — major Cartagena events ── */}
+      {upcomingEvents.length > 0 && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              <Ionicons name="calendar" size={14} color={COLORS.primary} />
+              {'  '}Eventos destacados
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push('/(tabs)/agenda' as any)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.seeAll}>{tr('Ver todos')}</Text>
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={upcomingEvents.slice(0, 10)}
+            keyExtractor={(item) => item.event_id || item.id || item.slug}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.featuredList}
+            renderItem={({ item: ev }) => {
+              const MONTHS = ['', 'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+              const evDate = ev.date_start || ev.date || '';
+              let dateLabel = '';
+              if (evDate) {
+                try {
+                  const d = new Date(evDate + 'T00:00:00');
+                  dateLabel = `${d.getDate()} ${MONTHS[d.getMonth() + 1]}`;
+                } catch { dateLabel = ''; }
+              }
+              const catLabel = ev.category === 'festival' ? 'Festival' : ev.category === 'cultural' ? 'Cultural' : ev.category === 'music' ? 'Musica' : ev.category === 'religious' ? 'Religioso' : ev.category === 'sports' ? 'Deportes' : ev.category || ev.type || '';
+              return (
+                <TouchableOpacity
+                  style={styles.eventCard}
+                  activeOpacity={0.85}
+                  onPress={() => router.push(`/event/${ev.event_id || ev.slug}` as any)}
+                >
+                  <SafeImage uri={ev.image_url} style={styles.eventCardImage} resizeMode="cover" />
+                  <View style={styles.eventCardOverlay} />
+                  {dateLabel ? (
+                    <View style={styles.eventCardDateBadge}>
+                      <Text style={styles.eventCardDateText}>{dateLabel}</Text>
+                    </View>
+                  ) : null}
+                  <View style={styles.eventCardContent}>
+                    <View style={styles.eventCardCatBadge}>
+                      <Text style={styles.eventCardCatText}>{catLabel.toUpperCase()}</Text>
+                    </View>
+                    <Text style={styles.eventCardTitle} numberOfLines={2}>
+                      {ev.title || ev.name_es || ''}
+                    </Text>
+                    {ev.venue_name && (
+                      <View style={styles.eventCardVenueRow}>
+                        <Ionicons name="location-outline" size={11} color="rgba(255,255,255,0.65)" />
+                        <Text style={styles.eventCardVenueText} numberOfLines={1}>{ev.venue_name}</Text>
+                      </View>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </View>
+      )}
+
+      {/* ── Barrios de Cartagena ── */}
+      {(loadingNeighborhoods || neighborhoods.length > 0) && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>
+              <Ionicons name="location" size={14} color={COLORS.primary} />
+              {'  '}{tr('Barrios de Cartagena')}
+            </Text>
+          </View>
+
+          {loadingNeighborhoods ? (
+            <SkeletonFeaturedRow />
+          ) : (
+            <FlatList
+              data={neighborhoods}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.featuredList}
+              renderItem={({ item }) => (
+                <NeighborhoodCard
+                  item={item}
+                  onPress={() => {
+                    setSelectedNeighborhood(item);
+                    setNbModalVisible(true);
                   }}
                 />
               )}
@@ -578,11 +905,7 @@ export default function ExploreScreen() {
   // ── Empty / loading state for grid ────────────────────────────────────────
 
   const ListEmpty = loadingPartners ? (
-    <ActivityIndicator
-      size="large"
-      color={COLORS.primary}
-      style={{ marginTop: SPACING.xl }}
-    />
+    <SkeletonGrid rows={3} />
   ) : (
     <View style={styles.emptyState}>
       <Ionicons name="search-outline" size={48} color={COLORS.textMuted} />
@@ -642,6 +965,11 @@ export default function ExploreScreen() {
             </View>
           ) : null
         }
+      />
+      <NeighborhoodDetailModal
+        item={selectedNeighborhood}
+        visible={nbModalVisible}
+        onClose={() => setNbModalVisible(false)}
       />
     </SafeAreaView>
   );
@@ -1100,4 +1428,107 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     ...FONTS.medium,
   },
+
+  // Event cards
+  eventCard: {
+    width: FEATURED_CARD_WIDTH,
+    height: 200,
+    borderRadius: RADIUS.xl,
+    overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  eventCardImage: {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+  },
+  eventCardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(5,8,20,0.45)',
+  },
+  eventCardDateBadge: {
+    position: 'absolute',
+    top: SPACING.sm,
+    right: SPACING.sm,
+    backgroundColor: COLORS.primary,
+    borderRadius: RADIUS.full,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  eventCardDateText: {
+    fontSize: 11,
+    color: COLORS.white,
+    ...FONTS.bold,
+    letterSpacing: 0.4,
+  },
+  eventCardContent: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: SPACING.md,
+    gap: SPACING.xs,
+  },
+  eventCardCatBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(244,63,94,0.2)',
+    borderRadius: RADIUS.full,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(244,63,94,0.5)',
+  },
+  eventCardCatText: {
+    fontSize: 9,
+    color: '#F43F5E',
+    ...FONTS.bold,
+    letterSpacing: 0.6,
+  },
+  eventCardTitle: {
+    fontSize: 16,
+    color: COLORS.white,
+    ...FONTS.bold,
+    lineHeight: 21,
+  },
+  eventCardVenueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  eventCardVenueText: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.65)',
+    ...FONTS.medium,
+  },
+  nbCard: { width: FEATURED_CARD_WIDTH * 0.85, borderRadius: RADIUS.xl, overflow: 'hidden' as const, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
+  nbCardInner: { padding: SPACING.md, gap: SPACING.sm },
+  nbName: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold },
+  nbCharacter: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 17 },
+  nbRatingsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const },
+  nbRatingGroup: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 2 },
+  nbPrice: { fontSize: 13, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1 },
+  nbTagsRow: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 4 },
+  nbTag: { backgroundColor: 'rgba(212,175,55,0.12)', borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: 'rgba(212,175,55,0.25)' },
+  nbTagText: { fontSize: 10, color: COLORS.primary, ...FONTS.semibold },
+  nbModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' as const },
+  nbModalSheet: { backgroundColor: COLORS.background, borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl, maxHeight: '85%' as const, paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, paddingBottom: SPACING.lg },
+  nbModalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: COLORS.textMuted, alignSelf: 'center' as const, marginBottom: SPACING.md },
+  nbModalTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, marginBottom: SPACING.xs },
+  nbModalAka: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, fontStyle: 'italic' as const, marginBottom: SPACING.md },
+  nbModalDesc: { fontSize: 14, color: COLORS.textMain, ...FONTS.regular, lineHeight: 21 },
+  nbModalSection: { marginTop: SPACING.lg, gap: SPACING.sm },
+  nbModalSectionHeader: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: SPACING.sm },
+  nbModalSectionTitle: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold },
+  nbModalStarsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 4 },
+  nbModalRatingText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium, marginLeft: SPACING.xs },
+  nbModalNote: { fontSize: 13, color: COLORS.textMain, ...FONTS.regular, lineHeight: 19 },
+  nbModalPriceLevel: { fontSize: 18, color: COLORS.primary, ...FONTS.bold, letterSpacing: 2 },
+  nbModalFare: { fontSize: 18, color: COLORS.primary, ...FONTS.bold },
+  nbModalTags: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 6 },
+  nbModalTag: { backgroundColor: 'rgba(212,175,55,0.12)', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: 'rgba(212,175,55,0.25)' },
+  nbModalTagText: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold },
+  nbModalCloseBtn: { backgroundColor: COLORS.surface, borderRadius: RADIUS.full, paddingVertical: 14, alignItems: 'center' as const, borderWidth: 1, borderColor: COLORS.border, marginTop: SPACING.sm },
+  nbModalCloseBtnText: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold },
 });

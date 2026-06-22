@@ -1,0 +1,53 @@
+{
+  "id": "evt_festival_nautico_2026",
+  "slug": "festival-nautico-cartagena-2026",
+  "name_es": "Festival Nautico de Cartagena 2026",
+  "name_en": "Cartagena Nautical Festival 2026",
+  "title": "Festival Nautico de Cartagena 2026",
+  "event_id": "festival-nautico-cartagena-2026",
+  "category": "festival",
+  "type": "festival",
+  "venue": "Bahia de las Animas",
+  "venue_name": "Bahia de las Animas",
+  "neighborhood": "centro",
+  "date_start": "2026-11-13",
+  "date": "2026-11-13",
+  "date_end": "2026-11-14",
+  "time_start": "10:00",
+  "start_time": "10:00",
+  "is_free": false,
+  "price": 250000,
+  "price_min_cop": 150000,
+  "price_max_cop": 500000,
+  "ticket_url": "https://festivalnautico.boats4u.co/",
+  "organizer": "Dumek Turbay / Alcaldia de Cartagena",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZM-qYOIkQtbVL1cvGrj0stHJdwtDkgfI8jmix5UwFBHPWArbi_SKqtwLxlzmkq6-ygszhiwUwsJP84pIzpMO96NcEHlHmKWaMGWyJaXxJjoSV-QO6fFJcoM46mJV_SRLFNhVUOtwDKRzYJfBg=s1600-w800",
+  "description": "El evento mas esperado de las Fiestas de Independencia. Tercera edicion del Festival Nautico en la Bahia de las Animas con musica en vivo desde embarcaciones. Artistas confirmados: Nicky Jam, Grupo Niche, Ryan Castro y Silvestre Dangond cerrando el festival. Experiencia que combina la tradicion festiva con el ambiente nautico. Alquiler de yates y lanchas disponible.",
+  "description_en": "The most anticipated event of the Independence Festivities. Third edition of the Nautical Festival on the Bay of Souls with live music from vessels. Confirmed artists: Nicky Jam, Grupo Niche, Ryan Castro, and Silvestre Dangond closing the festival. An experience combining festive tradition with nautical atmosphere. Yacht and speedboat rental available.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 120000,
+  "last_verified_date": "2026-06-17",
+  "source": [
+    "https://www.elespectador.com/revista-vea/musica-y-conciertos/festival-nautico-en-cartagena-2026-cuando-es-y-artistas-confirmados/",
+    "https://www.cartagenaexplorer.com/festival-nautico-cartagena-2026/"
+  ],
+  "confidence": "high",
+  "tags": [
+    "festival",
+    "nautico",
+    "boats",
+    "music",
+    "independence",
+    "featured"
+  ],
+  "featured": true,
+  "capacity": 120000,
+  "location": {
+    "lat": 10.4195,
+    "lng": -75.5465
+  },
+  "end_time": "23:00",
+  "image_source": "google_places"
+}

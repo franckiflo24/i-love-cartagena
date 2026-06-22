@@ -1,0 +1,48 @@
+{
+  "id": "evt_alianza_francesa_2026",
+  "slug": "dia-alianza-francesa-cartagena-2026",
+  "name_es": "Dia de la Alianza Francesa — Fiesta Nacional de Francia",
+  "name_en": "Bastille Day — Alliance Francaise Cultural Agenda",
+  "title": "Dia de la Alianza Francesa — Fiesta Nacional de Francia",
+  "event_id": "dia-alianza-francesa-cartagena-2026",
+  "category": "cultural",
+  "type": "cultural",
+  "venue": "Alianza Francesa Cartagena",
+  "venue_name": "Alianza Francesa Cartagena",
+  "neighborhood": "centro",
+  "date_start": "2026-07-14",
+  "date": "2026-07-14",
+  "date_end": "2026-07-14",
+  "time_start": "18:00",
+  "start_time": "18:00",
+  "is_free": true,
+  "price": 0,
+  "price_min_cop": null,
+  "price_max_cop": null,
+  "ticket_url": null,
+  "organizer": "Alianza Francesa Cartagena",
+  "image_url": "https://images.unsplash.com/photo-1549877452-9c387954fbc2?w=800",
+  "description": "Celebracion del 14 de julio con programacion cultural francofona: cine, musica, exposiciones y gastronomia francesa en Cartagena.",
+  "description_en": "July 14th celebration with Francophone cultural programming: cinema, music, exhibitions, and French gastronomy in Cartagena.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 500,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026"
+  ],
+  "confidence": "medium",
+  "tags": [
+    "cultural",
+    "french",
+    "cinema",
+    "free"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5483
+  },
+  "end_time": ""
+}

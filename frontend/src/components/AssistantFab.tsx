@@ -23,8 +23,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, usePathname } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
-import { api } from '../constants/api';
 import { useLang } from '../context/LanguageContext';
+
+const CONCIERGE_URL = process.env.EXPO_PUBLIC_CONCIERGE_URL || '/api/concierge';
 
 type Action = {
   type: string;
@@ -147,20 +148,9 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
     }
   }, [open, messages.length, sessionId, lang]);
 
-  // Load existing session messages when opening
+  // Session restore is handled client-side only (no backend)
   useEffect(() => {
-    (async () => {
-      if (open && sessionId && messages.length === 0) {
-        try {
-          const s = await api.get(`/agent/session/${sessionId}`);
-          if (s && Array.isArray(s.messages) && s.messages.length) {
-            setMessages(s.messages);
-          }
-        } catch {
-          /* ignore */
-        }
-      }
-    })();
+    // Messages live in local state for this session only
   }, [open, sessionId, messages.length]);
 
   const persistSession = useCallback(async (sid: string) => {
@@ -186,12 +176,18 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
       // typing indicator
       setMessages((prev) => [...prev, { role: 'assistant', content: '__typing__' }]);
       try {
-        const res = await api.post('/agent/chat', {
-          message: trimmed,
-          session_id: sessionId,
-          screen_context: pathname,
-          language: lang,
+        const apiRes = await fetch(CONCIERGE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: trimmed,
+            session_id: sessionId,
+            screen_context: pathname,
+            language: lang,
+          }),
         });
+        if (!apiRes.ok) throw new Error(`HTTP ${apiRes.status}`);
+        const res = await apiRes.json();
         const sid: string = res.session_id;
         if (sid !== sessionId) {
           setSessionId(sid);
@@ -237,10 +233,10 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
           if (!a.screen) return;
           const map: Record<string, string> = {
             agenda: '/(tabs)/agenda',
-            concerts: '/(tabs)/concerts',
+            concerts: '/(tabs)/agenda',
             partners: '/(tabs)/partners',
             citypass: '/(tabs)/citypass',
-            transport: '/(tabs)/transport',
+            transport: '/transport',
             itineraries: '/itineraries',
             search: '/search',
           };

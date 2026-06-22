@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
+import { useAuth } from '../../src/context/AuthContext';
 
 const CAT_LABELS: Record<string, string> = {
   gastronomy: 'Gastronomía', music: 'Música', party: 'Fiesta',
@@ -20,10 +21,18 @@ type Stats = {
 
 export default function AdminModeration() {
   const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
   const [pending, setPending] = useState<any[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Auth guard: redirect non-admin users
+  useEffect(() => {
+    if (!authLoading && (!user || !user.is_admin)) {
+      router.replace('/');
+    }
+  }, [user, authLoading, router]);
 
   const load = useCallback(async () => {
     try {
@@ -72,6 +81,11 @@ export default function AdminModeration() {
   };
 
   const onRefresh = useCallback(async () => { setRefreshing(true); await load(); setRefreshing(false); }, [load]);
+
+  // Block render for non-admin users
+  if (authLoading || !user?.is_admin) {
+    return <SafeAreaView style={styles.container}><ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} /></SafeAreaView>;
+  }
 
   if (loading) {
     return <SafeAreaView style={styles.container}><ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} /></SafeAreaView>;

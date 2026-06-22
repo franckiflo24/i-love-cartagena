@@ -1,0 +1,45 @@
+{
+  "id": "evt_hay_teatro_heredia",
+  "slug": "hay-festival-teatro-heredia-2027",
+  "name_es": "Hay Festival — Conversaciones en el Teatro Heredia",
+  "name_en": "Hay Festival — Conversations at Teatro Heredia",
+  "category": "cultural",
+  "venue": "Teatro Adolfo Mejía (Teatro Heredia)",
+  "venue_name": "Teatro Adolfo Mejía",
+  "date_start": "2027-01-28",
+  "date_end": "2027-01-31",
+  "time_start": "18:00",
+  "is_free": false,
+  "price": 50000,
+  "price_min_cop": 30000,
+  "price_max_cop": 120000,
+  "ticket_url": "https://www.hayfestival.com/cartagena",
+  "organizer": "Hay Festival Foundation",
+  "image_url": "https://www.hayfestival.com/TeatroHeredia.jpg?cmsotimagehandler=/Uploads/Crops/3080f847-d799-43e1-8f6a-1a0851ebf9b8/cde9a4d5-622a-4333-8d0c-d628505f665b.jpg",
+  "status": "scheduled",
+  "description": "Las conversaciones estelares del Hay Festival en el icónico Teatro Adolfo Mejía. Autores ganadores del Nobel, periodistas premiados y pensadores globales en diálogos sobre literatura, política y sociedad.",
+  "description_en": "Hay Festival's flagship conversations at the iconic Teatro Adolfo Mejía. Nobel-winning authors, award-winning journalists, and global thinkers in dialogues about literature, politics, and society.",
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.hayfestival.com/cartagena/home"
+  ],
+  "confidence": "high",
+  "tags": [
+    "literary",
+    "talks",
+    "theater",
+    "premium"
+  ],
+  "featured": false,
+  "capacity": 800,
+  "location": {
+    "lat": 10.426,
+    "lng": -75.549
+  },
+  "title": "Hay Festival — Conversaciones en el Teatro Heredia",
+  "event_id": "hay-festival-teatro-heredia-2027",
+  "date": "2027-01-28",
+  "start_time": "18:00",
+  "type": "cultural",
+  "end_time": ""
+}

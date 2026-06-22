@@ -1,0 +1,51 @@
+{
+  "id": "evt_dulce_2027",
+  "slug": "festival-dulce-comida-tipica-2027",
+  "name_es": "Festival del Dulce y la Comida Tipica Cartagenera",
+  "name_en": "Sweet Food & Traditional Cartagena Food Festival",
+  "title": "Festival del Dulce y la Comida Tipica Cartagenera",
+  "event_id": "festival-dulce-comida-tipica-2027",
+  "category": "market",
+  "type": "market",
+  "venue": "Plaza de los Coches",
+  "venue_name": "Plaza de los Coches",
+  "neighborhood": "centro",
+  "date_start": "2027-03-18",
+  "date": "2027-03-18",
+  "date_end": "2027-03-28",
+  "time_start": "16:00",
+  "start_time": "16:00",
+  "is_free": true,
+  "price": 0,
+  "price_min_cop": null,
+  "price_max_cop": null,
+  "ticket_url": null,
+  "organizer": "IPCC — Instituto de Patrimonio y Cultura de Cartagena",
+  "image_url": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=800",
+  "description": "Mas de 60 portadores de tradicion presentan dulces ancestrales hechos con tecnicas multigeneracionales: cocada, dulce de leche, enyucado, alegriya y creaciones con coco, nispero, corozo, mango y pina. De 4pm a 10pm durante Semana Santa.",
+  "description_en": "Over 60 tradition bearers present ancestral sweets made with multigenerational techniques: cocada, dulce de leche, enyucado, alegria, and creations with coconut, nispero, corozo, mango, and pineapple. From 4pm to 10pm during Holy Week.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 50000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://colombia.gastronomia.com/noticia/9987/cartagena-celebra-su-identidad-en-el-festival-del-dulce-y-la-comida-tipica-2026",
+    "https://www.cartagena.gov.co/noticias/cartagena-ya-tiene-portadores-tradicion-para-el-xvi-festival-dulce-comida-tipica-cartagenera"
+  ],
+  "confidence": "high",
+  "tags": [
+    "food",
+    "sweets",
+    "gastronomy",
+    "free",
+    "tradition",
+    "semana-santa"
+  ],
+  "featured": true,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5492
+  },
+  "end_time": ""
+}

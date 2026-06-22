@@ -11,12 +11,34 @@ from datetime import datetime, timezone, timedelta
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-mongo_url = os.environ['MONGO_URL']
+mongo_url = os.environ.get('MONGO_URL')
+if not mongo_url:
+    raise RuntimeError("MONGO_URL environment variable is required")
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db_name = os.environ.get('DB_NAME')
+if not db_name:
+    raise RuntimeError("DB_NAME environment variable is required")
+db = client[db_name]
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
+
+# ── In-memory rate limiter for expensive AI endpoints ──────────
+from collections import defaultdict
+import time as _time
+
+_rate_buckets: dict[str, list[float]] = defaultdict(list)
+
+def _check_rate_limit(key: str, max_calls: int = 10, window_sec: int = 60):
+    """Raise 429 if key has exceeded max_calls within window_sec."""
+    now = _time.time()
+    bucket = _rate_buckets[key]
+    # Prune expired entries
+    _rate_buckets[key] = [t for t in bucket if now - t < window_sec]
+    bucket = _rate_buckets[key]
+    if len(bucket) >= max_calls:
+        raise HTTPException(status_code=429, detail="Too many requests. Please wait before trying again.")
+    bucket.append(now)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -113,8 +135,10 @@ async def demo_login(body: DemoLoginBody, response: Response):
     if body.provider not in DEMO_LOGIN_ALLOWED_PROVIDERS:
         raise HTTPException(400, f"provider must be one of {sorted(DEMO_LOGIN_ALLOWED_PROVIDERS)}")
 
-    # Signup code check (skip if env var not set — dev convenience)
+    # Signup code check — required in production, optional in dev
     expected_code = os.environ.get("DEMO_SIGNUP_CODE", "").strip()
+    if not expected_code and os.environ.get("VERCEL"):
+        raise HTTPException(503, "Demo login not configured for production")
     if expected_code:
         if not body.signup_code or not hmac.compare_digest(body.signup_code, expected_code):
             raise HTTPException(403, "Invalid signup code")
@@ -377,13 +401,55 @@ async def update_business_profile(request: Request):
     biz = await get_current_business(request)
     body = await request.json()
     allowed = {"description", "address", "instagram", "booking_link", "price_range",
-               "experience", "image_url", "default_payment_link", "phone", "whatsapp", "email"}
+               "experience", "image_url", "default_payment_link", "phone", "whatsapp", "email",
+               "photos", "images", "hours", "website"}
     update = {k: v for k, v in body.items() if k in allowed}
+    # Validate photos/images are lists of strings (URLs)
+    for list_field in ("photos", "images"):
+        if list_field in update:
+            val = update[list_field]
+            if not isinstance(val, list) or not all(isinstance(u, str) for u in val):
+                raise HTTPException(status_code=400, detail=f"{list_field} must be a list of URL strings")
+            update[list_field] = val[:20]  # cap at 20 photos
     if not update:
         return {"updated": False}
     await db.partners.update_one({"partner_id": biz["partner_id"]}, {"$set": update})
     partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0})
     return {"updated": True, "partner": partner}
+
+
+@api_router.post("/business/photos")
+async def business_add_photo(request: Request):
+    """Add a photo URL to the partner's photos array. Returns updated photos list."""
+    biz = await get_current_business(request)
+    body = await request.json()
+    url = (body.get("url") or "").strip()
+    if not url:
+        raise HTTPException(status_code=400, detail="url required")
+    partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "photos": 1, "images": 1})
+    photos = partner.get("photos") or partner.get("images") or []
+    if len(photos) >= 20:
+        raise HTTPException(status_code=400, detail="Maximum 20 photos")
+    if url in photos:
+        return {"photos": photos}
+    photos.append(url)
+    await db.partners.update_one({"partner_id": biz["partner_id"]}, {"$set": {"photos": photos}})
+    return {"photos": photos}
+
+
+@api_router.delete("/business/photos")
+async def business_remove_photo(request: Request):
+    """Remove a photo URL from the partner's photos array."""
+    biz = await get_current_business(request)
+    body = await request.json()
+    url = (body.get("url") or "").strip()
+    if not url:
+        raise HTTPException(status_code=400, detail="url required")
+    partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "photos": 1, "images": 1})
+    photos = partner.get("photos") or partner.get("images") or []
+    photos = [p for p in photos if p != url]
+    await db.partners.update_one({"partner_id": biz["partner_id"]}, {"$set": {"photos": photos}})
+    return {"photos": photos}
 
 
 @api_router.get("/business/events")
@@ -647,6 +713,79 @@ async def business_stats(request: Request):
     }
 
 
+# ── Business: Promotion CRUD ──────────────────────────────────
+@api_router.get("/business/promotions")
+async def business_list_promotions(request: Request):
+    """List promotions belonging to the authenticated partner."""
+    biz = await get_current_business(request)
+    promos = await db.partner_promotions.find(
+        {"partner_id": biz["partner_id"]}, {"_id": 0}
+    ).sort([("created_at", -1)]).to_list(50)
+    return {"promotions": promos}
+
+
+@api_router.post("/business/promotions")
+async def business_create_promotion(request: Request):
+    """Create a new promotion for the authenticated partner."""
+    biz = await get_current_business(request)
+    body = await request.json()
+    title = (body.get("title") or "").strip()
+    if not title:
+        raise HTTPException(status_code=400, detail="title required")
+    promo = {
+        "promo_id": f"promo_{uuid.uuid4().hex[:10]}",
+        "partner_id": biz["partner_id"],
+        "title": title,
+        "description": (body.get("description") or "").strip(),
+        "category": body.get("category", "gastronomy"),
+        "discount_pct": int(body.get("discount_pct") or 0),
+        "original_price": int(body.get("original_price") or 0),
+        "promo_price": int(body.get("promo_price") or 0),
+        "valid_until": (body.get("valid_until") or "").strip(),
+        "image_url": (body.get("image_url") or "").strip(),
+        "tag_label": (body.get("tag_label") or "").strip(),
+        "is_active": True,
+        "click_count": 0,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.partner_promotions.insert_one(dict(promo))
+    promo.pop("_id", None)
+    return promo
+
+
+@api_router.put("/business/promotions/{promo_id}")
+async def business_update_promotion(promo_id: str, request: Request):
+    """Update an existing promotion. Only the owning partner can update."""
+    biz = await get_current_business(request)
+    existing = await db.partner_promotions.find_one({"promo_id": promo_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Promotion not found")
+    if existing["partner_id"] != biz["partner_id"]:
+        raise HTTPException(status_code=403, detail="Not your promotion")
+    body = await request.json()
+    allowed = {"title", "description", "category", "discount_pct", "original_price", "promo_price", "valid_until", "image_url", "tag_label", "is_active"}
+    update = {k: v for k, v in body.items() if k in allowed}
+    if not update:
+        raise HTTPException(status_code=400, detail="Nothing to update")
+    update["updated_at"] = datetime.now(timezone.utc).isoformat()
+    await db.partner_promotions.update_one({"promo_id": promo_id}, {"$set": update})
+    updated = await db.partner_promotions.find_one({"promo_id": promo_id}, {"_id": 0})
+    return updated
+
+
+@api_router.delete("/business/promotions/{promo_id}")
+async def business_delete_promotion(promo_id: str, request: Request):
+    """Delete a promotion. Only the owning partner can delete."""
+    biz = await get_current_business(request)
+    existing = await db.partner_promotions.find_one({"promo_id": promo_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Promotion not found")
+    if existing["partner_id"] != biz["partner_id"]:
+        raise HTTPException(status_code=403, detail="Not your promotion")
+    await db.partner_promotions.delete_one({"promo_id": promo_id})
+    return {"deleted": True, "promo_id": promo_id}
+
+
 # ── Government (Alcaldía) Admin Endpoints ───────────────────
 async def _require_government_role(request: Request) -> dict:
     """Ensure the requesting business user has the `government` role."""
@@ -656,12 +795,18 @@ async def _require_government_role(request: Request) -> dict:
     return biz
 
 
-CITY_PASS_PLAN_PRICES = {
-    "pass_classic": 200000,
-    "pass_premium": 350000,
-    "pass_basic": 99000,
-    "pass_ultimate": 599000,
+# ── City Pass Plans — single source of truth ──────────────────
+CITY_PASS_PLANS = {
+    "pass_basic": {"name": "Explorer Pass", "price": 99000, "duration_days": 7, "color": "#22C55E",
+                   "perks": ["5% descuentos en restaurantes", "Mapa interactivo premium", "Soporte prioritario"]},
+    "pass_classic": {"name": "Classic Pass", "price": 200000, "duration_days": 12, "color": "#3B82F6",
+                     "perks": ["10% descuentos en restaurantes y bares", "Entrada a eventos exclusivos", "Transporte acuático incluido", "Soporte VIP"]},
+    "pass_premium": {"name": "Premium Pass", "price": 350000, "duration_days": 12, "color": "#D97706",
+                     "perks": ["15% descuentos en restaurantes y bares", "Acceso VIP a eventos y fiestas", "Transporte acuático ilimitado", "Tour privado por la ciudad amurallada", "Concierge personal 24/7"]},
+    "pass_ultimate": {"name": "Ultimate Pass", "price": 599000, "duration_days": 30, "color": "#A855F7",
+                      "perks": ["20% descuentos universales", "Acceso ilimitado a todo", "Transporte privado incluido", "Chef privado una noche", "Concierge AI personalizado"]},
 }
+CITY_PASS_PLAN_PRICES = {k: v["price"] for k, v in CITY_PASS_PLANS.items()}
 
 
 @api_router.get("/business/admin/analytics")
@@ -1472,7 +1617,7 @@ async def _get_optional_user(request: Request) -> Optional[dict]:
 
 async def _build_user_profile_for_routes(user_id: str) -> tuple[Optional[dict], list]:
     """Return (profile, favorites_data) for a given user. Light queries only."""
-    profile = await db.ai_user_profiles.find_one({"user_id": user_id}, {"_id": 0})
+    profile = await db.user_profiles.find_one({"user_id": user_id}, {"_id": 0})
     favs_cur = db.favorites.find({"user_id": user_id}, {"_id": 0})
     fav_docs = await favs_cur.to_list(50)
     enriched = []
@@ -1517,7 +1662,7 @@ async def _generate_daily_itinerary(user: Optional[dict], category: str, force: 
     # Fetch today's partner events for category
     ecats = list(_ecats_for(cat))
     today_events = await db.partner_events.find(
-        {"date": today, "category": {"$in": ecats}, "status": {"$in": ["approved", None]}},
+        {"date": today, "category": {"$in": ecats}, "moderation_status": {"$in": ["approved", None]}},
         {"_id": 0},
     ).to_list(20)
 
@@ -1602,7 +1747,8 @@ async def list_emergency_contacts():
 @api_router.post("/concierge/chat")
 async def concierge_chat_endpoint(request: Request):
     # Auth required — prevents anonymous abuse of the Anthropic key
-    await get_current_user(request)
+    user = await get_current_user(request)
+    _check_rate_limit(f"concierge:{user['user_id']}", max_calls=15, window_sec=60)
     body = await request.json()
     agent = body.get("agent", "luna")
     messages = body.get("messages", [])
@@ -2281,7 +2427,7 @@ async def track_analytics(body: AnalyticsEvent, request: Request):
     try:
         user = await get_current_user(request)
         user_id = user["user_id"]
-    except:
+    except Exception:
         pass  # Anonymous tracking OK
 
     doc = {
@@ -2314,13 +2460,12 @@ async def track_location(body: LocationPing, request: Request):
     1. Personalize partner suggestions based on proximity.
     2. Build aggregate heatmaps for the government/sponsor dashboard.
     """
-    user_id = body.user_id
-    if not user_id:
-        try:
-            user = await get_current_user(request)
-            user_id = user.get("user_id") if user else None
-        except Exception:
-            user_id = None
+    # Security: always use server-verified user_id, never trust client body
+    try:
+        user = await get_current_user(request)
+        user_id = user.get("user_id")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Authentication required for location tracking")
 
     doc = {
         "ping_id": f"geo_{uuid.uuid4().hex[:12]}",
@@ -2534,23 +2679,28 @@ async def buy_transport_ticket(transport_id: str, body: TransportTicketBody, req
 
 
 @api_router.get("/transport/tickets")
-async def list_transport_tickets(user_id: str):
+async def list_transport_tickets(request: Request):
     """List user's purchased tickets, most recent first."""
-    tickets = await db.transport_tickets.find({"user_id": user_id}, {"_id": 0}).sort([("purchased_at", -1)]).to_list(50)
+    user = await get_current_user(request)
+    tickets = await db.transport_tickets.find({"user_id": user["user_id"]}, {"_id": 0}).sort([("purchased_at", -1)]).to_list(50)
     return tickets
 
 
 @api_router.get("/transport/tickets/{ticket_id}")
-async def get_transport_ticket(ticket_id: str):
+async def get_transport_ticket(ticket_id: str, request: Request):
+    user = await get_current_user(request)
     t = await db.transport_tickets.find_one({"ticket_id": ticket_id}, {"_id": 0})
     if not t:
         raise HTTPException(status_code=404, detail="Ticket not found")
+    if t.get("user_id") != user["user_id"]:
+        raise HTTPException(status_code=403, detail="Access denied")
     return t
 
 
 @api_router.get("/analytics/summary")
 async def analytics_summary(request: Request):
     """Dashboard summary for admins - event popularity, user engagement, etc."""
+    await require_admin(request)
     total_users = await db.users.count_documents({})
     total_events = await db.events.count_documents({})
     total_partners = await db.partners.count_documents({})
@@ -2622,6 +2772,7 @@ async def analytics_summary(request: Request):
 @api_router.get("/analytics/dashboard")
 async def analytics_dashboard_v2(request: Request):
     """Enhanced dashboard for government/sponsors - comprehensive city data."""
+    await require_admin(request)
     import random
 
     # ── Core KPIs ──
@@ -2672,8 +2823,8 @@ async def analytics_dashboard_v2(request: Request):
     passes_by_tier = await db.city_passes.aggregate([
         {"$group": {"_id": "$plan_id", "count": {"$sum": 1}}}
     ]).to_list(10)
-    tier_prices = {"pass_basic": 99000, "pass_premium": 299000, "pass_ultimate": 599000}
-    tier_names = {"pass_basic": "Explorer", "pass_premium": "VIP", "pass_ultimate": "Ultimate"}
+    tier_prices = CITY_PASS_PLAN_PRICES
+    tier_names = {k: v["name"] for k, v in CITY_PASS_PLANS.items()}
     revenue_data = []
     total_revenue = 0
     for t in passes_by_tier:
@@ -2831,8 +2982,11 @@ async def analytics_dashboard_v2(request: Request):
 
 # ── Heatmap endpoint for location data ──
 @api_router.get("/analytics/heatmap")
-async def analytics_heatmap():
-    """Aggregate location pings into heatmap buckets."""
+async def analytics_heatmap(request: Request):
+    """Aggregate location pings into heatmap buckets. Admin only."""
+    user = await get_current_user(request)
+    if not user.get("is_admin"):
+        raise HTTPException(status_code=403, detail="Admin access required")
     try:
         pipeline = [
             {"$group": {
@@ -2856,10 +3010,16 @@ async def analytics_heatmap():
 @api_router.get("/city-pass/plans")
 async def city_pass_plans():
     return [
-        {"plan_id": "pass_classic", "name": "Classic Pass", "price": 200000, "currency": "COP", "duration_days": 12, "color": "#3B82F6",
-         "benefits": ["Acceso a todos los lugares culturales", "Entrada a museos y monumentos", "Mapa interactivo con guía cultural", "Soporte 24/7"]},
-        {"plan_id": "pass_premium", "name": "Premium Pass", "price": 400000, "currency": "COP", "duration_days": 12, "color": "#D97706",
-         "benefits": ["Todo lo del Classic Pass", "Shuttle aeropuerto incluido", "Acceso a eventos culturales exclusivos", "Acceso prioritario sin filas", "Transporte nocturno gratis"]},
+        {
+            "plan_id": pid,
+            "name": plan["name"],
+            "price": plan["price"],
+            "currency": "COP",
+            "duration_days": plan["duration_days"],
+            "color": plan["color"],
+            "benefits": plan["perks"],
+        }
+        for pid, plan in CITY_PASS_PLANS.items()
     ]
 
 
@@ -3175,13 +3335,7 @@ async def wompi_city_pass_checkout(request: Request):
     if not _app_url:
         raise HTTPException(status_code=503, detail="PUBLIC_APP_URL not configured")
     redirect_url = (body.get("redirect_url") or "").strip() or f"{_app_url}/payments/return"
-    plans = {
-        "pass_classic": {"name": "Classic Pass", "price": 200000},
-        "pass_premium": {"name": "Premium Pass", "price": 350000},
-        "pass_basic": {"name": "Explorer Pass", "price": 99000},
-        "pass_ultimate": {"name": "Ultimate Pass", "price": 599000},
-    }
-    plan = plans.get(plan_id)
+    plan = CITY_PASS_PLANS.get(plan_id)
     if not plan:
         raise HTTPException(status_code=400, detail="plan_id inválido")
     return await _create_payment_record(
@@ -3368,6 +3522,67 @@ async def wompi_experience_checkout(request: Request):
         currency=exp.get("currency", "COP"),
         description=f"{exp.get('title', 'Experience')} · {qty} pax",
         metadata={"experience_id": experience_id, "qty": qty, "date": date, "experience_title": exp.get("title")},
+        redirect_url=redirect_url,
+    )
+
+
+@api_router.post("/payments/wompi/transport")
+async def wompi_transport_checkout(request: Request):
+    """Initiate a Wompi checkout for a transport ticket (boat, etc)."""
+    user = await get_current_user(request)
+    body = await request.json()
+    transport_id = (body.get("transport_id") or "").strip()
+    passengers = int(body.get("passengers") or 1)
+    trip_type = body.get("trip_type", "one_way")
+    departure_date = (body.get("departure_date") or "").strip()
+    departure_time = (body.get("departure_time") or "").strip()
+    port_tax_included = bool(body.get("port_tax_included", False))
+    _app_url = os.environ.get('PUBLIC_APP_URL')
+    if not _app_url:
+        raise HTTPException(status_code=503, detail="PUBLIC_APP_URL not configured")
+    redirect_url = (body.get("redirect_url") or "").strip() or f"{_app_url}/payments/return"
+
+    if not transport_id:
+        raise HTTPException(status_code=400, detail="transport_id required")
+    if passengers < 1 or passengers > 20:
+        raise HTTPException(status_code=400, detail="passengers must be between 1 and 20")
+    if not departure_date:
+        raise HTTPException(status_code=400, detail="departure_date required (YYYY-MM-DD)")
+    try:
+        datetime.strptime(departure_date, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="departure_date must be YYYY-MM-DD")
+
+    route = await db.transport.find_one({"transport_id": transport_id}, {"_id": 0})
+    if not route:
+        raise HTTPException(status_code=404, detail="Transport route not found")
+
+    one_way, round_trip = _parse_price(route.get("price", ""))
+    base_price = round_trip if trip_type == "round_trip" else one_way
+    if base_price <= 0:
+        raise HTTPException(status_code=400, detail="This transport is not paid online")
+
+    subtotal = base_price * passengers
+    port_tax = (PORT_TAX_PER_PERSON * passengers) if port_tax_included else 0
+    total = subtotal + port_tax
+
+    return await _create_payment_record(
+        user=user,
+        kind="transport",
+        partner_id=None,
+        amount_cop=total,
+        currency="COP",
+        description=f"{route.get('route_name', 'Transport')} · {passengers} pax · {trip_type}",
+        metadata={
+            "transport_id": transport_id,
+            "route_name": route.get("route_name"),
+            "passengers": passengers,
+            "trip_type": trip_type,
+            "departure_date": departure_date,
+            "departure_time": departure_time,
+            "port_tax_included": port_tax_included,
+            "port_tax_amount": port_tax,
+        },
         redirect_url=redirect_url,
     )
 
@@ -3581,9 +3796,50 @@ async def _fulfill_payment(payment: dict, tx: dict):
             }
             await db.experience_bookings.insert_one(dict(booking))
             await db.payments.update_one({"payment_id": payment["payment_id"]}, {"$set": {"fulfillment.booking_id": booking_id}})
+        elif kind == "transport":
+            ticket_id = f"TKT-{uuid.uuid4().hex[:10].upper()}"
+            import json as _json
+            import urllib.parse as _u
+            qr_payload = {
+                "type": "amo_cartagena_transport",
+                "ticket_id": ticket_id,
+                "route": metadata.get("route_name", ""),
+                "transport_id": metadata.get("transport_id"),
+                "passengers": int(metadata.get("passengers") or 1),
+                "trip_type": metadata.get("trip_type", "one_way"),
+                "departure_date": metadata.get("departure_date", ""),
+                "departure_time": metadata.get("departure_time", ""),
+                "port_tax_paid": metadata.get("port_tax_included", False),
+                "issued_at": datetime.now(timezone.utc).isoformat(),
+            }
+            qr_data = _json.dumps(qr_payload)
+            ticket = {
+                "ticket_id": ticket_id,
+                "user_id": user_id,
+                "transport_id": metadata.get("transport_id"),
+                "route_name": metadata.get("route_name", ""),
+                "trip_type": metadata.get("trip_type", "one_way"),
+                "passengers": int(metadata.get("passengers") or 1),
+                "departure_date": metadata.get("departure_date", ""),
+                "departure_time": metadata.get("departure_time", ""),
+                "subtotal": payment["amount_cop"] - int(metadata.get("port_tax_amount") or 0),
+                "port_tax": int(metadata.get("port_tax_amount") or 0),
+                "total": payment["amount_cop"],
+                "currency": "COP",
+                "payment_status": "paid",
+                "payment_method": "wompi",
+                "qr_data": qr_data,
+                "qr_url": "https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=10&data=" + _u.quote(qr_data),
+                "purchased_at": datetime.now(timezone.utc).isoformat(),
+                "valid_until": metadata.get("departure_date", ""),
+                "payment_id": payment.get("payment_id"),
+                "wompi_transaction_id": tx.get("id"),
+            }
+            await db.transport_tickets.insert_one(dict(ticket))
+            await db.payments.update_one({"payment_id": payment["payment_id"]}, {"$set": {"fulfillment.ticket_id": ticket_id}})
 
         # ── Award loyalty points ──
-        points_map = {"city_pass": 500, "port_tax": 200, "partner_event": 300, "experience": 400}
+        points_map = {"city_pass": 500, "port_tax": 200, "partner_event": 300, "experience": 400, "transport": 250}
         pts = points_map.get(kind, 0)
         if pts and user_id:
             try:
@@ -3674,14 +3930,6 @@ async def admin_alcaldia_payouts(request: Request, status: Optional[str] = None)
 # AI Concierge Agent — "Amo"
 # ─────────────────────────────────────────────────────────────
 
-async def _get_optional_user(request: Request) -> Optional[dict]:
-    """Like get_current_user but returns None if no/invalid token (doesn't raise)."""
-    try:
-        return await get_current_user(request)
-    except HTTPException:
-        return None
-
-
 @api_router.post("/agent/chat")
 async def agent_chat(request: Request):
     """Send a message to the AI concierge. Authentication required —
@@ -3692,6 +3940,7 @@ async def agent_chat(request: Request):
     # Auth required to prevent LLM cost abuse
     user = await get_current_user(request)
     user_id = user["user_id"]
+    _check_rate_limit(f"agent:{user_id}", max_calls=15, window_sec=60)
 
     body = await request.json()
     user_text = (body.get("message") or "").strip()
@@ -3999,7 +4248,7 @@ async def seed_analytics_demo_data():
 
     # Generate ~500 analytics events over 14 days
     analytics_docs = []
-    base_date = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    base_date = datetime.now(timezone.utc) - timedelta(days=13)
     for i in range(500):
         day_offset = random.randint(0, 13)
         hour = random.choices(range(24), weights=[
@@ -4169,19 +4418,19 @@ _default_dev_origins = [
     "http://localhost:8081",
     "http://localhost:3000",
     "http://localhost:19006",
-    "https://dist-ten-omega-67.vercel.app",
 ]
 _env_origins = [o.strip() for o in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",") if o.strip()]
 _allowed_origins = _env_origins or _default_dev_origins
-# Allow Vercel previews + trycloudflare tunnels via regex so we don't have to
-# rebuild every deploy.
-_origin_regex = r"https://([a-z0-9-]+\.)?(vercel\.app|trycloudflare\.com)$"
+
+# Production: CORS_ALLOWED_ORIGINS must be set explicitly. No wildcard regex.
+if not _env_origins:
+    logger.warning("CORS_ALLOWED_ORIGINS not set — using localhost-only dev defaults. "
+                    "Set CORS_ALLOWED_ORIGINS in production (e.g. https://amocartagena.app)")
 
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
     allow_origins=_allowed_origins,
-    allow_origin_regex=_origin_regex,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Requested-With", "Accept", "Cookie"],
 )
@@ -5495,24 +5744,30 @@ async def startup():
     biz_count = await db.business_users.count_documents({})
     if biz_count == 0:
         logger.info("Seeding business accounts...")
-        DEMO_PASSWORD = os.environ.get("DEMO_PARTNER_PASSWORD", "amocartagena2026")
-        pw_hash = _bcrypt.hashpw(DEMO_PASSWORD.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
-        demo_accounts = [
-            {"business_id": "biz_001", "email": "casaboheme@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_nc_007", "full_name": "Casa Bohème", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
-            {"business_id": "biz_002", "email": "bellini@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_002", "full_name": "Bellini", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
-            {"business_id": "biz_003", "email": "cafedelmar@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_005", "full_name": "Café del Mar", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
-            {"business_id": "biz_004", "email": "blueapple@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_nc_009", "full_name": "Blue Apple Beach", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
-            {"business_id": "biz_005", "email": "elarsenal@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_006", "full_name": "El Arsenal Wellness", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
-        ]
-        await db.business_users.insert_many(demo_accounts)
-        await db.business_users.create_index("email", unique=True)
-        logger.info(f"Seeded {len(demo_accounts)} business accounts!")
+        DEMO_PASSWORD = os.environ.get("DEMO_PARTNER_PASSWORD")
+        if not DEMO_PASSWORD:
+            logger.warning("DEMO_PARTNER_PASSWORD not set — skipping business account seeding")
+        else:
+            pw_hash = _bcrypt.hashpw(DEMO_PASSWORD.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+            demo_accounts = [
+                {"business_id": "biz_001", "email": "casaboheme@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_nc_007", "full_name": "Casa Bohème", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
+                {"business_id": "biz_002", "email": "bellini@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_002", "full_name": "Bellini", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
+                {"business_id": "biz_003", "email": "cafedelmar@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_005", "full_name": "Café del Mar", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
+                {"business_id": "biz_004", "email": "blueapple@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_nc_009", "full_name": "Blue Apple Beach", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
+                {"business_id": "biz_005", "email": "elarsenal@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_006", "full_name": "El Arsenal Wellness", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
+            ]
+            await db.business_users.insert_many(demo_accounts)
+            await db.business_users.create_index("email", unique=True)
+            logger.info(f"Seeded {len(demo_accounts)} business accounts!")
 
     # ── Seed: Alcaldía de Cartagena (Government / Admin Account) ──
     # Idempotent: ensures the Alcaldía partner + business user always exist.
     ALCALDIA_PARTNER_ID = "ptr_alcaldia"
     ALCALDIA_EMAIL = "alcaldia@amocartagena.app"
-    ALCALDIA_PASSWORD = os.environ.get("ALCALDIA_PASSWORD", "AlcaldiaCTG2026!")
+    ALCALDIA_PASSWORD = os.environ.get("ALCALDIA_PASSWORD")
+    if not ALCALDIA_PASSWORD:
+        logger.warning("ALCALDIA_PASSWORD not set — skipping Alcaldía account seeding")
+        return
     alcaldia_partner = await db.partners.find_one({"partner_id": ALCALDIA_PARTNER_ID})
     if not alcaldia_partner:
         logger.info("Seeding Alcaldía partner profile...")
@@ -5551,6 +5806,26 @@ async def startup():
         except Exception:
             pass
         logger.info("Alcaldía business account seeded!")
+    # Seed emergency contacts if not yet seeded
+    ec_count = await db.emergency_contacts.count_documents({})
+    if ec_count == 0:
+        emergency_contacts = [
+            {"contact_id": "ec_001", "name": "Policía Nacional", "number": "123", "description": "Emergencias policiales", "description_en": "Police emergencies", "icon": "shield", "category": "emergency", "order": 1},
+            {"contact_id": "ec_002", "name": "Bomberos", "number": "119", "description": "Incendios y rescates", "description_en": "Fire and rescue", "icon": "flame", "category": "emergency", "order": 2},
+            {"contact_id": "ec_003", "name": "Ambulancia / CRUE", "number": "125", "description": "Emergencias médicas", "description_en": "Medical emergencies", "icon": "medkit", "category": "emergency", "order": 3},
+            {"contact_id": "ec_004", "name": "Línea de la Vida", "number": "106", "description": "Crisis emocional 24/7", "description_en": "Emotional crisis hotline 24/7", "icon": "heart", "category": "emergency", "order": 4},
+            {"contact_id": "ec_005", "name": "Policía de Turismo", "number": "+576054350000", "description": "Asistencia a turistas", "description_en": "Tourist assistance", "icon": "people", "category": "tourism", "order": 5},
+            {"contact_id": "ec_006", "name": "Defensa Civil", "number": "144", "description": "Desastres naturales", "description_en": "Natural disasters", "icon": "alert-circle", "category": "emergency", "order": 6},
+            {"contact_id": "ec_007", "name": "Tránsito Cartagena", "number": "+576046501818", "description": "Accidentes de tránsito", "description_en": "Traffic accidents", "icon": "car", "category": "services", "order": 7},
+            {"contact_id": "ec_008", "name": "Hospital Universitario del Caribe", "number": "+576046698181", "description": "Hospital público principal", "description_en": "Main public hospital", "icon": "medical", "category": "medical", "order": 8},
+            {"contact_id": "ec_009", "name": "Clínica Medihelp", "number": "+576046935999", "description": "Clínica privada 24h", "description_en": "Private clinic 24h", "icon": "medical", "category": "medical", "order": 9},
+            {"contact_id": "ec_010", "name": "Consulado de EE.UU.", "number": "+576046648100", "description": "Emergencias ciudadanos estadounidenses", "description_en": "US citizen emergencies", "icon": "flag", "category": "consulate", "order": 10},
+            {"contact_id": "ec_011", "name": "Migración Colombia", "number": "+576013810101", "description": "Temas migratorios", "description_en": "Immigration services", "icon": "document-text", "category": "services", "order": 11},
+            {"contact_id": "ec_012", "name": "Amo Cartagena Soporte", "number": "+573176481183", "description": "Soporte de la app", "description_en": "App support via WhatsApp", "icon": "chatbubbles", "category": "app", "order": 12},
+        ]
+        await db.emergency_contacts.insert_many(emergency_contacts)
+        logger.info(f"Seeded {len(emergency_contacts)} emergency contacts!")
+
     # Seed sponsors if not yet seeded
     sponsors_count = await db.sponsors.count_documents({})
     if sponsors_count == 0:

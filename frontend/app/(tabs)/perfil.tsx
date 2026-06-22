@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -263,7 +263,7 @@ export default function PerfilScreen() {
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           {user.picture ? (
-            <Image source={{ uri: user.picture }} style={styles.avatar} />
+            <SafeImage uri={user.picture} style={styles.avatar} />
           ) : (
             <View style={styles.avatarPlaceholder}>
               <Text style={styles.avatarText}>{user.name[0]}</Text>

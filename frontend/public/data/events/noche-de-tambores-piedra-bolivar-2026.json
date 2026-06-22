@@ -1,0 +1,52 @@
+{
+  "id": "evt_noche_tambores_2026",
+  "slug": "noche-de-tambores-piedra-bolivar-2026",
+  "name_es": "Noche de Tambores — Piedra de Bolivar",
+  "name_en": "Drums Night — Piedra de Bolivar",
+  "title": "Noche de Tambores — Piedra de Bolivar",
+  "event_id": "noche-de-tambores-piedra-bolivar-2026",
+  "category": "cultural",
+  "type": "cultural",
+  "venue": "Piedra de Bolivar",
+  "venue_name": "Piedra de Bolivar",
+  "neighborhood": "pie-de-la-popa",
+  "date_start": "2026-11-11",
+  "date": "2026-11-11",
+  "date_end": "2026-11-11",
+  "time_start": "15:00",
+  "start_time": "15:00",
+  "is_free": true,
+  "price": 0,
+  "price_min_cop": 0,
+  "price_max_cop": 0,
+  "ticket_url": null,
+  "organizer": "Alcaldia de Cartagena",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNReoYZqYfHPKSYt66t54QVipXb7m-EjO7W_t1pf9nMrS3r8hWoqgJJG0-OmGhipICWI_QpmoLIzmRANafJmvxhpVjc0YpDi0km_0U4uwEfluhi34ia8XXymZrkh_SHU4iv3YkMEoIQBb4Vmg=s1600-w800",
+  "description": "Tradicion ancestral donde los sonidos de los tambores resuenan en la Piedra de Bolivar desde las 3pm el 11 de noviembre. Celebracion de la herencia afrodescendiente de Cartagena con bullerengue, cumbia y ritmos del Caribe. Homenaje a artistas como Pabla Flores. Evento gratuito al aire libre.",
+  "description_en": "Ancestral tradition where drum sounds resonate at the Piedra de Bolivar from 3pm on November 11th. Celebration of Cartagena's Afro-descendant heritage with bullerengue, cumbia, and Caribbean rhythms. Tribute to artists like Pabla Flores. Free outdoor event.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 15000,
+  "last_verified_date": "2026-06-17",
+  "source": [
+    "https://www.alertacaribe.com/noticias/bolivar/cartagena-se-prende-al-ritmo-del-bullerengue-este-viernes-noche-de-tambores-rinde-homenaje-pabla-flores"
+  ],
+  "confidence": "high",
+  "tags": [
+    "drums",
+    "afro",
+    "independence",
+    "free",
+    "traditional",
+    "bullerengue"
+  ],
+  "featured": false,
+  "capacity": 15000,
+  "location": {
+    "lat": 10.418,
+    "lng": -75.542
+  },
+  "end_time": "23:00",
+  "image_source": "category"
+}

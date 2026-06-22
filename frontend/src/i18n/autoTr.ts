@@ -217,6 +217,16 @@ export const AUTO_TR: Dict = {
   'Local': { en: 'Local', fr: 'Locale', pt: 'Local' },
   'Asiática': { en: 'Asian', fr: 'Asiatique', pt: 'Asiática' },
   'Gastro': { en: 'Gastro', fr: 'Gastro', pt: 'Gastro' },
+  'Bar': { en: 'Bar', fr: 'Bar', pt: 'Bar' },
+  'Café': { en: 'Café', fr: 'Café', pt: 'Café' },
+  'Club': { en: 'Club', fr: 'Club', pt: 'Club' },
+  'Beach Club': { en: 'Beach Club', fr: 'Beach Club', pt: 'Beach Club' },
+  'Spa': { en: 'Spa', fr: 'Spa', pt: 'Spa' },
+  'Yate': { en: 'Yacht', fr: 'Yacht', pt: 'Iate' },
+  'Cultural': { en: 'Cultural', fr: 'Culturel', pt: 'Cultural' },
+  'Pasa Día': { en: 'Day Pass', fr: 'Journée', pt: 'Passa Dia' },
+  'Alojamiento': { en: 'Lodging', fr: 'Hébergement', pt: 'Alojamento' },
+  'Activar': { en: 'Activate', fr: 'Activer', pt: 'Ativar' },
   'Árabe': { en: 'Arabic', fr: 'Arabe', pt: 'Árabe' },
 
   // City Pass

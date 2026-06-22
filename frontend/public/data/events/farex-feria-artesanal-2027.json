@@ -1,0 +1,51 @@
+{
+  "id": "evt_farex_2027",
+  "slug": "farex-feria-artesanal-2027",
+  "name_es": "FAREX 2027 — Feria Artesanal y Empresarial",
+  "name_en": "FAREX 2027 — Artisan & Business Fair",
+  "title": "FAREX 2027 — Feria Artesanal y Empresarial",
+  "event_id": "farex-feria-artesanal-2027",
+  "category": "market",
+  "type": "market",
+  "venue": "Centro de Convenciones Cartagena de Indias",
+  "venue_name": "Centro de Convenciones Cartagena de Indias",
+  "neighborhood": "centro",
+  "date_start": "2027-01-03",
+  "date": "2027-01-03",
+  "date_end": "2027-01-10",
+  "time_start": "11:30",
+  "start_time": "11:30",
+  "is_free": true,
+  "price": 0,
+  "price_min_cop": null,
+  "price_max_cop": null,
+  "ticket_url": "https://www.farex.org/",
+  "organizer": "FAREX / Camara de Comercio de Cartagena",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZP7SFEmgOQ0LqoBlGfbbIe4WXG-2vBxmR1PDTbZ1LQxWCEGakoEoy_NKtjO2P7iH4ohTIC9Dl7FyCTBLiIV37dd-UuGCy9esTsjjabNEMTeSrM_obXxNwFpfToFRCKco01cEKcPUi-tPlgYYTc=s1600-w800",
+  "description": "La feria artesanal mas importante del Caribe colombiano. Tradicion, cultura y emprendimiento reunen a mas de 250 expositores de moda, artesanias, decoracion y marroquineria. Entrada libre.",
+  "description_en": "The most important artisan fair in the Colombian Caribbean. Tradition, culture, and entrepreneurship bring together over 250 exhibitors of fashion, handicrafts, decoration, and leather goods. Free entry.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 50000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.farex.org/",
+    "https://www.eltiempo.com/vida/tendencias/la-feria-artesanal-farex-regresa-a-cartagena-en-enero-con-mas-de-250-expositores-y-una-imagen-renovada-3513923"
+  ],
+  "confidence": "high",
+  "tags": [
+    "artisan",
+    "fair",
+    "shopping",
+    "free",
+    "local"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.4195,
+    "lng": -75.546
+  },
+  "end_time": "",
+  "image_source": "category"
+}

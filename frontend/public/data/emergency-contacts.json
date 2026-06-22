@@ -1,0 +1,286 @@
+[
+  {
+    "contact_id": "emg_001",
+    "name": "Policía Nacional",
+    "category": "police",
+    "icon": "shield",
+    "phones": [
+      {
+        "service": "Emergencias",
+        "phone": "123"
+      },
+      {
+        "service": "Atención al ciudadano",
+        "phone": "350 556 1194"
+      },
+      {
+        "service": "WhatsApp institucional",
+        "phone": "311 407 2363"
+      }
+    ],
+    "primary_phone": "123",
+    "email": "lineadirecta@policia.gov.co",
+    "website": "https://www.policia.gov.co"
+  },
+  {
+    "contact_id": "emg_002",
+    "name": "Policía Metropolitana Cartagena",
+    "category": "police",
+    "icon": "shield",
+    "phones": [
+      {
+        "service": "Conmutador",
+        "phone": "(605) 651 7480"
+      }
+    ],
+    "primary_phone": "(605) 651 7480",
+    "email": "mecar.atencionalciudadano@policia.gov.co",
+    "website": "https://www.policia.gov.co/cartagena"
+  },
+  {
+    "contact_id": "emg_003",
+    "name": "Cuerpo de Bomberos Cartagena",
+    "category": "fire",
+    "icon": "flame",
+    "phones": [
+      {
+        "service": "Emergencias",
+        "phone": "119"
+      },
+      {
+        "service": "Línea fija 1",
+        "phone": "(605) 642 1971"
+      },
+      {
+        "service": "Línea fija 2",
+        "phone": "(605) 642 1951"
+      },
+      {
+        "service": "Conmutador",
+        "phone": "(605) 641 1370"
+      }
+    ],
+    "primary_phone": "119",
+    "email": "dadis@cartagena.gov.co",
+    "website": "https://www.cartagena.gov.co/cuerpo-bomberos-cartagena-indias"
+  },
+  {
+    "contact_id": "emg_004",
+    "name": "Salud / Ambulancias",
+    "category": "health",
+    "icon": "medkit",
+    "phones": [
+      {
+        "service": "Emergencias",
+        "phone": "123"
+      }
+    ],
+    "primary_phone": "123",
+    "email": "atencionalusuario@cruzrojacolombiana.org",
+    "website": "https://www.cruzrojacolombiana.org"
+  },
+  {
+    "contact_id": "emg_005",
+    "name": "DADIS",
+    "category": "health",
+    "icon": "medkit",
+    "phones": [
+      {
+        "service": "Atención en salud",
+        "phone": "125"
+      },
+      {
+        "service": "Línea móvil 1",
+        "phone": "317 401 6183"
+      },
+      {
+        "service": "Línea móvil 2",
+        "phone": "317 501 0966"
+      }
+    ],
+    "primary_phone": "125",
+    "email": "cartagena@dimar.mil.co",
+    "website": "https://www.transitocartagena.gov.co"
+  },
+  {
+    "contact_id": "emg_006",
+    "name": "Defensa Civil",
+    "category": "civil_defense",
+    "icon": "alert-circle",
+    "phones": [
+      {
+        "service": "Emergencias",
+        "phone": "144"
+      }
+    ],
+    "primary_phone": "144",
+    "email": "alcaldia@cartagena.gov.co",
+    "website": "https://www.cartagena.gov.co"
+  },
+  {
+    "contact_id": "emg_007",
+    "name": "Defensa Civil Bolívar",
+    "category": "civil_defense",
+    "icon": "alert-circle",
+    "phones": [
+      {
+        "service": "Celular",
+        "phone": "311 808 4405"
+      }
+    ],
+    "primary_phone": "311 808 4405",
+    "email": "clientes@afinia.com.co",
+    "website": "https://www.afinia.com.co"
+  },
+  {
+    "contact_id": "emg_008",
+    "name": "Cruz Roja",
+    "category": "health",
+    "icon": "medkit",
+    "phones": [
+      {
+        "service": "Emergencias",
+        "phone": "132"
+      }
+    ],
+    "primary_phone": "132",
+    "email": "clientes@acuacar.com",
+    "website": "https://www.acuacar.com"
+  },
+  {
+    "contact_id": "emg_009",
+    "name": "Armada Nacional / Guardacostas",
+    "category": "maritime",
+    "icon": "boat",
+    "phones": [
+      {
+        "service": "Emergencias marítimas",
+        "phone": "146"
+      }
+    ],
+    "primary_phone": "146",
+    "email": "usuarios@surtigas.com.co",
+    "website": "https://www.surtigas.com.co"
+  },
+  {
+    "contact_id": "emg_010",
+    "name": "DIMAR Cartagena",
+    "category": "maritime",
+    "icon": "boat",
+    "phones": [
+      {
+        "service": "Atención marítima",
+        "phone": "(605) 664 3237"
+      }
+    ],
+    "primary_phone": "(605) 664 3237",
+    "email": "gaula@policia.gov.co",
+    "website": "https://www.policia.gov.co/especializados/gaula"
+  },
+  {
+    "contact_id": "emg_011",
+    "name": "DATT Cartagena",
+    "category": "transit",
+    "icon": "car",
+    "phones": [
+      {
+        "service": "Emergencias tránsito",
+        "phone": "127"
+      },
+      {
+        "service": "Línea fija",
+        "phone": "(605) 654 4412"
+      }
+    ],
+    "primary_phone": "127",
+    "email": "info@transitocartagena.gov.co",
+    "website": "https://www.transitocartagena.gov.co"
+  },
+  {
+    "contact_id": "emg_012",
+    "name": "Alcaldía de Cartagena",
+    "category": "government",
+    "icon": "business",
+    "phones": [
+      {
+        "service": "Conmutador general",
+        "phone": "(605) 641 1370"
+      }
+    ],
+    "primary_phone": "(605) 641 1370",
+    "email": "clientes@afinia.com.co",
+    "website": "https://www.afinia.com.co"
+  },
+  {
+    "contact_id": "emg_013",
+    "name": "Afinia (Energía)",
+    "category": "utilities",
+    "icon": "flash",
+    "phones": [
+      {
+        "service": "Atención y emergencias",
+        "phone": "115"
+      },
+      {
+        "service": "Línea nacional",
+        "phone": "01 8000 919191"
+      }
+    ],
+    "primary_phone": "115",
+    "email": "clientes@afinia.com.co",
+    "website": "https://www.acuacar.com"
+  },
+  {
+    "contact_id": "emg_014",
+    "name": "Aguas de Cartagena",
+    "category": "utilities",
+    "icon": "water",
+    "phones": [
+      {
+        "service": "Atención y emergencias",
+        "phone": "116"
+      },
+      {
+        "service": "Línea fija",
+        "phone": "(605) 694 3337"
+      }
+    ],
+    "primary_phone": "116",
+    "email": "usuarios@surtigas.com.co",
+    "website": "https://www.surtigas.com.co"
+  },
+  {
+    "contact_id": "emg_015",
+    "name": "Surtigas (Gas)",
+    "category": "utilities",
+    "icon": "flame",
+    "phones": [
+      {
+        "service": "Emergencias",
+        "phone": "164"
+      },
+      {
+        "service": "Línea nacional",
+        "phone": "018000 910164"
+      }
+    ],
+    "primary_phone": "164",
+    "email": "usuarios@surtigas.com.co",
+    "website": "https://www.surtigas.com.co"
+  },
+  {
+    "contact_id": "emg_016",
+    "name": "GAULA",
+    "category": "police",
+    "icon": "shield",
+    "phones": [
+      {
+        "service": "Antisecuestro y extorsión",
+        "phone": "165"
+      }
+    ],
+    "primary_phone": "165",
+    "email": "gaula@policia.gov.co",
+    "website": "https://www.policia.gov.co/especializados/gaula"
+  }
+]

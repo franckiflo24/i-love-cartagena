@@ -1,0 +1,22 @@
+[
+  {
+    "key": "concert",
+    "label": "Concierto"
+  },
+  {
+    "key": "party",
+    "label": "Fiesta"
+  },
+  {
+    "key": "festival",
+    "label": "Festival"
+  },
+  {
+    "key": "wellness",
+    "label": "Wellness"
+  },
+  {
+    "key": "cultural",
+    "label": "Cultural"
+  }
+]

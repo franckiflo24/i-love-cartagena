@@ -135,9 +135,156 @@ export default function Root({ children }: PropsWithChildren) {
           [data-expo-router-root] {
             height: 100%;
           }
+
+          /* ── AMO Preloader ── */
+          #amo-preloader {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #020408;
+            background-image:
+              radial-gradient(ellipse 600px 400px at 30% 35%, rgba(217,119,6,0.06) 0%, transparent 70%),
+              radial-gradient(ellipse 500px 500px at 75% 60%, rgba(217,119,6,0.03) 0%, transparent 70%);
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+          }
+          #amo-preloader.hide {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+          }
+
+          /* Heart icon */
+          .amo-heart {
+            width: 56px;
+            height: 56px;
+            margin-bottom: 20px;
+            animation: amo-heartbeat 1.6s ease-in-out infinite;
+          }
+          .amo-heart svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 20px rgba(217,119,6,0.3));
+          }
+          @keyframes amo-heartbeat {
+            0%, 100% { transform: scale(1); }
+            15% { transform: scale(1.15); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.1); }
+            60% { transform: scale(1); }
+          }
+
+          /* Brand text */
+          .amo-brand {
+            font-family: 'Outfit', system-ui, sans-serif;
+            font-weight: 700;
+            font-size: 28px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #D97706, #F59E0B, #D97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0;
+            animation: amo-fadein 0.8s ease 0.2s forwards;
+          }
+          .amo-sub {
+            font-family: 'Outfit', system-ui, sans-serif;
+            font-weight: 300;
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.25);
+            margin-top: 6px;
+            opacity: 0;
+            animation: amo-fadein 0.8s ease 0.5s forwards;
+          }
+          @keyframes amo-fadein {
+            to { opacity: 1; }
+          }
+
+          /* Progress bar */
+          .amo-progress {
+            position: absolute;
+            bottom: max(40px, env(safe-area-inset-bottom, 20px));
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 2px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 2px;
+            overflow: hidden;
+            opacity: 0;
+            animation: amo-fadein 0.6s ease 0.8s forwards;
+          }
+          .amo-progress i {
+            display: block;
+            height: 100%;
+            width: 40%;
+            border-radius: 2px;
+            background: linear-gradient(90deg, transparent, #D97706, transparent);
+            animation: amo-slide 1.4s ease-in-out infinite;
+          }
+          @keyframes amo-slide {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(350%); }
+          }
         `}} />
       </head>
-      <body>{children}</body>
+      <body>
+        <div id="amo-preloader">
+          <div className="amo-heart">
+            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="hg" x1="8" y1="12" x2="48" y2="48">
+                  <stop offset="0%" stopColor="#F59E0B" />
+                  <stop offset="50%" stopColor="#D97706" />
+                  <stop offset="100%" stopColor="#B45309" />
+                </linearGradient>
+              </defs>
+              <path d="M28 48s-18-11.2-18-24.5C10 16.6 15.6 11 22.5 11c4 0 5.5 2.5 5.5 2.5S29.5 11 33.5 11C40.4 11 46 16.6 46 23.5 46 36.8 28 48 28 48z" fill="url(#hg)" />
+            </svg>
+          </div>
+          <div className="amo-brand">AMO</div>
+          <div className="amo-sub">Cartagena</div>
+          <div className="amo-progress"><i></i></div>
+        </div>
+        {children}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            var p=document.getElementById('amo-preloader');
+            if(!p)return;
+            var dismiss=function(){
+              p.classList.add('hide');
+              setTimeout(function(){if(p.parentNode)p.parentNode.removeChild(p)},600);
+            };
+            // Watch for React hydration: Expo sets __EXPO_ROUTER_HYDRATE__ then
+            // the real UI replaces the static shell. Use MutationObserver on #root
+            // to detect when the ActivityIndicator is gone and real content appears.
+            var mo=new MutationObserver(function(){
+              // Once the tab bar or any nav element renders, the app is ready
+              var ready=document.querySelector('[role="tablist"]')||
+                        document.querySelector('[data-testid]')||
+                        document.querySelector('img[src*="googleusercontent"]');
+              if(ready){mo.disconnect();dismiss();}
+            });
+            var root=document.getElementById('root');
+            if(root)mo.observe(root,{childList:true,subtree:true});
+            // Fallback: dismiss after 4s no matter what (never block the user)
+            setTimeout(function(){mo.disconnect();dismiss()},4000);
+          })();
+        `}} />
+        <script dangerouslySetInnerHTML={{ __html: `
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/sw.js');
+            });
+          }
+        `}} />
+      </body>
     </html>
   );
 }

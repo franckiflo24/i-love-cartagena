@@ -97,6 +97,11 @@ export default function AlcaldiaDashboard({
     setExporting(kind);
     try {
       const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+      if (!BACKEND_URL) {
+        Alert.alert('No disponible', 'La exportación requiere conexión al servidor.');
+        setExporting(null);
+        return;
+      }
       const url = `${BACKEND_URL}/api/business/admin/export/${kind}.csv`;
       if (Platform.OS === 'web') {
         // On web, open the URL with an auth-fetch then download as blob

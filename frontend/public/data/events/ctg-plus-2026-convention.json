@@ -1,0 +1,49 @@
+{
+  "id": "evt_ctg_plus_2026",
+  "slug": "ctg-plus-2026-convention",
+  "name_es": "+CTG 2026 — Convencion Cartagena",
+  "name_en": "+CTG 2026 — Cartagena Convention",
+  "title": "+CTG 2026 — Convencion Cartagena",
+  "event_id": "ctg-plus-2026-convention",
+  "category": "cultural",
+  "type": "cultural",
+  "venue": "Centro de Convenciones Cartagena de Indias",
+  "venue_name": "Centro de Convenciones",
+  "neighborhood": "getsemani",
+  "date_start": "2026-10-28",
+  "date": "2026-10-28",
+  "date_end": "2026-10-30",
+  "time_start": "08:00",
+  "start_time": "08:00",
+  "is_free": false,
+  "price": 800000,
+  "price_min_cop": 500000,
+  "price_max_cop": 1500000,
+  "ticket_url": "https://cccartagena.com/events/ctg-2026/",
+  "organizer": "Centro de Convenciones Cartagena",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNReoYZqYfHPKSYt66t54QVipXb7m-EjO7W_t1pf9nMrS3r8hWoqgJJG0-OmGhipICWI_QpmoLIzmRANafJmvxhpVjc0YpDi0km_0U4uwEfluhi34ia8XXymZrkh_SHU4iv3YkMEoIQBb4Vmg=s1600-w800",
+  "description": "Evento de negocios y networking en el Centro de Convenciones de Cartagena. Paneles, conferencias y exposicion comercial. Tres dias de intercambio entre lideres empresariales del Caribe colombiano.",
+  "description_en": "Business and networking event at the Cartagena Convention Center. Panels, conferences, and commercial exhibition. Three days of exchange between Colombian Caribbean business leaders.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 3000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://cccartagena.com/events/ctg-2026/"
+  ],
+  "confidence": "medium",
+  "tags": [
+    "convention",
+    "business",
+    "networking"
+  ],
+  "featured": false,
+  "capacity": 3000,
+  "location": {
+    "lat": 10.4208,
+    "lng": -75.5489
+  },
+  "end_time": "18:00",
+  "image_source": "category"
+}

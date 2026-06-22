@@ -1,1 +1,8 @@
+.env
+.env.*
+.env.save
+__pycache__/
+*.pyc
 .vercel
+venv/
+*.egg-info/

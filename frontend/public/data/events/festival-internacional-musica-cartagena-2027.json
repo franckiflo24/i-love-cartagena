@@ -1,0 +1,51 @@
+{
+  "id": "evt_musica_2027",
+  "slug": "festival-internacional-musica-cartagena-2027",
+  "name_es": "XXI Cartagena Festival de Musica",
+  "name_en": "21st Cartagena International Music Festival",
+  "title": "XXI Cartagena Festival de Musica",
+  "event_id": "festival-internacional-musica-cartagena-2027",
+  "category": "cultural",
+  "type": "cultural",
+  "venue": "Teatro Adolfo Mejia / Centro de Convenciones / Iglesias Historicas",
+  "venue_name": "Teatro Adolfo Mejia (Teatro Heredia)",
+  "neighborhood": "centro",
+  "date_start": "2027-01-09",
+  "date": "2027-01-09",
+  "date_end": "2027-01-17",
+  "time_start": "19:00",
+  "start_time": "19:00",
+  "is_free": false,
+  "price": 80000,
+  "price_min_cop": 0,
+  "price_max_cop": 350000,
+  "ticket_url": "https://www.eticket.co/eventos.aspx?idartista=663",
+  "organizer": "Fundacion Salvi — Dir. Artistico: Julio Reyes Copello",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNReoYZqYfHPKSYt66t54QVipXb7m-EjO7W_t1pf9nMrS3r8hWoqgJJG0-OmGhipICWI_QpmoLIzmRANafJmvxhpVjc0YpDi0km_0U4uwEfluhi34ia8XXymZrkh_SHU4iv3YkMEoIQBb4Vmg=s1600-w800",
+  "description": "El festival de musica clasica y de camara mas importante de Latinoamerica. La 21a edicion bajo la nueva direccion artistica de Julio Reyes Copello (14 premios Grammy). Orquestas, solistas y ensambles de talla mundial. Patrimonio Cultural de la Nacion. Incluye conciertos gratuitos en plazas publicas.",
+  "description_en": "Latin America's premier classical and chamber music festival. The 21st edition under new artistic director Julio Reyes Copello (14 Grammy awards). World-class orchestras, soloists, and ensembles. Recognized as National Cultural Heritage. Includes free public concerts in city plazas.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 15000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://cartagenamusicfestival.com/?lang=en",
+    "https://www.eltiempo.com/cultura/musica-y-libros/el-impacto-del-cartagena-festival-de-musica-empleo-turismo-y-una-nueva-direccion-artistica-hacia-2027-3523094"
+  ],
+  "confidence": "high",
+  "tags": [
+    "classical",
+    "chamber-music",
+    "orchestral",
+    "cultural",
+    "heritage"
+  ],
+  "featured": true,
+  "location": {
+    "lat": 10.426,
+    "lng": -75.549
+  },
+  "end_time": "",
+  "image_source": "category"
+}

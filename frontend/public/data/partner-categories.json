@@ -1,0 +1,30 @@
+[
+  {
+    "key": "restaurant",
+    "label": "Restaurantes"
+  },
+  {
+    "key": "hotel",
+    "label": "Hoteles"
+  },
+  {
+    "key": "activity",
+    "label": "Actividades"
+  },
+  {
+    "key": "wellness",
+    "label": "Wellness & Spa"
+  },
+  {
+    "key": "bar",
+    "label": "Bares & Clubs"
+  },
+  {
+    "key": "beach_club",
+    "label": "Beach Clubs"
+  },
+  {
+    "key": "realestate",
+    "label": "Inmobiliario"
+  }
+]

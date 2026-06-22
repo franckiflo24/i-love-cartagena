@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from './AuthContext';
 import { api } from '../constants/api';
@@ -26,30 +26,34 @@ const STORAGE_KEY = '@musica_cartagena_favs';
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [favorites, setFavorites] = useState<FavItem[]>([]);
+  const profileRebuildTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadFavorites = useCallback(async () => {
     try {
       if (user) {
         const data = await api.get('/favorites/ids');
-        setFavorites(data);
+        setFavorites(Array.isArray(data) ? data : []);
       } else {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (stored) setFavorites(JSON.parse(stored));
+        if (stored) { try { const p = JSON.parse(stored); if (Array.isArray(p)) setFavorites(p); } catch {} }
       }
-    } catch (e) {
-      // Fallback to local
-      const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      if (stored) setFavorites(JSON.parse(stored));
+    } catch {
+      try {
+        const stored = await AsyncStorage.getItem(STORAGE_KEY);
+        if (stored) { const p = JSON.parse(stored); if (Array.isArray(p)) setFavorites(p); }
+      } catch {}
     }
   }, [user]);
 
   useEffect(() => { loadFavorites(); }, [loadFavorites]);
 
   const isFavorite = useCallback((id: string) => {
+    if (!id || !Array.isArray(favorites)) return false;
     return favorites.some(f => f.item_id === id);
   }, [favorites]);
 
   const toggleFavorite = useCallback(async (id: string, type: string) => {
+    if (!id || !Array.isArray(favorites)) return;
     const exists = favorites.some(f => f.item_id === id);
     let newFavs: FavItem[];
 
@@ -75,10 +79,10 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       const userId = cachedUser?.user_id || user?.user_id;
       if (userId && newFavs.length >= 2) {
         // Cancel any prior pending rebuild
-        if ((globalThis as any).__profileRebuildTimer) {
-          clearTimeout((globalThis as any).__profileRebuildTimer);
+        if (profileRebuildTimer.current) {
+          clearTimeout(profileRebuildTimer.current);
         }
-        (globalThis as any).__profileRebuildTimer = setTimeout(() => {
+        profileRebuildTimer.current = setTimeout(() => {
           api.post('/profile/build', { user_id: userId, favorites: newFavs }).catch(() => {});
         }, 1500); // debounce: wait 1.5s after last change
       }

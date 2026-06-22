@@ -1,0 +1,49 @@
+{
+  "id": "evt_musica_danza_mundo_2026",
+  "slug": "festival-musica-danza-mundo-2026",
+  "name_es": "Festival de Musica y Danza del Mundo",
+  "name_en": "World Music & Dance Festival",
+  "title": "Festival de Musica y Danza del Mundo",
+  "event_id": "festival-musica-danza-mundo-2026",
+  "category": "festival",
+  "type": "festival",
+  "venue": "Centro de Convenciones y plazas publicas",
+  "venue_name": "Centro de Convenciones Cartagena de Indias",
+  "neighborhood": "centro",
+  "date_start": "2026-08-20",
+  "date": "2026-08-20",
+  "date_end": "2026-08-22",
+  "time_start": "17:00",
+  "start_time": "17:00",
+  "is_free": false,
+  "price": 50000,
+  "price_min_cop": 0,
+  "price_max_cop": 80000,
+  "ticket_url": null,
+  "organizer": "IPCC / Alcaldia de Cartagena",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNbfKsJj7orclu56byq_q9DgZQHpx81P3F8_qpfY-xNvL6t8iQXyd3GvZD2GjN6P2yXdp3uJIYRKMQv5jjO9ASuyYTYs1nnbljIxTL0wbqPLZhCpu7ecZbXXA65FAgwaguP-rmWuxuqsPDjRQ=s1600-w800",
+  "description": "Festival internacional que reune musica y danza del mundo entero en Cartagena. Artistas de multiples paises presentan sus tradiciones en escenarios al aire libre y cerrados.",
+  "description_en": "International festival bringing world music and dance to Cartagena. Artists from multiple countries present their traditions on outdoor and indoor stages.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 10000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026"
+  ],
+  "confidence": "medium",
+  "tags": [
+    "world-music",
+    "dance",
+    "international",
+    "festival"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.4195,
+    "lng": -75.546
+  },
+  "end_time": "",
+  "image_source": "google_places_cartagena"
+}

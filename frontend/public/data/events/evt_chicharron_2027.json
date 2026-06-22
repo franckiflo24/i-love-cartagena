@@ -1,0 +1,48 @@
+{
+  "id": "evt_chicharron_2027",
+  "slug": "festival-chicharron-cartagena-2027",
+  "name_es": "Festival del Chicharron y la Totuma",
+  "name_en": "Chicharron & Totuma Festival",
+  "title": "Festival del Chicharron y la Totuma",
+  "event_id": "festival-chicharron-cartagena-2027",
+  "category": "market",
+  "type": "market",
+  "venue": "Parque de la Iguana",
+  "venue_name": "Parque de la Iguana",
+  "neighborhood": "centro",
+  "date_start": "2027-03-11",
+  "date": "2027-03-11",
+  "date_end": "2027-03-14",
+  "time_start": "10:00",
+  "start_time": "10:00",
+  "is_free": true,
+  "price": 0,
+  "price_min_cop": null,
+  "price_max_cop": null,
+  "ticket_url": null,
+  "organizer": "Organizadores locales / IPCC",
+  "image_url": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800",
+  "description": "Festival gastronomico dedicado al chicharron en todas sus preparaciones. Fritangueras de toda la costa presentan sus mejores recetas en el Parque de la Iguana.",
+  "description_en": "Gastronomic festival dedicated to chicharron (pork crackling) in all its preparations. Fritangueras from across the coast present their best recipes at Parque de la Iguana.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 20000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.colombia.com/gastronomia/noticias/festival-del-chicharron-2026-en-cartagena-573198"
+  ],
+  "confidence": "medium",
+  "tags": [
+    "food",
+    "chicharron",
+    "gastronomy",
+    "free"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5483
+  },
+  "end_time": ""
+}

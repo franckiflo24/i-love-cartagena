@@ -1,0 +1,51 @@
+{
+  "id": "evt_nye_movida_2026",
+  "slug": "nye-la-movida-cartagena-2026",
+  "name_es": "Ano Nuevo en La Movida Cartagena",
+  "name_en": "New Year's Eve at La Movida Cartagena",
+  "title": "Ano Nuevo en La Movida Cartagena",
+  "event_id": "nye-la-movida-cartagena-2026",
+  "category": "nightlife",
+  "type": "nightlife",
+  "venue": "La Movida Cartagena",
+  "venue_name": "La Movida",
+  "neighborhood": "centro",
+  "date_start": "2026-12-31",
+  "date": "2026-12-31",
+  "date_end": "2027-01-01",
+  "time_start": "21:00",
+  "start_time": "21:00",
+  "is_free": false,
+  "price": 900000,
+  "price_min_cop": 500000,
+  "price_max_cop": 1400000,
+  "ticket_url": "https://bubbl.so/event/public/3UF6JobYbtO5qGGkc3Ob",
+  "organizer": "La Movida Night Experiences",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMY8uroS17No57rPdt8_tjXoZ7Rbr8Rvs8QhauiQXetkpBTOHy4x9LbPQjHKyfUinnbIDwlYacKXXpywmsImfdwOb3jC-Xx697GGLuO8aTLlBphdkfNwXkWFMAUHgqy65dERY4RW6uSqcoLZBidrcN4=s1600-w800",
+  "description": "Fiesta de Ano Nuevo en La Movida con multiples zonas: Almodovar Patio, Main Room, La Ratonera y Rooftop. DJs en vivo, cocteleria premium y dress code elegante. Tiquetes General, Premium y Super VIP.",
+  "description_en": "New Year's Eve party at La Movida with multiple zones: Almodovar Patio, Main Room, La Ratonera, and Rooftop. Live DJs, premium cocktails, and elegant dress code. General, Premium, and Super VIP tickets.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 1000,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://bubbl.so/event/public/3UF6JobYbtO5qGGkc3Ob",
+    "https://hicartagena.com/best-new-years-eve-in-cartagena/"
+  ],
+  "confidence": "high",
+  "tags": [
+    "new-years",
+    "nightlife",
+    "club",
+    "premium",
+    "party"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.5483
+  },
+  "end_time": "",
+  "image_source": "venue"
+}

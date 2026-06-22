@@ -1,0 +1,49 @@
+{
+  "id": "evt_cholon_party",
+  "slug": "cholon-island-vip-party",
+  "name_es": "Cholon Island VIP Rumba Tour",
+  "name_en": "Cholon Island VIP Party Tour",
+  "title": "Cholon Island VIP Rumba Tour",
+  "event_id": "cholon-island-vip-party",
+  "category": "nightlife",
+  "type": "nightlife",
+  "venue": "Isla de Cholon, Islas del Rosario",
+  "venue_name": "Cholon Island",
+  "neighborhood": "islas",
+  "date_start": "2026-06-20",
+  "date": "2026-06-20",
+  "date_end": "2027-04-30",
+  "time_start": "09:00",
+  "start_time": "09:00",
+  "is_free": false,
+  "price": 250000,
+  "price_min_cop": 180000,
+  "price_max_cop": 500000,
+  "ticket_url": null,
+  "organizer": "Operadores turisticos locales",
+  "image_url": "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800",
+  "description": "Tour VIP a Cholon con open bar, plataformas flotantes, musica, almuerzo caribeno y fiesta en el agua. Salida en lancha desde Cartagena. La fiesta acuatica mas famosa de Colombia.",
+  "description_en": "VIP tour to Cholon with open bar, floating platforms, music, Caribbean lunch, and party on the water. Boat departure from Cartagena. Colombia's most famous water party.",
+  "status": "scheduled",
+  "recurring": true,
+  "recurrence_rule": "weekly",
+  "expected_attendance": null,
+  "last_verified_date": "2026-06-16",
+  "source": [
+    "https://www.getyourguide.com/tierra-bomba-island-l145037/"
+  ],
+  "confidence": "high",
+  "tags": [
+    "boat",
+    "party",
+    "islands",
+    "open-bar",
+    "recurring"
+  ],
+  "featured": false,
+  "location": {
+    "lat": 10.178,
+    "lng": -75.75
+  },
+  "end_time": ""
+}

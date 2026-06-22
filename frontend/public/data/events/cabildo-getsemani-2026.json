@@ -1,0 +1,50 @@
+{
+  "id": "evt_cabildo_getsemani_2026",
+  "slug": "cabildo-getsemani-2026",
+  "name_es": "Cabildo de Getsemani",
+  "name_en": "Getsemani Cabildo",
+  "title": "Cabildo de Getsemani",
+  "event_id": "cabildo-getsemani-2026",
+  "category": "festival",
+  "type": "festival",
+  "venue": "Calles de Getsemani",
+  "venue_name": "Getsemani",
+  "neighborhood": "getsemani",
+  "date_start": "2026-11-14",
+  "date": "2026-11-14",
+  "date_end": "2026-11-14",
+  "time_start": "14:00",
+  "start_time": "14:00",
+  "is_free": true,
+  "price": 0,
+  "price_min_cop": null,
+  "price_max_cop": null,
+  "ticket_url": null,
+  "organizer": "Junta de Accion Comunal de Getsemani / IPCC",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZO5i6pQE3oK143p305lbWowaKJUpLBQGMD4CNep4wjgv8Uch-41nbW75LXxWjSgxbTbFtwzjQLWDi9GOyBN-4xZdXl_vJXlns6R7bc9U8Y8rOxu_fabl2kQHBsW1LXIkHCvWx4a8nWY-eESgKQ=s1600-w800",
+  "description": "El cabildo mas importante de las Fiestas de Noviembre. Getsemani, barrio donde nacio el grito de independencia, celebra con comparsa callejera, musica champeta y danzas ancestrales.",
+  "description_en": "The most important cabildo of the November Festivities. Getsemani, the neighborhood where the independence cry was born, celebrates with street comparsas, champeta music, and ancestral dances.",
+  "status": "scheduled",
+  "recurring": false,
+  "recurrence_rule": null,
+  "expected_attendance": 50000,
+  "last_verified_date": "2026-06-17",
+  "source": [
+    "https://www.cartagenaexplorer.com/programacion-de-fiestas-noviembre-cartagena-2026/"
+  ],
+  "confidence": "high",
+  "tags": [
+    "cabildo",
+    "independence",
+    "getsemani",
+    "champeta",
+    "free"
+  ],
+  "featured": true,
+  "location": {
+    "lat": 10.4219,
+    "lng": -75.5511
+  },
+  "end_time": "",
+  "image_source": "google_places_cartagena"
+}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking as RNLinking, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking as RNLinking, Alert } from 'react-native';
+import { SafeImage } from '../../src/components/SafeImage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -59,7 +60,6 @@ export default function PartnerEventDetail() {
 
   const handleReserve = () => {
     if (!event) return;
-    // Route to the in-app reservation form. The form auto-detects prepaid (because event_id is set).
     try {
       api.post(`/partner-events/${event.event_id}/track-reserve`).catch(() => {});
     } catch {}
@@ -70,6 +70,35 @@ export default function PartnerEventDetail() {
         event_id: event.event_id,
       },
     });
+  };
+
+  const handleWhatsApp = async () => {
+    if (!event) return;
+    // Try to get partner phone directly
+    try {
+      const partnerData = await api.get(`/partners/${event.partner_id}`);
+      const phone = (partnerData?.phone || '').replace(/[^\d+]/g, '').replace('+', '');
+      const waPhone = phone || process.env.EXPO_PUBLIC_AMO_WHATSAPP || '573176481183';
+      const msg = encodeURIComponent(
+        `¡Hola! Reserva via *AMO Cartagena* 🌴\n\n`
+        + `Evento: *${event.title}*\n`
+        + `Lugar: *${event.partner_name || partnerData?.name || ''}*\n`
+        + `Fecha: ${event.date}\n`
+        + `Hora: ${event.start_time}\n\n`
+        + `¿Disponibilidad?\n\n---\n\n`
+        + `Hi! Booking via *AMO Cartagena* 🌴\n\n`
+        + `Event: *${event.title}*\n`
+        + `Venue: *${event.partner_name || partnerData?.name || ''}*\n`
+        + `Date: ${event.date}\n`
+        + `Time: ${event.start_time}\n\n`
+        + `Availability?`
+      );
+      RNLinking.openURL(`https://wa.me/${waPhone}?text=${msg}`);
+    } catch {
+      // Fallback to AMO concierge
+      const msg = encodeURIComponent(`¡Hola! Quiero reservar para *${event.title}* via AMO Cartagena 🌴`);
+      RNLinking.openURL(`https://wa.me/573176481183?text=${msg}`);
+    }
   };
 
   if (loading) {
@@ -87,7 +116,7 @@ export default function PartnerEventDetail() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
         {/* Flyer */}
         <View style={styles.flyerWrap}>
-          <Image source={{ uri: event.flyer_url }} style={styles.flyer} resizeMode="cover" />
+          <SafeImage uri={event.flyer_url} category={event.category} style={styles.flyer} resizeMode="cover" />
           <View style={styles.flyerOverlay} />
           <View style={{ flexDirection: 'row', position: 'absolute', top: SPACING.md, left: SPACING.md, gap: 8, zIndex: 5 }}>
             <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -188,7 +217,7 @@ export default function PartnerEventDetail() {
             onPress={() => router.push(`/partner/${event.partner_id}`)}
             activeOpacity={0.85}
           >
-            <Image source={{ uri: partner.image_url }} style={styles.partnerImage} />
+            <SafeImage uri={partner.image_url} style={styles.partnerImage} />
             <View style={styles.partnerOverlay} />
             <View style={styles.partnerInfo}>
               <View style={styles.partnerTopRow}>
@@ -231,18 +260,12 @@ export default function PartnerEventDetail() {
           <Ionicons name="person-outline" size={18} color={COLORS.primary} />
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.reserveBtn, reserving && { opacity: 0.6 }]}
-          onPress={handleReserve}
-          disabled={reserving}
+          style={styles.whatsappBtn}
+          onPress={handleWhatsApp}
+          activeOpacity={0.85}
         >
-          {reserving ? (
-            <ActivityIndicator size="small" color={COLORS.white} />
-          ) : (
-            <>
-              <Text style={styles.reserveText}>Reservar online</Text>
-              <Ionicons name="arrow-forward" size={16} color={COLORS.white} />
-            </>
-          )}
+          <Ionicons name="logo-whatsapp" size={18} color="#FFF" />
+          <Text style={styles.whatsappText}>Reservar por WhatsApp</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -298,4 +321,6 @@ const styles = StyleSheet.create({
   partnerProfileBtn: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.primary },
   reserveBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 14 },
   reserveText: { fontSize: 14, color: COLORS.white, ...FONTS.bold },
+  whatsappBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#25D366', borderRadius: RADIUS.full, paddingVertical: 14 },
+  whatsappText: { fontSize: 14, color: '#FFF', ...FONTS.bold },
 });
