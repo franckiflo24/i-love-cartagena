@@ -150,10 +150,20 @@ export default function HomeScreen() {
       api.get('/partners').then((p: any) => {
         if (Array.isArray(p) && p.length > 0) setPartnerCount(p.length);
       }).catch(() => {});
-      const sa = Array.isArray(s) ? s : [];
-      const firstDate = sa.length > 0 ? sa[0].start_date : '2025-12-30';
-      const t = await api.get(`/events?date=${firstDate}`).catch(() => []);
-      setTodayEvents(Array.isArray(t) ? t : []);
+      // Fetch events happening today (or nearest upcoming if none today)
+      const t = await api.get(`/events?date=${today}`).catch(() => []);
+      const todayArr = Array.isArray(t) ? t : [];
+      // If no events today, show the next upcoming events so the section isn't empty
+      if (todayArr.length === 0 && evts.length > 0) {
+        // Use the first few upcoming events as "today's highlights"
+        const upcoming = evts.slice(0, 8).map((e: any) => ({
+          ...e,
+          _isUpcoming: true,
+        }));
+        setTodayEvents(upcoming);
+      } else {
+        setTodayEvents(todayArr);
+      }
       // Personalized recommendations: use AI profile to filter partners
       if (user) {
         try {
@@ -661,10 +671,47 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Hoy & Esta noche - Partner Events */}
+        {/* Hoy & Esta noche - Partner Events + Today Events */}
         {(() => {
-          const dayPE = todayPEvents.filter(e => !isNightTime(e.start_time));
-          const nightPE = todayPEvents.filter(e => isNightTime(e.start_time));
+          // Merge partner events with regular today events for richer content
+          const allDayItems = [
+            ...todayPEvents.filter(e => !isNightTime(e.start_time)),
+            ...todayEvents.filter(e => !isNightTime(e.start_time)).map(e => ({
+              event_id: e.event_id,
+              partner_id: '',
+              title: e.title,
+              category: e.type,
+              date: e.date,
+              start_time: e.start_time,
+              end_time: e.end_time,
+              flyer_url: e.image_url,
+              is_free: e.is_free,
+              price: e.price,
+              partner_name: e.venue_name,
+              partner_tier: '',
+              partner_image: e.image_url,
+            } as PEvent)),
+          ];
+          const allNightItems = [
+            ...todayPEvents.filter(e => isNightTime(e.start_time)),
+            ...todayEvents.filter(e => isNightTime(e.start_time)).map(e => ({
+              event_id: e.event_id,
+              partner_id: '',
+              title: e.title,
+              category: e.type,
+              date: e.date,
+              start_time: e.start_time,
+              end_time: e.end_time,
+              flyer_url: e.image_url,
+              is_free: e.is_free,
+              price: e.price,
+              partner_name: e.venue_name,
+              partner_tier: '',
+              partner_image: e.image_url,
+            } as PEvent)),
+          ];
+          const dayPE = allDayItems;
+          const nightPE = allNightItems;
           const renderPECard = (event: PEvent) => {
             const cat = CAT_COLORS[event.category] || { main: COLORS.primary, bg: 'rgba(217,119,6,0.15)', label: event.category };
             const budget = getBudgetStyle(event.is_free, event.price);
