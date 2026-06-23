@@ -3,7 +3,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import * as AuthSession from 'expo-auth-session';
-import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
+
+// Ensure browser session completes on web
+if (Platform.OS === 'web') {
+  WebBrowser.maybeCompleteAuthSession();
+}
 
 const setToken = async (token: string) => {
   if (Platform.OS === 'web') {
@@ -30,6 +35,12 @@ const removeToken = async () => {
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '';
+
+const discovery = {
+  authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+  tokenEndpoint: 'https://oauth2.googleapis.com/token',
+  revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
+};
 
 type User = {
   user_id: string;
@@ -61,9 +72,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    clientId: GOOGLE_CLIENT_ID,
-  });
+  const redirectUri = AuthSession.makeRedirectUri({ preferLocalhost: false });
+
+  const [request, response, promptAsync] = AuthSession.useAuthRequest(
+    {
+      clientId: GOOGLE_CLIENT_ID,
+      scopes: ['openid', 'profile', 'email'],
+      responseType: AuthSession.ResponseType.IdToken,
+      redirectUri,
+      usePKCE: false,
+      extraParams: {
+        nonce: Math.random().toString(36).substring(2),
+      },
+    },
+    discovery
+  );
 
   const exchangeGoogleToken = useCallback(async (idToken: string) => {
     try {
@@ -73,7 +96,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         credentials: 'include',
         body: JSON.stringify({ id_token: idToken }),
       });
-      if (!res.ok) throw new Error('Google auth failed');
+      if (!res.ok) {
+        const err = await res.text();
+        console.error('[AuthContext] Google auth response:', res.status, err);
+        throw new Error('Google auth failed');
+      }
       const data = await res.json();
       if (data.session_token) {
         await setToken(data.session_token);
@@ -95,7 +122,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const idToken = response.params?.id_token;
       if (idToken) {
         exchangeGoogleToken(idToken);
+      } else {
+        console.error('[AuthContext] No id_token in response params:', response.params);
       }
+    } else if (response?.type === 'error') {
+      console.error('[AuthContext] Auth error:', response.error);
     }
   }, [response, exchangeGoogleToken]);
 
