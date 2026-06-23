@@ -90,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await fetch(`${BACKEND_URL}/api/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        credentials: Platform.OS === 'web' ? 'same-origin' : 'include',
         body: JSON.stringify({ id_token: idToken }),
       });
       if (!res.ok) {
@@ -134,7 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       const res = await fetch(`${BACKEND_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
-        credentials: 'include',
+        credentials: Platform.OS === 'web' ? 'same-origin' : 'include',
       });
       if (res.ok) {
         const userData = await res.json();
@@ -191,7 +191,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token || ''}` },
-        credentials: 'include',
+        credentials: Platform.OS === 'web' ? 'same-origin' : 'include',
       });
     } catch (e) { console.error('[AuthContext] logout call failed', e); }
     await removeToken();
