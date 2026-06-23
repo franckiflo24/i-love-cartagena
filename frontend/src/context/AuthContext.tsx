@@ -72,7 +72,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const redirectUri = AuthSession.makeRedirectUri({ preferLocalhost: false });
+  // On web, redirect back to our own origin so we don't depend on auth.expo.io proxy
+  const redirectUri = Platform.OS === 'web' && typeof window !== 'undefined'
+    ? window.location.origin
+    : AuthSession.makeRedirectUri({ preferLocalhost: false });
 
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {

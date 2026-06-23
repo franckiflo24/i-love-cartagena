@@ -12,7 +12,19 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <title>AMO Cartagena</title>
+        <title>AMO Cartagena — Tu guía definitiva de Cartagena de Indias</title>
+        <meta name="description" content="Descubre 700+ restaurantes, bares, hoteles, playas y experiencias en Cartagena de Indias. Reservas, City Pass, recompensas y concierge IA." />
+        <meta property="og:title" content="AMO Cartagena" />
+        <meta property="og:description" content="Descubre 700+ lugares, eventos y experiencias en Cartagena de Indias. Tu guía definitiva." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://frontend-ashy-five-79.vercel.app" />
+        <meta property="og:image" content="https://frontend-ashy-five-79.vercel.app/data/og-image.jpg" />
+        <meta property="og:locale" content="es_CO" />
+        <meta property="og:locale:alternate" content="en_US" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="AMO Cartagena" />
+        <meta name="twitter:description" content="Descubre 700+ lugares en Cartagena de Indias" />
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Cdefs%3E%3ClinearGradient id='h' x1='8' y1='12' x2='48' y2='48'%3E%3Cstop offset='0%25' stop-color='%23F59E0B'/%3E%3Cstop offset='100%25' stop-color='%23D97706'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M28 48s-18-11.2-18-24.5C10 16.6 15.6 11 22.5 11c4 0 5.5 2.5 5.5 2.5S29.5 11 33.5 11C40.4 11 46 16.6 46 23.5 46 36.8 28 48 28 48z' fill='url(%23h)'/%3E%3C/svg%3E" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
