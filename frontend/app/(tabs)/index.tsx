@@ -150,19 +150,18 @@ export default function HomeScreen() {
       api.get('/partners').then((p: any) => {
         if (Array.isArray(p) && p.length > 0) setPartnerCount(p.length);
       }).catch(() => {});
-      // Fetch events happening today (or nearest upcoming if none today)
-      const t = await api.get(`/events?date=${today}`).catch(() => []);
-      const todayArr = Array.isArray(t) ? t : [];
-      // If no events today, show the next upcoming events so the section isn't empty
-      if (todayArr.length === 0 && evts.length > 0) {
-        // Use the first few upcoming events as "today's highlights"
-        const upcoming = evts.slice(0, 8).map((e: any) => ({
-          ...e,
-          _isUpcoming: true,
-        }));
-        setTodayEvents(upcoming);
+      // Get events for today from the already-loaded upcoming events
+      // Filter: events whose date range spans today
+      const todayFiltered = evts.filter((e: any) => {
+        const start = e.date_start || e.date || '';
+        const end = e.date_end || start;
+        return start <= today && end >= today;
+      });
+      // If nothing specifically today, show the next few upcoming as highlights
+      if (todayFiltered.length === 0) {
+        setTodayEvents(evts.slice(0, 8));
       } else {
-        setTodayEvents(todayArr);
+        setTodayEvents(todayFiltered);
       }
       // Personalized recommendations: use AI profile to filter partners
       if (user) {
