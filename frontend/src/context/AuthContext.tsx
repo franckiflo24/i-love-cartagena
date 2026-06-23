@@ -90,7 +90,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await fetch(`${BACKEND_URL}/api/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: Platform.OS === 'web' ? 'same-origin' : 'include',
         body: JSON.stringify({ id_token: idToken }),
       });
       if (!res.ok) {
@@ -117,11 +116,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const token = await getToken();
       if (!token) {
+        // No session token — check for cached user data from a recent login
         const cached = await AsyncStorage.getItem('user_data');
         if (cached) {
           try {
             const parsed = JSON.parse(cached);
-            if (parsed?.provider === 'email_local' || parsed?.provider === 'whatsapp_local') {
+            if (parsed?.user_id || parsed?.email) {
               setUser(parsed);
               setIsLoading(false);
               return;
@@ -134,7 +134,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       const res = await fetch(`${BACKEND_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
-        credentials: Platform.OS === 'web' ? 'same-origin' : 'include',
       });
       if (res.ok) {
         const userData = await res.json();
@@ -191,7 +190,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token || ''}` },
-        credentials: Platform.OS === 'web' ? 'same-origin' : 'include',
       });
     } catch (e) { console.error('[AuthContext] logout call failed', e); }
     await removeToken();

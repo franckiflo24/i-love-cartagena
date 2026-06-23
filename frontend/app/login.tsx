@@ -78,7 +78,11 @@ export default function LoginScreen() {
       if (res.user) {
         await AsyncStorage.setItem('user_data', JSON.stringify(res.user));
       }
-      await checkAuth();
+      setSavingSignup(false);
+      setShowSignup(false);
+      // Navigate immediately — don't wait for reactive useEffect
+      router.replace('/(tabs)');
+      return;
     } catch (e) {
       console.error('[Login] email signup error', e);
       Alert.alert('Error', 'No se pudo crear la cuenta. Intenta de nuevo.');
@@ -106,7 +110,11 @@ export default function LoginScreen() {
       if (res.user) {
         await AsyncStorage.setItem('user_data', JSON.stringify(res.user));
       }
-      await checkAuth();
+      setSavingSignup(false);
+      setShowWhatsapp(false);
+      // Navigate immediately
+      router.replace('/(tabs)');
+      return;
     } catch (e) {
       console.error('[Login] whatsapp signup error', e);
       Alert.alert('Error', 'No se pudo crear la cuenta. Intenta de nuevo.');
