@@ -12,3 +12,4 @@ passlib==1.7.4
 stripe==15.0.1
 emergentintegrations
 anthropic>=0.40.0
+google-auth>=2.29.0

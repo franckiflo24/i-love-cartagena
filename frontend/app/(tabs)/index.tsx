@@ -100,6 +100,7 @@ export default function HomeScreen() {
   const [favItems, setFavItems] = useState<any[]>([]);
   const [unreadNotifs, setUnreadNotifs] = useState<number>(0);
   const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [partnerCount, setPartnerCount] = useState(716);
   const flatListRef = useRef<FlatList>(null);
 
   // Check unread notifications once on focus (no polling — eliminates 401 spam)
@@ -145,6 +146,10 @@ export default function HomeScreen() {
       setSponsors(Array.isArray(sp) ? sp : []);
       setTodayPEvents(Array.isArray(pe) ? pe : []);
       setPromotions(Array.isArray(promos) ? promos : []);
+      // Get partner count for hero
+      api.get('/partners').then((p: any) => {
+        if (Array.isArray(p) && p.length > 0) setPartnerCount(p.length);
+      }).catch(() => {});
       const sa = Array.isArray(s) ? s : [];
       const firstDate = sa.length > 0 ? sa[0].start_date : '2025-12-30';
       const t = await api.get(`/events?date=${firstDate}`).catch(() => []);
@@ -335,7 +340,7 @@ export default function HomeScreen() {
           <View style={styles.heroBannerOverlay} />
           <View style={styles.heroBannerContent}>
             <Text style={styles.heroBannerLabel}>CARTAGENA DE INDIAS</Text>
-            <Text style={styles.heroBannerTitle}>543 lugares para descubrir</Text>
+            <Text style={styles.heroBannerTitle}>{partnerCount} lugares para descubrir</Text>
             <Text style={styles.heroBannerSub}>Restaurantes · Bares · Beach Clubs · Spas · Nightlife</Text>
           </View>
         </TouchableOpacity>

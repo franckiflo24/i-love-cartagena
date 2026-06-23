@@ -7,6 +7,8 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone, timedelta
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_auth_requests
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -53,7 +55,74 @@ class UserOut(BaseModel):
 class SessionExchange(BaseModel):
     session_id: str
 
+class GoogleAuthBody(BaseModel):
+    id_token: str
+
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+
 # ── Auth Endpoints ──────────────────────────────────────────
+
+@api_router.post("/auth/google")
+async def google_auth(body: GoogleAuthBody, response: Response):
+    """Exchange a Google ID token for an app session token."""
+    try:
+        idinfo = google_id_token.verify_oauth2_token(
+            body.id_token, google_auth_requests.Request(), GOOGLE_CLIENT_ID
+        )
+    except ValueError as e:
+        logger.error(f"[google_auth] Token verification failed: {e}")
+        raise HTTPException(status_code=401, detail="Invalid Google token")
+
+    email = idinfo.get("email")
+    if not email:
+        raise HTTPException(status_code=401, detail="Google token missing email")
+
+    name = idinfo.get("name", "")
+    picture = idinfo.get("picture", "")
+
+    user = await db.users.find_one({"email": email}, {"_id": 0})
+    if not user:
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        user = {
+            "user_id": user_id,
+            "email": email,
+            "name": name,
+            "picture": picture,
+            "provider": "google",
+            "favorites": [],
+            "my_week": [],
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.users.insert_one(user)
+        user = await db.users.find_one({"email": email}, {"_id": 0})
+    else:
+        update_fields: dict = {}
+        if not user.get("provider"):
+            update_fields["provider"] = "google"
+        if picture and not user.get("picture"):
+            update_fields["picture"] = picture
+        if name and not user.get("name"):
+            update_fields["name"] = name
+        if update_fields:
+            await db.users.update_one({"email": email}, {"$set": update_fields})
+            user.update(update_fields)
+
+    session_token = f"st_{uuid.uuid4().hex}"
+    await db.user_sessions.insert_one({
+        "session_token": session_token,
+        "user_id": user["user_id"],
+        "expires_at": datetime.now(timezone.utc) + timedelta(days=7),
+        "created_at": datetime.now(timezone.utc),
+    })
+
+    response.set_cookie(
+        key="session_token", value=session_token,
+        httponly=True, secure=True, samesite="none",
+        path="/", max_age=7 * 24 * 3600
+    )
+    return {"user": {k: v for k, v in user.items() if k != "_id"}, "session_token": session_token}
+
+
 @api_router.post("/auth/session")
 async def exchange_session(body: SessionExchange, response: Response):
     try:

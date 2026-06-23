@@ -2,8 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
-import * as Linking from 'expo-linking';
+import * as AuthSession from 'expo-auth-session';
+import * as Google from 'expo-auth-session/providers/google';
 
 const setToken = async (token: string) => {
   if (Platform.OS === 'web') {
@@ -29,6 +29,7 @@ const removeToken = async () => {
 };
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 type User = {
   user_id: string;
@@ -60,15 +61,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const exchangeSession = useCallback(async (sessionId: string) => {
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    clientId: GOOGLE_CLIENT_ID,
+  });
+
+  const exchangeGoogleToken = useCallback(async (idToken: string) => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/session`, {
+      const res = await fetch(`${BACKEND_URL}/api/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ session_id: sessionId }),
+        body: JSON.stringify({ id_token: idToken }),
       });
-      if (!res.ok) throw new Error('Session exchange failed');
+      if (!res.ok) throw new Error('Google auth failed');
       const data = await res.json();
       if (data.session_token) {
         await setToken(data.session_token);
@@ -79,16 +84,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return data;
     } catch (e) {
-      console.error('Exchange session error:', e);
+      console.error('[AuthContext] Google token exchange error:', e);
       return null;
     }
   }, []);
+
+  // Handle Google auth response
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const idToken = response.params?.id_token;
+      if (idToken) {
+        exchangeGoogleToken(idToken);
+      }
+    }
+  }, [response, exchangeGoogleToken]);
 
   const checkAuth = useCallback(async () => {
     try {
       const token = await getToken();
       if (!token) {
-        // No session token — check for local (email signup) cached user
         const cached = await AsyncStorage.getItem('user_data');
         if (cached) {
           try {
@@ -129,42 +143,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
-    const init = async () => {
-      // Check for session_id in URL hash (web only)
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        const hash = window.location.hash;
-        if (hash.includes('session_id=')) {
-          const sessionId = hash.split('session_id=')[1]?.split('&')[0];
-          if (sessionId) {
-            await exchangeSession(sessionId);
-            window.history.replaceState(null, '', window.location.pathname);
-            setIsLoading(false);
-            return;
-          }
-        }
-      }
-      await checkAuth();
-    };
-    init();
+    checkAuth();
   }, []);
 
   const login = useCallback(async () => {
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-      const redirectUrl = window.location.origin;
-      window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
-    } else {
-      const redirectUri = Linking.createURL('/');
-      const authUrl = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUri)}`;
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
-      if (result.type === 'success' && result.url) {
-        const sessionId = result.url.split('session_id=')[1]?.split('&')[0];
-        if (sessionId) {
-          await exchangeSession(sessionId);
-        }
-      }
-    }
-  }, [exchangeSession]);
+    promptAsync();
+  }, [promptAsync]);
 
   const logout = useCallback(async () => {
     try {
