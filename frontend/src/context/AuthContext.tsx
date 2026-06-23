@@ -77,6 +77,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ? window.location.origin
     : AuthSession.makeRedirectUri({ preferLocalhost: false });
 
+  // Stable nonce — must not change between renders or useAuthRequest loops infinitely
+  const nonce = React.useMemo(() => Math.random().toString(36).substring(2), []);
+
   const [request, response, promptAsync] = AuthSession.useAuthRequest(
     {
       clientId: GOOGLE_CLIENT_ID,
@@ -84,9 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       responseType: AuthSession.ResponseType.IdToken,
       redirectUri,
       usePKCE: false,
-      extraParams: {
-        nonce: Math.random().toString(36).substring(2),
-      },
+      extraParams: { nonce },
     },
     discovery
   );
