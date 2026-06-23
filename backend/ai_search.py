@@ -113,15 +113,7 @@ async def ai_search_answer(query: str, matches: Dict[str, List[Dict[str, Any]]])
         })
 
     # If nothing matched, we can still let the LLM suggest a category to browse.
-    try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage  # type: ignore
-    except Exception as exc:
-        logger.warning(f"emergentintegrations unavailable for ai_search: {exc}")
-        return fallback
-
-    api_key = os.environ.get("EMERGENT_LLM_KEY", "")
-    if not api_key:
-        return fallback
+    from llm import llm_complete
 
     system_prompt = (
         "Eres el asistente conversacional de la app 'Amo Cartagena'. "
@@ -143,14 +135,7 @@ async def ai_search_answer(query: str, matches: Dict[str, List[Dict[str, Any]]])
 
     user_payload = {"query": query, "pool": pool}
 
-    try:
-        chat = LlmChat(api_key=api_key, session_id=f"search-{uuid.uuid4().hex[:8]}",
-                       system_message=system_prompt)
-        chat.with_model("openai", "gpt-4o-mini")
-        response = await chat.send_message(UserMessage(text=json.dumps(user_payload)))
-    except Exception as exc:
-        logger.warning(f"ai_search LLM call failed: {exc}")
-        return fallback
+    response = await llm_complete(system_prompt, json.dumps(user_payload))
 
     if not response:
         return fallback

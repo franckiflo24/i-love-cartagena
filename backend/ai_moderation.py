@@ -63,16 +63,7 @@ async def moderate_event(title: str, description: str, category: str, partner_na
         "issues": ["llm_unavailable"],
     }
 
-    try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage  # type: ignore
-    except Exception as e:
-        logger.warning(f"emergentintegrations unavailable: {e}")
-        return fallback
-
-    api_key = os.environ.get("EMERGENT_LLM_KEY", "")
-    if not api_key:
-        logger.warning("EMERGENT_LLM_KEY not set")
-        return fallback
+    from llm import llm_complete
 
     user_text = f"""Partner: {partner_name or 'unknown'}
 Stated category: {category}
@@ -82,13 +73,8 @@ Description: {description}
 Review and respond in JSON only."""
 
     try:
-        chat = LlmChat(
-            api_key=api_key,
-            session_id=f"mod_{uuid.uuid4().hex[:10]}",
-            system_message=SYSTEM_PROMPT,
-        ).with_model("openai", "gpt-4.1-mini")
-
-        response = await chat.send_message(UserMessage(text=user_text))
+        # Moderation benefits from a stronger model than the cheap default.
+        response = await llm_complete(SYSTEM_PROMPT, user_text, model="claude-sonnet-4-6")
         raw = (response or "").strip()
 
         # Strip code fences if present

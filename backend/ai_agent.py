@@ -654,15 +654,7 @@ async def run_agent_turn(
     if forced not in {"es", "en", "fr", "pt"}:
         forced = ""
 
-    try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage  # type: ignore
-    except Exception as exc:
-        logger.warning(f"emergentintegrations unavailable for ai_agent: {exc}")
-        return _fallback_response(user_text, forced or None)
-
-    api_key = os.environ.get("EMERGENT_LLM_KEY", "").strip()
-    if not api_key:
-        return _fallback_response(user_text, forced or None)
+    from llm import llm_complete
 
     context = await build_context_snapshot(db, user=user, user_text=user_text)
 
@@ -696,17 +688,9 @@ async def run_agent_turn(
             + SYSTEM_PROMPT
         )
 
-    try:
-        chat = LlmChat(
-            api_key=api_key,
-            session_id=f"amo-agent-{uuid.uuid4().hex[:10]}",
-            system_message=system_msg,
-        )
-        chat.with_model("openai", "gpt-4o-mini")
-        response = await chat.send_message(UserMessage(text=json.dumps(user_payload, ensure_ascii=False)))
-    except Exception as exc:
-        logger.warning(f"ai_agent LLM call failed: {exc}")
-        return _fallback_response(user_text, forced or None)
+    response = await llm_complete(
+        system_msg, json.dumps(user_payload, ensure_ascii=False)
+    )
 
     parsed = _safe_json_parse(response or "")
     if not parsed or not isinstance(parsed, dict):
