@@ -7,7 +7,7 @@ const STATIC_MODE = process.env.EXPO_PUBLIC_STATIC_MODE === '1' || !BACKEND_URL;
 // Optional: a Vercel Edge Function (or any server) that proxies queries to
 // Anthropic Claude. When set, /search calls fetch this first and merges the
 // AI payload into the static result. Configure via env: EXPO_PUBLIC_AI_PROXY_URL
-const AI_PROXY_URL = process.env.EXPO_PUBLIC_AI_PROXY_URL || '/api/ai-search';
+const AI_PROXY_URL = process.env.EXPO_PUBLIC_AI_PROXY_URL || (BACKEND_URL ? `${BACKEND_URL}/api/search` : '/api/ai-search');
 
 // ── STATIC FALLBACK ──────────────────────────────────────────────
 // When STATIC_MODE is on (or no backend URL configured), GET requests

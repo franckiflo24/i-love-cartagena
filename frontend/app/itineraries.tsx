@@ -10,6 +10,7 @@ import {
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 
 const PROD_HOST = process.env.EXPO_PUBLIC_APP_URL || 'https://amocartagena.co';
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const apiBase = Platform.OS === 'web' ? '' : PROD_HOST;
 const shareBase =
   Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.origin : PROD_HOST;
@@ -190,17 +191,42 @@ export default function ItineraryScreen() {
   const generate = async () => {
     setMode('loading');
     try {
-      const r = await fetch(`${apiBase}/api/itinerary`, {
-        method: 'POST', headers: { 'content-type': 'application/json' },
+      // Get auth token for the API call
+      const token = Platform.OS === 'web'
+        ? await (await import('@react-native-async-storage/async-storage')).default.getItem('session_token')
+        : null;
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const backendBase = BACKEND_URL || apiBase;
+      const r = await fetch(`${backendBase}/api/itineraries/regenerate`, {
+        method: 'POST',
+        headers,
         body: JSON.stringify({
+          category: interests[0]?.toLowerCase() || 'general',
           days, interests, budget: budget.toLowerCase(), party: `${party} personas`,
           pace: pace.toLowerCase(), zones, language: 'es',
         }),
       });
-      if (!r.ok) { setMode('error'); return; }
+      if (!r.ok) {
+        // Try the GET endpoint as fallback
+        const r2 = await fetch(`${backendBase}/api/itineraries?category=${encodeURIComponent(interests[0] || '')}`, { headers });
+        if (r2.ok) {
+          const data = await r2.json();
+          if (data?.days?.length) { setItin({ title: data.title || 'Tu plan en Cartagena', summary: data.summary || '', days: data.days }); setMode('result'); return; }
+          if (Array.isArray(data) && data.length > 0 && data[0]?.days) { setItin(data[0]); setMode('result'); return; }
+        }
+        setMode('error'); return;
+      }
       const data = await r.json();
-      if (!data?.itinerary?.days?.length) { setMode('error'); return; }
-      setItin(data.itinerary); setMode('result');
+      // Handle different response shapes
+      const itinData = data?.itinerary || data;
+      if (itinData?.days?.length) {
+        setItin({ title: itinData.title || 'Tu plan en Cartagena', summary: itinData.summary || '', days: itinData.days });
+        setMode('result');
+      } else {
+        setMode('error');
+      }
     } catch (e) { console.error('[Itineraries] generate failed', e); setMode('error'); }
   };
 
