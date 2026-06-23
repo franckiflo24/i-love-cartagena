@@ -1,21 +1,23 @@
 import { useEffect, useState } from 'react';
 import { Redirect } from 'expo-router';
-import { useAuth } from '../src/context/AuthContext';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../src/constants/theme';
 
 export default function Index() {
-  const { user, isLoading } = useAuth();
-  const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
+  const [ready, setReady] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem('@onboarding_done').then(val => {
-      setOnboardingDone(val === 'true');
+      if (val !== 'true') {
+        setShowOnboarding(true);
+      }
+      setReady(true);
     });
   }, []);
 
-  if (isLoading || onboardingDone === null) {
+  if (!ready) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color={COLORS.primary} />
@@ -23,15 +25,13 @@ export default function Index() {
     );
   }
 
-  if (!onboardingDone) {
+  if (showOnboarding) {
     return <Redirect href="/onboarding" />;
   }
 
-  if (user) {
-    return <Redirect href="/(tabs)" />;
-  }
-
-  return <Redirect href="/login" />;
+  // Always go to tabs — the profile tab handles login prompts
+  // Users can explore as guests, login is not a gate
+  return <Redirect href="/(tabs)" />;
 }
 
 const styles = StyleSheet.create({
