@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1344",
+  "name": "Restaurante Dunia",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZO2PBq0p5yQgFMjHZQ7eeJXZlY-5XmJAan-EaMjwq0xKwnK7ojW3S3E34mbKb5ItIVq-C-ULqbLLaaevttkxTmhRw4rxKtcnhz_PVYgo2Zthr4vMhecWryvh0elHcQtGtBh4X-5c3IFek6lX4Y=s1600-w1200",
+  "location": {
+    "lat": 10.3989158,
+    "lng": -75.556632
+  },
+  "address": "Cra. 4 #5-166, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 3.9,
+  "reviews": 335,
+  "phone": "",
+  "google_place_id": "ChIJZbKPIf0v9o4RI44Q_DSqP3o"
+}

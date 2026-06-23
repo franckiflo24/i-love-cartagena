@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1434",
+  "name": "The Boat Dealer",
+  "description": "",
+  "category": "activity",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOGtqNjb8q24dzMKUkCv_k2-iJu0cM5aBbiMlRsXGPceZmw27ltasrVCIStRS3yDPu7OKzA0wapY6NON803HM-YGtSXMQYDdTiH37-uX1m3zdZlCK-N4MbPw-HjKG-IRG53oqTLOThzsPSRWvM=s1600-w828",
+  "location": {
+    "lat": 10.4119668,
+    "lng": -75.5413494
+  },
+  "address": "Club Náutico, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "experiencia",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 5,
+  "reviews": 12,
+  "phone": "",
+  "google_place_id": "ChIJ_Y3MYHg79o4Re6AdZmif0wk"
+}

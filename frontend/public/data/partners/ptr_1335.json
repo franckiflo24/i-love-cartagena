@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1335",
+  "name": "A Los Chingadazos",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOpttDHtO1rHUnffKNNIauuvWrHwOArfzOrb4IRwmueprcBwPBfTVwZCCHP1u8E_LPHSo3FPaqo7TQ9UYTbEqNYIW3YOXtTwLR6vNft_ulfaT5CrTqaCpvoLExAIuX6sX49sN1yJ7nQcSI8ddg=s1600-w1200",
+  "location": {
+    "lat": 10.4200491,
+    "lng": -75.5452127
+  },
+  "address": "Callejón Ancho, Cl. 28 #10b-15 C, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.5,
+  "reviews": 419,
+  "phone": "",
+  "google_place_id": "ChIJ6WlwLA4v9o4RkGDXnsW4edw"
+}

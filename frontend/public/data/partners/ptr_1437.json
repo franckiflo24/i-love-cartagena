@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1437",
+  "name": "Makani Luxury Cartagena",
+  "description": "",
+  "category": "beach_club",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNAa4uSRNZj_rpTjdtXmaYpHQCK5vTVsaki7iPV-zdQBum_iJs1X020mv7aHZwtDg2D6CkEFsLp9Cx_bV1EA6pwpbvYREP896ddKagb83Zof7acuzvL3bpWKdXbkt9GsLqi7g3-g-2GDzl1cxM=s1600-w1200",
+  "location": {
+    "lat": 10.3376617,
+    "lng": -75.5908946
+  },
+  "address": "Isla Tierra Bomba, Playa Arroyo, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "playa",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.3,
+  "reviews": 528,
+  "phone": "",
+  "google_place_id": "ChIJv_pYVVIp9o4RUxA06sj6Etg"
+}

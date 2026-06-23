@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1412",
+  "name": "Viajero Cartagena - Centro Hostel",
+  "description": "",
+  "category": "hotel",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPE59YvWbdrV__wKc1aXzqrBope7bznsE90nbTRi6Nq8bcBRDMStgr0whMi2MzG-mEoH0L3lGZd1h0I7XqHPKyt0uAHxQNZNcJ_ZJebPbSqlfBcb7__mzatWe2FNc9HrwN3tywOqJN4ZBnpRw=s1600-w1200",
+  "location": {
+    "lat": 10.4270391,
+    "lng": -75.54689019999999
+  },
+  "address": "39, Calle 38 #10-45, San Diego, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "alojamiento",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.3,
+  "reviews": 1841,
+  "phone": "",
+  "google_place_id": "ChIJNTSRaocl9o4Rsh9MI8r9o1s"
+}

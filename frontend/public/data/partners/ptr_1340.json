@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1340",
+  "name": "Restaurante Balsámico Cartagena",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMmCHlJ6magYiVw4xs_hb43SUXjmIPWsxxwxZAmmyZ5kcF71_s6wUUWEdeWUt0UlIsbPKjkunMUhql4oit9mVm17fhYUpXi2HZFf813xHKADixkauM1E2DCzMuUqaaXPpP0b4nIBnT8crzj0xcXcMI-Rg=s1600-w1200",
+  "location": {
+    "lat": 10.3986199,
+    "lng": -75.559082
+  },
+  "address": "Cra. 3 #4-101, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.4,
+  "reviews": 192,
+  "phone": "",
+  "google_place_id": "ChIJlRxS3WYv9o4RlKMdb4oI4GY"
+}

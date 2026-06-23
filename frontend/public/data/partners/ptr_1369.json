@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1369",
+  "name": "Roll and soul",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMWlmCihCTI3u-zfTslnMvOiIf4O8TDx95jE7SWt-6ESaS-CzkCC2xvoC-ufDvHV8eNWyaE2Zx-glHFUBF1F0NLwqo8zB-yAVJ7mVBPRiw0FHwEZA4BqcDRgLErXlq2SytaHoiVCZkYoRAu_iC0GAYJhQ=s1600-w570",
+  "location": {
+    "lat": 10.3964786,
+    "lng": -75.55703729999999
+  },
+  "address": "Cra. 6 #4-82 Local 6 y 7, Castillogrande, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.6,
+  "reviews": 50,
+  "phone": "",
+  "google_place_id": "ChIJPwKs6Mov9o4RrXExEysfUZw"
+}

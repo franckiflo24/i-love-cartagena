@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1408",
+  "name": "Media Luna Hostel - Cartagena",
+  "description": "",
+  "category": "hotel",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMaPupEifP5Xd4kPSggLhFMEvdBTUg1CQTeSlweVPx6Xm5m2WIhFrW-EH91ofQ-0oq3eBLZrIA5IG2JQ8xqcSw3ky0i3qJqkdeCOKgwsuojUkbrTLFWKJ-JB3ELucg6LxZMpCUqGLNZz0AaxQ=s1600-w1200",
+  "location": {
+    "lat": 10.420074,
+    "lng": -75.54650099999999
+  },
+  "address": "10-46 Media Luna 10, Getsemaní, Cartagena, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "alojamiento",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4,
+  "reviews": 1208,
+  "phone": "",
+  "google_place_id": "ChIJJ_MP_p0v9o4R1A5VbLFradU"
+}

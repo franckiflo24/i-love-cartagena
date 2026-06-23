@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1442",
+  "name": "Namasté Beach Club, restaurante & bar Cartagena",
+  "description": "",
+  "category": "beach_club",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOS9NaW_5lVNSLmUlBz9YGAmq2HVq3QSBpyrx_CXd-w12bzm8-u734HFXoMGVPxV4kWUqFXlMEzt9iobCdw_A5O6AFQc4GXuX64QVufhh1Thq1eEiQ9haf2jUo9B2WlmhmH8uNlDD3V2dhd=s1600-w1200",
+  "location": {
+    "lat": 10.365734,
+    "lng": -75.5518125
+  },
+  "address": "Isla, Tierra Bomba, Tierrabomba, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "playa",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.5,
+  "reviews": 436,
+  "phone": "",
+  "google_place_id": "ChIJkbdaYswp9o4RZc9HGpDGv3U"
+}

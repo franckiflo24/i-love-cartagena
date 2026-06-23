@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1375",
+  "name": "Bourbon St. Cartagena",
+  "description": "",
+  "category": "bar",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOqQ5_Bf_TTY5orqeLbSud01k_P9a3_P4RLzV7QA7pkN1YS7liZ7l5SOuqwpuBtfV6fKnpnHwMhzJcygH8PkLVPH2wuYj9jGtBGDKiDFqfOL6GJJmGTKrDkW74HXuvzx1Ng5ErU0JyUNN5V9Q=s1600-w1200",
+  "location": {
+    "lat": 10.423446,
+    "lng": -75.5491215
+  },
+  "address": "30, Calle 35 #3, El Centro, Cartagena De Indias (Distrito Turístico Y Cultural), Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "bar",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.5,
+  "reviews": 2908,
+  "phone": "",
+  "google_place_id": "ChIJVVIMO6Av9o4RzLhShftnI5o"
+}

@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1458",
+  "name": "Gym Fitness Tauros",
+  "description": "",
+  "category": "wellness",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPsOA1w7vR1osrPEjB9B2zeKroD3ul-Ut13a8EqDfa9WFB_hQUcZFxpMq5XmU8ZBKlsuddCZRYZtkC8i8pxBWO7HoGM3PTZCc-sIGybeUOiY2wyqr-uTVc19uvqZco_beZv9NtI-Qe9yDq0=s1600-w1200",
+  "location": {
+    "lat": 10.4362016,
+    "lng": -75.5208547
+  },
+  "address": "Cra 20 #68-19 a 68-1, Los Comuneros, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "bienestar",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.6,
+  "reviews": 5,
+  "phone": "",
+  "google_place_id": "ChIJdUHzQrkl9o4Rx7CINMzgE5k"
+}

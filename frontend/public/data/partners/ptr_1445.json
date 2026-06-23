@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1445",
+  "name": "ETHICAL BAR",
+  "description": "",
+  "category": "club",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNd5MFI6A6kIkmRWMHuLzufPwqr1rLRsXWvQ1n6ViL97sS-RW5oADJ40ji5hPLTJ8F-A3T0ojIh7WSMGHglCBCglPb8sJ13Q26Xz_j9cbakOdMlKujhwqaBensUJv02e1CLSpoiknKZMj7Lcw=s1600-w1200",
+  "location": {
+    "lat": 10.3897186,
+    "lng": -75.4782458
+  },
+  "address": "Cl. 31, Santa Mónica, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "vida nocturna",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.2,
+  "reviews": 203,
+  "phone": "",
+  "google_place_id": "ChIJ5UV6_p0v9o4Rx4doQVAQ-AI"
+}

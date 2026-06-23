@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1364",
+  "name": "Osaka sushi ctg",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZN5-6CkhnsfIQRpDhiQvHqAMjJAYWZM6Q_1uBz-V2XGC8DCS7KBi12YhEYIJuODwHMtneuuHBad5xSg8dpBvbGRTdIZan1poq00IEhTR-HM3tbc5ym8nQVHtmoFgizLd3u3-3MkDZscnrbsgDA=s1600-w1200",
+  "location": {
+    "lat": 10.4131544,
+    "lng": -75.5338118
+  },
+  "address": "Av. Jimenez, Cl. 26 #21-188, Manga, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.6,
+  "reviews": 239,
+  "phone": "",
+  "google_place_id": "ChIJEX8OBgUv9o4RauaDzA1yQTQ"
+}

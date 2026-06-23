@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1342",
+  "name": "Restaurante La Olla Cartagenera",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPWK-G9WUbPnRszYVZu2TaPn70Gyx94swL7MY0NjZ8b7tF23UZaK2b0I8QYtWZgqkinBz6s9A440eA4cVCbZMVcpUScsPuOyw4EU7dgkNRFawT6iG44DnkK-XM8boahMUiByBbqo1KoPOh7uygCbkH0lQ=s1600-w1200",
+  "location": {
+    "lat": 10.4,
+    "lng": -75.5580556
+  },
+  "address": "Cra. 2 #5-100, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.3,
+  "reviews": 2423,
+  "phone": "",
+  "google_place_id": "ChIJ_RhW7T0v9o4RYRlnpb6YsqU"
+}

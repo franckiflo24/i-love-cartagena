@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1447",
+  "name": "SPORTFITNESS CARTAGENA",
+  "description": "",
+  "category": "wellness",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMCjL_WiGF-2kVuGJ02-rpZDDEl0U7e568eufET6fd4gC945rxCgO6C4iVg0FCTVmGR2ZMYc5dtD99vBnONkmOTad6k-p8NsdjOZ_LpVT0Jj3lnzYlQiEi52NJXmOB3G4kIWb9kvyxo4FCFDQ=s1600-w960",
+  "location": {
+    "lat": 10.4154218,
+    "lng": -75.5269477
+  },
+  "address": "Av. Pedro De Heredia #32-54, Pie de la Popa, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "bienestar",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.3,
+  "reviews": 20,
+  "phone": "",
+  "google_place_id": "ChIJi1LvTYcl9o4RE26Jx4qDpYw"
+}

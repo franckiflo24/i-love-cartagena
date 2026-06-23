@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1461",
+  "name": "Gimnasio de Boxeo Y Pesas \"Coldeportes\"",
+  "description": "",
+  "category": "wellness",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZM1lUFSTcfvllIFyKUXr3JyI1VwiGXHSK289SoQbyNYMVo4Hr354rOkoR6A-Oa2W1FTKUB_BIR1K2HVke0h5EH0ZBJKuV6MQ2CYCrXHoe7UeSgwXXSxTVceeQXJ45fnouitgnBK978wzJqCug=s1600-w1200",
+  "location": {
+    "lat": 10.421179,
+    "lng": -75.53535790000001
+  },
+  "address": "Pie Del Cerro, Cartagena, Bolivar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "bienestar",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.4,
+  "reviews": 59,
+  "phone": "",
+  "google_place_id": "ChIJXWlWpHgv9o4R0otZcu2q7zw"
+}

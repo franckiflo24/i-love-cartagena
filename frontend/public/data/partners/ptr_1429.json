@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1429",
+  "name": "Boat Rental Cartagena, ARRECIFE BOATS CARTAGENA, cartagena boat rental, islas del Rosario, colombia",
+  "description": "",
+  "category": "activity",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZP5PXptGJanPjKTB_3qGob09RYAOWa1I6pBfIT9Wxt6EBPbC3w3-vHlrmsF1EDOZ8VoL3YJ4kqPyTOUJR_6uma8QH50WIJblwNZ6iZm1h11vmI1AP0puTil3cPV9IVioMtKFKX8Yy66nfL5xgw=s1600-w1200",
+  "location": {
+    "lat": 10.41209,
+    "lng": -75.5410074
+  },
+  "address": "Club Nautico, Manga, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "experiencia",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.9,
+  "reviews": 24,
+  "phone": "",
+  "google_place_id": "ChIJx7VfSAsv9o4R3bwXg0w1nw8"
+}

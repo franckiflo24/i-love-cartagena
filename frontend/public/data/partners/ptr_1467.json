@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1467",
+  "name": "Martesana Yoga",
+  "description": "",
+  "category": "wellness",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNC3QzD5G-OBA1-XmO4OyKuOy5coADnzSu-C5MXNvjs7uLBg9sqHRcbrZXOHuiUcH1YNI6NRE-PLD4PmV6Z7BXOpEQlbgZzobD2ObcuDk1CG3vPMyk2tCUu7EN9JD9vqdUOlfFNqJVwHNNxpQ=s1600-w1200",
+  "location": {
+    "lat": 10.4200741,
+    "lng": -75.5481977
+  },
+  "address": "Cl. 24 #8b-83, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "bienestar",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 5,
+  "reviews": 8,
+  "phone": "",
+  "google_place_id": "ChIJI_BMPUYv9o4Rex9tHZj8O6g"
+}

@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1403",
+  "name": "Casa Carolina Hotel",
+  "description": "",
+  "category": "hotel",
+  "tier": "elite",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZP0G6RcqRaAz7zh-s--HkrEpGQvncOP7i9N2OBZIwKPKAjvVitiJa-KWnvcv7njlLM9A3p0JpxdD4iGt4-rR3oQeR7aElU_Ow9F4FeP2AEKu_z9gAb2sNWMIuHdwz622wbov721mDonFHCfgHrkmJZPmg=s1600-w1200",
+  "location": {
+    "lat": 10.4236246,
+    "lng": -75.5502602
+  },
+  "address": "calle del arzobispado, Cra. 5 #34-14, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "alojamiento",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.9,
+  "reviews": 644,
+  "phone": "",
+  "google_place_id": "ChIJ0-188p8v9o4RPbzbOZq0NVo"
+}

@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1440",
+  "name": "Morena Beach Club",
+  "description": "",
+  "category": "beach_club",
+  "tier": "elite",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOkwhNfZ2tAQQXCsYMpz7OnArnIahL-idVP-7PvPyflTQRhUSS1KU0a8PHRxpmb0DxMDn8EFTPVAywmcGDjWZzqKcIW7-Zbkw390tqL-OCsoX_Q1_ziyFg4qXl6RmH2S0V4D6Sbs-1ifQW3HlI_QZWfxQ=s1600-w1200",
+  "location": {
+    "lat": 10.3191662,
+    "lng": -75.58203859999999
+  },
+  "address": "Bocachica, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "playa",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.8,
+  "reviews": 112,
+  "phone": "",
+  "google_place_id": "ChIJY8245jwp9o4Rn_jtYESqvhg"
+}

@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1329",
+  "name": "Casa del Tunel Restaurante Bar",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZObV22NH3VszW-UmjfDF4TBWlK2pHu56zofEVI3yslxFCQm_V8eCUf5yqW6iEEydvUWxkxVtAVLp4kIiOS7lqzcqCEn1y1zxn-fFU5BAyHKgcFh5SlqGrfItLKwTiIb61247qpB_PwtU92hdoY=s1600-w1200",
+  "location": {
+    "lat": 10.4194866,
+    "lng": -75.5455246
+  },
+  "address": "Carrera 10b, Cl. del Pozo #26-22, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.7,
+  "reviews": 1133,
+  "phone": "",
+  "google_place_id": "ChIJB6W803Uv9o4RwAX58HFQlH8"
+}

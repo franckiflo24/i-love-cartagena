@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1451",
+  "name": "Gym Body Perfect Fitness",
+  "description": "",
+  "category": "wellness",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZO-UYG1AcTocVGMttgTbn7SyksEVZwa6siBPIt8rTub2u9OJGJZ5YhQc0y-oHVv3f5494e3_o74iZO_9TEuUcMnJYnUnnxUHYZuvPN-iEuExWgIIliV0O62f-q187nBSMVv0ZVEG8Dxnwl5oQ=s1600-w1200",
+  "location": {
+    "lat": 10.412167,
+    "lng": -75.51893299999999
+  },
+  "address": "a 32a-44, Cl. 31 #32a-2, Esperanza, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "bienestar",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.7,
+  "reviews": 18,
+  "phone": "",
+  "google_place_id": "ChIJhe5eB4Ul9o4RPp8a4aUGEfA"
+}

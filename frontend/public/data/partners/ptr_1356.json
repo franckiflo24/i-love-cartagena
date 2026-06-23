@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1356",
+  "name": "AMORE PIZZA CTG",
+  "description": "",
+  "category": "restaurant",
+  "tier": "elite",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPP3u6nMVNCh-WpyCIdwek2gvPmDbX4a6tKvUd1d8zZ94z6o4kSxbH10LgRqtHCy1zzrIa0qIWd8DbB9q5urQBjaWaLxrHJZ-XQ06AS9UwaRnjqkt8QGqisDVf9IZo6wMhjFEfOAdn6CcIekv8AS4Bffg=s1600-w1200",
+  "location": {
+    "lat": 10.4359081,
+    "lng": -75.53622070000002
+  },
+  "address": "Cra. 1 #46-120, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.9,
+  "reviews": 139,
+  "phone": "",
+  "google_place_id": "ChIJ-1snXQAv9o4RHHd0kIk5VaM"
+}

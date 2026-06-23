@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1360",
+  "name": "Getsemani Pizzas",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOdBFNDPllNOTuvMHicBwp1l0EjdzLNPI5m084_24ipKqikT9qoSwbNCy3a4nwcBFmQx-ruROp0uSWD0PaQ2Ho69hB_J-OhvpdeV_jETHNqBRv1UbRkWublvXdLLkxr_jod4P1MMco7S3m18w=s1600-w1200",
+  "location": {
+    "lat": 10.420872,
+    "lng": -75.545535
+  },
+  "address": "Cl. 29 #9-107, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.4,
+  "reviews": 369,
+  "phone": "",
+  "google_place_id": "ChIJH6616HUv9o4Rqb-_eBZw7U0"
+}

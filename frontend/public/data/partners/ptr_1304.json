@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1304",
+  "name": "APOGEO RESTAURANTE & ROOFTOP",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMzWO2AuDTOcduma4qEQK1d7DfY5805Q77IIew1-egEDpRrlL7ybPT6AWMbc3I-S_2INkn6CSP94akhywj5h6oXR_JbpvnURUD-fp_H_j7A3uA2ozOxhwro863dpJG0_c3UsBxGmCwQVhwqnBnvvkFT2Q=s1600-w1200",
+  "location": {
+    "lat": 10.4249003,
+    "lng": -75.5497015
+  },
+  "address": "Centro Histórico, Cl. del Porvenir #35-69, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.7,
+  "reviews": 2036,
+  "phone": "",
+  "google_place_id": "ChIJId68NQAv9o4Rmlxthuj8n0s"
+}

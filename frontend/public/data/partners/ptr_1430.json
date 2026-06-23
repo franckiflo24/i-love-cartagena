@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1430",
+  "name": "Rent a Boat - Cartagena",
+  "description": "",
+  "category": "activity",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZP7hS7jjfSP2fbd2ucJAGJg6aWMogwpbg_m4UGCv10hSdtvvha03F75mxohFHu-xfeP8xNQfULjOPDtH-9zE7LOG8UuRsJYupwU4S40Cb7duGEYbkAZKGJvWbVEsT-kPfDWQVU5YRz2rllC=s1600-w941",
+  "location": {
+    "lat": 10.4088239,
+    "lng": -75.53496009999999
+  },
+  "address": "Cra 26 #25a-75 edf elios 2 ofic 201, Manga, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "experiencia",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.9,
+  "reviews": 18,
+  "phone": "",
+  "google_place_id": "ChIJ6whwhxUv9o4RN4qZ8vK5sQA"
+}

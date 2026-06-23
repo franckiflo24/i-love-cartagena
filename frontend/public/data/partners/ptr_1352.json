@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1352",
+  "name": "Girasole Pizzeria",
+  "description": "",
+  "category": "restaurant",
+  "tier": "elite",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPmcePINPX2YulgfmpIj5A6Jrx0wNVHSRttuOAXzayHdYTirHVRBZ-Os8HWuLOzGaOKHmhnwyovdvj0PyRblzl0b21hhZ5kE-q9U4XgvNbukRrnEAODULtGioFGTejznMMpXkpiRUrvxGJiZA=s1600-w1200",
+  "location": {
+    "lat": 10.421151,
+    "lng": -75.545287
+  },
+  "address": "Getsemani calle del guerrero, Cra. 10 #29 44, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.9,
+  "reviews": 551,
+  "phone": "",
+  "google_place_id": "ChIJu_Fipfkv9o4ROoMY-FT42eM"
+}

@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1345",
+  "name": "Basilica Pizzería Café",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZN_NKQZKQYonY5hgBAOZOIqvzkR5OSksmubnH_yBTykk3ShtFGzd1Ha9g1fgNgoAhak2fDDjwXM2KBH2i4lLEevKjXQhlsZw9MB_uzPR24VzdvgQv9FMnwvz2N_er4pC57ZheFMbZ64CoFBU9xvL7tr=s1600-w1200",
+  "location": {
+    "lat": 10.4191202,
+    "lng": -75.5455856
+  },
+  "address": "Cl. 26 #10b-78, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.5,
+  "reviews": 2359,
+  "phone": "",
+  "google_place_id": "ChIJe4fPLHQv9o4R8P7v-olbaWs"
+}

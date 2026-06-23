@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1365",
+  "name": "CANCHA RESTAURANTE CEVICHES SUSHI",
+  "description": "",
+  "category": "restaurant",
+  "tier": "elite",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZN_gF9ouqYO3Kwxlit3JFZYshub1i4wUYIFKpZx-aVNTGF1vQYd38D9uo4ed3GUy9D5tiwcQu2QOTGEgYEHLKPaXU2VijvJ7mZguZFpGjYqwe4oKFPhrM7YnBd3qpxL5aXzwrBy58vUoh-D_g=s1600-w1080",
+  "location": {
+    "lat": 10.425734,
+    "lng": -75.5484894
+  },
+  "address": "Carrera 7 #36 50 segunda de Badillo, Parque Fernández de Madrid, San Diego, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.8,
+  "reviews": 2906,
+  "phone": "",
+  "google_place_id": "ChIJr4VMPDgv9o4RmhBm1Ze-nCk"
+}

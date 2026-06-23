@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1349",
+  "name": "Verona Pizzería Gourmet - Restaurante",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMbZ8AWCiUaWHwv9cn0MxdZeuekErR4UdDsMNaLxCm98um2ts-p-On3-_ubAroVD9DFDGo0tkvVpZarA3GP-LIVYo5_mw3OBphrcPS9LKKUbGCHVwZ_VKh7UQQxWLcDx99NwMkBpZsJEZmsgFCx_xuvcg=s1600-w1200",
+  "location": {
+    "lat": 10.4264513,
+    "lng": -75.54846069999999
+  },
+  "address": "Plaza Fernández de Madrid No. 36-149 Tercer piso - Local 303, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.3,
+  "reviews": 302,
+  "phone": "",
+  "google_place_id": "ChIJPwW0a_Qv9o4R3ymw_n6ykPY"
+}

@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1435",
+  "name": "La French Touch Cartagena SAS",
+  "description": "",
+  "category": "activity",
+  "tier": "elite",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOlqUbaP51Ynu54NG0EfcBDZ5O3fuqLzXfFXifBKSgKWUxoomTz9VLrct9whyhJ1agnFoxzK0qDfLpzvT8BMjaEMEXqX7wF8LWZ1A1Ai3XIUGuwkPT1wPGkPtALW3uXsnoTVloGYWwscMdI_tSJxiWE=s1600-w1200",
+  "location": {
+    "lat": 10.4221252,
+    "lng": -75.549166
+  },
+  "address": "Sibarita del Mar, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "experiencia",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.9,
+  "reviews": 213,
+  "phone": "",
+  "google_place_id": "ChIJw93qQEEv9o4RIeBKSrv1zpA"
+}

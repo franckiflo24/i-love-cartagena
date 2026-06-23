@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1463",
+  "name": "Soma Yoga Cartagena/ Sol Angel",
+  "description": "",
+  "category": "wellness",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPcy1F-5IgxA6SzQeHuTXDWTugR7l7YsHcVvQtsElpp1xjC4jNHSZtC_IRf3Y5dE6BzEiIVSe8Id5t8dQ7BjX9Kgp4ccUJkk_b6nIbDoZck0cyr5nfia3kfj63rS2YW5jFJdLfesM4PJadkhw=s1600-w1200",
+  "location": {
+    "lat": 10.403426,
+    "lng": -75.554043
+  },
+  "address": "Cra. 3 #8-49, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "bienestar",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 5,
+  "reviews": 35,
+  "phone": "",
+  "google_place_id": "ChIJHaEBVRQv9o4RogBOLn2CawI"
+}

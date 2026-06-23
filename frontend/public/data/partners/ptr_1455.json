@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1455",
+  "name": "Fitness center GYM",
+  "description": "",
+  "category": "wellness",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNT-8ENxHKztlSeUeI_87j34-VxNpoJhFlPJdC6Evm2CQRz3Opwxlr1y06fhD5zz4_e4n3013eq3kqzPTx6ZElVUv4RHlxcE-y9IY2zPOv2gE9OT31pB2YnTVsXx7K1Mwqo3FTvJcWDvKmL2IE=s1600-w884",
+  "location": {
+    "lat": 10.400504,
+    "lng": -75.4994215
+  },
+  "address": "Cra. 53 #30 B 62 Local 1, Escallón Villa, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "bienestar",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.6,
+  "reviews": 15,
+  "phone": "",
+  "google_place_id": "ChIJ3y6iv6Ml9o4RNEAhWv63Pzk"
+}

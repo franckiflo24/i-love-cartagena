@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1409",
+  "name": "Pachamama Hostel",
+  "description": "",
+  "category": "hotel",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPAv6_58mJt-_nG2_5Sa6xg13xsNZ2ZmEvj8xb0Ry8MigwEOQARbhAH3kY0VLqdY2WffKuPe__HDomBQ63P1ZOoHZnVMI-mS6QS1IFNiqIr3FUH9UYSiCyD5dlWC38P3V6kT2IEW8ojHLWrsQ=s1600-w1200",
+  "location": {
+    "lat": 10.4189604,
+    "lng": -75.54500329999999
+  },
+  "address": "Cl. de las Chancletas #10B75, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "alojamiento",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.2,
+  "reviews": 283,
+  "phone": "",
+  "google_place_id": "ChIJpQm_nHYv9o4RYakLiBtIF5U"
+}

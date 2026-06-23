@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1439",
+  "name": "Wala beach club",
+  "description": "",
+  "category": "beach_club",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNtpEv-THlyAs07w0eljyoZw9jfGa_-rY5LBip34zIiu-kwS0G8Ab9mILxH2SJqpCv7Y0muQb4cX7ToWGBGbOgfz0NYCIonZ0FaCGbWRLCysOIzqcKBlJly-HZH7AYEmB4xA-FIvGAMRQ33KOw=s1600-w1200",
+  "location": {
+    "lat": 10.395806,
+    "lng": -75.5631362
+  },
+  "address": "Hotel Wala, Cra. 1 #1, El Laguito, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "playa",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.3,
+  "reviews": 259,
+  "phone": "",
+  "google_place_id": "ChIJ5T5fcjsv9o4RGWv7IKdd8tA"
+}

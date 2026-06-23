@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1378",
+  "name": "Restaurante Terraza Marbella Rooftop",
+  "description": "",
+  "category": "bar",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZM7ZeYkPSMYkHpBDDyLZpTjSCYCr-8869cNcZaanT2UewC4g-rw16y1ebmQSax-2SFDOIgEYQ9Gp2saMdV7ZDvKG2wQ6pQWWJuq5HbRSRLCRTNxoBhbohoidPWmd6TbjUW3Mc6BXj-hiDyw=s1600-w1200",
+  "location": {
+    "lat": 10.435376,
+    "lng": -75.5369121
+  },
+  "address": "Cra. 3 #46b83, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "bar",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.5,
+  "reviews": 158,
+  "phone": "",
+  "google_place_id": "ChIJgUC2WlUv9o4RxllyRH-My_0"
+}

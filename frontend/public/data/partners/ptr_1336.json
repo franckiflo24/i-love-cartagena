@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1336",
+  "name": "TAC Restaurante",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNmLKvCkXskILwGSw5JiEnUubx6_A0rCTNaT8SAx0B3ZlYFc6nq1DL38tsiSWDC62huHlF6mSoWVYe8a8Pq3x5xtvjdG__dUMuzJk5o4sJDyT3JgGXuonWFcFsDj2zdqsffkg1yYrI-McAfwDE=s1600-w1200",
+  "location": {
+    "lat": 10.400832,
+    "lng": -75.5563196
+  },
+  "address": "Cra. 3 #6-102, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.5,
+  "reviews": 231,
+  "phone": "",
+  "google_place_id": "ChIJTVkhIvcv9o4RdCyJ0Mdu6HA"
+}

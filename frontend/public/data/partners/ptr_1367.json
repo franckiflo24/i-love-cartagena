@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1367",
+  "name": "Sushi Cartagena",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNcC7WT-Y55ShLMaN6SUEd732aEH1mOk_SH47KkHAAA9cExe54QCS8VlUcoPuZYvphPLhVDLeLKciGuYOZpG7KZ1cvURl8FAwp-nCEDUDR33nMnTh3XyGA-JBcKj5Gmv4EbklJv9yUyW38q9MocMmbLGA=s1600-w1179",
+  "location": {
+    "lat": 10.4275806,
+    "lng": -75.5377917
+  },
+  "address": "Cra. 15 #36-06 local 2, Torices, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.4,
+  "reviews": 10,
+  "phone": "",
+  "google_place_id": "ChIJnzkgvM8v9o4R73Cp0VZ89bw"
+}

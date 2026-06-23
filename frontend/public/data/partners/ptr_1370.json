@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1370",
+  "name": "Sion Gardens rooftop",
+  "description": "",
+  "category": "restaurant",
+  "tier": "elite",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNKWzNWpzxUk2zJry_GidZc7qzhOhUfpw5c8mjbhA7Db6ssyRXBy2EGwhNsHIE1NvlPN-Pa1JLnAtAydVnydtUPVL8hTU5DeuTFtSlgcShyXAEgj5m9Bs9K4USBzk0RpR24UHbWdE4eKAh9v4O1mk9KlQ=s1600-w1200",
+  "location": {
+    "lat": 10.3946792,
+    "lng": -75.48803869999999
+  },
+  "address": "Calle 30B #nro 64 piso 5, Chipre, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.8,
+  "reviews": 878,
+  "phone": "",
+  "google_place_id": "ChIJ8w6C2OQl9o4RW19PMLXHmJQ"
+}

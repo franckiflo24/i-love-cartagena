@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1436",
+  "name": "Aurum Spa",
+  "description": "",
+  "category": "spa",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMd7GffYRshU1P1DPsOolPNa7Y5FIY6mF0ILewzh82aI07INVlV4ZpPtAD6B4DHh7qnp9_MqYJcdYhQ_q9g2FPCh_jffXisR0JC52FB6frxkIGALrcWf-kbPBDn_xcGtDTs9jB1kNYhw5je=s1600-w1200",
+  "location": {
+    "lat": 10.4256867,
+    "lng": -75.5493209
+  },
+  "address": "Cl. de la Universidad #38, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "bienestar",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 3.8,
+  "reviews": 10,
+  "phone": "",
+  "google_place_id": "ChIJGxofTQAv9o4RB4Xc4JW1myY"
+}

@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1414",
+  "name": "Mi Llave Hostels",
+  "description": "",
+  "category": "hotel",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNG7eL_V7uxNis8Vmdk5mreG0WRQkkWMW1qypiP9537irdh2WqXeRgPaxmrC_GVuK-PS4Ufu3LgRi-w0Xr0nVp_hk19hwIHkSeheGdV6Iahmt6p0tHmx28zllCRgi8udafs6JMTOsHs_72L=s1600-w1200",
+  "location": {
+    "lat": 10.4182005,
+    "lng": -75.5461531
+  },
+  "address": "Getsemani, Av del Arsenal, Calle 24 #10B-38, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "alojamiento",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.2,
+  "reviews": 379,
+  "phone": "",
+  "google_place_id": "ChIJ0Vb9NXQv9o4RkS0ZdSmkUg8"
+}

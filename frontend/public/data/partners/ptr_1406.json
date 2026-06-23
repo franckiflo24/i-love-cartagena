@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1406",
+  "name": "Casa Pestagua",
+  "description": "",
+  "category": "hotel",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZO6uHA71-TSgWK1ouQIcEKsXGbla4CCfOIHYLu0S1Qe8lg-b0Usbg8NNbOHLn6ZONHA7nnNJXYQrSNMg3rVyyvJwTAH7HWPJbRmnkeYzLvaB7bVxxuNtTd1U6XIB2juUpFhAhsvECEA0Mvmw99oX4T6nA=s1600-w1200",
+  "location": {
+    "lat": 10.4237886,
+    "lng": -75.5522244
+  },
+  "address": "Centro histórico, Calle Santo Domingo, Cra. 3 #33-63, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "alojamiento",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.7,
+  "reviews": 541,
+  "phone": "",
+  "google_place_id": "ChIJNwAma5Ml9o4RFCTdiLjrPj4"
+}

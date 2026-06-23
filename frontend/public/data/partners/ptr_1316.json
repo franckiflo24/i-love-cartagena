@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1316",
+  "name": "La pescadería, Ceviches y Piqueos",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOaFicSrer53pB4XKAipj9zDZt4IvPk1SyLNz7bCAOUPOwN20x7No0W-WI64DeujuXfq8XNQhlgPqtOGd689F6EQYxzoy4NQYU12-nF3NpKzENhOsohTPMn8A-eaD2TQ25D-zNarpIaho1Dmw=s1600-w1200",
+  "location": {
+    "lat": 10.447255,
+    "lng": -75.5175557
+  },
+  "address": "Cl. 70 #5-79, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.5,
+  "reviews": 1086,
+  "phone": "",
+  "google_place_id": "ChIJS2Xbl1wl9o4RfkhSCpOeRDI"
+}

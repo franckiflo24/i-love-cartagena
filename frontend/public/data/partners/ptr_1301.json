@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1301",
+  "name": "Baroca Sabor Ancestral 🍃 - Rooftop",
+  "description": "",
+  "category": "restaurant",
+  "tier": "elite",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNupYPkQpul6rplUZihyX41HmxSHKRxrejcJGw1cc0HVzj1_1kLEx5ptJ__jG8vL6m6Y37_3dR_YsdVojducaAqVNX-LCKoFssZ64wYN5H1ghPQHdRV4EE2fA6iC7J0mn6mZ7_LfrqlnpvX53vG1YiK=s1600-w1080",
+  "location": {
+    "lat": 10.4218986,
+    "lng": -75.5465296
+  },
+  "address": "Cl. 30 #8 b-120 Piso 3, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.8,
+  "reviews": 985,
+  "phone": "",
+  "google_place_id": "ChIJ65FaeLwv9o4RfOzLND03DnI"
+}

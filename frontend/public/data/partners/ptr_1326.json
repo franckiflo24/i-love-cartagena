@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1326",
+  "name": "Satio Café - Bar Getsemaní",
+  "description": "",
+  "category": "restaurant",
+  "tier": "elite",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNyHnPaT1K95X7K4MvEcrg5o7CdNuqA8XNyircws8f-BR5LO6Qamn5Fo8UsQ3uECddAcw2QycOt5IHNOtwe4GXv2qyjNfJrn-d8Mrf_pEcv_DP8f2bIqBnF3xsrNSIXNlaNmb_kPzy3ISQU2EDfsCWk4A=s1600-w1200",
+  "location": {
+    "lat": 10.4225172,
+    "lng": -75.54471029999999
+  },
+  "address": "Cl. 30 #10-81, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.8,
+  "reviews": 364,
+  "phone": "",
+  "google_place_id": "ChIJfQ3U5_Ev9o4RXZbQfUhN60c"
+}

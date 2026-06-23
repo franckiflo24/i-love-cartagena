@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1443",
+  "name": "Pley Club Cartagena | Nightclub para Adultos",
+  "description": "",
+  "category": "club",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOQGI5g0XxNcg625tAVhkN4uzwGCUhOJRW-B9P0yQwL0oNpAN7mqht2nqOW31m-AtRyDFY88_erkgIo-sOk8a7NFOLSa9A9itSS41o4Xgj3Dzr0E-NLi8NJWZ14qfCwyxY3RiIvExREgqHOqYNf1ABAeQ=s1600-w1200",
+  "location": {
+    "lat": 10.3964599,
+    "lng": -75.5220637
+  },
+  "address": "Transversal 48 D #21 - 48 # 04, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "vida nocturna",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.2,
+  "reviews": 84,
+  "phone": "",
+  "google_place_id": "ChIJ2_K1gPQl9o4RNL1Xn23gFxg"
+}

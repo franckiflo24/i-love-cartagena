@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1462",
+  "name": "Yoga Cartagena Magdalena Longo",
+  "description": "",
+  "category": "wellness",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOb5O2pYvMVrFyxOad6dhkPmlwXFzQG1h5GN0nLYuyAX71weE42QYBSKV5nMBIJEdSG5MVJ2B61Txxls4kCY9So-tFabpTynCHo0tWVDibA-E_7yYX7XIgEvrwf4SZVYP9pDvsiXIHPl-Gc=s1600-w1171",
+  "location": {
+    "lat": 10.4211021,
+    "lng": -75.5472923
+  },
+  "address": "Bocagrande, crespo, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "bienestar",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 5,
+  "reviews": 39,
+  "phone": "",
+  "google_place_id": "ChIJC4RW8Xov9o4R4Ki6maVP4ys"
+}

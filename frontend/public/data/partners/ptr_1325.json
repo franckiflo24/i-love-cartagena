@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1325",
+  "name": "Cafe San Antonio by Casa Jaguar",
+  "description": "",
+  "category": "restaurant",
+  "tier": "elite",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPo9L9w27bpoglJd3eO6HwKDt2eIuCBGKFHuQol79x07wtGbve7O8h0qUIPgeXnNiALbpsCXvZcT9GnWFCa77EA22bMYu9bBVU2VxMiRMWAHjXlZEJ9c0d1V8yEF_eWkoZFC8QpL2Lj7t9OrYg=s1600-w984",
+  "location": {
+    "lat": 10.4199671,
+    "lng": -75.54609889999999
+  },
+  "address": "Calle San Antonio, Cra. 10 #25-99, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.8,
+  "reviews": 334,
+  "phone": "",
+  "google_place_id": "ChIJmbXz8oEv9o4RlGDxuRgbN38"
+}

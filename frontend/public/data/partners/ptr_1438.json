@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1438",
+  "name": "Baia Bella Beach Club",
+  "description": "",
+  "category": "beach_club",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMs8KRoFQC9TIlYQo1wK0P5HnICdwYdkwwqQBRWBoZ0wLOvmCecVxmYCemq3qNR32eHhVB_eAtEDdUGgY_vaTGtU4MilMrxI9-1gspz3jG75udcJYFtgnjrL8hpi41ltMb-8gZtv1I3bXQbTOU=s1600-w1200",
+  "location": {
+    "lat": 10.363227,
+    "lng": -75.5859607
+  },
+  "address": "Tierra Bomba, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "playa",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.7,
+  "reviews": 19,
+  "phone": "",
+  "google_place_id": "ChIJyXGYuysp9o4RHANQyP3Ew20"
+}

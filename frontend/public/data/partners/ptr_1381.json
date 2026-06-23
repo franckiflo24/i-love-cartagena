@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1381",
+  "name": "La Juma Bar Cartagena",
+  "description": "",
+  "category": "bar",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZORIqJsYTBw9y9JD5-rP6hG6Fzt9hj1Ac8Oho7ObEB2wbrqqd9Go8W55LOr_FkiXKhImjWGCzuGfBMkC7GgnQb2zGgALOPpxhfwRkQLUSFu6iDYS_xQWJOKuadiWG_YEIIBPlJD7lojllLMjM4=s1600-w750",
+  "location": {
+    "lat": 10.4279328,
+    "lng": -75.54742259999999
+  },
+  "address": "Plaza de San Diego, Cra. 9 #38135, centro historico, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "bar",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.5,
+  "reviews": 341,
+  "phone": "",
+  "google_place_id": "ChIJmwTDP20v9o4RY5JW11i19Io"
+}

@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1431",
+  "name": "JOWER`S BOATS IN CARTAGENA",
+  "description": "",
+  "category": "activity",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOriFUy1s8fgJf9raOpsEfy7qkOtikhfpTBMA9NxL0byRNFfXEI96SyWQV71tsxqIojtAt-WjUD_Sb0IHhaTxHjQAI-4zP4Y2gP20D3V-O0oQ3U1arjsaLmg-yovEIGEpMTE3KQXLVXlgwDtcD-yKra3Q=s1600-w1200",
+  "location": {
+    "lat": 10.4208034,
+    "lng": -75.5504375
+  },
+  "address": "Centro historico, Av. Blas de Lezo, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "experiencia",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.7,
+  "reviews": 3,
+  "phone": "",
+  "google_place_id": "ChIJ3fFRJ0Iv9o4RxnAm9dVn-uU"
+}

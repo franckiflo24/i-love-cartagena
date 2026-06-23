@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1309",
+  "name": "Andrés Carne de Res Cartagena",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOGqqsdd7GepgFimgCTzDFgcqCmrurrGfxPW0Et68nv1-G6VGMwVChnafUNApVbU-SeIWqgFnv_ly0Yt-4UOHVfEDQ6tsGUViE-PNEWaBLReHBBWV7gw4k6FzQbZ8XsT6gVCgRENiJN27_BVwc=s1600-w1200",
+  "location": {
+    "lat": 10.428595,
+    "lng": -75.5454633
+  },
+  "address": "Carrera 11, Cl. de la Serrezuela #39 - 21, San Diego, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.3,
+  "reviews": 4998,
+  "phone": "",
+  "google_place_id": "ChIJcwwhDjwv9o4RAq4rFXtpe0M"
+}

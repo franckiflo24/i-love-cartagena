@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1422",
+  "name": "SepioDive",
+  "description": "",
+  "category": "activity",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNmEy2LdP8LIQPKAn2OBF_sKML-HeV5MIYJ5DMEthGFIPEiJD8o3-jlmCUlWiI8YgU4WXsgJZbgLNpr7Av_l8Bzn8QtCN1Yt2V2rkkCr_9QiJ-VLLGy1Ehy8ngei1UDty2oDzRth3KANaR5MR9shj3b=s1600-w1200",
+  "location": {
+    "lat": 10.4124344,
+    "lng": -75.54159589999999
+  },
+  "address": "Cl. 24 #18b, Manga, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "experiencia",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 5,
+  "reviews": 23,
+  "phone": "",
+  "google_place_id": "ChIJZeB2nTQv9o4ReA3vnf3Q7Hc"
+}

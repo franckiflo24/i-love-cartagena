@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1341",
+  "name": "Pascal Bocagrande",
+  "description": "",
+  "category": "restaurant",
+  "tier": "elite",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOw3tcqzgiO-FjDUcrZ_3w9g_Xs_tXIa459rba_4MmOhWQWmaJ7GgUW756vb8X3weq5n4dXsn8RQ8gT0JI5Q5IGt9EO9Z-j5iSIZPZ5iOtRe3JCso3L1QI55hXsT2NOhZZkqGBmncoNYpDl0yx2UB1bEA=s1600-w1200",
+  "location": {
+    "lat": 10.3991488,
+    "lng": -75.55688599999999
+  },
+  "address": "Cra. 4 #5A-09, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.9,
+  "reviews": 208,
+  "phone": "",
+  "google_place_id": "ChIJ_QCuXgAv9o4RKlBwINOr1VI"
+}

@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1426",
+  "name": "Pantelisa Sail And Dive Yacht Charter",
+  "description": "",
+  "category": "activity",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPINzkS9ucmDm2WGX8y6dpLVCYimoe6N870rfYLxaRELAZRxwINuryiDfdlFe23ga8rQdE7KQ36x1fz1L0EXCmGuAwxUVE7l-yBaFbHJju18zyYvHjjzgmuTrFOJwjRd91eqOUAbj0bZjhOxg=s1600-w1200",
+  "location": {
+    "lat": 10.4147376,
+    "lng": -75.54149509999999
+  },
+  "address": "Manga, Cartagena, Bolivar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "experiencia",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 5,
+  "reviews": 10,
+  "phone": "",
+  "google_place_id": "ChIJuWzuOHAv9o4Rugxmg_1GsLA"
+}

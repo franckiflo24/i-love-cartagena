@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1348",
+  "name": "Italiatto Pizza & Pasta",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMdPR9hQnky9McWJTgk6MZPiPc7qUbjieo7QXW8cCeFOIBKzazJfbPj5uzAoAwX11QMgBt8fsn8C-WLWsgE6zJpNBlvgWbP_9aBBpakBv5cNG6Qa9JhqHZ4CeQSKfLSnTfcp6OFmRMsJ8Tuy7w=s1600-w1200",
+  "location": {
+    "lat": 10.4250798,
+    "lng": -75.54587579999999
+  },
+  "address": "Edificio Plaza, Av. Venezuela #35-21, La Matuna, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.6,
+  "reviews": 901,
+  "phone": "",
+  "google_place_id": "ChIJP3wjj54v9o4ROlQSYhwAttM"
+}

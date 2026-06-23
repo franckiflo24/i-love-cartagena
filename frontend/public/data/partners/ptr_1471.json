@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1471",
+  "name": "OMM Wellness",
+  "description": "",
+  "category": "wellness",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOAPBPLTcB4tw0LWWY6MtvnPHw1xMgPf67NKGVdoL2goELgEiRmBxL_mHAbYzW2k7hnTVCnn5Z7mPgUTv0vQqWmXT-rmpqUZE9_VIDcmmbYU3_4JHejItLJ6F3Zc0Gb-nmnAZ_h-qqaYzM5=s1600-w1200",
+  "location": {
+    "lat": 10.424849,
+    "lng": -75.5476439
+  },
+  "address": "Cl. 35 #8B-05, San Diego, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "bienestar",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.9,
+  "reviews": 12,
+  "phone": "",
+  "google_place_id": "ChIJeWFf6VAkcWER1wxyHrEzLoI"
+}

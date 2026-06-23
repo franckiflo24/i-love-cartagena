@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1313",
+  "name": "Restaurante Punta las velas Club de playa",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMKhmP1wR4xYXMKNmDLWpKhmqGbGKEWkukWEjGr4xkVqq4phHrzgocyIKOh2U3UkGqEBlaXPAG-JqSsO5URU54euW4eTkz-WXnLkpTnpb7OwLW7DS59DKXaLiB9saILnNStknCiWJ5RD49NuHE=s1600-w1200",
+  "location": {
+    "lat": 10.397155,
+    "lng": -75.5644549
+  },
+  "address": "CRA 1 DIAGO 1 A 80, Cra. 1 #1A-25, El Laguito, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.4,
+  "reviews": 218,
+  "phone": "",
+  "google_place_id": "ChIJyVs8QIcv9o4RKnEXjNVmmYE"
+}

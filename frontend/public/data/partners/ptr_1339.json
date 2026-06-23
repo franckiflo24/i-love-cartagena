@@ -1,0 +1,29 @@
+{
+  "partner_id": "ptr_1339",
+  "name": "Leña y Carbon restaurante",
+  "description": "",
+  "category": "restaurant",
+  "tier": "standard",
+  "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNmN6S4ICcUQ5pmZnBRcC1pXV32SYpVtTWKmRXDPGmkh9JnZ5jlf0SPZLbBEF8kahE4oFIcetZsiFUmuhOKB7_qj0zcxIUNnmEcdiPLCjmCzQE_rrHBdRJT9V4eHziHjRNoRNSm-5aygHSTWOQ=s1600-w1200",
+  "location": {
+    "lat": 10.4007109,
+    "lng": -75.5572807
+  },
+  "address": "Avenida san martin calle 6#6-40, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "price_range": "$$",
+  "experience": "",
+  "is_certified": false,
+  "instagram": "",
+  "subcategory": "restaurante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "inactive",
+  "membership_tier": "free",
+  "membership_plan": null,
+  "hours": null,
+  "rating": 4.7,
+  "reviews": 4922,
+  "phone": "",
+  "google_place_id": "ChIJwWBOLQsv9o4RouIjMQafob8"
+}
