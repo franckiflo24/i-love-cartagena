@@ -7,8 +7,16 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone, timedelta
-from google.oauth2 import id_token as google_id_token
-from google.auth.transport import requests as google_auth_requests
+# Lazy import — google-auth may not be installed in all environments
+google_id_token = None
+google_auth_requests = None
+try:
+    from google.oauth2 import id_token as _gid
+    from google.auth.transport import requests as _greq
+    google_id_token = _gid
+    google_auth_requests = _greq
+except ImportError:
+    pass  # logged after logger is created
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -65,6 +73,8 @@ GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 @api_router.post("/auth/google")
 async def google_auth(body: GoogleAuthBody, response: Response):
     """Exchange a Google ID token for an app session token."""
+    if not google_id_token or not google_auth_requests:
+        raise HTTPException(status_code=503, detail="Google auth not configured")
     try:
         idinfo = google_id_token.verify_oauth2_token(
             body.id_token, google_auth_requests.Request(), GOOGLE_CLIENT_ID
