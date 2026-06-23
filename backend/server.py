@@ -75,6 +75,8 @@ async def google_auth(body: GoogleAuthBody, response: Response):
     """Exchange a Google ID token for an app session token."""
     if not google_id_token or not google_auth_requests:
         raise HTTPException(status_code=503, detail="Google auth not configured")
+    if not GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=503, detail="Google client ID not configured")
     try:
         idinfo = google_id_token.verify_oauth2_token(
             body.id_token, google_auth_requests.Request(), GOOGLE_CLIENT_ID
@@ -1458,6 +1460,8 @@ async def featured_events():
 async def get_event(event_id: str):
     event = await db.events.find_one({"event_id": event_id}, {"_id": 0})
     if not event:
+        event = await db.events.find_one({"slug": event_id}, {"_id": 0})
+    if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     return event
 
@@ -2306,7 +2310,8 @@ async def global_search(q: str = "", request: Request = None):
             "ai": {"query": q, "intent": "general", "answer": "", "highlights": []},
         }
 
-    regex = {"$regex": q, "$options": "i"}
+    import re as _re
+    regex = {"$regex": _re.escape(q), "$options": "i"}
 
     events = await db.events.find(
         {"$or": [{"title": regex}, {"description": regex}, {"venue_name": regex}, {"type": regex}]},

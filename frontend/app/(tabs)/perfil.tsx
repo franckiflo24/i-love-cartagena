@@ -266,7 +266,7 @@ export default function PerfilScreen() {
             <SafeImage uri={user.picture} style={styles.avatar} />
           ) : (
             <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>{user.name[0]}</Text>
+              <Text style={styles.avatarText}>{(user.name || '?')[0].toUpperCase()}</Text>
             </View>
           )}
           <Text style={styles.userName}>{user.name}</Text>

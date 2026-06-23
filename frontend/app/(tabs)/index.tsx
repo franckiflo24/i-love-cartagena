@@ -176,7 +176,7 @@ export default function HomeScreen() {
             const persona = (profileRes.persona || '').toLowerCase();
             // Score partners based on profile match
             const scored = allPartners
-              .filter((p: any) => p.tier === 'gold' || p.tier === 'silver' || p.rating >= 4)
+              .filter((p: any) => p.tier === 'elite' || p.tier === 'premium' || p.tier === 'gold' || p.tier === 'silver' || p.rating >= 4)
               .map((p: any) => {
                 let score = p.rating || 0;
                 const cat = (p.category || '').toLowerCase();

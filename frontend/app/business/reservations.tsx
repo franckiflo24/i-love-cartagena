@@ -574,7 +574,7 @@ export default function BusinessReservations() {
                         const msg = encodeURIComponent(
                           `Hola Amo Cartagena, quiero activar el plan ${plan.name} ($${plan.price}) para mi negocio "${reservations[0]?.partner_name || ''}". ¿Cómo procedo?`,
                         );
-                        Linking.openURL(`https://wa.me/573001112233?text=${msg}`).catch(() => {});
+                        Linking.openURL(`https://wa.me/${process.env.EXPO_PUBLIC_AMO_WHATSAPP || '573176481183'}?text=${msg}`).catch(() => {});
                         setPlanPickerOpen(false);
                       }}
                     >
