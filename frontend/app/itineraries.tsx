@@ -181,7 +181,7 @@ export default function ItineraryScreen() {
       if (!dayArr.length) { setMode('error'); return; }
       setItin({ title: String(payload.ti ?? 'Plan en Cartagena'), summary: String(payload.su ?? ''), days: dayArr });
       setMode('result');
-    } catch { setMode('error'); }
+    } catch (e) { console.error('[Itineraries] hydrateShared failed', e); setMode('error'); }
   }, []);
 
   useEffect(() => { if (plan) hydrateShared(String(plan)); }, [plan, hydrateShared]);
@@ -201,7 +201,7 @@ export default function ItineraryScreen() {
       const data = await r.json();
       if (!data?.itinerary?.days?.length) { setMode('error'); return; }
       setItin(data.itinerary); setMode('result');
-    } catch { setMode('error'); }
+    } catch (e) { console.error('[Itineraries] generate failed', e); setMode('error'); }
   };
 
   const removeItem = (di: number, ii: number) => {
@@ -218,9 +218,9 @@ export default function ItineraryScreen() {
   const sharePlan = async () => {
     const url = buildShareUrl();
     if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard) {
-      try { await navigator.clipboard.writeText(url); flash('Enlace copiado'); return; } catch { /* fall through */ }
+      try { await navigator.clipboard.writeText(url); flash('Enlace copiado'); return; } catch { /* clipboard API unavailable — fall through to Share */ }
     }
-    try { await Share.share({ message: `Mi plan en Cartagena 🌅 ${url}`, url }); } catch { /* cancelled */ }
+    try { await Share.share({ message: `Mi plan en Cartagena 🌅 ${url}`, url }); } catch { /* user cancelled share dialog */ }
   };
 
   // -------------------------------------------------------------------------

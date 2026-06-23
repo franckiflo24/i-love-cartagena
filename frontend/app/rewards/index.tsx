@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Animated,
   Dimensions,
+  Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -387,6 +388,37 @@ export default function RewardsHub() {
           )}
         </View>
 
+        {/* ── Invite & Earn ── */}
+        <View style={styles.section}>
+          <View style={styles.inviteCard}>
+            <View style={styles.inviteLeft}>
+              <View style={styles.inviteIconWrap}>
+                <Ionicons name="gift-outline" size={24} color={tierCfg.accent} />
+              </View>
+              <View style={styles.inviteTextCol}>
+                <Text style={styles.inviteTitle}>{s('rewards_invite_title') || 'Invita y gana'}</Text>
+                <Text style={styles.inviteDesc}>
+                  {s('rewards_invite_desc') || 'Comparte AMO con amigos y gana 500 puntos por cada referido que se registre.'}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={[styles.inviteBtn, { backgroundColor: tierCfg.accent }]}
+              activeOpacity={0.85}
+              onPress={async () => {
+                try {
+                  await Share.share({
+                    message: `Descubre Cartagena como nunca con AMO Cartagena. Restaurantes, nightlife, experiencias y más. Descárgala aquí: https://amocartagena.co/download`,
+                  });
+                } catch { /* user cancelled share dialog */ }
+              }}
+            >
+              <Ionicons name="share-social-outline" size={16} color="#FFF" />
+              <Text style={styles.inviteBtnText}>{s('rewards_invite_btn') || 'Invitar'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* ── Exclusive Offers ── */}
         {(Array.isArray(data.offers) ? data.offers : []).length > 0 && (
           <View style={styles.section}>
@@ -534,4 +566,36 @@ const styles = StyleSheet.create({
 
   errorWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: SPACING.md },
   errorText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center' },
+
+  // Invite card
+  inviteCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: SPACING.md,
+    gap: SPACING.md,
+  },
+  inviteLeft: { flexDirection: 'row', gap: SPACING.md, alignItems: 'flex-start' },
+  inviteIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(168,85,247,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  inviteTextCol: { flex: 1, gap: 4 },
+  inviteTitle: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold },
+  inviteDesc: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 18 },
+  inviteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.sm,
+    borderRadius: RADIUS.full,
+    paddingVertical: 10,
+  },
+  inviteBtnText: { fontSize: 14, color: '#FFF', ...FONTS.bold },
 });

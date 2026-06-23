@@ -268,6 +268,7 @@ function PartnerGridCard({
   partner: Partner;
   onPress: () => void;
 }) {
+  const tr = useTr();
   const tierColor = partner.tier ? TIER_COLORS[partner.tier] : null;
   return (
     <TouchableOpacity
@@ -767,7 +768,7 @@ export default function ExploreScreen() {
                 try {
                   const d = new Date(evDate + 'T00:00:00');
                   dateLabel = `${d.getDate()} ${MONTHS[d.getMonth() + 1]}`;
-                } catch { dateLabel = ''; }
+                } catch { /* invalid event date — skip label */ dateLabel = ''; }
               }
               const catLabel = ev.category === 'festival' ? 'Festival' : ev.category === 'cultural' ? 'Cultural' : ev.category === 'music' ? 'Musica' : ev.category === 'religious' ? 'Religioso' : ev.category === 'sports' ? 'Deportes' : ev.category || ev.type || '';
               return (

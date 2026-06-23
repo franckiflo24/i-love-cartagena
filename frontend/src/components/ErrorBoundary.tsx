@@ -31,7 +31,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
         component_stack: (info?.componentStack || '').slice(0, 2000),
         platform: 'app',
       }).catch(() => null);
-    } catch { /* noop */ }
+    } catch { /* error report itself failed — cannot crash the boundary */ }
   }
 
   reset = () => this.setState({ hasError: false, error: null });

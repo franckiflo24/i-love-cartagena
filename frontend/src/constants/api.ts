@@ -25,9 +25,8 @@ const tryStatic = async (path: string): Promise<any> => {
     const res = await fetch(staticUrl(path));
     if (!res.ok) return null;
     return await res.json();
-  } catch {
-    return null;
-  }
+  } catch { /* static file not available — expected for missing endpoints */ }
+  return null;
 };
 
 // ── CLIENT-SIDE SEARCH (static mode) ────────────────────────────
@@ -254,9 +253,8 @@ const tryAIEnrich = async (q: string, lang: string, base: any): Promise<any> => 
     if (!res.ok) return base;
     const ai = await res.json();
     return { ...base, ai };
-  } catch {
-    return base;
-  }
+  } catch { /* AI enrichment unavailable — return base results without AI */ }
+  return base;
 };
 
 const getToken = async (): Promise<string | null> => {
@@ -335,7 +333,7 @@ export const api = {
       try {
         const err = await res.json();
         if (err?.detail) msg = err.detail;
-      } catch {}
+      } catch { /* response body not JSON — use status code message */ }
       throw new Error(msg);
     }
     return res.json();
@@ -366,7 +364,7 @@ export const api = {
       try {
         const err = await res.json();
         if (err?.detail) msg = err.detail;
-      } catch {}
+      } catch { /* response body not JSON — use status code message */ }
       throw new Error(msg);
     }
     return res.json();

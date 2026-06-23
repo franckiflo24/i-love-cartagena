@@ -166,7 +166,7 @@ export default function MapaScreen() {
       try {
         const userRaw = await AsyncStorage.getItem('user_data');
         let user = null;
-        try { if (userRaw) user = JSON.parse(userRaw); } catch {}
+        try { if (userRaw) user = JSON.parse(userRaw); } catch { /* malformed stored user_data */ }
         const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
         if (!backendUrl) throw new Error('no backend');
         await fetch(`${backendUrl}/api/analytics/location`, {

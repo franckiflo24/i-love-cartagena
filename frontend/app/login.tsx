@@ -48,7 +48,7 @@ export default function LoginScreen() {
           if (u?.email) setSignupEmail(u.email);
           if (u?.name) setSignupName(u.name);
           if (u?.phone) setSignupPhone(u.phone);
-        } catch {}
+        } catch { /* malformed stored user_data */ }
       }
     });
   }, []);
@@ -78,8 +78,8 @@ export default function LoginScreen() {
       if (res.user) {
         await AsyncStorage.setItem('user_data', JSON.stringify(res.user));
       }
-    } catch {
-      // Fallback to local-only if backend unreachable
+    } catch (e) {
+      console.error('[Login] email signup backend unreachable, using local fallback', e);
       const localUser = { user_id: `local_${Date.now()}`, email, name, picture: '', provider: 'email_local' };
       await AsyncStorage.setItem('user_data', JSON.stringify(localUser));
     }
@@ -107,7 +107,8 @@ export default function LoginScreen() {
       if (res.user) {
         await AsyncStorage.setItem('user_data', JSON.stringify(res.user));
       }
-    } catch {
+    } catch (e) {
+      console.error('[Login] whatsapp signup backend unreachable, using local fallback', e);
       const localUser = { user_id: `wa_${Date.now()}`, email: '', name, phone, picture: '', provider: 'whatsapp_local' };
       await AsyncStorage.setItem('user_data', JSON.stringify(localUser));
     }

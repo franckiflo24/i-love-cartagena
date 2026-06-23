@@ -65,14 +65,14 @@ export default function OperatorNewPartner() {
       if (Clip?.setStringAsync) await Clip.setStringAsync(result.activation_url);
       else (Clipboard as any).setString?.(result.activation_url);
       Alert.alert('Copiado', 'Link copiado al portapapeles');
-    } catch {
+    } catch { /* clipboard unavailable — show link in alert instead */
       Alert.alert('Link', result.activation_url);
     }
   };
 
   const shareWhatsapp = async () => {
     if (!result) return;
-    try { await Share.share({ message: result.whatsapp_message }); } catch { /* noop */ }
+    try { await Share.share({ message: result.whatsapp_message }); } catch { /* user cancelled share dialog */ }
   };
 
   if (result) {

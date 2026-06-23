@@ -370,15 +370,29 @@ export default function SearchScreen() {
               </View>
             ) : null}
 
-            {totalResults === 0 && !((results?.ai?.recommendations && results.ai.recommendations.length > 0) || (results?.ai?.actions && results.ai.actions.length > 0)) ? (
+            {totalResults === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons name="search-outline" size={48} color={COLORS.textMuted} />
-                <Text style={styles.emptyTitle}>{tr('Sin resultados directos')}</Text>
+                <Text style={styles.emptyTitle}>{tr('Sin resultados')}</Text>
                 <Text style={styles.emptyDesc}>
-                  {tr('Pero la IA tiene una sugerencia arriba. Prueba con otras palabras o navega a la pestaña sugerida.')}
+                  {(results?.ai?.recommendations && results.ai.recommendations.length > 0)
+                    ? tr('No encontramos coincidencias exactas, pero la IA tiene sugerencias arriba.')
+                    : tr('Intenta con otras palabras como "cena romántica", "playa", "nightlife" o el nombre de un lugar.')}
                 </Text>
+                <View style={styles.emptyChips}>
+                  {['Restaurantes', 'Beach Clubs', 'Nightlife', 'Wellness'].map(chip => (
+                    <TouchableOpacity
+                      key={chip}
+                      style={styles.emptyChip}
+                      onPress={() => { setQuery(chip); doSearch(chip); }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.emptyChipText}>{tr(chip)}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-            ) : totalResults === 0 ? null : (
+            ) : (
               <>
                 <Text style={styles.resultCount}>{totalResults} {totalResults !== 1 ? tr('resultados') : tr('resultado')}</Text>
 
@@ -704,6 +718,9 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', paddingTop: 40, gap: SPACING.sm, paddingHorizontal: SPACING.lg },
   emptyTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
   emptyDesc: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 19 },
+  emptyChips: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: SPACING.sm, marginTop: SPACING.md },
+  emptyChip: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.full, paddingHorizontal: 14, paddingVertical: 8 },
+  emptyChipText: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold },
 
   resultCount: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold, paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, textTransform: 'uppercase', letterSpacing: 0.5 },
 

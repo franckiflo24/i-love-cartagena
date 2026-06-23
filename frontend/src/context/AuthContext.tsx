@@ -98,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setIsLoading(false);
               return;
             }
-          } catch {}
+          } catch { /* malformed stored user_data */ }
         }
         setUser(null);
         setIsLoading(false);
@@ -117,11 +117,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await AsyncStorage.removeItem('user_data');
         setUser(null);
       }
-    } catch {
+    } catch (e) {
+      console.error('[AuthContext] checkAuth failed', e);
       try {
         const cached = await AsyncStorage.getItem('user_data');
         if (cached) setUser(JSON.parse(cached));
-      } catch {}
+      } catch { /* malformed stored user_data */ }
     } finally {
       setIsLoading(false);
     }
@@ -173,7 +174,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: { Authorization: `Bearer ${token || ''}` },
         credentials: 'include',
       });
-    } catch {}
+    } catch (e) { console.error('[AuthContext] logout call failed', e); }
     await removeToken();
     await AsyncStorage.removeItem('user_data');
     setUser(null);

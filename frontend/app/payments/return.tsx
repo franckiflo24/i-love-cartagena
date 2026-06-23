@@ -51,9 +51,7 @@ export default function PaymentReturn() {
           setLoading(false);
           return;
         }
-      } catch {
-        /* keep retrying */
-      }
+      } catch { /* payment status poll failed — keep retrying until timeout */ }
       setPolls((n) => n + 1);
       if (!cancelled) setTimeout(tick, 2500);
     };

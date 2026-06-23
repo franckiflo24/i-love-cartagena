@@ -45,10 +45,10 @@ export function MyCalendarProvider({ children }: { children: ReactNode }) {
           setItems(safeRemote);
           await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(safeRemote));
           return;
-        } catch { /* fallback to local */ }
+        } catch (e) { console.error('[MyCalendarContext] remote load failed, falling back to local', e); }
       }
       const stored = await AsyncStorage.getItem(STORAGE_KEY);
-      if (stored) { try { const p = JSON.parse(stored); if (Array.isArray(p)) setItems(p); } catch {} }
+      if (stored) { try { const p = JSON.parse(stored); if (Array.isArray(p)) setItems(p); } catch { /* malformed stored calendar data */ } }
     } catch (e) { console.error('Calendar load error', e); }
   }, [user]);
 

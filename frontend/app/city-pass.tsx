@@ -8,6 +8,8 @@ import { api } from '../src/constants/api';
 import { useAuth } from '../src/context/AuthContext';
 import { useTr } from '../src/i18n/autoTr';
 import { openWompiCheckout, checkWompiEnabled, notConfiguredAlert } from '../src/lib/wompi';
+import PaymentSheet from '../src/components/PaymentSheet';
+import type { PaymentResult } from '../src/lib/payments';
 
 type Plan = {
   plan_id: string; name: string; price: number; currency: string;
@@ -35,7 +37,7 @@ export default function CityPassScreen() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [myPass, setMyPass] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activating, setActivating] = useState<string | null>(null);
+  const [activating, setActivating] = useState(false);
   const [paySheetVisible, setPaySheetVisible] = useState(false);
   const [payPlan, setPayPlan] = useState<Plan | null>(null);
 
@@ -54,8 +56,6 @@ export default function CityPassScreen() {
     };
     load();
   }, [user]);
-
-  const [activating, setActivating] = useState(false);
 
   const activatePass = async (planId: string) => {
     if (activating) return;
@@ -181,7 +181,7 @@ export default function CityPassScreen() {
         title="Simular activación — City Pass"
         onSuccess={(result: PaymentResult) => {
           setPaySheetVisible(false);
-          if (result.success && payPlan) {
+          if (result.status === 'APPROVED' && payPlan) {
             setMyPass({
               plan_id: payPlan.plan_id,
               plan_name: payPlan.name,

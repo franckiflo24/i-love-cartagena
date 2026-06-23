@@ -35,13 +35,14 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         setFavorites(Array.isArray(data) ? data : []);
       } else {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
-        if (stored) { try { const p = JSON.parse(stored); if (Array.isArray(p)) setFavorites(p); } catch {} }
+        if (stored) { try { const p = JSON.parse(stored); if (Array.isArray(p)) setFavorites(p); } catch { /* malformed stored favorites */ } }
       }
-    } catch {
+    } catch (e) {
+      console.error('[FavoritesContext] loadFavorites failed', e);
       try {
         const stored = await AsyncStorage.getItem(STORAGE_KEY);
         if (stored) { const p = JSON.parse(stored); if (Array.isArray(p)) setFavorites(p); }
-      } catch {}
+      } catch { /* malformed stored favorites */ }
     }
   }, [user]);
 
@@ -86,7 +87,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
           api.post('/profile/build', { user_id: userId, favorites: newFavs }).catch(() => {});
         }, 1500); // debounce: wait 1.5s after last change
       }
-    } catch (e) { /* silent */ }
+    } catch (e) { /* fire-and-forget profile rebuild — non-critical */ }
   }, [favorites, user]);
 
   return (

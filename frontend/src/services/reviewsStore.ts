@@ -57,7 +57,7 @@ async function loadSeedReviews(): Promise<Record<string, StoredReview[]>> {
       const data = await res.json();
       seedCache = data;
       return data;
-    } catch {
+    } catch { /* seed reviews file not available — use empty set */
       seedCache = {};
       return {};
     }
@@ -72,7 +72,7 @@ async function getLocalReviews(): Promise<StoredReview[]> {
     const raw = await AsyncStorage.getItem(REVIEWS_KEY);
     if (!raw) return [];
     return JSON.parse(raw);
-  } catch {
+  } catch { /* malformed stored reviews data */
     return [];
   }
 }

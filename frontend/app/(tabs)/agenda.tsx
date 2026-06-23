@@ -66,7 +66,7 @@ const formatLongDate = (iso: string) => {
   try {
     const d = new Date(iso + 'T12:00:00');
     return d.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
-  } catch { return iso; }
+  } catch { /* invalid date string — return raw */ return iso; }
 };
 
 const todayIso = () => new Date().toISOString().slice(0, 10);

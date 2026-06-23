@@ -43,8 +43,9 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
           setBusiness(data.business);
           setPartner(data.partner);
         }
-      } catch {
+      } catch (e) {
         // Token invalid / expired → clear
+        console.error('[BusinessAuth] stored token invalid or expired', e);
         await AsyncStorage.removeItem(BIZ_KEY);
         setToken(null);
       }

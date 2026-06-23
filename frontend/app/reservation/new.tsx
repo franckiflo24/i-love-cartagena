@@ -99,7 +99,7 @@ export default function ReservationNew() {
       const days = [tr('Dom'), tr('Lun'), tr('Mar'), tr('Mié'), tr('Jue'), tr('Vie'), tr('Sáb')];
       const months = [tr('Ene'), tr('Feb'), tr('Mar'), tr('Abr'), tr('May'), tr('Jun'), tr('Jul'), tr('Ago'), tr('Sep'), tr('Oct'), tr('Nov'), tr('Dic')];
       return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
-    } catch {
+    } catch { /* invalid date string — return raw ISO */
       return iso;
     }
   };

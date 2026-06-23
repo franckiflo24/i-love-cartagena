@@ -231,7 +231,6 @@ export const AUTO_TR: Dict = {
 
   // City Pass
   'City Pass': { en: 'City Pass', fr: 'City Pass', pt: 'City Pass' },
-  'Activar': { en: 'Activate', fr: 'Activer', pt: 'Ativar' },
   'Activar pase': { en: 'Activate pass', fr: 'Activer le pass', pt: 'Ativar passe' },
   'Mi pase': { en: 'My pass', fr: 'Mon pass', pt: 'Meu passe' },
   'Pase activo': { en: 'Active pass', fr: 'Pass actif', pt: 'Passe ativo' },

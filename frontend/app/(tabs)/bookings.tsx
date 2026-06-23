@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -162,7 +163,7 @@ const formatDate = (dateStr?: string): string => {
       month: 'short',
       year: 'numeric',
     });
-  } catch {
+  } catch { /* invalid date string — return raw */
     return dateStr;
   }
 };
@@ -181,9 +182,11 @@ const sortByDate = (a: UnifiedBooking, b: UnifiedBooking): number => {
 function BookingCard({
   booking,
   onPress,
+  onCancel,
 }: {
   booking: UnifiedBooking;
   onPress: () => void;
+  onCancel?: () => void;
 }) {
   const tr = useTr();
   const typeMeta = TYPE_META[booking.type];
@@ -245,19 +248,27 @@ function BookingCard({
         )}
       </View>
 
-      {/* Right: status badge */}
-      <View
-        style={[
-          styles.statusBadge,
-          { backgroundColor: statusStyle.bg },
-        ]}
-      >
+      {/* Right: status + cancel */}
+      <View style={styles.rightCol}>
         <View
-          style={[styles.statusDot, { backgroundColor: statusStyle.color }]}
-        />
-        <Text style={[styles.statusText, { color: statusStyle.color }]}>
-          {tr(statusStyle.label)}
-        </Text>
+          style={[
+            styles.statusBadge,
+            { backgroundColor: statusStyle.bg },
+          ]}
+        >
+          <View
+            style={[styles.statusDot, { backgroundColor: statusStyle.color }]}
+          />
+          <Text style={[styles.statusText, { color: statusStyle.color }]}>
+            {tr(statusStyle.label)}
+          </Text>
+        </View>
+        {onCancel && (
+          <TouchableOpacity onPress={onCancel} style={styles.cancelBtn} activeOpacity={0.7}>
+            <Ionicons name="close-circle-outline" size={13} color={COLORS.error} />
+            <Text style={styles.cancelBtnText}>{tr('Cancelar')}</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -406,6 +417,31 @@ export default function BookingsScreen() {
     cancelled: allBookings.filter((b) => getTabForStatus(b.status) === 'cancelled').length,
   };
 
+  const handleCancelBooking = useCallback(async (booking: UnifiedBooking) => {
+    if (booking.type !== 'reservation') return;
+    Alert.alert(
+      'Cancelar reserva',
+      `¿Estás seguro de que quieres cancelar tu reserva en ${booking.title}?`,
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Sí, cancelar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const res = await api.post(`/reservations/${booking.id}/cancel`);
+              const msg = res?.message || 'Reserva cancelada correctamente.';
+              Alert.alert('Cancelada', msg);
+              await fetchAll();
+            } catch (e: any) {
+              Alert.alert('Error', e?.message || 'No se pudo cancelar la reserva');
+            }
+          },
+        },
+      ],
+    );
+  }, [fetchAll]);
+
   const navigateToBooking = (booking: UnifiedBooking) => {
     switch (booking.type) {
       case 'reservation':
@@ -522,12 +558,16 @@ export default function BookingsScreen() {
           />
         }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-        renderItem={({ item }) => (
-          <BookingCard
-            booking={item}
-            onPress={() => navigateToBooking(item)}
-          />
-        )}
+        renderItem={({ item }) => {
+          const canCancel = item.type === 'reservation' && UPCOMING_STATUSES.has(item.status.toLowerCase());
+          return (
+            <BookingCard
+              booking={item}
+              onPress={() => navigateToBooking(item)}
+              onCancel={canCancel ? () => handleCancelBooking(item) : undefined}
+            />
+          );
+        }}
         ListFooterComponent={<View style={{ height: SPACING.xl }} />}
       />
     </SafeAreaView>
@@ -700,6 +740,27 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     ...FONTS.medium,
     flex: 1,
+  },
+
+  // Right column
+  rightCol: {
+    alignItems: 'flex-end',
+    gap: 6,
+    flexShrink: 0,
+  },
+  cancelBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: RADIUS.sm,
+    backgroundColor: 'rgba(239,68,68,0.08)',
+  },
+  cancelBtnText: {
+    fontSize: 10,
+    color: COLORS.error,
+    ...FONTS.semibold,
   },
 
   // Status badge

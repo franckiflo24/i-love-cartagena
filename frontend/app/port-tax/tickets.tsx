@@ -33,7 +33,7 @@ function formatHumanDate(ymd: string): string {
     const [y, m, d] = ymd.split('-').map(Number);
     const dt = new Date(y, m - 1, d);
     return dt.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' });
-  } catch {
+  } catch { /* invalid date string — return raw */
     return ymd;
   }
 }

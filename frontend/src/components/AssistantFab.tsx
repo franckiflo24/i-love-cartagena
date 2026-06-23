@@ -116,9 +116,7 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
           const sid = await AsyncStorage.getItem(STORAGE_SESSION_KEY);
           if (sid) setSessionId(sid);
         }
-      } catch {
-        /* ignore */
-      }
+      } catch { /* session restore from storage unavailable — start fresh */ }
     })();
   }, []);
 
@@ -161,9 +159,7 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
         const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
         await AsyncStorage.setItem(STORAGE_SESSION_KEY, sid);
       }
-    } catch {
-      /* ignore */
-    }
+    } catch { /* session persist to storage failed — non-critical */ }
   }, []);
 
   const send = useCallback(

@@ -20,7 +20,7 @@ export async function askAgent(
     if (!res.ok) return 'Disculpa, tuve un problema. Inténtalo de nuevo.';
     const data = await res.json();
     return data.reply || 'Sin respuesta del concierge.';
-  } catch {
+  } catch { /* network failure — return user-friendly message */
     return 'Uy, se me fue la señal un momento. Inténtalo otra vez en un segundo.';
   }
 }

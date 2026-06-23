@@ -99,6 +99,7 @@ export default function HomeScreen() {
   const [activeSeasonIdx, setActiveSeasonIdx] = useState(0);
   const [favItems, setFavItems] = useState<any[]>([]);
   const [unreadNotifs, setUnreadNotifs] = useState<number>(0);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
   const flatListRef = useRef<FlatList>(null);
 
   // Check unread notifications once on focus (no polling — eliminates 401 spam)
@@ -148,6 +149,38 @@ export default function HomeScreen() {
       const firstDate = sa.length > 0 ? sa[0].start_date : '2025-12-30';
       const t = await api.get(`/events?date=${firstDate}`).catch(() => []);
       setTodayEvents(Array.isArray(t) ? t : []);
+      // Personalized recommendations: use AI profile to filter partners
+      if (user) {
+        try {
+          const [profileRes, allPartnersRes] = await Promise.all([
+            api.get('/profile/me').catch(() => null),
+            api.get('/partners').catch(() => []),
+          ]);
+          const allPartners = Array.isArray(allPartnersRes) ? allPartnersRes : [];
+          if (profileRes && profileRes.ai_status !== 'not_built' && allPartners.length > 0) {
+            const interests = (profileRes.interests || []).map((i: string) => i.toLowerCase());
+            const persona = (profileRes.persona || '').toLowerCase();
+            // Score partners based on profile match
+            const scored = allPartners
+              .filter((p: any) => p.tier === 'gold' || p.tier === 'silver' || p.rating >= 4)
+              .map((p: any) => {
+                let score = p.rating || 0;
+                const cat = (p.category || '').toLowerCase();
+                const sub = (p.subcategory || '').toLowerCase();
+                if (interests.some((i: string) => cat.includes(i) || sub.includes(i))) score += 3;
+                if (persona.includes('foodie') && (cat === 'restaurant' || cat === 'gastronomy')) score += 2;
+                if (persona.includes('nightlife') && (cat === 'club' || cat === 'bar' || cat === 'nightlife')) score += 2;
+                if (persona.includes('wellness') && (cat === 'spa' || cat === 'wellness')) score += 2;
+                if (persona.includes('adventure') && (cat === 'activity' || cat === 'tour')) score += 2;
+                if (p.tier === 'gold') score += 1;
+                return { ...p, _score: score };
+              })
+              .sort((a: any, b: any) => b._score - a._score)
+              .slice(0, 8);
+            setRecommendations(scored);
+          }
+        } catch { /* non-critical */ }
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -445,6 +478,56 @@ export default function HomeScreen() {
                 style={[styles.dot, i === activeSeasonIdx ? [styles.dotActive, { backgroundColor: s.color }] : null]}
               />
             ))}
+          </View>
+        )}
+
+        {/* Recomendados para ti — AI profile-powered */}
+        {recommendations.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleRow}>
+                <Ionicons name="sparkles" size={18} color="#A855F7" />
+                <Text style={styles.sectionTitle}>{tr('Para ti')}</Text>
+                <View style={styles.aiBadge}>
+                  <Text style={styles.aiBadgeText}>AI</Text>
+                </View>
+              </View>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: SPACING.lg, gap: SPACING.sm }}>
+              {recommendations.map((p: any) => (
+                <TouchableOpacity
+                  key={p.partner_id}
+                  style={styles.recCard}
+                  onPress={() => router.push(`/partner/${p.partner_id}` as any)}
+                  activeOpacity={0.85}
+                >
+                  <SafeImage
+                    uri={p.image_url || getCategoryImage(p.category)}
+                    style={styles.recImage}
+                    category={p.category}
+                  />
+                  <View style={styles.recOverlay}>
+                    {p.tier && (
+                      <View style={[styles.recTierBadge, { backgroundColor: TIER_COLORS[p.tier as Tier]?.main || COLORS.primary }]}>
+                        <Text style={styles.recTierText}>{(p.tier || '').toUpperCase()}</Text>
+                      </View>
+                    )}
+                    <Text style={styles.recName} numberOfLines={2}>{p.name}</Text>
+                    <View style={styles.recMeta}>
+                      {p.rating ? (
+                        <View style={styles.recRating}>
+                          <Ionicons name="star" size={10} color={COLORS.primary} />
+                          <Text style={styles.recRatingText}>{Number(p.rating).toFixed(1)}</Text>
+                        </View>
+                      ) : null}
+                      <Text style={styles.recCategory} numberOfLines={1}>
+                        {(p.category || '').replace(/_/g, ' ')}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         )}
 
@@ -947,6 +1030,19 @@ const styles = StyleSheet.create({
     ...FONTS.bold,
   },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  // AI Recommendations
+  aiBadge: { backgroundColor: 'rgba(168,85,247,0.15)', borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 2 },
+  aiBadgeText: { fontSize: 9, color: '#A855F7', ...FONTS.bold, letterSpacing: 1 },
+  recCard: { width: 160, height: 200, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border },
+  recImage: { width: '100%', height: '100%' },
+  recOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: SPACING.sm, backgroundColor: 'rgba(0,0,0,0.55)', gap: 3 },
+  recTierBadge: { alignSelf: 'flex-start', borderRadius: RADIUS.full, paddingHorizontal: 6, paddingVertical: 1 },
+  recTierText: { fontSize: 8, color: '#FFF', ...FONTS.bold, letterSpacing: 0.5 },
+  recName: { fontSize: 13, color: '#FFF', ...FONTS.bold, lineHeight: 17 },
+  recMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  recRating: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  recRatingText: { fontSize: 10, color: COLORS.primary, ...FONTS.semibold },
+  recCategory: { fontSize: 10, color: 'rgba(255,255,255,0.7)', ...FONTS.medium, textTransform: 'capitalize' },
   sectionCount: {
     fontSize: 11,
     color: COLORS.textMuted,

@@ -30,7 +30,7 @@ export default function CityPassTab() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [myPass, setMyPass] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activating, setActivating] = useState<string | null>(null);
+  const [activatingId, setActivatingId] = useState<string | null>(null);
   const [portTax, setPortTax] = useState<{ price_per_person: number; season_label: string } | null>(null);
   const [activeTickets, setActiveTickets] = useState<number>(0);
 
@@ -53,11 +53,9 @@ export default function CityPassTab() {
     load();
   }, [user]);
 
-  const [activating, setActivating] = useState(false);
-
   const activatePass = async (planId: string) => {
-    if (activating) return;
-    setActivating(true);
+    if (activatingId) return;
+    setActivatingId(planId);
     try {
       const wompi = await checkWompiEnabled();
       if (!wompi.enabled) {
@@ -81,7 +79,7 @@ export default function CityPassTab() {
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'No se pudo procesar el pago');
     } finally {
-      setActivating(false);
+      setActivatingId(null);
     }
   };
 
@@ -292,10 +290,10 @@ export default function CityPassTab() {
                 <TouchableOpacity
                   style={[styles.ctaBtn, { backgroundColor: plan.color }]}
                   onPress={() => activatePass(plan.plan_id)}
-                  disabled={!!activating}
+                  disabled={!!activatingId}
                   activeOpacity={0.8}
                 >
-                  {activating ? (
+                  {activatingId === plan.plan_id ? (
                     <ActivityIndicator size="small" color="#FFF" />
                   ) : (
                     <>

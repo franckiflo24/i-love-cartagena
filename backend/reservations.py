@@ -276,6 +276,22 @@ async def create_reservation(request: Request):
     if not partner:
         raise HTTPException(status_code=404, detail="Partner no encontrado")
 
+    # ── Double-booking guard ──────────────────────────────────────────────
+    # Prevent same user from booking same partner on same date+time if an
+    # active reservation already exists.
+    existing = await _db().reservations.find_one({
+        "user_id": user["user_id"],
+        "partner_id": partner_id,
+        "date": date,
+        "time": time,
+        "status": {"$in": list(ACTIVE_STATUSES)},
+    })
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail="Ya tienes una reserva activa en este lugar para la misma fecha y hora.",
+        )
+
     partner_plan = partner.get("membership_plan") or "free"
     is_pro = partner_plan == "pro"
 
@@ -647,5 +663,9 @@ async def ensure_indexes():
         await _db().reservations.create_index([("user_id", 1), ("created_at", -1)])
         await _db().reservations.create_index([("partner_id", 1), ("status", 1), ("datetime_utc", -1)])
         await _db().reservations.create_index([("status", 1), ("created_at", -1)])
+        # Compound index for double-booking guard
+        await _db().reservations.create_index(
+            [("user_id", 1), ("partner_id", 1), ("date", 1), ("time", 1), ("status", 1)]
+        )
     except Exception as e:
         logger.warning(f"Could not create reservations indexes: {e}")

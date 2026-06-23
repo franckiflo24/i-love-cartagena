@@ -29,7 +29,7 @@ export async function openWompiCheckout(
     // We can't reliably know when the user finished, so we poll for up to maxWaitMs.
     try {
       window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
-    } catch {
+    } catch { /* window.open blocked by popup blocker — fallback to redirect */
       window.location.href = checkoutUrl;
     }
     return await pollForFinalStatus(reference, maxWaitMs, opts?.onStatus);
@@ -64,9 +64,7 @@ async function pollForFinalStatus(
       if (p && p.status && p.status !== 'pending') {
         return { status: p.status, payment: p, reference };
       }
-    } catch {
-      /* swallow and retry */
-    }
+    } catch { /* payment status poll failed — will retry on next iteration */ }
     await new Promise((r) => setTimeout(r, delay));
     delay = Math.min(delay + 500, 4000);
   }
@@ -74,7 +72,7 @@ async function pollForFinalStatus(
   try {
     const p = await api.get(`/payments/by-reference/${reference}`);
     return { status: p?.status || 'pending', payment: p, reference };
-  } catch {
+  } catch { /* final poll failed — status will arrive via webhook */
     return { status: 'pending', payment: null, reference };
   }
 }
@@ -102,7 +100,7 @@ export async function checkWompiEnabled(): Promise<{ enabled: boolean; env: stri
   try {
     const cfg = await api.get('/payments/config');
     return { enabled: !!cfg.enabled, env: cfg.env || 'sandbox', commission_pct: cfg.commission_pct || 3 };
-  } catch {
+  } catch { /* payments config not available — assume disabled */
     return { enabled: false, env: 'sandbox', commission_pct: 3 };
   }
 }
