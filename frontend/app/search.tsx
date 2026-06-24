@@ -79,6 +79,53 @@ const TAB_TO_ROUTE: Record<string, string> = {
   'Transporte': '/transport',
 };
 
+// Voice transcription via Web Speech API
+function useVoiceInput(onResult: (text: string) => void, lang: string) {
+  const [listening, setListening] = useState(false);
+  const recognitionRef = React.useRef<any>(null);
+
+  const startListening = useCallback(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      // Fallback: prompt user to type
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = lang === 'en' ? 'en-US' : lang === 'fr' ? 'fr-FR' : lang === 'pt' ? 'pt-BR' : 'es-CO';
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setListening(true);
+    recognition.onend = () => setListening(false);
+    recognition.onerror = () => setListening(false);
+
+    recognition.onresult = (event: any) => {
+      let transcript = '';
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      if (transcript) {
+        onResult(transcript);
+      }
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  }, [lang, onResult]);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setListening(false);
+  }, []);
+
+  return { listening, startListening, stopListening };
+}
+
 export default function SearchScreen() {
   const tr = useTr();
   const router = useRouter();
@@ -87,6 +134,22 @@ export default function SearchScreen() {
   const [results, setResults] = useState<Results | null>(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+
+  const doSearchRef = React.useRef<((q: string) => void) | null>(null);
+
+  // Voice input — transcribes speech and auto-searches when done
+  const handleVoiceResult = useCallback((text: string) => {
+    setQuery(text);
+  }, []);
+  const { listening, startListening, stopListening } = useVoiceInput(handleVoiceResult, lang || 'es');
+
+  // Auto-search when voice stops and there's text
+  React.useEffect(() => {
+    if (!listening && query.length >= 3 && doSearchRef.current) {
+      const timer = setTimeout(() => doSearchRef.current?.(query), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [listening]);
 
   const doSearch = useCallback(async (q: string) => {
     if (q.length < 2) { setResults(null); setSearched(false); return; }
@@ -109,6 +172,9 @@ export default function SearchScreen() {
     setLoading(false);
     Keyboard.dismiss();
   }, [lang]);
+
+  // Keep ref in sync for voice auto-search
+  doSearchRef.current = doSearch;
 
   // Defensive: any of these arrays may be missing if backend returns partial shape
   const len = (a?: any[]) => (Array.isArray(a) ? a.length : 0);
@@ -259,6 +325,14 @@ export default function SearchScreen() {
             </TouchableOpacity>
           )}
         </View>
+        {/* Voice input button */}
+        <TouchableOpacity
+          onPress={listening ? stopListening : startListening}
+          style={[styles.micBtn, listening && styles.micBtnActive]}
+          activeOpacity={0.85}
+        >
+          <Ionicons name={listening ? 'radio' : 'mic'} size={22} color={listening ? '#FFF' : COLORS.primary} />
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => doSearch(query)} style={styles.searchBtn} activeOpacity={0.85}>
           <Ionicons name="sparkles" size={22} color="#FFF" />
         </TouchableOpacity>
@@ -273,6 +347,15 @@ export default function SearchScreen() {
         ) : !searched ? (
           /* Suggestions */
           <View style={styles.suggestions}>
+            {listening && (
+              <View style={styles.listeningBanner}>
+                <Ionicons name="radio" size={20} color="#EF4444" />
+                <Text style={styles.listeningText}>{tr('Escuchando… habla ahora')}</Text>
+                <TouchableOpacity onPress={stopListening}>
+                  <Text style={styles.listeningStop}>{tr('Detener')}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
             <Text style={styles.suggestTitle}>{tr('¿Qué buscas?')}</Text>
             <Text style={styles.suggestSubtitle}>
               {tr('Puedes preguntar: «cena romántica», «cómo llegar a Barú», «conciertos este viernes», «pase cultural», «tasa portuaria»…')}
@@ -670,6 +753,11 @@ const styles = StyleSheet.create({
     maxHeight: 140,
     lineHeight: 22,
   },
+  micBtn: { width: 48, height: 48, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.primary + '40', alignItems: 'center', justifyContent: 'center' },
+  micBtnActive: { backgroundColor: '#EF4444', borderColor: '#EF4444' },
+  listeningBanner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: '#EF444418', borderRadius: RADIUS.lg, padding: SPACING.md, marginBottom: SPACING.md, borderWidth: 1, borderColor: '#EF444430' },
+  listeningText: { flex: 1, fontSize: 14, color: '#EF4444', ...FONTS.semibold },
+  listeningStop: { fontSize: 12, color: COLORS.textMuted, ...FONTS.bold, textDecorationLine: 'underline' as const },
   searchBtn: { width: 48, height: 48, borderRadius: RADIUS.lg, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
 
   loadingWrap: { alignItems: 'center', paddingTop: 60, gap: SPACING.sm },
