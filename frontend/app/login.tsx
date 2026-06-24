@@ -17,7 +17,7 @@ import { Lang, LANG_FLAGS } from '../src/i18n/translations';
 const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
 
 export default function LoginScreen() {
-  const { user, isLoading, login, checkAuth } = useAuth();
+  const { user, isLoading, login, loginWithToken } = useAuth();
   const router = useRouter();
   const { s, lang, setLang } = useLang();
   const { next } = useLocalSearchParams<{ next?: string }>();
@@ -72,17 +72,14 @@ export default function LoginScreen() {
     try {
       // Call backend to create a REAL user + session token
       const res = await api.post('/auth/demo-login', { email, name, provider: 'email_local', signup_code: 'amo_ctg_2026' });
-      if (res.session_token) {
-        await storeSessionToken(res.session_token);
+      if (res.session_token && res.user) {
+        // Set user in AuthContext immediately — this is the key step
+        await loginWithToken(res.session_token, res.user);
+        setSavingSignup(false);
+        setShowSignup(false);
+        router.replace('/(tabs)');
+        return;
       }
-      if (res.user) {
-        await AsyncStorage.setItem('user_data', JSON.stringify(res.user));
-      }
-      setSavingSignup(false);
-      setShowSignup(false);
-      // Navigate immediately — don't wait for reactive useEffect
-      router.replace('/(tabs)');
-      return;
     } catch (e) {
       console.error('[Login] email signup error', e);
       Alert.alert('Error', 'No se pudo crear la cuenta. Intenta de nuevo.');
@@ -104,17 +101,13 @@ export default function LoginScreen() {
       // Use phone as a pseudo-email for the backend session
       const pseudoEmail = `${phone.replace(/\+/g, '')}@wa.amo.local`;
       const res = await api.post('/auth/demo-login', { email: pseudoEmail, name, phone, provider: 'whatsapp_local', signup_code: 'amo_ctg_2026' });
-      if (res.session_token) {
-        await storeSessionToken(res.session_token);
+      if (res.session_token && res.user) {
+        await loginWithToken(res.session_token, res.user);
+        setSavingSignup(false);
+        setShowWhatsapp(false);
+        router.replace('/(tabs)');
+        return;
       }
-      if (res.user) {
-        await AsyncStorage.setItem('user_data', JSON.stringify(res.user));
-      }
-      setSavingSignup(false);
-      setShowWhatsapp(false);
-      // Navigate immediately
-      router.replace('/(tabs)');
-      return;
     } catch (e) {
       console.error('[Login] whatsapp signup error', e);
       Alert.alert('Error', 'No se pudo crear la cuenta. Intenta de nuevo.');

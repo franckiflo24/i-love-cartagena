@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-const setToken = async (token: string) => {
+const saveToken = async (token: string) => {
   if (Platform.OS === 'web') {
     await AsyncStorage.setItem('session_token', token);
   } else {
@@ -41,6 +41,7 @@ type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   login: () => Promise<void>;
+  loginWithToken: (sessionToken: string, userData: User) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 };
@@ -49,13 +50,13 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
   login: async () => {},
+  loginWithToken: async () => {},
   logout: async () => {},
   checkAuth: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
 
-// Build Google OAuth URL for implicit flow (ID token)
 function buildGoogleAuthUrl(): string {
   const nonce = Math.random().toString(36).substring(2) + Date.now().toString(36);
   const state = Math.random().toString(36).substring(2);
@@ -72,7 +73,6 @@ function buildGoogleAuthUrl(): string {
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 }
 
-// Extract id_token from URL hash after Google redirect
 function extractIdTokenFromHash(): string | null {
   if (typeof window === 'undefined') return null;
   const hash = window.location.hash;
@@ -85,6 +85,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Called by login.tsx after a successful email/WhatsApp/Google login
+  // Sets the user in context immediately — no network round-trip needed
+  const loginWithToken = useCallback(async (sessionToken: string, userData: User) => {
+    await saveToken(sessionToken);
+    await AsyncStorage.setItem('user_data', JSON.stringify(userData));
+    setUser(userData);
+    setIsLoading(false);
+  }, []);
+
   const exchangeGoogleToken = useCallback(async (idToken: string) => {
     try {
       const res = await fetch(`${BACKEND_URL}/api/auth/google`, {
@@ -93,30 +102,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({ id_token: idToken }),
       });
       if (!res.ok) {
-        const err = await res.text();
-        console.error('[AuthContext] Google auth failed:', res.status, err);
+        console.error('[AuthContext] Google auth failed:', res.status);
         return null;
       }
       const data = await res.json();
-      if (data.session_token) {
-        await setToken(data.session_token);
-      }
-      if (data.user) {
-        setUser(data.user);
-        await AsyncStorage.setItem('user_data', JSON.stringify(data.user));
+      if (data.session_token && data.user) {
+        await loginWithToken(data.session_token, data.user);
       }
       return data;
     } catch (e) {
       console.error('[AuthContext] Google token exchange error:', e);
       return null;
     }
-  }, []);
+  }, [loginWithToken]);
 
   const checkAuth = useCallback(async () => {
     try {
       const token = await getToken();
       if (!token) {
-        // No session token — check for cached user data from a recent login
         const cached = await AsyncStorage.getItem('user_data');
         if (cached) {
           try {
@@ -126,7 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setIsLoading(false);
               return;
             }
-          } catch { /* malformed stored user_data */ }
+          } catch { /* malformed */ }
         }
         setUser(null);
         setIsLoading(false);
@@ -149,27 +152,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const cached = await AsyncStorage.getItem('user_data');
         if (cached) setUser(JSON.parse(cached));
-      } catch { /* malformed stored user_data */ }
+      } catch { /* malformed */ }
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // On mount: check for Google OAuth callback OR existing session
   useEffect(() => {
     const init = async () => {
-      // Check if we're returning from Google OAuth (id_token in hash)
       if (Platform.OS === 'web') {
         const idToken = extractIdTokenFromHash();
         if (idToken) {
-          // Clean the URL hash so it doesn't persist
           window.history.replaceState(null, '', window.location.pathname);
           await exchangeGoogleToken(idToken);
           setIsLoading(false);
           return;
         }
       }
-      // Normal auth check
       await checkAuth();
     };
     init();
@@ -177,11 +176,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(async () => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      // Redirect to Google OAuth consent screen
-      // Google will redirect back to our origin with #id_token=... in the hash
       window.location.href = buildGoogleAuthUrl();
     }
-    // For native, would use expo-auth-session — not needed for web launch
   }, []);
 
   const logout = useCallback(async () => {
@@ -191,14 +187,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         method: 'POST',
         headers: { Authorization: `Bearer ${token || ''}` },
       });
-    } catch (e) { console.error('[AuthContext] logout call failed', e); }
+    } catch (e) { console.error('[AuthContext] logout failed', e); }
     await removeToken();
     await AsyncStorage.removeItem('user_data');
     setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, isLoading, login, loginWithToken, logout, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );
