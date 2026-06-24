@@ -80,47 +80,106 @@ const TAB_TO_ROUTE: Record<string, string> = {
 };
 
 // Voice transcription via Web Speech API
-function useVoiceInput(onResult: (text: string) => void, lang: string) {
+function useVoiceInput(onTranscript: (text: string) => void, onFinal: (text: string) => void, lang: string) {
   const [listening, setListening] = useState(false);
   const recognitionRef = React.useRef<any>(null);
+  const mountedRef = React.useRef(true);
+
+  // Keep callback refs current to avoid stale closures
+  const onTranscriptRef = React.useRef(onTranscript);
+  const onFinalRef = React.useRef(onFinal);
+  onTranscriptRef.current = onTranscript;
+  onFinalRef.current = onFinal;
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (recognitionRef.current) {
+        try { recognitionRef.current.abort(); } catch (_e) { /* ignore */ }
+        recognitionRef.current = null;
+      }
+    };
+  }, []);
 
   const startListening = useCallback(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      // Fallback: prompt user to type
+      // Browser does not support Web Speech API — user must type
       return;
     }
+
+    // Stop any existing session before starting a new one
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort(); } catch (_e) { /* ignore */ }
+      recognitionRef.current = null;
+    }
+
     const recognition = new SpeechRecognition();
     recognition.lang = lang === 'en' ? 'en-US' : lang === 'fr' ? 'fr-FR' : lang === 'pt' ? 'pt-BR' : 'es-CO';
     recognition.interimResults = true;
     recognition.continuous = false;
     recognition.maxAlternatives = 1;
 
-    recognition.onstart = () => setListening(true);
-    recognition.onend = () => setListening(false);
-    recognition.onerror = () => setListening(false);
+    recognition.onstart = () => {
+      if (mountedRef.current) setListening(true);
+    };
+
+    recognition.onend = () => {
+      if (mountedRef.current) setListening(false);
+      recognitionRef.current = null;
+    };
+
+    recognition.onerror = (e: any) => {
+      // 'no-speech' and 'aborted' are not real errors — just stop gracefully
+      if (e.error !== 'no-speech' && e.error !== 'aborted') {
+        console.error('[useVoiceInput] SpeechRecognition error:', e.error);
+      }
+      if (mountedRef.current) setListening(false);
+      recognitionRef.current = null;
+    };
 
     recognition.onresult = (event: any) => {
-      let transcript = '';
+      if (!mountedRef.current) return;
+      let interimTranscript = '';
+      let finalTranscript = '';
       for (let i = 0; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
+        const result = event.results[i];
+        if (result.isFinal) {
+          finalTranscript += result[0].transcript;
+        } else {
+          interimTranscript += result[0].transcript;
+        }
       }
-      if (transcript) {
-        onResult(transcript);
+      // Show interim text in the input as the user speaks
+      const displayText = finalTranscript || interimTranscript;
+      if (displayText) {
+        onTranscriptRef.current(displayText);
+      }
+      // When we have a final result, trigger auto-search
+      if (finalTranscript) {
+        onFinalRef.current(finalTranscript);
       }
     };
 
     recognitionRef.current = recognition;
-    recognition.start();
-  }, [lang, onResult]);
+    try {
+      recognition.start();
+    } catch (e) {
+      console.error('[useVoiceInput] Failed to start:', e);
+      if (mountedRef.current) setListening(false);
+      recognitionRef.current = null;
+    }
+  }, [lang]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
-      recognitionRef.current.stop();
+      try { recognitionRef.current.stop(); } catch (_e) { /* ignore */ }
       recognitionRef.current = null;
     }
-    setListening(false);
+    if (mountedRef.current) setListening(false);
   }, []);
 
   return { listening, startListening, stopListening };
@@ -137,27 +196,64 @@ export default function SearchScreen() {
 
   const doSearchRef = React.useRef<((q: string) => void) | null>(null);
 
-  // Voice input — transcribes speech and auto-searches when done
-  const handleVoiceResult = useCallback((text: string) => {
+  // Voice input — live transcript updates the input, final transcript triggers search
+  const handleVoiceTranscript = useCallback((text: string) => {
     setQuery(text);
   }, []);
-  const { listening, startListening, stopListening } = useVoiceInput(handleVoiceResult, lang || 'es');
 
-  // Auto-search when voice stops and there's text
-  React.useEffect(() => {
-    if (!listening && query.length >= 3 && doSearchRef.current) {
-      const timer = setTimeout(() => doSearchRef.current?.(query), 500);
-      return () => clearTimeout(timer);
+  const handleVoiceFinal = useCallback((text: string) => {
+    setQuery(text);
+    // Auto-search after a short delay to let the UI update
+    if (text.length >= 3) {
+      setTimeout(() => doSearchRef.current?.(text), 400);
     }
-  }, [listening]);
+  }, []);
+
+  const { listening, startListening, stopListening } = useVoiceInput(handleVoiceTranscript, handleVoiceFinal, lang || 'es');
 
   const doSearch = useCallback(async (q: string) => {
     if (q.length < 2) { setResults(null); setSearched(false); return; }
     setLoading(true);
     setSearched(true);
     try {
-      const data = await api.get(`/search?q=${encodeURIComponent(q)}&lang=${lang || 'es'}`);
-      // Normalize: backend (or static fallback) may omit keys — coerce to empty arrays
+      // Try backend search first
+      let data: any = null;
+      try {
+        data = await api.get(`/search?q=${encodeURIComponent(q)}&lang=${lang || 'es'}`);
+      } catch { /* backend failed, will use static fallback */ }
+
+      // Check if backend returned real results
+      const hasResults = data && (
+        (Array.isArray(data.partners) && data.partners.length > 0) ||
+        (Array.isArray(data.events) && data.events.length > 0) ||
+        (Array.isArray(data.concerts) && data.concerts.length > 0)
+      );
+
+      // If backend returned nothing, do client-side search over static JSON
+      if (!hasResults) {
+        const norm = (s: any): string => (typeof s === 'string' ? s : '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const terms = norm(q).split(/\s+/).filter(w => w.length >= 2);
+        const match = (...fields: any[]) => terms.some(t => fields.some(f => norm(f).includes(t)));
+
+        const [allPartners, allEvents, allConcerts] = await Promise.all([
+          fetch('/data/partners.json').then(r => r.json()).catch(() => []),
+          fetch('/data/events.json').then(r => r.json()).catch(() => []),
+          fetch('/data/concerts.json').then(r => r.json()).catch(() => []),
+        ]);
+
+        const partners = (Array.isArray(allPartners) ? allPartners : [])
+          .filter((p: any) => match(p.name, p.description, p.category, p.subcategory, p.address))
+          .slice(0, 20);
+        const events = (Array.isArray(allEvents) ? allEvents : [])
+          .filter((e: any) => match(e.name_es, e.title, e.description_es, e.category, e.venue))
+          .slice(0, 15);
+        const concerts = (Array.isArray(allConcerts) ? allConcerts : [])
+          .filter((c: any) => match(c.title, c.artist, c.genre, c.venue_name))
+          .slice(0, 10);
+
+        data = { partners, events, concerts, venues: [], transport: [], partner_events: [] };
+      }
+
       const normalized: Results = {
         events:         Array.isArray(data?.events) ? data.events : [],
         concerts:       Array.isArray(data?.concerts) ? data.concerts : [],
@@ -168,7 +264,7 @@ export default function SearchScreen() {
         ai:             data?.ai,
       };
       setResults(normalized);
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error('[Search] error:', e); }
     setLoading(false);
     Keyboard.dismiss();
   }, [lang]);
