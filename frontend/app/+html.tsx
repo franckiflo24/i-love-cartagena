@@ -17,8 +17,8 @@ export default function Root({ children }: PropsWithChildren) {
         <meta property="og:title" content="AMO Cartagena" />
         <meta property="og:description" content="Descubre 700+ lugares, eventos y experiencias en Cartagena de Indias. Tu guía definitiva." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://frontend-ashy-five-79.vercel.app" />
-        <meta property="og:image" content="https://frontend-ashy-five-79.vercel.app/data/og-image.jpg" />
+        <meta property="og:url" content="https://www.amocartagena.co" />
+        <meta property="og:image" content="https://www.amocartagena.co/data/og-image.jpg" />
         <meta property="og:locale" content="es_CO" />
         <meta property="og:locale:alternate" content="en_US" />
         <meta name="twitter:card" content="summary_large_image" />
