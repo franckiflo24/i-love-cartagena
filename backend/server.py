@@ -2314,12 +2314,21 @@ async def global_search(q: str = "", request: Request = None):
     regex = {"$regex": _re.escape(q), "$options": "i"}
 
     events = await db.events.find(
-        {"$or": [{"title": regex}, {"description": regex}, {"venue_name": regex}, {"type": regex}]},
+        {"$or": [
+            {"title": regex}, {"name_es": regex}, {"name_en": regex},
+            {"description": regex}, {"description_es": regex}, {"description_en": regex},
+            {"venue_name": regex}, {"venue": regex},
+            {"type": regex}, {"category": regex}, {"slug": regex},
+        ]},
         {"_id": 0}
-    ).limit(10).to_list(10)
+    ).limit(15).to_list(15)
 
     concerts = await db.concerts.find(
-        {"$or": [{"artist": regex}, {"title": regex}, {"genre": regex}, {"venue_name": regex}]},
+        {"$or": [
+            {"artist": regex}, {"title": regex}, {"name_es": regex},
+            {"genre": regex}, {"venue_name": regex}, {"venue": regex},
+            {"description": regex},
+        ]},
         {"_id": 0}
     ).limit(10).to_list(10)
 
@@ -2327,9 +2336,10 @@ async def global_search(q: str = "", request: Request = None):
         {"$or": [
             {"name": regex}, {"description": regex}, {"category": regex},
             {"subcategory": regex}, {"cuisine": regex}, {"address": regex},
+            {"experience": regex},
         ]},
         {"_id": 0}
-    ).limit(15).to_list(15)
+    ).limit(20).to_list(20)
 
     venues = await db.venues.find(
         {"$or": [{"name": regex}, {"description": regex}, {"type": regex}]},

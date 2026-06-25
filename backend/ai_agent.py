@@ -316,7 +316,7 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
             {"plan_id": "pass_premium", "name": "Premium", "price_cop": 350000},
             {"plan_id": "pass_ultimate", "name": "Ultimate", "price_cop": 599000},
         ],
-        "partner_categories": ["restaurant", "hotel", "beach_club", "nightclub", "wellness", "tour", "transport"],
+        "partner_categories": ["restaurant", "hotel", "beach_club", "bar", "club", "cafe", "spa", "wellness", "beauty", "activity", "yacht", "realestate"],
         "inventory_summary": inventory_summary,  # counts per category/subcategory
         "semantic_filters_detected": semantic_filters,
         "relevant_partners": relevant_partners,  # rich data for top matches
