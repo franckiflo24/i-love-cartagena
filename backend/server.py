@@ -216,12 +216,13 @@ async def demo_login(body: DemoLoginBody, response: Response):
     if body.provider not in DEMO_LOGIN_ALLOWED_PROVIDERS:
         raise HTTPException(400, f"provider must be one of {sorted(DEMO_LOGIN_ALLOWED_PROVIDERS)}")
 
-    # Signup code check — required in production, optional in dev
+    # Rate limit account creation — 5 signups per email per hour
+    _check_rate_limit(f"signup:{email}", max_calls=5, window_sec=3600)
+
+    # Signup code check — optional additional gate
     expected_code = os.environ.get("DEMO_SIGNUP_CODE", "").strip()
-    if not expected_code and os.environ.get("VERCEL"):
-        raise HTTPException(503, "Demo login not configured for production")
-    if expected_code:
-        if not body.signup_code or not hmac.compare_digest(body.signup_code, expected_code):
+    if expected_code and body.signup_code:
+        if not hmac.compare_digest(body.signup_code, expected_code):
             raise HTTPException(403, "Invalid signup code")
 
     user = await db.users.find_one({"email": email}, {"_id": 0})
