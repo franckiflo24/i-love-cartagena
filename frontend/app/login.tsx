@@ -72,7 +72,7 @@ export default function LoginScreen() {
     setSavingSignup(true);
     try {
       // Call backend to create a REAL user + session token
-      const res = await api.post('/auth/demo-login', { email, name, provider: 'email_local', signup_code: 'amo_ctg_2026' });
+      const res = await api.post('/auth/demo-login', { email, name, provider: 'email_local', signup_code: process.env.EXPO_PUBLIC_SIGNUP_CODE || '' });
       if (res.session_token && res.user) {
         // Set user in AuthContext immediately — this is the key step
         await loginWithToken(res.session_token, res.user);
@@ -101,7 +101,7 @@ export default function LoginScreen() {
     try {
       // Use phone as a pseudo-email for the backend session
       const pseudoEmail = `${phone.replace(/\+/g, '')}@wa.amo.local`;
-      const res = await api.post('/auth/demo-login', { email: pseudoEmail, name, phone, provider: 'whatsapp_local', signup_code: 'amo_ctg_2026' });
+      const res = await api.post('/auth/demo-login', { email: pseudoEmail, name, phone, provider: 'whatsapp_local', signup_code: process.env.EXPO_PUBLIC_SIGNUP_CODE || '' });
       if (res.session_token && res.user) {
         await loginWithToken(res.session_token, res.user);
         setSavingSignup(false);

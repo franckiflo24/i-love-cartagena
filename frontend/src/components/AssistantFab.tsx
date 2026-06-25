@@ -24,8 +24,11 @@ import { useRouter, usePathname } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { useLang } from '../context/LanguageContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
-const CONCIERGE_URL = process.env.EXPO_PUBLIC_CONCIERGE_URL || '/api/concierge';
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+const CONCIERGE_URL = process.env.EXPO_PUBLIC_CONCIERGE_URL || `${BACKEND_URL}/api/agent/chat`;
 
 type Action = {
   type: string;
@@ -172,9 +175,14 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
       // typing indicator
       setMessages((prev) => [...prev, { role: 'assistant', content: '__typing__' }]);
       try {
+        const token = Platform.OS === 'web'
+          ? await AsyncStorage.getItem('session_token')
+          : await SecureStore.getItemAsync('session_token');
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
         const apiRes = await fetch(CONCIERGE_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({
             message: trimmed,
             session_id: sessionId,

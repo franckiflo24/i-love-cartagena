@@ -1672,7 +1672,7 @@ async def track_partner_event_reserve(event_id: str, request: Request):
         sep = "&" if "?" in booking_link else "?"
         tracking = f"utm_source=amocartagena&utm_medium=app&utm_campaign=partner_event&utm_content={event_id}"
         if user_id:
-            tracking += f"&ref_user={user_id}"
+            tracking += f"&ref=amo"
         booking_link = f"{booking_link}{sep}{tracking}"
     return {"booking_url": booking_link, "tracked": True}
 
@@ -1699,7 +1699,7 @@ async def track_partner_reserve(partner_id: str, request: Request):
         sep = "&" if "?" in booking_link else "?"
         tracking = f"utm_source=amocartagena&utm_medium=app&utm_campaign=partner_profile"
         if user_id:
-            tracking += f"&ref_user={user_id}"
+            tracking += f"&ref=amo"
         booking_link = f"{booking_link}{sep}{tracking}"
     return {"booking_url": booking_link, "tracked": True}
 
@@ -2171,17 +2171,25 @@ async def get_favorites(request: Request):
     user_id = user["user_id"]
     favs = await db.favorites.find({"user_id": user_id}, {"_id": 0}).to_list(200)
 
-    # Enrich with full data
+    # Enrich with full data from the appropriate collection
     result = []
     for f in favs:
         item = None
-        if f["item_type"] == "event":
-            item = await db.events.find_one({"event_id": f["item_id"]}, {"_id": 0})
-        elif f["item_type"] == "concert":
-            item = await db.concerts.find_one({"concert_id": f["item_id"]}, {"_id": 0})
+        iid = f.get("item_id", "")
+        itype = f.get("item_type", "")
+        if itype == "partner":
+            item = await db.partners.find_one({"partner_id": iid}, {"_id": 0})
+        elif itype == "event":
+            item = await db.events.find_one(
+                {"$or": [{"event_id": iid}, {"slug": iid}]}, {"_id": 0}
+            )
+        elif itype == "concert":
+            item = await db.concerts.find_one({"concert_id": iid}, {"_id": 0})
+        elif itype == "venue":
+            item = await db.venues.find_one({"venue_id": iid}, {"_id": 0})
         if item:
-            item["_fav_type"] = f["item_type"]
-            item["_fav_id"] = f["fav_id"]
+            item["_fav_type"] = itype
+            item["_fav_id"] = f.get("fav_id", "")
             result.append(item)
 
     return result
@@ -2354,7 +2362,31 @@ async def global_search(q: str = "", request: Request = None):
         }
 
     import re as _re
-    regex = {"$regex": _re.escape(q), "$options": "i"}
+
+    # Synonym expansion — map natural language to searchable categories/terms
+    _SEARCH_SYNONYMS = {
+        "cena": "restaurant", "dinner": "restaurant", "cenar": "restaurant",
+        "almuerzo": "restaurant", "lunch": "restaurant", "brunch": "cafe",
+        "romantica": "restaurant", "romantic": "restaurant",
+        "cocktail": "bar", "drinks": "bar", "cocktails": "bar", "trago": "bar",
+        "dance": "club", "bailar": "club", "salsa": "club", "champeta": "club",
+        "beach": "beach_club", "playa": "beach_club", "pool": "beach_club",
+        "relax": "spa", "massage": "spa", "masaje": "spa",
+        "yoga": "wellness", "gym": "wellness", "fitness": "wellness",
+        "hair": "beauty", "nails": "beauty", "salon": "beauty",
+        "nightlife": "club", "fiesta": "club", "party": "club",
+        "hotel": "hotel", "hostal": "hotel", "hospedaje": "hotel",
+        "tour": "activity", "diving": "activity", "buceo": "activity",
+        "concert": "concert", "concierto": "concert", "musica": "concert",
+    }
+    # Expand query: if any word maps to a category, add that category as an OR term
+    q_lower = q.lower().strip()
+    expanded_terms = [_re.escape(q)]
+    for word in q_lower.split():
+        syn = _SEARCH_SYNONYMS.get(word)
+        if syn and syn != word:
+            expanded_terms.append(_re.escape(syn))
+    regex = {"$regex": "|".join(expanded_terms), "$options": "i"}
 
     events = await db.events.find(
         {"$or": [
