@@ -175,7 +175,11 @@ async def concierge_chat(agent: str, messages: list, db) -> dict:
 
     try:
         import anthropic
-        aclient = anthropic.AsyncAnthropic(api_key=ANTHROPIC_KEY)
+        # Read key fresh from env (module-level cache may be stale on Vercel)
+        fresh_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+        if not fresh_key:
+            logger.error("[Concierge] ANTHROPIC_API_KEY env var is empty")
+        aclient = anthropic.AsyncAnthropic(api_key=fresh_key)
         r = await aclient.messages.create(
             model="claude-sonnet-4-6",
             max_tokens=700,
