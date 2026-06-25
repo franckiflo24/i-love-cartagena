@@ -2390,12 +2390,19 @@ async def global_search(q: str = "", request: Request = None):
             pass
         return {**matches, "ai": ai_payload}
 
-    # Resolve user — AUTH REQUIRED before invoking the LLM-backed agent.
-    # The fast-path above (direct partner match) already returned for unauth users.
-    # Beyond this point we will call Anthropic, which costs real money per call.
-    if request is None:
-        raise HTTPException(status_code=401, detail="Authentication required for AI search")
-    user_obj = await get_current_user(request)  # raises 401 on failure
+    # Resolve user — AUTH optional. Unauthenticated users get raw results without AI.
+    # Authenticated users get the full AI-enriched experience.
+    user_obj = None
+    try:
+        if request is not None:
+            user_obj = await get_current_user(request)
+    except HTTPException:
+        pass  # Not authenticated — return raw results without AI enrichment
+
+    if user_obj is None:
+        # Return raw matches without AI for unauthenticated users
+        return {**matches, "ai": {"query": q, "intent": "general", "answer": "", "highlights": []}}
+
     user_id = user_obj.get("user_id")
 
     # ── FULL CONCIERGE AGENT ──
