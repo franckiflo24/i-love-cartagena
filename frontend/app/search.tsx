@@ -232,7 +232,41 @@ export default function SearchScreen() {
       // If backend returned nothing, do client-side search over static JSON
       if (!hasResults) {
         const norm = (s: any): string => (typeof s === 'string' ? s : '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        const terms = norm(q).split(/\s+/).filter(w => w.length >= 2);
+        const queryTerms = norm(q).split(/\s+/).filter(w => w.length >= 2);
+
+        // Synonym expansion: map common queries to categories and Spanish terms
+        const SYNONYMS: Record<string, string[]> = {
+          'cena': ['restaurant', 'restaurante', 'comida', 'gastronomia'],
+          'romantica': ['restaurant', 'restaurante', 'bistro', 'italiano', 'frances'],
+          'romantic': ['restaurant', 'restaurante', 'bistro'],
+          'dinner': ['restaurant', 'restaurante', 'comida', 'cena'],
+          'lunch': ['restaurant', 'restaurante', 'brunch', 'almuerzo'],
+          'breakfast': ['restaurant', 'cafe', 'brunch', 'desayuno'],
+          'drinks': ['bar', 'cocktail', 'rooftop', 'coctel'],
+          'cocktails': ['bar', 'cocktail', 'rooftop', 'alquimico'],
+          'dance': ['club', 'salsa', 'nightlife', 'discoteca', 'champeta'],
+          'beach': ['beach_club', 'playa', 'isla', 'baru'],
+          'pool': ['beach_club', 'hotel', 'piscina'],
+          'music': ['concert', 'concierto', 'festival', 'musica'],
+          'concierto': ['concert', 'musica', 'festival', 'live'],
+          'conciertos': ['concert', 'musica', 'festival', 'live'],
+          'relax': ['spa', 'wellness', 'yoga', 'masaje'],
+          'massage': ['spa', 'masaje', 'wellness'],
+          'hair': ['beauty', 'salon', 'peluqueria', 'barberia'],
+          'nails': ['beauty', 'unas', 'manicure'],
+          'nightlife': ['club', 'bar', 'nightlife', 'discoteca', 'rooftop'],
+          'fiesta': ['club', 'party', 'nightlife', 'festival'],
+          'party': ['club', 'party', 'nightlife', 'beach_club'],
+        };
+
+        // Expand query terms with synonyms
+        const allTerms = new Set(queryTerms);
+        for (const t of queryTerms) {
+          if (SYNONYMS[t]) {
+            for (const syn of SYNONYMS[t]) allTerms.add(norm(syn));
+          }
+        }
+        const terms = Array.from(allTerms);
         const match = (...fields: any[]) => terms.some(t => fields.some(f => norm(f).includes(t)));
 
         const [allPartners, allEvents, allConcerts] = await Promise.all([
@@ -621,13 +655,13 @@ export default function SearchScreen() {
                 {results!.events.length > 0 && (
                   <View style={styles.section}>
                     <Text style={styles.sectionTitle}>📅 {tr('Eventos')} ({results!.events.length})</Text>
-                    {results!.events.map(e => (
-                      <TouchableOpacity key={e.event_id} style={styles.resultCard} onPress={() => router.push(`/event/${e.event_id}`)}>
-                        <SafeImage uri={e.image_url} category={e.type} style={styles.resultImage} />
+                    {results!.events.map((e, i) => (
+                      <TouchableOpacity key={e.slug || e.event_id || i} style={styles.resultCard} onPress={() => router.push(`/event/${e.slug || e.event_id}` as any)}>
+                        <SafeImage uri={e.image_url} category={e.category || e.type} style={styles.resultImage} />
                         <View style={styles.resultInfo}>
-                          <Text style={styles.resultName} numberOfLines={1}>{e.title}</Text>
-                          <Text style={styles.resultMeta}>{e.type}</Text>
-                          <Text style={styles.resultSub} numberOfLines={1}>{e.venue_name} · {e.start_time || e.date}</Text>
+                          <Text style={styles.resultName} numberOfLines={2}>{e.name_es || e.title || e.name_en || '—'}</Text>
+                          <Text style={styles.resultMeta}>{e.category || e.type}</Text>
+                          <Text style={styles.resultSub} numberOfLines={1}>{e.venue || e.venue_name || ''} · {e.time_start || e.start_time || e.date_start || e.date || ''}</Text>
                         </View>
                         <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
                       </TouchableOpacity>
