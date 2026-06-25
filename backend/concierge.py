@@ -174,34 +174,21 @@ async def concierge_chat(agent: str, messages: list, db) -> dict:
     system = AGENT_PROMPTS[agent] + "\n" + SHARED_RULES + "\n\n" + grounding
 
     try:
-        async with httpx.AsyncClient(timeout=30) as client:
-            r = await client.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "x-api-key": ANTHROPIC_KEY,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                json={
-                    "model": "claude-sonnet-4-6",
-                    "max_tokens": 700,
-                    "system": system,
-                    "messages": messages[-10:],  # Keep last 10 messages for context
-                },
-            )
-
-        if r.status_code != 200:
-            logger.error(f"Anthropic API error: {r.status_code} {r.text[:200]}")
+        import anthropic
+        aclient = anthropic.AsyncAnthropic(api_key=ANTHROPIC_KEY)
+        r = await aclient.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=700,
+            system=system,
+            messages=messages[-10:],
+        )
+        reply_text = r.content[0].text if r.content else ""
+        if not reply_text:
             return {
                 "agent": agent,
                 "reply": "Uy, se me fue la señal un momento. Inténtalo otra vez 🙏",
             }
-
-        data = r.json()
-        text = "".join(
-            b["text"] for b in data.get("content", []) if b.get("type") == "text"
-        )
-        return {"agent": agent, "reply": text}
+        return {"agent": agent, "reply": reply_text}
 
     except Exception as e:
         logger.error(f"Concierge error: {e}")
