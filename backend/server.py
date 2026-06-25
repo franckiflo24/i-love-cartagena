@@ -2321,7 +2321,7 @@ async def global_search(q: str = "", request: Request = None):
             {"type": regex}, {"category": regex}, {"slug": regex},
         ]},
         {"_id": 0}
-    ).limit(15).to_list(15)
+    ).limit(100).to_list(100)
 
     concerts = await db.concerts.find(
         {"$or": [
@@ -2330,37 +2330,37 @@ async def global_search(q: str = "", request: Request = None):
             {"description": regex},
         ]},
         {"_id": 0}
-    ).limit(10).to_list(10)
+    ).limit(50).to_list(50)
 
     partners = await db.partners.find(
         {"$or": [
             {"name": regex}, {"description": regex}, {"category": regex},
             {"subcategory": regex}, {"cuisine": regex}, {"address": regex},
-            {"experience": regex},
+            {"experience": regex}, {"tier": regex},
         ]},
         {"_id": 0}
-    ).limit(20).to_list(20)
+    ).limit(200).to_list(200)
 
     venues = await db.venues.find(
-        {"$or": [{"name": regex}, {"description": regex}, {"type": regex}]},
+        {"$or": [{"name": regex}, {"description": regex}, {"type": regex}, {"address": regex}]},
         {"_id": 0}
-    ).limit(10).to_list(10)
+    ).limit(50).to_list(50)
 
     transport = await db.transport.find(
         {"$or": [
             {"route": regex}, {"type": regex}, {"departure_point": regex},
-            {"notes": regex}, {"partner_name": regex},
+            {"notes": regex}, {"partner_name": regex}, {"name": regex},
         ]},
         {"_id": 0}
-    ).limit(10).to_list(10)
+    ).limit(20).to_list(20)
 
     partner_events = await db.partner_events.find(
         {"$or": [
             {"title": regex}, {"description": regex},
-            {"category": regex}, {"partner_name": regex},
+            {"category": regex}, {"partner_name": regex}, {"name_es": regex},
         ]},
         {"_id": 0}
-    ).limit(10).to_list(10)
+    ).limit(50).to_list(50)
 
     matches = {
         "events": events, "concerts": concerts, "partners": partners,

@@ -242,14 +242,11 @@ export default function SearchScreen() {
         ]);
 
         const partners = (Array.isArray(allPartners) ? allPartners : [])
-          .filter((p: any) => match(p.name, p.description, p.category, p.subcategory, p.address))
-          .slice(0, 20);
+          .filter((p: any) => match(p.name, p.description, p.category, p.subcategory, p.address, p.experience, p.tier));
         const events = (Array.isArray(allEvents) ? allEvents : [])
-          .filter((e: any) => match(e.name_es, e.title, e.description_es, e.category, e.venue))
-          .slice(0, 15);
+          .filter((e: any) => match(e.name_es, e.title, e.description_es, e.description_en, e.category, e.venue, e.slug));
         const concerts = (Array.isArray(allConcerts) ? allConcerts : [])
-          .filter((c: any) => match(c.title, c.artist, c.genre, c.venue_name))
-          .slice(0, 10);
+          .filter((c: any) => match(c.title, c.artist, c.genre, c.venue_name, c.description));
 
         data = { partners, events, concerts, venues: [], transport: [], partner_events: [] };
       }
