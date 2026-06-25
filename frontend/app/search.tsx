@@ -118,10 +118,15 @@ function useVoiceInput(onTranscript: (text: string) => void, onFinal: (text: str
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = lang === 'en' ? 'en-US' : lang === 'fr' ? 'fr-FR' : lang === 'pt' ? 'pt-BR' : 'es-CO';
+    // Use broader language codes for better accuracy across accents
+    // On mobile, the browser's own language detection often works better
+    const langMap: Record<string, string> = {
+      'es': 'es', 'en': 'en', 'fr': 'fr', 'pt': 'pt-BR',
+    };
+    recognition.lang = langMap[lang] || 'es';
     recognition.interimResults = true;
-    recognition.continuous = false;
-    recognition.maxAlternatives = 1;
+    recognition.continuous = true;  // Keep listening until user stops
+    recognition.maxAlternatives = 3; // Get multiple alternatives for better accuracy
 
     recognition.onstart = () => {
       if (mountedRef.current) setListening(true);
@@ -143,24 +148,23 @@ function useVoiceInput(onTranscript: (text: string) => void, onFinal: (text: str
 
     recognition.onresult = (event: any) => {
       if (!mountedRef.current) return;
-      let interimTranscript = '';
-      let finalTranscript = '';
+      let fullTranscript = '';
+      let hasFinal = false;
       for (let i = 0; i < event.results.length; i++) {
         const result = event.results[i];
-        if (result.isFinal) {
-          finalTranscript += result[0].transcript;
-        } else {
-          interimTranscript += result[0].transcript;
-        }
+        // Use the highest-confidence alternative
+        const best = result[0]?.transcript || '';
+        fullTranscript += best;
+        if (result.isFinal) hasFinal = true;
       }
-      // Show interim text in the input as the user speaks
-      const displayText = finalTranscript || interimTranscript;
-      if (displayText) {
-        onTranscriptRef.current(displayText);
+      // Always show what we've got so far
+      if (fullTranscript) {
+        onTranscriptRef.current(fullTranscript.trim());
       }
-      // When we have a final result, trigger auto-search
-      if (finalTranscript) {
-        onFinalRef.current(finalTranscript);
+      // When we have a final result, stop listening and trigger search
+      if (hasFinal && fullTranscript.trim().length >= 2) {
+        try { recognition.stop(); } catch (_e) { /* ignore */ }
+        onFinalRef.current(fullTranscript.trim());
       }
     };
 
