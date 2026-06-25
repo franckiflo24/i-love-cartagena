@@ -22,6 +22,7 @@ export default function LoginScreen() {
   const { s, lang, setLang } = useLang();
   const { next } = useLocalSearchParams<{ next?: string }>();
 
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showWhatsapp, setShowWhatsapp] = useState(false);
   const [signupName, setSignupName] = useState('');
@@ -171,8 +172,9 @@ export default function LoginScreen() {
           {/* PRIMARY: Continue with Google */}
           <TouchableOpacity
             testID="login-google-btn"
-            style={styles.googleButton}
+            style={[styles.googleButton, !termsAccepted && { opacity: 0.4 }]}
             onPress={login}
+            disabled={!termsAccepted}
             activeOpacity={0.85}
           >
             <Ionicons name="logo-google" size={20} color={COLORS.white} />
@@ -189,8 +191,9 @@ export default function LoginScreen() {
           {/* SECONDARY: Other methods - stacked for clarity */}
           <View style={styles.otherMethodsCol}>
             <TouchableOpacity
-              style={[styles.methodBtn, styles.whatsappBtn]}
+              style={[styles.methodBtn, styles.whatsappBtn, !termsAccepted && { opacity: 0.4 }]}
               onPress={() => setShowWhatsapp(true)}
+              disabled={!termsAccepted}
               activeOpacity={0.85}
             >
               <Ionicons name="logo-whatsapp" size={20} color={COLORS.white} />
@@ -198,8 +201,9 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.methodBtn, styles.outlineMethodBtn]}
+              style={[styles.methodBtn, styles.outlineMethodBtn, !termsAccepted && { opacity: 0.4 }]}
               onPress={() => setShowSignup(true)}
+              disabled={!termsAccepted}
               activeOpacity={0.85}
             >
               <Ionicons name="mail-outline" size={18} color={COLORS.white} />
@@ -236,7 +240,20 @@ export default function LoginScreen() {
             <Text style={styles.guestLink}>{s('login_guest')}</Text>
           </TouchableOpacity>
 
-          <Text style={styles.disclaimer}>{s('login_terms')}</Text>
+          <View style={styles.termsRow}>
+            <TouchableOpacity
+              onPress={() => setTermsAccepted(!termsAccepted)}
+              style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}
+            >
+              {termsAccepted && <Ionicons name="checkmark" size={14} color="#FFF" />}
+            </TouchableOpacity>
+            <Text style={styles.termsText}>
+              {s('login_accept_terms')}{' '}
+              <Text style={styles.termsLink} onPress={() => router.push('/terminos' as any)}>{s('login_terms_link')}</Text>
+              {' '}{s('login_and')}{' '}
+              <Text style={styles.termsLink} onPress={() => router.push('/privacidad' as any)}>{s('login_privacy_link')}</Text>
+            </Text>
+          </View>
         </View>
       </ScrollView>
 
@@ -477,7 +494,11 @@ const styles = StyleSheet.create({
     marginTop: SPACING.sm,
     opacity: 0.85,
   },
-  disclaimer: { fontSize: 11, color: COLORS.textMuted, textAlign: 'center', marginTop: SPACING.sm, opacity: 0.6, lineHeight: 16 },
+  termsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingHorizontal: SPACING.md, marginTop: SPACING.sm },
+  checkbox: { width: 22, height: 22, borderRadius: 4, borderWidth: 2, borderColor: COLORS.textMuted, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+  checkboxChecked: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  termsText: { flex: 1, fontSize: 12, color: COLORS.textMuted, lineHeight: 18 },
+  termsLink: { color: COLORS.primary, textDecorationLine: 'underline' },
 
   // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },

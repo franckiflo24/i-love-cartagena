@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -461,6 +461,38 @@ export default function PerfilScreen() {
           ))
         )}
 
+        {/* Delete Account */}
+        <TouchableOpacity
+          style={styles.deleteAccountBtn}
+          onPress={() => {
+            Alert.alert(
+              tr('Eliminar cuenta'),
+              tr('¿Estás seguro? Esta acción eliminará tu cuenta y todos tus datos permanentemente. No se puede deshacer.'),
+              [
+                { text: tr('Cancelar'), style: 'cancel' },
+                {
+                  text: tr('Sí, eliminar'),
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      await api.delete('/auth/delete-account');
+                      await logout();
+                      router.replace('/(tabs)');
+                    } catch (e) {
+                      console.error('[Perfil] delete account failed', e);
+                      Alert.alert(tr('Error'), tr('No se pudo eliminar la cuenta. Intenta de nuevo.'));
+                    }
+                  },
+                },
+              ]
+            );
+          }}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="trash-outline" size={16} color="#EF4444" />
+          <Text style={styles.deleteAccountText}>{tr('Eliminar mi cuenta')}</Text>
+        </TouchableOpacity>
+
         {/* Logout */}
         <TouchableOpacity testID="logout-btn" style={styles.logoutBtn} onPress={logout}>
           <Ionicons name="log-out-outline" size={18} color={COLORS.error} />
@@ -569,6 +601,8 @@ const styles = StyleSheet.create({
   eventTitle: { fontSize: 15, color: COLORS.textMain, ...FONTS.semibold },
   eventMeta: { fontSize: 12, color: COLORS.primary, ...FONTS.medium, marginTop: 2 },
   eventVenue: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 1 },
+  deleteAccountBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: '#EF444430', backgroundColor: '#EF444410' },
+  deleteAccountText: { fontSize: 14, color: '#EF4444', fontWeight: '600' },
   logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, marginTop: SPACING.xl, paddingVertical: SPACING.md },
   logoutText: { fontSize: 14, color: COLORS.error, ...FONTS.medium },
 

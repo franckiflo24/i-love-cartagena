@@ -45,7 +45,7 @@ export default function PrivacyScreen() {
         <Text style={styles.h1}>{tr('5. Terceros con los que compartimos datos')}</Text>
         <Text style={styles.p}>{tr('• Wompi (Colombia) — procesamiento de pagos City Pass y Tasa Portuaria.')}</Text>
         <Text style={styles.p}>{tr('• Expo Push Service (USA) — entrega de notificaciones push.')}</Text>
-        <Text style={styles.p}>{tr('• OpenAI / Google — procesamiento de consultas al agente IA (sin tus datos personales identificables: solo el texto de tu pregunta).')}</Text>
+        <Text style={styles.p}>{tr('• Anthropic (Claude) / Google — procesamiento de consultas al agente IA (sin tus datos personales identificables: solo el texto de tu pregunta).')}</Text>
         <Text style={styles.p}>{tr('• Google Sign-In / Apple Sign-In — solo si eliges esos métodos de login.')}</Text>
         <Text style={styles.p}>{tr('• Partners (restaurantes, hoteles) — reciben tu nombre, contacto y detalles de la reserva SOLO si confirman tu solicitud. Los partners FREE reciben datos enmascarados hasta que activan su cuenta PRO.')}</Text>
         <Text style={styles.p}>{tr('NO vendemos tus datos. NO los compartimos con anunciantes externos.')}</Text>
@@ -67,7 +67,7 @@ export default function PrivacyScreen() {
         <Text style={styles.p}>{tr('La app NO usa cookies de seguimiento publicitario. Usamos almacenamiento local (AsyncStorage / SecureStore) solo para guardar tu sesión y preferencias en tu propio dispositivo.')}</Text>
 
         <Text style={styles.h1}>{tr('11. Transferencias internacionales')}</Text>
-        <Text style={styles.p}>{tr('Algunos servicios de terceros (Expo, OpenAI, Google) procesan datos fuera de Colombia. Estos proveedores cumplen estándares equivalentes de protección y/o cláusulas contractuales tipo aprobadas por la SIC.')}</Text>
+        <Text style={styles.p}>{tr('Algunos servicios de terceros (Expo, Anthropic (Claude), Google) procesan datos fuera de Colombia. Estos proveedores cumplen estándares equivalentes de protección y/o cláusulas contractuales tipo aprobadas por la SIC.')}</Text>
 
         <Text style={styles.h1}>{tr('12. Cambios a esta política')}</Text>
         <Text style={styles.p}>{tr('Si modificamos esta política te notificaremos dentro de la app antes de que entre en vigor.')}</Text>

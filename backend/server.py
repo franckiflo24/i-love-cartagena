@@ -1427,6 +1427,49 @@ async def logout(request: Request, response: Response):
     return {"ok": True, "session_revoked": bool(deleted)}
 
 
+@api_router.delete("/auth/delete-account")
+async def delete_account(request: Request):
+    """Delete the authenticated user's account and all associated data.
+    Required by Apple App Store, Google Play, and Colombian Ley 1581."""
+    user = await get_current_user(request)
+    user_id = user["user_id"]
+    email = user.get("email", "")
+
+    # Delete all user data across collections
+    await db.user_sessions.delete_many({"user_id": user_id})
+    await db.favorites.delete_many({"user_id": user_id})
+    await db.search_history.delete_many({"user_id": user_id})
+    await db.location_pings.delete_many({"user_id": user_id})
+    await db.chat_sessions.delete_many({"user_id": user_id})
+    await db.user_profiles.delete_many({"user_id": user_id})
+    await db.notifications.delete_many({"user_id": user_id})
+    await db.push_tokens.delete_many({"user_id": user_id})
+    await db.rewards_accounts.delete_many({"user_id": user_id})
+    await db.rewards_history.delete_many({"user_id": user_id})
+    await db.analytics.delete_many({"user_id": user_id})
+
+    # Anonymize user record (keep for fiscal/legal records per privacy policy)
+    await db.users.update_one(
+        {"user_id": user_id},
+        {"$set": {
+            "email": f"deleted_{user_id}@deleted.local",
+            "name": "Cuenta eliminada",
+            "phone": "",
+            "picture": "",
+            "instagram": "",
+            "nationality": "",
+            "age_group": "",
+            "interests": [],
+            "favorites": [],
+            "my_week": [],
+            "deleted_at": datetime.now(timezone.utc).isoformat(),
+        }}
+    )
+
+    logger.info(f"[delete_account] user {user_id} ({email}) deleted")
+    return {"ok": True, "message": "Account deleted successfully"}
+
+
 # ── Events ──────────────────────────────────────────────────
 @api_router.get("/events")
 async def list_events(
@@ -2596,16 +2639,8 @@ async def build_or_refresh_user_profile(request: Request):
     except Exception:
         body = {}
 
-    user_id = body.get("user_id")
-    if not user_id:
-        try:
-            user = await get_current_user(request)
-            if user:
-                user_id = user.get("user_id")
-        except Exception:
-            user_id = None
-    if not user_id:
-        raise HTTPException(status_code=400, detail="user_id required")
+    user = await get_current_user(request)
+    user_id = user["user_id"]
 
     # Pull favorites: prefer DB, fallback to inline payload (for guest users)
     favs_data: list = body.get("favorites") or []
@@ -2659,16 +2694,9 @@ async def build_or_refresh_user_profile(request: Request):
 
 @api_router.get("/profile/me")
 async def get_user_profile(request: Request):
-    """Get the cached AI profile for the current/specified user."""
-    user_id = request.query_params.get("user_id")
-    if not user_id:
-        try:
-            user = await get_current_user(request)
-            user_id = user.get("user_id") if user else None
-        except Exception:
-            user_id = None
-    if not user_id:
-        raise HTTPException(status_code=400, detail="user_id required")
+    """Get the cached AI profile for the current authenticated user."""
+    user = await get_current_user(request)
+    user_id = user["user_id"]
     profile = await db.user_profiles.find_one({"user_id": user_id}, {"_id": 0})
     if not profile:
         return {"user_id": user_id, "ai_status": "not_built", "summary": "", "data_points": 0}
