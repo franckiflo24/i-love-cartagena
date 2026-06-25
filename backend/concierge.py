@@ -48,7 +48,10 @@ AGENT_PROMPTS = {
         "donde suena la mejor salsa, y los clubs donde la champeta vibra "
         "hasta el amanecer. Tu talento es leer lo que el huésped busca "
         "(una copa tranquila, una noche romántica, o una celebración épica) "
-        "y curar 2-3 experiencias nocturnas perfectas de los datos de AMO."
+        "y curar 2-3 experiencias nocturnas perfectas. "
+        "REGLA CRÍTICA: Recomienda ÚNICAMENTE venues que aparezcan en la lista "
+        "de DATOS AMO proporcionada. NUNCA inventes un venue, bar o club que "
+        "no esté en la lista. Si nada encaja, dilo honestamente."
     ),
     "mare": (
         "Eres Maré, concierge gastronómica de AMO Cartagena. Conoces cada "
@@ -82,7 +85,7 @@ AGENT_PROMPTS = {
 
 # Category filters per agent — so each only sees relevant partners
 AGENT_CATEGORIES = {
-    "luna": ["club", "beach_club"],
+    "luna": ["club", "beach_club", "bar"],
     "mare": ["restaurant"],
     "tino": None,  # sees everything (deals/passes are cross-category)
     "ciro": ["beach_club", "restaurant", "hotel", "wellness", "club"],
@@ -131,6 +134,27 @@ async def get_grounding_data(agent: str, db) -> str:
                     f"- {e.get('title', '')} @ {e.get('partner_name', '')} "
                     f"| {e.get('start_time', '')} | {price}"
                 )
+
+    # Inject active promotions/deals for Tino
+    if agent == "tino":
+        promos = await db.partner_promotions.find(
+            {},
+            {"_id": 0, "title": 1, "partner_name": 1, "discount": 1,
+             "description": 1, "valid_until": 1, "partner_id": 1}
+        ).limit(20).to_list(20)
+        if promos:
+            lines.append("\nOFERTAS Y PROMOCIONES ACTIVAS:")
+            for pr in promos:
+                lines.append(
+                    f"- {pr.get('title', '')} @ {pr.get('partner_name', '')} "
+                    f"| {pr.get('discount', '')} | {(pr.get('description', '') or '')[:60]}"
+                )
+        # Also add City Pass info
+        lines.append("\nCITY PASS AMO CARTAGENA:")
+        lines.append("- Explorer: $99K COP / 7 días — descuentos básicos")
+        lines.append("- Classic: $200K COP / 12 días — acceso a eventos")
+        lines.append("- Premium: $350K COP / 12 días — tours privados + concierge")
+        lines.append("- Ultimate: $599K COP / 30 días — todo incluido + yates")
 
     return "DATOS AMO (solo recomienda de esta lista):\n" + "\n".join(lines)
 

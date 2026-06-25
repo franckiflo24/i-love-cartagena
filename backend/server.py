@@ -132,7 +132,7 @@ async def google_auth(body: GoogleAuthBody, response: Response):
         httponly=True, secure=True, samesite="none",
         path="/", max_age=7 * 24 * 3600
     )
-    return {"user": {k: v for k, v in user.items() if k != "_id"}, "session_token": session_token}
+    return {"user": {k: user.get(k, "") for k in ("user_id", "email", "name", "picture", "provider")}, "session_token": session_token}
 
 
 @api_router.post("/auth/session")
@@ -181,7 +181,7 @@ async def exchange_session(body: SessionExchange, response: Response):
         httponly=True, secure=True, samesite="none",
         path="/", max_age=7*24*3600
     )
-    return {"user": {k: v for k, v in user.items() if k != "_id"}, "session_token": session_token}
+    return {"user": {k: user.get(k, "") for k in ("user_id", "email", "name", "picture", "provider")}, "session_token": session_token}
 
 
 class DemoLoginBody(BaseModel):
@@ -267,7 +267,7 @@ async def demo_login(body: DemoLoginBody, response: Response):
         path="/", max_age=30 * 24 * 3600,
     )
     return {
-        "user": {k: v for k, v in user.items() if k != "_id"},
+        "user": {k: user.get(k, "") for k in ("user_id", "email", "name", "picture", "phone", "provider")},
         "session_token": session_token,
     }
 
@@ -1370,7 +1370,10 @@ async def update_profile(body: ProfileUpdate, request: Request):
 @api_router.get("/profile")
 async def get_profile(request: Request):
     user = await get_current_user(request)
-    return user
+    safe_fields = ("user_id", "email", "name", "picture", "phone", "provider",
+                    "nationality", "age_group", "instagram", "interests",
+                    "profile_completed", "created_at")
+    return {k: user.get(k, "") for k in safe_fields}
 
 
 # ── Admin: Users Management ──────────────────────────────────
@@ -1378,7 +1381,10 @@ async def get_profile(request: Request):
 async def admin_list_users(request: Request):
     """List all registered users with full profile data - admin only."""
     await require_admin(request)
-    users = await db.users.find({}, {"_id": 0}).sort("created_at", -1).to_list(500)
+    users = await db.users.find({}, {
+        "_id": 0, "user_id": 1, "email": 1, "name": 1, "provider": 1,
+        "nationality": 1, "age_group": 1, "created_at": 1, "profile_completed": 1,
+    }).sort("created_at", -1).to_list(500)
     total = len(users)
     countries = {}
     age_groups = {}
