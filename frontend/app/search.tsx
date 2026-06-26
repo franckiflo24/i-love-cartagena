@@ -80,18 +80,18 @@ const TAB_TO_ROUTE: Record<string, string> = {
 };
 
 // Voice transcription via Web Speech API
-function useVoiceInput(onTranscript: (text: string) => void, onFinal: (text: string) => void, lang: string) {
+// Supports language switching — user can tap to toggle between ES/EN while listening
+function useVoiceInput(onTranscript: (text: string) => void, onFinal: (text: string) => void, appLang: string) {
   const [listening, setListening] = useState(false);
+  const [voiceLang, setVoiceLang] = useState(appLang === 'en' ? 'en' : 'es');
   const recognitionRef = React.useRef<any>(null);
   const mountedRef = React.useRef(true);
 
-  // Keep callback refs current to avoid stale closures
   const onTranscriptRef = React.useRef(onTranscript);
   const onFinalRef = React.useRef(onFinal);
   onTranscriptRef.current = onTranscript;
   onFinalRef.current = onFinal;
 
-  // Cleanup on unmount
   React.useEffect(() => {
     mountedRef.current = true;
     return () => {
@@ -103,30 +103,40 @@ function useVoiceInput(onTranscript: (text: string) => void, onFinal: (text: str
     };
   }, []);
 
-  const startListening = useCallback(() => {
+  const toggleVoiceLang = useCallback(() => {
+    const next = voiceLang === 'es' ? 'en' : 'es';
+    setVoiceLang(next);
+    // If currently listening, restart with new language
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort(); } catch (_e) { /* ignore */ }
+      recognitionRef.current = null;
+      // Small delay then restart
+      setTimeout(() => startWithLang(next), 200);
+    }
+  }, [voiceLang]);
+
+  const startWithLang = useCallback((useLang: string) => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      // Browser does not support Web Speech API — user must type
-      return;
-    }
+    if (!SpeechRecognition) return;
 
-    // Stop any existing session before starting a new one
     if (recognitionRef.current) {
       try { recognitionRef.current.abort(); } catch (_e) { /* ignore */ }
       recognitionRef.current = null;
     }
 
     const recognition = new SpeechRecognition();
-    // Use broader language codes for better accuracy across accents
-    // On mobile, the browser's own language detection often works better
+    // Use specific locale codes for best accuracy
     const langMap: Record<string, string> = {
-      'es': 'es', 'en': 'en', 'fr': 'fr', 'pt': 'pt-BR',
+      'es': 'es-419',   // Latin American Spanish (covers Colombian accent)
+      'en': 'en-US',    // American English (most tourists)
+      'fr': 'fr-FR',
+      'pt': 'pt-BR',
     };
-    recognition.lang = langMap[lang] || 'es';
+    recognition.lang = langMap[useLang] || 'es-419';
     recognition.interimResults = true;
-    recognition.continuous = true;  // Keep listening until user stops
-    recognition.maxAlternatives = 3; // Get multiple alternatives for better accuracy
+    recognition.continuous = true;
+    recognition.maxAlternatives = 3;
 
     recognition.onstart = () => {
       if (mountedRef.current) setListening(true);
@@ -176,7 +186,11 @@ function useVoiceInput(onTranscript: (text: string) => void, onFinal: (text: str
       if (mountedRef.current) setListening(false);
       recognitionRef.current = null;
     }
-  }, [lang]);
+  }, []);
+
+  const startListening = useCallback(() => {
+    startWithLang(voiceLang);
+  }, [voiceLang, startWithLang]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
@@ -186,7 +200,8 @@ function useVoiceInput(onTranscript: (text: string) => void, onFinal: (text: str
     if (mountedRef.current) setListening(false);
   }, []);
 
-  return { listening, startListening, stopListening };
+  return { listening, startListening, stopListening, voiceLang, toggleVoiceLang };
+
 }
 
 export default function SearchScreen() {
@@ -213,7 +228,7 @@ export default function SearchScreen() {
     }
   }, []);
 
-  const { listening, startListening, stopListening } = useVoiceInput(handleVoiceTranscript, handleVoiceFinal, lang || 'es');
+  const { listening, startListening, stopListening, voiceLang, toggleVoiceLang } = useVoiceInput(handleVoiceTranscript, handleVoiceFinal, lang || 'es');
 
   const doSearch = useCallback(async (q: string) => {
     if (q.length < 2) { setResults(null); setSearched(false); return; }
@@ -481,9 +496,14 @@ export default function SearchScreen() {
             {listening && (
               <View style={styles.listeningBanner}>
                 <Ionicons name="radio" size={20} color="#EF4444" />
-                <Text style={styles.listeningText}>{tr('Escuchando… habla ahora')}</Text>
+                <Text style={styles.listeningText}>
+                  {voiceLang === 'es' ? '🎙️ Escuchando en Español…' : '🎙️ Listening in English…'}
+                </Text>
+                <TouchableOpacity onPress={toggleVoiceLang} style={styles.langToggleBtn}>
+                  <Text style={styles.langToggleText}>{voiceLang === 'es' ? '🇬🇧 EN' : '🇪🇸 ES'}</Text>
+                </TouchableOpacity>
                 <TouchableOpacity onPress={stopListening}>
-                  <Text style={styles.listeningStop}>{tr('Detener')}</Text>
+                  <Ionicons name="close-circle" size={22} color="#EF4444" />
                 </TouchableOpacity>
               </View>
             )}
@@ -884,6 +904,8 @@ const styles = StyleSheet.create({
     maxHeight: 140,
     lineHeight: 22,
   },
+  langToggleBtn: { backgroundColor: COLORS.surface, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: COLORS.primary + '40' },
+  langToggleText: { fontSize: 12, color: COLORS.primary, fontWeight: '700' as const },
   micBtn: { width: 48, height: 48, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.primary + '40', alignItems: 'center', justifyContent: 'center' },
   micBtnActive: { backgroundColor: '#EF4444', borderColor: '#EF4444' },
   listeningBanner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: '#EF444418', borderRadius: RADIUS.lg, padding: SPACING.md, marginBottom: SPACING.md, borderWidth: 1, borderColor: '#EF444430' },
