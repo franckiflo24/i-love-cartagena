@@ -57,6 +57,31 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
+// ── Google OAuth helpers ──────────────────────────────────────
+// Capture id_token from hash AT MODULE LOAD TIME — before React renders.
+// This prevents race conditions where a <Redirect/> could change the URL
+// before the AuthProvider's useEffect runs.
+let _capturedGoogleIdToken: string | null = null;
+if (typeof window !== 'undefined' && Platform.OS === 'web') {
+  const hash = window.location.hash;
+  if (hash && hash.includes('id_token=')) {
+    const params = new URLSearchParams(hash.substring(1));
+    _capturedGoogleIdToken = params.get('id_token');
+    if (_capturedGoogleIdToken) {
+      // Clean the hash immediately so it doesn't persist in the URL
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }
+  // Check for Google OAuth error in hash (e.g. #error=access_denied)
+  if (hash && hash.includes('error=')) {
+    const params = new URLSearchParams(hash.substring(1));
+    const err = params.get('error');
+    const desc = params.get('error_description');
+    console.error('[AuthContext] Google OAuth error:', err, desc);
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+}
+
 function buildGoogleAuthUrl(): string {
   const nonce = Math.random().toString(36).substring(2) + Date.now().toString(36);
   const state = Math.random().toString(36).substring(2);
@@ -71,14 +96,6 @@ function buildGoogleAuthUrl(): string {
     prompt: 'select_account',
   });
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-}
-
-function extractIdTokenFromHash(): string | null {
-  if (typeof window === 'undefined') return null;
-  const hash = window.location.hash;
-  if (!hash || !hash.includes('id_token=')) return null;
-  const params = new URLSearchParams(hash.substring(1));
-  return params.get('id_token');
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -160,14 +177,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const init = async () => {
-      if (Platform.OS === 'web') {
-        const idToken = extractIdTokenFromHash();
-        if (idToken) {
-          window.history.replaceState(null, '', window.location.pathname);
-          await exchangeGoogleToken(idToken);
-          setIsLoading(false);
-          return;
-        }
+      // Use the module-level captured token (grabbed before React rendered)
+      if (Platform.OS === 'web' && _capturedGoogleIdToken) {
+        const idToken = _capturedGoogleIdToken;
+        _capturedGoogleIdToken = null; // consume it
+        await exchangeGoogleToken(idToken);
+        setIsLoading(false);
+        return;
       }
       await checkAuth();
     };

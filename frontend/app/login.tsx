@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator,
-  Modal, TextInput, KeyboardAvoidingView, Platform, Alert, ScrollView,
+  Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -29,6 +29,7 @@ export default function LoginScreen() {
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPhone, setSignupPhone] = useState('');
   const [savingSignup, setSavingSignup] = useState(false);
+  const [loginError, setLoginError] = useState('');
 
   useEffect(() => {
     if (user && !isLoading) {
@@ -66,24 +67,27 @@ export default function LoginScreen() {
     const email = signupEmail.trim();
     const name = signupName.trim() || email.split('@')[0];
     if (!email || !email.includes('@')) {
-      Alert.alert('Email inválido', 'Por favor introduce un email válido.');
+      setLoginError('Email inválido. Por favor introduce un email válido.');
       return;
     }
+    setLoginError('');
     setSavingSignup(true);
     try {
-      // Call backend to create a REAL user + session token
       const res = await api.post('/auth/demo-login', { email, name, provider: 'email_local', signup_code: '' });
       if (res.session_token && res.user) {
-        // Set user in AuthContext immediately — this is the key step
         await loginWithToken(res.session_token, res.user);
         setSavingSignup(false);
         setShowSignup(false);
         router.replace('/(tabs)');
         return;
       }
-    } catch (e) {
+      // Backend responded but missing expected fields
+      setLoginError('Error de autenticación. Respuesta inesperada del servidor.');
+      console.error('[Login] email signup: missing session_token or user in response', res);
+    } catch (e: any) {
       console.error('[Login] email signup error', e);
-      Alert.alert('Error', 'No se pudo crear la cuenta. Intenta de nuevo.');
+      const msg = e?.message || '';
+      setLoginError(msg.includes('403') ? 'Esta cuenta usa otro método de inicio de sesión.' : 'No se pudo crear la cuenta. Intenta de nuevo.');
     }
     setSavingSignup(false);
     setShowSignup(false);
@@ -94,12 +98,12 @@ export default function LoginScreen() {
     const phone = phoneRaw.startsWith('+') ? phoneRaw : `+${phoneRaw}`;
     const name = signupName.trim() || `Usuario ${phone.slice(-4)}`;
     if (!phone || phone.length < 8) {
-      Alert.alert('Teléfono inválido', 'Por favor introduce un número de WhatsApp válido.');
+      setLoginError('Teléfono inválido. Por favor introduce un número de WhatsApp válido.');
       return;
     }
+    setLoginError('');
     setSavingSignup(true);
     try {
-      // Use phone as a pseudo-email for the backend session
       const pseudoEmail = `${phone.replace(/\+/g, '')}@wa.amo.local`;
       const res = await api.post('/auth/demo-login', { email: pseudoEmail, name, phone, provider: 'whatsapp_local', signup_code: '' });
       if (res.session_token && res.user) {
@@ -109,9 +113,11 @@ export default function LoginScreen() {
         router.replace('/(tabs)');
         return;
       }
-    } catch (e) {
+      setLoginError('Error de autenticación. Respuesta inesperada del servidor.');
+      console.error('[Login] whatsapp signup: missing session_token or user in response', res);
+    } catch (e: any) {
       console.error('[Login] whatsapp signup error', e);
-      Alert.alert('Error', 'No se pudo crear la cuenta. Intenta de nuevo.');
+      setLoginError('No se pudo crear la cuenta. Intenta de nuevo.');
     }
     setSavingSignup(false);
     setShowWhatsapp(false);
@@ -169,11 +175,31 @@ export default function LoginScreen() {
 
         {/* Auth area - well organized */}
         <View style={styles.bottomArea}>
+          {/* Terms checkbox FIRST — users must see & accept before buttons enable */}
+          <View style={styles.termsRow}>
+            <TouchableOpacity
+              onPress={() => setTermsAccepted(!termsAccepted)}
+              style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}
+            >
+              {termsAccepted && <Ionicons name="checkmark" size={14} color="#FFF" />}
+            </TouchableOpacity>
+            <Text style={styles.termsText}>
+              {s('login_accept_terms')}{' '}
+              <Text style={styles.termsLink} onPress={() => router.push('/terminos' as any)}>{s('login_terms_link')}</Text>
+              {' '}{s('login_and')}{' '}
+              <Text style={styles.termsLink} onPress={() => router.push('/privacidad' as any)}>{s('login_privacy_link')}</Text>
+            </Text>
+          </View>
+
+          {!termsAccepted && (
+            <Text style={styles.termsHint}>{s('login_accept_hint') || 'Acepta los términos para continuar'}</Text>
+          )}
+
           {/* PRIMARY: Continue with Google */}
           <TouchableOpacity
             testID="login-google-btn"
-            style={[styles.googleButton, !termsAccepted && { opacity: 0.4 }]}
-            onPress={login}
+            style={[styles.googleButton, !termsAccepted && styles.btnDisabled]}
+            onPress={termsAccepted ? login : undefined}
             disabled={!termsAccepted}
             activeOpacity={0.85}
           >
@@ -191,8 +217,8 @@ export default function LoginScreen() {
           {/* SECONDARY: Other methods - stacked for clarity */}
           <View style={styles.otherMethodsCol}>
             <TouchableOpacity
-              style={[styles.methodBtn, styles.whatsappBtn, !termsAccepted && { opacity: 0.4 }]}
-              onPress={() => setShowWhatsapp(true)}
+              style={[styles.methodBtn, styles.whatsappBtn, !termsAccepted && styles.btnDisabled]}
+              onPress={termsAccepted ? () => setShowWhatsapp(true) : undefined}
               disabled={!termsAccepted}
               activeOpacity={0.85}
             >
@@ -201,8 +227,8 @@ export default function LoginScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.methodBtn, styles.outlineMethodBtn, !termsAccepted && { opacity: 0.4 }]}
-              onPress={() => setShowSignup(true)}
+              style={[styles.methodBtn, styles.outlineMethodBtn, !termsAccepted && styles.btnDisabled]}
+              onPress={termsAccepted ? () => setShowSignup(true) : undefined}
               disabled={!termsAccepted}
               activeOpacity={0.85}
             >
@@ -240,20 +266,13 @@ export default function LoginScreen() {
             <Text style={styles.guestLink}>{s('login_guest')}</Text>
           </TouchableOpacity>
 
-          <View style={styles.termsRow}>
-            <TouchableOpacity
-              onPress={() => setTermsAccepted(!termsAccepted)}
-              style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}
-            >
-              {termsAccepted && <Ionicons name="checkmark" size={14} color="#FFF" />}
-            </TouchableOpacity>
-            <Text style={styles.termsText}>
-              {s('login_accept_terms')}{' '}
-              <Text style={styles.termsLink} onPress={() => router.push('/terminos' as any)}>{s('login_terms_link')}</Text>
-              {' '}{s('login_and')}{' '}
-              <Text style={styles.termsLink} onPress={() => router.push('/privacidad' as any)}>{s('login_privacy_link')}</Text>
-            </Text>
-          </View>
+          {/* Login error display */}
+          {loginError ? (
+            <View style={styles.errorRow}>
+              <Ionicons name="alert-circle" size={16} color="#EF4444" />
+              <Text style={styles.errorText}>{loginError}</Text>
+            </View>
+          ) : null}
         </View>
       </ScrollView>
 
@@ -494,7 +513,29 @@ const styles = StyleSheet.create({
     marginTop: SPACING.sm,
     opacity: 0.85,
   },
-  termsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingHorizontal: SPACING.md, marginTop: SPACING.sm },
+  btnDisabled: { opacity: 0.35 },
+  termsHint: {
+    fontSize: 12,
+    color: COLORS.primary,
+    ...FONTS.medium,
+    textAlign: 'center',
+    marginTop: -4,
+    marginBottom: 2,
+  },
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(239,68,68,0.12)',
+    borderRadius: RADIUS.md,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginTop: SPACING.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.25)',
+  },
+  errorText: { flex: 1, fontSize: 13, color: '#FCA5A5', ...FONTS.medium, lineHeight: 18 },
+  termsRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingHorizontal: SPACING.md, marginBottom: SPACING.sm },
   checkbox: { width: 22, height: 22, borderRadius: 4, borderWidth: 2, borderColor: COLORS.textMuted, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
   checkboxChecked: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   termsText: { flex: 1, fontSize: 12, color: COLORS.textMuted, lineHeight: 18 },
