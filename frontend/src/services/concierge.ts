@@ -9,7 +9,7 @@ export interface ChatMessage {
 }
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
-const CONCIERGE_URL = `${BACKEND_URL}/api/concierge/chat`;
+const AGENT_URL = `${BACKEND_URL}/api/agent/chat`;
 
 async function getToken(): Promise<string | null> {
   if (Platform.OS === 'web') {
@@ -27,10 +27,13 @@ export async function askAgent(
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const res = await fetch(CONCIERGE_URL, {
+    // Use the grounded + ID-sanitized agent/chat endpoint.
+    // Pass the last user message; the agent maintains its own session.
+    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+    const res = await fetch(AGENT_URL, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ agent, messages }),
+      body: JSON.stringify({ message: lastUserMsg?.content || '', lang: 'es' }),
     });
     if (!res.ok) {
       const err = await res.text().catch(() => '');
@@ -38,7 +41,9 @@ export async function askAgent(
       return 'Disculpa, tuve un problema. Inténtalo de nuevo.';
     }
     const data = await res.json();
-    return data.reply || 'Sin respuesta del concierge.';
+    // Extract text from the agent response structure
+    const reply = data?.assistant?.content || data?.reply || '';
+    return reply || 'Sin respuesta del concierge.';
   } catch (e) {
     console.error('[Concierge] network error:', e);
     return 'Uy, se me fue la señal un momento. Inténtalo otra vez en un segundo.';

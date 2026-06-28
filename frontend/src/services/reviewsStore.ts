@@ -1,4 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,49 +38,15 @@ export type ReviewsPayload = {
   reviews: StoredReview[];
 };
 
-// ─── Storage Keys ─────────────────────────────────────────────────────────────
+// ─── Backend API ─────────────────────────────────────────────────────────────
 
-const REVIEWS_KEY = 'amo_reviews';
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
-// ─── Seed Reviews Cache ──────────────────────────────────────────────────────
-// Reviews seeded in /data/reviews.json are shared across ALL users.
-// They load once and stay cached in memory for the session.
-
-let seedCache: Record<string, StoredReview[]> | null = null;
-let seedPromise: Promise<Record<string, StoredReview[]>> | null = null;
-
-async function loadSeedReviews(): Promise<Record<string, StoredReview[]>> {
-  if (seedCache) return seedCache;
-  if (seedPromise) return seedPromise;
-  seedPromise = (async () => {
-    try {
-      const res = await fetch('/data/reviews.json');
-      if (!res.ok) return {};
-      const data = await res.json();
-      seedCache = data;
-      return data;
-    } catch { /* seed reviews file not available — use empty set */
-      seedCache = {};
-      return {};
-    }
-  })();
-  return seedPromise;
-}
-
-// ─── Local Reviews (user-submitted, device-only) ─────────────────────────────
-
-async function getLocalReviews(): Promise<StoredReview[]> {
-  try {
-    const raw = await AsyncStorage.getItem(REVIEWS_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw);
-  } catch { /* malformed stored reviews data */
-    return [];
+async function getToken(): Promise<string | null> {
+  if (Platform.OS === 'web') {
+    return AsyncStorage.getItem('session_token');
   }
-}
-
-async function saveLocalReviews(reviews: StoredReview[]): Promise<void> {
-  await AsyncStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
+  return SecureStore.getItemAsync('session_token');
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -90,60 +58,99 @@ export async function submitReview(data: {
   text: string;
   author_name?: string;
 }): Promise<StoredReview> {
-  const review: StoredReview = {
-    review_id: `rev_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    partner_id: data.partner_id,
-    author_name: data.author_name || 'Visitante',
-    rating: data.rating,
-    subcategories: data.subcategories,
-    text: data.text,
-    date: new Date().toISOString(),
-    helpful_count: 0,
-    is_verified: false,
+  const token = await getToken();
+  if (!token || !BACKEND_URL) {
+    throw new Error('Debes iniciar sesión para dejar una reseña.');
+  }
+
+  const res = await fetch(`${BACKEND_URL}/api/reviews`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      partner_id: data.partner_id,
+      rating: data.rating,
+      subcategories: data.subcategories,
+      text: data.text || '',
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Error desconocido' }));
+    throw new Error(err.detail || `Error ${res.status}`);
+  }
+
+  const review = await res.json();
+  return {
+    review_id: review.review_id,
+    partner_id: review.partner_id,
+    author_name: review.user_name || data.author_name || 'Visitante',
+    rating: review.rating,
+    subcategories: review.subcategories || data.subcategories,
+    text: review.text || data.text || '',
+    date: review.created_at || new Date().toISOString(),
+    helpful_count: review.helpful_count || 0,
+    is_verified: review.is_verified_booking || false,
   };
-
-  const all = await getLocalReviews();
-  all.unshift(review);
-  await saveLocalReviews(all);
-
-  return review;
 }
 
 export async function getPartnerReviews(partnerId: string): Promise<ReviewsPayload> {
-  // Merge seed reviews (shared) + local reviews (user-submitted)
-  const [seeds, locals] = await Promise.all([
-    loadSeedReviews(),
-    getLocalReviews(),
-  ]);
+  // Try backend first, fall back to static data
+  let reviews: StoredReview[] = [];
 
-  const seedReviews = seeds[partnerId] || [];
-  const localReviews = locals.filter((r) => r.partner_id === partnerId);
+  if (BACKEND_URL) {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/reviews/partner/${partnerId}`);
+      if (res.ok) {
+        const data = await res.json();
+        reviews = (data.reviews || []).map((r: any) => ({
+          review_id: r.review_id,
+          partner_id: r.partner_id,
+          author_name: r.user_name || 'Visitante',
+          rating: r.rating,
+          subcategories: r.subcategories || { experience: 0, service: 0, location: 0, value: 0 },
+          text: r.text || '',
+          date: r.created_at || '',
+          helpful_count: r.helpful_count || 0,
+          is_verified: r.is_verified_booking || false,
+        }));
+      }
+    } catch {
+      // Backend unavailable — fall back to static
+    }
+  }
 
-  // Dedupe: local reviews override seeds with same review_id
-  const seedIds = new Set(localReviews.map((r) => r.review_id));
-  const merged = [
-    ...localReviews,
-    ...seedReviews.filter((r) => !seedIds.has(r.review_id)),
-  ];
+  // Fall back to static seed data if backend returned nothing
+  if (reviews.length === 0) {
+    try {
+      const res = await fetch('/data/reviews.json');
+      if (res.ok) {
+        const seeds = await res.json();
+        reviews = seeds[partnerId] || [];
+      }
+    } catch { /* static file not available */ }
+  }
 
-  // Sort by date descending (newest first)
-  merged.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  // Sort by date descending
+  reviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const total = merged.length;
+  const total = reviews.length;
   const average = total > 0
-    ? merged.reduce((sum, r) => sum + r.rating, 0) / total
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / total
     : 0;
 
   const subKeys: { key: keyof SubcategoryRatings; label: string }[] = [
     { key: 'experience', label: 'Experiencia' },
     { key: 'service', label: 'Servicio' },
-    { key: 'location', label: 'Ubicaci\u00f3n' },
+    { key: 'location', label: 'Ubicación' },
     { key: 'value', label: 'Valor' },
   ];
 
   const subcategories: SubcategoryScore[] = total > 0
     ? subKeys.map(({ key, label }) => {
-        const scored = merged.filter((r) => r.subcategories?.[key] > 0);
+        const scored = reviews.filter((r) => r.subcategories?.[key] > 0);
         const avg = scored.length > 0
           ? scored.reduce((s, r) => s + r.subcategories[key], 0) / scored.length
           : 0;
@@ -154,6 +161,6 @@ export async function getPartnerReviews(partnerId: string): Promise<ReviewsPaylo
   return {
     partner_id: partnerId,
     aggregate: { average, total, subcategories },
-    reviews: merged,
+    reviews,
   };
 }

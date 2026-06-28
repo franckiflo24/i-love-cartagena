@@ -1500,9 +1500,15 @@ async def list_events(
 
 @api_router.get("/events/featured")
 async def featured_events():
-    events = await db.events.find({"featured": True}, {"_id": 0}).to_list(10)
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    events = await db.events.find({"featured": True}, {"_id": 0}).to_list(20)
+    # Filter out events whose end date has passed
+    events = [e for e in events if (e.get("date_end") or e.get("date") or "9999-12-31") >= today]
+    events.sort(key=lambda e: e.get("date") or e.get("date_start") or "")
+    events = events[:10]
     if not events:
         events = await db.events.find({}, {"_id": 0}).limit(6).to_list(6)
+        events = [e for e in events if (e.get("date_end") or e.get("date") or "9999-12-31") >= today]
     return events
 
 
@@ -1548,6 +1554,53 @@ async def list_partners(category: Optional[str] = None, subcategory: Optional[st
         query["subcategory"] = subcategory
     partners = await db.partners.find(query, {"_id": 0}).sort("order", 1).to_list(1500)
     return partners
+
+
+@api_router.get("/partners/nearby")
+async def nearby_partners(request: Request):
+    """Get partners near a location, sorted by distance."""
+    try:
+        import math
+        lat = float(request.query_params.get("lat", "0"))
+        lng = float(request.query_params.get("lng", "0"))
+        radius = int(request.query_params.get("radius", "5000"))
+        category = request.query_params.get("category")
+
+        if lat == 0 and lng == 0:
+            raise HTTPException(status_code=400, detail="lat and lng required")
+
+        query: dict = {}
+        if category:
+            query["category"] = category
+
+        partners = await db.partners.find(query, {"_id": 0}).to_list(500)
+
+        def haversine(lat1, lon1, lat2, lon2):
+            R = 6371000
+            phi1, phi2 = math.radians(lat1), math.radians(lat2)
+            dphi = math.radians(lat2 - lat1)
+            dlam = math.radians(lon2 - lon1)
+            a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+            return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+        results = []
+        for p in partners:
+            loc = p.get("location") or {}
+            p_lat = loc.get("lat") or loc.get("latitude")
+            p_lng = loc.get("lng") or loc.get("longitude")
+            if p_lat and p_lng:
+                dist = haversine(lat, lng, float(p_lat), float(p_lng))
+                if dist <= radius:
+                    p["distance_m"] = round(dist)
+                    results.append(p)
+
+        results.sort(key=lambda x: x.get("distance_m", 999999))
+        return results[:50]
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[Partners] nearby error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to load nearby partners")
 
 
 @api_router.get("/partners/{partner_id}")
@@ -1716,7 +1769,7 @@ ITINERARY_CATEGORIES = {"lifestyle", "cultura", "musical"}
 
 # Mapping from itinerary category to partner categories used to build the pool
 _LIFESTYLE_PCATS = {"restaurant", "beach_club", "wellness", "hotel", "shopping"}
-_CULTURA_PCATS   = {"culture", "concierge"}
+_CULTURA_PCATS   = {"activity", "institutional", "cafe"}
 _MUSICAL_PCATS   = {"club", "restaurant"}  # restaurants with live music + clubs
 
 # Mapping to partner_events categories
@@ -1791,6 +1844,26 @@ async def _generate_daily_itinerary(user: Optional[dict], category: str, force: 
     # Build partner pool for this category
     pcats = list(_pcats_for(cat))
     partners_pool = await db.partners.find({"category": {"$in": pcats}}, {"_id": 0}).to_list(40)
+
+    # GUARD: if the partner pool is empty, return an honest response instead
+    # of calling the LLM with no data (which causes hallucinated venues).
+    if not partners_pool:
+        _cat_labels = {"lifestyle": "Lifestyle", "cultura": "Cultura", "musical": "Musical"}
+        label = _cat_labels.get(cat, cat)
+        return {
+            "cache_key": cache_key,
+            "user_id": user_id,
+            "category": cat,
+            "date": today,
+            "itinerary_id": f"itn_empty_{cat}_{today.replace('-', '')}",
+            "name": f"Ruta {cat.title()} — Próximamente",
+            "description": f"Aún no tenemos venues curados para '{label}'. Estamos trabajando en ello.",
+            "vibe_tags": ["próximamente"],
+            "stops": [],
+            "personal_note": "Explora nuestras otras rutas mientras completamos esta categoría.",
+            "ai_status": "empty_pool",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }
 
     # Fetch today's partner events for category
     ecats = list(_ecats_for(cat))
@@ -2086,10 +2159,13 @@ async def partner_categories():
 # ── Seasons (Multi-event platform) ──────────────────────────
 @api_router.get("/seasons")
 async def list_seasons(active: Optional[bool] = None):
-    query = {}
+    query: dict = {}
     if active is not None:
         query["is_active"] = active
     seasons = await db.seasons.find(query, {"_id": 0}).sort("start_date", 1).to_list(50)
+    # Filter out seasons whose end_date has passed
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    seasons = [s for s in seasons if (s.get("end_date") or "9999-12-31") >= today]
     return seasons
 
 
@@ -3753,53 +3829,6 @@ async def wompi_transport_checkout(request: Request):
         },
         redirect_url=redirect_url,
     )
-
-
-@api_router.get("/partners/nearby")
-async def nearby_partners(request: Request):
-    """Get partners near a location, sorted by distance."""
-    try:
-        import math
-        lat = float(request.query_params.get("lat", "0"))
-        lng = float(request.query_params.get("lng", "0"))
-        radius = int(request.query_params.get("radius", "5000"))
-        category = request.query_params.get("category")
-
-        if lat == 0 and lng == 0:
-            raise HTTPException(status_code=400, detail="lat and lng required")
-
-        query: dict = {}
-        if category:
-            query["category"] = category
-
-        partners = await db.partners.find(query, {"_id": 0}).to_list(500)
-
-        def haversine(lat1, lon1, lat2, lon2):
-            R = 6371000
-            phi1, phi2 = math.radians(lat1), math.radians(lat2)
-            dphi = math.radians(lat2 - lat1)
-            dlam = math.radians(lon2 - lon1)
-            a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
-            return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-
-        results = []
-        for p in partners:
-            loc = p.get("location") or {}
-            p_lat = loc.get("lat") or loc.get("latitude")
-            p_lng = loc.get("lng") or loc.get("longitude")
-            if p_lat and p_lng:
-                dist = haversine(lat, lng, float(p_lat), float(p_lng))
-                if dist <= radius:
-                    p["distance_m"] = round(dist)
-                    results.append(p)
-
-        results.sort(key=lambda x: x.get("distance_m", 999999))
-        return results[:50]
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"[Partners] nearby error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to load nearby partners")
 
 
 @api_router.get("/payments/{payment_id}")
