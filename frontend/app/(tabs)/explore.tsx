@@ -221,7 +221,7 @@ function FeaturedCard({
       activeOpacity={0.85}
     >
       <SafeImage
-        uri={item.image_url}
+        uri={item.image_url || (item as any).flyer_url || (item as any).cover_image}
         category={item.category}
         style={styles.featuredImage}
       />
