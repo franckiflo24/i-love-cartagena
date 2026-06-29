@@ -61,6 +61,7 @@ export default function RootLayout() {
         <Stack.Screen name="privacidad" options={{ presentation: 'modal' }} />
         <Stack.Screen name="terminos" options={{ presentation: 'modal' }} />
         <Stack.Screen name="eventos" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="favoritos" options={{ presentation: 'modal' }} />
       </Stack>
       </RewardsProvider>
       </MyCalendarProvider>

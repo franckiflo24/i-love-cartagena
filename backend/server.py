@@ -4659,22 +4659,16 @@ async def startup():
                     {"booking_link": {"$regex": domain, "$options": "i"}},
                     {"$set": {"booking_link": ""}},
                 )
-        # Fix sponsor logos (Wikipedia SVG thumbnails return 400)
-        SPONSOR_FIXES = {
-            "sp_001": {"logo_url": "https://logos-world.net/wp-content/uploads/2023/01/Avianca-Logo.png"},
-            # sp_002 Aguila: Wikipedia SVG thumb blocked; SafeImage uses institutional fallback icon
-            "sp_003": {"logo_url": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Escudo_de_Cartagena_de_Indias.svg"},
-        }
-        for sid, fix in SPONSOR_FIXES.items():
-            await db.sponsors.update_one({"sponsor_id": sid}, {"$set": fix})
-        # Deactivate sponsors with no logo AND no URL (Ron Cartagena, Templo)
+        # Fix sponsor logos — external URLs (Wikipedia SVG, logos-world) return 400/403.
+        # Clear to empty so SafeImage fallback icon shows instead of broken images.
+        for sid in ["sp_001", "sp_002", "sp_003"]:  # Avianca, Aguila, Alcaldía
+            await db.sponsors.update_one(
+                {"sponsor_id": sid},
+                {"$set": {"logo_url": ""}},
+            )
+        # Deactivate Ron Cartagena (no real URL or logo) and Templo (site parked)
         await db.sponsors.update_many(
-            {"$and": [{"logo_url": ""}, {"url": ""}]},
-            {"$set": {"is_active": False}},
-        )
-        # Deactivate Templo sponsor (site is parked/under construction)
-        await db.sponsors.update_one(
-            {"name": "Templo"},
+            {"name": {"$in": ["Ron Cartagena", "Templo"]}},
             {"$set": {"is_active": False}},
         )
         return

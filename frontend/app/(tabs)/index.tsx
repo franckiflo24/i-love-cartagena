@@ -738,22 +738,27 @@ export default function HomeScreen() {
                 <View style={styles.peBody}>
                   <Text style={styles.peTitle} numberOfLines={2}>{event.title}</Text>
                   {event.partner_name ? (
-                  <TouchableOpacity
-                    style={styles.pePartnerBtn}
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      if (event.partner_id) {
-                        trackEvent('partner_click', event.partner_id, 'partner');
-                        router.push(`/partner/${event.partner_id}` as any);
-                      }
-                    }}
-                    activeOpacity={0.7}
-                    hitSlop={{ top: 6, bottom: 6 }}
-                  >
-                    <Ionicons name="location-outline" size={11} color={COLORS.textMuted} />
-                    <Text style={styles.pePartner} numberOfLines={1}>{event.partner_name}</Text>
-                    {event.partner_id ? <Ionicons name="chevron-forward" size={11} color={COLORS.textMuted} /> : null}
-                  </TouchableOpacity>
+                    event.partner_id ? (
+                      <TouchableOpacity
+                        style={styles.pePartnerBtn}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          trackEvent('partner_click', event.partner_id, 'partner');
+                          router.push(`/partner/${event.partner_id}` as any);
+                        }}
+                        activeOpacity={0.7}
+                        hitSlop={{ top: 6, bottom: 6 }}
+                      >
+                        <Ionicons name="location-outline" size={11} color={COLORS.textMuted} />
+                        <Text style={styles.pePartner} numberOfLines={1}>{event.partner_name}</Text>
+                        <Ionicons name="chevron-forward" size={11} color={COLORS.textMuted} />
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={styles.pePartnerBtn}>
+                        <Ionicons name="location-outline" size={11} color={COLORS.textMuted} />
+                        <Text style={styles.pePartner} numberOfLines={1}>{event.partner_name}</Text>
+                      </View>
+                    )
                   ) : null}
                   <View style={styles.peTagsRow}>
                     <View style={[styles.peCatBadge, { backgroundColor: cat.bg, borderColor: cat.main }]}>
@@ -817,21 +822,16 @@ export default function HomeScreen() {
           );
         })()}
 
-        {/* Ofertas del día - Promociones partners */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleRow}>
-              <Ionicons name="pricetag" size={18} color="#EF4444" />
-              <Text style={styles.sectionTitle}>Ofertas del día</Text>
-              {promotions.length > 0 && <Text style={styles.sectionCount}>{promotions.length}</Text>}
+        {/* Ofertas del día - Promociones partners (hidden when empty) */}
+        {promotions.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleRow}>
+                <Ionicons name="pricetag" size={18} color="#EF4444" />
+                <Text style={styles.sectionTitle}>Ofertas del día</Text>
+                <Text style={styles.sectionCount}>{promotions.length}</Text>
+              </View>
             </View>
-          </View>
-          {promotions.length === 0 ? (
-            <View style={styles.emptySlot}>
-              <Ionicons name="pricetags-outline" size={26} color={COLORS.textMuted} />
-              <Text style={styles.emptySlotText}>No hay ofertas activas hoy</Text>
-            </View>
-          ) : (
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -890,8 +890,8 @@ export default function HomeScreen() {
                 );
               })}
             </ScrollView>
-          )}
-        </View>
+          </View>
+        )}
 
         <View style={{ height: SPACING.xxl }} />
       </ScrollView>

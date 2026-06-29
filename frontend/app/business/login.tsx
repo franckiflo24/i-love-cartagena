@@ -42,7 +42,7 @@ export default function BusinessLogin() {
 
   const fillDemo = () => {
     setEmail('casaboheme@amocartagena.app');
-    setPassword('');
+    setPassword('amocartagena2026');
   };
 
   const fillAlcaldia = () => {
