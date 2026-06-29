@@ -188,7 +188,11 @@ export default function EventDetail() {
           <TouchableOpacity
             testID="event-book-btn"
             style={styles.bookBtn}
-            onPress={() => RNLinking.openURL(event.booking_link)}
+            onPress={() => {
+              RNLinking.canOpenURL(event.booking_link).then(supported => {
+                if (supported) RNLinking.openURL(event.booking_link);
+              });
+            }}
           >
             <Text style={styles.bookText}>{tr('Reservar')}</Text>
             <Ionicons name="arrow-forward" size={16} color={COLORS.white} />

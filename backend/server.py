@@ -4711,6 +4711,15 @@ async def startup():
     if concerts_count == 0:
         await seed_concerts()
 
+    # ── Cleanup: remove dead booking links so users don't land on parked domains ──
+    DEAD_DOMAINS = ["templo.co", "fenix.co/after", "lago.co", "salontropical.co", "sunsetsailing.co", "casaboheme.co/reservar", "elbeso.co", "thepinkmango.co/reservar", "casacarolina.com/reservar"]
+    for domain in DEAD_DOMAINS:
+        for coll in [db.events, db.partner_events, db.concerts]:
+            await coll.update_many(
+                {"booking_link": {"$regex": domain, "$options": "i"}},
+                {"$set": {"booking_link": ""}},
+            )
+
     # ── Migration: Add tier field to existing partners ──
     PARTNER_TIERS = {
         # Original 8
