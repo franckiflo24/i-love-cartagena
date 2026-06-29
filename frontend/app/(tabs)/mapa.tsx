@@ -116,12 +116,13 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '.pulse-dot { position: absolute; top: 4px; left: 4px; width: 14px; height: 14px; border-radius: 50%; background: #2563EB; border: 2px solid #fff; box-shadow: 0 0 6px rgba(37,99,235,0.7); z-index: 2; }'
     + '.pulse-ring { position: absolute; top: 0; left: 0; width: 22px; height: 22px; border-radius: 50%; background: rgba(37,99,235,0.25); animation: pulse 1.6s ease-out infinite; z-index: 1; }'
     + '@keyframes pulse { 0% { transform: scale(0.6); opacity: 1; } 100% { transform: scale(2.4); opacity: 0; } }'
+    + '.dark-tiles { filter: brightness(0.55) saturate(1.4) contrast(1.15) hue-rotate(200deg); }'
     + '</style>'
     + '</head><body>'
     + '<div id="map"></div>'
     + '<script>'
     + 'var map = L.map("map", {zoomControl: true, attributionControl: false}).setView([10.4236, -75.5483], 13);'
-    + 'L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {maxZoom: 19}).addTo(map);'
+    + 'L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {maxZoom: 19, className:"dark-tiles"}).addTo(map);'
     + markers
     + userMarker
     + '<\/script>'
@@ -177,9 +178,10 @@ function WebMapDirect({ places, filter, userLoc, onNavigate }: {
         .setView([10.4236, -75.5483], 13);
       leafletRef.current = map;
 
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
         subdomains: 'abcd',
+        className: 'dark-tiles',
       }).addTo(map);
 
       // Add markers
@@ -244,6 +246,7 @@ function WebMapDirect({ places, filter, userLoc, onNavigate }: {
         style.id = 'leaflet-pulse-css';
         style.textContent = `
           @keyframes pulse { 0% { transform: scale(0.6); opacity: 1; } 100% { transform: scale(2.4); opacity: 0; } }
+          .dark-tiles { filter: brightness(0.55) saturate(1.4) contrast(1.15) hue-rotate(200deg); }
           .leaflet-popup-content-wrapper { border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important; }
           .leaflet-popup-tip { display: none !important; }
           .leaflet-control-zoom { border: none !important; }
