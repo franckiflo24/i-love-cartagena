@@ -719,8 +719,9 @@ export default function HomeScreen() {
                 key={event.event_id}
                 style={styles.peCard}
                 onPress={() => {
-                  trackEvent('event_click', event.event_id, 'partner_event');
-                  router.push(`/partner-event/${event.event_id}` as any);
+                  const isPartnerEvent = !!event.partner_id;
+                  trackEvent('event_click', event.event_id, isPartnerEvent ? 'partner_event' : 'event');
+                  router.push(isPartnerEvent ? `/partner-event/${event.event_id}` : `/event/${event.event_id}` as any);
                 }}
                 activeOpacity={0.85}
               >
