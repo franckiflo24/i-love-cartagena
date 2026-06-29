@@ -4662,7 +4662,7 @@ async def startup():
         # Fix sponsor logos (Wikipedia SVG thumbnails return 400)
         SPONSOR_FIXES = {
             "sp_001": {"logo_url": "https://logos-world.net/wp-content/uploads/2023/01/Avianca-Logo.png"},
-            "sp_002": {"logo_url": "https://logos-world.net/wp-content/uploads/2024/01/Aguila-Logo.png"},
+            # sp_002 Aguila: Wikipedia SVG thumb blocked; SafeImage uses institutional fallback icon
             "sp_003": {"logo_url": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Escudo_de_Cartagena_de_Indias.svg"},
         }
         for sid, fix in SPONSOR_FIXES.items():
