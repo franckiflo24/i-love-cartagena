@@ -221,8 +221,8 @@ async def demo_login(body: DemoLoginBody, response: Response):
 
     # Signup code check — optional additional gate
     expected_code = os.environ.get("DEMO_SIGNUP_CODE", "").strip()
-    if expected_code and body.signup_code:
-        if not hmac.compare_digest(body.signup_code, expected_code):
+    if expected_code:
+        if not body.signup_code or not hmac.compare_digest(body.signup_code, expected_code):
             raise HTTPException(403, "Invalid signup code")
 
     user = await db.users.find_one({"email": email}, {"_id": 0})
@@ -1366,15 +1366,16 @@ async def update_profile(body: ProfileUpdate, request: Request):
         update["profile_updated_at"] = datetime.now(timezone.utc).isoformat()
         await db.users.update_one({"user_id": user["user_id"]}, {"$set": update})
     updated = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0})
-    return updated
+    return {k: updated.get(k, "") for k in _PROFILE_SAFE_FIELDS if k in updated or k in ("user_id", "email", "name")}
+
+_PROFILE_SAFE_FIELDS = ("user_id", "email", "name", "picture", "phone", "provider",
+                         "nationality", "age_group", "instagram", "interests",
+                         "profile_completed", "profile_updated_at", "created_at")
 
 @api_router.get("/profile")
 async def get_profile(request: Request):
     user = await get_current_user(request)
-    safe_fields = ("user_id", "email", "name", "picture", "phone", "provider",
-                    "nationality", "age_group", "instagram", "interests",
-                    "profile_completed", "created_at")
-    return {k: user.get(k, "") for k in safe_fields}
+    return {k: user.get(k, "") for k in _PROFILE_SAFE_FIELDS}
 
 
 # ── Admin: Users Management ──────────────────────────────────
