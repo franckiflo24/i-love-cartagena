@@ -140,6 +140,145 @@ function detectZone(lat: number, lng: number): string {
   return 'cartagena_general';
 }
 
+/**
+ * WebMapDirect — renders Leaflet directly into the DOM on web (no iframe/WebView).
+ * Fixes the gray-tile issue caused by srcDoc iframe sandbox restrictions.
+ */
+function WebMapDirect({ places, filter, userLoc, onNavigate }: {
+  places: Place[]; filter: string; userLoc: { lat: number; lng: number } | null;
+  onNavigate: (path: string) => void;
+}) {
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  const leafletRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !mapRef.current) return;
+
+    // Load Leaflet CSS
+    if (!document.querySelector('link[href*="leaflet"]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+
+    // Load Leaflet JS
+    const initMap = () => {
+      const L = (window as any).L;
+      if (!L || !mapRef.current) return;
+
+      // Destroy previous map instance
+      if (leafletRef.current) {
+        leafletRef.current.remove();
+        leafletRef.current = null;
+      }
+
+      const map = L.map(mapRef.current, { zoomControl: true, attributionControl: false })
+        .setView([10.4236, -75.5483], 13);
+      leafletRef.current = map;
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd',
+      }).addTo(map);
+
+      // Add markers
+      const filtered = filter === 'all' ? places : places.filter(p => p.category === filter);
+      filtered.forEach(p => {
+        if (!p.lat || !p.lng) return;
+        const color = MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || '#D97706';
+        const safeName = p.name.replace(/'/g, '').replace(/"/g, '');
+        const safeDesc = (p.extra || p.description || '').replace(/'/g, '').replace(/"/g, '').substring(0, 80);
+        const safeAddr = p.address.replace(/'/g, '').replace(/"/g, '');
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+        const priceHtml = p.price ? `<span style="font-size:12px;color:#D97706;font-weight:700">${p.price}</span><br>` : '';
+
+        const popup = `<div style="font-family:sans-serif;min-width:180px">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+            <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></div>
+            <span style="font-size:10px;color:${color};text-transform:uppercase;font-weight:700">${p.type}</span>
+          </div>
+          <b style="font-size:15px;color:#1a1a2e">${safeName}</b><br>
+          <span style="font-size:11px;color:#666">${safeDesc}</span><br>
+          <span style="font-size:11px;color:#888">📍 ${safeAddr}</span><br>
+          ${priceHtml}
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <a href="#" data-partner="${p.id}" style="display:inline-block;padding:6px 14px;background:#D97706;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">Ver detalle →</a>
+            <a href="${mapsUrl}" target="_blank" style="display:inline-block;padding:6px 14px;background:rgba(26,26,46,0.1);color:#1a1a2e;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px solid #ddd">📍 Mapa</a>
+          </div>
+        </div>`;
+
+        L.circleMarker([p.lat, p.lng], {
+          radius: 10, fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9,
+        }).addTo(map).bindPopup(popup, { maxWidth: 260 });
+      });
+
+      // User location marker
+      if (userLoc) {
+        const userIcon = L.divIcon({
+          className: 'user-pulse-icon',
+          html: '<div style="position:relative;width:22px;height:22px"><div style="position:absolute;top:0;left:0;width:22px;height:22px;border-radius:50%;background:rgba(37,99,235,0.25);animation:pulse 1.6s ease-out infinite"></div><div style="position:absolute;top:4px;left:4px;width:14px;height:14px;border-radius:50%;background:#2563EB;border:2px solid #fff;box-shadow:0 0 6px rgba(37,99,235,0.7)"></div></div>',
+          iconSize: [22, 22],
+          iconAnchor: [11, 11],
+        });
+        L.marker([userLoc.lat, userLoc.lng], { icon: userIcon, zIndexOffset: 1000 })
+          .addTo(map)
+          .bindPopup('<b style="color:#1a1a2e">📍 Tu ubicación</b>');
+        map.setView([userLoc.lat, userLoc.lng], 14);
+      }
+
+      // Handle "Ver detalle" clicks via event delegation
+      mapRef.current.addEventListener('click', (e: MouseEvent) => {
+        const target = e.target as HTMLElement;
+        const link = target.closest('[data-partner]') as HTMLElement | null;
+        if (link) {
+          e.preventDefault();
+          const pid = link.getAttribute('data-partner');
+          if (pid) onNavigate(`/partner/${pid}`);
+        }
+      });
+
+      // Inject pulse animation CSS
+      if (!document.querySelector('#leaflet-pulse-css')) {
+        const style = document.createElement('style');
+        style.id = 'leaflet-pulse-css';
+        style.textContent = `
+          @keyframes pulse { 0% { transform: scale(0.6); opacity: 1; } 100% { transform: scale(2.4); opacity: 0; } }
+          .leaflet-popup-content-wrapper { border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important; }
+          .leaflet-popup-tip { display: none !important; }
+          .leaflet-control-zoom { border: none !important; }
+          .leaflet-control-zoom a { background: #1a1a2e !important; color: #D97706 !important; border: 1px solid #2a2a4e !important; font-weight: 700; }
+          .leaflet-control-attribution { display: none !important; }
+        `;
+        document.head.appendChild(style);
+      }
+    };
+
+    if ((window as any).L) {
+      initMap();
+    } else {
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.onload = initMap;
+      document.head.appendChild(script);
+    }
+
+    return () => {
+      if (leafletRef.current) {
+        leafletRef.current.remove();
+        leafletRef.current = null;
+      }
+    };
+  }, [places, filter, userLoc]);
+
+  return (
+    <div
+      ref={mapRef as any}
+      style={{ width: '100%', height: '100%', background: '#050814' }}
+    />
+  );
+}
+
 export default function MapaScreen() {
   const tr = useTr();
   const router = useRouter();
@@ -304,11 +443,7 @@ export default function MapaScreen() {
       {/* Map */}
       <View style={styles.mapWrap}>
         {Platform.OS === 'web' ? (
-          <iframe
-            key={filter + (userLoc ? `_u${userLoc.lat}` : '')}
-            srcDoc={html}
-            style={{ width: '100%', height: '100%', border: 'none', backgroundColor: '#050814' } as any}
-          />
+          <WebMapDirect places={places} filter={filter} userLoc={userLoc} onNavigate={(path) => router.push(path as any)} />
         ) : (
           <WebView
             ref={webViewRef}
