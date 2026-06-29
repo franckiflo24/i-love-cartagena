@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { AGENTS, AGENT_ORDER, AgentId, ConciergeAgent } from '../src/constants/agents';
 import { askAgent, ChatMessage } from '../src/services/concierge';
+import { useAuth } from '../src/context/AuthContext';
 
 const { width: SCREEN } = Dimensions.get('window');
 const CARD_SIZE = (SCREEN - SPACING.lg * 2 - SPACING.md) / 2;
@@ -54,6 +55,7 @@ function TypingDots({ color }: { color: string }) {
 // ── Main ──
 export default function ConciergeScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const { agent: routeAgent } = useLocalSearchParams<{ agent?: string }>();
   const [activeAgent, setActiveAgent] = useState<AgentId | null>(
     routeAgent && AGENTS[routeAgent as AgentId] ? (routeAgent as AgentId) : null
@@ -74,6 +76,17 @@ export default function ConciergeScreen() {
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || !activeAgent || loading) return;
+
+    // AI requires login
+    if (!user) {
+      setMessages([
+        { role: 'user', content: text.trim() },
+        { role: 'assistant', content: 'Para usar el concierge IA, necesitás iniciar sesión primero. ¡Es gratis!' },
+      ]);
+      setTimeout(() => router.push('/login' as any), 1500);
+      return;
+    }
+
     setChipsVisible(false);
     const userMsg: ChatMessage = { role: 'user', content: text.trim() };
     const updated = [...messages, userMsg];

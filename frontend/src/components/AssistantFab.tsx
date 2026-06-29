@@ -24,6 +24,7 @@ import { useRouter, usePathname } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { useLang } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 
@@ -87,6 +88,7 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
   const router = useRouter();
   const pathname = usePathname();
   const { lang, s } = useLang();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -169,6 +171,17 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
     async (text: string) => {
       const trimmed = (text || '').trim();
       if (!trimmed || sending) return;
+
+      // AI chat requires authentication — redirect guests to login
+      if (!user) {
+        setMessages((prev) => [
+          ...prev,
+          { role: 'user', content: trimmed },
+          { role: 'assistant', content: 'Para usar el concierge IA, necesitás iniciar sesión. ¡Es gratis y toma 10 segundos! 🚀', actions: [{ type: 'navigate', screen: 'login', label: 'Iniciar sesión' }] },
+        ]);
+        return;
+      }
+
       setSending(true);
       setInput('');
       setMessages((prev) => [...prev, { role: 'user', content: trimmed }]);
