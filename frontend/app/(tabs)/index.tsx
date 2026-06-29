@@ -562,14 +562,18 @@ export default function HomeScreen() {
               {featured.filter(e => e.image_url).slice(0, 10).map((event) => {
                 const cat = CAT_COLORS[event.type] || CAT_COLORS[(event as any).category] || { main: COLORS.primary, bg: 'rgba(212,175,55,0.15)', label: event.type || (event as any).category || '' };
                 const budget = getBudgetStyle(event.is_free, event.price);
-                const displayDate = event.date || (event as any).date_start || '';
+                const dateStart = (event as any).date_start || event.date || '';
+                const dateEnd = (event as any).date_end || dateStart;
+                const todayStr = new Date().toISOString().slice(0, 10);
                 const months = ['', 'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
                 let dateLabel = '';
-                if (displayDate) {
+                if (dateStart <= todayStr && dateEnd >= todayStr) {
+                  dateLabel = 'HOY';
+                } else if (dateStart) {
                   try {
-                    const d = new Date(displayDate + 'T00:00:00');
+                    const d = new Date(dateStart + 'T00:00:00');
                     dateLabel = `${d.getDate()} ${months[d.getMonth() + 1]}`;
-                  } catch { dateLabel = displayDate; }
+                  } catch { dateLabel = dateStart; }
                 }
                 return (
                   <TouchableOpacity
@@ -733,20 +737,24 @@ export default function HomeScreen() {
                 </View>
                 <View style={styles.peBody}>
                   <Text style={styles.peTitle} numberOfLines={2}>{event.title}</Text>
+                  {event.partner_name ? (
                   <TouchableOpacity
                     style={styles.pePartnerBtn}
                     onPress={(e) => {
                       e.stopPropagation();
-                      trackEvent('partner_click', event.partner_id, 'partner');
-                      router.push(`/partner/${event.partner_id}` as any);
+                      if (event.partner_id) {
+                        trackEvent('partner_click', event.partner_id, 'partner');
+                        router.push(`/partner/${event.partner_id}` as any);
+                      }
                     }}
                     activeOpacity={0.7}
                     hitSlop={{ top: 6, bottom: 6 }}
                   >
-                    <Ionicons name="storefront-outline" size={11} color={COLORS.textMuted} />
+                    <Ionicons name="location-outline" size={11} color={COLORS.textMuted} />
                     <Text style={styles.pePartner} numberOfLines={1}>{event.partner_name}</Text>
-                    <Ionicons name="chevron-forward" size={11} color={COLORS.textMuted} />
+                    {event.partner_id ? <Ionicons name="chevron-forward" size={11} color={COLORS.textMuted} /> : null}
                   </TouchableOpacity>
+                  ) : null}
                   <View style={styles.peTagsRow}>
                     <View style={[styles.peCatBadge, { backgroundColor: cat.bg, borderColor: cat.main }]}>
                       <View style={[styles.peCatDot, { backgroundColor: cat.main }]} />

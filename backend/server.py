@@ -2202,6 +2202,19 @@ async def list_concerts(date: Optional[str] = None, genre: Optional[str] = None)
     if genre:
         query["genre"] = genre
     concerts = await db.concerts.find(query, {"_id": 0}).sort([("date", 1), ("start_time", 1)]).to_list(100)
+    # Hydrate partner_id from venue name → partners catalog
+    if concerts:
+        venue_names = {c.get("venue_name", "").lower() for c in concerts if c.get("venue_name")}
+        if venue_names:
+            partners = await db.partners.find(
+                {"name": {"$regex": "|".join(venue_names), "$options": "i"}},
+                {"_id": 0, "partner_id": 1, "name": 1},
+            ).to_list(50)
+            venue_to_pid = {p["name"].lower(): p["partner_id"] for p in partners}
+            for c in concerts:
+                vn = (c.get("venue_name") or "").lower()
+                if vn in venue_to_pid:
+                    c["partner_id"] = venue_to_pid[vn]
     return concerts
 
 
@@ -4646,6 +4659,24 @@ async def startup():
                     {"booking_link": {"$regex": domain, "$options": "i"}},
                     {"$set": {"booking_link": ""}},
                 )
+        # Fix sponsor logos (Wikipedia SVG thumbnails return 400)
+        SPONSOR_FIXES = {
+            "sp_001": {"logo_url": "https://logos-world.net/wp-content/uploads/2023/01/Avianca-Logo.png"},
+            "sp_002": {"logo_url": "https://logos-world.net/wp-content/uploads/2024/01/Aguila-Logo.png"},
+            "sp_003": {"logo_url": "https://upload.wikimedia.org/wikipedia/commons/3/3f/Escudo_de_Cartagena_de_Indias.svg"},
+        }
+        for sid, fix in SPONSOR_FIXES.items():
+            await db.sponsors.update_one({"sponsor_id": sid}, {"$set": fix})
+        # Deactivate sponsors with no logo AND no URL (Ron Cartagena, Templo)
+        await db.sponsors.update_many(
+            {"$and": [{"logo_url": ""}, {"url": ""}]},
+            {"$set": {"is_active": False}},
+        )
+        # Deactivate Templo sponsor (site is parked/under construction)
+        await db.sponsors.update_one(
+            {"name": "Templo"},
+            {"$set": {"is_active": False}},
+        )
         return
     await seed_database()
     # Ensure indexes for the reservations module

@@ -141,7 +141,7 @@ export default function ConcertsScreen() {
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>{tr('Conciertos')}</Text>
-          <Text style={styles.subtitle}>Programa musical · {concerts.length} shows</Text>
+          <Text style={styles.subtitle}>{dates.length > 0 && dates[0] > todayStr ? `Próximos shows · Desde ${formatDateLabel(dates[0]).date} ${formatDateLabel(dates[0]).month}` : `Programa musical · ${concerts.length} shows`}</Text>
         </View>
         <Ionicons name="musical-notes" size={24} color={COLORS.primary} />
       </View>
@@ -310,14 +310,21 @@ export default function ConcertsScreen() {
                       )}
                     </View>
 
-                    {/* Location CTA - Opens Google Maps */}
+                    {/* Location CTA - Internal partner page or Google Maps */}
                     <TouchableOpacity
                       style={styles.locationCta}
-                      onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(concert.venue_name + ' Cartagena Colombia')}`)}
+                      onPress={() => {
+                        const pid = (concert as any).partner_id;
+                        if (pid) {
+                          router.push(`/partner/${pid}` as any);
+                        } else {
+                          Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(concert.venue_name + ' Cartagena Colombia')}`);
+                        }
+                      }}
                     >
-                      <Ionicons name="map" size={16} color={COLORS.primary} />
+                      <Ionicons name={(concert as any).partner_id ? "storefront" : "map"} size={16} color={COLORS.primary} />
                       <Text style={styles.locationCtaText}>{concert.venue_name}</Text>
-                      <Ionicons name="open-outline" size={14} color={COLORS.textMuted} />
+                      <Ionicons name={(concert as any).partner_id ? "chevron-forward" : "open-outline"} size={14} color={COLORS.textMuted} />
                     </TouchableOpacity>
 
                     {/* Buy Ticket CTA */}

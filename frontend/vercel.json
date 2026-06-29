@@ -20,7 +20,9 @@
     { "source": "/dashboard", "destination": "/admin" },
     { "source": "/reviews", "destination": "/review/new" },
     { "source": "/partner-access", "destination": "/business/login" },
-    { "source": "/port-tax", "destination": "/port-tax/checkout" }
+    { "source": "/port-tax", "destination": "/port-tax/checkout" },
+    { "source": "/favoritos", "destination": "/favorites" },
+    { "source": "/rutas", "destination": "/itineraries" }
   ],
   "trailingSlash": false,
   "cleanUrls": true,
