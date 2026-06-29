@@ -4635,10 +4635,17 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    # On Vercel serverless: skip ALL seeding, migrations, and background tasks.
-    # Data is already in Atlas. Indexes were created by local runs.
+    # On Vercel serverless: skip seeding/migrations but still run lightweight cleanup.
     if os.environ.get("VERCEL"):
-        logger.info("Vercel serverless — skipping startup seed/migrations")
+        logger.info("Vercel serverless — running cleanup, skipping seed/migrations")
+        # Remove dead booking links on every cold start (lightweight, idempotent)
+        DEAD_BOOKING_DOMAINS = ["templo.co", "fenix.co/after", "lago.co", "salontropical.co", "sunsetsailing.co", "casaboheme.co/reservar", "elbeso.co", "thepinkmango.co/reservar", "casacarolina.com/reservar"]
+        for domain in DEAD_BOOKING_DOMAINS:
+            for coll in [db.events, db.partner_events, db.concerts]:
+                await coll.update_many(
+                    {"booking_link": {"$regex": domain, "$options": "i"}},
+                    {"$set": {"booking_link": ""}},
+                )
         return
     await seed_database()
     # Ensure indexes for the reservations module
