@@ -22,7 +22,8 @@
     { "source": "/partner-access", "destination": "/business/login" },
     { "source": "/port-tax", "destination": "/port-tax/checkout" },
     { "source": "/favoritos", "destination": "/favorites" },
-    { "source": "/rutas", "destination": "/itineraries" }
+    { "source": "/rutas", "destination": "/itineraries" },
+    { "source": "/partner-dashboard", "destination": "/business/dashboard" }
   ],
   "trailingSlash": false,
   "cleanUrls": true,

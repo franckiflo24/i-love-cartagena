@@ -108,8 +108,24 @@ export default function EventDetail() {
               <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
             </View>
             <View>
-              <Text style={styles.infoLabel}>Fecha</Text>
-              <Text style={styles.infoValue}>{event.date}</Text>
+              <Text style={styles.infoLabel}>{tr('Fecha')}</Text>
+              <Text style={styles.infoValue}>{(() => {
+                const today = new Date().toISOString().slice(0, 10);
+                const start = event.date_start || event.date || '';
+                const end = event.date_end || start;
+                if (start <= today && end >= today) return 'Hoy — Activo ahora';
+                if (start > today) {
+                  const months = ['','ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+                  const d = new Date(start + 'T00:00:00');
+                  return `${d.getDate()} ${months[d.getMonth()+1]} ${d.getFullYear()}`;
+                }
+                return event.date;
+              })()}</Text>
+              {event.date_end && event.date_end !== (event.date_start || event.date) && (
+                <Text style={[styles.infoValue, { fontSize: 12, color: COLORS.textMuted, marginTop: 2 }]}>
+                  {event.date_start} → {event.date_end}
+                </Text>
+              )}
             </View>
           </View>
           <View style={styles.infoRow}>

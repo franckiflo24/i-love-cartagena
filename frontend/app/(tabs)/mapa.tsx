@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { WebView } from 'react-native-webview';
@@ -62,6 +63,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
 
     const priceHtml = safePrice ? '<span style="font-size:12px;color:#D97706;font-weight:700;">' + safePrice + '</span><br>' : '';
 
+    const detailUrl = '/partner/' + p.id;
     const popupContent = '<div style=font-family:sans-serif;min-width:180px>'
       + '<div style=display:flex;align-items:center;gap:6px;margin-bottom:6px>'
       + '<div style=width:10px;height:10px;border-radius:50%;background:' + color + ';flex-shrink:0></div>'
@@ -71,7 +73,10 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
       + '<span style=font-size:11px;color:#666>' + safeDesc + '</span><br>'
       + '<span style=font-size:11px;color:#888>📍 ' + safeAddr + '</span><br>'
       + priceHtml
-      + '<a href=' + mapsUrl + ' target=_blank style=display:inline-block;margin-top:6px;padding:6px_14px;background:#D97706;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600>Como llegar</a>'
+      + '<div style=display:flex;gap:6px;margin-top:6px>'
+      + '<a href=' + detailUrl + ' style=display:inline-block;padding:6px_14px;background:#D97706;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600 onclick=window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:\"navigate\",path:\"' + detailUrl + '\"}));return_false;>Ver detalle →</a>'
+      + '<a href=' + mapsUrl + ' target=_blank style=display:inline-block;padding:6px_14px;background:rgba(26,26,46,0.1);color:#1a1a2e;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px_solid_#ddd>📍 Mapa</a>'
+      + '</div>'
       + '</div>';
 
     return "L.circleMarker([" + p.lat + ", " + p.lng + "], {"
@@ -137,6 +142,7 @@ function detectZone(lat: number, lng: number): string {
 
 export default function MapaScreen() {
   const tr = useTr();
+  const router = useRouter();
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -315,6 +321,14 @@ export default function MapaScreen() {
             bounces={false}
             showsVerticalScrollIndicator={false}
             showsHorizontalScrollIndicator={false}
+            onMessage={(e) => {
+              try {
+                const msg = JSON.parse(e.nativeEvent.data);
+                if (msg.type === 'navigate' && msg.path) {
+                  router.push(msg.path as any);
+                }
+              } catch { /* non-JSON message — ignore */ }
+            }}
           />
         )}
 
