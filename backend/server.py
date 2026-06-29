@@ -4671,6 +4671,20 @@ async def startup():
             {"name": {"$in": ["Ron Cartagena", "Templo"]}},
             {"$set": {"is_active": False}},
         )
+        # Seed demo business accounts if not yet created
+        import bcrypt as _bcrypt
+        biz_count = await db.business_users.count_documents({})
+        if biz_count == 0:
+            DEMO_PW = os.environ.get("DEMO_PARTNER_PASSWORD")
+            if DEMO_PW:
+                pw_hash = _bcrypt.hashpw(DEMO_PW.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+                demo_biz = [
+                    {"business_id": "biz_001", "email": "casaboheme@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_nc_007", "full_name": "Casa Bohème", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
+                    {"business_id": "biz_002", "email": "bellini@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_002", "full_name": "Bellini", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
+                    {"business_id": "biz_003", "email": "cafedelmar@amocartagena.app", "password_hash": pw_hash, "partner_id": "ptr_005", "full_name": "Café del Mar", "role": "business", "created_at": datetime.now(timezone.utc).isoformat()},
+                ]
+                await db.business_users.insert_many(demo_biz)
+                logger.info(f"Seeded {len(demo_biz)} demo business accounts on Vercel")
         return
     await seed_database()
     # Ensure indexes for the reservations module
