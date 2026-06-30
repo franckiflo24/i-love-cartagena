@@ -116,7 +116,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '.pulse-dot { position: absolute; top: 4px; left: 4px; width: 14px; height: 14px; border-radius: 50%; background: #2563EB; border: 2px solid #fff; box-shadow: 0 0 6px rgba(37,99,235,0.7); z-index: 2; }'
     + '.pulse-ring { position: absolute; top: 0; left: 0; width: 22px; height: 22px; border-radius: 50%; background: rgba(37,99,235,0.25); animation: pulse 1.6s ease-out infinite; z-index: 1; }'
     + '@keyframes pulse { 0% { transform: scale(0.6); opacity: 1; } 100% { transform: scale(2.4); opacity: 0; } }'
-    + '.dark-tiles { filter: brightness(0.55) saturate(1.4) contrast(1.15) hue-rotate(200deg); }'
+    + '.dark-tiles { filter: invert(1) hue-rotate(180deg) brightness(0.7) saturate(1.5) contrast(1.1); }'
     + '</style>'
     + '</head><body>'
     + '<div id="map"></div>'
@@ -246,7 +246,7 @@ function WebMapDirect({ places, filter, userLoc, onNavigate }: {
         style.id = 'leaflet-pulse-css';
         style.textContent = `
           @keyframes pulse { 0% { transform: scale(0.6); opacity: 1; } 100% { transform: scale(2.4); opacity: 0; } }
-          .dark-tiles { filter: brightness(0.55) saturate(1.4) contrast(1.15) hue-rotate(200deg); }
+          .dark-tiles { filter: invert(1) hue-rotate(180deg) brightness(0.7) saturate(1.5) contrast(1.1); }
           .leaflet-popup-content-wrapper { border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important; }
           .leaflet-popup-tip { display: none !important; }
           .leaflet-control-zoom { border: none !important; }
