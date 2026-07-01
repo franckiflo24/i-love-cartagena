@@ -273,6 +273,155 @@ async def demo_login(body: DemoLoginBody, response: Response):
     }
 
 
+# ── Email Verification Auth ──────────────────────────────────
+import emails as _emails
+
+
+class SignupBody(BaseModel):
+    email: str
+    name: str = ""
+
+
+class VerifyBody(BaseModel):
+    email: str
+    code: str
+    name: str = ""
+
+
+@api_router.post("/auth/signup")
+async def email_signup(body: SignupBody):
+    """Step 1: Send a 6-digit verification code to the user's email.
+    Creates a pending verification record in DB. Does NOT create a user yet."""
+    email = body.email.strip().lower()
+    if not email or "@" not in email:
+        raise HTTPException(400, "Email inválido")
+
+    # Rate limit — 3 codes per email per 15 min
+    _check_rate_limit(f"verify:{email}", max_calls=3, window_sec=900)
+
+    code = _emails.generate_verification_code()
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=_emails.VERIFY_CODE_TTL_MINUTES)
+
+    # Upsert pending verification (replace any existing code for this email)
+    await db.email_verifications.update_one(
+        {"email": email},
+        {"$set": {
+            "email": email,
+            "code": code,
+            "name": body.name.strip(),
+            "expires_at": expires_at.isoformat(),
+            "attempts": 0,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }},
+        upsert=True,
+    )
+
+    sent = await _emails.send_verification_email(to=email, code=code, name=body.name.strip())
+    if not sent:
+        logger.error(f"[signup] Failed to send verification email to {email}")
+        raise HTTPException(500, "No se pudo enviar el código. Intenta de nuevo.")
+
+    return {"ok": True, "message": "Código enviado a tu email"}
+
+
+@api_router.post("/auth/verify")
+async def verify_email(body: VerifyBody, response: Response):
+    """Step 2: Verify the code and create (or login to) the user account.
+    Sends a welcome email on first verification."""
+    email = body.email.strip().lower()
+    if not email:
+        raise HTTPException(400, "Email requerido")
+
+    record = await db.email_verifications.find_one({"email": email})
+    if not record:
+        raise HTTPException(400, "No hay código pendiente. Solicita uno nuevo.")
+
+    # Max 5 attempts per code
+    attempts = record.get("attempts", 0)
+    if attempts >= 5:
+        await db.email_verifications.delete_one({"email": email})
+        raise HTTPException(429, "Demasiados intentos. Solicita un nuevo código.")
+
+    # Check expiry
+    expires_at = record.get("expires_at", "")
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    if hasattr(expires_at, 'tzinfo') and expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        await db.email_verifications.delete_one({"email": email})
+        raise HTTPException(410, "Código expirado. Solicita uno nuevo.")
+
+    # Increment attempts
+    await db.email_verifications.update_one({"email": email}, {"$inc": {"attempts": 1}})
+
+    # Check code (constant-time comparison)
+    if not hmac.compare_digest(body.code.strip(), record["code"]):
+        raise HTTPException(401, "Código incorrecto")
+
+    # Code is valid — delete the verification record
+    await db.email_verifications.delete_one({"email": email})
+
+    # Create or login user
+    name = body.name.strip() or record.get("name", "") or email.split("@")[0]
+    is_new_user = False
+    user = await db.users.find_one({"email": email}, {"_id": 0})
+    if not user:
+        is_new_user = True
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        user = {
+            "user_id": user_id,
+            "email": email,
+            "name": name,
+            "picture": "",
+            "phone": "",
+            "provider": "email_verified",
+            "email_verified": True,
+            "favorites": [],
+            "my_week": [],
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.users.insert_one(user)
+        user = await db.users.find_one({"email": email}, {"_id": 0})
+    else:
+        # Mark existing user as email-verified
+        update_fields: dict = {"email_verified": True}
+        if not user.get("provider") or user.get("provider") in ("email_local", "guest"):
+            update_fields["provider"] = "email_verified"
+        if name and not user.get("name"):
+            update_fields["name"] = name
+        await db.users.update_one({"email": email}, {"$set": update_fields})
+        user.update(update_fields)
+
+    # Create session
+    session_token = f"st_{uuid.uuid4().hex}"
+    await db.user_sessions.insert_one({
+        "session_token": session_token,
+        "user_id": user["user_id"],
+        "expires_at": datetime.now(timezone.utc) + timedelta(days=30),
+        "created_at": datetime.now(timezone.utc),
+    })
+
+    response.set_cookie(
+        key="session_token", value=session_token,
+        httponly=True, secure=True, samesite="none",
+        path="/", max_age=30 * 24 * 3600,
+    )
+
+    # Send welcome email (fire-and-forget for new users)
+    if is_new_user:
+        try:
+            await _emails.send_welcome_email(to=email, name=user.get("name", ""))
+        except Exception as e:
+            logger.error(f"[verify] Welcome email failed: {e}")
+
+    return {
+        "user": {k: user.get(k, "") for k in ("user_id", "email", "name", "picture", "phone", "provider")},
+        "session_token": session_token,
+        "is_new_user": is_new_user,
+    }
+
+
 async def get_current_user(request: Request) -> dict:
     token = request.cookies.get("session_token")
     if not token:

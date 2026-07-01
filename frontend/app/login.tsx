@@ -30,6 +30,9 @@ export default function LoginScreen() {
   const [signupPhone, setSignupPhone] = useState('');
   const [savingSignup, setSavingSignup] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [verifyStep, setVerifyStep] = useState(false);
+  const [verifyCode, setVerifyCode] = useState('');
+  const [resendCountdown, setResendCountdown] = useState(0);
 
   useEffect(() => {
     if (user && !isLoading) {
@@ -63,6 +66,13 @@ export default function LoginScreen() {
     }
   };
 
+  // Resend countdown timer
+  useEffect(() => {
+    if (resendCountdown <= 0) return;
+    const timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCountdown]);
+
   const handleEmailSignup = async () => {
     const email = signupEmail.trim();
     const name = signupName.trim() || email.split('@')[0];
@@ -73,24 +83,73 @@ export default function LoginScreen() {
     setLoginError('');
     setSavingSignup(true);
     try {
-      const res = await api.post('/auth/demo-login', { email, name, provider: 'email_local', signup_code: '' });
+      await api.post('/auth/signup', { email, name });
+      setVerifyStep(true);
+      setVerifyCode('');
+      setResendCountdown(60);
+    } catch (e: any) {
+      console.error('[Login] email signup error', e);
+      const msg = e?.message || '';
+      if (msg.includes('429')) {
+        setLoginError('Demasiadas solicitudes. Espera un momento.');
+      } else {
+        setLoginError('No se pudo enviar el código. Intenta de nuevo.');
+      }
+    }
+    setSavingSignup(false);
+  };
+
+  const handleVerifyCode = async () => {
+    const email = signupEmail.trim();
+    const code = verifyCode.trim();
+    const name = signupName.trim() || email.split('@')[0];
+    if (!code || code.length !== 6) {
+      setLoginError('Introduce el código de 6 dígitos.');
+      return;
+    }
+    setLoginError('');
+    setSavingSignup(true);
+    try {
+      const res = await api.post('/auth/verify', { email, code, name });
       if (res.session_token && res.user) {
         await loginWithToken(res.session_token, res.user);
         setSavingSignup(false);
         setShowSignup(false);
+        setVerifyStep(false);
         router.replace('/(tabs)');
         return;
       }
-      // Backend responded but missing expected fields
       setLoginError('Error de autenticación. Respuesta inesperada del servidor.');
-      console.error('[Login] email signup: missing session_token or user in response', res);
     } catch (e: any) {
-      console.error('[Login] email signup error', e);
+      console.error('[Login] verify code error', e);
       const msg = e?.message || '';
-      setLoginError(msg.includes('403') ? 'Esta cuenta usa otro método de inicio de sesión.' : 'No se pudo crear la cuenta. Intenta de nuevo.');
+      if (msg.includes('401')) {
+        setLoginError('Código incorrecto. Verifica e intenta de nuevo.');
+      } else if (msg.includes('410')) {
+        setLoginError('Código expirado. Solicita uno nuevo.');
+        setVerifyStep(false);
+      } else if (msg.includes('429')) {
+        setLoginError('Demasiados intentos. Solicita un nuevo código.');
+        setVerifyStep(false);
+      } else {
+        setLoginError('Error de verificación. Intenta de nuevo.');
+      }
     }
     setSavingSignup(false);
-    setShowSignup(false);
+  };
+
+  const handleResendCode = async () => {
+    if (resendCountdown > 0) return;
+    setLoginError('');
+    setSavingSignup(true);
+    try {
+      await api.post('/auth/signup', { email: signupEmail.trim(), name: signupName.trim() });
+      setResendCountdown(60);
+      setVerifyCode('');
+    } catch (e: any) {
+      setLoginError('No se pudo reenviar el código.');
+    }
+    setSavingSignup(false);
   };
 
   const handleWhatsappSignup = async () => {
@@ -276,12 +335,12 @@ export default function LoginScreen() {
         </View>
       </ScrollView>
 
-      {/* Email signup modal */}
+      {/* Email signup modal — two-step: email → verification code */}
       <Modal
         visible={showSignup}
         animationType="slide"
         transparent
-        onRequestClose={() => setShowSignup(false)}
+        onRequestClose={() => { setShowSignup(false); setVerifyStep(false); }}
       >
         <KeyboardAvoidingView
           style={styles.modalOverlay}
@@ -289,54 +348,109 @@ export default function LoginScreen() {
         >
           <View style={styles.modalCard}>
             <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>{s('login_signup_title')}</Text>
-            <Text style={styles.modalSubtitle}>{s('login_signup_subtitle')}</Text>
+            {!verifyStep ? (
+              <>
+                <Text style={styles.modalTitle}>{s('login_signup_title')}</Text>
+                <Text style={styles.modalSubtitle}>{s('login_signup_subtitle')}</Text>
 
-            <View style={styles.inputWrap}>
-              <Ionicons name="person-outline" size={18} color={COLORS.textMuted} />
-              <TextInput
-                style={styles.input}
-                placeholder={s('login_name_placeholder')}
-                placeholderTextColor={COLORS.textMuted}
-                value={signupName}
-                onChangeText={setSignupName}
-                autoCapitalize="words"
-              />
-            </View>
-            <View style={styles.inputWrap}>
-              <Ionicons name="mail-outline" size={18} color={COLORS.textMuted} />
-              <TextInput
-                style={styles.input}
-                placeholder={s('login_email_placeholder')}
-                placeholderTextColor={COLORS.textMuted}
-                value={signupEmail}
-                onChangeText={setSignupEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-              />
-            </View>
+                <View style={styles.inputWrap}>
+                  <Ionicons name="person-outline" size={18} color={COLORS.textMuted} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder={s('login_name_placeholder')}
+                    placeholderTextColor={COLORS.textMuted}
+                    value={signupName}
+                    onChangeText={setSignupName}
+                    autoCapitalize="words"
+                  />
+                </View>
+                <View style={styles.inputWrap}>
+                  <Ionicons name="mail-outline" size={18} color={COLORS.textMuted} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder={s('login_email_placeholder')}
+                    placeholderTextColor={COLORS.textMuted}
+                    value={signupEmail}
+                    onChangeText={setSignupEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                  />
+                </View>
 
-            <TouchableOpacity
-              style={[styles.modalSaveBtn, savingSignup && { opacity: 0.6 }]}
-              onPress={handleEmailSignup}
-              disabled={savingSignup}
-              activeOpacity={0.85}
-            >
-              {savingSignup ? (
-                <ActivityIndicator color={COLORS.white} />
-              ) : (
-                <>
-                  <Ionicons name="checkmark-circle" size={18} color={COLORS.white} />
-                  <Text style={styles.modalSaveBtnText}>{s('login_save')}</Text>
-                </>
-              )}
-            </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalSaveBtn, savingSignup && { opacity: 0.6 }]}
+                  onPress={handleEmailSignup}
+                  disabled={savingSignup}
+                  activeOpacity={0.85}
+                >
+                  {savingSignup ? (
+                    <ActivityIndicator color={COLORS.white} />
+                  ) : (
+                    <>
+                      <Ionicons name="mail-outline" size={18} color={COLORS.white} />
+                      <Text style={styles.modalSaveBtnText}>Enviar código</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text style={styles.modalTitle}>Verifica tu email</Text>
+                <Text style={styles.modalSubtitle}>
+                  Enviamos un código de 6 dígitos a {signupEmail.trim()}
+                </Text>
+
+                <View style={[styles.inputWrap, { justifyContent: 'center' }]}>
+                  <Ionicons name="key-outline" size={18} color={COLORS.primary} />
+                  <TextInput
+                    style={[styles.input, { fontSize: 24, letterSpacing: 8, textAlign: 'center', fontWeight: '700' }]}
+                    placeholder="000000"
+                    placeholderTextColor={COLORS.textMuted}
+                    value={verifyCode}
+                    onChangeText={(t) => setVerifyCode(t.replace(/[^0-9]/g, '').slice(0, 6))}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    autoFocus
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.modalSaveBtn, savingSignup && { opacity: 0.6 }]}
+                  onPress={handleVerifyCode}
+                  disabled={savingSignup || verifyCode.length !== 6}
+                  activeOpacity={0.85}
+                >
+                  {savingSignup ? (
+                    <ActivityIndicator color={COLORS.white} />
+                  ) : (
+                    <>
+                      <Ionicons name="checkmark-circle" size={18} color={COLORS.white} />
+                      <Text style={styles.modalSaveBtnText}>Verificar</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.modalCancelBtn, resendCountdown > 0 && { opacity: 0.4 }]}
+                  onPress={handleResendCode}
+                  disabled={resendCountdown > 0 || savingSignup}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.modalCancelText}>
+                    {resendCountdown > 0 ? `Reenviar código (${resendCountdown}s)` : 'Reenviar código'}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
+            {loginError ? (
+              <Text style={{ color: '#EF4444', fontSize: 13, textAlign: 'center', marginTop: 8 }}>{loginError}</Text>
+            ) : null}
             <TouchableOpacity
               style={styles.modalCancelBtn}
-              onPress={() => setShowSignup(false)}
+              onPress={() => { setShowSignup(false); setVerifyStep(false); setLoginError(''); }}
               activeOpacity={0.85}
             >
-              <Text style={styles.modalCancelText}>{s('login_cancel')}</Text>
+              <Text style={styles.modalCancelText}>{verifyStep ? 'Cambiar email' : s('login_cancel')}</Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
