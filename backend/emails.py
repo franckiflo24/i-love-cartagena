@@ -12,15 +12,20 @@ from datetime import datetime, timezone, timedelta
 
 logger = logging.getLogger(__name__)
 
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 FROM_EMAIL = "hola@amocartagena.co"
 FROM_NAME = "AMO Cartagena"
 VERIFY_CODE_TTL_MINUTES = 15
 
 
+def _get_resend_key() -> str:
+    """Read RESEND_API_KEY at call time (not import time) for Vercel compatibility."""
+    return os.environ.get("RESEND_API_KEY", "")
+
+
 async def _send_email(*, to: str, subject: str, html: str) -> bool:
     """Send an email via Resend API. Returns True on success."""
-    if not RESEND_API_KEY:
+    api_key = _get_resend_key()
+    if not api_key:
         logger.error("[emails] RESEND_API_KEY not configured — email not sent")
         return False
     try:
@@ -28,7 +33,7 @@ async def _send_email(*, to: str, subject: str, html: str) -> bool:
             r = await client.post(
                 "https://api.resend.com/emails",
                 headers={
-                    "Authorization": f"Bearer {RESEND_API_KEY}",
+                    "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
                 },
                 json={
