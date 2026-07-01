@@ -277,6 +277,30 @@ async def demo_login(body: DemoLoginBody, response: Response):
 import emails as _emails
 
 
+@api_router.get("/debug/email-test")
+async def debug_email_test():
+    """Temporary debug endpoint — check if Resend key is loaded and can send."""
+    key = _emails._get_resend_key()
+    has_key = bool(key)
+    key_prefix = key[:8] + "..." if key else "(none)"
+    # Try a direct Resend API call
+    test_result = None
+    if has_key:
+        import httpx as _hx
+        try:
+            async with _hx.AsyncClient() as c:
+                r = await c.post(
+                    "https://api.resend.com/emails",
+                    headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                    json={"from": "AMO Cartagena <hola@amocartagena.co>", "to": ["machinemindconsulting@gmail.com"], "subject": "Test from AMO", "html": "<p>Email pipeline works!</p>"},
+                    timeout=10,
+                )
+                test_result = {"status": r.status_code, "body": r.text}
+        except Exception as e:
+            test_result = {"error": str(e)}
+    return {"has_key": has_key, "key_prefix": key_prefix, "test_result": test_result}
+
+
 class SignupBody(BaseModel):
     email: str
     name: str = ""
