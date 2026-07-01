@@ -59,6 +59,8 @@ class UserOut(BaseModel):
     email: str
     name: str
     picture: Optional[str] = None
+    provider: Optional[str] = None
+    phone: Optional[str] = None
 
 class SessionExchange(BaseModel):
     session_id: str

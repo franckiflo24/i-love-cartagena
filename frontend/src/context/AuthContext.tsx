@@ -34,6 +34,8 @@ type User = {
   email: string;
   name: string;
   picture?: string;
+  provider?: string;
+  phone?: string;
   is_admin?: boolean;
 };
 
