@@ -257,137 +257,89 @@ export default function PerfilScreen() {
 
   const events = activeTab === 'week' ? myWeek : favorites;
 
+  const providerLabel = user.provider === 'google' ? 'Google' : user.provider === 'email_verified' ? 'Email verificado' : user.provider === 'whatsapp_local' ? 'WhatsApp' : user.provider === 'email_local' ? 'Email' : '';
+
+  // Settings row helper
+  const SettingsRow = ({ icon, iconColor, label, onPress, right, destructive }: { icon: string; iconColor?: string; label: string; onPress: () => void; right?: React.ReactNode; destructive?: boolean }) => (
+    <TouchableOpacity style={sty.settingsRow} onPress={onPress} activeOpacity={0.7}>
+      <View style={[sty.settingsIconWrap, destructive && { backgroundColor: 'rgba(239,68,68,0.1)' }]}>
+        <Ionicons name={icon as any} size={18} color={destructive ? '#EF4444' : (iconColor || COLORS.primary)} />
+      </View>
+      <Text style={[sty.settingsLabel, destructive && { color: '#EF4444' }]}>{label}</Text>
+      {right || <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />}
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Profile Header */}
-        <View style={styles.profileHeader}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+
+        {/* ── Profile Header ── */}
+        <View style={sty.header}>
           {user.picture ? (
-            <SafeImage uri={user.picture} style={styles.avatar} />
+            <SafeImage uri={user.picture} style={sty.avatar} />
           ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>{(user.name || '?')[0].toUpperCase()}</Text>
+            <View style={sty.avatarFallback}>
+              <Text style={sty.avatarLetter}>{(user.name || '?')[0].toUpperCase()}</Text>
             </View>
           )}
-          <Text style={styles.userName}>{user.name}</Text>
-          <Text style={styles.userEmail}>{user.email}</Text>
+          <Text style={sty.name}>{user.name}</Text>
+          <Text style={sty.email}>{user.email}</Text>
+          {providerLabel ? (
+            <View style={sty.providerBadge}>
+              <Ionicons name={user.provider === 'google' ? 'logo-google' : user.provider?.includes('whatsapp') ? 'logo-whatsapp' : 'mail'} size={11} color={COLORS.primary} />
+              <Text style={sty.providerText}>{providerLabel}</Text>
+            </View>
+          ) : null}
           {rewards.tier && (
-            <TouchableOpacity
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6, backgroundColor: COLORS.surface, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, borderWidth: 1, borderColor: COLORS.border }}
-              onPress={() => router.push('/rewards' as any)}
-            >
-              <Ionicons name="trophy" size={14} color={COLORS.primary} />
-              <Text style={{ color: COLORS.primary, fontSize: 13, ...FONTS.bold }}>{rewards.tierLabel}</Text>
-              <Text style={{ color: COLORS.textMuted, fontSize: 12 }}>{rewards.points} pts</Text>
+            <TouchableOpacity style={sty.rewardsBadge} onPress={() => router.push('/rewards' as any)} activeOpacity={0.8}>
+              <Ionicons name="trophy" size={13} color={COLORS.primary} />
+              <Text style={sty.rewardsTier}>{rewards.tierLabel}</Text>
+              <Text style={sty.rewardsPoints}>{rewards.points} pts</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        {/* AI Profile Card - generated from favorites by Emergent LLM */}
-        <View style={styles.aiCard}>
-          <View style={styles.aiCardHeader}>
-            <View style={styles.aiBadge}>
-              <Ionicons name="sparkles" size={12} color={COLORS.primary} />
-              <Text style={styles.aiBadgeText}>IA · Tu perfil</Text>
-            </View>
-            <TouchableOpacity
-              onPress={buildAiProfile}
-              disabled={profileBuilding || favIds.length < 2}
-              style={[styles.refreshAiBtn, (profileBuilding || favIds.length < 2) && { opacity: 0.4 }]}
-            >
-              {profileBuilding ? (
-                <ActivityIndicator size="small" color={COLORS.primary} />
-              ) : (
-                <Ionicons name="refresh" size={14} color={COLORS.primary} />
-              )}
+        {/* ── My Activity ── */}
+        <View style={sty.sectionCard}>
+          <Text style={sty.sectionTitle}>{tr('Mi actividad')}</Text>
+          <View style={sty.statsRow}>
+            <TouchableOpacity style={sty.statBox} onPress={() => setActiveTab('favorites')} activeOpacity={0.8}>
+              <Ionicons name="heart" size={20} color="#EF4444" />
+              <Text style={sty.statNum}>{favorites.length}</Text>
+              <Text style={sty.statLabel}>{tr('Favoritos')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={sty.statBox} onPress={() => setActiveTab('week')} activeOpacity={0.8}>
+              <Ionicons name="calendar" size={20} color="#3B82F6" />
+              <Text style={sty.statNum}>{myWeek.length}</Text>
+              <Text style={sty.statLabel}>{tr('Mi Semana')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={sty.statBox} onPress={() => router.push('/reservations' as any)} activeOpacity={0.8}>
+              <Ionicons name="receipt" size={20} color="#22C55E" />
+              <Text style={sty.statNum}>&mdash;</Text>
+              <Text style={sty.statLabel}>{tr('Reservas')}</Text>
             </TouchableOpacity>
           </View>
-
-          {!aiProfile || aiProfile.ai_status === 'not_built' || (aiProfile.data_points || 0) === 0 ? (
-            <View style={styles.aiEmpty}>
-              <Ionicons name="heart-circle-outline" size={32} color={COLORS.textMuted} />
-              <Text style={styles.aiEmptyTitle}>{tr('Tu perfil aún está vacío')}</Text>
-              <Text style={styles.aiEmptyDesc}>
-                {tr('Guarda al menos 2 lugares o eventos como favoritos y la IA construirá tu perfil personalizado.')}
-              </Text>
-            </View>
-          ) : (
-            <>
-              <Text style={styles.aiPersona}>{aiProfile.persona_label}</Text>
-              <Text style={styles.aiSummary}>{aiProfile.summary}</Text>
-
-              {aiProfile.interests && aiProfile.interests.length > 0 && (
-                <View style={styles.aiTagRow}>
-                  {aiProfile.interests.slice(0, 6).map((tag: string, idx: number) => (
-                    <View key={idx} style={styles.aiTag}>
-                      <Text style={styles.aiTagText}>#{tag}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              <View style={styles.aiStatsRow}>
-                {aiProfile.preferred_budget && (
-                  <View style={styles.aiStat}>
-                    <Ionicons name="wallet-outline" size={12} color={COLORS.primary} />
-                    <Text style={styles.aiStatText}>{aiProfile.preferred_budget}</Text>
-                  </View>
-                )}
-                {aiProfile.preferred_time_slots && aiProfile.preferred_time_slots.length > 0 && (
-                  <View style={styles.aiStat}>
-                    <Ionicons name="time-outline" size={12} color={COLORS.primary} />
-                    <Text style={styles.aiStatText}>{aiProfile.preferred_time_slots.join(' · ')}</Text>
-                  </View>
-                )}
-                <View style={styles.aiStat}>
-                  <Ionicons name="heart" size={12} color={COLORS.primary} />
-                  <Text style={styles.aiStatText}>{aiProfile.data_points} {tr('señales')}</Text>
-                </View>
-              </View>
-            </>
-          )}
         </View>
 
-        {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          {[
-            { icon: 'trophy-outline', label: s('profile_rewards') || 'My Rewards', route: '/rewards' },
-            { icon: 'card-outline', label: s('profile_amo_card') || 'AMO Card', route: '/rewards/card' },
-            { icon: 'star-outline', label: s('profile_my_reviews') || 'My Reviews', route: '/review/new' },
-            { icon: 'notifications-outline', label: s('profile_notifications'), route: '/notifications' },
-            { icon: 'calendar-outline', label: tr('Mis reservas'), route: '/reservations' },
-            { icon: 'ticket-outline', label: 'City Pass', route: '/city-pass' },
-            { icon: 'boat-outline', label: s('home_transport'), route: '/transport' },
-            { icon: 'trail-sign-outline', label: s('home_routes'), route: '/itineraries' },
-            { icon: 'bar-chart-outline', label: 'Dashboard', route: '/admin' },
-          ].map(item => (
-            <TouchableOpacity
-              key={item.label}
-              testID={`profile-action-${item.label.toLowerCase()}`}
-              style={styles.actionBtn}
-              onPress={() => router.push(item.route as any)}
-            >
-              <Ionicons name={item.icon as any} size={20} color={COLORS.primary} />
-              <Text style={styles.actionLabel}>{item.label}</Text>
-            </TouchableOpacity>
-          ))}
+        {/* ── Quick Access ── */}
+        <View style={sty.sectionCard}>
+          <Text style={sty.sectionTitle}>{tr('Acceso rápido')}</Text>
+          <SettingsRow icon="trophy-outline" label={s('profile_rewards') || 'Rewards'} onPress={() => router.push('/rewards' as any)} />
+          <SettingsRow icon="card-outline" label="City Pass" onPress={() => router.push('/city-pass' as any)} />
+          <SettingsRow icon="notifications-outline" label={s('profile_notifications') || tr('Notificaciones')} onPress={() => router.push('/notifications' as any)} />
+          <SettingsRow icon="star-outline" label={tr('Mis reseñas')} onPress={() => router.push('/review/new' as any)} />
+          <SettingsRow icon="trail-sign-outline" label={tr('Itinerarios IA')} onPress={() => router.push('/itineraries' as any)} />
         </View>
 
-        {/* Language Selector */}
-        <View style={styles.langSection}>
-          <View style={styles.langHeader}>
-            <Ionicons name="globe-outline" size={18} color={COLORS.textMuted} />
-            <Text style={styles.langTitle}>{s('profile_language')}</Text>
-          </View>
+        {/* ── Language ── */}
+        <View style={sty.sectionCard}>
+          <Text style={sty.sectionTitle}>{s('profile_language') || tr('Idioma')}</Text>
           <View style={styles.langRow}>
             {(['es', 'en', 'fr', 'pt'] as Lang[]).map(l => {
               const isActive = lang === l;
               return (
-                <TouchableOpacity
-                  key={l}
-                  style={[styles.langBtn, isActive && styles.langBtnActive]}
-                  onPress={() => setLang(l)}
-                >
+                <TouchableOpacity key={l} style={[styles.langBtn, isActive && styles.langBtnActive]} onPress={() => setLang(l)}>
                   <Text style={styles.langFlag}>{LANG_FLAGS[l]}</Text>
                   <Text style={[styles.langLabel, isActive && styles.langLabelActive]}>{LANG_LABELS[l]}</Text>
                 </TouchableOpacity>
@@ -396,110 +348,60 @@ export default function PerfilScreen() {
           </View>
         </View>
 
-        {/* Business Access (auth user) */}
-        <TouchableOpacity style={styles.businessAccessCard} onPress={() => router.push('/business/login')} activeOpacity={0.85}>
-          <View style={styles.businessIconWrap}>
-            <Ionicons name="business" size={20} color={COLORS.primary} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.businessTitle}>{tr('Acceso Partners')}</Text>
-            <Text style={styles.businessDesc}>{tr('Dashboard y gestión de eventos')}</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
-        </TouchableOpacity>
-
-        {/* Tabs */}
-        <View style={styles.tabs}>
-          <TouchableOpacity
-            testID="tab-my-week"
-            style={[styles.tab, activeTab === 'week' && styles.tabActive]}
-            onPress={() => setActiveTab('week')}
-          >
-            <Text style={[styles.tabText, activeTab === 'week' && styles.tabTextActive]}>{tr('Mi Semana')} ({myWeek.length})</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            testID="tab-favorites"
-            style={[styles.tab, activeTab === 'favorites' && styles.tabActive]}
-            onPress={() => setActiveTab('favorites')}
-          >
-            <Text style={[styles.tabText, activeTab === 'favorites' && styles.tabTextActive]}>{tr('Favoritos')} ({favorites.length})</Text>
-          </TouchableOpacity>
+        {/* ── Partner Access ── */}
+        <View style={sty.sectionCard}>
+          <Text style={sty.sectionTitle}>{tr('Partners')}</Text>
+          <SettingsRow icon="business" iconColor={COLORS.primary} label={tr('Dashboard de negocio')} onPress={() => router.push('/business/login' as any)} />
         </View>
 
-        {/* Events List */}
-        {loading ? (
-          <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
-        ) : events.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name={activeTab === 'week' ? 'calendar-outline' : 'heart-outline'} size={48} color={COLORS.textMuted} />
-            <Text style={styles.emptyTitle}>
-              {activeTab === 'week' ? tr('Tu semana está vacía') : tr('Sin favoritos aún')}
-            </Text>
-            <Text style={styles.emptyDesc}>
-              {activeTab === 'week' ? tr('Agrega eventos a tu itinerario personal') : tr('Marca eventos como favoritos')}
-            </Text>
-            <TouchableOpacity testID="explore-events-btn" style={styles.exploreBtn} onPress={() => router.push('/(tabs)/agenda')}>
-              <Text style={styles.exploreBtnText}>{tr('Explorar agenda')}</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          events.map(event => (
-            <TouchableOpacity
-              key={event.event_id}
-              testID={`profile-event-${event.event_id}`}
-              style={styles.eventRow}
-              onPress={() => router.push(`/event/${event.event_id}`)}
-            >
-              <SafeImage uri={event.image_url} category={(event as any).type} style={styles.eventThumb} />
-              <View style={styles.eventInfo}>
-                <Text style={styles.eventTitle} numberOfLines={1}>{event.title}</Text>
-                <Text style={styles.eventMeta}>{event.date} · {event.start_time}</Text>
-                <Text style={styles.eventVenue}>{event.venue_name}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
-            </TouchableOpacity>
-          ))
-        )}
+        {/* ── Support & Legal ── */}
+        <View style={sty.sectionCard}>
+          <Text style={sty.sectionTitle}>{tr('Soporte')}</Text>
+          <SettingsRow icon="help-circle-outline" label={tr('Ayuda')} onPress={() => router.push('/ayuda' as any)} />
+          <SettingsRow icon="document-text-outline" label={tr('Términos de uso')} onPress={() => router.push('/terminos' as any)} />
+          <SettingsRow icon="shield-checkmark-outline" label={tr('Política de privacidad')} onPress={() => router.push('/privacidad' as any)} />
+        </View>
 
-        {/* Delete Account */}
-        <TouchableOpacity
-          style={styles.deleteAccountBtn}
-          onPress={() => {
-            Alert.alert(
-              tr('Eliminar cuenta'),
-              tr('¿Estás seguro? Esta acción eliminará tu cuenta y todos tus datos permanentemente. No se puede deshacer.'),
-              [
-                { text: tr('Cancelar'), style: 'cancel' },
-                {
-                  text: tr('Sí, eliminar'),
-                  style: 'destructive',
-                  onPress: async () => {
-                    try {
-                      await api.delete('/auth/delete-account');
-                      await logout();
-                      router.replace('/(tabs)');
-                    } catch (e) {
-                      console.error('[Perfil] delete account failed', e);
-                      Alert.alert(tr('Error'), tr('No se pudo eliminar la cuenta. Intenta de nuevo.'));
-                    }
+        {/* ── Account Actions ── */}
+        <View style={[sty.sectionCard, { marginBottom: 8 }]}>
+          <Text style={sty.sectionTitle}>{tr('Cuenta')}</Text>
+          <SettingsRow
+            icon="trash-outline"
+            label={tr('Eliminar mi cuenta')}
+            destructive
+            onPress={() => {
+              Alert.alert(
+                tr('Eliminar cuenta'),
+                tr('¿Estás seguro? Esta acción eliminará tu cuenta y todos tus datos permanentemente. No se puede deshacer.'),
+                [
+                  { text: tr('Cancelar'), style: 'cancel' },
+                  {
+                    text: tr('Sí, eliminar'),
+                    style: 'destructive',
+                    onPress: async () => {
+                      try {
+                        await api.delete('/auth/delete-account');
+                        await logout();
+                        router.replace('/(tabs)');
+                      } catch (e) {
+                        console.error('[Perfil] delete account failed', e);
+                        Alert.alert(tr('Error'), tr('No se pudo eliminar la cuenta. Intenta de nuevo.'));
+                      }
+                    },
                   },
-                },
-              ]
-            );
-          }}
-          activeOpacity={0.85}
-        >
-          <Ionicons name="trash-outline" size={16} color="#EF4444" />
-          <Text style={styles.deleteAccountText}>{tr('Eliminar mi cuenta')}</Text>
+                ]
+              );
+            }}
+          />
+        </View>
+
+        {/* ── Logout Button ── */}
+        <TouchableOpacity testID="logout-btn" style={sty.logoutBtn} onPress={logout} activeOpacity={0.85}>
+          <Ionicons name="log-out-outline" size={18} color="#EF4444" />
+          <Text style={sty.logoutText}>{tr('Cerrar sesión')}</Text>
         </TouchableOpacity>
 
-        {/* Logout */}
-        <TouchableOpacity testID="logout-btn" style={styles.logoutBtn} onPress={logout}>
-          <Ionicons name="log-out-outline" size={18} color={COLORS.error} />
-          <Text style={styles.logoutText}>{tr('Cerrar sesión')}</Text>
-        </TouchableOpacity>
-
-        <View style={{ height: SPACING.xxl }} />
+        <Text style={sty.versionText}>AMO Cartagena v2.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -778,4 +680,98 @@ const styles = StyleSheet.create({
   footerLink: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6, paddingHorizontal: 4 },
   footerLinkText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold },
   footerSep: { fontSize: 11, color: COLORS.textMuted },
+});
+
+// ── Clean profile styles (logged-in view) ──
+const sty = StyleSheet.create({
+  header: {
+    alignItems: 'center',
+    paddingTop: SPACING.lg,
+    paddingBottom: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
+  },
+  avatar: { width: 88, height: 88, borderRadius: 44, borderWidth: 2.5, borderColor: COLORS.primary },
+  avatarFallback: {
+    width: 88, height: 88, borderRadius: 44,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  avatarLetter: { fontSize: 36, color: COLORS.white, ...FONTS.bold },
+  name: { fontSize: 24, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.md },
+  email: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+  providerBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    marginTop: 8,
+    paddingHorizontal: 10, paddingVertical: 3,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.primary + '15',
+    borderWidth: 1, borderColor: COLORS.primary + '30',
+  },
+  providerText: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },
+  rewardsBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    marginTop: 8,
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: 14, paddingVertical: 5,
+    borderRadius: RADIUS.full,
+    borderWidth: 1, borderColor: COLORS.border,
+  },
+  rewardsTier: { fontSize: 13, color: COLORS.primary, ...FONTS.bold },
+  rewardsPoints: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
+
+  sectionCard: {
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  sectionTitle: {
+    fontSize: 12, color: COLORS.textMuted, ...FONTS.bold,
+    letterSpacing: 0.5, textTransform: 'uppercase',
+    marginBottom: SPACING.sm, paddingLeft: 4,
+  },
+
+  statsRow: { flexDirection: 'row', gap: SPACING.sm },
+  statBox: {
+    flex: 1, alignItems: 'center', gap: 4,
+    paddingVertical: SPACING.sm,
+    backgroundColor: COLORS.background,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1, borderColor: COLORS.border,
+  },
+  statNum: { fontSize: 20, color: COLORS.textMain, ...FONTS.bold },
+  statLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
+
+  settingsRow: {
+    flexDirection: 'row', alignItems: 'center', gap: SPACING.md,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  settingsIconWrap: {
+    width: 32, height: 32, borderRadius: 8,
+    backgroundColor: COLORS.primary + '12',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  settingsLabel: { flex: 1, fontSize: 14, color: COLORS.textMain, ...FONTS.medium },
+
+  logoutBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: SPACING.sm,
+    marginHorizontal: SPACING.lg,
+    marginTop: SPACING.sm,
+    paddingVertical: 14,
+    backgroundColor: 'rgba(239,68,68,0.08)',
+    borderRadius: RADIUS.lg,
+    borderWidth: 1, borderColor: 'rgba(239,68,68,0.2)',
+  },
+  logoutText: { fontSize: 15, color: '#EF4444', ...FONTS.semibold },
+
+  versionText: {
+    textAlign: 'center', fontSize: 11, color: COLORS.textMuted + '60',
+    ...FONTS.regular, marginTop: SPACING.md, marginBottom: SPACING.lg,
+  },
 });
