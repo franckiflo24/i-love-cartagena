@@ -86,9 +86,9 @@ AGENT_PROMPTS = {
 # Category filters per agent — so each only sees relevant partners
 AGENT_CATEGORIES = {
     "luna": ["club", "beach_club", "bar"],
-    "mare": ["restaurant"],
+    "mare": ["restaurant", "cafe"],
     "tino": None,  # sees everything (deals/passes are cross-category)
-    "ciro": ["beach_club", "restaurant", "hotel", "wellness", "club"],
+    "ciro": ["beach_club", "restaurant", "hotel", "spa", "wellness", "cafe", "club", "activity"],
 }
 
 
