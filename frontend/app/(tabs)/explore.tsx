@@ -110,7 +110,6 @@ const CATEGORIES: CategoryItem[] = [
   { key: 'beauty',     label: 'Belleza',     icon: 'cut',              apiValue: 'beauty' },
   { key: 'activities', label: 'Experiencias',icon: 'compass',          apiValue: 'activity' },
   { key: 'hotels',     label: 'Hoteles',     icon: 'bed',              apiValue: 'hotel' },
-  { key: 'daypass',    label: 'Day Pass',    icon: 'sunny-outline',    apiValue: 'daypass' },
 ];
 
 // ── Sub-categories per main category ──────────────────────────────────────────
