@@ -528,43 +528,51 @@ export default function ExploreScreen() {
     setSelectedSubcategory(null);
   }, []);
 
+  const sortPartners = useCallback((list: Partner[], category: CategoryItem) => {
+    const filtered = category.apiValue
+      ? list.filter(p => p.category === category.apiValue)
+      : list;
+    const tierOrder: Record<string, number> = { elite: 0, premium: 1, popular: 2, standard: 3 };
+    filtered.sort((a, b) => {
+      const ta = tierOrder[(a as any).tier] ?? 3;
+      const tb = tierOrder[(b as any).tier] ?? 3;
+      if (ta !== tb) return ta - tb;
+      return ((b as any).rating || 0) - ((a as any).rating || 0);
+    });
+    return filtered;
+  }, []);
+
   const loadFeatured = useCallback(async () => {
-    try {
-      const data = await api.get('/experiences/featured');
-      setFeatured(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error('[ExploreScreen] featured', e);
-      setFeatured([]);
-    } finally {
-      setLoadingFeatured(false);
-    }
+    // Static-first (non-blocking)
+    fetch('/data/experiences/featured.json').then(r => r.ok ? r.json() : [])
+      .then(sf => { if (Array.isArray(sf) && sf.length > 0) { setFeatured(sf); setLoadingFeatured(false); } })
+      .catch(() => {});
+    // Hydrate from backend (non-blocking)
+    api.get('/experiences/featured')
+      .then(data => { if (Array.isArray(data) && data.length > 0) setFeatured(data); })
+      .catch(() => {})
+      .finally(() => setLoadingFeatured(false));
   }, []);
 
   const loadPartners = useCallback(async (category: CategoryItem) => {
     setLoadingPartners(true);
-    try {
-      // Always fetch full set; filter client-side so static + live both work.
-      const data = await api.get('/partners');
-      const all: Partner[] = Array.isArray(data) ? data : [];
-      const filtered = category.apiValue
-        ? all.filter(p => p.category === category.apiValue)
-        : all;
-      // Sort: elite first, then premium, then by rating descending
-      const tierOrder: Record<string, number> = { elite: 0, premium: 1, popular: 2, standard: 3 };
-      filtered.sort((a, b) => {
-        const ta = tierOrder[(a as any).tier] ?? 3;
-        const tb = tierOrder[(b as any).tier] ?? 3;
-        if (ta !== tb) return ta - tb;
-        return ((b as any).rating || 0) - ((a as any).rating || 0);
-      });
-      setAllCategoryPartners(filtered);
-    } catch (e) {
-      console.error('[ExploreScreen] partners', e);
-      setAllCategoryPartners([]);
-    } finally {
-      setLoadingPartners(false);
-    }
-  }, []);
+    // Static-first (non-blocking)
+    fetch('/data/partners.json').then(r => r.ok ? r.json() : [])
+      .then(sf => {
+        if (Array.isArray(sf) && sf.length > 0) {
+          setAllCategoryPartners(sortPartners(sf, category));
+          setLoadingPartners(false);
+        }
+      }).catch(() => {});
+    // Hydrate from backend (non-blocking)
+    api.get('/partners')
+      .then(data => {
+        const all: Partner[] = Array.isArray(data) ? data : [];
+        if (all.length > 0) setAllCategoryPartners(sortPartners(all, category));
+      })
+      .catch(e => console.error('[ExploreScreen] partners', e))
+      .finally(() => setLoadingPartners(false));
+  }, [sortPartners]);
 
   const loadNeighborhoods = useCallback(async () => {
     try {

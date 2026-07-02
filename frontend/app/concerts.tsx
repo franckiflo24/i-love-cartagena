@@ -89,20 +89,34 @@ export default function ConcertsScreen() {
   const [payConcert, setPayConcert] = useState<Concert | null>(null);
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const [d, c, g] = await Promise.all([
-          api.get('/concerts/dates'),
-          api.get('/concerts'),
-          api.get('/concerts/genres'),
-        ]);
-        setDates(d);
-        setConcerts(c);
-        setGenres(g);
-      } catch (e) { console.error(e); }
+    // Static-first: paint from /data/*.json, then hydrate from backend in background
+    const staticFetch = (file: string) =>
+      fetch(`/data/${file}.json`).then(r => r.ok ? r.json() : []).catch(() => []);
+
+    // 1. Instant paint from static data
+    Promise.all([
+      staticFetch('concerts/dates'),
+      staticFetch('concerts'),
+      staticFetch('concerts/genres'),
+    ]).then(([sd, sc, sg]) => {
+      if (Array.isArray(sc) && sc.length > 0) {
+        setDates(Array.isArray(sd) ? sd : []);
+        setConcerts(sc);
+        setGenres(Array.isArray(sg) ? sg : []);
+      }
       setLoading(false);
-    };
-    load();
+    }).catch(() => setLoading(false));
+
+    // 2. Hydrate from backend (non-blocking — does NOT hold up first paint)
+    Promise.all([
+      api.get('/concerts/dates').catch(() => []),
+      api.get('/concerts').catch(() => []),
+      api.get('/concerts/genres').catch(() => []),
+    ]).then(([d, c, g]) => {
+      if (Array.isArray(c) && c.length > 0) {
+        setDates(d); setConcerts(c); setGenres(g);
+      }
+    }).catch(() => {});
   }, []);
 
   const todayStr = new Date().toISOString().slice(0, 10);

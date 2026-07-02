@@ -337,64 +337,76 @@ export default function MapaScreen() {
   };
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const [venues, partners, concerts] = await Promise.all([
-          api.get('/venues'),
-          api.get('/partners'),
-          api.get('/concerts'),
-        ]);
+    const buildPlaces = (venues: any[], partners: any[], concerts: any[]): Place[] => {
+      const allPlaces: Place[] = [];
+      const seenNames = new Set<string>();
 
-        const allPlaces: Place[] = [];
-        const seenNames = new Set<string>();
+      venues.forEach((v: any) => {
+        seenNames.add(v.name.toLowerCase());
+        allPlaces.push({
+          id: v.venue_id, name: v.name, description: v.description,
+          category: 'venue', type: v.type, address: v.address,
+          lat: v.location?.lat || 0, lng: v.location?.lng || 0,
+          image_url: v.images?.[0] || '', price: v.price_range || '',
+          link: v.booking_link || '', extra: '',
+        });
+      });
 
-        venues.forEach((v: any) => {
-          seenNames.add(v.name.toLowerCase());
+      const venueLocs: Record<string, { lat: number; lng: number }> = {};
+      venues.forEach((v: any) => { venueLocs[v.venue_id] = v.location; });
+
+      partners.forEach((p: any) => {
+        if (!seenNames.has(p.name.toLowerCase()) && p.location) {
           allPlaces.push({
-            id: v.venue_id, name: v.name, description: v.description,
-            category: 'venue', type: v.type, address: v.address,
-            lat: v.location?.lat || 0, lng: v.location?.lng || 0,
-            image_url: v.images?.[0] || '', price: v.price_range || '',
-            link: v.booking_link || '', extra: '',
+            id: p.partner_id, name: p.name, description: p.description,
+            category: 'partner', type: p.category || 'partner', address: p.address,
+            lat: p.location?.lat || 0, lng: p.location?.lng || 0,
+            image_url: p.image_url || '', price: p.price_range || '',
+            link: p.booking_link || '', extra: p.experience || '',
           });
-        });
+        }
+      });
 
-        const venueLocs: Record<string, { lat: number; lng: number }> = {};
-        venues.forEach((v: any) => { venueLocs[v.venue_id] = v.location; });
+      concerts.forEach((c: any) => {
+        const loc = venueLocs[c.venue_id];
+        if (loc) {
+          const offset = (Math.random() - 0.5) * 0.002;
+          allPlaces.push({
+            id: c.concert_id, name: c.artist, description: c.title,
+            category: 'concert', type: 'concert', address: c.venue_name,
+            lat: loc.lat + offset, lng: loc.lng + offset,
+            image_url: c.image_url || '',
+            price: c.is_free ? 'GRATIS' : `$${(c.price / 1000).toFixed(0)}K COP`,
+            link: c.ticket_link || '', extra: `${c.genre} · ${c.start_time}`,
+          });
+        }
+      });
 
-        partners.forEach((p: any) => {
-          if (!seenNames.has(p.name.toLowerCase()) && p.location) {
-            allPlaces.push({
-              id: p.partner_id, name: p.name, description: p.description,
-              category: 'partner', type: p.category || 'partner', address: p.address,
-              lat: p.location?.lat || 0, lng: p.location?.lng || 0,
-              image_url: p.image_url || '', price: p.price_range || '',
-              link: p.booking_link || '', extra: p.experience || '',
-            });
-          }
-        });
-
-        concerts.forEach((c: any) => {
-          const loc = venueLocs[c.venue_id];
-          if (loc) {
-            const offset = (Math.random() - 0.5) * 0.002;
-            allPlaces.push({
-              id: c.concert_id, name: c.artist, description: c.title,
-              category: 'concert', type: 'concert', address: c.venue_name,
-              lat: loc.lat + offset, lng: loc.lng + offset,
-              image_url: c.image_url || '', 
-              price: c.is_free ? 'GRATIS' : `$${(c.price / 1000).toFixed(0)}K COP`,
-              link: c.ticket_link || '', extra: `${c.genre} · ${c.start_time}`,
-            });
-          }
-        });
-
-        setPlaces(allPlaces.filter(p => p.lat !== 0));
-      } catch (e) { console.error(e); }
-      setLoading(false);
+      return allPlaces.filter(p => p.lat !== 0);
     };
-    load();
-    // Auto-request location on mount (gives best UX)
+
+    const staticFetch = (file: string) =>
+      fetch(`/data/${file}.json`).then(r => r.ok ? r.json() : []).catch(() => []);
+
+    // Static-first (non-blocking)
+    Promise.all([staticFetch('venues'), staticFetch('partners'), staticFetch('concerts')])
+      .then(([sv, sp, sc]) => {
+        if (Array.isArray(sp) && sp.length > 0) {
+          setPlaces(buildPlaces(sv, sp, sc));
+        }
+        setLoading(false);
+      }).catch(() => setLoading(false));
+
+    // Hydrate from backend (non-blocking)
+    Promise.all([
+      api.get('/venues').catch(() => []),
+      api.get('/partners').catch(() => []),
+      api.get('/concerts').catch(() => []),
+    ]).then(([venues, partners, concerts]) => {
+      if (Array.isArray(partners) && partners.length > 0) {
+        setPlaces(buildPlaces(venues, partners, concerts));
+      }
+    }).catch(() => {});
     requestLocation();
   }, []);
 

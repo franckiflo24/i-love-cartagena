@@ -253,37 +253,35 @@ export default function RewardsHub() {
   const { s } = useLang();
   const router = useRouter();
   const [data, setData] = useState<RewardsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Show default Explorer card immediately — no skeleton wait
   useEffect(() => {
-    const load = async () => {
+    if (!data) {
+      setData({
+        tier: 'explorer',
+        tier_label: 'Explorer',
+        points_balance: 0,
+        points_to_next: 500,
+        next_tier: 'voyager',
+        progress_pct: 0,
+        account: { member_since: new Date().toISOString() },
+        recent_history: [],
+        offers: [],
+      } as any);
+    }
+    // Hydrate from backend in background
+    (async () => {
       try {
         const result = await api.get('/rewards/me');
-        // Static mode returns [] — detect and use defaults instead
-        if (!result || Array.isArray(result) || !result.tier) {
-          throw new Error('invalid rewards data');
+        if (result && !Array.isArray(result) && result.tier) {
+          setData(result);
         }
-        setData(result);
       } catch {
-        // 401 or network — stub Explorer card, single call, no retry
-        console.warn('[RewardsHub] /rewards/me unavailable — showing defaults');
-        setData({
-          tier: 'explorer',
-          tier_label: 'Explorer',
-          points_balance: 0,
-          points_to_next: 500,
-          next_tier: 'voyager',
-          progress_pct: 0,
-          account: { member_since: new Date().toISOString() },
-          recent_history: [],
-          offers: [],
-        } as any);
-      } finally {
-        setLoading(false);
+        // 401 or network — keep default Explorer card
       }
-    };
-    load();
+    })();
   }, []);
 
   if (loading) {

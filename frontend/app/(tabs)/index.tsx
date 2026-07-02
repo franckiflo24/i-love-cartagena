@@ -162,22 +162,21 @@ export default function HomeScreen() {
         return evts;
       };
 
-      const evts = applyData(staticSeasons, staticEvents, staticSponsors, staticPE, staticPromos);
+      applyData(staticSeasons, staticEvents, staticSponsors, staticPE, staticPromos);
       setLoading(false); // Exit skeleton immediately
 
-      // 2. Hydrate from backend in background (may take 1-8s on cold start)
-      const [s, f, sp, pe, promos] = await Promise.all([
+      // 2. Hydrate from backend in background (non-blocking — does NOT hold up first paint)
+      Promise.all([
         api.get('/seasons?active=true').catch(() => []),
         getUpcomingEvents().catch(() => []),
         api.get('/sponsors').catch(() => []),
         api.get(`/partner-events?date=${today}`).catch(() => []),
         api.get('/promotions/today').catch(() => []),
-      ]);
-      // Only overwrite if backend returned data
-      const hasBackendData = Array.isArray(s) && s.length > 0;
-      if (hasBackendData) {
-        applyData(s, f, sp, pe, promos);
-      }
+      ]).then(([s, f, sp, pe, promos]) => {
+        if (Array.isArray(s) && s.length > 0) {
+          applyData(s, f, sp, pe, promos);
+        }
+      }).catch(() => {});
       // Get partner count for hero
       api.get('/partners').then((p: any) => {
         if (Array.isArray(p) && p.length > 0) setPartnerCount(p.length);
