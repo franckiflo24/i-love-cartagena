@@ -24,7 +24,7 @@ type Event = {
 export default function PerfilScreen() {
   const tr = useTr();
   const router = useRouter();
-  const { user, login, logout } = useAuth();
+  const { user, login, logout, authError, clearAuthError } = useAuth();
   const { lang, setLang, s } = useLang();
   const { favorites: favIds } = useFavorites();
   const rewards = useRewards();
@@ -138,11 +138,22 @@ export default function PerfilScreen() {
             <Text style={styles.guestSubtitle}>{tr('Inicia sesión para guardar favoritos, recibir recomendaciones IA y acceder a tu City Pass.')}</Text>
           </View>
 
+          {/* Auth error from Google redirect */}
+          {authError ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(239,68,68,0.12)', borderRadius: RADIUS.md, paddingVertical: 10, paddingHorizontal: 14, marginBottom: SPACING.sm, borderWidth: 1, borderColor: 'rgba(239,68,68,0.25)' }}>
+              <Ionicons name="alert-circle" size={16} color="#EF4444" />
+              <Text style={{ flex: 1, fontSize: 13, color: '#FCA5A5', lineHeight: 18 }}>{authError}</Text>
+              <TouchableOpacity onPress={clearAuthError} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Ionicons name="close" size={16} color="#FCA5A5" />
+              </TouchableOpacity>
+            </View>
+          ) : null}
+
           {/* PRIMARY: Continue with Google */}
           <TouchableOpacity
             testID="profile-login-google"
             style={styles.googleButton}
-            onPress={login}
+            onPress={() => { clearAuthError(); login(); }}
             activeOpacity={0.85}
           >
             <Ionicons name="logo-google" size={20} color={COLORS.white} />
@@ -160,12 +171,13 @@ export default function PerfilScreen() {
           <View style={styles.otherMethodsCol}>
             <TouchableOpacity
               testID="profile-login-whatsapp"
-              style={[styles.methodBtn, styles.whatsappBtn]}
-              onPress={() => router.push('/login')}
+              style={[styles.methodBtn, styles.whatsappBtn, { opacity: 0.35 }]}
+              disabled={true}
               activeOpacity={0.85}
             >
               <Ionicons name="logo-whatsapp" size={20} color={COLORS.white} />
               <Text style={styles.methodBtnText}>{s('login_whatsapp')}</Text>
+              <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', marginLeft: 4 }}>Próximamente</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

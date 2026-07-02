@@ -123,46 +123,65 @@ export default function HomeScreen() {
   const fetchData = async () => {
     try {
       const today = todayIso();
+      // Static-first: paint from /data/*.json instantly, then hydrate from backend
+      const staticFetch = (file: string) =>
+        fetch(`/data/${file}.json`).then(r => r.ok ? r.json() : []).catch(() => []);
+
+      // 1. Instant paint from static data (< 1s)
+      const [staticSeasons, staticEvents, staticSponsors, staticPE, staticPromos] = await Promise.all([
+        staticFetch('seasons'),
+        getUpcomingEvents().catch(() => []),
+        staticFetch('sponsors'),
+        staticFetch('partner-events'),
+        staticFetch('promotions/today'),
+      ]);
+
+      // Apply static data immediately — exits skeleton state
+      const applyData = (s: any[], f: any[], sp: any[], pe: any[], promos: any[]) => {
+        setSeasons(Array.isArray(s) ? s : []);
+        const evts = (Array.isArray(f) ? f : []).map((e: any) => ({
+          ...e,
+          event_id: e.slug || e.id || e.event_id,
+          title: e.name_es || e.title || '',
+          date: e.date_start || e.date || '',
+          type: e.category || e.type || '',
+          start_time: e.time_start || e.start_time || '',
+          venue_name: e.venue || e.venue_name || '',
+          price: e.price_min_cop || e.price || 0,
+        }));
+        setFeatured(evts);
+        setSponsors(Array.isArray(sp) ? sp : []);
+        setTodayPEvents(Array.isArray(pe) ? pe : []);
+        setPromotions(Array.isArray(promos) ? promos : []);
+        const todayFiltered = evts.filter((e: any) => {
+          const start = e.date_start || e.date || '';
+          const end = e.date_end || start;
+          return start <= today && end >= today;
+        });
+        setTodayEvents(todayFiltered.length === 0 ? evts.slice(0, 8) : todayFiltered);
+        return evts;
+      };
+
+      const evts = applyData(staticSeasons, staticEvents, staticSponsors, staticPE, staticPromos);
+      setLoading(false); // Exit skeleton immediately
+
+      // 2. Hydrate from backend in background (may take 1-8s on cold start)
       const [s, f, sp, pe, promos] = await Promise.all([
-        api.get('/seasons?active=true'),
+        api.get('/seasons?active=true').catch(() => []),
         getUpcomingEvents().catch(() => []),
         api.get('/sponsors').catch(() => []),
         api.get(`/partner-events?date=${today}`).catch(() => []),
         api.get('/promotions/today').catch(() => []),
       ]);
-      setSeasons(Array.isArray(s) ? s : []);
-      // Map EventRecord fields to what the render expects
-      const evts = (Array.isArray(f) ? f : []).map((e: any) => ({
-        ...e,
-        event_id: e.slug || e.id || e.event_id,
-        title: e.name_es || e.title || '',
-        date: e.date_start || e.date || '',
-        type: e.category || e.type || '',
-        start_time: e.time_start || e.start_time || '',
-        venue_name: e.venue || e.venue_name || '',
-        price: e.price_min_cop || e.price || 0,
-      }));
-      setFeatured(evts);
-      setSponsors(Array.isArray(sp) ? sp : []);
-      setTodayPEvents(Array.isArray(pe) ? pe : []);
-      setPromotions(Array.isArray(promos) ? promos : []);
+      // Only overwrite if backend returned data
+      const hasBackendData = Array.isArray(s) && s.length > 0;
+      if (hasBackendData) {
+        applyData(s, f, sp, pe, promos);
+      }
       // Get partner count for hero
       api.get('/partners').then((p: any) => {
         if (Array.isArray(p) && p.length > 0) setPartnerCount(p.length);
       }).catch(() => {});
-      // Get events for today from the already-loaded upcoming events
-      // Filter: events whose date range spans today
-      const todayFiltered = evts.filter((e: any) => {
-        const start = e.date_start || e.date || '';
-        const end = e.date_end || start;
-        return start <= today && end >= today;
-      });
-      // If nothing specifically today, show the next few upcoming as highlights
-      if (todayFiltered.length === 0) {
-        setTodayEvents(evts.slice(0, 8));
-      } else {
-        setTodayEvents(todayFiltered);
-      }
       // Personalized recommendations: use AI profile to filter partners
       if (user) {
         try {

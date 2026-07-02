@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Platform } from 'react-native';
 import { AuthProvider } from '../src/context/AuthContext';
 import { FavoritesProvider } from '../src/context/FavoritesContext';
 import { LanguageProvider } from '../src/context/LanguageContext';
@@ -9,7 +11,16 @@ import { RewardsProvider } from '../src/context/RewardsContext';
 import PushBootstrap from '../src/components/PushBootstrap';
 import ErrorBoundary from '../src/components/ErrorBoundary';
 
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
 export default function RootLayout() {
+  // Keep-warm: ping backend on app open so serverless cold-start
+  // happens while splash/onboarding shows, not when data is needed
+  useEffect(() => {
+    if (Platform.OS === 'web' && BACKEND_URL) {
+      fetch(`${BACKEND_URL}/api/health`).catch(() => {});
+    }
+  }, []);
   return (
     <ErrorBoundary>
     <AuthProvider>

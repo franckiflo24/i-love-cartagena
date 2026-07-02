@@ -310,7 +310,7 @@ export const api = {
       }
       return res.json();
     } catch (err) {
-      // Network failure (backend down) → try static fallback
+      // Network failure / timeout (backend down) → try static fallback
       const fallback = await tryStatic(path);
       if (fallback !== null) return fallback;
       throw err;

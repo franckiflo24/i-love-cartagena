@@ -17,7 +17,7 @@ import { Lang, LANG_FLAGS } from '../src/i18n/translations';
 const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
 
 export default function LoginScreen() {
-  const { user, isLoading, login, loginWithToken } = useAuth();
+  const { user, isLoading, login, loginWithToken, authError, clearAuthError } = useAuth();
   const router = useRouter();
   const { s, lang, setLang } = useLang();
   const { next } = useLocalSearchParams<{ next?: string }>();
@@ -258,7 +258,7 @@ export default function LoginScreen() {
           <TouchableOpacity
             testID="login-google-btn"
             style={[styles.googleButton, !termsAccepted && styles.btnDisabled]}
-            onPress={termsAccepted ? login : undefined}
+            onPress={termsAccepted ? () => { clearAuthError(); login(); } : undefined}
             disabled={!termsAccepted}
             activeOpacity={0.85}
           >
@@ -276,13 +276,13 @@ export default function LoginScreen() {
           {/* SECONDARY: Other methods - stacked for clarity */}
           <View style={styles.otherMethodsCol}>
             <TouchableOpacity
-              style={[styles.methodBtn, styles.whatsappBtn, !termsAccepted && styles.btnDisabled]}
-              onPress={termsAccepted ? () => setShowWhatsapp(true) : undefined}
-              disabled={!termsAccepted}
+              style={[styles.methodBtn, styles.whatsappBtn, styles.btnDisabled]}
+              disabled={true}
               activeOpacity={0.85}
             >
               <Ionicons name="logo-whatsapp" size={20} color={COLORS.white} />
               <Text style={styles.methodBtnText}>{s('login_whatsapp')}</Text>
+              <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', marginLeft: 4 }}>Próximamente</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -326,10 +326,10 @@ export default function LoginScreen() {
           </TouchableOpacity>
 
           {/* Login error display */}
-          {loginError ? (
+          {(loginError || authError) ? (
             <View style={styles.errorRow}>
               <Ionicons name="alert-circle" size={16} color="#EF4444" />
-              <Text style={styles.errorText}>{loginError}</Text>
+              <Text style={styles.errorText}>{loginError || authError}</Text>
             </View>
           ) : null}
         </View>

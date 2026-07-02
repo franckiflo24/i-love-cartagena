@@ -6,6 +6,7 @@ import { Platform } from 'react-native';
 const saveToken = async (token: string) => {
   if (Platform.OS === 'web') {
     await AsyncStorage.setItem('session_token', token);
+    try { sessionStorage.setItem('session_token', token); } catch {}
   } else {
     await SecureStore.setItemAsync('session_token', token);
   }
@@ -13,7 +14,16 @@ const saveToken = async (token: string) => {
 
 const getToken = async (): Promise<string | null> => {
   if (Platform.OS === 'web') {
-    return AsyncStorage.getItem('session_token');
+    const token = await AsyncStorage.getItem('session_token');
+    if (token) return token;
+    try {
+      const ss = sessionStorage.getItem('session_token');
+      if (ss) {
+        await AsyncStorage.setItem('session_token', ss);
+        return ss;
+      }
+    } catch {}
+    return null;
   }
   return SecureStore.getItemAsync('session_token');
 };
@@ -21,6 +31,7 @@ const getToken = async (): Promise<string | null> => {
 const removeToken = async () => {
   if (Platform.OS === 'web') {
     await AsyncStorage.removeItem('session_token');
+    try { sessionStorage.removeItem('session_token'); } catch {}
   } else {
     await SecureStore.deleteItemAsync('session_token');
   }
@@ -42,44 +53,68 @@ type User = {
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
+  authError: string | null;
   login: () => Promise<void>;
   loginWithToken: (sessionToken: string, userData: User) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  clearAuthError: () => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
+  authError: null,
   login: async () => {},
   loginWithToken: async () => {},
   logout: async () => {},
   checkAuth: async () => {},
+  clearAuthError: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
 
-// ── Google OAuth helpers ──────────────────────────────────────
-// Capture id_token from hash AT MODULE LOAD TIME — before React renders.
-// This prevents race conditions where a <Redirect/> could change the URL
-// before the AuthProvider's useEffect runs.
-let _capturedGoogleIdToken: string | null = null;
+// ── Google OAuth: capture id_token from hash ─────────────────
+// Runs at MODULE LOAD TIME (before React renders).
+//
+// KEY: persist the token to sessionStorage SYNCHRONOUSLY so it survives
+// React tree remounts caused by Expo Router's <Redirect /> from / to /(tabs).
+// Without this, the redirect unmounts AuthProvider mid-exchange, the module
+// variable is already consumed (null), and the new AuthProvider instance
+// falls through to checkAuth which finds no session yet → user appears
+// logged out. On the SECOND login the session from attempt #1 exists in
+// localStorage and checkAuth picks it up — hence "login twice" bug.
+const SS_TOKEN_KEY = '__google_id_token_pending';
+
 if (typeof window !== 'undefined' && Platform.OS === 'web') {
   const hash = window.location.hash;
+  const fullUrl = window.location.href;
+
+  let idToken: string | null = null;
+
   if (hash && hash.includes('id_token=')) {
     const params = new URLSearchParams(hash.substring(1));
-    _capturedGoogleIdToken = params.get('id_token');
-    if (_capturedGoogleIdToken) {
-      // Clean the hash immediately so it doesn't persist in the URL
-      window.history.replaceState(null, '', window.location.pathname);
+    idToken = params.get('id_token');
+  } else if (fullUrl.includes('#id_token=')) {
+    const hashIdx = fullUrl.indexOf('#');
+    if (hashIdx >= 0) {
+      const params = new URLSearchParams(fullUrl.substring(hashIdx + 1));
+      idToken = params.get('id_token');
     }
   }
+
+  if (idToken) {
+    // Persist to sessionStorage SYNCHRONOUSLY — survives React remounts
+    try { sessionStorage.setItem(SS_TOKEN_KEY, idToken); } catch {}
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+
   // Check for Google OAuth error in hash (e.g. #error=access_denied)
   if (hash && hash.includes('error=')) {
     const params = new URLSearchParams(hash.substring(1));
     const err = params.get('error');
     const desc = params.get('error_description');
-    console.error('[AuthContext] Google OAuth error:', err, desc);
+    try { sessionStorage.setItem('__google_auth_error', desc || err || 'Unknown OAuth error'); } catch {}
     window.history.replaceState(null, '', window.location.pathname);
   }
 }
@@ -103,13 +138,15 @@ function buildGoogleAuthUrl(): string {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
-  // Called by login.tsx after a successful email/WhatsApp/Google login
-  // Sets the user in context immediately — no network round-trip needed
+  const clearAuthError = useCallback(() => setAuthError(null), []);
+
   const loginWithToken = useCallback(async (sessionToken: string, userData: User) => {
     await saveToken(sessionToken);
     await AsyncStorage.setItem('user_data', JSON.stringify(userData));
     setUser(userData);
+    setAuthError(null);
     setIsLoading(false);
   }, []);
 
@@ -121,16 +158,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         body: JSON.stringify({ id_token: idToken }),
       });
       if (!res.ok) {
-        console.error('[AuthContext] Google auth failed:', res.status);
+        const detail = await res.json().catch(() => ({}));
+        const msg = detail?.detail || `Error ${res.status}`;
+        console.error('[AuthContext] Google auth failed:', res.status, msg);
+        setAuthError(`Login con Google falló: ${msg}`);
         return null;
       }
       const data = await res.json();
       if (data.session_token && data.user) {
         await loginWithToken(data.session_token, data.user);
+        await AsyncStorage.removeItem('google_auth_pending');
+        return data;
       }
-      return data;
-    } catch (e) {
+      setAuthError('Respuesta inesperada del servidor');
+      return null;
+    } catch (e: any) {
+      const msg = e?.message || 'Error de conexión';
       console.error('[AuthContext] Google token exchange error:', e);
+      setAuthError(`Login con Google falló: ${msg}`);
       return null;
     }
   }, [loginWithToken]);
@@ -179,14 +224,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const init = async () => {
-      // Use the module-level captured token (grabbed before React rendered)
-      if (Platform.OS === 'web' && _capturedGoogleIdToken) {
-        const idToken = _capturedGoogleIdToken;
-        _capturedGoogleIdToken = null; // consume it
-        await exchangeGoogleToken(idToken);
+      // Read from sessionStorage — survives React remounts from Expo Router redirects
+      let pendingIdToken: string | null = null;
+      let pendingError: string | null = null;
+      if (Platform.OS === 'web') {
+        try {
+          pendingIdToken = sessionStorage.getItem(SS_TOKEN_KEY);
+          pendingError = sessionStorage.getItem('__google_auth_error');
+        } catch {}
+      }
+
+      // Surface OAuth error
+      if (pendingError) {
+        try { sessionStorage.removeItem('__google_auth_error'); } catch {}
+        setAuthError(pendingError);
+        await AsyncStorage.removeItem('google_auth_pending');
+        await checkAuth();
+        return;
+      }
+
+      // Exchange Google id_token
+      if (pendingIdToken) {
+        // Consume it — only the first AuthProvider instance to reach here will exchange
+        try { sessionStorage.removeItem(SS_TOKEN_KEY); } catch {}
+        await exchangeGoogleToken(pendingIdToken);
+        await AsyncStorage.removeItem('google_auth_pending');
         setIsLoading(false);
         return;
       }
+
+      // Detect failed Google redirect (hash was stripped)
+      if (Platform.OS === 'web') {
+        const pending = await AsyncStorage.getItem('google_auth_pending');
+        if (pending) {
+          await AsyncStorage.removeItem('google_auth_pending');
+          setAuthError('Login con Google no completó. Intenta de nuevo o usa email/WhatsApp.');
+        }
+      }
+
       await checkAuth();
     };
     init();
@@ -194,6 +269,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(async () => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      await AsyncStorage.setItem('google_auth_pending', 'true');
+      setAuthError(null);
       window.location.href = buildGoogleAuthUrl();
     }
   }, []);
@@ -204,7 +281,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await fetch(`${BACKEND_URL}/api/auth/logout`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token || ''}` },
-      });
+      }).catch(() => {});
     } catch (e) { console.error('[AuthContext] logout failed', e); }
     await removeToken();
     await AsyncStorage.removeItem('user_data');
@@ -212,7 +289,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, loginWithToken, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, isLoading, authError, login, loginWithToken, logout, checkAuth, clearAuthError }}>
       {children}
     </AuthContext.Provider>
   );

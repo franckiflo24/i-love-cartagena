@@ -70,6 +70,12 @@ class GoogleAuthBody(BaseModel):
 
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 
+# ── Health (keep-warm target) ─────────────────────────────
+
+@api_router.get("/health")
+async def health():
+    return {"status": "ok"}
+
 # ── Auth Endpoints ──────────────────────────────────────────
 
 @api_router.post("/auth/google")
