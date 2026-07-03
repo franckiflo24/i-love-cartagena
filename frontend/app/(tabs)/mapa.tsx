@@ -388,13 +388,25 @@ export default function MapaScreen() {
     const staticFetch = (file: string) =>
       fetch(`/data/${file}.json`).then(r => r.ok ? r.json() : []).catch(() => []);
 
-    // Static-first (non-blocking)
-    Promise.all([staticFetch('venues'), staticFetch('partners'), staticFetch('concerts')])
-      .then(([sv, sp, sc]) => {
-        if (Array.isArray(sp) && sp.length > 0) {
-          setPlaces(buildPlaces(sv, sp, sc));
-        }
+    // Static-first: paint partner markers immediately (fastest file),
+    // then add venues + concerts as they arrive
+    staticFetch('partners').then(sp => {
+      if (Array.isArray(sp) && sp.length > 0) {
+        setPlaces(buildPlaces([], sp, []));
         setLoading(false);
+      }
+    }).catch(() => {});
+
+    // Venues + concerts arrive slightly later — merge in
+    Promise.all([staticFetch('venues'), staticFetch('concerts')])
+      .then(([sv, sc]) => {
+        // Re-read current partners from the already-set state via a fresh fetch
+        staticFetch('partners').then(sp => {
+          if (Array.isArray(sp) && sp.length > 0) {
+            setPlaces(buildPlaces(sv, sp, sc));
+          }
+          setLoading(false);
+        });
       }).catch(() => setLoading(false));
 
     // Hydrate from backend (non-blocking)
