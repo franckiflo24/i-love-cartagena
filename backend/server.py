@@ -208,15 +208,11 @@ DEMO_LOGIN_ALLOWED_PROVIDERS = {"email_local", "whatsapp_local", "guest"}
 @api_router.post("/auth/demo-login")
 async def demo_login(body: DemoLoginBody, response: Response):
     """Create a real user + session for demo/local signups.
-    Returns a valid session_token the frontend can store and send.
-
-    Security model:
-      * If DEMO_SIGNUP_CODE env var is set, the client must pass a matching
-        signup_code. Dev environments leave it unset (open).
-      * Will refuse to log into an existing account whose provider is a
-        real-auth provider (google/apple/password) — prevents takeover.
-      * provider must be one of DEMO_LOGIN_ALLOWED_PROVIDERS.
+    Gated by DEMO_LOGIN_ENABLED env var — absent/false in production → 404.
     """
+    if os.environ.get("DEMO_LOGIN_ENABLED", "").strip().lower() not in ("1", "true", "yes"):
+        raise HTTPException(404, "Not Found")
+
     email = body.email.strip().lower()
     if not email:
         raise HTTPException(400, "email required")
