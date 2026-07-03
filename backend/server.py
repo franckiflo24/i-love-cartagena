@@ -61,6 +61,7 @@ class UserOut(BaseModel):
     picture: Optional[str] = None
     provider: Optional[str] = None
     phone: Optional[str] = None
+    onboarding_completed: Optional[bool] = None
 
 class SessionExchange(BaseModel):
     session_id: str

@@ -13,6 +13,7 @@ import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
 import { SkeletonList } from '../../src/components/Skeleton';
 import { getUpcomingEvents } from '../../src/lib/data';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
@@ -101,7 +102,19 @@ export default function HomeScreen() {
   const [unreadNotifs, setUnreadNotifs] = useState<number>(0);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [partnerCount, setPartnerCount] = useState(716);
+  const [showGuestBanner, setShowGuestBanner] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+
+  // Guest personalization banner — show on 2nd visit, dismissible
+  useEffect(() => {
+    if (user) return;
+    (async () => {
+      const visits = parseInt(await AsyncStorage.getItem('@home_visits') || '0', 10);
+      await AsyncStorage.setItem('@home_visits', String(visits + 1));
+      const dismissed = await AsyncStorage.getItem('@guest_banner_dismissed');
+      if (visits >= 1 && !dismissed) setShowGuestBanner(true);
+    })();
+  }, [user]);
 
   // Check unread notifications once on focus (no polling — eliminates 401 spam)
   useFocusEffect(
@@ -360,6 +373,25 @@ export default function HomeScreen() {
             </TouchableOpacity>
           )}
         </View>
+
+        {/* Guest personalization banner */}
+        {showGuestBanner && (
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: 'rgba(217,119,6,0.12)', borderRadius: RADIUS.lg, padding: SPACING.md, borderWidth: 1, borderColor: 'rgba(217,119,6,0.3)', gap: SPACING.sm }}
+            onPress={() => { setShowGuestBanner(false); router.push('/onboarding' as any); }}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="sparkles" size={20} color="#D97706" />
+            <Text style={{ flex: 1, fontSize: 13, color: COLORS.white, ...FONTS.medium }}>{s('home_guest_banner')}</Text>
+            <Text style={{ fontSize: 12, color: '#D97706', ...FONTS.bold }}>{s('home_guest_banner_cta')}</Text>
+            <TouchableOpacity
+              onPress={(e) => { e.stopPropagation(); setShowGuestBanner(false); AsyncStorage.setItem('@guest_banner_dismissed', 'true'); }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="close" size={16} color={COLORS.textMuted} />
+            </TouchableOpacity>
+          </TouchableOpacity>
+        )}
 
         {/* Hero Image — Cartagena first impression */}
         <TouchableOpacity style={styles.heroBanner} activeOpacity={0.95} onPress={() => router.push('/(tabs)/explore' as any)}>

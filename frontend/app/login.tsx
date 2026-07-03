@@ -38,6 +38,9 @@ export default function LoginScreen() {
     if (user && !isLoading) {
       if (typeof next === 'string' && next.startsWith('/')) {
         router.replace(next as any);
+      } else if (!user.onboarding_completed) {
+        // First login — send to onboarding for personalization
+        router.replace('/onboarding' as any);
       } else {
         router.replace('/(tabs)');
       }

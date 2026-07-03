@@ -48,6 +48,7 @@ type User = {
   provider?: string;
   phone?: string;
   is_admin?: boolean;
+  onboarding_completed?: boolean;
 };
 
 type AuthContextType = {

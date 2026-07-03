@@ -46,6 +46,9 @@ export const t: Translations = {
     tab_profile: 'Perfil',
 
     // Home
+    home_guest_banner: 'Personaliza tu Cartagena — 1 min',
+    home_guest_banner_cta: 'Empezar',
+    home_during_visit: 'Durante tu visita',
     home_quickaccess: 'Acceso rápido',
     home_agenda: 'Agenda',
     home_concerts: 'Conciertos',
@@ -263,6 +266,9 @@ export const t: Translations = {
     tab_citypass: 'City Pass',
     tab_profile: 'Profile',
 
+    home_guest_banner: 'Personalize your Cartagena — 1 min',
+    home_guest_banner_cta: 'Start',
+    home_during_visit: 'During your visit',
     home_quickaccess: 'Quick access',
     home_agenda: 'Agenda',
     home_concerts: 'Concerts',
@@ -471,6 +477,9 @@ export const t: Translations = {
     tab_citypass: 'City Pass',
     tab_profile: 'Profil',
 
+    home_guest_banner: 'Personnalisez votre Carthagène — 1 min',
+    home_guest_banner_cta: 'Commencer',
+    home_during_visit: 'Pendant votre visite',
     home_quickaccess: 'Accès rapide',
     home_agenda: 'Agenda',
     home_concerts: 'Concerts',
@@ -679,6 +688,9 @@ export const t: Translations = {
     tab_citypass: 'City Pass',
     tab_profile: 'Perfil',
 
+    home_guest_banner: 'Personalize sua Cartagena — 1 min',
+    home_guest_banner_cta: 'Começar',
+    home_during_visit: 'Durante sua visita',
     home_quickaccess: 'Acesso rápido',
     home_agenda: 'Agenda',
     home_concerts: 'Concertos',
