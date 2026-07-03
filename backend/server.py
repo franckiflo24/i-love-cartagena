@@ -1528,12 +1528,103 @@ async def update_profile(body: ProfileUpdate, request: Request):
 
 _PROFILE_SAFE_FIELDS = ("user_id", "email", "name", "picture", "phone", "provider",
                          "nationality", "age_group", "instagram", "interests",
-                         "profile_completed", "profile_updated_at", "created_at")
+                         "profile_completed", "profile_updated_at", "created_at",
+                         "user_type", "travel_dates", "party_type", "neighborhood",
+                         "onboarding_version", "onboarding_completed", "skipped_steps")
 
 @api_router.get("/profile")
 async def get_profile(request: Request):
     user = await get_current_user(request)
     return {k: user.get(k, "") for k in _PROFILE_SAFE_FIELDS}
+
+
+# ── Onboarding Profile ──────────────────────────────────────
+
+VALID_USER_TYPES = {"visitor", "local"}
+VALID_PARTY_TYPES = {"solo", "couple", "family", "friends", "cruise"}
+VALID_INTERESTS = {"activity", "bar", "beach_club", "beauty", "cafe", "club",
+                   "hotel", "restaurant", "spa", "yacht"}
+
+class OnboardingUpdate(BaseModel):
+    user_type: Optional[str] = None
+    travel_dates: Optional[Dict[str, str]] = None
+    party_type: Optional[str] = None
+    neighborhood: Optional[str] = None
+    interests: Optional[List[str]] = None
+    onboarding_version: int = 1
+    profile_complete: bool = False
+    skipped_steps: Optional[List[str]] = None
+
+@api_router.patch("/users/me/onboarding")
+async def update_onboarding(body: OnboardingUpdate, request: Request):
+    user = await get_current_user(request)
+    uid = user["user_id"]
+
+    # Validate
+    if body.user_type and body.user_type not in VALID_USER_TYPES:
+        raise HTTPException(400, f"user_type must be one of {VALID_USER_TYPES}")
+    if body.party_type and body.party_type not in VALID_PARTY_TYPES:
+        raise HTTPException(400, f"party_type must be one of {VALID_PARTY_TYPES}")
+    if body.interests:
+        body.interests = [i for i in body.interests if i in VALID_INTERESTS][:4]
+
+    now = datetime.now(timezone.utc).isoformat()
+    profile_doc: Dict[str, Any] = {
+        "user_id": uid,
+        "updated_at": now,
+        "onboarding_version": body.onboarding_version,
+    }
+    if body.user_type is not None:
+        profile_doc["user_type"] = body.user_type
+    if body.travel_dates is not None:
+        profile_doc["travel_dates"] = body.travel_dates
+    if body.party_type is not None:
+        profile_doc["party_type"] = body.party_type
+    if body.neighborhood is not None:
+        profile_doc["neighborhood"] = body.neighborhood
+    if body.interests is not None:
+        profile_doc["interests"] = body.interests
+    if body.skipped_steps is not None:
+        profile_doc["skipped_steps"] = body.skipped_steps
+
+    # Upsert user_profiles
+    await db.user_profiles.update_one(
+        {"user_id": uid},
+        {"$set": profile_doc, "$setOnInsert": {"created_at": now}},
+        upsert=True,
+    )
+
+    # Update main user record
+    user_update: Dict[str, Any] = {
+        "onboarding_completed": body.profile_complete,
+        "onboarding_version": body.onboarding_version,
+        "profile_updated_at": now,
+    }
+    if body.user_type:
+        user_update["user_type"] = body.user_type
+    if body.party_type:
+        user_update["party_type"] = body.party_type
+    if body.interests:
+        user_update["interests"] = body.interests
+    if body.skipped_steps:
+        user_update["skipped_steps"] = body.skipped_steps
+    if body.profile_complete:
+        user_update["profile_completed"] = True
+    await db.users.update_one({"user_id": uid}, {"$set": user_update})
+
+    # Analytics event
+    await db.onboarding_events.insert_one({
+        "user_id": uid,
+        "timestamp": now,
+        "user_type": body.user_type,
+        "party_type": body.party_type,
+        "interests": body.interests or [],
+        "skipped_steps": body.skipped_steps or [],
+        "version": body.onboarding_version,
+        "completed": body.profile_complete,
+    })
+
+    return {"status": "ok", "profile_complete": body.profile_complete}
 
 
 # ── Admin: Users Management ──────────────────────────────────
