@@ -91,19 +91,16 @@ export const EVENT_TYPE_ICONS: Record<string, string> = {
 
 export const PARTNER_CATEGORY_LABELS: Record<string, string> = {
   restaurant: 'Restaurante',
-  bar: 'Bar',
-  cafe: 'Café',
-  club: 'Club',
-  beach_club: 'Beach Club',
+  beauty: 'Belleza',
+  activity: 'Experiencia',
   hotel: 'Hotel',
   spa: 'Spa',
-  wellness: 'Wellness',
-  activity: 'Experiencia',
+  bar: 'Bar',
+  cafe: 'Café',
+  beach_club: 'Beach Club',
+  club: 'Club',
   yacht: 'Yate',
-  cultural: 'Cultural',
-  daypass: 'Pasa Día',
-  realestate: 'Alojamiento',
-  beauty: 'Belleza',
+  institutional: 'Institucional',
 };
 
 // ── Tier System (perfil de presupuesto del partner) ──

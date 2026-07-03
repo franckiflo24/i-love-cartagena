@@ -2312,7 +2312,8 @@ async def event_types():
 
 @api_router.get("/partner-categories")
 async def partner_categories():
-    return ["restaurant", "club", "beach_club", "hotel", "wellness", "cultural", "yacht", "activity"]
+    cats = await db.partners.distinct("category")
+    return sorted(cats)
 
 
 # ── Seasons (Multi-event platform) ──────────────────────────

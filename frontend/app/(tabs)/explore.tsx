@@ -575,15 +575,11 @@ export default function ExploreScreen() {
   }, [sortPartners]);
 
   const loadNeighborhoods = useCallback(async () => {
-    try {
-      const data = await api.get('/neighborhoods');
-      setNeighborhoods(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.error('[ExploreScreen] neighborhoods', e);
-      setNeighborhoods([]);
-    } finally {
-      setLoadingNeighborhoods(false);
-    }
+    // Static-first (backend has no /neighborhoods endpoint — data is static-only)
+    fetch('/data/neighborhoods.json').then(r => r.ok ? r.json() : [])
+      .then(data => { if (Array.isArray(data)) setNeighborhoods(data); })
+      .catch(() => {})
+      .finally(() => setLoadingNeighborhoods(false));
   }, []);
 
   const loadUpcomingEvents = useCallback(async () => {
