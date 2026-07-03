@@ -12,6 +12,7 @@ import { useFavorites } from '../../src/context/FavoritesContext';
 import { useRewards } from '../../src/context/RewardsContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
 
@@ -342,6 +343,7 @@ export default function PerfilScreen() {
           <SettingsRow icon="notifications-outline" label={s('profile_notifications') || tr('Notificaciones')} onPress={() => router.push('/notifications' as any)} />
           <SettingsRow icon="star-outline" label={tr('Mis reseñas')} onPress={() => router.push('/review/new' as any)} />
           <SettingsRow icon="trail-sign-outline" label={tr('Itinerarios IA')} onPress={() => router.push('/itineraries' as any)} />
+          <SettingsRow icon="help-circle-outline" label={s('tutorial_replay')} onPress={async () => { await AsyncStorage.removeItem('@tutorial_seen'); router.push('/(tabs)' as any); }} />
         </View>
 
         {/* ── Language ── */}
