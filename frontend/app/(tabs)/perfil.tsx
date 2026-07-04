@@ -171,17 +171,6 @@ export default function PerfilScreen() {
           {/* SECONDARY: Other login methods */}
           <View style={styles.otherMethodsCol}>
             <TouchableOpacity
-              testID="profile-login-whatsapp"
-              style={[styles.methodBtn, styles.whatsappBtn, { opacity: 0.35 }]}
-              disabled={true}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="logo-whatsapp" size={20} color={COLORS.white} />
-              <Text style={styles.methodBtnText}>{s('login_whatsapp')}</Text>
-              <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', marginLeft: 4 }}>Próximamente</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
               testID="profile-login-email"
               style={[styles.methodBtn, styles.outlineMethodBtn]}
               onPress={() => router.push('/login')}

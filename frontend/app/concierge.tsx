@@ -10,6 +10,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { AGENTS, AGENT_ORDER, AgentId, ConciergeAgent } from '../src/constants/agents';
 import { askAgent, ChatMessage } from '../src/services/concierge';
 import { useAuth } from '../src/context/AuthContext';
+import { useTr } from '../src/i18n/autoTr';
 
 const { width: SCREEN } = Dimensions.get('window');
 const CARD_SIZE = (SCREEN - SPACING.lg * 2 - SPACING.md) / 2;
@@ -56,6 +57,7 @@ function TypingDots({ color }: { color: string }) {
 export default function ConciergeScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const tr = useTr();
   const { agent: routeAgent } = useLocalSearchParams<{ agent?: string }>();
   const [activeAgent, setActiveAgent] = useState<AgentId | null>(
     routeAgent && AGENTS[routeAgent as AgentId] ? (routeAgent as AgentId) : null
@@ -207,7 +209,7 @@ export default function ConciergeScreen() {
             style={styles.inputField}
             value={input}
             onChangeText={setInput}
-            placeholder={`Escríbele a ${agent.name}...`}
+            placeholder={tr(`Escríbele a ${agent.name}...`)}
             placeholderTextColor={COLORS.textFaint}
             returnKeyType="send"
             onSubmitEditing={() => sendMessage(input)}

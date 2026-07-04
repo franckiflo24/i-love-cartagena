@@ -913,9 +913,9 @@ export default function ExploreScreen() {
   ) : (
     <View style={styles.emptyState}>
       <Ionicons name="search-outline" size={48} color={COLORS.textMuted} />
-      <Text style={styles.emptyTitle}>Próximamente</Text>
+      <Text style={styles.emptyTitle}>{tr('Próximamente')}</Text>
       <Text style={styles.emptyText}>
-        No hay lugares en esta categoría todavía
+        {tr('No hay lugares en esta categoría todavía')}
       </Text>
       <TouchableOpacity
         style={styles.emptyBtn}

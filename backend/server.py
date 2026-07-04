@@ -1621,6 +1621,22 @@ async def update_onboarding(body: OnboardingUpdate, request: Request):
         "completed": body.profile_complete,
     })
 
+    # Welcome notification (once per user)
+    if body.profile_complete:
+        existing = await db.notifications.find_one({"user_id": uid, "type": "welcome"})
+        if not existing:
+            await db.notifications.insert_one({
+                "notification_id": f"notif_{uuid.uuid4().hex[:12]}",
+                "user_id": uid,
+                "type": "welcome",
+                "title": "Bienvenido a AMO Cartagena",
+                "body": "Tu guía personalizada está lista. Explora 721+ lugares, eventos y experiencias.",
+                "icon": "heart",
+                "is_read": False,
+                "audience": "user",
+                "created_at": now,
+            })
+
     return {"status": "ok", "profile_complete": body.profile_complete}
 
 

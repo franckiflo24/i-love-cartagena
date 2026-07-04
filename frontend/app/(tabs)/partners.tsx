@@ -519,7 +519,7 @@ export default function PartnersScreen() {
             {filtered.length === 0 ? (
               <View style={styles.emptyState}>
                 <Ionicons name="business-outline" size={48} color={COLORS.textMuted} />
-                <Text style={styles.emptyText}>Próximamente en esta categoría</Text>
+                <Text style={styles.emptyText}>{tr('Próximamente en esta categoría')}</Text>
               </View>
             ) : (
               filtered.map(partner => {

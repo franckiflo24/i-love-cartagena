@@ -24,7 +24,6 @@ export default function LoginScreen() {
 
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
-  const [showWhatsapp, setShowWhatsapp] = useState(false);
   const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPhone, setSignupPhone] = useState('');
@@ -155,35 +154,6 @@ export default function LoginScreen() {
     setSavingSignup(false);
   };
 
-  const handleWhatsappSignup = async () => {
-    const phoneRaw = signupPhone.trim().replace(/[^\d+]/g, '');
-    const phone = phoneRaw.startsWith('+') ? phoneRaw : `+${phoneRaw}`;
-    const name = signupName.trim() || `Usuario ${phone.slice(-4)}`;
-    if (!phone || phone.length < 8) {
-      setLoginError('Teléfono inválido. Por favor introduce un número de WhatsApp válido.');
-      return;
-    }
-    setLoginError('');
-    setSavingSignup(true);
-    try {
-      const pseudoEmail = `${phone.replace(/\+/g, '')}@wa.amo.local`;
-      const res = await api.post('/auth/demo-login', { email: pseudoEmail, name, phone, provider: 'whatsapp_local', signup_code: '' });
-      if (res.session_token && res.user) {
-        await loginWithToken(res.session_token, res.user);
-        setSavingSignup(false);
-        setShowWhatsapp(false);
-        router.replace('/(tabs)');
-        return;
-      }
-      setLoginError('Error de autenticación. Respuesta inesperada del servidor.');
-      console.error('[Login] whatsapp signup: missing session_token or user in response', res);
-    } catch (e: any) {
-      console.error('[Login] whatsapp signup error', e);
-      setLoginError('No se pudo crear la cuenta. Intenta de nuevo.');
-    }
-    setSavingSignup(false);
-    setShowWhatsapp(false);
-  };
 
   if (isLoading) {
     return (
@@ -278,16 +248,6 @@ export default function LoginScreen() {
 
           {/* SECONDARY: Other methods - stacked for clarity */}
           <View style={styles.otherMethodsCol}>
-            <TouchableOpacity
-              style={[styles.methodBtn, styles.whatsappBtn, styles.btnDisabled]}
-              disabled={true}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="logo-whatsapp" size={20} color={COLORS.white} />
-              <Text style={styles.methodBtnText}>{s('login_whatsapp')}</Text>
-              <Text style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', marginLeft: 4 }}>Próximamente</Text>
-            </TouchableOpacity>
-
             <TouchableOpacity
               style={[styles.methodBtn, styles.outlineMethodBtn, !termsAccepted && styles.btnDisabled]}
               onPress={termsAccepted ? () => setShowSignup(true) : undefined}
@@ -459,77 +419,6 @@ export default function LoginScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* WhatsApp signup modal */}
-      <Modal
-        visible={showWhatsapp}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowWhatsapp(false)}
-      >
-        <KeyboardAvoidingView
-          style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <View style={styles.modalCard}>
-            <View style={styles.modalHandle} />
-            <View style={styles.waHeaderRow}>
-              <View style={styles.waIconCircle}>
-                <Ionicons name="logo-whatsapp" size={24} color={COLORS.white} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.modalTitle}>{s('login_whatsapp_title')}</Text>
-                <Text style={styles.modalSubtitle}>{s('login_whatsapp_subtitle')}</Text>
-              </View>
-            </View>
-
-            <View style={styles.inputWrap}>
-              <Ionicons name="person-outline" size={18} color={COLORS.textMuted} />
-              <TextInput
-                style={styles.input}
-                placeholder={s('login_name_placeholder')}
-                placeholderTextColor={COLORS.textMuted}
-                value={signupName}
-                onChangeText={setSignupName}
-                autoCapitalize="words"
-              />
-            </View>
-            <View style={styles.inputWrap}>
-              <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
-              <TextInput
-                style={styles.input}
-                placeholder={s('login_phone_placeholder')}
-                placeholderTextColor={COLORS.textMuted}
-                value={signupPhone}
-                onChangeText={setSignupPhone}
-                keyboardType="phone-pad"
-              />
-            </View>
-
-            <TouchableOpacity
-              style={[styles.modalSaveBtn, styles.modalWaBtn, savingSignup && { opacity: 0.6 }]}
-              onPress={handleWhatsappSignup}
-              disabled={savingSignup}
-              activeOpacity={0.85}
-            >
-              {savingSignup ? (
-                <ActivityIndicator color={COLORS.white} />
-              ) : (
-                <>
-                  <Ionicons name="logo-whatsapp" size={18} color={COLORS.white} />
-                  <Text style={styles.modalSaveBtnText}>{s('login_save')}</Text>
-                </>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalCancelBtn}
-              onPress={() => setShowWhatsapp(false)}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.modalCancelText}>{s('login_cancel')}</Text>
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
     </SafeAreaView>
   );
 }
