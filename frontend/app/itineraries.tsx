@@ -213,16 +213,47 @@ export default function ItineraryScreen() {
         const r2 = await fetch(`${backendBase}/api/itineraries?category=${encodeURIComponent(interests[0] || '')}`, { headers });
         if (r2.ok) {
           const data = await r2.json();
+          // Single itinerary with days
           if (data?.days?.length) { setItin({ title: data.title || 'Tu plan en Cartagena', summary: data.summary || '', days: data.days }); setMode('result'); return; }
-          if (Array.isArray(data) && data.length > 0 && data[0]?.days) { setItin(data[0]); setMode('result'); return; }
+          // Single itinerary with stops (backend shape)
+          if (data?.stops?.length) {
+            const items: Item[] = data.stops.map((s: any) => ({ slug: s.partner_id || '', name: s.venue || s.title || '', category: s.type || '', zone: '', time: s.time || '', blurb: s.why || '' }));
+            setItin({ title: data.name || 'Tu plan', summary: data.description || '', days: [{ day: 1, theme: data.name || '', items }] });
+            setMode('result'); return;
+          }
+          // Array of itineraries
+          if (Array.isArray(data) && data.length > 0) {
+            const first = data[0];
+            if (first?.days?.length) { setItin(first); setMode('result'); return; }
+            if (first?.stops?.length) {
+              const items: Item[] = first.stops.map((s: any) => ({ slug: s.partner_id || '', name: s.venue || s.title || '', category: s.type || '', zone: '', time: s.time || '', blurb: s.why || '' }));
+              setItin({ title: first.name || 'Tu plan', summary: first.description || '', days: [{ day: 1, theme: first.name || '', items }] });
+              setMode('result'); return;
+            }
+          }
         }
         setMode('error'); return;
       }
       const data = await r.json();
-      // Handle different response shapes
       const itinData = data?.itinerary || data;
+      // Backend returns { stops: [...] } (single day), frontend needs { days: [{ items }] }
       if (itinData?.days?.length) {
         setItin({ title: itinData.title || 'Tu plan en Cartagena', summary: itinData.summary || '', days: itinData.days });
+        setMode('result');
+      } else if (itinData?.stops?.length) {
+        const items: Item[] = itinData.stops.map((s: any) => ({
+          slug: s.partner_id || s.venue || '',
+          name: s.venue || s.title || '',
+          category: s.type || '',
+          zone: '',
+          time: s.time || '',
+          blurb: s.why || s.title || '',
+        }));
+        setItin({
+          title: itinData.name || 'Tu plan en Cartagena',
+          summary: itinData.description || itinData.personal_note || '',
+          days: [{ day: 1, theme: itinData.name || 'Tu día', items }],
+        });
         setMode('result');
       } else {
         setMode('error');
