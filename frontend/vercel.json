@@ -1,7 +1,10 @@
 {
-  "buildCommand": "npx expo export --platform web",
+  "buildCommand": "npx expo export --platform web && rm -f dist/_sitemap.html",
   "outputDirectory": "dist",
   "framework": null,
+  "redirects": [
+    { "source": "/_sitemap", "destination": "/", "statusCode": 308 }
+  ],
   "rewrites": [
     { "source": "/partner/:id", "destination": "/partner/%5Bid%5D" },
     { "source": "/experience/booking", "destination": "/experience/booking" },

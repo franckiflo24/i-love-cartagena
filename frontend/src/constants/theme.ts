@@ -100,6 +100,7 @@ export const PARTNER_CATEGORY_LABELS: Record<string, string> = {
   beach_club: 'Beach Club',
   club: 'Club',
   yacht: 'Yate',
+  attraction: 'Atracción',
   institutional: 'Institucional',
 };
 

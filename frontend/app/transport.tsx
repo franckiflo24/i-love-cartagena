@@ -52,7 +52,8 @@ export default function TransportScreen() {
     };
     const loadFares = async () => {
       try {
-        const data = await api.get('/transport-official');
+        const res = await fetch('/data/transport-official.json');
+        const data = res.ok ? await res.json() : [];
         setOfficialFares(Array.isArray(data) ? data : []);
       } catch (e) { console.error('[TransportScreen] fares', e); }
     };

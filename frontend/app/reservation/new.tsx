@@ -133,9 +133,13 @@ export default function ReservationNew() {
 
   if (!partnerId) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
-          <Text style={styles.errText}>{tr('Falta partner_id')}</Text>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, paddingHorizontal: 32 }}>
+          <Ionicons name="restaurant-outline" size={48} color={COLORS.textMuted} />
+          <Text style={{ color: COLORS.textMuted, fontSize: 16, textAlign: 'center' }}>{tr('Selecciona un lugar para reservar')}</Text>
+          <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 8, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 20, backgroundColor: COLORS.primary }}>
+            <Text style={{ color: COLORS.white, fontWeight: '600' }}>{tr('Volver')}</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
