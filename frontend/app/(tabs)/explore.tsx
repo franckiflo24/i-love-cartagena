@@ -30,6 +30,7 @@ import { SkeletonFeaturedRow, SkeletonGrid } from '../../src/components/Skeleton
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { getUpcomingEvents } from '../../src/lib/data';
+import { usePersonalization } from '../../src/context/PersonalizationContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - SPACING.lg * 2 - SPACING.sm) / 2;
@@ -496,6 +497,7 @@ export default function ExploreScreen() {
     useLocalSearchParams<{ category?: string; subcategory?: string }>();
   const { s } = useLang();
   const tr = useTr();
+  const { getPersonalizedPartners, userProfile } = usePersonalization();
 
   const [selectedCategory, setSelectedCategory] = useState<CategoryItem>(CATEGORIES[0]);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
@@ -556,11 +558,15 @@ export default function ExploreScreen() {
 
   const loadPartners = useCallback(async (category: CategoryItem) => {
     setLoadingPartners(true);
+    const applyPersonalization = (list: Partner[]) => {
+      const sorted = sortPartners(list, category);
+      return userProfile.isPersonalized ? getPersonalizedPartners(sorted) : sorted;
+    };
     // Static-first (non-blocking)
     fetch('/data/partners.json').then(r => r.ok ? r.json() : [])
       .then(sf => {
         if (Array.isArray(sf) && sf.length > 0) {
-          setAllCategoryPartners(sortPartners(sf, category));
+          setAllCategoryPartners(applyPersonalization(sf));
           setLoadingPartners(false);
         }
       }).catch(() => {});
@@ -568,11 +574,11 @@ export default function ExploreScreen() {
     api.get('/partners')
       .then(data => {
         const all: Partner[] = Array.isArray(data) ? data : [];
-        if (all.length > 0) setAllCategoryPartners(sortPartners(all, category));
+        if (all.length > 0) setAllCategoryPartners(applyPersonalization(all));
       })
       .catch(e => console.error('[ExploreScreen] partners', e))
       .finally(() => setLoadingPartners(false));
-  }, [sortPartners]);
+  }, [sortPartners, userProfile.isPersonalized, getPersonalizedPartners]);
 
   const loadNeighborhoods = useCallback(async () => {
     // Static-first (backend has no /neighborhoods endpoint — data is static-only)
@@ -611,7 +617,7 @@ export default function ExploreScreen() {
 
   useEffect(() => {
     loadPartners(selectedCategory);
-  }, [selectedCategory, loadPartners]);
+  }, [selectedCategory, loadPartners, userProfile.isPersonalized]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -670,6 +676,20 @@ export default function ExploreScreen() {
       <View style={styles.header}>
         <SearchBarButton onPress={() => router.push('/search')} />
       </View>
+
+      {/* ── Personalization indicator ── */}
+      {userProfile.isPersonalized && (
+        <TouchableOpacity
+          style={styles.personalizationBanner}
+          onPress={() => router.push('/onboarding' as any)}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.personalizationText}>
+            {'\u2728'} Ordenado seg{'\u00fa'}n tus preferencias
+          </Text>
+          <Text style={styles.personalizationEdit}>Editar</Text>
+        </TouchableOpacity>
+      )}
 
       {/* ── Category chips ── */}
       <ScrollView
@@ -1062,6 +1082,32 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     ...FONTS.bold,
     letterSpacing: 0.5,
+  },
+
+  // Personalization banner
+  personalizationBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: SPACING.lg,
+    marginTop: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: 10,
+    borderRadius: RADIUS.lg,
+    backgroundColor: 'rgba(217,119,6,0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(217,119,6,0.25)',
+  },
+  personalizationText: {
+    fontSize: 12,
+    color: COLORS.primary,
+    ...FONTS.medium,
+  },
+  personalizationEdit: {
+    fontSize: 12,
+    color: COLORS.primary,
+    ...FONTS.bold,
+    textDecorationLine: 'underline' as const,
   },
 
   // Category chips

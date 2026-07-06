@@ -14,6 +14,7 @@ import { SafeImage } from '../../src/components/SafeImage';
 import { SkeletonList } from '../../src/components/Skeleton';
 import { getUpcomingEvents } from '../../src/lib/data';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { usePersonalization } from '../../src/context/PersonalizationContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
@@ -88,6 +89,7 @@ export default function HomeScreen() {
   const { favorites } = useFavorites();
   const { s } = useLang();
   const tr = useTr();
+  const { userProfile, getPersonalizedPartners, getPersonalizedCategories, getGreeting, hasCompletedOnboarding } = usePersonalization();
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [featured, setFeatured] = useState<Event[]>([]);
   const [todayEvents, setTodayEvents] = useState<Event[]>([]);
@@ -103,6 +105,7 @@ export default function HomeScreen() {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [partnerCount, setPartnerCount] = useState(716);
   const [showGuestBanner, setShowGuestBanner] = useState(false);
+  const [guestRecommendations, setGuestRecommendations] = useState<any[]>([]);
   const flatListRef = useRef<FlatList>(null);
 
   // Guest personalization banner — show on 2nd visit, dismissible
@@ -115,6 +118,24 @@ export default function HomeScreen() {
       if (visits >= 1 && !dismissed) setShowGuestBanner(true);
     })();
   }, [user]);
+
+  // Guest personalized recommendations — fetch from static partners.json
+  useEffect(() => {
+    if (user || !hasCompletedOnboarding || userProfile.interests.length === 0) {
+      setGuestRecommendations([]);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await fetch('/data/partners.json');
+        if (!res.ok) return;
+        const allPartners = await res.json();
+        if (!Array.isArray(allPartners)) return;
+        const personalized = getPersonalizedPartners(allPartners).slice(0, 8);
+        setGuestRecommendations(personalized);
+      } catch { /* non-critical */ }
+    })();
+  }, [user, hasCompletedOnboarding, userProfile.interests.length]);
 
   // Check unread notifications once on focus (no polling — eliminates 401 spam)
   useFocusEffect(
@@ -336,7 +357,7 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>{user ? `${s('greeting_hi')}, ${(user.name || '').split(' ')[0] || ''}` : s('greeting_welcome')}</Text>
+            <Text style={styles.greeting}>{user ? `${s('greeting_hi')}, ${(user.name || '').split(' ')[0] || ''}` : (userProfile.isPersonalized ? getGreeting() : s('greeting_welcome'))}</Text>
             <Text style={styles.headerTitle}>Amo Cartagena ❤️</Text>
           </View>
           <TouchableOpacity testID="notifications-btn" onPress={() => router.push('/notifications')} style={styles.notifBtn}>
@@ -374,8 +395,29 @@ export default function HomeScreen() {
           )}
         </View>
 
+        {/* Taste profile mini-card — shown when personalized */}
+        {userProfile.isPersonalized && userProfile.interests.length > 0 && (
+          <View style={styles.tasteProfileCard}>
+            <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4 }}>
+              <Text style={{ fontSize: 12, color: COLORS.textMuted, ...FONTS.medium }}>Tu perfil:</Text>
+              {userProfile.interests.slice(0, 4).map((interest: string) => {
+                const INTEREST_EMOJI: Record<string, string> = { restaurant: '\u{1F37D}\u{FE0F}', bar: '\u{1F378}', beach_club: '\u{1F3D6}\u{FE0F}', club: '\u{1F3B6}', spa: '\u{1F9D6}', beauty: '\u{1F485}', activity: '\u{1F9ED}', hotel: '\u{1F3E8}', cafe: '\u2615', yacht: '\u26F5' };
+                const INTEREST_LABEL: Record<string, string> = { restaurant: 'Restaurantes', bar: 'Bares', beach_club: 'Beach Clubs', club: 'Nightlife', spa: 'Wellness', beauty: 'Belleza', activity: 'Experiencias', hotel: 'Hoteles', cafe: 'Caf\u00E9s', yacht: 'Yates' };
+                return (
+                  <Text key={interest} style={{ fontSize: 12, color: COLORS.textMain, ...FONTS.medium }}>
+                    {INTEREST_EMOJI[interest] || '\u2728'} {INTEREST_LABEL[interest] || interest}
+                  </Text>
+                );
+              })}
+            </View>
+            <TouchableOpacity onPress={() => router.push('/onboarding' as any)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Text style={{ fontSize: 11, color: COLORS.primary, ...FONTS.bold }}>Editar</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Guest personalization banner */}
-        {showGuestBanner && (
+        {showGuestBanner && !hasCompletedOnboarding && (
           <TouchableOpacity
             style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: 'rgba(217,119,6,0.12)', borderRadius: RADIUS.lg, padding: SPACING.md, borderWidth: 1, borderColor: 'rgba(217,119,6,0.3)', gap: SPACING.sm }}
             onPress={() => { setShowGuestBanner(false); router.push('/onboarding' as any); }}
@@ -400,7 +442,14 @@ export default function HomeScreen() {
           <View style={styles.heroBannerContent}>
             <Text style={styles.heroBannerLabel}>CARTAGENA DE INDIAS</Text>
             <Text style={styles.heroBannerTitle}>{partnerCount} lugares para descubrir</Text>
-            <Text style={styles.heroBannerSub}>Restaurantes · Bares · Beach Clubs · Spas · Nightlife</Text>
+            <Text style={styles.heroBannerSub}>
+              {userProfile.isPersonalized && userProfile.interests.length > 0
+                ? userProfile.interests.map((i: string) => {
+                    const LABEL: Record<string, string> = { restaurant: 'Restaurantes', bar: 'Bares', beach_club: 'Beach Clubs', club: 'Nightlife', spa: 'Wellness', beauty: 'Belleza', activity: 'Experiencias', hotel: 'Hoteles', cafe: 'Caf\u00E9s', yacht: 'Yates' };
+                    return LABEL[i] || i;
+                  }).join(' \u00B7 ')
+                : 'Restaurantes \u00B7 Bares \u00B7 Beach Clubs \u00B7 Spas \u00B7 Nightlife'}
+            </Text>
           </View>
         </TouchableOpacity>
 
@@ -487,16 +536,25 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
-            {[
-              { uri: IMAGES.cartagena_aerial, label: 'Restaurantes', sub: '111+', cat: 'restaurant', icon: 'restaurant' },
-              { uri: IMAGES.cartagena_streets, label: 'Bares', sub: '30+', cat: 'bar', icon: 'wine' },
-              { uri: IMAGES.umbrellas, label: 'Nightlife', sub: '22 clubs', cat: 'club', icon: 'musical-notes' },
-              { uri: IMAGES.fountain_market, label: 'Cafés', sub: '17 spots', cat: 'cafe', icon: 'cafe' },
-              { uri: IMAGES.flag_rooftops, label: 'Wellness', sub: '51+', cat: 'spa', icon: 'leaf' },
-              { uri: IMAGES.wax_palms, label: 'Experiencias', sub: '74 tours', cat: 'activity', icon: 'compass' },
-              { uri: IMAGES.hero, label: 'Hoteles', sub: '80+', cat: 'hotel', icon: 'bed' },
-              { uri: IMAGES.cartagena_aerial, label: 'Beach Clubs', sub: '26 islas', cat: 'beach_club', icon: 'umbrella' },
-            ].map((item, i) => (
+            {(() => {
+              const allCats = [
+                { uri: IMAGES.cartagena_aerial, label: 'Restaurantes', sub: '111+', cat: 'restaurant', icon: 'restaurant' },
+                { uri: IMAGES.cartagena_streets, label: 'Bares', sub: '30+', cat: 'bar', icon: 'wine' },
+                { uri: IMAGES.umbrellas, label: 'Nightlife', sub: '22 clubs', cat: 'club', icon: 'musical-notes' },
+                { uri: IMAGES.fountain_market, label: 'Cafés', sub: '17 spots', cat: 'cafe', icon: 'cafe' },
+                { uri: IMAGES.flag_rooftops, label: 'Wellness', sub: '51+', cat: 'spa', icon: 'leaf' },
+                { uri: IMAGES.wax_palms, label: 'Experiencias', sub: '74 tours', cat: 'activity', icon: 'compass' },
+                { uri: IMAGES.hero, label: 'Hoteles', sub: '80+', cat: 'hotel', icon: 'bed' },
+                { uri: IMAGES.cartagena_aerial, label: 'Beach Clubs', sub: '26 islas', cat: 'beach_club', icon: 'umbrella' },
+              ];
+              // Reorder: user interests first, then the rest
+              if (userProfile.isPersonalized && userProfile.interests.length > 0) {
+                const prioritized = allCats.filter(c => userProfile.interests.includes(c.cat));
+                const rest = allCats.filter(c => !userProfile.interests.includes(c.cat));
+                return [...prioritized, ...rest];
+              }
+              return allCats;
+            })().map((item, i) => (
               <TouchableOpacity
                 key={i}
                 style={styles.photoCard}
@@ -542,6 +600,50 @@ export default function HomeScreen() {
                 style={[styles.dot, i === activeSeasonIdx ? [styles.dotActive, { backgroundColor: s.color }] : null]}
               />
             ))}
+          </View>
+        )}
+
+        {/* Guest personalized recommendations — Para ti (no login required) */}
+        {!user && guestRecommendations.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleRow}>
+                <Ionicons name="sparkles" size={18} color="#A855F7" />
+                <Text style={styles.sectionTitle}>{tr('Para ti')}</Text>
+                <View style={styles.aiBadge}>
+                  <Text style={styles.aiBadgeText}>AI</Text>
+                </View>
+              </View>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: SPACING.lg, gap: SPACING.sm }}>
+              {guestRecommendations.map((p: any) => (
+                <TouchableOpacity
+                  key={p.partner_id}
+                  style={styles.recCard}
+                  onPress={() => router.push(`/partner/${p.partner_id}` as any)}
+                  activeOpacity={0.85}
+                >
+                  <SafeImage
+                    uri={p.image_url || getCategoryImage(p.category)}
+                    style={styles.recImage}
+                    category={p.category}
+                  />
+                  <View style={styles.recOverlay}>
+                    {p.tier && (
+                      <View style={[styles.recTierBadge, { backgroundColor: TIER_COLORS[p.tier as Tier]?.main || COLORS.primary }]}>
+                        <Text style={styles.recTierText}>{(p.tier || '').toUpperCase()}</Text>
+                      </View>
+                    )}
+                    <Text style={styles.recName} numberOfLines={2}>{p.name}</Text>
+                    <View style={styles.recMeta}>
+                      <Text style={styles.recCategory} numberOfLines={1}>
+                        {(p.category || '').replace(/_/g, ' ')}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         )}
 
@@ -970,6 +1072,19 @@ const styles = StyleSheet.create({
     borderColor: COLORS.background,
   },
   notifBadgeText: { fontSize: 9, color: '#FFF', ...FONTS.bold, letterSpacing: 0.2 },
+  tasteProfileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
+    backgroundColor: 'rgba(168,85,247,0.08)',
+    borderRadius: RADIUS.lg,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(168,85,247,0.2)',
+    gap: SPACING.sm,
+  },
   searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, paddingLeft: SPACING.md, paddingRight: 6, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.border },
   searchTapZone: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, flex: 1, paddingVertical: 6 },
   searchPlaceholder: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, flex: 1 },

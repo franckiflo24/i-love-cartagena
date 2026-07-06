@@ -8,6 +8,7 @@ import { LanguageProvider } from '../src/context/LanguageContext';
 import { BusinessAuthProvider } from '../src/context/BusinessAuthContext';
 import { MyCalendarProvider } from '../src/context/MyCalendarContext';
 import { RewardsProvider } from '../src/context/RewardsContext';
+import { PersonalizationProvider } from '../src/context/PersonalizationContext';
 import PushBootstrap from '../src/components/PushBootstrap';
 import ErrorBoundary from '../src/components/ErrorBoundary';
 
@@ -24,6 +25,7 @@ export default function RootLayout() {
   return (
     <ErrorBoundary>
     <AuthProvider>
+      <PersonalizationProvider>
       <BusinessAuthProvider>
       <LanguageProvider>
       <FavoritesProvider>
@@ -77,6 +79,7 @@ export default function RootLayout() {
       </FavoritesProvider>
       </LanguageProvider>
       </BusinessAuthProvider>
+      </PersonalizationProvider>
     </AuthProvider>
     </ErrorBoundary>
   );
