@@ -2030,15 +2030,44 @@ async def track_partner_reserve(partner_id: str, request: Request):
 # ── Itineraries (AI Daily Routes) ───────────────────────────
 ITINERARY_CATEGORIES = {"lifestyle", "cultura", "musical"}
 
-# Mapping from itinerary category to partner categories used to build the pool
-_LIFESTYLE_PCATS = {"restaurant", "beach_club", "wellness", "hotel", "shopping"}
-_CULTURA_PCATS   = {"activity", "institutional", "cafe"}
-_MUSICAL_PCATS   = {"club", "restaurant"}  # restaurants with live music + clubs
+# Frontend sends Spanish interest names — map to backend categories
+_INTEREST_TO_CATEGORY = {
+    "gastronomía": "lifestyle",
+    "playa": "lifestyle",
+    "rumba": "musical",
+    "cultura": "cultura",
+    "bienestar": "lifestyle",
+    "compras": "lifestyle",
+    "general": "lifestyle",
+}
 
-# Mapping to partner_events categories
-_LIFESTYLE_ECATS = {"gastronomy", "wellness", "lifestyle", "beach"}
-_CULTURA_ECATS   = {"culture", "art", "history"}
-_MUSICAL_ECATS   = {"music", "party", "concert", "dj"}
+# Partner categories for each itinerary type — MUST match actual DB categories
+_LIFESTYLE_PCATS = {"restaurant", "beach_club", "spa", "hotel", "cafe", "bar", "beauty", "activity"}
+_CULTURA_PCATS   = {"activity", "cafe", "restaurant", "hotel"}
+_MUSICAL_PCATS   = {"club", "bar", "restaurant", "beach_club"}
+
+# Partner event categories
+_LIFESTYLE_ECATS = {"gastronomy", "wellness", "lifestyle", "beach", "sunset", "daypass"}
+_CULTURA_ECATS   = {"cultural", "art", "festival", "literary"}
+_MUSICAL_ECATS   = {"music", "party", "concert", "festival"}
+
+
+def _resolve_itinerary_category(raw_category: str, interests: list = None) -> str:
+    """Map frontend interest strings to backend itinerary categories."""
+    cat = (raw_category or "").strip().lower()
+    # Direct match
+    if cat in ITINERARY_CATEGORIES:
+        return cat
+    # Spanish interest → category
+    if cat in _INTEREST_TO_CATEGORY:
+        return _INTEREST_TO_CATEGORY[cat]
+    # Try from interests array
+    if interests:
+        for interest in interests:
+            mapped = _INTEREST_TO_CATEGORY.get(interest.lower(), "")
+            if mapped:
+                return mapped
+    return "lifestyle"
 
 
 def _pcats_for(category: str) -> set:
@@ -2091,22 +2120,27 @@ async def _build_user_profile_for_routes(user_id: str) -> tuple[Optional[dict], 
 async def _generate_daily_itinerary(user: Optional[dict], category: str, force: bool = False) -> dict:
     from ai_itinerary import generate_itinerary
 
-    cat = (category or "lifestyle").lower()
-    if cat not in ITINERARY_CATEGORIES:
-        cat = "lifestyle"
+    cat = _resolve_itinerary_category(category)
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     user_id = (user or {}).get("user_id") or "guest"
-    cache_key = f"{user_id}:{cat}:{today}"
+    cache_key = f"v3:{user_id}:{cat}:{today}"
 
     if not force:
         cached = await db.ai_itineraries.find_one({"cache_key": cache_key}, {"_id": 0})
         if cached:
             return cached
 
-    # Build partner pool for this category
+    # Build partner pool — sample top-rated from EACH category for diversity
     pcats = list(_pcats_for(cat))
-    partners_pool = await db.partners.find({"category": {"$in": pcats}}, {"_id": 0}).to_list(40)
+    partners_pool = []
+    per_cat = max(8, 50 // len(pcats))
+    for pcat in pcats:
+        batch = await db.partners.find(
+            {"category": pcat},
+            {"_id": 0}
+        ).sort("rating", -1).to_list(per_cat)
+        partners_pool.extend(batch)
 
     # GUARD: if the partner pool is empty, return an honest response instead
     # of calling the LLM with no data (which causes hallucinated venues).
@@ -2185,7 +2219,9 @@ async def regenerate_itinerary(request: Request):
     # Auth required — itinerary regeneration calls the LLM
     user = await get_current_user(request)
     body = await request.json() if await request.body() else {}
-    category = (body.get("category") or "lifestyle").lower()
+    raw_category = (body.get("category") or "lifestyle").lower()
+    interests = body.get("interests") or []
+    category = _resolve_itinerary_category(raw_category, interests)
     return await _generate_daily_itinerary(user, category, force=True)
 
 
