@@ -494,16 +494,26 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.quickAccessRow}
           >
-            {[
-              { icon: 'calendar',       label: s('home_agenda'),     subtitle: s('home_today'),       color: '#F97316', route: '/(tabs)/agenda' },
-              { icon: 'compass',        label: 'Explorar',           subtitle: 'Lugares',             color: '#3B82F6', route: '/(tabs)/explore' },
-              { icon: 'musical-notes',  label: s('home_concerts'),   subtitle: s('home_live'),        color: '#A855F7', route: '/concerts' },
-              { icon: 'star',           label: 'Rewards',            subtitle: 'Puntos',              color: '#F59E0B', route: '/rewards' },
-              { icon: 'heart',          label: s('home_favorites'),  subtitle: s('home_my_list'),     color: '#EF4444', route: '/favorites' },
-              { icon: 'boat',           label: s('home_transport'),  subtitle: s('home_boats'),       color: '#06B6D4', route: '/transport' },
-              { icon: 'trail-sign',     label: s('home_routes'),     subtitle: 'IA',                  color: '#10B981', route: '/itineraries' },
-              { icon: 'shield',         label: 'Emergencias',        subtitle: 'SOS',                 color: '#DC2626', route: '/ayuda' },
-            ].map((item) => (
+            {(() => {
+              const allItems = [
+                { icon: 'calendar',       label: s('home_agenda'),     subtitle: s('home_today'),       color: '#F97316', route: '/(tabs)/agenda', cat: '' },
+                { icon: 'compass',        label: 'Explorar',           subtitle: 'Lugares',             color: '#3B82F6', route: '/(tabs)/explore', cat: '' },
+                { icon: 'musical-notes',  label: s('home_concerts'),   subtitle: s('home_live'),        color: '#A855F7', route: '/concerts', cat: 'club' },
+                { icon: 'star',           label: 'Rewards',            subtitle: 'Puntos',              color: '#F59E0B', route: '/rewards', cat: '' },
+                { icon: 'heart',          label: s('home_favorites'),  subtitle: s('home_my_list'),     color: '#EF4444', route: '/favorites', cat: '' },
+                { icon: 'boat',           label: s('home_transport'),  subtitle: s('home_boats'),       color: '#06B6D4', route: '/transport', cat: 'activity' },
+                { icon: 'trail-sign',     label: s('home_routes'),     subtitle: 'IA',                  color: '#10B981', route: '/itineraries', cat: '' },
+                { icon: 'shield',         label: 'Emergencias',        subtitle: 'SOS',                 color: '#DC2626', route: '/ayuda', cat: '' },
+              ];
+              // Cruise users: pin transport + itineraries (day-plan tools) to front
+              if (userProfile.partyType === 'cruise') {
+                const cruisePriority = ['/transport', '/itineraries', '/(tabs)/agenda'];
+                const pinned = allItems.filter(i => cruisePriority.includes(i.route));
+                const rest = allItems.filter(i => !cruisePriority.includes(i.route));
+                return [...pinned, ...rest];
+              }
+              return allItems;
+            })().map((item) => (
               <TouchableOpacity
                 key={item.label}
                 testID={`quick-${item.label.toLowerCase()}`}
@@ -703,7 +713,9 @@ export default function HomeScreen() {
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
                 <Ionicons name="star" size={18} color={COLORS.primary} />
-                <Text style={styles.sectionTitle}>Próximos eventos</Text>
+                <Text style={styles.sectionTitle}>
+                  {userProfile.userType === 'visitor' && userProfile.travelDates ? s('home_during_visit') : tr('Próximos eventos')}
+                </Text>
                 <Text style={styles.sectionCount}>{featured.length}</Text>
               </View>
               <TouchableOpacity onPress={() => router.push('/(tabs)/agenda' as any)}>
@@ -711,7 +723,23 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
-              {featured.filter(e => e.image_url).slice(0, 10).map((event) => {
+              {(() => {
+                let evts = featured.filter(e => e.image_url);
+                // Visitor with dates: prioritize events during their stay
+                if (userProfile.userType === 'visitor' && userProfile.travelDates) {
+                  const { start, end } = userProfile.travelDates;
+                  const during = evts.filter(e => {
+                    const d = (e as any).date_start || e.date || '';
+                    return d >= start && d <= end;
+                  });
+                  const after = evts.filter(e => {
+                    const d = (e as any).date_start || e.date || '';
+                    return d < start || d > end;
+                  });
+                  evts = [...during, ...after];
+                }
+                return evts;
+              })().slice(0, 10).map((event) => {
                 const cat = CAT_COLORS[event.type] || CAT_COLORS[(event as any).category] || { main: COLORS.primary, bg: 'rgba(212,175,55,0.15)', label: event.type || (event as any).category || '' };
                 const budget = getBudgetStyle(event.is_free, event.price);
                 const dateStart = (event as any).date_start || event.date || '';
@@ -927,12 +955,14 @@ export default function HomeScreen() {
           };
           return (
             <>
-              {/* Qué pasa hoy */}
+              {/* Qué pasa hoy — cruise users see "Tu día en puerto" */}
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionTitleRow}>
-                    <Ionicons name="sunny" size={18} color="#F97316" />
-                    <Text style={styles.sectionTitle}>Qué pasa hoy</Text>
+                    <Ionicons name={userProfile.partyType === 'cruise' ? 'boat' : 'sunny'} size={18} color="#F97316" />
+                    <Text style={styles.sectionTitle}>
+                      {userProfile.partyType === 'cruise' ? tr('Tu día en puerto') : tr('Qué pasa hoy')}
+                    </Text>
                     {dayPE.length > 0 && <Text style={styles.sectionCount}>{dayPE.length}</Text>}
                   </View>
                   <TouchableOpacity onPress={() => router.push('/(tabs)/agenda' as any)}>
