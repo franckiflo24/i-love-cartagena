@@ -17,6 +17,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/src/constants/theme';
 import { submitReview } from '@/src/services/reviewsStore';
 import { useLang } from '@/src/context/LanguageContext';
+import { useAuth } from '@/src/context/AuthContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -66,10 +67,38 @@ function StarPicker({
 export default function NewReviewScreen() {
   const { s } = useLang();
   const router = useRouter();
+  const { user } = useAuth();
   const { partner_id, partner_name } = useLocalSearchParams<{
     partner_id: string;
     partner_name?: string;
   }>();
+
+  // Login gate — reviews require authentication
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="close" size={22} color={COLORS.textMain} />
+          </TouchableOpacity>
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle}>{s('review_write')}</Text>
+          </View>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, paddingHorizontal: 32 }}>
+          <Ionicons name="person-circle-outline" size={56} color={COLORS.primary} />
+          <Text style={{ color: COLORS.textMain, fontSize: 18, ...FONTS.bold, textAlign: 'center' }}>Inicia sesión para dejar una reseña</Text>
+          <TouchableOpacity
+            onPress={() => router.push({ pathname: '/login', params: { next: `/review/new?partner_id=${partner_id}&partner_name=${partner_name || ''}` } } as any)}
+            style={{ paddingVertical: 12, paddingHorizontal: 28, borderRadius: 24, backgroundColor: COLORS.primary }}
+          >
+            <Text style={{ color: COLORS.white, fontSize: 15, ...FONTS.bold }}>Iniciar sesión</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const [overallRating, setOverallRating] = useState(0);
   const [subcategoryRatings, setSubcategoryRatings] = useState<Record<SubcategoryKey, number>>({
@@ -195,7 +224,14 @@ export default function NewReviewScreen() {
             <Text style={styles.charCount}>{reviewText.length} / 1000</Text>
           </View>
 
-          {/* ── Submit ── */}
+          <View style={{ height: 100 }} />
+        </ScrollView>
+
+        {/* ── Sticky submit bar ── */}
+        <View style={styles.stickyBar}>
+          {!canSubmit && overallRating === 0 && (
+            <Text style={styles.validationHint}>Selecciona una calificación general</Text>
+          )}
           <TouchableOpacity
             onPress={handleSubmit}
             disabled={!canSubmit}
@@ -213,13 +249,7 @@ export default function NewReviewScreen() {
               </>
             )}
           </TouchableOpacity>
-
-          {!canSubmit && overallRating === 0 && (
-            <Text style={styles.validationHint}>Selecciona una calificación general para continuar</Text>
-          )}
-
-          <View style={{ height: SPACING.xxl }} />
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -321,7 +351,14 @@ const styles = StyleSheet.create({
   submitBtnDisabled: { backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border },
   submitText: { fontSize: 15, color: COLORS.white, ...FONTS.bold },
   submitTextDisabled: { color: COLORS.textMuted },
-
+  stickyBar: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    paddingBottom: 34,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    backgroundColor: COLORS.background,
+  },
   validationHint: {
     textAlign: 'center',
     fontSize: 12,
