@@ -47,6 +47,7 @@ VIBES = [
     "foodie", "salsa", "beach", "nightlife", "culture",
     "wellness", "photo", "adventure", "art", "coffee",
     "family", "romance", "business", "solo_traveler",
+    "electro", "techno",
 ]
 
 # --------------- Pydantic models ---------------
@@ -549,16 +550,32 @@ async def attendance_preview(event_id: str):
 
     # Fetch first 6 avatars, prioritise solo_open
     rows.sort(key=lambda r: 0 if r.get("visibility") == "solo_open" else 1)
-    top_ids = [r["user_id"] for r in rows[:6]]
+    top_ids = [r["user_id"] for r in rows[:12]]  # fetch extra to compensate for suspended
     if top_ids:
         users = await db.users.find(
             {"user_id": {"$in": top_ids}}, {"_id": 0}
-        ).to_list(6)
+        ).to_list(12)
     else:
         users = []
 
+    # Filter suspended users
+    def _not_suspended(u: dict) -> bool:
+        s = u.get("social") or {}
+        sus = s.get("suspended_until")
+        if not sus:
+            return True
+        try:
+            return datetime.fromisoformat(sus.replace("Z", "+00:00")) < datetime.now(timezone.utc)
+        except Exception:
+            return True
+
+    users = [u for u in users if _not_suspended(u)]
+    # Preserve visibility ordering
+    users_by_id = {u.get("user_id"): u for u in users}
+    ordered_users = [users_by_id[uid] for uid in top_ids if uid in users_by_id][:6]
+
     avatars = []
-    for u in users:
+    for u in ordered_users:
         social = u.get("social") or {}
         if not social.get("social_enabled"):
             continue
