@@ -8,6 +8,7 @@ import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
+import { EventAttendBlock } from '../../src/components/EventAttendBlock';
 
 export default function EventDetail() {
   const tr = useTr();
@@ -153,6 +154,11 @@ export default function EventDetail() {
         <View style={styles.descSection}>
           <Text style={styles.descTitle}>Descripción</Text>
           <Text style={styles.descText}>{event.description}</Text>
+        </View>
+
+        {/* Amo Together — attendance block */}
+        <View style={{ paddingHorizontal: SPACING.lg }}>
+          <EventAttendBlock eventId={event.event_id} />
         </View>
 
         {/* Tags */}

@@ -349,3 +349,230 @@ async def list_blocked(current_user: dict = Depends(_get_user_from_request)):
     my_uid = current_user.get("user_id") or str(current_user.get("_id"))
     rows = await db.user_blocks.find({"blocker_id": my_uid}, {"_id": 0}).to_list(500)
     return {"count": len(rows), "blocked": rows}
+
+
+# =============================================================================
+# EVENT ATTENDANCE — the core "3-tap connect" mechanic
+# =============================================================================
+
+class AttendBody(BaseModel):
+    visibility: str = Field("solo_open", pattern="^(private|public|solo_open)$")
+    # private  → only counted, never listed
+    # public   → avatar in the compact grid, no profile access
+    # solo_open→ hero card with vibes/langs match, profile openable, IG CTA
+
+
+def _match_score(mine: dict, other: dict) -> dict:
+    """Compute vibes/langs overlap between two social profiles."""
+    my_vibes = set((mine.get("vibes") or []))
+    my_langs = set((mine.get("languages") or []))
+    o_vibes = set((other.get("vibes") or []))
+    o_langs = set((other.get("languages") or []))
+    common_v = sorted(my_vibes & o_vibes)
+    common_l = sorted(my_langs & o_langs)
+    return {
+        "common_vibes": common_v,
+        "common_languages": common_l,
+        "score": len(common_v) * 2 + len(common_l),
+    }
+
+
+async def _get_event(event_id: str) -> Optional[dict]:
+    """Look up an event in either the curated events or partner_events collection."""
+    e = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0})
+    if e:
+        return e
+    e = await db.events.find_one({"_id": event_id})
+    if e:
+        e["_id"] = str(e["_id"])
+        return e
+    return None
+
+
+@router.post("/events/{event_id}/attend")
+async def attend_event(event_id: str, payload: AttendBody,
+                       current_user: dict = Depends(_get_user_from_request)):
+    """Mark the current user as attending an event."""
+    social = current_user.get("social") or {}
+    if not social.get("social_enabled") and payload.visibility != "private":
+        raise HTTPException(
+            400,
+            "You must complete your Amo Together profile before joining as public or solo_open. "
+            "Update /api/users/me/social with social_enabled=true first.",
+        )
+    ev = await _get_event(event_id)
+    if not ev:
+        raise HTTPException(404, "Event not found")
+
+    uid = current_user.get("user_id") or str(current_user.get("_id"))
+    doc = {
+        "event_id": event_id,
+        "user_id": uid,
+        "visibility": payload.visibility,
+        "joined_at": datetime.now(timezone.utc).isoformat(),
+        # Denormalized snapshot for fast attendee listing
+        "user_type": social.get("user_type") or "tourist",
+        "current_city": social.get("current_city") or DEFAULT_CITY,
+    }
+    await db.event_attendance.update_one(
+        {"event_id": event_id, "user_id": uid},
+        {"$set": doc},
+        upsert=True,
+    )
+    # Update counters for quick display in mosaics
+    return {"ok": True, "visibility": payload.visibility}
+
+
+@router.delete("/events/{event_id}/attend")
+async def unattend_event(event_id: str,
+                         current_user: dict = Depends(_get_user_from_request)):
+    uid = current_user.get("user_id") or str(current_user.get("_id"))
+    res = await db.event_attendance.delete_one({"event_id": event_id, "user_id": uid})
+    return {"ok": True, "deleted": res.deleted_count}
+
+
+@router.get("/events/{event_id}/attendance/me")
+async def my_attendance(event_id: str,
+                        current_user: dict = Depends(_get_user_from_request)):
+    uid = current_user.get("user_id") or str(current_user.get("_id"))
+    a = await db.event_attendance.find_one({"event_id": event_id, "user_id": uid}, {"_id": 0})
+    return {"attending": bool(a), "visibility": (a or {}).get("visibility")}
+
+
+@router.get("/events/{event_id}/attendees")
+async def event_attendees(event_id: str,
+                          current_user: dict = Depends(_get_user_from_request)):
+    """Return attendees split into two lists:
+      - solo_open:  full cards with vibes/langs overlap
+      - others:     compact grid (first name + flag only)
+    Blocked users are hidden. Suspended users are hidden.
+    """
+    my_uid = current_user.get("user_id") or str(current_user.get("_id"))
+    my_social = current_user.get("social") or {}
+
+    # All attendance rows for this event
+    rows = await db.event_attendance.find({"event_id": event_id}, {"_id": 0}).to_list(1000)
+    total = len(rows)
+    solo_uids = [r["user_id"] for r in rows if r.get("visibility") == "solo_open"]
+    public_uids = [r["user_id"] for r in rows if r.get("visibility") == "public"]
+
+    # Blocklist
+    blocks = await db.user_blocks.find({
+        "$or": [{"blocker_id": my_uid}, {"blocked_id": my_uid}]
+    }).to_list(1000)
+    blocked_ids = {b["blocker_id"] for b in blocks} | {b["blocked_id"] for b in blocks}
+
+    # Fetch users
+    def _hydrate(uids: list) -> list:
+        return list(uids)
+
+    solo_users_docs = await db.users.find(
+        {"user_id": {"$in": [u for u in solo_uids if u != my_uid and u not in blocked_ids]}},
+        {"_id": 0},
+    ).to_list(500)
+
+    public_users_docs = await db.users.find(
+        {"user_id": {"$in": [u for u in public_uids if u != my_uid and u not in blocked_ids]}},
+        {"_id": 0},
+    ).to_list(500)
+
+    # Filter out suspended
+    def _not_suspended(u: dict) -> bool:
+        s = u.get("social") or {}
+        sus = s.get("suspended_until")
+        if not sus:
+            return True
+        try:
+            return datetime.fromisoformat(sus.replace("Z", "+00:00")) < datetime.now(timezone.utc)
+        except Exception:
+            return True
+
+    solo_users_docs = [u for u in solo_users_docs if _not_suspended(u)]
+    public_users_docs = [u for u in public_users_docs if _not_suspended(u)]
+
+    solo_open_cards = []
+    for u in solo_users_docs:
+        pub = _public_profile(u, viewer_uid=my_uid, same_event=True)
+        if not pub:
+            continue
+        match = _match_score(my_social, u.get("social") or {})
+        pub["match"] = match
+        solo_open_cards.append(pub)
+
+    # Sort solo_open by match score descending
+    solo_open_cards.sort(key=lambda p: (p.get("match", {}).get("score", 0)), reverse=True)
+
+    # Public users: minimal representation for grid
+    others_grid = []
+    for u in public_users_docs:
+        social = u.get("social") or {}
+        if not social.get("social_enabled"):
+            continue
+        first_name = (u.get("first_name") or u.get("name") or "").split(" ", 1)[0]
+        others_grid.append({
+            "user_id": u.get("user_id"),
+            "display_name": first_name,
+            "photo_url": u.get("photo_url") or u.get("picture") or "",
+            "user_type": social.get("user_type") or "tourist",
+        })
+
+    # Am I attending myself?
+    me_row = next((r for r in rows if r.get("user_id") == my_uid), None)
+
+    return {
+        "event_id": event_id,
+        "total": total,
+        "solo_open_count": len(solo_uids),
+        "public_count": len(public_uids),
+        "private_count": total - len(solo_uids) - len(public_uids),
+        "solo_open": solo_open_cards,
+        "others": others_grid,
+        "me": {
+            "attending": bool(me_row),
+            "visibility": (me_row or {}).get("visibility"),
+        },
+    }
+
+
+@router.get("/events/{event_id}/attendance/preview")
+async def attendance_preview(event_id: str):
+    """PUBLIC endpoint (no auth) — lightweight preview for the mosaic on cards.
+    Returns just the total count + a handful of avatar URLs.
+    """
+    rows = await db.event_attendance.find(
+        {"event_id": event_id, "visibility": {"$in": ["solo_open", "public"]}},
+        {"_id": 0, "user_id": 1, "visibility": 1, "user_type": 1},
+    ).to_list(50)
+
+    total_all = await db.event_attendance.count_documents({"event_id": event_id})
+    solo_count = sum(1 for r in rows if r.get("visibility") == "solo_open")
+
+    # Fetch first 6 avatars, prioritise solo_open
+    rows.sort(key=lambda r: 0 if r.get("visibility") == "solo_open" else 1)
+    top_ids = [r["user_id"] for r in rows[:6]]
+    if top_ids:
+        users = await db.users.find(
+            {"user_id": {"$in": top_ids}}, {"_id": 0}
+        ).to_list(6)
+    else:
+        users = []
+
+    avatars = []
+    for u in users:
+        social = u.get("social") or {}
+        if not social.get("social_enabled"):
+            continue
+        first = (u.get("first_name") or u.get("name") or "").split(" ", 1)[0]
+        avatars.append({
+            "user_id": u.get("user_id"),
+            "initial": (first[:1] or "?").upper(),
+            "photo_url": u.get("photo_url") or u.get("picture") or "",
+            "user_type": social.get("user_type") or "tourist",
+        })
+
+    return {
+        "event_id": event_id,
+        "total": total_all,
+        "solo_open_count": solo_count,
+        "avatars": avatars,
+    }

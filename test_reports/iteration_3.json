@@ -1,0 +1,52 @@
+{
+  "summary": "Backend-only regression testing of Amo Together social layer (/app/backend/social.py). Wrote 38 pytest cases covering all 11 endpoints listed in the review request. ALL 38/38 PASSED against the public EXPO_PUBLIC_BACKEND_URL. Verified: (1) preview totals (total=6, solo_open_count=4) with solo_open users listed first, (2) attend/unattend upserts, (3) visibility gating (public/solo_open rejected when social_enabled=false, private always allowed), (4) attendees endpoint match-score correctness for Marta's viewpoint — Léa=8, Carlos=7, Sarah=5 in the exact expected order, (5) self-exclusion from both solo_open and others, (6) blocking is bidirectional and removes users from attendee lists + returns 403 on public profile, (7) 3-report auto-suspend triggers and hides suspended users from grid, (8) PATCH validations (city whitelist, empty payload, vibes capped to 5), (9) 401 for missing/invalid tokens, (10) 404 for unknown users on the public profile route. Ran the suite twice to confirm idempotency and verified seed data (Marta's 'electro' vibe, Marco's public visibility, Ana's un-suspended state) is fully restored at teardown. One backend inconsistency found (non-blocking, see critical_code_review_comments).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "PATCH /api/users/me/social",
+        "issue": "VIBES whitelist in social.py (line 46) does NOT include 'electro' but the seed data DOES contain 'electro' for Marta/Carlos/Sarah/Léa. The PATCH endpoint silently drops out-of-catalog vibes with no 400 error and no client-visible warning. If a user opens their profile editor and re-submits their vibes (via a UI 'save' button), they will PERMANENTLY LOSE 'electro'. Either add 'electro' (and any other vibes shipped in seed data) to VIBES, or return a 400 with the rejected values so the client can inform the user."
+      },
+      {
+        "endpoint": "GET /api/events/{event_id}/attendance/preview",
+        "issue": "Does not filter out suspended users (unlike GET /attendees which does). A suspended user's avatar will still show in the mosaic on the event card. Consider joining a $lookup or filtering avatars against social.suspended_until to keep behaviour consistent with the authenticated attendees endpoint."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_social_amo_together.py",
+    "/app/test_reports/pytest/pytest_social_results.xml"
+  ],
+  "action_items": [
+    "Consider adding 'electro' (and any other vibes referenced in seed data) to the VIBES catalog in /app/backend/social.py:46 — otherwise seeded users lose 'electro' the first time they edit their profile via PATCH /users/me/social.",
+    "Consider filtering suspended users in GET /events/{event_id}/attendance/preview (currently only /attendees applies suspension filtering).",
+    "Optional: add explicit 400 response when PATCH /users/me/social receives out-of-whitelist vibes so the client can display which values were rejected."
+  ],
+  "critical_code_review_comments": [
+    "social.py is well-scoped (~580 lines) — could stay in one file but consider splitting attendance endpoints into an events_social.py sub-module if it grows further.",
+    "All DB queries are async via motor — good. All projections exclude Mongo _id — good.",
+    "_public_profile correctly returns {} when social_enabled=false, and the attendees endpoint skips empty results — no PII leak from public grid.",
+    "Auth guard _get_user_from_request accepts both jwt_token and session_token fields via $or — matches the pre-seeded session tokens documented in /app/memory/test_credentials.md.",
+    "Match score formula (|common_vibes|*2 + |common_languages|) is implemented correctly and produces the exact expected 8/7/5 ordering for Marta's viewpoint on pe_001.",
+    "Blocking is truly bidirectional: _is_blocked and the attendees endpoint both use $or on blocker_id/blocked_id — verified via test.",
+    "Report auto-suspension writes social.suspended_until (ISO string) and social.auto_suspended=true; the attendees endpoint parses it correctly via datetime.fromisoformat with Z-suffix normalisation.",
+    "No unblock endpoint exists — this is expected in Phase 1 per the spec, but flag it if the UX ever needs to expose a 'manage blocked users' unblock button."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_social_amo_together.py"
+  ],
+  "success_rate": {
+    "backend": "100% (38/38 tests passed, run twice)",
+    "frontend": "not tested (backend-only scope per review request)"
+  },
+  "seed_data_creation": "No new seed users were created. Tests use the 6 pre-seeded session tokens (seed_marta_token…seed_ana_token). Any temporary mutation (Marco's attendance visibility, Sarah's vibes, Ana's suspension, block rows between marta<->lea, pending user_reports on seed_ana) is fully undone in fixture teardowns using direct pymongo writes where needed (bypassing the vibes whitelist). Verified after two consecutive runs: preview still returns total=6 with all 6 avatars, all seed users have their original vibes.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Use /app/backend/tests/test_social_amo_together.py as the regression suite for the Amo Together social layer. It is fully self-cleaning (all mutations reverted via pymongo in teardown fixtures) and runs against EXPO_PUBLIC_BACKEND_URL from /app/frontend/.env in ~5s. The suite is organised into 11 test classes, one per endpoint group. Note: the PATCH /users/me/social endpoint SILENTLY drops vibes not in the whitelist (see minor issue #1 above) — any future test that patches vibes must either restrict to whitelist values or restore via direct mongo write. Test event is pe_001; seeded users have visible attendance on it. Frontend integration can now be tested visually or via playwright — all 11 backend endpoints are functional and match the spec."
+}

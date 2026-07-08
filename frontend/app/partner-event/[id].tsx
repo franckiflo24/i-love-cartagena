@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
+import { EventAttendBlock } from '../../src/components/EventAttendBlock';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useMyCalendar } from '../../src/context/MyCalendarContext';
 import { useLang } from '../../src/context/LanguageContext';
@@ -140,6 +141,9 @@ export default function PartnerEventDetail() {
           {/* Description */}
           <Text style={styles.sectionTitle}>Sobre el evento</Text>
           <Text style={styles.description}>{event.description}</Text>
+
+          {/* Amo Together — attendance mosaic + join button */}
+          <EventAttendBlock eventId={event.event_id} />
 
           {/* Add to My Calendar */}
           <TouchableOpacity

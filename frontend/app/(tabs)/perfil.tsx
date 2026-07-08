@@ -359,6 +359,28 @@ export default function PerfilScreen() {
           </View>
         </View>
 
+        {/* Amo Together social profile card */}
+        <TouchableOpacity
+          style={styles.togetherCard}
+          onPress={() => router.push('/social/edit' as any)}
+          activeOpacity={0.85}
+          testID="amo-together-card"
+        >
+          <View style={styles.togetherIconWrap}>
+            <Ionicons name="people" size={22} color="#FBBF24" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={styles.togetherTitle}>Amo Together</Text>
+              <View style={styles.newPill}>
+                <Text style={styles.newPillTxt}>NEW</Text>
+              </View>
+            </View>
+            <Text style={styles.togetherDesc}>Rencontre voyageurs & locaux sur tes événements</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+        </TouchableOpacity>
+
         {/* Business Access (auth user) */}
         <TouchableOpacity style={styles.businessAccessCard} onPress={() => router.push('/business/login')} activeOpacity={0.85}>
           <View style={styles.businessIconWrap}>
@@ -558,6 +580,28 @@ const styles = StyleSheet.create({
   },
   businessTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
   businessDesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+
+  // Amo Together card
+  togetherCard: {
+    flexDirection: 'row', alignItems: 'center', gap: SPACING.md,
+    marginHorizontal: SPACING.lg, marginBottom: SPACING.lg,
+    padding: SPACING.md,
+    backgroundColor: 'rgba(251,191,36,0.08)',
+    borderRadius: RADIUS.lg,
+    borderWidth: 1, borderColor: 'rgba(251,191,36,0.35)',
+  },
+  togetherIconWrap: {
+    width: 40, height: 40, borderRadius: 20,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(251,191,36,0.15)',
+  },
+  togetherTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
+  togetherDesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+  newPill: {
+    paddingHorizontal: 6, paddingVertical: 1, borderRadius: 6,
+    backgroundColor: '#FBBF24',
+  },
+  newPillTxt: { fontSize: 8, color: '#0A0A0A', ...FONTS.bold, letterSpacing: 0.5 },
 
   // ── Guest view (not logged in) ──
   guestScroll: {
