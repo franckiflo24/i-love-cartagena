@@ -35,6 +35,8 @@ const VIBE_META: Record<string, { emoji: string; label: string; color: string }>
   romance:       { emoji: '💫', label: 'Romance',    color: '#EC4899' },
   business:      { emoji: '💼', label: 'Business',   color: '#6B7280' },
   solo_traveler: { emoji: '🌍', label: 'Solo',       color: '#0EA5E9' },
+  electro:       { emoji: '🎧', label: 'Electro',    color: '#8B5CF6' },
+  techno:        { emoji: '🔊', label: 'Techno',     color: '#6366F1' },
 };
 
 export type UserBadgeType = 'local' | 'tourist';
