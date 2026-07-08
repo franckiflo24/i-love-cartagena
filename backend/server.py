@@ -3738,6 +3738,14 @@ _reservations.init(
 )
 app.include_router(_reservations.router, prefix="/api")
 
+# ── Amo Together (social layer) ─────────────────────────────────────────────
+try:
+    import social as _social  # noqa: E402
+    app.include_router(_social.router, prefix="/api")
+    logger.info("Amo Together social router mounted at /api")
+except Exception as _social_exc:
+    logger.warning(f"Amo Together social router not loaded: {_social_exc}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
