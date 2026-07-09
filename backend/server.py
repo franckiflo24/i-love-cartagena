@@ -2259,8 +2259,12 @@ async def concierge_chat_endpoint(request: Request):
     messages = body.get("messages", [])
     if not messages:
         raise HTTPException(400, "messages required")
+    # Load user profile for personalized recommendations
+    user_profile = await db.user_profiles.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    if not user_profile:
+        user_profile = {k: user.get(k) for k in ("user_type", "party_type", "interests", "travel_dates")}
     from concierge import concierge_chat
-    result = await concierge_chat(agent, messages, db)
+    result = await concierge_chat(agent, messages, db, user_profile=user_profile)
     return result
 
 
