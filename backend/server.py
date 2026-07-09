@@ -2042,8 +2042,8 @@ _INTEREST_TO_CATEGORY = {
 }
 
 # Partner categories for each itinerary type — MUST match actual DB categories
-_LIFESTYLE_PCATS = {"restaurant", "beach_club", "spa", "hotel", "cafe", "bar", "beauty", "activity"}
-_CULTURA_PCATS   = {"activity", "cafe", "restaurant", "hotel"}
+_LIFESTYLE_PCATS = {"restaurant", "beach_club", "spa", "hotel", "cafe", "bar", "beauty", "activity", "attraction"}
+_CULTURA_PCATS   = {"activity", "cafe", "restaurant", "hotel", "attraction"}
 _MUSICAL_PCATS   = {"club", "bar", "restaurant", "beach_club"}
 
 # Partner event categories
@@ -2124,7 +2124,7 @@ async def _generate_daily_itinerary(user: Optional[dict], category: str, force: 
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     user_id = (user or {}).get("user_id") or "guest"
-    cache_key = f"v3:{user_id}:{cat}:{today}"
+    cache_key = f"v4:{user_id}:{cat}:{today}"
 
     if not force:
         cached = await db.ai_itineraries.find_one({"cache_key": cache_key}, {"_id": 0})

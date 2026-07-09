@@ -93,9 +93,12 @@ KEYWORD_FILTERS: Dict[str, Dict[str, Any]] = {
     "beach": {"category": "beach_club"}, "playa": {"category": "beach_club"},
     "praia": {"category": "beach_club"}, "plage": {"category": "beach_club"},
     "beach club": {"category": "beach_club"}, "beach_club": {"category": "beach_club"},
-    "isla": {"category": "tour"}, "islas": {"category": "tour"}, "island": {"category": "tour"},
-    "islands": {"category": "tour"}, "îles": {"category": "tour"}, "ilha": {"category": "tour"},
-    "baru": {"category": "tour"}, "barú": {"category": "tour"}, "rosario": {"category": "tour"},
+    "isla": {"category": "beach_club"}, "islas": {"category": "beach_club"}, "island": {"category": "beach_club"},
+    "islands": {"category": "beach_club"}, "îles": {"category": "beach_club"}, "ilha": {"category": "beach_club"},
+    "barú": {"category": "beach_club", "subcategory": "baru"}, "baru": {"category": "beach_club", "subcategory": "baru"},
+    "rosario": {"category": "beach_club", "subcategory": "islas_del_rosario"}, "isla grande": {"category": "beach_club", "subcategory": "islas_del_rosario"},
+    "tierra bomba": {"category": "beach_club", "subcategory": "tierra_bomba"}, "tierrabomba": {"category": "beach_club", "subcategory": "tierra_bomba"},
+    "cholon": {"category": "beach_club", "subcategory": "islas_del_rosario"}, "cholón": {"category": "beach_club", "subcategory": "islas_del_rosario"},
     "wellness": {"category": "spa"}, "spa": {"category": "spa"}, "yoga": {"category": "activity"},
     "massage": {"category": "spa"}, "masaje": {"category": "spa"},
     # Services
@@ -198,8 +201,9 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Lis
     fields = {
         "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
         "tier": 1, "price_range": 1, "address": 1, "cuisine": 1, "rating": 1,
+        "reviews": 1, "description": 1,
         "is_government": 1, "experience": 1, "instagram": 1, "booking_link": 1,
-        "phone": 1, "schedule": 1, "features": 1,
+        "phone": 1, "hours": 1, "schedule": 1, "features": 1, "neighborhood": 1,
     }
     semantic = _extract_filters_from_text(user_text)
     query: Dict[str, Any] = {}
