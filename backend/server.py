@@ -4473,6 +4473,11 @@ async def agent_chat(request: Request):
         if m.get("role") in ("user", "assistant") and m.get("content")
     ]
 
+    # Load onboarding profile for personalized recommendations
+    user_profile = await db.user_profiles.find_one({"user_id": user_id}, {"_id": 0})
+    if user_profile:
+        user["_profile"] = user_profile
+
     assistant_payload = await _ai_agent.run_agent_turn(
         db,
         user=user,

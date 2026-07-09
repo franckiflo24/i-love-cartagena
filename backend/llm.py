@@ -45,6 +45,7 @@ async def llm_complete(
     *,
     model: Optional[str] = None,
     max_tokens: int = 1024,
+    temperature: Optional[float] = None,
 ) -> Optional[str]:
     """Send one system+user turn and return the model's text, or None on failure.
 
@@ -54,12 +55,15 @@ async def llm_complete(
     client = _get_anthropic()
     if client is not None:
         try:
-            resp = await client.messages.create(
-                model=model or DEFAULT_MODEL,
-                max_tokens=max_tokens,
-                system=system,
-                messages=[{"role": "user", "content": user_text}],
-            )
+            kwargs: dict = {
+                "model": model or DEFAULT_MODEL,
+                "max_tokens": max_tokens,
+                "system": system,
+                "messages": [{"role": "user", "content": user_text}],
+            }
+            if temperature is not None:
+                kwargs["temperature"] = temperature
+            resp = await client.messages.create(**kwargs)
             text = "".join(b.text for b in resp.content if b.type == "text")
             return text.strip()
         except Exception as exc:

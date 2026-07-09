@@ -227,10 +227,9 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Lis
             {"name": {"$regex": free_text[:50], "$options": "i"}},
             {"experience": {"$regex": free_text[:50], "$options": "i"}},
         ]
-    cursor = db.partners.find(query, fields).limit(max_results)
+    cursor = db.partners.find(query, fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
     rows = await cursor.to_list(max_results)
     # If query returned empty (no semantic match), fall back to a broader bar/restaurant pool
-    # so the LLM still has lots of cards to pick from for "apero/sunset/bar/club" style queries.
     if not rows and (
         vibe in {"aperitivo", "sunset", "rooftop", "sea_view", "electro", "salsa", "reggaeton", "champeta"}
         or "category_in" in semantic
@@ -239,10 +238,10 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Lis
         cursor = db.partners.find(
             {"category": {"$in": cats}},
             fields,
-        ).limit(max_results)
+        ).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
         rows = await cursor.to_list(max_results)
     if not rows:
-        cursor = db.partners.find({}, fields).limit(max_results)
+        cursor = db.partners.find({}, fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
         rows = await cursor.to_list(max_results)
     return rows
 
@@ -251,8 +250,8 @@ async def _slim_all_partners_compact(db, limit: int = 200) -> List[Dict[str, Any
     """Compact list of ALL partners — minimal fields, used as the 'master directory' the LLM scans."""
     cursor = db.partners.find({}, {
         "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
-        "tier": 1, "price_range": 1,
-    }).limit(limit)
+        "tier": 1, "price_range": 1, "rating": 1,
+    }).sort([("rating", -1), ("reviews", -1)]).limit(limit)
     return await cursor.to_list(limit)
 
 
@@ -308,7 +307,17 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
     semantic_filters = _extract_filters_from_text(user_text)
     return {
         "today": datetime.now(timezone.utc).strftime("%A %Y-%m-%d"),
-        "user": {"name": (user or {}).get("name"), "is_logged_in": bool(user), "has_active_city_pass": has_pass} if user else {"is_logged_in": False},
+        "user": {
+            "name": (user or {}).get("name"),
+            "is_logged_in": bool(user),
+            "has_active_city_pass": has_pass,
+            **({"profile": {
+                "user_type": profile.get("user_type"),
+                "party_type": profile.get("party_type"),
+                "interests": profile.get("interests", []),
+                "travel_dates": profile.get("travel_dates"),
+            }} if (profile := (user or {}).get("_profile")) else {}),
+        } if user else {"is_logged_in": False},
         "port_tax_price_cop": port_tax_price,
         "city_pass_plans": [
             {"plan_id": "pass_basic", "name": "Explorer", "price_cop": 99000},
@@ -397,6 +406,13 @@ TU TRABAJO
 - Recomendás eventos, restaurantes, hoteles, beach clubs, paseos a las islas.
 - Iniciás compras (Tasa Portuaria, City Pass) cuando el usuario lo pide claramente.
 - Si el usuario pregunta algo general de Cartagena (historia, clima, seguridad) respondés con conocimiento local.
+- ⚠️ **PERSONALIZACIÓN**: Si `user.profile` existe en el contexto, usalo para adaptar recomendaciones:
+  • `party_type=cruise` → priorizá lugares CENTRALES cerca del puerto, eficientes en tiempo (6-8 horas max), no nightlife.
+  • `party_type=couple` → priorizá romántico, íntimo, especial (rooftops, cenas privadas, spa).
+  • `party_type=family` → priorizá familiar, seguro, actividades para niños.
+  • `party_type=friends` → priorizá diversión, energía, grupo (beach clubs, clubs, bares).
+  • `user_type=local` → evitá lo turístico obvio, sugerí descubrimientos y nuevos.
+  • `interests` → priorizá categorías que coincidan con sus intereses del onboarding.
 - ⚠️ **Usá EL CONTEXTO COMPLETO** que recibís en cada mensaje. Tenés:
   • `relevant_partners` (rich data): los 40 partners MÁS RELEVANTES para la consulta del usuario, pre-filtrados por el backend con keywords. **CITÁ partners de esta lista por nombre con su partner_id exacto.**
   • `all_partners_directory`: catálogo completo (200 partners en formato compacto) — usalo cuando `relevant_partners` no tenga match exacto.
@@ -689,7 +705,10 @@ async def run_agent_turn(
         )
 
     response = await llm_complete(
-        system_msg, json.dumps(user_payload, ensure_ascii=False)
+        system_msg, json.dumps(user_payload, ensure_ascii=False),
+        model="claude-sonnet-4-6",
+        max_tokens=2048,
+        temperature=0.7,
     )
 
     parsed = _safe_json_parse(response or "")
