@@ -96,8 +96,26 @@ KEYWORD_FILTERS: Dict[str, Dict[str, Any]] = {
     "isla": {"category": "tour"}, "islas": {"category": "tour"}, "island": {"category": "tour"},
     "islands": {"category": "tour"}, "îles": {"category": "tour"}, "ilha": {"category": "tour"},
     "baru": {"category": "tour"}, "barú": {"category": "tour"}, "rosario": {"category": "tour"},
-    "wellness": {"category": "wellness"}, "spa": {"category": "wellness"}, "yoga": {"category": "wellness"},
-    "massage": {"category": "wellness"}, "masaje": {"category": "wellness"},
+    "wellness": {"category": "spa"}, "spa": {"category": "spa"}, "yoga": {"category": "activity"},
+    "massage": {"category": "spa"}, "masaje": {"category": "spa"},
+    # Services
+    "bank": {"category": "service"}, "banco": {"category": "service"}, "banque": {"category": "service"},
+    "atm": {"category": "service"}, "cajero": {"category": "service"},
+    "cambio": {"category": "service"}, "exchange": {"category": "service"}, "currency": {"category": "service"},
+    "farmacia": {"category": "service"}, "pharmacy": {"category": "service"}, "pharmacie": {"category": "service"},
+    "rappi": {"category": "service"}, "delivery": {"category": "service"}, "domicilio": {"category": "service"},
+    "sim": {"category": "service"}, "data plan": {"category": "service"}, "celular": {"category": "service"},
+    "lavandería": {"category": "service"}, "laundry": {"category": "service"}, "laverie": {"category": "service"},
+    "supermercado": {"category": "service"}, "supermarket": {"category": "service"}, "grocery": {"category": "service"},
+    "hospital": {"category": "service"}, "clínica": {"category": "service"}, "clinic": {"category": "service"},
+    "doctor": {"category": "service"}, "médico": {"category": "service"},
+    "coworking": {"category": "service"}, "wifi": {"category": "service"},
+    # Attractions
+    "museo": {"category": "attraction"}, "museum": {"category": "attraction"}, "musée": {"category": "attraction"},
+    "castillo": {"category": "attraction"}, "castle": {"category": "attraction"}, "fortress": {"category": "attraction"},
+    "murallas": {"category": "attraction"}, "walls": {"category": "attraction"},
+    "iglesia": {"category": "attraction"}, "church": {"category": "attraction"}, "cathedral": {"category": "attraction"},
+    "monumento": {"category": "attraction"}, "monument": {"category": "attraction"},
     # Tiers
     "luxury": {"tier": "luxe"}, "lujo": {"tier": "luxe"}, "luxe": {"tier": "luxe"},
     "luxo": {"tier": "luxe"}, "alto": {"tier": "luxe"},
@@ -325,7 +343,7 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
             {"plan_id": "pass_premium", "name": "Premium", "price_cop": 350000},
             {"plan_id": "pass_ultimate", "name": "Ultimate", "price_cop": 599000},
         ],
-        "partner_categories": ["restaurant", "hotel", "beach_club", "bar", "club", "cafe", "spa", "wellness", "beauty", "activity", "yacht", "realestate"],
+        "partner_categories": ["restaurant", "hotel", "beach_club", "bar", "club", "cafe", "spa", "beauty", "activity", "yacht", "attraction", "service"],
         "inventory_summary": inventory_summary,  # counts per category/subcategory
         "semantic_filters_detected": semantic_filters,
         "relevant_partners": relevant_partners,  # rich data for top matches
