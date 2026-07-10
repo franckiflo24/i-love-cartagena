@@ -639,7 +639,7 @@ export default function SearchScreen() {
                         <SafeImage uri={p.image_url} category={p.category} style={styles.resultImage} />
                         <View style={styles.resultInfo}>
                           <Text style={styles.resultName} numberOfLines={1}>{p.name}</Text>
-                          <Text style={styles.resultMeta}>{p.cuisine || p.subcategory || p.category}</Text>
+                          <Text style={styles.resultMeta}>{p.cuisine || (p.subcategory || p.category || '').replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}</Text>
                           <Text style={styles.resultSub} numberOfLines={1}>{p.address}</Text>
                         </View>
                         {p.rating ? (
