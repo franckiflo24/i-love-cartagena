@@ -36,15 +36,15 @@ const CATEGORIES: CategoryCard[] = [
   { key: 'hotel',      label: 'Hoteles',       icon: 'bed',        color: '#3B82F6', image: 'https://images.unsplash.com/photo-1488345979593-09db0f85545f?w=600&h=300&fit=crop',
     dbKeys: ['hotel'], tierAsSubcat: true },
   { key: 'activity',   label: 'Actividades',   icon: 'compass',    color: '#F59E0B', image: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=600&h=300&fit=crop',
-    dbKeys: ['activity', 'yacht'] },
+    dbKeys: ['activity', 'yacht', 'attraction'] },
   { key: 'wellness',   label: 'Wellness & Spa',icon: 'leaf',       color: '#10B981', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=300&fit=crop',
-    dbKeys: ['wellness', 'spa'] },
+    dbKeys: ['wellness', 'spa', 'beauty'] },
   { key: 'nightlife',  label: 'Bares & Clubs', icon: 'wine',       color: '#8B5CF6', image: 'https://images.unsplash.com/photo-1645496761317-d4122dfc2264?w=600&h=300&fit=crop',
     dbKeys: ['bar', 'club'] },
   { key: 'beach_club', label: 'Beach Clubs',   icon: 'sunny',      color: '#06B6D4', image: 'https://images.unsplash.com/photo-1546484458-6904289cd4f0?w=600&h=300&fit=crop',
     dbKeys: ['beach_club'] },
-  { key: 'realestate', label: 'Inmobiliario',  icon: 'key',        color: '#0EA5E9', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=300&fit=crop',
-    dbKeys: ['realestate'] },
+  { key: 'service',    label: 'Servicios',     icon: 'construct',  color: '#64748B', image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&h=300&fit=crop',
+    dbKeys: ['service', 'institutional'] },
 ];
 
 // Resolve a card key to the set of backend category values it accepts.
@@ -144,8 +144,9 @@ export default function PartnersScreen() {
   const matchesSubcat = (p: Partner, subKey: string): boolean => {
     if (!subKey || subKey === 'all') return true;
     if (selectedCard?.tierAsSubcat) return p.tier === subKey;
-    if (subKey === 'cafe' && p.category === 'cafe') return true;
-    if (subKey === 'spa'  && p.category === 'spa')  return true;
+    if (subKey === 'cafe'   && p.category === 'cafe')   return true;
+    if (subKey === 'spa'    && p.category === 'spa')    return true;
+    if (subKey === 'beauty' && p.category === 'beauty') return true;
     return (p as any).subcategory === subKey;
   };
 
