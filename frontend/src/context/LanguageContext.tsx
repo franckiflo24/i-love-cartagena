@@ -5,7 +5,7 @@ import { Lang, t, LANG_LABELS, LANG_FLAGS } from '../i18n/translations';
 type LangContextType = {
   lang: Lang;
   setLang: (l: Lang) => void;
-  s: (key: string) => string;
+  s: (key: string, params?: Record<string, string | number>) => string;
 };
 
 const LangContext = createContext<LangContextType>({
@@ -34,8 +34,14 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(STORAGE_KEY, l);
   }, []);
 
-  const s = useCallback((key: string) => {
-    return t[lang]?.[key] || t['es']?.[key] || key;
+  const s = useCallback((key: string, params?: Record<string, string | number>) => {
+    let str = t[lang]?.[key] || t['es']?.[key] || key;
+    if (params) {
+      for (const [k, v] of Object.entries(params)) {
+        str = str.replace(`{${k}}`, String(v));
+      }
+    }
+    return str;
   }, [lang]);
 
   return (

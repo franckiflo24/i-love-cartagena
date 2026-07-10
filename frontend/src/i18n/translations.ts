@@ -46,7 +46,7 @@ export const t: Translations = {
     tab_profile: 'Perfil',
 
     // Home
-    tutorial_explore_title: 'Explora 721+ lugares',
+    tutorial_explore_title: 'Explora {count}+ lugares',
     tutorial_explore_desc: 'Restaurantes, bares, hoteles, playas y más — filtrados por categoría y barrio.',
     tutorial_map_title: 'Mapa interactivo',
     tutorial_map_desc: 'Todos los lugares en un mapa. Toca un pin para ver detalles, fotos y cómo llegar.',
@@ -275,7 +275,7 @@ export const t: Translations = {
     tab_citypass: 'City Pass',
     tab_profile: 'Profile',
 
-    tutorial_explore_title: 'Explore 721+ places',
+    tutorial_explore_title: 'Explore {count}+ places',
     tutorial_explore_desc: 'Restaurants, bars, hotels, beaches and more — filtered by category and neighborhood.',
     tutorial_map_title: 'Interactive map',
     tutorial_map_desc: 'All places on one map. Tap a pin for details, photos and directions.',
@@ -495,7 +495,7 @@ export const t: Translations = {
     tab_citypass: 'City Pass',
     tab_profile: 'Profil',
 
-    tutorial_explore_title: 'Explorez 721+ lieux',
+    tutorial_explore_title: 'Explorez {count}+ lieux',
     tutorial_explore_desc: 'Restaurants, bars, hôtels, plages et plus — filtrés par catégorie et quartier.',
     tutorial_map_title: 'Carte interactive',
     tutorial_map_desc: 'Tous les lieux sur une carte. Touchez un pin pour voir les détails et photos.',
@@ -715,7 +715,7 @@ export const t: Translations = {
     tab_citypass: 'City Pass',
     tab_profile: 'Perfil',
 
-    tutorial_explore_title: 'Explore 721+ lugares',
+    tutorial_explore_title: 'Explore {count}+ lugares',
     tutorial_explore_desc: 'Restaurantes, bares, hotéis, praias e mais — filtrados por categoria e bairro.',
     tutorial_map_title: 'Mapa interativo',
     tutorial_map_desc: 'Todos os lugares em um mapa. Toque em um pin para ver detalhes e fotos.',

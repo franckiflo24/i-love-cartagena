@@ -9,6 +9,7 @@ import { BusinessAuthProvider } from '../src/context/BusinessAuthContext';
 import { MyCalendarProvider } from '../src/context/MyCalendarContext';
 import { RewardsProvider } from '../src/context/RewardsContext';
 import { PersonalizationProvider } from '../src/context/PersonalizationContext';
+import { PartnerCountProvider } from '../src/context/PartnerCountContext';
 import PushBootstrap from '../src/components/PushBootstrap';
 import ErrorBoundary from '../src/components/ErrorBoundary';
 
@@ -31,6 +32,7 @@ export default function RootLayout() {
       <FavoritesProvider>
       <MyCalendarProvider>
       <RewardsProvider>
+      <PartnerCountProvider>
       <PushBootstrap />
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
@@ -74,6 +76,7 @@ export default function RootLayout() {
         <Stack.Screen name="eventos" options={{ presentation: 'modal' }} />
         <Stack.Screen name="favoritos" options={{ presentation: 'modal' }} />
       </Stack>
+      </PartnerCountProvider>
       </RewardsProvider>
       </MyCalendarProvider>
       </FavoritesProvider>

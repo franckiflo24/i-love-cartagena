@@ -15,6 +15,7 @@ import { SkeletonList } from '../../src/components/Skeleton';
 import { getUpcomingEvents } from '../../src/lib/data';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { usePersonalization } from '../../src/context/PersonalizationContext';
+import { usePartnerCount } from '../../src/context/PartnerCountContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
@@ -103,7 +104,7 @@ export default function HomeScreen() {
   const [favItems, setFavItems] = useState<any[]>([]);
   const [unreadNotifs, setUnreadNotifs] = useState<number>(0);
   const [recommendations, setRecommendations] = useState<any[]>([]);
-  const [partnerCount, setPartnerCount] = useState(716);
+  const partnerCount = usePartnerCount();
   const [showGuestBanner, setShowGuestBanner] = useState(false);
   const [guestRecommendations, setGuestRecommendations] = useState<any[]>([]);
   const flatListRef = useRef<FlatList>(null);
@@ -210,10 +211,6 @@ export default function HomeScreen() {
         if (Array.isArray(s) && s.length > 0) {
           applyData(s, f, sp, pe, promos);
         }
-      }).catch(() => {});
-      // Get partner count for hero
-      api.get('/partners').then((p: any) => {
-        if (Array.isArray(p) && p.length > 0) setPartnerCount(p.length);
       }).catch(() => {});
       // Personalized recommendations: use AI profile to filter partners
       if (user) {
@@ -441,7 +438,7 @@ export default function HomeScreen() {
           <View style={styles.heroBannerOverlay} />
           <View style={styles.heroBannerContent}>
             <Text style={styles.heroBannerLabel}>CARTAGENA DE INDIAS</Text>
-            <Text style={styles.heroBannerTitle}>{partnerCount} lugares para descubrir</Text>
+            <Text style={styles.heroBannerTitle}>{partnerCount || '...'} lugares para descubrir</Text>
             <Text style={styles.heroBannerSub}>
               {userProfile.isPersonalized && userProfile.interests.length > 0
                 ? userProfile.interests.map((i: string) => {

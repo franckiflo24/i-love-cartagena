@@ -6,9 +6,11 @@ import { Platform, View } from 'react-native';
 import AssistantFab from '../../src/components/AssistantFab';
 import { useLang } from '../../src/context/LanguageContext';
 import { TutorialOverlay, useTutorial } from '../../src/components/TutorialOverlay';
+import { usePartnerCount } from '../../src/context/PartnerCountContext';
 
 export default function TabLayout() {
   const { s } = useLang();
+  const partnerCount = usePartnerCount();
   const pathname = usePathname();
   const { showTutorial, checkAndShow, completeTutorial } = useTutorial();
 
@@ -18,7 +20,7 @@ export default function TabLayout() {
   useEffect(() => { checkAndShow(); }, []);
 
   const stops = [
-    { key: 'explore', icon: 'compass', title: s('tutorial_explore_title'), description: s('tutorial_explore_desc'), position: 'bottom' as const },
+    { key: 'explore', icon: 'compass', title: s('tutorial_explore_title', { count: partnerCount || 800 }), description: s('tutorial_explore_desc'), position: 'bottom' as const },
     { key: 'map', icon: 'map', title: s('tutorial_map_title'), description: s('tutorial_map_desc'), position: 'bottom' as const },
     { key: 'concierge', icon: 'sparkles', title: s('tutorial_concierge_title'), description: s('tutorial_concierge_desc'), position: 'top' as const },
     { key: 'rewards', icon: 'star', title: s('tutorial_rewards_title'), description: s('tutorial_rewards_desc'), position: 'top' as const },
