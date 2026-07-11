@@ -3,7 +3,7 @@
 **Auditor:** Claude Opus 4.6 (automated)
 **Site:** https://www.amocartagena.co
 **Backend:** https://backend-mu-one-74.vercel.app
-**Partners in DB:** 808
+**Partners in DB:** 790 (after dedup: 817 → 808 → 790)
 
 ---
 
@@ -73,8 +73,9 @@
 
 ---
 
-### 2.2 — 4 OF 8 WELLNESS SUBCATEGORY FILTERS RETURN ZERO RESULTS
-**What:** The Wellness & Spa card has 8 filter pills: spa, beauty, hair, nails, recovery, fitness, sport, yoga. Four of them (`recovery`, `fitness`, `sport`, `yoga`) return **zero results** because the 37 gym/yoga/fitness partners live under `category=activity`, not `beauty`/`spa`.
+### ~~2.2 — 4 OF 8 WELLNESS SUBCATEGORY FILTERS RETURN ZERO RESULTS~~ ✅ FIXED
+**Status:** RESOLVED 2026-07-10. All 8 filters now populated: recovery(5), fitness(16), sport(6), yoga(8).
+**What was wrong:** The Wellness & Spa card had 4 empty filter pills because 35 gym/yoga/fitness partners were miscategorized as `activity`.
 **Evidence:**
 - "Recovery" filter → 0 partners
 - "Fitness" filter → 0 partners
@@ -87,33 +88,38 @@
 
 ---
 
-### 2.3 — "BEAUTY" FILTER IS A CATCH-ALL (114 of 163 wellness partners)
-**What:** The `matchesSubcat` function matches ALL 109 beauty-category partners when "Belleza" is selected, regardless of their actual subcategory. This dumps 70% of the wellness card into one filter, defeating the drill-down purpose.
-**Evidence:** Code at `partners.tsx:149`: `if (subKey === 'beauty' && p.category === 'beauty') return true` — no subcategory matching happens.
-**Missing filter pills:** `barbershop` (24 partners), `aesthetic_clinic` (18), `salon` (16), `makeup` (14), `lashes_brows` (11) have no dedicated pills.
-**Fix:** Either add dedicated filter pills for the actual beauty subcategories, or make the `beauty` filter only match `subcategory=beauty` (7 partners) and add new pills for the rest.
-**Effort:** 1-2 hours
+### ~~2.3 — "BEAUTY" FILTER IS A CATCH-ALL~~ ✅ FIXED
+**Status:** RESOLVED 2026-07-10. Frontend pill mapping splits 109 beauty partners into proper filters.
+- Hair pill (41): barbershop(24) + salon(16) + hair(1)
+- Beauty pill (50): aesthetic_clinic(18) + makeup(14) + lashes_brows(11) + beauty(7)
+- Nails pill (17): nails — already worked
+- Spa pill (+1): facial_spa rolls into existing Spa filter
+- 109/109 mapped, 0 unmapped, zero DB writes
 
 ---
 
-### 2.4 — 29 ADDITIONAL POTENTIAL DUPLICATE PAIRS
-**What:** Beyond the 9 pairs we deduped, 29 more partner pairs share the same `google_place_id` AND same category. These are likely duplicates from different data sources.
-**Evidence (samples):**
-- ptr_1338 "Kanuú Restaurante" / ptr_R061 "Kanuu" (both restaurant, same place_id)
-- ptr_beauty_0464 "Oasi Spa Getsemani" / ptr_V044 "Oasi Spa Getsemaní" (both spa)
-- ptr_1437 "Makani Luxury Cartagena" / ptr_W141 "Makani Beach Club" (both beach_club)
-- ptr_W106 "Donde Olano" / ptr_cu_004 "Restaurante Donde Olano" (both restaurant)
+### ~~2.4 — 29 ADDITIONAL POTENTIAL DUPLICATE PAIRS~~ ✅ FIXED (18 of 33)
+**Status:** RESOLVED 2026-07-10. 33 candidate groups found (not 29). 18 confirmed and deleted, 5 need human review, 10 are NOT dupes (different businesses at same location).
+- 18 confirmed dupes deleted (808 → 790)
+- Backups saved at `/tmp/dedup_backup.json`
+- IMAGE-HASH-DIFF: 0 image fields changed
 
-**Fix:** Run the dedup script again with `google_place_id` matching (not just name matching). Requires manual review to confirm which are true duplicates vs. legitimately different businesses sharing a Google listing.
-**Effort:** 1 hour (script + manual review of 29 pairs)
+**5 LIKELY DUPES — AWAITING HUMAN REVIEW:**
+- Mare Restaurante / Trattoria del Mare (same phone, different names)
+- Layla Cocina Arabe / Harissa (same phone, different cuisine names)
+- Vive La Vida / Vida (same phone, sushi vs vegetarian)
+- Cocktails To Go / Mondo Cocktail Bar (same address, different names)
+- Agencia de Viajes / AGENCIA VIP TRIP (same building)
 
 ---
 
-### 2.5 — 37 MISPLACED GYM/FITNESS PARTNERS IN ACTIVITIES
-**What:** 37 partners categorized as `activity` with subcategories `bienestar`/`wellness_center` are gyms, yoga studios, and fitness centers. They appear under "Actividades" but belong in "Wellness & Spa." This also causes the empty wellness filters (see 2.2).
-**Evidence:** ARES GYM, Smart Fit Castle, Spinning Center Gym, CrossFit Cartagena, Yoga Cartagena, Dhyana Yoga Studio — all under Activities.
-**Fix:** Re-categorize to `spa` or `beauty` with appropriate subcategories matching the wellness filter pills.
-**Effort:** 30 min (batch update via admin/enrich endpoint)
+### ~~2.5 — 37 MISPLACED GYM/FITNESS PARTNERS IN ACTIVITIES~~ ✅ FIXED
+**Status:** RESOLVED 2026-07-10. 35 moved from `activity` → `spa` (2 excluded: water sports + surf school are genuine activities). Category/subcategory $set ONLY — IMAGE-HASH-DIFF confirmed 0 image fields changed.
+- fitness: 16 partners
+- yoga: 8 partners
+- sport: 6 partners
+- recovery: 5 partners
+- Backup at `/tmp/gym_backup.json`
 
 ---
 
@@ -180,23 +186,23 @@
 
 ## SUMMARY TABLE
 
-| # | Finding | Tier | User Impact | Effort |
-|---|---------|------|-------------|--------|
-| 1.1 | 213 broken images | T1 | High — 26% of partners show broken photos | 1-2h |
-| 1.2 | Stale static fallback (817 vs 808) | T1 | Medium — shows dupes when backend slow | 30m |
-| 1.3 | /api/promotions 404 | T1 | None currently (graceful fallback) | N/A |
-| 2.1 | Concierge gated behind auth | T2 | High — trophy feature invisible to guests | Decision |
-| 2.2 | 4 empty wellness filters | T2 | Medium — users see "0 results" for fitness/yoga | 1h |
-| 2.3 | Beauty filter is catch-all | T2 | Low — works but bad UX, 114 of 163 in one bucket | 1-2h |
-| 2.4 | 29 more potential duplicates | T2 | Low — slightly inflated count, occasional double cards | 1h |
-| 2.5 | 37 gyms misplaced in Activities | T2 | Medium — wrong category, feeds into 2.2 | 30m |
-| 3.1 | No filters for Activities/Services | T3 | Low — flat list browsing, still functional | 2h |
-| 3.2 | Inconsistent subcategory names | T3 | None — backend only | 30m |
-| 3.3 | Port tax "Próximamente" | T3 | Low — users told to pay at dock | Decision |
-| 3.4 | Rewards/CityPass auth-gated | T3 | None — expected behavior | N/A |
-| 3.5 | Experience booking → WhatsApp | T3 | Low — functional fallback | Decision |
-| 3.6 | TODO in reservation code | T3 | Unknown — may have wrong phone | 5m |
-| 3.7 | 4 miscategorized partners | T3 | None — minor | 10m |
+| # | Finding | Tier | Status |
+|---|---------|------|--------|
+| 1.1 | 213 broken images | T1 | ✅ FIXED — 790/790 returning 200 |
+| 1.2 | Stale static fallback | T1 | ✅ FIXED — 790 matches live API |
+| 1.3 | /api/promotions 404 | T1 | ⚪ N/A — graceful fallback, no user impact |
+| 2.1 | Concierge gated behind auth | T2 | 🟡 AWAITING DECISION — open to guests? |
+| 2.2 | 4 empty wellness filters | T2 | ✅ FIXED — all 8 filters populated |
+| 2.3 | Beauty filter catch-all | T2 | ✅ FIXED — split into hair(41)/beauty(50)/nails(17)/spa(+1) |
+| 2.4 | Duplicate partners | T2 | ✅ FIXED (18 deleted) — 5 likely dupes awaiting human review |
+| 2.5 | 37 gyms in Activities | T2 | ✅ FIXED — 35 moved to Wellness/Spa |
+| 3.1 | No filters for Activities/Services | T3 | 🟡 OPEN — flat list, still functional |
+| 3.2 | Inconsistent subcategory names | T3 | 🟡 OPEN — cosmetic, backend only |
+| 3.3 | Port tax "Próximamente" | T3 | 🟡 AWAITING DECISION — Wompi keys? |
+| 3.4 | Rewards/CityPass auth-gated | T3 | ⚪ N/A — expected behavior |
+| 3.5 | Experience booking → WhatsApp | T3 | ⚪ N/A — functional fallback |
+| 3.6 | TODO in reservation code | T3 | 🟡 OPEN — 5 min fix |
+| 3.7 | 4 miscategorized partners | T3 | 🟡 OPEN — 10 min fix |
 
 ---
 
@@ -234,9 +240,9 @@ Cannot test client-side JS console from server. Recommend: open Chrome DevTools 
 
 ---
 
-## THE 817→808 MATH
-- **Before:** 817 partners
-- **Deduplication:** Removed 9 duplicate records (9 pairs → kept 9 winners, deleted 9 losers)
-- **After:** 808 partners
-- **Verification:** 817 - 9 = 808 ✓
-- **Note:** 29 additional potential duplicate pairs identified (same google_place_id + same category). If confirmed and cleaned, true unique count would be ~779.
+## THE 817→790 MATH
+- **Start:** 817 partners
+- **Pass 1 dedup (name match):** Removed 9 → 808
+- **Pass 2 dedup (google_place_id match):** Removed 18 confirmed → 790
+- **Remaining:** 5 likely dupes awaiting human verification
+- **True unique estimate:** 785-790 depending on the 5 human-review pairs
