@@ -241,17 +241,29 @@ export default function SearchScreen() {
         data = await api.get(`/search?q=${encodeURIComponent(q)}&lang=${lang || 'es'}`);
       } catch { /* backend failed, will use static fallback */ }
 
-      // Check if backend returned real results
-      const hasResults = data && (
-        (Array.isArray(data.partners) && data.partners.length > 0) ||
-        (Array.isArray(data.events) && data.events.length > 0) ||
-        (Array.isArray(data.concerts) && data.concerts.length > 0)
-      );
+      // Check if backend returned real results (partners, events, OR AI)
+      const hasPartners = data && Array.isArray(data.partners) && data.partners.length > 0;
+      const hasEvents = data && Array.isArray(data.events) && data.events.length > 0;
+      const hasConcerts = data && Array.isArray(data.concerts) && data.concerts.length > 0;
+      const hasAI = data && data.ai && (data.ai.answer || (data.ai.recommendations && data.ai.recommendations.length > 0));
+      const hasResults = hasPartners || hasEvents || hasConcerts;
 
-      // If backend returned nothing, do client-side search over static JSON
+      // If backend returned AI + no partner results, run client-side search
+      // but with smart matching. If backend returned nothing at all, also fallback.
       if (!hasResults) {
         const norm = (s: any): string => (typeof s === 'string' ? s : '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        const queryTerms = norm(q).split(/\s+/).filter(w => w.length >= 2);
+
+        // Stop words: never search for these alone
+        const STOP_WORDS = new Set([
+          'a', 'al', 'con', 'de', 'del', 'el', 'en', 'es', 'la', 'las',
+          'lo', 'los', 'me', 'mi', 'no', 'por', 'que', 'se', 'si', 'su',
+          'te', 'tu', 'un', 'una', 'y', 'o', 'to', 'the', 'in', 'is',
+          'it', 'of', 'on', 'for', 'my', 'an', 'at', 'do', 'im', 'i',
+        ]);
+
+        const queryTerms = norm(q).split(/\s+/).filter(w => w.length >= 3 || !STOP_WORDS.has(w));
+        // Remove remaining short stop words
+        const meaningfulTerms = queryTerms.filter(w => w.length >= 3);
 
         // Synonym expansion: map common queries to categories and Spanish terms
         const SYNONYMS: Record<string, string[]> = {
@@ -261,32 +273,88 @@ export default function SearchScreen() {
           'dinner': ['restaurant', 'restaurante', 'comida', 'cena'],
           'lunch': ['restaurant', 'restaurante', 'brunch', 'almuerzo'],
           'breakfast': ['restaurant', 'cafe', 'brunch', 'desayuno'],
+          'eat': ['restaurant', 'restaurante', 'comida'],
+          'food': ['restaurant', 'restaurante', 'comida'],
           'drinks': ['bar', 'cocktail', 'rooftop', 'coctel'],
-          'cocktails': ['bar', 'cocktail', 'rooftop', 'alquimico'],
+          'cocktails': ['bar', 'cocktail', 'rooftop'],
           'dance': ['club', 'salsa', 'nightlife', 'discoteca', 'champeta'],
           'beach': ['beach_club', 'playa', 'isla', 'baru'],
+          'playa': ['beach_club', 'playa', 'isla', 'baru'],
           'pool': ['beach_club', 'hotel', 'piscina'],
           'music': ['concert', 'concierto', 'festival', 'musica'],
-          'concierto': ['concert', 'musica', 'festival', 'live'],
-          'conciertos': ['concert', 'musica', 'festival', 'live'],
+          'concierto': ['concert', 'musica', 'festival'],
+          'conciertos': ['concert', 'musica', 'festival'],
           'relax': ['spa', 'wellness', 'yoga', 'masaje'],
           'massage': ['spa', 'masaje', 'wellness'],
+          'masaje': ['spa', 'masaje', 'wellness'],
           'hair': ['beauty', 'salon', 'peluqueria', 'barberia'],
           'nails': ['beauty', 'unas', 'manicure'],
           'nightlife': ['club', 'bar', 'nightlife', 'discoteca', 'rooftop'],
           'fiesta': ['club', 'party', 'nightlife', 'festival'],
           'party': ['club', 'party', 'nightlife', 'beach_club'],
+          'lancha': ['yacht', 'boat', 'barco', 'bote', 'paseo', 'isla'],
+          'barco': ['yacht', 'boat', 'lancha', 'paseo', 'isla'],
+          'boat': ['yacht', 'boat', 'lancha', 'barco', 'isla'],
+          'yacht': ['yacht', 'boat', 'lancha', 'barco'],
+          'rosario': ['rosario', 'isla', 'islas', 'snorkel', 'buceo'],
+          'baru': ['baru', 'playa', 'beach', 'isla'],
+          'isla': ['isla', 'rosario', 'baru', 'yacht', 'boat'],
+          'dive': ['buceo', 'diving', 'snorkel', 'submarino'],
+          'buceo': ['buceo', 'diving', 'snorkel', 'dive'],
+          'tour': ['tour', 'cultural', 'recorrido', 'paseo', 'guia'],
+          'gym': ['fitness', 'gym', 'gimnasio', 'crossfit', 'sport'],
+          'gimnasio': ['fitness', 'gym', 'gimnasio', 'crossfit'],
+          'yoga': ['yoga', 'wellness', 'meditacion', 'pilates'],
+          'cafe': ['cafe', 'coffee', 'brunch', 'desayuno'],
+          'coffee': ['cafe', 'coffee', 'brunch'],
+          'hotel': ['hotel', 'hostel', 'hospedaje', 'alojamiento'],
+          'spa': ['spa', 'masaje', 'wellness', 'relajacion'],
+          'kids': ['familia', 'ninos', 'infantil', 'family'],
+          'ninos': ['familia', 'ninos', 'infantil', 'kids'],
+          'safe': ['seguridad', 'seguro', 'emergencia'],
+          'cambio': ['currency_exchange', 'cambio', 'divisa', 'dolar'],
+          'money': ['currency_exchange', 'cambio', 'divisa', 'banco'],
+          'farmacia': ['pharmacy', 'farmacia', 'drogueria'],
+          'tattoo': ['tattoo', 'tatuaje'],
+          'tatuaje': ['tattoo', 'tatuaje'],
         };
 
         // Expand query terms with synonyms
-        const allTerms = new Set(queryTerms);
-        for (const t of queryTerms) {
+        const allTerms = new Set(meaningfulTerms);
+        for (const t of meaningfulTerms) {
           if (SYNONYMS[t]) {
             for (const syn of SYNONYMS[t]) allTerms.add(norm(syn));
           }
         }
         const terms = Array.from(allTerms);
-        const match = (...fields: any[]) => terms.some(t => fields.some(f => norm(f).includes(t)));
+
+        // Score-based matching: count how many terms match, weight by field importance
+        const scorePartner = (p: any): number => {
+          let score = 0;
+          const fields = [
+            { val: p.name, weight: 3 },
+            { val: p.category, weight: 2 },
+            { val: p.subcategory, weight: 2 },
+            { val: p.description, weight: 1 },
+            { val: p.address, weight: 1 },
+            { val: p.experience, weight: 1 },
+          ];
+          for (const t of terms) {
+            for (const f of fields) {
+              const fNorm = norm(f.val);
+              if (!fNorm) continue;
+              // Full word match scores higher than substring
+              const wordMatch = fNorm.split(/\s+/).some((w: string) => w === t || w.startsWith(t));
+              if (wordMatch) {
+                score += f.weight * 2;
+              } else if (fNorm.includes(t) && t.length >= 4) {
+                // Only allow substring matches for terms 4+ chars (avoids "la" matching "playa")
+                score += f.weight;
+              }
+            }
+          }
+          return score;
+        };
 
         const [allPartners, allEvents, allConcerts] = await Promise.all([
           fetch('/data/partners.json').then(r => r.json()).catch(() => []),
@@ -294,14 +362,26 @@ export default function SearchScreen() {
           fetch('/data/concerts.json').then(r => r.json()).catch(() => []),
         ]);
 
-        const partners = (Array.isArray(allPartners) ? allPartners : [])
-          .filter((p: any) => match(p.name, p.description, p.category, p.subcategory, p.address, p.experience, p.tier));
-        const events = (Array.isArray(allEvents) ? allEvents : [])
-          .filter((e: any) => match(e.name_es, e.title, e.description_es, e.description_en, e.category, e.venue, e.slug));
-        const concerts = (Array.isArray(allConcerts) ? allConcerts : [])
-          .filter((c: any) => match(c.title, c.artist, c.genre, c.venue_name, c.description));
+        const scored = (Array.isArray(allPartners) ? allPartners : [])
+          .map((p: any) => ({ ...p, _score: scorePartner(p) }))
+          .filter((p: any) => p._score >= 3)
+          .sort((a: any, b: any) => b._score - a._score)
+          .slice(0, 20);
 
-        data = { partners, events, concerts, venues: [], transport: [], partner_events: [] };
+        const matchEvent = (...fields: any[]) => terms.some(t => fields.some(f => norm(f).split(/\s+/).some((w: string) => w === t || (t.length >= 4 && w.includes(t)))));
+        const events = (Array.isArray(allEvents) ? allEvents : [])
+          .filter((e: any) => matchEvent(e.name_es, e.title, e.description_es, e.description_en, e.category, e.venue, e.slug));
+        const concerts = (Array.isArray(allConcerts) ? allConcerts : [])
+          .filter((c: any) => matchEvent(c.title, c.artist, c.genre, c.venue_name, c.description));
+
+        // Merge: if backend returned AI + some partner results, keep AI and add scored partners
+        if (hasAI && data) {
+          data.partners = scored;
+          data.events = events.length > 0 ? events : (data.events || []);
+          data.concerts = concerts.length > 0 ? concerts : (data.concerts || []);
+        } else {
+          data = { partners: scored, events, concerts, venues: [], transport: [], partner_events: [] };
+        }
       }
 
       const normalized: Results = {
