@@ -9,8 +9,9 @@
 
 ## TIER 1 — LIVE-USER BLOCKERS
 
-### 1.1 — 213 BROKEN PARTNER IMAGES (26% of all partners)
-**What:** 213 of 808 partner image URLs return non-200 responses. Users see broken images.
+### ~~1.1 — 213 BROKEN PARTNER IMAGES~~ ✅ FIXED
+**Status:** RESOLVED 2026-07-10. All 808/808 images now returning 200.
+**What was wrong:** 213 of 808 partner image URLs returned non-200 responses.
 **Evidence:**
 - 185 `lh3.googleusercontent.com` URLs return **403 Forbidden** (expired signed CDN tokens)
 - 27 Unsplash URLs return **404 Not Found** (deleted/moved images)
@@ -29,11 +30,9 @@
 
 ---
 
-### 1.2 — STALE STATIC FALLBACK DATA (817 vs 808)
-**What:** The static fallback at `/data/partners.json` still contains 817 partners (pre-dedup). If the backend is slow or down, users see duplicate entries and stale data.
-**Evidence:** `curl https://www.amocartagena.co/data/partners.json | python3 -c "..." → 817`
-**Fix:** Regenerate static data during build. The Vercel build command (`npx expo export`) packages whatever's in `/data/`. Need to add a pre-build step that fetches live data from the API.
-**Effort:** 30 minutes
+### ~~1.2 — STALE STATIC FALLBACK DATA~~ ✅ FIXED
+**Status:** RESOLVED 2026-07-10. Static fallback now has 808 partners (current, clean).
+**What was wrong:** `/data/partners.json` had 817 partners (pre-dedup) with duplicates and broken image URLs.
 
 ---
 
@@ -47,11 +46,30 @@
 
 ## TIER 2 — TROPHY DEGRADATION
 
-### 2.1 — CONCIERGE REQUIRES AUTH (NO GUEST ACCESS)
-**What:** Both `/api/concierge/chat` and `/api/agent/chat` require authentication. A guest user tapping the Concierge tab gets nothing until they sign up. For a tourism app where discovery drives conversion, gating the trophy feature behind auth is a growth wall.
-**Evidence:** `POST /api/concierge/chat → {"detail":"Not authenticated"}`
-**Fix:** Phil decision — is this intentional? Options: (a) allow N free guest queries, (b) show a preview/teaser, (c) keep gated as signup incentive.
-**Effort:** 2-3 hours for option (a)
+### 2.1 — CONCIERGE: SOLID AI, BUT GATED + SEARCH GAP
+**Concierge quality: EXCELLENT.** 10/10 messy tourist queries answered. 16 venue names recommended, 16/16 verified in the 808-partner DB. Zero hallucinations. Handles vague queries ("im bored", "wheres good to eat") naturally.
+
+| Query | Agent | Venues Recommended | All Verified? |
+|---|---|---|---|
+| "wheres good to eat" | Mare | Restaurante Sambal, CANCHA Restaurante | ✅ |
+| "im bored" | Ciro | (asked clarifying questions) | ✅ |
+| "what do i do when it rains" | Ciro | El Deposito, Barra Xperimental | ✅ |
+| "cheap eats near me" | Mare | Tenderete, EL RINCON | ✅ |
+| "romantic" | Tino | Mankay Rooftop, Casual Bistro, Maria del Puerto | ✅ |
+| "party tonight" | Luna | Sambal, Ajeno Rooftop, Bazurto Social Club | ✅ |
+| "kids stuff" | Ciro | Rosario Islands, Surfing Cartagena | ✅ |
+| "what's happening this week" | Ciro | (no events — only fetches today's, not week) | ✅ |
+| "how do i get to rosario" | Tino | Botegena Boats, Maria del Puerto | ✅ |
+| "is it safe" | Ciro | (safety advice, no venue needed) | ✅ |
+
+**Issues found:**
+1. **Auth-gated** — both concierge endpoints require login. Guest users can't use the trophy feature. Growth wall.
+2. **Search bar synonym gap** — unauthenticated search returns 0 results for "eat", "food", "kids", "bored", "safe" because those words aren't in the synonym dictionary. Authenticated users get AI-enriched results.
+3. **"This week" only gets today** — `concierge.py` filters events by `{"date": today}`, not a date range. "What's happening this week" misses 6 days.
+4. **Language switching** — sometimes responds in Spanish to English queries.
+
+**Fix options:** (a) Allow N free guest concierge queries, (b) add missing search synonyms for unauthenticated users, (c) expand event query to 7-day range.
+**Effort:** 2-3 hours for all three
 
 ---
 
