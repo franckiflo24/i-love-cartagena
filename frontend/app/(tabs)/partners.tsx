@@ -84,6 +84,20 @@ const HOTEL_SUBCATEGORIES = [
   { key: 'elite',   label: 'Lujo',    icon: 'diamond', image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&h=400&fit=crop' },
 ];
 
+const ACTIVITY_SUBCATEGORIES = [
+  { key: 'tours', label: 'Tours', icon: 'walk', image: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=600&h=400&fit=crop' },
+  { key: 'attractions', label: 'Atracciones', icon: 'camera', image: 'https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&h=400&fit=crop' },
+  { key: 'water', label: 'Náutico', icon: 'boat', image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop' },
+];
+
+const SERVICE_SUBCATEGORIES = [
+  { key: 'money', label: 'Cambio & Banco', icon: 'cash', image: 'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=600&h=400&fit=crop' },
+  { key: 'health', label: 'Salud', icon: 'medkit', image: 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=600&h=400&fit=crop' },
+  { key: 'daily', label: 'Día a Día', icon: 'cart', image: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=600&h=400&fit=crop' },
+  { key: 'connect', label: 'Conectar', icon: 'wifi', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop' },
+  { key: 'personal', label: 'Personal', icon: 'person', image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&h=400&fit=crop' },
+];
+
 // Categories that REQUIRE subcategory selection before showing partners
 const REQUIRE_SUBCAT_PICK = new Set(['wellness', 'restaurant', 'hotel']);
 
@@ -92,6 +106,8 @@ const SUBCATEGORIES_BY_CAT: Record<string, { key: string; label: string; icon: s
   wellness: WELLNESS_SUBCATEGORIES,
   restaurant: RESTAURANT_SUBCATEGORIES,
   hotel: HOTEL_SUBCATEGORIES,
+  activity: ACTIVITY_SUBCATEGORIES,
+  service: SERVICE_SUBCATEGORIES,
 };
 
 // Color theme per subcategory parent (for pill styling)
@@ -99,6 +115,8 @@ const SUBCAT_THEME: Record<string, string> = {
   wellness: '#10B981',
   restaurant: '#EF4444',
   hotel: '#3B82F6',
+  activity: '#F59E0B',
+  service: '#64748B',
 };
 
 export default function PartnersScreen() {
@@ -137,14 +155,30 @@ export default function PartnersScreen() {
   const subcatTheme = selectedCategory ? SUBCAT_THEME[selectedCategory] || COLORS.primary : COLORS.primary;
   const requireSubcatPick = !!(selectedCategory && REQUIRE_SUBCAT_PICK.has(selectedCategory) && !selectedSubcat);
 
-  // Maps wellness filter pills to the DB subcategories they include.
-  // beauty-category partners have granular subcategories (barbershop, salon,
-  // aesthetic_clinic, etc.) that roll up into the 4 guest-facing pills.
-  const BEAUTY_PILL_MAP: Record<string, string[]> = {
-    hair:   ['barbershop', 'salon', 'hair'],
-    beauty: ['aesthetic_clinic', 'makeup', 'lashes_brows', 'beauty'],
-    nails:  ['nails'],
-    spa:    ['facial_spa'],  // rolls into existing Spa pill
+  // Frontend pill-to-DB-subcategory mapping. Lets us present clean guest-facing
+  // filter pills without changing DB subcategory values.
+  const PILL_MAP: Record<string, Record<string, string[] | null>> = {
+    // Wellness: beauty-category partners roll up into 4 pills
+    beauty: {
+      hair:   ['barbershop', 'salon', 'hair'],
+      beauty: ['aesthetic_clinic', 'makeup', 'lashes_brows', 'beauty'],
+      nails:  ['nails'],
+      spa:    ['facial_spa'],
+    },
+    // Activity card: group by type across activity/yacht/attraction categories
+    activity: {
+      tours:       null,  // handled by category match below
+      attractions: null,
+      water:       null,
+    },
+    // Service card: group 17 DB subcategories into 5 guest-facing pills
+    service: {
+      money:    ['currency_exchange', 'bank'],
+      health:   ['pharmacy', 'medical', 'veterinary'],
+      daily:    ['grocery', 'laundry', 'delivery', 'luggage_storage'],
+      connect:  ['sim_card', 'coworking', 'transport_app'],
+      personal: ['tattoo', 'barbershop', 'photography', 'fitness', 'rental'],
+    },
   };
 
   // Does a partner match this sub-key for the active category card?
@@ -153,12 +187,26 @@ export default function PartnersScreen() {
     if (selectedCard?.tierAsSubcat) return p.tier === subKey;
     if (subKey === 'cafe' && p.category === 'cafe') return true;
     if (subKey === 'spa'  && p.category === 'spa')  return true;
-    // Beauty-category partners: match via pill mapping instead of catch-all
+
+    // Activity card: filter by top-level category
+    if (subKey === 'tours'       && (p.category === 'activity')) return true;
+    if (subKey === 'attractions' && (p.category === 'attraction')) return true;
+    if (subKey === 'water'       && (p.category === 'yacht')) return true;
+
+    // Beauty-category partners: match via pill mapping
     if (p.category === 'beauty') {
-      const mapped = BEAUTY_PILL_MAP[subKey];
+      const mapped = PILL_MAP.beauty[subKey];
       if (mapped) return mapped.includes((p as any).subcategory || '');
       return false;
     }
+
+    // Service-category partners: match via pill mapping
+    if (p.category === 'service' || p.category === 'institutional') {
+      const mapped = PILL_MAP.service[subKey];
+      if (mapped) return mapped.includes((p as any).subcategory || '');
+      return false;
+    }
+
     return (p as any).subcategory === subKey;
   };
 

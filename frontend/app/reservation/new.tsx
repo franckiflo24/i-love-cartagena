@@ -37,7 +37,6 @@ import { api } from '../../src/constants/api';
 import { useTr } from '../../src/i18n/autoTr';
 
 // Fallback AMO Cartagena concierge WhatsApp when partner has no phone
-// TODO: Replace with real AMO operations number
 const AMO_CONCIERGE_PHONE = process.env.EXPO_PUBLIC_AMO_WHATSAPP || '573176481183';
 
 type Partner = {
