@@ -93,19 +93,6 @@ async def batch_update(request: Request):
     return {"updated": updated, "total": await db.partners.count_documents({})}
 
 
-@api_router.post("/admin/batch-delete")
-async def batch_delete(request: Request):
-    body = await request.json()
-    if body.get("secret") != os.environ.get("DEMO_SIGNUP_CODE", ""):
-        raise HTTPException(403, "Invalid secret")
-    ids = body.get("partner_ids", [])
-    if not ids:
-        return {"deleted": 0, "remaining": await db.partners.count_documents({})}
-    for coll in ("partner_events", "partner_promotions", "rewards_offers"):
-        await db[coll].delete_many({"partner_id": {"$in": ids}})
-    r = await db.partners.delete_many({"partner_id": {"$in": ids}})
-    return {"deleted": r.deleted_count, "remaining": await db.partners.count_documents({})}
-
 
 
 # ── Auth Endpoints ──────────────────────────────────────────
