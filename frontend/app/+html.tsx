@@ -290,11 +290,37 @@ export default function Root({ children }: PropsWithChildren) {
           })();
         `}} />
         <script dangerouslySetInnerHTML={{ __html: `
-          if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/sw.js');
-            });
-          }
+          (function(){
+            var APP_VERSION = '3.0.0';
+            // Listen for SW update message → reload
+            if (navigator.serviceWorker) {
+              navigator.serviceWorker.addEventListener('message', function(e) {
+                if (e.data && e.data.type === 'SW_UPDATED') {
+                  window.location.reload();
+                }
+              });
+            }
+            // Register/update SW on load
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
+                  .then(function(reg) {
+                    // Force check for updates immediately
+                    reg.update();
+                  });
+              });
+            }
+            // Version check: if user has old cached version, force reload once
+            try {
+              var stored = localStorage.getItem('amo_app_version');
+              if (stored && stored !== APP_VERSION) {
+                localStorage.setItem('amo_app_version', APP_VERSION);
+                window.location.reload();
+              } else if (!stored) {
+                localStorage.setItem('amo_app_version', APP_VERSION);
+              }
+            } catch(e) {}
+          })();
         `}} />
       </body>
     </html>
