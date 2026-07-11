@@ -137,16 +137,28 @@ export default function PartnersScreen() {
   const subcatTheme = selectedCategory ? SUBCAT_THEME[selectedCategory] || COLORS.primary : COLORS.primary;
   const requireSubcatPick = !!(selectedCategory && REQUIRE_SUBCAT_PICK.has(selectedCategory) && !selectedSubcat);
 
+  // Maps wellness filter pills to the DB subcategories they include.
+  // beauty-category partners have granular subcategories (barbershop, salon,
+  // aesthetic_clinic, etc.) that roll up into the 4 guest-facing pills.
+  const BEAUTY_PILL_MAP: Record<string, string[]> = {
+    hair:   ['barbershop', 'salon', 'hair'],
+    beauty: ['aesthetic_clinic', 'makeup', 'lashes_brows', 'beauty'],
+    nails:  ['nails'],
+    spa:    ['facial_spa'],  // rolls into existing Spa pill
+  };
+
   // Does a partner match this sub-key for the active category card?
-  // - Hotel card uses `tier` (popular/premium/elite) instead of `subcategory`.
-  // - Cafe sub-key under Restaurantes ALSO matches top-level category='cafe'.
-  // - Spa sub-key under Wellness ALSO matches top-level category='spa'.
   const matchesSubcat = (p: Partner, subKey: string): boolean => {
     if (!subKey || subKey === 'all') return true;
     if (selectedCard?.tierAsSubcat) return p.tier === subKey;
-    if (subKey === 'cafe'   && p.category === 'cafe')   return true;
-    if (subKey === 'spa'    && p.category === 'spa')    return true;
-    if (subKey === 'beauty' && p.category === 'beauty') return true;
+    if (subKey === 'cafe' && p.category === 'cafe') return true;
+    if (subKey === 'spa'  && p.category === 'spa')  return true;
+    // Beauty-category partners: match via pill mapping instead of catch-all
+    if (p.category === 'beauty') {
+      const mapped = BEAUTY_PILL_MAP[subKey];
+      if (mapped) return mapped.includes((p as any).subcategory || '');
+      return false;
+    }
     return (p as any).subcategory === subKey;
   };
 
