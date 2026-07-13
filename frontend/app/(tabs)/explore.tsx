@@ -724,8 +724,8 @@ export default function ExploreScreen() {
         })}
       </ScrollView>
 
-      {/* ── Featured experiences ── */}
-      {(loadingFeatured || featured.length > 0) && (
+      {/* ── Featured experiences (only on "Todos" view) ── */}
+      {selectedCategory.key === 'all' && (loadingFeatured || featured.length > 0) && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
@@ -764,8 +764,8 @@ export default function ExploreScreen() {
         </View>
       )}
 
-      {/* ── Eventos destacados — major Cartagena events ── */}
-      {upcomingEvents.length > 0 && (
+      {/* ── Eventos destacados (only on "Todos" view) ── */}
+      {selectedCategory.key === 'all' && upcomingEvents.length > 0 && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
@@ -830,8 +830,8 @@ export default function ExploreScreen() {
         </View>
       )}
 
-      {/* ── Barrios de Cartagena ── */}
-      {(loadingNeighborhoods || neighborhoods.length > 0) && (
+      {/* ── Barrios de Cartagena (only on "Todos" view) ── */}
+      {selectedCategory.key === 'all' && (loadingNeighborhoods || neighborhoods.length > 0) && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
