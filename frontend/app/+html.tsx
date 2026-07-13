@@ -291,7 +291,7 @@ export default function Root({ children }: PropsWithChildren) {
         `}} />
         <script dangerouslySetInnerHTML={{ __html: `
           (function(){
-            var APP_VERSION = '3.0.0';
+            var APP_VERSION = '3.1.0';
             // Listen for SW update message → reload
             if (navigator.serviceWorker) {
               navigator.serviceWorker.addEventListener('message', function(e) {

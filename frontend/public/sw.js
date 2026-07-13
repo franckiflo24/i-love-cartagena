@@ -1,5 +1,5 @@
-// v3 — 2026-07-10 force refresh after major data cleanup (817→782)
-const APP_VERSION = '3.0.0';
+// v4 — 2026-07-12 explore layout fix
+const APP_VERSION = '3.1.0';
 
 self.addEventListener('install', () => self.skipWaiting());
 
