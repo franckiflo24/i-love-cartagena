@@ -85,7 +85,7 @@ async def batch_update(request: Request):
     updated = 0
     for u in body.get("updates", []):
         fields = {}
-        for k in ("subcategory", "image_url", "category"):
+        for k in ("subcategory", "image_url", "category", "search_profile"):
             if k in u: fields[k] = u[k]
         if fields:
             res = await db.partners.update_one({"partner_id": u["partner_id"]}, {"$set": fields})

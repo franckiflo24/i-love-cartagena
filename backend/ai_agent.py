@@ -314,6 +314,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
         "reviews": 1, "description": 1,
         "is_government": 1, "experience": 1, "instagram": 1, "booking_link": 1,
         "phone": 1, "hours": 1, "schedule": 1, "features": 1, "neighborhood": 1,
+        "search_profile": 1,
     }
 
     # ── Step 1: Try LLM intent routing ──
@@ -353,6 +354,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
                 {"description": {"$regex": term_regex, "$options": "i"}},
                 {"cuisine": {"$regex": term_regex, "$options": "i"}},
                 {"subcategory": {"$regex": term_regex, "$options": "i"}},
+                {"search_profile": {"$regex": term_regex, "$options": "i"}},
             ]
             conditions.append({"$or": text_or})
 
