@@ -21,7 +21,6 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Image,
   KeyboardAvoidingView,
   Platform,
   Alert,
@@ -32,6 +31,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Linking } from 'react-native';
+import { SafeImage } from '../../src/components/SafeImage';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useTr } from '../../src/i18n/autoTr';
@@ -231,11 +231,7 @@ export default function ReservationNew() {
         <ScrollView contentContainerStyle={{ paddingBottom: 140 }} keyboardShouldPersistTaps="handled">
           {/* Partner header */}
           <View style={styles.partnerCard}>
-            {partner.image_url ? (
-              <Image source={{ uri: partner.image_url }} style={styles.partnerImg} />
-            ) : (
-              <View style={[styles.partnerImg, { backgroundColor: COLORS.surface }]} />
-            )}
+            <SafeImage uri={partner.image_url} category={partner.category} style={styles.partnerImg} resizeMode="cover" />
             <View style={{ flex: 1 }}>
               <Text style={styles.partnerName} numberOfLines={1}>{partner.name}</Text>
               {!!partner.address && (
@@ -248,7 +244,7 @@ export default function ReservationNew() {
 
           {event && (
             <View style={styles.eventCard}>
-              {event.flyer_url ? <Image source={{ uri: event.flyer_url }} style={styles.eventImg} /> : null}
+              {event.flyer_url ? <SafeImage uri={event.flyer_url} category="event" style={styles.eventImg} resizeMode="cover" /> : null}
               <View style={{ flex: 1 }}>
                 <Text style={styles.eventTitle} numberOfLines={1}>{event.title}</Text>
                 <Text style={styles.eventSub}>

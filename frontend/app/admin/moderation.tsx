@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Alert, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeImage } from '../../src/components/SafeImage';
 import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
@@ -184,7 +185,7 @@ export default function AdminModeration() {
 
                 {/* Partner info */}
                 <View style={styles.partnerRow}>
-                  {ev.partner_image ? <Image source={{ uri: ev.partner_image }} style={styles.partnerLogo} /> : null}
+                  {ev.partner_image ? <SafeImage uri={ev.partner_image} style={styles.partnerLogo} resizeMode="cover" /> : null}
                   <View style={{ flex: 1 }}>
                     <Text style={styles.partnerName}>{ev.partner_name}</Text>
                     <View style={{ flexDirection: 'row', gap: 4, marginTop: 2 }}>
