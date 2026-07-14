@@ -22,23 +22,34 @@ export default function PartnerDetail() {
   const { isFavorite, toggleFavorite } = useFavorites();
   const [partner, setPartner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+  const [networkError, setNetworkError] = useState(false);
   const [partnerEvents, setPartnerEvents] = useState<any[]>([]);
   const [reserving, setReserving] = useState(false);
 
   const loadPartner = async () => {
     setLoading(true);
-    setError(false);
+    setNotFound(false);
+    setNetworkError(false);
     try {
       const [pData, eData] = await Promise.all([
         api.get(`/partners/${id}`),
         api.get(`/partner-events?partner_id=${id}&upcoming=true`).catch(() => []),
       ]);
-      setPartner(pData);
-      setPartnerEvents(eData || []);
-    } catch (e) {
+      if (!pData || (Array.isArray(pData) && pData.length === 0)) {
+        setNotFound(true);
+      } else {
+        setPartner(pData);
+        setPartnerEvents(eData || []);
+      }
+    } catch (e: any) {
       console.error('[PartnerDetail]', e);
-      setError(true);
+      const msg = String(e?.message || '');
+      if (msg.includes('404') || msg.includes('not found')) {
+        setNotFound(true);
+      } else {
+        setNetworkError(true);
+      }
     }
     setLoading(false);
   };
@@ -53,19 +64,38 @@ export default function PartnerDetail() {
     );
   }
 
-  if (error || !partner) {
+  if (notFound) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.xl, gap: SPACING.md }}>
+          <Ionicons name="search-outline" size={48} color={COLORS.textMuted} />
+          <Text style={{ color: COLORS.textMain, fontSize: 18, ...FONTS.bold, textAlign: 'center' }}>
+            {tr('No encontrado')}
+          </Text>
+          <Text style={{ color: COLORS.textMuted, fontSize: 14, textAlign: 'center' }}>
+            {tr('Este lugar no está disponible')}
+          </Text>
+          <TouchableOpacity onPress={() => router.back()} style={{ backgroundColor: COLORS.primary, paddingHorizontal: SPACING.xl, paddingVertical: SPACING.md, borderRadius: RADIUS.full, marginTop: SPACING.md }}>
+            <Text style={{ color: COLORS.black, ...FONTS.bold }}>{tr('Volver')}</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (networkError || !partner) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.xl, gap: SPACING.md }}>
           <Ionicons name="cloud-offline-outline" size={48} color={COLORS.textMuted} />
           <Text style={{ color: COLORS.textMain, fontSize: 18, ...FONTS.bold, textAlign: 'center' }}>
-            {error ? tr('Sin conexión') : tr('No encontrado')}
+            {tr('Sin conexión')}
           </Text>
           <Text style={{ color: COLORS.textMuted, fontSize: 14, textAlign: 'center' }}>
-            {error ? tr('Verifica tu conexión e intenta de nuevo') : tr('Este lugar no está disponible')}
+            {tr('Verifica tu conexión e intenta de nuevo')}
           </Text>
-          <TouchableOpacity onPress={error ? loadPartner : () => router.back()} style={{ backgroundColor: COLORS.primary, paddingHorizontal: SPACING.xl, paddingVertical: SPACING.md, borderRadius: RADIUS.full, marginTop: SPACING.md }}>
-            <Text style={{ color: COLORS.black, ...FONTS.bold }}>{error ? tr('Reintentar') : tr('Volver')}</Text>
+          <TouchableOpacity onPress={loadPartner} style={{ backgroundColor: COLORS.primary, paddingHorizontal: SPACING.xl, paddingVertical: SPACING.md, borderRadius: RADIUS.full, marginTop: SPACING.md }}>
+            <Text style={{ color: COLORS.black, ...FONTS.bold }}>{tr('Reintentar')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

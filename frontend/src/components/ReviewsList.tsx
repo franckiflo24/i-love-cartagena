@@ -90,6 +90,8 @@ function AggregateHeader({
 }) {
   const stars = Math.round(average);
 
+  if (total === 0) return null;
+
   return (
     <View style={aggStyles.wrap}>
       {/* Big rating number */}

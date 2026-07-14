@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, RefreshControl, Platform } from 'react-native';
 import { SafeImage } from '../../src/components/SafeImage';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -76,10 +76,17 @@ export default function BusinessDashboard() {
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const handleLogout = async () => {
-    Alert.alert('Cerrar sesión', '¿Quieres cerrar tu sesión business?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Cerrar sesión', style: 'destructive', onPress: async () => { await logout(); router.replace('/business/login'); } },
-    ]);
+    if (Platform.OS === 'web') {
+      if (window.confirm('¿Quieres cerrar tu sesión business?')) {
+        await logout();
+        router.replace('/business/login');
+      }
+    } else {
+      Alert.alert('Cerrar sesión', '¿Quieres cerrar tu sesión business?', [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Cerrar sesión', style: 'destructive', onPress: async () => { await logout(); router.replace('/business/login'); } },
+      ]);
+    }
   };
 
   const handleDelete = (eventId: string, title: string) => {

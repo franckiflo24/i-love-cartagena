@@ -256,6 +256,7 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
             transport: '/transport',
             itineraries: '/itineraries',
             search: '/search',
+            login: '/login',
           };
           const p = map[a.screen];
           if (p) {
@@ -328,6 +329,7 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
   const newChat = useCallback(async () => {
     setMessages([]);
     setSessionId(null);
+    setInput('');
     persistSession('');
   }, [persistSession]);
 

@@ -34,17 +34,17 @@ export default function Root({ children }: PropsWithChildren) {
           @font-face {
             font-family: 'Ionicons';
             src: url('https://cdn.jsdelivr.net/npm/@expo/vector-icons@15.0.3/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf') format('truetype');
-            font-display: swap;
+            font-display: block;
           }
           @font-face {
             font-family: 'MaterialIcons';
             src: url('https://cdn.jsdelivr.net/npm/@expo/vector-icons@15.0.3/build/vendor/react-native-vector-icons/Fonts/MaterialIcons.ttf') format('truetype');
-            font-display: swap;
+            font-display: block;
           }
           @font-face {
             font-family: 'FontAwesome';
             src: url('https://cdn.jsdelivr.net/npm/@expo/vector-icons@15.0.3/build/vendor/react-native-vector-icons/Fonts/FontAwesome.ttf') format('truetype');
-            font-display: swap;
+            font-display: block;
           }
 
           @viewport { width: device-width; }
@@ -280,7 +280,7 @@ export default function Root({ children }: PropsWithChildren) {
               // Once the tab bar or any nav element renders, the app is ready
               var ready=document.querySelector('[role="tablist"]')||
                         document.querySelector('[data-testid]')||
-                        document.querySelector('img[src*="googleusercontent"]');
+                        document.querySelector('img[src*="googleapis"]');
               if(ready){mo.disconnect();dismiss();}
             });
             var root=document.getElementById('root');

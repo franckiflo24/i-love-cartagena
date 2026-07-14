@@ -741,7 +741,7 @@ export default function HomeScreen() {
                 const budget = getBudgetStyle(event.is_free, event.price);
                 const dateStart = (event as any).date_start || event.date || '';
                 const dateEnd = (event as any).date_end || dateStart;
-                const todayStr = new Date().toISOString().slice(0, 10);
+                const todayStr = todayIso();
                 const months = ['', 'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
                 let dateLabel = '';
                 if (dateStart <= todayStr && dateEnd >= todayStr) {

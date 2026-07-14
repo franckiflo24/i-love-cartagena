@@ -67,7 +67,7 @@ export default function EventDetail() {
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, paddingHorizontal: 32 }}>
           <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
           <Text style={{ color: COLORS.textMuted, fontSize: 16, textAlign: 'center' }}>Evento no encontrado</Text>
-          <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 8, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 20, backgroundColor: COLORS.primary }}>
+          <TouchableOpacity onPress={() => { if (router.canGoBack()) router.back(); else router.replace('/' as any); }} style={{ marginTop: 8, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 20, backgroundColor: COLORS.primary }}>
             <Text style={{ color: COLORS.white, fontWeight: '600' }}>Volver</Text>
           </TouchableOpacity>
         </View>

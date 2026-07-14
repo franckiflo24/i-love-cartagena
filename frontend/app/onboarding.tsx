@@ -68,8 +68,7 @@ export default function OnboardingScreen() {
   const stepIdx = STEPS.indexOf(step);
 
   const skip = () => {
-    setSkippedSteps(prev => [...prev, step]);
-    goNext();
+    finish(false);
   };
 
   const goNext = () => {

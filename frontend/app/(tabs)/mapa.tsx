@@ -84,7 +84,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
       + "}).addTo(map).bindPopup('" + popupContent.replace(/'/g, "\\'") + "', {maxWidth: 260});";
   }).join('\n');
 
-  // User location: pulsing blue dot + accuracy ring
+  // User location: pulsing blue dot — only recenter if INSIDE Cartagena
   const userMarker = userLoc ? `
     var userIcon = L.divIcon({
       className: 'user-pulse-icon',
@@ -95,7 +95,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     L.marker([${userLoc.lat}, ${userLoc.lng}], {icon: userIcon, zIndexOffset: 1000})
       .addTo(map)
       .bindPopup('<b style="color:#1a1a2e">📍 Tu ubicación</b>');
-    map.setView([${userLoc.lat}, ${userLoc.lng}], 14);
+    ${isInCartagena(userLoc.lat, userLoc.lng) ? `map.setView([${userLoc.lat}, ${userLoc.lng}], 14);` : '/* User outside Cartagena — keep default center */'}
   ` : '';
 
   return '<!DOCTYPE html><html><head>'
@@ -127,6 +127,15 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + userMarker
     + '<\/script>'
     + '</body></html>';
+}
+
+// Cartagena bounding box — any location inside this box is "in Cartagena"
+const CTG_BOUNDS = { latMin: 10.30, latMax: 10.50, lngMin: -75.62, lngMax: -75.45 };
+const CTG_CENTER = { lat: 10.4236, lng: -75.5483 };
+
+function isInCartagena(lat: number, lng: number): boolean {
+  return lat >= CTG_BOUNDS.latMin && lat <= CTG_BOUNDS.latMax
+      && lng >= CTG_BOUNDS.lngMin && lng <= CTG_BOUNDS.lngMax;
 }
 
 // Approximate Cartagena zone classifier (very rough)
@@ -215,7 +224,7 @@ function WebMapDirect({ places, filter, userLoc, onNavigate }: {
         }).addTo(map).bindPopup(popup, { maxWidth: 260 });
       });
 
-      // User location marker
+      // User location marker — only recenter if INSIDE Cartagena
       if (userLoc) {
         const userIcon = L.divIcon({
           className: 'user-pulse-icon',
@@ -226,7 +235,9 @@ function WebMapDirect({ places, filter, userLoc, onNavigate }: {
         L.marker([userLoc.lat, userLoc.lng], { icon: userIcon, zIndexOffset: 1000 })
           .addTo(map)
           .bindPopup('<b style="color:#1a1a2e">📍 Tu ubicación</b>');
-        map.setView([userLoc.lat, userLoc.lng], 14);
+        if (isInCartagena(userLoc.lat, userLoc.lng)) {
+          map.setView([userLoc.lat, userLoc.lng], 14);
+        }
       }
 
       // Handle "Ver detalle" clicks via event delegation
@@ -493,6 +504,15 @@ export default function MapaScreen() {
             }}
           />
         )}
+
+        {/* Floating "Recentrar en Cartagena" button */}
+        <TouchableOpacity
+          style={[styles.locateBtn, { bottom: 80 }]}
+          onPress={() => setUserLoc(null)}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="compass-outline" size={20} color={COLORS.primary} />
+        </TouchableOpacity>
 
         {/* Floating "Locate me" button */}
         <TouchableOpacity

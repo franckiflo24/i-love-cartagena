@@ -66,7 +66,8 @@ const formatDateLabel = (dateStr: string) => {
   const d = new Date(dateStr + 'T00:00:00');
   const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
   const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-  return { day: days[d.getDay()], date: d.getDate(), month: months[d.getMonth()] };
+  const year = String(d.getFullYear()).slice(2);
+  return { day: days[d.getDay()], date: d.getDate(), month: `${months[d.getMonth()]} '${year}` };
 };
 
 const formatPrice = (price: number) => {
@@ -121,17 +122,16 @@ export default function ConcertsScreen() {
 
   const todayStr = new Date().toISOString().slice(0, 10);
 
-  const filteredConcerts = concerts.filter(c => {
+  // Only show upcoming concerts (hide past events)
+  const upcomingConcerts = concerts.filter(c => c.date >= todayStr);
+  // Dates for the date strip — only upcoming, sorted
+  const upcomingDates = dates.filter(d => d >= todayStr).sort();
+
+  const filteredConcerts = upcomingConcerts.filter(c => {
     if (selectedDate && c.date !== selectedDate) return false;
     if (selectedGenre && !c.genre.toLowerCase().includes(selectedGenre.toLowerCase())) return false;
     return true;
-  }).sort((a, b) => {
-    // Upcoming first, past last
-    const aPast = a.date < todayStr ? 1 : 0;
-    const bPast = b.date < todayStr ? 1 : 0;
-    if (aPast !== bPast) return aPast - bPast;
-    return a.date.localeCompare(b.date);
-  });
+  }).sort((a, b) => a.date.localeCompare(b.date));
 
   const openTicketLink = (url: string) => {
     if (url) Linking.openURL(url).catch(() => {});
@@ -155,7 +155,7 @@ export default function ConcertsScreen() {
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>{tr('Conciertos')}</Text>
-          <Text style={styles.subtitle}>{dates.length > 0 && dates[0] > todayStr ? `Próximos shows · Desde ${formatDateLabel(dates[0]).date} ${formatDateLabel(dates[0]).month}` : `Programa musical · ${concerts.length} shows`}</Text>
+          <Text style={styles.subtitle}>{upcomingConcerts.length > 0 ? `${upcomingConcerts.length} shows próximos` : 'Sin shows programados'}</Text>
         </View>
         <Ionicons name="musical-notes" size={24} color={COLORS.primary} />
       </View>
@@ -168,7 +168,7 @@ export default function ConcertsScreen() {
         >
           <Text style={[styles.dateChipText, !selectedDate && styles.dateChipTextActive]}>{tr('Todos')}</Text>
         </TouchableOpacity>
-        {dates.map(d => {
+        {upcomingDates.map(d => {
           const { day, date, month } = formatDateLabel(d);
           const isActive = selectedDate === d;
           return (
@@ -218,7 +218,7 @@ export default function ConcertsScreen() {
         ) : filteredConcerts.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="musical-notes-outline" size={48} color={COLORS.textMuted} />
-            <Text style={styles.emptyText}>No hay conciertos para esta fecha</Text>
+            <Text style={styles.emptyText}>{selectedDate ? 'No hay conciertos para esta fecha' : 'No hay shows programados próximamente'}</Text>
           </View>
         ) : (
           filteredConcerts.map(concert => {
