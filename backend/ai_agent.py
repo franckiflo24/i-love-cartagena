@@ -36,10 +36,11 @@ from __future__ import annotations
 import os
 import json
 import logging
+import time
 import uuid
 import re
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -55,8 +56,8 @@ AGENT_BIO = (
 # Context builders — pull a smart snapshot of the DB
 # ────────────────────────────────────────────────
 
-# Spanish/English/Portuguese/French keyword → canonical filter
-KEYWORD_FILTERS: Dict[str, Dict[str, Any]] = {
+# Spanish/English/Portuguese/French keyword → canonical filter (FALLBACK for when LLM routing fails)
+_KEYWORD_FALLBACK: Dict[str, Dict[str, Any]] = {
     # Cuisines
     "italian": {"subcategory": "italiana"}, "italiana": {"subcategory": "italiana"},
     "italien": {"subcategory": "italiana"}, "italienne": {"subcategory": "italiana"},
@@ -136,24 +137,24 @@ KEYWORD_FILTERS: Dict[str, Dict[str, Any]] = {
     "day pass": {"event_category": "daypass"}, "journée": {"event_category": "daypass"},
     "cultura": {"event_category": "culture"}, "culture": {"event_category": "culture"},
     "arte": {"event_category": "culture"}, "art": {"event_category": "culture"},
-    # Bars / clubs / nightlife (mapped to real DB categories: club + beach_club)
-    "bar": {"category_in": ["club", "beach_club"]}, "bares": {"category_in": ["club", "beach_club"]},
-    "bars": {"category_in": ["club", "beach_club"]}, "lounge": {"category_in": ["club", "beach_club"]},
-    "cocktail": {"category_in": ["club", "beach_club"]}, "cocktails": {"category_in": ["club", "beach_club"]},
-    "coctel": {"category_in": ["club", "beach_club"]}, "cócteles": {"category_in": ["club", "beach_club"]},
-    "drinks": {"category_in": ["club", "beach_club"], "vibe": "aperitivo"},
-    "tragos": {"category_in": ["club", "beach_club"], "vibe": "aperitivo"},
+    # Bars / clubs / nightlife (mapped to real DB categories: bar + club + beach_club)
+    "bar": {"category_in": ["bar", "club", "beach_club"]}, "bares": {"category_in": ["bar", "club", "beach_club"]},
+    "bars": {"category_in": ["bar", "club", "beach_club"]}, "lounge": {"category_in": ["bar", "club", "beach_club"]},
+    "cocktail": {"category_in": ["bar", "club", "beach_club"]}, "cocktails": {"category_in": ["bar", "club", "beach_club"]},
+    "coctel": {"category_in": ["bar", "club", "beach_club"]}, "cócteles": {"category_in": ["bar", "club", "beach_club"]},
+    "drinks": {"category_in": ["bar", "club", "beach_club"], "vibe": "aperitivo"},
+    "tragos": {"category_in": ["bar", "club", "beach_club"], "vibe": "aperitivo"},
     "nightclub": {"category_in": ["club", "beach_club", "nightclub"]},
     "discoteca": {"category_in": ["club", "beach_club", "nightclub"]},
     "fiesta": {"category_in": ["club", "beach_club", "nightclub"]},
     "party": {"category_in": ["club", "beach_club", "nightclub"]},
     "club": {"category_in": ["club", "beach_club"]},
     "clubs": {"category_in": ["club", "beach_club"]},
-    "night": {"category_in": ["club", "beach_club", "nightclub"]},
-    "noche": {"category_in": ["club", "beach_club", "nightclub"]},
-    "nuit": {"category_in": ["club", "beach_club", "nightclub"]},
-    "soir": {"category_in": ["club", "beach_club", "nightclub"]},
-    "soirée": {"category_in": ["club", "beach_club", "nightclub"]},
+    "night": {"category_in": ["bar", "club", "beach_club", "nightclub"]},
+    "noche": {"category_in": ["bar", "club", "beach_club", "nightclub"]},
+    "nuit": {"category_in": ["bar", "club", "beach_club", "nightclub"]},
+    "soir": {"category_in": ["bar", "club", "beach_club", "nightclub"]},
+    "soirée": {"category_in": ["bar", "club", "beach_club", "nightclub"]},
     "electro": {"category_in": ["club", "beach_club", "nightclub"], "vibe": "electro"},
     "électro": {"category_in": ["club", "beach_club", "nightclub"], "vibe": "electro"},
     "electronic": {"category_in": ["club", "beach_club", "nightclub"], "vibe": "electro"},
@@ -179,10 +180,11 @@ KEYWORD_FILTERS: Dict[str, Dict[str, Any]] = {
 
 
 def _extract_filters_from_text(text: str) -> Dict[str, Any]:
-    """Use simple keyword matching to extract semantic filters from the user message."""
+    """Use simple keyword matching to extract semantic filters from the user message.
+    This is the FALLBACK path used when LLM intent routing fails."""
     t = (text or "").lower()
     filters: Dict[str, Any] = {}
-    for kw, fil in KEYWORD_FILTERS.items():
+    for kw, fil in _KEYWORD_FALLBACK.items():
         if kw in t:
             for k, v in fil.items():
                 if k not in filters:
@@ -190,13 +192,121 @@ def _extract_filters_from_text(text: str) -> Dict[str, Any]:
     return filters
 
 
-async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> List[Dict[str, Any]]:
+# ────────────────────────────────────────────────
+# Taxonomy cache — avoids hitting MongoDB distinct() on every request
+# ────────────────────────────────────────────────
+
+_taxonomy_cache: Dict[str, Any] = {"categories": [], "subcategories": [], "ts": 0.0}
+_TAXONOMY_TTL = 300  # 5 minutes
+
+
+async def _get_taxonomy(db) -> Tuple[List[str], List[str]]:
+    """Return (categories, subcategories) from MongoDB, cached for 5 minutes."""
+    now = time.time()
+    if _taxonomy_cache["categories"] and (now - _taxonomy_cache["ts"]) < _TAXONOMY_TTL:
+        return _taxonomy_cache["categories"], _taxonomy_cache["subcategories"]
+    try:
+        cats = await db.partners.distinct("category")
+        subcats = await db.partners.distinct("subcategory")
+        cats = [c for c in cats if c]
+        subcats = [s for s in subcats if s]
+        _taxonomy_cache["categories"] = cats
+        _taxonomy_cache["subcategories"] = subcats
+        _taxonomy_cache["ts"] = now
+    except Exception as exc:
+        logger.warning(f"[_get_taxonomy] Failed to load taxonomy: {exc}")
+        # Return whatever we have cached, even if stale
+    return _taxonomy_cache["categories"], _taxonomy_cache["subcategories"]
+
+
+async def _route_intent(db, user_text: str) -> Dict[str, Any]:
+    """Use a cheap Haiku call to map the user message to canonical categories/subcategories.
+
+    Returns a dict like:
+        {
+            "categories": ["cafe", "restaurant"],
+            "subcategories": ["coffee", "brunch"],
+            "search_terms": ["latte", "cafe"],
+            "intent_type": "recommendation"
+        }
+
+    Falls back to empty routing (diverse partners) if the LLM call fails.
+    """
+    from llm import llm_complete
+
+    categories, subcategories = await _get_taxonomy(db)
+
+    if not categories:
+        # If taxonomy is empty, fall back gracefully
+        return {"categories": [], "subcategories": [], "search_terms": [], "intent_type": "general"}
+
+    routing_prompt = f"""You are a routing classifier for a Cartagena concierge app. Given a user message, map it to the app's taxonomy.
+
+AVAILABLE CATEGORIES (from database):
+{json.dumps(categories, ensure_ascii=False)}
+
+AVAILABLE SUBCATEGORIES (from database):
+{json.dumps(subcategories, ensure_ascii=False)}
+
+Return ONLY valid JSON (no markdown, no explanation):
+{{
+  "categories": ["<1-3 matching categories from the list above, or empty if none fit>"],
+  "subcategories": ["<0-3 matching subcategories from the list above, or empty>"],
+  "search_terms": ["<1-4 keywords to text-search in partner name/description/cuisine/experience>"],
+  "intent_type": "<one of: recommendation, essentials, logistics, events, general>"
+}}
+
+RULES:
+- Only use categories/subcategories that EXIST in the lists above.
+- "recommendation" = user wants a place (restaurant, bar, hotel, beach, spa, activity, etc.)
+- "essentials" = user asks about safety, money, emergency, health, SIM cards, ATMs
+- "logistics" = user asks about transport, taxis, airport, boats, getting around
+- "events" = user asks about concerts, parties, what's on tonight, agenda
+- "general" = greetings, small talk, general Cartagena questions
+- search_terms should capture the SPECIFIC thing the user wants (e.g. "latte", "lobster", "matcha", "rooftop", "sunset")
+- If the user says "bar" include "bar" in categories. If they say "coffee" or "latte" include "cafe" in categories.
+- Be generous with categories: if unsure, include 2-3 plausible categories."""
+
+    try:
+        raw = await llm_complete(
+            routing_prompt,
+            user_text,
+            model="claude-haiku-4-5",
+            max_tokens=300,
+            temperature=0.0,
+        )
+        if not raw:
+            return {"categories": [], "subcategories": [], "search_terms": [], "intent_type": "general"}
+
+        parsed = json.loads(raw)
+        # Validate and sanitize
+        result: Dict[str, Any] = {
+            "categories": [c for c in (parsed.get("categories") or []) if isinstance(c, str)][:3],
+            "subcategories": [s for s in (parsed.get("subcategories") or []) if isinstance(s, str)][:3],
+            "search_terms": [t for t in (parsed.get("search_terms") or []) if isinstance(t, str)][:4],
+            "intent_type": parsed.get("intent_type", "general"),
+        }
+        if result["intent_type"] not in {"recommendation", "essentials", "logistics", "events", "general"}:
+            result["intent_type"] = "general"
+        return result
+
+    except json.JSONDecodeError:
+        logger.warning(f"[_route_intent] Failed to parse LLM routing response")
+        return {"categories": [], "subcategories": [], "search_terms": [], "intent_type": "general"}
+    except Exception as exc:
+        logger.warning(f"[_route_intent] LLM routing failed: {exc}")
+        return {"categories": [], "subcategories": [], "search_terms": [], "intent_type": "general"}
+
+
+async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
     """
     Build a relevance-filtered partner list based on the user's question.
 
-    1. Extract semantic filters (cuisine, category, tier, vibe) from the user message.
-    2. Build a Mongo query honoring those filters.
-    3. If no specific filter found, return a diverse top-50 sample.
+    Strategy:
+    1. Try LLM-based intent routing (cheap Haiku call) for accurate category mapping.
+    2. If LLM routing fails or returns nothing, fall back to keyword matching.
+    3. Build a Mongo query from the routed categories/subcategories + text search.
+    4. If nothing matches, return a diverse top-50 sample.
     """
     fields = {
         "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
@@ -205,67 +315,177 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Lis
         "is_government": 1, "experience": 1, "instagram": 1, "booking_link": 1,
         "phone": 1, "hours": 1, "schedule": 1, "features": 1, "neighborhood": 1,
     }
-    semantic = _extract_filters_from_text(user_text)
+
+    # ── Step 1: Try LLM intent routing ──
+    routed = await _route_intent(db, user_text)
+    routed_cats = routed.get("categories") or []
+    routed_subcats = routed.get("subcategories") or []
+    search_terms = routed.get("search_terms") or []
+    used_llm_routing = bool(routed_cats or routed_subcats or search_terms)
+
+    # ── Step 2: If LLM routing returned nothing useful, fall back to keyword matching ──
+    semantic: Dict[str, Any] = {}
+    if not used_llm_routing:
+        semantic = _extract_filters_from_text(user_text)
+
     query: Dict[str, Any] = {}
-    if "category" in semantic:
-        query["category"] = semantic["category"]
-    elif "category_in" in semantic:
-        # Multi-category match (e.g., "bar" → club + beach_club)
-        query["category"] = {"$in": semantic["category_in"]}
-    if "subcategory" in semantic:
-        query["subcategory"] = semantic["subcategory"]
-    if "tier" in semantic:
-        query["tier"] = semantic["tier"]
-    # ── Vibe-based fuzzy filter: rooftop / aperitivo / sunset / sea_view / electro / salsa / reggaeton ──
-    vibe = semantic.get("vibe")
-    if vibe:
-        vibe_regex_map = {
-            "rooftop": r"rooftop|terraza|terrasse|skybar|azotea|terra[cç]o|roof top|sky bar",
-            "aperitivo": r"apero|ap[eé]ro|aperitivo|aperitif|happy hour|cocktail|coctel|bar|lounge",
-            "sunset": r"sunset|atardecer|coucher de soleil|p[oô]r do sol|crep[uú]sculo|golden hour",
-            "sea_view": r"vista al mar|sea view|ocean view|vue mer|vista mar|frente al mar|beachfront|playa",
-            "electro": r"electro|electronic|electr[oó]nica|techno|house|dj|dance|deep house|edm",
-            "salsa": r"salsa|son cubano|son|guaracha",
-            "reggaeton": r"reggaeton|reggaet[oó]n|perreo|urbano",
-            "champeta": r"champeta|caribe|caribbean|afro caribe",
-        }
-        regex = vibe_regex_map.get(vibe)
-        if regex:
-            or_clause = [
-                {"name": {"$regex": regex, "$options": "i"}},
-                {"experience": {"$regex": regex, "$options": "i"}},
-                {"subcategory": {"$regex": regex, "$options": "i"}},
-                {"features": {"$regex": regex, "$options": "i"}},
-                {"address": {"$regex": regex, "$options": "i"}},
-            ]
-            if query:
-                query = {"$and": [query, {"$or": or_clause}]}
+
+    if used_llm_routing:
+        # Build query from LLM-routed categories/subcategories
+        conditions: List[Dict[str, Any]] = []
+        if routed_cats:
+            if len(routed_cats) == 1:
+                conditions.append({"category": routed_cats[0]})
             else:
-                query = {"$or": or_clause}
-    free_text = (user_text or "").strip()
-    if free_text and len(free_text) > 2 and not query:
-        # Free text fallback (search across name + experience)
-        query["$or"] = [
-            {"name": {"$regex": free_text[:50], "$options": "i"}},
-            {"experience": {"$regex": free_text[:50], "$options": "i"}},
-        ]
+                conditions.append({"category": {"$in": routed_cats}})
+        if routed_subcats:
+            if len(routed_subcats) == 1:
+                conditions.append({"subcategory": routed_subcats[0]})
+            else:
+                conditions.append({"subcategory": {"$in": routed_subcats}})
+
+        # Text-search search_terms against multiple fields
+        if search_terms:
+            term_regex = "|".join(re.escape(t) for t in search_terms)
+            text_or = [
+                {"name": {"$regex": term_regex, "$options": "i"}},
+                {"experience": {"$regex": term_regex, "$options": "i"}},
+                {"description": {"$regex": term_regex, "$options": "i"}},
+                {"cuisine": {"$regex": term_regex, "$options": "i"}},
+                {"subcategory": {"$regex": term_regex, "$options": "i"}},
+            ]
+            conditions.append({"$or": text_or})
+
+        if conditions:
+            if len(conditions) == 1:
+                query = conditions[0]
+            else:
+                # Use $or at top level so we get partners matching category OR search terms
+                # (not $and, which would be too restrictive)
+                query = {"$or": conditions}
+    else:
+        # Keyword fallback path (same as original logic)
+        if "category" in semantic:
+            query["category"] = semantic["category"]
+        elif "category_in" in semantic:
+            query["category"] = {"$in": semantic["category_in"]}
+        if "subcategory" in semantic:
+            query["subcategory"] = semantic["subcategory"]
+        if "tier" in semantic:
+            query["tier"] = semantic["tier"]
+
+        # Vibe-based fuzzy filter
+        vibe = semantic.get("vibe")
+        if vibe:
+            vibe_regex_map = {
+                "rooftop": r"rooftop|terraza|terrasse|skybar|azotea|terra[cç]o|roof top|sky bar",
+                "aperitivo": r"apero|ap[eé]ro|aperitivo|aperitif|happy hour|cocktail|coctel|bar|lounge",
+                "sunset": r"sunset|atardecer|coucher de soleil|p[oô]r do sol|crep[uú]sculo|golden hour",
+                "sea_view": r"vista al mar|sea view|ocean view|vue mer|vista mar|frente al mar|beachfront|playa",
+                "electro": r"electro|electronic|electr[oó]nica|techno|house|dj|dance|deep house|edm",
+                "salsa": r"salsa|son cubano|son|guaracha",
+                "reggaeton": r"reggaeton|reggaet[oó]n|perreo|urbano",
+                "champeta": r"champeta|caribe|caribbean|afro caribe",
+            }
+            regex = vibe_regex_map.get(vibe)
+            if regex:
+                or_clause = [
+                    {"name": {"$regex": regex, "$options": "i"}},
+                    {"experience": {"$regex": regex, "$options": "i"}},
+                    {"subcategory": {"$regex": regex, "$options": "i"}},
+                    {"features": {"$regex": regex, "$options": "i"}},
+                    {"address": {"$regex": regex, "$options": "i"}},
+                ]
+                if query:
+                    query = {"$and": [query, {"$or": or_clause}]}
+                else:
+                    query = {"$or": or_clause}
+
+        free_text = (user_text or "").strip()
+        if free_text and len(free_text) > 2 and not query:
+            query["$or"] = [
+                {"name": {"$regex": free_text[:50], "$options": "i"}},
+                {"experience": {"$regex": free_text[:50], "$options": "i"}},
+            ]
+
     cursor = db.partners.find(query, fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
     rows = await cursor.to_list(max_results)
-    # If query returned empty (no semantic match), fall back to a broader bar/restaurant pool
-    if not rows and (
-        vibe in {"aperitivo", "sunset", "rooftop", "sea_view", "electro", "salsa", "reggaeton", "champeta"}
-        or "category_in" in semantic
-    ):
-        cats = semantic.get("category_in") or ["club", "beach_club", "nightclub", "restaurant"]
-        cursor = db.partners.find(
-            {"category": {"$in": cats}},
-            fields,
-        ).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
+
+    # If LLM-routed query returned empty, try with just category (drop search_terms)
+    if not rows and used_llm_routing and routed_cats:
+        fallback_q: Dict[str, Any] = {"category": {"$in": routed_cats}} if len(routed_cats) > 1 else {"category": routed_cats[0]}
+        cursor = db.partners.find(fallback_q, fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
         rows = await cursor.to_list(max_results)
+
+    # Keyword fallback: broader bar/restaurant pool
+    if not rows and not used_llm_routing:
+        vibe = semantic.get("vibe")
+        if (
+            vibe in {"aperitivo", "sunset", "rooftop", "sea_view", "electro", "salsa", "reggaeton", "champeta"}
+            or "category_in" in semantic
+        ):
+            cats = semantic.get("category_in") or ["bar", "club", "beach_club", "nightclub", "restaurant"]
+            cursor = db.partners.find(
+                {"category": {"$in": cats}}, fields,
+            ).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
+            rows = await cursor.to_list(max_results)
+
+    # Ultimate fallback: diverse top partners
     if not rows:
         cursor = db.partners.find({}, fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
         rows = await cursor.to_list(max_results)
-    return rows
+
+    return rows, routed
+
+
+# ────────────────────────────────────────────────
+# DROP 3: Knowledge Spine — structured local knowledge for essentials/logistics
+# ────────────────────────────────────────────────
+
+CARTAGENA_KNOWLEDGE: Dict[str, Any] = {
+    "emergencies": {
+        "police": "123",
+        "fire": "125",
+        "ambulance": "132",
+        "tourist_police": "Calle de la Tablada, Centro Historico (near Plaza Santo Domingo). Bilingual officers available.",
+        "english_speaking_clinics": [
+            {"name": "Hospital Universitario del Caribe", "note": "Public hospital, emergency dept, some English-speaking staff"},
+            {"name": "Medihelp", "note": "Private clinic popular with tourists, English-speaking doctors, Bocagrande"},
+        ],
+    },
+    "transport": {
+        "airport": "Rafael Nunez International (CTG), ~15 min to Centro Historico by taxi",
+        "taxis": "Safe if official (yellow). No meter — agree on price BEFORE. ~$15,000-25,000 COP within city. Uber/InDriver/DiDi work but legally grey.",
+        "water_taxis": "To islands from Muelle de la Bodeguita (main dock, Centro) and Muelle de Manga. Tasa Portuaria required (~$31,500 COP/person).",
+        "transcaribe": "TransCaribe bus system, prepaid card, covers Bocagrande-Centro-Manga corridor. Cheap but crowded.",
+        "cruise_terminal": "SPRC terminal in Manga, ~10-15 min to Centro Historico by taxi.",
+    },
+    "money": {
+        "currency": "Colombian Peso (COP). 1 USD ~ 4,200 COP (varies).",
+        "usd_accepted": "USD widely accepted in tourist areas (hotels, tours, some restaurants). Change given in COP.",
+        "tipping": "10% voluntary service charge at restaurants (can decline). Tip porters, guides, boat captains.",
+        "atms": "Bancolombia ATMs give best rate. Found in Bocagrande, Centro, and malls. Daily limit ~$600,000 COP.",
+        "exchange_houses": "Casas de cambio in Centro (near Torre del Reloj) and Bocagrande. Compare rates. Avoid street changers.",
+    },
+    "safety": {
+        "safe_zones": "Centro Historico, Getsemani, Bocagrande, Castillogrande, San Diego are safe during the day. Normal caution at night.",
+        "avoid": "San Francisco and Nelson Mandela neighborhoods. Bazurto market at night.",
+        "tips": "Don't flash valuables. Use official taxis or ride apps. Keep phone in front pocket. Use hotel safe for passport.",
+    },
+    "neighborhoods": {
+        "centro_historico": "Colonial walled city. UNESCO World Heritage. Romantic, museums, galleries, premium dining. Walk everywhere.",
+        "getsemani": "Bohemian quarter. Street art, hostels, Plaza Trinidad nightlife, salsa bars, budget-friendly. Rapidly gentrifying.",
+        "bocagrande": "Modern high-rise zone. Beach (urban), malls, banks, pharmacies, chain hotels. Convenient but less authentic.",
+        "manga": "Local residential. Cruise terminal area. Some excellent restaurants (Club de Pesca). Real neighborhood feel.",
+        "castillogrande": "Quiet peninsula. Resort hotels. Beautiful sunset views. Low-key beach. Good for families.",
+    },
+    "islands": {
+        "tierra_bomba": "30 min by boat. Half-day trip. Budget to luxury beach clubs (Fenix, Makani, Namaste). Most accessible island.",
+        "islas_del_rosario": "1-1.5 hr by boat. Full day trip. Snorkeling, diving, premium beach clubs (Bora Bora, Blue Apple, PA'UE). Depart ~8-9am.",
+        "baru_playa_blanca": "1 hr by boat or 50 min by road. Most famous beach in Cartagena. Can be crowded. Hotel Las Islas for ultra-luxury.",
+        "cholon": "Part of Rosario archipelago. Party island. Floating bars, music, groups. Full day trip.",
+    },
+}
 
 
 async def _slim_all_partners_compact(db, limit: int = 200) -> List[Dict[str, Any]]:
@@ -307,8 +527,9 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
     """Pull the data the agent needs to reason about, focused on relevance to user_text."""
     # All partners, compact (directory)
     all_partners = await _slim_all_partners_compact(db, 200)
-    # Relevance-filtered partners (rich data) — pre-filtered using simple keyword extraction
-    relevant_partners = await _smart_partner_query(db, user_text, max_results=40)
+    # Relevance-filtered partners (rich data) — pre-filtered using LLM routing with keyword fallback
+    relevant_partners, routed_intent = await _smart_partner_query(db, user_text, max_results=40)
+    intent_type = routed_intent.get("intent_type", "general")
     # Events
     upcoming_events = await _slim_upcoming_events(db, days=14, limit=50)
     partner_events = await _slim_partner_events(db, limit=30)
@@ -327,7 +548,7 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
         for r in cat_counts if r.get("_id")
     ]
     semantic_filters = _extract_filters_from_text(user_text)
-    return {
+    ctx: Dict[str, Any] = {
         "today": datetime.now(timezone.utc).strftime("%A %Y-%m-%d"),
         "user": {
             "name": (user or {}).get("name"),
@@ -350,12 +571,17 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
         "partner_categories": ["restaurant", "hotel", "beach_club", "bar", "club", "cafe", "spa", "beauty", "activity", "yacht", "attraction", "service"],
         "inventory_summary": inventory_summary,  # counts per category/subcategory
         "semantic_filters_detected": semantic_filters,
+        "intent_routing": routed_intent,  # LLM-routed intent (categories, subcategories, search_terms, intent_type)
         "relevant_partners": relevant_partners,  # rich data for top matches
         "all_partners_directory": all_partners,  # full catalog (compact)
         "upcoming_events": upcoming_events,
         "partner_curated_events": partner_events,  # daypass / sunset etc
         "tabs": ["agenda", "concerts", "partners", "citypass", "transport", "itineraries"],
     }
+    # Include knowledge spine for essentials/logistics queries
+    if intent_type in {"essentials", "logistics"}:
+        ctx["cartagena_knowledge"] = CARTAGENA_KNOWLEDGE
+    return ctx
 
 
 # ────────────────────────────────────────────────
@@ -468,6 +694,9 @@ TU TRABAJO
   • `party_type=friends` → priorizá diversión, energía, grupo (beach clubs, clubs, bares).
   • `user_type=local` → evitá lo turístico obvio, sugerí descubrimientos y nuevos.
   • `interests` → priorizá categorías que coincidan con sus intereses del onboarding.
+- ⚠️ **CALIDAD DE RECOMENDACIÓN**: Cuando recomendés un lugar, SIEMPRE incluí UNA LÍNEA explicando POR QUÉ ese lugar específico encaja con lo que el usuario pidió.
+- ⚠️ **HONESTIDAD**: Cuando nada en el catálogo coincide con lo que el usuario pide, decilo honestamente y ofrecé la alternativa real más cercana. NUNCA inventés un nombre de venue, dirección, teléfono o precio.
+- ⚠️ **PERFIL DEL USUARIO**: Usá `user.profile` (user_type, party_type, interests, travel_dates) del contexto para ponderar recomendaciones: pasajeros de crucero → central/caminable/eficiente; parejas → romántico/íntimo; familias → kid-friendly/seguro; locales → hidden gems/descubrimientos.
 - ⚠️ **Usá EL CONTEXTO COMPLETO** que recibís en cada mensaje. Tenés:
   • `relevant_partners` (rich data): los 40 partners MÁS RELEVANTES para la consulta del usuario, pre-filtrados por el backend con keywords. **CITÁ partners de esta lista por nombre con su partner_id exacto.**
   • `all_partners_directory`: catálogo completo (200 partners en formato compacto) — usalo cuando `relevant_partners` no tenga match exacto.
