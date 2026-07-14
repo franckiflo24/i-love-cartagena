@@ -2,7 +2,7 @@
   {
     "sponsor_id": "sp_001",
     "name": "Avianca",
-    "logo_url": "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=80",
+    "logo_url": "https://images.unsplash.com/photo-1436491865332-7a61a109db56?w=600&q=80",
     "tagline": "Aerolínea oficial",
     "color": "#E31837",
     "url": "https://avianca.com",
@@ -13,7 +13,7 @@
   {
     "sponsor_id": "sp_002",
     "name": "Aguila",
-    "logo_url": "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=80",
+    "logo_url": "https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=600&q=80",
     "tagline": "La cerveza de Colombia",
     "color": "#FFD700",
     "url": "https://cervezaaguila.com",
@@ -24,7 +24,7 @@
   {
     "sponsor_id": "sp_003",
     "name": "Alcaldía de Cartagena",
-    "logo_url": "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=80",
+    "logo_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
     "tagline": "Ciudad patrimonio",
     "color": "#1B4F72",
     "url": "https://cartagena.gov.co",
