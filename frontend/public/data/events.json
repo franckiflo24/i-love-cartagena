@@ -11,7 +11,7 @@
     "type": "beach_club",
     "is_free": false,
     "price": 350000,
-    "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
+    "image_url": "https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=600&q=80",
     "booking_link": "https://barubeach.com/party",
     "capacity": 300,
     "tags": [
@@ -40,7 +40,7 @@
     "type": "cultural",
     "is_free": true,
     "price": 0,
-    "image_url": "https://images.unsplash.com/photo-1583037189850-1921ae7c6c22?w=800",
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
     "booking_link": "",
     "capacity": 500,
     "tags": [
@@ -70,7 +70,7 @@
     "type": "wellness",
     "is_free": false,
     "price": 80000,
-    "image_url": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800",
+    "image_url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80",
     "booking_link": "https://blueapple.co/spinning",
     "capacity": 30,
     "tags": [
@@ -99,7 +99,7 @@
     "type": "after_party",
     "is_free": false,
     "price": 120000,
-    "image_url": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
+    "image_url": "https://images.unsplash.com/photo-1414609245224-afa02bfb3fda?w=600&q=80",
     "booking_link": "https://fenix.co/after",
     "capacity": 400,
     "tags": [
@@ -128,7 +128,7 @@
     "type": "beach_club",
     "is_free": false,
     "price": 400000,
-    "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
+    "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80",
     "booking_link": "https://blueapple.co/djset",
     "capacity": 150,
     "tags": [
@@ -155,7 +155,7 @@
     "description": "Catamaran sunset tour por Islas del Rosario con DJ, open bar y snorkel en las playas vírgenes.",
     "end_time": "20:00",
     "featured": true,
-    "image_url": "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800&h=600&fit=crop",
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
     "is_free": false,
     "moderation_status": "approved",
     "price": 250000,
@@ -178,7 +178,7 @@
     "description": "Concierto al aire libre con los reyes de la champeta cartagenera.",
     "end_time": "03:00",
     "featured": true,
-    "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop",
+    "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80",
     "is_free": false,
     "moderation_status": "approved",
     "price": 70000,
@@ -201,7 +201,7 @@
     "description": "Día completo en yate privado: Cholón, Isla Pirata, almuerzo, ducha tropical.",
     "end_time": "19:00",
     "featured": true,
-    "image_url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=600&q=80",
     "is_free": false,
     "moderation_status": "approved",
     "price": 320000,
@@ -252,7 +252,7 @@
     "type": "sunset",
     "is_free": false,
     "price": 150000,
-    "image_url": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80",
     "booking_link": "https://cafeDelmar.com/reserve",
     "capacity": 200,
     "tags": [
@@ -281,7 +281,7 @@
     "type": "brunch",
     "is_free": false,
     "price": 180000,
-    "image_url": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800",
+    "image_url": "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=600&q=80",
     "booking_link": "https://casaboheme.co/brunch",
     "capacity": 80,
     "tags": [
@@ -308,7 +308,7 @@
     "description": "Brunch buffet caribeño con set de house ibicenco junto al mar.",
     "end_time": "16:00",
     "featured": true,
-    "image_url": "https://images.unsplash.com/photo-1540541338287-41700207dee6?w=800&h=600&fit=crop",
+    "image_url": "/images/partners/ptr_W143.jpg",
     "is_free": false,
     "moderation_status": "approved",
     "partner_id": "ptr_W143",
@@ -360,7 +360,7 @@
     "description": "Sesión de yoga al atardecer seguida de degustación de mezcales artesanales.",
     "end_time": "20:00",
     "featured": true,
-    "image_url": "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&h=600&fit=crop",
+    "image_url": "/images/partners/ptr_V042.jpg",
     "is_free": false,
     "moderation_status": "approved",
     "partner_id": "ptr_V042",
@@ -412,7 +412,7 @@
     "description": "Taller con chef sobre cocina vegetal caribeña — incluye degustación.",
     "end_time": "13:00",
     "featured": true,
-    "image_url": "https://images.unsplash.com/photo-1559737558-2f5a35f4523b?w=800&h=600&fit=crop",
+    "image_url": "/images/partners/ptr_R021.jpg",
     "is_free": false,
     "moderation_status": "approved",
     "partner_id": "ptr_R021",
@@ -440,7 +440,7 @@
     "type": "candlelight",
     "is_free": false,
     "price": 200000,
-    "image_url": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
     "booking_link": "https://candlelight.co/cartagena",
     "capacity": 120,
     "tags": [
@@ -469,7 +469,7 @@
     "type": "pop_up",
     "is_free": true,
     "price": 0,
-    "image_url": "https://images.unsplash.com/photo-1531058020387-3be344556be6?w=800",
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
     "booking_link": "",
     "capacity": 0,
     "tags": [
@@ -498,7 +498,7 @@
     "type": "cultural",
     "is_free": false,
     "price": 220000,
-    "image_url": "https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800",
+    "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&q=80",
     "booking_link": "https://bellini.co/jazz",
     "capacity": 80,
     "tags": [
@@ -636,7 +636,7 @@
     "type": "concert",
     "is_free": false,
     "price": 280000,
-    "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600&q=80",
     "booking_link": "https://templo.co/tickets",
     "capacity": 2000,
     "tags": [
@@ -665,7 +665,7 @@
     "type": "sunset",
     "is_free": true,
     "price": 0,
-    "image_url": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800",
+    "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80",
     "booking_link": "",
     "capacity": 1000,
     "tags": [
@@ -695,7 +695,7 @@
     "type": "concert",
     "is_free": false,
     "price": 250000,
-    "image_url": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800",
+    "image_url": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&q=80",
     "booking_link": "https://templo.co/tickets",
     "capacity": 2000,
     "tags": [
@@ -724,7 +724,7 @@
     "type": "sunset",
     "is_free": true,
     "price": 0,
-    "image_url": "https://images.unsplash.com/photo-1651421479936-e24edc3e3143?w=800",
+    "image_url": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80",
     "booking_link": "",
     "capacity": 500,
     "tags": [
@@ -1201,7 +1201,7 @@
     "price_max_cop": null,
     "ticket_url": null,
     "organizer": "Festival Internacional de Poesia de Cartagena",
-    "image_url": "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1544928147-79a2dbc1f389?w=600&q=80",
     "description": "Festival de poesia de larga duracion que ofrece lecturas, recitales y activaciones culturales en plazas y espacios publicos de Cartagena durante varios meses. Poetas nacionales e internacionales.",
     "description_en": "Extended poetry festival offering readings, recitals, and cultural activations in Cartagena's plazas and public spaces over several months. National and international poets.",
     "status": "scheduled",
@@ -1306,7 +1306,7 @@
     "price_max_cop": null,
     "ticket_url": null,
     "organizer": "Comerciantes del Centro / Bares de Getsemani",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=600&q=80",
     "description": "Cartagena celebra Halloween con desfiles de disfraces por las calles coloniales. Los ninos recorren el centro amurallado pidiendo dulces. Fiestas tematicas en bares y rooftops de Getsemani.",
     "description_en": "Cartagena celebrates Halloween with costume parades through colonial streets. Children trick-or-treat in the walled city. Themed parties at Getsemani bars and rooftops.",
     "status": "scheduled",
@@ -1608,7 +1608,7 @@
     "price_max_cop": 400000,
     "ticket_url": null,
     "organizer": "Promotores locales",
-    "image_url": "https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1530053969600-caed2596d242?w=600&q=80",
     "description": "El DJ aleman &ME (Keinemusik) llega a Cartagena con una fiesta electronica exclusiva en Atolon Beach Club, Tierra Bomba. House, minimal techno y afro house frente al mar.",
     "description_en": "German DJ &ME (Keinemusik) comes to Cartagena with an exclusive electronic party at Atolon Beach Club, Tierra Bomba. House, minimal techno, and afro house by the sea.",
     "status": "scheduled",
@@ -1811,7 +1811,7 @@
     "price_max_cop": 120000,
     "ticket_url": "https://www.hayfestival.com/cartagena/tickets",
     "organizer": "Hay Festival Foundation",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1580982324076-d95c6f3cbe67?w=600&q=80",
     "description": "El festival literario mas importante de Latinoamerica. Mas de 180 participantes de 25 paises: literatura, musica, periodismo, filosofia, cine y teatro. 20% de boletas gratuitas para estudiantes universitarios. Boletas desde COP $60.000 por conversacion. Disponibles a partir de noviembre 2026.",
     "description_en": "Latin America's most important literary festival. Over 180 participants from 25 countries: literature, music, journalism, philosophy, film, and theater. 20% of tickets free for university students. Tickets from approx COP $60,000 per conversation. Available from November 2026.",
     "status": "scheduled",
@@ -2122,7 +2122,7 @@
     "price_max_cop": 250000,
     "ticket_url": "https://www.bombabeachcartagena.com/club-de-playa/",
     "organizer": "Bomba Beach Club",
-    "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&q=80",
     "description": "Club de playa en Punta Arena, Tierra Bomba, a 15 minutos en lancha desde La Bodeguita. Bar, restaurante, camas colgantes, piscinas y canchas de voleibol. Cocteleria, jugos frescos, mariscos y comida colombiana. Vista espectacular hacia Cartagena.",
     "description_en": "Beach club at Punta Arena, Tierra Bomba, 15 minutes by speedboat from La Bodeguita Pier. Bar, restaurant, hanging beds, pools, and volleyball courts. Cocktails, fresh juices, seafood, and Colombian food. Spectacular view toward Cartagena.",
     "status": "scheduled",
@@ -2174,7 +2174,7 @@
     "price_max_cop": 500000,
     "ticket_url": "https://carnavaldebarranquilla.org/",
     "organizer": "Carnaval de Barranquilla S.A.S.",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=600&q=80",
     "description": "El segundo carnaval mas grande del mundo, Patrimonio Oral e Inmaterial de la Humanidad (UNESCO). A 2 horas de Cartagena por carretera. 4 dias de musica, cumbia, mapale, danzas y desfiles masivos. Sab 6 al mar 9 de febrero 2027. Tours desde Cartagena incluyen transporte, guia y palco.",
     "description_en": "The world's second-largest carnival, UNESCO Oral and Intangible Heritage of Humanity. 2 hours from Cartagena by road. 4 days of music, cumbia, mapale, dances, and massive parades. Sat Feb 6 to Tue Feb 9, 2027. Tours from Cartagena include transport, guide, and grandstand seats.",
     "status": "scheduled",
@@ -2225,7 +2225,7 @@
     "price_max_cop": 200000,
     "ticket_url": "https://festivalvallenato.com/",
     "organizer": "Fundacion Festival de la Leyenda Vallenata",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1492684223f8-e1f09149085?w=600&q=80",
     "description": "El evento mas reconocido de la musica vallenata en Colombia y el mundo. 60a edicion historica en Valledupar. Competencias de acordeon, caja y guacharaca. A 5 horas desde Cartagena o 1 hora en vuelo. Patrimonio Cultural Inmaterial (UNESCO).",
     "description_en": "The most recognized vallenato music event in Colombia and the world. Historic 60th edition in Valledupar. Accordion, drum, and guacharaca competitions. 5 hours from Cartagena or 1 hour by flight. Intangible Cultural Heritage (UNESCO).",
     "status": "scheduled",
@@ -2276,7 +2276,7 @@
     "price_max_cop": 0,
     "ticket_url": null,
     "organizer": "Alcaldia de Cartagena / IPCC",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=600&q=80",
     "description": "El desfile mas grande de las Fiestas de Noviembre. Carrozas, comparsas, grupos de danza, musica en vivo y la celebracion masiva de la independencia de Cartagena (11 de noviembre de 1811). Recorrido por las calles del Centro Historico y Getsemani. Evento gratuito.",
     "description_en": "The biggest parade of the November Festivities. Floats, troupes, dance groups, live music, and the massive celebration of Cartagena's independence (November 11, 1811). Route through the Historic Center and Getsemani streets. Free and open to the public.",
     "status": "scheduled",
@@ -2327,7 +2327,7 @@
     "price_max_cop": 0,
     "ticket_url": null,
     "organizer": "Gobierno de Colombia",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=600&q=80",
     "description": "Puente festivo (fin de semana largo) por el Sagrado Corazon de Jesus. Lunes festivo. Cartagena se llena de turistas nacionales. Colombia tiene 18 festivos al ano con 11 puentes festivos en 2026.",
     "description_en": "Long weekend (puente festivo) for Sacred Heart of Jesus. Monday holiday. Cartagena fills with domestic tourists. Colombia has 18 holidays per year with 11 long weekends in 2026.",
     "status": "scheduled",
@@ -2376,7 +2376,7 @@
     "price_max_cop": 0,
     "ticket_url": null,
     "organizer": "Gobierno de Colombia",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1577083553431-6f3c0abf91e2?w=600&q=80",
     "description": "Puente festivo por la Asuncion de la Virgen. Lunes festivo. Ideal para escapada de fin de semana largo a las playas e islas de Cartagena.",
     "description_en": "Long weekend for the Assumption of the Virgin. Monday holiday. Ideal for a long weekend getaway to Cartagena's beaches and islands.",
     "status": "scheduled",
@@ -2730,7 +2730,7 @@
     "price_max_cop": null,
     "ticket_url": null,
     "organizer": "IPCC / Asociaciones Gastronomicas",
-    "image_url": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80",
     "description": "Festival gastronomico navideno dedicado al pastel cartagenero — el tamal costeno tradicional hecho con arroz, carne y verduras envuelto en hoja de bijao. Concursos de cocina, musica y venta masiva de pasteles.",
     "description_en": "Christmas gastronomy festival celebrating the pastel cartagenero — the traditional coastal tamale made with rice, meat, and vegetables wrapped in bijao leaves. Cooking contests, live music, and massive pastel sales.",
     "status": "scheduled",
@@ -2830,7 +2830,7 @@
     "price_max_cop": null,
     "ticket_url": null,
     "organizer": "Arquidiocesis de Cartagena",
-    "image_url": "https://images.unsplash.com/photo-1583997052103-b4a1cb974ce5?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1555817128-342e1c8b3f15?w=600&q=80",
     "description": "Semana Santa vivida con fervor en la ciudad amurallada. Procesiones solemnes por calles coloniales, Via Crucis, misas en iglesias historicas (San Pedro Claver, Santo Domingo, Catedral). Jueves Santo 25 mar, Viernes Santo 26 mar, Domingo de Resurreccion 28 mar.",
     "description_en": "Holy Week experienced with fervor in the walled city. Solemn processions through colonial streets, Stations of the Cross, masses in historic churches. Holy Thursday Mar 25, Good Friday Mar 26, Easter Sunday Mar 28.",
     "status": "scheduled",
@@ -3197,7 +3197,7 @@
     "price_max_cop": 0,
     "ticket_url": null,
     "organizer": "Gobierno de Colombia",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=600&q=80",
     "description": "Puente festivo por San Pedro y San Pablo. Lunes festivo. Otro fin de semana largo consecutivo en junio — temporada alta de turismo domestico en Cartagena.",
     "description_en": "Long weekend for Saints Peter and Paul. Monday holiday. Another consecutive long weekend in June — peak domestic tourism season in Cartagena.",
     "status": "scheduled",
@@ -3501,7 +3501,7 @@
     "price_max_cop": 1200000,
     "ticket_url": "https://www.ironman.com/im703-cartagena",
     "organizer": "IRONMAN / World Triathlon Corporation",
-    "image_url": "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1530549387789-4c1017266635?w=600&q=80",
     "description": "Triatlon de media distancia: 1.9 km de natacion en la Bahia de las Animas, 90 km de ciclismo por la Via al Mar y 21 km de carrera a pie por la Ciudad Amurallada con vista al Caribe.",
     "description_en": "Half-distance triathlon: 1.9 km swim in Las Animas Bay, 90 km bike ride along Via al Mar, and 21 km run through the Walled City overlooking the Caribbean Sea.",
     "status": "scheduled",
@@ -3759,7 +3759,7 @@
     "price_max_cop": 13000,
     "ticket_url": "https://mamcartagena.org/",
     "organizer": "Museo de Arte Moderno de Cartagena",
-    "image_url": "https://images.unsplash.com/photo-1531243269054-5ebf6f34081e?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1571084600339-bb8834a07e16?w=600&q=80",
     "description": "Museo ubicado en la plaza de San Pedro Claver, junto al Bastion de San Ignacio. Exposiciones rotativas de su coleccion permanente con obras de pintores notables, escultura, arte abstracto y muestras temporales. Arte colombiano y caribeno contemporaneo.",
     "description_en": "Museum located in San Pedro Claver plaza, beside the San Ignacio bastion. Rotating exhibitions from its permanent collection featuring notable painters, sculpture, abstract art, and temporary shows. Contemporary Colombian and Caribbean art.",
     "status": "scheduled",
@@ -3864,7 +3864,7 @@
     "price_max_cop": 300000,
     "ticket_url": "https://fenix.co/en/",
     "organizer": "Fenix Beach Cartagena",
-    "image_url": "https://images.unsplash.com/photo-1506953823976-52e1fdc0149a?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80",
     "description": "Oasis de arena blanca en Punta Arena, Isla Tierra Bomba, a 10 minutos en lancha desde Cartagena. 14 habitaciones, restaurante, bar y piscina. Pasadia incluye transporte, bebida de bienvenida, piscina, toallas y almuerzo. Paellas, ceviches, fish tacos y pulpo a la brasa.",
     "description_en": "White sand oasis in Punta Arena, Tierra Bomba Island, 10 minutes by speedboat from Cartagena. 14 rooms, restaurant, bar, and pool. Day pass includes round-trip transport, welcome drink, pool, towels, and lunch. Paellas, ceviches, fish tacos, and grilled octopus.",
     "status": "scheduled",
@@ -4071,7 +4071,7 @@
     "price_max_cop": 0,
     "ticket_url": null,
     "organizer": "Camara de Comercio de Cartagena",
-    "image_url": "https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=600&q=80",
     "description": "La vitrina comercial mas importante de Cartagena. 18 dias de exposicion con emprendedores locales, artesanias, gastronomia y productos del Caribe colombiano. Entrada libre. Plaza de la Proclamacion.",
     "description_en": "Cartagena's most important commercial showcase. 18 days of exhibitions with local entrepreneurs, handicrafts, gastronomy, and Colombian Caribbean products. Free entry. Plaza de la Proclamacion.",
     "status": "scheduled",
@@ -4330,7 +4330,7 @@
     "price_max_cop": 350000,
     "ticket_url": null,
     "organizer": "Beach Clubs de Tierra Bomba",
-    "image_url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1598387993441-a364f854c3e1?w=600&q=80",
     "description": "Todos los domingos, los beach clubs de Tierra Bomba ofrecen dia de playa con DJ, cocteleria, almuerzo caribeno y lanchas desde el muelle de Cartagena. Atolon, Anaho (piscina gigante + jacuzzis), Pao Pao, Blue Apple y mas. Impuesto de muelle: COP $16.000 adicional por persona.",
     "description_en": "Every Sunday, Tierra Bomba beach clubs offer beach days with DJs, craft cocktails, Caribbean lunch, and boat transfers from Cartagena pier. Atolon, Anaho (giant pool + jacuzzis), Pao Pao, Blue Apple, and more. Dock tax: COP $16,000 extra per person.",
     "status": "scheduled",
@@ -4485,7 +4485,7 @@
     "price_max_cop": 200000,
     "ticket_url": null,
     "organizer": "Voces del Jazz y del Caribe / IPCC",
-    "image_url": "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=600&q=80",
     "description": "Festival que transforma Cartagena en escenario de improvisacion y virtuosismo jazzistico. Artistas de Colombia, Cuba, Brasil, Francia y Estados Unidos presentan jazz clasico fusionado con ritmos afrocolombianos.",
     "description_en": "Festival that transforms Cartagena into a stage for jazz improvisation and virtuosity. Artists from Colombia, Cuba, Brazil, France, and the US present classic jazz fused with Afro-Colombian rhythms.",
     "status": "scheduled",
@@ -4640,7 +4640,7 @@
     "price_max_cop": 350000,
     "ticket_url": "https://www.eticket.co/eventos.aspx?idartista=663",
     "organizer": "Fundacion Salvi — Dir. Artistico: Julio Reyes Copello",
-    "image_url": "https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1594122230689-45899d9e6f69?w=600&q=80",
     "description": "El festival de musica clasica y de camara mas importante de Latinoamerica. La 21a edicion bajo la nueva direccion artistica de Julio Reyes Copello (14 premios Grammy). Orquestas, solistas y ensambles de talla mundial. Patrimonio Cultural de la Nacion. Incluye conciertos gratuitos en plazas publicas.",
     "description_en": "Latin America's premier classical and chamber music festival. The 21st edition under new artistic director Julio Reyes Copello (14 Grammy awards). World-class orchestras, soloists, and ensembles. Recognized as National Cultural Heritage. Includes free public concerts in city plazas.",
     "status": "scheduled",
@@ -4692,7 +4692,7 @@
     "price_max_cop": 80000,
     "ticket_url": "https://ficcifestival.com/",
     "organizer": "Corporacion Festival de Cine de Cartagena de Indias",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1533653711942-9de4383f5951?w=600&q=80",
     "description": "El festival de cine mas antiguo de Latinoamerica (desde 1960). La edicion 66 presenta estrenos de cine iberoamericano, cortometrajes, documentales y series de TV. Premio India Catalina al mejor cine. Fechas estimadas (la edicion 65 fue del 14-19 abril 2026).",
     "description_en": "Latin America's oldest film festival (since 1960). The 66th edition presents Ibero-American film premieres, short films, documentaries, and TV series. India Catalina Award for best cinema. Estimated dates (65th edition was April 14-19, 2026).",
     "status": "scheduled",
@@ -5099,7 +5099,7 @@
     "is_free": true,
     "time_start": "10:00",
     "created_at": "2026-06-23T18:50:53.047327",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1561839561-b13bcfe95249?w=600&q=80"
   },
   {
     "slug": "festival-verano-cartagena-2026",
@@ -5115,7 +5115,7 @@
     "is_free": true,
     "time_start": "17:00",
     "created_at": "2026-06-23T18:50:53.226193",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?w=600&q=80"
   },
   {
     "slug": "dia-turismo-mundial-2026",
@@ -5131,7 +5131,7 @@
     "is_free": true,
     "time_start": "09:00",
     "created_at": "2026-06-23T18:50:53.406384",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1582560469781-1eb4a3e0c4d2?w=600&q=80"
   },
   {
     "slug": "dia-raza-2026",
@@ -5147,7 +5147,7 @@
     "is_free": true,
     "time_start": "10:00",
     "created_at": "2026-06-23T18:50:53.579048",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&q=80"
   },
   {
     "slug": "halloween-cartagena-2026-nightlife",
@@ -5163,7 +5163,7 @@
     "is_free": false,
     "time_start": "21:00",
     "created_at": "2026-06-23T18:50:53.842478",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1575444758702-4a6b9222336e?w=600&q=80"
   },
   {
     "slug": "dia-todos-santos-2026",
@@ -5179,7 +5179,7 @@
     "is_free": true,
     "time_start": "08:00",
     "created_at": "2026-06-23T18:50:54.024580",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1509281373149-e957c6296406?w=600&q=80"
   },
   {
     "slug": "independencia-cartagena-2026",
@@ -5195,7 +5195,7 @@
     "is_free": true,
     "time_start": "10:00",
     "featured": true,
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1578946956088-940c3b502864?w=600&q=80",
     "created_at": "2026-06-23T18:50:54.205267"
   },
   {
@@ -5212,7 +5212,7 @@
     "is_free": false,
     "time_start": "19:00",
     "created_at": "2026-06-23T18:50:54.384825",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80"
   },
   {
     "slug": "noche-velitas-2026",
@@ -5229,7 +5229,7 @@
     "time_start": "18:00",
     "featured": true,
     "created_at": "2026-06-23T18:50:54.559514",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1571425046056-cfc17c664e1d?w=600&q=80"
   },
   {
     "slug": "novenas-aguinaldo-2026",
@@ -5245,7 +5245,7 @@
     "is_free": true,
     "time_start": "19:00",
     "created_at": "2026-06-23T18:50:54.734868",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=600&q=80"
   },
   {
     "slug": "nochevieja-cartagena-2026",
@@ -5262,7 +5262,7 @@
     "time_start": "20:00",
     "featured": true,
     "created_at": "2026-06-23T18:50:54.910350",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1519456264917-42d0aa2e0625?w=600&q=80"
   },
   {
     "slug": "kany-garcia-cartagena-2026",
@@ -5278,7 +5278,7 @@
     "is_free": false,
     "time_start": "20:00",
     "created_at": "2026-06-24T18:06:42.147996",
-    "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1453738773917-9c3eff1db985?w=600&q=80"
   },
   {
     "slug": "candlelight-concerts-cartagena-2026",
@@ -5294,7 +5294,7 @@
     "is_free": false,
     "time_start": "19:00",
     "created_at": "2026-06-24T18:06:43.420138",
-    "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1565035010268-a3816f98589a?w=600&q=80"
   },
   {
     "slug": "aniversario-cartagena-2026",
@@ -5310,7 +5310,7 @@
     "is_free": true,
     "time_start": "10:00",
     "created_at": "2026-06-24T18:06:43.549565",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1504681869696-d977211a5f4c?w=600&q=80"
   },
   {
     "slug": "festival-concuerda-2026",
@@ -5326,7 +5326,7 @@
     "is_free": true,
     "time_start": "18:00",
     "created_at": "2026-06-24T18:06:43.910188",
-    "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1468164016595-6108e4a8c3b7?w=600&q=80"
   },
   {
     "slug": "ficci-66-cartagena-2026",
@@ -5342,7 +5342,7 @@
     "is_free": false,
     "time_start": "16:00",
     "created_at": "2026-06-24T18:06:44.046900",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80"
   },
   {
     "slug": "festival-mundial-salsa-bolero-2026",
@@ -5358,7 +5358,7 @@
     "is_free": false,
     "time_start": "19:00",
     "created_at": "2026-06-24T18:06:44.178335",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=600&q=80"
   },
   {
     "slug": "festival-folklorico-colombia-canta-2026",
@@ -5374,7 +5374,7 @@
     "is_free": true,
     "time_start": "17:00",
     "created_at": "2026-06-24T18:06:44.312413",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1541532713592-79a0317b6b77?w=600&q=80"
   },
   {
     "slug": "weef-2026-cartagena",
@@ -5390,7 +5390,7 @@
     "is_free": false,
     "time_start": "08:00",
     "created_at": "2026-06-24T18:06:44.442721",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=600&q=80"
   },
   {
     "slug": "dia-musico-cartagenero-2026",
@@ -5406,7 +5406,7 @@
     "is_free": true,
     "time_start": "17:00",
     "created_at": "2026-06-24T18:06:44.573208",
-    "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=600&q=80"
   },
   {
     "slug": "super-navidad-cartagena-2026",
@@ -5422,7 +5422,7 @@
     "is_free": true,
     "time_start": "18:00",
     "created_at": "2026-06-24T18:06:44.704438",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&q=80"
   },
   {
     "slug": "nochebuena-cartagena-2026",
@@ -5438,7 +5438,7 @@
     "is_free": true,
     "time_start": "19:00",
     "created_at": "2026-06-24T18:06:44.833581",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1566731220638-8ec93e35b60e?w=600&q=80"
   },
   {
     "slug": "ano-nuevo-cartagena-2027",
@@ -5454,7 +5454,7 @@
     "is_free": false,
     "time_start": "12:00",
     "created_at": "2026-06-24T18:06:44.965338",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&q=80"
   },
   {
     "slug": "dia-inocentes-cartagena-2026",
@@ -5470,7 +5470,7 @@
     "is_free": true,
     "time_start": "00:00",
     "created_at": "2026-06-24T18:06:45.101261",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=600&q=80"
   },
   {
     "slug": "navidad-cartagena-2026",
@@ -5486,7 +5486,7 @@
     "is_free": true,
     "time_start": "00:00",
     "created_at": "2026-06-24T18:06:45.236001",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1528502668930-3c9049e87862?w=600&q=80"
   },
   {
     "slug": "activaciones-culturales-julio-2026",
@@ -5501,7 +5501,7 @@
     "price_min_cop": 0,
     "is_free": true,
     "time_start": "17:00",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=600&q=80",
     "created_at": "2026-06-24T18:25:25.113632+00:00"
   },
   {
@@ -5517,7 +5517,7 @@
     "price_min_cop": 0,
     "is_free": true,
     "time_start": "17:00",
-    "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=600&q=80",
     "created_at": "2026-06-24T18:25:27.065852+00:00"
   },
   {
@@ -5533,7 +5533,7 @@
     "price_min_cop": 0,
     "is_free": true,
     "time_start": "09:00",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&q=80",
     "created_at": "2026-06-24T18:25:29.664078+00:00"
   },
   {
@@ -5549,7 +5549,7 @@
     "price_min_cop": 30000,
     "is_free": false,
     "time_start": "19:00",
-    "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1499364615650-ec38552f4f34?w=600&q=80",
     "created_at": "2026-06-24T18:25:31.284511+00:00"
   },
   {
@@ -5565,7 +5565,7 @@
     "price_min_cop": 0,
     "is_free": true,
     "time_start": "19:00",
-    "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1504196606672-aef5c9cefc92?w=600&q=80",
     "created_at": "2026-06-24T18:25:32.985856+00:00"
   },
   {
@@ -5581,7 +5581,7 @@
     "price_min_cop": 0,
     "is_free": true,
     "time_start": "16:00",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1507048331197-7d4ac70811cf?w=600&q=80",
     "created_at": "2026-06-24T18:25:34.751317+00:00"
   },
   {
@@ -5597,7 +5597,7 @@
     "price_min_cop": 0,
     "is_free": true,
     "time_start": "09:00",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1545128485-c400e7702712?w=600&q=80",
     "created_at": "2026-06-24T18:25:36.308793+00:00"
   },
   {
@@ -5613,7 +5613,7 @@
     "price_min_cop": 0,
     "is_free": true,
     "time_start": "10:00",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1562088287-bde35a1ea917?w=600&q=80",
     "created_at": "2026-06-24T18:25:38.132987+00:00"
   },
   {
@@ -5629,7 +5629,7 @@
     "price_min_cop": 20000,
     "is_free": false,
     "time_start": "14:00",
-    "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=600&q=80",
     "created_at": "2026-06-24T18:25:40.051843+00:00"
   },
   {
@@ -5646,7 +5646,7 @@
     "is_free": true,
     "time_start": "16:00",
     "created_at": "2026-06-24T18:25:40.955751+00:00",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=600&q=80"
   },
   {
     "slug": "primer-preludio-2026",
@@ -5662,7 +5662,7 @@
     "is_free": true,
     "time_start": "16:00",
     "created_at": "2026-06-24T18:25:42.210509+00:00",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1472120435266-95a3f747eb08?w=600&q=80"
   },
   {
     "slug": "segundo-preludio-2026",
@@ -5677,7 +5677,7 @@
     "price_min_cop": 0,
     "is_free": true,
     "time_start": "16:00",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1476673160081-cf065607f449?w=600&q=80",
     "created_at": "2026-06-24T18:25:45.306730+00:00"
   },
   {
@@ -5693,7 +5693,7 @@
     "price_min_cop": 0,
     "is_free": true,
     "time_start": "16:00",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1501426026826-31c667bdf23d?w=600&q=80",
     "created_at": "2026-06-24T18:25:47.667200+00:00"
   },
   {
@@ -5710,7 +5710,7 @@
     "is_free": true,
     "time_start": "19:00",
     "created_at": "2026-06-24T18:25:48.413775+00:00",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1551818255-726b2daf0755?w=600&q=80"
   },
   {
     "slug": "cabildos-noviembre-2026",
@@ -5725,7 +5725,7 @@
     "price_min_cop": 0,
     "is_free": true,
     "time_start": "15:00",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=600&q=80",
     "created_at": "2026-06-24T18:25:50.069075+00:00"
   },
   {
@@ -5741,7 +5741,7 @@
     "price_min_cop": 0,
     "is_free": true,
     "time_start": "17:00",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=80",
     "created_at": "2026-06-24T18:25:51.853077+00:00"
   },
   {
@@ -5757,7 +5757,7 @@
     "price_min_cop": 0,
     "is_free": true,
     "time_start": "18:00",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1532274402911-5a369e4c4bb5?w=600&q=80",
     "created_at": "2026-06-24T18:25:53.424612+00:00"
   },
   {
@@ -5774,7 +5774,7 @@
     "is_free": true,
     "time_start": "18:00",
     "created_at": "2026-06-24T18:25:54.664106+00:00",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1509233725247-49e657c54213?w=600&q=80"
   },
   {
     "slug": "festival-pastel-cartagenero-2026",
@@ -5789,7 +5789,7 @@
     "price_min_cop": 0,
     "is_free": true,
     "time_start": "10:00",
-    "image_url": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=600&q=80",
     "created_at": "2026-06-24T18:25:55.931413+00:00"
   },
   {
@@ -5806,7 +5806,7 @@
     "is_free": true,
     "time_start": "18:00",
     "created_at": "2026-06-24T18:25:57.516323+00:00",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?w=600&q=80"
   },
   {
     "slug": "manuel-medrano-cartagena-2026",
@@ -5822,7 +5822,7 @@
     "is_free": false,
     "time_start": "20:00",
     "created_at": "2026-06-24T18:34:31.992264+00:00",
-    "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1560244251-d1eb59e0a94c?w=600&q=80"
   },
   {
     "slug": "costagena-fest-2026",
@@ -5838,7 +5838,7 @@
     "is_free": false,
     "time_start": "16:00",
     "created_at": "2026-06-24T18:34:32.121928+00:00",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1472653816316-3ad6f10a6592?w=600&q=80"
   },
   {
     "slug": "la-barra-serrezuela-2026",
@@ -5854,7 +5854,7 @@
     "is_free": false,
     "time_start": "20:00",
     "created_at": "2026-06-24T18:34:32.251266+00:00",
-    "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=600&q=80"
   },
   {
     "slug": "festival-huellas-mundo-2026",
@@ -5870,7 +5870,7 @@
     "is_free": true,
     "time_start": "18:00",
     "created_at": "2026-06-24T18:34:32.385081+00:00",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80"
   },
   {
     "slug": "fesnasol-internacional-2026",
@@ -5886,7 +5886,7 @@
     "is_free": true,
     "time_start": "17:00",
     "created_at": "2026-06-24T18:34:32.517966+00:00",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=600&q=80"
   },
   {
     "slug": "costellita-fest-2026",
@@ -5902,7 +5902,7 @@
     "is_free": false,
     "time_start": "18:00",
     "created_at": "2026-06-24T18:34:32.650787+00:00",
-    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=600&q=80"
   },
   {
     "slug": "velada-coronacion-2026",
@@ -5918,7 +5918,7 @@
     "is_free": true,
     "time_start": "19:00",
     "created_at": "2026-06-24T18:34:32.780260+00:00",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1546552768-9e3a94b38a59?w=600&q=80"
   },
   {
     "slug": "cartagena-festival-musica-2027",
@@ -5934,7 +5934,7 @@
     "is_free": false,
     "time_start": "19:00",
     "created_at": "2026-06-24T18:34:32.910440+00:00",
-    "image_url": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1551632811-561732d1e306?w=600&q=80"
   },
   {
     "slug": "farex-2027",
@@ -5950,6 +5950,6 @@
     "is_free": true,
     "time_start": "11:30",
     "created_at": "2026-06-24T18:34:33.043186+00:00",
-    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1508997449629-303059a039c0?w=600&q=80"
   }
 ]
