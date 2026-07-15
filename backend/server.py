@@ -77,67 +77,6 @@ GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 async def health():
     return {"status": "ok"}
 
-@api_router.post("/admin/enrich-partners")
-async def enrich_partners(request: Request):
-    """Temporary: enrich partners with search_profile using the server's own Anthropic key."""
-    body = await request.json()
-    if body.get("secret") != os.environ.get("DEMO_SIGNUP_CODE", ""):
-        raise HTTPException(403, "Invalid secret")
-    batch_size = body.get("batch_size", 20)
-    offset = body.get("offset", 0)
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
-    if not api_key:
-        raise HTTPException(500, "ANTHROPIC_API_KEY not set on server")
-    partners = await db.partners.find(
-        {"search_profile": {"$exists": False}},
-        {"_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
-         "cuisine": 1, "description": 1, "experience": 1, "price_range": 1,
-         "rating": 1, "address": 1},
-    ).skip(offset).limit(batch_size).to_list(batch_size)
-    if not partners:
-        total = await db.partners.count_documents({})
-        enriched = await db.partners.count_documents({"search_profile": {"$exists": True}})
-        return {"status": "done", "enriched": enriched, "total": total}
-    import json as _json
-    system = (
-        "You are a Cartagena tourism expert. For each partner, generate a search_profile string. "
-        "Include: typical drinks/dishes for their type (cafe→latte,macchiato,cortado,tinto; "
-        "seafood→ceviche,langosta,lobster; bar→cocktails,mojito,lychee martini), "
-        "vibe/atmosphere, best-for moments (date night, family, solo work, sunset, late night), "
-        "and 8-15 search keywords in Spanish AND English. "
-        "Derive ONLY from real data — do NOT invent specific claims. "
-        "Keep each under 300 chars. Return JSON array: [{\"partner_id\":\"...\",\"search_profile\":\"...\"}]"
-    )
-    import urllib.request
-    req_body = _json.dumps({
-        "model": "claude-haiku-4-5-20251001", "max_tokens": 4096, "temperature": 0.3,
-        "system": [{"type": "text", "text": system}],
-        "messages": [{"role": "user", "content": _json.dumps(partners, ensure_ascii=False)}],
-    }).encode()
-    req = urllib.request.Request(
-        "https://api.anthropic.com/v1/messages", data=req_body,
-        headers={"Content-Type": "application/json", "x-api-key": api_key, "anthropic-version": "2023-06-01"},
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=30) as r:
-            resp = _json.loads(r.read())
-        text = "".join(b["text"] for b in resp.get("content", []) if b.get("type") == "text")
-        start, end = text.find("["), text.rfind("]") + 1
-        profiles = _json.loads(text[start:end]) if start >= 0 and end > start else []
-    except Exception as e:
-        raise HTTPException(500, f"LLM call failed: {e}")
-    written = 0
-    for p in profiles:
-        pid = p.get("partner_id")
-        profile = p.get("search_profile", "")
-        if pid and profile:
-            res = await db.partners.update_one({"partner_id": pid}, {"$set": {"search_profile": profile}})
-            if res.modified_count:
-                written += 1
-    remaining = await db.partners.count_documents({"search_profile": {"$exists": False}})
-    return {"written": written, "batch": len(partners), "remaining": remaining, "sample": profiles[:2]}
-
-
 @api_router.post("/admin/batch-update")
 async def batch_update(request: Request):
     body = await request.json()
