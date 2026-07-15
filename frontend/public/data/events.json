@@ -498,7 +498,7 @@
     "type": "cultural",
     "is_free": false,
     "price": 220000,
-    "image_url": "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
     "booking_link": "https://bellini.co/jazz",
     "capacity": 80,
     "tags": [
@@ -1811,7 +1811,7 @@
     "price_max_cop": 120000,
     "ticket_url": "https://www.hayfestival.com/cartagena/tickets",
     "organizer": "Hay Festival Foundation",
-    "image_url": "https://images.unsplash.com/photo-1580982324076-d95c6f3cbe67?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
     "description": "El festival literario mas importante de Latinoamerica. Mas de 180 participantes de 25 paises: literatura, musica, periodismo, filosofia, cine y teatro. 20% de boletas gratuitas para estudiantes universitarios. Boletas desde COP $60.000 por conversacion. Disponibles a partir de noviembre 2026.",
     "description_en": "Latin America's most important literary festival. Over 180 participants from 25 countries: literature, music, journalism, philosophy, film, and theater. 20% of tickets free for university students. Tickets from approx COP $60,000 per conversation. Available from November 2026.",
     "status": "scheduled",
@@ -2225,7 +2225,7 @@
     "price_max_cop": 200000,
     "ticket_url": "https://festivalvallenato.com/",
     "organizer": "Fundacion Festival de la Leyenda Vallenata",
-    "image_url": "https://images.unsplash.com/photo-1492684223f8-e1f09149085?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&q=80",
     "description": "El evento mas reconocido de la musica vallenata en Colombia y el mundo. 60a edicion historica en Valledupar. Competencias de acordeon, caja y guacharaca. A 5 horas desde Cartagena o 1 hora en vuelo. Patrimonio Cultural Inmaterial (UNESCO).",
     "description_en": "The most recognized vallenato music event in Colombia and the world. Historic 60th edition in Valledupar. Accordion, drum, and guacharaca competitions. 5 hours from Cartagena or 1 hour by flight. Intangible Cultural Heritage (UNESCO).",
     "status": "scheduled",
@@ -2376,7 +2376,7 @@
     "price_max_cop": 0,
     "ticket_url": null,
     "organizer": "Gobierno de Colombia",
-    "image_url": "https://images.unsplash.com/photo-1577083553431-6f3c0abf91e2?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
     "description": "Puente festivo por la Asuncion de la Virgen. Lunes festivo. Ideal para escapada de fin de semana largo a las playas e islas de Cartagena.",
     "description_en": "Long weekend for the Assumption of the Virgin. Monday holiday. Ideal for a long weekend getaway to Cartagena's beaches and islands.",
     "status": "scheduled",
@@ -2830,7 +2830,7 @@
     "price_max_cop": null,
     "ticket_url": null,
     "organizer": "Arquidiocesis de Cartagena",
-    "image_url": "https://images.unsplash.com/photo-1555817128-342e1c8b3f15?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=600&q=80",
     "description": "Semana Santa vivida con fervor en la ciudad amurallada. Procesiones solemnes por calles coloniales, Via Crucis, misas en iglesias historicas (San Pedro Claver, Santo Domingo, Catedral). Jueves Santo 25 mar, Viernes Santo 26 mar, Domingo de Resurreccion 28 mar.",
     "description_en": "Holy Week experienced with fervor in the walled city. Solemn processions through colonial streets, Stations of the Cross, masses in historic churches. Holy Thursday Mar 25, Good Friday Mar 26, Easter Sunday Mar 28.",
     "status": "scheduled",
@@ -3759,7 +3759,7 @@
     "price_max_cop": 13000,
     "ticket_url": "https://mamcartagena.org/",
     "organizer": "Museo de Arte Moderno de Cartagena",
-    "image_url": "https://images.unsplash.com/photo-1571084600339-bb8834a07e16?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
     "description": "Museo ubicado en la plaza de San Pedro Claver, junto al Bastion de San Ignacio. Exposiciones rotativas de su coleccion permanente con obras de pintores notables, escultura, arte abstracto y muestras temporales. Arte colombiano y caribeno contemporaneo.",
     "description_en": "Museum located in San Pedro Claver plaza, beside the San Ignacio bastion. Rotating exhibitions from its permanent collection featuring notable painters, sculpture, abstract art, and temporary shows. Contemporary Colombian and Caribbean art.",
     "status": "scheduled",
@@ -4692,7 +4692,7 @@
     "price_max_cop": 80000,
     "ticket_url": "https://ficcifestival.com/",
     "organizer": "Corporacion Festival de Cine de Cartagena de Indias",
-    "image_url": "https://images.unsplash.com/photo-1533653711942-9de4383f5951?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
     "description": "El festival de cine mas antiguo de Latinoamerica (desde 1960). La edicion 66 presenta estrenos de cine iberoamericano, cortometrajes, documentales y series de TV. Premio India Catalina al mejor cine. Fechas estimadas (la edicion 65 fue del 14-19 abril 2026).",
     "description_en": "Latin America's oldest film festival (since 1960). The 66th edition presents Ibero-American film premieres, short films, documentaries, and TV series. India Catalina Award for best cinema. Estimated dates (65th edition was April 14-19, 2026).",
     "status": "scheduled",
@@ -5099,7 +5099,7 @@
     "is_free": true,
     "time_start": "10:00",
     "created_at": "2026-06-23T18:50:53.047327",
-    "image_url": "https://images.unsplash.com/photo-1561839561-b13bcfe95249?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
   },
   {
     "slug": "festival-verano-cartagena-2026",
@@ -5131,7 +5131,7 @@
     "is_free": true,
     "time_start": "09:00",
     "created_at": "2026-06-23T18:50:53.406384",
-    "image_url": "https://images.unsplash.com/photo-1582560469781-1eb4a3e0c4d2?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
   },
   {
     "slug": "dia-raza-2026",
@@ -5229,7 +5229,7 @@
     "time_start": "18:00",
     "featured": true,
     "created_at": "2026-06-23T18:50:54.559514",
-    "image_url": "https://images.unsplash.com/photo-1571425046056-cfc17c664e1d?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
   },
   {
     "slug": "novenas-aguinaldo-2026",
@@ -5326,7 +5326,7 @@
     "is_free": true,
     "time_start": "18:00",
     "created_at": "2026-06-24T18:06:43.910188",
-    "image_url": "https://images.unsplash.com/photo-1468164016595-6108e4a8c3b7?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
   },
   {
     "slug": "ficci-66-cartagena-2026",
@@ -5438,7 +5438,7 @@
     "is_free": true,
     "time_start": "19:00",
     "created_at": "2026-06-24T18:06:44.833581",
-    "image_url": "https://images.unsplash.com/photo-1566731220638-8ec93e35b60e?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
   },
   {
     "slug": "ano-nuevo-cartagena-2027",
@@ -5486,7 +5486,7 @@
     "is_free": true,
     "time_start": "00:00",
     "created_at": "2026-06-24T18:06:45.236001",
-    "image_url": "https://images.unsplash.com/photo-1528502668930-3c9049e87862?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
   },
   {
     "slug": "activaciones-culturales-julio-2026",
@@ -5597,7 +5597,7 @@
     "price_min_cop": 0,
     "is_free": true,
     "time_start": "09:00",
-    "image_url": "https://images.unsplash.com/photo-1545128485-c400e7702712?w=600&q=80",
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80",
     "created_at": "2026-06-24T18:25:36.308793+00:00"
   },
   {
@@ -5662,7 +5662,7 @@
     "is_free": true,
     "time_start": "16:00",
     "created_at": "2026-06-24T18:25:42.210509+00:00",
-    "image_url": "https://images.unsplash.com/photo-1472120435266-95a3f747eb08?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
   },
   {
     "slug": "segundo-preludio-2026",
@@ -5710,7 +5710,7 @@
     "is_free": true,
     "time_start": "19:00",
     "created_at": "2026-06-24T18:25:48.413775+00:00",
-    "image_url": "https://images.unsplash.com/photo-1551818255-726b2daf0755?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
   },
   {
     "slug": "cabildos-noviembre-2026",
@@ -5822,7 +5822,7 @@
     "is_free": false,
     "time_start": "20:00",
     "created_at": "2026-06-24T18:34:31.992264+00:00",
-    "image_url": "https://images.unsplash.com/photo-1560244251-d1eb59e0a94c?w=600&q=80"
+    "image_url": "https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&q=80"
   },
   {
     "slug": "costagena-fest-2026",
