@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R082", "address": "Cartagena de Indias, Colombia", "booking_link": "", "category": "restaurant", "cuisine": "Mexicano · Casual", "description": "Tacos, burritos y comida mexicana casual en ambiente playero.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMYK54Cif-mEJd6BoE168MNBycgfd9VoH86EI-8ab2IPuc_5Q0WONTz_MRlQe5LEub6KD_i4qbzxAldpWFMcDkEr0UufsZGCDvpVIznBQGSAOn-4l4knCuyjtyI9j605SEIBVHOZUlKYpYwDeg=s4800-w825", "instagram": "tacobeachcartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Taco Beach", "price_range": "$$", "rating": 4.3, "reviews": 480, "subcategory": "fastfood", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573003784769", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R082",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "",
+  "category": "restaurant",
+  "cuisine": "Mexicano · Casual",
+  "description": "Tacos, burritos y comida mexicana casual en ambiente playero.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R082.jpg",
+  "instagram": "tacobeachcartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Taco Beach",
+  "price_range": "$$",
+  "rating": 4.3,
+  "reviews": 480,
+  "subcategory": "fastfood",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573003784769",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

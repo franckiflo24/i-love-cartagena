@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0483", "name": "Scarleth Rivera Makeup", "category": "beauty", "subcategory": "makeup", "description": "Scarleth Rivera Makeup — servicios de belleza y cuidado personal en Cartagena.", "address": "Cl. 70a #8-55, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.449766, "lng": -75.5167932}, "phone": "+573022446203", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNLPeJjvzvw9d8LrVbphgSZ9igAaGpnM2_kENauRSBO--CyR0v5x0YFgbEkhi97lYotpIzT7FVdAA3TfINX2mxRlj8pVzIuEqkxkDBAe9b9PDWoyxAErHbZXKPn0lZ1jel4a3JKFJ1Bq-nG=s4800-w1024", "instagram": "", "booking_link": "https://www.instagram.com/scarlethriveramakeup/", "rating": 5, "reviews": 141, "price_range": "$$", "tier": "standard", "hours": "Monday: 7:00 AM – 8:00 PM; Tuesday: 7:00 AM – 8:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0483",
+  "name": "Scarleth Rivera Makeup",
+  "category": "beauty",
+  "subcategory": "makeup",
+  "description": "Scarleth Rivera Makeup — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Cl. 70a #8-55, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.449766,
+    "lng": -75.5167932
+  },
+  "phone": "+573022446203",
+  "image_url": "/images/partners/ptr_beauty_0483.jpg",
+  "instagram": "",
+  "booking_link": "https://www.instagram.com/scarlethriveramakeup/",
+  "rating": 5,
+  "reviews": 141,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 7:00 AM – 8:00 PM; Tuesday: 7:00 AM – 8:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

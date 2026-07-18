@@ -1,1 +1,26 @@
-{"partner_id": "ptr_wn_007", "address": "Castillogrande, Cartagena", "booking_link": "https://recoverylab.co", "category": "wellness", "description": "Centro de recuperación deportiva: crioterapia, presoterapia, baños de hielo, infrarrojos.", "experience": "Crioterapia full body, presoterapia, sauna infrarroja, masaje deportivo", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMtQq17QAlX7E37ypg3Dsxpv5OTBb84q88_Z-4k0NI-ZygTz8Zp2bcZOSbQXvlAvO9f7gWy5XoTC-zjhSl-FBz8lY3b1Nl8cHohQF6SXbJKiH1jAMSOoTmmvXiQ8YM45wycN45hHw5ah3V5=s1600-w768", "instagram": "@recoverylab", "is_certified": true, "location": {"lat": 10.4012, "lng": -75.5543}, "name": "RecoveryLab Cartagena", "price_range": "$$$", "subcategory": "recovery", "tier": "elite", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "elite", "membership_plan": "free", "phone": "+573006737608", "hours": "Lun-Sáb 07:00 - 20:00"}
+{
+  "partner_id": "ptr_wn_007",
+  "address": "Castillogrande, Cartagena",
+  "booking_link": "https://recoverylab.co",
+  "category": "wellness",
+  "description": "Centro de recuperación deportiva: crioterapia, presoterapia, baños de hielo, infrarrojos.",
+  "experience": "Crioterapia full body, presoterapia, sauna infrarroja, masaje deportivo",
+  "image_url": "/images/partners/ptr_wn_007.jpg",
+  "instagram": "@recoverylab",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4012,
+    "lng": -75.5543
+  },
+  "name": "RecoveryLab Cartagena",
+  "price_range": "$$$",
+  "subcategory": "recovery",
+  "tier": "elite",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "phone": "+573006737608",
+  "hours": "Lun-Sáb 07:00 - 20:00"
+}

@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1144", "address": "centro Portal de los Dulces Plaza de los Coches, Cra. 7 #32-25, El Centro, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://tu-candela.cluvi.co/", "category": "bar", "description": "Bar Tu Candela — Top-rated bar in Cartagena with 2120 Google reviews.", "experience": "Bar · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOjFGDkovKJ71FHowy7F0_OeYmgpOq50LfmLRriubrjpONQ7N_FX3c9gY6XKeE28YEYf3HP1IAxPoEjBAklDhQoeTZza1c8kU-ZnhnF3_amnHoPXGprk_NWc2Hx9ZAKbVt4UwoS9F7XfMg6BQ=s1600-w800", "instagram": "canderestaurante", "is_certified": true, "location": {"lat": 10.4229012, "lng": -75.5496197}, "name": "Bar Tu Candela", "phone": "+573174021966", "price_range": "$$", "rating": 4.6000000000000005, "reviews": 2120, "subcategory": "cocktail_bar", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Mar-Dom 17:00 - 03:00"}
+{
+  "partner_id": "ptr_X1144",
+  "address": "centro Portal de los Dulces Plaza de los Coches, Cra. 7 #32-25, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://tu-candela.cluvi.co/",
+  "category": "bar",
+  "description": "Bar Tu Candela — Top-rated bar in Cartagena with 2120 Google reviews.",
+  "experience": "Bar · Cartagena",
+  "image_url": "/images/partners/ptr_X1144.jpg",
+  "instagram": "canderestaurante",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4229012,
+    "lng": -75.5496197
+  },
+  "name": "Bar Tu Candela",
+  "phone": "+573174021966",
+  "price_range": "$$",
+  "rating": 4.6000000000000005,
+  "reviews": 2120,
+  "subcategory": "cocktail_bar",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Mar-Dom 17:00 - 03:00"
+}

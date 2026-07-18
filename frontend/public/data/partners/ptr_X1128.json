@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1128", "address": "Centro Calle Gastelbondo, #02-96, Local 9, El Centro, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://www.plenitudmassagespa.co/", "category": "spa", "description": "Plenitud Spa — Top-rated spa in Cartagena with 193 Google reviews.", "experience": "Spa · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZO4bUhMiaqxluBB7yWuJc87nnK-g1akvLJ1N5gWqy98aXVMbTCX3_y9Iq3Lmi70ciSny91I8nwH20Qy1YFIKXtTVU4YPHGU_bHYJtTu5eN0niLoUCnzu0LLS_iFwooqQiRmkGDVGXxK6uje_Wj4N86HBQ=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4249339, "lng": -75.55254599999999}, "name": "Plenitud Spa", "phone": "+573156661637", "price_range": "$$", "rating": 4.7, "reviews": 193, "subcategory": "massage", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Sáb 09:00 - 19:00"}
+{
+  "partner_id": "ptr_X1128",
+  "address": "Centro Calle Gastelbondo, #02-96, Local 9, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://www.plenitudmassagespa.co/",
+  "category": "spa",
+  "description": "Plenitud Spa — Top-rated spa in Cartagena with 193 Google reviews.",
+  "experience": "Spa · Cartagena",
+  "image_url": "/images/partners/ptr_X1128.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4249339,
+    "lng": -75.55254599999999
+  },
+  "name": "Plenitud Spa",
+  "phone": "+573156661637",
+  "price_range": "$$",
+  "rating": 4.7,
+  "reviews": 193,
+  "subcategory": "massage",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Sáb 09:00 - 19:00"
+}

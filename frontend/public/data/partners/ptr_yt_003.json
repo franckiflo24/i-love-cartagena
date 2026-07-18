@@ -1,1 +1,28 @@
-{"partner_id": "ptr_yt_003", "address": "Marina de Manga, Cartagena", "booking_link": "https://caribbeanyachtclub.co", "category": "yacht", "description": "Club náutico exclusivo con flota de yates de lujo. Experiencias VIP, pesca deportiva y tours privados.", "experience": "Yate VIP, pesca deportiva, chef privado, masaje a bordo", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNiu7MGXhgymJjL8_7LplsAvBKNjB-woh0FrRZGTs6VB0DyWW5FCV_WnS3xc2G3Y2hvX7boKebDbEsn9kDwkqeLg3QrbAoG-zeazgxlvZB5PQgh9iFJwZrJ_0nULB4bx5TRrr0iqxKEITqlwRU=s1600-w800", "instagram": "caribbeanyachtclub", "is_certified": true, "location": {"lat": 10.4108, "lng": -75.538}, "name": "Caribbean Yacht Club", "price_range": "$$$$", "rating": 4.9, "reviews": 98, "tier": "elite", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "elite", "membership_plan": "free", "phone": "+573008703039", "subcategory": "yacht", "hours": "Reserva previa"}
+{
+  "partner_id": "ptr_yt_003",
+  "address": "Marina de Manga, Cartagena",
+  "booking_link": "https://caribbeanyachtclub.co",
+  "category": "yacht",
+  "description": "Club náutico exclusivo con flota de yates de lujo. Experiencias VIP, pesca deportiva y tours privados.",
+  "experience": "Yate VIP, pesca deportiva, chef privado, masaje a bordo",
+  "image_url": "/images/partners/ptr_yt_003.jpg",
+  "instagram": "caribbeanyachtclub",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4108,
+    "lng": -75.538
+  },
+  "name": "Caribbean Yacht Club",
+  "price_range": "$$$$",
+  "rating": 4.9,
+  "reviews": 98,
+  "tier": "elite",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "phone": "+573008703039",
+  "subcategory": "yacht",
+  "hours": "Reserva previa"
+}

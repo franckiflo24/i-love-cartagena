@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1074", "address": "Cra. 7 #32-41, El Centro, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://localcartagenatours.co/", "category": "activity", "description": "Local Cartagena Tours (Experiences in Cartagena) — Top-rated activity in Cartagena with 42 Google reviews.", "experience": "Activity · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOpdp5jAfTxBsQ48rRGYxf5bGdBic3hCfly2FlTLbGTAlY21TrnrCCP9lwKd7g-fWLlSSSlAMXw7MHP7W6qFfdo8toBALKZVmPj_xFMn38v49SsafqZDZY0r1TT2_gnG3tHg4NiznZhrwQa-0fHAXWxxg=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.422906, "lng": -75.54961}, "name": "Local Cartagena Tours (Experiences in Cartagena)", "phone": "+573166458733", "price_range": "$$", "rating": 4.9, "reviews": 42, "subcategory": "cultural", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Dom 08:00 - 17:00"}
+{
+  "partner_id": "ptr_X1074",
+  "address": "Cra. 7 #32-41, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://localcartagenatours.co/",
+  "category": "activity",
+  "description": "Local Cartagena Tours (Experiences in Cartagena) — Top-rated activity in Cartagena with 42 Google reviews.",
+  "experience": "Activity · Cartagena",
+  "image_url": "/images/partners/ptr_X1074.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422906,
+    "lng": -75.54961
+  },
+  "name": "Local Cartagena Tours (Experiences in Cartagena)",
+  "phone": "+573166458733",
+  "price_range": "$$",
+  "rating": 4.9,
+  "reviews": 42,
+  "subcategory": "cultural",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 08:00 - 17:00"
+}

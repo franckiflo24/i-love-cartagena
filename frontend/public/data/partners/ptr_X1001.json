@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1001", "address": "Islas del rosario, Cartagena, Bolívar, Colombia", "booking_link": "http://rosarioislands.co/", "category": "activity", "description": "Rosario Islands Agency by ISLUXE — Top-rated activity in Cartagena with 542 Google reviews.", "experience": "Activity · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOUH4bCQ31Apg7zJ6RGouHZbbDWGLIlznlKQYrjwY2lKlLj9phH5Q61wJJB29y01qH7CU5YtMxwirGrIhqcUgmcQx9C5lz8zTxMMYETiv_wnJKWmYlYsDSYVk4aqZulHRG7uWOIsUOdG5v05hTUuCHshA=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.1980707, "lng": -75.75738369999999}, "name": "Rosario Islands Agency by ISLUXE", "phone": "+573045918438", "price_range": "$$", "rating": 5.0, "reviews": 542, "subcategory": "cultural", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Dom 08:00 - 17:00"}
+{
+  "partner_id": "ptr_X1001",
+  "address": "Islas del rosario, Cartagena, Bolívar, Colombia",
+  "booking_link": "http://rosarioislands.co/",
+  "category": "activity",
+  "description": "Rosario Islands Agency by ISLUXE — Top-rated activity in Cartagena with 542 Google reviews.",
+  "experience": "Activity · Cartagena",
+  "image_url": "/images/partners/ptr_X1001.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.1980707,
+    "lng": -75.75738369999999
+  },
+  "name": "Rosario Islands Agency by ISLUXE",
+  "phone": "+573045918438",
+  "price_range": "$$",
+  "rating": 5.0,
+  "reviews": 542,
+  "subcategory": "cultural",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 08:00 - 17:00"
+}

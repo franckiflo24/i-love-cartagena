@@ -1,1 +1,28 @@
-{"partner_id": "ptr_W121", "address": "Getsemaní", "booking_link": "https://www.facebook.com/CafedelMural/", "category": "cafe", "description": "Where science meets coffee art. Known for innovative brewing methods and a gorgeous mural-covered space in Getsemaní. The cold brew is legendary.", "experience": "Coffee art · Getsemaní · Cold brew", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMZ-GAoqZhxQ33v8R3IUbxen7hujGt0tuS6p6xb4_V9bSZqseGRSdfMSZ7zqo6jk9_XOT7kPijppWNkqrllbgkq2QZL9Y8oim0ECMHz51Sz4PbQ2RUGKpe6uec8aw7MuDbMfxCDRR1ZLhSQhQ=s4800-w1200", "instagram": "cafedelmural", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Café del Mural", "phone": "+576056798193", "price_range": "$$", "rating": 4.7, "reviews": 680, "subcategory": "coffee", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Lun-Dom 07:00 - 20:00"}
+{
+  "partner_id": "ptr_W121",
+  "address": "Getsemaní",
+  "booking_link": "https://www.facebook.com/CafedelMural/",
+  "category": "cafe",
+  "description": "Where science meets coffee art. Known for innovative brewing methods and a gorgeous mural-covered space in Getsemaní. The cold brew is legendary.",
+  "experience": "Coffee art · Getsemaní · Cold brew",
+  "image_url": "/images/partners/ptr_W121.jpg",
+  "instagram": "cafedelmural",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Café del Mural",
+  "phone": "+576056798193",
+  "price_range": "$$",
+  "rating": 4.7,
+  "reviews": 680,
+  "subcategory": "coffee",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 07:00 - 20:00"
+}

@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1275", "address": "Playa Blanca, sector La Puntica, Baru, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://www.cabañageronimoglamping.com/", "category": "hotel", "description": "La Cabaña Glamping de Geronimo — Top-rated hotel in Cartagena with 158 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPu6UtFOH4vcxiJmLIh69lWb7GRPednsX3Tvh89G7xz0ptjfNXfrEcFzzRN87tyaU8t3nkXi7KoCzyd7EQIwAsnZlp8GckkRDXFP0h6gdmca6O9cUpCRqE7HZY3nEaoNMPdWWPbe28umGLMQF8wFFSJ=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.2220519, "lng": -75.6092937}, "name": "La Cabaña Glamping de Geronimo", "phone": "+573160271236", "price_range": "$$", "rating": 4.2, "reviews": 158, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1275",
+  "address": "Playa Blanca, sector La Puntica, Baru, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://www.cabañageronimoglamping.com/",
+  "category": "hotel",
+  "description": "La Cabaña Glamping de Geronimo — Top-rated hotel in Cartagena with 158 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1275.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.2220519,
+    "lng": -75.6092937
+  },
+  "name": "La Cabaña Glamping de Geronimo",
+  "phone": "+573160271236",
+  "price_range": "$$",
+  "rating": 4.2,
+  "reviews": 158,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

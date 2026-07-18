@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R046", "address": "Cartagena de Indias, Colombia", "booking_link": "http://www.restaurantedapietro.com/", "category": "restaurant", "cuisine": "Italiano", "description": "Cocina italiana tradicional. Lasañas, risottos y postres caseros.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPWu73g_rGaAZ4KyOODCQvZxjZE0-bpESv1wD2u0-BpGnjky9pR3OH846EM9tXsD66QYrqOoAdmR7PP0MmDQe3qjp4j92FF4nO2UgzZyw-tC5YtwQjPPBH5RDeULzLYO-Ow9PbhXT7Pz9gj=s4800-w720", "instagram": "dapietrocartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Da Pietro", "price_range": "$$", "rating": 4.3, "reviews": 240, "subcategory": "italian", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573052361199", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R046",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "http://www.restaurantedapietro.com/",
+  "category": "restaurant",
+  "cuisine": "Italiano",
+  "description": "Cocina italiana tradicional. Lasañas, risottos y postres caseros.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R046.jpg",
+  "instagram": "dapietrocartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Da Pietro",
+  "price_range": "$$",
+  "rating": 4.3,
+  "reviews": 240,
+  "subcategory": "italian",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573052361199",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

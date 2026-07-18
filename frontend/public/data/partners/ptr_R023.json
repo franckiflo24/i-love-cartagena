@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R023", "address": "Cartagena de Indias, Colombia", "booking_link": "", "category": "restaurant", "cuisine": "Mariscos", "description": "Cocina del mar con producto del día y carta de coctelería. Atmósfera elegante.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZO4eE-ozg-7Xb2UIL6kc5qtILHuYwqcU914feNX6kFTqSlCp8H-S0eF-GQHEVgfc07Nh-ogjh-e1wlE1REhoniKktaCz5LujqdMOTVXmaA56QPY7zGBwuxg-7GTpONI0S80X6ehMmvGwSOHBmQ=s4800-w1200", "instagram": "rabodepez", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Rabo de Pez", "price_range": "$$$", "rating": 4.5, "reviews": 470, "subcategory": "seafood", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "phone": "+573174333372", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R023",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "",
+  "category": "restaurant",
+  "cuisine": "Mariscos",
+  "description": "Cocina del mar con producto del día y carta de coctelería. Atmósfera elegante.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R023.jpg",
+  "instagram": "rabodepez",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Rabo de Pez",
+  "price_range": "$$$",
+  "rating": 4.5,
+  "reviews": 470,
+  "subcategory": "seafood",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "phone": "+573174333372",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

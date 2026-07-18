@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0429", "name": "Barber Club Cartagena", "category": "beauty", "subcategory": "barbershop", "description": "Barber Club Cartagena — servicios de belleza y cuidado personal en Cartagena.", "address": "Cl. 32 #9-45 P1 loc 3, La Matuna, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.4240502, "lng": -75.5459908}, "phone": "", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNMlBfIhz52lL56hSEwME3I8JyFTapZRDHHyYUfAl4579ivBHR0n9iI4hPLXbePY8q2cbvLoodLJVwF-eoG7KAA9JwzyWnCWOkQa7Lb3NnZqUwY6rzB-7N0EFuYl4lIPuY_WVccGdlNDArXqTejWSIW8g=s4800-w1200", "instagram": "", "booking_link": "https://instagram.com/barber_club_cartagena?igshid=YmMyMTA2M2Y=", "rating": 4.9, "reviews": 535, "price_range": "$$", "tier": "standard", "hours": "Monday: 8:00 AM – 9:00 PM; Tuesday: 8:00 AM – 9:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0429",
+  "name": "Barber Club Cartagena",
+  "category": "beauty",
+  "subcategory": "barbershop",
+  "description": "Barber Club Cartagena — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Cl. 32 #9-45 P1 loc 3, La Matuna, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4240502,
+    "lng": -75.5459908
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_beauty_0429.jpg",
+  "instagram": "",
+  "booking_link": "https://instagram.com/barber_club_cartagena?igshid=YmMyMTA2M2Y=",
+  "rating": 4.9,
+  "reviews": 535,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 8:00 AM – 9:00 PM; Tuesday: 8:00 AM – 9:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

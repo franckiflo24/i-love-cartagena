@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1222", "address": "Centro, Carrera 3 # 36-04 Calle La Factoría, El Centro, Cartagena de Indias, Bolívar, Colombia", "booking_link": "http://www.isladelpiratahotel.com/", "category": "hotel", "description": "Isla del Pirata — Top-rated hotel in Cartagena with 604 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOqxMbIRDkOI41HECA8Ubz61PiI1oMBv7oaWMdII43bmMh5iMQQ6x8dYNF3gHPD7aRIcQ1zTj2vSJwMLbQI-z34KpU_eMg04k7YPGlpFxA14j0iPjr-yHGLQi4bbW8gxOeoWjhilc3cRDebTg=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.425062, "lng": -75.55199979999999}, "name": "Isla del Pirata", "phone": "+573137044804", "price_range": "$$", "rating": 4.4, "reviews": 604, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1222",
+  "address": "Centro, Carrera 3 # 36-04 Calle La Factoría, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "http://www.isladelpiratahotel.com/",
+  "category": "hotel",
+  "description": "Isla del Pirata — Top-rated hotel in Cartagena with 604 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1222.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.425062,
+    "lng": -75.55199979999999
+  },
+  "name": "Isla del Pirata",
+  "phone": "+573137044804",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 604,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

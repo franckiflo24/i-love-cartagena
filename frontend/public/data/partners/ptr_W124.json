@@ -1,1 +1,28 @@
-{"partner_id": "ptr_W124", "address": "Centro Histórico", "booking_link": "https://www.percimon.com/", "category": "cafe", "description": "Charming brunch café with tropical bowls, fresh juices, and house-baked pastries. A colorful morning ritual in the walled city.", "experience": "Brunch · Bowls · Jugos naturales", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNLCsh5s2sxthouvq4JEzdNhW9ESrGbAICkTJojXDzyFm9UJ_fVrH5kvFY5HXCE0te0pmEw3lL8KIOSRdacE5VW37MvLhtMcf0_6GIoObl60JEKosfbEh_OUs-vyrcdqBJXr29ZPatfLGmnjqr31YLE=s4800-w1200", "instagram": "percimoncafe", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Percimón", "phone": "+573017633539", "price_range": "$$", "rating": 4.5, "reviews": 520, "subcategory": "brunch", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Lun-Dom 07:00 - 20:00"}
+{
+  "partner_id": "ptr_W124",
+  "address": "Centro Histórico",
+  "booking_link": "https://www.percimon.com/",
+  "category": "cafe",
+  "description": "Charming brunch café with tropical bowls, fresh juices, and house-baked pastries. A colorful morning ritual in the walled city.",
+  "experience": "Brunch · Bowls · Jugos naturales",
+  "image_url": "/images/partners/ptr_W124.jpg",
+  "instagram": "percimoncafe",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Percimón",
+  "phone": "+573017633539",
+  "price_range": "$$",
+  "rating": 4.5,
+  "reviews": 520,
+  "subcategory": "brunch",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 07:00 - 20:00"
+}

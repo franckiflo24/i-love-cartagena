@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R003", "address": "Bocagrande, Cartagena", "booking_link": "https://pezetarian.com", "category": "restaurant", "cuisine": "Sushi · Poke", "description": "Sushi y poke bowls con producto fresco. Espacio limpio, ideal para almorzar.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZM3QODHuF4brKG6DVpHd9ICokD1jzKowdXkqJUJX3egs94foHomqYa8_Sn_oZdPV7j4nG_72cKRZl2_N5-e5_gt4183_zZncsv_m_sQv-K6srDL3zbSh-cjSaCRPPShk1UKdV53dvHl2N5UJyXaI25f=s4800-w1200", "instagram": "pezetarian", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Pezetarian", "price_range": "$$", "rating": 4.5, "reviews": 520, "subcategory": "asian", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573023838376", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R003",
+  "address": "Bocagrande, Cartagena",
+  "booking_link": "https://pezetarian.com",
+  "category": "restaurant",
+  "cuisine": "Sushi · Poke",
+  "description": "Sushi y poke bowls con producto fresco. Espacio limpio, ideal para almorzar.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R003.jpg",
+  "instagram": "pezetarian",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Pezetarian",
+  "price_range": "$$",
+  "rating": 4.5,
+  "reviews": 520,
+  "subcategory": "asian",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573023838376",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

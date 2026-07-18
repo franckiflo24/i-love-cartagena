@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R122", "address": "Cartagena de Indias, Colombia", "booking_link": "http://fitchoices.co/", "category": "restaurant", "cuisine": "Saludable · Veggie", "description": "Comida saludable: bowls, ensaladas, smoothies y opciones veggie.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNx1mTrSONjlE34tw3VEjxuuOKfGAARMXq5hl9_-A1LEJKVExZdxeK5X2Nh9dSQgEwc8nX0q6bxN9exV98UDKx1wgLzGJUjqdVi9zSyBziL6WesBZCLbBKoIuVmNtWB_k_YBnGGC500nA608EE=s4800-w1200", "instagram": "fitchoicescartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Fit Choices", "price_range": "$$", "rating": 4.4, "reviews": 240, "subcategory": "vegetarian", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573006628541", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R122",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "http://fitchoices.co/",
+  "category": "restaurant",
+  "cuisine": "Saludable · Veggie",
+  "description": "Comida saludable: bowls, ensaladas, smoothies y opciones veggie.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R122.jpg",
+  "instagram": "fitchoicescartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Fit Choices",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 240,
+  "subcategory": "vegetarian",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573006628541",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1264", "address": "Media Luna, Cl. 30 #10c62, Getsemaní, Cartagena de Indias, Bolívar, Colombia", "booking_link": "", "category": "hotel", "description": "Mystic House Hostal — Top-rated hotel in Cartagena with 168 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZP5MLRD4NQR92j3F1j82_x1XMtfeAm22tvU6DvVx_soxLbmSJM0_1rxu_JeFLDWAKS3ZATIzWYqE5YvMbkDGRJFRF683Z5V9rnU2SbGRkBsbBkBMPFQWf-oKxnlE_AAb2MGTQgAEnFlbXb9Qg=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4223834, "lng": -75.5441732}, "name": "Mystic House Hostal", "phone": "+573182066677", "price_range": "$$", "rating": 4.3, "reviews": 168, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1264",
+  "address": "Media Luna, Cl. 30 #10c62, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "category": "hotel",
+  "description": "Mystic House Hostal — Top-rated hotel in Cartagena with 168 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1264.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4223834,
+    "lng": -75.5441732
+  },
+  "name": "Mystic House Hostal",
+  "phone": "+573182066677",
+  "price_range": "$$",
+  "rating": 4.3,
+  "reviews": 168,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

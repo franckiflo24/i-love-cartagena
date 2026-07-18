@@ -1,1 +1,28 @@
-{"partner_id": "ptr_V016", "address": "Cl. de San Juan #25-118, Getsemaní, Cartagena", "booking_link": "https://manna.com.co/", "category": "cafe", "description": "Popular brunch spot in Getsemaní. Organic ingredients, açaí bowls, fresh juices, and a relaxed tropical atmosphere.", "experience": "Brunch · Orgánico · Getsemaní", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPujQsWuYuUi_ybQQDknLwNUJ2xzUlvoWPkFnIxdeOfNAWqSU0jc7eFEx6Ch32wDoEF5uV45iX0335k60wX6GtUtgWp8OLqKyKdLpj6mFjhcEeVpE9g0CtmcVUWM9me5W2Er6wv8jwxmqesVREQ3v1CEg=s4800-w1200", "instagram": "mannacartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Manna Breakfast & Lunch", "phone": "+573043018452", "price_range": "$$", "rating": 4.6, "reviews": 750, "subcategory": "brunch", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Lun-Dom 07:00 - 20:00"}
+{
+  "partner_id": "ptr_V016",
+  "address": "Cl. de San Juan #25-118, Getsemaní, Cartagena",
+  "booking_link": "https://manna.com.co/",
+  "category": "cafe",
+  "description": "Popular brunch spot in Getsemaní. Organic ingredients, açaí bowls, fresh juices, and a relaxed tropical atmosphere.",
+  "experience": "Brunch · Orgánico · Getsemaní",
+  "image_url": "/images/partners/ptr_V016.jpg",
+  "instagram": "mannacartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Manna Breakfast & Lunch",
+  "phone": "+573043018452",
+  "price_range": "$$",
+  "rating": 4.6,
+  "reviews": 750,
+  "subcategory": "brunch",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 07:00 - 20:00"
+}

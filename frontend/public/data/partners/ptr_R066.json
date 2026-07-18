@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R066", "address": "Cartagena de Indias, Colombia", "booking_link": "https://lacabrera.com.ar", "category": "restaurant", "cuisine": "Parrilla argentina", "description": "Cadena argentina premium de parrilla. Cortes secos, vinos y postres clásicos.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPlmVr8HcX4D97eseHaE0906-ePLCRxpdIFGVgIwlkH7KrbtqZ9VN0AECx_bJ_eNq1HC870MZMz1Gda9CEo7Iqy9Pqh4hd8F72JClvDXhg1AIWW3NSGIL4S6vJg2pGY0IGIP98FEn8sOgo7B1OIrxL8yg=s4800-w1200", "instagram": "lacabreracartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "La Cabrera", "price_range": "$$$", "rating": 4.5, "reviews": 780, "subcategory": "international", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "phone": "+573116509694", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R066",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "https://lacabrera.com.ar",
+  "category": "restaurant",
+  "cuisine": "Parrilla argentina",
+  "description": "Cadena argentina premium de parrilla. Cortes secos, vinos y postres clásicos.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R066.jpg",
+  "instagram": "lacabreracartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "La Cabrera",
+  "price_range": "$$$",
+  "rating": 4.5,
+  "reviews": 780,
+  "subcategory": "international",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "phone": "+573116509694",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

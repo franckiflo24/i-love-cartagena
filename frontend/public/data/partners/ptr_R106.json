@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R106", "address": "Cartagena de Indias, Colombia", "booking_link": "https://www.inkantoprime.com/cartagena", "category": "restaurant", "cuisine": "Peruano", "description": "Cocina peruana contemporánea con cebiches, tiraditos y cocina nikkei.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPUi6NwctWmCz7WAcyaJmj58NvUvQ339Y1jXbA-t7aN8fw7GNhkIC2SoAczygBEo4ACRFNRwGtQsVUesxhqmQl24my9iQ3NaHkSZ82EnESi8wl1HyNl8bHAGMInTk-IHil-n3BXstFsnWgkxEA=s4800-w1200", "instagram": "inkantocartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Inkanto", "price_range": "$$$", "rating": 4.6, "reviews": 620, "subcategory": "gastronomic", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "phone": "+573003137502", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R106",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "https://www.inkantoprime.com/cartagena",
+  "category": "restaurant",
+  "cuisine": "Peruano",
+  "description": "Cocina peruana contemporánea con cebiches, tiraditos y cocina nikkei.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R106.jpg",
+  "instagram": "inkantocartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Inkanto",
+  "price_range": "$$$",
+  "rating": 4.6,
+  "reviews": 620,
+  "subcategory": "gastronomic",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "phone": "+573003137502",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

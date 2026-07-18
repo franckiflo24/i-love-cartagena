@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1024", "address": "URBANIZACIÓN SANTA CLARA MZ Z4, LOTE 3, Santa Clara, Cartagena de Indias, Bolívar, Colombia", "booking_link": "http://www.trayectours.com/", "category": "activity", "description": "Trayectours Agencia Operadora de Viajes y Turísmo — Top-rated activity in Cartagena with 22 Google reviews.", "experience": "Activity · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPEUFzWSnmcC-FRXFpHwXOXMSaLLD-QXbmdw_b1NSNvDDa5jw_VFjxVoAPt2Oqp5lwTOuoxD_tSFXmv3LFqKeu_O8tacL1C6kv3nghGCxlcMDbSJ0HbNJFi6kypPGCzyaDRnEmRyRUAN97QPw=s1600-w600", "instagram": "", "is_certified": true, "location": {"lat": 10.3819143, "lng": -75.5052029}, "name": "Trayectours Agencia Operadora de Viajes y Turísmo", "phone": "+573024338218", "price_range": "$$", "rating": 5.0, "reviews": 22, "subcategory": "cultural", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Dom 08:00 - 17:00"}
+{
+  "partner_id": "ptr_X1024",
+  "address": "URBANIZACIÓN SANTA CLARA MZ Z4, LOTE 3, Santa Clara, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "http://www.trayectours.com/",
+  "category": "activity",
+  "description": "Trayectours Agencia Operadora de Viajes y Turísmo — Top-rated activity in Cartagena with 22 Google reviews.",
+  "experience": "Activity · Cartagena",
+  "image_url": "/images/partners/ptr_X1024.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.3819143,
+    "lng": -75.5052029
+  },
+  "name": "Trayectours Agencia Operadora de Viajes y Turísmo",
+  "phone": "+573024338218",
+  "price_range": "$$",
+  "rating": 5.0,
+  "reviews": 22,
+  "subcategory": "cultural",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 08:00 - 17:00"
+}

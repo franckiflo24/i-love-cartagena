@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1014", "address": "Cl. 34 #Calle 35 9-56, La Matuna, Cartagena de Indias, Bolívar, Colombia", "booking_link": "http://www.avalonboatcharter.com/", "category": "activity", "description": "Avalon Charters — Top-rated activity in Cartagena with 77 Google reviews.", "experience": "Activity · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOLBiIgrCgdpjQ2iH0CfvYDOY5H1ALKW6JP7WhrDDCFQhlrRxI6jqpmiKtJzdM3TLwTpUMePRhUobvx1bx4SBgzHniS_wcKNPBhZK3E4nPrNiRnVqgqmNIJ9bnRRqxHU5wXc_2rAJlD6K_D7w=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4251151, "lng": -75.5465361}, "name": "Avalon Charters", "phone": "+17022507480", "price_range": "$$", "rating": 5.0, "reviews": 77, "subcategory": "cultural", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Dom 08:00 - 17:00"}
+{
+  "partner_id": "ptr_X1014",
+  "address": "Cl. 34 #Calle 35 9-56, La Matuna, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "http://www.avalonboatcharter.com/",
+  "category": "activity",
+  "description": "Avalon Charters — Top-rated activity in Cartagena with 77 Google reviews.",
+  "experience": "Activity · Cartagena",
+  "image_url": "/images/partners/ptr_X1014.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4251151,
+    "lng": -75.5465361
+  },
+  "name": "Avalon Charters",
+  "phone": "+17022507480",
+  "price_range": "$$",
+  "rating": 5.0,
+  "reviews": 77,
+  "subcategory": "cultural",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 08:00 - 17:00"
+}

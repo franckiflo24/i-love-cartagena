@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0449", "name": "L'Peluquería – Salón Aliado Mónica Cruz", "category": "beauty", "subcategory": "salon", "description": "L'Peluquería – Salón Aliado Mónica Cruz — servicios de belleza y cuidado personal en Cartagena.", "address": "a 20-103, Cl. 26 #20-77, Manga, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.4147461, "lng": -75.5381328}, "phone": "", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPmS77Vy2UeNLOXMl5Uj0mF_T6hcrWVvqs849vddY9-B-oygztcGQkIbrsT8HCVkhdNS5uSKSsNqPlkzU1cX5uiq6mKCraeT9aZc4LWCcf3EFtIGyg4HCm50EK3aWFP2WI9N_53epWColP-=s4800-w1200", "instagram": "", "booking_link": "", "rating": 4.6, "reviews": 163, "price_range": "$$", "tier": "standard", "hours": "Monday: 7:00 AM – 8:00 PM; Tuesday: 7:00 AM – 8:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0449",
+  "name": "L'Peluquería – Salón Aliado Mónica Cruz",
+  "category": "beauty",
+  "subcategory": "salon",
+  "description": "L'Peluquería – Salón Aliado Mónica Cruz — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "a 20-103, Cl. 26 #20-77, Manga, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4147461,
+    "lng": -75.5381328
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_beauty_0449.jpg",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 4.6,
+  "reviews": 163,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 7:00 AM – 8:00 PM; Tuesday: 7:00 AM – 8:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

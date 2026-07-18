@@ -1,1 +1,28 @@
-{"partner_id": "ptr_V041", "address": "Calle de la Cruz #9-110, Piso 2, Centro, Cartagena", "booking_link": "", "category": "spa", "description": "Relaxation spa in the Walled City. Professional massages, facials, and body treatments in a serene colonial setting.", "experience": "Masajes · Faciales · Centro Histórico", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZM0SULmBLV2po7N5lE5S6chY1oxvXH7hSezimuAh08xSTqmrcUzyBF0hx4UqyyVngX1vnZ6sG6uTLyByqsaIOHHGYlMyZb6wYiYypWYx6Yjz5kozPPIeujuvp9HyS3rxqSQIrwfEKjwDfHalQ=s4800-w1024", "instagram": "", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Hom Spa Cartagena", "phone": "+573053930719", "price_range": "$$", "rating": 4.6, "reviews": 480, "subcategory": "massage", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Lun-Sáb 09:00 - 19:00"}
+{
+  "partner_id": "ptr_V041",
+  "address": "Calle de la Cruz #9-110, Piso 2, Centro, Cartagena",
+  "booking_link": "",
+  "category": "spa",
+  "description": "Relaxation spa in the Walled City. Professional massages, facials, and body treatments in a serene colonial setting.",
+  "experience": "Masajes · Faciales · Centro Histórico",
+  "image_url": "/images/partners/ptr_V041.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Hom Spa Cartagena",
+  "phone": "+573053930719",
+  "price_range": "$$",
+  "rating": 4.6,
+  "reviews": 480,
+  "subcategory": "massage",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Lun-Sáb 09:00 - 19:00"
+}

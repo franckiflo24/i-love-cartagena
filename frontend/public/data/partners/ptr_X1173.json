@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1173", "address": "Isla Grande, sector Petares Isla Grande, sector Petares, Isla Grande, Cartagena de Indias, Bolívar, Colombia", "booking_link": "", "category": "hotel", "description": "Eco Hotel Las Flores — Top-rated hotel in Cartagena with 24 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOJIANnXKLHbdIkKQhnk99zTJy_z8SOMZKI1kaQD8uktLlDJT7Kfz046X1MgqTchthSS4M5BeSQ3EBF7SaonjTcSnkcD7yyps0FMTTKnCxEVMuWf07_yfC6Yh2BaOFeBrtZEsFWsP6LEg65vdVcIbAp3g=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.1791985, "lng": -75.7457636}, "name": "Eco Hotel Las Flores", "phone": "+573006669862", "price_range": "$$", "rating": 4.6000000000000005, "reviews": 24, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1173",
+  "address": "Isla Grande, sector Petares Isla Grande, sector Petares, Isla Grande, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "category": "hotel",
+  "description": "Eco Hotel Las Flores — Top-rated hotel in Cartagena with 24 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1173.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.1791985,
+    "lng": -75.7457636
+  },
+  "name": "Eco Hotel Las Flores",
+  "phone": "+573006669862",
+  "price_range": "$$",
+  "rating": 4.6000000000000005,
+  "reviews": 24,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

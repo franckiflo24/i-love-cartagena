@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1172", "address": "Cra. 4 #7 135, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://botesyyatescartagena.com/", "category": "activity", "description": "EMERALD DESTINATIONS — Top-rated activity in Cartagena with 38 Google reviews.", "experience": "Activity · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNQnBQViYMz54-wBhDD4Gxx-NC8gtUlo97yiAK49vV3h2JrhBKlL8q-yLoQOrRCjF50anZGn51YvRrKH4jHCsByVBdnDoW-J1WvWRfz2T69kjFAnUVq07uuaHrvmMKbE-QKThUh4VcHREsnqw=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4031625, "lng": -75.55302910000002}, "name": "EMERALD DESTINATIONS", "phone": "+573183460335", "price_range": "$$", "rating": 4.6000000000000005, "reviews": 38, "subcategory": "cultural", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Lun-Dom 08:00 - 17:00"}
+{
+  "partner_id": "ptr_X1172",
+  "address": "Cra. 4 #7 135, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://botesyyatescartagena.com/",
+  "category": "activity",
+  "description": "EMERALD DESTINATIONS — Top-rated activity in Cartagena with 38 Google reviews.",
+  "experience": "Activity · Cartagena",
+  "image_url": "/images/partners/ptr_X1172.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4031625,
+    "lng": -75.55302910000002
+  },
+  "name": "EMERALD DESTINATIONS",
+  "phone": "+573183460335",
+  "price_range": "$$",
+  "rating": 4.6000000000000005,
+  "reviews": 38,
+  "subcategory": "cultural",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 08:00 - 17:00"
+}

@@ -1,1 +1,28 @@
-{"partner_id": "ptr_ac_004", "address": "Islas del Rosario", "booking_link": "https://aventurarosario.co", "category": "activity", "description": "Kayak, paddleboard, jet ski y banana boat en las Islas del Rosario. Paquetes para familias y grupos.", "experience": "Kayak, paddle board, jet ski, banana boat, snorkel", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOHjNB6gs7o_-y--oSixotUSqy2OZ5wZJnhgMT2Z7TM68eRYQb82sYhQ-ypwzanJhWQzcDS4YcG_BvLIftmty5xz6MgYbJgj8Ae4dq1Ic1HqWVsS4zGNaSlam21cQEhbE3PdKIF7A5lm4RlYw=s1600-w800", "instagram": "aventurarosario", "is_certified": true, "location": {"lat": 10.178, "lng": -75.58}, "name": "Aventura Rosario Islands", "price_range": "$$", "rating": 4.5, "reviews": 290, "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "phone": "+573046691394", "subcategory": "sport", "hours": "Lun-Dom 08:00 - 17:00"}
+{
+  "partner_id": "ptr_ac_004",
+  "address": "Islas del Rosario",
+  "booking_link": "https://aventurarosario.co",
+  "category": "activity",
+  "description": "Kayak, paddleboard, jet ski y banana boat en las Islas del Rosario. Paquetes para familias y grupos.",
+  "experience": "Kayak, paddle board, jet ski, banana boat, snorkel",
+  "image_url": "/images/partners/ptr_ac_004.jpg",
+  "instagram": "aventurarosario",
+  "is_certified": true,
+  "location": {
+    "lat": 10.178,
+    "lng": -75.58
+  },
+  "name": "Aventura Rosario Islands",
+  "price_range": "$$",
+  "rating": 4.5,
+  "reviews": 290,
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "phone": "+573046691394",
+  "subcategory": "sport",
+  "hours": "Lun-Dom 08:00 - 17:00"
+}

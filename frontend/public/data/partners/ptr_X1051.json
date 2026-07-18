@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1051", "address": "Edificio Andian, Cl. 32 #5-09, El Centro, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://tripcartagenatours.com/", "category": "activity", "description": "AGENCIA VIP TRIP CARTAGENA TOURS — Top-rated activity in Cartagena with 180 Google reviews.", "experience": "Activity · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMPJA8x24mvP2c8i-KsC0X4kB7Ce0it7zlvvYT6xwetvTIzSmM5R5VVg8-TPVOO-8CQwzumVQmDfSW1_9cwYhBJ3ZjuotkLlsJ5wWJhtJQnMkXqU7-KrhU60YsvykPXzzCOvs7zbjxn98GNlsQaZ-Gq=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4224605, "lng": -75.550193}, "name": "AGENCIA VIP TRIP CARTAGENA TOURS", "phone": "+573006024770", "price_range": "$$", "rating": 4.9, "reviews": 180, "subcategory": "cultural", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Dom 08:00 - 17:00"}
+{
+  "partner_id": "ptr_X1051",
+  "address": "Edificio Andian, Cl. 32 #5-09, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://tripcartagenatours.com/",
+  "category": "activity",
+  "description": "AGENCIA VIP TRIP CARTAGENA TOURS — Top-rated activity in Cartagena with 180 Google reviews.",
+  "experience": "Activity · Cartagena",
+  "image_url": "/images/partners/ptr_X1051.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4224605,
+    "lng": -75.550193
+  },
+  "name": "AGENCIA VIP TRIP CARTAGENA TOURS",
+  "phone": "+573006024770",
+  "price_range": "$$",
+  "rating": 4.9,
+  "reviews": 180,
+  "subcategory": "cultural",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 08:00 - 17:00"
+}

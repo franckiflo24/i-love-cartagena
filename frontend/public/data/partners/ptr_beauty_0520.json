@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0520", "name": "Cejas, pestañas y depilación corporal con cera lifting de pestañas laminado de cejas", "category": "beauty", "subcategory": "lashes_brows", "description": "Cejas, pestañas y depilación corporal con cera lifting de pestañas laminado de cejas — servicios de belleza y cuidado personal en Cartagena.", "address": "Cra. 41 #31d1, Boston, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.410118899999999, "lng": -75.5120373}, "phone": "+573206353006", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOdqDnwJ-BzmW3dbTEGACaVuAkRGOgWRL8r5UZ1xjQ-b_IWJN0JZ2dsYEwD1zNWN0-k_gIP4YQdbvSJnI_pYOY7UtlLAE3Okoj1sdZr6sIDQyiAkpDVnw4FvyB9oOr1lR1a70OGQxMOhUa-t4_r8toPcw=s4800-w1080", "instagram": "", "booking_link": "", "rating": 5, "reviews": 15, "price_range": "$$", "tier": "standard", "hours": "Monday: 9:00 AM – 10:00 PM; Tuesday: 9:00 AM – 10:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0520",
+  "name": "Cejas, pestañas y depilación corporal con cera lifting de pestañas laminado de cejas",
+  "category": "beauty",
+  "subcategory": "lashes_brows",
+  "description": "Cejas, pestañas y depilación corporal con cera lifting de pestañas laminado de cejas — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Cra. 41 #31d1, Boston, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.410118899999999,
+    "lng": -75.5120373
+  },
+  "phone": "+573206353006",
+  "image_url": "/images/partners/ptr_beauty_0520.jpg",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 5,
+  "reviews": 15,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 9:00 AM – 10:00 PM; Tuesday: 9:00 AM – 10:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

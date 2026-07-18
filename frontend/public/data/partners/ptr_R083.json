@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R083", "address": "Cartagena de Indias, Colombia", "booking_link": "https://www.atrium.com.co/", "category": "restaurant", "cuisine": "Variado", "description": "Food court con varias opciones rápidas y de calidad.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZP9OtxEVg7rzn9d9qdV4yboQmwXi9kvAd4g8ofQFYFJ_5TNwzGO9FqRgEI87htT-24yunwLsUSAAF8K7w9kG7rHjUnui6C3ddNiwHOI2Gcvx4kXNXjAcQpk9TWmoAyxocsAaZin0oNwvavUFiY=s4800-w1200", "instagram": "atriumcartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Atrium", "price_range": "$$", "rating": 4.2, "reviews": 310, "subcategory": "fastfood", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573013992826", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R083",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "https://www.atrium.com.co/",
+  "category": "restaurant",
+  "cuisine": "Variado",
+  "description": "Food court con varias opciones rápidas y de calidad.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R083.jpg",
+  "instagram": "atriumcartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Atrium",
+  "price_range": "$$",
+  "rating": 4.2,
+  "reviews": 310,
+  "subcategory": "fastfood",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573013992826",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

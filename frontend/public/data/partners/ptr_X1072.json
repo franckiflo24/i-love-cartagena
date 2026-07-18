@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1072", "address": "Centro Calle 33 # 8-79 Edificio Citibank, Centro histórico, Oficina 3A, Manga, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://baraktours.com/", "category": "activity", "description": "BARAK TOURS Y VIAJES — Top-rated activity in Cartagena with 46 Google reviews.", "experience": "Activity · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOAj6COMFTHb3l-jgfH76gF2afZ9sUhHkNmkkwRlLhhvZkXhR1kupP1k2pNglgbhtoKXQ6I2dLUWKu586Pf1ZPO70aF_nKCWCLdzXC1gu2pIqe1q4uOLmVKMd0pPluJFifdxCZsqydeljuFPOyqsIi8AA=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4134044, "lng": -75.53640419999999}, "name": "BARAK TOURS Y VIAJES", "phone": "+573006597814", "price_range": "$$", "rating": 4.9, "reviews": 46, "subcategory": "cultural", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Dom 08:00 - 17:00"}
+{
+  "partner_id": "ptr_X1072",
+  "address": "Centro Calle 33 # 8-79 Edificio Citibank, Centro histórico, Oficina 3A, Manga, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://baraktours.com/",
+  "category": "activity",
+  "description": "BARAK TOURS Y VIAJES — Top-rated activity in Cartagena with 46 Google reviews.",
+  "experience": "Activity · Cartagena",
+  "image_url": "/images/partners/ptr_X1072.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4134044,
+    "lng": -75.53640419999999
+  },
+  "name": "BARAK TOURS Y VIAJES",
+  "phone": "+573006597814",
+  "price_range": "$$",
+  "rating": 4.9,
+  "reviews": 46,
+  "subcategory": "cultural",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 08:00 - 17:00"
+}

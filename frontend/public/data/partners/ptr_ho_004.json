@@ -1,1 +1,26 @@
-{"partner_id": "ptr_ho_004", "address": "Calle del Torno, Centro", "booking_link": "https://sofitel-legend-santaclara.com", "category": "hotel", "description": "Convento del siglo XVII convertido en hotel 5 estrellas. Patio histórico, spa So Spa y gastronomía Michelin.", "experience": "Hotel 5★ histórico, So Spa, restaurante 1621 con estrella Michelin", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOn2C2xUFyXm2atZl3ffNYwC7B-wLkhtM1-ai-Ge11MKZBIB9ITUO9Gb7wLLb1n7bk1Au_Ob7_pEEocBMpSvtWMSiq3p-TjRfPzb9aA03KGXDaeNIqPoidfRMTHgOS-JGNz-lY1NVREdJcv9xhYqKF8FQ=s4800-w1200", "instagram": "sofitellegendsantaclaractg", "is_certified": true, "location": {"lat": 10.4255, "lng": -75.5482}, "name": "Sofitel Legend Santa Clara", "price_range": "$$$$", "subcategory": "lujo", "tier": "elite", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "elite", "membership_plan": "free", "phone": "+576056504700", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_ho_004",
+  "address": "Calle del Torno, Centro",
+  "booking_link": "https://sofitel-legend-santaclara.com",
+  "category": "hotel",
+  "description": "Convento del siglo XVII convertido en hotel 5 estrellas. Patio histórico, spa So Spa y gastronomía Michelin.",
+  "experience": "Hotel 5★ histórico, So Spa, restaurante 1621 con estrella Michelin",
+  "image_url": "/images/partners/ptr_ho_004.jpg",
+  "instagram": "sofitellegendsantaclaractg",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4255,
+    "lng": -75.5482
+  },
+  "name": "Sofitel Legend Santa Clara",
+  "price_range": "$$$$",
+  "subcategory": "lujo",
+  "tier": "elite",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "phone": "+576056504700",
+  "hours": "Recepción 24h"
+}

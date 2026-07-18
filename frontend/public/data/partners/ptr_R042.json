@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R042", "address": "Cartagena de Indias, Colombia", "booking_link": "https://benitto.co/", "category": "restaurant", "cuisine": "Italiano · Trattoria", "description": "Trattoria italiana acogedora. Pastas caseras y carta de vinos.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOqoCQCK1G9zfpgSLA1cn7h9NLpsOBPjA0fn6r2MOTuP-wdloVM4jN6dhybWR6pxN9mO6tG2IwuW_wxbCTO5BOy7TbjFb6_UCT2Z78GJTesg7afVNL2HvBR8XQNiau7Wl0_eWJssDaAHPHZKw=s4800-w1200", "instagram": "benittocartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Benitto", "price_range": "$$", "rating": 4.4, "reviews": 380, "subcategory": "italian", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573154290032", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R042",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "https://benitto.co/",
+  "category": "restaurant",
+  "cuisine": "Italiano · Trattoria",
+  "description": "Trattoria italiana acogedora. Pastas caseras y carta de vinos.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R042.jpg",
+  "instagram": "benittocartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Benitto",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 380,
+  "subcategory": "italian",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573154290032",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

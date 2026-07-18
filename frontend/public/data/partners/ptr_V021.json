@@ -1,1 +1,28 @@
-{"partner_id": "ptr_V021", "address": "Dg. 21 #48-72, El Bosque, Cartagena", "booking_link": "https://deliriumsocialclub.com", "category": "club", "description": "Upscale gastrobar and nightclub. Premium bottle service (Moët, Hennessy, Patrón), electronic music, and a sophisticated late-night crowd.", "experience": "Bottle service · Premium · Nightclub", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNVBQpz86Xr5pGmkJJVHdgzdygvYJLYyk4ZUQWd6G_wnmSZ5bI0AocQ3D4WTm2PL1LW2wj8DoRH_T6s7GLiAU0Q_1dOHBmg6WdNTl_j-jDsP-b33-1dO7rBbmI8KwyXaTVzL0idKjSRUCxN2yhte03Ctw=s4800-w1200", "instagram": "deliriumsocialclub", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Delirium Social Club", "phone": "+57 318 535 1287", "price_range": "$$$", "rating": 4.7, "reviews": 890, "subcategory": "nightclub", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Jue-Sáb 22:00 - 05:00"}
+{
+  "partner_id": "ptr_V021",
+  "address": "Dg. 21 #48-72, El Bosque, Cartagena",
+  "booking_link": "https://deliriumsocialclub.com",
+  "category": "club",
+  "description": "Upscale gastrobar and nightclub. Premium bottle service (Moët, Hennessy, Patrón), electronic music, and a sophisticated late-night crowd.",
+  "experience": "Bottle service · Premium · Nightclub",
+  "image_url": "/images/partners/ptr_V021.jpg",
+  "instagram": "deliriumsocialclub",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Delirium Social Club",
+  "phone": "+57 318 535 1287",
+  "price_range": "$$$",
+  "rating": 4.7,
+  "reviews": 890,
+  "subcategory": "nightclub",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Jue-Sáb 22:00 - 05:00"
+}

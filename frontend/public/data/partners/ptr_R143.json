@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R143", "address": "Cartagena de Indias, Colombia", "booking_link": "https://sevolvioprispri.com/", "category": "restaurant", "cuisine": "Café · Brunch", "description": "Café de especialidad y brunch en ambiente moderno. Antes era 'Se Volvió Prispi'.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPkLHQbEsfqhRoq3UKsJNr_9VsLv7p-LcZ37wPGv8VEjVuXPkgzmZJH8bRkRaaXyyC0LayctP5KfG8ACrsqkTbimpTrMds7febX-I0NPWvYyMK1iJnnnFxdJPJIS-i5yIw9stglgyo0FTug1g=s4800-w1200", "instagram": "sevolvioprispri", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Prispi Coffee Shop", "price_range": "$", "rating": 4.5, "reviews": 320, "subcategory": "cafe", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573104581965", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R143",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "https://sevolvioprispri.com/",
+  "category": "restaurant",
+  "cuisine": "Café · Brunch",
+  "description": "Café de especialidad y brunch en ambiente moderno. Antes era 'Se Volvió Prispi'.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R143.jpg",
+  "instagram": "sevolvioprispri",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Prispi Coffee Shop",
+  "price_range": "$",
+  "rating": 4.5,
+  "reviews": 320,
+  "subcategory": "cafe",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573104581965",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

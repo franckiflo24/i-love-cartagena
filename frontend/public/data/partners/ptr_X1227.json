@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1227", "address": "Muelle del Palmar, Isla Grande, Cartagena de Indias, Bolívar, Colombia", "booking_link": "http://elhamaquero.com/", "category": "hotel", "description": "El Hamaquero Hostal Econativo — Top-rated hotel in Cartagena with 313 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOzZu2hNWL0MZIehRnR5mSOz7VrC2xMr5U272vBxjuQhdocdoc6FdK3NdSYcidTGmXHXBVHW0dUCMISYHl0xVojzEc4NOesERKbw0kHFqYyPsC9olsvssEKhtDVzIaefc4F0RtSDTLzJNbVNg=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.1721911, "lng": -75.746713}, "name": "El Hamaquero Hostal Econativo", "phone": "+573164824080", "price_range": "$$", "rating": 4.4, "reviews": 313, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1227",
+  "address": "Muelle del Palmar, Isla Grande, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "http://elhamaquero.com/",
+  "category": "hotel",
+  "description": "El Hamaquero Hostal Econativo — Top-rated hotel in Cartagena with 313 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1227.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.1721911,
+    "lng": -75.746713
+  },
+  "name": "El Hamaquero Hostal Econativo",
+  "phone": "+573164824080",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 313,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

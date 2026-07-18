@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1097", "address": "la rebaja Plus No. 19 DROGUERIA Y MINIMARKET Bocagrande Cartagena, Cra. 2 #9, Cartagena de Indias, Bolívar, Colombia", "booking_link": "", "category": "activity", "description": "AGENCIA DE TURISMO LEON DE JUDA — Top-rated activity in Cartagena with 162 Google reviews.", "experience": "Activity · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPwnrpJ9H3dn_PstLmNIZ645HSai3ZMglgSa0ow6NWSofEagz47e_OCME1gR3uORfKLTknvAtfpAu-OcBcQRbf60XAKX6Efyub3dzABXfbok7eSZ7ilxlo2QgXGogVWwJniOx0kmC0zpUT6JlI=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4064841, "lng": -75.5525947}, "name": "AGENCIA DE TURISMO LEON DE JUDA", "phone": "+573016053895", "price_range": "$$", "rating": 4.800000000000001, "reviews": 162, "subcategory": "cultural", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Dom 08:00 - 17:00"}
+{
+  "partner_id": "ptr_X1097",
+  "address": "la rebaja Plus No. 19 DROGUERIA Y MINIMARKET Bocagrande Cartagena, Cra. 2 #9, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "category": "activity",
+  "description": "AGENCIA DE TURISMO LEON DE JUDA — Top-rated activity in Cartagena with 162 Google reviews.",
+  "experience": "Activity · Cartagena",
+  "image_url": "/images/partners/ptr_X1097.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4064841,
+    "lng": -75.5525947
+  },
+  "name": "AGENCIA DE TURISMO LEON DE JUDA",
+  "phone": "+573016053895",
+  "price_range": "$$",
+  "rating": 4.800000000000001,
+  "reviews": 162,
+  "subcategory": "cultural",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 08:00 - 17:00"
+}

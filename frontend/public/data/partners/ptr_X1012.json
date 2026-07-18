@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1012", "address": "Sector Progreso, Tv. 46 #50-17, Zaragocilla, Cartagena de Indias, Bolívar, Colombia", "booking_link": "http://www.instagram.com/belsybarriossaludybelleza", "category": "spa", "description": "Belsy Barrios Spa — Top-rated spa in Cartagena with 105 Google reviews.", "experience": "Spa · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOFUojXNRMosiwx4_vF6xnc4l9yOEHEMXvrlgKrPLKAuECgPvvOxjikfD6BbJA0m8SL1plLOrw80TZ3giEC-DNWrIzls1ocEIIa5paYawYxZpjUgRY2yfHIcmjyAISdyzRH7p6zIXgHfdOYNw=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.3938234, "lng": -75.5045189}, "name": "Belsy Barrios Spa", "phone": "+573185730766", "price_range": "$$", "rating": 5.0, "reviews": 105, "subcategory": "massage", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Sáb 09:00 - 19:00"}
+{
+  "partner_id": "ptr_X1012",
+  "address": "Sector Progreso, Tv. 46 #50-17, Zaragocilla, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "http://www.instagram.com/belsybarriossaludybelleza",
+  "category": "spa",
+  "description": "Belsy Barrios Spa — Top-rated spa in Cartagena with 105 Google reviews.",
+  "experience": "Spa · Cartagena",
+  "image_url": "/images/partners/ptr_X1012.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.3938234,
+    "lng": -75.5045189
+  },
+  "name": "Belsy Barrios Spa",
+  "phone": "+573185730766",
+  "price_range": "$$",
+  "rating": 5.0,
+  "reviews": 105,
+  "subcategory": "massage",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Sáb 09:00 - 19:00"
+}

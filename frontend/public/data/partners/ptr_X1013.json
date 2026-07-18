@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1013", "address": "Cl. 47 #13 - 91, Torices, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://www.instagram.com/zona.let/", "category": "activity", "description": "Zona LET CARTAGENA — Top-rated activity in Cartagena with 105 Google reviews.", "experience": "Activity · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNFoX15ZBlVENzhZ0RV3BKhlOLdT8rPKapKZY1bvxCox0HkGFnfn1rRXsxRt2UxTlZCbkkC8Udx9NIniIe-aoCkpU5RBrBtNbkrkLFFqNA8iCIr7bYHvVZYrJRJ-IG0Fg4ZPPoIVP_mJuGWFQ=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4337526, "lng": -75.5342052}, "name": "Zona LET CARTAGENA", "phone": "+573137629946", "price_range": "$$", "rating": 5.0, "reviews": 105, "subcategory": "cultural", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Dom 08:00 - 17:00"}
+{
+  "partner_id": "ptr_X1013",
+  "address": "Cl. 47 #13 - 91, Torices, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://www.instagram.com/zona.let/",
+  "category": "activity",
+  "description": "Zona LET CARTAGENA — Top-rated activity in Cartagena with 105 Google reviews.",
+  "experience": "Activity · Cartagena",
+  "image_url": "/images/partners/ptr_X1013.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4337526,
+    "lng": -75.5342052
+  },
+  "name": "Zona LET CARTAGENA",
+  "phone": "+573137629946",
+  "price_range": "$$",
+  "rating": 5.0,
+  "reviews": 105,
+  "subcategory": "cultural",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 08:00 - 17:00"
+}

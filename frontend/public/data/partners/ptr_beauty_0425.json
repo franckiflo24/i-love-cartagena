@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0425", "name": "Diego Moya Salón Centro Histórico", "category": "beauty", "subcategory": "salon", "description": "Diego Moya Salón Centro Histórico — servicios de belleza y cuidado personal en Cartagena.", "address": "Sede Centro Local 6 Calle 36 #2-124, El Centro, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.4248896, "lng": -75.55227}, "phone": "+576056520418", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZP6zOvHfKCajYDi9FoS5OgUiJ5f5zS9pTGLDw3sODuazQYHEqkxLV3XhYJIs_q2DPLNHAbB6sS3Bzaptaiqlt5PUgKOqYrWg_y0bTeybcA0DsP32fdyUNwcxzm_mxHIezEooXQr-QxWlYHGDPatKaPW-A=s4800-w1200", "instagram": "", "booking_link": "http://www.diegomoya.com/", "rating": 4.6, "reviews": 381, "price_range": "$$", "tier": "standard", "hours": "Monday: 9:00 AM – 7:00 PM; Tuesday: 9:00 AM – 7:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0425",
+  "name": "Diego Moya Salón Centro Histórico",
+  "category": "beauty",
+  "subcategory": "salon",
+  "description": "Diego Moya Salón Centro Histórico — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Sede Centro Local 6 Calle 36 #2-124, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4248896,
+    "lng": -75.55227
+  },
+  "phone": "+576056520418",
+  "image_url": "/images/partners/ptr_beauty_0425.jpg",
+  "instagram": "",
+  "booking_link": "http://www.diegomoya.com/",
+  "rating": 4.6,
+  "reviews": 381,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 9:00 AM – 7:00 PM; Tuesday: 9:00 AM – 7:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0523", "name": "Yenny Ortiz micropigmentación", "category": "beauty", "subcategory": "lashes_brows", "description": "Yenny Ortiz micropigmentación — servicios de belleza y cuidado personal en Cartagena.", "address": "Cra. 2 #5-142, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.3999548, "lng": -75.5578554}, "phone": "+573122173855", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMw7dSrhfz0kqR7ZQvkH7OdBMtZPAOVaS1BhEAkok1wMvKZeqgs7DGVuTUO1Rpbm1b4PGfdwss6q_Jf_-xk2hzwoJEn68D0IhG5Ej4exsCIHG5dV1Y3pFSkn4GUFzbJbTGz2iLDthmn1eTYUQ=s4800-w1080", "instagram": "", "booking_link": "https://yennyortizmicro.com/", "rating": 5, "reviews": 140, "price_range": "$$", "tier": "standard", "hours": "Monday: 8:00 AM – 6:00 PM; Tuesday: 8:00 AM – 6:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0523",
+  "name": "Yenny Ortiz micropigmentación",
+  "category": "beauty",
+  "subcategory": "lashes_brows",
+  "description": "Yenny Ortiz micropigmentación — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Cra. 2 #5-142, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.3999548,
+    "lng": -75.5578554
+  },
+  "phone": "+573122173855",
+  "image_url": "/images/partners/ptr_beauty_0523.jpg",
+  "instagram": "",
+  "booking_link": "https://yennyortizmicro.com/",
+  "rating": 5,
+  "reviews": 140,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 8:00 AM – 6:00 PM; Tuesday: 8:00 AM – 6:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

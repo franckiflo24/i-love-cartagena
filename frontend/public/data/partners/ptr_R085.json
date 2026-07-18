@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R085", "address": "Cartagena de Indias, Colombia", "booking_link": "https://linktr.ee/Onecheez", "category": "restaurant", "cuisine": "Pizza · Casual", "description": "Pizzas, quesos artesanos y comida casual.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOOIsFL9utH6YuSAwl2QgHDEbYPWAdIRiAiyMIBbrOOQP3aQB6HVooaGCVCW3kH-aWK9R8tt4nGo1g7XH4cVmQks3SgQ1g3RVF5qdButMWdDkZ3Hp1ofZYx1B2Vi1GOUiZ1aH5-OPkajhCPg4eKqp7eUg=s4800-w1200", "instagram": "onecheezpizza", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Onecheez", "price_range": "$$", "rating": 4.3, "reviews": 280, "subcategory": "fastfood", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573045438358", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R085",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "https://linktr.ee/Onecheez",
+  "category": "restaurant",
+  "cuisine": "Pizza · Casual",
+  "description": "Pizzas, quesos artesanos y comida casual.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R085.jpg",
+  "instagram": "onecheezpizza",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Onecheez",
+  "price_range": "$$",
+  "rating": 4.3,
+  "reviews": 280,
+  "subcategory": "fastfood",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573045438358",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

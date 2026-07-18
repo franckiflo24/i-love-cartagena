@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0458", "name": "Epic Spa ctg", "category": "beauty", "subcategory": "facial_spa", "description": "Epic Spa ctg — servicios de belleza y cuidado personal en Cartagena.", "address": "la moneda, centro comercial pasaje de, Cl. de la Moneda #local 212 segundo piso, El Centro, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.4253079, "lng": -75.54802839999999}, "phone": "+573028464216", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNN1WbazrPfq4OhSyCLL394POSgQwjPtcckLmklrjOydTKYKE-oyvr9MZd_S3E1Jv7p1v0x68sj4r9dlcLBasalmQFuJbSinyfLudXidgyu-e49F1LxF4Qw_K4BdI9tCS4W4IJVFh6ebxQ27iS98RYwdQ=s4800-w1200", "instagram": "", "booking_link": "", "rating": 4.9, "reviews": 300, "price_range": "$$", "tier": "standard", "hours": "Monday: 10:00 AM – 7:00 PM; Tuesday: 10:00 AM – 7:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0458",
+  "name": "Epic Spa ctg",
+  "category": "beauty",
+  "subcategory": "facial_spa",
+  "description": "Epic Spa ctg — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "la moneda, centro comercial pasaje de, Cl. de la Moneda #local 212 segundo piso, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4253079,
+    "lng": -75.54802839999999
+  },
+  "phone": "+573028464216",
+  "image_url": "/images/partners/ptr_beauty_0458.jpg",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 4.9,
+  "reviews": 300,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 10:00 AM – 7:00 PM; Tuesday: 10:00 AM – 7:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

@@ -1,1 +1,28 @@
-{"partner_id": "ptr_V020", "address": "Calle Media Luna #9-79, Getsemaní, Cartagena", "booking_link": "https://seven7times.com", "category": "club", "description": "Cartagena's premier mega-club. Four distinct environments across multiple floors — electronic, crossover, Latin, and VIP. International DJs and immersive production.", "experience": "Nightclub · 4 ambientes · VIP", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMTYLjXjza8YZ9X2A1Sn5G2xzx9PsWLNhVKwQKk2zXfzk78o4kuiXeuaIQdKApffPqDiY8R8ucIA_AARkCY3mo5K0TtwFbMBEL0AHkGB1-njZQ7OA_YKJztVAyTQyg3Ze8cTNf-nEtLX7qcRrlPFv5dRg=s1600-w800", "instagram": "seven7timescartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Seven 7 Times", "phone": "+57 312 256 3705", "price_range": "$$$", "rating": 4.4, "reviews": 1600, "subcategory": "nightclub", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Jue-Sáb 22:00 - 05:00"}
+{
+  "partner_id": "ptr_V020",
+  "address": "Calle Media Luna #9-79, Getsemaní, Cartagena",
+  "booking_link": "https://seven7times.com",
+  "category": "club",
+  "description": "Cartagena's premier mega-club. Four distinct environments across multiple floors — electronic, crossover, Latin, and VIP. International DJs and immersive production.",
+  "experience": "Nightclub · 4 ambientes · VIP",
+  "image_url": "/images/partners/ptr_V020.jpg",
+  "instagram": "seven7timescartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Seven 7 Times",
+  "phone": "+57 312 256 3705",
+  "price_range": "$$$",
+  "rating": 4.4,
+  "reviews": 1600,
+  "subcategory": "nightclub",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Jue-Sáb 22:00 - 05:00"
+}

@@ -1,1 +1,28 @@
-{"partner_id": "ptr_V014", "address": "Cl. 35 #3-30, El Centro, Cartagena", "booking_link": "http://www.casaboheme.co/", "category": "cafe", "description": "Bohemian-chic café in the Walled City. All-day brunch, healthy bowls, and creative juices in a charming courtyard setting.", "experience": "Brunch · Healthy · Bohemio", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZP501TAfXErUCD222U-5JGsj18BEUE9-uXXPbVGUwZSSoJgk0UAj8TQXiTcNhF0DnvcfWE8ahU4Wn-2WMAExKdC5Ehj6TeMbj1CJehKYQ9b-KitN_NYziFWe4Gu9UWgHkrpXd-dPOe_N3hghm0Jl1Dz=s4800-w1200", "instagram": "casaboheme_cartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Casa Bohême", "phone": "+573148270592", "price_range": "$$", "rating": 4.5, "reviews": 640, "subcategory": "brunch", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Lun-Dom 07:00 - 20:00"}
+{
+  "partner_id": "ptr_V014",
+  "address": "Cl. 35 #3-30, El Centro, Cartagena",
+  "booking_link": "http://www.casaboheme.co/",
+  "category": "cafe",
+  "description": "Bohemian-chic café in the Walled City. All-day brunch, healthy bowls, and creative juices in a charming courtyard setting.",
+  "experience": "Brunch · Healthy · Bohemio",
+  "image_url": "/images/partners/ptr_V014.jpg",
+  "instagram": "casaboheme_cartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Casa Bohême",
+  "phone": "+573148270592",
+  "price_range": "$$",
+  "rating": 4.5,
+  "reviews": 640,
+  "subcategory": "brunch",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 07:00 - 20:00"
+}

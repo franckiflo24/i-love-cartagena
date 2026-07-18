@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="400" height="200">
+  <rect width="400" height="200" fill="#0A0A0A"/>
+  <!-- Shield shape -->
+  <path d="M180 50 L220 50 L225 55 L225 95 L200 110 L175 95 L175 55 Z" fill="none" stroke="#1B4F72" stroke-width="2.5" opacity="0.8"/>
+  <text x="200" y="88" text-anchor="middle" font-family="'Georgia', serif" font-size="16" fill="#1B4F72" font-weight="700">CTG</text>
+  <text x="200" y="140" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="16" fill="#FFFFFF" letter-spacing="3" font-weight="600">ALCALDIA</text>
+  <text x="200" y="162" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#1B4F72" letter-spacing="2" opacity="0.8">DE CARTAGENA</text>
+  <text x="200" y="185" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" fill="#9CA3AF" letter-spacing="3" opacity="0.5">CIUDAD PATRIMONIO</text>
+</svg>

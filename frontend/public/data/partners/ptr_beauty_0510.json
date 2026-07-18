@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0510", "name": "Classy Glow Salon y Spa", "category": "beauty", "subcategory": "nails", "description": "Classy Glow Salon y Spa — servicios de belleza y cuidado personal en Cartagena.", "address": "Cl. 10 #230, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.4066049, "lng": -75.5520524}, "phone": "+573116782560", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMSvv6cktAto-YbtSS5ZUIk-U3ZcpjJREQp19nE2S9Uw5i5FfMhhVxKxwA65hi94uz1np43bLnGCKekbl7PpTi_Ci_AEXPBj1l2WUes4bZdBQtmHkOA2uB5ySvEB_hJ-KcSA7UyJOZZSPi0D5w0W80L8A=s4800-w960", "instagram": "", "booking_link": "", "rating": 5, "reviews": 24, "price_range": "$$", "tier": "standard", "hours": "Monday: 9:30 AM – 7:00 PM; Tuesday: 9:30 AM – 7:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0510",
+  "name": "Classy Glow Salon y Spa",
+  "category": "beauty",
+  "subcategory": "nails",
+  "description": "Classy Glow Salon y Spa — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Cl. 10 #230, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4066049,
+    "lng": -75.5520524
+  },
+  "phone": "+573116782560",
+  "image_url": "/images/partners/ptr_beauty_0510.jpg",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 5,
+  "reviews": 24,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 9:30 AM – 7:00 PM; Tuesday: 9:30 AM – 7:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

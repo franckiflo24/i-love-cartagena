@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R055", "address": "Cartagena de Indias, Colombia", "booking_link": "https://bastionluxuryhotel.com", "category": "restaurant", "cuisine": "Alta cocina", "description": "Restaurante del Hotel Bastión Luxury. Cocina contemporánea de alta gama.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZO5d1I76-WvQ4_VAvUeCmpxnmuw741_zXAAy35WHYMwLBgMeh13mMfbkUkTf9DaxyaV__zducPrdi92-9jVCbTqn9hj8HkyHSK7wh5_MYWs0haogv4PnJKQ8efhXZv4RRO3ZjuSbdboX4N9TA=s4800-w1200", "instagram": "elgobernadorcartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "El Gobernador", "price_range": "$$$$", "rating": 4.7, "reviews": 540, "subcategory": "international", "tier": "elite", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "elite", "membership_plan": "free", "phone": "+576056424100", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R055",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "https://bastionluxuryhotel.com",
+  "category": "restaurant",
+  "cuisine": "Alta cocina",
+  "description": "Restaurante del Hotel Bastión Luxury. Cocina contemporánea de alta gama.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R055.jpg",
+  "instagram": "elgobernadorcartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "El Gobernador",
+  "price_range": "$$$$",
+  "rating": 4.7,
+  "reviews": 540,
+  "subcategory": "international",
+  "tier": "elite",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "phone": "+576056424100",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

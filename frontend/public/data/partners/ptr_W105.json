@@ -1,1 +1,28 @@
-{"partner_id": "ptr_W105", "address": "San Diego, Centro Histórico", "booking_link": "https://www.facebook.com/elbolichecebicheria/", "category": "restaurant", "description": "Casual cevichería with Peruvian-Caribbean fusion. Fresh catches daily, creative ceviches, and a no-frills atmosphere that lets the seafood shine.", "experience": "Ceviche · Fusión · San Diego", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOcc9tkEGjIITnK5OV3vsbOiD0NJCKgtPX5F8JYHt6jnztj2zSxCWNCmGrm38ESCef5Pkl62neqJZdbgRcjK87e9iRhN0M0UDw2GraLBMwc7g4PdBKs0IWQXIWFAuqw2fSI7voN2jhqWgTk=s4800-w1200", "instagram": "elbolichectg", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "El Boliche Cebichería", "phone": "+573137777889", "price_range": "$$", "rating": 4.5, "reviews": 870, "subcategory": "seafood", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_W105",
+  "address": "San Diego, Centro Histórico",
+  "booking_link": "https://www.facebook.com/elbolichecebicheria/",
+  "category": "restaurant",
+  "description": "Casual cevichería with Peruvian-Caribbean fusion. Fresh catches daily, creative ceviches, and a no-frills atmosphere that lets the seafood shine.",
+  "experience": "Ceviche · Fusión · San Diego",
+  "image_url": "/images/partners/ptr_W105.jpg",
+  "instagram": "elbolichectg",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "El Boliche Cebichería",
+  "phone": "+573137777889",
+  "price_range": "$$",
+  "rating": 4.5,
+  "reviews": 870,
+  "subcategory": "seafood",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

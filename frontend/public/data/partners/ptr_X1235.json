@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1235", "address": "Cl. 36 #7-110 Piso 2, El Centro, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://www.hostalcasatorres.com/", "category": "hotel", "description": "Hostal Casa Torres — Top-rated hotel in Cartagena with 121 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZM4ZF5qFZ2wX-lnik5IVgynhCNOat_QIlKwkNA0JNOciqcrWCN8kI0HOukLkXVheqGDIJxNGarXLWjtysVNYxP7VF6rtUploi_ti5R1rcmUmvSPN8AY3d0Mkz6VLkAak_kPjZmBAfQKC4KhrbVTiWzB=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4254721, "lng": -75.5476948}, "name": "Hostal Casa Torres", "phone": "+573138727468", "price_range": "$$", "rating": 4.4, "reviews": 121, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1235",
+  "address": "Cl. 36 #7-110 Piso 2, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://www.hostalcasatorres.com/",
+  "category": "hotel",
+  "description": "Hostal Casa Torres — Top-rated hotel in Cartagena with 121 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1235.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4254721,
+    "lng": -75.5476948
+  },
+  "name": "Hostal Casa Torres",
+  "phone": "+573138727468",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 121,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

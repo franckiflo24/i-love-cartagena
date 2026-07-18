@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1230", "address": "Cra. 5 #36-93, El Centro, Cartagena de Indias, Bolívar, Colombia", "booking_link": "http://www.casabugo.com/", "category": "hotel", "description": "Casa BuGó Hotel Vacation Rental — Top-rated hotel in Cartagena with 252 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZN6arDSujD18uyzrS3hMu-WessSjPgOGtyi4dcHS_gSadrVmRNFDWQDyEENX8uTX2hGQoGebJsJYkbq7y4tFStT7DqcFBf9zzH0YZ5tWUxJsLy1rG4CG-at_P-Ez1L0KYoYJp8UHP93xWQ0hw=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4260335, "lng": -75.5507772}, "name": "Casa BuGó Hotel Vacation Rental", "phone": "+573052363348", "price_range": "$$", "rating": 4.4, "reviews": 252, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1230",
+  "address": "Cra. 5 #36-93, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "http://www.casabugo.com/",
+  "category": "hotel",
+  "description": "Casa BuGó Hotel Vacation Rental — Top-rated hotel in Cartagena with 252 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1230.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4260335,
+    "lng": -75.5507772
+  },
+  "name": "Casa BuGó Hotel Vacation Rental",
+  "phone": "+573052363348",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 252,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

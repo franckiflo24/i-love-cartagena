@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0460", "name": "Vanessa López Estética Cartagena", "category": "beauty", "subcategory": "facial_spa", "description": "Vanessa López Estética Cartagena — servicios de belleza y cuidado personal en Cartagena.", "address": "Callejón bouquet, Cra. 21 #calle 26 local 1, Manga, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.413740299999999, "lng": -75.5374028}, "phone": "+573013760037", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOdrwtapEYu-nyfjdGFeEIdPscxYRDBuTTMzeUwyMxwfFyFT9OZKXwMmWY6wpVI54hh2YVGUWutMZoMsRNGllRIjDtbEIMU9VInYCW5dnYEpUhhUH3bgrhWFY6oo_wS1e6o8SDpJYdId__J=s4800-w1200", "instagram": "", "booking_link": "https://www.instagram.com/vanessalopez_estetica/", "rating": 5, "reviews": 102, "price_range": "$$", "tier": "standard", "hours": "Monday: 9:00 AM – 6:00 PM; Tuesday: 9:00 AM – 6:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0460",
+  "name": "Vanessa López Estética Cartagena",
+  "category": "beauty",
+  "subcategory": "facial_spa",
+  "description": "Vanessa López Estética Cartagena — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Callejón bouquet, Cra. 21 #calle 26 local 1, Manga, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.413740299999999,
+    "lng": -75.5374028
+  },
+  "phone": "+573013760037",
+  "image_url": "/images/partners/ptr_beauty_0460.jpg",
+  "instagram": "",
+  "booking_link": "https://www.instagram.com/vanessalopez_estetica/",
+  "rating": 5,
+  "reviews": 102,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 9:00 AM – 6:00 PM; Tuesday: 9:00 AM – 6:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

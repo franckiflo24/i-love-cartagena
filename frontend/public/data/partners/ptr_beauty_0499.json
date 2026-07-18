@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0499", "name": "MG Spa de Uñas Centro", "category": "beauty", "subcategory": "nails", "description": "MG Spa de Uñas Centro — servicios de belleza y cuidado personal en Cartagena.", "address": "Pasaje La Moneda, Av Carlos Escallón #8-59 LC 105, El Centro, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.4253202, "lng": -75.5480618}, "phone": "+573176086555", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOoX3gj__gXLwzvwzhXNt196VkYZUeN8WcXd0CZC0pG9dodx-8V__cgk__CeUoraFZxNqWL5FxpkwWErmNuAYiBdH0w5LQUU48Rndxv7ftUj0UAZGnjcSFI9PbyTr-WRJ3w1sqMyg4ZHxZQ-fU=s4800-w768", "instagram": "", "booking_link": "https://www.yosoymgspa.com/", "rating": 4.6, "reviews": 346, "price_range": "$$", "tier": "standard", "hours": "Monday: 9:00 AM – 7:00 PM; Tuesday: 9:00 AM – 7:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0499",
+  "name": "MG Spa de Uñas Centro",
+  "category": "beauty",
+  "subcategory": "nails",
+  "description": "MG Spa de Uñas Centro — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Pasaje La Moneda, Av Carlos Escallón #8-59 LC 105, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4253202,
+    "lng": -75.5480618
+  },
+  "phone": "+573176086555",
+  "image_url": "/images/partners/ptr_beauty_0499.jpg",
+  "instagram": "",
+  "booking_link": "https://www.yosoymgspa.com/",
+  "rating": 4.6,
+  "reviews": 346,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 9:00 AM – 7:00 PM; Tuesday: 9:00 AM – 7:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

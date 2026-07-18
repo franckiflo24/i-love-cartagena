@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0459", "name": "URAKU SPA MASSAGES", "category": "beauty", "subcategory": "facial_spa", "description": "URAKU SPA MASSAGES — servicios de belleza y cuidado personal en Cartagena.", "address": "Walled city, Cl. de la Bomba #36-55, San Diego, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.426175299999999, "lng": -75.5472879}, "phone": "+573505399232", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOMIYq6MFmBq1AXtJoS-186TBBGZBYhQOiI3mUZ97RoFJkTrOawwvSWCLlLwJAG9OdlqV-sGzPCVXeajip2i2yJLSJW7RJsB0JMG-ZKJiLaclm_tZ8tLw7_HZk8OwZvjkg7CFWnpdhS0VWaiQ=s4800-w1200", "instagram": "", "booking_link": "http://www.urakuspa.com/", "rating": 4.9, "reviews": 1417, "price_range": "$$", "tier": "standard", "hours": "Monday: 10:00 AM – 7:00 PM; Tuesday: 10:00 AM – 7:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0459",
+  "name": "URAKU SPA MASSAGES",
+  "category": "beauty",
+  "subcategory": "facial_spa",
+  "description": "URAKU SPA MASSAGES — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Walled city, Cl. de la Bomba #36-55, San Diego, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.426175299999999,
+    "lng": -75.5472879
+  },
+  "phone": "+573505399232",
+  "image_url": "/images/partners/ptr_V042.jpg",
+  "instagram": "",
+  "booking_link": "http://www.urakuspa.com/",
+  "rating": 4.9,
+  "reviews": 1417,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 10:00 AM – 7:00 PM; Tuesday: 10:00 AM – 7:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

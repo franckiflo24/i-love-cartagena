@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1217", "address": "Calle san Andrés #30-60, Getsemaní, Cartagena de Indias, Bolívar, Colombia", "booking_link": "", "category": "bar", "description": "Mulatos Gastro Bar — Top-rated bar in Cartagena with 1018 Google reviews.", "experience": "Bar · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMiK52-vYF3x7aX0uDwZiKewVcV_GNSHFpRIzceDV6RILNWzLZHMcNGKTuqchbiJVhjlDI8mQfGgO_OtsOcM3UAXxfZ8feNzvo891x5_LO4nNYJL6OMzrFsaPDaF0nOghyXp81v9UlDHe6wQDs=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4229489, "lng": -75.5454932}, "name": "Mulatos Gastro Bar", "phone": "+573226568869", "price_range": "$$", "rating": 4.4, "reviews": 1018, "subcategory": "cocktail_bar", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Mar-Dom 17:00 - 03:00"}
+{
+  "partner_id": "ptr_X1217",
+  "address": "Calle san Andrés #30-60, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "category": "bar",
+  "description": "Mulatos Gastro Bar — Top-rated bar in Cartagena with 1018 Google reviews.",
+  "experience": "Bar · Cartagena",
+  "image_url": "/images/partners/ptr_X1217.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4229489,
+    "lng": -75.5454932
+  },
+  "name": "Mulatos Gastro Bar",
+  "phone": "+573226568869",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 1018,
+  "subcategory": "cocktail_bar",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Mar-Dom 17:00 - 03:00"
+}

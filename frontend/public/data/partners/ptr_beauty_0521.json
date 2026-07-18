@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0521", "name": "Benefit Cosmetics Brow Bar", "category": "beauty", "subcategory": "lashes_brows", "description": "Benefit Cosmetics Brow Bar — servicios de belleza y cuidado personal en Cartagena.", "address": "Chambacu Centro Comercial Castillo, Cra. 13 #31-45, Espinal, Cartagena de Indias, Atlántico, Colombia", "location": {"lat": 10.423112, "lng": -75.54105}, "phone": "+573233090914", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPLoAToSUhhU-gb6J9eWK1qw_kxVBmcoqJ-ulc_CaOIl_74F17kJmZ24qtkhnIPOL3ar4IQ--Ptp2qIx0PUP0q3xlSzYtubpbAdpuQVMKdZzb57NMxVoSWPeOaD7I55jD6_b7AsVj-UBRH2Ag=s4800-w1000", "instagram": "", "booking_link": "https://agendador.falabella.com.co/mas?&Marcas=BENEFIT", "rating": 5, "reviews": 266, "price_range": "$$", "tier": "standard", "hours": "Monday: 10:00 AM – 8:00 PM; Tuesday: 10:00 AM – 8:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0521",
+  "name": "Benefit Cosmetics Brow Bar",
+  "category": "beauty",
+  "subcategory": "lashes_brows",
+  "description": "Benefit Cosmetics Brow Bar — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Chambacu Centro Comercial Castillo, Cra. 13 #31-45, Espinal, Cartagena de Indias, Atlántico, Colombia",
+  "location": {
+    "lat": 10.423112,
+    "lng": -75.54105
+  },
+  "phone": "+573233090914",
+  "image_url": "/images/partners/ptr_beauty_0521.jpg",
+  "instagram": "",
+  "booking_link": "https://agendador.falabella.com.co/mas?&Marcas=BENEFIT",
+  "rating": 5,
+  "reviews": 266,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 10:00 AM – 8:00 PM; Tuesday: 10:00 AM – 8:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

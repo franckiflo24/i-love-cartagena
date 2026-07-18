@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1027", "address": "Cra. 5 #6-61, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://alcarerooms.com/", "category": "hotel", "description": "Alcaré Rooms Cartagena — Top-rated hotel in Cartagena with 21 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNUNBOeDZSf1yKO8iI9m35xELKZiMzoK_w2HkviAsgriHIQ4vsrL5zCeTcnWLhIDYKbMqvjSqu8Zb5KCa1tVDPL7v8-xqkNwWyibj_epFziq4sbshy0AJto--7JAmK8tydxgzKgWrY2u3xpvo2mrNT_Gw=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.399379, "lng": -75.555469}, "name": "Alcaré Rooms Cartagena", "phone": "+573117715771", "price_range": "$$", "rating": 5.0, "reviews": 21, "subcategory": "boutique", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1027",
+  "address": "Cra. 5 #6-61, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://alcarerooms.com/",
+  "category": "hotel",
+  "description": "Alcaré Rooms Cartagena — Top-rated hotel in Cartagena with 21 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1027.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.399379,
+    "lng": -75.555469
+  },
+  "name": "Alcaré Rooms Cartagena",
+  "phone": "+573117715771",
+  "price_range": "$$",
+  "rating": 5.0,
+  "reviews": 21,
+  "subcategory": "boutique",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0490", "name": "John makeup artist cartagena", "category": "beauty", "subcategory": "makeup", "description": "John makeup artist cartagena — servicios de belleza y cuidado personal en Cartagena.", "address": "CL 31H Los alpes 71B-65 201 130005, Los Alpes, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.3986659, "lng": -75.4831099}, "phone": "+573106510917", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZM7e1S5SzfNbLrIji2NL3Oo-h1hgL7zKg-nFpHF-i-WdUVey2zrhKRydL_kVKOT44j6J5fPqVYNZQ40EoJ2Tv5F9KaXQL9S8FYkTr3_IwrJiJKQoIs0Fs_XO1YM9_FppqX_PGq23WSI29SuMg=s4800-w1200", "instagram": "", "booking_link": "https://instagram.com/jmmakeup17?igshid=17ee7bnef0jay", "rating": 4.8, "reviews": 25, "price_range": "$$", "tier": "standard", "hours": "Monday: Open 24 hours; Tuesday: Open 24 hours ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0490",
+  "name": "John makeup artist cartagena",
+  "category": "beauty",
+  "subcategory": "makeup",
+  "description": "John makeup artist cartagena — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "CL 31H Los alpes 71B-65 201 130005, Los Alpes, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.3986659,
+    "lng": -75.4831099
+  },
+  "phone": "+573106510917",
+  "image_url": "/images/partners/ptr_beauty_0490.jpg",
+  "instagram": "",
+  "booking_link": "https://instagram.com/jmmakeup17?igshid=17ee7bnef0jay",
+  "rating": 4.8,
+  "reviews": 25,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: Open 24 hours; Tuesday: Open 24 hours ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

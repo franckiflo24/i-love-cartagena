@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1015", "address": "El espinal, Cra. 13 #31-77, Espinal, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://chtravelcartagena.com/", "category": "activity", "description": "Agencia De Viajes y Turismo - CH Travel Cartagena — Top-rated activity in Cartagena with 60 Google reviews.", "experience": "Activity · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNho45dPe34-KmUXbWiIqAUeSD-8kcII92PHT1Dtwp_O4calTuJETvGZmAyBHXfBZFBqjQgDngMOPOUk3rxecbxiSqUviQdIt5OlZJ2mTuv-tIa5Mzzzd7lZ2Yl7DEw0m6kJHaIE0W1KaY0lN0=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4234402, "lng": -75.540927}, "name": "Agencia De Viajes y Turismo - CH Travel Cartagena", "phone": "+573106434643", "price_range": "$$", "rating": 5.0, "reviews": 60, "subcategory": "cultural", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Dom 08:00 - 17:00"}
+{
+  "partner_id": "ptr_X1015",
+  "address": "El espinal, Cra. 13 #31-77, Espinal, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://chtravelcartagena.com/",
+  "category": "activity",
+  "description": "Agencia De Viajes y Turismo - CH Travel Cartagena — Top-rated activity in Cartagena with 60 Google reviews.",
+  "experience": "Activity · Cartagena",
+  "image_url": "/images/partners/ptr_X1015.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4234402,
+    "lng": -75.540927
+  },
+  "name": "Agencia De Viajes y Turismo - CH Travel Cartagena",
+  "phone": "+573106434643",
+  "price_range": "$$",
+  "rating": 5.0,
+  "reviews": 60,
+  "subcategory": "cultural",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 08:00 - 17:00"
+}

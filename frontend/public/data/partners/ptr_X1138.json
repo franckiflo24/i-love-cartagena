@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1138", "address": "Bosque Av Crisanto Luque, Tv. 44 #22-42, Paraguay, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://cartagenaplay.com/47-rooftop-cartagena/", "category": "club", "description": "47 Rooftop Cartagena By Space club — Top-rated bar in Cartagena with 35 Google reviews.", "experience": "Bar · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOKDpkieXL8cnqeSgsL3Uqu1FGX8wPu2XP8DtWatSCkj8leTTRjKjSWiH3eoEOvO8bs0LfDRgObPbVmHcwYQwmqj-3FWoRn4BtwpxIkGCpNZBrUH6KDBfHSFTsWTQwfTXvu64NV24Irhi3gGcw=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4019771, "lng": -75.5188214}, "name": "47 Rooftop Cartagena By Space club", "phone": "+573009890064", "price_range": "$$", "rating": 4.7, "reviews": 35, "subcategory": "nightclub", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Jue-Sáb 22:00 - 05:00"}
+{
+  "partner_id": "ptr_X1138",
+  "address": "Bosque Av Crisanto Luque, Tv. 44 #22-42, Paraguay, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://cartagenaplay.com/47-rooftop-cartagena/",
+  "category": "club",
+  "description": "47 Rooftop Cartagena By Space club — Top-rated bar in Cartagena with 35 Google reviews.",
+  "experience": "Bar · Cartagena",
+  "image_url": "/images/partners/ptr_X1138.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4019771,
+    "lng": -75.5188214
+  },
+  "name": "47 Rooftop Cartagena By Space club",
+  "phone": "+573009890064",
+  "price_range": "$$",
+  "rating": 4.7,
+  "reviews": 35,
+  "subcategory": "nightclub",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Jue-Sáb 22:00 - 05:00"
+}

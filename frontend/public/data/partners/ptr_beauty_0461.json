@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0461", "name": "Ahava Beauty & Wellness Spa | Bocagrande, Cartagena", "category": "beauty", "subcategory": "facial_spa", "description": "Ahava Beauty & Wellness Spa | Bocagrande, Cartagena — servicios de belleza y cuidado personal en Cartagena.", "address": "Layali House, 5th Floor, Cl. 6 #3-24, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.3996918, "lng": -75.5566754}, "phone": "+573150683814", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOzTdRDdday2Nu09UA--BzYQNGtu-cyT-YT2DKt9_gIarrxq3TgOmmXIukKoIGH2QG39EqnH9bKYdyEqzGAN0ZcnRtr2gUz0WDLck6eDV2-kt33Bv92jVSN3bJynhr7apjLZgQofKxpkHSQTKWvdnB4FQ=s4800-w1200", "instagram": "", "booking_link": "https://www.ahavaspa.com.co/", "rating": 4.9, "reviews": 95, "price_range": "$$", "tier": "standard", "hours": "Monday: 7:00 AM – 6:00 PM; Tuesday: 7:00 AM – 6:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0461",
+  "name": "Ahava Beauty & Wellness Spa | Bocagrande, Cartagena",
+  "category": "beauty",
+  "subcategory": "facial_spa",
+  "description": "Ahava Beauty & Wellness Spa | Bocagrande, Cartagena — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Layali House, 5th Floor, Cl. 6 #3-24, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.3996918,
+    "lng": -75.5566754
+  },
+  "phone": "+573150683814",
+  "image_url": "/images/partners/ptr_beauty_0461.jpg",
+  "instagram": "",
+  "booking_link": "https://www.ahavaspa.com.co/",
+  "rating": 4.9,
+  "reviews": 95,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 7:00 AM – 6:00 PM; Tuesday: 7:00 AM – 6:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

@@ -1,1 +1,28 @@
-{"partner_id": "ptr_ac_002", "address": "Plaza Santo Domingo, Centro Histórico", "booking_link": "https://cartagenafoodtours.com", "category": "activity", "description": "Tours gastronómicos por el Centro Histórico y Getsemaní. Degustación de comida callejera, mercados y restaurantes locales.", "experience": "Tour gastronómico, cocina callejera, mercado Bazurto, clase de cocina", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNABUAZP3YZajSsvpyF4Ow6Gw-q_JLl8CkkeZ812u5NqozszPskKLtIfzQjvZae02IBUDxtJISEYu-VWwG5qrxQlER8tp0xBwprVmLit1Z-QLxnSsWOhlsY1G9PCmbUnZPes1E8-TvTgZZoVIhnRuZhsQ=s1600-w800", "instagram": "cartagenafoodtours", "is_certified": true, "location": {"lat": 10.4228, "lng": -75.551}, "name": "Cartagena Food Tours", "price_range": "$$", "rating": 4.8, "reviews": 567, "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573046691394", "subcategory": "gastronomic", "hours": "Lun-Dom 08:00 - 17:00"}
+{
+  "partner_id": "ptr_ac_002",
+  "address": "Plaza Santo Domingo, Centro Histórico",
+  "booking_link": "https://cartagenafoodtours.com",
+  "category": "activity",
+  "description": "Tours gastronómicos por el Centro Histórico y Getsemaní. Degustación de comida callejera, mercados y restaurantes locales.",
+  "experience": "Tour gastronómico, cocina callejera, mercado Bazurto, clase de cocina",
+  "image_url": "/images/partners/ptr_ac_002.jpg",
+  "instagram": "cartagenafoodtours",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4228,
+    "lng": -75.551
+  },
+  "name": "Cartagena Food Tours",
+  "price_range": "$$",
+  "rating": 4.8,
+  "reviews": 567,
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573046691394",
+  "subcategory": "gastronomic",
+  "hours": "Lun-Dom 08:00 - 17:00"
+}

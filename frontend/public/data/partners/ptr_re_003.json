@@ -1,1 +1,26 @@
-{"partner_id": "ptr_re_003", "address": "Avenida San Martín, Bocagrande", "booking_link": "https://bocagrandeproperties.com", "category": "realestate", "description": "Propiedades premium frente al mar en Bocagrande y Castillogrande. Vistas espectaculares al Caribe.", "experience": "Penthouses, apartamentos vista al mar, asesoría para extranjeros, gestión 360°", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMYq5g8p8ONjrdJVarJbEk6JF9VrjWP1QS7xDh9MlQXHUzgUdtz6mIAvHMUpMqcT5EbLnd0Vp_9AQQ7qMmGRB8Uqxad2pV0MIhQjiKxVlDdYkarNgFOggLtwSrAFs5dScmTSpG2QCkUth90tQ=s1600-w800", "instagram": "@bocagrandeproperties", "is_certified": true, "location": {"lat": 10.3989, "lng": -75.5547}, "name": "Bocagrande Properties", "price_range": "$$$", "tier": "elite", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "elite", "membership_plan": "free", "phone": "+573114054092", "subcategory": "lujo", "hours": "Lun-Vie 09:00 - 18:00"}
+{
+  "partner_id": "ptr_re_003",
+  "address": "Avenida San Martín, Bocagrande",
+  "booking_link": "https://bocagrandeproperties.com",
+  "category": "realestate",
+  "description": "Propiedades premium frente al mar en Bocagrande y Castillogrande. Vistas espectaculares al Caribe.",
+  "experience": "Penthouses, apartamentos vista al mar, asesoría para extranjeros, gestión 360°",
+  "image_url": "/images/partners/ptr_re_003.jpg",
+  "instagram": "@bocagrandeproperties",
+  "is_certified": true,
+  "location": {
+    "lat": 10.3989,
+    "lng": -75.5547
+  },
+  "name": "Bocagrande Properties",
+  "price_range": "$$$",
+  "tier": "elite",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "phone": "+573114054092",
+  "subcategory": "lujo",
+  "hours": "Lun-Vie 09:00 - 18:00"
+}

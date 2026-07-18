@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R059", "address": "Cartagena de Indias, Colombia", "booking_link": "", "category": "restaurant", "cuisine": "Contemporáneo", "description": "Cocina contemporánea con influencias mediterráneas y caribeñas.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNLCsh5s2sxthouvq4JEzdNhW9ESrGbAICkTJojXDzyFm9UJ_fVrH5kvFY5HXCE0te0pmEw3lL8KIOSRdacE5VW37MvLhtMcf0_6GIoObl60JEKosfbEh_OUs-vyrcdqBJXr29ZPatfLGmnjqr31YLE=s4800-w1200", "instagram": "elycartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Ely", "price_range": "$$$", "rating": 4.5, "reviews": 340, "subcategory": "international", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "phone": "+573168752466", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R059",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "",
+  "category": "restaurant",
+  "cuisine": "Contemporáneo",
+  "description": "Cocina contemporánea con influencias mediterráneas y caribeñas.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R059.jpg",
+  "instagram": "elycartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Ely",
+  "price_range": "$$$",
+  "rating": 4.5,
+  "reviews": 340,
+  "subcategory": "international",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "phone": "+573168752466",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

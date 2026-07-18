@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0452", "name": "D'LORE PELUQUERIA", "category": "beauty", "subcategory": "salon", "description": "D'LORE PELUQUERIA — servicios de belleza y cuidado personal en Cartagena.", "address": "de Cartagena, Cl. de la Universidad, El Centro, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.4261669, "lng": -75.54967320000002}, "phone": "+573023155202", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMxk2lD8nghAJV8XTVndeH3DRMUgeSX2XUyoczjhW5OKom0IGZXesODZTQW4ndsLQwz_vBQDpUdxhlG6S0ezVd1hXLtCI2bNa_BZuXCuBF1GuHE8isc-RxE5idvUR85si7v8G9BfKAkl31TPZ8=s4800-w1200", "instagram": "", "booking_link": "", "rating": 4.5, "reviews": 36, "price_range": "$$", "tier": "standard", "hours": "Monday: 12:00 AM – 2:00 PM, 8:00 PM – 12:00 AM; Tuesday: 12:00 AM – 7:30 PM, 8:00 PM – 12:00 AM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0452",
+  "name": "D'LORE PELUQUERIA",
+  "category": "beauty",
+  "subcategory": "salon",
+  "description": "D'LORE PELUQUERIA — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "de Cartagena, Cl. de la Universidad, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4261669,
+    "lng": -75.54967320000002
+  },
+  "phone": "+573023155202",
+  "image_url": "/images/partners/ptr_beauty_0452.jpg",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 4.5,
+  "reviews": 36,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 12:00 AM – 2:00 PM, 8:00 PM – 12:00 AM; Tuesday: 12:00 AM – 7:30 PM, 8:00 PM – 12:00 AM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

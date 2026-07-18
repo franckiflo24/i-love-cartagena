@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R027", "address": "Cartagena de Indias, Colombia", "booking_link": "https://www.lobodemar.co/", "category": "restaurant", "cuisine": "Mariscos", "description": "Cocina del mar con producto fresco y ambiente casual.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMtyZ7rbH-ocPqwN0sDpMXXtYI2LeC7VwTRK9Ric1PnxvbQRuYsBIEPaosFOK0moACaLI8L4P11dVgFrfsoaQ8viRV5Nf6QRcg2JyiGrYXwj5KRsz1NOsOh_xjoE4F9e5OA0ZHM3SQCv2GpNA=s4800-w1200", "instagram": "lobodemarcartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Lobo de Mar", "price_range": "$$", "rating": 4.3, "reviews": 320, "subcategory": "seafood", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573244882704", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R027",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "https://www.lobodemar.co/",
+  "category": "restaurant",
+  "cuisine": "Mariscos",
+  "description": "Cocina del mar con producto fresco y ambiente casual.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R027.jpg",
+  "instagram": "lobodemarcartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Lobo de Mar",
+  "price_range": "$$",
+  "rating": 4.3,
+  "reviews": 320,
+  "subcategory": "seafood",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573244882704",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

@@ -1,1 +1,26 @@
-{"partner_id": "ptr_007", "name": "Movich Hotel Cartagena", "description": "Hotel moderno con rooftop pool y vistas al centro histórico.", "category": "hotel", "tier": "premium", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPTf7nhNsie6vs9Ro7mlIy-Dq5ItCbtDZDDp5XVXQlPN3oFSwV1i6Lvb3JZOjg-3Oz9jujZkh4aJZ-07XhveLakZAxY6N0qQTURS3rdV8MIsH7tnteWtFBr9GK3pQiyrHwqNKStbK3rpIoBNg=s1600-w800", "location": {"lat": 10.421, "lng": -75.544}, "address": "Calle del Porvenir #35-66", "booking_link": "https://movich.co/cartagena", "price_range": "$$$", "experience": "Rooftop bar, pool party, paquete Amo Cartagena", "is_certified": true, "instagram": "movichhotels", "subcategory": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "phone": "+576056545276", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_007",
+  "name": "Movich Hotel Cartagena",
+  "description": "Hotel moderno con rooftop pool y vistas al centro histórico.",
+  "category": "hotel",
+  "tier": "premium",
+  "image_url": "/images/partners/ptr_007.jpg",
+  "location": {
+    "lat": 10.421,
+    "lng": -75.544
+  },
+  "address": "Calle del Porvenir #35-66",
+  "booking_link": "https://movich.co/cartagena",
+  "price_range": "$$$",
+  "experience": "Rooftop bar, pool party, paquete Amo Cartagena",
+  "is_certified": true,
+  "instagram": "movichhotels",
+  "subcategory": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "phone": "+576056545276",
+  "hours": "Recepción 24h"
+}

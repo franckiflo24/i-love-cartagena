@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1242", "address": "Calle 1 Kra 4-250, Tierra Bomba, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://marazaobeach.com/", "category": "hotel", "description": "Marazao Beach Hotel & Spa — Top-rated hotel in Cartagena with 71 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOQqdmfkYpRVGNFD2I1f8Fvu-vinMCe45CJG8T_A0rTE3MbIeBNuvRxB82_cvMG8jaDY9Rhw2hQ_BfKhyTZYKwd_Sq4YGF-IeQd6dQ65dg9BL4DqHqumcDp4t-TOkL4NKGc4u-Y18z1xCl1PfNvUh6oyg=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.3654638, "lng": -75.5509057}, "name": "Marazao Beach Hotel & Spa", "phone": "+573126917742", "price_range": "$$", "rating": 4.4, "reviews": 71, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1242",
+  "address": "Calle 1 Kra 4-250, Tierra Bomba, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://marazaobeach.com/",
+  "category": "hotel",
+  "description": "Marazao Beach Hotel & Spa — Top-rated hotel in Cartagena with 71 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1242.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.3654638,
+    "lng": -75.5509057
+  },
+  "name": "Marazao Beach Hotel & Spa",
+  "phone": "+573126917742",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 71,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

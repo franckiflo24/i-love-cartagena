@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0468", "name": "Spa Santa Marta", "category": "beauty", "subcategory": "facial_spa", "description": "Spa Santa Marta — servicios de belleza y cuidado personal en Cartagena.", "address": "Centro Turistico, Cl. 30 #18A-208, Pie de la Popa, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.420596399999999, "lng": -75.53606920000001}, "phone": "+573007042360", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZN-0HvkCne1rCjrHMDFbrJO4MIiz8WuZ_kTYAqUaqiKBahzLn9wOB-QD2ZzRRQIF3Dk5bUFaDyUfnWV9bzfxwnT1dKnXkhyVE7HEBYYqemy6n3TNlM0ku8mtOUs16jwoo_7J-Y0RLPmpKMXwg=s4800-w1200", "instagram": "", "booking_link": "https://spavina.org/", "rating": 4.7, "reviews": 88, "price_range": "$$", "tier": "standard", "hours": "Monday: Open 24 hours; Tuesday: Open 24 hours ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0468",
+  "name": "Spa Santa Marta",
+  "category": "beauty",
+  "subcategory": "facial_spa",
+  "description": "Spa Santa Marta — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Centro Turistico, Cl. 30 #18A-208, Pie de la Popa, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.420596399999999,
+    "lng": -75.53606920000001
+  },
+  "phone": "+573007042360",
+  "image_url": "/images/partners/ptr_beauty_0468.jpg",
+  "instagram": "",
+  "booking_link": "https://spavina.org/",
+  "rating": 4.7,
+  "reviews": 88,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: Open 24 hours; Tuesday: Open 24 hours ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

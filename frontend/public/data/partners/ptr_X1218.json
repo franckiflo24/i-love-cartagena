@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1218", "address": "Cra. 2 #7-61 Local 2, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://paisa-parrilla.cluvi.co/", "category": "bar", "description": "Paisa Parrilla — Top-rated bar in Cartagena with 940 Google reviews.", "experience": "Bar · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNfy_awd5Uc1_XjDqp2YCOJgqYx9SXvJ3CWNaG-RJfkTtHqUscMhKM1KQ9waClMmxc9LDr5DwpEsDAO2EbLrPsKV1KmaYG45u40EKqE1nyInyLUaUD8Km5n5zkwns7NryrQDw-vXFU2Yi4kOw=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.402758, "lng": -75.5558217}, "name": "Paisa Parrilla", "phone": "+573028581981", "price_range": "$$", "rating": 4.4, "reviews": 940, "subcategory": "cocktail_bar", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Mar-Dom 17:00 - 03:00"}
+{
+  "partner_id": "ptr_X1218",
+  "address": "Cra. 2 #7-61 Local 2, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://paisa-parrilla.cluvi.co/",
+  "category": "bar",
+  "description": "Paisa Parrilla — Top-rated bar in Cartagena with 940 Google reviews.",
+  "experience": "Bar · Cartagena",
+  "image_url": "/images/partners/ptr_X1218.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.402758,
+    "lng": -75.5558217
+  },
+  "name": "Paisa Parrilla",
+  "phone": "+573028581981",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 940,
+  "subcategory": "cocktail_bar",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Mar-Dom 17:00 - 03:00"
+}

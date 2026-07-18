@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1068", "address": "22 29b-25, Pie de la Popa, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://www.instagram.com/prowodbox?igsh=MTM3ZndvaW9hMmZxag==", "category": "wellness", "description": "Prowod BOX — Top-rated wellness in Cartagena with 64 Google reviews.", "experience": "Wellness · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZM99lfINBirZJ-G8VMD9kGvwpyMH3_AWuDlSLfzdjxMo1M7C7aUxT2GnwKsPtR8NEO4cUAHsaGNezmJ_DQd5zzJqurxoW_82VsWLi7GMYI1RBMSA2el9ByeAxH0KC7oT2mqltGOwO8MvomSxw=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4149847, "lng": -75.5313767}, "name": "Prowod BOX", "phone": "+573008290191", "price_range": "$$", "rating": 4.9, "reviews": 64, "subcategory": "wellness_center", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Sáb 07:00 - 20:00"}
+{
+  "partner_id": "ptr_X1068",
+  "address": "22 29b-25, Pie de la Popa, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://www.instagram.com/prowodbox?igsh=MTM3ZndvaW9hMmZxag==",
+  "category": "wellness",
+  "description": "Prowod BOX — Top-rated wellness in Cartagena with 64 Google reviews.",
+  "experience": "Wellness · Cartagena",
+  "image_url": "/images/partners/ptr_X1068.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4149847,
+    "lng": -75.5313767
+  },
+  "name": "Prowod BOX",
+  "phone": "+573008290191",
+  "price_range": "$$",
+  "rating": 4.9,
+  "reviews": 64,
+  "subcategory": "wellness_center",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Sáb 07:00 - 20:00"
+}

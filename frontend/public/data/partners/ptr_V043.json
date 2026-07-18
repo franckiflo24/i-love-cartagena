@@ -1,1 +1,28 @@
-{"partner_id": "ptr_V043", "address": "Cl. de la Cruz #9-96, Centro Histórico, Cartagena", "booking_link": "https://www.relaxspacartagena.com.co/", "category": "spa", "description": "Affordable wellness studio offering a range of massage therapies and relaxation treatments in the old city.", "experience": "Masajes · Relajación · Accesible", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPCTFBB6-gtz4HXi9U_gw6HCMcq0npjAs4oaSew_xma8LETiLcbUxNmOyfhf4yeonAzofOluVFmh31MaLOhItQo9w8byu-8bmSsFWRIiRLTAV1Kj84sA5UoOmTEzZK7ncOrbOgqm8INNckbCnc=s4800-w1200", "instagram": "", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Relax Spa Cartagena", "phone": "+573006386278", "price_range": "$$", "rating": 4.4, "reviews": 320, "subcategory": "massage", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Lun-Sáb 09:00 - 19:00"}
+{
+  "partner_id": "ptr_V043",
+  "address": "Cl. de la Cruz #9-96, Centro Histórico, Cartagena",
+  "booking_link": "https://www.relaxspacartagena.com.co/",
+  "category": "spa",
+  "description": "Affordable wellness studio offering a range of massage therapies and relaxation treatments in the old city.",
+  "experience": "Masajes · Relajación · Accesible",
+  "image_url": "/images/partners/ptr_V043.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Relax Spa Cartagena",
+  "phone": "+573006386278",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 320,
+  "subcategory": "massage",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Lun-Sáb 09:00 - 19:00"
+}

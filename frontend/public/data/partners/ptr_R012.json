@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R012", "address": "Calle Quero, Centro Histórico", "booking_link": "https://www.instagram.com/restaurantelamulata?igsh=NTc4MTIwNjQ2YQ==", "category": "restaurant", "cuisine": "Caribeño · Casero", "description": "Cocina caribeña casera. Menú del día económico y muy querido por locales.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPKGIMc6ThxhXV17rOw1nxTJgNiRQY_Bi67sHuuB7RdxUkAQj8jSaD3wBni_gHSwQeby4mLLDh2VgpIXq8UHL391wsJKrRfiRCVuf2CLdDtGbyetTD2og0orc3dVc3B-Qwl6k3TuXY5_RiY=s4800-w1200", "instagram": "restaurantelamulata", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "La Mulata", "price_range": "$", "rating": 4.5, "reviews": 3210, "subcategory": "colombian", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+576056646222", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R012",
+  "address": "Calle Quero, Centro Histórico",
+  "booking_link": "https://www.instagram.com/restaurantelamulata?igsh=NTc4MTIwNjQ2YQ==",
+  "category": "restaurant",
+  "cuisine": "Caribeño · Casero",
+  "description": "Cocina caribeña casera. Menú del día económico y muy querido por locales.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R012.jpg",
+  "instagram": "restaurantelamulata",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "La Mulata",
+  "price_range": "$",
+  "rating": 4.5,
+  "reviews": 3210,
+  "subcategory": "colombian",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+576056646222",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

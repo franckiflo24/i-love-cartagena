@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R007", "address": "Cartagena de Indias, Colombia", "booking_link": "https://teriyaki.com.co/index.php/koyo-cartagena/", "category": "restaurant", "cuisine": "Japonés", "description": "Cocina japonesa contemporánea con ramen, gyozas y rolls de autor.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPEWLjwXe3VMzE8ClBQ74v65TaPHayZxlBOu0Iqwo5KucYyIzS0sz0xcK3gsI5nGzcU-TAuT4AYgT0PqS4oqq2DFuIfgdtIV2reUzXBLXPhftCHIkAaw2IF0vhSMVVnPA_wMf2anfGUrPa2eYvwcemfiQ=s4800-w1200", "instagram": "koyocartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Koyo", "price_range": "$$", "rating": 4.5, "reviews": 380, "subcategory": "asian", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573182222226", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R007",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "https://teriyaki.com.co/index.php/koyo-cartagena/",
+  "category": "restaurant",
+  "cuisine": "Japonés",
+  "description": "Cocina japonesa contemporánea con ramen, gyozas y rolls de autor.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R007.jpg",
+  "instagram": "koyocartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Koyo",
+  "price_range": "$$",
+  "rating": 4.5,
+  "reviews": 380,
+  "subcategory": "asian",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573182222226",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

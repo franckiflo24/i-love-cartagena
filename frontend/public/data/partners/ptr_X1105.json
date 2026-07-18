@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1105", "address": "Manga av. Jiménez, Cl. 26 #18A- 19, Manga, Cartagena de Indias, Bolívar, Colombia", "booking_link": "", "category": "wellness", "description": "THE SALON PELUQUERÍA . SPA- MANGA — Top-rated spa in Cartagena with 79 Google reviews.", "experience": "Spa · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOlheVPB-8wAEJmr6SRF9RtvO4GDjHpJouqtP-6NOnTyAXQmkr76bdRIHFjXA_46b4G3VE3RzqhGWaEAa77Hrq26151CISNeXPHEFo9SWcRRuXAqvwiyPN7jQFnO4ki9pI4Am9IJXXsVH5iyqNV-KeeAQ=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.41587, "lng": -75.53927}, "name": "THE SALON PELUQUERÍA . SPA- MANGA", "phone": "+573182260954", "price_range": "$$", "rating": 4.800000000000001, "reviews": 79, "subcategory": "beauty", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Sáb 07:00 - 20:00"}
+{
+  "partner_id": "ptr_X1105",
+  "address": "Manga av. Jiménez, Cl. 26 #18A- 19, Manga, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "category": "wellness",
+  "description": "THE SALON PELUQUERÍA . SPA- MANGA — Top-rated spa in Cartagena with 79 Google reviews.",
+  "experience": "Spa · Cartagena",
+  "image_url": "/images/partners/ptr_X1105.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.41587,
+    "lng": -75.53927
+  },
+  "name": "THE SALON PELUQUERÍA . SPA- MANGA",
+  "phone": "+573182260954",
+  "price_range": "$$",
+  "rating": 4.800000000000001,
+  "reviews": 79,
+  "subcategory": "beauty",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Sáb 07:00 - 20:00"
+}

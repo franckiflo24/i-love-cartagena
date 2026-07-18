@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1296", "address": "Rosario EcoHotel, Remolino, Cartagena de Indias, Bolívar, Colombia", "booking_link": "", "category": "hotel", "description": "Rosario EcoHotel — Top-rated hotel in Cartagena with 345 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMJi1kN9eUskLXQoOJuyqkwb4sp5TzGuXFFKSbguAS9so8uzY0edJ2V0LFRrGCBzMinDDXOMx9zwJ6FvLmoUIEzCgUgXnW6IiyClNBUXC9EODmH7ujBHEB8JukGJEpJMMHPtrfZy8UUd9nVC7HLTv3i=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.1803772, "lng": -75.7417035}, "name": "Rosario EcoHotel", "phone": "+573041157372", "price_range": "$$", "rating": 4.0, "reviews": 345, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1296",
+  "address": "Rosario EcoHotel, Remolino, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "category": "hotel",
+  "description": "Rosario EcoHotel — Top-rated hotel in Cartagena with 345 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1296.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.1803772,
+    "lng": -75.7417035
+  },
+  "name": "Rosario EcoHotel",
+  "phone": "+573041157372",
+  "price_range": "$$",
+  "rating": 4.0,
+  "reviews": 345,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

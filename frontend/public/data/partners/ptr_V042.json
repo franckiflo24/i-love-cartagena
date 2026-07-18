@@ -1,1 +1,28 @@
-{"partner_id": "ptr_V042", "address": "Cl. de la Bomba #36-55, Centro Histórico, Cartagena", "booking_link": "http://www.urakuspa.com/", "category": "spa", "description": "Premium massage studio inside the Walled City. Deep tissue, aromatherapy, and couples treatments in an intimate setting near Plaza de la Bomba.", "experience": "Masajes premium · Parejas · Aromaterapia", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOMIYq6MFmBq1AXtJoS-186TBBGZBYhQOiI3mUZ97RoFJkTrOawwvSWCLlLwJAG9OdlqV-sGzPCVXeajip2i2yJLSJW7RJsB0JMG-ZKJiLaclm_tZ8tLw7_HZk8OwZvjkg7CFWnpdhS0VWaiQ=s4800-w1200", "instagram": "urakuspa", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "URAKU Spa Massages", "phone": "+573505399232", "price_range": "$$$", "rating": 4.7, "reviews": 560, "subcategory": "massage", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Sáb 09:00 - 19:00"}
+{
+  "partner_id": "ptr_V042",
+  "address": "Cl. de la Bomba #36-55, Centro Histórico, Cartagena",
+  "booking_link": "http://www.urakuspa.com/",
+  "category": "spa",
+  "description": "Premium massage studio inside the Walled City. Deep tissue, aromatherapy, and couples treatments in an intimate setting near Plaza de la Bomba.",
+  "experience": "Masajes premium · Parejas · Aromaterapia",
+  "image_url": "/images/partners/ptr_V042.jpg",
+  "instagram": "urakuspa",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "URAKU Spa Massages",
+  "phone": "+573505399232",
+  "price_range": "$$$",
+  "rating": 4.7,
+  "reviews": 560,
+  "subcategory": "massage",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Sáb 09:00 - 19:00"
+}

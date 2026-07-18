@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0420", "name": "Salon Day Spa Diego Moya", "category": "beauty", "subcategory": "salon", "description": "Salon Day Spa Diego Moya — servicios de belleza y cuidado personal en Cartagena.", "address": "96 Con, Av. San Martín #Carrera 2, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.4058441, "lng": -75.5526434}, "phone": "+576056794555", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZP-_sZeHrX0T2KKHjjqi8bRaqBsKPlOBGffweoTNOO5-94pGnTJwGDcdUgnxNzRHByI2SQBM3iuR0iR4D6_yi1zgTIw2kw2gRoEKk5iOoUeWY6AzMYqybX7QUZhKZIhq9BACnK1XZAnuHtCGM8_QLRSoQ=s4800-w1024", "instagram": "", "booking_link": "http://www.diegomoya.com/", "rating": 4.7, "reviews": 562, "price_range": "$$", "tier": "standard", "hours": "Monday: 7:00 AM – 7:00 PM; Tuesday: 7:00 AM – 7:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0420",
+  "name": "Salon Day Spa Diego Moya",
+  "category": "beauty",
+  "subcategory": "salon",
+  "description": "Salon Day Spa Diego Moya — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "96 Con, Av. San Martín #Carrera 2, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4058441,
+    "lng": -75.5526434
+  },
+  "phone": "+576056794555",
+  "image_url": "/images/partners/ptr_beauty_0420.jpg",
+  "instagram": "",
+  "booking_link": "http://www.diegomoya.com/",
+  "rating": 4.7,
+  "reviews": 562,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 7:00 AM – 7:00 PM; Tuesday: 7:00 AM – 7:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

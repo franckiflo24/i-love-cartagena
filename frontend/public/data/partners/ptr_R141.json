@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R141", "address": "Cartagena de Indias, Colombia", "booking_link": "https://alalmacafe.com", "category": "restaurant", "cuisine": "Café · Brunch", "description": "Café de especialidad con métodos manuales, pastelería y brunch.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZN8mbYa0DgZogiIud0_O0xcKkppD_ZyeDqjPtyCevRnzhdOS28QLPCn1UM4Kp3nNilaXEfA61bMPUdmiC4okMm5xhXdSrf8izx5f3lsN9DnUbRXOJCo2dcLncd8npD1tHNyRi2jxHpiiyYhpg=s4800-w1200", "instagram": "alalma.cartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Al Alma Café", "price_range": "$$", "rating": 4.6, "reviews": 820, "subcategory": "cafe", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573017981019", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R141",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "https://alalmacafe.com",
+  "category": "restaurant",
+  "cuisine": "Café · Brunch",
+  "description": "Café de especialidad con métodos manuales, pastelería y brunch.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R141.jpg",
+  "instagram": "alalma.cartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Al Alma Café",
+  "price_range": "$$",
+  "rating": 4.6,
+  "reviews": 820,
+  "subcategory": "cafe",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573017981019",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

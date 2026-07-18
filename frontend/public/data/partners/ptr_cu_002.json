@@ -1,1 +1,26 @@
-{"partner_id": "ptr_cu_002", "address": "Centro Histórico", "booking_link": "https://nikkei.co", "category": "restaurant", "description": "Cocina nikkei: fusión peruano-japonesa. Sushi de autor, ceviches, tiraditos.", "experience": "Sushi omakase, tiraditos, sake premium", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPp6yl6LToTCm_94PVw7dYaMRdAXt4XG2juIxH-jw5tyrwLYsmquM4tmIfeSZ1uThqBPKa3atfdNDba76M-XvlzpED5EMdHIw7VXYZ4cH4-erCqoamzdctjbTc6MBBcD6rZArggfgDRBGnbWdrq2rtZbQ=s4800-w1200", "instagram": "nikkeicartagena", "is_certified": true, "location": {"lat": 10.4189, "lng": -75.5491}, "name": "Nikkei Cartagena", "price_range": "$$$", "subcategory": "asian", "tier": "elite", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "elite", "membership_plan": "free", "phone": "+573153945621", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_cu_002",
+  "address": "Centro Histórico",
+  "booking_link": "https://nikkei.co",
+  "category": "restaurant",
+  "description": "Cocina nikkei: fusión peruano-japonesa. Sushi de autor, ceviches, tiraditos.",
+  "experience": "Sushi omakase, tiraditos, sake premium",
+  "image_url": "/images/partners/ptr_cu_002.jpg",
+  "instagram": "nikkeicartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4189,
+    "lng": -75.5491
+  },
+  "name": "Nikkei Cartagena",
+  "price_range": "$$$",
+  "subcategory": "asian",
+  "tier": "elite",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "phone": "+573153945621",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

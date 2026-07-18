@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1219", "address": "Cra 11 25-57 Getsemaní, Getsemaní, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://www.armeriarealhotel.com/?partner=4153&utm_source=google&utm_medium=mybusiness", "category": "hotel", "description": "GHL Collection Armería Real Hotel — Top-rated hotel in Cartagena with 939 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNCNbk5AlNAUiUQ3nci1cyBWqGTXJq-VFn1nR3Q9xpbfW4UIp5Vz7_UR8_RpyqX-hKN_3CAJTEj4ZFou6mnFpj1--Rw6gkivlBA0Izegrs1z4LuNyMwx3KNXamIF4jaJ6roGu95OiivE-ViY1Q=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.418138, "lng": -75.5451932}, "name": "GHL Collection Armería Real Hotel", "phone": "+576056517460", "price_range": "$$", "rating": 4.4, "reviews": 939, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1219",
+  "address": "Cra 11 25-57 Getsemaní, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://www.armeriarealhotel.com/?partner=4153&utm_source=google&utm_medium=mybusiness",
+  "category": "hotel",
+  "description": "GHL Collection Armería Real Hotel — Top-rated hotel in Cartagena with 939 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1219.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.418138,
+    "lng": -75.5451932
+  },
+  "name": "GHL Collection Armería Real Hotel",
+  "phone": "+576056517460",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 939,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

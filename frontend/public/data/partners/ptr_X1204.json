@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1204", "address": "57H7+WM, Cartagena, Bolivar, Colombia", "booking_link": "https://www.ecohotellascasitas.com/", "category": "hotel", "description": "Eco Hotel Las Casitas De Mar Adentro — Top-rated hotel in Cartagena with 72 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNqmLmJWSnn_z8YgEuMNG2SuwoyWWSsILIApi7o-rNVop5b0cEvXMLiQD7l-piKdiI266k4LifENEzFjyGepn6VON4FkRsafOECm_xrYLrnlkItdrp3CdGjYVU9bsK-UgBt8ax1j18BR3RRR28=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.1797732, "lng": -75.7357945}, "name": "Eco Hotel Las Casitas De Mar Adentro", "phone": "+573160105041", "price_range": "$$", "rating": 4.5, "reviews": 72, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1204",
+  "address": "57H7+WM, Cartagena, Bolivar, Colombia",
+  "booking_link": "https://www.ecohotellascasitas.com/",
+  "category": "hotel",
+  "description": "Eco Hotel Las Casitas De Mar Adentro — Top-rated hotel in Cartagena with 72 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1204.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.1797732,
+    "lng": -75.7357945
+  },
+  "name": "Eco Hotel Las Casitas De Mar Adentro",
+  "phone": "+573160105041",
+  "price_range": "$$",
+  "rating": 4.5,
+  "reviews": 72,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1201", "address": "Cl. 38 #Calle 7 Infantes) #9-73, San Diego, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://www.hotelcasaheredia.com/", "category": "hotel", "description": "Casa Heredia Boutique Hotel by GB Collection — Top-rated hotel in Cartagena with 108 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNCo9tOp_OMdG62qzNKLfgYoMD2ExcHssivEUXd9Y_WZfQM5NDPI76MZc0obkEA-YDHMf7mj0td_SvwQkFLOCSJUkd0gK5BZfoRDyQJB6bPDSAR-ptRKMzBq_FKsUb2EY3dTg-hlTlkfOn6iFEhiXLj=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.426965, "lng": -75.54669969999999}, "name": "Casa Heredia Boutique Hotel by GB Collection", "phone": "+573163302468", "price_range": "$$", "rating": 4.5, "reviews": 108, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1201",
+  "address": "Cl. 38 #Calle 7 Infantes) #9-73, San Diego, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://www.hotelcasaheredia.com/",
+  "category": "hotel",
+  "description": "Casa Heredia Boutique Hotel by GB Collection — Top-rated hotel in Cartagena with 108 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1201.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.426965,
+    "lng": -75.54669969999999
+  },
+  "name": "Casa Heredia Boutique Hotel by GB Collection",
+  "phone": "+573163302468",
+  "price_range": "$$",
+  "rating": 4.5,
+  "reviews": 108,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

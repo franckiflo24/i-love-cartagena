@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1045", "address": "Cartagena de Indias, Colombia", "booking_link": "https://www.instagram.com/nautilusislafuerte/", "category": "activity", "description": "Nautilus Dive Center - PADI Isla Fuerte — Top-rated activity in Cartagena with 272 Google reviews.", "experience": "Activity · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMIl53IYmitChTk83ANSKAtjLQh1IrBRDgoG3X4M2Fru-Cy9RYnly0ko8eaaJr10lIF1rj0aG0tEqS1_DLXycCGnm2yxOH9QoclEAljpVhI2ZVzcqpHwxBD71VFi_MXmnsjXZga4yVplUAqm8KdlC7e5A=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.424724807881422, "lng": -75.54962875995982}, "name": "Nautilus Dive Center - PADI Isla Fuerte", "phone": "+573022429847", "price_range": "$$", "rating": 4.9, "reviews": 272, "subcategory": "cultural", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Dom 08:00 - 17:00"}
+{
+  "partner_id": "ptr_X1045",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "https://www.instagram.com/nautilusislafuerte/",
+  "category": "activity",
+  "description": "Nautilus Dive Center - PADI Isla Fuerte — Top-rated activity in Cartagena with 272 Google reviews.",
+  "experience": "Activity · Cartagena",
+  "image_url": "/images/partners/ptr_X1045.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.424724807881422,
+    "lng": -75.54962875995982
+  },
+  "name": "Nautilus Dive Center - PADI Isla Fuerte",
+  "phone": "+573022429847",
+  "price_range": "$$",
+  "rating": 4.9,
+  "reviews": 272,
+  "subcategory": "cultural",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 08:00 - 17:00"
+}

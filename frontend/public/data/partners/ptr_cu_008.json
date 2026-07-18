@@ -1,1 +1,26 @@
-{"partner_id": "ptr_cu_008", "address": "Getsemaní", "booking_link": "https://burgercartagena.co", "category": "restaurant", "description": "Smash burgers de autor con carne 100% colombiana. Papas trufadas y milkshakes.", "experience": "Smash burger, papas trufadas, milkshakes", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZO6eOLOLtmwZQzxqwcAOBdKJM6MUtg_3EE9qzj9ZJoncSLfzQ_7G3QGEPNVltajeVDhT3zpLkWZNZHrM1QwIVqXRtB7M3m6ndfJmHNP5aEZ4swAl_OYQpmQLMP5EEQReerAoYGYdc450qcQEdzxh4zFnQ=s4800-w1169", "instagram": "elburgues_ctg", "is_certified": true, "location": {"lat": 10.4186, "lng": -75.5495}, "name": "Burger Cartagena", "price_range": "$$", "subcategory": "fastfood", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573003543263", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_cu_008",
+  "address": "Getsemaní",
+  "booking_link": "https://burgercartagena.co",
+  "category": "restaurant",
+  "description": "Smash burgers de autor con carne 100% colombiana. Papas trufadas y milkshakes.",
+  "experience": "Smash burger, papas trufadas, milkshakes",
+  "image_url": "/images/partners/ptr_cu_008.jpg",
+  "instagram": "elburgues_ctg",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4186,
+    "lng": -75.5495
+  },
+  "name": "Burger Cartagena",
+  "price_range": "$$",
+  "subcategory": "fastfood",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573003543263",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

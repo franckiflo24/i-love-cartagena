@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R013", "address": "Cartagena de Indias, Colombia", "booking_link": "https://sanpasqual.co", "category": "restaurant", "cuisine": "Colombiano contemporáneo", "description": "Cocina colombiana refinada con producto del Caribe. Patio colonial precioso.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPTxo1OEnK9pRzLDuzsuBZcP_WNyjgBPFuH3gRV_OtPgKwcB_7g231QsN84FyJ-dyyFYeF8cVXvis357nhifaZRDRzfPH7tvgjlucM_jnftv-BDaotFftNt78caqnA_mEICd4LpPeHKrgu6XMVqwF11uw=s4800-w1200", "instagram": "sanpasqualcartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "San Pasqual", "price_range": "$$$", "rating": 4.6, "reviews": 910, "subcategory": "colombian", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "phone": "+573159883201", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R013",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "https://sanpasqual.co",
+  "category": "restaurant",
+  "cuisine": "Colombiano contemporáneo",
+  "description": "Cocina colombiana refinada con producto del Caribe. Patio colonial precioso.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R013.jpg",
+  "instagram": "sanpasqualcartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "San Pasqual",
+  "price_range": "$$$",
+  "rating": 4.6,
+  "reviews": 910,
+  "subcategory": "colombian",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "phone": "+573159883201",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

@@ -1,1 +1,28 @@
-{"partner_id": "ptr_V012", "address": "Cl. 36 #3-86, El Centro, Cartagena", "booking_link": "http://www.abacolibros.com/", "category": "cafe", "description": "Bookstore-café in a colonial mansion. Browse art books and rare editions while sipping excellent coffee. A cultural landmark of the Walled City.", "experience": "Libros · Café · Arte", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPx9Qyv49WL80PmdtN2NEZ429dgmD_anAeQhCtHO3Urm5vQnPyxiAx_-yBhaCWfbTd0wZOCkm6Kc73YejkoJmOHkkfvASrXHeynqi2L3xop9volb77gxhB6mTqLtvHpIC0PDap1k9xbK6iLWw=s4800-w1200", "instagram": "abacolibrosycafe", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Ábaco Libros y Café", "phone": "+573167445517", "price_range": "$$", "rating": 4.7, "reviews": 1800, "subcategory": "coffee", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Dom 07:00 - 20:00"}
+{
+  "partner_id": "ptr_V012",
+  "address": "Cl. 36 #3-86, El Centro, Cartagena",
+  "booking_link": "http://www.abacolibros.com/",
+  "category": "cafe",
+  "description": "Bookstore-café in a colonial mansion. Browse art books and rare editions while sipping excellent coffee. A cultural landmark of the Walled City.",
+  "experience": "Libros · Café · Arte",
+  "image_url": "/images/partners/ptr_V012.jpg",
+  "instagram": "abacolibrosycafe",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Ábaco Libros y Café",
+  "phone": "+573167445517",
+  "price_range": "$$",
+  "rating": 4.7,
+  "reviews": 1800,
+  "subcategory": "coffee",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 07:00 - 20:00"
+}

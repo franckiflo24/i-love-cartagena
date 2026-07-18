@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1238", "address": "27 Calle de las Bovedas, Cra. 9 #39-27, San Diego, Cartagena de Indias, Bolívar, Colombia", "booking_link": "http://casalogos.com/", "category": "hotel", "description": "Casa Logos — Top-rated hotel in Cartagena with 95 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMdyziyyX17BspafomJcBI7fOc8kVW7IB8bOI4z2K3soIYlNOx6cG8pfL1IjnksdZlOvfKe7nu9nnDz2X8_SefWP3gCHvl86N1azR3Il2bhRWTVmiXDudrGpM8NkThPK3nR9MsDD55graa7dw=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4284994, "lng": -75.5473391}, "name": "Casa Logos", "phone": "+573126912084", "price_range": "$$", "rating": 4.4, "reviews": 95, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1238",
+  "address": "27 Calle de las Bovedas, Cra. 9 #39-27, San Diego, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "http://casalogos.com/",
+  "category": "hotel",
+  "description": "Casa Logos — Top-rated hotel in Cartagena with 95 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1238.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4284994,
+    "lng": -75.5473391
+  },
+  "name": "Casa Logos",
+  "phone": "+573126912084",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 95,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

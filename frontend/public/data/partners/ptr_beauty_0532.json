@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0532", "name": "Dermatosphera Skin Clinic", "category": "beauty", "subcategory": "aesthetic_clinic", "description": "Dermatosphera Skin Clinic — servicios de belleza y cuidado personal en Cartagena.", "address": "Tv. 17 #26-99, Manga, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.417729999999999, "lng": -75.5424536}, "phone": "+573145961008", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNRKT-WhEi8C_Iy0_K1k_cCLmzYszWrgF7k_ezx5Dm2F8eQUgH5JxnLUxWD1cQQv1hOXjLwKmWATk8chsNOJP2941U-sdovLtMDNdyarV5n3oz3Gs5OLWccv6vH8BI4-b0T-K_xgpbqusvtmg=s4800-w1200", "instagram": "", "booking_link": "", "rating": 4.9, "reviews": 75, "price_range": "$$", "tier": "standard", "hours": "Monday: 7:00 AM – 5:00 PM; Tuesday: 7:00 AM – 5:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0532",
+  "name": "Dermatosphera Skin Clinic",
+  "category": "beauty",
+  "subcategory": "aesthetic_clinic",
+  "description": "Dermatosphera Skin Clinic — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Tv. 17 #26-99, Manga, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.417729999999999,
+    "lng": -75.5424536
+  },
+  "phone": "+573145961008",
+  "image_url": "/images/partners/ptr_beauty_0532.jpg",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 4.9,
+  "reviews": 75,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 7:00 AM – 5:00 PM; Tuesday: 7:00 AM – 5:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

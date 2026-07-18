@@ -1,8 +1,8 @@
 // Central image catalog for AMO Cartagena
-// All URLs are Unsplash CDN links with explicit width and quality params.
+// All images self-hosted in public/images/. ZERO external dependencies.
 // Using resizeMode="cover" on every Image component that consumes these.
 
-const IMG_BASE = 'https://website-five-sigma-29.vercel.app/images';
+const IMG_BASE = '/images';
 
 export const IMAGES = {
   // Hero & Background — REAL Cartagena photos
@@ -17,43 +17,43 @@ export const IMAGES = {
   fountain_market:   `${IMG_BASE}/fountain-market.jpg`,
   wax_palms:         `${IMG_BASE}/wax-palms.jpg`,
 
-  // Category hero images
-  restaurant:  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80',
-  beach_club:  'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=600&q=80',
-  yacht:       'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=600&q=80',
-  hotel:       'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80',
-  wellness:    'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&q=80',
-  nightlife:   'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80',
-  activity:    'https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=600&q=80',
-  cultural:    'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=600&q=80',
-  concert:     'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=600&q=80',
+  // Category hero images — self-hosted in /images/categories/
+  restaurant:  `${IMG_BASE}/categories/restaurant.jpg`,
+  beach_club:  `${IMG_BASE}/categories/beach_club.jpg`,
+  yacht:       `${IMG_BASE}/categories/yacht.jpg`,
+  hotel:       `${IMG_BASE}/categories/hotel.jpg`,
+  wellness:    `${IMG_BASE}/categories/wellness.jpg`,
+  nightlife:   `${IMG_BASE}/categories/nightlife.jpg`,
+  activity:    `${IMG_BASE}/categories/activity.jpg`,
+  cultural:    `${IMG_BASE}/categories/cultural.jpg`,
+  concert:     `${IMG_BASE}/categories/concert.jpg`,
 
   // Specific experience types
-  daypass:        'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=600&q=80',
-  sunset_session: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80',
-  club:           'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80',
+  daypass:        `${IMG_BASE}/categories/daypass.jpg`,
+  sunset_session: `${IMG_BASE}/categories/sunset_session.jpg`,
+  club:           `${IMG_BASE}/categories/club.jpg`,
 
   // Partner-specific venue images
-  fine_dining:      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80',
-  cocktail_bar:     'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&q=80',
-  sunset_bar:       'https://images.unsplash.com/photo-1506929562872-bb421503ef21?w=600&q=80',
-  luxury_pool:      'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80',
-  bakery:           'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&q=80',
-  tropical_garden:  'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80',
-  food_tour:        'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&q=80',
-  latin_dance:      'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=600&q=80',
-  cocktail_dark:    'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&q=80',
-  diving:           'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80',
-  walking_tour:     'https://images.unsplash.com/photo-1558029137-a49d75b36fd8?w=600&q=80',
-  jewelry:          'https://images.unsplash.com/photo-1515562141589-67f0d382c7b4?w=600&q=80',
-  shopping:         'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=600&q=80',
-  members_club:     'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=600&q=80',
+  fine_dining:      `${IMG_BASE}/categories/fine_dining.jpg`,
+  cocktail_bar:     `${IMG_BASE}/categories/cocktail_bar.jpg`,
+  sunset_bar:       `${IMG_BASE}/categories/sunset_bar.jpg`,
+  luxury_pool:      `${IMG_BASE}/categories/luxury_pool.jpg`,
+  bakery:           `${IMG_BASE}/categories/bakery.jpg`,
+  tropical_garden:  `${IMG_BASE}/categories/tropical_garden.jpg`,
+  food_tour:        `${IMG_BASE}/categories/food_tour.jpg`,
+  latin_dance:      `${IMG_BASE}/categories/latin_dance.jpg`,
+  cocktail_dark:    `${IMG_BASE}/categories/cocktail_dark.jpg`,
+  diving:           `${IMG_BASE}/categories/diving.jpg`,
+  walking_tour:     `${IMG_BASE}/categories/walking_tour.jpg`,
+  jewelry:          `${IMG_BASE}/categories/jewelry.jpg`,
+  shopping:         `${IMG_BASE}/categories/shopping.jpg`,
+  members_club:     `${IMG_BASE}/categories/members_club.jpg`,
 
-  // Fallbacks
-  placeholder:      'https://images.unsplash.com/photo-1651421479936-e24edc3e3143?w=600&q=80',
-  avatar_fallback:  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&q=80',
-  event_fallback:   'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=600&q=80',
-  promo_fallback:   'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80',
+  // Fallbacks — all self-hosted, zero external dependencies
+  placeholder:      `${IMG_BASE}/categories/placeholder.jpg`,
+  avatar_fallback:  `${IMG_BASE}/categories/avatar_fallback.jpg`,
+  event_fallback:   `${IMG_BASE}/categories/event_fallback.jpg`,
+  promo_fallback:   `${IMG_BASE}/categories/promo_fallback.jpg`,
   season_fallback:  `${IMG_BASE}/hero-cathedral.jpg`,
 } as const;
 

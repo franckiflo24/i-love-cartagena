@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0481", "name": "Paola Cortes Dermopigmentacion", "category": "beauty", "subcategory": "aesthetic_clinic", "description": "Paola Cortes Dermopigmentacion — servicios de belleza y cuidado personal en Cartagena.", "address": "Cra 20 #29C-09, Pie de la Popa, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.4187049, "lng": -75.5340658}, "phone": "+573152076808", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMwWYIrorGHUPBXtAmnTOtsNvZTku6Ywwz5WVFfAZR6SHh1T49qdhPd6Pwol0R-_wllStYQdBpBP5cdRjqrxn9U75YEikoSfUt_juUasjerG7ASBjlOad6qpXsB2MHiZ5EViw9aYcoQMwzQ4nI=s4800-w1200", "instagram": "", "booking_link": "", "rating": 5, "reviews": 302, "price_range": "$$", "tier": "standard", "hours": "Monday: 8:00 AM – 6:00 PM; Tuesday: 8:00 AM – 6:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0481",
+  "name": "Paola Cortes Dermopigmentacion",
+  "category": "beauty",
+  "subcategory": "aesthetic_clinic",
+  "description": "Paola Cortes Dermopigmentacion — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Cra 20 #29C-09, Pie de la Popa, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4187049,
+    "lng": -75.5340658
+  },
+  "phone": "+573152076808",
+  "image_url": "/images/partners/ptr_beauty_0481.jpg",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 5,
+  "reviews": 302,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 8:00 AM – 6:00 PM; Tuesday: 8:00 AM – 6:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

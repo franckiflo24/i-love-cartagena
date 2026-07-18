@@ -52,6 +52,29 @@ async function load<T>(file: string): Promise<T[]> {
 }
 
 // ---------------------------------------------------------------------------
+// Image URL normalisation — STRUCTURAL GUARD against external URL reversion.
+// If a local image file exists for this partner (by convention:
+// /images/partners/<id>.jpg), ALWAYS use it regardless of what the backend
+// returns. This prevents MongoDB's stale http:// URLs from overwriting
+// self-hosted images during hydration.
+// ---------------------------------------------------------------------------
+
+function normaliseImageUrl(raw: string | undefined, id: string): string | undefined {
+  // If already a local path, keep it
+  if (raw && raw.startsWith('/images/')) return raw;
+  // If we have an ID, the local file ALWAYS takes precedence
+  if (id) return `/images/partners/${id}.jpg`;
+  // Fallback: return whatever was provided (shouldn't happen for valid partners)
+  return raw;
+}
+
+function normaliseEventImageUrl(raw: string | undefined, id: string): string | undefined {
+  if (raw && raw.startsWith('/images/')) return raw;
+  if (id) return `/images/events/${id}.jpg`;
+  return raw;
+}
+
+// ---------------------------------------------------------------------------
 // Partner normalisation (current → target schema)
 // ---------------------------------------------------------------------------
 
@@ -86,7 +109,13 @@ function normalisePartner(p: Record<string, unknown>): Partner {
 
     tags: (p.tags as string[]) ?? undefined,
     image_urls: (p.image_urls as string[]) ?? undefined,
-    image_url: (p.image_url as string) ?? undefined,
+    // STRUCTURAL GUARD: Always prefer local image path over any external URL.
+    // If partner has a local file (starts with /images/), keep it.
+    // If backend returns an http URL, rewrite to the local path.
+    image_url: normaliseImageUrl(
+      (p.image_url as string) ?? undefined,
+      String(p.partner_id ?? p.slug ?? p.id ?? '').trim()
+    ),
 
     price_level: (p.price_level as Partner['price_level']) ?? undefined,
     price_range: (p.price_range as string) ?? undefined,
@@ -153,7 +182,7 @@ function normaliseEvent(e: Record<string, unknown>): EventRecord {
     price: (e.price as number) ?? undefined,
     ticket_url: (e.ticket_url as string) ?? undefined,
     booking_link: (e.booking_link as string) ?? undefined,
-    image_url: (e.image_url as string) ?? undefined,
+    image_url: normaliseEventImageUrl((e.image_url as string) ?? undefined, id),
 
     status: (e.status as EventRecord['status']) ?? 'scheduled',
 

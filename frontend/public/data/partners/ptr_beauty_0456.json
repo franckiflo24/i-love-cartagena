@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0456", "name": "Masaje Relajante en Bocagrande Cartagena | Mary Royet Spa", "category": "beauty", "subcategory": "facial_spa", "description": "Masaje Relajante en Bocagrande Cartagena | Mary Royet Spa — servicios de belleza y cuidado personal en Cartagena.", "address": "Cra. 3 #calle 6-120, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.4009444, "lng": -75.5558406}, "phone": "+573171762070", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZN7sntGxqBTD7nzXdzfxeftOXZtDECbd9BgoxIjEfJMTY0Ncz3vPqt0xsmiu1bKb7Tpbs_DlB_6t-0M8wmo12H254tpHK9otQptb5k3uv8hXQk_r0g4yNGOeOSrm0BPcZ6_LT8aGHUYIhs2DH3FVpDXaA=s4800-w1200", "instagram": "", "booking_link": "http://www.maryroyetspa.com/", "rating": 5, "reviews": 453, "price_range": "$$", "tier": "standard", "hours": "Monday: 9:00 AM – 7:00 PM; Tuesday: 9:00 AM – 7:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0456",
+  "name": "Masaje Relajante en Bocagrande Cartagena | Mary Royet Spa",
+  "category": "beauty",
+  "subcategory": "facial_spa",
+  "description": "Masaje Relajante en Bocagrande Cartagena | Mary Royet Spa — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Cra. 3 #calle 6-120, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4009444,
+    "lng": -75.5558406
+  },
+  "phone": "+573171762070",
+  "image_url": "/images/partners/ptr_beauty_0456.jpg",
+  "instagram": "",
+  "booking_link": "http://www.maryroyetspa.com/",
+  "rating": 5,
+  "reviews": 453,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 9:00 AM – 7:00 PM; Tuesday: 9:00 AM – 7:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

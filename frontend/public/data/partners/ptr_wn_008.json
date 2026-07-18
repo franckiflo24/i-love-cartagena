@@ -1,1 +1,26 @@
-{"partner_id": "ptr_wn_008", "address": "Manga, Cartagena", "booking_link": "https://crossfitcartagena.co", "category": "wellness", "description": "Box de CrossFit con coaches certificados L1/L2. Clases grupales, open gym y personal training.", "experience": "WOD diario, mobility, gymnastics, weightlifting", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZM99lfINBirZJ-G8VMD9kGvwpyMH3_AWuDlSLfzdjxMo1M7C7aUxT2GnwKsPtR8NEO4cUAHsaGNezmJ_DQd5zzJqurxoW_82VsWLi7GMYI1RBMSA2el9ByeAxH0KC7oT2mqltGOwO8MvomSxw=s1600-w800", "instagram": "@crossfitcartagena", "is_certified": true, "location": {"lat": 10.4045, "lng": -75.5503}, "name": "CrossFit Cartagena", "price_range": "$$", "subcategory": "fitness", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573006349297", "hours": "Lun-Sáb 07:00 - 20:00"}
+{
+  "partner_id": "ptr_wn_008",
+  "address": "Manga, Cartagena",
+  "booking_link": "https://crossfitcartagena.co",
+  "category": "wellness",
+  "description": "Box de CrossFit con coaches certificados L1/L2. Clases grupales, open gym y personal training.",
+  "experience": "WOD diario, mobility, gymnastics, weightlifting",
+  "image_url": "/images/partners/ptr_wn_008.jpg",
+  "instagram": "@crossfitcartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4045,
+    "lng": -75.5503
+  },
+  "name": "CrossFit Cartagena",
+  "price_range": "$$",
+  "subcategory": "fitness",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573006349297",
+  "hours": "Lun-Sáb 07:00 - 20:00"
+}

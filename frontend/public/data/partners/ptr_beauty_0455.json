@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0455", "name": "Relax Spa Cartagena De Indias", "category": "beauty", "subcategory": "facial_spa", "description": "Relax Spa Cartagena De Indias — servicios de belleza y cuidado personal en Cartagena.", "address": "Centro calle estanco del aguardiente, casa 5-09, El Centro, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.4266227, "lng": -75.5505069}, "phone": "+573006386278", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMO9SbORrKq6XPYaaCPgtRvIr9G9ocXslJQduwCldwpe1PFYAAAfz0Vw1TeiwLz_phQYyMy59MCJRDdWdfkqLg-ChDtXjz3-tyvF7D6rlgu4TJxaTRXgSwUMiIu4_LRIsDGU74l1JClaKBd=s4800-w1200", "instagram": "", "booking_link": "https://www.relaxspacartagena.com.co/", "rating": 4.9, "reviews": 110, "price_range": "$$", "tier": "standard", "hours": "Monday: 9:00 AM – 7:00 PM; Tuesday: 9:00 AM – 7:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0455",
+  "name": "Relax Spa Cartagena De Indias",
+  "category": "beauty",
+  "subcategory": "facial_spa",
+  "description": "Relax Spa Cartagena De Indias — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Centro calle estanco del aguardiente, casa 5-09, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4266227,
+    "lng": -75.5505069
+  },
+  "phone": "+573006386278",
+  "image_url": "/images/partners/ptr_beauty_0455.jpg",
+  "instagram": "",
+  "booking_link": "https://www.relaxspacartagena.com.co/",
+  "rating": 4.9,
+  "reviews": 110,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 9:00 AM – 7:00 PM; Tuesday: 9:00 AM – 7:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

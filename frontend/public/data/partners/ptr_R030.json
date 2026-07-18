@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R030", "address": "Cartagena de Indias, Colombia", "booking_link": "https://manglarctg.co/", "category": "restaurant", "cuisine": "Mariscos · Caribeño", "description": "Cocina caribeña con producto del mar y ambiente acogedor.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMU7IluyfhnM2ljyL9b_AxB5-zzviYohfvaicAn6AWS9AlMoSe6yakLDM6B9IS82pD86PrlQj1uXREuy6kX__1mJOtJTkFfNSAgBEUxJarhjhLhSw-r8yoEJ3bRxY0-kGUaZERSbtCSQwAHGatGmdKS5g=s4800-w1200", "instagram": "manglarcartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Manglar", "price_range": "$$", "rating": 4.4, "reviews": 410, "subcategory": "seafood", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573164758809", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R030",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "https://manglarctg.co/",
+  "category": "restaurant",
+  "cuisine": "Mariscos · Caribeño",
+  "description": "Cocina caribeña con producto del mar y ambiente acogedor.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R030.jpg",
+  "instagram": "manglarcartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Manglar",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 410,
+  "subcategory": "seafood",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573164758809",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

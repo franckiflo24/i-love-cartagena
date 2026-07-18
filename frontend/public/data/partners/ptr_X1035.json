@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1035", "address": "Centro Comercial Plaza de Bocagrande L. 2-14, Cartagena de Indias, Bolívar, Colombia", "booking_link": "http://monicacruz.com.co/", "category": "wellness", "description": "Mónica Cruz - L´Peluquería - CC Plaza Bocagrande — Top-rated spa in Cartagena with 2170 Google reviews.", "experience": "Spa · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOl7mlHmwj3j0LqqFkZHs4KoJpG7PlJ54t77mZPIH_h17zHYdGoCfBNePvNCthlZVTJoA3tWttSrsU448psEXgFY2NTJb7ZNI3SDT12pUm-dvecTQP2pk_xXD92jor-MUwt600KOi-in22mLw=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4119688, "lng": -75.55112299999999}, "name": "Mónica Cruz - L´Peluquería - CC Plaza Bocagrande", "phone": "+576056926073", "price_range": "$$", "rating": 4.9, "reviews": 2170, "subcategory": "beauty", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Sáb 07:00 - 20:00"}
+{
+  "partner_id": "ptr_X1035",
+  "address": "Centro Comercial Plaza de Bocagrande L. 2-14, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "http://monicacruz.com.co/",
+  "category": "wellness",
+  "description": "Mónica Cruz - L´Peluquería - CC Plaza Bocagrande — Top-rated spa in Cartagena with 2170 Google reviews.",
+  "experience": "Spa · Cartagena",
+  "image_url": "/images/partners/ptr_X1035.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4119688,
+    "lng": -75.55112299999999
+  },
+  "name": "Mónica Cruz - L´Peluquería - CC Plaza Bocagrande",
+  "phone": "+576056926073",
+  "price_range": "$$",
+  "rating": 4.9,
+  "reviews": 2170,
+  "subcategory": "beauty",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Sáb 07:00 - 20:00"
+}

@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1081", "address": "Tv. 53, El Rubí, Cartagena de Indias, Bolívar, Colombia", "booking_link": "", "category": "club", "description": "STRAGOS NIGHT CLUB — Top-rated bar in Cartagena with 10 Google reviews.", "experience": "Bar · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNGkmRrR6fIJRibRL0tBMN-IO3jH6dKIEdRF0LZZkowRVhpv1g_jSz6r_U8cuTlc_7CKtv__Y8_An-lVgfBQ9mQmMKUUOrqTcVLx7DAK6z5uxq05CeTkzqhT2kSw20zLoD7IIM_51bXQognxekaVPA6wg=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.3929579, "lng": -75.4843348}, "name": "STRAGOS NIGHT CLUB", "phone": "+573018670525", "price_range": "$$", "rating": 4.9, "reviews": 10, "subcategory": "nightclub", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Jue-Sáb 22:00 - 05:00"}
+{
+  "partner_id": "ptr_X1081",
+  "address": "Tv. 53, El Rubí, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "category": "club",
+  "description": "STRAGOS NIGHT CLUB — Top-rated bar in Cartagena with 10 Google reviews.",
+  "experience": "Bar · Cartagena",
+  "image_url": "/images/partners/ptr_X1081.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.3929579,
+    "lng": -75.4843348
+  },
+  "name": "STRAGOS NIGHT CLUB",
+  "phone": "+573018670525",
+  "price_range": "$$",
+  "rating": 4.9,
+  "reviews": 10,
+  "subcategory": "nightclub",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Jue-Sáb 22:00 - 05:00"
+}

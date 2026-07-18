@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0435", "name": "LB Barber shop Getsemaní", "category": "beauty", "subcategory": "barbershop", "description": "LB Barber shop Getsemaní — servicios de belleza y cuidado personal en Cartagena.", "address": "Cl. 29 #10b-64, Getsemaní, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.420363799999999, "lng": -75.5448486}, "phone": "+573009711894", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMn6Yrgxwew2V1Sc890SdTgtMhupN4X9uieITBNH9Mf8IiKqWdt8OyiT0VDxXiC69HE-s8WSE9Id_mpWnaxT8BWX3NfQ7IEMBqKar-Tyb8F9uJ5M2XO8XyND7cB9GIbUej1G1SQmE2aOpm5Ow=s4800-w1200", "instagram": "", "booking_link": "https://www.instagram.com/emil_barber08?igsh=Z245NThycDlvdWZ4&utm_source=qr", "rating": 5, "reviews": 254, "price_range": "$$", "tier": "standard", "hours": "Lun-Sáb 09:00 - 19:00", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0435",
+  "name": "LB Barber shop Getsemaní",
+  "category": "beauty",
+  "subcategory": "barbershop",
+  "description": "LB Barber shop Getsemaní — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Cl. 29 #10b-64, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.420363799999999,
+    "lng": -75.5448486
+  },
+  "phone": "+573009711894",
+  "image_url": "/images/partners/ptr_beauty_0435.jpg",
+  "instagram": "",
+  "booking_link": "https://www.instagram.com/emil_barber08?igsh=Z245NThycDlvdWZ4&utm_source=qr",
+  "rating": 5,
+  "reviews": 254,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Lun-Sáb 09:00 - 19:00",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

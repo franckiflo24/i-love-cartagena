@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1252", "address": "Punta Sur Isla Grande Archipielago Nuestra Señora Del Rosario, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://www.rosariodemarhotel.com/", "category": "hotel", "description": "Rosario de Mar Ecohotel By Tequendama — Top-rated hotel in Cartagena with 1200 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNs5xk_cUpPuor-l-ldCECygu-yuCnaWi9l27zAnWxSlbckmIn5uWbH2_0jUgS8vyNgwTjZ13fjpACPYbWBw5B0G0D0_RvmcqSn4rl-hq6-IDnr8uZd9BUY1WfIRQp3ZaTjUBw4vBqlRQhmsdWfCSw-uQ=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.180712, "lng": -75.72415099999999}, "name": "Rosario de Mar Ecohotel By Tequendama", "phone": "+573009125448", "price_range": "$$", "rating": 4.3, "reviews": 1200, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1252",
+  "address": "Punta Sur Isla Grande Archipielago Nuestra Señora Del Rosario, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://www.rosariodemarhotel.com/",
+  "category": "hotel",
+  "description": "Rosario de Mar Ecohotel By Tequendama — Top-rated hotel in Cartagena with 1200 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1252.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.180712,
+    "lng": -75.72415099999999
+  },
+  "name": "Rosario de Mar Ecohotel By Tequendama",
+  "phone": "+573009125448",
+  "price_range": "$$",
+  "rating": 4.3,
+  "reviews": 1200,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

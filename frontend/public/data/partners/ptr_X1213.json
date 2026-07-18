@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1213", "address": "Cra. 2, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://www.ihg.com/holidayinnexpress/hotels/us/en/cartagena/ctgex/hoteldetail?cm_mmc=GoogleMaps-_-EX-_-CO-_-CTGEX", "category": "hotel", "description": "Holiday Inn Express Cartagena Bocagrande — Top-rated hotel in Cartagena with 3856 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMp8J7bGXUh7nwaqUHghJ-NOvy_vftfMwwzYPaZSvTuC_UwP-fq6uCjI2b1c6ExLHOeUsokkxh4bf7aeZLqIu0jJWH2TvfQIaDhAZg-5l0gxtfAnzTdNZvuljhl2CHL-p_QJsHexo0R_Y2F4A=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4054819, "lng": -75.5528225}, "name": "Holiday Inn Express Cartagena Bocagrande", "phone": "+573213836755", "price_range": "$$", "rating": 4.4, "reviews": 3856, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1213",
+  "address": "Cra. 2, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://www.ihg.com/holidayinnexpress/hotels/us/en/cartagena/ctgex/hoteldetail?cm_mmc=GoogleMaps-_-EX-_-CO-_-CTGEX",
+  "category": "hotel",
+  "description": "Holiday Inn Express Cartagena Bocagrande — Top-rated hotel in Cartagena with 3856 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1213.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4054819,
+    "lng": -75.5528225
+  },
+  "name": "Holiday Inn Express Cartagena Bocagrande",
+  "phone": "+573213836755",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 3856,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

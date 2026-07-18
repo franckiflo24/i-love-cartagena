@@ -1,1 +1,26 @@
-{"partner_id": "ptr_ho_005", "address": "Calle de la Universidad, Centro", "booking_link": "https://hotelcasasanagustin.com", "category": "hotel", "description": "Tres casonas coloniales del siglo XVII convertidas en hotel ultra-luxury. Biblioteca, piscina entre arcos y restaurante Alma.", "experience": "Casonas coloniales restauradas, restaurante Alma, biblioteca privada", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZP8TiV4-xiVQRoaHgoSIWVYSS5m3s3dzklUHU6I4d3ZGl-bhf7HxxGHGRJOelCx65eQe9g7mlIRCdluj8g17Tats0ydoWArmsF843PfDSgQ6YPy7Py6-bB79J3vDNBtRUHQqTyDK3K9ouO7BaY16a6bzw=s4800-w1200", "instagram": "hotelcasasanagustin", "is_certified": true, "location": {"lat": 10.4239, "lng": -75.5502}, "name": "Casa San Agustín", "price_range": "$$$$", "subcategory": "lujo", "tier": "elite", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "elite", "membership_plan": "free", "phone": "+576056810000", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_ho_005",
+  "address": "Calle de la Universidad, Centro",
+  "booking_link": "https://hotelcasasanagustin.com",
+  "category": "hotel",
+  "description": "Tres casonas coloniales del siglo XVII convertidas en hotel ultra-luxury. Biblioteca, piscina entre arcos y restaurante Alma.",
+  "experience": "Casonas coloniales restauradas, restaurante Alma, biblioteca privada",
+  "image_url": "/images/partners/ptr_ho_005.jpg",
+  "instagram": "hotelcasasanagustin",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4239,
+    "lng": -75.5502
+  },
+  "name": "Casa San Agustín",
+  "price_range": "$$$$",
+  "subcategory": "lujo",
+  "tier": "elite",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "phone": "+576056810000",
+  "hours": "Recepción 24h"
+}

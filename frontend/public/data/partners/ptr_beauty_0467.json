@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0467", "name": "Elegance Spa By EC - Centro de Estética Cartagena, Colombia", "category": "beauty", "subcategory": "facial_spa", "description": "Elegance Spa By EC - Centro de Estética Cartagena, Colombia — servicios de belleza y cuidado personal en Cartagena.", "address": "Cra. 23, Manga, Cartagena de Indias, Provincia de Cartagena, Bolívar Manga, Manga, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.410104299999999, "lng": -75.53796659999999}, "phone": "+573146695573", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPB92w_sYErUAPoJ79Ah7_Gm3URG-u8zMGp8zx6FoEhg5Mb1LJg79eWjWgFtwwxn5KPctBBMxWYX7hDDXLfVGPheGou1Rr-ERX5QPxfIg1eLNV_js9OGCnTocfV-72eERPdbphl4fJJc5AE5bQGUwAevw=s4800-w1200", "instagram": "", "booking_link": "https://www.instagram.com/elegance_byec/", "rating": 5, "reviews": 22, "price_range": "$$", "tier": "standard", "hours": "Monday: 8:00 AM – 6:00 PM; Tuesday: 8:00 AM – 6:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0467",
+  "name": "Elegance Spa By EC - Centro de Estética Cartagena, Colombia",
+  "category": "beauty",
+  "subcategory": "facial_spa",
+  "description": "Elegance Spa By EC - Centro de Estética Cartagena, Colombia — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Cra. 23, Manga, Cartagena de Indias, Provincia de Cartagena, Bolívar Manga, Manga, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.410104299999999,
+    "lng": -75.53796659999999
+  },
+  "phone": "+573146695573",
+  "image_url": "/images/partners/ptr_beauty_0467.jpg",
+  "instagram": "",
+  "booking_link": "https://www.instagram.com/elegance_byec/",
+  "rating": 5,
+  "reviews": 22,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 8:00 AM – 6:00 PM; Tuesday: 8:00 AM – 6:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

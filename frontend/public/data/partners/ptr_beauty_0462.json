@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0462", "name": "MG Spa Massage", "category": "beauty", "subcategory": "facial_spa", "description": "MG Spa Massage — servicios de belleza y cuidado personal en Cartagena.", "address": "CENTRO COMERCIAL PASAJE DE LA MONEDA, LOCAL 203, El Centro, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.4253009, "lng": -75.5481295}, "phone": "+573159905703", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNqVfma209K9hjANA0GbRBgqeZkEqkIhb30ppJFoTgHLN7lFFljU-Ff-Cb_L5DHxAXpixvYfmk6ese6psj_wwNbMxANO6V4oDi2mO_l6GimuZr_4AJQH4w6IQygK-AItCV0sFPlksnIM6XCwBo=s4800-w1200", "instagram": "", "booking_link": "https://www.yosoymgspa.com/spa-massage/", "rating": 4.9, "reviews": 95, "price_range": "$$", "tier": "standard", "hours": "Monday: 9:00 AM – 7:00 PM; Tuesday: 9:00 AM – 7:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0462",
+  "name": "MG Spa Massage",
+  "category": "beauty",
+  "subcategory": "facial_spa",
+  "description": "MG Spa Massage — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "CENTRO COMERCIAL PASAJE DE LA MONEDA, LOCAL 203, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4253009,
+    "lng": -75.5481295
+  },
+  "phone": "+573159905703",
+  "image_url": "/images/partners/ptr_beauty_0462.jpg",
+  "instagram": "",
+  "booking_link": "https://www.yosoymgspa.com/spa-massage/",
+  "rating": 4.9,
+  "reviews": 95,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 9:00 AM – 7:00 PM; Tuesday: 9:00 AM – 7:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

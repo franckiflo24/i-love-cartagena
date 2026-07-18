@@ -1,1 +1,28 @@
-{"partner_id": "ptr_V046", "address": "Cra. 3 #65-104, Bocagrande, Cartagena", "booking_link": "http://www.hotelmucura.com/", "category": "spa", "description": "Beachside hotel spa in Bocagrande. Caribbean-inspired treatments, pool access, and a full relaxation circuit steps from the sea.", "experience": "Hotel spa · Playa · Bocagrande", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZP2JLCkp4haJvAALq2ngGafWModmYkyGxeEAoyTerOYVwz48_bfJOXndtbhVv3mMeL08g5eCjdnksdN90hDbACodcILw7Pd9uDO2o4prgVi1l1SvVQk7wpuvjJ_8eCa92nao9XVIY3iejqE2g=s4800-w1200", "instagram": "", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Mucura Hotel & Spa", "phone": "+573003067702", "price_range": "$$$", "rating": 4.4, "reviews": 360, "subcategory": "wellness_center", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Sáb 09:00 - 19:00"}
+{
+  "partner_id": "ptr_V046",
+  "address": "Cra. 3 #65-104, Bocagrande, Cartagena",
+  "booking_link": "http://www.hotelmucura.com/",
+  "category": "spa",
+  "description": "Beachside hotel spa in Bocagrande. Caribbean-inspired treatments, pool access, and a full relaxation circuit steps from the sea.",
+  "experience": "Hotel spa · Playa · Bocagrande",
+  "image_url": "/images/partners/ptr_V046.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Mucura Hotel & Spa",
+  "phone": "+573003067702",
+  "price_range": "$$$",
+  "rating": 4.4,
+  "reviews": 360,
+  "subcategory": "wellness_center",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Sáb 09:00 - 19:00"
+}

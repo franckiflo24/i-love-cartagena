@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1148", "address": "Cl. 24 #10B-65, Getsemaní, Cartagena de Indias, Bolívar, Colombia", "booking_link": "", "category": "bar", "description": "León de Baviera Cartagena — Top-rated bar in Cartagena with 964 Google reviews.", "experience": "Bar · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZN4pg7UpGtHk_k1LZUq6GAQddE1NuzMtNlUCnK0obXrRPHmD-5WFJRvk00AJ8SjDzC9-O7Mm6Tkus7lsidICZ7aWAs3nYAS2SF3wgwJQUoQmISm4cm4gRrbf9P5wuYsym78Y6zxUGBf_fYBxdAafhJT=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4180927, "lng": -75.5460028}, "name": "León de Baviera Cartagena", "phone": "+573008026280", "price_range": "$$", "rating": 4.6000000000000005, "reviews": 964, "subcategory": "cocktail_bar", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Mar-Dom 17:00 - 03:00"}
+{
+  "partner_id": "ptr_X1148",
+  "address": "Cl. 24 #10B-65, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "category": "bar",
+  "description": "León de Baviera Cartagena — Top-rated bar in Cartagena with 964 Google reviews.",
+  "experience": "Bar · Cartagena",
+  "image_url": "/images/partners/ptr_X1148.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4180927,
+    "lng": -75.5460028
+  },
+  "name": "León de Baviera Cartagena",
+  "phone": "+573008026280",
+  "price_range": "$$",
+  "rating": 4.6000000000000005,
+  "reviews": 964,
+  "subcategory": "cocktail_bar",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Mar-Dom 17:00 - 03:00"
+}

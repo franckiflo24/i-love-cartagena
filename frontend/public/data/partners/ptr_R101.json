@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R101", "address": "Cartagena de Indias, Colombia", "booking_link": "https://restaurantecelele.com", "category": "restaurant", "cuisine": "Caribeño de autor", "description": "Cocina caribeña de autor del chef Jaime Rodríguez. Latin America's 50 Best Restaurants.", "experience": "Menú degustación, recetas ancestrales, sommelier", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZNx4MGiIkn2zhNs50TM4VfTxIodrx7gw4bQN-3HhmsNEIQscC5VIlj6uyJsWYM0FolI5HCgggcEziJJ_o5k-W42EklUPmyZILq7Bkv7mK-rzn3QzaghdeJyZ-X_Uwobo2w9GPLWaOaFpNuq98M=s4800-w1200", "instagram": "celele_restaurante", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Celele", "price_range": "$$$$", "rating": 4.7, "reviews": 1240, "subcategory": "gastronomic", "tier": "elite", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "elite", "membership_plan": "free", "phone": "+573017420389", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R101",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "https://restaurantecelele.com",
+  "category": "restaurant",
+  "cuisine": "Caribeño de autor",
+  "description": "Cocina caribeña de autor del chef Jaime Rodríguez. Latin America's 50 Best Restaurants.",
+  "experience": "Menú degustación, recetas ancestrales, sommelier",
+  "image_url": "/images/partners/ptr_R101.jpg",
+  "instagram": "celele_restaurante",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Celele",
+  "price_range": "$$$$",
+  "rating": 4.7,
+  "reviews": 1240,
+  "subcategory": "gastronomic",
+  "tier": "elite",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "phone": "+573017420389",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

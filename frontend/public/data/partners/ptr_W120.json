@@ -1,1 +1,28 @@
-{"partner_id": "ptr_W120", "address": "Centro Histórico", "booking_link": "https://epocacafe.co", "category": "cafe", "description": "Top specialty coffee in Cartagena. Sourced from 8 Colombian farms, roasted in-house, with limited edition single-origin offerings. The baristas here are serious artists.", "experience": "Specialty coffee · Single origin · Tostión propia", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMUHNpbo24Dn9dqX0lOYnpc_tN7zVyCF0aG2v3mLxIwtPt-gi5DKsC_Aqmp3pK40BDXf1334f8Nj0qsj22lrYrGqW4A5PPLFhB50l88Ar7SlVjE0guM9uAbgti2AAwDcOqfz5Bk_T3POCsdh0Y=s1600-w800", "instagram": "weare.epoca", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Época Café", "phone": "+573158008072", "price_range": "$$", "rating": 4.8, "reviews": 1100, "subcategory": "coffee", "tier": "premium", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "premium", "membership_plan": "free", "hours": "Lun-Dom 07:00 - 20:00"}
+{
+  "partner_id": "ptr_W120",
+  "address": "Centro Histórico",
+  "booking_link": "https://epocacafe.co",
+  "category": "cafe",
+  "description": "Top specialty coffee in Cartagena. Sourced from 8 Colombian farms, roasted in-house, with limited edition single-origin offerings. The baristas here are serious artists.",
+  "experience": "Specialty coffee · Single origin · Tostión propia",
+  "image_url": "/images/partners/ptr_W120.jpg",
+  "instagram": "weare.epoca",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Época Café",
+  "phone": "+573158008072",
+  "price_range": "$$",
+  "rating": 4.8,
+  "reviews": 1100,
+  "subcategory": "coffee",
+  "tier": "premium",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "hours": "Lun-Dom 07:00 - 20:00"
+}

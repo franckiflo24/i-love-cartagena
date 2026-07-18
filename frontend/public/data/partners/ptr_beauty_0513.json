@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0513", "name": "Daniel’s barber", "category": "beauty", "subcategory": "barbershop", "description": "Daniel’s barber — servicios de belleza y cuidado personal en Cartagena.", "address": "centro histórico pasaje de la moneda, Cl. 38 #segundo piso local 212, El Centro, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.4253217, "lng": -75.5480685}, "phone": "+573234236029", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPK8EcZiNvjlI9kDX9vJWEUYEKSk7wWP46yWUo8uZ2g7aFBXV4F3pztXpTPWMSX4HPmoeMo5HnvHlN7hQfH1rW8uv6X1SknaHOM9rcR_SZ1RVfREDWIUugaO4d_80_aOb6GwGK97_FJwFsNPQaGI5ob-w=s4800-w1200", "instagram": "", "booking_link": "", "rating": 4.9, "reviews": 68, "price_range": "$$", "tier": "standard", "hours": "Monday: 10:00 AM – 7:00 PM; Tuesday: 10:00 AM – 7:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0513",
+  "name": "Daniel’s barber",
+  "category": "beauty",
+  "subcategory": "barbershop",
+  "description": "Daniel’s barber — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "centro histórico pasaje de la moneda, Cl. 38 #segundo piso local 212, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4253217,
+    "lng": -75.5480685
+  },
+  "phone": "+573234236029",
+  "image_url": "/images/partners/ptr_beauty_0513.jpg",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 4.9,
+  "reviews": 68,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 10:00 AM – 7:00 PM; Tuesday: 10:00 AM – 7:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

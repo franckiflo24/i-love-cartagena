@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1270", "address": "Islas del Rosario, Isla Grande, Cartagena de Indias, Bolívar, Colombia", "booking_link": "", "category": "hotel", "description": "Isla Única — Top-rated hotel in Cartagena with 49 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOQwofEkXucZS9mqlHsHnBaWopuQ9VindVFbYuqyf46rA45Q531C4iEep_l5D_X9ziGgp01kxC1FjbYRcfQmscQHRk0qw8i0vScQZeXV64pWW6XP9R_MFSyX4E4RUwU19kqPGe6zJaz39Kuzg=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.1830974, "lng": -75.7258531}, "name": "Isla Única", "phone": "+573182616791", "price_range": "$$", "rating": 4.3, "reviews": 49, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1270",
+  "address": "Islas del Rosario, Isla Grande, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "",
+  "category": "hotel",
+  "description": "Isla Única — Top-rated hotel in Cartagena with 49 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1270.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.1830974,
+    "lng": -75.7258531
+  },
+  "name": "Isla Única",
+  "phone": "+573182616791",
+  "price_range": "$$",
+  "rating": 4.3,
+  "reviews": 49,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

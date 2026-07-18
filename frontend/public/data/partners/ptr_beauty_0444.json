@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0444", "name": "Barba Azul vip barbería", "category": "beauty", "subcategory": "barbershop", "description": "Barba Azul vip barbería — servicios de belleza y cuidado personal en Cartagena.", "address": "Cl. 30a #78 - 09, La Plazuela, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.3886244, "lng": -75.4778051}, "phone": "+573218144481", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZP04ucaojE9o4HrqO2j4g77QGyy4eRsQj_Co59fZglx7egtsYxWFmbyrl_jDaiphQyISC-DToYnJU_ySd05GaWEGHlX2UfGPPQYsvEJcUow2FpAz8Q0qAy_NDBS_ez6iUAksMyh-c5I2ygUx6ArqhwhAQ=s4800-w1200", "instagram": "", "booking_link": "https://book.weibook.co/barbaazulvipbarberia", "rating": 4.9, "reviews": 277, "price_range": "$$", "tier": "standard", "hours": "Monday: 9:00 AM – 8:00 PM; Tuesday: 9:00 AM – 8:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0444",
+  "name": "Barba Azul vip barbería",
+  "category": "beauty",
+  "subcategory": "barbershop",
+  "description": "Barba Azul vip barbería — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Cl. 30a #78 - 09, La Plazuela, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.3886244,
+    "lng": -75.4778051
+  },
+  "phone": "+573218144481",
+  "image_url": "/images/partners/ptr_beauty_0444.jpg",
+  "instagram": "",
+  "booking_link": "https://book.weibook.co/barbaazulvipbarberia",
+  "rating": 4.9,
+  "reviews": 277,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 9:00 AM – 8:00 PM; Tuesday: 9:00 AM – 8:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

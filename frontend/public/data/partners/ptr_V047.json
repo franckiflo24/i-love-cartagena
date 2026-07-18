@@ -1,1 +1,28 @@
-{"partner_id": "ptr_V047", "address": "Cl. 30 #9, Getsemaní, Cartagena", "booking_link": "https://hotelvoila.com/hotel-getsemani.html", "category": "spa", "description": "Boutique hotel with in-house spa in the creative heart of Getsemaní. Relaxation massages and beauty treatments for guests and walk-ins.", "experience": "Hotel spa · Getsemaní", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPK4jWpumfAlQ4RwEaCuM88_VewNDux43F0vUWGKIfh3YJvlZkLo1xi65nbBN3kjGOKawan4Qe1BtLtvF0NUKhJ_4D4NlAL2UxjoCc2uYsgq-tLWCY3WDeoqdERFRweMVJBUOZqnIqD1rKVGw=s4800-w1200", "instagram": "", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Voila Getsemaní", "phone": "+573244281675", "price_range": "$$", "rating": 4.3, "reviews": 190, "subcategory": "wellness_center", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Lun-Sáb 09:00 - 19:00"}
+{
+  "partner_id": "ptr_V047",
+  "address": "Cl. 30 #9, Getsemaní, Cartagena",
+  "booking_link": "https://hotelvoila.com/hotel-getsemani.html",
+  "category": "spa",
+  "description": "Boutique hotel with in-house spa in the creative heart of Getsemaní. Relaxation massages and beauty treatments for guests and walk-ins.",
+  "experience": "Hotel spa · Getsemaní",
+  "image_url": "/images/partners/ptr_V047.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Voila Getsemaní",
+  "phone": "+573244281675",
+  "price_range": "$$",
+  "rating": 4.3,
+  "reviews": 190,
+  "subcategory": "wellness_center",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Lun-Sáb 09:00 - 19:00"
+}

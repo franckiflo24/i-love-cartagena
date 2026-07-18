@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1187", "address": "Calle segunda de Badillo # 36-45, 45 Carrera 7 #36, El Centro, Cartagena de Indias, Bolívar, Colombia", "booking_link": "https://us2.cloudbeds.com/reservation/NOldWk", "category": "hotel", "description": "República Hostel Cartagena — Top-rated hotel in Cartagena with 854 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZN6-u6tWMkTQzeeR6lSxZVzsHFO_96UhTtjLL_ay46E056pA6OoPVtNsbOEfMX1auo8TU6XJblim7HCtwwekNupky4ZeTSjmgvmfHppK5ExgFU401oSFcbctTqG46IPHVQHG7ZCxriQwSsSWfSIKcU4MA=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4256853, "lng": -75.54862969999999}, "name": "República Hostel Cartagena", "phone": "+573164827799", "price_range": "$$", "rating": 4.5, "reviews": 854, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1187",
+  "address": "Calle segunda de Badillo # 36-45, 45 Carrera 7 #36, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "https://us2.cloudbeds.com/reservation/NOldWk",
+  "category": "hotel",
+  "description": "República Hostel Cartagena — Top-rated hotel in Cartagena with 854 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1187.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4256853,
+    "lng": -75.54862969999999
+  },
+  "name": "República Hostel Cartagena",
+  "phone": "+573164827799",
+  "price_range": "$$",
+  "rating": 4.5,
+  "reviews": 854,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

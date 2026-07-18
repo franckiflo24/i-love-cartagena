@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0441", "name": "King’s Place Barber 💈", "category": "beauty", "subcategory": "barbershop", "description": "King’s Place Barber 💈 — servicios de belleza y cuidado personal en Cartagena.", "address": "Cra. 17, Torices, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.4300254, "lng": -75.5334634}, "phone": "+573009516073", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPYgzFf-1MZRAZtSvzYeDpaHD_Izw1jpvwwE3NkLTqjd0g5gvghNRjq5UqL7_fjs_tLHiEjnPH2Lplg1fpItvCZJAiS2PslVdL8JtH5FgrGvwUB5zN3GteXhGAcJoQDTxkDYqysE7BDCc6ov-JgqQovpQ=s4800-w1200", "instagram": "", "booking_link": "", "rating": 4.9, "reviews": 82, "price_range": "$$", "tier": "standard", "hours": "Monday: 8:30 AM – 8:30 PM; Tuesday: 8:30 AM – 8:30 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0441",
+  "name": "King’s Place Barber 💈",
+  "category": "beauty",
+  "subcategory": "barbershop",
+  "description": "King’s Place Barber 💈 — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Cra. 17, Torices, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4300254,
+    "lng": -75.5334634
+  },
+  "phone": "+573009516073",
+  "image_url": "/images/partners/ptr_beauty_0441.jpg",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 4.9,
+  "reviews": 82,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 8:30 AM – 8:30 PM; Tuesday: 8:30 AM – 8:30 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

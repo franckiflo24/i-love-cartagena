@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R017", "address": "Cartagena de Indias, Colombia", "booking_link": "https://www.sannicolasrestaurantebar.com/", "category": "restaurant", "cuisine": "Colombiano", "description": "Restaurante de cocina colombiana en casa histórica del Centro.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZM3mkZGfyycAi9X32SBg0lI40JaZ5sRAjtFnbGIUP61ELyH-o9xCwDXUWh6FqJGqD0KBiWTxthwOIF8JvpwqKuL3rpw5626Fw3Fxp2OGg6sKyV6vuZSp14kL7bvOttL-l-2fnzRYptE8itxNqcwe3Y1=s4800-w1066", "instagram": "sannicolascartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "San Nicolás", "price_range": "$$", "rating": 4.4, "reviews": 410, "subcategory": "colombian", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573106221662", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R017",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "https://www.sannicolasrestaurantebar.com/",
+  "category": "restaurant",
+  "cuisine": "Colombiano",
+  "description": "Restaurante de cocina colombiana en casa histórica del Centro.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R017.jpg",
+  "instagram": "sannicolascartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "San Nicolás",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 410,
+  "subcategory": "colombian",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573106221662",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

@@ -1,1 +1,29 @@
-{"partner_id": "ptr_R075", "address": "Cartagena de Indias, Colombia", "booking_link": "", "category": "restaurant", "cuisine": "Libanés · Árabe", "description": "Comida árabe libanesa servida con generosidad. Una institución local.", "experience": "Cocina · Cócteles · Ambiente local", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMBnfYZN2nGL3fSLqdDqvLS_QjqOXA-L4Y1t-MsNNsM7YuKoE5O-L_sJQ6ipntFOErphQ3gkqRtIvRVo2Q18nBrjkaFv2YLqSYyZrsikbwzhP_IfooY-8gU6CDmbZyaO2H4GIKyZqMAKQ6k=s4800-w864", "instagram": "habbabcartagena", "is_certified": true, "location": {"lat": 10.422, "lng": -75.5482}, "name": "Habbab", "price_range": "$$", "rating": 4.4, "reviews": 680, "subcategory": "international", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573215002852", "hours": "Lun-Dom 12:00 - 23:00"}
+{
+  "partner_id": "ptr_R075",
+  "address": "Cartagena de Indias, Colombia",
+  "booking_link": "",
+  "category": "restaurant",
+  "cuisine": "Libanés · Árabe",
+  "description": "Comida árabe libanesa servida con generosidad. Una institución local.",
+  "experience": "Cocina · Cócteles · Ambiente local",
+  "image_url": "/images/partners/ptr_R075.jpg",
+  "instagram": "habbabcartagena",
+  "is_certified": true,
+  "location": {
+    "lat": 10.422,
+    "lng": -75.5482
+  },
+  "name": "Habbab",
+  "price_range": "$$",
+  "rating": 4.4,
+  "reviews": 680,
+  "subcategory": "international",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573215002852",
+  "hours": "Lun-Dom 12:00 - 23:00"
+}

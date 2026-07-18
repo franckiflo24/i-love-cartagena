@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0501", "name": "MG Spa de Uñas Bocagrande", "category": "beauty", "subcategory": "nails", "description": "MG Spa de Uñas Bocagrande — servicios de belleza y cuidado personal en Cartagena.", "address": "Cra. 2 #9-174, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.406367699999999, "lng": -75.5522137}, "phone": "+573153655523", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZN-O8PV5S8n2K9ej7cv0sMVHLDO5GBLtjhXBDjErFbgvVXH7nIAxOUpg6pl2arq0bV92O4Yj_xbAEwJHr2bEQuMEXQ4KfPkz0CwaY88DeDIN6C63GWNLNlCmDNFm0meEVAKPY5l_aBcahiM=s4800-w1170", "instagram": "", "booking_link": "https://www.yosoymgspa.com/", "rating": 4.7, "reviews": 302, "price_range": "$$", "tier": "standard", "hours": "Monday: 9:30 AM – 7:00 PM; Tuesday: 9:30 AM – 7:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0501",
+  "name": "MG Spa de Uñas Bocagrande",
+  "category": "beauty",
+  "subcategory": "nails",
+  "description": "MG Spa de Uñas Bocagrande — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Cra. 2 #9-174, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.406367699999999,
+    "lng": -75.5522137
+  },
+  "phone": "+573153655523",
+  "image_url": "/images/partners/ptr_beauty_0501.jpg",
+  "instagram": "",
+  "booking_link": "https://www.yosoymgspa.com/",
+  "rating": 4.7,
+  "reviews": 302,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 9:30 AM – 7:00 PM; Tuesday: 9:30 AM – 7:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

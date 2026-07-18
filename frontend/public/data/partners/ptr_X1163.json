@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1163", "address": "Calle Cochera del Gobernador #33-28, El Centro, Cartagena de Indias, Bolívar, Colombia", "booking_link": "http://www.alfizhotel.com.co/", "category": "hotel", "description": "Alfiz Hotel — Top-rated hotel in Cartagena with 232 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOKX7fu1wK6YJSFK9X86LE4l4pFtyTZgSx7QiEwtzyon8dtRzuSXoZSiF7lC4gyzTUCKvchr8ctPIFi5FC9AS76GebIJiFbhvwpdH3pWp3vsFGin3FwbbuSlqAHi5IhNtgbcW_XbuF0-0TbywA=s1600-w800", "instagram": "alfizhotel", "is_certified": true, "location": {"lat": 10.423205, "lng": -75.55023}, "name": "Alfiz Hotel", "phone": "+576056637824", "price_range": "$$", "rating": 4.6000000000000005, "reviews": 232, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1163",
+  "address": "Calle Cochera del Gobernador #33-28, El Centro, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "http://www.alfizhotel.com.co/",
+  "category": "hotel",
+  "description": "Alfiz Hotel — Top-rated hotel in Cartagena with 232 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1163.jpg",
+  "instagram": "alfizhotel",
+  "is_certified": true,
+  "location": {
+    "lat": 10.423205,
+    "lng": -75.55023
+  },
+  "name": "Alfiz Hotel",
+  "phone": "+576056637824",
+  "price_range": "$$",
+  "rating": 4.6000000000000005,
+  "reviews": 232,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

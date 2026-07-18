@@ -1,1 +1,28 @@
-{"partner_id": "ptr_X1184", "address": "Cl. 24 #8B-58, Getsemaní, Cartagena de Indias, Bolívar, Colombia", "booking_link": "http://www.arsenalhotel.com/?partner=4153&utm_source=google&utm_medium=organic&utm_campaign=MyBusiness", "category": "hotel", "description": "GHL Arsenal Hotel Cartagena — Top-rated hotel in Cartagena with 1024 Google reviews.", "experience": "Hotel · Cartagena", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZPCNqYlfwS__YJ8GCKy0nju6eYZ28NY5jsfAuC3V-hoZoruvMkZ1pentjzBORY420ZhT1QLH0r2eEGKRanxQwXuZ0KwFzaUGA9tw8BO3zWCfIWbVhAZbcg3gKoHd7flIpBgK866Hzf9IMAuqQ=s1600-w800", "instagram": "", "is_certified": true, "location": {"lat": 10.4202393, "lng": -75.54839559999999}, "name": "GHL Arsenal Hotel Cartagena", "phone": "+573160107651", "price_range": "$$", "rating": 4.5, "reviews": 1024, "subcategory": "boutique", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "hours": "Recepción 24h"}
+{
+  "partner_id": "ptr_X1184",
+  "address": "Cl. 24 #8B-58, Getsemaní, Cartagena de Indias, Bolívar, Colombia",
+  "booking_link": "http://www.arsenalhotel.com/?partner=4153&utm_source=google&utm_medium=organic&utm_campaign=MyBusiness",
+  "category": "hotel",
+  "description": "GHL Arsenal Hotel Cartagena — Top-rated hotel in Cartagena with 1024 Google reviews.",
+  "experience": "Hotel · Cartagena",
+  "image_url": "/images/partners/ptr_X1184.jpg",
+  "instagram": "",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4202393,
+    "lng": -75.54839559999999
+  },
+  "name": "GHL Arsenal Hotel Cartagena",
+  "phone": "+573160107651",
+  "price_range": "$$",
+  "rating": 4.5,
+  "reviews": 1024,
+  "subcategory": "boutique",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "hours": "Recepción 24h"
+}

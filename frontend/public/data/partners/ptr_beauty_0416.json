@@ -1,1 +1,30 @@
-{"partner_id": "ptr_beauty_0416", "name": "Zara Rojas L' Peluqueria - Spa Pie de la Popa", "category": "beauty", "subcategory": "salon", "description": "Zara Rojas L' Peluqueria - Spa Pie de la Popa — servicios de belleza y cuidado personal en Cartagena.", "address": "Cl. 29d #22-165, Pie de la Popa, Cartagena de Indias, Bolívar, Colombia", "location": {"lat": 10.4156684, "lng": -75.5285109}, "phone": "+573217477582", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZOkbaXt6I9biMKNzDNdhaFGfAZ7q2IPB8hJa9or7vVGzEg0CQzLjJqIrfFYHIUUF2FRS-0y5HQCXVQFcEE6glp7gYoSVUbKPXg5O35tu2aRnOBHB3qbVlMf1OTB9KpsU8ZWNGOWS_tL0mLe4K0=s4800-w1200", "instagram": "", "booking_link": "", "rating": 4.5, "reviews": 117, "price_range": "$$", "tier": "standard", "hours": "Monday: 9:00 AM – 8:00 PM; Tuesday: 9:00 AM – 8:00 PM ...", "is_certified": false, "is_government": false, "experience": "", "default_payment_link": "", "membership_status": "inactive", "membership_tier": "standard", "membership_plan": "none", "membership_paid_until": null, "cuisine": ""}
+{
+  "partner_id": "ptr_beauty_0416",
+  "name": "Zara Rojas L' Peluqueria - Spa Pie de la Popa",
+  "category": "beauty",
+  "subcategory": "salon",
+  "description": "Zara Rojas L' Peluqueria - Spa Pie de la Popa — servicios de belleza y cuidado personal en Cartagena.",
+  "address": "Cl. 29d #22-165, Pie de la Popa, Cartagena de Indias, Bolívar, Colombia",
+  "location": {
+    "lat": 10.4156684,
+    "lng": -75.5285109
+  },
+  "phone": "+573217477582",
+  "image_url": "/images/partners/ptr_beauty_0416.jpg",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 4.5,
+  "reviews": 117,
+  "price_range": "$$",
+  "tier": "standard",
+  "hours": "Monday: 9:00 AM – 8:00 PM; Tuesday: 9:00 AM – 8:00 PM ...",
+  "is_certified": false,
+  "is_government": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_status": "inactive",
+  "membership_tier": "standard",
+  "membership_plan": "none",
+  "membership_paid_until": null,
+  "cuisine": ""
+}

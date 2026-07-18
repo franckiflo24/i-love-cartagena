@@ -1,1 +1,26 @@
-{"partner_id": "ptr_wn_011", "address": "Bocagrande, Cartagena", "booking_link": "https://tennisbocagrande.co", "category": "wellness", "description": "Club de tenis con 4 canchas de polvo de ladrillo. Clases para todos los niveles y ranking interno.", "experience": "Clases pro, sparring, alquiler de canchas, torneos amateur", "image_url": "https://lh3.googleusercontent.com/place-photos/AJRVUZMWktvzHtWSd2GFBgYqph--8YilmxPy7tWmqR-1Mknq1fl5BoCESdA5NGRrNCAVQiqH8qTTkgfVveVZuUQ3WDCksbWBJE1pRO7BniYZKZP51H-Z7ygKe3nr59hZk2-zf6rPXsCo3qAZYlx6HQ=s1600-w800", "instagram": "@tennisbocagrande", "is_certified": true, "location": {"lat": 10.4019, "lng": -75.553}, "name": "Tennis Club Bocagrande", "price_range": "$$", "subcategory": "sport", "tier": "popular", "default_payment_link": "", "membership_paid_until": null, "membership_status": "active", "membership_tier": "popular", "membership_plan": "free", "phone": "+573245620462", "hours": "Lun-Sáb 07:00 - 20:00"}
+{
+  "partner_id": "ptr_wn_011",
+  "address": "Bocagrande, Cartagena",
+  "booking_link": "https://tennisbocagrande.co",
+  "category": "wellness",
+  "description": "Club de tenis con 4 canchas de polvo de ladrillo. Clases para todos los niveles y ranking interno.",
+  "experience": "Clases pro, sparring, alquiler de canchas, torneos amateur",
+  "image_url": "/images/partners/ptr_wn_011.jpg",
+  "instagram": "@tennisbocagrande",
+  "is_certified": true,
+  "location": {
+    "lat": 10.4019,
+    "lng": -75.553
+  },
+  "name": "Tennis Club Bocagrande",
+  "price_range": "$$",
+  "subcategory": "sport",
+  "tier": "popular",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "phone": "+573245620462",
+  "hours": "Lun-Sáb 07:00 - 20:00"
+}
