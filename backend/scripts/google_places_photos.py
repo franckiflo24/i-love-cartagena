@@ -74,12 +74,16 @@ async def main():
     log.info(f"Total partners: {len(partners)}")
 
     # Only update partners still using unsplash placeholders or category fallbacks
+    # PROTECTED: Partners with self-hosted images (/images/) are never touched.
     to_update = []
     seen = set()
     for p in partners:
         img = p.get("image_url", "")
         pid = p["partner_id"]
         name = p["name"]
+        # Skip self-hosted images — these are the source of truth
+        if img.startswith("/images/"):
+            continue
         # Skip if already has a real image (not unsplash)
         if "unsplash.com" not in img and img:
             continue

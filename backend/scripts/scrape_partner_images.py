@@ -109,9 +109,12 @@ async def main():
     log.info(f"Total partners: {len(partners)}")
 
     # Filter to partners with Unsplash images AND a website
+    # PROTECTED: Partners with self-hosted images (/images/) are never touched.
     to_scrape = []
     for p in partners:
         img = p.get("image_url", "")
+        if img.startswith("/images/"):
+            continue
         url = p.get("booking_link") or p.get("website") or ""
         if "unsplash.com" in img and url and url.startswith("http"):
             to_scrape.append(p)

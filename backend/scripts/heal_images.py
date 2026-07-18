@@ -4,9 +4,15 @@ Bulk-validate every image URL across the static dump and swap broken ones
 
 Runs in parallel with a HEAD request. Re-writes the JSON files in place.
 
+IMAGE PROTECTION: Self-hosted images at /images/ are NEVER replaced unless
+--force is passed. This prevents verified, self-hosted images from being
+overwritten with Unsplash fallbacks. See: heal_images.py killed 683 images
+in pre-launch when url_ok() returned False for relative paths.
+
 Usage:
     python3 backend/scripts/heal_images.py
     python3 backend/scripts/heal_images.py --dry-run
+    python3 backend/scripts/heal_images.py --force   # override protection
 """
 import json
 import sys
@@ -47,6 +53,21 @@ CAT_FALLBACK = {
     "popup":        "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1200&q=80",
 }
 GENERIC = "https://images.unsplash.com/photo-1583037189850-1921ae7c6c22?w=1200&q=80"  # Cartagena
+
+# ─── IMAGE PROTECTION ──────────────────────────────────────────────
+# Self-hosted images (/images/*) are the source of truth and must
+# NEVER be replaced. They are relative paths served by Vercel CDN.
+# url_ok() returns False for them (no http:// prefix), which would
+# cause this script to classify all 683+ self-hosted images as broken
+# and overwrite them with Unsplash. The PROTECTED check prevents this.
+# ────────────────────────────────────────────────────────────────────
+PROTECTED_PREFIXES = ["/images/"]
+
+
+def is_protected(url: str) -> bool:
+    """Return True if URL is a self-hosted image that must not be replaced."""
+    return any(url.startswith(p) for p in PROTECTED_PREFIXES)
+
 
 def url_ok(url: str, timeout: float = 6.0) -> bool:
     """HEAD (fall back to GET range 0-0) — true if 2xx."""
@@ -137,11 +158,29 @@ def collect_urls_to_check():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--force", action="store_true", help="Override image protection (replace self-hosted images)")
     ap.add_argument("--workers", type=int, default=24)
     args = ap.parse_args()
 
     targets = collect_urls_to_check()
-    print(f"checking {len(targets)} image URLs across {len({t[0] for t in targets})} files…\n")
+
+    # Filter out protected self-hosted images unless --force
+    protected_count = 0
+    if not args.force:
+        filtered = []
+        for t in targets:
+            url = t[2]
+            if is_protected(url):
+                protected_count += 1
+            else:
+                filtered.append(t)
+        targets = filtered
+
+    print(f"checking {len(targets)} image URLs across {len({t[0] for t in targets})} files…")
+    if protected_count:
+        print(f"  PROTECTED: {protected_count} self-hosted images skipped (use --force to override)\n")
+    else:
+        print()
 
     # Deduplicate URLs to reduce checks
     unique_urls = list({t[2] for t in targets})

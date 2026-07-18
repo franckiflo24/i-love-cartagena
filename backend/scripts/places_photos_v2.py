@@ -188,9 +188,12 @@ def main():
         partners = json.load(f)
 
     # Find partners needing real photos
+    # PROTECTED: Partners with self-hosted images (/images/) are never touched.
     targets = []
     for p in partners:
         img = p.get('image_url', '')
+        if img.startswith('/images/'):
+            continue
         if args.unsplash_only and 'unsplash.com' not in img:
             continue
         if not args.unsplash_only and 'unsplash.com' not in img and img:
