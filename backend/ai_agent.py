@@ -454,7 +454,13 @@ async def _get_taxonomy(db) -> Tuple[List[str], List[str]]:
 
 
 async def _route_intent(db, user_text: str) -> Dict[str, Any]:
-    """Use a cheap Haiku call to map the user message to canonical categories/subcategories.
+    """Route user intent using the 525-entry keyword fallback — instant, no LLM call.
+
+    The Haiku LLM routing was removed because:
+    1. It failed to parse JSON responses ~50% of the time
+    2. Each failed call wasted 3-5 seconds of latency
+    3. The keyword fallback (525 entries across EN/ES/FR/PT) now covers all cases
+       that LLM routing was supposed to handle
 
     Returns a dict like:
         {
@@ -463,73 +469,55 @@ async def _route_intent(db, user_text: str) -> Dict[str, Any]:
             "search_terms": ["latte", "cafe"],
             "intent_type": "recommendation"
         }
-
-    Falls back to empty routing (diverse partners) if the LLM call fails.
     """
-    from llm import llm_complete
+    semantic = _extract_filters_from_text(user_text)
 
-    categories, subcategories = await _get_taxonomy(db)
+    categories: List[str] = []
+    subcategories: List[str] = []
+    search_terms: List[str] = []
 
-    if not categories:
-        # If taxonomy is empty, fall back gracefully
-        return {"categories": [], "subcategories": [], "search_terms": [], "intent_type": "general"}
+    if "category" in semantic:
+        categories.append(semantic["category"])
+    if "category_in" in semantic:
+        categories.extend(semantic["category_in"])
+    if "subcategory" in semantic:
+        subcategories.append(semantic["subcategory"])
 
-    routing_prompt = f"""You are a routing classifier for a Cartagena concierge app. Given a user message, map it to the app's taxonomy.
+    # Extract meaningful words as search terms (skip very short/common words)
+    t = (user_text or "").lower().strip()
+    stopwords = {"el", "la", "de", "en", "un", "una", "los", "las", "que", "es",
+                 "para", "con", "the", "a", "an", "in", "of", "for", "to", "is",
+                 "i", "my", "me", "do", "can", "where", "what", "how", "want",
+                 "quiero", "donde", "cual", "como"}
+    search_terms = [w for w in t.split() if len(w) >= 3 and w not in stopwords][:4]
 
-AVAILABLE CATEGORIES (from database):
-{json.dumps(categories, ensure_ascii=False)}
+    # Detect intent type
+    intent_type = "general"
+    event_kws = {"event", "evento", "concert", "concierto", "tonight", "noche",
+                 "esta noche", "agenda", "hoy", "ce soir", "hoje"}
+    essential_kws = {"money", "dinero", "safe", "seguro", "emergency", "emergencia",
+                     "hospital", "pharmacy", "farmacia", "atm", "cajero", "sim"}
+    logistics_kws = {"taxi", "uber", "airport", "aeropuerto", "boat", "lancha",
+                     "transport", "transporte", "transfer", "bus"}
+    if any(kw in t for kw in event_kws):
+        intent_type = "events"
+    elif any(kw in t for kw in essential_kws):
+        intent_type = "essentials"
+    elif any(kw in t for kw in logistics_kws):
+        intent_type = "logistics"
+    elif categories or subcategories:
+        intent_type = "recommendation"
 
-AVAILABLE SUBCATEGORIES (from database):
-{json.dumps(subcategories, ensure_ascii=False)}
+    # Deduplicate
+    categories = list(dict.fromkeys(categories))[:3]
+    subcategories = list(dict.fromkeys(subcategories))[:3]
 
-Return ONLY valid JSON (no markdown, no explanation):
-{{
-  "categories": ["<1-3 matching categories from the list above, or empty if none fit>"],
-  "subcategories": ["<0-3 matching subcategories from the list above, or empty>"],
-  "search_terms": ["<1-4 keywords to text-search in partner name/description/cuisine/experience>"],
-  "intent_type": "<one of: recommendation, essentials, logistics, events, general>"
-}}
-
-RULES:
-- Only use categories/subcategories that EXIST in the lists above.
-- "recommendation" = user wants a place (restaurant, bar, hotel, beach, spa, activity, etc.)
-- "essentials" = user asks about safety, money, emergency, health, SIM cards, ATMs
-- "logistics" = user asks about transport, taxis, airport, boats, getting around
-- "events" = user asks about concerts, parties, what's on tonight, agenda
-- "general" = greetings, small talk, general Cartagena questions
-- search_terms should capture the SPECIFIC thing the user wants (e.g. "latte", "lobster", "matcha", "rooftop", "sunset")
-- If the user says "bar" include "bar" in categories. If they say "coffee" or "latte" include "cafe" in categories.
-- Be generous with categories: if unsure, include 2-3 plausible categories."""
-
-    try:
-        raw = await llm_complete(
-            routing_prompt,
-            user_text,
-            model="claude-haiku-4-5",
-            max_tokens=300,
-            temperature=0.0,
-        )
-        if not raw:
-            return {"categories": [], "subcategories": [], "search_terms": [], "intent_type": "general"}
-
-        parsed = json.loads(raw)
-        # Validate and sanitize
-        result: Dict[str, Any] = {
-            "categories": [c for c in (parsed.get("categories") or []) if isinstance(c, str)][:3],
-            "subcategories": [s for s in (parsed.get("subcategories") or []) if isinstance(s, str)][:3],
-            "search_terms": [t for t in (parsed.get("search_terms") or []) if isinstance(t, str)][:4],
-            "intent_type": parsed.get("intent_type", "general"),
-        }
-        if result["intent_type"] not in {"recommendation", "essentials", "logistics", "events", "general"}:
-            result["intent_type"] = "general"
-        return result
-
-    except json.JSONDecodeError:
-        logger.warning(f"[_route_intent] Failed to parse LLM routing response")
-        return {"categories": [], "subcategories": [], "search_terms": [], "intent_type": "general"}
-    except Exception as exc:
-        logger.warning(f"[_route_intent] LLM routing failed: {exc}")
-        return {"categories": [], "subcategories": [], "search_terms": [], "intent_type": "general"}
+    return {
+        "categories": categories,
+        "subcategories": subcategories,
+        "search_terms": search_terms,
+        "intent_type": intent_type,
+    }
 
 
 async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
