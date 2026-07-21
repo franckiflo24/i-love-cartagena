@@ -722,10 +722,12 @@ async def _slim_all_partners_compact(db, limit: int = 80) -> List[Dict[str, Any]
 
 async def _slim_upcoming_events(db, days: int = 7, limit: int = 20) -> List[Dict[str, Any]]:
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    # Events use date_start (not date)
     cursor = db.events.find(
-        {"date": {"$gte": today_str}},
-        {"_id": 0, "event_id": 1, "title": 1, "date": 1, "venue_name": 1, "is_free": 1},
-    ).sort("date", 1).limit(limit)
+        {"$or": [{"date_start": {"$gte": today_str}}, {"date": {"$gte": today_str}}]},
+        {"_id": 0, "event_id": 1, "slug": 1, "title": 1, "name_es": 1,
+         "date_start": 1, "date": 1, "venue": 1, "venue_name": 1, "is_free": 1},
+    ).sort([("date_start", 1), ("date", 1)]).limit(limit)
     return await cursor.to_list(limit)
 
 
@@ -1250,8 +1252,12 @@ async def run_agent_turn(
     # Build valid IDs from context for sanitizing recommendations
     valid_partner_ids = {p.get("partner_id") for p in (context.get("relevant_partners") or [])}
     valid_partner_ids.update(p.get("partner_id") for p in (context.get("partner_directory") or []))
-    valid_event_ids = {e.get("event_id") for e in (context.get("events") or [])}
-    valid_event_ids.update(e.get("event_id") for e in (context.get("partner_events") or []))
+    valid_event_ids = set()
+    for e in (context.get("events") or []):
+        valid_event_ids.add(e.get("event_id") or e.get("slug"))
+    for e in (context.get("partner_events") or []):
+        valid_event_ids.add(e.get("event_id") or e.get("slug"))
+    valid_event_ids.discard(None)
     recommendations = _sanitize_recommendations(parsed.get("recommendations") or [], valid_partner_ids, valid_event_ids)
     suggestions = [str(s)[:80] for s in (parsed.get("suggestions") or [])[:4] if s]
 
