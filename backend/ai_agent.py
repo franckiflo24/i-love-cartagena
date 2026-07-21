@@ -550,6 +550,9 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
         for r in cat_counts if r.get("_id")
     ]
     semantic_filters = _extract_filters_from_text(user_text)
+    # Curated knowledge base matching
+    from knowledge import match_knowledge
+    curated = match_knowledge(user_text, top_k=5)
     ctx: Dict[str, Any] = {
         "today": datetime.now(timezone.utc).strftime("%A %Y-%m-%d"),
         "user": {
@@ -573,6 +576,7 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
         "partner_categories": ["restaurant", "hotel", "beach_club", "bar", "club", "cafe", "spa", "beauty", "activity", "yacht", "attraction", "service"],
         "inventory_summary": inventory_summary,  # counts per category/subcategory
         "semantic_filters_detected": semantic_filters,
+        **({"curated_recommendations": curated} if curated else {}),
         "intent_routing": routed_intent,  # LLM-routed intent (categories, subcategories, search_terms, intent_type)
         "relevant_partners": relevant_partners,  # rich data for top matches
         "all_partners_directory": all_partners,  # full catalog (compact)
@@ -712,6 +716,16 @@ TU TRABAJO
 - Si no hay match preciso, sugerí explorar con `show_partners` filtrado o `navigate` al tab.
 - Si la consulta es ambigua, hacé UNA pregunta corta de aclaración (ej: "¿Para cuántas personas?" / "How many people?" / "Pour combien de personnes ?").
 - **PRECISIÓN > GENERALIDAD**. Si el usuario dice "italiano" y `relevant_partners` tiene 8 italianos, devolvé 5-8 tarjetas de esos italianos en `recommendations`, no digas "tenemos italianos" en general.
+
+══════════════════════════════════════════
+RECOMENDACIONES CURADAS (PRIORIDAD MÁXIMA)
+══════════════════════════════════════════
+Si `curated_recommendations` aparece en el contexto, estas son recomendaciones de un EXPERTO LOCAL que conoce la ciudad.
+- Los venues están en ORDEN DE PRIORIDAD (el primero es el mejor).
+- SIEMPRE priorizá estas recomendaciones sobre el ranking por rating del catálogo general.
+- Usá los nombres exactos de las recomendaciones curadas y buscá su partner_id en `relevant_partners` o `all_partners_directory` para armar las tarjetas.
+- Si un venue curado no aparece en el catálogo de la app, mencionalo en el texto del mensaje pero no lo pongas en recommendations (no podemos linkear a algo que no existe).
+- Las recomendaciones curadas cubren categorías muy específicas: coctelería, rooftops, reguetón, brunch, sushi, etc. Usá la categoría y pregunta como guía de lo que el usuario realmente busca.
 
 ══════════════════════════════════════════
 FORMATO DE RESPUESTA (JSON estricto, sin markdown, sin código de bloque)

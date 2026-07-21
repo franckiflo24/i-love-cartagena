@@ -39,6 +39,53 @@ type SearchCache = {
 let SEARCH_CACHE: SearchCache = null;
 let SEARCH_CACHE_PROMISE: Promise<SearchCache> | null = null;
 
+// ── Knowledge base for curated recommendations ──────────────────
+type KnowledgeEntry = { category: string; question: string; ranked: string[] };
+let KNOWLEDGE_CACHE: KnowledgeEntry[] | null = null;
+let KNOWLEDGE_CACHE_PROMISE: Promise<KnowledgeEntry[]> | null = null;
+
+const loadKnowledge = async (): Promise<KnowledgeEntry[]> => {
+  if (KNOWLEDGE_CACHE) return KNOWLEDGE_CACHE;
+  if (KNOWLEDGE_CACHE_PROMISE) return KNOWLEDGE_CACHE_PROMISE;
+  KNOWLEDGE_CACHE_PROMISE = (async () => {
+    const data = await tryStatic('/knowledge');
+    KNOWLEDGE_CACHE = Array.isArray(data) ? data : [];
+    return KNOWLEDGE_CACHE;
+  })();
+  return KNOWLEDGE_CACHE_PROMISE;
+};
+
+/** Match user query against curated knowledge entries.
+ *  Returns set of venue names that appear in top matching entries. */
+const matchKnowledgeBoosted = async (q: string): Promise<Set<string>> => {
+  const entries = await loadKnowledge();
+  if (!entries.length) return new Set();
+  const qNorm = norm(q);
+  const qWords = qNorm.split(/\s+/).filter(w => w.length >= 2);
+  if (!qWords.length) return new Set();
+
+  // Score each entry by keyword overlap
+  const scored: { entry: KnowledgeEntry; score: number }[] = [];
+  for (const entry of entries) {
+    const entryText = norm(entry.question) + ' ' + norm(entry.category);
+    let score = 0;
+    for (const w of qWords) {
+      if (entryText.includes(w)) score++;
+    }
+    if (score > 0) scored.push({ entry, score });
+  }
+  scored.sort((a, b) => b.score - a.score);
+
+  // Collect venue names from top 3 matching entries
+  const boosted = new Set<string>();
+  for (const { entry } of scored.slice(0, 3)) {
+    for (const name of entry.ranked) {
+      boosted.add(norm(name));
+    }
+  }
+  return boosted;
+};
+
 const loadSearchCache = async (): Promise<SearchCache> => {
   if (SEARCH_CACHE) return SEARCH_CACHE;
   if (SEARCH_CACHE_PROMISE) return SEARCH_CACHE_PROMISE;
@@ -164,9 +211,36 @@ const staticSearch = async (path: string): Promise<any> => {
   const terms = expandQuery(q);
   const cats  = detectCategories(q);
 
+  // Knowledge-base boost: find partners mentioned in curated entries matching the query
+  const knowledgeBoosted = await matchKnowledgeBoosted(q);
+
   let partners = cache.partners.filter((p: any) =>
     matchAny(terms, p.name, p.description, p.category, p.subcategory, p.address, p.cuisine)
   );
+
+  // Add partners from knowledge base that weren't found by text match
+  if (knowledgeBoosted.size > 0) {
+    const seen = new Set(partners.map((p: any) => p.partner_id || p.id));
+    const knowledgePartners = cache.partners.filter((p: any) => {
+      const id = p.partner_id || p.id;
+      if (seen.has(id)) return false;
+      return knowledgeBoosted.has(norm(p.name));
+    });
+    for (const p of knowledgePartners) {
+      partners.push(p);
+      seen.add(p.partner_id || p.id);
+    }
+  }
+
+  // Sort: knowledge-boosted partners first, then the rest
+  if (knowledgeBoosted.size > 0) {
+    partners.sort((a: any, b: any) => {
+      const aBoost = knowledgeBoosted.has(norm(a.name)) ? 1 : 0;
+      const bBoost = knowledgeBoosted.has(norm(b.name)) ? 1 : 0;
+      return bBoost - aBoost;
+    });
+  }
+
   // If text match is sparse, fall back to category match so we always have something to show
   if (partners.length < 5 && cats.length > 0) {
     const byCat = cache.partners.filter((p: any) => {

@@ -1,0 +1,5294 @@
+[
+  {
+    "category": "Bares",
+    "question": "¿Cuál es el mejor bar de Cartagena?",
+    "ranked": [
+      "Alquímico",
+      "El Barón",
+      "Barra 7 Cocktail Bar",
+      "Casa Bohème",
+      "Mirador Gastro Bar",
+      "Townhouse Rooftop",
+      "Members Only",
+      "Rum Box"
+    ]
+  },
+  {
+    "category": "Coctelería",
+    "question": "¿Dónde preparan los mejores cócteles?",
+    "ranked": [
+      "Barra 7 Cocktail Bar",
+      "Alquímico",
+      "El Barón",
+      "Rum Box",
+      "Members Only",
+      "El Coro Lounge Bar",
+      "Casa Bohème",
+      "Mirador Gastro Bar"
+    ]
+  },
+  {
+    "category": "Rooftops",
+    "question": "¿Cuáles son los mejores rooftops de Cartagena?",
+    "ranked": [
+      "51 Sky Bar",
+      "Movich Rooftop",
+      "Townhouse Rooftop",
+      "Alquímico",
+      "Mirador Gastro Bar",
+      "La Jugada Rooftop",
+      "Hotel Capellán Rooftop",
+      "Mar y Zielo Rooftop"
+    ]
+  },
+  {
+    "category": "Vida nocturna",
+    "question": "¿Dónde salir de noche en Cartagena?",
+    "ranked": [
+      "Alquímico",
+      "Casa Bohème",
+      "La Movida",
+      "Eivissa Cartagena",
+      "La Jugada",
+      "Mirador Gastro Bar",
+      "El Barón",
+      "El Pasquín"
+    ]
+  },
+  {
+    "category": "Discotecas",
+    "question": "¿Cuáles son las mejores discotecas de Cartagena?",
+    "ranked": [
+      "La Movida",
+      "Eivissa Cartagena",
+      "Casa Bohème",
+      "La Chula",
+      "El Pasquín",
+      "Seven 7 Times",
+      "Members Only",
+      "Townhouse Rooftop"
+    ]
+  },
+  {
+    "category": "Música electrónica",
+    "question": "¿Dónde escuchar música electrónica en Cartagena?",
+    "ranked": [
+      "Casa Bohème",
+      "Eivissa Cartagena",
+      "Alquímico",
+      "Members Only",
+      "Townhouse Rooftop",
+      "El Barón",
+      "Mirador Gastro Bar",
+      "La Movida"
+    ]
+  },
+  {
+    "category": "Reguetón",
+    "question": "¿Cuál es la mejor discoteca de reguetón en Cartagena?",
+    "ranked": [
+      "La Movida",
+      "El Pasquín",
+      "La Chula",
+      "Seven 7 Times",
+      "Taboo Disco Club",
+      "La Jugada",
+      "Eivissa Cartagena",
+      "Townhouse Rooftop"
+    ]
+  },
+  {
+    "category": "Salsa",
+    "question": "¿Dónde bailar salsa en Cartagena?",
+    "ranked": [
+      "Donde Fidel",
+      "Café Havana",
+      "Quiebra Canto",
+      "Bazurto Social Club",
+      "La Bodeguita",
+      "La Movida",
+      "El Barón",
+      "Alquímico"
+    ]
+  },
+  {
+    "category": "Música en vivo",
+    "question": "¿Dónde hay música en vivo en Cartagena?",
+    "ranked": [
+      "Café Havana",
+      "Donde Fidel",
+      "Quiebra Canto",
+      "Bazurto Social Club",
+      "La Vitrola",
+      "El Arsenal",
+      "Live Lula Pub",
+      "Casa Palenque"
+    ]
+  },
+  {
+    "category": "Beach Clubs",
+    "question": "¿Cuáles son los mejores beach clubs de Cartagena?",
+    "ranked": [
+      "Bethel Bellini",
+      "Fénix Beach",
+      "Bora Bora",
+      "PA'UE Beach Lounge",
+      "Blue Apple Beach",
+      "Luxury Beach Club",
+      "Makani Beach Club",
+      "Capri Beach Club"
+    ]
+  },
+  {
+    "category": "Islas",
+    "question": "¿Qué isla recomiendas visitar cerca de Cartagena?",
+    "ranked": [
+      "Islas del Rosario",
+      "Isla Barú",
+      "Isla Tierra Bomba",
+      "Isla Grande",
+      "Isla Cholón",
+      "Isla Marina",
+      "Isla del Encanto",
+      "Isla Coralina"
+    ]
+  },
+  {
+    "category": "Playas",
+    "question": "¿Cuáles son las mejores playas de Cartagena?",
+    "ranked": [
+      "Playa Blanca",
+      "Playa Tranquila",
+      "Playa Puntilla (Tierra Bomba)",
+      "Playa de Bocagrande",
+      "Playa Castillo Grande",
+      "Playa Manzanillo del Mar",
+      "Playa Azul (Barú)",
+      "Playa de Marbella"
+    ]
+  },
+  {
+    "category": "Restaurantes",
+    "question": "¿Cuáles son los mejores restaurantes de Cartagena?",
+    "ranked": [
+      "Celele",
+      "Carmen",
+      "Casa Bohème",
+      "1621",
+      "Candé",
+      "Alma",
+      "La Mulata",
+      "El Burlador"
+    ]
+  },
+  {
+    "category": "Mariscos",
+    "question": "¿Cuáles son los mejores restaurantes de mariscos en Cartagena?",
+    "ranked": [
+      "Buena Vida Marisquería",
+      "La Cevichería",
+      "Club de Pesca",
+      "Marea",
+      "Mar de las Antillas",
+      "Pezetarian",
+      "El Muelle",
+      "Tomillo Cevichería & Mar"
+    ]
+  },
+  {
+    "category": "Brunch",
+    "question": "¿Dónde hacer brunch en Cartagena?",
+    "ranked": [
+      "Mila",
+      "La Brioche",
+      "Nía Bakery",
+      "Casa Bohème",
+      "Época Café",
+      "Café San Alberto",
+      "Manna Breakfast & Lunch",
+      "Café de la Mañana"
+    ]
+  },
+  {
+    "category": "Cafés",
+    "question": "¿Cuáles son los mejores cafés de Cartagena?",
+    "ranked": [
+      "Época Café",
+      "Café San Alberto",
+      "Café del Mural",
+      "Nía Bakery",
+      "Libertario Coffee Roasters",
+      "Ely Café",
+      "Mientras Café",
+      "Café de la Mañana"
+    ]
+  },
+  {
+    "category": "Postres",
+    "question": "¿Dónde comer los mejores postres de Cartagena?",
+    "ranked": [
+      "Mila",
+      "Nía Bakery",
+      "Gelateria Tramonti",
+      "La Palettería",
+      "Gelateria Paradiso",
+      "Postres Patricia Berón",
+      "La Petite Gourmande",
+      "Crepes & Waffles"
+    ]
+  },
+  {
+    "category": "Hoteles",
+    "question": "¿Cuáles son los mejores hoteles de Cartagena?",
+    "ranked": [
+      "Sofitel Legend Santa Clara",
+      "Casa San Agustín",
+      "Four Seasons Cartagena",
+      "Charleston Santa Teresa",
+      "Hyatt Regency Cartagena",
+      "Bastión Luxury Hotel",
+      "Anandá Hotel Boutique",
+      "InterContinental Cartagena"
+    ]
+  },
+  {
+    "category": "Hoteles Boutique",
+    "question": "¿Cuáles son los mejores hoteles boutique de Cartagena?",
+    "ranked": [
+      "Casa San Agustín",
+      "Anandá Hotel Boutique",
+      "Hotel Capellán",
+      "Casa Pestagua",
+      "Nacar Hotel Cartagena",
+      "Bastión Luxury Hotel",
+      "Alfiz Hotel",
+      "Casa La Factoría"
+    ]
+  },
+  {
+    "category": "Hoteles de Lujo",
+    "question": "¿Cuáles son los hoteles más lujosos de Cartagena?",
+    "ranked": [
+      "Four Seasons Cartagena",
+      "Sofitel Legend Santa Clara",
+      "Casa San Agustín",
+      "OSH Hotel",
+      "Charleston Santa Teresa",
+      "Bastión Luxury Hotel",
+      "Hyatt Regency Cartagena",
+      "Nacar Hotel Cartagena"
+    ]
+  },
+  {
+    "category": "Spas",
+    "question": "¿Cuáles son los mejores spas de Cartagena?",
+    "ranked": [
+      "URAKU Spa",
+      "Luxury Spa Cartagena",
+      "HOM Spa Cartagena",
+      "Sublime Premium Spa",
+      "Relax Spa Cartagena",
+      "So Spa (Sofitel Legend Santa Clara)",
+      "The Spa at Sofitel Barú",
+      "Plenitud Spa"
+    ]
+  },
+  {
+    "category": "Compras",
+    "question": "¿Dónde ir de compras en Cartagena?",
+    "ranked": [
+      "La Serrezuela",
+      "Bocagrande Plaza",
+      "Centro Histórico (Boutiques)",
+      "Caribe Plaza",
+      "Mallplaza El Castillo",
+      "Malva Store",
+      "Aja Company",
+      "Las Bóvedas"
+    ]
+  },
+  {
+    "category": "Atardeceres",
+    "question": "¿Dónde ver el mejor atardecer en Cartagena?",
+    "ranked": [
+      "Bona Vida Sunset Cruise",
+      "Catamarán Sunset Cruise",
+      "La Terraza del Movich",
+      "Townhouse Rooftop",
+      "Mirador Gastro Bar",
+      "Alquímico",
+      "Rooftop OSH Hotel",
+      "La Fantástica Sunset Cruise"
+    ]
+  },
+  {
+    "category": "Miradores",
+    "question": "¿Cuáles son los mejores miradores de Cartagena?",
+    "ranked": [
+      "Cerro de La Popa",
+      "Fuerte San Felipe de Barajas",
+      "La Terraza del Movich",
+      "51 Sky Bar",
+      "Townhouse Rooftop",
+      "Mirador Gastro Bar",
+      "Rooftop OSH Hotel",
+      "Baluarte de Santo Domingo"
+    ]
+  },
+  {
+    "category": "Tours",
+    "question": "¿Qué tours recomiendas en Cartagena?",
+    "ranked": [
+      "Tour Islas del Rosario",
+      "Tour a Barú y Playa Blanca",
+      "Bona Vida Catamarán Sunset",
+      "City Tour Cartagena",
+      "Free Walking Tour por el Centro Histórico",
+      "Tour por los Manglares de La Boquilla",
+      "Tour Nocturno en Chiva",
+      "Rumba en Catamarán"
+    ]
+  },
+  {
+    "category": "Experiencias",
+    "question": "¿Cuáles son las experiencias imperdibles en Cartagena?",
+    "ranked": [
+      "Tour por las Islas del Rosario",
+      "Bona Vida Sunset Cruise",
+      "Recorrido por el Centro Histórico",
+      "Excursión a Barú y Playa Tranquila",
+      "Chiva Rumbera",
+      "Tour gastronómico por Cartagena",
+      "Clase de cocina colombiana",
+      "Tour por los Manglares de La Boquilla"
+    ]
+  },
+  {
+    "category": "Planes en pareja",
+    "question": "¿Qué hacer en pareja en Cartagena?",
+    "ranked": [
+      "Bona Vida Sunset Cruise",
+      "Cena en Carmen",
+      "Paseo por el Centro Histórico al atardecer",
+      "Tour privado por las Islas del Rosario",
+      "Spa para parejas",
+      "Cócteles en Alquímico",
+      "Cena en 1621",
+      "Rooftop al atardecer en Townhouse"
+    ]
+  },
+  {
+    "category": "Planes en familia",
+    "question": "¿Qué hacer en familia en Cartagena?",
+    "ranked": [
+      "Acuario Nacional Islas del Rosario",
+      "Tour a las Islas del Rosario",
+      "Castillo San Felipe de Barajas",
+      "Centro Histórico en coche",
+      "Playa Tranquila (Barú)",
+      "Museo Naval del Caribe",
+      "Manglares de La Boquilla",
+      "Parque Centenario"
+    ]
+  },
+  {
+    "category": "Playa",
+    "question": "¿Dónde puedo pasar un día de playa en Cartagena?",
+    "ranked": [
+      "Bethel Bellini",
+      "Fénix Beach",
+      "Bora Bora",
+      "Blue Apple Beach",
+      "PA'UE Beach Lounge",
+      "Playa Tranquila",
+      "Isla del Encanto",
+      "Amare Beach Club"
+    ]
+  },
+  {
+    "category": "Beach Club Tierra Bomba",
+    "question": "¿Cuál es el mejor beach club de Tierra Bomba?",
+    "ranked": [
+      "Bethel Bellini",
+      "Fénix Beach",
+      "Bora Bora",
+      "Blue Apple Beach",
+      "PA'UE Beach Lounge",
+      "Playa Tranquila",
+      "Isla del Encanto",
+      "Amare Beach Club"
+    ]
+  },
+  {
+    "category": "Beach Club Islas del Rosario",
+    "question": "¿Cuál es el mejor beach club de las Islas del Rosario?",
+    "ranked": [
+      "Bora Bora",
+      "Islabela",
+      "Isla del Encanto",
+      "Pa'UE Beach Lounge",
+      "Coralina Island",
+      "Hotel San Pedro de Majagua",
+      "Gente de Mar",
+      "Secreto Beach Club"
+    ]
+  },
+  {
+    "category": "Hoteles en Islas",
+    "question": "¿Cuál es el mejor hotel en las Islas del Rosario?",
+    "ranked": [
+      "Bora Bora",
+      "PA'UE Beach Lounge",
+      "Islabela",
+      "Secreto Beach Club",
+      "Coralina Island",
+      "Hotel San Pedro de Majagua",
+      "Gente de Mar",
+      "Isla del Encanto"
+    ]
+  },
+  {
+    "category": "Hoteles en Tierra Bomba",
+    "question": "¿Cuál es el mejor hotel en Tierra Bomba?",
+    "ranked": [
+      "Sofitel Barú Calablanca",
+      "Isla del Encanto",
+      "Hotel San Pedro de Majagua",
+      "Coralina Island",
+      "Eco Hotel Las Islas",
+      "Islabela Hotel",
+      "IslaBela Private Island Hotel",
+      "Gente de Mar Resort"
+    ]
+  },
+  {
+    "category": "Transporte a Islas",
+    "question": "¿Cómo llego a las Islas del Rosario?",
+    "ranked": [
+      "Lancha compartida desde Muelle La Bodeguita",
+      "Lancha privada",
+      "Excursión de día completo",
+      "Catamarán",
+      "Bona Vida Catamarán",
+      "Yate privado",
+      "Tour con hotel incluido",
+      "Transfer privado del hotel"
+    ]
+  },
+  {
+    "category": "Transporte a Tierra Bomba",
+    "question": "¿Cómo llego a Tierra Bomba?",
+    "ranked": [
+      "Lancha desde Muelle de La Bodeguita",
+      "Lancha privada",
+      "Transfer del Beach Club",
+      "Transfer del Hotel",
+      "Taxi acuático",
+      "Embarcación compartida",
+      "Alquiler de lancha privada",
+      "Yate privado"
+    ]
+  },
+  {
+    "category": "Lanchas Privadas",
+    "question": "¿Dónde puedo alquilar una lancha privada en Cartagena?",
+    "ranked": [
+      "La Marina Cartagena",
+      "Boating Cartagena",
+      "Todomar CHL Marina",
+      "Náutica Cartagena",
+      "Cartagena Boats",
+      "Boats4U Cartagena",
+      "Colombia Sailing",
+      "Charter Cartagena"
+    ]
+  },
+  {
+    "category": "Yates Privados",
+    "question": "¿Dónde puedo alquilar un yate privado en Cartagena?",
+    "ranked": [
+      "Rents 365",
+      "La Marina Cartagena",
+      "Boating Cartagena",
+      "Todomar CHL Marina",
+      "Náutica Cartagena",
+      "Cartagena Boats",
+      "Boats4U Cartagena",
+      "Colombia Sailing"
+    ]
+  },
+  {
+    "category": "Catamaranes",
+    "question": "¿Cuál es el mejor catamarán para disfrutar el atardecer?",
+    "ranked": [
+      "Bona Vida Catamarán",
+      "Catamarán Sibarita",
+      "Catamaranes del Caribe",
+      "La Fantástica Sunset Cruise",
+      "Luxury Catamaran Cartagena",
+      "Cartagena Catamaranes",
+      "Private Sunset Catamaran",
+      "Blue Sailing Cartagena"
+    ]
+  },
+  {
+    "category": "Sunset",
+    "question": "¿Cuál es la mejor experiencia para ver el atardecer en Cartagena?",
+    "ranked": [
+      "Bona Vida Sunset Cruise",
+      "Catamarán Sunset Cruise",
+      "Yate privado al atardecer",
+      "La Terraza del Movich",
+      "Townhouse Rooftop",
+      "Mirador Gastro Bar",
+      "Alquímico",
+      "Rooftop OSH Hotel"
+    ]
+  },
+  {
+    "category": "Rooftops para Sunset",
+    "question": "¿Cuál es el mejor rooftop para ver el sunset en Cartagena?",
+    "ranked": [
+      "La Terraza del Movich",
+      "Townhouse Rooftop",
+      "Mirador Gastro Bar",
+      "OSH Rooftop",
+      "51 Sky Bar",
+      "Alquímico",
+      "Mar y Zielo Rooftop",
+      "Numa Rooftop"
+    ]
+  },
+  {
+    "category": "Tours de Islas",
+    "question": "¿Cuál es el mejor tour a las Islas del Rosario?",
+    "ranked": [
+      "Bona Vida",
+      "Islabela Tour",
+      "Bora Bora Day Trip",
+      "PA'UE Day Experience",
+      "Isla del Encanto Day Tour",
+      "Gente de Mar Day Pass",
+      "San Pedro de Majagua Day Tour",
+      "Excursión Premium Islas del Rosario"
+    ]
+  },
+  {
+    "category": "Experiencias en Islas",
+    "question": "¿Cuáles son las mejores experiencias para hacer en las islas?",
+    "ranked": [
+      "Bona Vida",
+      "Islabela Tour",
+      "Bora Bora Day Trip",
+      "PA'UE Day Experience",
+      "Isla del Encanto Day Tour",
+      "Gente de Mar Day Pass",
+      "San Pedro de Majagua Day Tour",
+      "Excursión Premium Islas del Rosario"
+    ]
+  },
+  {
+    "category": "Islas para Fiesta",
+    "question": "¿Cuál es la mejor isla para hacer fiesta?",
+    "ranked": [
+      "Bethel Bellini",
+      "Cholón",
+      "Tierra Bomba",
+      "Bora Bora",
+      "PA'UE",
+      "Islabela",
+      "Isla Grande",
+      "Isla del Encanto"
+    ]
+  },
+  {
+    "category": "Islas para Relajarse",
+    "question": "¿Cuál es la mejor isla para relajarse?",
+    "ranked": [
+      "Isla del Encanto",
+      "Coralina Island",
+      "San Pedro de Majagua",
+      "Islabela",
+      "Isla Grande",
+      "PA'UE",
+      "Bora Bora",
+      "Hotel Las Islas"
+    ]
+  },
+  {
+    "category": "Islas para Parejas",
+    "question": "¿Cuál es la mejor isla para ir en pareja?",
+    "ranked": [
+      "Coralina Island",
+      "Isla del Encanto",
+      "Hotel Las Islas",
+      "San Pedro de Majagua",
+      "Islabela",
+      "PA'UE",
+      "Bora Bora",
+      "Isla Grande"
+    ]
+  },
+  {
+    "category": "Islas para Familias",
+    "question": "¿Cuál es la mejor isla para ir en familia?",
+    "ranked": [
+      "Isla del Encanto",
+      "San Pedro de Majagua",
+      "Hotel Las Islas",
+      "Islabela",
+      "Coralina Island",
+      "Isla Grande",
+      "PA'UE",
+      "Bora Bora"
+    ]
+  },
+  {
+    "category": "Snorkel y Buceo",
+    "question": "¿Dónde hacer snorkel o buceo cerca de Cartagena?",
+    "ranked": [
+      "Oceanario Islas del Rosario",
+      "Isla Grande",
+      "Pablo's Reef",
+      "San Martín de Pajarales",
+      "Corales del Rosario",
+      "Barú",
+      "Dive Planet Cartagena",
+      "Buceo Cartagena"
+    ]
+  },
+  {
+    "category": "Deportes Acuáticos",
+    "question": "¿Cuáles son los mejores deportes acuáticos en Cartagena?",
+    "ranked": [
+      "Jet Ski",
+      "E-Foil",
+      "Parasailing",
+      "Wakeboard",
+      "Paddle Board (SUP)",
+      "Kayak",
+      "Seabob",
+      "Kitesurf"
+    ]
+  },
+  {
+    "category": "Pesca Deportiva",
+    "question": "¿Dónde hacer pesca deportiva en Cartagena?",
+    "ranked": [
+      "Cartagena Fishing",
+      "Nomad Fishing Colombia",
+      "Pez Gallo Sport Fishing",
+      "Blue Water Fishing Cartagena",
+      "Caribe Fishing Charter",
+      "Big Game Fishing Cartagena",
+      "Cartagena Fishing Club",
+      "Private Fishing Charter"
+    ]
+  },
+  {
+    "category": "Paseos en Velero",
+    "question": "¿Dónde puedo alquilar un velero en Cartagena?",
+    "ranked": [
+      "Colombia Sailing",
+      "Rents 365",
+      "Boating Cartagena",
+      "Cartagena Sailing",
+      "La Marina Cartagena",
+      "Todomar CHL Marina",
+      "Private Sailing Cartagena",
+      "Blue Sailing Cartagena"
+    ]
+  },
+  {
+    "category": "Helicóptero",
+    "question": "¿Dónde puedo hacer un tour en helicóptero sobre Cartagena?",
+    "ranked": [
+      "Barco Volar",
+      "Cartagena Experience",
+      "Hi Cartagena",
+      "Butler Colombia",
+      "Helistar Colombia",
+      "Tour privado en helicóptero",
+      "Vuelo panorámico sobre la bahía",
+      "Helicóptero + yate privado"
+    ]
+  },
+  {
+    "category": "Experiencias VIP",
+    "question": "¿Cuál es la mejor experiencia VIP en Cartagena?",
+    "ranked": [
+      "Yate privado por las Islas del Rosario",
+      "Barco Volar",
+      "Helicóptero + Islas del Rosario",
+      "Chef privado en una isla",
+      "Day Pass VIP en Bethel Bellini",
+      "Catamarán privado al atardecer",
+      "Transfer privado + beach club premium",
+      "Tour privado personalizado por Cartagena"
+    ]
+  },
+  {
+    "category": "Experiencias Románticas",
+    "question": "¿Cuál es el mejor plan romántico en Cartagena?",
+    "ranked": [
+      "Bona Vida Sunset Cruise",
+      "Cena privada en las Islas del Rosario",
+      "Yate privado al atardecer",
+      "Spa para parejas",
+      "Cena en vive la vida",
+      "Cena en Carmen",
+      "Cócteles en Alquímico",
+      "Rooftop al atardecer en La Terraza del Movich"
+    ]
+  },
+  {
+    "category": "Experiencias de Lujo",
+    "question": "¿Cuáles son las mejores experiencias de lujo en Cartagena?",
+    "ranked": [
+      "Yate privado por las Islas del Rosario",
+      "Barco Volar",
+      "Helicóptero privado",
+      "Chef privado en una villa",
+      "Catamarán privado al atardecer",
+      "Day Pass VIP en Bethel Bellini",
+      "Transfer privado en lancha",
+      "Luxury Picnic en una isla privada"
+    ]
+  },
+  {
+    "category": "Planes para Grupos",
+    "question": "¿Qué planes recomiendas para grupos en Cartagena?",
+    "ranked": [
+      "Yate privado por las Islas del Rosario",
+      "Day Pass en Bellini",
+      "Catamarán privado",
+      "Chiva Rumbera",
+      "Tour por Cholón",
+      "Beach Club en Bora Bora",
+      "Party Boat por la bahía",
+      "Cena privada con DJ"
+    ]
+  },
+  {
+    "category": "Planes de Cumpleaños",
+    "question": "¿Dónde celebrar un cumpleaños en Cartagena?",
+    "ranked": [
+      "Casa Bohème",
+      "Bethel Bellini",
+      "Yate privado",
+      "Bona Vida Sunset Cruise",
+      "Alquímico",
+      "Bora Bora",
+      "La Movida",
+      "Townhouse Rooftop"
+    ]
+  },
+  {
+    "category": "Despedidas de Soltero/a",
+    "question": "¿Cuál es el mejor lugar para una despedida de soltero o soltera?",
+    "ranked": [
+      "Bethel Bellini",
+      "Yate privado",
+      "Cholón",
+      "Casa Bohème",
+      "La Movida",
+      "Bora Bora",
+      "Bona Vida Sunset Cruise",
+      "El Pasquín"
+    ]
+  },
+  {
+    "category": "Fotografía e Instagram Spots",
+    "question": "¿Cuáles son los mejores lugares para tomar fotos en Cartagena?",
+    "ranked": [
+      "Centro Histórico",
+      "Getsemaní",
+      "Cerro de La Popa",
+      "La Terraza del Movich",
+      "Plaza Santo Domingo",
+      "Las Bóvedas",
+      "Castillo San Felipe de Barajas",
+      "Islas del Rosario"
+    ]
+  },
+  {
+    "category": "Restaurantes con Vista al Mar",
+    "question": "¿Cuál es el mejor restaurante con vista al mar?",
+    "ranked": [
+      "Club de Pesca",
+      "Mar y Zielo",
+      "Casa Bohème",
+      "Alma",
+      "Carmen",
+      "La Vitrola",
+      "Buena Vida Marisquería",
+      "Restaurante 1621"
+    ]
+  },
+  {
+    "category": "Restaurantes Románticos",
+    "question": "¿Cuál es el restaurante más romántico de Cartagena?",
+    "ranked": [
+      "Carmen",
+      "Casa Bohème",
+      "Restaurante 1621",
+      "Alma",
+      "Celele",
+      "Mar y Zielo",
+      "Club de Pesca",
+      "La Vitrola"
+    ]
+  },
+  {
+    "category": "Restaurantes para Cumpleaños",
+    "question": "¿Cuál es el mejor restaurante para celebrar un cumpleaños?",
+    "ranked": [
+      "Casa Bohème",
+      "Carmen",
+      "Alquímico",
+      "Mar y Zielo",
+      "Club de Pesca",
+      "La Movida",
+      "Townhouse Rooftop",
+      "Restaurante 1621"
+    ]
+  },
+  {
+    "category": "Restaurantes para Cenas Especiales",
+    "question": "¿Cuál es el mejor restaurante para una cena especial?",
+    "ranked": [
+      "Restaurante 1621",
+      "Carmen",
+      "Casa Bohème",
+      "Alma",
+      "Celele",
+      "Mar y Zielo",
+      "Club de Pesca",
+      "La Vitrola"
+    ]
+  },
+  {
+    "category": "Restaurantes para Grupos",
+    "question": "¿Cuál es el mejor restaurante para grupos?",
+    "ranked": [
+      "Casa Bohème",
+      "Candé",
+      "La Mulata",
+      "Carmen",
+      "Alquímico",
+      "Mar y Zielo",
+      "Buena Vida Marisquería",
+      "Celele"
+    ]
+  },
+  {
+    "category": "Restaurantes Económicos",
+    "question": "¿Cuál es el mejor restaurante económico?",
+    "ranked": [
+      "La Mulata",
+      "Di Silvio Trattoria",
+      "El Burlador",
+      "Candé",
+      "Buena Vida Marisquería",
+      "Casa Bohème",
+      "Café Stepping Stone",
+      "La Cocina de Pepina"
+    ]
+  },
+  {
+    "category": "Restaurantes de Lujo",
+    "question": "¿Cuál es el mejor restaurante de lujo?",
+    "ranked": [
+      "Restaurante 1621",
+      "Carmen",
+      "Celele",
+      "Casa Bohème",
+      "Alma",
+      "Club de Pesca",
+      "Mar y Zielo",
+      "Harry's Sasson"
+    ]
+  },
+  {
+    "category": "Carnes",
+    "question": "¿Dónde comer la mejor carne en Cartagena?",
+    "ranked": [
+      "Brasa y Barril",
+      "Andrés Carne de Res Cartagena",
+      "Bovino",
+      "Casa Bohème",
+      "La Bifería",
+      "Parrilla Argentina",
+      "Rancho Parrilla",
+      "Carbon de Palo"
+    ]
+  },
+  {
+    "category": "Pizzas",
+    "question": "¿Dónde comer la mejor pizza en Cartagena?",
+    "ranked": [
+      "Da Pietro",
+      "Di Silvio Trattoria",
+      "Gelato & Co Pizza",
+      "Vera",
+      "Pizzeria Aguanile",
+      "La Diva",
+      "La Santa Guadalupe",
+      "La Piccola Fattoria"
+    ]
+  },
+  {
+    "category": "Restaurantes Italianos",
+    "question": "¿Cuál es el mejor restaurante italiano?",
+    "ranked": [
+      "Da Pietro",
+      "Di Silvio Trattoria",
+      "Vera",
+      "La Piccola Fattoria",
+      "La Diva",
+      "Giovanni",
+      "Restaurante 51 Sky Kitchen",
+      "Storia d'Amore"
+    ]
+  },
+  {
+    "category": "Restaurantes Japoneses",
+    "question": "¿Cuál es el mejor restaurante japonés?",
+    "ranked": [
+      "Nikkei",
+      "Inkanto",
+      "Casa Cruxada",
+      "Moshi",
+      "Osaka Sushi",
+      "Kafo",
+      "Sushi Room",
+      "Wasabi Sushi"
+    ]
+  },
+  {
+    "category": "Sushi",
+    "question": "¿Cuál es el mejor restaurante de sushi?",
+    "ranked": [
+      "Nikkei",
+      "Moshi",
+      "Inkanto",
+      "Kafo",
+      "Wasabi Sushi",
+      "Casa Cruxada",
+      "Osaka Sushi",
+      "Sushi Room"
+    ]
+  },
+  {
+    "category": "Restaurantes Mexicanos",
+    "question": "¿Cuál es el mejor restaurante mexicano?",
+    "ranked": [
+      "Mexicana Cartagena",
+      "El Charro",
+      "La Única",
+      "Agave Azul",
+      "Tex Mex Cartagena",
+      "La Taquería",
+      "Frida Mexican Food",
+      "Cactus Mexican Grill"
+    ]
+  },
+  {
+    "category": "Restaurantes Peruanos",
+    "question": "¿Cuál es el mejor restaurante de comida peruana?",
+    "ranked": [
+      "Perú Gourmet",
+      "Inkanto",
+      "Ceviches & Wok",
+      "Lima 51",
+      "La Cocina Peruana",
+      "Mistura",
+      "Perú Fusión",
+      "Panka"
+    ]
+  },
+  {
+    "category": "Restaurantes Vegetarianos",
+    "question": "¿Cuál es el mejor restaurante vegetariano?",
+    "ranked": [
+      "Oh La La Green",
+      "Salvaje Verde",
+      "Época Café",
+      "Nía Bakery",
+      "Mila",
+      "La Brioche",
+      "Café San Alberto",
+      "Mar y Zielo"
+    ]
+  },
+  {
+    "category": "Restaurantes Veganos",
+    "question": "¿Cuál es el mejor restaurante vegano?",
+    "ranked": [
+      "Oh La La Green",
+      "Salvaje Verde",
+      "Nía Bakery",
+      "Época Café",
+      "Mila",
+      "Café San Alberto",
+      "La Brioche",
+      "Casa Bohème"
+    ]
+  },
+  {
+    "category": "Ceviche",
+    "question": "¿Dónde comer el mejor ceviche?",
+    "ranked": [
+      "La Cevichería",
+      "Buena Vida Marisquería",
+      "Pezetarian",
+      "Marea",
+      "Tomillo Cevichería",
+      "Mar de las Antillas",
+      "Club de Pesca",
+      "La Perla"
+    ]
+  },
+  {
+    "category": "Langosta",
+    "question": "¿Dónde comer la mejor langosta?",
+    "ranked": [
+      "Club de Pesca",
+      "Buena Vida Marisquería",
+      "Marea",
+      "Mar de las Antillas",
+      "La Cevichería",
+      "Pezetarian",
+      "Casa Bohème",
+      "Alma"
+    ]
+  },
+  {
+    "category": "Pescado",
+    "question": "¿Dónde comer el mejor pescado?",
+    "ranked": [
+      "Club de Pesca",
+      "Marea",
+      "Mar de las Antillas",
+      "Buena Vida Marisquería",
+      "La Cevichería",
+      "Alma",
+      "Casa Bohème",
+      "La Perla"
+    ]
+  },
+  {
+    "category": "Desayunos",
+    "question": "¿Dónde desayunar en Cartagena?",
+    "ranked": [
+      "Mila",
+      "Nía Bakery",
+      "La Brioche",
+      "Casa Bohème",
+      "Época Café",
+      "Café San Alberto",
+      "Manna Breakfast & Lunch",
+      "Café de la Mañana"
+    ]
+  },
+  {
+    "category": "Almuerzos Frente al Mar",
+    "question": "¿Dónde almorzar frente al mar?",
+    "ranked": [
+      "Club de Pesca",
+      "Mar y Zielo",
+      "Casa Bohème",
+      "La Vitrola",
+      "Alma",
+      "Carmen",
+      "Buena Vida Marisquería",
+      "Restaurante 1621"
+    ]
+  },
+  {
+    "category": "Cenas",
+    "question": "¿Dónde cenar en Cartagena?",
+    "ranked": [
+      "Carmen",
+      "Casa Bohème",
+      "Alquímico",
+      "Mar y Zielo",
+      "La Vitrola",
+      "Celele",
+      "Alma",
+      "Restaurante 1621"
+    ]
+  },
+  {
+    "category": "Rooftops para Comer",
+    "question": "¿Cuál es el mejor rooftop para comer?",
+    "ranked": [
+      "Mar y Zielo",
+      "Townhouse Rooftop",
+      "La Terraza del Movich",
+      "OSH Rooftop",
+      "51 Sky Bar",
+      "Rooftop Urania",
+      "Casa Bohème",
+      "Alquímico"
+    ]
+  },
+  {
+    "category": "Rooftops para Cócteles",
+    "question": "¿Cuál es el mejor rooftop para tomar cócteles?",
+    "ranked": [
+      "Alquímico",
+      "El Barón",
+      "Mar y Zielo",
+      "Townhouse Rooftop",
+      "OSH Rooftop",
+      "51 Sky Bar",
+      "Rooftop Urania",
+      "Casa Bohème"
+    ]
+  },
+  {
+    "category": "Rooftops para Citas",
+    "question": "¿Cuál es el mejor rooftop para una cita?",
+    "ranked": [
+      "Townhouse Rooftop",
+      "La Terraza del Movich",
+      "Mar y Zielo",
+      "OSH Rooftop",
+      "Alquímico",
+      "51 Sky Bar",
+      "Rooftop Urania",
+      "El Barón"
+    ]
+  },
+  {
+    "category": "Rooftops para Fiesta",
+    "question": "¿Cuál es el mejor rooftop para una fiesta?",
+    "ranked": [
+      "Townhouse Rooftop",
+      "Mar y Zielo",
+      "OSH Rooftop",
+      "51 Sky Bar",
+      "Alquímico",
+      "Rooftop Urania",
+      "La Terraza del Movich",
+      "Movich Rooftop"
+    ]
+  },
+  {
+    "category": "Rooftops con Piscina",
+    "question": "¿Cuál es el mejor rooftop con piscina?",
+    "ranked": [
+      "OSH Rooftop",
+      "51 Sky Bar",
+      "La Terraza del Movich",
+      "Townhouse Rooftop",
+      "Mar y Zielo",
+      "Rooftop Urania",
+      "Four Seasons Rooftop",
+      "Movich Rooftop"
+    ]
+  },
+  {
+    "category": "Rooftops de Lujo",
+    "question": "¿Cuál es el mejor rooftop de lujo?",
+    "ranked": [
+      "Four Seasons Rooftop",
+      "OSH Rooftop",
+      "La Terraza del Movich",
+      "51 Sky Bar",
+      "Mar y Zielo",
+      "Townhouse Rooftop",
+      "Rooftop Urania",
+      "Alquímico"
+    ]
+  },
+  {
+    "category": "Hoteles con Piscina",
+    "question": "¿Cuál es el mejor hotel con piscina?",
+    "ranked": [
+      "Sofitel Legend Santa Clara",
+      "Four Seasons Cartagena",
+      "Hyatt Regency Cartagena",
+      "OSH Hotel",
+      "Casa San Agustín",
+      "Charleston Santa Teresa",
+      "Bastión Luxury Hotel",
+      "Dreams Karibana"
+    ]
+  },
+  {
+    "category": "Hoteles Frente al Mar",
+    "question": "¿Cuál es el mejor hotel frente al mar?",
+    "ranked": [
+      "Sofitel Barú",
+      "Four Seasons Cartagena",
+      "Hyatt Regency Cartagena",
+      "InterContinental Cartagena",
+      "Charleston Santa Teresa",
+      "OSH Hotel",
+      "Dreams Karibana",
+      "Sofitel Legend Santa Clara"
+    ]
+  },
+  {
+    "category": "Hoteles para Luna de Miel",
+    "question": "¿Cuál es el mejor hotel para luna de miel?",
+    "ranked": [
+      "Casa San Agustín",
+      "Sofitel Legend Santa Clara",
+      "OSH Hotel",
+      "Four Seasons Cartagena",
+      "Charleston Santa Teresa",
+      "Bastión Luxury Hotel",
+      "Nacar Hotel",
+      "Anandá Hotel Boutique"
+    ]
+  },
+  {
+    "category": "Hoteles para Familias",
+    "question": "¿Cuál es el mejor hotel para familias?",
+    "ranked": [
+      "Sofitel Barú",
+      "Dreams Karibana",
+      "Hyatt Regency Cartagena",
+      "InterContinental Cartagena",
+      "Las Islas",
+      "Casa San Agustín",
+      "OSH Hotel",
+      "Charleston Santa Teresa"
+    ]
+  },
+  {
+    "category": "Hoteles para Parejas",
+    "question": "¿Cuál es el mejor hotel para parejas?",
+    "ranked": [
+      "Casa San Agustín",
+      "OSH Hotel",
+      "Sofitel Legend Santa Clara",
+      "Four Seasons Cartagena",
+      "Bastión Luxury Hotel",
+      "Nacar Hotel",
+      "Anandá Hotel Boutique",
+      "Charleston Santa Teresa"
+    ]
+  },
+  {
+    "category": "Hoteles con Rooftop",
+    "question": "¿Cuál es el mejor hotel con rooftop?",
+    "ranked": [
+      "OSH Hotel",
+      "Movich Hotel",
+      "Casa San Agustín",
+      "Sofitel Legend Santa Clara",
+      "Four Seasons Cartagena",
+      "Bastión Luxury Hotel",
+      "Hyatt Regency Cartagena",
+      "Nacar Hotel"
+    ]
+  },
+  {
+    "category": "Hoteles con Spa",
+    "question": "¿Cuál es el mejor hotel con spa?",
+    "ranked": [
+      "Sofitel Legend Santa Clara",
+      "OSH Hotel",
+      "Hyatt Regency Cartagena",
+      "Four Seasons Cartagena",
+      "Las Islas",
+      "Charleston Santa Teresa",
+      "InterContinental Cartagena",
+      "Casa San Agustín"
+    ]
+  },
+  {
+    "category": "Hoteles Todo Incluido",
+    "question": "¿Cuál es el mejor hotel todo incluido?",
+    "ranked": [
+      "Dreams Karibana",
+      "Decameron Barú",
+      "Sofitel Barú",
+      "Las Américas",
+      "Corales de Indias",
+      "Estelar Cartagena",
+      "Holiday Inn Morros",
+      "Hyatt Regency Cartagena"
+    ]
+  },
+  {
+    "category": "Hoteles Exclusivos",
+    "question": "¿Cuál es el hotel más exclusivo de Cartagena?",
+    "ranked": [
+      "Four Seasons Cartagena",
+      "Sofitel Legend Santa Clara",
+      "Casa San Agustín",
+      "OSH Hotel",
+      "Charleston Santa Teresa",
+      "Bastión Luxury Hotel",
+      "Nacar Hotel",
+      "Anandá Hotel Boutique"
+    ]
+  },
+  {
+    "category": "Beach Clubs para Parejas",
+    "question": "¿Cuál es el mejor beach club para parejas?",
+    "ranked": [
+      "Bethel Bellini",
+      "Coralina Island",
+      "Blue Apple Beach",
+      "Bora Bora",
+      "PA'UE Beach Lounge",
+      "Fénix Beach",
+      "Islabela",
+      "Amare Beach Club"
+    ]
+  },
+  {
+    "category": "Beach Clubs para Familias",
+    "question": "¿Cuál es el mejor beach club para familias?",
+    "ranked": [
+      "Bethel Bellini",
+      "Isla del Encanto",
+      "Fénix Beach",
+      "Blue Apple Beach",
+      "PA'UE Beach Lounge",
+      "San Pedro de Majagua",
+      "Islabela",
+      "Bora Bora"
+    ]
+  },
+  {
+    "category": "Beach Clubs para Relajarse",
+    "question": "¿Cuál es el mejor beach club para relajarse?",
+    "ranked": [
+      "Coralina Island",
+      "Isla del Encanto",
+      "Blue Apple Beach",
+      "PA'UE Beach Lounge",
+      "San Pedro de Majagua",
+      "Islabela",
+      "Hotel Las Islas",
+      "Amare Beach Club"
+    ]
+  },
+  {
+    "category": "Beach Clubs para Fiesta",
+    "question": "¿Cuál es el mejor beach club para fiesta?",
+    "ranked": [
+      "Bethel Bellini",
+      "Bora Bora",
+      "Fénix Beach",
+      "PA'UE Beach Lounge",
+      "Blue Apple Beach",
+      "Amare Beach Club",
+      "Cholón",
+      "Secreto Beach Club"
+    ]
+  },
+  {
+    "category": "Beach Clubs Exclusivos",
+    "question": "¿Cuál es el beach club más exclusivo?",
+    "ranked": [
+      "Bethel Bellini",
+      "Bora Bora",
+      "Blue Apple Beach",
+      "Coralina Island",
+      "Fénix Beach",
+      "PA'UE Beach Lounge",
+      "Islabela",
+      "Hotel Las Islas"
+    ]
+  },
+  {
+    "category": "Playas Tranquilas",
+    "question": "¿Cuál es la playa más tranquila?",
+    "ranked": [
+      "Playa Tranquila",
+      "Isla del Encanto",
+      "Isla Grande",
+      "Playa Puntilla",
+      "Manzanillo del Mar",
+      "Barú",
+      "Coralina Island",
+      "San Pedro de Majagua"
+    ]
+  },
+  {
+    "category": "Playas Más Bonitas",
+    "question": "¿Cuál es la playa más bonita?",
+    "ranked": [
+      "Playa Blanca",
+      "Playa Tranquila",
+      "Manzanillo del Mar",
+      "Playa Puntilla",
+      "Barú",
+      "Isla Grande",
+      "Castillo Grande",
+      "Isla del Encanto"
+    ]
+  },
+  {
+    "category": "Playas Cercanas",
+    "question": "¿Cuál es la playa más cercana al Centro Histórico?",
+    "ranked": [
+      "Castillo Grande",
+      "Bocagrande",
+      "Marbella",
+      "El Laguito",
+      "La Boquilla",
+      "Manzanillo del Mar",
+      "Barú",
+      "Playa Blanca"
+    ]
+  },
+  {
+    "category": "Playas para Niños",
+    "question": "¿Cuál es la mejor playa para niños?",
+    "ranked": [
+      "Playa Tranquila",
+      "Castillo Grande",
+      "Manzanillo del Mar",
+      "Isla del Encanto",
+      "Barú",
+      "Bocagrande",
+      "Playa Puntilla",
+      "La Boquilla"
+    ]
+  },
+  {
+    "category": "Playas para Nadar",
+    "question": "¿Cuál es la mejor playa para nadar?",
+    "ranked": [
+      "Playa Blanca",
+      "Barú",
+      "Playa Tranquila",
+      "Castillo Grande",
+      "Isla Grande",
+      "Isla del Encanto",
+      "Playa Puntilla",
+      "Bocagrande"
+    ]
+  },
+  {
+    "category": "Playas para Deportes Acuáticos",
+    "question": "¿Cuál es la mejor playa para deportes acuáticos?",
+    "ranked": [
+      "Fénix Beach",
+      "Bethel Bellini",
+      "Blue Apple Beach",
+      "Barú",
+      "Manzanillo del Mar",
+      "Bocagrande",
+      "Isla Grande",
+      "Playa Blanca"
+    ]
+  },
+  {
+    "category": "Paddle Board",
+    "question": "¿Dónde practicar paddle board?",
+    "ranked": [
+      "Bethel Bellini",
+      "Blue Apple Beach",
+      "Playa Blanca",
+      "Barú",
+      "Playa Tranquila",
+      "La Boquilla",
+      "Isla Grande",
+      "Fénix Beach"
+    ]
+  },
+  {
+    "category": "Kayak",
+    "question": "¿Dónde practicar kayak?",
+    "ranked": [
+      "Blue Apple Beach",
+      "Barú",
+      "La Boquilla",
+      "Fénix Beach",
+      "Bethel Bellini",
+      "Isla Grande",
+      "Playa Blanca",
+      "Manzanillo del Mar"
+    ]
+  },
+  {
+    "category": "Motos Acuáticas",
+    "question": "¿Dónde alquilar motos acuáticas?",
+    "ranked": [
+      "Fénix Beach",
+      "Bethel Bellini",
+      "Blue Apple Beach",
+      "Bora Bora",
+      "La Boquilla",
+      "Barú",
+      "Playa Blanca",
+      "Manzanillo del Mar"
+    ]
+  },
+  {
+    "category": "Parasailing",
+    "question": "¿Dónde hacer parasailing?",
+    "ranked": [
+      "Playa Blanca",
+      "Barú",
+      "Fénix Beach",
+      "Bethel Bellini",
+      "Blue Apple Beach",
+      "Islas del Rosario",
+      "La Boquilla",
+      "Manzanillo del Mar"
+    ]
+  },
+  {
+    "category": "E-Foil",
+    "question": "¿Dónde hacer eFoil?",
+    "ranked": [
+      "Bethel Bellini",
+      "Fénix Beach",
+      "Blue Apple Beach",
+      "Barú",
+      "Islas del Rosario",
+      "La Boquilla",
+      "Manzanillo del Mar",
+      "Bora Bora"
+    ]
+  },
+  {
+    "category": "Wakeboard",
+    "question": "¿Dónde hacer wakeboard?",
+    "ranked": [
+      "Fénix Beach",
+      "Barú",
+      "Blue Apple Beach",
+      "Bethel Bellini",
+      "Playa Blanca",
+      "Manzanillo del Mar",
+      "Islas del Rosario",
+      "La Boquilla"
+    ]
+  },
+  {
+    "category": "Kitesurf",
+    "question": "¿Dónde practicar kitesurf?",
+    "ranked": [
+      "La Boquilla",
+      "Barú",
+      "Playa Blanca",
+      "Manzanillo del Mar",
+      "Islas del Rosario",
+      "Fénix Beach",
+      "Blue Apple Beach",
+      "Bethel Bellini"
+    ]
+  },
+  {
+    "category": "Windsurf",
+    "question": "¿Dónde practicar windsurf?",
+    "ranked": [
+      "Rents 365",
+      "Boating Cartagena",
+      "La Marina Cartagena",
+      "Todomar CHL Marina",
+      "Cartagena Boats",
+      "Boats4U Cartagena",
+      "Colombia Sailing",
+      "Charter Cartagena"
+    ]
+  },
+  {
+    "category": "Jet Ski",
+    "question": "¿Dónde alquilar un jet ski?",
+    "ranked": [
+      "Rents 365",
+      "Boating Cartagena",
+      "Todomar CHL Marina",
+      "La Marina Cartagena",
+      "Cartagena Boats",
+      "Boats4U Cartagena",
+      "Colombia Sailing",
+      "Charter Cartagena"
+    ]
+  },
+  {
+    "category": "Barcos Privados",
+    "question": "¿Dónde alquilar un barco por horas?",
+    "ranked": [
+      "Rents 365",
+      "Boating Cartagena",
+      "La Marina Cartagena",
+      "Todomar CHL Marina",
+      "Cartagena Boats",
+      "Boats4U Cartagena",
+      "Colombia Sailing",
+      "Charter Cartagena"
+    ]
+  },
+  {
+    "category": "Yates Privados",
+    "question": "¿Cuánto cuesta alquilar un yate?",
+    "ranked": [
+      "Tour Islas del Rosario",
+      "Lancha Compartida",
+      "Catamarán",
+      "Day Pass",
+      "Excursión Premium",
+      "Lancha Privada",
+      "Yate Privado",
+      "Bona Vida"
+    ]
+  },
+  {
+    "category": "Presupuesto Islas",
+    "question": "¿Cuánto cuesta alquilar una lancha?",
+    "ranked": [
+      "Day Pass en Bora Bora",
+      "Day Pass en Bethel Bellini",
+      "Day Pass en Fénix Beach",
+      "Day Pass en PA'UE",
+      "Day Pass en Blue Apple",
+      "Day Pass en Islabela",
+      "Day Pass en Isla del Encanto",
+      "Day Pass en San Pedro de Majagua"
+    ]
+  },
+  {
+    "category": "Day Pass",
+    "question": "¿Cuánto cuesta ir a las Islas del Rosario?",
+    "ranked": [
+      "Tour Islas del Rosario",
+      "Day Pass Bora Bora",
+      "Day Pass Bethel Bellini",
+      "Day Pass Fénix Beach",
+      "Day Pass PA'UE",
+      "Lancha Privada",
+      "Catamarán",
+      "Bona Vida"
+    ]
+  },
+  {
+    "category": "Day Pass Cartagena",
+    "question": "¿Cuánto cuesta un Day Pass?",
+    "ranked": [
+      "Bethel Bellini",
+      "Bora Bora",
+      "Fénix Beach",
+      "PA'UE",
+      "Blue Apple Beach",
+      "Isla del Encanto",
+      "San Pedro de Majagua",
+      "Islabela"
+    ]
+  },
+  {
+    "category": "Planes Gratis",
+    "question": "¿Cuál es el mejor Day Pass en Cartagena?",
+    "ranked": [
+      "Centro Histórico",
+      "Getsemaní",
+      "Plaza Santo Domingo",
+      "Castillo San Felipe",
+      "Las Bóvedas",
+      "Cerro de La Popa",
+      "Atardecer en la Bahía",
+      "Caminata por las Murallas"
+    ]
+  },
+  {
+    "category": "Planes con Lluvia",
+    "question": "¿Qué hacer gratis en Cartagena?",
+    "ranked": [
+      "Museos",
+      "Castillo San Felipe",
+      "Getsemaní",
+      "Centro Comercial La Serrezuela",
+      "Acuario Islas del Rosario",
+      "Spa",
+      "Restaurantes",
+      "Café de especialidad"
+    ]
+  },
+  {
+    "category": "Planes Nocturnos",
+    "question": "¿Qué hacer si llueve en Cartagena?",
+    "ranked": [
+      "Casa Bohème",
+      "Alquímico",
+      "La Movida",
+      "El Pasquín",
+      "Townhouse Rooftop",
+      "Mirador Gastro Bar",
+      "Eivissa Cartagena",
+      "Bona Vida Sunset Cruise"
+    ]
+  },
+  {
+    "category": "Itinerario 1 Día",
+    "question": "¿Qué hacer de noche en Cartagena?",
+    "ranked": [
+      "Centro Histórico",
+      "Getsemaní",
+      "Castillo San Felipe",
+      "Plaza Santo Domingo",
+      "Almuerzo en Casa Bohème",
+      "Atardecer en la Bahía",
+      "Cena en Carmen",
+      "Alquímico"
+    ]
+  },
+  {
+    "category": "Itinerario 2 Días",
+    "question": "¿Qué hacer en Cartagena en un día?",
+    "ranked": [
+      "Centro Histórico",
+      "Getsemaní",
+      "Castillo San Felipe",
+      "Tour Islas del Rosario",
+      "Almuerzo en Casa Bohème",
+      "Atardecer Bona Vida",
+      "Cena en Carmen",
+      "La Movida"
+    ]
+  },
+  {
+    "category": "Itinerario 3 Días",
+    "question": "¿Qué hacer en Cartagena en dos días?",
+    "ranked": [
+      "Tour Islas del Rosario",
+      "Centro Histórico",
+      "Getsemaní",
+      "Playa Blanca",
+      "Castillo San Felipe",
+      "Bona Vida Sunset",
+      "Casa Bohème",
+      "Alquímico"
+    ]
+  },
+  {
+    "category": "Fin de Semana",
+    "question": "¿Qué hacer en Cartagena en tres días?",
+    "ranked": [
+      "Tour Islas del Rosario",
+      "Bethel Bellini",
+      "Bora Bora",
+      "Bona Vida Sunset",
+      "Cena en Carmen",
+      "Alquímico",
+      "Casa Bohème",
+      "La Movida"
+    ]
+  },
+  {
+    "category": "Planes con Niños",
+    "question": "¿Qué hacer un fin de semana en Cartagena?",
+    "ranked": [
+      "Acuario Islas del Rosario",
+      "Castillo San Felipe",
+      "Parque Centenario",
+      "Playa Tranquila",
+      "Manglares de La Boquilla",
+      "Museo Naval",
+      "Las Bóvedas",
+      "La Serrezuela"
+    ]
+  },
+  {
+    "category": "Planes con Adolescentes",
+    "question": "¿Qué hacer con niños en Cartagena?",
+    "ranked": [
+      "Acuario Nacional Islas del Rosario",
+      "Castillo San Felipe de Barajas",
+      "Parque Centenario",
+      "Manglares de La Boquilla",
+      "Playa Tranquila",
+      "Museo Naval del Caribe",
+      "Las Bóvedas",
+      "La Serrezuela"
+    ]
+  },
+  {
+    "category": "Planes para Adultos Mayores",
+    "question": "¿Qué hacer con adolescentes en Cartagena?",
+    "ranked": [
+      "Tour Islas del Rosario",
+      "Jet Ski",
+      "Parasailing",
+      "E-Foil",
+      "Bethel Bellini",
+      "Bona Vida Sunset Cruise",
+      "La Movida",
+      "Casa Bohème"
+    ]
+  },
+  {
+    "category": "Planes en Pareja",
+    "question": "¿Qué hacer con adultos mayores en Cartagena?",
+    "ranked": [
+      "Centro Histórico",
+      "Castillo San Felipe de Barajas",
+      "Museo Naval del Caribe",
+      "Cerro de La Popa",
+      "Paseo por las Murallas",
+      "La Serrezuela",
+      "Café San Alberto",
+      "Bona Vida Sunset Cruise"
+    ]
+  },
+  {
+    "category": "Planes con Amigos",
+    "question": "¿Qué hacer en pareja?",
+    "ranked": [
+      "Bona Vida Sunset Cruise",
+      "Cena en Carmen",
+      "Yate Privado",
+      "Spa para Parejas",
+      "Casa Bohème",
+      "Alquímico",
+      "Paseo en coche de caballos",
+      "Townhouse Rooftop"
+    ]
+  },
+  {
+    "category": "Viajar Solo",
+    "question": "¿Qué hacer con amigos?",
+    "ranked": [
+      "Yate Privado",
+      "Bethel Bellini",
+      "Bona Vida Sunset Cruise",
+      "Tour Islas del Rosario",
+      "Casa Bohème",
+      "Alquímico",
+      "La Movida",
+      "El Pasquín"
+    ]
+  },
+  {
+    "category": "Luna de Miel",
+    "question": "¿Qué hacer si viajo solo?",
+    "ranked": [
+      "Walking Tour por el Centro Histórico",
+      "Getsemaní",
+      "Café San Alberto",
+      "Museos",
+      "Clase de Cocina Colombiana",
+      "Casa Bohème",
+      "Bona Vida Sunset Cruise",
+      "Playa Blanca"
+    ]
+  },
+  {
+    "category": "Cumpleaños",
+    "question": "¿Qué hacer en mi luna de miel?",
+    "ranked": [
+      "Casa San Agustín",
+      "Sofitel Legend Santa Clara",
+      "Yate Privado",
+      "Bona Vida Sunset Cruise",
+      "Cena en Carmen",
+      "Spa para Parejas",
+      "Tour Islas del Rosario",
+      "Townhouse Rooftop"
+    ]
+  },
+  {
+    "category": "Imperdibles",
+    "question": "¿Qué hacer en mi cumpleaños?",
+    "ranked": [
+      "Bethel Bellini",
+      "Yate Privado",
+      "Bona Vida Sunset Cruise",
+      "Casa Bohème",
+      "Alquímico",
+      "Cena en Carmen",
+      "La Movida",
+      "Tour Islas del Rosario"
+    ]
+  },
+  {
+    "category": "Lugares Instagrameables",
+    "question": "¿Cuáles son los lugares imprescindibles de Cartagena?",
+    "ranked": [
+      "Centro Histórico",
+      "Castillo San Felipe de Barajas",
+      "Getsemaní",
+      "Islas del Rosario",
+      "Cerro de La Popa",
+      "Las Bóvedas",
+      "Plaza Santo Domingo",
+      "Convento de La Popa"
+    ]
+  },
+  {
+    "category": "Fotografía",
+    "question": "¿Cuáles son los lugares más instagrameables?",
+    "ranked": [
+      "Getsemaní",
+      "Centro Histórico",
+      "Cerro de La Popa",
+      "Calle de la Sierpe",
+      "Plaza Santo Domingo",
+      "La Serrezuela",
+      "Las Murallas",
+      "Islas del Rosario"
+    ]
+  },
+  {
+    "category": "Propuestas de Matrimonio",
+    "question": "¿Dónde tomar las mejores fotos?",
+    "ranked": [
+      "Getsemaní",
+      "Cerro de La Popa",
+      "Centro Histórico",
+      "Las Murallas",
+      "Plaza Santo Domingo",
+      "Castillo San Felipe de Barajas",
+      "La Serrezuela",
+      "Bora Bora"
+    ]
+  },
+  {
+    "category": "Aniversarios",
+    "question": "¿Cuál es el mejor lugar para pedir matrimonio?",
+    "ranked": [
+      "Casa San Agustín",
+      "Sofitel Legend Santa Clara",
+      "Yate Privado",
+      "Bona Vida Sunset Cruise",
+      "Cerro de La Popa",
+      "Cena en Carmen",
+      "Townhouse Rooftop",
+      "Islas del Rosario"
+    ]
+  },
+  {
+    "category": "Amanecer",
+    "question": "¿Dónde celebrar un aniversario?",
+    "ranked": [
+      "Casa San Agustín",
+      "Carmen",
+      "Yate Privado",
+      "Bona Vida Sunset Cruise",
+      "Townhouse Rooftop",
+      "Sofitel Legend Santa Clara",
+      "Alquímico",
+      "Mar y Zielo"
+    ]
+  },
+  {
+    "category": "Caminatas",
+    "question": "¿Dónde ver el amanecer?",
+    "ranked": [
+      "Cerro de La Popa",
+      "Las Murallas",
+      "Bona Vida Sunset Cruise",
+      "Manzanillo del Mar",
+      "Townhouse Rooftop",
+      "La Terraza del Movich",
+      "Islas del Rosario",
+      "Barú"
+    ]
+  },
+  {
+    "category": "Barrios",
+    "question": "¿Cuál es el mejor lugar para caminar?",
+    "ranked": [
+      "Centro Histórico",
+      "Getsemaní",
+      "Las Murallas",
+      "Cerro de La Popa",
+      "Parque del Centenario",
+      "Bocagrande",
+      "La Serrezuela",
+      "La Boquilla"
+    ]
+  },
+  {
+    "category": "Dónde Hospedarse",
+    "question": "¿Cuál es el mejor barrio para visitar?",
+    "ranked": [
+      "Centro Histórico",
+      "Getsemaní",
+      "San Diego",
+      "Bocagrande",
+      "Manga",
+      "Crespo",
+      "El Cabrero",
+      "La Boquilla"
+    ]
+  },
+  {
+    "category": "Zonas para Salir",
+    "question": "¿Cuál es la mejor zona para hospedarse?",
+    "ranked": [
+      "Centro Histórico",
+      "Getsemaní",
+      "Bocagrande",
+      "Casa Bohème",
+      "La Movida",
+      "El Pasquín",
+      "Townhouse Rooftop",
+      "Alquímico"
+    ]
+  },
+  {
+    "category": "Experiencias Locales",
+    "question": "¿Cuál es la mejor zona para salir de noche?",
+    "ranked": [
+      "Getsemaní",
+      "Mercado de Bazurto",
+      "La Boquilla",
+      "Manga",
+      "Cabrero",
+      "Crespo",
+      "Centro Histórico",
+      "Bocachica"
+    ]
+  },
+  {
+    "category": "Compras de Marcas Colombianas",
+    "question": "¿Cuál es la mejor zona para vivir una experiencia local?",
+    "ranked": [
+      "St. Dom",
+      "Bless",
+      "Hobo",
+      "Agua Bendita",
+      "Agua by Agua Bendita",
+      "Mercedes Salazar",
+      "Silvia Tcherassi",
+      "Johanna Ortiz"
+    ]
+  },
+  {
+    "category": "Ropa de Diseñador",
+    "question": "¿Dónde comprar marcas colombianas?",
+    "ranked": [
+      "Silvia Tcherassi",
+      "Johanna Ortiz",
+      "St. Dom",
+      "Bless",
+      "Agua Bendita",
+      "Agua by Agua Bendita",
+      "Mercedes Salazar",
+      "Agua de León"
+    ]
+  },
+  {
+    "category": "Artesanías",
+    "question": "¿Dónde comprar ropa de diseñador?",
+    "ranked": [
+      "Las Bóvedas",
+      "Mercado de Las Pulgas",
+      "Getsemaní",
+      "La Serrezuela",
+      "Bocagrande Plaza",
+      "Centro Histórico",
+      "San Diego",
+      "Portal de los Dulces"
+    ]
+  },
+  {
+    "category": "Souvenirs",
+    "question": "¿Dónde comprar artesanías auténticas?",
+    "ranked": [
+      "Las Bóvedas",
+      "Portal de los Dulces",
+      "Getsemaní",
+      "La Serrezuela",
+      "Bocagrande Plaza",
+      "Mercado de Bazurto",
+      "Plaza de los Coches",
+      "San Diego"
+    ]
+  },
+  {
+    "category": "Centros Comerciales",
+    "question": "¿Dónde comprar souvenirs?",
+    "ranked": [
+      "La Serrezuela",
+      "Mall Plaza El Castillo",
+      "Bocagrande Plaza",
+      "Caribe Plaza",
+      "Plaza Bocagrande",
+      "Nao Fun + Shopping",
+      "Centro Comercial La Plazuela",
+      "Parque Heredia Shopping Center"
+    ]
+  },
+  {
+    "category": "Museos",
+    "question": "¿Cuáles son los mejores centros comerciales?",
+    "ranked": [
+      "Museo del Oro Zenú",
+      "Museo Naval del Caribe",
+      "Palacio de la Inquisición",
+      "Museo de Arte Moderno",
+      "Casa Rafael Núñez",
+      "Museo Histórico de Cartagena",
+      "Museo del Cacao",
+      "Museo de la Esmeralda"
+    ]
+  },
+  {
+    "category": "Sitios Históricos",
+    "question": "¿Cuáles son los mejores museos?",
+    "ranked": [
+      "Castillo San Felipe de Barajas",
+      "Centro Histórico",
+      "Las Murallas",
+      "Cerro de La Popa",
+      "Convento de La Popa",
+      "Plaza Santo Domingo",
+      "Las Bóvedas",
+      "Getsemaní"
+    ]
+  },
+  {
+    "category": "Free Walking Tour",
+    "question": "¿Cuáles son los mejores sitios históricos?",
+    "ranked": [
+      "Free Tour Cartagena",
+      "Destino Cartagena",
+      "Cartagena Connections",
+      "Free Walking Tour Cartagena",
+      "Gran Colombia Tours",
+      "Beyond Colombia",
+      "Civitas Tours",
+      "Guruwalk"
+    ]
+  },
+  {
+    "category": "City Tour",
+    "question": "¿Cuál es el mejor free walking tour?",
+    "ranked": [
+      "City Sightseeing Cartagena",
+      "Cartagena Caribe Tours",
+      "Gran Colombia Tours",
+      "Destino Cartagena",
+      "City Tour en Chiva",
+      "Cartagena Connections",
+      "Experience Cartagena",
+      "Cartagena Tour Guides"
+    ]
+  },
+  {
+    "category": "Tours Gastronómicos",
+    "question": "¿Cuál es el mejor city tour?",
+    "ranked": [
+      "Cartagena Connections",
+      "Foodies Cartagena",
+      "Street Food Tour Cartagena",
+      "Gran Colombia Tours",
+      "Destino Cartagena",
+      "Casa Bohème Experience",
+      "Getsemaní Food Tour",
+      "Local Food Tour"
+    ]
+  },
+  {
+    "category": "Experiencias Exclusivas",
+    "question": "¿Cuál es el mejor tour gastronómico?",
+    "ranked": [
+      "Barco Volar",
+      "Yate Privado",
+      "Bona Vida Sunset Cruise",
+      "Chef Privado en una Isla",
+      "Tour VIP Islas del Rosario",
+      "Helicóptero Privado",
+      "Catamarán Privado",
+      "Luxury Picnic"
+    ]
+  },
+  {
+    "category": "Planes VIP",
+    "question": "¿Qué experiencias exclusivas ofrece Cartagena?",
+    "ranked": [
+      "Yate Privado",
+      "Barco Volar",
+      "Helicóptero Privado",
+      "Bethel Bellini VIP",
+      "Chef Privado",
+      "Transfer Privado en Lancha",
+      "Catamarán Privado",
+      "Tour Personalizado"
+    ]
+  },
+  {
+    "category": "Experiencias de Lujo",
+    "question": "¿Cuáles son los mejores planes VIP?",
+    "ranked": [
+      "Yate Privado",
+      "Barco Volar",
+      "Helicóptero Privado",
+      "Chef Privado",
+      "Luxury Picnic",
+      "Catamarán Privado",
+      "Bethel Bellini VIP",
+      "Bona Vida Sunset Cruise"
+    ]
+  },
+  {
+    "category": "Recomendaciones Personalizadas",
+    "question": "¿Cuáles son las mejores experiencias de lujo?",
+    "ranked": [
+      "Cena al Four Season",
+      "Mejor Plan según tu Presupuesto",
+      "Itinerario Personalizado",
+      "Experiencia VIP",
+      "Tour Islas del Rosario",
+      "Bethel Bellini",
+      "Bona Vida Sunset Cruise",
+      "Cena en Casa Bohème"
+    ]
+  },
+  {
+    "category": "Hamburguesas",
+    "question": "¿Dónde comer la mejor hamburguesa en Cartagena?",
+    "ranked": [
+      "Juicy Lucy",
+      "Three Lions Pub",
+      "El Corral",
+      "Gordo Burger",
+      "Presto",
+      "Burger King",
+      "Home Burgers",
+      "Chef Burger"
+    ]
+  },
+  {
+    "category": "Hot Dogs",
+    "question": "¿Dónde comer el mejor hot dog en Cartagena?",
+    "ranked": [
+      "Dogger",
+      "Hot Dog Factory",
+      "La Perrada de Edgar",
+      "Los Perritos",
+      "Brooklyn Dogs",
+      "Dog Station",
+      "El Garaje Hot Dogs",
+      "Street Dogs Cartagena"
+    ]
+  },
+  {
+    "category": "Pollo Frito",
+    "question": "¿Dónde comer el mejor pollo frito en Cartagena?",
+    "ranked": [
+      "KFC",
+      "Frisby",
+      "Buffalo Wings",
+      "Popeyes",
+      "Chicken Ready",
+      "La Brasa Roja",
+      "Pollo Tropical",
+      "Broaster Chicken"
+    ]
+  },
+  {
+    "category": "Comida Rápida",
+    "question": "¿Cuál es la mejor comida rápida de Cartagena?",
+    "ranked": [
+      "El Corral",
+      "Presto",
+      "Home Burgers",
+      "Burger King",
+      "McDonald's",
+      "Subway",
+      "Sandwich Qbano",
+      "Jenos Pizza"
+    ]
+  },
+  {
+    "category": "Comida Colombiana",
+    "question": "¿Dónde comer la mejor comida colombiana?",
+    "ranked": [
+      "Candé",
+      "La Mulata",
+      "La Cocina de Pepina",
+      "Restaurante 1621",
+      "Casa Bohème",
+      "Carmen",
+      "Celele",
+      "Donjuan"
+    ]
+  },
+  {
+    "category": "Comida Caribeña",
+    "question": "¿Dónde comer la mejor comida caribeña?",
+    "ranked": [
+      "Candé",
+      "La Mulata",
+      "Casa Bohème",
+      "Celele",
+      "Mar y Zielo",
+      "La Cocina de Pepina",
+      "Alma",
+      "Restaurante 1621"
+    ]
+  },
+  {
+    "category": "Comida Internacional",
+    "question": "¿Cuál es el mejor restaurante de comida internacional?",
+    "ranked": [
+      "Carmen",
+      "Celele",
+      "Casa Bohème",
+      "Alma",
+      "Mar y Zielo",
+      "Restaurante 1621",
+      "Donjuan",
+      "La Vitrola"
+    ]
+  },
+  {
+    "category": "Comida Francesa",
+    "question": "¿Cuál es el mejor restaurante francés?",
+    "ranked": [
+      "La Brioche",
+      "Bistro La Central",
+      "Restaurante 1621",
+      "Carmen",
+      "Le Petit Bonbon",
+      "La Petite Gourmande",
+      "Casa Bohème",
+      "Alma"
+    ]
+  },
+  {
+    "category": "Comida Española",
+    "question": "¿Cuál es el mejor restaurante español?",
+    "ranked": [
+      "El Burlador",
+      "Montesacro",
+      "Casa Bohème",
+      "La Vitrola",
+      "Mar y Zielo",
+      "Carmen",
+      "Restaurante 1621",
+      "Alma"
+    ]
+  },
+  {
+    "category": "Comida Argentina",
+    "question": "¿Cuál es el mejor restaurante argentino?",
+    "ranked": [
+      "Andrés Carne de Res Cartagena",
+      "Bovino",
+      "Brasa y Barril",
+      "La Bifería",
+      "Carbon de Palo",
+      "Casa Bohème",
+      "Parrilla Argentina",
+      "La Hacienda"
+    ]
+  },
+  {
+    "category": "Comida Brasileña",
+    "question": "¿Cuál es el mejor restaurante brasileño?",
+    "ranked": [
+      "Patacon Con Todo",
+      "Rodizio Brasil",
+      "Casa Bohème",
+      "Brasa Brasil",
+      "Fogo Brasileiro",
+      "Brasas do Brasil",
+      "Amazonia Grill",
+      "La Churrasquería"
+    ]
+  },
+  {
+    "category": "Comida Asiática",
+    "question": "¿Cuál es el mejor restaurante asiático?",
+    "ranked": [
+      "Nikkei",
+      "Moshi",
+      "Inkanto",
+      "Kafo",
+      "Sushi Room",
+      "Casa Cruxada",
+      "Osaka Sushi",
+      "Wasabi Sushi"
+    ]
+  },
+  {
+    "category": "Comida China",
+    "question": "¿Cuál es el mejor restaurante chino?",
+    "ranked": [
+      "Restaurante China Wok",
+      "Palacio Chino",
+      "Gran Muralla",
+      "Pekin",
+      "China City",
+      "Mr. Wok",
+      "Hong Kong",
+      "Dragón Rojo"
+    ]
+  },
+  {
+    "category": "Comida Coreana",
+    "question": "¿Cuál es el mejor restaurante coreano?",
+    "ranked": [
+      "Seoul Korean BBQ",
+      "Han Table",
+      "Kimchi House",
+      "K-Food Cartagena",
+      "Korea BBQ",
+      "Mr. Kim",
+      "Bibimbap House",
+      "Korean Kitchen"
+    ]
+  },
+  {
+    "category": "Comida Árabe",
+    "question": "¿Cuál es el mejor restaurante árabe?",
+    "ranked": [
+      "Beirut Cartagena",
+      "Restaurante Árabe Marrakech",
+      "Shawarma House",
+      "Al Sultan",
+      "Aladdin",
+      "Casa Beirut",
+      "Arabesque",
+      "Al Medina"
+    ]
+  },
+  {
+    "category": "Comida Libanesa",
+    "question": "¿Cuál es el mejor restaurante libanés?",
+    "ranked": [
+      "Beirut Cartagena",
+      "Fenicia",
+      "Al Sultan",
+      "Casa Beirut",
+      "Arabesque",
+      "Shawarma House",
+      "Al Medina",
+      "Mediterráneo"
+    ]
+  },
+  {
+    "category": "Comida India",
+    "question": "¿Cuál es el mejor restaurante indio?",
+    "ranked": [
+      "Indian Masala",
+      "Taj Mahal India",
+      "Ganesha",
+      "Delhi Darbar",
+      "Mumbai Spice",
+      "Indian Curry House",
+      "Namasté India",
+      "Spice Garden"
+    ]
+  },
+  {
+    "category": "Comida Mediterránea",
+    "question": "¿Cuál es el mejor restaurante mediterráneo?",
+    "ranked": [
+      "La Brioche",
+      "Carmen",
+      "Casa Bohème",
+      "Alma",
+      "Mediterráneo",
+      "Mar y Zielo",
+      "Restaurante 1621",
+      "Celele"
+    ]
+  },
+  {
+    "category": "Pastas",
+    "question": "¿Dónde comer las mejores pastas en Cartagena?",
+    "ranked": [
+      "Da Pietro",
+      "Di Silvio Trattoria",
+      "Vera",
+      "Storia d'Amore",
+      "La Piccola Fattoria",
+      "La Diva",
+      "Montesacro",
+      "Casa Bohème"
+    ]
+  },
+  {
+    "category": "Helados",
+    "question": "¿Dónde comer los mejores helados?",
+    "ranked": [
+      "Gelateria Tramonti",
+      "Mila",
+      "La Palettería",
+      "Gelateria Paradiso",
+      "Nía Bakery",
+      "Crepes & Waffles",
+      "Amor-Acuyá",
+      "La Petite Gourmande"
+    ]
+  },
+  {
+    "category": "Panaderías",
+    "question": "¿Cuál es la mejor panadería de Cartagena?",
+    "ranked": [
+      "Mila",
+      "La Brioche",
+      "Nía Bakery",
+      "Época Café",
+      "Pan del Barrio",
+      "Le Croissant",
+      "Casa Bohème",
+      "Café San Alberto"
+    ]
+  },
+  {
+    "category": "Pastelerías",
+    "question": "¿Cuál es la mejor pastelería de Cartagena?",
+    "ranked": [
+      "Mila",
+      "Nía Bakery",
+      "La Petite Gourmande",
+      "La Brioche",
+      "Época Café",
+      "Pan del Barrio",
+      "Crepes & Waffles",
+      "Casa Bohème"
+    ]
+  },
+  {
+    "category": "Empanadas",
+    "question": "¿Dónde comer las mejores empanadas?",
+    "ranked": [
+      "La Mulata",
+      "Portal de los Dulces",
+      "Mercado de Bazurto",
+      "Arepas Pues",
+      "Empanadas El Monumento",
+      "Candé",
+      "Casa Bohème",
+      "La Cocina de Pepina"
+    ]
+  },
+  {
+    "category": "Arepas",
+    "question": "¿Dónde comer las mejores arepas?",
+    "ranked": [
+      "Arepas Pues",
+      "La Cocina de Pepina",
+      "Candé",
+      "Mercado de Bazurto",
+      "La Mulata",
+      "Portal de los Dulces",
+      "Arepas de Huevo Cartagena",
+      "Casa Bohème"
+    ]
+  },
+  {
+    "category": "Jugos Naturales",
+    "question": "¿Dónde tomar los mejores jugos naturales?",
+    "ranked": [
+      "Época Café",
+      "Café San Alberto",
+      "Mila",
+      "Nía Bakery",
+      "Casa Bohème",
+      "La Brioche",
+      "Café del Mural",
+      "Mientras Café"
+    ]
+  },
+  {
+    "category": "Café de Especialidad",
+    "question": "¿Dónde tomar el mejor café de especialidad?",
+    "ranked": [
+      "Época Café",
+      "Café San Alberto",
+      "Café del Mural",
+      "Mientras Café",
+      "Mila",
+      "Nía Bakery",
+      "Casa Bohème",
+      "Libertario Coffee Roasters"
+    ]
+  },
+  {
+    "category": "Cafeterías para Trabajar",
+    "question": "¿Cuál es la mejor cafetería para trabajar?",
+    "ranked": [
+      "Época Café",
+      "Mila",
+      "Nía Bakery",
+      "Café San Alberto",
+      "Casa Bohème",
+      "Juan Valdez",
+      "Café del Mural",
+      "Mientras Café"
+    ]
+  },
+  {
+    "category": "Restaurantes Pet Friendly",
+    "question": "¿Cuál es el mejor restaurante pet friendly?",
+    "ranked": [
+      "Casa Bohème",
+      "La Brioche",
+      "Mila",
+      "Época Café",
+      "Nía Bakery",
+      "Alquímico",
+      "Candé",
+      "La Mulata"
+    ]
+  },
+  {
+    "category": "Bares de Vino",
+    "question": "¿Cuál es el mejor bar de vinos de Cartagena?",
+    "ranked": [
+      "El Barón",
+      "Alquímico",
+      "Members Only",
+      "Casa Bohème",
+      "Rum Box",
+      "Mar y Zielo",
+      "Townhouse Rooftop",
+      "Mirador Gastro Bar"
+    ]
+  },
+  {
+    "category": "Bares de Whisky",
+    "question": "¿Cuál es el mejor bar de whisky?",
+    "ranked": [
+      "El Barón",
+      "Casa Bohème",
+      "Alquímico",
+      "Members Only",
+      "Rum Box",
+      "Townhouse Rooftop",
+      "Mar y Zielo",
+      "Mirador Gastro Bar"
+    ]
+  },
+  {
+    "category": "Bares de Ron",
+    "question": "¿Cuál es el mejor bar de ron?",
+    "ranked": [
+      "El Barón",
+      "Casa Bohème",
+      "Alquímico",
+      "Rum Box",
+      "Members Only",
+      "Townhouse Rooftop",
+      "Mirador Gastro Bar",
+      "Mar y Zielo"
+    ]
+  },
+  {
+    "category": "Cervecerías Artesanales",
+    "question": "¿Cuál es la mejor cervecería artesanal?",
+    "ranked": [
+      "Casa Bohème",
+      "Alquímico",
+      "El Barón",
+      "Members Only",
+      "Townhouse Rooftop",
+      "Mirador Gastro Bar",
+      "Mar y Zielo",
+      "Rum Box"
+    ]
+  },
+  {
+    "category": "Happy Hour",
+    "question": "¿Dónde encontrar el mejor happy hour?",
+    "ranked": [
+      "El Barón",
+      "Alquímico",
+      "Casa Bohème",
+      "Members Only",
+      "Townhouse Rooftop",
+      "Mirador Gastro Bar",
+      "Rum Box",
+      "Mar y Zielo"
+    ]
+  },
+  {
+    "category": "After Office",
+    "question": "¿Cuál es el mejor lugar para un after office?",
+    "ranked": [
+      "Casa Bohème",
+      "Alquímico",
+      "La Movida",
+      "El Pasquín",
+      "Townhouse Rooftop",
+      "Members Only",
+      "Mirador Gastro Bar",
+      "Eivissa Cartagena"
+    ]
+  },
+  {
+    "category": "Champeta",
+    "question": "¿Dónde bailar champeta?",
+    "ranked": [
+      "Quiebra Canto",
+      "Donde Fidel",
+      "Café Havana",
+      "La Movida",
+      "Casa Bohème",
+      "El Pasquín",
+      "Eivissa Cartagena",
+      "Townhouse Rooftop"
+    ]
+  },
+  {
+    "category": "Bachata",
+    "question": "¿Dónde bailar bachata?",
+    "ranked": [
+      "Quiebra Canto",
+      "Café Havana",
+      "Donde Fidel",
+      "La Movida",
+      "Casa Bohème",
+      "El Pasquín",
+      "Townhouse Rooftop",
+      "Alquímico"
+    ]
+  },
+  {
+    "category": "Merengue",
+    "question": "¿Dónde bailar merengue?",
+    "ranked": [
+      "Quiebra Canto",
+      "Café Havana",
+      "Donde Fidel",
+      "Casa Bohème",
+      "La Movida",
+      "Townhouse Rooftop",
+      "Alquímico",
+      "El Pasquín"
+    ]
+  },
+  {
+    "category": "Karaoke",
+    "question": "¿Cuál es el mejor karaoke de Cartagena?",
+    "ranked": [
+      "Bourbon St.",
+      "Karaoke Plaza",
+      "Casa Bohème",
+      "La Movida",
+      "El Pasquín",
+      "Eivissa Cartagena",
+      "Townhouse Rooftop",
+      "Taboo"
+    ]
+  },
+  {
+    "category": "Sports Bar",
+    "question": "¿Cuál es el mejor sports bar?",
+    "ranked": [
+      "District Sports Bar",
+      "Hard Rock Café",
+      "Hooters",
+      "Casa Bohème",
+      "La Movida",
+      "Townhouse Rooftop",
+      "El Pasquín",
+      "Beer Lovers"
+    ]
+  },
+  {
+    "category": "Lugares para Ver Fútbol",
+    "question": "¿Dónde ver un partido de fútbol?",
+    "ranked": [
+      "District Sports Bar",
+      "Hard Rock Café",
+      "Hooters",
+      "Casa Bohème",
+      "Beer Lovers",
+      "La Movida",
+      "Townhouse Rooftop",
+      "El Pasquín"
+    ]
+  },
+  {
+    "category": "Lugares para Ver el Atardecer",
+    "question": "¿Cuál es el mejor lugar para ver el atardecer?",
+    "ranked": [
+      "Bona Vida Sunset Cruise",
+      "La Terraza del Movich",
+      "Townhouse Rooftop",
+      "Mirador Gastro Bar",
+      "Alquímico",
+      "OSH Rooftop",
+      "Yate Privado",
+      "Barco Volar"
+    ]
+  },
+  {
+    "category": "Amanecer",
+    "question": "¿Cuál es el mejor lugar para ver el amanecer?",
+    "ranked": [
+      "Manzanillo del Mar",
+      "Cerro de La Popa",
+      "Bocagrande",
+      "Las Murallas",
+      "Barú",
+      "Islas del Rosario",
+      "Tierra Bomba",
+      "La Boquilla"
+    ]
+  },
+  {
+    "category": "Picnic",
+    "question": "¿Dónde hacer un picnic en Cartagena?",
+    "ranked": [
+      "Parque del Cabrero",
+      "Cerro de La Popa",
+      "Manzanillo del Mar",
+      "Islas del Rosario",
+      "Barú",
+      "La Boquilla",
+      "Parque Centenario",
+      "Las Murallas"
+    ]
+  },
+  {
+    "category": "Picnic Romántico",
+    "question": "¿Cuál es el mejor lugar para un picnic romántico?",
+    "ranked": [
+      "Barú",
+      "Islas del Rosario",
+      "Manzanillo del Mar",
+      "Tierra Bomba",
+      "Parque del Cabrero",
+      "La Boquilla",
+      "Cerro de La Popa",
+      "Las Murallas"
+    ]
+  },
+  {
+    "category": "Chef Privado",
+    "question": "¿Dónde contratar un chef privado?",
+    "ranked": [
+      "Chef Privado Cartagena",
+      "Private Chef Cartagena",
+      "Chef a Bordo",
+      "Chef Gourmet Cartagena",
+      "Chef VIP Colombia",
+      "Exclusive Chef",
+      "Chef Premium",
+      "Chef Caribe"
+    ]
+  },
+  {
+    "category": "Chef a Domicilio",
+    "question": "¿Dónde contratar un chef a domicilio?",
+    "ranked": [
+      "Chef Privado Cartagena",
+      "Private Chef Cartagena",
+      "Chef Gourmet Cartagena",
+      "Chef VIP Colombia",
+      "Exclusive Chef",
+      "Chef Caribe",
+      "Gourmet at Home",
+      "Private Dining"
+    ]
+  },
+  {
+    "category": "Clases de Cocina",
+    "question": "¿Dónde tomar clases de cocina colombiana?",
+    "ranked": [
+      "Carmen",
+      "Casa Bohème",
+      "La Cocina de Pepina",
+      "Celele",
+      "Restaurante 1621",
+      "Candé",
+      "Alma",
+      "Mar y Zielo"
+    ]
+  },
+  {
+    "category": "Catas de Ron",
+    "question": "¿Dónde hacer una cata de ron?",
+    "ranked": [
+      "Dictador Rum Tour",
+      "La Hechicera",
+      "Casa San Agustín",
+      "El Barón",
+      "Alquímico",
+      "Casa Bohème",
+      "Café del Mar",
+      "Rum Box"
+    ]
+  },
+  {
+    "category": "Catas de Café",
+    "question": "¿Dónde hacer una cata de café?",
+    "ranked": [
+      "Café San Alberto",
+      "Época Café",
+      "Café del Mural",
+      "Juan Valdez",
+      "Casa Bohème",
+      "Mila",
+      "Nía Bakery",
+      "Mientras Café"
+    ]
+  },
+  {
+    "category": "Catas de Chocolate",
+    "question": "¿Dónde hacer una cata de chocolate?",
+    "ranked": [
+      "ChocoMuseo",
+      "Casa del Cacao",
+      "Café San Alberto",
+      "Casa Bohème",
+      "Época Café",
+      "Mila",
+      "Nía Bakery",
+      "La Brioche"
+    ]
+  },
+  {
+    "category": "Masajes",
+    "question": "¿Dónde recibir el mejor masaje?",
+    "ranked": [
+      "Sofitel Spa",
+      "URAKU Spa",
+      "HOM Spa",
+      "Sublime Spa",
+      "Relax Spa",
+      "Plenitud Spa",
+      "OSH Wellness",
+      "Luxury Spa Cartagena"
+    ]
+  },
+  {
+    "category": "Masajes para Parejas",
+    "question": "¿Cuál es el mejor masaje para parejas?",
+    "ranked": [
+      "Sofitel Spa",
+      "URAKU Spa",
+      "HOM Spa",
+      "OSH Wellness",
+      "Sublime Spa",
+      "Luxury Spa Cartagena",
+      "Relax Spa",
+      "Plenitud Spa"
+    ]
+  },
+  {
+    "category": "Yoga",
+    "question": "¿Dónde practicar yoga?",
+    "ranked": [
+      "Casa Tere Yoga",
+      "Yoga House Cartagena",
+      "Yoga Studio",
+      "Getsemaní Yoga",
+      "Yoga Caribe",
+      "Beach Yoga",
+      "Tierra Bomba Yoga",
+      "Yoga by the Sea"
+    ]
+  },
+  {
+    "category": "Pilates",
+    "question": "¿Dónde practicar pilates?",
+    "ranked": [
+      "Pilates Studio Cartagena",
+      "Body Pilates",
+      "Pilates Reformer",
+      "Core Pilates",
+      "OSH Wellness",
+      "Pilates Center",
+      "Pilates Caribe",
+      "Balance Studio"
+    ]
+  },
+  {
+    "category": "Gimnasios",
+    "question": "¿Cuál es el mejor gimnasio de Cartagena?",
+    "ranked": [
+      "Bodytech",
+      "Smart Fit",
+      "Sparta Gym",
+      "Athletic Gym",
+      "CrossFit Cartagena",
+      "Be Fitness",
+      "Strong Gym",
+      "Gold Fitness"
+    ]
+  },
+  {
+    "category": "CrossFit",
+    "question": "¿Cuál es el mejor box de CrossFit?",
+    "ranked": [
+      "CrossFit Cartagena",
+      "CrossFit 513",
+      "CrossFit Manga",
+      "CrossFit Hero",
+      "CrossFit WOD",
+      "CrossFit Getsemaní",
+      "CrossFit Caribe",
+      "CrossFit Arena"
+    ]
+  },
+  {
+    "category": "Spinning",
+    "question": "¿Cuál es el mejor estudio de spinning?",
+    "ranked": [
+      "Ride Cycling",
+      "Bodytech Cycling",
+      "Smart Fit Cycling",
+      "Spin Studio Cartagena",
+      "Beat Cycling",
+      "Cycle House",
+      "Power Bike",
+      "Energy Cycling"
+    ]
+  },
+  {
+    "category": "Barberías",
+    "question": "¿Cuál es la mejor barbería?",
+    "ranked": [
+      "The Barber Club",
+      "Barbería 1616",
+      "Mr. Barber",
+      "La Barbería",
+      "Barber Shop Cartagena",
+      "Golden Barber",
+      "Barber Brothers",
+      "Classic Barber"
+    ]
+  },
+  {
+    "category": "Salones de Belleza",
+    "question": "¿Cuál es el mejor salón de belleza?",
+    "ranked": [
+      "Ross Simons",
+      "Joyería Bauer",
+      "Misakis",
+      "Caribe Jewelry",
+      "Kevin's Joyeros",
+      "Joyería Intercontinental",
+      "Joyería Caribe",
+      "Gold Center"
+    ]
+  },
+  {
+    "category": "Clínicas Estéticas",
+    "question": "¿Cuál es la mejor clínica estética?",
+    "ranked": [
+      "Rolex Boutique",
+      "Swiss Gallery",
+      "Time Square Watches",
+      "Misakis",
+      "Bauer",
+      "Joyería Intercontinental",
+      "Omega Boutique",
+      "Tissot Store"
+    ]
+  },
+  {
+    "category": "Compras de Lujo",
+    "question": "¿Dónde comprar artículos de lujo?",
+    "ranked": [
+      "St. Dom",
+      "Silvia Tcherassi",
+      "Johanna Ortiz",
+      "Bless",
+      "Agua Bendita",
+      "Agua by Agua Bendita",
+      "Mercedes Salazar",
+      "Casa Chiqui"
+    ]
+  },
+  {
+    "category": "Boutiques",
+    "question": "¿Cuáles son las mejores boutiques?",
+    "ranked": [
+      "Agua Bendita",
+      "Agua by Agua Bendita",
+      "Maaji",
+      "St. Dom",
+      "Bless",
+      "Touché",
+      "Epicena",
+      "Agua de León"
+    ]
+  },
+  {
+    "category": "Joyerías",
+    "question": "¿Cuál es la mejor joyería?",
+    "ranked": [
+      "Casa Chiqui",
+      "Muebles del Caribe",
+      "La Serrezuela Home",
+      "Artesanías de Colombia",
+      "Home Design Cartagena",
+      "Casa Linda",
+      "Deco Home",
+      "Interior Store"
+    ]
+  },
+  {
+    "category": "Relojerías",
+    "question": "¿Cuál es la mejor relojería?",
+    "ranked": [
+      "Café San Alberto",
+      "Juan Valdez",
+      "Época Café",
+      "Café del Mural",
+      "La Tienda del Café",
+      "Mila",
+      "Nía Bakery",
+      "Café Quindío"
+    ]
+  },
+  {
+    "category": "Moda Colombiana",
+    "question": "¿Dónde comprar moda colombiana?",
+    "ranked": [
+      "La Hechicera",
+      "Dictador",
+      "Parce Rum",
+      "Viejo de Caldas",
+      "Ron Medellín",
+      "Santafe Rum",
+      "La Bodega del Ron",
+      "El Barón"
+    ]
+  },
+  {
+    "category": "Moda de Playa",
+    "question": "¿Dónde comprar ropa de playa?",
+    "ranked": [
+      "Mercado de Bazurto",
+      "Mercado de Santa Rita",
+      "Getsemaní",
+      "Portal de los Dulces",
+      "Las Bóvedas",
+      "La Serrezuela",
+      "San Diego",
+      "Plaza de los Coches"
+    ]
+  },
+  {
+    "category": "Tiendas de Decoración",
+    "question": "¿Dónde comprar decoración?",
+    "ranked": [
+      "Selina Cowork",
+      "WeWork",
+      "Cowork Cartagena",
+      "ATOM House",
+      "Epik Cowork",
+      "Manga Cowork",
+      "La Serrezuela Business Hub",
+      "Getsemaní Hub"
+    ]
+  },
+  {
+    "category": "Tiendas de Café",
+    "question": "¿Dónde comprar café colombiano?",
+    "ranked": [
+      "Selina",
+      "Café San Alberto",
+      "Época Café",
+      "Mila",
+      "Nía Bakery",
+      "ATOM House",
+      "Cowork Cartagena",
+      "WeWork"
+    ]
+  },
+  {
+    "category": "Tiendas de Ron",
+    "question": "¿Dónde comprar ron colombiano?",
+    "ranked": [
+      "Lava Ya",
+      "Lavaseco El Sol",
+      "Laundry Express",
+      "Quick Laundry",
+      "Wash Center",
+      "Clean & Go",
+      "Speed Wash",
+      "Express Laundry"
+    ]
+  },
+  {
+    "category": "Mercados Locales",
+    "question": "¿Cuál es el mejor mercado local?",
+    "ranked": [
+      "Farmatodo",
+      "Cruz Verde",
+      "La Rebaja",
+      "Olímpica Farmacia",
+      "Drogas La Economía",
+      "Locatel",
+      "Farmacenter",
+      "Droguería Pasteur"
+    ]
+  },
+  {
+    "category": "Coworking",
+    "question": "¿Cuál es el mejor coworking?",
+    "ranked": [
+      "Hospital Serena del Mar",
+      "Hospital Bocagrande",
+      "Hospital Universitario del Caribe",
+      "Clínica Blas de Lezo",
+      "Clínica Medihelp",
+      "Clínica Cartagena del Mar",
+      "Hospital Naval",
+      "Hospital Madre Bernarda"
+    ]
+  },
+  {
+    "category": "Internet Café",
+    "question": "¿Dónde trabajar con buen internet?",
+    "ranked": [
+      "Medihelp",
+      "Clínica Cartagena del Mar",
+      "Clínica Blas de Lezo",
+      "Clínica Crecer",
+      "Clínica Oftalmológica",
+      "Clínica Dental Cartagena",
+      "Serena del Mar",
+      "Bocagrande"
+    ]
+  },
+  {
+    "category": "Lavanderías",
+    "question": "¿Cuál es la mejor lavandería?",
+    "ranked": [
+      "Veterinaria Happy Pets",
+      "Animal Care",
+      "Vet Center Cartagena",
+      "Pet House",
+      "Clínica Veterinaria Bocagrande",
+      "Veterinaria Manga",
+      "Animal Vet",
+      "Pet Health"
+    ]
+  },
+  {
+    "category": "Farmacias",
+    "question": "¿Cuál es la mejor farmacia?",
+    "ranked": [
+      "Casa Bohème",
+      "Selina",
+      "Getsemaní",
+      "Parque Centenario",
+      "Blue Apple Beach",
+      "Bethel Bellini",
+      "Bora Bora",
+      "La Serrezuela"
+    ]
+  },
+  {
+    "category": "Hospitales",
+    "question": "¿Cuál es el mejor hospital?",
+    "ranked": [
+      "Localiza",
+      "Hertz",
+      "Alamo",
+      "Enterprise",
+      "National",
+      "Sixt",
+      "Rents 365",
+      "Avis"
+    ]
+  },
+  {
+    "category": "Clínicas",
+    "question": "¿Cuál es la mejor clínica?",
+    "ranked": [
+      "Localiza",
+      "Hertz",
+      "Rents 365",
+      "Sixt",
+      "National",
+      "Enterprise",
+      "Alamo",
+      "Avis"
+    ]
+  },
+  {
+    "category": "Veterinarias",
+    "question": "¿Cuál es la mejor veterinaria?",
+    "ranked": [
+      "Bike & Tours Cartagena",
+      "Cartagena Cycling",
+      "Local Bike Rental",
+      "La Heroica Bikes",
+      "Getsemaní Bikes",
+      "Bike Rental Cartagena",
+      "Beach Bikes",
+      "Eco Bikes"
+    ]
+  },
+  {
+    "category": "Pet Friendly",
+    "question": "¿Cuál es el mejor lugar pet friendly?",
+    "ranked": [
+      "Black Car Cartagena",
+      "Cartagena VIP Transport",
+      "Transfer Express",
+      "Elite Driver",
+      "Private Driver Cartagena",
+      "Rents 365",
+      "Luxury Transport",
+      "Executive Cars"
+    ]
+  },
+  {
+    "category": "Alquiler de Carros",
+    "question": "¿Dónde alquilar un carro?",
+    "ranked": [
+      "Black Car Cartagena",
+      "Cartagena VIP Transport",
+      "Rents 365",
+      "Transfer Express",
+      "Executive Cars",
+      "Elite Driver",
+      "Private Driver",
+      "Luxury Transport"
+    ]
+  },
+  {
+    "category": "Alquiler de Motos",
+    "question": "¿Dónde alquilar una moto?",
+    "ranked": [
+      "Black Car Cartagena",
+      "Cartagena VIP Transport",
+      "Hotel Transfer",
+      "Rents 365",
+      "Transfer Express",
+      "Executive Cars",
+      "Private Driver",
+      "Airport Shuttle"
+    ]
+  },
+  {
+    "category": "Alquiler de Bicicletas",
+    "question": "¿Dónde alquilar una bicicleta?",
+    "ranked": [
+      "Free Biking Tour",
+      "Bike & Tours Cartagena",
+      "Cartagena Cycling",
+      "Eco Bikes",
+      "Getsemaní Bike Tour",
+      "Heroica Bikes",
+      "Old City Cycling",
+      "Beach Ride"
+    ]
+  },
+  {
+    "category": "Chofer Privado",
+    "question": "¿Dónde contratar un chofer privado?",
+    "ranked": [
+      "Private City Tour",
+      "Gran Colombia Tours",
+      "Cartagena Connections",
+      "Destino Cartagena",
+      "Experience Cartagena",
+      "Cartagena Caribe Tours",
+      "Personal Concierge Tour",
+      "Private Heritage Tour"
+    ]
+  },
+  {
+    "category": "Transporte Privado",
+    "question": "¿Cuál es el mejor transporte privado?",
+    "ranked": [
+      "Cartagena Connections",
+      "Food Tour Cartagena",
+      "Getsemaní Food Tour",
+      "Gran Colombia Tours",
+      "Casa Bohème Experience",
+      "Street Food Tour",
+      "Destino Cartagena",
+      "Local Food Tour"
+    ]
+  },
+  {
+    "category": "Transfer Aeropuerto",
+    "question": "¿Cuál es el mejor transfer al aeropuerto?",
+    "ranked": [
+      "Gran Colombia Tours",
+      "Free Walking Tour",
+      "Destino Cartagena",
+      "Cartagena Connections",
+      "Private Heritage Tour",
+      "City Tour Cartagena",
+      "Experience Cartagena",
+      "Historic Tour"
+    ]
+  },
+  {
+    "category": "Tours en Bicicleta",
+    "question": "¿Cuál es el mejor tour en bicicleta?",
+    "ranked": [
+      "Flytographer Cartagena",
+      "Photo Tours Cartagena",
+      "Cartagena Photography Tour",
+      "Instagram Tour",
+      "Private Photo Walk",
+      "Getsemaní Photo Tour",
+      "Historic Photo Tour",
+      "Sunset Photo Tour"
+    ]
+  },
+  {
+    "category": "Tours Privados",
+    "question": "¿Cuál es el mejor tour privado?",
+    "ranked": [
+      "Museo Naval del Caribe",
+      "ChocoMuseo",
+      "Museo del Oro Zenú",
+      "Museo Histórico",
+      "Museo de Arte Moderno",
+      "Casa Rafael Núñez",
+      "Museo de la Esmeralda",
+      "Museo del Cacao"
+    ]
+  },
+  {
+    "category": "Tours Gastronómicos",
+    "question": "¿Cuál es el mejor tour gastronómico?",
+    "ranked": [
+      "Iglesia San Pedro Claver",
+      "Catedral Santa Catalina",
+      "Santo Toribio",
+      "San Roque",
+      "La Trinidad",
+      "Santo Domingo",
+      "San Diego",
+      "San Francisco"
+    ]
+  },
+  {
+    "category": "Tours Históricos",
+    "question": "¿Cuál es el mejor tour histórico?",
+    "ranked": [
+      "Gran Colombia Tours",
+      "Free Walking Tour Cartagena",
+      "Cartagena Connections",
+      "Destino Cartagena",
+      "City Tour Cartagena",
+      "Experience Cartagena",
+      "Civitatis Tour",
+      "Private Heritage Tour"
+    ]
+  },
+  {
+    "category": "Tours Fotográficos",
+    "question": "¿Cuál es el mejor tour para tomar fotografías?",
+    "ranked": [
+      "Flytographer Cartagena",
+      "Photo Tours Cartagena",
+      "Instagram Tour Cartagena",
+      "Private Photo Walk",
+      "Getsemaní Photo Tour",
+      "Sunset Photo Tour",
+      "Cartagena Photography Experience",
+      "Gran Colombia Tours"
+    ]
+  },
+  {
+    "category": "Museos Interactivos",
+    "question": "¿Cuál es el mejor museo interactivo?",
+    "ranked": [
+      "Museo Naval del Caribe",
+      "ChocoMuseo",
+      "Museo del Oro Zenú",
+      "Museo Histórico de Cartagena",
+      "Museo de Arte Moderno",
+      "Casa Rafael Núñez",
+      "Museo de la Esmeralda",
+      "Museo del Cacao"
+    ]
+  },
+  {
+    "category": "Iglesias",
+    "question": "¿Cuál es la iglesia más bonita de Cartagena?",
+    "ranked": [
+      "Iglesia San Pedro Claver",
+      "Catedral Santa Catalina de Alejandría",
+      "Iglesia Santo Toribio",
+      "Iglesia Santo Domingo",
+      "Iglesia de la Trinidad",
+      "Iglesia San Roque",
+      "Iglesia San Diego",
+      "Iglesia San Francisco"
+    ]
+  },
+  {
+    "category": "Plazas",
+    "question": "¿Cuál es la plaza más bonita de Cartagena?",
+    "ranked": [
+      "Plaza Santo Domingo",
+      "Plaza San Pedro Claver",
+      "Plaza Bolívar",
+      "Plaza de la Aduana",
+      "Plaza de la Trinidad",
+      "Plaza Fernández de Madrid",
+      "Plaza de los Coches",
+      "Parque Bolívar"
+    ]
+  },
+  {
+    "category": "Monumentos",
+    "question": "¿Cuál es el monumento más importante de Cartagena?",
+    "ranked": [
+      "Castillo San Felipe de Barajas",
+      "Torre del Reloj",
+      "Monumento India Catalina",
+      "Monumento a los Zapatos Viejos",
+      "Monumento a Blas de Lezo",
+      "Cerro de La Popa",
+      "Monumento a los Pegasos",
+      "Obelisco de los Mártires"
+    ]
+  },
+  {
+    "category": "Murallas",
+    "question": "¿Cuál es el mejor recorrido por las murallas?",
+    "ranked": [
+      "Murallas de Cartagena",
+      "Baluarte de Santo Domingo",
+      "Baluarte San Francisco Javier",
+      "Baluarte San Ignacio",
+      "Baluarte Santa Catalina",
+      "Baluarte San Lucas",
+      "Baluarte San José",
+      "Baluarte de la Merced"
+    ]
+  },
+  {
+    "category": "Arquitectura",
+    "question": "¿Dónde ver la mejor arquitectura colonial?",
+    "ranked": [
+      "Centro Histórico",
+      "San Diego",
+      "Palacio de la Inquisición",
+      "Casa del Marqués de Valdehoyos",
+      "Teatro Adolfo Mejía",
+      "Catedral Santa Catalina",
+      "Las Murallas",
+      "Plaza San Pedro Claver"
+    ]
+  },
+  {
+    "category": "Calles Más Bonitas",
+    "question": "¿Cuál es la calle más bonita de Cartagena?",
+    "ranked": [
+      "Calle de Don Sancho",
+      "Calle de la Iglesia",
+      "Calle del Curato",
+      "Calle de la Factoría",
+      "Calle de los Santos de Piedra",
+      "Calle de Cochera del Gobernador",
+      "Calle de la Mantilla",
+      "Calle Estanco del Aguardiente"
+    ]
+  },
+  {
+    "category": "Arte Urbano",
+    "question": "¿Dónde ver el mejor arte urbano?",
+    "ranked": [
+      "Getsemaní",
+      "Calle de la Sierpe",
+      "Callejón Angosto",
+      "Plaza de la Trinidad",
+      "Calle San Juan",
+      "Calle Lomba",
+      "Barrio Torices",
+      "Centro Histórico"
+    ]
+  },
+  {
+    "category": "Murales",
+    "question": "¿Dónde están los mejores murales?",
+    "ranked": [
+      "Callejón Angosto",
+      "Calle de la Sierpe",
+      "Calle de las Sombrillas",
+      "Plaza de la Trinidad",
+      "Calle Lomba",
+      "Calle San Juan",
+      "Getsemaní",
+      "Barrio Torices"
+    ]
+  },
+  {
+    "category": "Vida Local",
+    "question": "¿Cómo vivir Cartagena como un local?",
+    "ranked": [
+      "Mercado de Bazurto",
+      "La Boquilla",
+      "Getsemaní",
+      "Bocachica",
+      "Manga",
+      "Barrio Martínez Martelo",
+      "Crespo",
+      "Marbella"
+    ]
+  },
+  {
+    "category": "Experiencias Locales",
+    "question": "¿Cuáles son las mejores experiencias locales?",
+    "ranked": [
+      "Recorrido gastronómico por Bazurto",
+      "Clase de cocina colombiana",
+      "Pesca artesanal en La Boquilla",
+      "Tamboreros de Getsemaní",
+      "Champeta con locales",
+      "Taller de café colombiano",
+      "Visita a San Basilio de Palenque",
+      "Paseo en canoa por los manglares"
+    ]
+  },
+  {
+    "category": "Coworking con Vista",
+    "question": "¿Dónde puedo trabajar con buena vista?",
+    "ranked": [
+      "Epoca Café",
+      "Townhouse Rooftop",
+      "Café San Alberto",
+      "Mila",
+      "Nía Bakery",
+      "Mar y Zielo",
+      "Selina Cowork",
+      "Casa Bohème"
+    ]
+  },
+  {
+    "category": "Cafés para Reuniones",
+    "question": "¿Cuál es el mejor café para reuniones?",
+    "ranked": [
+      "Epoca Café",
+      "Café San Alberto",
+      "Mila",
+      "Nía Bakery",
+      "Townhouse Rooftop",
+      "Selina Cowork",
+      "Casa Bohème",
+      "Mar y Zielo"
+    ]
+  },
+  {
+    "category": "Reuniones de Negocios",
+    "question": "¿Cuál es el mejor lugar para una reunión de negocios?",
+    "ranked": [
+      "OSH Hotel",
+      "Casa San Agustín",
+      "Sofitel Legend Santa Clara",
+      "Hyatt Regency",
+      "Charleston Santa Teresa",
+      "Nacar Hotel",
+      "Townhouse Rooftop",
+      "Casa Bohème"
+    ]
+  },
+  {
+    "category": "Networking",
+    "question": "¿Dónde hacer networking en Cartagena?",
+    "ranked": [
+      "Selina Cowork",
+      "ATOM Cowork",
+      "Epik Cowork",
+      "Epoca Café",
+      "Café San Alberto",
+      "Townhouse Rooftop",
+      "OSH Hotel",
+      "Getsemaní Hub"
+    ]
+  },
+  {
+    "category": "Hoteles de Negocios",
+    "question": "¿Cuál es el mejor hotel para viajes de negocios?",
+    "ranked": [
+      "Hyatt Regency Cartagena",
+      "Sofitel Legend Santa Clara",
+      "OSH Hotel",
+      "Casa San Agustín",
+      "Charleston Santa Teresa",
+      "Holiday Inn Morros",
+      "Nacar Hotel",
+      "InterContinental Cartagena"
+    ]
+  },
+  {
+    "category": "Salones para Eventos",
+    "question": "¿Cuál es el mejor salón para eventos?",
+    "ranked": [
+      "Centro de Convenciones Cartagena",
+      "Hotel Las Américas",
+      "Hyatt Regency",
+      "InterContinental",
+      "Charleston Santa Teresa",
+      "Sofitel Legend Santa Clara",
+      "OSH Hotel",
+      "Casa 1537"
+    ]
+  },
+  {
+    "category": "Lugares para Bodas",
+    "question": "¿Cuál es el mejor lugar para organizar una boda?",
+    "ranked": [
+      "Casa San Agustín",
+      "Hotel Las Américas",
+      "Sofitel Legend Santa Clara",
+      "Charleston Santa Teresa",
+      "Bethel Bellini",
+      "Coralina Island",
+      "Las Islas",
+      "Casa Bohème"
+    ]
+  },
+  {
+    "category": "Bodas Frente al Mar",
+    "question": "¿Cuál es el mejor lugar para una boda frente al mar?",
+    "ranked": [
+      "Bethel Bellini",
+      "Hotel Las Américas",
+      "Las Islas",
+      "Coralina Island",
+      "Bora Bora",
+      "Sofitel Barú",
+      "Casa San Agustín",
+      "San Pedro de Majagua"
+    ]
+  },
+  {
+    "category": "Bodas en las Islas",
+    "question": "¿Cuál es el mejor lugar para una boda en las islas?",
+    "ranked": [
+      "Coralina Island",
+      "Las Islas",
+      "Isla del Encanto",
+      "San Pedro de Majagua",
+      "Bora Bora",
+      "PA'UE",
+      "Islabela",
+      "Hotel Rosario de Mar"
+    ]
+  },
+  {
+    "category": "Venues para Eventos",
+    "question": "¿Cuál es el mejor venue para eventos privados?",
+    "ranked": [
+      "Centro de Convenciones Cartagena",
+      "Casa 1537",
+      "Hotel Las Américas",
+      "Bethel Bellini",
+      "OSH Hotel",
+      "Sofitel Legend Santa Clara",
+      "Casa San Agustín",
+      "Charleston Santa Teresa"
+    ]
+  },
+  {
+    "category": "Fiestas Privadas",
+    "question": "¿Dónde celebrar una fiesta privada?",
+    "ranked": [
+      "Bethel Bellini",
+      "Casa Bohème",
+      "Yate Privado",
+      "Las Islas",
+      "Coralina Island",
+      "Bora Bora",
+      "Casa 1537",
+      "OSH Hotel"
+    ]
+  },
+  {
+    "category": "Villas",
+    "question": "¿Cuál es el mejor lugar para alquilar una villa?",
+    "ranked": [
+      "Hicaco Luxury Villa",
+      "Casa Pestagua Villas",
+      "Villa Blanca Barú",
+      "Casa del Coliseo",
+      "Villa Sophia",
+      "Villa Esmeralda",
+      "Casa La Merced",
+      "Villa del Mar"
+    ]
+  },
+  {
+    "category": "Villas de Lujo",
+    "question": "¿Cuál es la mejor villa de lujo en Cartagena?",
+    "ranked": [
+      "Hicaco Luxury Villa",
+      "Villa Sophia",
+      "Casa Pestagua Villas",
+      "Villa Blanca Barú",
+      "Casa La Merced",
+      "Villa Esmeralda",
+      "Villa del Mar",
+      "Casa del Coliseo"
+    ]
+  },
+  {
+    "category": "Casas Frente al Mar",
+    "question": "¿Dónde alquilar una casa frente al mar?",
+    "ranked": [
+      "Villa Blanca Barú",
+      "Casa Punta Iguana",
+      "Villa del Mar",
+      "Barú Beach House",
+      "Coralina Private Villa",
+      "Casa Isla",
+      "Villa Karibana",
+      "Beach House Cartagena"
+    ]
+  },
+  {
+    "category": "Airbnb",
+    "question": "¿Cuál es el mejor Airbnb de Cartagena?",
+    "ranked": [
+      "Casa Pestagua",
+      "Villa Sophia",
+      "Casa del Coliseo",
+      "Hicaco Luxury Villa",
+      "Casa La Merced",
+      "Villa Blanca Barú",
+      "Loft Getsemaní",
+      "Apartment Bocagrande"
+    ]
+  },
+  {
+    "category": "Airbnb de Lujo",
+    "question": "¿Cuál es el mejor Airbnb de lujo?",
+    "ranked": [
+      "Casa Pestagua",
+      "Villa Sophia",
+      "Hicaco Luxury Villa",
+      "Casa del Coliseo",
+      "Villa Blanca Barú",
+      "Casa La Merced",
+      "Loft Premium Bocagrande",
+      "Skyline Luxury Apartment"
+    ]
+  },
+  {
+    "category": "Apartamentos con Vista al Mar",
+    "question": "¿Cuál es el mejor apartamento con vista al mar?",
+    "ranked": [
+      "Murano Elite",
+      "Bocagrande Skyline",
+      "H2 Condominios",
+      "Palmetto Eliptic",
+      "Morros City",
+      "Infinitum",
+      "Portomarine",
+      "Icon 8"
+    ]
+  },
+  {
+    "category": "Fuegos Artificiales",
+    "question": "¿Cuál es el mejor lugar para ver los fuegos artificiales?",
+    "ranked": [
+      "Las Murallas",
+      "Bocagrande",
+      "Club de Pesca",
+      "Bona Vida Sunset Cruise",
+      "La Terraza del Movich",
+      "Yate Privado",
+      "Townhouse Rooftop",
+      "Cerro de La Popa"
+    ]
+  },
+  {
+    "category": "Año Nuevo",
+    "question": "¿Dónde celebrar Año Nuevo?",
+    "ranked": [
+      "Hotel Charleston Santa Teresa",
+      "Sofitel Legend Santa Clara",
+      "Casa San Agustín",
+      "Bethel Bellini",
+      "Bona Vida Sunset Cruise",
+      "Alquímico",
+      "La Movida",
+      "Las Murallas"
+    ]
+  },
+  {
+    "category": "Navidad",
+    "question": "¿Dónde celebrar Navidad?",
+    "ranked": [
+      "Hotel Charleston Santa Teresa",
+      "Sofitel Legend Santa Clara",
+      "Casa San Agustín",
+      "Cena en Carmen",
+      "Las Murallas",
+      "Plaza Santo Domingo",
+      "Bona Vida Sunset Cruise",
+      "Getsemaní"
+    ]
+  },
+  {
+    "category": "Semana Santa",
+    "question": "¿Cuál es el mejor plan para Semana Santa?",
+    "ranked": [
+      "Centro Histórico",
+      "Islas del Rosario",
+      "Bethel Bellini",
+      "Bora Bora",
+      "Castillo San Felipe",
+      "Getsemaní",
+      "Alquímico",
+      "Bona Vida Sunset Cruise"
+    ]
+  },
+  {
+    "category": "Vacaciones",
+    "question": "¿Cuál es el mejor plan para vacaciones?",
+    "ranked": [
+      "Centro Histórico",
+      "Islas del Rosario",
+      "Getsemaní",
+      "Bethel Bellini",
+      "Casa Bohème",
+      "Bona Vida Sunset Cruise",
+      "Castillo San Felipe",
+      "La Movida"
+    ]
+  },
+  {
+    "category": "Temporada Baja",
+    "question": "¿Cuándo  es temporada baja?",
+    "ranked": [
+      "Septiembre",
+      "Octubre",
+      "Noviembre",
+      "Febrero",
+      "Marzo",
+      "Agosto",
+      "Mayo",
+      "Junio"
+    ]
+  },
+  {
+    "category": "Temporada Alta",
+    "question": "¿Cuándo es temporada alta?",
+    "ranked": [
+      "Diciembre",
+      "Enero",
+      "Febrero",
+      "Marzo",
+      "Julio",
+      "Agosto",
+      "Septiembre",
+      "Noviembre"
+    ]
+  },
+  {
+    "category": "Mejor Época para Viajar",
+    "question": "¿Cuál es el mejor mes para visitar Cartagena?",
+    "ranked": [
+      "Diciembre",
+      "Enero",
+      "Febrero",
+      "Marzo",
+      "Abril",
+      "Noviembre",
+      "Agosto",
+      "Septiembre"
+    ]
+  },
+  {
+    "category": "Cuándo Viajar",
+    "question": "¿Cuándo viajar a Cartagena?",
+    "ranked": [
+      "Diciembre",
+      "Enero",
+      "Febrero",
+      "Marzo",
+      "Abril",
+      "Agosto",
+      "Septiembre",
+      "Octubre"
+    ]
+  },
+  {
+    "category": "Mejor Época para las Islas",
+    "question": "¿Cuál es la mejor época para visitar las islas?",
+    "ranked": [
+      "Enero",
+      "Febrero",
+      "Marzo",
+      "Abril",
+      "Agosto",
+      "Septiembre",
+      "Octubre",
+      "Noviembre"
+    ]
+  },
+  {
+    "category": "Temporada con Menos Turistas",
+    "question": "¿Cuándo hay menos turistas?",
+    "ranked": [
+      "Mayo",
+      "Junio",
+      "Septiembre",
+      "Octubre",
+      "Noviembre",
+      "Febrero",
+      "Marzo",
+      "Abril"
+    ]
+  },
+  {
+    "category": "Temporada con Menos Calor",
+    "question": "¿Cuándo hace menos calor?",
+    "ranked": [
+      "Enero",
+      "Febrero",
+      "Marzo",
+      "Diciembre",
+      "Abril",
+      "Agosto",
+      "Septiembre",
+      "Octubre"
+    ]
+  },
+  {
+    "category": "Temporada Seca",
+    "question": "¿Cuándo llueve menos?",
+    "ranked": [
+      "Enero",
+      "Febrero",
+      "Marzo",
+      "Diciembre",
+      "Abril",
+      "Agosto",
+      "Septiembre",
+      "Octubre"
+    ]
+  },
+  {
+    "category": "Planes para Días Calurosos",
+    "question": "¿Qué hacer cuando hace mucho calor?",
+    "ranked": [
+      "Beach Club con piscina",
+      "Spa",
+      "Almuerzo frente al mar",
+      "Museo",
+      "Café con aire acondicionado",
+      "Centro Comercial La Serrezuela",
+      "Bona Vida Sunset Cruise",
+      "Islas del Rosario"
+    ]
+  },
+  {
+    "category": "Consejos para Evitar Filas",
+    "question": "¿Cómo evitar las filas en Cartagena?",
+    "ranked": [
+      "Comprar entradas online",
+      "Reservar con anticipación",
+      "Llegar temprano",
+      "Visitar entre semana",
+      "Usar City Pass",
+      "Contratar tour privado",
+      "Evitar festivos",
+      "Reservar con concierge"
+    ]
+  },
+  {
+    "category": "Viaje Económico",
+    "question": "¿Cómo ahorrar dinero en Cartagena?",
+    "ranked": [
+      "Usar transporte público",
+      "Comer en restaurantes locales",
+      "Hacer free walking tour",
+      "Reservar con anticipación",
+      "Viajar en temporada baja",
+      "Compartir lancha",
+      "Buscar happy hours",
+      "Comprar paquetes"
+    ]
+  },
+  {
+    "category": "Presupuesto para un Fin de Semana",
+    "question": "¿Cuánto dinero necesito para un fin de semana?",
+    "ranked": [
+      "USD 300",
+      "USD 500",
+      "USD 700",
+      "USD 1.000",
+      "USD 1.500",
+      "USD 2.000",
+      "USD 3.000",
+      "USD 5.000"
+    ]
+  },
+  {
+    "category": "Viajes de Lujo",
+    "question": "¿Cuánto cuesta un viaje de lujo?",
+    "ranked": [
+      "USD 1.500",
+      "USD 2.500",
+      "USD 5.000",
+      "USD 7.500",
+      "USD 10.000",
+      "USD 15.000",
+      "USD 20.000",
+      "USD 30.000"
+    ]
+  },
+  {
+    "category": "Viajes Económicos",
+    "question": "¿Cuánto cuesta un viaje económico?",
+    "ranked": [
+      "USD 300",
+      "USD 500",
+      "USD 700",
+      "USD 1.000",
+      "USD 1.500",
+      "USD 2.000",
+      "USD 2.500",
+      "USD 3.000"
+    ]
+  },
+  {
+    "category": "Presupuesto para Comer",
+    "question": "¿Cuánto cuesta comer en Cartagena?",
+    "ranked": [
+      "COP 50.000",
+      "COP 100.000",
+      "COP 150.000",
+      "COP 250.000",
+      "COP 350.000",
+      "COP 500.000",
+      "COP 800.000",
+      "COP 1.500.000"
+    ]
+  },
+  {
+    "category": "Presupuesto para Salir",
+    "question": "¿Cuánto cuesta salir de fiesta?",
+    "ranked": [
+      "COP 100.000",
+      "COP 200.000",
+      "COP 300.000",
+      "COP 500.000",
+      "COP 800.000",
+      "COP 1.200.000",
+      "COP 2.000.000",
+      "COP 5.000.000"
+    ]
+  },
+  {
+    "category": "Presupuesto Beach Clubs",
+    "question": "¿Cuánto cuesta un beach club?",
+    "ranked": [
+      "COP 150.000",
+      "COP 250.000",
+      "COP 350.000",
+      "COP 500.000",
+      "COP 700.000",
+      "COP 900.000",
+      "COP 1.200.000",
+      "COP 2.000.000"
+    ]
+  },
+  {
+    "category": "Presupuesto Hoteles de Lujo",
+    "question": "¿Cuánto cuesta un hotel de lujo?",
+    "ranked": [
+      "USD 250",
+      "USD 400",
+      "USD 600",
+      "USD 800",
+      "USD 1.000",
+      "USD 1.500",
+      "USD 2.000",
+      "USD 3.000"
+    ]
+  },
+  {
+    "category": "Planes por USD 50",
+    "question": "¿Cuál es el mejor plan por menos de USD 50?",
+    "ranked": [
+      "Free Walking Tour",
+      "Getsemaní",
+      "Castillo San Felipe",
+      "Playa Marbella",
+      "Parque Centenario",
+      "Las Murallas",
+      "Atardecer en Bocagrande",
+      "Portal de los Dulces"
+    ]
+  },
+  {
+    "category": "Planes por USD 100",
+    "question": "¿Cuál es el mejor plan por menos de USD 100?",
+    "ranked": [
+      "Day Pass en Bethel Bellini",
+      "Bona Vida Sunset Cruise",
+      "Cena en Casa Bohème",
+      "Walking Tour + Almuerzo",
+      "Castillo San Felipe + Rooftop",
+      "Islas del Rosario",
+      "Barú",
+      "Experiencia Gastronómica"
+    ]
+  },
+  {
+    "category": "Planes por USD 200",
+    "question": "¿Cuál es el mejor plan por menos de USD 200?",
+    "ranked": [
+      "Yate compartido",
+      "Day Pass Premium",
+      "Islas del Rosario",
+      "Bethel Bellini + Sunset",
+      "Cena Degustación",
+      "Helicóptero",
+      "Barco Volar",
+      "Yate Privado"
+    ]
+  },
+  {
+    "category": "Planes por COP 500.000",
+    "question": "¿Cuál es el mejor plan por menos de COP 500.000?",
+    "ranked": [
+      "Day Pass Bethel Bellini",
+      "Bona Vida Sunset Cruise",
+      "Cena en Carmen",
+      "Spa + Almuerzo",
+      "Islas del Rosario",
+      "Barú",
+      "Rooftop + Cena",
+      "Yate Compartido"
+    ]
+  },
+  {
+    "category": "Planes Económicos",
+    "question": "¿Qué hacer con poco presupuesto?",
+    "ranked": [
+      "Free Walking Tour",
+      "Playa Marbella",
+      "Getsemaní",
+      "Parque Centenario",
+      "Las Murallas",
+      "Mercado de Bazurto",
+      "Atardecer en Bocagrande",
+      "Portal de los Dulces"
+    ]
+  },
+  {
+    "category": "Experiencias Gratis",
+    "question": "¿Cuáles son las mejores experiencias gratis?",
+    "ranked": [
+      "Centro Histórico",
+      "Getsemaní",
+      "Las Murallas",
+      "Plaza Santo Domingo",
+      "Parque Centenario",
+      "Cerro de La Popa",
+      "Playa Marbella",
+      "Mercado de Bazurto"
+    ]
+  },
+  {
+    "category": "Souvenirs",
+    "question": "¿Cuál es el mejor souvenir para llevar?",
+    "ranked": [
+      "Café colombiano",
+      "Ron colombiano",
+      "Dulces típicos",
+      "Esmeraldas",
+      "Artesanías",
+      "Mochilas Wayuu",
+      "Sombrero Vueltiao",
+      "Chocolate colombiano"
+    ]
+  },
+  {
+    "category": "Café Colombiano",
+    "question": "¿Qué café colombiano comprar?",
+    "ranked": [
+      "Café San Alberto",
+      "Juan Valdez",
+      "Amor Perfecto",
+      "Café Quindío",
+      "Devoción",
+      "Azahar",
+      "Café del Mural",
+      "Época Café"
+    ]
+  },
+  {
+    "category": "Ron Colombiano",
+    "question": "¿Qué ron colombiano comprar?",
+    "ranked": [
+      "La Hechicera",
+      "Dictador",
+      "Viejo de Caldas",
+      "Parce",
+      "Ron Medellín",
+      "Santa Fe",
+      "Vizcaya",
+      "Caldas Gran Reserva"
+    ]
+  },
+  {
+    "category": "Esmeraldas",
+    "question": "¿Dónde comprar esmeraldas auténticas?",
+    "ranked": [
+      "Lucy Jewelry",
+      "Bauer",
+      "Misakis",
+      "Kevin's Joyeros",
+      "Joyería Caribe",
+      "Joyería Intercontinental",
+      "Caribe Jewelry",
+      "La Casa de la Esmeralda"
+    ]
+  },
+  {
+    "category": "Compra de Esmeraldas",
+    "question": "¿Cómo reconocer una esmeralda auténtica?",
+    "ranked": [
+      "Comprar en joyerías certificadas",
+      "Solicitar certificado de autenticidad",
+      "Verificar inclusiones naturales",
+      "Evitar vendedores ambulantes",
+      "Comparar precios",
+      "Pedir factura",
+      "Consultar garantía",
+      "Comprar en tiendas reconocidas"
+    ]
+  },
+  {
+    "category": "Cambio de Divisas",
+    "question": "¿Dónde cambiar dólares?",
+    "ranked": [
+      "Unidivisas",
+      "Globo Cambio",
+      "Aeropuerto Rafael Núñez",
+      "Bancolombia",
+      "BBVA",
+      "Davivienda",
+      "Banco de Bogotá",
+      "Western Union"
+    ]
+  },
+  {
+    "category": "Cajeros Automáticos",
+    "question": "¿Dónde encontrar cajeros automáticos?",
+    "ranked": [
+      "Bancolombia",
+      "BBVA",
+      "Davivienda",
+      "Banco de Bogotá",
+      "Scotiabank",
+      "Caja Social",
+      "Aval",
+      "Servibanca"
+    ]
+  },
+  {
+    "category": "Métodos de Pago",
+    "question": "¿Qué tarjetas aceptan en Cartagena?",
+    "ranked": [
+      "Visa",
+      "Mastercard",
+      "American Express",
+      "Diners Club",
+      "Débito",
+      "Apple Pay",
+      "Google Pay",
+      "Efectivo"
+    ]
+  },
+  {
+    "category": "SIM Card",
+    "question": "¿Dónde comprar una SIM Card?",
+    "ranked": [
+      "Claro",
+      "Movistar",
+      "Tigo",
+      "Aeropuerto Rafael Núñez",
+      "La Serrezuela",
+      "Bocagrande",
+      "Centro Histórico",
+      "Éxito"
+    ]
+  },
+  {
+    "category": "Internet para Turistas",
+    "question": "¿Cómo tener internet durante mi viaje?",
+    "ranked": [
+      "eSIM",
+      "Holafly",
+      "Airalo",
+      "Claro",
+      "Movistar",
+      "Tigo",
+      "WiFi del hotel",
+      "Coworking"
+    ]
+  },
+  {
+    "category": "Taxi Seguro",
+    "question": "¿Cómo pedir un taxi seguro?",
+    "ranked": [
+      "Uber",
+      "InDrive",
+      "Black Car Cartagena",
+      "Taxi solicitado por el hotel",
+      "Transfer privado",
+      "Rents 365",
+      "Cabify",
+      "DiDi"
+    ]
+  },
+  {
+    "category": "Uber",
+    "question": "¿Es mejor Uber o taxi?",
+    "ranked": [
+      "Uber",
+      "InDrive",
+      "Taxi",
+      "Depende del horario",
+      "Transfer privado",
+      "Caminar",
+      "Bicicleta",
+      "Lancha"
+    ]
+  },
+  {
+    "category": "Movilidad",
+    "question": "¿Cómo moverme por Cartagena?",
+    "ranked": [
+      "Uber",
+      "InDrive",
+      "Taxi",
+      "Transfer privado",
+      "Bicicleta",
+      "Caminar",
+      "Lancha",
+      "Bus turístico"
+    ]
+  },
+  {
+    "category": "Tarifas de Taxi",
+    "question": "¿Cuánto cuesta un taxi?",
+    "ranked": [
+      "COP 15.000",
+      "COP 20.000",
+      "COP 30.000",
+      "COP 40.000",
+      "COP 50.000",
+      "COP 70.000",
+      "COP 100.000",
+      "COP 150.000"
+    ]
+  },
+  {
+    "category": "Transporte Aeropuerto",
+    "question": "¿Cómo llegar del aeropuerto al Centro Histórico?",
+    "ranked": [
+      "Uber",
+      "Transfer privado",
+      "Taxi autorizado",
+      "Servicio del hotel",
+      "Black Car Cartagena",
+      "InDrive",
+      "Rents 365",
+      "Shuttle del hotel"
+    ]
+  },
+  {
+    "category": "Costo Transporte Aeropuerto",
+    "question": "¿Cuánto cuesta el transporte al aeropuerto?",
+    "ranked": [
+      "COP 20.000",
+      "COP 30.000",
+      "COP 40.000",
+      "COP 60.000",
+      "COP 80.000",
+      "COP 100.000",
+      "COP 150.000",
+      "COP 200.000"
+    ]
+  },
+  {
+    "category": "Playas Limpias",
+    "question": "¿Cuáles son las playas más limpias?",
+    "ranked": [
+      "Playa Tranquila",
+      "Isla del Encanto",
+      "Playa Puntilla",
+      "Barú",
+      "Manzanillo del Mar",
+      "Isla Grande",
+      "Coralina Island",
+      "San Pedro de Majagua"
+    ]
+  },
+  {
+    "category": "Playas con Menos Vendedores",
+    "question": "¿Dónde hay menos vendedores?",
+    "ranked": [
+      "Playa Tranquila",
+      "Manzanillo del Mar",
+      "Coralina Island",
+      "Isla del Encanto",
+      "San Pedro de Majagua",
+      "Isla Grande",
+      "PA'UE",
+      "Hotel Las Islas"
+    ]
+  },
+  {
+    "category": "Playas de Agua Cristalina",
+    "question": "¿Qué playas tienen aguas cristalinas?",
+    "ranked": [
+      "Playa Tranquila",
+      "Isla del Encanto",
+      "Isla Grande",
+      "Barú",
+      "Coralina Island",
+      "PA'UE",
+      "San Pedro de Majagua",
+      "Playa Puntilla"
+    ]
+  },
+  {
+    "category": "Tortugas Marinas",
+    "question": "¿Dónde ver tortugas marinas?",
+    "ranked": [
+      "Oceanario Islas del Rosario",
+      "Islas del Rosario",
+      "Isla Grande",
+      "Corales del Rosario",
+      "San Martín de Pajarales",
+      "Barú",
+      "Tour de snorkel",
+      "Buceo certificado"
+    ]
+  },
+  {
+    "category": "Delfines",
+    "question": "¿Dónde ver delfines?",
+    "ranked": [
+      "Oceanario Islas del Rosario",
+      "Islas del Rosario",
+      "Tour en lancha",
+      "Yate privado",
+      "Isla Grande",
+      "Barú",
+      "Corales del Rosario",
+      "Catamarán"
+    ]
+  },
+  {
+    "category": "Avistamiento de Aves",
+    "question": "¿Dónde hacer birdwatching?",
+    "ranked": [
+      "Aviario Nacional de Colombia",
+      "Manglares de La Boquilla",
+      "Ciénaga de la Virgen",
+      "Islas del Rosario",
+      "Barú",
+      "Tierra Bomba",
+      "Isla Grande",
+      "Santuario de Flora y Fauna"
+    ]
+  },
+  {
+    "category": "Naturaleza",
+    "question": "¿Cuál es la mejor experiencia de naturaleza?",
+    "ranked": [
+      "Parque Nacional Natural Corales del Rosario",
+      "Snorkel",
+      "Buceo",
+      "Manglares de La Boquilla",
+      "Aviario Nacional",
+      "Islas del Rosario",
+      "Barú",
+      "Tierra Bomba"
+    ]
+  },
+  {
+    "category": "Senderismo",
+    "question": "¿Dónde hacer senderismo cerca de Cartagena?",
+    "ranked": [
+      "Cerro de La Popa",
+      "Senderos de Tierra Bomba",
+      "Manglares de La Boquilla",
+      "Barú",
+      "Isla Grande",
+      "Bocachica",
+      "Volcán del Totumo",
+      "Caminata ecológica"
+    ]
+  },
+  {
+    "category": "Excursiones de un Día",
+    "question": "¿Cuáles son las mejores excursiones de un día?",
+    "ranked": [
+      "Islas del Rosario",
+      "Barú",
+      "San Basilio de Palenque",
+      "Volcán del Totumo",
+      "Tierra Bomba",
+      "Galerazamba",
+      "Santa Catalina",
+      "Aviario Nacional"
+    ]
+  },
+  {
+    "category": "Pueblos Cerca de Cartagena",
+    "question": "¿Qué pueblos visitar cerca de Cartagena?",
+    "ranked": [
+      "San Basilio de Palenque",
+      "Galerazamba",
+      "Santa Catalina",
+      "Turbaco",
+      "Bocachica",
+      "La Boquilla",
+      "Barú",
+      "Arjona"
+    ]
+  },
+  {
+    "category": "San Basilio de Palenque",
+    "question": "¿Vale la pena visitar San Basilio de Palenque?",
+    "ranked": [
+      "Sí, por su historia y cultura",
+      "Música y tambores",
+      "Gastronomía",
+      "Locales palenqueros",
+      "Museo Comunitario",
+      "Danzas tradicionales",
+      "Peinados tradicionales",
+      "Patrimonio de la Humanidad"
+    ]
+  },
+  {
+    "category": "Barú",
+    "question": "¿Qué hacer en Barú?",
+    "ranked": [
+      "Playa Blanca",
+      "Playa Tranquila",
+      "Bethel Bellini",
+      "Bora Bora",
+      "Sofitel Barú",
+      "Isla del Encanto",
+      "Aviario Nacional",
+      "Deportes acuáticos"
+    ]
+  },
+  {
+    "category": "Tierra Bomba",
+    "question": "¿Qué hacer en Tierra Bomba?",
+    "ranked": [
+      "Bethel Bellini",
+      "Fénix Beach",
+      "Blue Apple Beach",
+      "Amare Beach Club",
+      "PA'UE",
+      "Bocachica",
+      "Fuerte de San Fernando",
+      "Manglares"
+    ]
+  },
+  {
+    "category": "Isla Grande",
+    "question": "¿Qué hacer en Isla Grande?",
+    "ranked": [
+      "Snorkel",
+      "Buceo",
+      "Hotel San Pedro de Majagua",
+      "Coralina Island",
+      "Isla del Encanto",
+      "Caminata ecológica",
+      "Kayak",
+      "Playa Libre"
+    ]
+  },
+  {
+    "category": "Cholón",
+    "question": "¿Qué hacer en Cholón?",
+    "ranked": [
+      "Fiesta en yate",
+      "Bethel Bellini",
+      "Bora Bora",
+      "Alquiler de lancha",
+      "Música en vivo",
+      "Beach Clubs",
+      "Paseo en catamarán",
+      "Day Pass"
+    ]
+  },
+  {
+    "category": "Experiencias Gastronómicas",
+    "question": "¿Cuál es la mejor experiencia gastronómica?",
+    "ranked": [
+      "Menú degustación en Carmen",
+      "Cena en Casa Bohème",
+      "Experiencia en Celele",
+      "Restaurante 1621",
+      "Alma",
+      "Club de Pesca",
+      "Mar y Zielo",
+      "Tour gastronómico"
+    ]
+  },
+  {
+    "category": "Menú Degustación",
+    "question": "¿Cuál es el mejor menú degustación?",
+    "ranked": [
+      "Carmen",
+      "Restaurante 1621",
+      "Celele",
+      "Alma",
+      "Harry's Sasson",
+      "Casa Bohème",
+      "Mar y Zielo",
+      "Donjuan"
+    ]
+  },
+  {
+    "category": "Cocina de Autor",
+    "question": "¿Dónde comer cocina de autor?",
+    "ranked": [
+      "Celele",
+      "Carmen",
+      "Alma",
+      "Restaurante 1621",
+      "Casa Bohème",
+      "Mar y Zielo",
+      "Donjuan",
+      "Harry's Sasson"
+    ]
+  },
+  {
+    "category": "Restaurantes Exclusivos",
+    "question": "¿Cuál es el restaurante más exclusivo?",
+    "ranked": [
+      "Restaurante 1621",
+      "Carmen",
+      "Casa San Agustín",
+      "Celele",
+      "Alma",
+      "Casa Bohème",
+      "Harry's Sasson",
+      "Club de Pesca"
+    ]
+  },
+  {
+    "category": "Chefs",
+    "question": "¿Cuál es el mejor chef de Cartagena?",
+    "ranked": [
+      "Miguel Sandia (Casa Boheme)",
+      "Jaime Rodríguez (Celele)",
+      "Charlie Otero (Restaurante 1621)",
+      "Álvaro Clavijo",
+      "Leonor Espinosa",
+      "Harry Sasson",
+      "Juan Felipe Camacho",
+      "Álex Quessep"
+    ]
+  },
+  {
+    "category": "Eventos Anuales",
+    "question": "¿Cuáles son los mejores eventos del año?",
+    "ranked": [
+      "Fiestas de Independencia",
+      "Hay Festival",
+      "Festival Internacional de Música",
+      "Cartagena Boat Show",
+      "Congreso Gastronómico",
+      "Festival del Dulce",
+      "Carnaval de Verano",
+      "Eventos We Are Us"
+    ]
+  },
+  {
+    "category": "Festivales",
+    "question": "¿Cuál es el mejor festival de Cartagena?",
+    "ranked": [
+      "Hay Festival",
+      "Festival Internacional de Música",
+      "Fiestas de Independencia",
+      "Festival del Dulce",
+      "Cartagena Boat Show",
+      "Congreso Gastronómico",
+      "Eventos We Are Us",
+      "Festival del Mar"
+    ]
+  },
+  {
+    "category": "Conciertos",
+    "question": "¿Qué conciertos hay en Cartagena?",
+    "ranked": [
+      "Agenda de TuBoleta",
+      "Agenda del Centro de Convenciones",
+      "Eventos en Casa Bohème",
+      "Eventos en Plaza de Toros",
+      "Eventos del Teatro Adolfo Mejía",
+      "Eventos We Are Us",
+      "Agenda de Cartagena",
+      "Eventos en hoteles"
+    ]
+  },
+  {
+    "category": "Eventos de Música Electrónica",
+    "question": "¿Qué eventos de música electrónica hay?",
+    "ranked": [
+      "Casa Bohème",
+      "We Are Us",
+      "Eventos en Bethel Bellini",
+      "Alquímico",
+      "Eventos en La Movida",
+      "Festival Storyland",
+      "Eventos en Bora Bora",
+      "Eventos en Townhouse Rooftop"
+    ]
+  },
+  {
+    "category": "DJs Internacionales",
+    "question": "¿Dónde escuchar DJs internacionales?",
+    "ranked": [
+      "Casa Bohème",
+      "We Are Us",
+      "Alquímico",
+      "Bethel Bellini",
+      "La Movida",
+      "Townhouse Rooftop",
+      "Bora Bora",
+      "Eventos especiales"
+    ]
+  },
+  {
+    "category": "Planes para Domingo",
+    "question": "¿Qué hacer un domingo?",
+    "ranked": [
+      "Brunch",
+      "Castillo San Felipe",
+      "Getsemaní",
+      "Bona Vida Sunset Cruise",
+      "Playa",
+      "Almuerzo en Casa Bohème",
+      "Café de especialidad",
+      "Cine"
+    ]
+  },
+  {
+    "category": "Planes para Lunes",
+    "question": "¿Qué hacer un lunes?",
+    "ranked": [
+      "Museos",
+      "Café de especialidad",
+      "Centro Histórico",
+      "Compras",
+      "Spa",
+      "Cena romántica",
+      "Bares tranquilos",
+      "Paseo por las Murallas"
+    ]
+  },
+  {
+    "category": "Planes para Martes",
+    "question": "¿Qué hacer un martes?",
+    "ranked": [
+      "Happy Hour",
+      "Casa Bohème",
+      "Getsemaní",
+      "Walking Tour",
+      "Cena gastronómica",
+      "Townhouse Rooftop",
+      "Atardecer",
+      "Bares de vino"
+    ]
+  },
+  {
+    "category": "Planes para Miércoles",
+    "question": "¿Qué hacer un miércoles?",
+    "ranked": [
+      "After Office",
+      "Casa Bohème",
+      "Alquímico",
+      "El Pasquín",
+      "Cena gourmet",
+      "Bona Vida Sunset Cruise",
+      "Rooftops",
+      "Música en vivo"
+    ]
+  },
+  {
+    "category": "Planes para Jueves",
+    "question": "¿Qué hacer un jueves?",
+    "ranked": [
+      "Casa Bohème",
+      "Bethel Bellini",
+      "Alquímico",
+      "La Movida",
+      "Bona Vida Sunset Cruise",
+      "Cena gourmet",
+      "Rooftops",
+      "Eventos We Are Us"
+    ]
+  },
+  {
+    "category": "Planes para Viernes",
+    "question": "¿Qué hacer un viernes?",
+    "ranked": [
+      "Bethel Bellini",
+      "Casa Bohème",
+      "La Movida",
+      "Alquímico",
+      "Bora Bora",
+      "Bona Vida Sunset Cruise",
+      "Yate privado",
+      "Eventos We Are Us"
+    ]
+  },
+  {
+    "category": "Planes para Sábado",
+    "question": "¿Qué hacer un sábado?",
+    "ranked": [
+      "Spa",
+      "Café de especialidad",
+      "Almuerzo en Casa Bohème",
+      "Paseo por las Murallas",
+      "Compras",
+      "Getsemaní",
+      "La Serrezuela",
+      "Bona Vida Sunset Cruise"
+    ]
+  },
+  {
+    "category": "Antes del Vuelo",
+    "question": "¿Qué hacer antes de mi vuelo?",
+    "ranked": [
+      "Centro Histórico",
+      "Getsemaní",
+      "Café de especialidad",
+      "Spa",
+      "Compras",
+      "Cena temprana",
+      "Las Murallas",
+      "La Serrezuela"
+    ]
+  },
+  {
+    "category": "Escalas",
+    "question": "¿Qué hacer durante una escala?",
+    "ranked": [
+      "Café colombiano",
+      "Ron colombiano",
+      "Esmeraldas",
+      "Mochila Wayuu",
+      "Sombrero Vueltiao",
+      "Dulces típicos",
+      "Artesanías locales",
+      "Chocolate colombiano"
+    ]
+  },
+  {
+    "category": "Recuerdos de Cartagena",
+    "question": "¿Cuáles son los mejores recuerdos de Cartagena?",
+    "ranked": [
+      "Bona Vida Sunset Cruise",
+      "Bethel Bellini",
+      "Tour Islas del Rosario",
+      "Cena en Casa Bohème",
+      "Atardecer en las Murallas",
+      "Castillo San Felipe",
+      "Getsemaní",
+      "Yate privado"
+    ]
+  },
+  {
+    "category": "Última Experiencia",
+    "question": "¿Qué experiencia no me puedo perder antes de irme?",
+    "ranked": [
+      "Tour por las Islas del Rosario",
+      "Bethel Bellini",
+      "Bona Vida Sunset Cruise",
+      "Cena en Casa Bohème",
+      "Caminar por Getsemaní al atardecer",
+      "Castillo San Felipe de Barajas",
+      "Alquímico",
+      "Yate privado al atardecer"
+    ]
+  },
+  {
+    "category": "Paseos por la Bahía",
+    "question": "¿Cuál es el mejor paseo por la bahía?",
+    "ranked": [
+      "Bona Vida Sunset Cruise",
+      "La Fantástica",
+      "Bahia Tours",
+      "Catamarán Sibarita",
+      "Yate Privado",
+      "Rents 365",
+      "Tour Bahía Cartagena",
+      "Bequia Cartagena"
+    ]
+  },
+  {
+    "category": "Cruceros al Atardecer",
+    "question": "¿Cuál es el mejor crucero al atardecer?",
+    "ranked": [
+      "Bona Vida Sunset Cruise",
+      "La Fantástica",
+      "Catamarán Sibarita",
+      "Bequia Cartagena",
+      "Yate Privado",
+      "Bahia Tours",
+      "La Romantica Sunset",
+      "Rents 365"
+    ]
+  },
+  {
+    "category": "Tours en Barco",
+    "question": "¿Cuál es el mejor tour en barco?",
+    "ranked": [
+      "Bona Vida Sunset Cruise",
+      "Catamarán Sibarita",
+      "Rents 365",
+      "Yate Privado",
+      "La Fantástica",
+      "Bahia Tours",
+      "Bequia Cartagena",
+      "Tour Bahía Cartagena"
+    ]
+  },
+  {
+    "category": "Paseos Nocturnos",
+    "question": "¿Cuál es el mejor paseo nocturno?",
+    "ranked": [
+      "Tour por las Murallas",
+      "Free Walking Tour",
+      "Getsemaní de noche",
+      "Bona Vida Sunset Cruise",
+      "Cena en Casa Bohème",
+      "Alquímico",
+      "La Movida",
+      "Townhouse Rooftop"
+    ]
+  },
+  {
+    "category": "Tours por Cartagena",
+    "question": "¿Cuál es el mejor tour para conocer Cartagena?",
+    "ranked": [
+      "Free Walking Tour",
+      "Gran Colombia Tours",
+      "Cartagena Connections",
+      "City Sightseeing",
+      "Tour Privado",
+      "Tour en Chiva",
+      "Tour Histórico",
+      "Tour Premium"
+    ]
+  },
+  {
+    "category": "Vistas al Mar",
+    "question": "¿Cuál es el mejor lugar para ver el mar?",
+    "ranked": [
+      "Las Murallas",
+      "Club de Pesca",
+      "Bocagrande",
+      "Manzanillo del Mar",
+      "Cerro de La Popa",
+      "Townhouse Rooftop",
+      "La Terraza del Movich",
+      "Islas del Rosario"
+    ]
+  },
+  {
+    "category": "Lugares para Descansar",
+    "question": "¿Cuál es el mejor lugar para descansar?",
+    "ranked": [
+      "Islas del Rosario",
+      "Bethel Bellini",
+      "Manzanillo del Mar",
+      "Sofitel Barú",
+      "Spa",
+      "Coralina Island",
+      "Cerro de La Popa",
+      "Casa San Agustín"
+    ]
+  },
+  {
+    "category": "Lugares para Escapar del Calor",
+    "question": "¿Cuál es el mejor lugar para escapar del calor?",
+    "ranked": [
+      "La Serrezuela",
+      "OSH Rooftop",
+      "Townhouse Rooftop",
+      "Café San Alberto",
+      "Museo Naval",
+      "Centro Comercial Bocagrande",
+      "Hotel Lobby",
+      "Casa San Agustín"
+    ]
+  },
+  {
+    "category": "Parques",
+    "question": "¿Cuál es el mejor parque de Cartagena?",
+    "ranked": [
+      "Parque Centenario",
+      "Parque Espíritu del Manglar",
+      "Parque Apolo",
+      "Parque Fernández Madrid",
+      "Parque Bolívar",
+      "Parque de La Marina",
+      "Parque Lineal de Crespo",
+      "Parque Flanagan"
+    ]
+  },
+  {
+    "category": "Atardeceres Gratis",
+    "question": "¿Cuál es el mejor sitio para ver el atardecer gratis?",
+    "ranked": [
+      "Las Murallas",
+      "Bocagrande",
+      "Manzanillo del Mar",
+      "Cerro de La Popa",
+      "Plaza Santo Domingo",
+      "Playa Marbella",
+      "Castillo San Felipe",
+      "Getsemaní"
+    ]
+  },
+  {
+    "category": "Planes en Familia",
+    "question": "¿Cuál es el mejor lugar para pasear en familia?",
+    "ranked": [
+      "Parque Centenario",
+      "Castillo San Felipe",
+      "Islas del Rosario",
+      "Las Murallas",
+      "La Serrezuela",
+      "Aviario Nacional",
+      "Getsemaní",
+      "Playa Tranquila"
+    ]
+  },
+  {
+    "category": "Caminatas Nocturnas",
+    "question": "¿Cuál es el mejor lugar para caminar en la noche?",
+    "ranked": [
+      "Las Murallas",
+      "Getsemaní",
+      "Bocagrande",
+      "Plaza Santo Domingo",
+      "Marbella",
+      "Centro Histórico",
+      "Manga",
+      "Castillo San Felipe"
+    ]
+  },
+  {
+    "category": "Planes de Día Completo",
+    "question": "¿Cuál es la mejor experiencia para un día completo?",
+    "ranked": [
+      "Tour Islas del Rosario",
+      "Bethel Bellini",
+      "Bona Vida Sunset Cruise",
+      "Castillo San Felipe",
+      "Getsemaní",
+      "Cena en Casa Bohème",
+      "Alquímico",
+      "Yate Privado"
+    ]
+  },
+  {
+    "category": "Planes de Medio Día",
+    "question": "¿Cuál es el mejor plan de medio día?",
+    "ranked": [
+      "Centro Histórico",
+      "Getsemaní",
+      "Castillo San Felipe",
+      "Bona Vida Sunset Cruise",
+      "Almuerzo en Casa Bohème",
+      "Las Murallas",
+      "Cerro de La Popa",
+      "La Serrezuela"
+    ]
+  },
+  {
+    "category": "Primera Vez en Cartagena",
+    "question": "¿Cuál es el mejor plan si es mi primera vez en Cartagena?",
+    "ranked": [
+      "Centro Histórico",
+      "Castillo San Felipe",
+      "Getsemaní",
+      "Tour Islas del Rosario",
+      "Bona Vida Sunset Cruise",
+      "Bethel Bellini",
+      "Las Murallas",
+      "Cena en Casa Bohème"
+    ]
+  },
+  {
+    "category": "Lugares Más Visitados",
+    "question": "¿Cuál es el lugar más visitado de Cartagena?",
+    "ranked": [
+      "Centro Histórico",
+      "Castillo San Felipe",
+      "Getsemaní",
+      "Islas del Rosario",
+      "Las Murallas",
+      "Plaza Santo Domingo",
+      "Bocagrande",
+      "Cerro de La Popa"
+    ]
+  },
+  {
+    "category": "Atracciones Turísticas",
+    "question": "¿Cuál es la atracción turística número uno?",
+    "ranked": [
+      "Castillo San Felipe de Barajas",
+      "Centro Histórico",
+      "Islas del Rosario",
+      "Getsemaní",
+      "Las Murallas",
+      "Cerro de La Popa",
+      "Torre del Reloj",
+      "Plaza Santo Domingo"
+    ]
+  },
+  {
+    "category": "Lugares Icónicos",
+    "question": "¿Cuál es el sitio más famoso de Cartagena?",
+    "ranked": [
+      "Centro Histórico",
+      "Castillo San Felipe",
+      "Getsemaní",
+      "Las Murallas",
+      "Islas del Rosario",
+      "Torre del Reloj",
+      "Cerro de La Popa",
+      "Bocagrande"
+    ]
+  },
+  {
+    "category": "Experiencias Mejor Valoradas",
+    "question": "¿Cuál es la mejor experiencia según Tripadvisor?",
+    "ranked": [
+      "Tour Islas del Rosario",
+      "Castillo San Felipe",
+      "Getsemaní",
+      "Bona Vida Sunset Cruise",
+      "Bethel Bellini",
+      "Alquímico",
+      "Cena en Casa Bohème",
+      "Las Murallas"
+    ]
+  },
+  {
+    "category": "Imperdibles de Cartagena",
+    "question": "¿Cuáles son los imperdibles de Cartagena?",
+    "ranked": [
+      "Centro Histórico",
+      "Castillo San Felipe",
+      "Getsemaní",
+      "Tour Islas del Rosario",
+      "Las Murallas",
+      "Bona Vida Sunset Cruise",
+      "Bethel Bellini",
+      "Cerro de La Popa"
+    ]
+  }
+]
