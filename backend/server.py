@@ -2918,6 +2918,7 @@ async def global_search(q: str = "", request: Request = None):
             user_text=q,
             history=[],
             forced_language=forced_lang,
+            fast=True,  # Search bar uses Haiku for 2-3s response
         )
         # Derive a coarse intent from the first recommendation kind (or "general")
         recs = agent_payload.get("recommendations") or []

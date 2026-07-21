@@ -530,13 +530,13 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
     3. Build a Mongo query from the routed categories/subcategories + text search.
     4. If nothing matches, return a diverse top-50 sample.
     """
+    # Lean fields — only what the LLM needs to build recommendation cards.
+    # Removed: description, search_profile, features, schedule, instagram,
+    # booking_link, phone, is_government (saves ~60% tokens per partner)
     fields = {
         "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
-        "tier": 1, "price_range": 1, "address": 1, "cuisine": 1, "rating": 1,
-        "reviews": 1, "description": 1,
-        "is_government": 1, "experience": 1, "instagram": 1, "booking_link": 1,
-        "phone": 1, "hours": 1, "schedule": 1, "features": 1, "neighborhood": 1,
-        "search_profile": 1,
+        "tier": 1, "price_range": 1, "address": 1, "rating": 1,
+        "neighborhood": 1, "experience": 1,
     }
 
     # ── Step 1: Try LLM intent routing ──
@@ -712,32 +712,29 @@ CARTAGENA_KNOWLEDGE: Dict[str, Any] = {
 }
 
 
-async def _slim_all_partners_compact(db, limit: int = 200) -> List[Dict[str, Any]]:
-    """Compact list of ALL partners — minimal fields, used as the 'master directory' the LLM scans."""
+async def _slim_all_partners_compact(db, limit: int = 80) -> List[Dict[str, Any]]:
+    """Top partners — ultra-compact. Only partner_id + name + category for ID resolution."""
     cursor = db.partners.find({}, {
         "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
-        "tier": 1, "price_range": 1, "rating": 1,
     }).sort([("rating", -1), ("reviews", -1)]).limit(limit)
     return await cursor.to_list(limit)
 
 
-async def _slim_upcoming_events(db, days: int = 14, limit: int = 60) -> List[Dict[str, Any]]:
+async def _slim_upcoming_events(db, days: int = 7, limit: int = 20) -> List[Dict[str, Any]]:
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     cursor = db.events.find(
         {"date": {"$gte": today_str}},
-        {"_id": 0, "event_id": 1, "title": 1, "type": 1, "date": 1, "time": 1,
-         "venue_name": 1, "category": 1, "price": 1, "is_free": 1},
+        {"_id": 0, "event_id": 1, "title": 1, "date": 1, "venue_name": 1, "is_free": 1},
     ).sort("date", 1).limit(limit)
     return await cursor.to_list(limit)
 
 
-async def _slim_partner_events(db, limit: int = 40) -> List[Dict[str, Any]]:
+async def _slim_partner_events(db, limit: int = 15) -> List[Dict[str, Any]]:
     """Pull upcoming partner-curated events (Daypass / Sunset / Cena especial / etc.)"""
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     cursor = db.partner_events.find(
         {"date": {"$gte": today_str}, "moderation_status": {"$in": ["approved", None]}},
-        {"_id": 0, "event_id": 1, "title": 1, "date": 1, "time": 1, "partner_id": 1,
-         "category": 1, "subcategory": 1, "price": 1, "is_free": 1},
+        {"_id": 0, "event_id": 1, "title": 1, "date": 1, "partner_id": 1, "category": 1},
     ).sort("date", 1).limit(limit)
     return await cursor.to_list(limit)
 
@@ -748,65 +745,61 @@ async def _port_tax_price(db) -> int:
 
 
 async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user_text: str = "") -> Dict[str, Any]:
-    """Pull the data the agent needs to reason about, focused on relevance to user_text."""
-    # All partners, compact (directory)
-    all_partners = await _slim_all_partners_compact(db, 200)
-    # Relevance-filtered partners (rich data) — pre-filtered using LLM routing with keyword fallback
-    relevant_partners, routed_intent = await _smart_partner_query(db, user_text, max_results=40)
+    """Pull the data the agent needs to reason about, focused on relevance to user_text.
+
+    PERFORMANCE: All MongoDB queries run in parallel via asyncio.gather.
+    Context is kept lean (~6K tokens) to ensure fast LLM responses.
+    """
+    import asyncio
+
+    # Curated knowledge — instant, in-memory (0ms)
+    from knowledge import match_knowledge
+    curated = match_knowledge(user_text, top_k=3)
+    semantic_filters = _extract_filters_from_text(user_text)
+
+    # Run ALL MongoDB queries in parallel
+    results = await asyncio.gather(
+        _slim_all_partners_compact(db, 80),
+        _smart_partner_query(db, user_text, max_results=15),
+        _slim_upcoming_events(db, days=7, limit=20),
+        _slim_partner_events(db, limit=15),
+        _port_tax_price(db),
+        return_exceptions=True,
+    )
+
+    all_partners = results[0] if not isinstance(results[0], Exception) else []
+    relevant_result = results[1] if not isinstance(results[1], Exception) else ([], {"intent_type": "general"})
+    relevant_partners, routed_intent = relevant_result
     intent_type = routed_intent.get("intent_type", "general")
-    # Events
-    upcoming_events = await _slim_upcoming_events(db, days=14, limit=50)
-    partner_events = await _slim_partner_events(db, limit=30)
-    port_tax_price = await _port_tax_price(db)
+    upcoming_events = results[2] if not isinstance(results[2], Exception) else []
+    partner_events = results[3] if not isinstance(results[3], Exception) else []
+    port_tax_price = results[4] if not isinstance(results[4], Exception) else 31500
+
     has_pass = False
     if user and user.get("user_id"):
-        cnt = await db.city_passes.count_documents({"user_id": user["user_id"], "is_active": True})
-        has_pass = cnt > 0
-    # Aggregate counts per category/subcategory so the LLM knows the full inventory
-    cat_counts = await db.partners.aggregate([
-        {"$group": {"_id": {"category": "$category", "subcategory": "$subcategory"}, "n": {"$sum": 1}}},
-        {"$sort": {"n": -1}},
-    ]).to_list(50)
-    inventory_summary = [
-        {"category": (r["_id"] or {}).get("category"), "subcategory": (r["_id"] or {}).get("subcategory"), "count": r["n"]}
-        for r in cat_counts if r.get("_id")
-    ]
-    semantic_filters = _extract_filters_from_text(user_text)
-    # Curated knowledge base matching
-    from knowledge import match_knowledge
-    curated = match_knowledge(user_text, top_k=5)
+        try:
+            cnt = await db.city_passes.count_documents({"user_id": user["user_id"], "is_active": True})
+            has_pass = cnt > 0
+        except Exception:
+            pass
     ctx: Dict[str, Any] = {
         "today": datetime.now(timezone.utc).strftime("%A %Y-%m-%d"),
         "user": {
             "name": (user or {}).get("name"),
-            "is_logged_in": bool(user),
-            "has_active_city_pass": has_pass,
+            "has_city_pass": has_pass,
             **({"profile": {
-                "user_type": profile.get("user_type"),
                 "party_type": profile.get("party_type"),
                 "interests": profile.get("interests", []),
-                "travel_dates": profile.get("travel_dates"),
             }} if (profile := (user or {}).get("_profile")) else {}),
-        } if user else {"is_logged_in": False},
-        "port_tax_price_cop": port_tax_price,
-        "city_pass_plans": [
-            {"plan_id": "pass_basic", "name": "Explorer", "price_cop": 99000},
-            {"plan_id": "pass_classic", "name": "Classic", "price_cop": 200000},
-            {"plan_id": "pass_premium", "name": "Premium", "price_cop": 350000},
-            {"plan_id": "pass_ultimate", "name": "Ultimate", "price_cop": 599000},
-        ],
-        "partner_categories": ["restaurant", "hotel", "beach_club", "bar", "club", "cafe", "spa", "beauty", "activity", "yacht", "attraction", "service"],
-        "inventory_summary": inventory_summary,  # counts per category/subcategory
-        "semantic_filters_detected": semantic_filters,
+        } if user else {},
+        "port_tax_cop": port_tax_price,
         **({"curated_recommendations": curated} if curated else {}),
-        "intent_routing": routed_intent,  # LLM-routed intent (categories, subcategories, search_terms, intent_type)
-        "relevant_partners": relevant_partners,  # rich data for top matches
-        "all_partners_directory": all_partners,  # full catalog (compact)
-        "upcoming_events": upcoming_events,
-        "partner_curated_events": partner_events,  # daypass / sunset etc
-        "tabs": ["agenda", "concerts", "partners", "citypass", "transport", "itineraries"],
+        "relevant_partners": relevant_partners,
+        "partner_directory": all_partners,
+        "events": upcoming_events,
+        "partner_events": partner_events,
     }
-    # Include knowledge spine for essentials/logistics queries
+    # Include knowledge spine ONLY for essentials/logistics queries
     if intent_type in {"essentials", "logistics"}:
         ctx["cartagena_knowledge"] = CARTAGENA_KNOWLEDGE
     return ctx
@@ -1180,12 +1173,13 @@ async def run_agent_turn(
     user_text: str,
     history: List[Dict[str, Any]],
     forced_language: Optional[str] = None,
+    fast: bool = False,
 ) -> Dict[str, Any]:
     """One turn of the conversational agent. Returns the assistant payload.
 
-    `forced_language` (es|en|fr|pt) overrides the auto-detection: when the user
-    has explicitly selected a UI language in the app, we honor it strictly so the
-    concierge always answers in that language regardless of the message's language.
+    `forced_language` (es|en|fr|pt) overrides the auto-detection.
+    `fast` uses Haiku for speed (~2-3s) instead of Sonnet (~8-15s).
+    Use fast=True for search bar, fast=False for chat sessions.
     """
 
     forced = (forced_language or "").lower().strip()
@@ -1226,11 +1220,16 @@ async def run_agent_turn(
             + SYSTEM_PROMPT
         )
 
+    # fast=True (search bar): Haiku 4.5 for 2-3s responses
+    # fast=False (chat sessions): Sonnet 4.6 for deeper reasoning
+    model = "claude-haiku-4-5" if fast else "claude-sonnet-4-6"
+    max_tok = 1024 if fast else 2048
+
     response = await llm_complete(
         system_msg, json.dumps(user_payload, ensure_ascii=False),
-        model="claude-sonnet-4-6",
-        max_tokens=2048,
-        temperature=0.7,
+        model=model,
+        max_tokens=max_tok,
+        temperature=0.5 if fast else 0.7,
     )
 
     parsed = _safe_json_parse(response or "")
@@ -1250,9 +1249,9 @@ async def run_agent_turn(
     actions = _sanitize_actions(parsed.get("actions") or [])
     # Build valid IDs from context for sanitizing recommendations
     valid_partner_ids = {p.get("partner_id") for p in (context.get("relevant_partners") or [])}
-    valid_partner_ids.update(p.get("partner_id") for p in (context.get("all_partners_directory") or []))
-    valid_event_ids = {e.get("event_id") for e in (context.get("upcoming_events") or [])}
-    valid_event_ids.update(e.get("event_id") for e in (context.get("partner_curated_events") or []))
+    valid_partner_ids.update(p.get("partner_id") for p in (context.get("partner_directory") or []))
+    valid_event_ids = {e.get("event_id") for e in (context.get("events") or [])}
+    valid_event_ids.update(e.get("event_id") for e in (context.get("partner_events") or []))
     recommendations = _sanitize_recommendations(parsed.get("recommendations") or [], valid_partner_ids, valid_event_ids)
     suggestions = [str(s)[:80] for s in (parsed.get("suggestions") or [])[:4] if s]
 
