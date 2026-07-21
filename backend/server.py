@@ -2781,19 +2781,49 @@ async def global_search(q: str = "", request: Request = None):
 
     # Synonym expansion — map natural language to searchable categories/terms
     _SEARCH_SYNONYMS = {
+        # Food
         "cena": "restaurant", "dinner": "restaurant", "cenar": "restaurant",
         "almuerzo": "restaurant", "lunch": "restaurant", "brunch": "cafe",
         "romantica": "restaurant", "romantic": "restaurant",
+        "hungry": "restaurant", "hambre": "restaurant", "comer": "restaurant",
+        "fish": "seafood", "pescado": "seafood", "mariscos": "seafood",
+        "lobster": "seafood", "langosta": "seafood", "ceviche": "seafood",
+        "steak": "restaurant", "carne": "restaurant", "pizza": "restaurant",
+        "sushi": "restaurant", "pasta": "restaurant",
+        # Drinks
         "cocktail": "bar", "drinks": "bar", "cocktails": "bar", "trago": "bar",
+        "beer": "bar", "cerveza": "bar", "wine": "bar", "vino": "bar",
+        "thirsty": "bar", "sed": "bar",
+        # Nightlife
         "dance": "club", "bailar": "club", "salsa": "club", "champeta": "club",
-        "beach": "beach_club", "playa": "beach_club", "pool": "beach_club",
-        "relax": "spa", "massage": "spa", "masaje": "spa",
-        "yoga": "wellness", "gym": "wellness", "fitness": "wellness",
-        "hair": "beauty", "nails": "beauty", "salon": "beauty",
         "nightlife": "club", "fiesta": "club", "party": "club",
+        "noche": "club", "tonight": "club", "vibes": "bar",
+        # Beach/Pool
+        "beach": "beach_club", "playa": "beach_club", "pool": "beach_club",
+        "island": "beach_club", "isla": "beach_club",
+        # Wellness
+        "relax": "spa", "massage": "spa", "masaje": "spa", "tired": "spa",
+        "yoga": "spa", "gym": "activity", "fitness": "activity",
+        # Beauty
+        "hair": "beauty", "nails": "beauty", "salon": "beauty", "barber": "beauty",
+        # Hotels
         "hotel": "hotel", "hostal": "hotel", "hospedaje": "hotel",
+        # Activities
         "tour": "activity", "diving": "activity", "buceo": "activity",
+        "snorkel": "activity", "kayak": "activity",
+        # Events
         "concert": "concert", "concierto": "concert", "musica": "concert",
+        "evento": "festival", "eventos": "festival", "agenda": "festival",
+        "show": "concert", "dj": "concert",
+        # Services
+        "taxi": "transporte", "uber": "transporte", "airport": "aeropuerto",
+        "pharmacy": "farmacia", "doctor": "hospital",
+        "money": "cajero", "atm": "cajero",
+        # Vibes
+        "bored": "activity", "adventure": "activity",
+        "romantic": "restaurant", "date": "restaurant",
+        "cheap": "popular", "fancy": "premium", "luxury": "lujo",
+        "view": "rooftop", "sunset": "atardecer",
     }
     # Expand query: if any word maps to a category, add that category as an OR term
     q_lower = q.lower().strip()
