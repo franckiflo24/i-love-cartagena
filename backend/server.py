@@ -2825,14 +2825,153 @@ async def global_search(q: str = "", request: Request = None):
         "cheap": "popular", "fancy": "premium", "luxury": "lujo",
         "view": "rooftop", "sunset": "atardecer",
     }
-    # Expand query: if any word maps to a category, add that category as an OR term
+    # Cuisine synonyms — mapped to the real partner taxonomy (subcategory/cuisine)
+    _CUISINE_SYNONYMS = {
+        "thai": ["thai", "tailandesa", "asian", "asiatica"],
+        "tailandes": ["thai", "asian"], "tailandesa": ["thai", "asian"],
+        "sushi": ["sushi", "japones", "japonesa", "nikkei", "asian", "asiatica"],
+        "japones": ["sushi", "japonesa", "asian"], "japonesa": ["sushi", "asian"],
+        "asiatico": ["asian", "asiatica"], "asiatica": ["asian"], "asian": ["asiatica"],
+        "chino": ["asian", "asiatica", "china"], "ramen": ["asian", "asiatica", "japonesa"],
+        "italiano": ["italiana", "italian", "pasta", "pizza"],
+        "italiana": ["italian", "pasta", "pizza"], "italian": ["italiana"],
+        "pizza": ["italiana", "italian", "pizzeria"], "pasta": ["italiana", "italian"],
+        "frances": ["francesa", "bistro"], "francesa": ["bistro"],
+        "espanol": ["espanola", "tapas", "paella"], "espanola": ["tapas"],
+        "tapas": ["espanola"], "paella": ["espanola"],
+        "vegano": ["vegetarian", "vegetariano", "vegan", "saludable"],
+        "vegana": ["vegetarian", "vegan"], "vegan": ["vegetarian"],
+        "vegetariano": ["vegetarian"], "vegetariana": ["vegetarian"],
+        "mariscos": ["seafood", "pescado", "ceviche"], "seafood": ["mariscos", "pescado"],
+        "pescado": ["seafood", "mariscos"], "ceviche": ["seafood", "cevicheria", "peruana"],
+        "mexicano": ["mexicana", "tacos"], "mexicana": ["tacos"], "tacos": ["mexicana"],
+        "peruano": ["peruana", "ceviche", "nikkei"], "peruana": ["ceviche", "nikkei"],
+        "arabe": ["libanesa", "shawarma"], "shawarma": ["arabe"], "libanes": ["arabe"],
+        "carnes": ["parrilla", "steak", "steakhouse"], "steak": ["carnes", "parrilla"],
+        "parrilla": ["carnes", "steak"], "asado": ["carnes", "parrilla"],
+        "colombiano": ["colombian", "caribena", "tipica"], "colombiana": ["colombian", "caribena"],
+        "caribeno": ["caribena", "colombian"], "caribena": ["colombian"],
+        "burger": ["fastfood", "hamburguesa"], "hamburguesa": ["fastfood", "burger"],
+        "hamburguesas": ["fastfood", "burger"],
+        "argentino": ["argentina", "parrilla", "carnes"], "argentina": ["parrilla"],
+        "mediterraneo": ["mediterranean"], "mediterranea": ["mediterranean"],
+        "desayuno": ["cafe", "brunch"],
+        "postre": ["cafe", "reposteria", "helado"], "helado": ["gelato", "heladeria"],
+    }
+    # Generic words qualify a search, they don't define it. "restaurant thai
+    # centro": 'thai' is the signal, 'restaurant' narrows category, 'centro' is
+    # location. Weighting them equally buries the one Thai restaurant under
+    # 200 partners whose description says "restaurante".
+    _GENERIC_TERMS = {
+        "restaurant", "restaurante", "restaurantes", "comida", "food",
+        "hotel", "hoteles", "bar", "bares", "cafe", "club", "spa",
+        "lugar", "lugares", "sitio", "sitios", "place", "places",
+        "mejor", "mejores", "best", "bueno", "buena", "good",
+        "donde", "where", "cerca", "near", "abierto", "open",
+    }
+    _NEIGHBORHOOD_PATTERNS = {
+        "centro": ["centro", "ciudad amurallada", "walled city"],
+        "getsemani": ["getsemani"], "bocagrande": ["bocagrande"],
+        "manga": ["manga"], "crespo": ["crespo"],
+        "castillogrande": ["castillogrande"], "laguito": ["laguito"],
+        "matuna": ["matuna"], "diego": ["san diego"], "popa": ["pie de la popa"],
+        "baru": ["baru"],
+    }
+    _STOP_WORDS = {
+        "a", "al", "con", "de", "del", "el", "en", "es", "la", "las",
+        "lo", "los", "me", "mi", "no", "por", "que", "se", "si", "su",
+        "te", "tu", "un", "una", "y", "o", "to", "the", "in", "is",
+        "it", "of", "on", "for", "my", "an", "at", "do", "im", "i",
+        "san", "santa", "santo", "calle", "carrera", "avenida",
+    }
+
+    import unicodedata as _ud
+
+    def _norm(s) -> str:
+        if not isinstance(s, str):
+            return ""
+        s = _ud.normalize("NFD", s.lower())
+        return "".join(c for c in s if not _ud.combining(c))
+
+    def _accent_pattern(t: str) -> str:
+        """Regex for a normalized term that matches accented DB text."""
+        out = []
+        for ch in _re.escape(t):
+            out.append({"a": "[aáà]", "e": "[eéè]", "i": "[ií]", "o": "[oó]",
+                        "u": "[uúü]", "n": "[nñ]"}.get(ch, ch))
+        return "".join(out)
+
+    # Tokenize + classify + weight. The old approach regex-matched the ENTIRE
+    # query as one literal phrase, so any multi-word query matched nothing.
     q_lower = q.lower().strip()
-    expanded_terms = [_re.escape(q)]
-    for word in q_lower.split():
-        syn = _SEARCH_SYNONYMS.get(word)
-        if syn and syn != word:
-            expanded_terms.append(_re.escape(syn))
-    regex = {"$regex": "|".join(expanded_terms), "$options": "i"}
+    q_norm = _norm(q)
+    tokens = [w for w in q_norm.split() if len(w) >= 2 and w not in _STOP_WORDS]
+    neighborhood_terms = [t for t in tokens if t in _NEIGHBORHOOD_PATTERNS]
+    generic_terms = [t for t in tokens if t not in _NEIGHBORHOOD_PATTERNS and t in _GENERIC_TERMS]
+    distinctive_terms = [t for t in tokens if t not in _NEIGHBORHOOD_PATTERNS and t not in _GENERIC_TERMS]
+
+    def _expansions(t: str):
+        out = list(_CUISINE_SYNONYMS.get(t, []))
+        legacy = _SEARCH_SYNONYMS.get(t)
+        if legacy:
+            out.append(legacy)
+        return out
+
+    # term -> weight. Original distinctive terms 1.0, synonym expansions 0.7
+    # (exact 'thai' hit outranks an 'asian' taxonomy hit), generic terms 0.3.
+    term_weights: Dict[str, float] = {}
+    distinctive_set = set()
+    for t in distinctive_terms:
+        term_weights[t] = 1.0
+        distinctive_set.add(t)
+        for syn in _expansions(t):
+            s = _norm(syn)
+            term_weights.setdefault(s, 0.7)
+            distinctive_set.add(s)
+    for t in generic_terms:
+        term_weights.setdefault(t, 0.3)
+        for syn in _expansions(t):
+            term_weights.setdefault(_norm(syn), 0.3)
+    neighborhood_matchers = [pat for t in neighborhood_terms for pat in _NEIGHBORHOOD_PATTERNS[t]]
+
+    # Recall regex. When distinctive terms exist, require one of THEM (plus the
+    # full phrase) so the fetch cap isn't crowded out by generic-word matches.
+    if distinctive_set:
+        recall_terms = sorted(distinctive_set) + [q_norm]
+    else:
+        recall_terms = sorted(term_weights.keys()) + neighborhood_matchers + [q_norm]
+    regex = {"$regex": "|".join(_accent_pattern(t) for t in recall_terms if t), "$options": "i"}
+
+    def _score_partner(p: dict):
+        score = 0.0
+        has_distinctive = False
+        norm_fields = [
+            (_norm(p.get("name")), 3), (_norm(p.get("cuisine")), 3),
+            (_norm(p.get("category")), 2), (_norm(p.get("subcategory")), 2),
+            (_norm(p.get("experience")), 2),
+            (_norm(p.get("description")), 1), (_norm(p.get("address")), 1),
+        ]
+        for t, tw in term_weights.items():
+            hit = False
+            for fnorm, fw in norm_fields:
+                if not fnorm:
+                    continue
+                words = fnorm.split()
+                if any(w == t or w.startswith(t) for w in words):
+                    score += fw * 2 * tw
+                    hit = True
+                elif len(t) >= 4 and t in fnorm:
+                    score += fw * tw
+                    hit = True
+            if hit and t in distinctive_set:
+                has_distinctive = True
+        # Location is a boost, not a filter: "thai centro" with zero Thai in
+        # Centro should still surface the Getsemaní one, ranked honestly.
+        if neighborhood_matchers:
+            addr = _norm(p.get("address") or "")
+            if any(nb in addr for nb in neighborhood_matchers):
+                score += 5
+        return score, has_distinctive
 
     events = await db.events.find(
         {"$or": [
@@ -2861,6 +3000,17 @@ async def global_search(q: str = "", request: Request = None):
         ]},
         {"_id": 0}
     ).limit(200).to_list(200)
+
+    # Relevance ranking: score, gate on distinctive terms, sort, cap.
+    if term_weights or neighborhood_matchers:
+        min_score = 3.0 if distinctive_terms else 1.5
+        scored_partners = []
+        for p in partners:
+            sc, has_dist = _score_partner(p)
+            if sc >= min_score and (not distinctive_terms or has_dist):
+                scored_partners.append((sc, p))
+        scored_partners.sort(key=lambda x: (-x[0], -(x[1].get("rating") or 0)))
+        partners = [p for _, p in scored_partners[:50]]
 
     venues = await db.venues.find(
         {"$or": [{"name": regex}, {"description": regex}, {"type": regex}, {"address": regex}]},

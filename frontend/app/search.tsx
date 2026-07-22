@@ -259,11 +259,13 @@ export default function SearchScreen() {
           'lo', 'los', 'me', 'mi', 'no', 'por', 'que', 'se', 'si', 'su',
           'te', 'tu', 'un', 'una', 'y', 'o', 'to', 'the', 'in', 'is',
           'it', 'of', 'on', 'for', 'my', 'an', 'at', 'do', 'im', 'i',
+          // Address words that would otherwise count as distinctive signal
+          'san', 'santa', 'santo', 'calle', 'carrera', 'avenida',
         ]);
 
         const queryTerms = norm(q).split(/\s+/).filter(w => w.length >= 3 || !STOP_WORDS.has(w));
-        // Remove remaining short stop words
-        const meaningfulTerms = queryTerms.filter(w => w.length >= 3);
+        // Remove remaining stop words of any length
+        const meaningfulTerms = queryTerms.filter(w => w.length >= 3 && !STOP_WORDS.has(w));
 
         // Synonym expansion: map common queries to categories and Spanish terms
         const SYNONYMS: Record<string, string[]> = {
@@ -317,43 +319,133 @@ export default function SearchScreen() {
           'farmacia': ['pharmacy', 'farmacia', 'drogueria'],
           'tattoo': ['tattoo', 'tatuaje'],
           'tatuaje': ['tattoo', 'tatuaje'],
+          // Cuisines — mapped to the real partner taxonomy (subcategory/cuisine values)
+          'thai': ['thai', 'tailandesa', 'asian', 'asiatica'],
+          'tailandes': ['thai', 'asian'], 'tailandesa': ['thai', 'asian'],
+          'sushi': ['sushi', 'japones', 'japonesa', 'nikkei', 'asian', 'asiatica'],
+          'japones': ['sushi', 'japonesa', 'asian'], 'japonesa': ['sushi', 'asian'],
+          'asiatico': ['asian', 'asiatica'], 'asiatica': ['asian'], 'asian': ['asiatica'],
+          'chino': ['asian', 'asiatica', 'china'], 'ramen': ['asian', 'asiatica', 'japonesa'],
+          'italiano': ['italiana', 'italian', 'pasta', 'pizza'],
+          'italiana': ['italian', 'pasta', 'pizza'], 'italian': ['italiana'],
+          'pizza': ['italiana', 'italian', 'pizzeria'], 'pasta': ['italiana', 'italian'],
+          'frances': ['francesa', 'bistro'], 'francesa': ['bistro'],
+          'espanol': ['espanola', 'tapas', 'paella'], 'espanola': ['tapas'],
+          'tapas': ['espanola'], 'paella': ['espanola'],
+          'vegano': ['vegetarian', 'vegetariano', 'vegan', 'saludable'],
+          'vegana': ['vegetarian', 'vegan'], 'vegan': ['vegetarian'],
+          'vegetariano': ['vegetarian'], 'vegetariana': ['vegetarian'],
+          'mariscos': ['seafood', 'pescado', 'ceviche'], 'seafood': ['mariscos', 'pescado'],
+          'pescado': ['seafood', 'mariscos'], 'ceviche': ['seafood', 'cevicheria', 'peruana'],
+          'mexicano': ['mexicana', 'tacos'], 'mexicana': ['tacos'], 'tacos': ['mexicana'],
+          'peruano': ['peruana', 'ceviche', 'nikkei'], 'peruana': ['ceviche', 'nikkei'],
+          'arabe': ['libanesa', 'shawarma'], 'shawarma': ['arabe'], 'libanes': ['arabe'],
+          'carnes': ['parrilla', 'steak', 'steakhouse'], 'steak': ['carnes', 'parrilla'],
+          'parrilla': ['carnes', 'steak'], 'asado': ['carnes', 'parrilla'],
+          'colombiano': ['colombian', 'caribena', 'tipica'], 'colombiana': ['colombian', 'caribena'],
+          'caribeno': ['caribena', 'colombian'], 'caribena': ['colombian'],
+          'burger': ['fastfood', 'hamburguesa'], 'hamburguesa': ['fastfood', 'burger'],
+          'hamburguesas': ['fastfood', 'burger'],
+          'argentino': ['argentina', 'parrilla', 'carnes'], 'argentina': ['parrilla'],
+          'mediterraneo': ['mediterranean'], 'mediterranea': ['mediterranean'],
+          'brunch': ['cafe', 'desayuno'], 'desayuno': ['cafe', 'brunch'],
+          'postre': ['cafe', 'reposteria', 'helado'], 'helado': ['gelato', 'heladeria'],
         };
 
-        // Expand query terms with synonyms
-        const allTerms = new Set(meaningfulTerms);
-        for (const t of meaningfulTerms) {
-          if (SYNONYMS[t]) {
-            for (const syn of SYNONYMS[t]) allTerms.add(norm(syn));
+        // Term classes — generic words qualify a search, they don't define it.
+        // "restaurant thai centro": 'thai' is the signal, 'restaurant' narrows
+        // category, 'centro' expresses location. Weighting them equally buries
+        // the one Thai restaurant under 200 partners that say "restaurante".
+        const GENERIC_TERMS = new Set([
+          'restaurant', 'restaurante', 'restaurantes', 'comida', 'food',
+          'hotel', 'hoteles', 'bar', 'bares', 'cafe', 'club', 'spa',
+          'lugar', 'lugares', 'sitio', 'sitios', 'place', 'places',
+          'mejor', 'mejores', 'best', 'bueno', 'buena', 'good',
+          'donde', 'where', 'cerca', 'near', 'abierto', 'open',
+        ]);
+        const NEIGHBORHOOD_PATTERNS: Record<string, string[]> = {
+          'centro': ['centro', 'ciudad amurallada', 'walled city'],
+          'getsemani': ['getsemani'],
+          'bocagrande': ['bocagrande'],
+          'manga': ['manga'],
+          'crespo': ['crespo'],
+          'castillogrande': ['castillogrande'],
+          'laguito': ['laguito'],
+          'matuna': ['matuna'],
+          'diego': ['san diego'],
+          'popa': ['pie de la popa'],
+          'baru': ['baru'],
+        };
+
+        // Partition terms by class, then expand with synonyms. Original
+        // distinctive terms weigh 1.0, their synonym expansions 0.7 (so an
+        // exact 'thai' hit outranks an 'asian' taxonomy hit), generic terms 0.3.
+        const neighborhoodTerms = meaningfulTerms.filter(t => NEIGHBORHOOD_PATTERNS[t]);
+        const genericTerms = meaningfulTerms.filter(t => !NEIGHBORHOOD_PATTERNS[t] && GENERIC_TERMS.has(t));
+        const distinctiveTerms = meaningfulTerms.filter(t => !NEIGHBORHOOD_PATTERNS[t] && !GENERIC_TERMS.has(t));
+
+        const termWeights = new Map<string, number>();
+        const distinctiveSet = new Set<string>();
+        for (const t of distinctiveTerms) {
+          termWeights.set(t, 1);
+          distinctiveSet.add(t);
+          for (const syn of (SYNONYMS[t] || [])) {
+            const s = norm(syn);
+            if (!termWeights.has(s)) termWeights.set(s, 0.7);
+            distinctiveSet.add(s);
           }
         }
-        const terms = Array.from(allTerms);
+        for (const t of genericTerms) {
+          if (!termWeights.has(t)) termWeights.set(t, 0.3);
+          for (const syn of (SYNONYMS[t] || [])) {
+            const s = norm(syn);
+            if (!termWeights.has(s)) termWeights.set(s, 0.3);
+          }
+        }
+        const terms = Array.from(termWeights.keys());
+        const neighborhoodMatchers = neighborhoodTerms.flatMap(t => NEIGHBORHOOD_PATTERNS[t]);
 
-        // Score-based matching: count how many terms match, weight by field importance
-        const scorePartner = (p: any): number => {
+        // Score-based matching: weight by field importance AND term class.
+        // A partner must hit at least one distinctive term (when any exist)
+        // to appear at all — generic/location words alone don't qualify it.
+        const scorePartner = (p: any): { score: number; hasDistinctive: boolean } => {
           let score = 0;
+          let hasDistinctive = false;
           const fields = [
             { val: p.name, weight: 3 },
+            { val: p.cuisine, weight: 3 },
             { val: p.category, weight: 2 },
             { val: p.subcategory, weight: 2 },
+            { val: p.experience, weight: 2 },
             { val: p.description, weight: 1 },
             { val: p.address, weight: 1 },
-            { val: p.experience, weight: 1 },
           ];
           for (const t of terms) {
+            const tw = termWeights.get(t) || 0;
+            let termHit = false;
             for (const f of fields) {
               const fNorm = norm(f.val);
               if (!fNorm) continue;
               // Full word match scores higher than substring
               const wordMatch = fNorm.split(/\s+/).some((w: string) => w === t || w.startsWith(t));
               if (wordMatch) {
-                score += f.weight * 2;
+                score += f.weight * 2 * tw;
+                termHit = true;
               } else if (fNorm.includes(t) && t.length >= 4) {
                 // Only allow substring matches for terms 4+ chars (avoids "la" matching "playa")
-                score += f.weight;
+                score += f.weight * tw;
+                termHit = true;
               }
             }
+            if (termHit && distinctiveSet.has(t)) hasDistinctive = true;
           }
-          return score;
+          // Location is a boost, not a filter: "thai centro" with zero Thai in
+          // Centro should still surface the Getsemaní one, ranked honestly.
+          if (neighborhoodMatchers.length) {
+            const addr = norm(p.address);
+            if (neighborhoodMatchers.some(nb => addr.includes(nb))) score += 5;
+          }
+          return { score, hasDistinctive };
         };
 
         const [allPartners, allEvents, allConcerts] = await Promise.all([
@@ -362,13 +454,15 @@ export default function SearchScreen() {
           fetch('/data/concerts.json').then(r => r.json()).catch(() => []),
         ]);
 
+        const minScore = distinctiveTerms.length > 0 ? 3 : 1.5;
         const scored = (Array.isArray(allPartners) ? allPartners : [])
-          .map((p: any) => ({ ...p, _score: scorePartner(p) }))
-          .filter((p: any) => p._score >= 3)
-          .sort((a: any, b: any) => b._score - a._score)
+          .map((p: any) => { const r = scorePartner(p); return { ...p, _score: r.score, _hasDistinctive: r.hasDistinctive }; })
+          .filter((p: any) => p._score >= minScore && (distinctiveTerms.length === 0 || p._hasDistinctive))
+          .sort((a: any, b: any) => (b._score - a._score) || ((b.rating || 0) - (a.rating || 0)))
           .slice(0, 20);
 
-        const matchEvent = (...fields: any[]) => terms.some(t => fields.some(f => norm(f).split(/\s+/).some((w: string) => w === t || (t.length >= 4 && w.includes(t)))));
+        const eventTerms = Array.from(new Set([...terms, ...neighborhoodMatchers]));
+        const matchEvent = (...fields: any[]) => eventTerms.some(t => fields.some(f => norm(f).split(/\s+/).some((w: string) => w === t || (t.length >= 4 && w.includes(t)))));
         const events = (Array.isArray(allEvents) ? allEvents : [])
           .filter((e: any) => matchEvent(e.name_es, e.title, e.description_es, e.description_en, e.category, e.venue, e.slug));
         const concerts = (Array.isArray(allConcerts) ? allConcerts : [])
