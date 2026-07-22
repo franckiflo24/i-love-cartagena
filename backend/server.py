@@ -3001,7 +3001,12 @@ async def global_search(q: str = "", request: Request = None):
         {"_id": 0}
     ).limit(200).to_list(200)
 
-    # Relevance ranking: score, gate on distinctive terms, sort, cap.
+    # Terms tracked for behavioral CTR: original distinctive words only —
+    # bounded vocabulary, highest signal. Sanitized for use as Mongo keys.
+    search_id = f"srch_{uuid.uuid4().hex[:12]}"
+    _ctr_terms = [t for t in distinctive_terms if t.isalnum() and len(t) <= 24][:6]
+
+    # Relevance ranking: score, gate on distinctive terms, boost, sort, cap.
     if term_weights or neighborhood_matchers:
         min_score = 3.0 if distinctive_terms else 1.5
         scored_partners = []
@@ -3009,8 +3014,72 @@ async def global_search(q: str = "", request: Request = None):
             sc, has_dist = _score_partner(p)
             if sc >= min_score and (not distinctive_terms or has_dist):
                 scored_partners.append((sc, p))
+        # Behavioral boost: smoothed historical tap-through for the surviving
+        # candidates — per query term where we have data, plus a small global
+        # prior. Smoothing (taps+1)/(imp+20) keeps new partners near-neutral
+        # (~0.05) so accumulated real taps reorder near-ties, never dominate
+        # relevance.
+        try:
+            cand_ids = [p.get("partner_id") for _, p in scored_partners if p.get("partner_id")]
+            if cand_ids:
+                ctr_docs = await db.search_ctr.find(
+                    {"partner_id": {"$in": cand_ids}}, {"_id": 0}
+                ).to_list(len(cand_ids))
+                ctr_map = {c["partner_id"]: c for c in ctr_docs}
+                boosted = []
+                for sc, p in scored_partners:
+                    c = ctr_map.get(p.get("partner_id"))
+                    if c:
+                        g_ctr = (c.get("taps", 0) + 1) / (c.get("imp", 0) + 20)
+                        term_stats = c.get("terms") or {}
+                        t_ctrs = [
+                            (ts.get("taps", 0) + 1) / (ts.get("imp", 0) + 20)
+                            for t in _ctr_terms
+                            if (ts := term_stats.get(t))
+                        ]
+                        sc += 3.0 * g_ctr + (8.0 * (sum(t_ctrs) / len(t_ctrs)) if t_ctrs else 0.0)
+                    boosted.append((sc, p))
+                scored_partners = boosted
+        except Exception as exc:
+            logger.warning(f"[search] ctr boost failed: {exc}")
         scored_partners.sort(key=lambda x: (-x[0], -(x[1].get("rating") or 0)))
         partners = [p for _, p in scored_partners[:50]]
+
+    async def _track_impressions(shown_partners: list, user_id=None, extra: Optional[dict] = None):
+        """Log what this search actually showed (search_history) and bump
+        impression counters (search_ctr). Never fails the search."""
+        try:
+            pids = [p.get("partner_id") for p in shown_partners if p.get("partner_id")][:20]
+            doc = {
+                "history_id": f"sh_{uuid.uuid4().hex[:10]}",
+                "search_id": search_id,
+                "user_id": user_id,
+                "query": q,
+                "query_lower": q.strip().lower(),
+                "terms": _ctr_terms,
+                "impressions": pids,
+                "taps": [],
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            if extra:
+                doc.update(extra)
+            await db.search_history.insert_one(doc)
+            if pids:
+                from pymongo import UpdateOne as _UpdateOne
+                now_iso = datetime.now(timezone.utc).isoformat()
+                ops = []
+                for pid in pids:
+                    inc = {"imp": 1}
+                    for t in _ctr_terms:
+                        inc[f"terms.{t}.imp"] = 1
+                    ops.append(_UpdateOne(
+                        {"partner_id": pid},
+                        {"$inc": inc, "$set": {"updated_at": now_iso}},
+                        upsert=True,
+                    ))
+                await db.search_ctr.bulk_write(ops, ordered=False)
+        except Exception as exc:
+            logger.warning(f"[search] impression tracking failed: {exc}")
 
     venues = await db.venues.find(
         {"$or": [{"name": regex}, {"description": regex}, {"type": regex}, {"address": regex}]},
@@ -3047,19 +3116,14 @@ async def global_search(q: str = "", request: Request = None):
     direct_hit = _fast_partner_match(q, partners, events + partner_events)
     if direct_hit is not None:
         ai_payload = _build_fast_path_ai(direct_hit, q, user_lang)
-        try:
-            await db.search_history.insert_one({
-                "query": q,
-                "user_id": None,
-                "matches_count": sum(len(v) for v in matches.values()),
-                "intent": direct_hit["intent"],
-                "ai_used": False,
-                "fast_path": True,
-                "ts": datetime.now(timezone.utc).isoformat(),
-            })
-        except Exception:
-            pass
-        return {**matches, "ai": ai_payload}
+        # The UI renders the direct hit AND the ranked results list — log both
+        _hit_pid = direct_hit["partner"].get("partner_id")
+        _shown = [direct_hit["partner"]] + [p for p in partners if p.get("partner_id") != _hit_pid]
+        await _track_impressions(
+            _shown, None,
+            extra={"fast_path": True, "intent": direct_hit["intent"], "ai_used": False},
+        )
+        return {**matches, "search_id": search_id, "ai": ai_payload}
 
     # Resolve user — AUTH optional. Unauthenticated users get raw results without AI.
     # Authenticated users get the full AI-enriched experience.
@@ -3071,8 +3135,10 @@ async def global_search(q: str = "", request: Request = None):
         pass  # Not authenticated — return raw results without AI enrichment
 
     if user_obj is None:
-        # Return raw matches without AI for unauthenticated users
-        return {**matches, "ai": {"query": q, "intent": "general", "answer": "", "highlights": []}}
+        # Return ranked matches without AI for unauthenticated users.
+        # These searches are the majority of traffic — log them too.
+        await _track_impressions(partners, None)
+        return {**matches, "search_id": search_id, "ai": {"query": q, "intent": "general", "answer": "", "highlights": []}}
 
     user_id = user_obj.get("user_id")
 
@@ -3141,22 +3207,52 @@ async def global_search(q: str = "", request: Request = None):
         except Exception as exc2:
             logger.warning(f"ai_search lite fallback also failed: {exc2}")
 
-    # Persist the query in search_history
-    try:
-        await db.search_history.insert_one({
-            "history_id": f"sh_{uuid.uuid4().hex[:10]}",
-            "user_id": user_id,
-            "query": q,
-            "query_lower": q.strip().lower(),
-            "result_counts": {k: len(v) for k, v in matches.items()},
-            "ai_intent": ai_payload.get("intent"),
-            "ai_recs": len(ai_payload.get("recommendations") or []),
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        })
-    except Exception as exc:
-        logger.warning(f"search_history insert failed: {exc}")
+    # Persist the query + impressions in search_history
+    await _track_impressions(partners, user_id, extra={
+        "result_counts": {k: len(v) for k, v in matches.items()},
+        "ai_intent": ai_payload.get("intent"),
+        "ai_recs": len(ai_payload.get("recommendations") or []),
+    })
 
-    return {**matches, "ai": ai_payload}
+    return {**matches, "search_id": search_id, "ai": ai_payload}
+
+
+class SearchTapBody(BaseModel):
+    search_id: str
+    partner_id: str
+    position: Optional[int] = None
+
+
+@api_router.post("/search/track-tap")
+async def search_track_tap(body: SearchTapBody, request: Request):
+    """Record a tap on a search result (anonymous OK). Only counts taps on
+    partners this search actually showed, once per search — the CTR data
+    behind behavioral re-ranking."""
+    ip = (request.headers.get("x-forwarded-for") or "").split(",")[0].strip() or "unknown"
+    _check_rate_limit(f"searchtap:{ip}", max_calls=60, window_sec=60)
+    sid = (body.search_id or "").strip()
+    pid = (body.partner_id or "").strip()
+    if not sid.startswith("srch_") or len(sid) > 32 or not pid or len(pid) > 64:
+        raise HTTPException(status_code=400, detail="invalid ids")
+
+    # Dedupe: only match if this search showed the partner and it wasn't tapped yet
+    hist = await db.search_history.find_one_and_update(
+        {"search_id": sid, "impressions": pid, "taps": {"$ne": pid}},
+        {"$addToSet": {"taps": pid}},
+        projection={"_id": 0, "terms": 1},
+    )
+    if hist is None:
+        return {"ok": True, "counted": False}
+
+    inc = {"taps": 1}
+    for t in (hist.get("terms") or [])[:6]:
+        if isinstance(t, str) and t.isalnum() and len(t) <= 24:
+            inc[f"terms.{t}.taps"] = 1
+    try:
+        await db.search_ctr.update_one({"partner_id": pid}, {"$inc": inc}, upsert=True)
+    except Exception as exc:
+        logger.warning(f"[search] tap ctr update failed: {exc}")
+    return {"ok": True, "counted": True}
 
 
 @api_router.get("/admin/search/analytics")
@@ -5154,6 +5250,14 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
+    # Behavioral search loop indexes — cheap no-ops when they already exist
+    try:
+        await db.search_ctr.create_index("partner_id", unique=True)
+        await db.search_history.create_index("search_id")
+        await db.search_history.create_index([("created_at", -1)])
+    except Exception as exc:
+        logger.warning(f"[startup] search index creation failed: {exc}")
+
     # On Vercel serverless: skip seeding/migrations but still run lightweight cleanup.
     if os.environ.get("VERCEL"):
         logger.info("Vercel serverless — running cleanup, skipping seed/migrations")

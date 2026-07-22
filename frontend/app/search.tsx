@@ -58,6 +58,7 @@ type Results = {
   transport: any[];
   partner_events: any[];
   ai?: AIPayload;
+  search_id?: string;
 };
 
 const INTENT_META: Record<string, { color: string; icon: string; label: string }> = {
@@ -486,6 +487,7 @@ export default function SearchScreen() {
         transport:      Array.isArray(data?.transport) ? data.transport : [],
         partner_events: Array.isArray(data?.partner_events) ? data.partner_events : [],
         ai:             data?.ai,
+        search_id:      typeof data?.search_id === 'string' ? data.search_id : undefined,
       };
       setResults(normalized);
     } catch (e) { console.error('[Search] error:', e); }
@@ -503,9 +505,17 @@ export default function SearchScreen() {
       + len(results.venues) + len(results.transport) + len(results.partner_events)
     : 0;
 
+  // Behavioral loop: report which shown result the user actually chose.
+  // Fire-and-forget — never blocks navigation. position -1 = AI pick/highlight.
+  const trackTap = (partnerId?: string, position: number = -1) => {
+    const sid = results?.search_id;
+    if (!sid || !partnerId) return;
+    api.post('/search/track-tap', { search_id: sid, partner_id: partnerId, position }).catch(() => {});
+  };
+
   const openHighlight = (h: AIHighlight) => {
     switch (h.type) {
-      case 'partner':       router.push(`/partner/${h.id}` as any); break;
+      case 'partner':       trackTap(h.id); router.push(`/partner/${h.id}` as any); break;
       case 'event':         router.push(`/event/${h.id}` as any); break;
       case 'concert':       router.push('/concerts' as any); break;
       case 'transport':     router.push('/transport' as any); break;
@@ -527,6 +537,7 @@ export default function SearchScreen() {
     if (r.kind === 'event' && r.event_id) {
       router.push(`/event/${r.event_id}` as any);
     } else if (r.kind === 'partner' && r.partner_id) {
+      trackTap(r.partner_id);
       router.push(`/partner/${r.partner_id}` as any);
     }
   };
@@ -808,8 +819,8 @@ export default function SearchScreen() {
                 {results!.partners.length > 0 && (
                   <View style={styles.section}>
                     <Text style={styles.sectionTitle}>💎 Partners ({results!.partners.length})</Text>
-                    {results!.partners.map(p => (
-                      <TouchableOpacity key={p.partner_id} style={styles.resultCard} onPress={() => router.push(`/partner/${p.partner_id}`)}>
+                    {results!.partners.map((p, idx) => (
+                      <TouchableOpacity key={p.partner_id} style={styles.resultCard} onPress={() => { trackTap(p.partner_id, idx); router.push(`/partner/${p.partner_id}`); }}>
                         <SafeImage uri={p.image_url} category={p.category} style={styles.resultImage} />
                         <View style={styles.resultInfo}>
                           <Text style={styles.resultName} numberOfLines={1}>{p.name}</Text>
