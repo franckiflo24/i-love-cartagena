@@ -4137,6 +4137,7 @@ import reservations as _reservations
 import rewards as _rewards
 import reviews as _reviews
 import pulse as _pulse
+import demand as _demand
 
 
 @api_router.get("/payments/config")
@@ -5243,6 +5244,9 @@ app.include_router(_reviews.router, prefix="/api")
 
 _pulse.init(db_=db, check_rate_limit=_check_rate_limit, get_current_business=get_current_business)
 app.include_router(_pulse.router, prefix="/api")
+
+_demand.init(db_=db, require_admin=require_admin)
+app.include_router(_demand.router, prefix="/api")
 
 # ── CORS ─────────────────────────────────────────────────────
 # Browsers REJECT the combination of `allow_credentials=True` + `allow_origins=["*"]`

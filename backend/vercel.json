@@ -1,5 +1,11 @@
 {
   "version": 2,
+  "crons": [
+    {
+      "path": "/api/admin/demand/refresh?days=30",
+      "schedule": "0 10 * * 1"
+    }
+  ],
   "builds": [
     {
       "src": "api/index.py",
