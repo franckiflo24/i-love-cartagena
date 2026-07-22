@@ -531,16 +531,6 @@ async def business_login(request: Request):
     return {"token": token, "business": biz_safe, "partner": partner}
 
 
-@api_router.post("/admin/cleanup-ptr-cu-006")
-async def cleanup_ptr_cu_006():
-    """TEMPORARY one-off: remove invented seed venue Aluna (ptr_cu_006) from the
-    partners collection. Hardcoded to this single partner_id — cannot delete
-    anything else. Remove this endpoint after invoking it once."""
-    result = await db.partners.delete_many({"partner_id": "ptr_cu_006"})
-    remaining = await db.partners.count_documents({})
-    return {"deleted": result.deleted_count, "partners_remaining": remaining}
-
-
 @api_router.post("/business/logout")
 async def business_logout(request: Request):
     auth_header = request.headers.get("Authorization", "")
