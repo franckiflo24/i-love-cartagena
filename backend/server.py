@@ -531,6 +531,16 @@ async def business_login(request: Request):
     return {"token": token, "business": biz_safe, "partner": partner}
 
 
+@api_router.post("/admin/cleanup-ptr-cu-006")
+async def cleanup_ptr_cu_006():
+    """TEMPORARY one-off: remove invented seed venue Aluna (ptr_cu_006) from the
+    partners collection. Hardcoded to this single partner_id — cannot delete
+    anything else. Remove this endpoint after invoking it once."""
+    result = await db.partners.delete_many({"partner_id": "ptr_cu_006"})
+    remaining = await db.partners.count_documents({})
+    return {"deleted": result.deleted_count, "partners_remaining": remaining}
+
+
 @api_router.post("/business/logout")
 async def business_logout(request: Request):
     auth_header = request.headers.get("Authorization", "")
@@ -6215,8 +6225,6 @@ async def startup():
         {"partner_id":"ptr_cu_004","subcategory":"colombian","name":"Restaurante Donde Olano","description":"Cocina tradicional caribeña en casa colonial. Arroz con coco, mojarra, sancocho.","category":"restaurant","tier":"popular","image_url":"https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=800&h=600&fit=crop","location":{"lat":10.4221,"lng":-75.5530},"address":"Calle Santo Domingo","booking_link":"https://dondeolano.co","price_range":"$$","experience":"Cocina tradicional cartagenera","is_certified":True,"instagram":"@dondeolano"},
         # DEL MAR
         {"partner_id":"ptr_cu_005","subcategory":"seafood","name":"Marea by Rausch","description":"Mariscos y pescados frescos del Caribe colombiano. Cocina del chef Jorge Rausch.","category":"restaurant","tier":"elite","image_url":"https://images.unsplash.com/photo-1559737558-2f5a35f4523b?w=800&h=600&fit=crop","location":{"lat":10.4015,"lng":-75.5556},"address":"Bocagrande","booking_link":"https://marea.co","price_range":"$$$","experience":"Pescado del día, langosta, ostra fresca","is_certified":True,"instagram":"@marea"},
-        # MEDITERRANEO extra
-        {"partner_id":"ptr_cu_006","subcategory":"mediterranean","name":"Aluna","description":"Cocina mediterránea contemporánea con productos locales. Tapas, paella, vinos españoles.","category":"restaurant","tier":"premium","image_url":"https://images.unsplash.com/photo-1544025162-d76694265947?w=800&h=600&fit=crop","location":{"lat":10.4205,"lng":-75.5519},"address":"Calle del Coliseo","booking_link":"https://aluna.co","price_range":"$$$","experience":"Tapas, paella valenciana, vinos","is_certified":True,"instagram":"@alunarestaurante"},
         # ARABE
         {"partner_id":"ptr_cu_007","subcategory":"arab","name":"Layla Cocina Árabe","description":"Cocina árabe-libanesa auténtica: hummus, kibbe, shawarma, tajine y postres tradicionales.","category":"restaurant","tier":"popular","image_url":"https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=800&h=600&fit=crop","location":{"lat":10.4198,"lng":-75.5508},"address":"Centro Histórico","booking_link":"https://layla.co","price_range":"$$","experience":"Hummus, kibbe, shawarma, tajine de cordero","is_certified":True,"instagram":"@laylaarabe"},
         # FAST FOOD
