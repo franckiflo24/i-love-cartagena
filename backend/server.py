@@ -2864,6 +2864,26 @@ async def global_search(q: str = "", request: Request = None):
         "mediterraneo": ["mediterranean"], "mediterranea": ["mediterranean"],
         "desayuno": ["cafe", "brunch"],
         "postre": ["cafe", "reposteria", "helado"], "helado": ["gelato", "heladeria"],
+        # Knowledge tags (occasion/feature layer — see tagging.TAG_VOCAB)
+        "romantico": ["romantic"], "romantica": ["romantic"], "romantic": ["romantic"],
+        "pareja": ["romantic"], "cita": ["romantic", "first_date"], "date": ["romantic", "first_date"],
+        "vista": ["sea_view", "sunset_view", "rooftop"], "view": ["sea_view", "sunset_view", "rooftop"],
+        "atardecer": ["sunset_view"], "sunset": ["sunset_view"],
+        "terraza": ["outdoor_terrace", "rooftop"], "rooftop": ["rooftop"],
+        "ninos": ["kid_friendly", "family"], "kids": ["kid_friendly", "family"],
+        "familia": ["family", "kid_friendly"], "family": ["family", "kid_friendly"],
+        "grupo": ["group_friendly"], "group": ["group_friendly"],
+        "negocios": ["business"], "cumpleanos": ["celebration"],
+        "birthday": ["celebration"], "aniversario": ["celebration"],
+        "lluvia": ["indoor"], "rain": ["indoor"], "raining": ["indoor"], "indoor": ["indoor"],
+        "ingles": ["english_friendly"], "english": ["english_friendly"],
+        "barato": ["budget"], "economico": ["budget"], "cheap": ["budget"],
+        "lujo": ["luxury"], "luxury": ["luxury"], "fancy": ["luxury"],
+        "saludable": ["healthy", "vegetarian"], "healthy": ["healthy", "vegetarian"],
+        "mascota": ["pet_friendly"], "mascotas": ["pet_friendly"],
+        "pet": ["pet_friendly"], "perro": ["pet_friendly"],
+        "autentico": ["local_favorite"], "locales": ["local_favorite"],
+        "musica": ["live_music"], "music": ["live_music"],
     }
     # Generic words qualify a search, they don't define it. "restaurant thai
     # centro": 'thai' is the signal, 'restaurant' narrows category, 'centro' is
@@ -2882,7 +2902,7 @@ async def global_search(q: str = "", request: Request = None):
         "manga": ["manga"], "crespo": ["crespo"],
         "castillogrande": ["castillogrande"], "laguito": ["laguito"],
         "matuna": ["matuna"], "diego": ["san diego"], "popa": ["pie de la popa"],
-        "baru": ["baru"],
+        "baru": ["baru"], "bomba": ["tierra bomba"], "rosario": ["islas del rosario", "rosario"],
     }
     _STOP_WORDS = {
         "a", "al", "con", "de", "del", "el", "en", "es", "la", "las",
@@ -2952,8 +2972,9 @@ async def global_search(q: str = "", request: Request = None):
     def _score_partner(p: dict):
         score = 0.0
         has_distinctive = False
+        tags_text = " ".join(p.get("tags") or []) if isinstance(p.get("tags"), list) else ""
         norm_fields = [
-            (_norm(p.get("name")), 3), (_norm(p.get("cuisine")), 3),
+            (_norm(p.get("name")), 3), (_norm(p.get("cuisine")), 3), (_norm(tags_text), 3),
             (_norm(p.get("category")), 2), (_norm(p.get("subcategory")), 2),
             (_norm(p.get("experience")), 2),
             (_norm(p.get("description")), 1), (_norm(p.get("address")), 1),
@@ -3003,7 +3024,7 @@ async def global_search(q: str = "", request: Request = None):
         {"$or": [
             {"name": regex}, {"description": regex}, {"category": regex},
             {"subcategory": regex}, {"cuisine": regex}, {"address": regex},
-            {"experience": regex}, {"tier": regex},
+            {"experience": regex}, {"tier": regex}, {"tags": regex},
         ]},
         {"_id": 0}
     ).limit(200).to_list(200)
@@ -4138,6 +4159,7 @@ import rewards as _rewards
 import reviews as _reviews
 import pulse as _pulse
 import demand as _demand
+import tagging as _tagging
 
 
 @api_router.get("/payments/config")
@@ -5247,6 +5269,9 @@ app.include_router(_pulse.router, prefix="/api")
 
 _demand.init(db_=db, require_admin=require_admin)
 app.include_router(_demand.router, prefix="/api")
+
+_tagging.init(db_=db, require_admin=require_admin)
+app.include_router(_tagging.router, prefix="/api")
 
 # ── CORS ─────────────────────────────────────────────────────
 # Browsers REJECT the combination of `allow_credentials=True` + `allow_origins=["*"]`
