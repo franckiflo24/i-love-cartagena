@@ -3,30 +3,101 @@
   "outputDirectory": "dist",
   "framework": null,
   "redirects": [
-    { "source": "/_sitemap", "destination": "/", "statusCode": 308 }
+    {
+      "source": "/_sitemap",
+      "destination": "/",
+      "statusCode": 308
+    }
   ],
   "rewrites": [
-    { "source": "/partner/:id", "destination": "/partner/%5Bid%5D" },
-    { "source": "/experience/booking", "destination": "/experience/booking" },
-    { "source": "/experience/:id", "destination": "/experience/%5Bid%5D" },
-    { "source": "/event/:id", "destination": "/event/%5Bid%5D" },
-    { "source": "/partner-event/:id", "destination": "/partner-event/%5Bid%5D" },
-    { "source": "/reservation/new", "destination": "/reservation/new" },
-    { "source": "/review/new", "destination": "/review/new" },
-    { "source": "/port-tax/checkout", "destination": "/port-tax/checkout" },
-    { "source": "/port-tax/ticket/:id", "destination": "/port-tax/ticket/%5Bid%5D" },
-    { "source": "/rewards/card", "destination": "/rewards/card" },
-    { "source": "/rewards/offers", "destination": "/rewards/offers" },
-    { "source": "/admin/operator/:id", "destination": "/admin/operator/index" },
-    { "source": "/itinerary", "destination": "/itineraries" },
-    { "source": "/routes", "destination": "/itineraries" },
-    { "source": "/dashboard", "destination": "/admin" },
-    { "source": "/reviews", "destination": "/review/new" },
-    { "source": "/partner-access", "destination": "/business/login" },
-    { "source": "/port-tax", "destination": "/port-tax/checkout" },
-    { "source": "/favoritos", "destination": "/favorites" },
-    { "source": "/rutas", "destination": "/itineraries" },
-    { "source": "/partner-dashboard", "destination": "/business/dashboard" }
+    {
+      "source": "/collections/:key",
+      "destination": "/collections/%5Bkey%5D"
+    },
+    {
+      "source": "/partner/:id",
+      "destination": "/partner/%5Bid%5D"
+    },
+    {
+      "source": "/experience/booking",
+      "destination": "/experience/booking"
+    },
+    {
+      "source": "/experience/:id",
+      "destination": "/experience/%5Bid%5D"
+    },
+    {
+      "source": "/event/:id",
+      "destination": "/event/%5Bid%5D"
+    },
+    {
+      "source": "/partner-event/:id",
+      "destination": "/partner-event/%5Bid%5D"
+    },
+    {
+      "source": "/reservation/new",
+      "destination": "/reservation/new"
+    },
+    {
+      "source": "/review/new",
+      "destination": "/review/new"
+    },
+    {
+      "source": "/port-tax/checkout",
+      "destination": "/port-tax/checkout"
+    },
+    {
+      "source": "/port-tax/ticket/:id",
+      "destination": "/port-tax/ticket/%5Bid%5D"
+    },
+    {
+      "source": "/rewards/card",
+      "destination": "/rewards/card"
+    },
+    {
+      "source": "/rewards/offers",
+      "destination": "/rewards/offers"
+    },
+    {
+      "source": "/admin/operator/:id",
+      "destination": "/admin/operator/index"
+    },
+    {
+      "source": "/itinerary",
+      "destination": "/itineraries"
+    },
+    {
+      "source": "/routes",
+      "destination": "/itineraries"
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/admin"
+    },
+    {
+      "source": "/reviews",
+      "destination": "/review/new"
+    },
+    {
+      "source": "/partner-access",
+      "destination": "/business/login"
+    },
+    {
+      "source": "/port-tax",
+      "destination": "/port-tax/checkout"
+    },
+    {
+      "source": "/favoritos",
+      "destination": "/favorites"
+    },
+    {
+      "source": "/rutas",
+      "destination": "/itineraries"
+    },
+    {
+      "source": "/partner-dashboard",
+      "destination": "/business/dashboard"
+    }
   ],
   "trailingSlash": false,
   "cleanUrls": true,
@@ -34,23 +105,44 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(self)" },
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" }
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(self)"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        }
       ]
     },
     {
       "source": "/data/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=300, stale-while-revalidate=600" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, stale-while-revalidate=600"
+        }
       ]
     },
     {
       "source": "/sw.js",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
       ]
     }
   ]
