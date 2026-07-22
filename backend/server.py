@@ -2885,6 +2885,11 @@ async def global_search(q: str = "", request: Request = None):
         "pet": ["pet_friendly"], "perro": ["pet_friendly"],
         "autentico": ["local_favorite"], "locales": ["local_favorite"],
         "musica": ["live_music"], "music": ["live_music"],
+        # Verb conjugations of eating/drinking — map to the category
+        "ceno": ["restaurant", "restaurante"], "cenamos": ["restaurant", "restaurante"],
+        "como": ["restaurant", "restaurante"], "comemos": ["restaurant", "restaurante"],
+        "almorzar": ["restaurant", "restaurante"], "almuerzo": ["restaurant", "restaurante"],
+        "desayunar": ["cafe", "brunch"], "tomar": ["bar", "cafe"], "beber": ["bar"],
     }
     # Generic words qualify a search, they don't define it. "restaurant thai
     # centro": 'thai' is the signal, 'restaurant' narrows category, 'centro' is
@@ -2896,6 +2901,8 @@ async def global_search(q: str = "", request: Request = None):
         "lugar", "lugares", "sitio", "sitios", "place", "places",
         "mejor", "mejores", "best", "bueno", "buena", "good",
         "donde", "where", "cerca", "near", "abierto", "open",
+        "ceno", "cenamos", "como", "comemos", "almorzar", "almuerzo",
+        "desayunar", "tomar", "beber", "eat", "drink",
     }
     _NEIGHBORHOOD_PATTERNS = {
         "centro": ["centro", "ciudad amurallada", "walled city"],
@@ -2911,6 +2918,8 @@ async def global_search(q: str = "", request: Request = None):
         "te", "tu", "un", "una", "y", "o", "to", "the", "in", "is",
         "it", "of", "on", "for", "my", "an", "at", "do", "im", "i",
         "san", "santa", "santo", "calle", "carrera", "avenida",
+        # Time words — they express when, not what
+        "hoy", "ahora", "manana", "esta", "este", "today", "now",
     }
 
     import unicodedata as _ud

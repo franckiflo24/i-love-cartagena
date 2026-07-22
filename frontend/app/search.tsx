@@ -262,6 +262,8 @@ export default function SearchScreen() {
           'it', 'of', 'on', 'for', 'my', 'an', 'at', 'do', 'im', 'i',
           // Address words that would otherwise count as distinctive signal
           'san', 'santa', 'santo', 'calle', 'carrera', 'avenida',
+          // Time words — they express when, not what
+          'hoy', 'ahora', 'manana', 'esta', 'este', 'today', 'now',
         ]);
 
         const queryTerms = norm(q).split(/\s+/).filter(w => w.length >= 3 || !STOP_WORDS.has(w));
@@ -371,6 +373,11 @@ export default function SearchScreen() {
           'pet': ['pet_friendly'], 'perro': ['pet_friendly'],
           'autentico': ['local_favorite'], 'locales': ['local_favorite'],
           'musica': ['live_music'],
+          // Verb conjugations of eating/drinking — map to the category
+          'ceno': ['restaurant', 'restaurante'], 'cenamos': ['restaurant', 'restaurante'],
+          'como': ['restaurant', 'restaurante'], 'comemos': ['restaurant', 'restaurante'],
+          'almorzar': ['restaurant', 'restaurante'], 'almuerzo': ['restaurant', 'restaurante'],
+          'desayunar': ['cafe', 'brunch'], 'tomar': ['bar', 'cafe'], 'beber': ['bar'],
         };
 
         // Term classes — generic words qualify a search, they don't define it.
@@ -383,6 +390,8 @@ export default function SearchScreen() {
           'lugar', 'lugares', 'sitio', 'sitios', 'place', 'places',
           'mejor', 'mejores', 'best', 'bueno', 'buena', 'good',
           'donde', 'where', 'cerca', 'near', 'abierto', 'open',
+          'ceno', 'cenamos', 'como', 'comemos', 'almorzar', 'almuerzo',
+          'desayunar', 'tomar', 'beber', 'drink',
         ]);
         const NEIGHBORHOOD_PATTERNS: Record<string, string[]> = {
           'centro': ['centro', 'ciudad amurallada', 'walled city'],
