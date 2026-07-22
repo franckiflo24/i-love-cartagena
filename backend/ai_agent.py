@@ -536,7 +536,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
     fields = {
         "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
         "tier": 1, "price_range": 1, "address": 1, "rating": 1,
-        "neighborhood": 1, "experience": 1, "tags": 1,
+        "neighborhood": 1, "experience": 1, "tags": 1, "signature_dishes": 1,
     }
 
     # ── Step 1: Try LLM intent routing ──
@@ -578,6 +578,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
                 {"subcategory": {"$regex": term_regex, "$options": "i"}},
                 {"search_profile": {"$regex": term_regex, "$options": "i"}},
                 {"tags": {"$regex": term_regex, "$options": "i"}},
+                {"signature_dishes": {"$regex": term_regex, "$options": "i"}},
             ]
             conditions.append({"$or": text_or})
 
@@ -887,6 +888,8 @@ Si tenés DUDA del idioma (mensajes muy cortos como "ok", "hi"), mantené el idi
 ══════════════════════════════════════════
 Los partners pueden traer "tags" (romantic, first_date, family, kid_friendly, group_friendly, business, celebration, sea_view, sunset_view, rooftop, outdoor_terrace, live_music, late_night, english_friendly, indoor, budget, luxury, local_favorite, pet_friendly, healthy).
 Usalos para preguntas de ocasión o característica: "cena romántica" → tags romantic/sea_view; "con niños" → kid_friendly/family; "está lloviendo" → indoor; "que hablen inglés" → english_friendly; "algo local, no turístico" → local_favorite. Preferí partners cuyo tag coincide con la ocasión pedida y mencioná el porqué ("terraza con vista al atardecer").
+
+Los partners también pueden traer "signature_dishes" (platos/bebidas insignia verificados). Cuando el usuario pide un plato o bebida específica ("lychee martini", "paella", "ceviche"), preferí partners cuyo signature_dishes lo incluye y NOMBRÁ el plato exacto al recomendar ("pedí el Pargo Platero con curry amarillo"). JAMÁS atribuyas un plato que no esté en signature_dishes del partner.
 
 ══════════════════════════════════════════
 🔥 EN VIVO HOY (context.live_tonight)

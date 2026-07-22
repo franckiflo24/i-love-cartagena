@@ -2974,8 +2974,10 @@ async def global_search(q: str = "", request: Request = None):
         score = 0.0
         has_distinctive = False
         tags_text = " ".join(p.get("tags") or []) if isinstance(p.get("tags"), list) else ""
+        sig_text = " ".join(p.get("signature_dishes") or []) if isinstance(p.get("signature_dishes"), list) else ""
         norm_fields = [
             (_norm(p.get("name")), 3), (_norm(p.get("cuisine")), 3), (_norm(tags_text), 3),
+            (_norm(sig_text), 3),
             (_norm(p.get("category")), 2), (_norm(p.get("subcategory")), 2),
             (_norm(p.get("experience")), 2),
             (_norm(p.get("description")), 1), (_norm(p.get("address")), 1),
@@ -3026,6 +3028,7 @@ async def global_search(q: str = "", request: Request = None):
             {"name": regex}, {"description": regex}, {"category": regex},
             {"subcategory": regex}, {"cuisine": regex}, {"address": regex},
             {"experience": regex}, {"tier": regex}, {"tags": regex},
+            {"signature_dishes": regex},
         ]},
         {"_id": 0}
     ).limit(200).to_list(200)

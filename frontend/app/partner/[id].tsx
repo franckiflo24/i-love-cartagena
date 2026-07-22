@@ -325,6 +325,20 @@ export default function PartnerDetail() {
               ))}
             </View>
           ) : null}
+          {Array.isArray(partner.signature_dishes) && partner.signature_dishes.length > 0 ? (
+            <View style={styles.sigBox}>
+              <View style={styles.sigHeader}>
+                <Ionicons name="restaurant" size={14} color="#FBBF24" />
+                <Text style={styles.sigTitle}>{tr('Especialidades de la casa')}</Text>
+              </View>
+              {partner.signature_dishes.map((d: string) => (
+                <View key={d} style={styles.sigRow}>
+                  <Text style={styles.sigBullet}>·</Text>
+                  <Text style={styles.sigText}>{d}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
 
           <View style={styles.infoGrid}>
             {partner.address ? (
@@ -481,6 +495,12 @@ const styles = StyleSheet.create({
   catText: { fontSize: 10, color: COLORS.white, ...FONTS.bold, letterSpacing: 1, textTransform: 'uppercase' },
   heroTitle: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.sm },
   body: { padding: SPACING.lg },
+  sigBox: { backgroundColor: 'rgba(251,191,36,0.05)', borderWidth: 1, borderColor: 'rgba(251,191,36,0.18)', borderRadius: RADIUS.lg, padding: SPACING.md, marginTop: SPACING.md, gap: 4 },
+  sigHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
+  sigTitle: { fontSize: 13, color: '#FBBF24', ...FONTS.bold },
+  sigRow: { flexDirection: 'row', gap: 8 },
+  sigBullet: { fontSize: 13, color: '#FBBF24' },
+  sigText: { flex: 1, fontSize: 13, color: COLORS.textMain, ...FONTS.regular },
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
   tagChip: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
   tagChipText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },

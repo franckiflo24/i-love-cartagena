@@ -438,6 +438,7 @@ export default function SearchScreen() {
             { val: p.name, weight: 3 },
             { val: p.cuisine, weight: 3 },
             { val: Array.isArray(p.tags) ? p.tags.join(' ') : p.tags, weight: 3 },
+            { val: Array.isArray(p.signature_dishes) ? p.signature_dishes.join(' ') : p.signature_dishes, weight: 3 },
             { val: p.category, weight: 2 },
             { val: p.subcategory, weight: 2 },
             { val: p.experience, weight: 2 },

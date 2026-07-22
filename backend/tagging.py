@@ -172,6 +172,97 @@ async def tags_backfill(request: Request, batch: int = 36, force: bool = False):
     return {"tagged_now": tagged, "remaining": remaining, "tagged_total": tagged_total}
 
 
+# ── Signature dishes/drinks — dish-level knowledge ───────────────────
+
+SIG_SYSTEM = """Sos el extractor de "especialidades" del catálogo de AMO Cartagena. Recibís negocios con sus textos (descripción, experiencia, cocina).
+
+Respondé SOLO con JSON válido: {"<partner_id>": ["item 1", "item 2", ...], ...}
+
+Reglas ESTRICTAS:
+- Extraé ÚNICAMENTE platos, bebidas o experiencias específicas MENCIONADAS EXPLÍCITAMENTE en los textos del negocio. Esto es EXTRACCIÓN, no invención.
+- JAMÁS inventes un plato que el texto no menciona. Si el texto solo dice "restaurante de comida italiana" sin platos concretos, devolvé [].
+- Normalizá a nombre de plato corto (2-6 palabras): "paella valenciana", "ceviche de camarón", "gin & tonic de botánicos".
+- 0 a 6 items por negocio. Genéricos como "comida", "cocteles", "buena atención" NO cuentan.
+- Incluí TODOS los partner_id recibidos."""
+
+
+@router.post("/admin/signatures/seed")
+async def signatures_seed(request: Request):
+    """Load verified (human-researched) signature dishes. Body:
+    {"signatures": {"<partner_id>": ["dish", ...]}}. Marks source verified —
+    never overwritten by AI extraction."""
+    await _auth(request)
+    body = await request.json()
+    sig_map = body.get("signatures") or {}
+    if not isinstance(sig_map, dict) or len(sig_map) > 300:
+        raise HTTPException(status_code=400, detail="signatures map required (max 300)")
+    now_iso = datetime.now(timezone.utc).isoformat()
+    updated = 0
+    for pid, dishes in sig_map.items():
+        if not isinstance(dishes, list):
+            continue
+        clean = [str(d)[:80] for d in dishes if isinstance(d, str) and 2 < len(d) <= 80][:8]
+        if not clean:
+            continue
+        r = await db.partners.update_one(
+            {"partner_id": str(pid)[:64]},
+            {"$set": {"signature_dishes": clean, "signatures_source": "verified_research", "signatures_at": now_iso}},
+        )
+        updated += r.modified_count
+    return {"updated": updated, "received": len(sig_map)}
+
+
+@router.post("/admin/signatures/backfill")
+async def signatures_backfill(request: Request, batch: int = 36):
+    """Grounded extraction of signature items for partners without any.
+    Never touches verified_research entries."""
+    await _auth(request)
+    batch = max(1, min(batch, 60))
+    partners = await db.partners.find(
+        {"signature_dishes": {"$exists": False}},
+        {"_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
+         "cuisine": 1, "experience": 1, "description": 1},
+    ).limit(batch).to_list(batch)
+
+    from llm import llm_complete
+    now_iso = datetime.now(timezone.utc).isoformat()
+    extracted = 0
+    for i in range(0, len(partners), 12):
+        chunk = partners[i:i + 12]
+        payload = {"negocios": [{
+            "partner_id": p.get("partner_id"), "name": p.get("name"),
+            "category": p.get("category"), "subcategory": p.get("subcategory"),
+            "cuisine": p.get("cuisine"), "experience": p.get("experience"),
+            "description": (p.get("description") or "")[:350],
+        } for p in chunk]}
+        out = await llm_complete(SIG_SYSTEM, json.dumps(payload, ensure_ascii=False),
+                                 model="claude-haiku-4-5", max_tokens=1500, temperature=0.0)
+        if not out:
+            continue
+        try:
+            parsed = json.loads(_strip_fences(out))
+        except Exception:
+            m = re.search(r"\{.*\}", out, re.S)
+            try:
+                parsed = json.loads(m.group(0)) if m else {}
+            except Exception:
+                continue
+        chunk_ids = {p.get("partner_id") for p in chunk}
+        for pid, items in (parsed or {}).items():
+            if pid not in chunk_ids or not isinstance(items, list):
+                continue
+            clean = [str(d)[:80] for d in items if isinstance(d, str) and 2 < len(d) <= 80][:6]
+            await db.partners.update_one(
+                {"partner_id": pid, "signatures_source": {"$ne": "verified_research"}},
+                {"$set": {"signature_dishes": clean, "signatures_source": "ai_extract", "signatures_at": now_iso}},
+            )
+            extracted += 1
+
+    remaining = await db.partners.count_documents({"signature_dishes": {"$exists": False}})
+    with_items = await db.partners.count_documents({"signature_dishes.0": {"$exists": True}})
+    return {"processed_now": extracted, "remaining": remaining, "partners_with_signatures": with_items}
+
+
 @router.get("/admin/tags/stats")
 async def tags_stats(request: Request):
     await _auth(request)
