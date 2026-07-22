@@ -4161,6 +4161,7 @@ import reviews as _reviews
 import pulse as _pulse
 import demand as _demand
 import tagging as _tagging
+import occasions as _occasions
 
 
 @api_router.get("/payments/config")
@@ -5273,6 +5274,9 @@ app.include_router(_demand.router, prefix="/api")
 
 _tagging.init(db_=db, require_admin=require_admin)
 app.include_router(_tagging.router, prefix="/api")
+
+_occasions.init(db_=db, get_active_pulse_map=_pulse.get_active_pulse_map)
+app.include_router(_occasions.router, prefix="/api")
 
 # ── CORS ─────────────────────────────────────────────────────
 # Browsers REJECT the combination of `allow_credentials=True` + `allow_origins=["*"]`

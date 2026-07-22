@@ -16,6 +16,7 @@ import { getUpcomingEvents } from '../../src/lib/data';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { usePersonalization } from '../../src/context/PersonalizationContext';
 import { usePartnerCount } from '../../src/context/PartnerCountContext';
+import { COLLECTION_DEFS } from '../../src/constants/collections';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
@@ -88,7 +89,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { favorites } = useFavorites();
-  const { s } = useLang();
+  const { s, lang } = useLang();
   const tr = useTr();
   const { userProfile, getPersonalizedPartners, getPersonalizedCategories, getGreeting, hasCompletedOnboarding } = usePersonalization();
   const [seasons, setSeasons] = useState<Season[]>([]);
@@ -577,6 +578,32 @@ export default function HomeScreen() {
                   <Text style={styles.photoLabel}>{item.label}</Text>
                   <Text style={styles.photoSub}>{item.sub}</Text>
                 </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Colecciones — curated occasion collections (knowledge-tag powered) */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleRow}>
+              <Ionicons name="albums" size={18} color="#FBBF24" />
+              <Text style={styles.sectionTitle}>{lang === 'en' ? 'Collections' : 'Colecciones'}</Text>
+            </View>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+            {Object.entries(COLLECTION_DEFS).map(([ckey, c]) => (
+              <TouchableOpacity
+                key={ckey}
+                style={styles.collCard}
+                onPress={() => router.push(`/collections/${ckey}` as any)}
+                activeOpacity={0.85}
+              >
+                <View style={styles.collIcon}>
+                  <Ionicons name={c.icon as any} size={18} color="#FBBF24" />
+                </View>
+                <Text style={styles.collTitle} numberOfLines={2}>{lang === 'en' ? c.title_en : c.title_es}</Text>
+                <Text style={styles.collDesc} numberOfLines={2}>{lang === 'en' ? c.desc_en : c.desc_es}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -1159,6 +1186,10 @@ const styles = StyleSheet.create({
   quickLabelHero: { fontSize: 12, ...FONTS.bold, letterSpacing: 0.3 },
   quickSubtitleHero: { fontSize: 9, color: COLORS.textMuted, ...FONTS.medium, textTransform: 'uppercase', letterSpacing: 0.8 },
   section: { marginBottom: SPACING.lg },
+  collCard: { width: 150, padding: SPACING.md, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(251,191,36,0.18)', backgroundColor: 'rgba(251,191,36,0.05)', gap: 6 },
+  collIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(251,191,36,0.12)', alignItems: 'center', justifyContent: 'center' },
+  collTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
+  collDesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 15 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACING.lg, marginBottom: SPACING.md },
   sectionTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold },
   seeAll: { fontSize: 13, color: COLORS.primary, ...FONTS.semibold },
