@@ -826,6 +826,9 @@ export default function SearchScreen() {
                           <Text style={styles.resultName} numberOfLines={1}>{p.name}</Text>
                           <Text style={styles.resultMeta}>{p.cuisine || (p.subcategory || p.category || '').replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}</Text>
                           <Text style={styles.resultSub} numberOfLines={1}>{p.address}</Text>
+                          {p.live_pulse?.title ? (
+                            <Text style={styles.pulseRow} numberOfLines={1}>⚡ {tr('HOY')} · {p.live_pulse.title}</Text>
+                          ) : null}
                         </View>
                         {p.rating ? (
                           <View style={styles.ratingPill}>
@@ -1161,6 +1164,7 @@ const styles = StyleSheet.create({
   resultName: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
   resultMeta: { fontSize: 11, color: COLORS.primary, ...FONTS.medium, textTransform: 'capitalize' },
   resultSub: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
+  pulseRow: { fontSize: 11, color: '#FBBF24', ...FONTS.medium, marginTop: 2 },
   resultPrice: { fontSize: 12, color: COLORS.primary, ...FONTS.bold },
   ratingPill: {
     flexDirection: 'row', alignItems: 'center', gap: 3,

@@ -1887,6 +1887,13 @@ async def get_partner(partner_id: str):
     partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0})
     if not partner:
         raise HTTPException(status_code=404, detail="Partner not found")
+    try:
+        pulse_map = await _pulse.get_active_pulse_map(db, [partner_id])
+        if pulse_map.get(partner_id):
+            pu = pulse_map[partner_id]
+            partner["live_pulse"] = {k: pu.get(k) for k in ("type", "title", "details", "start_time", "end_time")}
+    except Exception as exc:
+        logger.warning(f"[partner] pulse attach failed: {exc}")
     return partner
 
 
@@ -3014,13 +3021,13 @@ async def global_search(q: str = "", request: Request = None):
             sc, has_dist = _score_partner(p)
             if sc >= min_score and (not distinctive_terms or has_dist):
                 scored_partners.append((sc, p))
+        cand_ids = [p.get("partner_id") for _, p in scored_partners if p.get("partner_id")]
         # Behavioral boost: smoothed historical tap-through for the surviving
         # candidates — per query term where we have data, plus a small global
         # prior. Smoothing (taps+1)/(imp+20) keeps new partners near-neutral
         # (~0.05) so accumulated real taps reorder near-ties, never dominate
         # relevance.
         try:
-            cand_ids = [p.get("partner_id") for _, p in scored_partners if p.get("partner_id")]
             if cand_ids:
                 ctr_docs = await db.search_ctr.find(
                     {"partner_id": {"$in": cand_ids}}, {"_id": 0}
@@ -3042,6 +3049,22 @@ async def global_search(q: str = "", request: Request = None):
                 scored_partners = boosted
         except Exception as exc:
             logger.warning(f"[search] ctr boost failed: {exc}")
+        # Live-pulse boost: partners with something happening TODAY (sent by
+        # the business via WhatsApp) rank up and carry the pulse in the result.
+        try:
+            if cand_ids:
+                pulse_map = await _pulse.get_active_pulse_map(db, cand_ids)
+                if pulse_map:
+                    boosted = []
+                    for sc, p in scored_partners:
+                        pu = pulse_map.get(p.get("partner_id"))
+                        if pu:
+                            sc += 2.0
+                            p["live_pulse"] = {k: pu.get(k) for k in ("type", "title", "details", "start_time", "end_time")}
+                        boosted.append((sc, p))
+                    scored_partners = boosted
+        except Exception as exc:
+            logger.warning(f"[search] pulse attach failed: {exc}")
         scored_partners.sort(key=lambda x: (-x[0], -(x[1].get("rating") or 0)))
         partners = [p for _, p in scored_partners[:50]]
 
@@ -4113,6 +4136,7 @@ import ai_agent as _ai_agent
 import reservations as _reservations
 import rewards as _rewards
 import reviews as _reviews
+import pulse as _pulse
 
 
 @api_router.get("/payments/config")
@@ -5217,6 +5241,9 @@ app.include_router(_rewards.router, prefix="/api")
 _reviews.init(db=db, get_current_user=get_current_user, award_points=_rewards.award_points)
 app.include_router(_reviews.router, prefix="/api")
 
+_pulse.init(db_=db, check_rate_limit=_check_rate_limit, get_current_business=get_current_business)
+app.include_router(_pulse.router, prefix="/api")
+
 # ── CORS ─────────────────────────────────────────────────────
 # Browsers REJECT the combination of `allow_credentials=True` + `allow_origins=["*"]`
 # (CORS spec disallows credentialed wildcard). The previous config silently broke
@@ -5250,11 +5277,13 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    # Behavioral search loop indexes — cheap no-ops when they already exist
+    # Behavioral search loop + pulse indexes — cheap no-ops when they exist
     try:
         await db.search_ctr.create_index("partner_id", unique=True)
         await db.search_history.create_index("search_id")
         await db.search_history.create_index([("created_at", -1)])
+        await db.partner_pulses.create_index([("partner_id", 1), ("active", 1)])
+        await db.partner_pulses.create_index([("active", 1), ("valid_until", 1)])
     except Exception as exc:
         logger.warning(f"[startup] search index creation failed: {exc}")
 

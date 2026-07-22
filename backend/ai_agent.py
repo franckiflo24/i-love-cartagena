@@ -760,12 +760,14 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
     semantic_filters = _extract_filters_from_text(user_text)
 
     # Run ALL MongoDB queries in parallel
+    from pulse import get_active_pulse_map
     results = await asyncio.gather(
         _slim_all_partners_compact(db, 80),
         _smart_partner_query(db, user_text, max_results=15),
         _slim_upcoming_events(db, days=7, limit=20),
         _slim_partner_events(db, limit=15),
         _port_tax_price(db),
+        get_active_pulse_map(db, None, limit=30),
         return_exceptions=True,
     )
 
@@ -776,6 +778,13 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
     upcoming_events = results[2] if not isinstance(results[2], Exception) else []
     partner_events = results[3] if not isinstance(results[3], Exception) else []
     port_tax_price = results[4] if not isinstance(results[4], Exception) else 31500
+    pulse_map = results[5] if not isinstance(results[5], Exception) else {}
+    live_tonight = [
+        {"partner_id": pid, "partner_name": pu.get("partner_name"), "type": pu.get("type"),
+         "title": pu.get("title"), "details": pu.get("details"),
+         "start_time": pu.get("start_time"), "end_time": pu.get("end_time")}
+        for pid, pu in list(pulse_map.items())[:20]
+    ]
 
     has_pass = False
     if user and user.get("user_id"):
@@ -796,6 +805,7 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
         } if user else {},
         "port_tax_cop": port_tax_price,
         **({"curated_recommendations": curated} if curated else {}),
+        **({"live_tonight": live_tonight} if live_tonight else {}),
         "relevant_partners": relevant_partners,
         "partner_directory": all_partners,
         "events": upcoming_events,
@@ -870,6 +880,14 @@ EJEMPLOS OBLIGATORIOS:
 JAMÁS mezclés idiomas. JAMÁS respondas en español cuando el usuario habla otro idioma. Esto es CRÍTICO para turistas internacionales.
 
 Si tenés DUDA del idioma (mensajes muy cortos como "ok", "hi"), mantené el idioma del MENSAJE ANTERIOR del usuario del historial. Si no hay historial, usá español por defecto.
+
+══════════════════════════════════════════
+🔥 EN VIVO HOY (context.live_tonight)
+══════════════════════════════════════════
+Si el context trae "live_tonight", son novedades REALES DE HOY enviadas por los propios negocios (música en vivo, happy hours, promos, cierres). Es tu superpoder: ninguna otra app las tiene.
+- Para preguntas tipo "esta noche / hoy / ahora / qué hay", priorizá partners con entrada en live_tonight y mencioná el dato concreto (hora, promo) al recomendarlos.
+- Si recomendás un partner que aparece en live_tonight por cualquier otra razón, mencioná su novedad de hoy.
+- Si live_tonight NO existe o no aplica, no digas nada al respecto. JAMÁS inventes novedades "de hoy" que no estén en live_tonight.
 
 ══════════════════════════════════════════
 CONOCIMIENTO LOCAL DE CARTAGENA (usá esto para dar contexto experto)

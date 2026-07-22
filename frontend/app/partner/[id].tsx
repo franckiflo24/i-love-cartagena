@@ -282,6 +282,16 @@ export default function PartnerDetail() {
         </View>
 
         <View style={styles.body}>
+          {partner.live_pulse?.title ? (
+            <View style={styles.pulseBanner}>
+              <View style={styles.pulseBadge}><Text style={styles.pulseBadgeText}>{tr('HOY')}</Text></View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.pulseTitle}>{partner.live_pulse.title}</Text>
+                {partner.live_pulse.details ? <Text style={styles.pulseDetails} numberOfLines={2}>{partner.live_pulse.details}</Text> : null}
+              </View>
+              <Ionicons name="flash" size={18} color="#FBBF24" />
+            </View>
+          ) : null}
           {partner.tier && TIER_COLORS[partner.tier as Tier] ? (
             <View style={[styles.tierCallout, { backgroundColor: TIER_COLORS[partner.tier as Tier].bg, borderColor: TIER_COLORS[partner.tier as Tier].border }]}>
               <Ionicons
@@ -454,6 +464,11 @@ const styles = StyleSheet.create({
   catText: { fontSize: 10, color: COLORS.white, ...FONTS.bold, letterSpacing: 1, textTransform: 'uppercase' },
   heroTitle: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.sm },
   body: { padding: SPACING.lg },
+  pulseBanner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(251,191,36,0.35)', backgroundColor: 'rgba(251,191,36,0.08)', marginBottom: SPACING.md },
+  pulseBadge: { backgroundColor: '#FBBF24', borderRadius: RADIUS.sm, paddingHorizontal: 8, paddingVertical: 3 },
+  pulseBadgeText: { fontSize: 10, color: '#000000', ...FONTS.bold, letterSpacing: 1 },
+  pulseTitle: { fontSize: 14, color: '#FBBF24', ...FONTS.bold },
+  pulseDetails: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
   tierCallout: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, borderRadius: RADIUS.lg, borderWidth: 1, marginBottom: SPACING.md },
   tierCalloutTitle: { fontSize: 14, ...FONTS.bold, letterSpacing: 0.5 },
   tierCalloutDesc: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
