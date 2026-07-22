@@ -1,0 +1,3 @@
+LAST: Cert items closed — backend ANTHROPIC_API_KEY set + concierge verified E2E; Aluna (ptr_cu_006) removed as invented venue (781 partners live); Mr Rick (ptr_1353) confirmed real (TripAdvisor 5.0, active IG), kept elite/4.8.
+NEXT: Optional — rule on remaining ptr_cu_* curated seeds (ptr_cu_002 Nikkei Cartagena, ptr_cu_008 Burger Cartagena, ptr_cu_009 Tropical Tacos, ptr_cu_011 Verde Cartagena): no exact real-world matches found, likely also invented. Stray clone ~/amo-cartagena still awaiting deletion approval.
+DEPLOY: https://www.amocartagena.co (frontend) + https://backend-mu-one-74.vercel.app (backend). Both redeployed 2026-07-21 ~21:37 CST, verified.
