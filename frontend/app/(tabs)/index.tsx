@@ -108,6 +108,18 @@ export default function HomeScreen() {
   const partnerCount = usePartnerCount();
   const [showGuestBanner, setShowGuestBanner] = useState(false);
   const [guestRecommendations, setGuestRecommendations] = useState<any[]>([]);
+  const [forYou, setForYou] = useState<any[]>([]);
+
+  // Taste-engine rail for signed-in users (server-side affinity from
+  // favorites + reservations + onboarding)
+  useEffect(() => {
+    if (!user) { setForYou([]); return; }
+    let alive = true;
+    api.get('/for-you')
+      .then((d: any) => { if (alive && Array.isArray(d?.partners)) setForYou(d.partners); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [user]);
   const flatListRef = useRef<FlatList>(null);
 
   // Guest personalization banner — show on 2nd visit, dismissible
@@ -638,6 +650,54 @@ export default function HomeScreen() {
         )}
 
         {/* Guest personalized recommendations — Para ti (no login required) */}
+        {/* Para ti (usuarios) — taste engine del backend */}
+        {user && forYou.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleRow}>
+                <Ionicons name="sparkles" size={18} color="#A855F7" />
+                <Text style={styles.sectionTitle}>{tr('Para ti')}</Text>
+                <View style={styles.aiBadge}>
+                  <Text style={styles.aiBadgeText}>AI</Text>
+                </View>
+              </View>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: SPACING.lg, gap: SPACING.sm }}>
+              {forYou.map((p: any) => (
+                <TouchableOpacity
+                  key={p.partner_id}
+                  style={styles.recCard}
+                  onPress={() => router.push(`/partner/${p.partner_id}` as any)}
+                  activeOpacity={0.85}
+                >
+                  <SafeImage
+                    uri={p.image_url || getCategoryImage(p.category)}
+                    style={styles.recImage}
+                    category={p.category}
+                  />
+                  <View style={styles.recOverlay}>
+                    {p.live_pulse?.title ? (
+                      <View style={styles.recPulseBadge}>
+                        <Text style={styles.recPulseText} numberOfLines={1}>⚡ {p.live_pulse.title}</Text>
+                      </View>
+                    ) : p.tier ? (
+                      <View style={[styles.recTierBadge, { backgroundColor: TIER_COLORS[p.tier as Tier]?.main || COLORS.primary }]}>
+                        <Text style={styles.recTierText}>{(p.tier || '').toUpperCase()}</Text>
+                      </View>
+                    ) : null}
+                    <Text style={styles.recName} numberOfLines={2}>{p.name}</Text>
+                    <View style={styles.recMeta}>
+                      <Text style={styles.recCategory} numberOfLines={1}>
+                        {(p.cuisine || p.subcategory || p.category || '').replace(/_/g, ' ')}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
         {!user && guestRecommendations.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -1320,6 +1380,8 @@ const styles = StyleSheet.create({
   recImage: { width: '100%', height: '100%' },
   recOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: SPACING.sm, backgroundColor: 'rgba(0,0,0,0.55)', gap: 3 },
   recTierBadge: { alignSelf: 'flex-start', borderRadius: RADIUS.full, paddingHorizontal: 6, paddingVertical: 1 },
+  recPulseBadge: { alignSelf: 'flex-start', borderRadius: RADIUS.full, paddingHorizontal: 6, paddingVertical: 1, backgroundColor: '#FBBF24', maxWidth: 150 },
+  recPulseText: { fontSize: 9, color: '#000000', ...FONTS.bold },
   recTierText: { fontSize: 8, color: '#FFF', ...FONTS.bold, letterSpacing: 0.5 },
   recName: { fontSize: 13, color: '#FFF', ...FONTS.bold, lineHeight: 17 },
   recMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },

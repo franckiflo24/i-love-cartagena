@@ -3038,6 +3038,20 @@ async def global_search(q: str = "", request: Request = None):
     search_id = f"srch_{uuid.uuid4().hex[:12]}"
     _ctr_terms = [t for t in distinctive_terms if t.isalnum() and len(t) <= 24][:6]
 
+    # Resolve the user EARLY (auth optional) so ranking can personalize.
+    user_obj = None
+    try:
+        if request is not None:
+            user_obj = await get_current_user(request)
+    except HTTPException:
+        pass  # Not authenticated — generic ranking
+    user_taste = None
+    if user_obj is not None:
+        try:
+            user_taste = await _taste.build_taste(db, user_obj.get("user_id"))
+        except Exception as exc:
+            logger.warning(f"[search] taste load failed: {exc}")
+
     # Relevance ranking: score, gate on distinctive terms, boost, sort, cap.
     if term_weights or neighborhood_matchers:
         min_score = 3.0 if distinctive_terms else 1.5
@@ -3090,6 +3104,10 @@ async def global_search(q: str = "", request: Request = None):
                     scored_partners = boosted
         except Exception as exc:
             logger.warning(f"[search] pulse attach failed: {exc}")
+        # Personal taste boost (authed users): affinity from favorites and
+        # reservations, capped at 2.0 — reorders near-ties, never relevance.
+        if user_taste:
+            scored_partners = [(sc + _taste.taste_boost(p, user_taste), p) for sc, p in scored_partners]
         scored_partners.sort(key=lambda x: (-x[0], -(x[1].get("rating") or 0)))
         partners = [p for _, p in scored_partners[:50]]
 
@@ -3173,15 +3191,8 @@ async def global_search(q: str = "", request: Request = None):
         )
         return {**matches, "search_id": search_id, "ai": ai_payload}
 
-    # Resolve user — AUTH optional. Unauthenticated users get raw results without AI.
-    # Authenticated users get the full AI-enriched experience.
-    user_obj = None
-    try:
-        if request is not None:
-            user_obj = await get_current_user(request)
-    except HTTPException:
-        pass  # Not authenticated — return raw results without AI enrichment
-
+    # user_obj resolved earlier (before ranking). Unauthenticated users get
+    # ranked results without AI; authenticated get the full AI experience.
     if user_obj is None:
         # Return ranked matches without AI for unauthenticated users.
         # These searches are the majority of traffic — log them too.
@@ -4165,6 +4176,7 @@ import pulse as _pulse
 import demand as _demand
 import tagging as _tagging
 import occasions as _occasions
+import taste as _taste
 
 
 @api_router.get("/payments/config")
@@ -4822,6 +4834,10 @@ async def agent_chat(request: Request):
     user_profile = await db.user_profiles.find_one({"user_id": user_id}, {"_id": 0})
     if user_profile:
         user["_profile"] = user_profile
+    try:
+        user["_taste"] = await _taste.build_taste(db, user_id)
+    except Exception as exc:
+        logger.warning(f"[agent] taste load failed: {exc}")
 
     assistant_payload = await _ai_agent.run_agent_turn(
         db,
@@ -5280,6 +5296,9 @@ app.include_router(_tagging.router, prefix="/api")
 
 _occasions.init(db_=db, get_active_pulse_map=_pulse.get_active_pulse_map)
 app.include_router(_occasions.router, prefix="/api")
+
+_taste.init(db_=db, get_current_user=get_current_user, get_active_pulse_map=_pulse.get_active_pulse_map)
+app.include_router(_taste.router, prefix="/api")
 
 # ── CORS ─────────────────────────────────────────────────────
 # Browsers REJECT the combination of `allow_credentials=True` + `allow_origins=["*"]`

@@ -804,6 +804,11 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
                 "party_type": profile.get("party_type"),
                 "interests": profile.get("interests", []),
             }} if (profile := (user or {}).get("_profile")) else {}),
+            **({"taste": {
+                "tags": list((t.get("tags") or {}).keys())[:5],
+                "cuisines": list((t.get("cuisines") or {}).keys())[:3],
+                "liked_partners": (t.get("liked_partners") or [])[:5],
+            }} if (t := (user or {}).get("_taste")) and (t.get("tags") or t.get("liked_partners")) else {}),
         } if user else {},
         "port_tax_cop": port_tax_price,
         **({"curated_recommendations": curated} if curated else {}),
@@ -890,6 +895,8 @@ Los partners pueden traer "tags" (romantic, first_date, family, kid_friendly, gr
 Usalos para preguntas de ocasión o característica: "cena romántica" → tags romantic/sea_view; "con niños" → kid_friendly/family; "está lloviendo" → indoor; "que hablen inglés" → english_friendly; "algo local, no turístico" → local_favorite. Preferí partners cuyo tag coincide con la ocasión pedida y mencioná el porqué ("terraza con vista al atardecer").
 
 Los partners también pueden traer "signature_dishes" (platos/bebidas insignia verificados). Cuando el usuario pide un plato o bebida específica ("lychee martini", "paella", "ceviche"), preferí partners cuyo signature_dishes lo incluye y NOMBRÁ el plato exacto al recomendar ("pedí el Pargo Platero con curry amarillo"). JAMÁS atribuyas un plato que no esté en signature_dishes del partner.
+
+Si context.user trae "taste" (gustos reales del usuario: tags, cocinas, lugares que le gustaron), usalo con sutileza: priorizá recomendaciones afines y podés referenciar su historial con naturalidad ("como te gustó {lugar}, creo que esto va contigo"). No lo recites como lista ni menciones la palabra "taste".
 
 ══════════════════════════════════════════
 🔥 EN VIVO HOY (context.live_tonight)
