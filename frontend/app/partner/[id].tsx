@@ -14,6 +14,16 @@ import { useLang } from '../../src/context/LanguageContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
 
+const TAG_LABELS: Record<string, string> = {
+  romantic: 'Romántico', first_date: 'Primera cita', family: 'Familiar',
+  kid_friendly: 'Para niños', group_friendly: 'Grupos', business: 'Negocios',
+  celebration: 'Celebraciones', sea_view: 'Vista al mar', sunset_view: 'Atardecer',
+  rooftop: 'Rooftop', outdoor_terrace: 'Terraza', live_music: 'Música en vivo',
+  late_night: 'Hasta tarde', english_friendly: 'English OK', indoor: 'Bajo techo',
+  budget: 'Económico', luxury: 'Alta gama', local_favorite: 'Favorito local',
+  pet_friendly: 'Pet friendly', healthy: 'Saludable',
+};
+
 export default function PartnerDetail() {
   const tr = useTr();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -308,6 +318,13 @@ export default function PartnerDetail() {
             </View>
           ) : null}
           {partner.description ? <Text style={styles.description}>{partner.description}</Text> : null}
+          {Array.isArray(partner.tags) && partner.tags.some((t: string) => TAG_LABELS[t]) ? (
+            <View style={styles.tagRow}>
+              {partner.tags.filter((t: string) => TAG_LABELS[t]).map((t: string) => (
+                <View key={t} style={styles.tagChip}><Text style={styles.tagChipText}>{tr(TAG_LABELS[t])}</Text></View>
+              ))}
+            </View>
+          ) : null}
 
           <View style={styles.infoGrid}>
             {partner.address ? (
@@ -464,6 +481,9 @@ const styles = StyleSheet.create({
   catText: { fontSize: 10, color: COLORS.white, ...FONTS.bold, letterSpacing: 1, textTransform: 'uppercase' },
   heroTitle: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.sm },
   body: { padding: SPACING.lg },
+  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
+  tagChip: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
+  tagChipText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
   pulseBanner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(251,191,36,0.35)', backgroundColor: 'rgba(251,191,36,0.08)', marginBottom: SPACING.md },
   pulseBadge: { backgroundColor: '#FBBF24', borderRadius: RADIUS.sm, paddingHorizontal: 8, paddingVertical: 3 },
   pulseBadgeText: { fontSize: 10, color: '#000000', ...FONTS.bold, letterSpacing: 1 },

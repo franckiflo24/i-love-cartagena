@@ -271,8 +271,8 @@ export default function SearchScreen() {
         // Synonym expansion: map common queries to categories and Spanish terms
         const SYNONYMS: Record<string, string[]> = {
           'cena': ['restaurant', 'restaurante', 'comida', 'gastronomia'],
-          'romantica': ['restaurant', 'restaurante', 'bistro', 'italiano', 'frances'],
-          'romantic': ['restaurant', 'restaurante', 'bistro'],
+          'romantica': ['restaurant', 'restaurante', 'bistro', 'italiano', 'frances', 'romantic'],
+          'romantic': ['restaurant', 'restaurante', 'bistro', 'romantic'],
           'dinner': ['restaurant', 'restaurante', 'comida', 'cena'],
           'lunch': ['restaurant', 'restaurante', 'brunch', 'almuerzo'],
           'breakfast': ['restaurant', 'cafe', 'brunch', 'desayuno'],
@@ -312,8 +312,8 @@ export default function SearchScreen() {
           'coffee': ['cafe', 'coffee', 'brunch'],
           'hotel': ['hotel', 'hostel', 'hospedaje', 'alojamiento'],
           'spa': ['spa', 'masaje', 'wellness', 'relajacion'],
-          'kids': ['familia', 'ninos', 'infantil', 'family'],
-          'ninos': ['familia', 'ninos', 'infantil', 'kids'],
+          'kids': ['familia', 'ninos', 'infantil', 'family', 'kid_friendly'],
+          'ninos': ['familia', 'ninos', 'infantil', 'kids', 'kid_friendly'],
           'safe': ['seguridad', 'seguro', 'emergencia'],
           'cambio': ['currency_exchange', 'cambio', 'divisa', 'dolar'],
           'money': ['currency_exchange', 'cambio', 'divisa', 'banco'],
@@ -351,6 +351,26 @@ export default function SearchScreen() {
           'mediterraneo': ['mediterranean'], 'mediterranea': ['mediterranean'],
           'brunch': ['cafe', 'desayuno'], 'desayuno': ['cafe', 'brunch'],
           'postre': ['cafe', 'reposteria', 'helado'], 'helado': ['gelato', 'heladeria'],
+          // Knowledge tags (occasion/feature layer — mirrors backend TAG_VOCAB)
+          'romantico': ['romantic'],
+          'pareja': ['romantic'], 'cita': ['romantic', 'first_date'], 'date': ['romantic', 'first_date'],
+          'vista': ['sea_view', 'sunset_view', 'rooftop'], 'view': ['sea_view', 'sunset_view', 'rooftop'],
+          'atardecer': ['sunset_view'], 'sunset': ['sunset_view'],
+          'terraza': ['outdoor_terrace', 'rooftop'], 'rooftop': ['rooftop'],
+          'familia': ['family', 'kid_friendly'], 'family': ['family', 'kid_friendly'],
+          'grupo': ['group_friendly'], 'group': ['group_friendly'],
+          'negocios': ['business'], 'cumpleanos': ['celebration'],
+          'birthday': ['celebration'], 'aniversario': ['celebration'],
+          'lluvia': ['indoor'], 'lloviendo': ['indoor'], 'llueve': ['indoor'],
+          'rain': ['indoor'], 'raining': ['indoor'], 'indoor': ['indoor'],
+          'ingles': ['english_friendly'], 'english': ['english_friendly'],
+          'barato': ['budget'], 'economico': ['budget'], 'cheap': ['budget'],
+          'lujo': ['luxury'], 'luxury': ['luxury'], 'fancy': ['luxury'],
+          'saludable': ['healthy', 'vegetarian'], 'healthy': ['healthy', 'vegetarian'],
+          'mascota': ['pet_friendly'], 'mascotas': ['pet_friendly'],
+          'pet': ['pet_friendly'], 'perro': ['pet_friendly'],
+          'autentico': ['local_favorite'], 'locales': ['local_favorite'],
+          'musica': ['live_music'],
         };
 
         // Term classes — generic words qualify a search, they don't define it.
@@ -376,6 +396,8 @@ export default function SearchScreen() {
           'diego': ['san diego'],
           'popa': ['pie de la popa'],
           'baru': ['baru'],
+          'bomba': ['tierra bomba'],
+          'rosario': ['islas del rosario', 'rosario'],
         };
 
         // Partition terms by class, then expand with synonyms. Original
@@ -415,6 +437,7 @@ export default function SearchScreen() {
           const fields = [
             { val: p.name, weight: 3 },
             { val: p.cuisine, weight: 3 },
+            { val: Array.isArray(p.tags) ? p.tags.join(' ') : p.tags, weight: 3 },
             { val: p.category, weight: 2 },
             { val: p.subcategory, weight: 2 },
             { val: p.experience, weight: 2 },
