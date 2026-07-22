@@ -4,6 +4,8 @@ import * as SecureStore from 'expo-secure-store';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 const STATIC_MODE = process.env.EXPO_PUBLIC_STATIC_MODE === '1' || !BACKEND_URL;
+// Base for callers that need raw fetch with custom headers (e.g. /intel)
+export const API_BASE = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 // Optional: a Vercel Edge Function (or any server) that proxies queries to
 // Anthropic Claude. When set, /search calls fetch this first and merges the
 // AI payload into the static result. Configure via env: EXPO_PUBLIC_AI_PROXY_URL

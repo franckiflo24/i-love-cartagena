@@ -225,3 +225,79 @@ async def demand_latest(request: Request):
     if not doc:
         return {"report": None, "message": "No report yet — call /admin/demand/refresh"}
     return doc
+
+
+@router.get("/admin/intel/overview")
+async def intel_overview(request: Request):
+    """One call powering the AMO Intel dashboard: KPIs, top queries,
+    behavioral movers, live pulse activity."""
+    await _auth(request)
+    now = datetime.now(timezone.utc)
+    d7 = (now - timedelta(days=7)).isoformat()
+    d30 = (now - timedelta(days=30)).isoformat()
+
+    searches_30d = await db.search_history.count_documents({"created_at": {"$gte": d30}})
+    searches_7d = await db.search_history.count_documents({"created_at": {"$gte": d7}})
+    sessions_30d = await db.chat_sessions.count_documents({"created_at": {"$gte": d30}})
+    partners_total = await db.partners.count_documents({})
+    partners_tagged = await db.partners.count_documents({"tags.0": {"$exists": True}})
+    active_pulse_q = {"active": True, "valid_until": {"$gt": now.isoformat()}}
+    active_pulses_n = await db.partner_pulses.count_documents(active_pulse_q)
+    pulses_7d = await db.partner_pulses.count_documents({"created_at": {"$gte": d7}})
+
+    # Top queries (30d) with zero-result flag (same legacy-aware logic as _collect)
+    top_q = await db.search_history.aggregate([
+        {"$match": {"created_at": {"$gte": d30}, "query_lower": {"$exists": True, "$ne": ""}}},
+        {"$group": {
+            "_id": "$query_lower",
+            "count": {"$sum": 1},
+            "max_impressions": {"$max": {"$add": [
+                {"$size": {"$ifNull": ["$impressions", []]}},
+                {"$ifNull": ["$result_counts.partners", {"$ifNull": ["$matches_count", 0]}]},
+            ]}},
+        }},
+        {"$sort": {"count": -1}},
+        {"$limit": 15},
+    ]).to_list(15)
+    top_queries = [
+        {"query": r["_id"], "count": r["count"], "zero": r.get("max_impressions", 0) == 0}
+        for r in top_q
+    ]
+
+    # Behavioral movers: most-tapped partners in search results (all-time CTR data)
+    movers_raw = await db.search_ctr.find(
+        {"taps": {"$gt": 0}}, {"_id": 0, "partner_id": 1, "imp": 1, "taps": 1},
+    ).sort("taps", -1).limit(10).to_list(10)
+    names = {}
+    if movers_raw:
+        for p in await db.partners.find(
+            {"partner_id": {"$in": [m["partner_id"] for m in movers_raw]}},
+            {"_id": 0, "partner_id": 1, "name": 1},
+        ).to_list(20):
+            names[p["partner_id"]] = p.get("name")
+    ctr_movers = [
+        {"partner_id": m["partner_id"], "name": names.get(m["partner_id"], m["partner_id"]),
+         "imp": m.get("imp", 0), "taps": m.get("taps", 0)}
+        for m in movers_raw
+    ]
+
+    pulses = await db.partner_pulses.find(
+        active_pulse_q, {"_id": 0, "partner_name": 1, "title": 1, "type": 1, "source": 1},
+    ).sort("created_at", -1).limit(20).to_list(20)
+
+    total_taps = 0
+    async for doc in db.search_ctr.aggregate([{"$group": {"_id": None, "t": {"$sum": "$taps"}}}]):
+        total_taps = doc.get("t", 0)
+
+    return {
+        "kpis": {
+            "searches_30d": searches_30d, "searches_7d": searches_7d,
+            "result_taps_total": total_taps, "chat_sessions_30d": sessions_30d,
+            "partners": partners_total, "partners_tagged": partners_tagged,
+            "active_pulses": active_pulses_n, "pulses_7d": pulses_7d,
+        },
+        "top_queries": top_queries,
+        "ctr_movers": ctr_movers,
+        "active_pulses": pulses,
+        "generated_at": now.isoformat(),
+    }
