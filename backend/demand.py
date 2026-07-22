@@ -127,9 +127,9 @@ async def _collect(days: int) -> Dict[str, Any]:
 
     total_searches = await db.search_history.count_documents({"created_at": {"$gte": cutoff}})
     return {
-        "zero_queries": zero[:80],
-        "thin_queries": thin[:40],
-        "chat_asks": chat_asks,
+        "zero_queries": zero[:50],
+        "thin_queries": thin[:25],
+        "chat_asks": chat_asks[:120],
         "coverage": cov_map,
         "total_searches": total_searches,
     }
@@ -170,7 +170,7 @@ async def _mine(days: int) -> Dict[str, Any]:
         MINE_SYSTEM,
         json.dumps(payload, ensure_ascii=False),
         model="claude-sonnet-4-6",
-        max_tokens=3000,
+        max_tokens=4000,
         temperature=0.2,
     )
     if not out:
@@ -178,7 +178,16 @@ async def _mine(days: int) -> Dict[str, Any]:
     try:
         report = json.loads(_strip_fences(out))
     except Exception:
-        raise HTTPException(status_code=502, detail="mining output not parseable")
+        # Fallback: extract the outermost JSON object (models sometimes wrap
+        # or trail text). Log the head of the raw output for diagnosis.
+        m = re.search(r"\{.*\}", out, re.S)
+        try:
+            report = json.loads(m.group(0)) if m else None
+        except Exception:
+            report = None
+        if report is None:
+            logger.error(f"[demand] unparseable mining output (len={len(out)}): {out[:500]}")
+            raise HTTPException(status_code=502, detail="mining output not parseable")
 
     doc = {
         "report_id": f"dmr_{uuid.uuid4().hex[:12]}",
