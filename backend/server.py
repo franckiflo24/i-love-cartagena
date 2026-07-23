@@ -2808,6 +2808,12 @@ async def global_search(q: str = "", request: Request = None):
         # Beach/Pool
         "beach": "beach_club", "playa": "beach_club", "pool": "beach_club",
         "island": "beach_club", "isla": "beach_club",
+        # Boats / charter — map to the yacht category so a transport query scores
+        # the OPERATORS, not the islands. Deliberately NOT expanded to isla/beach.
+        "lancha": "yacht", "lanchas": "yacht", "bote": "yacht", "botes": "yacht",
+        "barco": "yacht", "barcos": "yacht", "boat": "yacht", "catamaran": "yacht",
+        "catamaran ": "yacht", "velero": "yacht", "yate": "yacht", "yates": "yacht",
+        "charter": "yacht", "chartear": "yacht",
         # Wellness
         "relax": "spa", "massage": "spa", "masaje": "spa", "tired": "spa",
         "yoga": "spa", "gym": "activity", "fitness": "activity",
@@ -2971,6 +2977,27 @@ async def global_search(q: str = "", request: Request = None):
             term_weights.setdefault(_norm(syn), 0.3)
     neighborhood_matchers = [pat for t in neighborhood_terms for pat in _NEIGHBORHOOD_PATTERNS[t]]
 
+    # Transport intent + destination-serving (Stage 2). A boat query must rank the
+    # OPERATORS above the destinations, and a destination term must credit an operator
+    # that TAKES you there (serves_destinations) — not only venues located there.
+    #   • Boat words ("lancha", "catamarán"…) → boat intent outright.
+    #   • Generic transport phrases ("cómo llego", "transporte a", "quiero ir a") →
+    #     boat intent ONLY when the destination is an island (so "cómo llego al
+    #     aeropuerto" stays ground transport, not boats).
+    _BOAT_TERMS = {"lancha", "lanchas", "bote", "botes", "barco", "barcos", "boat",
+                   "catamaran", "velero", "yate", "yates", "charter", "chartear"}
+    _TRANSPORT_PHRASES = ("transporte", "traslado", "transfer", "como llego", "como llegar",
+                          "como voy", "quiero ir", "ir a", "llegar a", "how do i get", "get to")
+    _ISLAND_DEST_TERMS = ("rosario", "baru", "bomba", "tierra bomba", "isla", "islas",
+                          "playa blanca", "cholon")
+    _has_boat = any(t in _BOAT_TERMS for t in tokens)
+    _has_transport_phrase = any(ph in q_norm for ph in _TRANSPORT_PHRASES)
+    _has_island_dest = any(dt in q_norm for dt in _ISLAND_DEST_TERMS)
+    transport_intent = _has_boat or (_has_transport_phrase and _has_island_dest)
+    _DEST_KEY = {"rosario": "islas_del_rosario", "baru": "baru", "bomba": "tierra_bomba",
+                 "bocagrande": "bocagrande", "manga": "manga", "getsemani": "getsemani"}
+    served_keys = [_DEST_KEY[t] for t in neighborhood_terms if t in _DEST_KEY]
+
     # Recall regex. When distinctive terms exist, require one of THEM (plus the
     # full phrase) so the fetch cap isn't crowded out by generic-word matches.
     if distinctive_set:
@@ -3008,9 +3035,21 @@ async def global_search(q: str = "", request: Request = None):
         # Location is a boost, not a filter: "thai centro" with zero Thai in
         # Centro should still surface the Getsemaní one, ranked honestly.
         if neighborhood_matchers:
-            addr = _norm(p.get("address") or "")
-            if any(nb in addr for nb in neighborhood_matchers):
+            addr = _norm(p.get("address") or "") + " " + _norm(p.get("zone") or "")
+            serves = p.get("serves_destinations") or []
+            is_there = any(nb in addr for nb in neighborhood_matchers)
+            takes_there = any(k in serves for k in served_keys)
+            if is_there or takes_there:
                 score += 5
+        # Intent beats zone (Fix B): for a boat query, the operators (yacht, or
+        # service marinas/charters) rank ABOVE the destinations they serve.
+        if transport_intent:
+            cat = _norm(p.get("category"))
+            sub = _norm(p.get("subcategory"))
+            if cat == "yacht":
+                score += 8
+            elif cat == "service" and sub in ("marina", "tour_operator", "tours"):
+                score += 6
         return score, has_distinctive
 
     events = await db.events.find(
@@ -3042,6 +3081,21 @@ async def global_search(q: str = "", request: Request = None):
         {"_id": 0}
     ).limit(200).to_list(200)
 
+    # Transport-intent recall: a query like "quiero ir a playa blanca" names no boat,
+    # so the text regex never pulls in the operators. Ensure the operators that serve
+    # the queried destination are in the pool (and, below, exempt from the text gate)
+    # so they can lead — Fix B: intent must not be filtered out by the query wording.
+    if transport_intent:
+        op_query: Dict[str, Any] = {"category": "yacht"}
+        if served_keys:
+            op_query = {"$or": [
+                {"category": "yacht", "serves_destinations": {"$in": served_keys}},
+                {"category": "service", "subcategory": "marina", "serves_destinations": {"$in": served_keys}},
+            ]}
+        ops = await db.partners.find(op_query, {"_id": 0}).limit(60).to_list(60)
+        seen_pids = {p.get("partner_id") for p in partners}
+        partners.extend(p for p in ops if p.get("partner_id") not in seen_pids)
+
     # Terms tracked for behavioral CTR: original distinctive words only —
     # bounded vocabulary, highest signal. Sanitized for use as Mongo keys.
     search_id = f"srch_{uuid.uuid4().hex[:12]}"
@@ -3062,12 +3116,17 @@ async def global_search(q: str = "", request: Request = None):
             logger.warning(f"[search] taste load failed: {exc}")
 
     # Relevance ranking: score, gate on distinctive terms, boost, sort, cap.
-    if term_weights or neighborhood_matchers:
+    if term_weights or neighborhood_matchers or transport_intent:
         min_score = 3.0 if distinctive_terms else 1.5
         scored_partners = []
         for p in partners:
             sc, has_dist = _score_partner(p)
-            if sc >= min_score and (not distinctive_terms or has_dist):
+            # A boat-intent query surfaces its operators even when the wording never
+            # names a boat ("quiero ir a playa blanca") — they're relevant by intent,
+            # not by text, so they bypass the distinctive-term gate.
+            _cat = _norm(p.get("category")); _sub = _norm(p.get("subcategory"))
+            is_op = transport_intent and (_cat == "yacht" or (_cat == "service" and _sub in ("marina", "tour_operator", "tours")))
+            if (sc >= min_score and (not distinctive_terms or has_dist)) or is_op:
                 scored_partners.append((sc, p))
         cand_ids = [p.get("partner_id") for _, p in scored_partners if p.get("partner_id")]
         # Behavioral boost: smoothed historical tap-through for the surviving
@@ -3117,7 +3176,25 @@ async def global_search(q: str = "", request: Request = None):
         # reservations, capped at 2.0 — reorders near-ties, never relevance.
         if user_taste:
             scored_partners = [(sc + _taste.taste_boost(p, user_taste), p) for sc, p in scored_partners]
-        scored_partners.sort(key=lambda x: (-x[0], -(x[1].get("rating") or 0)))
+        # For a transport-intent query, operators lead regardless of a destination's
+        # accumulated CTR — a boat query is answered by boats first, then the islands
+        # they serve (destination narrows, never excludes). Non-transport queries keep
+        # the pure score order.
+        def _op_rank(p: dict) -> int:
+            if not transport_intent:
+                return 0
+            cat = _norm(p.get("category"))
+            sub = _norm(p.get("subcategory"))
+            is_op = cat == "yacht" or (cat == "service" and sub in ("marina", "tour_operator", "tours"))
+            if not is_op:
+                return 0
+            # An operator that actually serves the queried destination (Bona Vida,
+            # Todomar → Rosario) leads the operator block, above generic charters.
+            serves = p.get("serves_destinations") or []
+            if served_keys and any(k in serves for k in served_keys):
+                return 2
+            return 1
+        scored_partners.sort(key=lambda x: (-_op_rank(x[1]), -x[0], -(x[1].get("rating") or 0)))
         partners = [p for _, p in scored_partners[:50]]
 
     async def _track_impressions(shown_partners: list, user_id=None, extra: Optional[dict] = None):
@@ -3208,7 +3285,11 @@ async def global_search(q: str = "", request: Request = None):
     # is most of our traffic). Fails safe: on any error, ranking is unchanged.
     try:
         from knowledge import best_curated as _best_curated
-        _cur = _best_curated(q)
+        # A transport-intent query ("lancha a rosario") must NOT be led by the
+        # beach-club curated answer — the expert picks are destinations, and the
+        # user asked for a boat. Operators-first ranking already stands; skip the
+        # curated prepend here (destinations still appear, narrowed below).
+        _cur = None if transport_intent else _best_curated(q)
         if _cur and _cur.get("partner_ids"):
             cur_ids = _cur["partner_ids"]
             pool = {p.get("partner_id"): p for p in partners}
