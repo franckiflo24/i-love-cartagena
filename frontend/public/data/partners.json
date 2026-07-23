@@ -31537,7 +31537,8 @@
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
     "zone": "Centro Histórico",
-    "rnt": "58.742"
+    "rnt": "58.742",
+    "google_place_id": "ChIJg6TnqyAv9o4RAd7rVDDRans"
   },
   {
     "partner_id": "ptr_dv_002",
@@ -31575,7 +31576,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Bocagrande"
+    "zone": "Bocagrande",
+    "google_place_id": "ChIJk5bdTgsv9o4R4YL9EU4Ilu0"
   },
   {
     "partner_id": "ptr_dv_003",
@@ -31618,7 +31620,8 @@
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
     "zone": "Tierra Bomba",
-    "price_note": "Precio a consultar por WhatsApp (+57 322 365 0837) — el operador no publica tarifa pública."
+    "price_note": "Precio a consultar por WhatsApp (+57 322 365 0837) — el operador no publica tarifa pública.",
+    "google_place_id": "ChIJhzUgYAAp9o4RKEci8ue1dVw"
   },
   {
     "partner_id": "ptr_dv_004",
@@ -31659,7 +31662,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Islas del Rosario"
+    "zone": "Islas del Rosario",
+    "google_place_id": "ChIJVYXTv659WI4R0brfIZGYRtk"
   },
   {
     "partner_id": "ptr_dv_005",
@@ -31701,7 +31705,8 @@
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
     "zone": "Islas del Rosario",
-    "rnt": "6862"
+    "rnt": "6862",
+    "google_place_id": "ChIJX_RdNb19WI4RI2P-RV4klzA"
   },
   {
     "partner_id": "ptr_dv_006",
@@ -31739,7 +31744,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Islas del Rosario"
+    "zone": "Islas del Rosario",
+    "google_place_id": "ChIJX7d1m1B8WI4RYhpJloaQPO8"
   },
   {
     "partner_id": "ptr_dv_007",
@@ -31778,7 +31784,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Castillogrande"
+    "zone": "Castillogrande",
+    "google_place_id": "ChIJg13qzD4v9o4RFCmn3djLnmQ"
   },
   {
     "partner_id": "ptr_dv_008",
@@ -31828,7 +31835,8 @@
       "langostinos al coco"
     ],
     "signatures_source": "dossier_2026-07",
-    "signatures_at": "2026-07-23T00:00:00+00:00"
+    "signatures_at": "2026-07-23T00:00:00+00:00",
+    "google_place_id": "ChIJ____b_ol9o4RzCPP68J2hrw"
   },
   {
     "partner_id": "ptr_dv_009",
@@ -31878,7 +31886,8 @@
       "langostinos al ajillo"
     ],
     "signatures_source": "dossier_2026-07",
-    "signatures_at": "2026-07-23T00:00:00+00:00"
+    "signatures_at": "2026-07-23T00:00:00+00:00",
+    "google_place_id": "ChIJDfF-nwov9o4RcKaT5dl6P2M"
   },
   {
     "partner_id": "ptr_dv_010",
@@ -31925,7 +31934,8 @@
       "nevados"
     ],
     "signatures_source": "dossier_2026-07",
-    "signatures_at": "2026-07-23T00:00:00+00:00"
+    "signatures_at": "2026-07-23T00:00:00+00:00",
+    "google_place_id": "ChIJa1JXqxUv9o4RbuN2ZZZPIz0"
   },
   {
     "partner_id": "ptr_dv_011",
@@ -31974,7 +31984,8 @@
       "ensaladas"
     ],
     "signatures_source": "dossier_2026-07",
-    "signatures_at": "2026-07-23T00:00:00+00:00"
+    "signatures_at": "2026-07-23T00:00:00+00:00",
+    "google_place_id": "ChIJl1jy_58v9o4R2gPhwMx9GNg"
   },
   {
     "partner_id": "ptr_dv_012",
@@ -32015,7 +32026,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Getsemaní"
+    "zone": "Getsemaní",
+    "google_place_id": "ChIJdakm4J0v9o4R9vyUucxboK4"
   },
   {
     "partner_id": "ptr_dv_013",
@@ -32058,7 +32070,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Isla Barú"
+    "zone": "Isla Barú",
+    "google_place_id": "ChIJeRfbKdmDWI4RLxROdg9AKbc"
   },
   {
     "partner_id": "ptr_dv_014",
@@ -32099,7 +32112,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Centro Histórico"
+    "zone": "Centro Histórico",
+    "google_place_id": "ChIJvxTNBZwv9o4RRv5YXmCRZT8"
   },
   {
     "partner_id": "ptr_dv_015",
@@ -32140,7 +32154,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "San Diego"
+    "zone": "San Diego",
+    "google_place_id": "ChIJGRBLK9Yv9o4RPJfqk80rObY"
   },
   {
     "partner_id": "ptr_dv_016",
@@ -32178,7 +32193,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "San Diego"
+    "zone": "San Diego",
+    "google_place_id": "ChIJ7ekQPqAv9o4RXReCQoIHE8U"
   },
   {
     "partner_id": "ptr_dv_017",
@@ -32216,7 +32232,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Centro Histórico"
+    "zone": "Centro Histórico",
+    "google_place_id": "ChIJUUJhogov9o4RydrUrqRZEB0"
   },
   {
     "partner_id": "ptr_dv_018",
@@ -32256,7 +32273,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Centro Histórico"
+    "zone": "Centro Histórico",
+    "google_place_id": "ChIJi00l558v9o4RLFqJf-rjwB0"
   },
   {
     "partner_id": "ptr_dv_019",
@@ -32297,7 +32315,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Centro Histórico"
+    "zone": "Centro Histórico",
+    "google_place_id": "ChIJY7zs4fAv9o4RlQUVcobGz8I"
   },
   {
     "partner_id": "ptr_dv_020",
@@ -32336,7 +32355,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Getsemaní"
+    "zone": "Getsemaní",
+    "google_place_id": "ChIJpTQ-iXUv9o4Rjpqsnzr-sFg"
   },
   {
     "partner_id": "ptr_dv_021",
@@ -32384,7 +32404,8 @@
       "NY strip"
     ],
     "signatures_source": "dossier_2026-07",
-    "signatures_at": "2026-07-23T00:00:00+00:00"
+    "signatures_at": "2026-07-23T00:00:00+00:00",
+    "google_place_id": "ChIJK_Gb3Z8v9o4RkVqmOSYBGds"
   },
   {
     "partner_id": "ptr_dv_022",
@@ -32424,7 +32445,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Getsemaní"
+    "zone": "Getsemaní",
+    "google_place_id": "ChIJ_QwBx3Uv9o4RfMuV3v87uBQ"
   },
   {
     "partner_id": "ptr_dv_023",
@@ -32464,7 +32486,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Getsemaní"
+    "zone": "Getsemaní",
+    "google_place_id": "ChIJhZJbAwAv9o4RG7sbvvGLWd8"
   },
   {
     "partner_id": "ptr_dv_024",
@@ -32543,7 +32566,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Bocagrande"
+    "zone": "Bocagrande",
+    "google_place_id": "ChIJbXq3Tjwv9o4RIDc9VRwRyr0"
   },
   {
     "partner_id": "ptr_dv_026",
@@ -32619,7 +32643,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Manga"
+    "zone": "Manga",
+    "google_place_id": "ChIJmy58d_Av9o4RHOtyIDIgIEk"
   },
   {
     "partner_id": "ptr_dv_028",
@@ -32658,7 +32683,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Isla Barú"
+    "zone": "Isla Barú",
+    "google_place_id": "ChIJu_TyqveDWI4RxRT2BWLSP1I"
   },
   {
     "partner_id": "ptr_dv_029",
@@ -32698,7 +32724,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Centro Histórico"
+    "zone": "Centro Histórico",
+    "google_place_id": "ChIJE7pRvD0v9o4RZdGhS8jsAxM"
   },
   {
     "partner_id": "ptr_dv_030",
@@ -32739,7 +32766,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "search_profile": "alyzia terraza movich rooftop azotea 360 vista bahia carpaccio pulpo mediterranea coctel centro amurallada oceanika | alyzia movich rooftop bar 360 view bay octopus carpaccio mediterranean cocktails walled city"
+    "search_profile": "alyzia terraza movich rooftop azotea 360 vista bahia carpaccio pulpo mediterranea coctel centro amurallada oceanika | alyzia movich rooftop bar 360 view bay octopus carpaccio mediterranean cocktails walled city",
+    "google_place_id": "ChIJdeCUprcv9o4R8QvIPJTjggo"
   },
   {
     "partner_id": "ptr_dv_031",
@@ -32779,6 +32807,7 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "search_profile": "ajeno rooftop osh hotel getsemani azotea mezcal tequila paloma coctel atardecer musica en vivo catedral | ajeno osh rooftop bar getsemani mezcal tequila paloma sunset live music"
+    "search_profile": "ajeno rooftop osh hotel getsemani azotea mezcal tequila paloma coctel atardecer musica en vivo catedral | ajeno osh rooftop bar getsemani mezcal tequila paloma sunset live music",
+    "google_place_id": "ChIJdakm4J0v9o4R9vyUucxboK4"
   }
 ]
