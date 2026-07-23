@@ -1,0 +1,39 @@
+{
+  "partner_id": "ptr_dv_007",
+  "name": "Playa de Castillogrande",
+  "category": "attraction",
+  "subcategory": "beach",
+  "description": "Playa urbana tranquila del lado de la bahía en la península de Castillogrande. Menos oleaje y más local que Bocagrande; también sirve como punto de transfer cercano (p. ej. ~15 min a Tierra Bomba). Playa pública, sin cover.",
+  "address": "Castillogrande (península continental)",
+  "location": {
+    "lat": 10.396,
+    "lng": -75.548
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv_007.jpg",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 4.3,
+  "reviews": 430,
+  "price_range": "$",
+  "tier": "popular",
+  "hours": "Acceso público",
+  "is_certified": true,
+  "experience": "Playa urbana tranquila del lado de la bahía, ambiente local",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "search_profile": "playa castillogrande bahia tranquila local urbana familia peninsula | castillogrande beach calm bay local family peninsula",
+  "tags": [
+    "local_favorite",
+    "kid_friendly",
+    "family",
+    "sea_view"
+  ],
+  "tags_source": "dossier_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "dossier_research_2026-07",
+  "zone": "Castillogrande"
+}

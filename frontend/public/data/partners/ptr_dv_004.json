@@ -1,0 +1,41 @@
+{
+  "partner_id": "ptr_dv_004",
+  "name": "Eco Hotel Islabela",
+  "category": "beach_club",
+  "subcategory": "islas_del_rosario",
+  "description": "Eco-resort en una bahía tranquila junto a Isla Grande (~45 min en lancha desde el Muelle de la Bodeguita, Puerta 3), una de las pocas playas naturales de los Rosario. Day pass desde ~US$89 con coctel de bienvenida, camastros, almuerzo típico y acceso a kayak. Energía solar, cabañas de bajo consumo, menos multitud.",
+  "address": "Isleta (Isla Marina), junto a Isla Grande, Islas del Rosario",
+  "location": {
+    "lat": 10.185,
+    "lng": -75.748
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv_004.jpg",
+  "instagram": "islabela",
+  "booking_link": "https://islabela.co",
+  "rating": 4.6,
+  "reviews": 240,
+  "price_range": "$$$",
+  "tier": "premium",
+  "hours": "Day pass diario; salida Muelle la Bodeguita Puerta 3",
+  "is_certified": true,
+  "experience": "Day pass eco-resort, playa natural, coctel de bienvenida, almuerzo típico, kayak",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "islabela eco hotel resort isla grande rosario day pass playa natural kayak almuerzo tranquilo familia | islabela eco resort rosario islands day pass natural beach kayak family quiet",
+  "tags": [
+    "beachfront",
+    "kid_friendly",
+    "family",
+    "local_favorite",
+    "sea_view",
+    "romantic"
+  ],
+  "tags_source": "dossier_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "dossier_research_2026-07",
+  "zone": "Islas del Rosario"
+}

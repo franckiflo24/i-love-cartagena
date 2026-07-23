@@ -1,0 +1,39 @@
+{
+  "partner_id": "ptr_dv_020",
+  "name": "Casa Quiebra-Canto",
+  "category": "club",
+  "subcategory": "salsa",
+  "description": "Templo icónico de la salsa brava en Getsemaní, en un segundo piso con balcón y vistas a la ciudad vieja, cerca del Parque del Centenario y la Torre del Reloj. Cover ~COP 15.000; ambiente 100% salsa y son.",
+  "address": "Getsemaní, cerca del Parque del Centenario",
+  "location": {
+    "lat": 10.42,
+    "lng": -75.548
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv_020.jpg",
+  "instagram": "quiebracanto",
+  "booking_link": "",
+  "rating": 4.5,
+  "reviews": 1120,
+  "price_range": "$$",
+  "tier": "premium",
+  "hours": "Según programación (verificar)",
+  "is_certified": true,
+  "experience": "Salsa brava en vivo, balcón con vista a la ciudad amurallada",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "quiebra canto casa salsa brava son baile getsemani balcon centenario templo salsa | quiebra canto salsa club dancing getsemani balcony live music",
+  "tags": [
+    "live_music",
+    "local_favorite",
+    "group_friendly",
+    "celebration"
+  ],
+  "tags_source": "dossier_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "dossier_research_2026-07",
+  "zone": "Getsemaní"
+}

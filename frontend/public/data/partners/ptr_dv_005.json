@@ -1,0 +1,42 @@
+{
+  "partner_id": "ptr_dv_005",
+  "name": "Hotel San Pedro de Majagua",
+  "category": "beach_club",
+  "subcategory": "islas_del_rosario",
+  "description": "Hotel #1 de Isla Grande (Corales del Rosario, ~60 min en lancha desde La Bodeguita). Day pass con transporte compartido, coctel de bienvenida, almuerzo costeño (pescado entero / langosta / parrilla de mariscos), camastro y toalla. Ambiente calmado, no fiestero. Tasa de muelle + entrada al parque + seguro de navegación se pagan en efectivo en el muelle.",
+  "address": "Isla Grande, Corales del Rosario",
+  "location": {
+    "lat": 10.178,
+    "lng": -75.753
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv_005.jpg",
+  "instagram": "hotelmajagua",
+  "booking_link": "https://hotelmajagua.com",
+  "rating": 4.7,
+  "reviews": 520,
+  "price_range": "$$$",
+  "tier": "elite",
+  "hours": "Day pass diario; salida desde Muelle la Bodeguita",
+  "is_certified": true,
+  "experience": "Day pass de isla, almuerzo de mariscos, playa calmada, opción Oceanario",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "search_profile": "san pedro de majagua hotel isla grande rosario day pass playa calmada almuerzo mariscos langosta oceanario tranquilo | san pedro majagua isla grande rosario day pass calm beach seafood lunch lobster oceanario",
+  "tags": [
+    "romantic",
+    "kid_friendly",
+    "family",
+    "sea_view",
+    "beachfront",
+    "local_favorite"
+  ],
+  "tags_source": "dossier_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "dossier_research_2026-07",
+  "zone": "Islas del Rosario",
+  "rnt": "6862"
+}

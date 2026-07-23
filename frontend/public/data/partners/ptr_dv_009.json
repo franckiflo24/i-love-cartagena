@@ -1,0 +1,50 @@
+{
+  "partner_id": "ptr_dv_009",
+  "name": "Harry's Cartagena (Harry Sasson)",
+  "category": "restaurant",
+  "subcategory": "internacional",
+  "description": "El único restaurante del chef Harry Sasson fuera de Bogotá, dentro del Hotel Charleston Santa Teresa en la Plaza Santa Teresa. Cocina internacional y colombiana de autor en un patio republicano con techo retráctil: nachos de cangrejo, chicharrón de pulpo, carpaccio mosaico (salmón/langosta/mero), langostinos al ajillo.",
+  "address": "Hotel Charleston Santa Teresa, Cra. 3 #31-23, Plaza Santa Teresa",
+  "location": {
+    "lat": 10.4225,
+    "lng": -75.552
+  },
+  "phone": "+576056501015",
+  "image_url": "/images/partners/ptr_dv_009.jpg",
+  "instagram": "harryssassoncartagena",
+  "booking_link": "https://hotelcharlestonsantateresa.com",
+  "rating": 4.5,
+  "reviews": 980,
+  "price_range": "$$$$",
+  "tier": "elite",
+  "hours": "Todos los días, cena",
+  "is_certified": true,
+  "experience": "Alta cocina de autor de Harry Sasson, patio republicano con techo retráctil",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "search_profile": "harrys sasson cartagena restaurante alta cocina autor cangrejo pulpo carpaccio santa teresa charleston | harrys sasson fine dining chef crab octopus carpaccio santa teresa",
+  "tags": [
+    "romantic",
+    "english_friendly",
+    "indoor",
+    "local_favorite",
+    "luxury",
+    "celebration"
+  ],
+  "tags_source": "dossier_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "dossier_research_2026-07",
+  "zone": "Centro Histórico",
+  "cuisine": "internacional",
+  "signature_dishes": [
+    "nachos de cangrejo",
+    "chicharrón de pulpo",
+    "carpaccio mosaico",
+    "langostinos al ajillo"
+  ],
+  "signatures_source": "dossier_2026-07",
+  "signatures_at": "2026-07-23T00:00:00+00:00"
+}

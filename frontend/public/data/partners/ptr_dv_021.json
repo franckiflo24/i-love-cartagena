@@ -1,0 +1,48 @@
+{
+  "partner_id": "ptr_dv_021",
+  "name": "Hard Rock Café Cartagena",
+  "category": "bar",
+  "subcategory": "live_music",
+  "description": "Hard Rock Café en la Plaza de la Aduana, en un edificio de mediados del s. XVI. 225 asientos en dos pisos, sala VIP y balcones a la plaza. Legendary Burger, NY strip y música en vivo.",
+  "address": "Carrera 7a #32-10, Plaza de la Aduana, Centro Histórico",
+  "location": {
+    "lat": 10.4245,
+    "lng": -75.55
+  },
+  "phone": "+576056643938",
+  "image_url": "/images/partners/ptr_dv_021.jpg",
+  "instagram": "hardrockcafecartagena",
+  "booking_link": "https://cafe.hardrock.com/cartagena",
+  "rating": 4.4,
+  "reviews": 9000,
+  "price_range": "$$$",
+  "tier": "premium",
+  "hours": "Diario",
+  "is_certified": true,
+  "experience": "Hard Rock Café con música en vivo, balcones a la Plaza de la Aduana",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "hard rock cafe cartagena hamburguesa musica en vivo plaza aduana americana balcon | hard rock cafe live music burger plaza aduana american",
+  "tags": [
+    "english_friendly",
+    "live_music",
+    "kid_friendly",
+    "group_friendly",
+    "indoor",
+    "family"
+  ],
+  "tags_source": "dossier_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "dossier_research_2026-07",
+  "zone": "Centro Histórico",
+  "cuisine": "americana",
+  "signature_dishes": [
+    "Legendary Burger",
+    "NY strip"
+  ],
+  "signatures_source": "dossier_2026-07",
+  "signatures_at": "2026-07-23T00:00:00+00:00"
+}

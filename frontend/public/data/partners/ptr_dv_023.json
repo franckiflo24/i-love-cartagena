@@ -1,0 +1,40 @@
+{
+  "partner_id": "ptr_dv_023",
+  "name": "Casa Dictador (Dictador Rum Experience)",
+  "category": "activity",
+  "subcategory": "experiencia",
+  "description": "Cata guiada de ~5 rones Dictador, con frecuencia maridada con chocolate negro, en Getsemaní. Dictador es el ron premium colombiano históricamente ligado a Cartagena. Se reserva por GetYourGuide/Viator; a veces admite walk-ins.",
+  "address": "Cra. 9 #30-62, Getsemaní",
+  "location": {
+    "lat": 10.419,
+    "lng": -75.546
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv_023.jpg",
+  "instagram": "casadictador",
+  "booking_link": "https://dictador.com",
+  "rating": 4.7,
+  "reviews": 260,
+  "price_range": "$$$",
+  "tier": "premium",
+  "hours": "Según reserva",
+  "is_certified": true,
+  "experience": "Cata guiada de ron Dictador maridada con chocolate",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "casa dictador cata ron rum experience degustacion chocolate getsemani premium colombiano | casa dictador rum tasting experience chocolate getsemani premium colombian",
+  "tags": [
+    "english_friendly",
+    "romantic",
+    "indoor",
+    "first_date",
+    "celebration"
+  ],
+  "tags_source": "dossier_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "dossier_research_2026-07",
+  "zone": "Getsemaní"
+}

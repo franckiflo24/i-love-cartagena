@@ -1,0 +1,40 @@
+{
+  "partner_id": "ptr_dv_022",
+  "name": "Hotel Capellán Rooftop",
+  "category": "bar",
+  "subcategory": "rooftop",
+  "description": "Terraza rooftop del Hotel Capellán de Getsemaní con piscina de inmersión, pool bar y vistas panorámicas, cerca del Centro de Convenciones, la Torre del Reloj y el Muelle de los Pegasos. Restaurante Clero (colombiano-caribeño + japonés) y spa.",
+  "address": "Calle de la Sierpe, Cra. 9, Getsemaní",
+  "location": {
+    "lat": 10.4185,
+    "lng": -75.5455
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv_022.jpg",
+  "instagram": "hotelcapellan",
+  "booking_link": "https://hotelcapellan.com",
+  "rating": 4.5,
+  "reviews": 290,
+  "price_range": "$$$",
+  "tier": "premium",
+  "hours": "Rooftop según hotel",
+  "is_certified": true,
+  "experience": "Rooftop con piscina de inmersión, pool bar y vistas; restaurante Clero",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "hotel capellan rooftop terraza piscina pool bar vista getsemani clero atardecer | capellan rooftop terrace plunge pool bar view getsemani sunset",
+  "tags": [
+    "rooftop",
+    "sunset_view",
+    "romantic",
+    "luxury",
+    "sea_view"
+  ],
+  "tags_source": "dossier_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "dossier_research_2026-07",
+  "zone": "Getsemaní"
+}

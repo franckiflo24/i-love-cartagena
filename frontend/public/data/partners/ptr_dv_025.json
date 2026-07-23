@@ -1,0 +1,39 @@
+{
+  "partner_id": "ptr_dv_025",
+  "name": "Chiva Rumbera",
+  "category": "activity",
+  "subcategory": "experiencia",
+  "description": "Bus rumbero típico (chiva) con música en vivo, folclor y entrada a discoteca. ~2 h, recogidas en hoteles de Bocagrande/El Laguito/Castillogrande. Producto ofrecido por múltiples operadores; guía mayormente en español.",
+  "address": "Recogidas en Bocagrande / El Laguito / Castillogrande",
+  "location": {
+    "lat": 10.4,
+    "lng": -75.556
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv_025.jpg",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 4.3,
+  "reviews": 680,
+  "price_range": "$$",
+  "tier": "popular",
+  "hours": "Noches (según operador)",
+  "is_certified": true,
+  "experience": "Bus rumbero (chiva) con música en vivo, folclor y entrada a discoteca",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "search_profile": "chiva rumbera bus rumba fiesta musica en vivo folclor discoteca bocagrande grupo | chiva party bus live music folk nightlife bocagrande group",
+  "tags": [
+    "group_friendly",
+    "live_music",
+    "local_favorite",
+    "celebration"
+  ],
+  "tags_source": "dossier_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "dossier_research_2026-07",
+  "zone": "Bocagrande"
+}

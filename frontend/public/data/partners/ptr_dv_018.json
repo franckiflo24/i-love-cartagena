@@ -1,0 +1,40 @@
+{
+  "partner_id": "ptr_dv_018",
+  "name": "Portal de los Dulces",
+  "category": "attraction",
+  "subcategory": "market",
+  "description": "Arcada histórica de puestos de dulces colombianos (cocadas, caballitos, etc.) junto a la Torre del Reloj, en la Plaza de los Coches. Parada icónica y rápida para probar los dulces tradicionales.",
+  "address": "Plaza de los Coches, junto a la Torre del Reloj, Centro Histórico",
+  "location": {
+    "lat": 10.4238,
+    "lng": -75.5505
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv_018.jpg",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 4.2,
+  "reviews": 1450,
+  "price_range": "$",
+  "tier": "popular",
+  "hours": "Diario",
+  "is_certified": true,
+  "experience": "Arcada histórica de dulces colombianos junto a la Torre del Reloj",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "search_profile": "portal de los dulces cocadas caballitos plaza de los coches torre del reloj dulces tradicionales | portal de los dulces colombian sweets candy clock tower plaza coches",
+  "tags": [
+    "local_favorite",
+    "budget",
+    "english_friendly",
+    "kid_friendly",
+    "family"
+  ],
+  "tags_source": "dossier_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "dossier_research_2026-07",
+  "zone": "Centro Histórico"
+}

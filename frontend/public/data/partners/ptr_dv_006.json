@@ -1,0 +1,38 @@
+{
+  "partner_id": "ptr_dv_006",
+  "name": "Oceanario Islas del Rosario (CEINER)",
+  "category": "attraction",
+  "subcategory": "oceanario",
+  "description": "Oceanario a cielo abierto en la Isla San Martín de Pajarales, con más de 1.400 animales de 140+ especies marinas del Caribe y shows de delfines y tiburones. La isla no tiene playa: se accede en paquetes de island-tour o lancha privada, usualmente desde los hoteles de Isla Grande. Entrada ~COP 40.000.",
+  "address": "Isla San Martín de Pajarales, Islas del Rosario",
+  "location": {
+    "lat": 10.172,
+    "lng": -75.762
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv_006.jpg",
+  "instagram": "oceanarioislasdelrosario",
+  "booking_link": "https://oceanario.co",
+  "rating": 4.4,
+  "reviews": 1980,
+  "price_range": "$$",
+  "tier": "premium",
+  "hours": "Diario (según tour de isla)",
+  "is_certified": true,
+  "experience": "Oceanario, show de delfines y tiburones, 140+ especies marinas del Caribe",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "oceanario islas del rosario san martin pajarales acuario delfines tiburones ceiner especies marinas | oceanario rosario islands aquarium dolphins sharks marine species pajarales",
+  "tags": [
+    "kid_friendly",
+    "family",
+    "group_friendly"
+  ],
+  "tags_source": "dossier_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "dossier_research_2026-07",
+  "zone": "Islas del Rosario"
+}

@@ -1,0 +1,40 @@
+{
+  "partner_id": "ptr_dv_024",
+  "name": "ChocoMuseo Cartagena",
+  "category": "activity",
+  "subcategory": "cultural",
+  "description": "Museo del cacao con taller bean-to-bar, café y tienda en el Centro Histórico (cerca del Parque Fernández de Madrid). Entrada gratis; taller de 2 h ~US$25 (adultos) / US$20 (niños); mini-taller ~COP 35.000 para hacer tu propio chocolate.",
+  "address": "Parque Fernández de Madrid, Centro Histórico",
+  "location": {
+    "lat": 10.425,
+    "lng": -75.5475
+  },
+  "phone": "+576056641816",
+  "image_url": "/images/partners/ptr_dv_024.jpg",
+  "instagram": "chocomuseocartagena",
+  "booking_link": "https://chocomuseo.com",
+  "rating": 4.6,
+  "reviews": 1240,
+  "price_range": "$$",
+  "tier": "popular",
+  "hours": "Diario ~10:00–22:00",
+  "is_certified": true,
+  "experience": "Museo del cacao + taller bean-to-bar, café y tienda; apto para niños",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "search_profile": "chocomuseo museo del cacao chocolate taller bean to bar centro fernandez de madrid niños | chocomuseo cacao chocolate museum workshop bean to bar centro kids",
+  "tags": [
+    "kid_friendly",
+    "indoor",
+    "english_friendly",
+    "budget",
+    "family"
+  ],
+  "tags_source": "dossier_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "dossier_research_2026-07",
+  "zone": "Centro Histórico"
+}

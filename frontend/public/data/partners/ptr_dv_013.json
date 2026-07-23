@@ -1,0 +1,43 @@
+{
+  "partner_id": "ptr_dv_013",
+  "name": "Sofitel Barú Calablanca Beach Resort",
+  "category": "hotel",
+  "subcategory": "resort",
+  "description": "Resort de lujo frente al mar en Isla Barú (Sector Porto Naos, Km 7; ~40 min en lancha o ~1h20 en carro). 187 habitaciones/suites, 5 piscinas, spa y playa privada. Restaurantes Calablanca (colombiano/mediterráneo, farm-to-table) y Humo (parrilla robata), bar rooftop La Pérgola. Certificación LEED. Desayuno flotante para suites.",
+  "address": "Isla Barú, Sector Porto Naos, Km 7",
+  "location": {
+    "lat": 10.22,
+    "lng": -75.61
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv_013.jpg",
+  "instagram": "sofitelbarucalablanca",
+  "booking_link": "https://sofitelbarucalablanca.com",
+  "rating": 4.7,
+  "reviews": 890,
+  "price_range": "$$$$",
+  "tier": "elite",
+  "hours": "Check-in 15:00 / check-out 12:00",
+  "is_certified": true,
+  "experience": "Resort de lujo con playa privada, 5 piscinas, spa, rooftop La Pérgola, desayuno flotante",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "search_profile": "sofitel baru calablanca resort lujo playa privada piscina spa humo la pergola rooftop desayuno flotante | sofitel baru calablanca luxury beach resort private beach pool spa rooftop floating breakfast",
+  "tags": [
+    "luxury",
+    "beachfront",
+    "sea_view",
+    "romantic",
+    "kid_friendly",
+    "sunset_view",
+    "family",
+    "celebration"
+  ],
+  "tags_source": "dossier_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "dossier_research_2026-07",
+  "zone": "Isla Barú"
+}
