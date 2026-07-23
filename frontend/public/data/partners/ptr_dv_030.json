@@ -1,0 +1,41 @@
+{
+  "partner_id": "ptr_dv_030",
+  "name": "Alyzia Rooftop & Dining (Movich)",
+  "category": "bar",
+  "subcategory": "rooftop",
+  "description": "Terraza rooftop 360° sobre el Movich Hotel en la ciudad amurallada, con vistas al casco antiguo, la bahía y el skyline de Bocagrande. Cocina mediterránea-colombiana (carpaccio de pulpo de firma) y coctelería; el bar es de acceso público con consumo (la piscina infinita/jacuzzi son solo para huéspedes). Antes marcada como 'Terraza Oceanika'.",
+  "address": "Calle Vélez Daníes #4-39, atop Movich Hotel, Centro Histórico",
+  "zone": "Centro Histórico",
+  "location": {
+    "lat": 10.4243,
+    "lng": -75.5508
+  },
+  "phone": "+576056649000",
+  "image_url": "/images/partners/ptr_dv_030.jpg",
+  "instagram": "alyziacartagena",
+  "booking_link": "https://alyzia.co",
+  "rating": 4.5,
+  "reviews": 280,
+  "price_range": "$$$",
+  "tier": "premium",
+  "hours": "Tarde–noche (verificar)",
+  "is_certified": true,
+  "experience": "Rooftop 360° sobre el Movich, cocina mediterránea-colombiana, carpaccio de pulpo, acceso público con consumo",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "tags": [
+    "rooftop",
+    "sunset_view",
+    "sea_view",
+    "romantic",
+    "english_friendly",
+    "luxury"
+  ],
+  "tags_source": "dossier_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "dossier_research_2026-07",
+  "search_profile": "alyzia terraza movich rooftop azotea 360 vista bahia carpaccio pulpo mediterranea coctel centro amurallada oceanika | alyzia movich rooftop bar 360 view bay octopus carpaccio mediterranean cocktails walled city"
+}
