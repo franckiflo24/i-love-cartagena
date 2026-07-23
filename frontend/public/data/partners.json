@@ -10096,7 +10096,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T08:01:23.150560+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "attr_018",
@@ -10128,7 +10131,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T08:01:23.150560+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "attr_019",
@@ -10476,7 +10482,10 @@
       "gourmet dining"
     ],
     "signatures_at": "2026-07-22T08:01:40.822641+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_NEW_playa_blanca_bc",
@@ -10513,7 +10522,10 @@
       "restaurante de mariscos"
     ],
     "signatures_at": "2026-07-22T08:01:40.822641+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_NEW_hollywood_beach",
@@ -10547,7 +10559,10 @@
     "search_profile": "Urban beach club Bocagrande, pool, DJ, VIP bottle service, cocktails, mojito. Party vibe, late night. playa urbana bocagrande, piscina, DJ, cócteles, vida nocturna, fiesta",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T08:01:40.822641+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "bocagrande"
+    ]
   },
   {
     "partner_id": "svc_ex_001",
@@ -13441,7 +13456,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T08:01:05.166270+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_1418",
@@ -13971,7 +13989,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T08:01:14.251892+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_1434",
@@ -14016,7 +14037,10 @@
       "Paseos náuticos Islas del Rosario"
     ],
     "signatures_at": "2026-07-22T08:01:14.251892+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_1435",
@@ -14444,7 +14468,11 @@
       "experiencia náutica Caribe"
     ],
     "signatures_at": "2026-07-22T08:01:14.251892+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario",
+      "bahia_cartagena"
+    ]
   },
   {
     "partner_id": "ptr_1429",
@@ -14491,7 +14519,10 @@
       "Paseos náuticos Islas del Rosario"
     ],
     "signatures_at": "2026-07-22T08:01:14.251892+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_1439",
@@ -14989,7 +15020,11 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T08:01:14.251892+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario",
+      "bahia_cartagena"
+    ]
   },
   {
     "partner_id": "ptr_1442",
@@ -15035,7 +15070,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T08:01:05.166270+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_1449",
@@ -15498,7 +15536,10 @@
       "Organic fresh cuisine"
     ],
     "signatures_at": "2026-07-22T07:59:57.914202+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_1430",
@@ -15543,7 +15584,11 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T08:01:14.251892+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario",
+      "bahia_cartagena"
+    ]
   },
   {
     "partner_id": "ptr_1431",
@@ -15587,7 +15632,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T08:01:14.251892+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_1433",
@@ -15968,7 +16016,10 @@
       "Paseos náuticos Islas del Rosario"
     ],
     "signatures_at": "2026-07-22T08:01:14.251892+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_X1215",
@@ -16008,7 +16059,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:52.501559+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_X1157",
@@ -16196,7 +16250,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:52.501559+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_X1056",
@@ -16272,7 +16329,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:52.501559+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_X1123",
@@ -16311,7 +16371,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:52.501559+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_X1169",
@@ -16349,7 +16412,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:52.501559+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_X1189",
@@ -16387,7 +16453,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:52.501559+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_X1194",
@@ -16426,7 +16495,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:52.501559+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_X1212",
@@ -16658,7 +16730,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:52.501559+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_re_003",
@@ -16735,7 +16810,11 @@
       "almuerzo gourmet"
     ],
     "signatures_at": "2026-07-22T07:59:02.553644+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario",
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_yt_002",
@@ -16774,7 +16853,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:02.553644+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "bahia_cartagena"
+    ]
   },
   {
     "partner_id": "ptr_V010",
@@ -16983,7 +17065,10 @@
       "cocktails"
     ],
     "signatures_at": "2026-07-22T07:58:52.501559+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "bocagrande"
+    ]
   },
   {
     "partner_id": "ptr_X1242",
@@ -17022,7 +17107,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:41.894214+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_X1262",
@@ -17098,7 +17186,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:41.894214+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_R059",
@@ -17334,7 +17425,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:52.501559+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_W141",
@@ -17375,7 +17469,10 @@
       "gourmet Mediterranean-Caribbean lunch"
     ],
     "signatures_at": "2026-07-22T07:58:52.501559+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_X1005",
@@ -17738,7 +17835,10 @@
       "welcome cocktail"
     ],
     "signatures_at": "2026-07-22T07:58:52.501559+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_X1032",
@@ -18002,7 +18102,12 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:02.553644+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario",
+      "baru",
+      "bahia_cartagena"
+    ]
   },
   {
     "partner_id": "ptr_W120",
@@ -18341,7 +18446,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:12.066081+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_X1097",
@@ -18799,7 +18907,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:12.066081+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_X1046",
@@ -18875,7 +18986,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:02.553644+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_W151",
@@ -18989,7 +19103,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:02.553644+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_X1035",
@@ -19500,7 +19617,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:02.553644+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_X1270",
@@ -19538,7 +19658,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:02.553644+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_X1278",
@@ -19881,7 +20004,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:32.223385+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "bahia_cartagena"
+    ]
   },
   {
     "partner_id": "ptr_X1078",
@@ -20006,7 +20132,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:32.223385+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_X1144",
@@ -20273,7 +20402,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:09.693750+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_X1276",
@@ -20312,7 +20444,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:32.223385+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_X1296",
@@ -20350,7 +20485,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:32.223385+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_R057",
@@ -20477,7 +20615,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:32.223385+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_X1272",
@@ -20830,7 +20971,10 @@
       "Caribbean lunch"
     ],
     "signatures_at": "2026-07-22T07:58:09.693750+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_W143",
@@ -20870,7 +21014,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:09.693750+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_X1007",
@@ -21026,7 +21173,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:09.693750+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_X1095",
@@ -21329,7 +21479,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:09.693750+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_re_001",
@@ -21826,7 +21979,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:41.894214+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_X1200",
@@ -21864,7 +22020,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:41.894214+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_wn_005",
@@ -21983,7 +22142,10 @@
       "masaje a bordo"
     ],
     "signatures_at": "2026-07-22T07:58:41.894214+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_alcaldia",
@@ -22097,7 +22259,10 @@
       "snorkel"
     ],
     "signatures_at": "2026-07-22T07:58:41.894214+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_X1163",
@@ -22173,7 +22338,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:41.894214+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "bahia_cartagena"
+    ]
   },
   {
     "partner_id": "ptr_X1033",
@@ -22475,7 +22643,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:41.894214+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_X1193",
@@ -22514,7 +22685,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:41.894214+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_X1233",
@@ -23334,7 +23508,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:58:41.894214+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_X1086",
@@ -27562,7 +27739,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:57.914202+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_W124",
@@ -27918,7 +28098,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:26.848236+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_X1076",
@@ -27995,7 +28178,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:26.848236+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_X1256",
@@ -28034,7 +28220,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:26.848236+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_X1277",
@@ -28148,7 +28337,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:26.848236+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_X1082",
@@ -28270,7 +28462,10 @@
       "gastronomía de mar"
     ],
     "signatures_at": "2026-07-22T07:59:26.848236+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_wn_004",
@@ -28836,7 +29031,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:12.066081+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_X1165",
@@ -28911,7 +29109,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:12.066081+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_X1238",
@@ -29192,7 +29393,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:12.066081+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_V056",
@@ -29230,7 +29434,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:12.066081+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_W131",
@@ -29832,7 +30039,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:37.242751+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_X1269",
@@ -29871,7 +30081,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:37.242751+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_X1232",
@@ -29948,7 +30161,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:37.242751+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_X1246",
@@ -29987,7 +30203,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:37.242751+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_X1247",
@@ -30026,7 +30245,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:37.242751+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_X1178",
@@ -30064,7 +30286,10 @@
     "tags_source": "ai_bootstrap",
     "signature_dishes": [],
     "signatures_at": "2026-07-22T07:59:37.242751+00:00",
-    "signatures_source": "ai_extract"
+    "signatures_source": "ai_extract",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_cf_003",
@@ -31538,7 +31763,12 @@
     "source": "dossier_research_2026-07",
     "zone": "Centro Histórico",
     "rnt": "58.742",
-    "google_place_id": "ChIJg6TnqyAv9o4RAd7rVDDRans"
+    "google_place_id": "ChIJg6TnqyAv9o4RAd7rVDDRans",
+    "serves_destinations": [
+      "islas_del_rosario",
+      "tierra_bomba",
+      "bahia_cartagena"
+    ]
   },
   {
     "partner_id": "ptr_dv_002",
@@ -31577,7 +31807,12 @@
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
     "zone": "Bocagrande",
-    "google_place_id": "ChIJk5bdTgsv9o4R4YL9EU4Ilu0"
+    "google_place_id": "ChIJk5bdTgsv9o4R4YL9EU4Ilu0",
+    "serves_destinations": [
+      "islas_del_rosario",
+      "baru",
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_dv_003",
@@ -31621,7 +31856,10 @@
     "source": "dossier_research_2026-07",
     "zone": "Tierra Bomba",
     "price_note": "Precio a consultar por WhatsApp (+57 322 365 0837) — el operador no publica tarifa pública.",
-    "google_place_id": "ChIJhzUgYAAp9o4RKEci8ue1dVw"
+    "google_place_id": "ChIJhzUgYAAp9o4RKEci8ue1dVw",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_dv_004",
@@ -31663,7 +31901,10 @@
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
     "zone": "Islas del Rosario",
-    "google_place_id": "ChIJVYXTv659WI4R0brfIZGYRtk"
+    "google_place_id": "ChIJVYXTv659WI4R0brfIZGYRtk",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_dv_005",
@@ -31706,7 +31947,10 @@
     "source": "dossier_research_2026-07",
     "zone": "Islas del Rosario",
     "rnt": "6862",
-    "google_place_id": "ChIJX_RdNb19WI4RI2P-RV4klzA"
+    "google_place_id": "ChIJX_RdNb19WI4RI2P-RV4klzA",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_dv_006",
@@ -31745,7 +31989,10 @@
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
     "zone": "Islas del Rosario",
-    "google_place_id": "ChIJX7d1m1B8WI4RYhpJloaQPO8"
+    "google_place_id": "ChIJX7d1m1B8WI4RYhpJloaQPO8",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_dv_007",
@@ -31785,7 +32032,10 @@
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
     "zone": "Castillogrande",
-    "google_place_id": "ChIJg13qzD4v9o4RFCmn3djLnmQ"
+    "google_place_id": "ChIJg13qzD4v9o4RFCmn3djLnmQ",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_dv_008",
@@ -32071,7 +32321,10 @@
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
     "zone": "Isla Barú",
-    "google_place_id": "ChIJeRfbKdmDWI4RLxROdg9AKbc"
+    "google_place_id": "ChIJeRfbKdmDWI4RLxROdg9AKbc",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_dv_014",
@@ -32684,7 +32937,10 @@
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
     "zone": "Isla Barú",
-    "google_place_id": "ChIJu_TyqveDWI4RxRT2BWLSP1I"
+    "google_place_id": "ChIJu_TyqveDWI4RxRT2BWLSP1I",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_dv_029",
@@ -32848,7 +33104,10 @@
     "tags_source": "dossier_batch2_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
-    "zone": "Centro"
+    "zone": "Centro",
+    "serves_destinations": [
+      "bahia_cartagena"
+    ]
   },
   {
     "partner_id": "ptr_dv2_002",
@@ -32889,7 +33148,11 @@
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
     "zone": "Bocagrande",
-    "google_place_id": "ChIJf1LgZEol9o4RD_ftsHChhnk"
+    "google_place_id": "ChIJf1LgZEol9o4RD_ftsHChhnk",
+    "serves_destinations": [
+      "islas_del_rosario",
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_dv2_003",
@@ -32969,7 +33232,11 @@
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
     "zone": "Centro (concierge)",
-    "google_place_id": "ChIJ4zfMYVIv9o4Ryzr2qowAqcM"
+    "google_place_id": "ChIJ4zfMYVIv9o4Ryzr2qowAqcM",
+    "serves_destinations": [
+      "islas_del_rosario",
+      "bahia_cartagena"
+    ]
   },
   {
     "partner_id": "ptr_dv2_005",
@@ -33009,7 +33276,10 @@
     "tags_source": "dossier_batch2_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
-    "zone": "Centro"
+    "zone": "Centro",
+    "serves_destinations": [
+      "bahia_cartagena"
+    ]
   },
   {
     "partner_id": "ptr_dv2_006",
@@ -33049,7 +33319,10 @@
     "tags_source": "dossier_batch2_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
-    "zone": "Islas del Rosario"
+    "zone": "Islas del Rosario",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_dv2_007",
@@ -33089,7 +33362,10 @@
     "tags_source": "dossier_batch2_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
-    "zone": "Puerta 5)"
+    "zone": "Puerta 5)",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_dv2_008",
@@ -33130,7 +33406,10 @@
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
     "zone": "Islas del Rosario",
-    "google_place_id": "ChIJY6qj1cIv9o4R_yQlNPT_mcc"
+    "google_place_id": "ChIJY6qj1cIv9o4R_yQlNPT_mcc",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_dv2_009",
@@ -33170,7 +33449,10 @@
     "tags_source": "dossier_batch2_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
-    "zone": "Bocagrande)"
+    "zone": "Bocagrande)",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_dv2_010",
@@ -33210,7 +33492,10 @@
     "tags_source": "dossier_batch2_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
-    "zone": "Isla Tierra Bomba"
+    "zone": "Isla Tierra Bomba",
+    "serves_destinations": [
+      "tierra_bomba"
+    ]
   },
   {
     "partner_id": "ptr_dv2_011",
@@ -33251,7 +33536,10 @@
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
     "zone": "Islas del Rosario",
-    "google_place_id": "ChIJVwbxI5d9WI4Rn-ArNuANxo4"
+    "google_place_id": "ChIJVwbxI5d9WI4Rn-ArNuANxo4",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_dv2_012",
@@ -33292,7 +33580,10 @@
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
     "zone": "Islas del Rosario",
-    "google_place_id": "ChIJCYB9t0F9WI4Rx0ztMLCDZQ8"
+    "google_place_id": "ChIJCYB9t0F9WI4Rx0ztMLCDZQ8",
+    "serves_destinations": [
+      "islas_del_rosario"
+    ]
   },
   {
     "partner_id": "ptr_dv2_013",
@@ -33985,7 +34276,10 @@
     "tags_source": "dossier_batch2_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
-    "zone": "Isla Barú"
+    "zone": "Isla Barú",
+    "serves_destinations": [
+      "baru"
+    ]
   },
   {
     "partner_id": "ptr_dv2_030",

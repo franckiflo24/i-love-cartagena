@@ -25,5 +25,8 @@
   "rating": 4.7,
   "reviews": 3,
   "phone": "",
-  "google_place_id": "ChIJ3fFRJ0Iv9o4RxnAm9dVn-uU"
+  "google_place_id": "ChIJ3fFRJ0Iv9o4RxnAm9dVn-uU",
+  "serves_destinations": [
+    "islas_del_rosario"
+  ]
 }

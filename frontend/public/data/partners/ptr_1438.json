@@ -25,5 +25,8 @@
   "rating": 4.7,
   "reviews": 19,
   "phone": "",
-  "google_place_id": "ChIJyXGYuysp9o4RHANQyP3Ew20"
+  "google_place_id": "ChIJyXGYuysp9o4RHANQyP3Ew20",
+  "serves_destinations": [
+    "tierra_bomba"
+  ]
 }

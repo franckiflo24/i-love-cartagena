@@ -36,5 +36,8 @@
   "tags_source": "dossier_batch2_2026-07",
   "tagged_at": "2026-07-23T00:00:00+00:00",
   "source": "research_2026-07",
-  "zone": "Isla Barú"
+  "zone": "Isla Barú",
+  "serves_destinations": [
+    "baru"
+  ]
 }

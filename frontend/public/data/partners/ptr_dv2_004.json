@@ -37,5 +37,9 @@
   "tagged_at": "2026-07-23T00:00:00+00:00",
   "source": "research_2026-07",
   "zone": "Centro (concierge)",
-  "google_place_id": "ChIJ4zfMYVIv9o4Ryzr2qowAqcM"
+  "google_place_id": "ChIJ4zfMYVIv9o4Ryzr2qowAqcM",
+  "serves_destinations": [
+    "islas_del_rosario",
+    "bahia_cartagena"
+  ]
 }

@@ -37,5 +37,8 @@
   "tagged_at": "2026-07-23T00:00:00+00:00",
   "source": "research_2026-07",
   "zone": "Islas del Rosario",
-  "google_place_id": "ChIJCYB9t0F9WI4Rx0ztMLCDZQ8"
+  "google_place_id": "ChIJCYB9t0F9WI4Rx0ztMLCDZQ8",
+  "serves_destinations": [
+    "islas_del_rosario"
+  ]
 }

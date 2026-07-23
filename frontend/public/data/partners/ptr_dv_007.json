@@ -36,5 +36,8 @@
   "tagged_at": "2026-07-23T00:00:00+00:00",
   "source": "dossier_research_2026-07",
   "zone": "Castillogrande",
-  "google_place_id": "ChIJg13qzD4v9o4RFCmn3djLnmQ"
+  "google_place_id": "ChIJg13qzD4v9o4RFCmn3djLnmQ",
+  "serves_destinations": [
+    "tierra_bomba"
+  ]
 }

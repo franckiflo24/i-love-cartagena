@@ -25,5 +25,9 @@
   "rating": 5,
   "reviews": 10,
   "phone": "",
-  "google_place_id": "ChIJ97Q9X-wv9o4RuV7rdlX5p4E"
+  "google_place_id": "ChIJ97Q9X-wv9o4RuV7rdlX5p4E",
+  "serves_destinations": [
+    "islas_del_rosario",
+    "bahia_cartagena"
+  ]
 }

@@ -35,5 +35,10 @@
   "tagged_at": "2026-07-23T00:00:00+00:00",
   "source": "dossier_research_2026-07",
   "zone": "Bocagrande",
-  "google_place_id": "ChIJk5bdTgsv9o4R4YL9EU4Ilu0"
+  "google_place_id": "ChIJk5bdTgsv9o4R4YL9EU4Ilu0",
+  "serves_destinations": [
+    "islas_del_rosario",
+    "baru",
+    "tierra_bomba"
+  ]
 }

@@ -40,5 +40,8 @@
   "tagged_at": "2026-07-23T00:00:00+00:00",
   "source": "dossier_research_2026-07",
   "zone": "Isla Barú",
-  "google_place_id": "ChIJeRfbKdmDWI4RLxROdg9AKbc"
+  "google_place_id": "ChIJeRfbKdmDWI4RLxROdg9AKbc",
+  "serves_destinations": [
+    "baru"
+  ]
 }

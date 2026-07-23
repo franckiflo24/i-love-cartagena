@@ -1,0 +1,296 @@
+{
+  "attr_017": [
+    "islas_del_rosario"
+  ],
+  "attr_018": [
+    "baru"
+  ],
+  "ptr_NEW_hotel_las_islas": [
+    "baru"
+  ],
+  "ptr_NEW_playa_blanca_bc": [
+    "baru"
+  ],
+  "ptr_NEW_hollywood_beach": [
+    "bocagrande"
+  ],
+  "ptr_1440": [
+    "tierra_bomba"
+  ],
+  "ptr_1438": [
+    "tierra_bomba"
+  ],
+  "ptr_1434": [
+    "islas_del_rosario"
+  ],
+  "ptr_1432": [
+    "islas_del_rosario",
+    "bahia_cartagena"
+  ],
+  "ptr_1429": [
+    "islas_del_rosario"
+  ],
+  "ptr_1426": [
+    "islas_del_rosario",
+    "bahia_cartagena"
+  ],
+  "ptr_1442": [
+    "tierra_bomba"
+  ],
+  "ptr_W142": [
+    "islas_del_rosario"
+  ],
+  "ptr_1430": [
+    "islas_del_rosario",
+    "bahia_cartagena"
+  ],
+  "ptr_1431": [
+    "islas_del_rosario"
+  ],
+  "ptr_1428": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1215": [
+    "tierra_bomba"
+  ],
+  "ptr_X1171": [
+    "baru"
+  ],
+  "ptr_X1118": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1123": [
+    "tierra_bomba"
+  ],
+  "ptr_X1169": [
+    "tierra_bomba"
+  ],
+  "ptr_X1189": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1194": [
+    "baru"
+  ],
+  "ptr_X1179": [
+    "tierra_bomba"
+  ],
+  "ptr_yt_001": [
+    "islas_del_rosario",
+    "baru"
+  ],
+  "ptr_yt_002": [
+    "bahia_cartagena"
+  ],
+  "ptr_V005": [
+    "bocagrande"
+  ],
+  "ptr_X1242": [
+    "tierra_bomba"
+  ],
+  "ptr_X1268": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1287": [
+    "baru"
+  ],
+  "ptr_W141": [
+    "tierra_bomba"
+  ],
+  "ptr_W144": [
+    "islas_del_rosario"
+  ],
+  "ptr_V052": [
+    "islas_del_rosario",
+    "baru",
+    "bahia_cartagena"
+  ],
+  "ptr_X1094": [
+    "tierra_bomba"
+  ],
+  "ptr_X1025": [
+    "tierra_bomba"
+  ],
+  "ptr_X1186": [
+    "baru"
+  ],
+  "ptr_X1021": [
+    "tierra_bomba"
+  ],
+  "ptr_X1243": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1270": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1066": [
+    "bahia_cartagena"
+  ],
+  "ptr_X1143": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1026": [
+    "baru"
+  ],
+  "ptr_X1276": [
+    "tierra_bomba"
+  ],
+  "ptr_X1296": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1266": [
+    "baru"
+  ],
+  "ptr_W140": [
+    "islas_del_rosario"
+  ],
+  "ptr_W143": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1087": [
+    "tierra_bomba"
+  ],
+  "ptr_X1227": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1197": [
+    "baru"
+  ],
+  "ptr_X1200": [
+    "islas_del_rosario"
+  ],
+  "ptr_yt_003": [
+    "islas_del_rosario"
+  ],
+  "ptr_V053": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1016": [
+    "bahia_cartagena"
+  ],
+  "ptr_X1173": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1193": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1083": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1275": [
+    "baru"
+  ],
+  "ptr_X1231": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1191": [
+    "tierra_bomba"
+  ],
+  "ptr_X1256": [
+    "tierra_bomba"
+  ],
+  "ptr_X1299": [
+    "baru"
+  ],
+  "ptr_008": [
+    "baru"
+  ],
+  "ptr_X1111": [
+    "baru"
+  ],
+  "ptr_X1167": [
+    "tierra_bomba"
+  ],
+  "ptr_V050": [
+    "islas_del_rosario"
+  ],
+  "ptr_V056": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1252": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1269": [
+    "tierra_bomba"
+  ],
+  "ptr_X1234": [
+    "baru"
+  ],
+  "ptr_X1246": [
+    "islas_del_rosario"
+  ],
+  "ptr_X1247": [
+    "tierra_bomba"
+  ],
+  "ptr_X1178": [
+    "baru"
+  ],
+  "ptr_dv_001": [
+    "islas_del_rosario",
+    "tierra_bomba",
+    "bahia_cartagena"
+  ],
+  "ptr_dv_002": [
+    "islas_del_rosario",
+    "baru",
+    "tierra_bomba"
+  ],
+  "ptr_dv_003": [
+    "tierra_bomba"
+  ],
+  "ptr_dv_004": [
+    "islas_del_rosario"
+  ],
+  "ptr_dv_005": [
+    "islas_del_rosario"
+  ],
+  "ptr_dv_006": [
+    "islas_del_rosario"
+  ],
+  "ptr_dv_007": [
+    "tierra_bomba"
+  ],
+  "ptr_dv_013": [
+    "baru"
+  ],
+  "ptr_dv_028": [
+    "baru"
+  ],
+  "ptr_dv2_001": [
+    "bahia_cartagena"
+  ],
+  "ptr_dv2_002": [
+    "islas_del_rosario",
+    "baru"
+  ],
+  "ptr_dv2_004": [
+    "islas_del_rosario",
+    "bahia_cartagena"
+  ],
+  "ptr_dv2_005": [
+    "bahia_cartagena"
+  ],
+  "ptr_dv2_006": [
+    "islas_del_rosario"
+  ],
+  "ptr_dv2_007": [
+    "islas_del_rosario"
+  ],
+  "ptr_dv2_008": [
+    "islas_del_rosario"
+  ],
+  "ptr_dv2_009": [
+    "baru"
+  ],
+  "ptr_dv2_010": [
+    "tierra_bomba"
+  ],
+  "ptr_dv2_011": [
+    "islas_del_rosario"
+  ],
+  "ptr_dv2_012": [
+    "islas_del_rosario"
+  ],
+  "ptr_dv2_029": [
+    "baru"
+  ]
+}

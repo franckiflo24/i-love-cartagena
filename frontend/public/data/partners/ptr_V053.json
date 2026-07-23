@@ -24,5 +24,8 @@
   "membership_status": "active",
   "membership_tier": "popular",
   "membership_plan": "free",
-  "hours": "Lun-Dom 08:00 - 17:00"
+  "hours": "Lun-Dom 08:00 - 17:00",
+  "serves_destinations": [
+    "islas_del_rosario"
+  ]
 }
