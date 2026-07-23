@@ -537,6 +537,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
         "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
         "tier": 1, "price_range": 1, "address": 1, "rating": 1,
         "neighborhood": 1, "experience": 1, "tags": 1, "signature_dishes": 1,
+        "zone": 1, "serves_destinations": 1,
     }
 
     # ── Step 1: Try LLM intent routing ──
@@ -660,6 +661,31 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
     if not rows:
         cursor = db.partners.find({}, fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
         rows = await cursor.to_list(max_results)
+
+    # Transport intent: a boat query ("lancha a rosario", "cómo llego a las islas")
+    # must be answered by the OPERATORS first, then the destinations they serve —
+    # the concierge's rosario->beach_club routing would otherwise return only islands.
+    _t = (user_text or "").lower()
+    _boat = any(w in _t for w in ("lancha", "bote", "barco", "catamaran", "velero", "yate", "charter"))
+    _phrase = any(ph in _t for ph in ("transporte", "traslado", "como llego", "como llegar",
+                                      "como voy", "quiero ir", "ir a", "llegar a"))
+    _DEST = {"rosario": "islas_del_rosario", "baru": "baru", "playa blanca": "baru",
+             "tierra bomba": "tierra_bomba", "bomba": "tierra_bomba", "cholon": "islas_del_rosario",
+             "isla": "", "islas": ""}
+    _dest = list(dict.fromkeys(v for k, v in _DEST.items() if k in _t and v))
+    _island = any(k in _t for k in _DEST)
+    if _boat or (_phrase and _island):
+        op_q: Dict[str, Any] = {"category": "yacht"}
+        if _dest:
+            op_q = {"category": {"$in": ["yacht", "service"]}, "serves_destinations": {"$in": _dest}}
+        try:
+            op_rows = await db.partners.find(op_q, fields).sort(
+                [("rating", -1), ("reviews", -1)]).limit(12).to_list(12)
+            if op_rows:
+                seen = {r.get("partner_id") for r in op_rows}
+                rows = op_rows + [r for r in rows if r.get("partner_id") not in seen]
+        except Exception as exc:
+            logger.warning(f"[concierge] transport prepend failed: {exc}")
 
     return rows, routed
 
