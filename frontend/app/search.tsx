@@ -730,10 +730,26 @@ export default function SearchScreen() {
               {tr('Puedes preguntar: «cena romántica», «cómo llegar a Barú», «conciertos este viernes», «pase cultural», «tasa portuaria»…')}
             </Text>
             <View style={styles.suggestRow}>
-              {['Cena romántica', 'Conciertos', 'Lancha a Rosario', 'City Pass', 'Tasa portuaria', 'Brunch', 'Salsa'].map(s => (
-                <TouchableOpacity key={s} style={styles.suggestChip} onPress={() => { setQuery(s); doSearch(s); }}>
+              {([
+                { label: 'Cena romántica' },
+                { label: 'Conciertos' },
+                { label: 'Lancha a Rosario' },
+                { label: 'City Pass', route: '/city-pass' },
+                { label: 'Tasa portuaria', route: '/port-tax/checkout' },
+                { label: 'Brunch' },
+                { label: 'Salsa' },
+              ] as { label: string; route?: string }[]).map(c => (
+                <TouchableOpacity
+                  key={c.label}
+                  style={styles.suggestChip}
+                  onPress={() => {
+                    // Intent chips route to their feature; query chips run a search.
+                    if (c.route) { router.push(c.route as any); }
+                    else { setQuery(c.label); doSearch(c.label); }
+                  }}
+                >
                   <Ionicons name="sparkles" size={12} color={COLORS.primary} />
-                  <Text style={styles.suggestText}>{tr(s)}</Text>
+                  <Text style={styles.suggestText}>{tr(c.label)}</Text>
                 </TouchableOpacity>
               ))}
             </View>
