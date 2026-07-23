@@ -297,10 +297,12 @@ export default function SearchScreen() {
           'nightlife': ['club', 'bar', 'nightlife', 'discoteca', 'rooftop'],
           'fiesta': ['club', 'party', 'nightlife', 'festival'],
           'party': ['club', 'party', 'nightlife', 'beach_club'],
-          'lancha': ['yacht', 'boat', 'barco', 'bote', 'paseo', 'isla'],
-          'barco': ['yacht', 'boat', 'lancha', 'paseo', 'isla'],
-          'boat': ['yacht', 'boat', 'lancha', 'barco', 'isla'],
-          'yacht': ['yacht', 'boat', 'lancha', 'barco'],
+          // Transport intent must NOT expand to 'isla' — that let island beach-clubs
+          // (destinations) match "lancha a rosario" and outrank the actual operators.
+          'lancha': ['yacht', 'boat', 'barco', 'bote', 'paseo', 'catamaran', 'charter'],
+          'barco': ['yacht', 'boat', 'lancha', 'paseo', 'catamaran'],
+          'boat': ['yacht', 'boat', 'lancha', 'barco', 'catamaran'],
+          'yacht': ['yacht', 'boat', 'lancha', 'barco', 'catamaran'],
           'rosario': ['rosario', 'isla', 'islas', 'snorkel', 'buceo'],
           'baru': ['baru', 'playa', 'beach', 'isla'],
           'isla': ['isla', 'rosario', 'baru', 'yacht', 'boat'],
@@ -436,6 +438,14 @@ export default function SearchScreen() {
         }
         const terms = Array.from(termWeights.keys());
         const neighborhoodMatchers = neighborhoodTerms.flatMap(t => NEIGHBORHOOD_PATTERNS[t]);
+        // Map a queried destination term to its serves_destinations key, so an operator
+        // that TAKES you there (e.g. Bona Vida in Centro → Islas del Rosario) earns the
+        // destination credit even though its own address is not there.
+        const DEST_KEY: Record<string, string> = {
+          rosario: 'islas_del_rosario', baru: 'baru', bomba: 'tierra_bomba',
+          bocagrande: 'bocagrande', manga: 'manga', getsemani: 'getsemani',
+        };
+        const servedKeys = neighborhoodTerms.map(t => DEST_KEY[t]).filter(Boolean);
 
         // Score-based matching: weight by field importance AND term class.
         // A partner must hit at least one distinctive term (when any exist)
@@ -476,8 +486,11 @@ export default function SearchScreen() {
           // Location is a boost, not a filter: "thai centro" with zero Thai in
           // Centro should still surface the Getsemaní one, ranked honestly.
           if (neighborhoodMatchers.length) {
-            const addr = norm(p.address);
-            if (neighborhoodMatchers.some(nb => addr.includes(nb))) score += 5;
+            const addr = norm(p.address) + ' ' + norm(p.zone);
+            const serves = Array.isArray(p.serves_destinations) ? p.serves_destinations : [];
+            const isThere = neighborhoodMatchers.some(nb => addr.includes(nb));
+            const takesThere = servedKeys.some(k => serves.includes(k));
+            if (isThere || takesThere) score += 5;
           }
           return { score, hasDistinctive };
         };
