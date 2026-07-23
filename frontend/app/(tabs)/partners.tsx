@@ -133,8 +133,14 @@ export default function PartnersScreen() {
   useEffect(() => {
     const load = async () => {
       try {
-        const data = await api.get('/partners');
-        setPartners(data);
+        // Static-first: this tab must never be empty on a backend cold-start
+        // (a slow/errored /api/partners was showing every tier as "0 · Próximamente").
+        const staticData = await fetch('/data/partners.json')
+          .then(r => (r.ok ? r.json() : null)).catch(() => null);
+        if (Array.isArray(staticData) && staticData.length) setPartners(staticData);
+        // Hydrate from backend (live tiers/pulses) only if it returns real data.
+        const live = await api.get('/partners').catch(() => null);
+        if (Array.isArray(live) && live.length) setPartners(live);
       } catch (e) { console.error(e); }
       setLoading(false);
     };
@@ -466,7 +472,7 @@ export default function PartnersScreen() {
             </View>
 
             <View style={styles.subcatGrid}>
-              {subcatList.map(sc => {
+              {subcatList.filter(sc => subcatCount(sc.key) > 0).map(sc => {
                 const count = subcatCount(sc.key);
                 return (
                   <TouchableOpacity
@@ -507,7 +513,7 @@ export default function PartnersScreen() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.subcatRow}
               >
-                {subcatList.map(sc => {
+                {subcatList.filter(sc => subcatCount(sc.key) > 0).map(sc => {
                   const active = selectedSubcat === sc.key;
                   const count = subcatCount(sc.key);
                   return (
@@ -555,7 +561,9 @@ export default function PartnersScreen() {
                   {s('tier_filter_all')}
                 </Text>
               </TouchableOpacity>
-              {TIER_ORDER.map(t => {
+              {TIER_ORDER
+                .filter(t => partners.some(p => matchesCard(p) && matchesSubcat(p, selectedSubcat || 'all') && p.tier === t))
+                .map(t => {
                 const active = tierFilter === t;
                 const c = TIER_COLORS[t];
                 return (
