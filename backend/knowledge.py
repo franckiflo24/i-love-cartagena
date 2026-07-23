@@ -21,7 +21,8 @@ logger = logging.getLogger(__name__)
 _KNOWLEDGE_PATH = os.path.join(os.path.dirname(__file__), "data", "knowledge.json")
 
 _ENTRIES: List[Dict[str, Any]] = []
-_INDEX: Dict[str, List[int]] = {}  # keyword → list of entry indices
+_INDEX: Dict[str, List[int]] = {}      # keyword → entry indices (question+category+venues)
+_CAT_INDEX: Dict[str, List[int]] = {}  # category keyword → entry indices
 
 # Stopwords common in ES/EN/FR/PT tourism queries — stripped from indexing
 _STOPWORDS = frozenset({
@@ -32,6 +33,18 @@ _STOPWORDS = frozenset({
     "est", "et", "ou", "dans", "pour", "avec", "da", "do", "dos", "das",
     "no", "na", "em", "os", "as", "um", "mais", "mejor", "mejores",
     "cartagena",
+    # Generic intent verbs / fillers — they express "I want to do something"
+    # but carry no category signal, so they must NOT anchor a curated match.
+    # (Without this, "donde comer sushi" matched the *desserts* entry because
+    # its question also contains "comer".)
+    "comer", "comida", "comidas", "lugar", "lugares", "sitio", "sitios",
+    "ver", "hacer", "ir", "salir", "quiero", "busco", "recomiendas",
+    "recomienda", "recomendas", "recomiendame", "plan", "planes", "visitar",
+    "conocer", "probar", "disfrutar", "algun", "alguna", "buen", "buena",
+    "buenos", "buenas", "mejores", "top", "opciones", "opcion", "ideas",
+    "puedo", "podria", "dame", "muestrame", "necesito", "hay", "tienen",
+    # Pure time words — express "when", not "what".
+    "hoy", "ahora", "ya", "manana", "hoyy", "actualmente",
 })
 
 # ── Synonym expansion ───────────────────────────────────────────
@@ -252,6 +265,17 @@ _SYNONYMS: Dict[str, List[str]] = {
 }
 
 
+def _stem_variants(w: str) -> set:
+    """Light Spanish plural/singular folding: 'hoteles'→{hoteles,hotel},
+    'playas'→{playas,playa}. Used only for category matching."""
+    out = {w}
+    if len(w) > 4 and w.endswith("es"):
+        out.add(w[:-2])
+    if len(w) > 3 and w.endswith("s"):
+        out.add(w[:-1])
+    return out
+
+
 def _normalize(text: str) -> List[str]:
     """Lowercase, strip accents, split into keywords, remove stopwords."""
     # Lowercase
@@ -268,7 +292,7 @@ def _normalize(text: str) -> List[str]:
 
 def _build_index() -> None:
     """Load JSON and build inverted index. Called once at import time."""
-    global _ENTRIES, _INDEX
+    global _ENTRIES, _INDEX, _CAT_INDEX
     try:
         with open(_KNOWLEDGE_PATH, "r", encoding="utf-8") as f:
             _ENTRIES = json.load(f)
@@ -282,10 +306,12 @@ def _build_index() -> None:
         return
 
     index: Dict[str, List[int]] = {}
+    cat_index: Dict[str, List[int]] = {}
     for i, entry in enumerate(_ENTRIES):
         # Index question text
         question_words = _normalize(entry.get("question", ""))
-        # Index category
+        # Index category — kept separate so a category hit can score higher
+        # (a match on "the kind of thing" beats an incidental question word).
         category_words = _normalize(entry.get("category", ""))
         # Index ranked venue names (first 3 for relevance signal)
         ranked = entry.get("ranked", [])
@@ -295,11 +321,15 @@ def _build_index() -> None:
 
         all_words = set(question_words + category_words + venue_words)
         for word in all_words:
-            if word not in index:
-                index[word] = []
-            index[word].append(i)
+            index.setdefault(word, []).append(i)
+        # Category index carries plural/singular stems so a query "hotel"
+        # matches the "Hoteles" category (and "bar"→"Bares", "playa"→"Playas").
+        for word in set(category_words):
+            for v in _stem_variants(word):
+                cat_index.setdefault(v, []).append(i)
 
     _INDEX = index
+    _CAT_INDEX = cat_index
     logger.info(f"[knowledge] Loaded {len(_ENTRIES)} entries, {len(_INDEX)} indexed keywords")
 
 
@@ -358,13 +388,28 @@ def match_knowledge(user_text: str, top_k: int = 5) -> List[Dict[str, Any]]:
         return []
 
     # Expand user words with synonyms before lookup
+    orig = set(user_words)
     search_words = _expand_with_synonyms(user_words)
 
-    # Score each entry by counting how many search keywords match
+    # Weighted scoring: a match on the user's OWN word beats a synonym-expanded
+    # one, and a match on the entry's CATEGORY beats an incidental question
+    # word. Without this, "brunch" tied the Brunch entry with Salsa (whose
+    # cards happen to share the synonym "cafe") and lost on index order.
     scores: Dict[int, int] = {}
+    cat_hit: Dict[int, bool] = {}
     for word in search_words:
+        w = 3 if word in orig else 1          # original term worth 3× a synonym
         for idx in _INDEX.get(word, []):
-            scores[idx] = scores.get(idx, 0) + 1
+            scores[idx] = scores.get(idx, 0) + w
+        # category hit (with plural/singular folding) = strong intent signal
+        seen_idx = set()
+        for v in _stem_variants(word):
+            for idx in _CAT_INDEX.get(v, []):
+                if idx in seen_idx:
+                    continue
+                seen_idx.add(idx)
+                scores[idx] = scores.get(idx, 0) + w + 2
+                cat_hit[idx] = True
 
     if not scores:
         return []
@@ -379,7 +424,54 @@ def match_knowledge(user_text: str, top_k: int = 5) -> List[Dict[str, Any]]:
             "category": entry.get("category", ""),
             "question": entry.get("question", ""),
             "ranked": entry.get("ranked", []),
+            "ranked_ids": entry.get("ranked_ids", []),
+            "ranked_kind": entry.get("ranked_kind", []),
             "score": scores[idx],
         })
 
     return results
+
+
+def best_curated(user_text: str, min_score: int = 3) -> Dict[str, Any] | None:
+    """Return the single strongest curated entry for a query, with the expert's
+    ranked venues resolved to real partner_ids (in Franck's exact order).
+
+    This is the authoritative recommendation layer: for a matched intent it
+    tells consumers (concierge + search) exactly which partners to surface,
+    ranked, plus the venue names the expert wants that aren't yet in the catalog
+    (mention-only). Returns None when no entry clears `min_score` — i.e. the
+    query isn't a known curated intent, so callers fall back to normal ranking.
+    """
+    matches = match_knowledge(user_text, top_k=1)
+    if not matches:
+        return None
+    top = matches[0]
+    # Require a real signal (an original-word content hit = 3, or a category
+    # hit = 5) — not just a lone synonym expansion (=1). Precision over recall:
+    # a missed curated match falls back to normal ranking; a wrong one shows
+    # the wrong venues. Cross-language single words (e.g. "fish") are handled
+    # by the normal search layer instead.
+    if top.get("score", 0) < min_score:
+        return None
+
+    ranked = top.get("ranked", []) or []
+    ids = top.get("ranked_ids", []) or []
+    kinds = top.get("ranked_kind", []) or []
+    ordered_ids: List[str] = []
+    mention_only: List[str] = []
+    for i, name in enumerate(ranked):
+        pid = ids[i] if i < len(ids) else None
+        kind = kinds[i] if i < len(kinds) else "missing"
+        if pid:
+            ordered_ids.append(pid)
+        elif kind == "missing":
+            mention_only.append(name)
+    if not ordered_ids and not mention_only:
+        return None
+    return {
+        "category": top.get("category", ""),
+        "question": top.get("question", ""),
+        "score": top.get("score", 0),
+        "partner_ids": ordered_ids,      # resolved, in expert rank order
+        "mention_only": mention_only,    # expert picks not (yet) in catalog
+    }

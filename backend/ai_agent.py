@@ -743,6 +743,44 @@ async def _slim_partner_events(db, limit: int = 15) -> List[Dict[str, Any]]:
     return await cursor.to_list(limit)
 
 
+async def _curated_expert_picks(db, user_text: str) -> Optional[Dict[str, Any]]:
+    """The authoritative recommendation layer (Franck's ranked answer key).
+
+    When the query maps to a known curated intent, return the expert's ranked
+    venues as ready-to-use cards *in his exact order*, already linked to real
+    partner_ids. The concierge builds recommendation cards from these FIRST —
+    no name→id guessing, no competing with rating-sorted results.
+    """
+    from knowledge import best_curated
+    bc = best_curated(user_text)
+    if not bc:
+        return None
+    ids = bc.get("partner_ids") or []
+    picks: List[Dict[str, Any]] = []
+    if ids:
+        fields = {
+            "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
+            "tier": 1, "price_range": 1, "address": 1, "rating": 1,
+            "neighborhood": 1, "experience": 1, "tags": 1, "signature_dishes": 1,
+        }
+        found = await db.partners.find({"partner_id": {"$in": ids}}, fields).to_list(len(ids))
+        by_id = {p.get("partner_id"): p for p in found}
+        # Preserve the expert's exact rank order; drop any id missing from DB.
+        for rank, pid in enumerate(ids, start=1):
+            p = by_id.get(pid)
+            if p:
+                p["expert_rank"] = rank
+                picks.append(p)
+    if not picks and not bc.get("mention_only"):
+        return None
+    return {
+        "matched_question": bc.get("question", ""),
+        "category": bc.get("category", ""),
+        "expert_ranked": picks,                      # real cards, in Franck's order
+        "mention_only": bc.get("mention_only", []),  # expert picks not in catalog yet
+    }
+
+
 async def _port_tax_price(db) -> int:
     cfg = await db.port_tax_config.find_one({"active": True}, {"_id": 0, "price_per_person": 1})
     return int((cfg or {}).get("price_per_person", 31500))
@@ -756,9 +794,6 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
     """
     import asyncio
 
-    # Curated knowledge — instant, in-memory (0ms)
-    from knowledge import match_knowledge
-    curated = match_knowledge(user_text, top_k=3)
     semantic_filters = _extract_filters_from_text(user_text)
 
     # Run ALL MongoDB queries in parallel
@@ -770,6 +805,7 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
         _slim_partner_events(db, limit=15),
         _port_tax_price(db),
         get_active_pulse_map(db, None, limit=30),
+        _curated_expert_picks(db, user_text),
         return_exceptions=True,
     )
 
@@ -781,6 +817,7 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
     partner_events = results[3] if not isinstance(results[3], Exception) else []
     port_tax_price = results[4] if not isinstance(results[4], Exception) else 31500
     pulse_map = results[5] if not isinstance(results[5], Exception) else {}
+    curated = results[6] if not isinstance(results[6], Exception) else None
     live_tonight = [
         {"partner_id": pid, "partner_name": pu.get("partner_name"), "type": pu.get("type"),
          "title": pu.get("title"), "details": pu.get("details"),
@@ -970,14 +1007,19 @@ TU TRABAJO
 - **PRECISIÓN > GENERALIDAD**. Si el usuario dice "italiano" y `relevant_partners` tiene 8 italianos, devolvé 5-8 tarjetas de esos italianos en `recommendations`, no digas "tenemos italianos" en general.
 
 ══════════════════════════════════════════
-RECOMENDACIONES CURADAS (PRIORIDAD MÁXIMA)
+RECOMENDACIONES CURADAS (PRIORIDAD MÁXIMA — ES LA VOZ DEL EXPERTO LOCAL)
 ══════════════════════════════════════════
-Si `curated_recommendations` aparece en el contexto, estas son recomendaciones de un EXPERTO LOCAL que conoce la ciudad.
-- Los venues están en ORDEN DE PRIORIDAD (el primero es el mejor).
-- SIEMPRE priorizá estas recomendaciones sobre el ranking por rating del catálogo general.
-- Usá los nombres exactos de las recomendaciones curadas y buscá su partner_id en `relevant_partners` o `all_partners_directory` para armar las tarjetas.
-- Si un venue curado no aparece en el catálogo de la app, mencionalo en el texto del mensaje pero no lo pongas en recommendations (no podemos linkear a algo que no existe).
-- Las recomendaciones curadas cubren categorías muy específicas: coctelería, rooftops, reguetón, brunch, sushi, etc. Usá la categoría y pregunta como guía de lo que el usuario realmente busca.
+Si `curated_recommendations` aparece en el contexto, es la lista curada por un EXPERTO LOCAL de Cartagena. Es la RESPUESTA CORRECTA a lo que el usuario pregunta. Tiene:
+  • `expert_ranked`: tarjetas REALES con `partner_id` y `expert_rank`, YA en el orden exacto de prioridad del experto (rank 1 = el mejor). El `partner_id` ya está resuelto — NO tenés que buscarlo.
+  • `mention_only`: nombres que el experto recomienda pero que aún NO están en el catálogo.
+  • `matched_question` / `category`: la intención que se detectó.
+
+REGLAS (obligatorias):
+1. Armá tus `recommendations` EMPEZANDO por `expert_ranked`, EN ESE MISMO ORDEN (expert_rank 1 primero, después 2, 3…). Copiá su `partner_id` tal cual.
+2. Este orden GANA sobre `relevant_partners`, sobre el rating del catálogo, y sobre tu propio criterio. NO reordenes por rating. NO reemplaces los picks del experto por otros que "te parezcan mejores".
+3. Después de listar TODOS los picks del experto que estén en catálogo, si necesitás llegar a 5-8 tarjetas, completá con partners relevantes de `relevant_partners` (sin repetir).
+4. Los nombres en `mention_only` mencionalos en el `message` en texto ("el experto también destaca X"), pero NO los pongas en `recommendations` (no hay partner_id para linkear).
+5. Si `curated_recommendations` NO aparece, seguí con el ranking normal del catálogo.
 
 ══════════════════════════════════════════
 FORMATO DE RESPUESTA (JSON estricto, sin markdown, sin código de bloque)
@@ -1287,6 +1329,9 @@ async def run_agent_turn(
     # Build valid IDs from context for sanitizing recommendations
     valid_partner_ids = {p.get("partner_id") for p in (context.get("relevant_partners") or [])}
     valid_partner_ids.update(p.get("partner_id") for p in (context.get("partner_directory") or []))
+    # Curated expert picks are authoritative — never let the sanitizer drop them.
+    _cur = context.get("curated_recommendations") or {}
+    valid_partner_ids.update(p.get("partner_id") for p in (_cur.get("expert_ranked") or []))
     valid_event_ids = set()
     for e in (context.get("events") or []):
         valid_event_ids.add(e.get("event_id") or e.get("slug"))

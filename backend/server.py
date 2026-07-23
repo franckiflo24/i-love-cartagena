@@ -3200,6 +3200,39 @@ async def global_search(q: str = "", request: Request = None):
         )
         return {**matches, "search_id": search_id, "ai": ai_payload}
 
+    # ── Curated authority (Franck's ranked answer key) ──
+    # We're past the fast path, so this is NOT a specific-venue lookup. If the
+    # query maps to a known curated intent, the expert's picks LEAD the results
+    # grid in his EXACT order — above rating/behavioral ranking. Same layer the
+    # concierge uses, now applied to plain search (incl. the anonymous path that
+    # is most of our traffic). Fails safe: on any error, ranking is unchanged.
+    try:
+        from knowledge import best_curated as _best_curated
+        _cur = _best_curated(q)
+        if _cur and _cur.get("partner_ids"):
+            cur_ids = _cur["partner_ids"]
+            pool = {p.get("partner_id"): p for p in partners}
+            missing_ids = [pid for pid in cur_ids if pid not in pool]
+            if missing_ids:
+                extra_docs = await db.partners.find(
+                    {"partner_id": {"$in": missing_ids}}, {"_id": 0}
+                ).to_list(len(missing_ids))
+                for d in extra_docs:
+                    pool[d.get("partner_id")] = d
+            curated_block = []
+            for rank, pid in enumerate(cur_ids, start=1):
+                p = pool.get(pid)
+                if p:
+                    p["curated_rank"] = rank
+                    curated_block.append(p)
+            if curated_block:
+                cur_set = {p.get("partner_id") for p in curated_block}
+                tail = [p for p in partners if p.get("partner_id") not in cur_set]
+                partners = (curated_block + tail)[:50]
+                matches["partners"] = partners
+    except Exception as exc:
+        logger.warning(f"[search] curated authority failed: {exc}")
+
     # user_obj resolved earlier (before ranking). Unauthenticated users get
     # ranked results without AI; authenticated get the full AI experience.
     if user_obj is None:
