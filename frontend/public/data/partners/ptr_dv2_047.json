@@ -1,0 +1,40 @@
+{
+  "partner_id": "ptr_dv2_047",
+  "name": "Beyond Colombia",
+  "category": "service",
+  "subcategory": "tours",
+  "description": "Free walking tours (por propina) de la ciudad amurallada y Getsemaní, además de islas, Totumo y Palenque. Guías multilingües. 2–2.5 h.",
+  "address": "Calle 31 #71-48, Camellón de los Mártires",
+  "location": {
+    "lat": 10.421006,
+    "lng": -75.547038
+  },
+  "phone": "+573228988557",
+  "image_url": "/images/partners/ptr_dv2_047.jpg",
+  "instagram": "beyondcolombia",
+  "booking_link": "https://www.beyondcolombia.com",
+  "rating": 4.7,
+  "reviews": 610,
+  "price_range": "$",
+  "tier": "popular",
+  "hours": "Diario",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "search_profile": "beyond colombia free walking tour amurallada getsemani propina islas totumo palenque | beyond colombia free walking tour walled city getsemani tip",
+  "tags": [
+    "english_friendly",
+    "group_friendly",
+    "budget",
+    "local_favorite"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Camellón de los Mártires",
+  "google_place_id": "ChIJPfZ_1Z8v9o4RDrUsgp_HYDk"
+}

@@ -1,0 +1,40 @@
+{
+  "partner_id": "ptr_dv2_005",
+  "name": "La Fantástica (barco pirata)",
+  "category": "yacht",
+  "subcategory": "experiencia",
+  "description": "Barco pirata temático para el atardecer sobre el skyline de la ciudad amurallada, con booze cruise y tours a las islas. Zarpa del Muelle de los Pegasos.",
+  "address": "Muelle de los Pegasos, Av. Blas de Lezo, Centro",
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.551
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv2_005.jpg",
+  "instagram": "lafantasticacartagena",
+  "booking_link": "https://lafantasticacartagena.com",
+  "rating": 4.4,
+  "reviews": 260,
+  "price_range": "$$",
+  "tier": "popular",
+  "hours": "Atardecer ~5:00 pm",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "search_profile": "la fantastica barco pirata atardecer skyline amurallada booze cruise islas pegasos tematico | la fantastica pirate ship sunset skyline booze cruise islands family",
+  "tags": [
+    "sunset_view",
+    "group_friendly",
+    "kid_friendly",
+    "sea_view",
+    "family"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Centro"
+}

@@ -1,0 +1,41 @@
+{
+  "partner_id": "ptr_dv2_004",
+  "name": "Two Travel",
+  "category": "yacht",
+  "subcategory": "experiencia",
+  "description": "Concierge de lujo con renta de botes y yates: full-day desde $500, atardeceres desde $300, con chef privado, DJ y bar. Capitán y combustible incluidos.",
+  "address": "Centro (concierge)",
+  "location": {
+    "lat": 10.424625,
+    "lng": -75.547365
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv2_004.jpg",
+  "instagram": "two.travel",
+  "booking_link": "https://two.travel",
+  "rating": 4.7,
+  "reviews": 90,
+  "price_range": "$$$$",
+  "tier": "elite",
+  "hours": "Reserva a medida",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "search_profile": "two travel yate bote lujo charter privado atardecer chef dj concierge rosario | two travel luxury boat yacht charter sunset private chef concierge",
+  "tags": [
+    "luxury",
+    "sea_view",
+    "sunset_view",
+    "group_friendly",
+    "celebration"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Centro (concierge)",
+  "google_place_id": "ChIJ4zfMYVIv9o4Ryzr2qowAqcM"
+}

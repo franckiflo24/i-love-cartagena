@@ -1,0 +1,42 @@
+{
+  "partner_id": "ptr_dv2_019",
+  "name": "La Petite Gourmande",
+  "category": "cafe",
+  "subcategory": "postres",
+  "description": "Pastelería francesa querida en Manga: Paris Brest, cheesecake de maracuyá, croissants y mille-feuille. 4.6★.",
+  "address": "Cra. 21 #25-39, Manga",
+  "location": {
+    "lat": 10.420268,
+    "lng": -75.547432
+  },
+  "phone": "+573167506839",
+  "image_url": "/images/partners/ptr_dv2_019.jpg",
+  "instagram": "lapetitegourmandecol",
+  "booking_link": "",
+  "rating": 4.6,
+  "reviews": 305,
+  "price_range": "$$",
+  "tier": "premium",
+  "hours": "Lun–Sáb 8:00–19:00, Dom 9:00–18:00",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "la petite gourmande pasteleria postres paris brest cheesecake maracuya croissant manga | la petite gourmande patisserie desserts croissant manga",
+  "tags": [
+    "kid_friendly",
+    "budget",
+    "indoor",
+    "english_friendly",
+    "family"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Manga",
+  "cuisine": "pasteleria",
+  "google_place_id": "ChIJqdt9aQ4v9o4RJ8lSjVRDYSw"
+}

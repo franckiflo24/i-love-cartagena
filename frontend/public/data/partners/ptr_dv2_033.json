@@ -1,0 +1,40 @@
+{
+  "partner_id": "ptr_dv2_033",
+  "name": "Casa Chiqui",
+  "category": "service",
+  "subcategory": "homeware",
+  "description": "Tienda icónica de decoración y accesorios artesanales de 94+ artesanos colombianos, en una bodega restaurada de los años 30.",
+  "address": "Calle de la Universidad #36-127, El Centro",
+  "location": {
+    "lat": 10.42626,
+    "lng": -75.549664
+  },
+  "phone": "+573174376864",
+  "image_url": "/images/partners/ptr_dv2_033.jpg",
+  "instagram": "casachiqui",
+  "booking_link": "https://www.casachiqui.com",
+  "rating": 4.6,
+  "reviews": 140,
+  "price_range": "$$$",
+  "tier": "premium",
+  "hours": "Diario 10:00–20:00",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "casa chiqui decoracion homeware artesanal artesanos colombianos bodega universidad centro | casa chiqui homeware decor artisanal colombian makers centro",
+  "tags": [
+    "luxury",
+    "english_friendly",
+    "indoor",
+    "local_favorite"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "El Centro",
+  "google_place_id": "ChIJy9BrQJ8v9o4RD4zlFs5q8pA"
+}

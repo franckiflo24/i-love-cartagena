@@ -1,0 +1,39 @@
+{
+  "partner_id": "ptr_dv2_030",
+  "name": "Johanna Ortiz",
+  "category": "service",
+  "subcategory": "moda",
+  "description": "Boutique de la diseñadora caleña Johanna Ortiz en Plaza Santo Domingo: alta gama ready-to-wear, vestidos y resort wear.",
+  "address": "Plaza Santo Domingo, Calle 35, Local 3-16, Centro",
+  "location": {
+    "lat": 10.424038,
+    "lng": -75.551869
+  },
+  "phone": "+573153928861",
+  "image_url": "/images/partners/ptr_dv2_030.jpg",
+  "instagram": "johannaortiz",
+  "booking_link": "https://www.johannaortiz.com",
+  "rating": 4.7,
+  "reviews": 120,
+  "price_range": "$$$$",
+  "tier": "elite",
+  "hours": "Diario 10:00–22:00",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "search_profile": "johanna ortiz moda diseñadora caleña ready to wear vestidos resort santo domingo | johanna ortiz fashion designer ready to wear resort santo domingo",
+  "tags": [
+    "luxury",
+    "english_friendly",
+    "indoor"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Centro",
+  "google_place_id": "ChIJr7RCbjQv9o4RxAa0_yvW6AM"
+}

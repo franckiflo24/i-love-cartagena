@@ -1,0 +1,41 @@
+{
+  "partner_id": "ptr_dv2_021",
+  "name": "La Piccola Fattoria",
+  "category": "restaurant",
+  "subcategory": "pizza",
+  "description": "Pizzería e italiana económica en el Centro: pizza, pasta, ensaladas y platos italianos.",
+  "address": "Carrera 7 #32-26, Centro",
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.551
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv2_021.jpg",
+  "instagram": "piccola_fattoria",
+  "booking_link": "",
+  "rating": 3.7,
+  "reviews": 90,
+  "price_range": "$",
+  "tier": "popular",
+  "hours": "Cena",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "search_profile": "la piccola fattoria pizza italiana pasta economica centro | la piccola fattoria italian pizza pasta budget centro",
+  "tags": [
+    "budget",
+    "group_friendly",
+    "indoor",
+    "kid_friendly",
+    "family"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Centro",
+  "cuisine": "italiana"
+}

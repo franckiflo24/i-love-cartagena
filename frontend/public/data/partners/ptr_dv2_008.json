@@ -1,0 +1,41 @@
+{
+  "partner_id": "ptr_dv2_008",
+  "name": "IBBIZA Island Beach Club",
+  "category": "beach_club",
+  "subcategory": "islas_del_rosario",
+  "description": "Beach club de fiesta en Isla Grande: playa privada, piscina de agua salada, bebida de bienvenida y ambiente de celebración (adults). Day pass ~$89.",
+  "address": "Isla Grande, Islas del Rosario",
+  "location": {
+    "lat": 10.180028,
+    "lng": -75.740442
+  },
+  "phone": "+573103573712",
+  "image_url": "/images/partners/ptr_dv2_008.jpg",
+  "instagram": "ibbiza_island",
+  "booking_link": "https://ibbizabeachclubctg.com",
+  "rating": 4.7,
+  "reviews": 540,
+  "price_range": "$$$",
+  "tier": "premium",
+  "hours": "Salida mañana desde Muelle la Bodeguita",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "ibbiza island beach club isla grande rosario fiesta piscina adultos celebracion day pass | ibbiza island beach club isla grande party pool adults day pass",
+  "tags": [
+    "sea_view",
+    "sunset_view",
+    "group_friendly",
+    "celebration",
+    "beachfront"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Islas del Rosario",
+  "google_place_id": "ChIJY6qj1cIv9o4R_yQlNPT_mcc"
+}

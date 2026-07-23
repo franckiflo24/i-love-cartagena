@@ -1,0 +1,37 @@
+{
+  "partner_id": "ptr_dv2_046",
+  "name": "InDrive",
+  "category": "service",
+  "subcategory": "transport_app",
+  "description": "App de movilidad con tarifas negociadas (usualmente 15–30% más barata que Uber, pago en efectivo). Opera en toda Cartagena.",
+  "address": "App (toda la ciudad)",
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.551
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv2_046.jpg",
+  "instagram": "",
+  "booking_link": "https://indrive.com/en-co",
+  "rating": 4.4,
+  "reviews": 500,
+  "price_range": "$",
+  "tier": "popular",
+  "hours": "24/7",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "search_profile": "indrive app movilidad taxi tarifa negociada efectivo barato uber didi cabify | indrive ride hailing app negotiated fare cash cheap",
+  "tags": [
+    "budget",
+    "english_friendly"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "App (toda la ciudad)"
+}

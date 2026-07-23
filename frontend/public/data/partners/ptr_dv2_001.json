@@ -1,0 +1,40 @@
+{
+  "partner_id": "ptr_dv2_001",
+  "name": "Bequia Eagle",
+  "category": "yacht",
+  "subcategory": "experiencia",
+  "description": "Yate rumbero para el atardecer en la bahía: bailarines en vivo, pista de baile y open bar de ron/brandy, con final de luces de la ciudad. Zarpa del Muelle de la Bodeguita (Puerta 4).",
+  "address": "Muelle de la Bodeguita, Puerta 4, Centro",
+  "location": {
+    "lat": 10.4236,
+    "lng": -75.551
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv2_001.jpg",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 4.4,
+  "reviews": 140,
+  "price_range": "$$",
+  "tier": "premium",
+  "hours": "Salida ~5:00 pm (~2–3 h)",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "bequia eagle yate rumbero atardecer bahia open bar bailarines fiesta barco bodeguita | bequia eagle party yacht sunset bay open bar dancers boat",
+  "tags": [
+    "sunset_view",
+    "live_music",
+    "group_friendly",
+    "sea_view",
+    "celebration"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Centro"
+}

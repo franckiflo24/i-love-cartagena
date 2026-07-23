@@ -1,0 +1,39 @@
+{
+  "partner_id": "ptr_dv2_040",
+  "name": "WEAT · Chef Andrés Ulloa",
+  "category": "service",
+  "subcategory": "chef",
+  "description": "Cenas privadas y food tours del chef Andrés Ulloa (WEAT): menús caribeños y de mariscos con producto fresco. 5.0★.",
+  "address": "San Diego",
+  "location": {
+    "lat": 10.427,
+    "lng": -75.5485
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv2_040.jpg",
+  "instagram": "weatfoodguide",
+  "booking_link": "https://www.tripadvisor.com/Attraction_Review-g297476-d23276064",
+  "rating": 5.0,
+  "reviews": 90,
+  "price_range": "$$$",
+  "tier": "premium",
+  "hours": "Por reserva (~2h40)",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "weat chef andres ulloa cena privada food tour caribeño mariscos san diego | weat private chef andres ulloa dinner food tour caribbean seafood",
+  "tags": [
+    "romantic",
+    "group_friendly",
+    "english_friendly",
+    "local_favorite"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "San Diego"
+}

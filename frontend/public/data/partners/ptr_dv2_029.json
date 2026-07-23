@@ -1,0 +1,40 @@
+{
+  "partner_id": "ptr_dv2_029",
+  "name": "Casa Ceiba (villa)",
+  "category": "hotel",
+  "subcategory": "villa",
+  "description": "Villa privada de 6 habitaciones en Isla Barú (para 12): playa privada con palapa, piscina de agua salada, chef residente y traslados en bote. Vía Mr & Mrs Smith.",
+  "address": "Isla Barú",
+  "location": {
+    "lat": 10.140538,
+    "lng": -75.683857
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv2_029.jpg",
+  "instagram": "",
+  "booking_link": "https://www.mrandmrssmith.com/villas/casa-ceiba",
+  "rating": 4.8,
+  "reviews": 20,
+  "price_range": "$$$$",
+  "tier": "elite",
+  "hours": "Estadía privada",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "search_profile": "casa ceiba villa privada baru playa privada piscina chef residente lujo | casa ceiba private villa baru private beach pool resident chef luxury",
+  "tags": [
+    "luxury",
+    "beachfront",
+    "sea_view",
+    "romantic",
+    "celebration"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Isla Barú"
+}

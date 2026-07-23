@@ -1,0 +1,41 @@
+{
+  "partner_id": "ptr_dv2_022",
+  "name": "Kai Sushi Wok",
+  "category": "restaurant",
+  "subcategory": "japones",
+  "description": "Sushi y wok casual en Bocagrande: cocina japonesa accesible que completa la oferta junto a Moshi y Sr Miyagi.",
+  "address": "Cra. 2 #9-183, Bocagrande",
+  "location": {
+    "lat": 10.40669,
+    "lng": -75.55244
+  },
+  "phone": "+573044482090",
+  "image_url": "/images/partners/ptr_dv2_022.jpg",
+  "instagram": "",
+  "booking_link": "",
+  "rating": 4.4,
+  "reviews": 140,
+  "price_range": "$$",
+  "tier": "popular",
+  "hours": "Almuerzo y cena",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "search_profile": "kai sushi wok japones sushi wok bocagrande casual economico | kai sushi wok japanese sushi wok bocagrande casual",
+  "tags": [
+    "budget",
+    "group_friendly",
+    "indoor",
+    "kid_friendly"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Bocagrande",
+  "cuisine": "japonesa",
+  "google_place_id": "ChIJDdnLZhMv9o4RiOFyF0FmShg"
+}

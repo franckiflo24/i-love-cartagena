@@ -1,0 +1,39 @@
+{
+  "partner_id": "ptr_dv2_041",
+  "name": "San Basilio de Palenque (tour)",
+  "category": "activity",
+  "subcategory": "cultural",
+  "description": "Tour de día completo al primer pueblo libre de América (Patrimonio UNESCO, ~50 km): guía local, centro cultural, tambores y almuerzo. Herencia afrocolombiana.",
+  "address": "Salida desde Cartagena (San Basilio de Palenque)",
+  "location": {
+    "lat": 10.48385,
+    "lng": -75.492854
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv2_041.jpg",
+  "instagram": "",
+  "booking_link": "https://www.viator.com/tours/Cartagena/POPULAR-TOUR-SAN-BASILIO-DE-PALENQUE/d4498-63222P14",
+  "rating": 4.6,
+  "reviews": 320,
+  "price_range": "$$$",
+  "tier": "premium",
+  "hours": "Día completo (~6–7 h)",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "san basilio de palenque tour cultural unesco afrocolombiano tambores pueblo libre | san basilio de palenque tour cultural unesco afro-colombian heritage",
+  "tags": [
+    "english_friendly",
+    "group_friendly",
+    "kid_friendly",
+    "local_favorite"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Salida desde Cartagena (San Basilio de Palenque)"
+}

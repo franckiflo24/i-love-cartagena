@@ -1,0 +1,41 @@
+{
+  "partner_id": "ptr_dv2_038",
+  "name": "Hi Cartagena",
+  "category": "service",
+  "subcategory": "concierge",
+  "description": "Concierge de lujo: chef privado, villas, yates y eventos de grupo (despedidas, cumpleaños). El ancla real del 'Private Chef' en la ciudad.",
+  "address": "Ciudad amurallada (concierge)",
+  "location": {
+    "lat": 10.422926,
+    "lng": -75.550308
+  },
+  "phone": "+573219294476",
+  "image_url": "/images/partners/ptr_dv2_038.jpg",
+  "instagram": "hicartagena",
+  "booking_link": "https://hicartagena.com",
+  "rating": 4.8,
+  "reviews": 200,
+  "price_range": "$$$$",
+  "tier": "premium",
+  "hours": "Reserva a medida",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "hi cartagena concierge lujo chef privado villas yates eventos despedidas | hi cartagena luxury concierge private chef villas yachts events",
+  "tags": [
+    "luxury",
+    "group_friendly",
+    "english_friendly",
+    "celebration",
+    "romantic"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Ciudad amurallada (concierge)",
+  "google_place_id": "ChIJ97Z8458v9o4R5sHx_b8mreY"
+}

@@ -1,0 +1,39 @@
+{
+  "partner_id": "ptr_dv2_036",
+  "name": "Le Collezioni",
+  "category": "service",
+  "subcategory": "moda",
+  "description": "Multimarca de lujo en La Serrezuela con Salvatore Ferragamo, Ermenegildo Zegna y Michael Kors, en una mansión colonial con patio central.",
+  "address": "La Serrezuela, San Diego",
+  "location": {
+    "lat": 10.428373,
+    "lng": -75.545788
+  },
+  "phone": "+573187934613",
+  "image_url": "/images/partners/ptr_dv2_036.jpg",
+  "instagram": "lecollezioni_co",
+  "booking_link": "https://lecollezioni.com.co",
+  "rating": 4.6,
+  "reviews": 90,
+  "price_range": "$$$$",
+  "tier": "elite",
+  "hours": "Lun–Sáb 10:00–20:00",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "search_profile": "le collezioni multimarca lujo ferragamo zegna michael kors serrezuela mansion | le collezioni luxury multibrand ferragamo zegna serrezuela",
+  "tags": [
+    "luxury",
+    "english_friendly",
+    "indoor"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "San Diego",
+  "google_place_id": "ChIJ59iIhZ8v9o4Ru5e9qP3xCbw"
+}

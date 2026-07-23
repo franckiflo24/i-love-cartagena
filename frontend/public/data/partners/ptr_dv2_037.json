@@ -1,0 +1,41 @@
+{
+  "partner_id": "ptr_dv2_037",
+  "name": "Casa Dictador",
+  "category": "activity",
+  "subcategory": "experiencia",
+  "description": "Cata guiada de ~5 rones Dictador maridada con chocolate negro, con bar de cigarros en Plaza de la Trinidad. ~$70/persona. Reserva por GetYourGuide/Viator.",
+  "address": "Cra. 9 #30-62, Plaza de la Trinidad, Getsemaní",
+  "location": {
+    "lat": 10.42264,
+    "lng": -75.546288
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv2_037.jpg",
+  "instagram": "casadictador",
+  "booking_link": "https://www.getyourguide.com/d-casa-dictador-rum-experience-bar-l253131/",
+  "rating": 4.7,
+  "reviews": 260,
+  "price_range": "$$$",
+  "tier": "premium",
+  "hours": "Según reserva",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "casa dictador cata ron dictador chocolate cigarros trinidad getsemani degustacion | casa dictador rum tasting dictador chocolate cigar getsemani",
+  "tags": [
+    "english_friendly",
+    "romantic",
+    "indoor",
+    "first_date",
+    "celebration"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Getsemaní",
+  "google_place_id": "ChIJhZJbAwAv9o4RG7sbvvGLWd8"
+}

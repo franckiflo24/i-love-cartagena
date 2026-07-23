@@ -1,0 +1,40 @@
+{
+  "partner_id": "ptr_dv2_009",
+  "name": "Sabai Beach Club",
+  "category": "beach_club",
+  "subcategory": "baru",
+  "description": "La opción más exclusiva de Barú: 200 m de playa privada sin vendedores, piscina infinita, almuerzo a la carta y clase de mixología. Zarpa de Todomar. Day pass ~$129.",
+  "address": "Isla Barú (salida Marina Todomar, Bocagrande)",
+  "location": {
+    "lat": 10.2,
+    "lng": -75.68
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv2_009.jpg",
+  "instagram": "sabaibeachclub",
+  "booking_link": "https://cartagenadaytours.com/products/sabai-beach-club-baru",
+  "rating": 4.7,
+  "reviews": 210,
+  "price_range": "$$$$",
+  "tier": "elite",
+  "hours": "Check-in 7:20 am Todomar, regreso ~3:00 pm",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "elite",
+  "membership_plan": "free",
+  "search_profile": "sabai beach club baru exclusivo playa privada piscina infinita mixologia todomar day pass | sabai beach club baru exclusive private beach infinity pool day pass",
+  "tags": [
+    "beachfront",
+    "sea_view",
+    "luxury",
+    "romantic",
+    "sunset_view"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Bocagrande)"
+}

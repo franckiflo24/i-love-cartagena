@@ -1,0 +1,40 @@
+{
+  "partner_id": "ptr_dv2_028",
+  "name": "Casa del Gobernador",
+  "category": "hotel",
+  "subcategory": "boutique",
+  "description": "Boutique de 12 habitaciones en la ciudad amurallada: piscina, jardín, bicicletas gratis y buena relación valor-lujo.",
+  "address": "Calle Cochera del Gobernador #33-23, Centro",
+  "location": {
+    "lat": 10.423047,
+    "lng": -75.55035
+  },
+  "phone": "+573157795802",
+  "image_url": "/images/partners/ptr_dv2_028.jpg",
+  "instagram": "hotelcasadelgobernador",
+  "booking_link": "https://www.casadelgobernador.com",
+  "rating": 4.5,
+  "reviews": 260,
+  "price_range": "$$$",
+  "tier": "premium",
+  "hours": "Check-in 15:00 / out 12:00",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "casa del gobernador hotel boutique amurallada piscina bicicletas centro | casa del gobernador boutique walled city pool bikes centro",
+  "tags": [
+    "romantic",
+    "english_friendly",
+    "indoor",
+    "luxury"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Centro",
+  "google_place_id": "ChIJnxZE8J8v9o4ReEasj5ygK5A"
+}

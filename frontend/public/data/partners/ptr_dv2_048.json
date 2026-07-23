@@ -1,0 +1,40 @@
+{
+  "partner_id": "ptr_dv2_048",
+  "name": "Coco Cartagena",
+  "category": "service",
+  "subcategory": "tours",
+  "description": "DMC (destination management) para grupos, incentivos y retiros corporativos: island hopping, cruceros de atardecer y excursiones privadas.",
+  "address": "Cra. 17 #60-66, Canapote",
+  "location": {
+    "lat": 10.419325,
+    "lng": -75.551623
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv2_048.jpg",
+  "instagram": "cococartagena",
+  "booking_link": "https://cococartagena.com",
+  "rating": 4.6,
+  "reviews": 90,
+  "price_range": "$$$",
+  "tier": "premium",
+  "hours": "Lun–Sáb 9:00–18:00",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "coco cartagena dmc grupos incentivos corporativo island hopping crucero atardecer | coco cartagena dmc groups incentives corporate island hopping sunset",
+  "tags": [
+    "group_friendly",
+    "english_friendly",
+    "business",
+    "celebration"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Canapote",
+  "google_place_id": "ChIJE0JwJOYv9o4RZsxnAVL2m2M"
+}

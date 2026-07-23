@@ -1,0 +1,39 @@
+{
+  "partner_id": "ptr_dv2_031",
+  "name": "Agua Bendita",
+  "category": "service",
+  "subcategory": "moda",
+  "description": "Vestidos de baño de lujo colombianos, bordados a mano (2 sedes en el Centro). Marca de resort wear reconocida.",
+  "address": "Cra. 3 #31-11, Centro Histórico",
+  "location": {
+    "lat": 10.421997,
+    "lng": -75.552365
+  },
+  "phone": "",
+  "image_url": "/images/partners/ptr_dv2_031.jpg",
+  "instagram": "aguabendita",
+  "booking_link": "https://co.aguabyaguabendita.com",
+  "rating": 4.6,
+  "reviews": 150,
+  "price_range": "$$$",
+  "tier": "premium",
+  "hours": "Lun–Sáb 10:00–20:00, Dom 10:00–19:00",
+  "is_certified": true,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "premium",
+  "membership_plan": "free",
+  "search_profile": "agua bendita vestidos de baño lujo bordados colombiano resort centro | agua bendita luxury swimwear embroidered colombian resort centro",
+  "tags": [
+    "luxury",
+    "english_friendly",
+    "indoor"
+  ],
+  "tags_source": "dossier_batch2_2026-07",
+  "tagged_at": "2026-07-23T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Centro Histórico",
+  "google_place_id": "ChIJFzuC--0v9o4RjMTcwIY0Pyg"
+}
