@@ -666,7 +666,8 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
     # must be answered by the OPERATORS first, then the destinations they serve —
     # the concierge's rosario->beach_club routing would otherwise return only islands.
     _t = (user_text or "").lower()
-    _boat = any(w in _t for w in ("lancha", "bote", "barco", "catamaran", "velero", "yate", "charter"))
+    _boat = any(w in _t for w in ("lancha", "bote", "barco", "catamaran", "velero", "yate", "charter",
+                                  "cruise", "crucero", "sail", "sailing"))
     _phrase = any(ph in _t for ph in ("transporte", "traslado", "como llego", "como llegar",
                                       "como voy", "quiero ir", "ir a", "llegar a",
                                       "paseo", "tour", "excursion", "island tour", "day trip",
