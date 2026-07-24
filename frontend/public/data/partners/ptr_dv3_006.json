@@ -1,0 +1,39 @@
+{
+  "partner_id": "ptr_dv3_006",
+  "name": "Cartagena Fishing",
+  "category": "yacht",
+  "subcategory": "pesca",
+  "description": "Charters de pesca deportiva con tripulación experta; trolling y jigging en aguas caribeñas. 4.5★.",
+  "address": "Avenida Blas de Lezo, Club Náutico, Bocagrande",
+  "location": {
+    "lat": 10.3997,
+    "lng": -75.555
+  },
+  "phone": "+12392098761",
+  "image_url": "",
+  "instagram": "cartagenafishing",
+  "booking_link": "https://cartagenafishing.com",
+  "rating": 4.5,
+  "reviews": 104,
+  "price_range": "$$$",
+  "tier": "popular",
+  "hours": "",
+  "is_certified": false,
+  "experience": "",
+  "default_payment_link": "",
+  "membership_paid_until": null,
+  "membership_status": "active",
+  "membership_tier": "popular",
+  "membership_plan": "free",
+  "search_profile": "cartagena fishing pesca deportiva charter pesca deep sea bocagrande islas rosario | cartagena fishing sport fishing charter deep sea",
+  "tags": [],
+  "tags_source": "dossier_batch3_2026-07",
+  "tagged_at": "2026-07-24T00:00:00+00:00",
+  "source": "research_2026-07",
+  "zone": "Bocagrande",
+  "cuisine": "",
+  "serves_destinations": [
+    "islas_del_rosario",
+    "bahia_cartagena"
+  ]
+}
