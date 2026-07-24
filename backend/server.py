@@ -2988,7 +2988,8 @@ async def global_search(q: str = "", request: Request = None):
     #     boat intent ONLY when the destination is an island (so "cómo llego al
     #     aeropuerto" stays ground transport, not boats).
     _BOAT_TERMS = {"lancha", "lanchas", "bote", "botes", "barco", "barcos", "boat",
-                   "catamaran", "velero", "yate", "yates", "charter", "chartear"}
+                   "catamaran", "velero", "yate", "yates", "charter", "chartear",
+                   "cruise", "crucero", "sail", "sailing"}
     _TRANSPORT_PHRASES = ("transporte", "traslado", "transfer", "como llego", "como llegar",
                           "como voy", "quiero ir", "ir a", "llegar a", "how do i get", "get to",
                           # Boat-outing words — the app's own placeholder is "paseo a Barú".
