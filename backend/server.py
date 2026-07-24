@@ -2814,6 +2814,9 @@ async def global_search(q: str = "", request: Request = None):
         "barco": "yacht", "barcos": "yacht", "boat": "yacht", "catamaran": "yacht",
         "catamaran ": "yacht", "velero": "yacht", "yate": "yacht", "yates": "yacht",
         "charter": "yacht", "chartear": "yacht",
+        # English outing words that lose to "sunset"->rooftop without a boat anchor:
+        # "sunset cruise"/"sunset sail" were returning rooftop bars, not operators.
+        "cruise": "yacht", "crucero": "yacht", "sail": "yacht", "sailing": "yacht",
         # Wellness
         "relax": "spa", "massage": "spa", "masaje": "spa", "tired": "spa",
         "yoga": "spa", "gym": "activity", "fitness": "activity",
