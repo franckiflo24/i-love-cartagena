@@ -2987,7 +2987,10 @@ async def global_search(q: str = "", request: Request = None):
     _BOAT_TERMS = {"lancha", "lanchas", "bote", "botes", "barco", "barcos", "boat",
                    "catamaran", "velero", "yate", "yates", "charter", "chartear"}
     _TRANSPORT_PHRASES = ("transporte", "traslado", "transfer", "como llego", "como llegar",
-                          "como voy", "quiero ir", "ir a", "llegar a", "how do i get", "get to")
+                          "como voy", "quiero ir", "ir a", "llegar a", "how do i get", "get to",
+                          # Boat-outing words — the app's own placeholder is "paseo a Barú".
+                          # The island-dest gate below keeps "tour gastronómico" etc. out.
+                          "paseo", "tour", "excursion", "island tour", "day trip", "island hopping")
     _ISLAND_DEST_TERMS = ("rosario", "baru", "bomba", "tierra bomba", "isla", "islas",
                           "playa blanca", "cholon")
     _has_boat = any(t in _BOAT_TERMS for t in tokens)

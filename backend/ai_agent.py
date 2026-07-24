@@ -668,7 +668,9 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
     _t = (user_text or "").lower()
     _boat = any(w in _t for w in ("lancha", "bote", "barco", "catamaran", "velero", "yate", "charter"))
     _phrase = any(ph in _t for ph in ("transporte", "traslado", "como llego", "como llegar",
-                                      "como voy", "quiero ir", "ir a", "llegar a"))
+                                      "como voy", "quiero ir", "ir a", "llegar a",
+                                      "paseo", "tour", "excursion", "island tour", "day trip",
+                                      "island hopping"))
     _DEST = {"rosario": "islas_del_rosario", "baru": "baru", "playa blanca": "baru",
              "tierra bomba": "tierra_bomba", "bomba": "tierra_bomba", "cholon": "islas_del_rosario",
              "isla": "", "islas": ""}
