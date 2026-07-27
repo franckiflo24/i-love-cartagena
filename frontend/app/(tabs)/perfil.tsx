@@ -10,6 +10,7 @@ import { useLang } from '../../src/context/LanguageContext';
 import { LANG_LABELS, LANG_FLAGS, Lang } from '../../src/i18n/translations';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useRewards } from '../../src/context/RewardsContext';
+import { usePersonalization } from '../../src/context/PersonalizationContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -29,12 +30,41 @@ export default function PerfilScreen() {
   const { lang, setLang, s } = useLang();
   const { favorites: favIds } = useFavorites();
   const rewards = useRewards();
+  const { userProfile, updateProfile } = usePersonalization();
   const [favorites, setFavorites] = useState<Event[]>([]);
   const [myWeek, setMyWeek] = useState<Event[]>([]);
   const [activeTab, setActiveTab] = useState<'week' | 'favorites'>('week');
   const [loading, setLoading] = useState(false);
   const [aiProfile, setAiProfile] = useState<any>(null);
   const [profileBuilding, setProfileBuilding] = useState(false);
+  // Local / tourist type — backend (/profile/me) is authoritative, AsyncStorage is the fallback
+  const [typeChoice, setTypeChoice] = useState<'local' | 'visitor' | null>(null);
+  const [showTypePicker, setShowTypePicker] = useState(false);
+
+  // Sync the badge from whichever source knows the type (backend wins)
+  useEffect(() => {
+    const backendType = aiProfile?.user_type;
+    if (backendType === 'local' || backendType === 'visitor') {
+      setTypeChoice(backendType);
+    } else if (userProfile.userType === 'local' || userProfile.userType === 'visitor') {
+      setTypeChoice(userProfile.userType);
+    }
+  }, [aiProfile, userProfile.userType]);
+
+  const handleSetType = async (type: 'local' | 'visitor') => {
+    setShowTypePicker(false);
+    setTypeChoice(type);
+    // Immediate ranking effect + local persistence (PersonalizationContext → AsyncStorage)
+    updateProfile({ userType: type, isPersonalized: true });
+    // Keep the backend-sourced copy in sync so the effect above doesn't flip it back
+    setAiProfile((prev: any) => ({ ...(prev || {}), user_type: type }));
+    // Persist server-side — safe endpoint, never touches onboarding_completed
+    try {
+      await api.patch('/users/me/type', { user_type: type });
+    } catch (e) {
+      console.error('[Perfil] set user type failed', e);
+    }
+  };
 
   const loadAiProfile = async () => {
     if (!user?.user_id) return;
@@ -299,6 +329,44 @@ export default function PerfilScreen() {
               <Text style={sty.rewardsTier}>{rewards.tierLabel}</Text>
               <Text style={sty.rewardsPoints}>{rewards.points} pts</Text>
             </TouchableOpacity>
+          )}
+
+          {/* ── Local / Tourist badge (tap to set or change) ── */}
+          <TouchableOpacity
+            testID="profile-type-badge"
+            style={[sty.typeBadge, !typeChoice && sty.typeBadgeUnset]}
+            onPress={() => setShowTypePicker(v => !v)}
+            activeOpacity={0.8}
+          >
+            <Ionicons
+              name={typeChoice === 'local' ? 'home' : typeChoice === 'visitor' ? 'airplane' : 'help-circle-outline'}
+              size={12}
+              color={COLORS.primary}
+            />
+            <Text style={sty.typeBadgeText}>
+              {typeChoice ? s(`onboard_type_${typeChoice}` as any) : `${s('onboard_type_local')} / ${s('onboard_type_visitor')}`}
+            </Text>
+            <Ionicons name={showTypePicker ? 'chevron-up' : 'chevron-down'} size={11} color={COLORS.textMuted} />
+          </TouchableOpacity>
+
+          {showTypePicker && (
+            <View style={sty.typePickerRow}>
+              {(['local', 'visitor'] as const).map(t => {
+                const active = typeChoice === t;
+                return (
+                  <TouchableOpacity
+                    key={t}
+                    testID={`profile-type-${t}`}
+                    style={[sty.typePickerPill, active && sty.typePickerPillActive]}
+                    onPress={() => handleSetType(t)}
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name={t === 'local' ? 'home' : 'airplane'} size={16} color={active ? COLORS.white : COLORS.primary} />
+                    <Text style={[sty.typePickerText, active && sty.typePickerTextActive]}>{s(`onboard_type_${t}` as any)}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           )}
         </View>
 
@@ -721,6 +789,36 @@ const sty = StyleSheet.create({
   },
   rewardsTier: { fontSize: 13, color: COLORS.primary, ...FONTS.bold },
   rewardsPoints: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
+
+  typeBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    marginTop: 8,
+    paddingHorizontal: 12, paddingVertical: 5,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.primary + '15',
+    borderWidth: 1, borderColor: COLORS.primary + '30',
+  },
+  typeBadgeUnset: {
+    backgroundColor: 'transparent',
+    borderStyle: 'dashed',
+    borderColor: COLORS.primary + '55',
+  },
+  typeBadgeText: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold },
+  typePickerRow: {
+    flexDirection: 'row', gap: SPACING.sm,
+    marginTop: SPACING.sm,
+    alignSelf: 'stretch',
+  },
+  typePickerPill: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    paddingVertical: 10,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1.5, borderColor: COLORS.border,
+  },
+  typePickerPillActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  typePickerText: { fontSize: 13, color: COLORS.textMain, ...FONTS.semibold },
+  typePickerTextActive: { color: COLORS.white },
 
   sectionCard: {
     marginHorizontal: SPACING.lg,

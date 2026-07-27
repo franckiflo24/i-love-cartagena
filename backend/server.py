@@ -1656,6 +1656,48 @@ async def update_onboarding(body: OnboardingUpdate, request: Request):
     return {"status": "ok", "profile_complete": body.profile_complete}
 
 
+# ── User type (local / visitor) — lightweight profile-badge update ──
+class UserTypeUpdate(BaseModel):
+    user_type: str
+
+
+@api_router.patch("/users/me/type")
+async def update_user_type(body: UserTypeUpdate, request: Request):
+    """Set ONLY the local/visitor type — powers the profile badge.
+
+    Deliberately does not touch onboarding_completed / profile_complete
+    (unlike the full onboarding PATCH, whose profile_complete defaults to
+    False), so changing the badge never resets a user's onboarding state.
+    """
+    user = await get_current_user(request)
+    uid = user["user_id"]
+
+    if body.user_type not in VALID_USER_TYPES:
+        raise HTTPException(400, f"user_type must be one of {VALID_USER_TYPES}")
+
+    now = datetime.now(timezone.utc).isoformat()
+    await db.user_profiles.update_one(
+        {"user_id": uid},
+        {"$set": {"user_type": body.user_type, "updated_at": now},
+         "$setOnInsert": {"user_id": uid, "created_at": now}},
+        upsert=True,
+    )
+    await db.users.update_one(
+        {"user_id": uid},
+        {"$set": {"user_type": body.user_type, "profile_updated_at": now}},
+    )
+
+    # Analytics: every self-identification is a first-party local/tourist signal
+    await db.onboarding_events.insert_one({
+        "user_id": uid,
+        "timestamp": now,
+        "user_type": body.user_type,
+        "source": "profile_badge",
+    })
+
+    return {"status": "ok", "user_type": body.user_type}
+
+
 # ── Admin: Users Management ──────────────────────────────────
 @api_router.get("/admin/users")
 async def admin_list_users(request: Request):
