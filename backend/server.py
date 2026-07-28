@@ -3227,12 +3227,14 @@ async def global_search(q: str = "", request: Request = None):
             logger.warning(f"[search] pulse attach failed: {exc}")
         # Local-pick boost: venues our local users actually favor (behavioral,
         # gate-cleared) rank up a touch for everyone — not just under the filter.
-        # No-op until locals accrue (empty pick set), so it's safe at cold start.
+        # ADDITIVE + CAPPED (≤1.5), graded by distinct local favoriters, so it is
+        # a tiebreaker-plus below category/CTR/pulse weights — never an override.
+        # No-op until locals accrue (empty pick map), so it's safe at cold start.
         try:
-            lp_ids = await _local_signals.get_behavioral_pick_ids()
-            if lp_ids:
+            lp_map = await _local_signals.get_behavioral_pick_map()
+            if lp_map:
                 scored_partners = [
-                    (sc + (1.5 if p.get("partner_id") in lp_ids else 0.0), p)
+                    (sc + _local_signals.boost_for(lp_map, p.get("partner_id")), p)
                     for sc, p in scored_partners
                 ]
         except Exception as exc:

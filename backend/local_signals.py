@@ -35,6 +35,11 @@ _require_admin = None
 MIN_LOCAL_USERS = 5      # distinct local users before a venue is a behavioral pick
 MIN_LIFT = 1.2           # locals must over-index vs their overall favorite share…
 MIN_TOURIST_BASELINE = 10  # …but only once there's enough tourist volume to compare
+# Divergence gate (intel panel, spec 3c): a venue must have this many distinct
+# locals AND out-index tourists by this ratio before it counts as "locals love,
+# tourists miss" — stops a single favorite from manufacturing a false signal.
+MIN_DIVERGENCE_LOCALS = 3
+MIN_DIVERGENCE_RATIO = 2.0
 SIGNAL_COLLECTION = "local_signals"
 
 # Neighborhood centroids (mirror of frontend/public/data/neighborhoods.json).
@@ -202,28 +207,51 @@ async def recompute() -> Dict[str, Any]:
 
 # ── Ranking helper ───────────────────────────────────────────────────
 
-_pick_cache: Dict[str, Any] = {"ids": frozenset(), "loaded_at": 0.0}
+# Graded search boost. The boost is ADDITIVE and CAPPED at BOOST_CAP so it is a
+# tiebreaker-plus, never an override: it sits below category-match, CTR, and
+# pulse weights, so an intent/relevance match always wins. Strength scales with
+# distinct local favoriters (more-loved venues nudge a touch higher), saturating
+# at the cap. Empty map at cold start ⇒ exact no-op.
+BOOST_CAP = 1.5
+BOOST_PER_LOCAL = 0.15  # ×local_count, capped at BOOST_CAP (cap reached at 10 locals)
+
+_pick_cache: Dict[str, Any] = {"map": {}, "loaded_at": 0.0}
+
+
+async def _load_pick_map(ttl: float) -> Dict[str, int]:
+    now = time.monotonic()
+    if _pick_cache["loaded_at"] and (now - _pick_cache["loaded_at"] < ttl):
+        return _pick_cache["map"]
+    try:
+        m = {
+            d["partner_id"]: int(d.get("local_count", 0))
+            async for d in db[SIGNAL_COLLECTION].find(
+                {"is_local_pick": True}, {"_id": 0, "partner_id": 1, "local_count": 1}
+            )
+        }
+        _pick_cache["map"] = m
+        _pick_cache["loaded_at"] = now
+    except Exception as exc:
+        logger.warning(f"[local_signals] pick cache load failed: {exc}")
+    return _pick_cache["map"]
 
 
 async def get_behavioral_pick_ids(ttl: float = 300.0) -> frozenset:
-    """Cached set of partner_ids that cleared the behavioral gate — fed into
-    the main search ranking as a small boost. Cached per warm instance (TTL)
-    so it never queries per-search; empty until locals accrue (safe no-op)."""
-    now = time.monotonic()
-    if _pick_cache["loaded_at"] and (now - _pick_cache["loaded_at"] < ttl):
-        return _pick_cache["ids"]
-    try:
-        ids = frozenset([
-            d["partner_id"]
-            async for d in db[SIGNAL_COLLECTION].find(
-                {"is_local_pick": True}, {"_id": 0, "partner_id": 1}
-            )
-        ])
-        _pick_cache["ids"] = ids
-        _pick_cache["loaded_at"] = now
-    except Exception as exc:
-        logger.warning(f"[local_signals] pick-id cache load failed: {exc}")
-    return _pick_cache["ids"]
+    """Cached set of gate-cleared partner_ids. Empty until locals accrue."""
+    return frozenset((await _load_pick_map(ttl)).keys())
+
+
+def boost_for(pick_map: Dict[str, int], partner_id: str) -> float:
+    """Additive, capped local boost for one venue (0.0 if not a pick)."""
+    lc = pick_map.get(partner_id)
+    if not lc:
+        return 0.0
+    return min(BOOST_CAP, BOOST_PER_LOCAL * lc)
+
+
+async def get_behavioral_pick_map(ttl: float = 300.0) -> Dict[str, int]:
+    """Cached {partner_id: local_count} for the graded search boost."""
+    return await _load_pick_map(ttl)
 
 
 # ── Endpoints ────────────────────────────────────────────────────────
@@ -236,7 +264,7 @@ async def local_picks():
     and the counts to render the "Local pick · N locals" badge."""
     beh = await db[SIGNAL_COLLECTION].find(
         {"is_local_pick": True},
-        {"_id": 0, "partner_id": 1, "local_count": 1, "lift": 1, "updated_at": 1},
+        {"_id": 0, "partner_id": 1, "local_count": 1, "lift": 1, "neighborhood": 1, "updated_at": 1},
     ).sort("local_count", -1).to_list(500)
     beh_ids = {d["partner_id"] for d in beh}
 
@@ -244,16 +272,23 @@ async def local_picks():
         {
             "partner_id": d["partner_id"], "source": "behavioral",
             "local_count": d.get("local_count", 0), "lift": d.get("lift"),
+            "neighborhood": d.get("neighborhood"),
         }
         for d in beh
     ]
 
+    # Tag baseline — include neighborhood (nearest-centroid from location) so the
+    # detail badge and other surfaces read one source instead of recomputing.
     tag_rows = await db.partners.find(
-        {"tags": "local_favorite"}, {"_id": 0, "partner_id": 1}
+        {"tags": "local_favorite"}, {"_id": 0, "partner_id": 1, "location": 1}
     ).to_list(500)
     for r in tag_rows:
         if r["partner_id"] not in beh_ids:
-            picks.append({"partner_id": r["partner_id"], "source": "tag"})
+            loc = r.get("location") or {}
+            picks.append({
+                "partner_id": r["partner_id"], "source": "tag",
+                "neighborhood": _nearest_neighborhood(loc.get("lat"), loc.get("lng")),
+            })
 
     updated_at = beh[0].get("updated_at") if beh else None
     return {
@@ -297,20 +332,31 @@ async def intel(request: Request):
         ):
             name_map[p["partner_id"]] = p.get("name", "")
 
-    # Divergence: venues where locals over-index most (needs a little evidence)
-    diverge = sorted(
-        [d for d in behavioral if d.get("local_count", 0) >= 3],
-        key=lambda d: (d.get("lift", 0), d.get("local_count", 0)),
-        reverse=True,
-    )[:15]
+    # Divergence (spec 3c): ratio = local_favoriters / tourist_favoriters per
+    # venue, MIN-THRESHOLD gated so one favorite can't manufacture a signal —
+    # a venue must have >= MIN_DIVERGENCE_LOCALS distinct locals AND out-index
+    # tourists by >= MIN_DIVERGENCE_RATIO. Only venues past the gate are shown;
+    # until any exist the frontend renders the building-state (never a zero table).
+    diverge = []
+    for d in behavioral:
+        lc = d.get("local_count", 0)
+        tc = d.get("tourist_count", 0)
+        if lc < MIN_DIVERGENCE_LOCALS:
+            continue
+        ratio = lc / max(tc, 1)  # tourists=0 ⇒ purest "locals love, tourists miss"
+        if ratio < MIN_DIVERGENCE_RATIO:
+            continue
+        diverge.append((ratio, d))
+    diverge.sort(key=lambda x: (x[0], x[1].get("local_count", 0)), reverse=True)
     divergence = [{
         "partner_id": d["partner_id"],
         "name": name_map.get(d["partner_id"], d["partner_id"]),
         "local_count": d.get("local_count", 0),
         "tourist_count": d.get("tourist_count", 0),
+        "ratio": round(ratio, 2),
         "lift": d.get("lift"),
         "neighborhood": d.get("neighborhood"),
-    } for d in diverge]
+    } for ratio, d in diverge[:15]]
 
     # Where local picks concentrate — behavioral (stored) + tag venues (assigned)
     nbh_counts: Dict[str, int] = {}
