@@ -42,6 +42,8 @@ export const AUTO_TR: Dict = {
   // "Locals recommend" filter + badge
   'Locales': { en: 'Locals', fr: 'Locaux', pt: 'Locais' },
   'Favorito local': { en: 'Local pick', fr: 'Choix local', pt: 'Favorito local' },
+  'locales lo aman': { en: 'locals love it', fr: 'locaux l\'adorent', pt: 'locais amam' },
+  'Donde comen los cartageneros, no los tours': { en: 'Where locals eat, not the tours', fr: 'Où mangent les locaux, pas les tours', pt: 'Onde os locais comem, não os tours' },
 
   // Bookings (new entries — existing keys like Pendiente/Confirmada/Cancelada already below)
   'En proceso': { en: 'Processing', fr: 'En cours', pt: 'Em processo' },

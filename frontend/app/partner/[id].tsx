@@ -13,6 +13,7 @@ import { SkeletonPartnerDetail } from '../../src/components/Skeleton';
 import { useLang } from '../../src/context/LanguageContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
+import { useLocalPicks } from '../../src/services/localPicks';
 
 const TAG_LABELS: Record<string, string> = {
   romantic: 'Romántico', first_date: 'Primera cita', family: 'Familiar',
@@ -30,6 +31,7 @@ export default function PartnerDetail() {
   const router = useRouter();
   const { s } = useLang();
   const { isFavorite, toggleFavorite } = useFavorites();
+  const localPicks = useLocalPicks();
   const [partner, setPartner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -317,6 +319,24 @@ export default function PartnerDetail() {
               </View>
             </View>
           ) : null}
+          {(() => {
+            const pick = localPicks.byId.get(partner.partner_id);
+            if (!pick) return null;
+            const beh = pick.source === 'behavioral' && typeof pick.local_count === 'number' && pick.local_count > 0;
+            return (
+              <View style={styles.localCallout}>
+                <Ionicons name="home" size={18} color={COLORS.primary} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.localCalloutTitle}>{tr('Favorito local')}</Text>
+                  <Text style={styles.localCalloutDesc}>
+                    {beh
+                      ? `${pick.local_count} ${tr('locales lo aman')}`
+                      : tr('Donde comen los cartageneros, no los tours')}
+                  </Text>
+                </View>
+              </View>
+            );
+          })()}
           {partner.description ? <Text style={styles.description}>{partner.description}</Text> : null}
           {Array.isArray(partner.tags) && partner.tags.some((t: string) => TAG_LABELS[t]) ? (
             <View style={styles.tagRow}>
@@ -512,6 +532,9 @@ const styles = StyleSheet.create({
   tierCallout: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, borderRadius: RADIUS.lg, borderWidth: 1, marginBottom: SPACING.md },
   tierCalloutTitle: { fontSize: 14, ...FONTS.bold, letterSpacing: 0.5 },
   tierCalloutDesc: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+  localCallout: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, borderRadius: RADIUS.lg, borderWidth: 1, marginBottom: SPACING.md, backgroundColor: `${COLORS.primary}12`, borderColor: `${COLORS.primary}40` },
+  localCalloutTitle: { fontSize: 14, ...FONTS.bold, letterSpacing: 0.5, color: COLORS.primary },
+  localCalloutDesc: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
   description: { fontSize: 15, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 24 },
   infoGrid: { flexDirection: 'row', gap: SPACING.md, marginTop: SPACING.lg },
   infoCard: { flex: 1, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.md, gap: SPACING.xs, borderWidth: 1, borderColor: COLORS.border },

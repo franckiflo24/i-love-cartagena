@@ -18,8 +18,9 @@ Anti-gaming / privacy:
 
 import logging
 import os
+import time
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from fastapi import APIRouter, HTTPException, Request
 
@@ -35,6 +36,42 @@ MIN_LOCAL_USERS = 5      # distinct local users before a venue is a behavioral p
 MIN_LIFT = 1.2           # locals must over-index vs their overall favorite share…
 MIN_TOURIST_BASELINE = 10  # …but only once there's enough tourist volume to compare
 SIGNAL_COLLECTION = "local_signals"
+
+# Neighborhood centroids (mirror of frontend/public/data/neighborhoods.json).
+# Venues have no clean neighborhood field — only lat/lng — so we assign each to
+# the nearest centroid. Stable, 10 items; kept here so the serverless backend
+# needs no file access.
+NEIGHBORHOOD_CENTROIDS: List[Tuple[str, float, float]] = [
+    ('centro', 10.4236, -75.5518),
+    ('san_diego', 10.4275, -75.549),
+    ('getsemani', 10.419, -75.546),
+    ('bocagrande', 10.4, -75.556),
+    ('laguito', 10.392, -75.561),
+    ('castillogrande', 10.396, -75.568),
+    ('manga', 10.41, -75.535),
+    ('marbella', 10.435, -75.545),
+    ('la_boquilla', 10.47, -75.51),
+    ('tierrabomba', 10.376, -75.579),
+]
+# Beyond this rough distance (deg) a point isn't meaningfully "in" any barrio.
+_NBH_MAX_DIST = 0.06
+
+
+def _nearest_neighborhood(lat, lng) -> Optional[str]:
+    if lat is None or lng is None:
+        return None
+    try:
+        lat = float(lat); lng = float(lng)
+    except (TypeError, ValueError):
+        return None
+    best, best_d = None, None
+    for slug, clat, clng in NEIGHBORHOOD_CENTROIDS:
+        d = (lat - clat) ** 2 + (lng - clng) ** 2
+        if best_d is None or d < best_d:
+            best, best_d = slug, d
+    if best_d is not None and best_d ** 0.5 <= _NBH_MAX_DIST:
+        return best
+    return None
 
 
 def init(*, db_, require_admin):
@@ -109,6 +146,18 @@ async def recompute() -> Dict[str, Any]:
 
     now = datetime.now(timezone.utc).isoformat()
     partner_ids = set(local_users) | set(tourist_users)
+
+    # Assign each signalled venue to its nearest neighborhood (for the intel
+    # panel + neighborhood-aware surfaces). One batched location lookup.
+    loc_map: Dict[str, Tuple[Any, Any]] = {}
+    if partner_ids:
+        async for p in db.partners.find(
+            {"partner_id": {"$in": list(partner_ids)}},
+            {"_id": 0, "partner_id": 1, "location": 1},
+        ):
+            loc = p.get("location") or {}
+            loc_map[p["partner_id"]] = (loc.get("lat"), loc.get("lng"))
+
     qualifying = 0
     docs: List[Dict[str, Any]] = []
     for pid in partner_ids:
@@ -122,12 +171,14 @@ async def recompute() -> Dict[str, Any]:
         is_pick = lc >= MIN_LOCAL_USERS and ((lift >= MIN_LIFT) if have_baseline else True)
         if is_pick:
             qualifying += 1
+        lat, lng = loc_map.get(pid, (None, None))
         docs.append({
             "partner_id": pid,
             "local_count": lc,
             "tourist_count": tc,
             "lift": round(lift, 3),
             "is_local_pick": is_pick,
+            "neighborhood": _nearest_neighborhood(lat, lng),
             "updated_at": now,
         })
 
@@ -147,6 +198,32 @@ async def recompute() -> Dict[str, Any]:
     }
     logger.info(f"[local_signals] recompute: {stats}")
     return stats
+
+
+# ── Ranking helper ───────────────────────────────────────────────────
+
+_pick_cache: Dict[str, Any] = {"ids": frozenset(), "loaded_at": 0.0}
+
+
+async def get_behavioral_pick_ids(ttl: float = 300.0) -> frozenset:
+    """Cached set of partner_ids that cleared the behavioral gate — fed into
+    the main search ranking as a small boost. Cached per warm instance (TTL)
+    so it never queries per-search; empty until locals accrue (safe no-op)."""
+    now = time.monotonic()
+    if _pick_cache["loaded_at"] and (now - _pick_cache["loaded_at"] < ttl):
+        return _pick_cache["ids"]
+    try:
+        ids = frozenset([
+            d["partner_id"]
+            async for d in db[SIGNAL_COLLECTION].find(
+                {"is_local_pick": True}, {"_id": 0, "partner_id": 1}
+            )
+        ])
+        _pick_cache["ids"] = ids
+        _pick_cache["loaded_at"] = now
+    except Exception as exc:
+        logger.warning(f"[local_signals] pick-id cache load failed: {exc}")
+    return _pick_cache["ids"]
 
 
 # ── Endpoints ────────────────────────────────────────────────────────
@@ -193,3 +270,73 @@ async def refresh(request: Request):
     via = await _auth(request)
     stats = await recompute()
     return {"status": "ok", "via": via.get("via"), **stats}
+
+
+@router.get("/admin/local-picks/intel")
+async def intel(request: Request):
+    """Admin: 'locals vs tourists' intelligence — coverage, divergence
+    (locals love / tourists miss, by over-indexing lift), and where local
+    picks concentrate by neighborhood. Populates as local favorites accrue;
+    top_neighborhoods is meaningful from day one off the tag baseline."""
+    await _auth(request)
+
+    sig = await db[SIGNAL_COLLECTION].find({}, {"_id": 0}).to_list(2000)
+    behavioral = [d for d in sig if d.get("is_local_pick")]
+    beh_ids = [d["partner_id"] for d in behavioral]
+    beh_set = set(beh_ids)
+
+    tag_rows = await db.partners.find(
+        {"tags": "local_favorite"},
+        {"_id": 0, "partner_id": 1, "name": 1, "location": 1},
+    ).to_list(2000)
+
+    name_map: Dict[str, str] = {}
+    if beh_ids:
+        async for p in db.partners.find(
+            {"partner_id": {"$in": beh_ids}}, {"_id": 0, "partner_id": 1, "name": 1}
+        ):
+            name_map[p["partner_id"]] = p.get("name", "")
+
+    # Divergence: venues where locals over-index most (needs a little evidence)
+    diverge = sorted(
+        [d for d in behavioral if d.get("local_count", 0) >= 3],
+        key=lambda d: (d.get("lift", 0), d.get("local_count", 0)),
+        reverse=True,
+    )[:15]
+    divergence = [{
+        "partner_id": d["partner_id"],
+        "name": name_map.get(d["partner_id"], d["partner_id"]),
+        "local_count": d.get("local_count", 0),
+        "tourist_count": d.get("tourist_count", 0),
+        "lift": d.get("lift"),
+        "neighborhood": d.get("neighborhood"),
+    } for d in diverge]
+
+    # Where local picks concentrate — behavioral (stored) + tag venues (assigned)
+    nbh_counts: Dict[str, int] = {}
+    for d in behavioral:
+        nb = d.get("neighborhood")
+        if nb:
+            nbh_counts[nb] = nbh_counts.get(nb, 0) + 1
+    for r in tag_rows:
+        if r["partner_id"] in beh_set:
+            continue
+        loc = r.get("location") or {}
+        nb = _nearest_neighborhood(loc.get("lat"), loc.get("lng"))
+        if nb:
+            nbh_counts[nb] = nbh_counts.get(nb, 0) + 1
+    top_neighborhoods = sorted(
+        ({"neighborhood": k, "count": v} for k, v in nbh_counts.items()),
+        key=lambda x: x["count"], reverse=True,
+    )
+
+    return {
+        "coverage": {
+            "behavioral_picks": len(behavioral),
+            "tag_venues": len(tag_rows),
+            "partners_with_signal": len(sig),
+        },
+        "divergence": divergence,
+        "top_neighborhoods": top_neighborhoods,
+        "updated_at": (sig[0].get("updated_at") if sig else None),
+    }

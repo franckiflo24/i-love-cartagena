@@ -32,6 +32,7 @@ import { useTr } from '../../src/i18n/autoTr';
 import { getUpcomingEvents } from '../../src/lib/data';
 import { usePersonalization } from '../../src/context/PersonalizationContext';
 import { useLocalPicks, behavioralPick } from '../../src/services/localPicks';
+import { nearestNeighborhood } from '../../src/utils/neighborhood';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - SPACING.lg * 2 - SPACING.sm) / 2;
@@ -525,6 +526,7 @@ export default function ExploreScreen() {
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<Neighborhood | null>(null);
   const [nbModalVisible, setNbModalVisible] = useState(false);
   const [localsOnly, setLocalsOnly] = useState(false);
+  const [localsNbh, setLocalsNbh] = useState<string | null>(null);
   const localPicks = useLocalPicks();
 
   // When navigated with a category param (from home cards), switch to that filter
@@ -659,9 +661,29 @@ export default function ExploreScreen() {
       : allCategoryPartners;
   // "Locals recommend" filter: keep only venues locals favor (behavioral picks
   // + local_favorite-tagged baseline). Never empties the catalog when off.
+  // Neighborhoods with at least one local pick — for the "locals in <barrio>" sub-filter.
+  const localsNbhCounts: Record<string, number> = {};
   if (localsOnly) {
+    for (const p of allCategoryPartners) {
+      if (!localPicks.ids.has((p as any).partner_id)) continue;
+      const loc = (p as any).location || {};
+      const nb = nearestNeighborhood(loc.lat, loc.lng, neighborhoods);
+      if (nb) localsNbhCounts[nb] = (localsNbhCounts[nb] || 0) + 1;
+    }
     partners = partners.filter(p => localPicks.ids.has((p as any).partner_id));
+    if (localsNbh) {
+      partners = partners.filter(p => {
+        const loc = (p as any).location || {};
+        return nearestNeighborhood(loc.lat, loc.lng, neighborhoods) === localsNbh;
+      });
+    }
   }
+  const localsNbhOptions = localsOnly
+    ? neighborhoods
+        .filter(n => localsNbhCounts[n.slug])
+        .map(n => ({ slug: n.slug, name: n.name, count: localsNbhCounts[n.slug] }))
+        .sort((a, b) => b.count - a.count)
+    : [];
 
   // Count of partners per subcategory for tile badges
   const subcatCounts: Record<string, number> = {};
@@ -723,7 +745,7 @@ export default function ExploreScreen() {
           key="__locals__"
           testID="explore-locals-toggle"
           style={[styles.chip, styles.localsChip, localsOnly && styles.localsChipActive]}
-          onPress={() => setLocalsOnly(v => !v)}
+          onPress={() => { setLocalsOnly(v => !v); setLocalsNbh(null); }}
           activeOpacity={0.8}
         >
           <Ionicons name="home" size={12} color={localsOnly ? COLORS.white : COLORS.primary} />
@@ -755,6 +777,39 @@ export default function ExploreScreen() {
           );
         })}
       </ScrollView>
+
+      {/* ── Neighborhood sub-filter (only when "Locals" is active) ── */}
+      {localsOnly && localsNbhOptions.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipRow}
+          style={styles.chipScroll}
+        >
+          <TouchableOpacity
+            style={[styles.nbhChip, !localsNbh && styles.nbhChipActive]}
+            onPress={() => setLocalsNbh(null)}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.nbhChipText, !localsNbh && styles.nbhChipTextActive]}>{tr('Todos')}</Text>
+          </TouchableOpacity>
+          {localsNbhOptions.map(n => {
+            const active = localsNbh === n.slug;
+            return (
+              <TouchableOpacity
+                key={n.slug}
+                testID={`explore-locals-nbh-${n.slug}`}
+                style={[styles.nbhChip, active && styles.nbhChipActive]}
+                onPress={() => setLocalsNbh(active ? null : n.slug)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="location" size={10} color={active ? COLORS.white : COLORS.primary} />
+                <Text style={[styles.nbhChipText, active && styles.nbhChipTextActive]}>{n.name} · {n.count}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
 
       {/* ── Featured experiences (only on "Todos" view) ── */}
       {selectedCategory.key === 'all' && (loadingFeatured || featured.length > 0) && (
@@ -1194,6 +1249,30 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     marginVertical: 4,
     backgroundColor: COLORS.border,
+  },
+  // Neighborhood sub-filter chips (under the Locals toggle)
+  nbhChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: RADIUS.full,
+    backgroundColor: `${COLORS.primary}0D`,
+    borderWidth: 1,
+    borderColor: `${COLORS.primary}33`,
+  },
+  nbhChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  nbhChipText: {
+    fontSize: 11,
+    color: COLORS.primary,
+    ...FONTS.semibold,
+  },
+  nbhChipTextActive: {
+    color: COLORS.white,
   },
   // "Local pick" badge on partner cards (behavioral picks only)
   localPickBadge: {

@@ -13,6 +13,12 @@ import { API_BASE } from '../src/constants/api';
 const KEY_STORAGE = 'amo_intel_key';
 const GOLD = '#FBBF24';
 
+const NBH_LABELS: Record<string, string> = {
+  centro: 'Centro', san_diego: 'San Diego', getsemani: 'Getsemaní',
+  bocagrande: 'Bocagrande', laguito: 'El Laguito', castillogrande: 'Castillogrande',
+  manga: 'Manga', marbella: 'Marbella', la_boquilla: 'La Boquilla', tierrabomba: 'Tierra Bomba',
+};
+
 async function intelGet(path: string, key: string) {
   const res = await fetch(`${API_BASE}${path}`, { headers: { Authorization: `Bearer ${key}` } });
   if (res.status === 403) throw new Error('forbidden');
@@ -27,6 +33,7 @@ export default function IntelScreen() {
   const [keyError, setKeyError] = useState(false);
   const [overview, setOverview] = useState<any>(null);
   const [demand, setDemand] = useState<any>(null);
+  const [locals, setLocals] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [refreshingReport, setRefreshingReport] = useState(false);
 
@@ -38,12 +45,14 @@ export default function IntelScreen() {
     setLoading(true);
     setKeyError(false);
     try {
-      const [ov, dm] = await Promise.all([
+      const [ov, dm, lp] = await Promise.all([
         intelGet('/admin/intel/overview', key),
         intelGet('/admin/demand', key),
+        intelGet('/admin/local-picks/intel', key).catch(() => null),
       ]);
       setOverview(ov);
       setDemand(dm);
+      setLocals(lp);
       await AsyncStorage.setItem(KEY_STORAGE, key);
       setAccessKey(key);
     } catch (e: any) {
@@ -148,6 +157,47 @@ export default function IntelScreen() {
             </View>
           ))}
         </View>
+
+        {/* Locals vs Tourists */}
+        {locals ? (
+          <>
+            <Text style={styles.sectionTitle}>🏠 Locales vs Turistas</Text>
+            <Text style={styles.metaLine}>
+              {(locals.coverage?.behavioral_picks ?? 0)} picks conductuales · {(locals.coverage?.tag_venues ?? 0)} venues favoritos de locales
+            </Text>
+
+            {Array.isArray(locals.top_neighborhoods) && locals.top_neighborhoods.length > 0 ? (
+              <>
+                <Text style={styles.subTitle}>Dónde se concentran los favoritos locales</Text>
+                {locals.top_neighborhoods.slice(0, 6).map((n: any) => (
+                  <View key={n.neighborhood} style={styles.row}>
+                    <Ionicons name="location" size={13} color={GOLD} />
+                    <Text style={styles.rowMain} numberOfLines={1}>{NBH_LABELS[n.neighborhood] || n.neighborhood}</Text>
+                    <Text style={styles.rowSide}>{n.count}</Text>
+                  </View>
+                ))}
+              </>
+            ) : null}
+
+            <Text style={styles.subTitle}>Los locales lo aman, los turistas lo pierden</Text>
+            {Array.isArray(locals.divergence) && locals.divergence.length > 0 ? (
+              locals.divergence.slice(0, 10).map((d: any, i: number) => (
+                <View key={d.partner_id || i} style={styles.leadCard}>
+                  <View style={styles.leadTop}>
+                    <View style={styles.rankBadge}><Text style={styles.rankText}>#{i + 1}</Text></View>
+                    <Text style={styles.leadType} numberOfLines={1}>{d.name}</Text>
+                    {d.neighborhood ? <View style={styles.reqBadge}><Text style={styles.reqText}>{NBH_LABELS[d.neighborhood] || d.neighborhood}</Text></View> : null}
+                  </View>
+                  <Text style={styles.leadEvidence}>
+                    {d.local_count} locales · {d.tourist_count} turistas{typeof d.lift === 'number' ? ` · ${d.lift.toFixed(1)}× sobre-índice` : ''}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.empty}>Aún acumulando — aparece cuando ≥5 locales marcan un mismo lugar como favorito</Text>
+            )}
+          </>
+        ) : null}
 
         {/* Leads para Franck */}
         <View style={styles.sectionHeader}>
@@ -257,6 +307,7 @@ const styles = StyleSheet.create({
   kpiLabel: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: SPACING.lg },
   sectionTitle: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.lg, marginBottom: SPACING.sm },
+  subTitle: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold, marginTop: SPACING.md, marginBottom: SPACING.xs, textTransform: 'uppercase', letterSpacing: 0.4 },
   regenBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: 'rgba(251,191,36,0.4)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
   regenText: { fontSize: 11, color: GOLD, ...FONTS.medium },
   metaLine: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginBottom: SPACING.sm },

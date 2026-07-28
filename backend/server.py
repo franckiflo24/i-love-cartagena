@@ -3225,6 +3225,18 @@ async def global_search(q: str = "", request: Request = None):
                     scored_partners = boosted
         except Exception as exc:
             logger.warning(f"[search] pulse attach failed: {exc}")
+        # Local-pick boost: venues our local users actually favor (behavioral,
+        # gate-cleared) rank up a touch for everyone — not just under the filter.
+        # No-op until locals accrue (empty pick set), so it's safe at cold start.
+        try:
+            lp_ids = await _local_signals.get_behavioral_pick_ids()
+            if lp_ids:
+                scored_partners = [
+                    (sc + (1.5 if p.get("partner_id") in lp_ids else 0.0), p)
+                    for sc, p in scored_partners
+                ]
+        except Exception as exc:
+            logger.warning(f"[search] local-pick boost failed: {exc}")
         # Personal taste boost (authed users): affinity from favorites and
         # reservations, capped at 2.0 — reorders near-ties, never relevance.
         if user_taste:
