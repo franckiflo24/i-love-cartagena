@@ -139,6 +139,12 @@ _KEYWORD_FALLBACK: Dict[str, Dict[str, Any]] = {
     "café da manhã": {"category": "cafe"}, "cafe da manha": {"category": "cafe"},
     "coffee": {"category": "cafe"}, "café": {"category": "cafe"},
     "cafe": {"category": "cafe"}, "cafeteria": {"category": "cafe"},
+    # Espresso-drink vocabulary — parity with /api/search coffee anchoring
+    "macchiato": {"category": "cafe"}, "latte": {"category": "cafe"},
+    "cortado": {"category": "cafe"}, "espresso": {"category": "cafe"},
+    "capuchino": {"category": "cafe"}, "cappuccino": {"category": "cafe"},
+    "tinto": {"category": "cafe"}, "flat white": {"category": "cafe"},
+    "cold brew": {"category": "cafe"},
     "juice": {"category": "cafe"}, "jugo": {"category": "cafe"},
     "jus": {"category": "cafe"}, "suco": {"category": "cafe"},
     "smoothie": {"category": "cafe"},

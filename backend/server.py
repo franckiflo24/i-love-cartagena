@@ -2918,6 +2918,13 @@ async def global_search(q: str = "", request: Request = None):
         "argentino": ["argentina", "parrilla", "carnes"], "argentina": ["parrilla"],
         "mediterraneo": ["mediterranean"], "mediterranea": ["mediterranean"],
         "desayuno": ["cafe", "brunch"],
+        # Coffee drinks — anchor espresso-vocabulary to the cafe category so
+        # "un buen macchiato" resolves to cafés, never a fuzzy "buen*" name hit
+        "macchiato": ["cafe", "coffee"], "latte": ["cafe", "coffee"],
+        "cortado": ["cafe", "coffee"], "espresso": ["cafe", "coffee"],
+        "capuchino": ["cafe", "coffee", "cappuccino"], "cappuccino": ["cafe", "coffee", "capuchino"],
+        "americano": ["cafe", "coffee"], "tinto": ["cafe", "coffee"],
+        "brew": ["cafe", "coffee"],  # "cold brew" tokenizes to brew
         "postre": ["cafe", "reposteria", "helado"], "helado": ["gelato", "heladeria"],
         # Knowledge tags (occasion/feature layer — see tagging.TAG_VOCAB)
         "romantico": ["romantic"], "romantica": ["romantic"], "romantic": ["romantic"],
@@ -2954,7 +2961,11 @@ async def global_search(q: str = "", request: Request = None):
         "restaurant", "restaurante", "restaurantes", "comida", "food",
         "hotel", "hoteles", "bar", "bares", "cafe", "club", "spa",
         "lugar", "lugares", "sitio", "sitios", "place", "places",
-        "mejor", "mejores", "best", "bueno", "buena", "good",
+        # Filler adjectives: ALL variants, so "un buen X" degrades to X — the
+        # missing "buen" here is exactly why "un buen macchiato" fuzzy-matched
+        # "Buena Onda"/"Buena Vida" instead of the (then-unknown) coffee term.
+        "mejor", "mejores", "best", "bueno", "buena", "buen", "buenos", "buenas",
+        "good", "great", "nice", "rico", "rica",
         "donde", "where", "cerca", "near", "abierto", "open",
         "ceno", "cenamos", "como", "comemos", "almorzar", "almuerzo",
         "desayunar", "tomar", "beber", "eat", "drink",
@@ -3227,8 +3238,10 @@ async def global_search(q: str = "", request: Request = None):
             logger.warning(f"[search] pulse attach failed: {exc}")
         # Local-pick boost: venues our local users actually favor (behavioral,
         # gate-cleared) rank up a touch for everyone — not just under the filter.
-        # ADDITIVE + CAPPED (≤1.5), graded by distinct local favoriters, so it is
-        # a tiebreaker-plus below category/CTR/pulse weights — never an override.
+        # ADDITIVE + CAPPED (≤0.5, see local_signals.BOOST_CAP) — below one full
+        # relevance tier (a field-weight step is ≥1.0), so it only breaks genuine
+        # near-ties among on-intent venues and never overrides intent. The
+        # min_score gate already drops off-intent venues before any boost runs.
         # No-op until locals accrue (empty pick map), so it's safe at cold start.
         try:
             lp_map = await _local_signals.get_behavioral_pick_map()
