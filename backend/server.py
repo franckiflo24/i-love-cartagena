@@ -1698,6 +1698,34 @@ async def update_user_type(body: UserTypeUpdate, request: Request):
     return {"status": "ok", "user_type": body.user_type}
 
 
+# ── TEMP (batch-3 Atlas backfill — remove after invocation) ──────────
+# One-shot: upsert the 11 static-only ptr_dv3_* venues into Atlas so backend
+# search/concierge learn them. Repo pattern: deploy → invoke → remove → redeploy
+# (Atlas blocks local IPs). Auth = Bearer CRON_SECRET only.
+@api_router.post("/admin/atlas/upsert-batch3")
+async def _temp_upsert_batch3(request: Request):
+    secret = os.environ.get("CRON_SECRET", "").strip()
+    auth_header = request.headers.get("Authorization", "")
+    if not secret or auth_header != f"Bearer {secret}":
+        raise HTTPException(403, "cron secret required")
+    seed_path = os.path.join(os.path.dirname(__file__), "data", "dossier_venues_batch3_2026-07.json")
+    with open(seed_path, "r", encoding="utf-8") as f:
+        rows = json.load(f)
+    rows = rows if isinstance(rows, list) else rows.get("venues") or rows.get("partners") or []
+    upserted = 0
+    for r in rows:
+        pid = r.get("partner_id", "")
+        if not pid.startswith("ptr_dv3_"):
+            continue
+        doc = {k: v for k, v in r.items() if k not in ("tags", "tags_source", "tagged_at")}
+        # tags stripped deliberately: they were never AI-tagged (seed has []),
+        # and tags:{$exists:false} is what /admin/tags/backfill selects on.
+        await db.partners.update_one({"partner_id": pid}, {"$set": doc}, upsert=True)
+        upserted += 1
+    total = await db.partners.count_documents({})
+    return {"status": "ok", "upserted": upserted, "atlas_total": total}
+
+
 # ── Admin: Users Management ──────────────────────────────────
 @api_router.get("/admin/users")
 async def admin_list_users(request: Request):
