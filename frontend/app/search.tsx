@@ -354,6 +354,12 @@ export default function SearchScreen() {
           'argentino': ['argentina', 'parrilla', 'carnes'], 'argentina': ['parrilla'],
           'mediterraneo': ['mediterranean'], 'mediterranea': ['mediterranean'],
           'brunch': ['cafe', 'desayuno'], 'desayuno': ['cafe', 'brunch'],
+          // Coffee drinks — mirrors backend coffee anchoring (macchiato fix)
+          'macchiato': ['cafe', 'coffee'], 'latte': ['cafe', 'coffee'],
+          'cortado': ['cafe', 'coffee'], 'espresso': ['cafe', 'coffee'],
+          'capuchino': ['cafe', 'coffee', 'cappuccino'], 'cappuccino': ['cafe', 'coffee', 'capuchino'],
+          'americano': ['cafe', 'coffee'], 'tinto': ['cafe', 'coffee'],
+          'brew': ['cafe', 'coffee'],
           'postre': ['cafe', 'reposteria', 'helado'], 'helado': ['gelato', 'heladeria'],
           // Knowledge tags (occasion/feature layer — mirrors backend TAG_VOCAB)
           'romantico': ['romantic'],
@@ -390,7 +396,9 @@ export default function SearchScreen() {
           'restaurant', 'restaurante', 'restaurantes', 'comida', 'food',
           'hotel', 'hoteles', 'bar', 'bares', 'cafe', 'club', 'spa',
           'lugar', 'lugares', 'sitio', 'sitios', 'place', 'places',
-          'mejor', 'mejores', 'best', 'bueno', 'buena', 'good',
+          // ALL filler-adjective variants — "buen" was missing (macchiato bug)
+          'mejor', 'mejores', 'best', 'bueno', 'buena', 'buen', 'buenos', 'buenas',
+          'good', 'great', 'nice', 'rico', 'rica',
           'donde', 'where', 'cerca', 'near', 'abierto', 'open',
           'ceno', 'cenamos', 'como', 'comemos', 'almorzar', 'almuerzo',
           'desayunar', 'tomar', 'beber', 'drink',

@@ -10,6 +10,7 @@
 - **Backend** (backend-mu-one-74.vercel.app): `cd backend && npx vercel --prod`
 - **`git push` does NOT auto-deploy.** The Vercel projects are `frontend` and `backend`, linked via `.vercel/project.json`, not via GitHub integration.
 - After every push, you MUST run `npx vercel --prod` from the correct subdirectory.
+- **MANDATORY after every deploy: `node scripts/verify-images.mjs`** — HEAD-checks every live partner/event image; non-zero exit = broken images on prod.
 
 ## Credentials
 - Pull from Vercel: `cd frontend && npx vercel env pull .env.production --environment production --yes`
