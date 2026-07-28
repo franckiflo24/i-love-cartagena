@@ -31,6 +31,7 @@ import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { getUpcomingEvents } from '../../src/lib/data';
 import { usePersonalization } from '../../src/context/PersonalizationContext';
+import { useLocalPicks, behavioralPick } from '../../src/services/localPicks';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - SPACING.lg * 2 - SPACING.sm) / 2;
@@ -266,9 +267,11 @@ function FeaturedCard({
 function PartnerGridCard({
   partner,
   onPress,
+  localCount,
 }: {
   partner: Partner;
   onPress: () => void;
+  localCount?: number;
 }) {
   const tr = useTr();
   const tierColor = partner.tier ? TIER_COLORS[partner.tier] : null;
@@ -318,6 +321,14 @@ function PartnerGridCard({
         <Text style={styles.gridCategory} numberOfLines={1}>
           {tr(PARTNER_CATEGORY_LABELS[(partner as any).category] || (partner as any).category || '')}
         </Text>
+        {typeof localCount === 'number' && localCount > 0 && (
+          <View style={styles.localPickBadge}>
+            <Ionicons name="home" size={9} color={COLORS.primary} />
+            <Text style={styles.localPickText} numberOfLines={1}>
+              {tr('Favorito local')} · {localCount}
+            </Text>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -513,6 +524,8 @@ export default function ExploreScreen() {
   const [loadingNeighborhoods, setLoadingNeighborhoods] = useState(true);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<Neighborhood | null>(null);
   const [nbModalVisible, setNbModalVisible] = useState(false);
+  const [localsOnly, setLocalsOnly] = useState(false);
+  const localPicks = useLocalPicks();
 
   // When navigated with a category param (from home cards), switch to that filter
   useEffect(() => {
@@ -640,10 +653,15 @@ export default function ExploreScreen() {
 
   // Partners shown in the grid: respect subcategory filter when set.
   // '__all__' sentinel means "show all in this category" (skip subcat filter).
-  const partners: Partner[] =
+  let partners: Partner[] =
     selectedSubcategory && selectedSubcategory !== '__all__'
       ? allCategoryPartners.filter(p => (p as any).subcategory === selectedSubcategory)
       : allCategoryPartners;
+  // "Locals recommend" filter: keep only venues locals favor (behavioral picks
+  // + local_favorite-tagged baseline). Never empties the catalog when off.
+  if (localsOnly) {
+    partners = partners.filter(p => localPicks.ids.has((p as any).partner_id));
+  }
 
   // Count of partners per subcategory for tile badges
   const subcatCounts: Record<string, number> = {};
@@ -700,6 +718,20 @@ export default function ExploreScreen() {
         contentContainerStyle={styles.chipRow}
         style={styles.chipScroll}
       >
+        {/* ── "Locals recommend" filter toggle (modifier, not a category) ── */}
+        <TouchableOpacity
+          key="__locals__"
+          testID="explore-locals-toggle"
+          style={[styles.chip, styles.localsChip, localsOnly && styles.localsChipActive]}
+          onPress={() => setLocalsOnly(v => !v)}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="home" size={12} color={localsOnly ? COLORS.white : COLORS.primary} />
+          <Text style={[styles.chipText, styles.localsChipText, localsOnly && styles.chipTextActive]}>
+            {tr('Locales')}
+          </Text>
+        </TouchableOpacity>
+        <View style={styles.chipDivider} />
         {CATEGORIES.map((cat) => {
           const active = selectedCategory.key === cat.key;
           return (
@@ -970,6 +1002,7 @@ export default function ExploreScreen() {
         renderItem={({ item }) => (
           <PartnerGridCard
             partner={item}
+            localCount={behavioralPick(localPicks, item.partner_id)?.local_count}
             onPress={() => router.push(`/partner/${item.partner_id}` as any)}
           />
         )}
@@ -1143,6 +1176,43 @@ const styles = StyleSheet.create({
   },
   chipTextActive: {
     color: COLORS.white,
+  },
+  // "Locals recommend" toggle — gold outline, distinct from category chips
+  localsChip: {
+    backgroundColor: `${COLORS.primary}12`,
+    borderColor: COLORS.primary,
+  },
+  localsChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  localsChipText: {
+    color: COLORS.primary,
+  },
+  chipDivider: {
+    width: 1,
+    alignSelf: 'stretch',
+    marginVertical: 4,
+    backgroundColor: COLORS.border,
+  },
+  // "Local pick" badge on partner cards (behavioral picks only)
+  localPickBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 3,
+    marginTop: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: RADIUS.full,
+    backgroundColor: `${COLORS.primary}18`,
+    borderWidth: 1,
+    borderColor: `${COLORS.primary}40`,
+  },
+  localPickText: {
+    fontSize: 9,
+    color: COLORS.primary,
+    ...FONTS.bold,
   },
 
   // Section header

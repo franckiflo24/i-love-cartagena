@@ -4,6 +4,10 @@
     {
       "path": "/api/admin/demand/refresh?days=30",
       "schedule": "0 10 * * 1"
+    },
+    {
+      "path": "/api/admin/local-picks/refresh",
+      "schedule": "0 8 * * *"
     }
   ],
   "builds": [

@@ -39,6 +39,10 @@ export const AUTO_TR: Dict = {
   'Beach Clubs': { en: 'Beach Clubs', fr: 'Clubs de plage', pt: 'Beach Clubs' },
   'Belleza': { en: 'Beauty', fr: 'Beauté', pt: 'Beleza' },
 
+  // "Locals recommend" filter + badge
+  'Locales': { en: 'Locals', fr: 'Locaux', pt: 'Locais' },
+  'Favorito local': { en: 'Local pick', fr: 'Choix local', pt: 'Favorito local' },
+
   // Bookings (new entries — existing keys like Pendiente/Confirmada/Cancelada already below)
   'En proceso': { en: 'Processing', fr: 'En cours', pt: 'Em processo' },
   'Pagada': { en: 'Paid', fr: 'Payée', pt: 'Paga' },
