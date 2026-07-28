@@ -14,6 +14,7 @@ import { useLang } from '../../src/context/LanguageContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { useLocalPicks } from '../../src/services/localPicks';
+import { NBH_LABELS } from '../../src/utils/neighborhood';
 
 const TAG_LABELS: Record<string, string> = {
   romantic: 'Romántico', first_date: 'Primera cita', family: 'Familiar',
@@ -323,11 +324,14 @@ export default function PartnerDetail() {
             const pick = localPicks.byId.get(partner.partner_id);
             if (!pick) return null;
             const beh = pick.source === 'behavioral' && typeof pick.local_count === 'number' && pick.local_count > 0;
+            const barrio = pick.neighborhood ? (NBH_LABELS[pick.neighborhood] || null) : null;
             return (
               <View style={styles.localCallout}>
                 <Ionicons name="home" size={18} color={COLORS.primary} />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.localCalloutTitle}>{tr('Favorito local')}</Text>
+                  <Text style={styles.localCalloutTitle}>
+                    {tr('Favorito local')}{barrio ? ` · ${barrio}` : ''}
+                  </Text>
                   <Text style={styles.localCalloutDesc}>
                     {beh
                       ? `${pick.local_count} ${tr('locales lo aman')}`

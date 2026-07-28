@@ -165,6 +165,14 @@ export default function IntelScreen() {
             <Text style={styles.metaLine}>
               {(locals.coverage?.behavioral_picks ?? 0)} picks conductuales · {(locals.coverage?.tag_venues ?? 0)} venues favoritos de locales
             </Text>
+            {(locals.coverage?.behavioral_picks ?? 0) === 0 ? (
+              <View style={styles.buildingBanner}>
+                <Ionicons name="construct-outline" size={13} color={GOLD} />
+                <Text style={styles.buildingText}>
+                  Se llena a medida que crece el uso · building as usage grows — vista interina: cobertura por tags
+                </Text>
+              </View>
+            ) : null}
 
             {Array.isArray(locals.top_neighborhoods) && locals.top_neighborhoods.length > 0 ? (
               <>
@@ -189,12 +197,12 @@ export default function IntelScreen() {
                     {d.neighborhood ? <View style={styles.reqBadge}><Text style={styles.reqText}>{NBH_LABELS[d.neighborhood] || d.neighborhood}</Text></View> : null}
                   </View>
                   <Text style={styles.leadEvidence}>
-                    {d.local_count} locales · {d.tourist_count} turistas{typeof d.lift === 'number' ? ` · ${d.lift.toFixed(1)}× sobre-índice` : ''}
+                    {d.local_count} locales · {d.tourist_count} turistas{typeof d.ratio === 'number' ? ` · ${d.ratio.toFixed(1)}× más locales` : ''}
                   </Text>
                 </View>
               ))
             ) : (
-              <Text style={styles.empty}>Aún acumulando — aparece cuando ≥5 locales marcan un mismo lugar como favorito</Text>
+              <Text style={styles.empty}>Aún acumulando — se llena a medida que crece el uso. Un venue aparece cuando ≥3 locales lo marcan y superan a los turistas ≥2×.</Text>
             )}
           </>
         ) : null}
@@ -308,6 +316,8 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: SPACING.lg },
   sectionTitle: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.lg, marginBottom: SPACING.sm },
   subTitle: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold, marginTop: SPACING.md, marginBottom: SPACING.xs, textTransform: 'uppercase', letterSpacing: 0.4 },
+  buildingBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(251,191,36,0.08)', borderWidth: 1, borderColor: 'rgba(251,191,36,0.25)', borderRadius: 8, paddingVertical: 7, paddingHorizontal: 10, marginBottom: SPACING.sm },
+  buildingText: { flex: 1, fontSize: 11, color: '#FBBF24', ...FONTS.medium, lineHeight: 15 },
   regenBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: 'rgba(251,191,36,0.4)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
   regenText: { fontSize: 11, color: GOLD, ...FONTS.medium },
   metaLine: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginBottom: SPACING.sm },

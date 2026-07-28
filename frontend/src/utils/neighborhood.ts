@@ -6,6 +6,13 @@
  */
 export type NbhCentroid = { slug: string; centroid_lat?: number; centroid_lng?: number };
 
+/** Display labels for neighborhood slugs (matches neighborhoods.json names). */
+export const NBH_LABELS: Record<string, string> = {
+  centro: 'Centro', san_diego: 'San Diego', getsemani: 'Getsemaní',
+  bocagrande: 'Bocagrande', laguito: 'El Laguito', castillogrande: 'Castillogrande',
+  manga: 'Manga', marbella: 'Marbella', la_boquilla: 'La Boquilla', tierrabomba: 'Tierra Bomba',
+};
+
 // Beyond ~0.06° a point isn't meaningfully inside any barrio (e.g. islands, out of town).
 const MAX_DIST = 0.06;
 

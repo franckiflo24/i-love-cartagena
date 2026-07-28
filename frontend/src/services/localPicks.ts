@@ -14,6 +14,7 @@ export type LocalPick = {
   source: 'behavioral' | 'tag';
   local_count?: number;
   lift?: number;
+  neighborhood?: string | null;
 };
 
 export type LocalPicksData = {
