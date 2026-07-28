@@ -212,8 +212,13 @@ async def recompute() -> Dict[str, Any]:
 # pulse weights, so an intent/relevance match always wins. Strength scales with
 # distinct local favoriters (more-loved venues nudge a touch higher), saturating
 # at the cap. Empty map at cold start ⇒ exact no-op.
-BOOST_CAP = 1.5
-BOOST_PER_LOCAL = 0.15  # ×local_count, capped at BOOST_CAP (cap reached at 10 locals)
+# Cap is deliberately BELOW one relevance tier (a field-weight step in
+# _score_partner is >= 1.0), so the boost can only reorder genuine near-ties
+# among already-on-intent venues — it can NEVER cross a full relevance step,
+# and the min_score gate already bars off-intent venues before any boost. This
+# keeps it a true tiebreaker-plus (2b): relevance always wins.
+BOOST_CAP = 0.5
+BOOST_PER_LOCAL = 0.05  # ×local_count, capped at BOOST_CAP (cap reached at 10 locals)
 
 _pick_cache: Dict[str, Any] = {"map": {}, "loaded_at": 0.0}
 
