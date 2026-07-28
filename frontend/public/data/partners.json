@@ -32780,7 +32780,8 @@
     "tags_source": "dossier_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "dossier_research_2026-07",
-    "zone": "Centro Histórico"
+    "zone": "Centro Histórico",
+    "google_place_id": "ChIJJ20H_L0v9o4RntFiSaIssO0"
   },
   {
     "partner_id": "ptr_dv_025",
@@ -33279,7 +33280,8 @@
     "zone": "Centro",
     "serves_destinations": [
       "bahia_cartagena"
-    ]
+    ],
+    "google_place_id": "ChIJaQJBuDov9o4R6XzfGAUBE-s"
   },
   {
     "partner_id": "ptr_dv2_006",
@@ -33365,7 +33367,8 @@
     "zone": "Puerta 5)",
     "serves_destinations": [
       "islas_del_rosario"
-    ]
+    ],
+    "google_place_id": "ChIJOzS3kj0v9o4RO86oGKXx_KA"
   },
   {
     "partner_id": "ptr_dv2_008",
@@ -33622,7 +33625,8 @@
     "tags_source": "dossier_batch2_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
-    "zone": "Getsemaní"
+    "zone": "Getsemaní",
+    "google_place_id": "ChIJz2Jf7HUv9o4RByPRXoUwXPM"
   },
   {
     "partner_id": "ptr_dv2_014",
@@ -34474,7 +34478,8 @@
     "tags_source": "dossier_batch2_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
-    "zone": "San Diego (Sofitel Santa Clara)"
+    "zone": "San Diego (Sofitel Santa Clara)",
+    "google_place_id": "ChIJgUvxLKAl9o4RqkcR96rRLzc"
   },
   {
     "partner_id": "ptr_dv2_035",
@@ -34714,7 +34719,8 @@
     "tags_source": "dossier_batch2_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
-    "zone": "San Diego"
+    "zone": "San Diego",
+    "google_place_id": "ChIJo0Nhp-Ev9o4RNImsw0dp57o"
   },
   {
     "partner_id": "ptr_dv2_041",
@@ -34753,7 +34759,8 @@
     "tags_source": "dossier_batch2_2026-07",
     "tagged_at": "2026-07-23T00:00:00+00:00",
     "source": "research_2026-07",
-    "zone": "Salida desde Cartagena (San Basilio de Palenque)"
+    "zone": "Salida desde Cartagena (San Basilio de Palenque)",
+    "google_place_id": "ChIJhTfF0kOlWI4RHffze4dmJNw"
   },
   {
     "partner_id": "ptr_dv2_042",

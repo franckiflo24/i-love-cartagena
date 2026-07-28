@@ -110,11 +110,16 @@ def main():
     ap.add_argument("--prefix", default="ptr_dv_")
     ap.add_argument("--limit", type=int, default=200)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--missing-only", action="store_true",
+                    help="only venues whose /images/partners/<id>.jpg does NOT exist "
+                         "(never re-download/overwrite a published photo)")
     args = ap.parse_args()
 
     partners = json.loads(PARTNERS_FILE.read_text())
     targets = [p for p in partners if p["partner_id"].startswith(args.prefix)][:args.limit]
-    print(f"Targets ({args.prefix}): {len(targets)}\n")
+    if args.missing_only:
+        targets = [p for p in targets if not (IMG_DIR / f"{p['partner_id']}.jpg").exists()]
+    print(f"Targets ({args.prefix}{', missing-only' if args.missing_only else ''}): {len(targets)}\n")
 
     ok = miss = 0
     for p in targets:
