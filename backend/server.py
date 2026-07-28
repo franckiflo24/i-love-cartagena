@@ -1708,9 +1708,10 @@ async def _temp_upsert_batch3(request: Request):
     auth_header = request.headers.get("Authorization", "")
     if not secret or auth_header != f"Bearer {secret}":
         raise HTTPException(403, "cron secret required")
+    import json as _json  # server.py has no module-level json import
     seed_path = os.path.join(os.path.dirname(__file__), "data", "dossier_venues_batch3_2026-07.json")
     with open(seed_path, "r", encoding="utf-8") as f:
-        rows = json.load(f)
+        rows = _json.load(f)
     rows = rows if isinstance(rows, list) else rows.get("venues") or rows.get("partners") or []
     upserted = 0
     for r in rows:
