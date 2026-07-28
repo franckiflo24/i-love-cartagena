@@ -39,5 +39,6 @@
   "zone": "Isla Tierra Bomba",
   "serves_destinations": [
     "tierra_bomba"
-  ]
+  ],
+  "google_place_id": "ChIJb3kUWOkp9o4RCFzKhc72kII"
 }

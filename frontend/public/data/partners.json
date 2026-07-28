@@ -32835,7 +32835,7 @@
       "lng": -75.551
     },
     "phone": "+573212528806",
-    "image_url": "/images/partners/ptr_dv_026.jpg",
+    "image_url": "",
     "instagram": "grancolombia_tours",
     "booking_link": "https://grancolombiatours.com",
     "rating": 4.7,
@@ -33079,7 +33079,7 @@
       "lng": -75.551
     },
     "phone": "",
-    "image_url": "/images/partners/ptr_dv2_001.jpg",
+    "image_url": "",
     "instagram": "",
     "booking_link": "",
     "rating": 4.4,
@@ -33167,7 +33167,7 @@
       "lng": -75.551
     },
     "phone": "+573117864041",
-    "image_url": "/images/partners/ptr_dv2_003.jpg",
+    "image_url": "",
     "instagram": "juanballena",
     "booking_link": "https://juanballena.com",
     "rating": 4.7,
@@ -33295,7 +33295,7 @@
       "lng": -75.75
     },
     "phone": "",
-    "image_url": "/images/partners/ptr_dv2_006.jpg",
+    "image_url": "",
     "instagram": "SomosGenteDeMar",
     "booking_link": "https://www.booking.com/hotel/co/gente-de-mar-resort-islas-del-rosario.html",
     "rating": 4.2,
@@ -33426,7 +33426,7 @@
       "lng": -75.68
     },
     "phone": "",
-    "image_url": "/images/partners/ptr_dv2_009.jpg",
+    "image_url": "",
     "instagram": "sabaibeachclub",
     "booking_link": "https://cartagenadaytours.com/products/sabai-beach-club-baru",
     "rating": 4.7,
@@ -33498,7 +33498,8 @@
     "zone": "Isla Tierra Bomba",
     "serves_destinations": [
       "tierra_bomba"
-    ]
+    ],
+    "google_place_id": "ChIJb3kUWOkp9o4RCFzKhc72kII"
   },
   {
     "partner_id": "ptr_dv2_011",
@@ -33929,7 +33930,7 @@
       "lng": -75.551
     },
     "phone": "",
-    "image_url": "/images/partners/ptr_dv2_021.jpg",
+    "image_url": "",
     "instagram": "piccola_fattoria",
     "booking_link": "",
     "rating": 3.7,
@@ -34254,7 +34255,7 @@
       "lng": -75.683857
     },
     "phone": "",
-    "image_url": "/images/partners/ptr_dv2_029.jpg",
+    "image_url": "",
     "instagram": "",
     "booking_link": "https://www.mrandmrssmith.com/villas/casa-ceiba",
     "rating": 4.8,
@@ -34654,7 +34655,7 @@
       "lng": -75.551
     },
     "phone": "",
-    "image_url": "/images/partners/ptr_dv2_039.jpg",
+    "image_url": "",
     "instagram": "",
     "booking_link": "https://www.takeachef.com/en-co/private-chef/cartagena",
     "rating": 4.7,
@@ -34852,7 +34853,7 @@
       "lng": -75.550308
     },
     "phone": "+573245500787",
-    "image_url": "/images/partners/ptr_dv2_044.jpg",
+    "image_url": "",
     "instagram": "",
     "booking_link": "https://cartagenatopexperiences.com",
     "rating": 4.7,
@@ -34889,7 +34890,7 @@
       "lng": -75.551
     },
     "phone": "",
-    "image_url": "/images/partners/ptr_dv2_045.jpg",
+    "image_url": "",
     "instagram": "",
     "booking_link": "https://www.savoya.com/service-areas/cartagena-colombia",
     "rating": 4.6,
@@ -34927,7 +34928,7 @@
       "lng": -75.551
     },
     "phone": "",
-    "image_url": "/images/partners/ptr_dv2_046.jpg",
+    "image_url": "",
     "instagram": "",
     "booking_link": "https://indrive.com/en-co",
     "rating": 4.4,
