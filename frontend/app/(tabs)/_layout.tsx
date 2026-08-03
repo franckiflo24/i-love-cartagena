@@ -51,6 +51,7 @@ export default function TabLayout() {
         <Tabs.Screen name="index" options={{ title: s('tab_home'), tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} /> }} />
         <Tabs.Screen name="explore" options={{ title: s('tab_explore') || 'Explore', tabBarIcon: ({ color, size }) => <Ionicons name="compass" size={size} color={color} /> }} />
         <Tabs.Screen name="mapa" options={{ title: s('tab_map'), tabBarIcon: ({ color, size }) => <Ionicons name="map" size={size} color={color} /> }} />
+        <Tabs.Screen name="pasaporte" options={{ title: s('tab_passport') || 'Pasaporte', tabBarIcon: ({ color, size }) => <Ionicons name="ribbon" size={size} color={color} /> }} />
         <Tabs.Screen name="bookings" options={{ title: s('tab_bookings') || 'Bookings', tabBarIcon: ({ color, size }) => <Ionicons name="bookmark" size={size} color={color} /> }} />
         <Tabs.Screen name="perfil" options={{ title: s('tab_profile'), tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} /> }} />
         <Tabs.Screen name="agenda" options={{ href: null }} />

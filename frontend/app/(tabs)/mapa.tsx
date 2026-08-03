@@ -5,13 +5,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTr } from '../../src/i18n/autoTr';
+import { geoService, haversineM } from '../../src/lib/geo';
+import { getCollections } from '../../src/lib/passport';
+import { getVenues } from '../../src/lib/venueCache';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -32,10 +35,17 @@ type Place = {
 
 const FILTERS = [
   { key: 'all', label: 'Todos', icon: 'grid', color: '#D97706' },
+  { key: 'pasaporte', label: 'Pasaporte', icon: 'ribbon', color: '#D4AF37' },
   { key: 'venue', label: 'Venues', icon: 'location', color: '#3B82F6' },
   { key: 'partner', label: 'Partners', icon: 'diamond', color: '#8B5CF6' },
   { key: 'concert', label: 'Conciertos', icon: 'musical-notes', color: '#EC4899' },
 ];
+
+const GOLD = '#D4AF37';
+
+function fmtLiveDist(m: number): string {
+  return m < 1000 ? `a ${Math.round(m / 10) * 10}m de ti` : `a ${(m / 1000).toFixed(1)}km de ti`;
+}
 
 const MARKER_COLORS: Record<string, string> = {
   historic: '#F59E0B',
@@ -152,98 +162,61 @@ function detectZone(lat: number, lng: number): string {
 
 /**
  * WebMapDirect — renders Leaflet directly into the DOM on web (no iframe/WebView).
- * Fixes the gray-tile issue caused by srcDoc iframe sandbox restrictions.
+ *
+ * LIVE-TRACKING architecture: the map instance is created ONCE; marker layers
+ * rebuild only when places/filter change; the user dot lives in its own layer
+ * and is MOVED (never rebuilt) on every geo tick, so live position updates
+ * are cheap and the map never flickers. Popups show real-time "a Xm de ti"
+ * computed at open time from the latest position.
  */
-function WebMapDirect({ places, filter, userLoc, onNavigate }: {
-  places: Place[]; filter: string; userLoc: { lat: number; lng: number } | null;
+function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate }: {
+  places: Place[]; filter: string; passportIds: Set<string>;
+  userLoc: { lat: number; lng: number } | null; follow: boolean;
   onNavigate: (path: string) => void;
 }) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const leafletRef = useRef<any>(null);
+  const markerLayerRef = useRef<any>(null);
+  const userMarkerRef = useRef<any>(null);
+  const userPosRef = useRef<{ lat: number; lng: number } | null>(null);
+  const followRef = useRef(follow);
+  followRef.current = follow;
 
+  // ── Map bootstrap: once ──
   useEffect(() => {
     if (typeof window === 'undefined' || !mapRef.current) return;
-
-    // Load Leaflet CSS
     if (!document.querySelector('link[href*="leaflet"]')) {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
       document.head.appendChild(link);
     }
-
-    // Load Leaflet JS
-    const initMap = () => {
+    const init = () => {
       const L = (window as any).L;
-      if (!L || !mapRef.current) return;
-
-      // Destroy previous map instance
-      if (leafletRef.current) {
-        leafletRef.current.remove();
-        leafletRef.current = null;
-      }
-
+      if (!L || !mapRef.current || leafletRef.current) return;
       const map = L.map(mapRef.current, { zoomControl: true, attributionControl: false })
         .setView([10.4236, -75.5483], 13);
       leafletRef.current = map;
-
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19,
-        subdomains: 'abcd',
-        className: 'dark-tiles',
+        maxZoom: 19, subdomains: 'abcd', className: 'dark-tiles',
       }).addTo(map);
 
-      // Add markers
-      const filtered = filter === 'all' ? places : places.filter(p => p.category === filter);
-      filtered.forEach(p => {
-        if (!p.lat || !p.lng) return;
-        const color = MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || '#D97706';
-        const safeName = p.name.replace(/'/g, '').replace(/"/g, '');
-        const safeDesc = (p.extra || p.description || '').replace(/'/g, '').replace(/"/g, '').substring(0, 80);
-        const safeAddr = p.address.replace(/'/g, '').replace(/"/g, '');
-        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
-        const priceHtml = p.price ? `<span style="font-size:12px;color:#D97706;font-weight:700">${p.price}</span><br>` : '';
-
-        const popup = `<div style="font-family:sans-serif;min-width:180px">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-            <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></div>
-            <span style="font-size:10px;color:${color};text-transform:uppercase;font-weight:700">${p.type}</span>
-          </div>
-          <b style="font-size:15px;color:#1a1a2e">${safeName}</b><br>
-          <span style="font-size:11px;color:#666">${safeDesc}</span><br>
-          <span style="font-size:11px;color:#888">📍 ${safeAddr}</span><br>
-          ${priceHtml}
-          <div style="display:flex;gap:6px;margin-top:6px">
-            <a href="#" data-partner="${p.id}" style="display:inline-block;padding:6px 14px;background:#D97706;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">Ver detalle →</a>
-            <a href="${mapsUrl}" target="_blank" style="display:inline-block;padding:6px 14px;background:rgba(26,26,46,0.1);color:#1a1a2e;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px solid #ddd">📍 Mapa</a>
-          </div>
-        </div>`;
-
-        L.circleMarker([p.lat, p.lng], {
-          radius: 10, fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9,
-        }).addTo(map).bindPopup(popup, { maxWidth: 260 });
+      // Real-time distance injection when a popup opens
+      map.on('popupopen', (e: any) => {
+        try {
+          const el = e.popup.getElement()?.querySelector('[data-dist]');
+          const pos = userPosRef.current;
+          if (el && pos) {
+            const ll = e.popup.getLatLng();
+            const d = haversineM(pos.lat, pos.lng, ll.lat, ll.lng);
+            el.textContent = '🚶 ' + fmtLiveDist(d);
+            (el as HTMLElement).style.display = 'block';
+          }
+        } catch {}
       });
 
-      // User location marker — only recenter if INSIDE Cartagena
-      if (userLoc) {
-        const userIcon = L.divIcon({
-          className: 'user-pulse-icon',
-          html: '<div style="position:relative;width:22px;height:22px"><div style="position:absolute;top:0;left:0;width:22px;height:22px;border-radius:50%;background:rgba(37,99,235,0.25);animation:pulse 1.6s ease-out infinite"></div><div style="position:absolute;top:4px;left:4px;width:14px;height:14px;border-radius:50%;background:#2563EB;border:2px solid #fff;box-shadow:0 0 6px rgba(37,99,235,0.7)"></div></div>',
-          iconSize: [22, 22],
-          iconAnchor: [11, 11],
-        });
-        L.marker([userLoc.lat, userLoc.lng], { icon: userIcon, zIndexOffset: 1000 })
-          .addTo(map)
-          .bindPopup('<b style="color:#1a1a2e">📍 Tu ubicación</b>');
-        if (isInCartagena(userLoc.lat, userLoc.lng)) {
-          map.setView([userLoc.lat, userLoc.lng], 14);
-        }
-      }
-
-      // Handle "Ver detalle" clicks via event delegation
       mapRef.current.addEventListener('click', (e: MouseEvent) => {
-        const target = e.target as HTMLElement;
-        const link = target.closest('[data-partner]') as HTMLElement | null;
+        const link = (e.target as HTMLElement).closest('[data-partner]') as HTMLElement | null;
         if (link) {
           e.preventDefault();
           const pid = link.getAttribute('data-partner');
@@ -251,7 +224,6 @@ function WebMapDirect({ places, filter, userLoc, onNavigate }: {
         }
       });
 
-      // Inject pulse animation CSS
       if (!document.querySelector('#leaflet-pulse-css')) {
         const style = document.createElement('style');
         style.id = 'leaflet-pulse-css';
@@ -266,24 +238,117 @@ function WebMapDirect({ places, filter, userLoc, onNavigate }: {
         `;
         document.head.appendChild(style);
       }
+      renderMarkers();
+      renderUser();
     };
-
-    if ((window as any).L) {
-      initMap();
-    } else {
+    if ((window as any).L) init();
+    else {
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-      script.onload = initMap;
+      script.onload = init;
       document.head.appendChild(script);
     }
-
     return () => {
       if (leafletRef.current) {
         leafletRef.current.remove();
         leafletRef.current = null;
+        markerLayerRef.current = null;
+        userMarkerRef.current = null;
       }
     };
-  }, [places, filter, userLoc]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Place markers: rebuild only when data/filter changes ──
+  const renderMarkers = () => {
+    const L = (window as any).L;
+    const map = leafletRef.current;
+    if (!L || !map) return;
+    if (markerLayerRef.current) {
+      map.removeLayer(markerLayerRef.current);
+      markerLayerRef.current = null;
+    }
+    const layer = L.layerGroup();
+    const filtered = filter === 'all' ? places
+      : filter === 'pasaporte' ? places.filter(p => passportIds.has(p.id))
+      : places.filter(p => p.category === filter);
+    filtered.forEach(p => {
+      if (!p.lat || !p.lng) return;
+      const isPassport = passportIds.has(p.id);
+      const color = isPassport ? GOLD : (MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || '#D97706');
+      const safeName = p.name.replace(/'/g, '').replace(/"/g, '');
+      const safeDesc = (p.extra || p.description || '').replace(/'/g, '').replace(/"/g, '').substring(0, 80);
+      const safeAddr = p.address.replace(/'/g, '').replace(/"/g, '');
+      const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
+      const priceHtml = p.price ? `<span style="font-size:12px;color:#D97706;font-weight:700">${p.price}</span><br>` : '';
+      const passportHtml = isPassport
+        ? `<span style="font-size:10px;color:#8a6d1f;font-weight:800">🛂 SELLO DEL PASAPORTE</span><br>`
+        : '';
+      const popup = `<div style="font-family:sans-serif;min-width:180px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+          <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></div>
+          <span style="font-size:10px;color:${color};text-transform:uppercase;font-weight:700">${isPassport ? 'pasaporte' : p.type}</span>
+        </div>
+        <b style="font-size:15px;color:#1a1a2e">${safeName}</b><br>
+        <span data-dist style="display:none;font-size:12px;color:#1a7f37;font-weight:700"></span>
+        ${passportHtml}
+        <span style="font-size:11px;color:#666">${safeDesc}</span><br>
+        <span style="font-size:11px;color:#888">📍 ${safeAddr}</span><br>
+        ${priceHtml}
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <a href="#" data-partner="${p.id}" style="display:inline-block;padding:6px 14px;background:#D97706;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">Ver detalle →</a>
+          <a href="${mapsUrl}" target="_blank" style="display:inline-block;padding:6px 14px;background:rgba(26,26,46,0.1);color:#1a1a2e;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px solid #ddd">📍 Mapa</a>
+        </div>
+      </div>`;
+      L.circleMarker([p.lat, p.lng], {
+        radius: isPassport ? 11 : 10,
+        fillColor: color,
+        color: isPassport ? '#7a5c00' : '#fff',
+        weight: 2, opacity: 1, fillOpacity: 0.92,
+      }).addTo(layer).bindPopup(popup, { maxWidth: 260 });
+    });
+    layer.addTo(map);
+    markerLayerRef.current = layer;
+  };
+  useEffect(() => {
+    renderMarkers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [places, filter, passportIds]);
+
+  // ── User dot: MOVED on every tick, never rebuilt ──
+  const renderUser = () => {
+    const L = (window as any).L;
+    const map = leafletRef.current;
+    if (!L || !map) return;
+    userPosRef.current = userLoc;
+    if (!userLoc) {
+      if (userMarkerRef.current) {
+        map.removeLayer(userMarkerRef.current);
+        userMarkerRef.current = null;
+      }
+      return;
+    }
+    if (!userMarkerRef.current) {
+      const userIcon = L.divIcon({
+        className: 'user-pulse-icon',
+        html: '<div style="position:relative;width:22px;height:22px"><div style="position:absolute;top:0;left:0;width:22px;height:22px;border-radius:50%;background:rgba(37,99,235,0.25);animation:pulse 1.6s ease-out infinite"></div><div style="position:absolute;top:4px;left:4px;width:14px;height:14px;border-radius:50%;background:#2563EB;border:2px solid #fff;box-shadow:0 0 6px rgba(37,99,235,0.7)"></div></div>',
+        iconSize: [22, 22], iconAnchor: [11, 11],
+      });
+      userMarkerRef.current = L.marker([userLoc.lat, userLoc.lng], { icon: userIcon, zIndexOffset: 1000 })
+        .addTo(map)
+        .bindPopup('<b style="color:#1a1a2e">📍 Tu ubicación</b>');
+      if (isInCartagena(userLoc.lat, userLoc.lng)) map.setView([userLoc.lat, userLoc.lng], 15);
+    } else {
+      userMarkerRef.current.setLatLng([userLoc.lat, userLoc.lng]);
+      if (followRef.current && isInCartagena(userLoc.lat, userLoc.lng)) {
+        map.panTo([userLoc.lat, userLoc.lng], { animate: true });
+      }
+    }
+  };
+  useEffect(() => {
+    renderUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLoc]);
 
   return (
     <div
@@ -301,7 +366,44 @@ export default function MapaScreen() {
   const [filter, setFilter] = useState('all');
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [locStatus, setLocStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle');
+  const [follow, setFollow] = useState(true);
+  const [passportIds, setPassportIds] = useState<Set<string>>(new Set());
   const webViewRef = useRef<any>(null);
+
+  // ── LIVE tracking: geoService watch while the map is focused ──
+  useEffect(() => {
+    const unsub = geoService.subscribe((s) => {
+      if (s.status === 'granted' && s.position) {
+        setUserLoc({ lat: s.position.lat, lng: s.position.lng });
+        setLocStatus('granted');
+      }
+    });
+    geoService.syncPermission().then(() => {
+      const s = geoService.getState();
+      if (s.status === 'granted' && s.position) setUserLoc({ lat: s.position.lat, lng: s.position.lng });
+    });
+    return unsub;
+  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      geoService.start();
+      return () => geoService.stop();
+    }, []),
+  );
+
+  // ── Passport venues (sabores ∪ plazas ∪ local gems) → gold on the map ──
+  useEffect(() => {
+    getCollections().then((cols) => {
+      if (!cols) return;
+      const ids = new Set<string>();
+      for (const s of cols.sabores) for (const v of s.venues) ids.add(v.id);
+      for (const p of cols.plazas) ids.add(p.id);
+      getVenues().then((vs) => {
+        for (const v of vs) if (v.tags.includes('local_favorite')) ids.add(v.id);
+        setPassportIds(new Set(ids));
+      }).catch(() => setPassportIds(new Set(ids)));
+    }).catch(() => {});
+  }, []);
 
   // Request location permission and track ping → backend analytics
   const requestLocation = async () => {
@@ -321,6 +423,8 @@ export default function MapaScreen() {
       const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       setUserLoc(loc);
       setLocStatus('granted');
+      // hand off to the live watcher — the dot follows from here on
+      geoService.syncPermission().then(() => geoService.start());
       // Send ping to backend for analytics + AI personalization
       try {
         const userRaw = await AsyncStorage.getItem('user_data');
@@ -435,6 +539,7 @@ export default function MapaScreen() {
 
   const counts = {
     all: places.length,
+    pasaporte: places.filter(p => passportIds.has(p.id)).length,
     venue: places.filter(p => p.category === 'venue').length,
     partner: places.filter(p => p.category === 'partner').length,
     concert: places.filter(p => p.category === 'concert').length,
@@ -481,7 +586,7 @@ export default function MapaScreen() {
       {/* Map */}
       <View style={styles.mapWrap}>
         {Platform.OS === 'web' ? (
-          <WebMapDirect places={places} filter={filter} userLoc={userLoc} onNavigate={(path) => router.push(path as any)} />
+          <WebMapDirect places={places} filter={filter} passportIds={passportIds} userLoc={userLoc} follow={follow} onNavigate={(path) => router.push(path as any)} />
         ) : (
           <WebView
             ref={webViewRef}
@@ -507,11 +612,11 @@ export default function MapaScreen() {
 
         {/* Floating "Recentrar en Cartagena" button */}
         <TouchableOpacity
-          style={[styles.locateBtn, { bottom: 80 }]}
-          onPress={() => setUserLoc(null)}
+          style={[styles.locateBtn, { bottom: 80 }, follow && styles.locateBtnActive]}
+          onPress={() => setFollow(f => !f)}
           activeOpacity={0.85}
         >
-          <Ionicons name="compass-outline" size={20} color={COLORS.primary} />
+          <Ionicons name="walk" size={20} color={follow ? COLORS.white : COLORS.primary} />
         </TouchableOpacity>
 
         {/* Floating "Locate me" button */}

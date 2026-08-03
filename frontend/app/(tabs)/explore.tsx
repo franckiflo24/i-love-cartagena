@@ -726,6 +726,13 @@ export default function ExploreScreen() {
         >
           <Ionicons name="map-outline" size={18} color={COLORS.primary} />
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.mapBtn, { top: 64 }]}
+          onPress={() => router.push('/pasaporte' as any)}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="ribbon-outline" size={18} color={COLORS.primary} />
+        </TouchableOpacity>
       </View>
       <View style={styles.header}>
         <SearchBarButton onPress={() => router.push('/search')} />

@@ -14,15 +14,15 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
-import { SafeImage } from '../src/components/SafeImage';
-import { useTr } from '../src/i18n/autoTr';
-import { useAuth } from '../src/context/AuthContext';
-import { geoService, GeoState, haversineM } from '../src/lib/geo';
+import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
+import { SafeImage } from '../../src/components/SafeImage';
+import { useTr } from '../../src/i18n/autoTr';
+import { useAuth } from '../../src/context/AuthContext';
+import { geoService, GeoState, haversineM } from '../../src/lib/geo';
 import {
   getCollections, getPassport, discover, mintShareLink, CollectionsDef, Passport, CollectionVenue,
-} from '../src/lib/passport';
-import { shareCard, canShareCard } from '../src/lib/shareCard';
+} from '../../src/lib/passport';
+import { shareCard, canShareCard } from '../../src/lib/shareCard';
 
 const SEAL_RADIUS_M = 75; // mirrors the server's honesty gate
 
@@ -163,9 +163,11 @@ export default function PasaporteScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
         {/* Header */}
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={20} color={COLORS.textMain} />
-          </TouchableOpacity>
+          {router.canGoBack() && (
+            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+              <Ionicons name="arrow-back" size={20} color={COLORS.textMain} />
+            </TouchableOpacity>
+          )}
           <Text style={styles.title}>{tr('Mi Pasaporte')}</Text>
           {!!user && !!progress && canShareCard() && (
             <TouchableOpacity onPress={onShare} style={styles.shareBtn} activeOpacity={0.85}>

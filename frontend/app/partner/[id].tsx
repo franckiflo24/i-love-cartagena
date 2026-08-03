@@ -16,6 +16,7 @@ import { useTr } from '../../src/i18n/autoTr';
 import { useLocalPicks } from '../../src/services/localPicks';
 import { NBH_LABELS } from '../../src/utils/neighborhood';
 import { LoProbe } from '../../src/components/LoProbe';
+import { LiveDistance } from '../../src/components/LiveDistance';
 
 const TAG_LABELS: Record<string, string> = {
   romantic: 'Romántico', first_date: 'Primera cita', family: 'Familiar',
@@ -374,6 +375,7 @@ export default function PartnerDetail() {
                 <Ionicons name="location-outline" size={20} color={COLORS.primary} />
                 <Text style={styles.infoLabel}>{tr('Ubicación')}</Text>
                 <Text style={[styles.infoValue, { textDecorationLine: 'underline' }]}>{partner.address}</Text>
+                <LiveDistance lat={partner.location?.lat} lng={partner.location?.lng} />
                 <Ionicons name="navigate-outline" size={14} color={COLORS.textMuted} style={{ marginTop: 4 }} />
               </TouchableOpacity>
             ) : null}
