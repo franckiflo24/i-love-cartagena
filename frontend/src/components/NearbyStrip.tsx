@@ -29,6 +29,7 @@ import { useTr } from '../i18n/autoTr';
 import { useAuth } from '../context/AuthContext';
 import { geoService, GeoState, haversineM, bearingDeg } from '../lib/geo';
 import { getVenues, CachedVenue } from '../lib/venueCache';
+import { getCollections, getPassport } from '../lib/passport';
 
 const STRIP_RADIUS_M = 150;   // strip appears only with ≥1 venue inside this
 const GEM_REVEAL_M = 40;      // gem un-blurs (and passport-writes) inside this
@@ -117,6 +118,29 @@ export function NearbyStrip() {
 
   const lastEnrich = useRef<{ ts: number; lat: number; lng: number } | null>(null);
   const discoverInflight = useRef<Set<string>>(new Set());
+
+  // 8A1: venues that would fill an UNCOLLECTED passport slot get a "te falta"
+  // flag. Real slots only (collection-mapped venues); fail-soft to empty.
+  const [missingSlotIds, setMissingSlotIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    let alive = true;
+    if (!user?.user_id) { setMissingSlotIds(new Set()); return; }
+    (async () => {
+      try {
+        const [cols, { data }] = await Promise.all([getCollections(), getPassport(user.user_id)]);
+        if (!alive || !cols || !data?.progress) return;
+        const ids = new Set<string>();
+        for (const s of cols.sabores) {
+          if (!data.progress.sabores.plates[s.key]) for (const v of s.venues) ids.add(v.id);
+        }
+        for (const p of cols.plazas) {
+          if (!data.progress.plazas.venues[p.id]) ids.add(p.id);
+        }
+        setMissingSlotIds(ids);
+      } catch {}
+    })();
+    return () => { alive = false; };
+  }, [user?.user_id]);
 
   // ── Wiring: geo subscription + venue cache (both fail-soft) ────────
   useEffect(() => {
@@ -285,6 +309,7 @@ export function NearbyStrip() {
               userPos={pos}
               revealedGem={v.isGem && revealedGems.has(v.id)}
               isGuest={!user}
+              missingSlot={missingSlotIds.has(v.id)}
               tr={tr}
               onPress={() => router.push(`/partner/${v.id}` as any)}
               onGuestPassport={() => router.push('/login' as any)}
@@ -343,6 +368,7 @@ function VenueCard({
   userPos,
   revealedGem,
   isGuest,
+  missingSlot,
   tr,
   onPress,
   onGuestPassport,
@@ -352,6 +378,7 @@ function VenueCard({
   userPos: { lat: number; lng: number };
   revealedGem: boolean;
   isGuest: boolean;
+  missingSlot?: boolean;
   tr: (s: string) => string;
   onPress: () => void;
   onGuestPassport: () => void;
@@ -384,6 +411,11 @@ function VenueCard({
         </Text>
         <View style={styles.cardFooter}>
           <DistanceChip venue={venue} heading={heading} userPos={userPos} />
+          {!!missingSlot && !revealedGem && (
+            <Text style={styles.passportHint} numberOfLines={1}>
+              {tr('Te falta este sello')}
+            </Text>
+          )}
           {revealedGem && isGuest && (
             <TouchableOpacity onPress={onGuestPassport} hitSlop={{ top: 6, bottom: 6 }}>
               <Text style={styles.passportHint} numberOfLines={1}>

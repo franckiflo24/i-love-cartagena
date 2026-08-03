@@ -35,6 +35,7 @@ export interface PassportProgress {
   plazas: { discovered: number; total: number; venues: Record<string, boolean> };
   joyas: { discovered: number };
   neighborhoods: { slug: string; discovered: number; total: number }[];
+  rareza?: number;
 }
 
 export interface Discovery {
@@ -55,6 +56,20 @@ export interface Rank {
   progress?: number;
 }
 
+export interface PassportTitle { key: string; name: string }
+
+export interface SpecialStamp {
+  key: string;
+  name: string;
+  icon: string;
+  desc?: string;
+  kind: 'daily_window' | 'season' | 'pulse';
+  hours?: [number, number];
+  dates?: [string, string];
+  state: 'earned' | 'available_now' | 'upcoming' | 'out_of_window' | 'pasada';
+  earned_ts?: string | null;
+}
+
 export interface Passport {
   user_id: string;
   discoveries: Discovery[];
@@ -64,6 +79,8 @@ export interface Passport {
   rank?: Rank;
   achievements?: Record<string, string>; // key → award timestamp
   standing?: { active: number; top_pct?: number } | null;
+  titles?: { all: PassportTitle[]; primary: PassportTitle | null };
+  specials?: SpecialStamp[];
   created_at?: string;
 }
 
@@ -75,8 +92,29 @@ export interface DiscoverResult {
   total_discoveries?: number;
   points_earned?: number;
   new_achievements?: { key: string; ts: string }[];
+  new_specials?: { key: string; name: string; icon: string; ts: string }[];
+  completed_collections?: { type: string; name: string; slug?: string }[];
   rank?: Rank;
   rank_up?: boolean;
+}
+
+export interface GroupStanding {
+  group_id: string;
+  name: string | null;
+  code: string;
+  members: { handle: string; stamps: number; rareza: number; is_me: boolean }[];
+}
+
+export async function groupCreate(name: string | null, handle: string): Promise<{ code: string } | null> {
+  try { return await api.post('/passport/groups', { name: name || undefined, handle }); } catch { return null; }
+}
+
+export async function groupJoin(code: string, handle: string): Promise<boolean> {
+  try { const r = await api.post('/passport/groups/join', { code, handle }); return !!r?.ok; } catch { return false; }
+}
+
+export async function groupsMine(): Promise<GroupStanding[]> {
+  try { const r = await api.get('/passport/groups/mine'); return r?.groups || []; } catch { return []; }
 }
 
 const KV_COLLECTIONS = 'passport:collections';

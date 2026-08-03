@@ -78,6 +78,8 @@ export function LoProbe({ partnerId }: { partnerId: string }) {
           points: res.points_earned || 0,
           achievements: (res.new_achievements || []).map((a) => a.key),
           rankUp: res.rank_up && res.rank ? res.rank : null,
+          specials: res.new_specials || [],
+          completions: res.completed_collections || [],
         });
       } else {
         setNotice(tr('Ya está en tu pasaporte'));

@@ -21,7 +21,9 @@ import { useAuth } from '../../src/context/AuthContext';
 import { geoService, GeoState, haversineM } from '../../src/lib/geo';
 import {
   getCollections, getPassport, discover, mintShareLink, CollectionsDef, Passport, CollectionVenue,
+  groupsMine, groupCreate, groupJoin, GroupStanding,
 } from '../../src/lib/passport';
+import { TextInput } from 'react-native';
 import { shareCard, canShareCard } from '../../src/lib/shareCard';
 import { ACHIEVEMENTS, achievementDef } from '../../src/lib/achievements';
 import { StampCelebration, CelebrationData } from '../../src/components/StampCelebration';
@@ -112,6 +114,54 @@ export default function PasaporteScreen() {
   const streakAtPlay = !!passport && (passport.streak?.current || 0) > 0
     && passport.streak?.last_day !== todayBogota;
 
+  // 8C2: opt-in group standings
+  const [groups, setGroups] = useState<GroupStanding[]>([]);
+  const [groupHandle, setGroupHandle] = useState('');
+  const [groupCode, setGroupCode] = useState('');
+  const [groupBusy, setGroupBusy] = useState(false);
+  useEffect(() => {
+    if (user?.user_id) groupsMine().then(setGroups).catch(() => {});
+    else setGroups([]);
+  }, [user?.user_id]);
+
+  const onGroupJoin = useCallback(async () => {
+    if (groupBusy || groupHandle.trim().length < 2) return;
+    setGroupBusy(true);
+    try {
+      if (groupCode.trim()) {
+        const ok = await groupJoin(groupCode.trim().toUpperCase(), groupHandle.trim());
+        setNotice(ok ? tr('¡Ya estás en el grupo!') : tr('Código de grupo no válido'));
+      } else {
+        const r = await groupCreate(null, groupHandle.trim());
+        setNotice(r?.code ? `${tr('Grupo creado — código')}: ${r.code}` : tr('No se pudo crear el grupo'));
+      }
+      setGroups(await groupsMine());
+    } finally {
+      setGroupBusy(false);
+      setTimeout(() => setNotice(null), 5000);
+    }
+  }, [groupBusy, groupHandle, groupCode, tr]);
+
+  // 8A2/8A3: per-collection pull — how many left + the nearest missing item.
+  // Only real venues with real coords; no phantom distances (geo off → count only).
+  const collectionPull = useCallback((kind: 'sabores' | 'plazas') => {
+    if (!cols || !progress) return null;
+    const missing = kind === 'sabores'
+      ? cols.sabores.filter((s) => !progress.sabores.plates[s.key]).map((s) => ({ label: s.name, venues: s.venues }))
+      : cols.plazas.filter((p) => !progress.plazas.venues[p.id]).map((p) => ({ label: p.name, venues: [p] }));
+    if (missing.length === 0) return null;
+    let nearest: { label: string; d: number } | null = null;
+    if (geo.status === 'granted' && geo.position) {
+      for (const m of missing) {
+        const d = nearestVenueDist(m.venues, geo);
+        if (d !== null && (!nearest || d < nearest.d)) nearest = { label: m.label, d };
+      }
+    }
+    return { left: missing.length, nearest, almostLabel: missing.length === 1 ? missing[0].label : null };
+  }, [cols, progress, geo]);
+  const saboresPull = useMemo(() => collectionPull('sabores'), [collectionPull]);
+  const plazasPull = useMemo(() => collectionPull('plazas'), [collectionPull]);
+
   // The pull: nearest UNSEALED collection stamp within 500m of the live position.
   const nudge = useMemo(() => {
     if (!cols || !progress) return null;
@@ -161,6 +211,8 @@ export default function PasaporteScreen() {
           points: res.points_earned || 0,
           achievements: (res.new_achievements || []).map((a) => a.key),
           rankUp: res.rank_up && res.rank ? res.rank : null,
+          specials: res.new_specials || [],
+          completions: res.completed_collections || [],
         });
       } else {
         setNotice(tr('Ya está en tu pasaporte'));
@@ -198,6 +250,8 @@ export default function PasaporteScreen() {
       joyas: progress.joyas.discovered,
       topNeighborhood: nbh ? { name: NBH_NAMES[nbh.slug] || nbh.slug, discovered: nbh.discovered, total: nbh.total } : null,
       recentVenueNames: recent,
+      title: passport?.titles?.primary?.name || null,
+      rareza: progress.rareza || 0,
     }, shareUrl);
     if (result === 'downloaded') setNotice(tr('Imagen descargada — compártela donde quieras'));
     if (result === 'failed') setNotice(tr('No se pudo generar la tarjeta'));
@@ -271,6 +325,9 @@ export default function PasaporteScreen() {
                       <View style={{ flex: 1 }}>
                         <Text style={styles.coverKicker}>{tr('PASAPORTE DE CARTAGENA')}</Text>
                         <Text style={styles.rankName}>{tr(rank.name)}</Text>
+                        {!!passport?.titles?.primary && (
+                          <Text style={styles.titleText}>★ {passport.titles.primary.name}</Text>
+                        )}
                         {standing?.top_pct ? (
                           <Text style={styles.standingText}>
                             Top {standing.top_pct}% · {standing.active} {tr('exploradores')}
@@ -284,6 +341,9 @@ export default function PasaporteScreen() {
                       <View style={styles.coverStamps}>
                         <Text style={styles.coverStampsNum}>{passport?.total_discoveries || 0}</Text>
                         <Text style={styles.coverStampsLabel}>{tr('sellos')}</Text>
+                        {!!progress?.rareza && (
+                          <Text style={styles.rarezaText}>💠 {progress.rareza} {tr('rareza')}</Text>
+                        )}
                       </View>
                     </View>
                     {!!rank.next && (
@@ -299,11 +359,11 @@ export default function PasaporteScreen() {
                   </View>
                 )}
 
-                {/* ── Streak invite (never guilt): stamped-today keeps it alive ── */}
+                {/* ── Streak invite — invitation only, loss-aversion copy is banned ── */}
                 {streakAtPlay && (
                   <View style={styles.streakInvite}>
                     <Text style={styles.streakInviteText}>
-                      🔥 {tr('Sella algo hoy y tu racha de')} {passport?.streak?.current} {tr('días sigue viva')}
+                      🔥 {tr('Racha de')} {passport?.streak?.current} {tr('días — un sello hoy la continúa')}
                     </Text>
                   </View>
                 )}
@@ -360,6 +420,19 @@ export default function PasaporteScreen() {
                     <Text style={styles.sectionCount}>{progress.sabores.discovered}/{progress.sabores.total}</Text>
                   )}
                 </View>
+                {!!saboresPull && (saboresPull.almostLabel ? (
+                  <View style={styles.almostCard}>
+                    <Text style={styles.almostTitle}>✨ {tr('¡Casi lo tenés!')}</Text>
+                    <Text style={styles.almostText}>
+                      {tr('Solo falta')}: {saboresPull.almostLabel}
+                      {saboresPull.nearest ? ` — ${fmtDist(saboresPull.nearest.d)}` : ''}
+                    </Text>
+                  </View>
+                ) : saboresPull.nearest ? (
+                  <Text style={styles.pullLine}>
+                    {tr('Faltan')} {saboresPull.left} · {tr('más cerca')}: {saboresPull.nearest.label} {fmtDist(saboresPull.nearest.d)}
+                  </Text>
+                ) : null)}
                 <View style={styles.grid}>
                   {cols.sabores.map((s) => {
                     const done = !!progress?.sabores.plates[s.key];
@@ -399,6 +472,19 @@ export default function PasaporteScreen() {
                     <Text style={styles.sectionCount}>{progress.plazas.discovered}/{progress.plazas.total}</Text>
                   )}
                 </View>
+                {!!plazasPull && (plazasPull.almostLabel ? (
+                  <View style={styles.almostCard}>
+                    <Text style={styles.almostTitle}>✨ {tr('¡Casi lo tenés!')}</Text>
+                    <Text style={styles.almostText}>
+                      {tr('Solo falta')}: {plazasPull.almostLabel}
+                      {plazasPull.nearest ? ` — ${fmtDist(plazasPull.nearest.d)}` : ''}
+                    </Text>
+                  </View>
+                ) : plazasPull.nearest ? (
+                  <Text style={styles.pullLine}>
+                    {tr('Faltan')} {plazasPull.left} · {tr('más cerca')}: {plazasPull.nearest.label} {fmtDist(plazasPull.nearest.d)}
+                  </Text>
+                ) : null)}
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: SPACING.lg, gap: SPACING.sm }}>
                   {cols.plazas.map((p) => {
                     const done = !!progress?.plazas.venues[p.id];
@@ -474,6 +560,86 @@ export default function PasaporteScreen() {
                     );
                   })}
                 </View>
+              </View>
+            )}
+
+            {/* ── Sellos Especiales (8B) — real windows, never fake urgency ── */}
+            {!!user && !isEmpty && (passport?.specials || []).length > 0 && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { paddingHorizontal: SPACING.lg, marginBottom: SPACING.sm }]}>{tr('Sellos Especiales')}</Text>
+                <View style={{ paddingHorizontal: SPACING.lg, gap: 8 }}>
+                  {(passport?.specials || []).map((sp) => (
+                    <View key={sp.key} style={[styles.specialRow, sp.state === 'earned' && styles.specialEarned, sp.state === 'available_now' && styles.specialNow]}>
+                      <Text style={[styles.specialIcon, (sp.state === 'out_of_window' || sp.state === 'upcoming' || sp.state === 'pasada') && { opacity: 0.4 }]}>{sp.icon}</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.specialName, sp.state !== 'earned' && sp.state !== 'available_now' && { color: COLORS.textMuted }]}>{sp.name}</Text>
+                        <Text style={styles.specialDesc}>{sp.desc}</Text>
+                      </View>
+                      {sp.state === 'earned' ? (
+                        <Text style={styles.specialDate}>{sp.earned_ts ? new Date(sp.earned_ts).toLocaleDateString() : '✓'}</Text>
+                      ) : sp.state === 'available_now' ? (
+                        <View style={styles.specialNowChip}><Text style={styles.specialNowChipText}>{tr('AHORA')}</Text></View>
+                      ) : sp.state === 'pasada' ? (
+                        <Text style={styles.specialMuted}>{tr('Temporada pasada')}</Text>
+                      ) : sp.state === 'upcoming' && sp.dates ? (
+                        <Text style={styles.specialMuted}>{sp.dates[0].slice(5)}</Text>
+                      ) : sp.hours ? (
+                        <Text style={styles.specialMuted}>{sp.hours[0]}–{sp.hours[1]}h</Text>
+                      ) : null}
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* ── Tu Grupo (8C2) — opt-in, real participants, chosen handles ── */}
+            {!!user && (
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { paddingHorizontal: SPACING.lg, marginBottom: SPACING.sm }]}>{tr('Tu Grupo')}</Text>
+                {groups.length > 0 ? (
+                  <View style={{ paddingHorizontal: SPACING.lg, gap: 10 }}>
+                    {groups.map((g) => (
+                      <View key={g.group_id} style={styles.groupCard}>
+                        <View style={styles.groupHeader}>
+                          <Text style={styles.groupName}>{g.name || tr('Grupo')} · {g.code}</Text>
+                        </View>
+                        {g.members.map((m, i) => (
+                          <View key={m.handle + i} style={[styles.groupRow, m.is_me && styles.groupRowMe]}>
+                            <Text style={styles.groupPos}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</Text>
+                            <Text style={[styles.groupHandle, m.is_me && { color: COLORS.primary }]}>{m.handle}{m.is_me ? ` (${tr('tú')})` : ''}</Text>
+                            <Text style={styles.groupStat}>{m.stamps} {tr('sellos')} · 💠{m.rareza}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    ))}
+                  </View>
+                ) : (
+                  <View style={{ paddingHorizontal: SPACING.lg, gap: 8 }}>
+                    <Text style={styles.groupInviteText}>{tr('Crea un grupo con tu pareja, tus amigos o tu barco — y comparen pasaportes.')}</Text>
+                    <TextInput
+                      value={groupHandle}
+                      onChangeText={setGroupHandle}
+                      placeholder={tr('Tu apodo en el grupo')}
+                      placeholderTextColor={COLORS.textMuted}
+                      style={styles.groupInput}
+                      maxLength={24}
+                    />
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <TextInput
+                        value={groupCode}
+                        onChangeText={setGroupCode}
+                        placeholder="AMOG-XXXX"
+                        placeholderTextColor={COLORS.textMuted}
+                        style={[styles.groupInput, { flex: 1 }]}
+                        autoCapitalize="characters"
+                        maxLength={12}
+                      />
+                      <TouchableOpacity style={[styles.groupBtn, groupHandle.trim().length < 2 && { opacity: 0.5 }]} onPress={onGroupJoin} disabled={groupBusy || groupHandle.trim().length < 2} activeOpacity={0.85}>
+                        <Text style={styles.groupBtnText}>{groupCode.trim() ? tr('Unirme') : tr('Crear grupo')}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
               </View>
             )}
 
@@ -579,6 +745,38 @@ const styles = StyleSheet.create({
   medalTileName: { fontSize: 10.5, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
   medalTileDate: { fontSize: 8.5, color: COLORS.primary, ...FONTS.medium },
   medalTileHint: { fontSize: 8.5, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'center', lineHeight: 11 },
+
+  titleText: { fontSize: 12, color: COLORS.primary, ...FONTS.bold, marginTop: 2, fontStyle: 'italic' },
+  rarezaText: { fontSize: 9, color: COLORS.primary, ...FONTS.semibold, marginTop: 2 },
+
+  pullLine: { fontSize: 11, color: 'rgba(212,175,55,0.85)', ...FONTS.medium, paddingHorizontal: SPACING.lg, marginTop: -4, marginBottom: SPACING.sm },
+  almostCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, padding: 12, backgroundColor: 'rgba(212,175,55,0.12)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.primary, gap: 2 },
+  almostTitle: { fontSize: 12, color: COLORS.primary, ...FONTS.bold },
+  almostText: { fontSize: 12, color: COLORS.textMain, ...FONTS.semibold },
+
+  specialRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, padding: 12 },
+  specialEarned: { borderColor: COLORS.primary, backgroundColor: 'rgba(212,175,55,0.10)' },
+  specialNow: { borderColor: '#22C55E', backgroundColor: 'rgba(34,197,94,0.08)' },
+  specialIcon: { fontSize: 22 },
+  specialName: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
+  specialDesc: { fontSize: 10.5, color: COLORS.textMuted, ...FONTS.medium, marginTop: 1 },
+  specialDate: { fontSize: 10, color: COLORS.primary, ...FONTS.semibold },
+  specialMuted: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
+  specialNowChip: { backgroundColor: '#22C55E', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
+  specialNowChipText: { fontSize: 9, color: '#000', ...FONTS.bold, letterSpacing: 1 },
+
+  groupCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: 12, gap: 6 },
+  groupHeader: { marginBottom: 4 },
+  groupName: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
+  groupRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 5, paddingHorizontal: 8, borderRadius: RADIUS.sm },
+  groupRowMe: { backgroundColor: 'rgba(212,175,55,0.08)' },
+  groupPos: { fontSize: 13, width: 26 },
+  groupHandle: { flex: 1, fontSize: 13, color: COLORS.textMain, ...FONTS.semibold },
+  groupStat: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
+  groupInviteText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium, lineHeight: 17 },
+  groupInput: { paddingHorizontal: 12, paddingVertical: 10, borderRadius: RADIUS.md, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, color: COLORS.textMain, fontSize: 13 },
+  groupBtn: { backgroundColor: COLORS.primary, borderRadius: RADIUS.md, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
+  groupBtnText: { fontSize: 12, color: '#000', ...FONTS.bold },
 
   streakRow: { flexDirection: 'row', gap: 10, paddingHorizontal: SPACING.lg, marginBottom: SPACING.md },
   streakBox: { flex: 1, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', paddingVertical: 14, gap: 2 },

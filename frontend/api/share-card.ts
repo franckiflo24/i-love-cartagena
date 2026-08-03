@@ -53,6 +53,11 @@ function card(snap: any) {
     h('div', { display: 'flex', fontSize: 21, fontWeight: 700, color: 'rgba(255,255,255,0.45)', marginTop: 4 },
       snap.name ? `el pasaporte de ${snap.name}` : 'mi pasaporte de viaje'),
   ];
+  // 8C3: earned title + rareza — only rendered when the snapshot carries them
+  if (snap.title) {
+    inner.push(h('div', { display: 'flex', fontSize: 24, fontWeight: 800, color: '#F5D47A', marginTop: 6 },
+      `★ ${snap.title}${snap.rareza ? `  ·  rareza ${snap.rareza}` : ''}`));
+  }
   if (tiles.length > 0) {
     inner.push(h('div', { display: 'flex', gap: 18, marginTop: 28 }, ...tiles));
   } else {

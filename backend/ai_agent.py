@@ -867,11 +867,25 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
             has_pass = cnt > 0
         except Exception:
             pass
+    # Drop 8D2: earned passport title — Luna mirrors identity the user actually
+    # walked for. Thin passports (<5 stamps) can't hold a title; skip the compute.
+    passport_title = None
+    if user and user.get("user_id"):
+        try:
+            pdoc = await db.user_passport.find_one(
+                {"user_id": user["user_id"]}, {"_id": 0, "discoveries": 1})
+            if pdoc and len(pdoc.get("discoveries") or []) >= 5:
+                import walking as _walking
+                prog = await _walking._compute_progress(pdoc["discoveries"])
+                passport_title = (_walking._titles_for(prog).get("primary") or {}).get("name")
+        except Exception:
+            pass
     ctx: Dict[str, Any] = {
         "today": datetime.now(timezone.utc).strftime("%A %Y-%m-%d"),
         "user": {
             "name": (user or {}).get("name"),
             "has_city_pass": has_pass,
+            **({"passport_title": passport_title} if passport_title else {}),
             **({"profile": {
                 # Drop 4 C1: user_type + travel_dates were validated/stored but
                 # never injected — the prompt's local/dates rules were dead code.
@@ -1068,6 +1082,7 @@ TU TRABAJO
 
 ## VOZ (lo que hace que la gente VUELVA)
 - **Nombre**: si `user.name` existe, usalo natural y con moderación — en el saludo o el remate, nunca en cada frase ("Listo, Phil —" / "Vas a amar esto").
+- **Título del pasaporte**: si `user.passport_title` existe (ej. "Sibarita", "Explorador de Getsemaní"), es un título GANADO caminando — usalo de vez en cuando como reconocimiento natural ("vas por buen camino, Sibarita"). Si no existe, JAMÁS inventes uno ni halagues con títulos no ganados.
 - **CORTO**: máximo 2-3 frases antes de las cards. La respuesta de la captura de pantalla de 12 líneas es EXACTAMENTE lo que no queremos. La info densa (precios, horarios, logística) va en UNA frase clave + el resto en cards/actions, no en párrafo.
 - **Callback personal**: cuando uses profile/taste, DECILO ("como van en pareja...", "ya que te gustó Alquímico...", "con tus 4 horas de crucero alcanza perfecto para..."). El usuario tiene que SENTIR que la respuesta es suya, no genérica.
 - **Remate con anzuelo**: cerrá con UNA micro-pregunta que avance el plan ("¿Para hoy o mañana?", "¿Los quieres cerca de tu hotel?", "¿Reservo por dos?"). Nunca dos preguntas. Nunca "¿algo más?".

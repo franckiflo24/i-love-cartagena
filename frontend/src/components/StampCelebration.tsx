@@ -16,7 +16,18 @@ export interface CelebrationData {
   points: number;
   achievements: string[]; // achievement keys awarded THIS stamp
   rankUp: Rank | null;
+  specials?: { key: string; name: string; icon: string }[];
+  completions?: { type: string; name: string }[];
 }
+
+// 8E1 — completion reopens the loop: each finished collection points at the
+// next real chase. Honest recognition only (partner-funded rewards arrive
+// via the trails rails; no hollow "you won!" here).
+const NEXT_LOOP: Record<string, string> = {
+  sabores: '¿Vas por las 12 plazas?',
+  plazas: '¿Vas por los 20 sabores?',
+  barrio: '¿Vas por el siguiente barrio?',
+};
 
 interface Props {
   data: CelebrationData | null;
@@ -81,6 +92,28 @@ export function StampCelebration({ data, onClose }: Props) {
           </View>
         )}
 
+        {(data.completions || []).map((c) => (
+          <View key={`${c.type}-${c.name}`} style={styles.rankBanner}>
+            <Text style={styles.rankBannerIcon}>🏆</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.rankBannerKicker}>{tr('¡Colección completa!')}</Text>
+              <Text style={styles.rankBannerName}>{c.name}</Text>
+              <Text style={styles.nextLoopText}>{tr(NEXT_LOOP[c.type] || '')}</Text>
+            </View>
+          </View>
+        ))}
+
+        {(data.specials || []).map((s) => (
+          <View key={s.key} style={styles.medalRow}>
+            <Text style={styles.medalIcon}>{s.icon}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.medalName}>{s.name}</Text>
+              <Text style={styles.medalDesc}>{tr('Sello especial — ventana real')}</Text>
+            </View>
+            <Text style={styles.medalNew}>{tr('NUEVA')}</Text>
+          </View>
+        ))}
+
         {data.achievements.map((k) => {
           const a = achievementDef(k);
           return (
@@ -126,6 +159,7 @@ const styles = StyleSheet.create({
   rankBannerIcon: { fontSize: 30 },
   rankBannerKicker: { fontSize: 10, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1.5 },
   rankBannerName: { fontSize: 17, color: '#FFF', ...FONTS.bold },
+  nextLoopText: { fontSize: 12, color: 'rgba(255,255,255,0.7)', ...FONTS.semibold, marginTop: 3 },
   medalRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12, width: '100%',
     backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: RADIUS.lg, borderWidth: 1,

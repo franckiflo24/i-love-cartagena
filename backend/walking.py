@@ -350,6 +350,8 @@ async def passport_discover(request: Request, body: DiscoverBody):
     streak = doc.get("streak") or _empty_passport(user_id)["streak"]
     points_earned = 0
     new_achievements: List[Dict[str, Any]] = []
+    new_specials: List[Dict[str, Any]] = []
+    completed_collections: List[Dict[str, str]] = []
     rank_up = False
     total = len(doc.get("discoveries") or [])
     if not already:
@@ -391,6 +393,25 @@ async def passport_discover(request: Request, body: DiscoverBody):
         except Exception as exc:
             logger.warning(f"[walking] achievements on discover failed: {exc}")
 
+        # Drop 8B: real-window special stamps (atardecer / seasonal / pulse-gated)
+        try:
+            new_specials = await _earn_specials(user_id, doc, now.astimezone(BOGOTA))
+        except Exception as exc:
+            logger.warning(f"[walking] specials on discover failed: {exc}")
+
+        # Drop 8E1: did THIS stamp complete a collection? (payoff moment)
+        try:
+            ds_all = doc.get("discoveries") or []
+            prev_ds = [d for d in ds_all
+                       if not (d.get("venue_id") == discovery["venue_id"]
+                               and d.get("type") == discovery["type"]
+                               and d.get("plate") == discovery.get("plate"))]
+            prog_prev = await _compute_progress(prev_ds)
+            prog_now = await _compute_progress(ds_all)
+            completed_collections = _collection_completions(prog_prev, prog_now)
+        except Exception as exc:
+            logger.warning(f"[walking] completion detect failed: {exc}")
+
     return {
         "ok": True,
         "already_discovered": already,
@@ -402,6 +423,8 @@ async def passport_discover(request: Request, body: DiscoverBody):
         "total_discoveries": total,
         "points_earned": points_earned,
         "new_achievements": new_achievements,
+        "new_specials": new_specials,
+        "completed_collections": completed_collections,
         "rank": _rank_for(total),
         "rank_up": rank_up,
     }
@@ -432,6 +455,19 @@ async def passport_get(request: Request):
         logger.warning(f"[walking] achievements on get failed: {exc}")
         doc.setdefault("achievements", {})
     doc["standing"] = await _explorer_percentile(total)
+    # Drop 8C/8D: titles + specials with honest window states
+    doc["titles"] = _titles_for(doc["progress"])
+    now_bog = datetime.now(timezone.utc).astimezone(BOGOTA)
+    earned_specials = doc.get("special_stamps") or {}
+    defs = _load_specials()
+    doc["specials"] = [
+        {"key": sp["key"], "name": sp["name"], "icon": sp["icon"], "desc": sp.get("desc"),
+         "kind": sp.get("kind"), "hours": sp.get("hours"), "dates": sp.get("dates"),
+         "state": _special_state(sp, now_bog, earned_specials),
+         "earned_ts": earned_specials.get(sp["key"])}
+        for sp in defs.get("specials", [])
+        if sp.get("kind") != "pulse" or defs.get("pulse_specials_active")
+    ]
     return doc
 
 
@@ -542,11 +578,25 @@ async def _compute_progress(discoveries: List[Dict[str, Any]]) -> Dict[str, Any]
                 (2 if (vid in gem_ids and vid in rare_ids) else 1)
                 for vid in n["venue_ids"] if vid in any_ids))}
            for n in cols["neighborhoods"]]
+    # Drop 8 — rareza: how IMPRESSIVE the passport is, not just how full.
+    # Weights from real discovery difficulty: visit 1 · dish 2 · gem 3 ·
+    # RARE gem 8 (Drop 4 rarity tier). Never assigned — always computed.
+    rareza = 0
+    for d in discoveries:
+        t = d.get("type")
+        if t == "dish":
+            rareza += 2
+        elif t == "gem":
+            rareza += 8 if d["venue_id"] in rare_ids else 3
+        else:
+            rareza += 1
+
     return {
         "sabores": {"discovered": sum(plates.values()), "total": len(plates), "plates": plates},
         "plazas": {"discovered": sum(plaza_hits.values()), "total": len(plaza_hits), "venues": plaza_hits},
         "joyas": {"discovered": len(gem_ids)},
         "neighborhoods": nbh,
+        "rareza": rareza,
     }
 
 
@@ -667,6 +717,125 @@ async def _explorer_percentile(my_total: int) -> Optional[Dict[str, Any]]:
         return None
 
 
+# ── Drop 8C/8D: titles + special (time-real) stamps ──────────────────
+
+_NBH_TITLE_NAMES = {
+    "centro": "Centro", "san_diego": "San Diego", "getsemani": "Getsemaní",
+    "bocagrande": "Bocagrande", "manga": "Manga", "la_boquilla": "La Boquilla",
+}
+
+
+def _titles_for(progress: Dict[str, Any]) -> Dict[str, Any]:
+    """Earned identity titles — computed from real discoveries only, in
+    priority order. An empty/thin passport earns NOTHING (no participation
+    trophies); the frontend keeps its inviting start state instead."""
+    titles: List[Dict[str, str]] = []
+    nbhs = progress.get("neighborhoods") or []
+    multi = [n for n in nbhs if n.get("discovered", 0) >= 3]
+    if len(multi) >= 3:
+        titles.append({"key": "trotamundos", "name": "Trotamundos"})
+    for n in nbhs:
+        # ≥5-venue barrios only — completing a 2-venue "barrio" is not a title
+        if n.get("total", 0) >= 5 and n.get("discovered", 0) >= n["total"]:
+            pretty = _NBH_TITLE_NAMES.get(n["slug"], n["slug"].replace("_", " ").title())
+            titles.append({"key": f"explorador_{n['slug']}", "name": f"Explorador de {pretty}"})
+    if int((progress.get("sabores") or {}).get("discovered") or 0) >= 10:
+        titles.append({"key": "sibarita", "name": "Sibarita"})
+    if int((progress.get("joyas") or {}).get("discovered") or 0) >= 5:
+        titles.append({"key": "cazador_joyas", "name": "Cazador de Joyas"})
+    return {"all": titles, "primary": titles[0] if titles else None}
+
+
+_SPECIALS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                              "data", "special_stamps.json")
+_specials_cache: Dict[str, Any] = {"data": None}
+
+
+def _load_specials() -> Dict[str, Any]:
+    if _specials_cache["data"] is None:
+        try:
+            with open(_SPECIALS_PATH, "r", encoding="utf-8") as f:
+                _specials_cache["data"] = json.load(f)
+        except Exception as exc:
+            logger.warning(f"[walking] specials defs unavailable: {exc}")
+            _specials_cache["data"] = {"specials": [], "pulse_specials_active": False}
+    return _specials_cache["data"]
+
+
+def _special_window_open(sp: Dict[str, Any], now_bogota: datetime) -> bool:
+    """Is this special earnable RIGHT NOW? Real clock/date windows only."""
+    if sp.get("kind") == "daily_window":
+        h = now_bogota.hour
+        lo, hi = sp.get("hours") or [0, 0]
+        if sp.get("weekday") is not None and now_bogota.weekday() != sp["weekday"]:
+            return False
+        return lo <= h < hi
+    if sp.get("kind") == "season":
+        d = now_bogota.strftime("%Y-%m-%d")
+        dates = sp.get("dates") or ["", ""]
+        return dates[0] <= d <= dates[1]
+    return False
+
+
+def _special_state(sp: Dict[str, Any], now_bogota: datetime,
+                   earned: Dict[str, str]) -> str:
+    """earned | available_now | upcoming | out_of_window | pasada.
+    'pasada' (season over, unearned) is neutral record-keeping — the frontend
+    renders 'temporada pasada', never a missed-it nag."""
+    if sp["key"] in earned:
+        return "earned"
+    if _special_window_open(sp, now_bogota):
+        return "available_now"
+    if sp.get("kind") == "season":
+        today = now_bogota.strftime("%Y-%m-%d")
+        dates = sp.get("dates") or ["", ""]
+        return "upcoming" if today < dates[0] else "pasada"
+    return "out_of_window"
+
+
+async def _earn_specials(user_id: str, doc: Dict[str, Any],
+                         now_bogota: datetime) -> List[Dict[str, Any]]:
+    """Called on a NEW verified stamp: any special whose REAL window is open
+    right now is earned (once). Pulse-kind specials stay dormant behind the
+    pulse_specials_active flag until the Meta values land."""
+    defs = _load_specials()
+    have = doc.get("special_stamps") or {}
+    fresh: List[Dict[str, Any]] = []
+    for sp in defs.get("specials", []):
+        if sp.get("kind") == "pulse" and not defs.get("pulse_specials_active"):
+            continue
+        if sp["key"] in have:
+            continue
+        if _special_window_open(sp, now_bogota):
+            ts = datetime.now(timezone.utc).isoformat()
+            await db.user_passport.update_one(
+                {"user_id": user_id},
+                {"$set": {f"special_stamps.{sp['key']}": ts}},
+            )
+            fresh.append({"key": sp["key"], "name": sp["name"], "icon": sp["icon"], "ts": ts})
+    return fresh
+
+
+def _collection_completions(prev: Dict[str, Any], now: Dict[str, Any]) -> List[Dict[str, str]]:
+    """Which collections did THIS stamp complete? Drives the 8E1 payoff
+    moment. Compares real progress before/after — no fabricated completions."""
+    done: List[Dict[str, str]] = []
+    ps, ns = prev.get("sabores") or {}, now.get("sabores") or {}
+    if ns.get("total") and ns.get("discovered") == ns.get("total") and ps.get("discovered") != ps.get("total"):
+        done.append({"type": "sabores", "name": "Sabores de Cartagena"})
+    pp, np_ = prev.get("plazas") or {}, now.get("plazas") or {}
+    if np_.get("total") and np_.get("discovered") == np_.get("total") and pp.get("discovered") != pp.get("total"):
+        done.append({"type": "plazas", "name": "Plazas y Rincones"})
+    prev_nbh = {n["slug"]: n for n in prev.get("neighborhoods") or []}
+    for n in now.get("neighborhoods") or []:
+        p = prev_nbh.get(n["slug"]) or {}
+        # ≥3-venue barrios only — "completing" a 1-venue barrio is not a moment
+        if n.get("total", 0) >= 3 and n.get("discovered", 0) >= n["total"] and p.get("discovered", 0) < n["total"]:
+            pretty = _NBH_TITLE_NAMES.get(n["slug"], n["slug"].replace("_", " ").title())
+            done.append({"type": "barrio", "slug": n["slug"], "name": pretty})
+    return done
+
+
 # ── Share snapshots (Drop 3 fast-follow: OG link unfurls) ────────────
 # A snapshot is what the share CARD shows and nothing more: counts, streak,
 # top barrio, ≤6 venue names, a first name. NO coordinates, NO location
@@ -681,6 +850,7 @@ def _snapshot_from_passport(doc: Dict[str, Any], progress: Dict[str, Any],
                             venue_names: List[str], name: Optional[str]) -> Dict[str, Any]:
     nbhs = [n for n in progress.get("neighborhoods", []) if n.get("discovered", 0) > 0]
     top = max(nbhs, key=lambda n: n["discovered"]) if nbhs else None
+    titles = _titles_for(progress)
     return {
         "name": (name or "").strip()[:40] or None,
         "streak_best": int((doc.get("streak") or {}).get("best") or 0),
@@ -691,6 +861,9 @@ def _snapshot_from_passport(doc: Dict[str, Any], progress: Dict[str, Any],
         "joyas": progress["joyas"]["discovered"],
         "top_nbh": ({"slug": top["slug"], "d": top["discovered"], "t": top["total"]} if top else None),
         "venues": venue_names[:6],
+        # Drop 8C3 — earned identity on the card (or nothing; never flattery)
+        "title": (titles.get("primary") or {}).get("name"),
+        "rareza": int(progress.get("rareza") or 0),
     }
 
 
@@ -957,6 +1130,112 @@ async def redeem_code(request: Request, code: str):
                   "redeemed_by_business": biz.get("partner_id")}},
     )
     return {"ok": True, "trail_key": comp["trail_key"], "redeemed": True}
+
+
+# ═══ PASSPORT GROUPS (Drop 8C2 — opt-in, real participants only) ══════
+# A group is a cruise ship, a couple, a crew of friends. Standing is shown
+# ONLY to members, only among members, with a handle each member chose.
+# There is no city-wide public board, no invented names, no "3 people near
+# you are ahead" — the comparison set is exactly who opted in.
+
+class GroupCreateBody(BaseModel):
+    name: Optional[str] = Field(default=None, max_length=40)
+    handle: str = Field(min_length=2, max_length=24)
+
+
+class GroupJoinBody(BaseModel):
+    code: str = Field(min_length=4, max_length=12)
+    handle: str = Field(min_length=2, max_length=24)
+
+
+async def _group_standings(group: Dict[str, Any], me: str) -> Dict[str, Any]:
+    members = await db.group_members.find(
+        {"group_id": group["group_id"]}, {"_id": 0, "user_id": 1, "handle": 1},
+    ).to_list(100)
+    docs = {d["user_id"]: d async for d in db.user_passport.find(
+        {"user_id": {"$in": [m["user_id"] for m in members]}},
+        {"_id": 0, "user_id": 1, "discoveries": 1},
+    )}
+    # One batched rare-gem lookup for the whole group (rareza weights)
+    gem_ids = {d["venue_id"] for doc in docs.values()
+               for d in (doc.get("discoveries") or []) if d.get("type") == "gem"}
+    rare_ids: set = set()
+    if gem_ids:
+        async for rp in db.partners.find(
+            {"partner_id": {"$in": list(gem_ids)}, "gem_rarity": "rare"},
+            {"_id": 0, "partner_id": 1},
+        ):
+            rare_ids.add(rp["partner_id"])
+    rows = []
+    for m in members:
+        ds = (docs.get(m["user_id"]) or {}).get("discoveries") or []
+        rareza = sum(2 if d.get("type") == "dish"
+                     else (8 if d["venue_id"] in rare_ids else 3) if d.get("type") == "gem"
+                     else 1 for d in ds)
+        rows.append({"handle": m["handle"], "stamps": len(ds), "rareza": rareza,
+                     "is_me": m["user_id"] == me})
+    rows.sort(key=lambda r: (-r["rareza"], -r["stamps"], r["handle"]))
+    return {"group_id": group["group_id"], "name": group.get("name"),
+            "code": group["code"], "members": rows}
+
+
+@router.post("/passport/groups")
+async def group_create(request: Request, body: GroupCreateBody):
+    """Create a group + join it. Returns the shareable code."""
+    import uuid as _uuid
+    user = await _get_current_user(request)
+    _check_rate_limit(f"grpcreate:{user['user_id']}", max_calls=5, window_sec=86400)
+    now = datetime.now(timezone.utc).isoformat()
+    for _ in range(5):  # unique-code retry
+        code = "AMOG-" + _uuid.uuid4().hex[:4].upper()
+        group = {"group_id": f"grp_{_uuid.uuid4().hex[:10]}", "code": code,
+                 "name": (body.name or "").strip()[:40] or None,
+                 "created_by": user["user_id"], "created_at": now}
+        try:
+            await db.passport_groups.insert_one(dict(group))
+            break
+        except Exception:
+            continue
+    else:
+        raise HTTPException(status_code=500, detail="no se pudo crear el grupo")
+    await db.group_members.update_one(
+        {"group_id": group["group_id"], "user_id": user["user_id"]},
+        {"$setOnInsert": {"handle": body.handle.strip()[:24], "joined_at": now}},
+        upsert=True,
+    )
+    return {"ok": True, "code": group["code"], "group_id": group["group_id"]}
+
+
+@router.post("/passport/groups/join")
+async def group_join(request: Request, body: GroupJoinBody):
+    user = await _get_current_user(request)
+    _check_rate_limit(f"grpjoin:{user['user_id']}", max_calls=10, window_sec=3600)
+    code = body.code.strip().upper()
+    group = await db.passport_groups.find_one({"code": code}, {"_id": 0})
+    if not group:
+        raise HTTPException(status_code=404, detail="código de grupo no válido")
+    now = datetime.now(timezone.utc).isoformat()
+    await db.group_members.update_one(
+        {"group_id": group["group_id"], "user_id": user["user_id"]},
+        {"$setOnInsert": {"handle": body.handle.strip()[:24], "joined_at": now}},
+        upsert=True,
+    )
+    return {"ok": True, "group_id": group["group_id"], "name": group.get("name")}
+
+
+@router.get("/passport/groups/mine")
+async def groups_mine(request: Request):
+    """Standings for every group the caller belongs to. Members only."""
+    user = await _get_current_user(request)
+    memberships = await db.group_members.find(
+        {"user_id": user["user_id"]}, {"_id": 0, "group_id": 1},
+    ).to_list(20)
+    out = []
+    for m in memberships:
+        group = await db.passport_groups.find_one({"group_id": m["group_id"]}, {"_id": 0})
+        if group:
+            out.append(await _group_standings(group, user["user_id"]))
+    return {"groups": out}
 
 
 # ═══ COMMUNITY PRICE SIGNAL (Drop 7F — foundation only) ═══════════════

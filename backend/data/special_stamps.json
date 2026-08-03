@@ -1,0 +1,40 @@
+{
+  "version": "2026-08-03-drop8",
+  "_honesty": "Every window is REAL — tied to actual clock hours or real festival dates. No fake countdowns, no manufactured expiry. An unearned past season renders 'temporada pasada' (neutral, dated) — never a nag. Pulse specials stay OFF until the Meta pulse values land.",
+  "pulse_specials_active": false,
+  "specials": [
+    {
+      "key": "sello_atardecer",
+      "name": "Sello de Atardecer",
+      "icon": "🌇",
+      "kind": "daily_window",
+      "hours": [17, 19],
+      "desc": "Cualquier sello verificado entre 5 y 7 de la tarde"
+    },
+    {
+      "key": "noche_de_viernes",
+      "name": "Viernes Cartagenero",
+      "icon": "🪩",
+      "kind": "daily_window",
+      "hours": [20, 24],
+      "weekday": 4,
+      "desc": "Un sello verificado un viernes en la noche"
+    },
+    {
+      "key": "hay_festival_2026",
+      "name": "Hay Festival 2026",
+      "icon": "📚",
+      "kind": "season",
+      "dates": ["2026-01-29", "2026-02-01"],
+      "desc": "Estuviste en Cartagena durante el Hay Festival"
+    },
+    {
+      "key": "independencia_2026",
+      "name": "Fiestas de Independencia 2026",
+      "icon": "🎉",
+      "kind": "season",
+      "dates": ["2026-11-11", "2026-11-14"],
+      "desc": "Sellaste durante las Fiestas de Independencia de Cartagena"
+    }
+  ]
+}

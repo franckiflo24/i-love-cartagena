@@ -20,6 +20,8 @@ export interface ShareCardStats {
   joyas: number;
   topNeighborhood?: { name: string; discovered: number; total: number } | null;
   recentVenueNames: string[]; // up to ~6, already localized display names
+  title?: string | null;      // 8C3 — earned identity title (or nothing)
+  rareza?: number;            // 8C3 — computed rarity score
 }
 
 const W = 1080;
@@ -89,6 +91,12 @@ export async function renderShareCard(stats: ShareCardStats): Promise<Blob | nul
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
     const owner = (stats.userName || '').trim();
     ctx.fillText(owner ? `el pasaporte de ${owner}` : 'mi pasaporte de viaje', W / 2, 316);
+    // 8C3: earned title + rareza — rendered ONLY when real (never flattery)
+    if (stats.title) {
+      ctx.font = `800 30px ${sans}`;
+      ctx.fillStyle = GOLD_BRIGHT;
+      ctx.fillText(`★ ${stats.title}${stats.rareza ? `  ·  💠 ${stats.rareza}` : ''}`, W / 2, 362);
+    }
 
     // divider
     ctx.strokeStyle = 'rgba(212,175,55,0.5)';

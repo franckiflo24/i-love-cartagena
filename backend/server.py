@@ -5594,6 +5594,9 @@ async def startup():
         await db.trail_completions.create_index([("user_id", 1), ("trail_key", 1)], unique=True)
         await db.trail_completions.create_index("redemption_code", unique=True)
         await db.quest_claims.create_index([("user_id", 1), ("date", 1)], unique=True)
+        # Drop 8: opt-in passport groups — unique join codes, one membership per user+group
+        await db.passport_groups.create_index("code", unique=True)
+        await db.group_members.create_index([("group_id", 1), ("user_id", 1)], unique=True)
         # 1.4 push: subscription identity + the HARD 1/day cap; 1.5 referral codes
         await db.push_subscriptions.create_index("endpoint", unique=True)
         await db.push_subscriptions.create_index("user_id")
