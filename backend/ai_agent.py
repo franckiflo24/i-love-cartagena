@@ -889,6 +889,7 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
         "port_tax_cop": port_tax_price,
         **({"curated_recommendations": curated} if curated else {}),
         **({"live_tonight": live_tonight} if live_tonight else {}),
+        **({"trust_reference": tc} if (tc := _trust_context(user_text)) else {}),
         "relevant_partners": relevant_partners,
         "partner_directory": all_partners,
         "events": upcoming_events,
@@ -935,6 +936,33 @@ async def append_messages(db, session_id: str, user_msg: Dict[str, Any], assista
 # ────────────────────────────────────────────────
 # LLM call (structured JSON via Emergent LLM Key)
 # ────────────────────────────────────────────────
+
+# ── Trust & price reference (Drop 7): grounded, tiered — never invented ──
+_TRUST_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "trust_knowledge.json")
+try:
+    with open(_TRUST_PATH, "r", encoding="utf-8") as _f:
+        _TRUST = json.load(_f)
+except Exception:
+    _TRUST = None
+
+_TRUST_TRIGGERS = ("taxi", "precio", "cuanto", "cuánto", "tarifa", "aeropuerto", "seguro",
+                   "seguridad", "estafa", "scam", "peligro", "propina", "agua", "tasa",
+                   "muelle", "emergencia", "efectivo", "cash", "safe", "price", "cost",
+                   "fare", "fee", "tip", "airport", "dangerous", "water",
+                   # boat/island intents need the pier-fee + cash guidance
+                   "lancha", "bote", "barco", "boat", "isla", "islas", "rosario",
+                   "baru", "barú", "playa blanca", "catamaran", "catamarán", "tour")
+
+
+def _trust_context(user_text: str) -> Optional[Dict[str, Any]]:
+    if not _TRUST:
+        return None
+    t = (user_text or "").lower()
+    if not any(k in t for k in _TRUST_TRIGGERS):
+        return None
+    return {"config": _TRUST.get("config"), "entries": _TRUST.get("entries"),
+            "safety": _TRUST.get("safety")}
+
 
 SYSTEM_PROMPT = """Eres "Amo", el concierge digital oficial de la app Amo Cartagena (Cartagena de Indias, Colombia).
 Hablás como un guía local cartagenero: cálido, conocedor, profesional, jamás repetitivo.
@@ -1030,6 +1058,14 @@ TU TRABAJO
   • `interests` → priorizá categorías que coincidan con sus intereses del onboarding.
 - ⚠️ **CALIDAD DE RECOMENDACIÓN**: Cuando recomendés un lugar, SIEMPRE incluí UNA LÍNEA explicando POR QUÉ ese lugar específico encaja con lo que el usuario pidió.
 - ⚠️ **HONESTIDAD**: Cuando nada en el catálogo coincide con lo que el usuario pide, decilo honestamente y ofrecé la alternativa real más cercana. NUNCA inventés un nombre de venue, dirección, teléfono o precio.
+## CONFIANZA Y PRECIOS (un precio equivocado es una promesa rota)
+- Si `trust_reference` está en el contexto, respondé precios/seguridad DESDE AHÍ, nunca de memoria.
+- Entradas confidence=HIGH → afirmá con el año: "COP $20.200 (tarifa oficial 2026)".
+- Entradas confidence=VERIFY (traen range_cop) → dá el RANGO COMPLETO + "confirmá en el lugar". JAMÁS un número único para estas — ni promedio, ni "~aproximado", ni el punto medio. Si el rango es [16000, 41000] decí "$16–41 mil según el tour", nunca "~31.500". Si low==high (una sola cifra NO oficial), presentala como aproximada: "alrededor de $14.000, confirmá en taquilla".
+- Si el dato no está en trust_reference ni en el catálogo → "confírmalo en el lugar", nunca una cifra inventada.
+- Una línea proactiva de seguridad cuando el intent lo amerita (UNA, no un sermón): lancha/islas → "la tasa del muelle/parque se paga en efectivo ($16–41 mil según el tour), confirmá qué incluye"; vida nocturna → "nunca dejes tu trago solo"; taxi → "acordá el precio antes de subir".
+- Zonas: hablá de "zonas turísticas principales" — nunca declares una zona "peligrosa".
+
 ## VOZ (lo que hace que la gente VUELVA)
 - **Nombre**: si `user.name` existe, usalo natural y con moderación — en el saludo o el remate, nunca en cada frase ("Listo, Phil —" / "Vas a amar esto").
 - **CORTO**: máximo 2-3 frases antes de las cards. La respuesta de la captura de pantalla de 12 líneas es EXACTAMENTE lo que no queremos. La info densa (precios, horarios, logística) va en UNA frase clave + el resto en cards/actions, no en párrafo.

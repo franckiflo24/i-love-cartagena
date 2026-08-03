@@ -5599,6 +5599,9 @@ async def startup():
         await db.push_subscriptions.create_index("user_id")
         await db.push_log.create_index([("user_id", 1), ("date", 1)], unique=True)
         await db.users.create_index("referral_code", unique=True, sparse=True)
+        # Drop 7F: one price signal per user+venue+day
+        await db.price_flags.create_index([("user_id", 1), ("venue_id", 1), ("date", 1)], unique=True)
+        await db.price_flags.create_index("venue_id")
     except Exception as exc:
         logger.warning(f"[startup] search index creation failed: {exc}")
 

@@ -1,0 +1,50 @@
+{
+ "version": "2026-08-03-drop7",
+ "_spine": "A trust feature that lies is worse than none. HIGH = official/primary-sourced, publish with year. VERIFY = range only + 'confirmá en el lugar', NEVER a single hard number. Sourced from the Aug-2026 Tourist Trust/Safety/Price research doc; nothing beyond it.",
+ "config": {
+  "cop_per_usd": 3144,
+  "cop_per_usd_as_of": "2026-08-01",
+  "cop_per_usd_note": "Rate moved materially through 2026 — re-verify quarterly or on >10% moves."
+ },
+ "entries": [
+  {"topic": "taxi_minimum", "value_cop": 12250, "confidence": "HIGH", "source": "Decreto 0051, Alcaldía de Cartagena", "source_year": 2026, "note": "Carrera mínima. Sin taxímetro: acordá el precio ANTES de subir. En la práctica se redondea (12.250 → 13.000)."},
+  {"topic": "taxi_night_surcharge", "value_cop": 1100, "confidence": "HIGH", "source": "Decreto 0051", "source_year": 2026, "note": "Recargo nocturno 7pm–5am (ventana ampliada vs 2025)."},
+  {"topic": "taxi_airport_centro", "value_cop": 20200, "confidence": "HIGH", "source": "Decreto 0051 (tabla oficial del aeropuerto)", "source_year": 2026, "note": "Aeropuerto → Centro Histórico / San Diego / Getsemaní. Pedí el tiquete impreso del kiosko; tableros QR en bandas de equipaje."},
+  {"topic": "taxi_airport_bodeguita", "value_cop": 24300, "confidence": "HIGH", "source": "Decreto 0051", "source_year": 2026, "note": "Aeropuerto → Muelle de la Bodeguita / La Boquilla."},
+  {"topic": "taxi_airport_manga", "value_cop": 28500, "confidence": "HIGH", "source": "Decreto 0051", "source_year": 2026, "note": "Aeropuerto → Manga / Pie de la Popa."},
+  {"topic": "taxi_airport_bocagrande", "value_cop": 34400, "confidence": "HIGH", "source": "Decreto 0051", "source_year": 2026, "note": "Aeropuerto → Bocagrande / Castillogrande / Laguito."},
+  {"topic": "emergency_number", "value_text": "123", "confidence": "HIGH", "source": "Nacional (policía/ambulancia/bomberos)", "source_year": 2026, "note": "Gratis, 24/7. Marcá directo, sin +57 estando en Colombia. Operadores mayormente en español."},
+  {"topic": "tap_water", "value_text": "embotellada", "confidence": "HIGH", "source": "Consenso — infraestructura costera inconsistente", "source_year": 2026, "note": "Agua embotellada para tomar; ojo con hielo de origen desconocido. Cepillarse los dientes con agua de la llave: generalmente ok."},
+  {"topic": "propina", "value_text": "10% voluntaria", "confidence": "HIGH", "source": "Norma nacional — propina voluntaria", "source_year": 2026, "note": "Legalmente opcional; el mesero debe preguntar '¿Desea incluir el servicio?'. Revisá la cuenta antes de pagar con tarjeta."},
+  {"topic": "aviario_foreigner_adult", "value_cop": 85000, "confidence": "HIGH", "source": "tickets.aviarionacional.co (tarifa oficial)", "source_year": 2026, "note": "Adulto extranjero. Nacional: 50.000. Niño (2-12) extranjero: 58.000. Parqueadero 10.000/carro."},
+  {"topic": "castillo_san_felipe_foreigner", "value_cop": 33000, "confidence": "HIGH", "source": "Ente oficial de fortificaciones", "source_year": 2026, "note": "Adulto extranjero (colombiano: 22.000; gratis <6 años; entrada gratis último domingo de la mayoría de los meses, excepto dic/ene)."},
+  {"topic": "museo_oro_zenu", "value_cop": 0, "confidence": "HIGH", "source": "Banco de la República", "source_year": 2026, "note": "GRATIS. Cierra los lunes."},
+  {"topic": "rnt_registry", "value_text": "rues.org.co", "confidence": "HIGH", "source": "MinCIT / Ley 300-1996, Ley 1101-2006", "source_year": 2026, "note": "Registro Nacional de Turismo: obligatorio, gratuito, renovación anual ene-mar. 'Exigí el RNT' — verificable gratis por nombre o número en rues.org.co."},
+  {"topic": "titan_chat_playas", "value_text": "+57 304-251-1127", "confidence": "VERIFY", "source": "Alcaldía (línea WhatsApp de quejas de playa, citada inicios 2025)", "source_year": 2025, "note": "Cobros abusivos en playa — línea 'Titán Chat'. Verificar vigencia."},
+
+  {"topic": "rosario_park_and_dock_fee", "range_cop": [16000, 41000], "confidence": "VERIFY", "source": "Parques Nacionales + operadores (Juan Ballena 41k bundle; Cartagena Tours 26-30k tasa; muelle ~16k)", "source_year": 2026, "note": "SE PAGA EN EFECTIVO EN EL MUELLE (datáfonos fallan). El monto depende de qué incluye tu tour — confirmá qué cubre ANTES de pagar."},
+  {"topic": "taxi_centro_cruise_port", "range_cop": [12250, 29700], "confidence": "VERIFY", "source": "Mínima 2026 inferida; referencia 2024 puerto→Bocagrande 29.700 (el puerto cobra recargo a taxis)", "source_year": 2026, "note": "Tarifa inferida, no confirmada en el texto del decreto — confirmá en el lugar."},
+  {"topic": "taxi_centro_bodeguita", "range_cop": [12250, 12250], "confidence": "VERIFY", "source": "Mínima 2026 inferida (muelle adyacente al Centro)", "source_year": 2026, "note": "Tarifa inferida — confirmá."},
+  {"topic": "palacio_inquisicion", "range_cop": [21000, 28000], "confidence": "VERIFY", "source": "Fuentes divergen (Donde.co 21k; guía 2026 28k)", "source_year": 2026, "note": "Confirmá en taquilla."},
+  {"topic": "san_pedro_claver", "range_cop": [14000, 14000], "confidence": "VERIFY", "source": "Guías 2025-26 (~14.000)", "source_year": 2026, "note": "No confirmado con fuente oficial — confirmá en taquilla."},
+  {"topic": "totumo_entrance", "range_cop": [20000, 20000], "confidence": "VERIFY", "source": "Guías (llegada por cuenta propia)", "source_year": 2026, "note": "Tour guiado con transporte ~95.000-159.000. Masajes/fotos 'voluntarios' con presión — llevá billetes chicos."},
+  {"topic": "lancha_rosario_shared", "range_cop": [150000, 330000], "confidence": "VERIFY", "source": "Rango de mercado 2026 (lancha compartida, por persona)", "source_year": 2026, "note": "Según lancha rápida/lenta e inclusiones; públicas económicas ~60.000. Privadas 1-4 pax ~US$170+/persona."},
+  {"topic": "sunset_cruise", "range_cop": [97000, 160000], "confidence": "VERIFY", "source": "Desde ~US$31/persona (OTAs) + tasa portuaria 16.000 aparte en varios operadores", "source_year": 2026, "note": "Muchos cobran la tasa portuaria (~16.000) aparte — preguntá si está incluida."},
+  {"topic": "palenquera_photo", "range_cop": [8000, 30000], "confidence": "VERIFY", "source": "Costumbre local ~8.000; a turistas les piden 15.000-30.000+", "source_year": 2026, "note": "Acordá el precio ANTES de sacar la foto; separá la propina de foto de cualquier compra de fruta."},
+  {"topic": "menu_del_dia", "range_cop": [8000, 28000], "confidence": "VERIFY", "source": "Banda de mercado (local económico → Centro)", "source_year": 2026, "note": "El mejor valor de la ciudad. El Centro corre 30-60% más caro que Getsemaní a calidad equivalente."},
+  {"topic": "arepa_huevo_street", "range_cop": [3000, 8000], "confidence": "VERIFY", "source": "Banda de mercado (zonas turísticas más caro)", "source_year": 2026, "note": "Preguntá el precio antes."}
+ ],
+ "safety": {
+  "tourist_zones": ["Centro Histórico", "San Diego", "Getsemaní (núcleo)", "Bocagrande", "Castillogrande"],
+  "tourist_zones_note": "Zonas turísticas principales con presencia de policía de turismo — NO una garantía de seguridad. Después de medianoche, app o taxi incluso para trayectos cortos.",
+  "phone_guidance": "El delito más común es el arrebato de celular (incluso desde moto). Teléfono en el bolsillo, no en la mano en la calle; bolso cruzado; discreción en cajeros.",
+  "drink_guidance": "Escopolamina: rara pero real y peligrosa (fuente: Embajada de EE.UU.). Nunca dejes tu trago solo; solo botellas selladas; cuidado con encuentros de apps de citas — vector documentado.",
+  "level4_note": "El aviso Nivel 4 de EE.UU. (mar 2026) NO incluye Cartagena; el núcleo turístico no es zona Nivel 4. Mensaje preciso y no alarmista."
+ },
+ "scam_cards": [
+  {"key": "taxi", "icon": "car", "title": "Taxis", "line": "Acordá el precio ANTES de subir o usá una app. Mínima 2026: $12.250; del aeropuerto al Centro: $20.200 (oficial)."},
+  {"key": "islas", "icon": "boat", "title": "Islas y playas", "line": "Confirmá qué incluye tu tour. La tasa del muelle/parque se paga en EFECTIVO ($16-41k según tour). Rechazá el 'mesero personal' que no pediste."},
+  {"key": "comida", "icon": "restaurant", "title": "Comida", "line": "Preguntá '¿precio?' y sacale foto al menú antes de consumir. 'Precio de mercado' sin número = cuenta sorpresa."},
+  {"key": "noche", "icon": "moon", "title": "De noche", "line": "Nunca dejes tu trago solo. Cuidado con encuentros de apps de citas (vector documentado por la Embajada de EE.UU.). Botellas selladas."}
+ ]
+}

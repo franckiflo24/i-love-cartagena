@@ -238,6 +238,26 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
         `;
         document.head.appendChild(style);
       }
+      // Drop 7E: tourist-zone shading — soft, labeled, never a safety claim.
+      const ZONES: Array<[string, [number, number], [number, number]]> = [
+        ['Centro Histórico', [10.418, -75.555], [10.435, -75.535]],
+        ['Bocagrande', [10.395, -75.560], [10.415, -75.545]],
+        ['Getsemaní', [10.410, -75.545], [10.420, -75.530]],
+        ['Castillogrande', [10.390, -75.560], [10.405, -75.555]],
+        ['Manga', [10.405, -75.535], [10.420, -75.525]],
+      ];
+      ZONES.forEach(([name, sw, ne]) => {
+        L.rectangle([sw, ne] as any, { color: '#D4AF37', weight: 1, opacity: 0.35, fillColor: '#D4AF37', fillOpacity: 0.05, interactive: false }).addTo(map);
+      });
+      const legend = (L as any).control({ position: 'bottomleft' });
+      legend.onAdd = () => {
+        const div = document.createElement('div');
+        div.style.cssText = 'background:rgba(5,8,20,0.85);color:#D4AF37;font:600 10px sans-serif;padding:4px 8px;border-radius:10px;border:1px solid rgba(212,175,55,0.4)';
+        div.textContent = 'Zonas turísticas principales';
+        return div;
+      };
+      legend.addTo(map);
+
       renderMarkers();
       renderUser();
     };

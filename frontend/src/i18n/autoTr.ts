@@ -113,6 +113,26 @@ export const AUTO_TR: Dict = {
   'Instalar AMO': { en: 'Install AMO', fr: 'Installer AMO', pt: 'Instalar AMO' },
   'Acceso directo en tu pantalla de inicio': { en: 'Shortcut on your home screen', fr: 'Raccourci sur votre écran d’accueil', pt: 'Atalho na sua tela inicial' },
 
+  // Drop 7 — trust & safety
+  'Cartagena sin sustos': { en: 'Cartagena, no surprises', fr: 'Carthagène sans surprises', pt: 'Cartagena sem sustos' },
+  'Precios oficiales, zonas y cómo evitar los cobros de más': { en: 'Official prices, zones and how to avoid overcharges', fr: 'Prix officiels, zones et comment éviter les arnaques', pt: 'Preços oficiais, zonas e como evitar cobranças a mais' },
+  'Los 4 que hay que saber': { en: 'The 4 things to know', fr: 'Les 4 choses à savoir', pt: 'As 4 coisas para saber' },
+  'Precios oficiales': { en: 'Official prices', fr: 'Prix officiels', pt: 'Preços oficiais' },
+  'Zonas turísticas principales': { en: 'Main tourist zones', fr: 'Zones touristiques principales', pt: 'Zonas turísticas principais' },
+  'Exigí el RNT': { en: 'Demand the RNT', fr: 'Exigez le RNT', pt: 'Exija o RNT' },
+  'Verificado': { en: 'Verified', fr: 'Vérifié', pt: 'Verificado' },
+  'Precio de referencia': { en: 'Reference price', fr: 'Prix de référence', pt: 'Preço de referência' },
+  'GRATIS': { en: 'FREE', fr: 'GRATUIT', pt: 'GRÁTIS' },
+  'Los precios cambian — confirmá en el lugar.': { en: 'Prices change — confirm on site.', fr: 'Les prix changent — confirmez sur place.', pt: 'Os preços mudam — confirme no local.' },
+  'Ubicación y existencia verificadas contra el registro oficial de Google Places.': { en: 'Location and existence verified against the official Google Places registry.', fr: 'Localisation et existence vérifiées via le registre officiel Google Places.', pt: 'Localização e existência verificadas no registro oficial do Google Places.' },
+  'Registrado en el Registro Nacional de Turismo — turismo legal. Verificable gratis en rues.org.co.': { en: 'Registered in the National Tourism Registry — legal tourism. Verify free at rues.org.co.', fr: 'Inscrit au Registre National du Tourisme — tourisme légal. Vérifiable gratuitement sur rues.org.co.', pt: 'Registrado no Registro Nacional de Turismo — turismo legal. Verifique grátis em rues.org.co.' },
+  'oficial': { en: 'official', fr: 'officiel', pt: 'oficial' },
+  'Emergencias nacionales — gratis, 24/7. Marcá directo, sin +57.': { en: 'National emergencies — free, 24/7. Dial directly, no +57.', fr: 'Urgences nationales — gratuit, 24/7. Composez directement, sans +57.', pt: 'Emergências nacionais — grátis, 24/7. Disque direto, sem +57.' },
+  'Todo operador turístico legal en Colombia debe tener Registro Nacional de Turismo (RNT). Pedilo antes de comprar un tour — verificalo gratis:': { en: 'Every legal tour operator in Colombia must hold a National Tourism Registry (RNT). Ask for it before buying a tour — verify it free:', fr: "Tout opérateur légal en Colombie doit avoir un RNT. Demandez-le avant d'acheter un tour — vérifiez gratuitement :", pt: 'Todo operador legal na Colômbia deve ter RNT. Peça antes de comprar um tour — verifique grátis:' },
+  'Fuente: Decreto 0051 y entes oficiales, 2026. Los taxis no tienen taxímetro: acordá el precio antes de subir.': { en: 'Source: Decree 0051 and official bodies, 2026. Taxis have no meters: agree the price before getting in.', fr: 'Source : Décret 0051 et organismes officiels, 2026. Les taxis n’ont pas de compteur : convenez du prix avant de monter.', pt: 'Fonte: Decreto 0051 e órgãos oficiais, 2026. Táxis não têm taxímetro: combine o preço antes de entrar.' },
+  'Precios 2026 según decretos y entes oficiales; pueden cambiar. Esta guía no sustituye los avisos de viaje de tu gobierno.': { en: '2026 prices per official decrees and bodies; they can change. This guide does not replace your government’s travel advisories.', fr: 'Prix 2026 selon décrets officiels ; ils peuvent changer. Ce guide ne remplace pas les avis aux voyageurs de votre gouvernement.', pt: 'Preços de 2026 conforme decretos oficiais; podem mudar. Este guia não substitui os avisos de viagem do seu governo.' },
+  'No pudimos cargar la información': { en: "Couldn't load the information", fr: 'Impossible de charger les informations', pt: 'Não foi possível carregar as informações' },
+
   // Categories / Tabs
   'Todos': { en: 'All', fr: 'Tous', pt: 'Todos' },
   'Gastronomía': { en: 'Dining', fr: 'Gastronomie', pt: 'Gastronomia' },
@@ -424,7 +444,6 @@ export const AUTO_TR: Dict = {
   'Programa': { en: 'Program', fr: 'Programme', pt: 'Programa' },
   'Destacados': { en: 'Featured', fr: 'À la une', pt: 'Destaques' },
   'shows': { en: 'shows', fr: 'shows', pt: 'shows' },
-  'GRATIS': { en: 'FREE', fr: 'GRATUIT', pt: 'GRÁTIS' },
 
   // Search
   'Búsqueda': { en: 'Search', fr: 'Recherche', pt: 'Busca' },

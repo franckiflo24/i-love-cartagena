@@ -17,6 +17,7 @@ import { useLocalPicks } from '../../src/services/localPicks';
 import { NBH_LABELS } from '../../src/utils/neighborhood';
 import { LoProbe } from '../../src/components/LoProbe';
 import { LiveDistance } from '../../src/components/LiveDistance';
+import { TrustBadges } from '../../src/components/TrustBadges';
 
 const TAG_LABELS: Record<string, string> = {
   romantic: 'Romántico', first_date: 'Primera cita', family: 'Familiar',
@@ -351,6 +352,8 @@ export default function PartnerDetail() {
               ))}
             </View>
           ) : null}
+          <TrustBadges partner={partner} />
+
           {Array.isArray(partner.signature_dishes) && partner.signature_dishes.length > 0 ? (
             <View style={styles.sigBox}>
               <View style={styles.sigHeader}>

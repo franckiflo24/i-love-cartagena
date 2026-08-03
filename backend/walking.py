@@ -786,3 +786,49 @@ async def redeem_code(request: Request, code: str):
                   "redeemed_by_business": biz.get("partner_id")}},
     )
     return {"ok": True, "trail_key": comp["trail_key"], "redeemed": True}
+
+
+# ═══ COMMUNITY PRICE SIGNAL (Drop 7F — foundation only) ═══════════════
+# Users confirm/flag venue prices. NOTHING is surfaced until a real
+# threshold accrues (like the locals gate) — no fake "community verified".
+
+@router.post("/trust/price-flag")
+async def price_flag(request: Request):
+    user = await _get_current_user(request)
+    user_id = user["user_id"]
+    _check_rate_limit(f"pflag:{user_id}", max_calls=20, window_sec=3600)
+    body = await request.json()
+    venue_id = (body.get("venue_id") or "").strip()[:64]
+    signal = body.get("signal")
+    if not venue_id or signal not in ("precio_correcto", "me_cobraron_de_mas"):
+        raise HTTPException(status_code=400, detail="venue_id + signal válido requeridos")
+    if not await db.partners.find_one({"partner_id": venue_id}, {"_id": 1}):
+        raise HTTPException(status_code=404, detail="venue no encontrado")
+    day = datetime.now(timezone.utc).astimezone(BOGOTA).strftime("%Y-%m-%d")
+    await db.price_flags.update_one(
+        {"user_id": user_id, "venue_id": venue_id, "date": day},
+        {"$set": {"signal": signal, "note": (body.get("note") or "")[:200],
+                  "at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    return {"ok": True}
+
+
+_TRUST_PUB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "trust_knowledge.json")
+_trust_pub_cache: Dict[str, Any] = {}
+
+
+@router.get("/trust/reference")
+async def trust_reference(request: Request):
+    """PUBLIC tiered trust knowledge — powers the 'Cartagena sin sustos'
+    sheet and price answers. HIGH entries carry a year; VERIFY entries carry
+    ranges + the confirmá hedge. Served verbatim from the seeded file."""
+    _check_rate_limit(f"trustref:{_client_ip(request)}", max_calls=60, window_sec=60)
+    if not _trust_pub_cache:
+        try:
+            with open(_TRUST_PUB_PATH, "r", encoding="utf-8") as f:
+                _trust_pub_cache.update(json.load(f))
+        except Exception as exc:
+            logger.error(f"[trust] load failed: {exc}")
+            raise HTTPException(status_code=503, detail="trust reference unavailable")
+    return {k: _trust_pub_cache[k] for k in ("config", "entries", "safety", "scam_cards") if k in _trust_pub_cache}

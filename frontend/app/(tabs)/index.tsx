@@ -521,6 +521,7 @@ export default function HomeScreen() {
                 { icon: 'heart',          label: s('home_favorites'),  subtitle: s('home_my_list'),     color: '#EF4444', route: '/favorites', cat: '' },
                 { icon: 'boat',           label: s('home_transport'),  subtitle: s('home_boats'),       color: '#06B6D4', route: '/transport', cat: 'activity' },
                 { icon: 'trail-sign',     label: s('home_routes'),     subtitle: 'IA',                  color: '#10B981', route: '/itineraries', cat: '' },
+                { icon: 'shield-checkmark', label: 'Sin sustos',       subtitle: 'Precios+Tips',        color: '#22C55E', route: '/seguridad', cat: '' },
                 { icon: 'shield',         label: 'Emergencias',        subtitle: 'SOS',                 color: '#DC2626', route: '/ayuda', cat: '' },
               ];
               // Cruise users: pin transport + itineraries (day-plan tools) to front
