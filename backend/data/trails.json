@@ -1,0 +1,95 @@
+{
+ "version": "2026-08-03-drop5",
+ "_grounding": "Every stop is a verified catalog venue (place-verified coords). Stops verify through the existing passport 75m server gate — a trail is an ordered lens over passport discoveries. Rewards: AMO points are live day one; partner-funded rewards activate per-trail via the 'partner_reward' slot once a partner signs (never invented).",
+ "trails": [
+  {
+   "key": "ruta_getsemani",
+   "name": "Ruta Getsemaní",
+   "tagline": "Murales, café de barrio y la noche que no se acaba",
+   "description": "El arco bohemio completo: arte callejero, dos joyas escondidas de café, la cocina de Pepina, el postre de Celele y el cierre con salsa y champeta.",
+   "neighborhood": "getsemani",
+   "time_estimate_min": 180,
+   "best_time": "tarde-noche",
+   "points": 250,
+   "partner_reward": null,
+   "stops": [
+    {"venue_id": "attr_011", "type": "visit", "note": "Los murales de la Calle de la Sierpe — el alma afro de Getsemaní"},
+    {"venue_id": "ptr_W121", "type": "gem", "note": "Café del Mural — la joya que le da nombre a la calle"},
+    {"venue_id": "ptr_V011", "type": "gem", "note": "Libertario — tostadores de origen, joya escondida"},
+    {"venue_id": "ptr_W101", "type": "dish", "plate": "arroz_coco", "note": "La Cocina de Pepina — el arroz con coco de la leyenda"},
+    {"venue_id": "ptr_R101", "type": "dish", "plate": "postre_autor", "note": "Celele — el postre del #48 del mundo"},
+    {"venue_id": "ptr_V008", "type": "visit", "note": "Café Havana — salsa en vivo, la institución"},
+    {"venue_id": "ptr_W130", "type": "visit", "note": "Bazurto Social Club — champeta para cerrar"}
+   ]
+  },
+  {
+   "key": "sabores_del_centro",
+   "name": "Sabores del Centro",
+   "tagline": "Cinco sellos, cinco sabores de la ciudad amurallada",
+   "description": "La posta de Interno, el ceviche de La Cevichería, café de origen en San Alberto, paleta artesanal y limonada de coco sobre la muralla.",
+   "neighborhood": "centro",
+   "time_estimate_min": 240,
+   "best_time": "día completo",
+   "points": 250,
+   "partner_reward": null,
+   "stops": [
+    {"venue_id": "ptr_W102", "type": "dish", "plate": "posta", "note": "Interno — la posta cartagenera con propósito"},
+    {"venue_id": "ptr_R031", "type": "dish", "plate": "ceviche", "note": "La Cevichería — la de Bourdain"},
+    {"venue_id": "ptr_V010", "type": "dish", "plate": "cafe_origen", "note": "Café San Alberto — cata de origen, joya escondida"},
+    {"venue_id": "ptr_W104", "type": "dish", "plate": "paleta", "note": "La Palettería — la pausa dulce"},
+    {"venue_id": "ptr_W113", "type": "dish", "plate": "limonada_coco", "note": "Café del Mar — limonada de coco sobre la muralla"}
+   ]
+  },
+  {
+   "key": "atardecer_perfecto",
+   "name": "Atardecer Perfecto",
+   "tagline": "Rooftop, muralla y el sol cayendo al Caribe",
+   "description": "Cóctel de autor en el Townhouse, caminata por la muralla y el atardecer con limonada de coco en Café del Mar.",
+   "neighborhood": "centro",
+   "time_estimate_min": 150,
+   "best_time": "5pm-8pm",
+   "points": 250,
+   "partner_reward": null,
+   "stops": [
+    {"venue_id": "ptr_W111", "type": "dish", "plate": "coctel_autor", "note": "The Townhouse — el rooftop para arrancar"},
+    {"venue_id": "attr_002", "type": "visit", "note": "Las Murallas — cualquier tramo del circuito sella"},
+    {"venue_id": "ptr_W113", "type": "dish", "plate": "limonada_coco", "note": "Café del Mar — el sol cae, la limonada llega"}
+   ]
+  },
+  {
+   "key": "cuatro_horas",
+   "name": "4 Horas en Cartagena",
+   "tagline": "El circuito perfecto para tu día de crucero",
+   "description": "Del reloj a las bóvedas: seis paradas caminables desde el shuttle del puerto, con tiempo de sobra para volver al barco.",
+   "neighborhood": "centro",
+   "cruise": true,
+   "time_estimate_min": 210,
+   "best_time": "9am-2pm",
+   "points": 300,
+   "partner_reward": null,
+   "stops": [
+    {"venue_id": "attr_003", "type": "visit", "note": "Torre del Reloj — la puerta de entrada (shuttle gratis del puerto)"},
+    {"venue_id": "ptr_dv_018", "type": "visit", "note": "Portal de los Dulces — cocadas y dulces de siempre"},
+    {"venue_id": "attr_004", "type": "visit", "note": "Plaza Santo Domingo — la Gorda de Botero"},
+    {"venue_id": "attr_008", "type": "visit", "note": "San Pedro Claver — el santo de los esclavos"},
+    {"venue_id": "ptr_W104", "type": "dish", "plate": "paleta", "note": "La Palettería — paleta artesanal para el calor"},
+    {"venue_id": "attr_010", "type": "visit", "note": "Las Bóvedas — artesanías y de vuelta al shuttle"}
+   ]
+  }
+ ],
+ "daily_quests": {
+  "points": 25,
+  "pool": [
+   {"plate": "limonada_coco", "text": "Hoy: prueba una limonada de coco"},
+   {"plate": "cafe_origen", "text": "Hoy: un café de origen colombiano"},
+   {"plate": "ceviche", "text": "Hoy: un ceviche cartagenero"},
+   {"plate": "paleta", "text": "Hoy: una paleta artesanal"},
+   {"plate": "mojito", "text": "Hoy: un mojito como debe ser"},
+   {"plate": "pie_coco", "text": "Hoy: pie de coco"},
+   {"plate": "carimanola", "text": "Hoy: una carimañola"},
+   {"plate": "coctel_autor", "text": "Hoy: un cóctel de autor"},
+   {"plate": "posta", "text": "Hoy: la posta cartagenera"},
+   {"plate": "arroz_coco", "text": "Hoy: arroz con coco"}
+  ]
+ }
+}

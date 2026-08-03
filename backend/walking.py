@@ -40,6 +40,8 @@ _check_rate_limit = None
 _get_current_user = None
 _get_active_pulse_map = None
 _get_behavioral_pick_ids = None
+_award_points = None
+_get_current_business = None
 
 BOGOTA = ZoneInfo("America/Bogota")
 
@@ -60,13 +62,16 @@ _CARD_PROJECTION = {
 
 
 def init(*, db_, check_rate_limit, get_current_user, get_active_pulse_map,
-         get_behavioral_pick_ids):
+         get_behavioral_pick_ids, award_points=None, get_current_business=None):
     global db, _check_rate_limit, _get_current_user, _get_active_pulse_map, _get_behavioral_pick_ids
+    global _award_points, _get_current_business
     db = db_
     _check_rate_limit = check_rate_limit
     _get_current_user = get_current_user
     _get_active_pulse_map = get_active_pulse_map
     _get_behavioral_pick_ids = get_behavioral_pick_ids
+    _award_points = award_points
+    _get_current_business = get_current_business
 
 
 # ── Helpers ──────────────────────────────────────────────────────────
@@ -568,3 +573,205 @@ async def passport_collections():
     except Exception as exc:
         logger.error(f"[walking] collections load failed: {exc}")
         raise HTTPException(status_code=500, detail="collections unavailable")
+
+
+# ═══ TRAILS & QUESTS (Drop 5) ════════════════════════════════════════
+# A trail is an ORDERED LENS over passport discoveries: every stop verifies
+# through the same 75m server gate as any other discovery — no parallel
+# verification machinery. Completion mints a logged, single-use redemption
+# code (the Phase-2 attribution unit) and awards AMO points immediately.
+# partner_reward slots stay null until a partner actually signs one (I9:
+# never an invented promise).
+
+_TRAILS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            "data", "trails.json")
+_trails_cache: Dict[str, Any] = {"data": None, "enriched": None, "at": 0.0}
+
+
+def _load_trails() -> Dict[str, Any]:
+    if _trails_cache["data"] is None:
+        with open(_TRAILS_PATH, "r", encoding="utf-8") as f:
+            _trails_cache["data"] = json.load(f)
+    return _trails_cache["data"]
+
+
+async def _enriched_trails() -> List[Dict[str, Any]]:
+    now = time.monotonic()
+    if _trails_cache["enriched"] and now - _trails_cache["at"] < 300:
+        return _trails_cache["enriched"]
+    defs = _load_trails()
+    all_ids = sorted({s["venue_id"] for t in defs["trails"] for s in t["stops"]})
+    found: Dict[str, Dict[str, Any]] = {}
+    async for p in db.partners.find(
+        {"partner_id": {"$in": all_ids}},
+        {"_id": 0, "partner_id": 1, "name": 1, "category": 1, "image_url": 1, "location": 1},
+    ):
+        found[p["partner_id"]] = p
+    out = []
+    for t in defs["trails"]:
+        stops = []
+        for s in t["stops"]:
+            v = found.get(s["venue_id"])
+            if not v:
+                continue  # venue vanished → stop drops, trail shortens, never breaks
+            loc = v.get("location") or {}
+            stops.append({**s, "name": v.get("name"), "category": v.get("category"),
+                          "image_url": v.get("image_url"),
+                          "lat": loc.get("lat"), "lng": loc.get("lng")})
+        out.append({**t, "stops": stops})
+    _trails_cache["enriched"] = out
+    _trails_cache["at"] = now
+    return out
+
+
+def _stop_matched(stop: Dict[str, Any], discoveries: List[Dict[str, Any]]) -> bool:
+    for d in discoveries:
+        if d.get("venue_id") != stop["venue_id"]:
+            continue
+        if stop["type"] == "dish":
+            if d.get("type") == "dish" and d.get("plate") == stop.get("plate"):
+                return True
+        elif d.get("type") in ("visit", "gem"):
+            # a gem reveal at a visit-stop counts — you were physically there
+            return True
+    return False
+
+
+def _daily_quest_for(day: str) -> Dict[str, Any]:
+    defs = _load_trails()
+    pool = defs["daily_quests"]["pool"]
+    idx = sum(ord(c) for c in day) % len(pool)  # deterministic per Bogotá day
+    return {**pool[idx], "date": day, "points": defs["daily_quests"]["points"]}
+
+
+@router.get("/trails")
+async def trails_public(request: Request):
+    """PUBLIC trail definitions with venue cards — the guest teaser."""
+    _check_rate_limit(f"trails:{_client_ip(request)}", max_calls=60, window_sec=60)
+    return {"trails": await _enriched_trails(),
+            "daily_quest": _daily_quest_for(datetime.now(timezone.utc).astimezone(BOGOTA).strftime("%Y-%m-%d"))}
+
+
+@router.get("/trails/progress")
+async def trails_progress(request: Request):
+    """Auth: per-trail stop completion computed from real discoveries only."""
+    user = await _get_current_user(request)
+    doc = await db.user_passport.find_one({"user_id": user["user_id"]}, {"_id": 0}) or {}
+    discoveries = doc.get("discoveries") or []
+    completions = {c["trail_key"]: c async for c in db.trail_completions.find(
+        {"user_id": user["user_id"]}, {"_id": 0})}
+    out = []
+    for t in await _enriched_trails():
+        stops = [{**s, "done": _stop_matched(s, discoveries)} for s in t["stops"]]
+        comp = completions.get(t["key"])
+        out.append({**t, "stops": stops,
+                    "stops_done": sum(1 for s in stops if s["done"]),
+                    "completed": bool(comp),
+                    "redemption_code": (comp or {}).get("redemption_code"),
+                    "redeemed": bool((comp or {}).get("redeemed_at"))})
+    today = datetime.now(timezone.utc).astimezone(BOGOTA).strftime("%Y-%m-%d")
+    quest = _daily_quest_for(today)
+    quest_done = any(
+        d.get("type") == "dish" and d.get("plate") == quest["plate"]
+        and str(d.get("ts", "")).split("T")[0] == today
+        for d in discoveries
+    )
+    claimed = await db.quest_claims.find_one({"user_id": user["user_id"], "date": today}, {"_id": 1})
+    return {"trails": out, "daily_quest": {**quest, "done": quest_done, "claimed": bool(claimed)}}
+
+
+@router.post("/trails/{trail_key}/complete")
+async def trail_complete(request: Request, trail_key: str):
+    """All stops verified → mint the completion + single-use redemption code
+    + award points. Server recomputes stop matching — the client claims
+    nothing the passport can't prove."""
+    import uuid as _uuid
+    user = await _get_current_user(request)
+    user_id = user["user_id"]
+    _check_rate_limit(f"trailc:{user_id}", max_calls=10, window_sec=3600)
+    trail = next((t for t in await _enriched_trails() if t["key"] == trail_key), None)
+    if not trail:
+        raise HTTPException(status_code=404, detail="trail not found")
+    doc = await db.user_passport.find_one({"user_id": user_id}, {"_id": 0}) or {}
+    discoveries = doc.get("discoveries") or []
+    missing = [s["venue_id"] for s in trail["stops"] if not _stop_matched(s, discoveries)]
+    if missing:
+        raise HTTPException(status_code=409, detail=f"stops not yet stamped: {len(missing)} pending")
+    existing = await db.trail_completions.find_one(
+        {"user_id": user_id, "trail_key": trail_key}, {"_id": 0})
+    if existing:
+        return {"ok": True, "already_completed": True,
+                "redemption_code": existing["redemption_code"],
+                "points_awarded": 0}
+    code = "AMO-" + _uuid.uuid4().hex[:6].upper()
+    now_iso = datetime.now(timezone.utc).isoformat()
+    await db.trail_completions.insert_one({
+        "completion_id": f"trc_{_uuid.uuid4().hex[:12]}",
+        "user_id": user_id, "trail_key": trail_key,
+        "completed_at": now_iso, "redemption_code": code,
+        "redeemed_at": None, "redeemed_by_business": None,
+        "points": trail.get("points", 250),
+        "partner_reward": trail.get("partner_reward"),
+    })
+    points = 0
+    if _award_points:
+        try:
+            await _award_points(db, user_id, trail.get("points", 250), "trail_complete",
+                                source_id=trail_key, description=f"Ruta completada: {trail['name']}")
+            points = trail.get("points", 250)
+        except Exception as exc:
+            logger.warning(f"[trails] points award failed: {exc}")
+    return {"ok": True, "already_completed": False, "redemption_code": code,
+            "points_awarded": points, "partner_reward": trail.get("partner_reward")}
+
+
+@router.post("/quests/daily/claim")
+async def daily_quest_claim(request: Request):
+    """Claim today's quest — requires a REAL matching dish discovery today."""
+    user = await _get_current_user(request)
+    user_id = user["user_id"]
+    _check_rate_limit(f"questc:{user_id}", max_calls=10, window_sec=3600)
+    today = datetime.now(timezone.utc).astimezone(BOGOTA).strftime("%Y-%m-%d")
+    quest = _daily_quest_for(today)
+    doc = await db.user_passport.find_one({"user_id": user_id}, {"_id": 0}) or {}
+    ok = any(d.get("type") == "dish" and d.get("plate") == quest["plate"]
+             and str(d.get("ts", "")).split("T")[0] == today
+             for d in (doc.get("discoveries") or []))
+    if not ok:
+        raise HTTPException(status_code=409, detail="quest not yet completed today")
+    res = await db.quest_claims.update_one(
+        {"user_id": user_id, "date": today},
+        {"$setOnInsert": {"plate": quest["plate"], "claimed_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    if res.upserted_id is None:
+        return {"ok": True, "already_claimed": True, "points_awarded": 0}
+    points = 0
+    if _award_points:
+        try:
+            await _award_points(db, user_id, quest["points"], "daily_quest",
+                                source_id=today, description=f"Quest diario: {quest['text']}")
+            points = quest["points"]
+        except Exception as exc:
+            logger.warning(f"[trails] quest points failed: {exc}")
+    return {"ok": True, "already_claimed": False, "points_awarded": points}
+
+
+@router.post("/business/redemptions/{code}")
+async def redeem_code(request: Request, code: str):
+    """Partner-side redemption: single-use, logged — the attribution unit
+    Phase 2 sells with. Business auth required."""
+    if _get_current_business is None:
+        raise HTTPException(status_code=503, detail="redemptions unavailable")
+    biz = await _get_current_business(request)
+    comp = await db.trail_completions.find_one({"redemption_code": code.strip().upper()})
+    if not comp:
+        raise HTTPException(status_code=404, detail="código no válido")
+    if comp.get("redeemed_at"):
+        raise HTTPException(status_code=409, detail="código ya canjeado")
+    await db.trail_completions.update_one(
+        {"_id": comp["_id"]},
+        {"$set": {"redeemed_at": datetime.now(timezone.utc).isoformat(),
+                  "redeemed_by_business": biz.get("partner_id")}},
+    )
+    return {"ok": True, "trail_key": comp["trail_key"], "redeemed": True}

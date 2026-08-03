@@ -5530,6 +5530,8 @@ _walking.init(
     get_current_user=get_current_user,
     get_active_pulse_map=_pulse.get_active_pulse_map,
     get_behavioral_pick_ids=_local_signals.get_behavioral_pick_ids,
+    award_points=_rewards.award_points,
+    get_current_business=get_current_business,
 )
 app.include_router(_walking.router, prefix="/api")
 
@@ -5579,6 +5581,10 @@ async def startup():
         await db.partners.create_index([("geo", "2dsphere")])
         await db.user_passport.create_index("user_id", unique=True)
         await db.share_snapshots.create_index("share_id", unique=True)
+        # Drop 5: trails — one completion per user+trail, single-use codes
+        await db.trail_completions.create_index([("user_id", 1), ("trail_key", 1)], unique=True)
+        await db.trail_completions.create_index("redemption_code", unique=True)
+        await db.quest_claims.create_index([("user_id", 1), ("date", 1)], unique=True)
     except Exception as exc:
         logger.warning(f"[startup] search index creation failed: {exc}")
 

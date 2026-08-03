@@ -699,6 +699,21 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {userProfile.partyType === 'cruise' && (
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: 'rgba(6,182,212,0.08)', borderRadius: RADIUS.xl, borderWidth: 1, borderColor: 'rgba(6,182,212,0.5)' }}
+            onPress={() => router.push('/rutas' as any)}
+            activeOpacity={0.85}
+          >
+            <Text style={{ fontSize: 26 }}>🚢</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 15, color: COLORS.textMain, ...FONTS.bold }}>{tr('4 Horas en Cartagena')}</Text>
+              <Text style={{ fontSize: 11, color: COLORS.textMuted, ...FONTS.medium }}>{tr('El circuito perfecto para tu día de crucero — caminable desde el puerto')}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={'#06B6D4'} />
+          </TouchableOpacity>
+        )}
+
         {!user && guestRecommendations.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>

@@ -231,6 +231,20 @@ export default function PasaporteScreen() {
               </View>
             )}
 
+            {/* ── Rutas entry (Drop 5) ── */}
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: 'rgba(212,175,55,0.07)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(212,175,55,0.35)' }}
+              onPress={() => router.push('/rutas' as any)}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="trail-sign" size={22} color={COLORS.primary} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 14, color: COLORS.textMain, ...FONTS.bold }}>{tr('Rutas de Cartagena')}</Text>
+                <Text style={{ fontSize: 11, color: COLORS.textMuted, ...FONTS.medium }}>{tr('Getsemaní, sabores, atardecer y el circuito de crucero — completa y gana')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={COLORS.primary} />
+            </TouchableOpacity>
+
             {/* ── Sabores de Cartagena ── */}
             {!!cols && (
               <View style={styles.section}>
