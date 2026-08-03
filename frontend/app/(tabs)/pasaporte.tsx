@@ -634,8 +634,8 @@ export default function PasaporteScreen() {
                 <View key={s.id} style={[styles.specialRow, s.state === 'earned' && styles.specialEarned, s.state === 'available_now' && styles.specialNow]}>
                   <Text style={[styles.specialIcon, (s.state === 'upcoming' || s.state === 'pasada') && { opacity: 0.5 }]}>{s.icon}</Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.specialName, s.state !== 'earned' && s.state !== 'available_now' && { color: COLORS.textMuted }]}>{s.name}</Text>
-                    <Text style={styles.specialDesc} numberOfLines={2}>{s.desc}</Text>
+                    <Text style={[styles.specialName, s.state !== 'earned' && s.state !== 'available_now' && { color: COLORS.textMuted }]}>{tr(s.name)}</Text>
+                    <Text style={styles.specialDesc} numberOfLines={2}>{tr(s.desc || '')}</Text>
                   </View>
                   {s.state === 'earned' ? (
                     <Text style={styles.specialDate}>{s.earned_ts ? new Date(s.earned_ts).toLocaleDateString() : '✓'}</Text>

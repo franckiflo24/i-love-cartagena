@@ -9,8 +9,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { IMAGES } from '../src/constants/images';
 import { useLang } from '../src/context/LanguageContext';
+import { Lang, LANG_FLAGS } from '../src/i18n/translations';
 import { useAuth } from '../src/context/AuthContext';
 import { api } from '../src/constants/api';
+
+const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
 
 const { width: W } = Dimensions.get('window');
 const ACCENT = '#D97706';
@@ -53,7 +56,7 @@ const fmtDate = (iso: string) => {
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { s } = useLang();
+  const { s, lang, setLang } = useLang();
   const { user } = useAuth();
   const [step, setStep] = useState<Step>('welcome');
   const [skippedSteps, setSkippedSteps] = useState<string[]>([]);
@@ -140,9 +143,24 @@ export default function OnboardingScreen() {
       <View style={st.overlay} />
 
       <SafeAreaView style={st.safe} edges={['top', 'bottom']}>
-        {/* Skip */}
+        {/* Language picker (pick before setting up account) + Skip */}
         <View style={st.topBar}>
-          <View />
+          <View style={st.langRow}>
+            {(Object.keys(LANG_CODES) as Lang[]).map((l) => {
+              const active = lang === l;
+              return (
+                <TouchableOpacity
+                  key={l}
+                  style={[st.langPill, active && st.langPillActive]}
+                  onPress={() => setLang(l)}
+                  activeOpacity={0.85}
+                >
+                  <Text style={st.langFlag}>{LANG_FLAGS[l]}</Text>
+                  <Text style={[st.langCode, active && st.langCodeActive]}>{LANG_CODES[l]}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
           {step !== 'complete' && (
             <TouchableOpacity onPress={skip} style={st.skipBtn}>
               <Text style={st.skipText}>{s('onboard_skip')}</Text>
@@ -314,6 +332,12 @@ const st = StyleSheet.create({
   topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm },
   skipBtn: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: RADIUS.full },
   skipText: { fontSize: 14, color: COLORS.white, ...FONTS.medium },
+  langRow: { flexDirection: 'row', gap: 6 },
+  langPill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 9, paddingVertical: 5, borderRadius: RADIUS.full, backgroundColor: 'rgba(255,255,255,0.10)', borderWidth: 1, borderColor: 'transparent' },
+  langPillActive: { backgroundColor: 'rgba(217,119,6,0.25)', borderColor: ACCENT },
+  langFlag: { fontSize: 12 },
+  langCode: { fontSize: 11, color: 'rgba(255,255,255,0.7)', ...FONTS.bold },
+  langCodeActive: { color: COLORS.white },
 
   content: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: SPACING.xl },
   center: { alignItems: 'center', gap: SPACING.md },

@@ -4,7 +4,9 @@
 // and never a suppressed/stale one. Fails soft to null (no banner) offline.
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { useTr } from '../i18n/autoTr';
 import { api } from '../constants/api';
@@ -16,6 +18,7 @@ interface SeasonNow {
 
 export function SeasonBanner() {
   const tr = useTr();
+  const router = useRouter();
   const [data, setData] = useState<SeasonNow | null>(null);
 
   useEffect(() => {
@@ -31,26 +34,35 @@ export function SeasonBanner() {
   const first = earnable[0];
 
   return (
-    <View style={styles.banner}>
-      {!!data?.season && (
-        <Text style={styles.season}>{data.season.icon} {data.season.name}</Text>
-      )}
-      {!!first && (
-        <Text style={styles.earn} numberOfLines={1}>
-          {first.icon} {tr('Sello disponible ahora')}: {first.name}
-          {earnable.length > 1 ? ` +${earnable.length - 1}` : ''}
-        </Text>
-      )}
-    </View>
+    <TouchableOpacity
+      style={styles.banner}
+      onPress={() => router.push('/pasaporte' as any)}
+      activeOpacity={0.85}
+      accessibilityRole="button"
+    >
+      <View style={{ flex: 1, gap: 3 }}>
+        {!!data?.season && (
+          <Text style={styles.season}>{data.season.icon} {tr(data.season.name)}</Text>
+        )}
+        {!!first && (
+          <Text style={styles.earn} numberOfLines={1}>
+            {first.icon} {tr('Sello disponible ahora')}: {tr(first.name)}
+            {earnable.length > 1 ? ` +${earnable.length - 1}` : ''}
+          </Text>
+        )}
+      </View>
+      <Ionicons name="chevron-forward" size={16} color={COLORS.primary} />
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   banner: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
     marginHorizontal: SPACING.lg, marginBottom: SPACING.md,
     paddingVertical: 10, paddingHorizontal: 14,
     backgroundColor: 'rgba(212,175,55,0.09)', borderRadius: RADIUS.lg,
-    borderWidth: 1, borderColor: 'rgba(212,175,55,0.35)', gap: 3,
+    borderWidth: 1, borderColor: 'rgba(212,175,55,0.35)',
   },
   season: { fontSize: 12, color: COLORS.primary, ...FONTS.bold },
   earn: { fontSize: 11.5, color: COLORS.textMain, ...FONTS.semibold },
