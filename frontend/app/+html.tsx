@@ -326,7 +326,7 @@ export default function Root({ children }: PropsWithChildren) {
             // Group invite capture (8C2): a ?join=AMOG-XXXX link survives the
             // login redirect only if we grab it in the shell, before routing.
             try {
-              var gm = window.location.search.match(/[?&]join=(AMOG-[A-Za-z0-9]{4})/i);
+              var gm = window.location.search.match(/[?&]join=(AMOG-[A-Za-z0-9]{4,8})/i);
               if (gm) localStorage.setItem('@amo_pending_group', gm[1].toUpperCase());
             } catch(e) {}
             // Version check: if user has old cached version, force reload once

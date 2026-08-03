@@ -747,7 +747,7 @@ export default function PasaporteScreen() {
                     <TextInput
                       value={groupCode}
                       onChangeText={setGroupCode}
-                      placeholder="AMOG-XXXX"
+                      placeholder="AMOG-XXXXXX"
                       placeholderTextColor={COLORS.textMuted}
                       style={[styles.groupInput, { flex: 1 }]}
                       autoCapitalize="characters"

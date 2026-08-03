@@ -1325,9 +1325,15 @@ async def group_create(request: Request, body: GroupCreateBody):
     import uuid as _uuid
     user = await _get_current_user(request)
     _check_rate_limit(f"grpcreate:{user['user_id']}", max_calls=5, window_sec=86400)
+    handle = body.handle.strip()
+    if len(handle) < 2:
+        raise HTTPException(status_code=400, detail="apodo requerido (mín. 2 caracteres)")
     now = datetime.now(timezone.utc).isoformat()
     for _ in range(5):  # unique-code retry
-        code = "AMOG-" + _uuid.uuid4().hex[:4].upper()
+        # 6 hex = 16.7M space — a 4-hex code (65k) is brute-forceable, and
+        # guessing it lets a stranger JOIN and read/inject the members-only
+        # board, breaking the opt-in privacy guarantee.
+        code = "AMOG-" + _uuid.uuid4().hex[:6].upper()
         group = {"group_id": f"grp_{_uuid.uuid4().hex[:10]}", "code": code,
                  "name": (body.name or "").strip()[:40] or None,
                  "created_by": user["user_id"], "created_at": now}
@@ -1340,7 +1346,7 @@ async def group_create(request: Request, body: GroupCreateBody):
         raise HTTPException(status_code=500, detail="no se pudo crear el grupo")
     await db.group_members.update_one(
         {"group_id": group["group_id"], "user_id": user["user_id"]},
-        {"$setOnInsert": {"handle": body.handle.strip()[:24], "joined_at": now}},
+        {"$setOnInsert": {"handle": handle[:24], "joined_at": now}},
         upsert=True,
     )
     return {"ok": True, "code": group["code"], "group_id": group["group_id"],
@@ -1352,6 +1358,9 @@ async def group_create(request: Request, body: GroupCreateBody):
 async def group_join(request: Request, body: GroupJoinBody):
     user = await _get_current_user(request)
     _check_rate_limit(f"grpjoin:{user['user_id']}", max_calls=10, window_sec=3600)
+    handle = body.handle.strip()
+    if len(handle) < 2:
+        raise HTTPException(status_code=400, detail="apodo requerido (mín. 2 caracteres)")
     code = body.code.strip().upper()
     group = await db.passport_groups.find_one({"code": code}, {"_id": 0})
     if not group:
@@ -1359,7 +1368,7 @@ async def group_join(request: Request, body: GroupJoinBody):
     now = datetime.now(timezone.utc).isoformat()
     await db.group_members.update_one(
         {"group_id": group["group_id"], "user_id": user["user_id"]},
-        {"$setOnInsert": {"handle": body.handle.strip()[:24], "joined_at": now}},
+        {"$setOnInsert": {"handle": handle[:24], "joined_at": now}},
         upsert=True,
     )
     return {"ok": True, "group_id": group["group_id"], "name": group.get("name")}
