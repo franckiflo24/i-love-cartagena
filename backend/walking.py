@@ -1314,7 +1314,9 @@ async def _group_standings(group: Dict[str, Any], me: str) -> Dict[str, Any]:
                      "is_me": m["user_id"] == me})
     rows.sort(key=lambda r: (-r["rareza"], -r["stamps"], r["handle"]))
     return {"group_id": group["group_id"], "name": group.get("name"),
-            "code": group["code"], "members": rows}
+            "code": group["code"], "members": rows, "member_count": len(rows),
+            "is_owner": group.get("created_by") == me,
+            "share_url": f"https://www.amocartagena.co/pasaporte?join={group['code']}"}
 
 
 @router.post("/passport/groups")
@@ -1341,7 +1343,9 @@ async def group_create(request: Request, body: GroupCreateBody):
         {"$setOnInsert": {"handle": body.handle.strip()[:24], "joined_at": now}},
         upsert=True,
     )
-    return {"ok": True, "code": group["code"], "group_id": group["group_id"]}
+    return {"ok": True, "code": group["code"], "group_id": group["group_id"],
+            "name": group.get("name"),
+            "share_url": f"https://www.amocartagena.co/pasaporte?join={group['code']}"}
 
 
 @router.post("/passport/groups/join")
@@ -1359,6 +1363,21 @@ async def group_join(request: Request, body: GroupJoinBody):
         upsert=True,
     )
     return {"ok": True, "group_id": group["group_id"], "name": group.get("name")}
+
+
+@router.post("/passport/groups/{group_id}/leave")
+async def group_leave(request: Request, group_id: str):
+    """Leave a group. If the last member leaves, the empty group is deleted so
+    its code frees up — no orphaned boards."""
+    user = await _get_current_user(request)
+    res = await db.group_members.delete_one(
+        {"group_id": group_id, "user_id": user["user_id"]})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="no perteneces a este grupo")
+    remaining = await db.group_members.count_documents({"group_id": group_id})
+    if remaining == 0:
+        await db.passport_groups.delete_one({"group_id": group_id})
+    return {"ok": True, "left": True, "group_deleted": remaining == 0}
 
 
 @router.get("/passport/groups/mine")

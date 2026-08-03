@@ -323,6 +323,12 @@ export default function Root({ children }: PropsWithChildren) {
               var rm = window.location.search.match(/[?&]ref=(AMO[A-Za-z0-9]{4,8})/);
               if (rm) localStorage.setItem('@amo_pending_ref', rm[1].toUpperCase());
             } catch(e) {}
+            // Group invite capture (8C2): a ?join=AMOG-XXXX link survives the
+            // login redirect only if we grab it in the shell, before routing.
+            try {
+              var gm = window.location.search.match(/[?&]join=(AMOG-[A-Za-z0-9]{4})/i);
+              if (gm) localStorage.setItem('@amo_pending_group', gm[1].toUpperCase());
+            } catch(e) {}
             // Version check: if user has old cached version, force reload once
             try {
               var stored = localStorage.getItem('amo_app_version');

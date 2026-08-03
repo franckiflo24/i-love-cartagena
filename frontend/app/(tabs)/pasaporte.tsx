@@ -11,7 +11,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
@@ -21,7 +21,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { geoService, GeoState, haversineM } from '../../src/lib/geo';
 import {
   getCollections, getPassport, discover, mintShareLink, CollectionsDef, Passport, CollectionVenue,
-  groupsMine, groupCreate, groupJoin, GroupStanding,
+  groupsMine, groupCreate, groupJoin, groupLeave, GroupStanding,
 } from '../../src/lib/passport';
 import { TextInput } from 'react-native';
 import { shareCard, canShareCard } from '../../src/lib/shareCard';
@@ -114,33 +114,91 @@ export default function PasaporteScreen() {
   const streakAtPlay = !!passport && (passport.streak?.current || 0) > 0
     && passport.streak?.last_day !== todayBogota;
 
-  // 8C2: opt-in group standings
+  // 8C2: opt-in group standings — create, join (incl. deep-link), share, leave
+  const params = useLocalSearchParams<{ join?: string }>();
   const [groups, setGroups] = useState<GroupStanding[]>([]);
   const [groupHandle, setGroupHandle] = useState('');
+  const [groupName, setGroupName] = useState('');
   const [groupCode, setGroupCode] = useState('');
   const [groupBusy, setGroupBusy] = useState(false);
   useEffect(() => {
     if (user?.user_id) groupsMine().then(setGroups).catch(() => {});
     else setGroups([]);
   }, [user?.user_id]);
+  // Invite deep-link: /pasaporte?join=AMOG-XXXX prefills the code. Falls back
+  // to the shell-captured code so it survives a login redirect (new users).
+  useEffect(() => {
+    let pending: string | null = params.join ? String(params.join).toUpperCase() : null;
+    if (!pending) {
+      try { pending = typeof localStorage !== 'undefined' ? localStorage.getItem('@amo_pending_group') : null; } catch {}
+    }
+    if (pending) {
+      setGroupCode((prev) => prev || pending!);
+      try { localStorage.removeItem('@amo_pending_group'); } catch {}
+    }
+  }, [params.join]);
 
-  const onGroupJoin = useCallback(async () => {
+  const flash = useCallback((msg: string, ms = 4000) => {
+    setNotice(msg);
+    setTimeout(() => setNotice(null), ms);
+  }, []);
+
+  const onGroupCreate = useCallback(async () => {
     if (groupBusy || groupHandle.trim().length < 2) return;
     setGroupBusy(true);
     try {
-      if (groupCode.trim()) {
-        const ok = await groupJoin(groupCode.trim().toUpperCase(), groupHandle.trim());
-        setNotice(ok ? tr('¡Ya estás en el grupo!') : tr('Código de grupo no válido'));
+      const r = await groupCreate(groupName.trim() || null, groupHandle.trim());
+      if (r?.code) {
+        setGroupName('');
+        flash(`${tr('Grupo creado')} · ${r.code}`, 6000);
+        setGroups(await groupsMine());
       } else {
-        const r = await groupCreate(null, groupHandle.trim());
-        setNotice(r?.code ? `${tr('Grupo creado — código')}: ${r.code}` : tr('No se pudo crear el grupo'));
+        flash(tr('No se pudo crear el grupo'));
       }
-      setGroups(await groupsMine());
     } finally {
       setGroupBusy(false);
-      setTimeout(() => setNotice(null), 5000);
     }
-  }, [groupBusy, groupHandle, groupCode, tr]);
+  }, [groupBusy, groupHandle, groupName, tr, flash]);
+
+  const onGroupJoin = useCallback(async () => {
+    if (groupBusy || groupHandle.trim().length < 2 || groupCode.trim().length < 4) return;
+    setGroupBusy(true);
+    try {
+      const r = await groupJoin(groupCode.trim().toUpperCase(), groupHandle.trim());
+      if (r.ok) {
+        setGroupCode('');
+        flash(tr('¡Ya estás en el grupo!'));
+        setGroups(await groupsMine());
+      } else {
+        flash(tr('Código de grupo no válido'));
+      }
+    } finally {
+      setGroupBusy(false);
+    }
+  }, [groupBusy, groupHandle, groupCode, tr, flash]);
+
+  const onGroupShare = useCallback(async (g: GroupStanding) => {
+    const label = g.name ? `"${g.name}"` : tr('mi grupo');
+    const msg = `${tr('Únete a')} ${label} ${tr('en Amo Cartagena')} 🛂 — ${tr('comparemos pasaportes')}.\n${tr('Código')}: ${g.code}\n${g.share_url}`;
+    try {
+      const nav: any = typeof navigator !== 'undefined' ? navigator : null;
+      if (nav?.share) { await nav.share({ text: msg, url: g.share_url }); return; }
+      if (nav?.clipboard) { await nav.clipboard.writeText(msg); flash(tr('Invitación copiada — pégala donde quieras')); return; }
+    } catch { /* user cancelled share sheet or blocked clipboard */ }
+    flash(`${tr('Código')}: ${g.code}`, 6000);
+  }, [tr, flash]);
+
+  const onGroupLeave = useCallback(async (g: GroupStanding) => {
+    if (groupBusy) return;
+    setGroupBusy(true);
+    try {
+      const ok = await groupLeave(g.group_id);
+      flash(ok ? tr('Saliste del grupo') : tr('No se pudo salir del grupo'));
+      if (ok) setGroups(await groupsMine());
+    } finally {
+      setGroupBusy(false);
+    }
+  }, [groupBusy, tr, flash]);
 
   // 8A2/8A3: per-collection pull — how many left + the nearest missing item.
   // Only real venues with real coords; no phantom distances (geo off → count only).
@@ -611,50 +669,95 @@ export default function PasaporteScreen() {
             {!!user && (
               <View style={styles.section}>
                 <Text style={[styles.sectionTitle, { paddingHorizontal: SPACING.lg, marginBottom: SPACING.sm }]}>{tr('Tu Grupo')}</Text>
-                {groups.length > 0 ? (
-                  <View style={{ paddingHorizontal: SPACING.lg, gap: 10 }}>
+
+                {/* Existing groups — standings + invite + leave */}
+                {groups.length > 0 && (
+                  <View style={{ paddingHorizontal: SPACING.lg, gap: 12, marginBottom: SPACING.md }}>
                     {groups.map((g) => (
                       <View key={g.group_id} style={styles.groupCard}>
                         <View style={styles.groupHeader}>
-                          <Text style={styles.groupName}>{g.name || tr('Grupo')} · {g.code}</Text>
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.groupName} numberOfLines={1}>{g.name || tr('Grupo sin nombre')}</Text>
+                            <Text style={styles.groupMeta}>{g.member_count} {g.member_count === 1 ? tr('persona') : tr('personas')}</Text>
+                          </View>
+                          <TouchableOpacity style={styles.groupShareBtn} onPress={() => onGroupShare(g)} activeOpacity={0.85}>
+                            <Ionicons name="share-social" size={13} color="#000" />
+                            <Text style={styles.groupShareBtnText}>{tr('Invitar')}</Text>
+                          </TouchableOpacity>
                         </View>
+
+                        {/* Prominent, tappable code (tap = share/copy) */}
+                        <TouchableOpacity style={styles.groupCodePill} onPress={() => onGroupShare(g)} activeOpacity={0.8}>
+                          <Ionicons name="key-outline" size={13} color={COLORS.primary} />
+                          <Text style={styles.groupCodeText}>{g.code}</Text>
+                          <Text style={styles.groupCodeHint}>{tr('toca para compartir')}</Text>
+                        </TouchableOpacity>
+
                         {g.members.map((m, i) => (
                           <View key={m.handle + i} style={[styles.groupRow, m.is_me && styles.groupRowMe]}>
                             <Text style={styles.groupPos}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}</Text>
-                            <Text style={[styles.groupHandle, m.is_me && { color: COLORS.primary }]}>{m.handle}{m.is_me ? ` (${tr('tú')})` : ''}</Text>
+                            <Text style={[styles.groupHandle, m.is_me && { color: COLORS.primary }]} numberOfLines={1}>{m.handle}{m.is_me ? ` (${tr('tú')})` : ''}</Text>
                             <Text style={styles.groupStat}>{m.stamps} {tr('sellos')} · 💠{m.rareza}</Text>
                           </View>
                         ))}
+                        {g.member_count === 1 && (
+                          <Text style={styles.groupSoloHint}>{tr('Todavía estás solo — invita a alguien con el código.')}</Text>
+                        )}
+
+                        <TouchableOpacity style={styles.groupLeaveBtn} onPress={() => onGroupLeave(g)} disabled={groupBusy} activeOpacity={0.7}>
+                          <Text style={styles.groupLeaveText}>{tr('Salir del grupo')}</Text>
+                        </TouchableOpacity>
                       </View>
                     ))}
                   </View>
-                ) : (
-                  <View style={{ paddingHorizontal: SPACING.lg, gap: 8 }}>
-                    <Text style={styles.groupInviteText}>{tr('Crea un grupo con tu pareja, tus amigos o tu barco — y comparen pasaportes.')}</Text>
-                    <TextInput
-                      value={groupHandle}
-                      onChangeText={setGroupHandle}
-                      placeholder={tr('Tu apodo en el grupo')}
-                      placeholderTextColor={COLORS.textMuted}
-                      style={styles.groupInput}
-                      maxLength={24}
-                    />
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                      <TextInput
-                        value={groupCode}
-                        onChangeText={setGroupCode}
-                        placeholder="AMOG-XXXX"
-                        placeholderTextColor={COLORS.textMuted}
-                        style={[styles.groupInput, { flex: 1 }]}
-                        autoCapitalize="characters"
-                        maxLength={12}
-                      />
-                      <TouchableOpacity style={[styles.groupBtn, groupHandle.trim().length < 2 && { opacity: 0.5 }]} onPress={onGroupJoin} disabled={groupBusy || groupHandle.trim().length < 2} activeOpacity={0.85}>
-                        <Text style={styles.groupBtnText}>{groupCode.trim() ? tr('Unirme') : tr('Crear grupo')}</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
                 )}
+
+                {/* Create / join — always available (you can be in several groups) */}
+                <View style={{ paddingHorizontal: SPACING.lg, gap: 8 }}>
+                  {groups.length === 0 && (
+                    <Text style={styles.groupInviteText}>{tr('Crea un grupo con tu pareja, tus amigos o tu barco — y comparen pasaportes.')}</Text>
+                  )}
+                  <TextInput
+                    value={groupHandle}
+                    onChangeText={setGroupHandle}
+                    placeholder={tr('Tu apodo en el grupo')}
+                    placeholderTextColor={COLORS.textMuted}
+                    style={styles.groupInput}
+                    maxLength={24}
+                  />
+                  {/* Create */}
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TextInput
+                      value={groupName}
+                      onChangeText={setGroupName}
+                      placeholder={tr('Nombre del grupo (opcional)')}
+                      placeholderTextColor={COLORS.textMuted}
+                      style={[styles.groupInput, { flex: 1 }]}
+                      maxLength={40}
+                    />
+                    <TouchableOpacity style={[styles.groupBtn, groupHandle.trim().length < 2 && { opacity: 0.5 }]} onPress={onGroupCreate} disabled={groupBusy || groupHandle.trim().length < 2} activeOpacity={0.85}>
+                      <Text style={styles.groupBtnText}>{tr('Crear')}</Text>
+                    </TouchableOpacity>
+                  </View>
+                  {/* Join */}
+                  <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                    <Text style={styles.groupOr}>{tr('o únete con un código')}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TextInput
+                      value={groupCode}
+                      onChangeText={setGroupCode}
+                      placeholder="AMOG-XXXX"
+                      placeholderTextColor={COLORS.textMuted}
+                      style={[styles.groupInput, { flex: 1 }]}
+                      autoCapitalize="characters"
+                      maxLength={12}
+                    />
+                    <TouchableOpacity style={[styles.groupBtnAlt, (groupHandle.trim().length < 2 || groupCode.trim().length < 4) && { opacity: 0.5 }]} onPress={onGroupJoin} disabled={groupBusy || groupHandle.trim().length < 2 || groupCode.trim().length < 4} activeOpacity={0.85}>
+                      <Text style={styles.groupBtnAltText}>{tr('Unirme')}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
             )}
 
@@ -781,18 +884,30 @@ const styles = StyleSheet.create({
   specialNowChip: { backgroundColor: '#22C55E', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
   specialNowChipText: { fontSize: 9, color: '#000', ...FONTS.bold, letterSpacing: 1 },
 
-  groupCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: 12, gap: 6 },
-  groupHeader: { marginBottom: 4 },
-  groupName: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
+  groupCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(212,175,55,0.3)', padding: 12, gap: 6 },
+  groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
+  groupName: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
+  groupMeta: { fontSize: 10.5, color: COLORS.textMuted, ...FONTS.medium, marginTop: 1 },
+  groupShareBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6 },
+  groupShareBtnText: { fontSize: 11, color: '#000', ...FONTS.bold },
+  groupCodePill: { flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: 'rgba(212,175,55,0.10)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(212,175,55,0.4)', borderStyle: 'dashed', paddingHorizontal: 12, paddingVertical: 8, marginBottom: 2 },
+  groupCodeText: { fontSize: 15, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1 },
+  groupCodeHint: { flex: 1, fontSize: 10, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'right' },
   groupRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 5, paddingHorizontal: 8, borderRadius: RADIUS.sm },
   groupRowMe: { backgroundColor: 'rgba(212,175,55,0.08)' },
   groupPos: { fontSize: 13, width: 26 },
   groupHandle: { flex: 1, fontSize: 13, color: COLORS.textMain, ...FONTS.semibold },
   groupStat: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
+  groupSoloHint: { fontSize: 10.5, color: COLORS.textMuted, ...FONTS.medium, fontStyle: 'italic', paddingHorizontal: 8, marginTop: 2 },
+  groupLeaveBtn: { alignItems: 'center', paddingVertical: 8, marginTop: 2 },
+  groupLeaveText: { fontSize: 11, color: '#F87171', ...FONTS.semibold },
   groupInviteText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium, lineHeight: 17 },
   groupInput: { paddingHorizontal: 12, paddingVertical: 10, borderRadius: RADIUS.md, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, color: COLORS.textMain, fontSize: 13 },
-  groupBtn: { backgroundColor: COLORS.primary, borderRadius: RADIUS.md, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
+  groupBtn: { backgroundColor: COLORS.primary, borderRadius: RADIUS.md, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center' },
   groupBtnText: { fontSize: 12, color: '#000', ...FONTS.bold },
+  groupBtnAlt: { backgroundColor: 'transparent', borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.primary, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
+  groupBtnAltText: { fontSize: 12, color: COLORS.primary, ...FONTS.bold },
+  groupOr: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, marginTop: 2 },
 
   streakRow: { flexDirection: 'row', gap: 10, paddingHorizontal: SPACING.lg, marginBottom: SPACING.md },
   streakBox: { flex: 1, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', paddingVertical: 14, gap: 2 },

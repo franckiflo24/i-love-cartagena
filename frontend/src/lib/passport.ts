@@ -107,14 +107,24 @@ export interface GroupStanding {
   name: string | null;
   code: string;
   members: { handle: string; stamps: number; rareza: number; is_me: boolean }[];
+  member_count: number;
+  is_owner: boolean;
+  share_url: string;
 }
 
-export async function groupCreate(name: string | null, handle: string): Promise<{ code: string } | null> {
+export interface GroupCreateResult { code: string; group_id: string; name: string | null; share_url: string }
+
+export async function groupCreate(name: string | null, handle: string): Promise<GroupCreateResult | null> {
   try { return await api.post('/passport/groups', { name: name || undefined, handle }); } catch { return null; }
 }
 
-export async function groupJoin(code: string, handle: string): Promise<boolean> {
-  try { const r = await api.post('/passport/groups/join', { code, handle }); return !!r?.ok; } catch { return false; }
+export async function groupJoin(code: string, handle: string): Promise<{ ok: boolean; error?: string }> {
+  try { const r = await api.post('/passport/groups/join', { code, handle }); return { ok: !!r?.ok }; }
+  catch (e: any) { return { ok: false, error: String(e?.message || '') }; }
+}
+
+export async function groupLeave(groupId: string): Promise<boolean> {
+  try { const r = await api.post(`/passport/groups/${groupId}/leave`, {}); return !!r?.ok; } catch { return false; }
 }
 
 export async function groupsMine(): Promise<GroupStanding[]> {
