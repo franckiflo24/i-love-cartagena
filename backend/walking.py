@@ -271,7 +271,7 @@ async def passport_discover(request: Request, body: DiscoverBody):
 
     partner = await db.partners.find_one(
         {"partner_id": body.venue_id},
-        {"_id": 0, "partner_id": 1, "name": 1, "category": 1, "location": 1},
+        {"_id": 0, "partner_id": 1, "name": 1, "category": 1, "location": 1, "tags": 1},
     )
     if not partner:
         raise HTTPException(status_code=404, detail="venue not found")
@@ -289,6 +289,20 @@ async def passport_discover(request: Request, body: DiscoverBody):
             raise HTTPException(status_code=400, detail="unknown plate")
         if body.venue_id not in {v["id"] for v in plate_def["venues"]}:
             raise HTTPException(status_code=400, detail="venue does not serve this plate")
+
+    # Gem check-ins must be a REAL gem — the exact definition /nearby reveals:
+    # editorial local_favorite tag OR a behavioral local pick. Without this
+    # gate, a proximity-only 'gem' at any venue forges the 25-pt / 3-rareza
+    # stamp and the Cazador de Joyas title (honesty spine: no fake progress).
+    if body.type == "gem":
+        is_gem = "local_favorite" in (partner.get("tags") or [])
+        if not is_gem and _get_behavioral_pick_ids:
+            try:
+                is_gem = body.venue_id in (await _get_behavioral_pick_ids())
+            except Exception:
+                pass  # signal unavailable → tag check stands (fail-safe = stricter)
+        if not is_gem:
+            raise HTTPException(status_code=400, detail="venue is not a gem")
     loc = partner.get("location") or {}
     v_lat, v_lng = loc.get("lat"), loc.get("lng")
     if not isinstance(v_lat, (int, float)) or not isinstance(v_lng, (int, float)):

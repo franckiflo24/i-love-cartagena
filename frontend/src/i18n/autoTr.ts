@@ -72,6 +72,8 @@ export const AUTO_TR: Dict = {
   'Medallas': { en: 'Medals', fr: 'Médailles', pt: 'Medalhas' },
   'medallas': { en: 'medals', fr: 'médailles', pt: 'medalhas' },
   'exploradores': { en: 'explorers', fr: 'explorateurs', pt: 'exploradores' },
+  'Explorador de Cartagena': { en: 'Cartagena Explorer', fr: 'Explorateur de Carthagène', pt: 'Explorador de Cartagena' },
+  'activos': { en: 'active', fr: 'actifs', pt: 'ativos' },
   'de Cartagena': { en: 'of Cartagena', fr: 'de Carthagène', pt: 'de Cartagena' },
   'sellos más y eres': { en: 'more stamps and you become', fr: 'tampons de plus et vous devenez', pt: 'selos a mais e você vira' },
   'Sella algo hoy y tu racha de': { en: 'Stamp something today and your streak of', fr: 'Tamponnez aujourd’hui et votre série de', pt: 'Carimbe algo hoje e sua sequência de' },

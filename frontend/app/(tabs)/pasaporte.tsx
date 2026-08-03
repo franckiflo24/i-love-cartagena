@@ -334,7 +334,7 @@ export default function PasaporteScreen() {
                           </Text>
                         ) : standing?.active ? (
                           <Text style={styles.standingText}>
-                            {tr('Explorador')} #{standing.active} {tr('de Cartagena')}
+                            {tr('Explorador de Cartagena')} · {standing.active} {tr('activos')}
                           </Text>
                         ) : null}
                       </View>
