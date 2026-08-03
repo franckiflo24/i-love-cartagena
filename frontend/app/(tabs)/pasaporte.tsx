@@ -563,34 +563,49 @@ export default function PasaporteScreen() {
               </View>
             )}
 
-            {/* ── Sellos Especiales (8B) — real windows, never fake urgency ── */}
-            {!!user && !isEmpty && (passport?.specials || []).length > 0 && (
-              <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { paddingHorizontal: SPACING.lg, marginBottom: SPACING.sm }]}>{tr('Sellos Especiales')}</Text>
-                <View style={{ paddingHorizontal: SPACING.lg, gap: 8 }}>
-                  {(passport?.specials || []).map((sp) => (
-                    <View key={sp.key} style={[styles.specialRow, sp.state === 'earned' && styles.specialEarned, sp.state === 'available_now' && styles.specialNow]}>
-                      <Text style={[styles.specialIcon, (sp.state === 'out_of_window' || sp.state === 'upcoming' || sp.state === 'pasada') && { opacity: 0.4 }]}>{sp.icon}</Text>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[styles.specialName, sp.state !== 'earned' && sp.state !== 'available_now' && { color: COLORS.textMuted }]}>{sp.name}</Text>
-                        <Text style={styles.specialDesc}>{sp.desc}</Text>
-                      </View>
-                      {sp.state === 'earned' ? (
-                        <Text style={styles.specialDate}>{sp.earned_ts ? new Date(sp.earned_ts).toLocaleDateString() : '✓'}</Text>
-                      ) : sp.state === 'available_now' ? (
-                        <View style={styles.specialNowChip}><Text style={styles.specialNowChipText}>{tr('AHORA')}</Text></View>
-                      ) : sp.state === 'pasada' ? (
-                        <Text style={styles.specialMuted}>{tr('Temporada pasada')}</Text>
-                      ) : sp.state === 'upcoming' && sp.dates ? (
-                        <Text style={styles.specialMuted}>{sp.dates[0].slice(5)}</Text>
-                      ) : sp.hours ? (
-                        <Text style={styles.specialMuted}>{sp.hours[0]}–{sp.hours[1]}h</Text>
-                      ) : null}
-                    </View>
-                  ))}
+            {/* ── Sellos de Temporada (8B-data) — real windows, honest dates ──
+                Grouped: earnable NOW / coming (real dates only) / in your
+                record (earned + passed). Suppressed stale-date stamps never
+                arrive from the server, so they can't render here. */}
+            {!!user && !isEmpty && (passport?.specials || []).length > 0 && (() => {
+              const sp = passport?.specials || [];
+              const now = sp.filter((s) => s.state === 'available_now');
+              const soon = sp.filter((s) => s.state === 'upcoming');
+              const rec = sp.filter((s) => s.state === 'earned' || s.state === 'pasada');
+              const renderRow = (s: typeof sp[number]) => (
+                <View key={s.id} style={[styles.specialRow, s.state === 'earned' && styles.specialEarned, s.state === 'available_now' && styles.specialNow]}>
+                  <Text style={[styles.specialIcon, (s.state === 'upcoming' || s.state === 'pasada') && { opacity: 0.5 }]}>{s.icon}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.specialName, s.state !== 'earned' && s.state !== 'available_now' && { color: COLORS.textMuted }]}>{s.name}</Text>
+                    <Text style={styles.specialDesc} numberOfLines={2}>{s.desc}</Text>
+                  </View>
+                  {s.state === 'earned' ? (
+                    <Text style={styles.specialDate}>{s.earned_ts ? new Date(s.earned_ts).toLocaleDateString() : '✓'}</Text>
+                  ) : s.state === 'available_now' ? (
+                    <View style={styles.specialNowChip}><Text style={styles.specialNowChipText}>{tr('AHORA')}</Text></View>
+                  ) : s.state === 'upcoming' ? (
+                    <Text style={styles.specialMuted}>{s.display_date || tr('Próximo')}</Text>
+                  ) : s.date_unconfirmed ? (
+                    <Text style={styles.specialMuted}>{tr('Próxima edición por confirmar')}</Text>
+                  ) : (
+                    <Text style={styles.specialMuted}>{tr('Temporada pasada')}</Text>
+                  )}
                 </View>
-              </View>
-            )}
+              );
+              return (
+                <View style={styles.section}>
+                  <Text style={[styles.sectionTitle, { paddingHorizontal: SPACING.lg, marginBottom: SPACING.sm }]}>{tr('Sellos de Temporada')}</Text>
+                  <View style={{ paddingHorizontal: SPACING.lg, gap: 8 }}>
+                    {now.length > 0 && <Text style={styles.specialGroupLabel}>{tr('Puedes ganar ahora')}</Text>}
+                    {now.map(renderRow)}
+                    {soon.length > 0 && <Text style={styles.specialGroupLabel}>{tr('Próximamente')}</Text>}
+                    {soon.map(renderRow)}
+                    {rec.length > 0 && <Text style={styles.specialGroupLabel}>{tr('En tu historia')}</Text>}
+                    {rec.map(renderRow)}
+                  </View>
+                </View>
+              );
+            })()}
 
             {/* ── Tu Grupo (8C2) — opt-in, real participants, chosen handles ── */}
             {!!user && (
@@ -761,7 +776,8 @@ const styles = StyleSheet.create({
   specialName: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
   specialDesc: { fontSize: 10.5, color: COLORS.textMuted, ...FONTS.medium, marginTop: 1 },
   specialDate: { fontSize: 10, color: COLORS.primary, ...FONTS.semibold },
-  specialMuted: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
+  specialMuted: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium, maxWidth: 96, textAlign: 'right' },
+  specialGroupLabel: { fontSize: 11, color: COLORS.primary, ...FONTS.bold, letterSpacing: 0.5, marginTop: 6, textTransform: 'uppercase' },
   specialNowChip: { backgroundColor: '#22C55E', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
   specialNowChipText: { fontSize: 9, color: '#000', ...FONTS.bold, letterSpacing: 1 },
 

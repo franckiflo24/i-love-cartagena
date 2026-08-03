@@ -407,9 +407,10 @@ async def passport_discover(request: Request, body: DiscoverBody):
         except Exception as exc:
             logger.warning(f"[walking] achievements on discover failed: {exc}")
 
-        # Drop 8B: real-window special stamps (atardecer / seasonal / pulse-gated)
+        # Drop 8B: real-window seasonal stamps — venue-anchored where the def
+        # names venues (sunset must be AT a sunset venue), city-wide otherwise.
         try:
-            new_specials = await _earn_specials(user_id, doc, now.astimezone(BOGOTA))
+            new_specials = await _earn_specials(user_id, doc, now.astimezone(BOGOTA), body.venue_id)
         except Exception as exc:
             logger.warning(f"[walking] specials on discover failed: {exc}")
 
@@ -469,19 +470,17 @@ async def passport_get(request: Request):
         logger.warning(f"[walking] achievements on get failed: {exc}")
         doc.setdefault("achievements", {})
     doc["standing"] = await _explorer_percentile(total)
-    # Drop 8C/8D: titles + specials with honest window states
+    # Drop 8C/8D: titles. Drop 8B-data: seasonal stamps with honest window
+    # states — suppressed (stale-date) stamps are filtered out entirely.
     doc["titles"] = _titles_for(doc["progress"])
     now_bog = datetime.now(timezone.utc).astimezone(BOGOTA)
     earned_specials = doc.get("special_stamps") or {}
-    defs = _load_specials()
-    doc["specials"] = [
-        {"key": sp["key"], "name": sp["name"], "icon": sp["icon"], "desc": sp.get("desc"),
-         "kind": sp.get("kind"), "hours": sp.get("hours"), "dates": sp.get("dates"),
-         "state": _special_state(sp, now_bog, earned_specials),
-         "earned_ts": earned_specials.get(sp["key"])}
-        for sp in defs.get("specials", [])
-        if sp.get("kind") != "pulse" or defs.get("pulse_specials_active")
-    ]
+    pulse_active = _load_seasonal().get("pulse_active")
+    projected = [_stamp_public(sp, now_bog, earned_specials)
+                 for sp in _load_seasonal().get("stamps", [])
+                 if not sp.get("pulse_gated") or pulse_active]
+    doc["specials"] = [p for p in projected if p]
+    doc["season_now"] = _season_now(now_bog)
     return doc
 
 
@@ -760,74 +759,199 @@ def _titles_for(progress: Dict[str, Any]) -> Dict[str, Any]:
     return {"all": titles, "primary": titles[0] if titles else None}
 
 
-_SPECIALS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                              "data", "special_stamps.json")
-_specials_cache: Dict[str, Any] = {"data": None}
+# ── Drop 8B-DATA: the Time Engine (seasonal_stamps.json) ─────────────
+# Two tiers, enforced here not by hope: 'fixed' recurs forever; 'reverify'
+# MUST carry window.valid_until — once now>valid_until the stamp suppresses
+# from every user surface and appears only on the admin re-verify list. A
+# stamp NEVER renders a passed date as upcoming.
+_SEASONAL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                              "data", "seasonal_stamps.json")
+_seasonal_cache: Dict[str, Any] = {"data": None}
 
 
-def _load_specials() -> Dict[str, Any]:
-    if _specials_cache["data"] is None:
+def _load_seasonal() -> Dict[str, Any]:
+    if _seasonal_cache["data"] is None:
         try:
-            with open(_SPECIALS_PATH, "r", encoding="utf-8") as f:
-                _specials_cache["data"] = json.load(f)
+            with open(_SEASONAL_PATH, "r", encoding="utf-8") as f:
+                _seasonal_cache["data"] = json.load(f)
         except Exception as exc:
-            logger.warning(f"[walking] specials defs unavailable: {exc}")
-            _specials_cache["data"] = {"specials": [], "pulse_specials_active": False}
-    return _specials_cache["data"]
+            logger.warning(f"[walking] seasonal defs unavailable: {exc}")
+            _seasonal_cache["data"] = {"stamps": [], "pulse_active": False,
+                                       "sunset_minutes_by_month": {}}
+    return _seasonal_cache["data"]
 
 
-def _special_window_open(sp: Dict[str, Any], now_bogota: datetime) -> bool:
-    """Is this special earnable RIGHT NOW? Real clock/date windows only."""
-    if sp.get("kind") == "daily_window":
-        h = now_bogota.hour
-        lo, hi = sp.get("hours") or [0, 0]
-        if sp.get("weekday") is not None and now_bogota.weekday() != sp["weekday"]:
+def _sunset_window_min(now: datetime) -> tuple:
+    """(open_from, open_to) in minutes-from-midnight for TODAY's sunset."""
+    defs = _load_seasonal()
+    base = (defs.get("sunset_minutes_by_month") or {}).get(str(now.month), 1080)
+    return base - int(defs.get("sunset_pre_min", 45)), base + int(defs.get("sunset_post_min", 20))
+
+
+def _hours_open(now: datetime, start: int, end: int) -> bool:
+    """Hour window; end<=start means it wraps past midnight (e.g. 16→2)."""
+    h = now.hour
+    if end > start:
+        return start <= h < end
+    return h >= start or h < end
+
+
+def _is_last_sunday(now: datetime) -> bool:
+    return now.weekday() == 6 and (now + timedelta(days=7)).month != now.month
+
+
+def _reverify_expired(sp: Dict[str, Any], now: datetime) -> bool:
+    if sp.get("tier") != "reverify":
+        return False
+    vu = (sp.get("window") or {}).get("valid_until")
+    return bool(vu) and now.strftime("%Y-%m-%d") > vu
+
+
+def _stamp_window_open(sp: Dict[str, Any], now: datetime) -> bool:
+    """Is this stamp earnable RIGHT NOW? Real astronomical/clock/date windows.
+    Pulse-gated + reverify-expired stamps are never earnable."""
+    if sp.get("pulse_gated") and not _load_seasonal().get("pulse_active"):
+        return False
+    if _reverify_expired(sp, now):
+        return False
+    w = sp.get("window") or {}
+    t = sp.get("type")
+    if t == "sunset":
+        lo, hi = _sunset_window_min(now)
+        m = now.hour * 60 + now.minute
+        return lo <= m <= hi
+    if t == "venue_hours":
+        rec = w.get("recurrence", "daily")
+        if rec == "last_sunday_except_jan_dec" and not (_is_last_sunday(now) and now.month not in (1, 12)):
             return False
-        return lo <= h < hi
-    if sp.get("kind") == "season":
-        d = now_bogota.strftime("%Y-%m-%d")
-        dates = sp.get("dates") or ["", ""]
-        return dates[0] <= d <= dates[1]
+        hrs = w.get("hours") or [0, 24]
+        return _hours_open(now, hrs[0], hrs[1])
+    if t == "weekly":
+        if now.weekday() not in (w.get("weekdays") or []):
+            return False
+        hrs = w.get("hours") or [0, 24]
+        return _hours_open(now, hrs[0], hrs[1])
+    if t == "event_fixed":
+        md = now.strftime("%m-%d")
+        return w.get("start_md", "99-99") <= md <= w.get("end_md", "00-00")
+    if t == "event_annual":
+        if not w.get("date_confirmed", True) or not w.get("start") or not w.get("end"):
+            return False
+        return w["start"] <= now.strftime("%Y-%m-%d") <= w["end"]
+    if t == "season":
+        m = now.month
+        s, e = w.get("start_month"), w.get("end_month")
+        if s is None or e is None:
+            return False
+        return (s <= m <= e) if s <= e else (m >= s or m <= e)
     return False
 
 
-def _special_state(sp: Dict[str, Any], now_bogota: datetime,
-                   earned: Dict[str, str]) -> str:
-    """earned | available_now | upcoming | out_of_window | pasada.
-    'pasada' (season over, unearned) is neutral record-keeping — the frontend
-    renders 'temporada pasada', never a missed-it nag."""
-    if sp["key"] in earned:
+def _stamp_state(sp: Dict[str, Any], now: datetime, earned: Dict[str, str]) -> str:
+    """earned | available_now | upcoming | out_of_window | pasada | suppressed.
+    'suppressed' (reverify past valid_until, unearned) is filtered from user
+    surfaces entirely — the honesty guard against a stale date. Recurring
+    stamps out of window read 'out_of_window'; a finished non-recurring
+    edition reads 'pasada' (dated, neutral), NEVER a passed date as upcoming."""
+    if sp["id"] in earned:
         return "earned"
-    if _special_window_open(sp, now_bogota):
+    if _reverify_expired(sp, now):
+        return "suppressed"
+    if _stamp_window_open(sp, now):
         return "available_now"
-    if sp.get("kind") == "season":
-        today = now_bogota.strftime("%Y-%m-%d")
-        dates = sp.get("dates") or ["", ""]
-        return "upcoming" if today < dates[0] else "pasada"
+    t = sp.get("type")
+    w = sp.get("window") or {}
+    if t in ("sunset", "venue_hours", "weekly"):
+        return "out_of_window"          # comes back today / this week
+    if t == "season":
+        return "upcoming"               # seasons recur every year
+    if t == "event_fixed":
+        md = now.strftime("%m-%d")
+        return "upcoming" if md < w.get("start_md", "99-99") else "upcoming"  # recurs annually
+    if t == "event_annual":
+        if not w.get("date_confirmed", True):
+            return "pasada"             # edition done, next date unconfirmed — never a date
+        if w.get("start") and now.strftime("%Y-%m-%d") < w["start"]:
+            return "upcoming"
+        return "pasada"
     return "out_of_window"
 
 
-async def _earn_specials(user_id: str, doc: Dict[str, Any],
-                         now_bogota: datetime) -> List[Dict[str, Any]]:
-    """Called on a NEW verified stamp: any special whose REAL window is open
-    right now is earned (once). Pulse-kind specials stay dormant behind the
-    pulse_specials_active flag until the Meta values land."""
-    defs = _load_specials()
+def _stamp_public(sp: Dict[str, Any], now: datetime, earned: Dict[str, str]) -> Optional[Dict[str, Any]]:
+    """User-facing projection with an honest display date. Returns None for
+    suppressed stamps (never shown to users)."""
+    state = _stamp_state(sp, now, earned)
+    if state == "suppressed":
+        return None
+    w = sp.get("window") or {}
+    # Display date ONLY when it is a real, non-passed date. event_annual with
+    # an unconfirmed next edition carries NO date (prevents a stale-date lie).
+    display = None
+    if sp.get("type") == "event_fixed":
+        display = f"{w.get('start_md')} → {w.get('end_md')}"
+    elif sp.get("type") == "event_annual" and w.get("date_confirmed") and state == "upcoming":
+        display = f"{w.get('start')} → {w.get('end')}"
+    elif sp.get("type") == "season":
+        display = None
+    return {
+        "id": sp["id"],
+        "name": sp.get("name_es"),
+        "icon": sp.get("icon"),
+        "desc": sp.get("desc_es"),
+        "type": sp.get("type"),
+        "tier": sp.get("tier"),
+        "state": state,
+        "display_date": display,
+        "date_unconfirmed": (sp.get("type") == "event_annual" and not w.get("date_confirmed")),
+        "earned_ts": earned.get(sp["id"]),
+    }
+
+
+def _reverify_list(now: datetime) -> List[Dict[str, Any]]:
+    """Admin surface: reverify stamps past valid_until that need fresh dates."""
+    out = []
+    for sp in _load_seasonal().get("stamps", []):
+        if _reverify_expired(sp, now):
+            out.append({
+                "id": sp["id"], "name": sp.get("name_es"),
+                "valid_until": (sp.get("window") or {}).get("valid_until"),
+                "confirm_source": sp.get("confirm_source"),
+                "source": sp.get("source"),
+            })
+    return out
+
+
+async def _earn_specials(user_id: str, doc: Dict[str, Any], now_bogota: datetime,
+                         venue_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    """On a NEW verified stamp: earn any seasonal stamp whose REAL window is
+    open now AND (if venue-anchored) whose venues include THIS venue — the
+    75m proximity is already gated upstream. Pulse-gated + reverify-expired
+    stamps never earn."""
+    defs = _load_seasonal()
     have = doc.get("special_stamps") or {}
     fresh: List[Dict[str, Any]] = []
-    for sp in defs.get("specials", []):
-        if sp.get("kind") == "pulse" and not defs.get("pulse_specials_active"):
+    for sp in defs.get("stamps", []):
+        if sp["id"] in have:
             continue
-        if sp["key"] in have:
-            continue
-        if _special_window_open(sp, now_bogota):
+        venues = sp.get("venues")
+        if venues and venue_id not in venues:
+            continue  # venue-anchored stamp, wrong venue
+        if _stamp_window_open(sp, now_bogota):
             ts = datetime.now(timezone.utc).isoformat()
             await db.user_passport.update_one(
                 {"user_id": user_id},
-                {"$set": {f"special_stamps.{sp['key']}": ts}},
+                {"$set": {f"special_stamps.{sp['id']}": ts}},
             )
-            fresh.append({"key": sp["key"], "name": sp["name"], "icon": sp["icon"], "ts": ts})
+            fresh.append({"key": sp["id"], "name": sp.get("name_es"), "icon": sp.get("icon"), "ts": ts})
     return fresh
+
+
+def _season_now(now: datetime) -> Optional[Dict[str, Any]]:
+    """The current season stamp (for the 'Qué pasa ahora' banner)."""
+    for sp in _load_seasonal().get("stamps", []):
+        if sp.get("type") == "season" and _stamp_window_open(sp, now):
+            return {"id": sp["id"], "name": sp.get("name_es"), "icon": sp.get("icon")}
+    return None
 
 
 def _collection_completions(prev: Dict[str, Any], now: Dict[str, Any]) -> List[Dict[str, str]]:
@@ -1296,3 +1420,37 @@ async def trust_reference(request: Request):
             logger.error(f"[trust] load failed: {exc}")
             raise HTTPException(status_code=503, detail="trust reference unavailable")
     return {k: _trust_pub_cache[k] for k in ("config", "entries", "safety", "scam_cards") if k in _trust_pub_cache}
+
+
+# ═══ SEASONAL STAMPS (Drop 8B-data) ══════════════════════════════════
+
+@router.get("/seasonal/now")
+async def seasonal_now(request: Request):
+    """PUBLIC 'Qué pasa ahora' — current season + which seasonal stamps are
+    earnable RIGHT NOW (no auth needed; used by the Home banner). Suppressed
+    (stale) stamps are never included."""
+    _check_rate_limit(f"seasonal:{_client_ip(request)}", max_calls=60, window_sec=60)
+    now = datetime.now(timezone.utc).astimezone(BOGOTA)
+    pulse_active = _load_seasonal().get("pulse_active")
+    available = []
+    for sp in _load_seasonal().get("stamps", []):
+        if sp.get("pulse_gated") and not pulse_active:
+            continue
+        if _stamp_window_open(sp, now):
+            available.append({"id": sp["id"], "name": sp.get("name_es"),
+                              "icon": sp.get("icon"), "venues": sp.get("venues")})
+    return {"season": _season_now(now), "available_now": available,
+            "pulse_active": bool(pulse_active)}
+
+
+@router.get("/admin/stamps/reverify")
+async def admin_stamps_reverify(request: Request):
+    """ADMIN/CRON — seasonal stamps past their valid_until that need fresh
+    official dates. Auth: Bearer CRON_SECRET (same key the Intel dashboard
+    uses). This is the surface that keeps 'reverify' honest."""
+    secret = os.environ.get("CRON_SECRET", "").strip()
+    if not secret or request.headers.get("Authorization", "") != f"Bearer {secret}":
+        raise HTTPException(status_code=403, detail="cron secret required")
+    now = datetime.now(timezone.utc).astimezone(BOGOTA)
+    items = _reverify_list(now)
+    return {"count": len(items), "as_of": now.strftime("%Y-%m-%d"), "stamps": items}

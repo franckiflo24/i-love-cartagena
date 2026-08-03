@@ -19,6 +19,7 @@ import { usePartnerCount } from '../../src/context/PartnerCountContext';
 import { COLLECTION_DEFS } from '../../src/constants/collections';
 import { captureRef, claimPendingRef } from '../../src/lib/referral';
 import { PassportGlance } from '../../src/components/PassportGlance';
+import { SeasonBanner } from '../../src/components/SeasonBanner';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
@@ -390,6 +391,9 @@ export default function HomeScreen() {
 
         {/* Drop 8F: passport greets you when a missing stamp is steps away */}
         <PassportGlance />
+
+        {/* Drop 8B-data (T5c): Qué pasa ahora — season + earnable-now stamps */}
+        <SeasonBanner />
 
         {/* Unified AI + Search Bar — tap left side for keyword search, right side opens AI Concierge */}
         <View style={styles.searchBar}>

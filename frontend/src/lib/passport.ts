@@ -59,16 +59,19 @@ export interface Rank {
 export interface PassportTitle { key: string; name: string }
 
 export interface SpecialStamp {
-  key: string;
+  id: string;
   name: string;
   icon: string;
   desc?: string;
-  kind: 'daily_window' | 'season' | 'pulse';
-  hours?: [number, number];
-  dates?: [string, string];
+  type: 'sunset' | 'venue_hours' | 'event_fixed' | 'event_annual' | 'weekly' | 'season';
+  tier: 'fixed' | 'reverify';
   state: 'earned' | 'available_now' | 'upcoming' | 'out_of_window' | 'pasada';
+  display_date?: string | null;
+  date_unconfirmed?: boolean;
   earned_ts?: string | null;
 }
+
+export interface SeasonNow { id: string; name: string; icon: string }
 
 export interface Passport {
   user_id: string;
@@ -81,6 +84,7 @@ export interface Passport {
   standing?: { active: number; top_pct?: number } | null;
   titles?: { all: PassportTitle[]; primary: PassportTitle | null };
   specials?: SpecialStamp[];
+  season_now?: SeasonNow | null;
   created_at?: string;
 }
 

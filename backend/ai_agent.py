@@ -904,6 +904,7 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
         **({"curated_recommendations": curated} if curated else {}),
         **({"live_tonight": live_tonight} if live_tonight else {}),
         **({"trust_reference": tc} if (tc := _trust_context(user_text)) else {}),
+        **({"seasonal": sc} if (sc := _seasonal_context(user_text)) else {}),
         "relevant_partners": relevant_partners,
         "partner_directory": all_partners,
         "events": upcoming_events,
@@ -976,6 +977,47 @@ def _trust_context(user_text: str) -> Optional[Dict[str, Any]]:
         return None
     return {"config": _TRUST.get("config"), "entries": _TRUST.get("entries"),
             "safety": _TRUST.get("safety")}
+
+
+_SEASONAL_TRIGGERS = ("sello", "sellos", "temporada", "festival", "fiesta", "fiestas",
+                      "atardecer", "sunset", "evento", "eventos", "hoy", "ahora",
+                      "season", "stamp", "hay festival", "independencia", "candelaria",
+                      "qué hacer", "que hacer", "novena", "navidad", "semana santa")
+
+
+def _seasonal_context(user_text: str) -> Optional[Dict[str, Any]]:
+    """Grounded time-engine facts for Luna — what's earnable NOW and what's
+    confirmed-upcoming. She NEVER announces a passed or unconfirmed date
+    (suppressed stamps are absent; unconfirmed editions carry no date)."""
+    t = (user_text or "").lower()
+    if not any(k in t for k in _SEASONAL_TRIGGERS):
+        return None
+    try:
+        import walking as _walking
+        now = datetime.now(timezone.utc).astimezone(_walking.BOGOTA)
+        defs = _walking._load_seasonal()
+        lo, hi = _walking._sunset_window_min(now)
+        sunset_min = (lo + 45)  # base = window-open + pre_min
+        sunset_hhmm = f"{sunset_min // 60:02d}:{sunset_min % 60:02d}"
+        available, upcoming = [], []
+        for sp in defs.get("stamps", []):
+            if sp.get("pulse_gated") and not defs.get("pulse_active"):
+                continue
+            state = _walking._stamp_state(sp, now, {})
+            if state == "available_now":
+                available.append(sp.get("name_es"))
+            elif state == "upcoming":
+                w = sp.get("window") or {}
+                d = f"{w.get('start_md')}" if sp.get("type") == "event_fixed" else None
+                upcoming.append({"name": sp.get("name_es"), "when": d})
+        season = _walking._season_now(now)
+        return {"sunset_today": sunset_hhmm,
+                "season_now": (season or {}).get("name_es"),
+                "earnable_now": available[:6],
+                "upcoming_confirmed": upcoming[:6],
+                "_rule": "Solo anunciá lo earnable_now o upcoming_confirmed. NUNCA una fecha pasada ni sin confirmar."}
+    except Exception:
+        return None
 
 
 SYSTEM_PROMPT = """Eres "Amo", el concierge digital oficial de la app Amo Cartagena (Cartagena de Indias, Colombia).
@@ -1079,6 +1121,13 @@ TU TRABAJO
 - Si el dato no está en trust_reference ni en el catálogo → "confírmalo en el lugar", nunca una cifra inventada.
 - Una línea proactiva de seguridad cuando el intent lo amerita (UNA, no un sermón): lancha/islas → "la tasa del muelle/parque se paga en efectivo ($16–41 mil según el tour), confirmá qué incluye"; vida nocturna → "nunca dejes tu trago solo"; taxi → "acordá el precio antes de subir".
 - Zonas: hablá de "zonas turísticas principales" — nunca declares una zona "peligrosa".
+
+## SELLOS DE TEMPORADA (una fecha vencida es una mentira)
+- Si `seasonal` está en el contexto, hablá de sellos/temporada/festivales DESDE AHÍ, nunca de memoria.
+- `seasonal.earnable_now` = sellos que se pueden ganar AHORA MISMO — invitá a ganarlos ("hoy podés ganar el Sello del Atardecer — el sol se pone a las {seasonal.sunset_today}, andá a la muralla").
+- `seasonal.upcoming_confirmed` = eventos con fecha REAL futura — anunciá con la fecha ("las Fiestas de Independencia arrancan el 6 de noviembre").
+- JAMÁS anuncies un festival cuya edición ya pasó como si fuera próximo, ni una fecha "sin confirmar" como si fuera fija. Si no está en earnable_now ni upcoming_confirmed, no inventes fecha — decí "la próxima edición aún no tiene fecha confirmada".
+- `seasonal.season_now` = la temporada actual (seca/verde) — usala como color ambiental si viene al caso.
 
 ## VOZ (lo que hace que la gente VUELVA)
 - **Nombre**: si `user.name` existe, usalo natural y con moderación — en el saludo o el remate, nunca en cada frase ("Listo, Phil —" / "Vas a amar esto").
