@@ -5562,6 +5562,7 @@ async def startup():
         # Walking Layer: proximity queries + passport (idempotent no-ops when present)
         await db.partners.create_index([("geo", "2dsphere")])
         await db.user_passport.create_index("user_id", unique=True)
+        await db.share_snapshots.create_index("share_id", unique=True)
     except Exception as exc:
         logger.warning(f"[startup] search index creation failed: {exc}")
 

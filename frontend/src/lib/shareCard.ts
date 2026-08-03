@@ -176,26 +176,33 @@ export async function renderShareCard(stats: ShareCardStats): Promise<Blob | nul
   }
 }
 
-/** Share the card. Returns 'shared' | 'downloaded' | 'failed'. */
-export async function shareCard(stats: ShareCardStats): Promise<'shared' | 'downloaded' | 'failed'> {
+/** Share the card (+ optional unfurl link). Returns 'shared' | 'downloaded' | 'failed'. */
+export async function shareCard(
+  stats: ShareCardStats,
+  shareUrl?: string | null,
+): Promise<'shared' | 'downloaded' | 'failed'> {
   const blob = await renderShareCard(stats);
   if (!blob) return 'failed';
+  const text = shareUrl
+    ? `Mi pasaporte de Cartagena — ${shareUrl}`
+    : 'Mi pasaporte de Cartagena — amocartagena.co';
   try {
     const file = new File([blob], 'mi-cartagena.png', { type: 'image/png' });
     const nav: any = typeof navigator !== 'undefined' ? navigator : null;
     if (nav?.canShare && nav.canShare({ files: [file] })) {
-      await nav.share({
-        files: [file],
-        title: 'Mi Cartagena',
-        text: 'Mi pasaporte de Cartagena — amocartagena.co',
-      });
+      await nav.share({ files: [file], title: 'Mi Cartagena', text });
       return 'shared';
     }
   } catch (err: any) {
     if (err?.name === 'AbortError') return 'shared'; // user closed the sheet — not a failure
   }
-  // Fallback: download the image
+  // Fallback: download the image (+ put the unfurl link on the clipboard)
   try {
+    if (shareUrl) {
+      try {
+        await (navigator as any)?.clipboard?.writeText?.(shareUrl);
+      } catch {}
+    }
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

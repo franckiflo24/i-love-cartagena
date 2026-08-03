@@ -20,7 +20,7 @@ import { useTr } from '../src/i18n/autoTr';
 import { useAuth } from '../src/context/AuthContext';
 import { geoService, GeoState, haversineM } from '../src/lib/geo';
 import {
-  getCollections, getPassport, discover, CollectionsDef, Passport, CollectionVenue,
+  getCollections, getPassport, discover, mintShareLink, CollectionsDef, Passport, CollectionVenue,
 } from '../src/lib/passport';
 import { shareCard, canShareCard } from '../src/lib/shareCard';
 
@@ -139,8 +139,10 @@ export default function PasaporteScreen() {
       .sort((a, b) => b.discovered - a.discovered)[0];
     const recent = [...discoveries].reverse().slice(0, 6)
       .map((d) => venueName[d.venue_id]).filter(Boolean) as string[];
+    const firstName = user?.name?.split(' ')[0] || null;
+    const shareUrl = await mintShareLink(firstName); // fail-soft: image-only share
     const result = await shareCard({
-      userName: user?.name?.split(' ')[0] || null,
+      userName: firstName,
       streakBest: passport?.streak?.best || 0,
       saboresDiscovered: progress.sabores.discovered,
       saboresTotal: progress.sabores.total,
@@ -149,7 +151,7 @@ export default function PasaporteScreen() {
       joyas: progress.joyas.discovered,
       topNeighborhood: nbh ? { name: NBH_NAMES[nbh.slug] || nbh.slug, discovered: nbh.discovered, total: nbh.total } : null,
       recentVenueNames: recent,
-    });
+    }, shareUrl);
     if (result === 'downloaded') setNotice(tr('Imagen descargada — compártela donde quieras'));
     if (result === 'failed') setNotice(tr('No se pudo generar la tarjeta'));
     if (result !== 'shared') setTimeout(() => setNotice(null), 3500);

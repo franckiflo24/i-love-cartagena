@@ -427,6 +427,85 @@ async def _compute_progress(discoveries: List[Dict[str, Any]]) -> Dict[str, Any]
     }
 
 
+# ── Share snapshots (Drop 3 fast-follow: OG link unfurls) ────────────
+# A snapshot is what the share CARD shows and nothing more: counts, streak,
+# top barrio, ≤6 venue names, a first name. NO coordinates, NO location
+# history, NO email. user_id is stored internally (data-deletion path) and
+# never exposed on the public read.
+
+class ShareBody(BaseModel):
+    name: Optional[str] = Field(default=None, max_length=40)
+
+
+def _snapshot_from_passport(doc: Dict[str, Any], progress: Dict[str, Any],
+                            venue_names: List[str], name: Optional[str]) -> Dict[str, Any]:
+    nbhs = [n for n in progress.get("neighborhoods", []) if n.get("discovered", 0) > 0]
+    top = max(nbhs, key=lambda n: n["discovered"]) if nbhs else None
+    return {
+        "name": (name or "").strip()[:40] or None,
+        "streak_best": int((doc.get("streak") or {}).get("best") or 0),
+        "sabores_d": progress["sabores"]["discovered"],
+        "sabores_t": progress["sabores"]["total"],
+        "plazas_d": progress["plazas"]["discovered"],
+        "plazas_t": progress["plazas"]["total"],
+        "joyas": progress["joyas"]["discovered"],
+        "top_nbh": ({"slug": top["slug"], "d": top["discovered"], "t": top["total"]} if top else None),
+        "venues": venue_names[:6],
+    }
+
+
+@router.post("/passport/share")
+async def passport_share_create(request: Request, body: ShareBody):
+    """Mint a public share snapshot of the caller's passport. Auth required."""
+    import uuid as _uuid
+    user = await _get_current_user(request)
+    user_id = user["user_id"]
+    _check_rate_limit(f"pshare:{user_id}", max_calls=20, window_sec=3600)
+
+    doc = await db.user_passport.find_one({"user_id": user_id}, {"_id": 0})
+    if not doc:
+        doc = _empty_passport(user_id)
+    discoveries = doc.get("discoveries") or []
+    progress = await _compute_progress(discoveries)
+
+    # Resolve venue display names for the most recent discoveries (≤6)
+    recent_ids: List[str] = []
+    for d in reversed(discoveries):
+        if d["venue_id"] not in recent_ids:
+            recent_ids.append(d["venue_id"])
+        if len(recent_ids) >= 6:
+            break
+    names: List[str] = []
+    if recent_ids:
+        name_map = {}
+        async for p in db.partners.find({"partner_id": {"$in": recent_ids}},
+                                        {"_id": 0, "partner_id": 1, "name": 1}):
+            name_map[p["partner_id"]] = p.get("name") or ""
+        names = [name_map[i] for i in recent_ids if name_map.get(i)]
+
+    share_id = f"shr_{_uuid.uuid4().hex[:12]}"
+    snapshot = _snapshot_from_passport(doc, progress, names, body.name or (user.get("name") or "").split(" ")[0])
+    await db.share_snapshots.insert_one({
+        "share_id": share_id,
+        "user_id": user_id,  # internal only
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        **snapshot,
+    })
+    return {"ok": True, "share_id": share_id, "url": f"https://www.amocartagena.co/pasaporte/share/{share_id}"}
+
+
+@router.get("/passport/share/{share_id}")
+async def passport_share_get(request: Request, share_id: str):
+    """PUBLIC: the card-visible fields of a share snapshot. Never user_id."""
+    _check_rate_limit(f"pshareget:{_client_ip(request)}", max_calls=60, window_sec=60)
+    if not share_id.startswith("shr_") or len(share_id) > 24:
+        raise HTTPException(status_code=404, detail="not found")
+    doc = await db.share_snapshots.find_one({"share_id": share_id}, {"_id": 0, "user_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="not found")
+    return doc
+
+
 @router.get("/passport/collections")
 async def passport_collections():
     """PUBLIC collection definitions (no user data) — powers the guest teaser

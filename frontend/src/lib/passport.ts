@@ -104,6 +104,18 @@ export async function discover(
   return api.post('/passport/discover', body);
 }
 
+/** Mint a public share snapshot (counts + venue names only, never
+ *  coordinates). Fail-soft: null when offline/guest — the share proceeds
+ *  image-only. */
+export async function mintShareLink(name?: string | null): Promise<string | null> {
+  try {
+    const res = await api.post('/passport/share', { name: name || undefined });
+    return res?.url || null;
+  } catch {
+    return null;
+  }
+}
+
 /** Venue-id → plates it can stamp (for the "Lo probé" button). */
 export function platesForVenue(cols: CollectionsDef | null, venueId: string): PlateDef[] {
   if (!cols) return [];
