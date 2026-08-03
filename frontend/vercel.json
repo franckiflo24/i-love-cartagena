@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx expo export --platform web && rm -f dist/_sitemap.html",
+  "buildCommand": "npx expo export --platform web && rm -f dist/_sitemap.html && node scripts/stamp-sw.mjs",
   "outputDirectory": "dist",
   "framework": null,
   "redirects": [

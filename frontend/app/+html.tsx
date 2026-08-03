@@ -1,6 +1,13 @@
 import { ScrollViewStyleReset } from 'expo-router/html';
 import type { PropsWithChildren } from 'react';
 
+// Evaluated ONCE at static-export time → every deploy gets a unique version.
+// Stale clients see stored ≠ current on their next HTML load and hard-reload
+// once (the '3.1.0' era required a MANUAL bump on every deploy — five Walking
+// Layer deploys shipped without one, leaving returning devices on the old
+// bundle. Never again: the stamp is automatic.)
+const BUILD_VERSION = `3.2.0-${Date.now()}`;
+
 export default function Root({ children }: PropsWithChildren) {
   return (
     <html lang="es">
@@ -291,7 +298,7 @@ export default function Root({ children }: PropsWithChildren) {
         `}} />
         <script dangerouslySetInnerHTML={{ __html: `
           (function(){
-            var APP_VERSION = '3.1.0';
+            var APP_VERSION = '${BUILD_VERSION}';
             // Listen for SW update message → reload
             if (navigator.serviceWorker) {
               navigator.serviceWorker.addEventListener('message', function(e) {
