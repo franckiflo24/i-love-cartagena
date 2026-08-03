@@ -328,4 +328,8 @@ class GeoService {
   }
 }
 
-export const geoService = new GeoService();
+// True singleton even if the bundler duplicates this module across route
+// chunks (observed on the static export: two instances → two live watches
+// → double battery + throttle bypass). globalThis survives duplication.
+const _g = globalThis as any;
+export const geoService: GeoService = _g.__amoGeoService || (_g.__amoGeoService = new GeoService());

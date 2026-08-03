@@ -40,8 +40,11 @@ const STORE = 'venues';
 const META_STORE = 'meta';
 const FRESH_MS = 24 * 60 * 60 * 1000; // background-refresh cadence
 
-let memory: CachedVenue[] | null = null;
-let inflight: Promise<CachedVenue[]> | null = null;
+// Module state on globalThis: the bundler may duplicate this module across
+// route chunks; sharing state prevents parallel fetches/copies.
+const _g = globalThis as any;
+const _state: { memory: CachedVenue[] | null; inflight: Promise<CachedVenue[]> | null } =
+  _g.__amoVenueCache || (_g.__amoVenueCache = { memory: null, inflight: null });
 
 function slim(raw: RawPartner[]): CachedVenue[] {
   const out: CachedVenue[] = [];
@@ -150,17 +153,17 @@ async function fetchNetwork(): Promise<CachedVenue[] | null> {
  * from network when the IDB copy is stale. Never rejects; [] on total failure.
  */
 export function getVenues(): Promise<CachedVenue[]> {
-  if (memory && memory.length > 0) return Promise.resolve(memory);
-  if (inflight) return inflight;
-  inflight = (async () => {
+  if (_state.memory && _state.memory.length > 0) return Promise.resolve(_state.memory);
+  if (_state.inflight) return _state.inflight;
+  _state.inflight = (async () => {
     const idb = await idbReadAll();
     if (idb) {
-      memory = idb.venues;
+      _state.memory = idb.venues;
       if (Date.now() - idb.savedAt > FRESH_MS) {
         // stale — refresh in the background, serve cached now
         fetchNetwork().then((fresh) => {
           if (fresh && fresh.length > 0) {
-            memory = fresh;
+            _state.memory = fresh;
             idbWriteAll(fresh);
           }
         });
@@ -169,13 +172,13 @@ export function getVenues(): Promise<CachedVenue[]> {
     }
     const fresh = await fetchNetwork();
     if (fresh && fresh.length > 0) {
-      memory = fresh;
+      _state.memory = fresh;
       idbWriteAll(fresh); // fire-and-forget persistence
       return fresh;
     }
     return [];
   })().finally(() => {
-    inflight = null;
+    _state.inflight = null;
   });
-  return inflight;
+  return _state.inflight;
 }
