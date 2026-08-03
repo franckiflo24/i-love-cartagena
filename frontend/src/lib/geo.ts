@@ -93,13 +93,28 @@ function hasGeolocation(): boolean {
 class GeoService {
   private state: GeoState = { status: 'not-asked', position: null, heading: null };
   private listeners = new Set<Listener>();
-  private watchId: number | null = null;
   private wantWatching = false; // the strip is focused & visible
-  private lastEmit = 0;
   private visibilityHooked = false;
   private headingHooked = false;
   private lastHeadingEmit = 0;
   private permissionQueried = false;
+
+  // Watch handle + emit throttle live on globalThis so the ≤1-per-5s and
+  // single-registration invariants hold even if the bundler evaluates this
+  // module more than once (observed on the static export).
+  private get watchId(): number | null {
+    const v = (globalThis as any).__amoGeoWatchId;
+    return typeof v === 'number' ? v : null;
+  }
+  private set watchId(v: number | null) {
+    (globalThis as any).__amoGeoWatchId = v;
+  }
+  private get lastEmit(): number {
+    return (globalThis as any).__amoGeoLastEmit || 0;
+  }
+  private set lastEmit(v: number) {
+    (globalThis as any).__amoGeoLastEmit = v;
+  }
 
   constructor() {
     if (!hasGeolocation()) {
