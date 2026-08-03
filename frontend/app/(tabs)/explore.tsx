@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useFocusEffect } from 'expo-router';
 import {
   View,
   Text,
@@ -33,6 +34,8 @@ import { getUpcomingEvents } from '../../src/lib/data';
 import { usePersonalization } from '../../src/context/PersonalizationContext';
 import { useLocalPicks, behavioralPick } from '../../src/services/localPicks';
 import { nearestNeighborhood } from '../../src/utils/neighborhood';
+import { NearbyStrip } from '../../src/components/NearbyStrip';
+import { geoService } from '../../src/lib/geo';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - SPACING.lg * 2 - SPACING.sm) / 2;
@@ -529,6 +532,15 @@ export default function ExploreScreen() {
   const [localsNbh, setLocalsNbh] = useState<string | null>(null);
   const localPicks = useLocalPicks();
 
+  // Walking Layer battery discipline: the geo watch runs ONLY while Explore
+  // is the focused screen (geoService also clears it when the tab is hidden).
+  useFocusEffect(
+    useCallback(() => {
+      geoService.start();
+      return () => geoService.stop();
+    }, []),
+  );
+
   // When navigated with a category param (from home cards), switch to that filter
   useEffect(() => {
     if (routeCategory) {
@@ -718,6 +730,10 @@ export default function ExploreScreen() {
       <View style={styles.header}>
         <SearchBarButton onPress={() => router.push('/search')} />
       </View>
+
+      {/* ── Cerca de ti (Walking Layer) — renders nothing unless geo is
+             granted AND ≥1 venue is within 150m; fails soft to today's app ── */}
+      <NearbyStrip />
 
       {/* ── Personalization indicator ── */}
       {userProfile.isPersonalized && (

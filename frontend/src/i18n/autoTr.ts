@@ -17,6 +17,32 @@ import type { Lang } from './translations';
 type Dict = Record<string, Partial<Record<Lang, string>>>;
 
 export const AUTO_TR: Dict = {
+  // Walking Layer — "Cerca de ti" strip ('Favorito local' + 'Activar' exist below)
+  'Cerca de ti': { en: 'Near you', fr: 'Près de vous', pt: 'Perto de você' },
+  'Descubre lo que tienes cerca': { en: 'Discover what surrounds you', fr: 'Découvrez ce qui vous entoure', pt: 'Descubra o que está por perto' },
+  'Activa tu ubicación y te mostramos joyas a pasos de ti. Tu recorrido nunca se guarda en nuestros servidores.': { en: 'Turn on location and we surface gems steps away. Your movements are never stored on our servers.', fr: 'Activez la localisation et nous révélons des pépites à deux pas. Vos déplacements ne sont jamais stockés sur nos serveurs.', pt: 'Ative a localização e mostramos joias a passos de você. Seu percurso nunca é salvo em nossos servidores.' },
+  'Brújula': { en: 'Compass', fr: 'Boussole', pt: 'Bússola' },
+  'A pasos de ti': { en: 'Steps away', fr: 'À deux pas', pt: 'A passos de você' },
+  'Guárdalo — inicia sesión': { en: 'Save it — sign in', fr: 'Gardez-le — connectez-vous', pt: 'Salve — faça login' },
+  'Un favorito local está cerca…': { en: 'A local favorite is nearby…', fr: 'Un favori local est tout près…', pt: 'Um favorito local está perto…' },
+  'camina para descubrirlo': { en: 'walk to reveal it', fr: 'marchez pour le découvrir', pt: 'caminhe para descobri-lo' },
+  'Romántico': { en: 'Romantic', fr: 'Romantique', pt: 'Romântico' },
+  'Vista al atardecer': { en: 'Sunset views', fr: 'Vue coucher de soleil', pt: 'Vista do pôr do sol' },
+  'Vista al mar': { en: 'Sea view', fr: 'Vue mer', pt: 'Vista para o mar' },
+  'Para primera cita': { en: 'First-date spot', fr: 'Premier rendez-vous', pt: 'Primeiro encontro' },
+  'Música en vivo': { en: 'Live music', fr: 'Musique live', pt: 'Música ao vivo' },
+  'Experiencia premium': { en: 'Premium experience', fr: 'Expérience premium', pt: 'Experiência premium' },
+  'Buen precio': { en: 'Great value', fr: 'Bon prix', pt: 'Bom preço' },
+  'Familiar': { en: 'Family-friendly', fr: 'Familial', pt: 'Para família' },
+  'Abierto hasta tarde': { en: 'Open late', fr: 'Ouvert tard', pt: 'Aberto até tarde' },
+  'Terraza': { en: 'Terrace', fr: 'Terrasse', pt: 'Terraço' },
+  'Frente al mar': { en: 'Beachfront', fr: 'Front de mer', pt: 'Beira-mar' },
+  'Opciones saludables': { en: 'Healthy options', fr: 'Options saines', pt: 'Opções saudáveis' },
+  'Para celebrar': { en: 'For celebrations', fr: 'Pour célébrer', pt: 'Para celebrar' },
+  'Para grupos': { en: 'Group-friendly', fr: 'Pour les groupes', pt: 'Para grupos' },
+  'Bajo techo': { en: 'Indoors', fr: 'En intérieur', pt: 'Coberto' },
+  'Para trabajar': { en: 'Work-friendly', fr: 'Pour travailler', pt: 'Para trabalhar' },
+
   // Categories / Tabs
   'Todos': { en: 'All', fr: 'Tous', pt: 'Todos' },
   'Gastronomía': { en: 'Dining', fr: 'Gastronomie', pt: 'Gastronomia' },

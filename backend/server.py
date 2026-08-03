@@ -4381,6 +4381,7 @@ import tagging as _tagging
 import occasions as _occasions
 import taste as _taste
 import local_signals as _local_signals
+import walking as _walking
 
 
 @api_router.get("/payments/config")
@@ -5507,6 +5508,15 @@ app.include_router(_taste.router, prefix="/api")
 _local_signals.init(db_=db, require_admin=require_admin)
 app.include_router(_local_signals.router, prefix="/api")
 
+_walking.init(
+    db_=db,
+    check_rate_limit=_check_rate_limit,
+    get_current_user=get_current_user,
+    get_active_pulse_map=_pulse.get_active_pulse_map,
+    get_behavioral_pick_ids=_local_signals.get_behavioral_pick_ids,
+)
+app.include_router(_walking.router, prefix="/api")
+
 # ── CORS ─────────────────────────────────────────────────────
 # Browsers REJECT the combination of `allow_credentials=True` + `allow_origins=["*"]`
 # (CORS spec disallows credentialed wildcard). The previous config silently broke
@@ -5549,6 +5559,9 @@ async def startup():
         await db.partner_pulses.create_index([("active", 1), ("valid_until", 1)])
         await db.local_signals.create_index("partner_id", unique=True)
         await db.local_signals.create_index("is_local_pick")
+        # Walking Layer: proximity queries + passport (idempotent no-ops when present)
+        await db.partners.create_index([("geo", "2dsphere")])
+        await db.user_passport.create_index("user_id", unique=True)
     except Exception as exc:
         logger.warning(f"[startup] search index creation failed: {exc}")
 
