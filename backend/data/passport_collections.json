@@ -1,0 +1,260 @@
+{
+ "version": "2026-08-03",
+ "sabores": [
+  {
+   "key": "posta",
+   "name": "Posta cartagenera",
+   "venue_ids": [
+    "ptr_W102"
+   ]
+  },
+  {
+   "key": "ceviche",
+   "name": "Ceviche cartagenero",
+   "venue_ids": [
+    "ptr_R102",
+    "ptr_W102",
+    "ptr_W100",
+    "ptr_R104",
+    "ptr_R057",
+    "ptr_R031",
+    "ptr_R052",
+    "ptr_R013",
+    "ptr_R015",
+    "ptr_R026"
+   ]
+  },
+  {
+   "key": "tiradito",
+   "name": "Tiradito con leche de tigre",
+   "venue_ids": [
+    "ptr_R105",
+    "ptr_R031",
+    "ptr_R015",
+    "ptr_R103",
+    "ptr_cu_002"
+   ]
+  },
+  {
+   "key": "arroz_mariscos",
+   "name": "Arroz de mariscos",
+   "venue_ids": [
+    "ptr_W100",
+    "ptr_R103",
+    "ptr_R104",
+    "ptr_R033",
+    "ptr_R021",
+    "ptr_R022",
+    "ptr_R054",
+    "ptr_R106"
+   ]
+  },
+  {
+   "key": "arroz_coco",
+   "name": "Arroz con coco",
+   "venue_ids": [
+    "ptr_R013",
+    "ptr_W101",
+    "ptr_R018"
+   ]
+  },
+  {
+   "key": "cazuela",
+   "name": "Cazuela de mariscos",
+   "venue_ids": [
+    "ptr_R013",
+    "ptr_R052",
+    "ptr_dv_008"
+   ]
+  },
+  {
+   "key": "langosta",
+   "name": "Langosta caribeña",
+   "venue_ids": [
+    "ptr_R105",
+    "ptr_R102",
+    "ptr_R104",
+    "ptr_R026",
+    "ptr_R103",
+    "ptr_R107",
+    "ptr_R022",
+    "ptr_R021"
+   ]
+  },
+  {
+   "key": "pulpo",
+   "name": "Pulpo a la parrilla",
+   "venue_ids": [
+    "ptr_R023",
+    "ptr_R057",
+    "ptr_R107",
+    "ptr_R033",
+    "ptr_R054",
+    "ptr_R021",
+    "ptr_R004",
+    "ptr_R065"
+   ]
+  },
+  {
+   "key": "pargo",
+   "name": "Pargo del Caribe",
+   "venue_ids": [
+    "ptr_R102",
+    "ptr_R013",
+    "ptr_R033"
+   ]
+  },
+  {
+   "key": "encocado",
+   "name": "Encocado de camarón",
+   "venue_ids": [
+    "ptr_W102"
+   ]
+  },
+  {
+   "key": "carimanola",
+   "name": "Carimañola",
+   "venue_ids": [
+    "ptr_W102",
+    "ptr_R015"
+   ]
+  },
+  {
+   "key": "arepa_huevo",
+   "name": "Arepa de huevo",
+   "venue_ids": [
+    "ptr_cf_003"
+   ]
+  },
+  {
+   "key": "pie_coco",
+   "name": "Pie de coco",
+   "venue_ids": [
+    "ptr_W100",
+    "ptr_R104",
+    "ptr_V013"
+   ]
+  },
+  {
+   "key": "paleta",
+   "name": "Paleta artesanal",
+   "venue_ids": [
+    "ptr_W104"
+   ]
+  },
+  {
+   "key": "limonada_coco",
+   "name": "Limonada de coco",
+   "venue_ids": [
+    "ptr_W113",
+    "ptr_R104"
+   ]
+  },
+  {
+   "key": "cafe_origen",
+   "name": "Café de origen",
+   "venue_ids": [
+    "ptr_V010",
+    "ptr_W120",
+    "ptr_W122",
+    "ptr_V011",
+    "ptr_V012",
+    "ptr_W121",
+    "ptr_W123"
+   ]
+  },
+  {
+   "key": "coctel_autor",
+   "name": "Cóctel de autor",
+   "venue_ids": [
+    "ptr_V001",
+    "ptr_V002",
+    "ptr_X1004",
+    "ptr_CB_003",
+    "ptr_W111",
+    "ptr_X1099"
+   ]
+  },
+  {
+   "key": "mojito",
+   "name": "Mojito",
+   "venue_ids": [
+    "ptr_V008",
+    "ptr_V002",
+    "ptr_X1099"
+   ]
+  },
+  {
+   "key": "ron",
+   "name": "Ron colombiano",
+   "venue_ids": [
+    "ptr_X1082",
+    "ptr_V001",
+    "ptr_X1004",
+    "ptr_V008",
+    "ptr_W111"
+   ]
+  },
+  {
+   "key": "postre_autor",
+   "name": "Postre de autor caribeño",
+   "venue_ids": [
+    "ptr_R101",
+    "ptr_R023",
+    "ptr_R022",
+    "ptr_W121",
+    "ptr_V013"
+   ]
+  }
+ ],
+ "plazas": [
+  {
+   "venue_id": "attr_003",
+   "name": "Torre del Reloj"
+  },
+  {
+   "venue_id": "attr_004",
+   "name": "Plaza Santo Domingo"
+  },
+  {
+   "venue_id": "attr_005",
+   "name": "Plaza de Bolívar"
+  },
+  {
+   "venue_id": "attr_002",
+   "name": "Las Murallas de Cartagena"
+  },
+  {
+   "venue_id": "attr_008",
+   "name": "Iglesia San Pedro Claver"
+  },
+  {
+   "venue_id": "attr_009",
+   "name": "Catedral de Santa Catalina de Alejandría"
+  },
+  {
+   "venue_id": "attr_010",
+   "name": "Las Bóvedas"
+  },
+  {
+   "venue_id": "attr_011",
+   "name": "Street Art de Getsemaní"
+  },
+  {
+   "venue_id": "attr_001",
+   "name": "Castillo San Felipe de Barajas"
+  },
+  {
+   "venue_id": "ptr_dv_018",
+   "name": "Portal de los Dulces"
+  },
+  {
+   "venue_id": "ptr_dv_015",
+   "name": "La Serrezuela"
+  },
+  {
+   "venue_id": "attr_015",
+   "name": "Teatro Adolfo Mejía (Heredia)"
+  }
+ ]
+}

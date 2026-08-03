@@ -21,6 +21,8 @@ bare venue list — they never 500 the endpoint.
 import asyncio
 import logging
 import math
+import json
+import os
 import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Literal, Optional
@@ -182,6 +184,9 @@ class DiscoverBody(BaseModel):
     type: Literal["visit", "dish", "gem"]
     lat: float
     lng: float
+    # For type=dish: WHICH plate was tried (sabores key). One check-in fills
+    # one plate — never the venue's whole plate list (no fabricated progress).
+    plate: Optional[str] = Field(default=None, max_length=40)
 
 
 def _empty_passport(user_id: str) -> Dict[str, Any]:
@@ -223,6 +228,20 @@ async def passport_discover(request: Request, body: DiscoverBody):
     )
     if not partner:
         raise HTTPException(status_code=404, detail="venue not found")
+
+    # Dish check-ins must name a real plate that THIS venue actually serves.
+    if body.type == "dish":
+        if not body.plate:
+            raise HTTPException(status_code=400, detail="plate required for dish check-in")
+        try:
+            cols = await _enriched_collections()
+        except Exception:
+            raise HTTPException(status_code=503, detail="collections unavailable")
+        plate_def = next((s for s in cols["sabores"] if s["key"] == body.plate), None)
+        if not plate_def:
+            raise HTTPException(status_code=400, detail="unknown plate")
+        if body.venue_id not in {v["id"] for v in plate_def["venues"]}:
+            raise HTTPException(status_code=400, detail="venue does not serve this plate")
     loc = partner.get("location") or {}
     v_lat, v_lng = loc.get("lat"), loc.get("lng")
     if not isinstance(v_lat, (int, float)) or not isinstance(v_lng, (int, float)):
@@ -255,9 +274,13 @@ async def passport_discover(request: Request, body: DiscoverBody):
         "ts": now.isoformat(),
         "verified_proximity": True,
     }
+    dedupe_match: Dict[str, Any] = {"venue_id": body.venue_id, "type": body.type}
+    if body.type == "dish":
+        discovery["plate"] = body.plate
+        dedupe_match["plate"] = body.plate  # same venue, different plate = new stamp
     res = await db.user_passport.update_one(
         {"user_id": user_id,
-         "discoveries": {"$not": {"$elemMatch": {"venue_id": body.venue_id, "type": body.type}}}},
+         "discoveries": {"$not": {"$elemMatch": dedupe_match}}},
         {"$push": {"discoveries": discovery}},
     )
     already = res.modified_count == 0
@@ -287,10 +310,129 @@ async def passport_discover(request: Request, body: DiscoverBody):
 
 @router.get("/passport")
 async def passport_get(request: Request):
-    """The caller's travel passport. Auth required; empty default if new."""
+    """The caller's travel passport + collection progress. Auth required;
+    empty default if new — the frontend renders an inviting empty state,
+    never fabricated counts (progress comes only from real discoveries)."""
     user = await _get_current_user(request)
     doc = await db.user_passport.find_one({"user_id": user["user_id"]}, {"_id": 0})
     if not doc:
         doc = _empty_passport(user["user_id"])
     doc["total_discoveries"] = len(doc.get("discoveries") or [])
+    doc["progress"] = await _compute_progress(doc.get("discoveries") or [])
     return doc
+
+
+# ── Collections (Drop 3) — grounded definitions + progress ───────────
+# Definitions live in backend/data/passport_collections.json: 20 plates built
+# from verified_research signature dishes (+3-venue grounded dishes) and 12
+# landmark records that already existed. Every entry maps to REAL venues —
+# a plate without a venue cannot ship (honesty rule I9).
+
+_COLLECTIONS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 "data", "passport_collections.json")
+_collections_cache: Dict[str, Any] = {"data": None, "enriched": None, "at": 0.0}
+_COLLECTIONS_TTL = 300.0
+
+
+def _load_defs() -> Dict[str, Any]:
+    if _collections_cache["data"] is None:
+        with open(_COLLECTIONS_PATH, "r", encoding="utf-8") as f:
+            _collections_cache["data"] = json.load(f)
+    return _collections_cache["data"]
+
+
+async def _enriched_collections() -> Dict[str, Any]:
+    """Definitions joined with live venue fields (name/image/coords) and
+    neighborhood segmentation. Cached 5 min per instance."""
+    now = time.monotonic()
+    if _collections_cache["enriched"] and now - _collections_cache["at"] < _COLLECTIONS_TTL:
+        return _collections_cache["enriched"]
+
+    defs = _load_defs()
+    all_ids = sorted({v for s in defs["sabores"] for v in s["venue_ids"]}
+                     | {p["venue_id"] for p in defs["plazas"]})
+    found: Dict[str, Dict[str, Any]] = {}
+    async for p in db.partners.find(
+        {"partner_id": {"$in": all_ids}},
+        {"_id": 0, "partner_id": 1, "name": 1, "category": 1, "image_url": 1, "location": 1},
+    ):
+        found[p["partner_id"]] = p
+
+    def venue_card(vid: str) -> Optional[Dict[str, Any]]:
+        p = found.get(vid)
+        if not p:
+            return None  # venue vanished from catalog → drop, never a broken slot
+        loc = p.get("location") or {}
+        return {"id": vid, "name": p.get("name"), "category": p.get("category"),
+                "image_url": p.get("image_url"), "lat": loc.get("lat"), "lng": loc.get("lng")}
+
+    sabores = []
+    for s in defs["sabores"]:
+        venues = [v for v in (venue_card(vid) for vid in s["venue_ids"]) if v]
+        if venues:
+            sabores.append({"key": s["key"], "name": s["name"], "venues": venues})
+
+    plazas = []
+    for pl in defs["plazas"]:
+        v = venue_card(pl["venue_id"])
+        if v:
+            plazas.append(v)
+
+    # Neighborhood segmentation over the collection venues (sabores ∪ plazas),
+    # nearest-centroid; out-of-range venues are EXCLUDED from denominators so
+    # no neighborhood is impossible to complete.
+    from local_signals import _nearest_neighborhood
+    nbh: Dict[str, List[str]] = {}
+    seen: set = set()
+    for v in [v for s in sabores for v in s["venues"]] + plazas:
+        if v["id"] in seen:
+            continue
+        seen.add(v["id"])
+        slug = _nearest_neighborhood(v.get("lat"), v.get("lng"))
+        if slug:
+            nbh.setdefault(slug, []).append(v["id"])
+    neighborhoods = [{"slug": k, "venue_ids": sorted(vs), "total": len(vs)}
+                     for k, vs in sorted(nbh.items(), key=lambda x: -len(x[1]))]
+
+    enriched = {"version": defs.get("version"), "sabores": sabores,
+                "plazas": plazas, "neighborhoods": neighborhoods}
+    _collections_cache["enriched"] = enriched
+    _collections_cache["at"] = now
+    return enriched
+
+
+async def _compute_progress(discoveries: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Real discoveries only. Plate = 'dish' check-in at a mapped venue.
+    Plaza = 'visit'. Joya = 'gem' (count, no denominator)."""
+    cols = await _enriched_collections()
+    dish_ids = {d["venue_id"] for d in discoveries if d.get("type") == "dish"}
+    visit_ids = {d["venue_id"] for d in discoveries if d.get("type") == "visit"}
+    gem_ids = {d["venue_id"] for d in discoveries if d.get("type") == "gem"}
+    any_ids = dish_ids | visit_ids | gem_ids
+
+    # A plate fills ONLY via a check-in that named it (and at a mapped venue).
+    plate_stamps = {(d.get("plate"), d["venue_id"]) for d in discoveries
+                    if d.get("type") == "dish" and d.get("plate")}
+    plates = {s["key"]: any((s["key"], v["id"]) in plate_stamps for v in s["venues"])
+              for s in cols["sabores"]}
+    plaza_hits = {p["id"]: (p["id"] in visit_ids) for p in cols["plazas"]}
+    nbh = [{"slug": n["slug"], "total": n["total"],
+            "discovered": sum(1 for vid in n["venue_ids"] if vid in any_ids)}
+           for n in cols["neighborhoods"]]
+    return {
+        "sabores": {"discovered": sum(plates.values()), "total": len(plates), "plates": plates},
+        "plazas": {"discovered": sum(plaza_hits.values()), "total": len(plaza_hits), "venues": plaza_hits},
+        "joyas": {"discovered": len(gem_ids)},
+        "neighborhoods": nbh,
+    }
+
+
+@router.get("/passport/collections")
+async def passport_collections():
+    """PUBLIC collection definitions (no user data) — powers the guest teaser
+    and the passport grids. Venue coords included for 'a 400m' hints."""
+    try:
+        return await _enriched_collections()
+    except Exception as exc:
+        logger.error(f"[walking] collections load failed: {exc}")
+        raise HTTPException(status_code=500, detail="collections unavailable")
