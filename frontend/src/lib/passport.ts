@@ -45,12 +45,38 @@ export interface Discovery {
   verified_proximity: boolean;
 }
 
+export interface Rank {
+  key: string;
+  name: string;
+  icon: string;
+  min: number;
+  stamps: number;
+  next?: { key: string; name: string; icon: string; min: number };
+  progress?: number;
+}
+
 export interface Passport {
   user_id: string;
   discoveries: Discovery[];
   streak: { current: number; best: number; last_day: string | null };
   total_discoveries: number;
   progress: PassportProgress;
+  rank?: Rank;
+  achievements?: Record<string, string>; // key → award timestamp
+  standing?: { active: number; top_pct?: number } | null;
+  created_at?: string;
+}
+
+export interface DiscoverResult {
+  ok: boolean;
+  already_discovered: boolean;
+  venue_name?: string;
+  streak?: { current: number; best: number; last_day: string | null };
+  total_discoveries?: number;
+  points_earned?: number;
+  new_achievements?: { key: string; ts: string }[];
+  rank?: Rank;
+  rank_up?: boolean;
 }
 
 const KV_COLLECTIONS = 'passport:collections';
@@ -98,10 +124,10 @@ export async function discover(
   lat: number,
   lng: number,
   plate?: string,
-): Promise<any> {
+): Promise<DiscoverResult> {
   const body: Record<string, unknown> = { venue_id: venueId, type, lat, lng };
   if (plate) body.plate = plate;
-  return api.post('/passport/discover', body);
+  return api.post('/passport/discover', body) as Promise<DiscoverResult>;
 }
 
 /** Mint a public share snapshot (counts + venue names only, never

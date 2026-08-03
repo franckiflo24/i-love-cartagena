@@ -86,6 +86,8 @@ POINTS_CONFIG = {
     "review": 50,
     "profile_complete": 200,
     "referral": 500,
+    "discovery": 10,       # verified passport stamp (visit/dish) — walking.py STAMP_POINTS
+    "gem_discovery": 25,   # verified gem reveal — walking.py STAMP_POINTS
 }
 
 

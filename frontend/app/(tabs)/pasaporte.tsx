@@ -23,6 +23,8 @@ import {
   getCollections, getPassport, discover, mintShareLink, CollectionsDef, Passport, CollectionVenue,
 } from '../../src/lib/passport';
 import { shareCard, canShareCard } from '../../src/lib/shareCard';
+import { ACHIEVEMENTS, achievementDef } from '../../src/lib/achievements';
+import { StampCelebration, CelebrationData } from '../../src/components/StampCelebration';
 
 const SEAL_RADIUS_M = 75; // mirrors the server's honesty gate
 
@@ -68,6 +70,7 @@ export default function PasaporteScreen() {
   const [geo, setGeo] = useState<GeoState>(geoService.getState());
   const [sealing, setSealing] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [celebration, setCelebration] = useState<CelebrationData | null>(null);
 
   const load = useCallback(async () => {
     const c = await getCollections();
@@ -100,6 +103,36 @@ export default function PasaporteScreen() {
   const progress = passport?.progress || null;
   const discoveries = passport?.discoveries || [];
   const isEmpty = !!user && discoveries.length === 0;
+  const rank = passport?.rank || null;
+  const standing = passport?.standing || null;
+  const unlocked = passport?.achievements || {};
+  const unlockedCount = Object.keys(unlocked).length;
+  // Streak still alive but not stamped today (Bogotá day) → gentle invite.
+  const todayBogota = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
+  const streakAtPlay = !!passport && (passport.streak?.current || 0) > 0
+    && passport.streak?.last_day !== todayBogota;
+
+  // The pull: nearest UNSEALED collection stamp within 500m of the live position.
+  const nudge = useMemo(() => {
+    if (!cols || !progress) return null;
+    const pos = geo.status === 'granted' ? geo.position : null;
+    if (!pos) return null;
+    const cands: { id: string; label: string; d: number }[] = [];
+    for (const p of cols.plazas) {
+      if (!progress.plazas.venues[p.id] && typeof p.lat === 'number') {
+        cands.push({ id: p.id, label: p.name, d: haversineM(pos.lat, pos.lng, p.lat, p.lng) });
+      }
+    }
+    for (const s of cols.sabores) {
+      if (progress.sabores.plates[s.key]) continue;
+      for (const v of s.venues) {
+        if (typeof v.lat !== 'number') continue;
+        cands.push({ id: v.id, label: `${s.name} · ${v.name}`, d: haversineM(pos.lat, pos.lng, v.lat, v.lng) });
+      }
+    }
+    cands.sort((a, b) => a.d - b.d);
+    return cands.length > 0 && cands[0].d <= 500 ? cands[0] : null;
+  }, [cols, progress, geo]);
   const venueName = useMemo(() => {
     const map: Record<string, string> = {};
     for (const s of cols?.sabores || []) for (const v of s.venues) map[v.id] = v.name;
@@ -121,8 +154,17 @@ export default function PasaporteScreen() {
         await geoService.request();
         pos = geoService.getState().position || pos;
       }
-      await discover(venue.id, 'visit', pos.lat, pos.lng);
-      setNotice(tr('Sellado en tu pasaporte ✓'));
+      const res = await discover(venue.id, 'visit', pos.lat, pos.lng);
+      if (res && !res.already_discovered) {
+        setCelebration({
+          venueName: res.venue_name || venue.name,
+          points: res.points_earned || 0,
+          achievements: (res.new_achievements || []).map((a) => a.key),
+          rankUp: res.rank_up && res.rank ? res.rank : null,
+        });
+      } else {
+        setNotice(tr('Ya está en tu pasaporte'));
+      }
       await load();
     } catch (e: any) {
       const msg = String(e?.message || '');
@@ -220,20 +262,79 @@ export default function PasaporteScreen() {
                 </TouchableOpacity>
               </View>
             ) : (
-              <View style={styles.streakRow}>
-                <View style={styles.streakBox}>
-                  <Text style={styles.streakNum}>{passport?.streak?.current || 0}</Text>
-                  <Text style={styles.streakLabel}>{tr('días seguidos')}</Text>
+              <>
+                {/* ── Passport cover: rank identity + progress to next ── */}
+                {!!rank && (
+                  <View style={styles.cover}>
+                    <View style={styles.coverTop}>
+                      <View style={styles.rankSeal}><Text style={styles.rankSealIcon}>{rank.icon}</Text></View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.coverKicker}>{tr('PASAPORTE DE CARTAGENA')}</Text>
+                        <Text style={styles.rankName}>{tr(rank.name)}</Text>
+                        {standing?.top_pct ? (
+                          <Text style={styles.standingText}>
+                            Top {standing.top_pct}% · {standing.active} {tr('exploradores')}
+                          </Text>
+                        ) : standing?.active ? (
+                          <Text style={styles.standingText}>
+                            {tr('Explorador')} #{standing.active} {tr('de Cartagena')}
+                          </Text>
+                        ) : null}
+                      </View>
+                      <View style={styles.coverStamps}>
+                        <Text style={styles.coverStampsNum}>{passport?.total_discoveries || 0}</Text>
+                        <Text style={styles.coverStampsLabel}>{tr('sellos')}</Text>
+                      </View>
+                    </View>
+                    {!!rank.next && (
+                      <View style={styles.rankProgressWrap}>
+                        <View style={styles.rankBar}>
+                          <View style={[styles.rankFill, { width: `${Math.round((rank.progress || 0) * 100)}%` }]} />
+                        </View>
+                        <Text style={styles.rankNextText}>
+                          {rank.next.min - (passport?.total_discoveries || 0)} {tr('sellos más y eres')} {rank.next.icon} {tr(rank.next.name)}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {/* ── Streak invite (never guilt): stamped-today keeps it alive ── */}
+                {streakAtPlay && (
+                  <View style={styles.streakInvite}>
+                    <Text style={styles.streakInviteText}>
+                      🔥 {tr('Sella algo hoy y tu racha de')} {passport?.streak?.current} {tr('días sigue viva')}
+                    </Text>
+                  </View>
+                )}
+
+                {/* ── Nearest unsealed stamp — the pull to the street ── */}
+                {!!nudge && (
+                  <TouchableOpacity style={styles.nudge} onPress={() => router.push(`/partner/${nudge.id}` as any)} activeOpacity={0.85}>
+                    <Ionicons name="footsteps" size={18} color="#000" />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.nudgeTitle}>{fmtDist(nudge.d)}: {nudge.label}</Text>
+                      <Text style={styles.nudgeSub}>{tr('Un sello nuevo te está esperando')}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color="#000" />
+                  </TouchableOpacity>
+                )}
+
+                <View style={styles.streakRow}>
+                  <View style={styles.streakBox}>
+                    <Text style={styles.streakNum}>{passport?.streak?.current || 0}</Text>
+                    <Text style={styles.streakLabel}>{tr('días seguidos')}</Text>
+                  </View>
+                  <View style={styles.streakBox}>
+                    <Text style={styles.streakNum}>{passport?.streak?.best || 0}</Text>
+                    <Text style={styles.streakLabel}>{tr('mejor racha')}</Text>
+                  </View>
+                  <View style={styles.streakBox}>
+                    <Text style={styles.streakNum}>{unlockedCount}</Text>
+                    <Text style={styles.streakLabel}>{tr('medallas')}</Text>
+                  </View>
                 </View>
-                <View style={styles.streakBox}>
-                  <Text style={styles.streakNum}>{passport?.streak?.best || 0}</Text>
-                  <Text style={styles.streakLabel}>{tr('mejor racha')}</Text>
-                </View>
-                <View style={styles.streakBox}>
-                  <Text style={styles.streakNum}>{passport?.total_discoveries || 0}</Text>
-                  <Text style={styles.streakLabel}>{tr('sellos')}</Text>
-                </View>
-              </View>
+              </>
             )}
 
             {/* ── Rutas entry (Drop 5) ── */}
@@ -349,6 +450,33 @@ export default function PasaporteScreen() {
               </View>
             )}
 
+            {/* ── Medallas (Drop 8) — every one earned by walking, none for sale ── */}
+            {!!user && !isEmpty && (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>{tr('Medallas')}</Text>
+                  <Text style={styles.sectionCount}>{unlockedCount}/{ACHIEVEMENTS.length}</Text>
+                </View>
+                <View style={styles.grid}>
+                  {ACHIEVEMENTS.map((a) => {
+                    const ts = unlocked[a.key];
+                    const def = achievementDef(a.key);
+                    return (
+                      <View key={a.key} style={[styles.medalTile, !ts && styles.medalTileLocked]}>
+                        <Text style={[styles.medalTileIcon, !ts && { opacity: 0.3 }]}>{def.icon}</Text>
+                        <Text style={[styles.medalTileName, !ts && { color: COLORS.textMuted }]} numberOfLines={1}>{tr(def.name)}</Text>
+                        {ts ? (
+                          <Text style={styles.medalTileDate}>{new Date(ts).toLocaleDateString()}</Text>
+                        ) : (
+                          <Text style={styles.medalTileHint} numberOfLines={2}>{tr(def.desc)}</Text>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
             {/* ── Barrios ── */}
             {!!progress && progress.neighborhoods.some((n) => n.discovered > 0) && (
               <View style={styles.section}>
@@ -397,6 +525,7 @@ export default function PasaporteScreen() {
           </>
         )}
       </ScrollView>
+      <StampCelebration data={celebration} onClose={() => setCelebration(null)} />
     </SafeAreaView>
   );
 }
@@ -420,6 +549,36 @@ const styles = StyleSheet.create({
   inviteBody: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'center', lineHeight: 19 },
   inviteBtn: { marginTop: 6, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 22, paddingVertical: 10 },
   inviteBtnText: { fontSize: 13, color: '#000', ...FONTS.bold },
+
+  // Drop 8 — passport cover
+  cover: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, padding: SPACING.md, backgroundColor: 'rgba(212,175,55,0.07)', borderRadius: RADIUS.xl, borderWidth: 1.5, borderColor: 'rgba(212,175,55,0.5)', gap: 12 },
+  coverTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  rankSeal: { width: 58, height: 58, borderRadius: 29, borderWidth: 2, borderColor: COLORS.primary, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(212,175,55,0.10)' },
+  rankSealIcon: { fontSize: 28 },
+  coverKicker: { fontSize: 9, color: COLORS.primary, ...FONTS.bold, letterSpacing: 2 },
+  rankName: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, marginTop: 1 },
+  standingText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold, marginTop: 2 },
+  coverStamps: { alignItems: 'center' },
+  coverStampsNum: { fontSize: 26, color: COLORS.primary, ...FONTS.bold },
+  coverStampsLabel: { fontSize: 9, color: COLORS.textMuted, ...FONTS.medium },
+  rankProgressWrap: { gap: 5 },
+  rankBar: { height: 7, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.08)', overflow: 'hidden' },
+  rankFill: { height: '100%', backgroundColor: COLORS.primary, borderRadius: 4 },
+  rankNextText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
+
+  streakInvite: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, paddingVertical: 9, paddingHorizontal: 14, backgroundColor: 'rgba(249,115,22,0.10)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(249,115,22,0.4)' },
+  streakInviteText: { fontSize: 12, color: '#FB923C', ...FONTS.semibold, textAlign: 'center' },
+
+  nudge: { flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: COLORS.primary, borderRadius: RADIUS.lg },
+  nudgeTitle: { fontSize: 13, color: '#000', ...FONTS.bold },
+  nudgeSub: { fontSize: 11, color: 'rgba(0,0,0,0.65)', ...FONTS.medium, marginTop: 1 },
+
+  medalTile: { width: '30.5%', minWidth: 96, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(212,175,55,0.45)', alignItems: 'center', padding: 10, gap: 3 },
+  medalTileLocked: { borderColor: COLORS.border },
+  medalTileIcon: { fontSize: 24 },
+  medalTileName: { fontSize: 10.5, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
+  medalTileDate: { fontSize: 8.5, color: COLORS.primary, ...FONTS.medium },
+  medalTileHint: { fontSize: 8.5, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'center', lineHeight: 11 },
 
   streakRow: { flexDirection: 'row', gap: 10, paddingHorizontal: SPACING.lg, marginBottom: SPACING.md },
   streakBox: { flex: 1, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', paddingVertical: 14, gap: 2 },

@@ -15,6 +15,7 @@ import { useTr } from '../i18n/autoTr';
 import { useAuth } from '../context/AuthContext';
 import { geoService } from '../lib/geo';
 import { getCollections, getPassport, discover, platesForVenue, PlateDef } from '../lib/passport';
+import { StampCelebration, CelebrationData } from './StampCelebration';
 
 export function LoProbe({ partnerId }: { partnerId: string }) {
   const tr = useTr();
@@ -24,6 +25,7 @@ export function LoProbe({ partnerId }: { partnerId: string }) {
   const [stamped, setStamped] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [celebration, setCelebration] = useState<CelebrationData | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -70,7 +72,16 @@ export function LoProbe({ partnerId }: { partnerId: string }) {
       }
       const res = await discover(partnerId, 'dish', pos.lat, pos.lng, plate.key);
       setStamped((prev) => new Set(prev).add(plate.key));
-      setNotice(res?.already_discovered ? tr('Ya está en tu pasaporte') : tr('Sellado en tu pasaporte ✓'));
+      if (res && !res.already_discovered) {
+        setCelebration({
+          venueName: plate.name,
+          points: res.points_earned || 0,
+          achievements: (res.new_achievements || []).map((a) => a.key),
+          rankUp: res.rank_up && res.rank ? res.rank : null,
+        });
+      } else {
+        setNotice(tr('Ya está en tu pasaporte'));
+      }
     } catch (e: any) {
       const msg = String(e?.message || '');
       setNotice(msg.includes('too far')
@@ -120,6 +131,7 @@ export function LoProbe({ partnerId }: { partnerId: string }) {
         );
       })}
       {!!notice && <Text style={styles.notice}>{notice}</Text>}
+      <StampCelebration data={celebration} onClose={() => setCelebration(null)} />
     </View>
   );
 }

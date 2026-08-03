@@ -52,6 +52,19 @@ VERIFY_RADIUS_M = 75  # honesty gate for passport discoveries
 
 DISCOVERY_TYPES = ("visit", "dish", "gem")
 
+# ── Drop 8: ranks + achievements (all derived from REAL verified data —
+# a medal that can be earned without walking the city cannot exist) ──
+RANKS = [
+    {"key": "recien_llegado", "name": "Recién Llegado", "icon": "🧳", "min": 0},
+    {"key": "caminante", "name": "Caminante", "icon": "👟", "min": 5},
+    {"key": "explorador", "name": "Explorador", "icon": "🧭", "min": 15},
+    {"key": "conocedor", "name": "Conocedor", "icon": "🗺️", "min": 30},
+    {"key": "cartagenero", "name": "Cartagenero de Corazón", "icon": "💛", "min": 60},
+]
+
+# Points per verified stamp — the FIRST time only (dedupe upstream).
+STAMP_POINTS = {"visit": 10, "dish": 10, "gem": 25}
+
 # Card projection for /nearby — mirrors occasions.py CARD_FIELDS + geo needs.
 _CARD_PROJECTION = {
     "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
@@ -335,6 +348,10 @@ async def passport_discover(request: Request, body: DiscoverBody):
 
     doc = await db.user_passport.find_one({"user_id": user_id}, {"_id": 0})
     streak = doc.get("streak") or _empty_passport(user_id)["streak"]
+    points_earned = 0
+    new_achievements: List[Dict[str, Any]] = []
+    rank_up = False
+    total = len(doc.get("discoveries") or [])
     if not already:
         prev_current = int((doc.get("streak") or {}).get("current") or 0)
         streak = _next_streak(streak, today_bogota)
@@ -355,6 +372,25 @@ async def passport_discover(request: Request, body: DiscoverBody):
             except Exception as exc:
                 logger.warning(f"[walking] milestone push failed: {exc}")
 
+        # Drop 8: every FIRST verified stamp pays real points (fail-soft).
+        if _award_points:
+            try:
+                await _award_points(db, user_id, STAMP_POINTS.get(body.type, 10),
+                                    "discovery", source_id=body.venue_id,
+                                    description=f"Sello: {partner.get('name') or body.venue_id}")
+                points_earned = STAMP_POINTS.get(body.type, 10)
+            except Exception as exc:
+                logger.warning(f"[walking] stamp points failed: {exc}")
+
+        # Drop 8: rank-up + newly earned medals — celebrated once, client-side.
+        rank_up = _rank_for(total)["key"] != _rank_for(total - 1)["key"]
+        try:
+            progress = await _compute_progress(doc.get("discoveries") or [])
+            earned = _discovery_achievements(doc, progress)
+            new_achievements = await _persist_new_achievements(user_id, doc, earned)
+        except Exception as exc:
+            logger.warning(f"[walking] achievements on discover failed: {exc}")
+
     return {
         "ok": True,
         "already_discovered": already,
@@ -363,7 +399,11 @@ async def passport_discover(request: Request, body: DiscoverBody):
         "verified_proximity": True,
         "distance_m": round(dist),
         "streak": streak,
-        "total_discoveries": len(doc.get("discoveries") or []),
+        "total_discoveries": total,
+        "points_earned": points_earned,
+        "new_achievements": new_achievements,
+        "rank": _rank_for(total),
+        "rank_up": rank_up,
     }
 
 
@@ -376,8 +416,22 @@ async def passport_get(request: Request):
     doc = await db.user_passport.find_one({"user_id": user["user_id"]}, {"_id": 0})
     if not doc:
         doc = _empty_passport(user["user_id"])
-    doc["total_discoveries"] = len(doc.get("discoveries") or [])
+    total = len(doc.get("discoveries") or [])
+    doc["total_discoveries"] = total
     doc["progress"] = await _compute_progress(doc.get("discoveries") or [])
+    # Drop 8: rank + medals + honest standing. Extended medals (trails/quests/
+    # referrals) are awarded lazily here — the passport reloads after actions.
+    doc["rank"] = _rank_for(total)
+    try:
+        earned = _discovery_achievements(doc, doc["progress"]) | await _extended_achievements(user["user_id"])
+        fresh = await _persist_new_achievements(user["user_id"], doc, earned)
+        have = dict(doc.get("achievements") or {})
+        have.update({a["key"]: a["ts"] for a in fresh})
+        doc["achievements"] = have
+    except Exception as exc:
+        logger.warning(f"[walking] achievements on get failed: {exc}")
+        doc.setdefault("achievements", {})
+    doc["standing"] = await _explorer_percentile(total)
     return doc
 
 
@@ -494,6 +548,123 @@ async def _compute_progress(discoveries: List[Dict[str, Any]]) -> Dict[str, Any]
         "joyas": {"discovered": len(gem_ids)},
         "neighborhoods": nbh,
     }
+
+
+# ── Drop 8: rank + achievements engine ───────────────────────────────
+
+def _rank_for(total: int) -> Dict[str, Any]:
+    """Rank block from total verified stamps: current + next + progress."""
+    current = RANKS[0]
+    for r in RANKS:
+        if total >= r["min"]:
+            current = r
+    nxt = next((r for r in RANKS if r["min"] > current["min"]), None)
+    block: Dict[str, Any] = {"key": current["key"], "name": current["name"],
+                             "icon": current["icon"], "min": current["min"], "stamps": total}
+    if nxt:
+        span = nxt["min"] - current["min"]
+        block["next"] = {"key": nxt["key"], "name": nxt["name"], "icon": nxt["icon"], "min": nxt["min"]}
+        block["progress"] = min(1.0, round((total - current["min"]) / max(1, span), 3))
+    return block
+
+
+def _bogota_hour(ts: str) -> Optional[int]:
+    try:
+        return datetime.fromisoformat(ts.replace("Z", "+00:00")).astimezone(BOGOTA).hour
+    except Exception:
+        return None
+
+
+def _discovery_achievements(doc: Dict[str, Any], progress: Dict[str, Any]) -> set:
+    """Achievement keys earnable from the passport doc alone (cheap — runs on
+    every discover). Extended (trails/quests/referrals) checks live in
+    _extended_achievements and run on GET only."""
+    ds = doc.get("discoveries") or []
+    total = len(ds)
+    best = int((doc.get("streak") or {}).get("best") or 0)
+    sab = progress.get("sabores") or {}
+    plz = progress.get("plazas") or {}
+    gems = int((progress.get("joyas") or {}).get("discovered") or 0)
+    earned: set = set()
+    if total >= 1: earned.add("primer_sello")
+    if total >= 10: earned.add("diez_sellos")
+    if total >= 25: earned.add("veinticinco_sellos")
+    if total >= 50: earned.add("cincuenta_sellos")
+    if any(d.get("type") == "dish" for d in ds): earned.add("primer_sabor")
+    if int(sab.get("discovered") or 0) >= 5: earned.add("cinco_sabores")
+    if int(sab.get("discovered") or 0) >= 10: earned.add("diez_sabores")
+    if sab.get("total") and sab.get("discovered") == sab.get("total"): earned.add("paladar_maestro")
+    if int(plz.get("discovered") or 0) >= 1: earned.add("primera_plaza")
+    if plz.get("total") and plz.get("discovered") == plz.get("total"): earned.add("todas_las_plazas")
+    if gems >= 1: earned.add("primera_joya")
+    if gems >= 3: earned.add("tres_joyas")
+    if gems >= 7: earned.add("siete_joyas")
+    for n, k in ((3, "racha_3"), (7, "racha_7"), (14, "racha_14"), (30, "racha_30")):
+        if best >= n: earned.add(k)
+    if any(n.get("total") and n.get("discovered", 0) >= n["total"]
+           for n in progress.get("neighborhoods") or []):
+        earned.add("barrio_completo")
+    for d in ds:
+        h = _bogota_hour(d.get("ts") or "")
+        if h is None: continue
+        if h >= 21 or h < 3: earned.add("noctambulo")
+        if 5 <= h < 9: earned.add("madrugador")
+    return earned
+
+
+async def _extended_achievements(user_id: str) -> set:
+    """Trail/quest/referral medals — three indexed counts, GET-only."""
+    earned: set = set()
+    try:
+        trail_keys = await db.trail_completions.distinct("trail_key", {"user_id": user_id})
+        if len(trail_keys) >= 1: earned.add("primera_ruta")
+        if len(trail_keys) >= 4: earned.add("cuatro_rutas")
+        if await db.quest_claims.count_documents({"user_id": user_id}) >= 5:
+            earned.add("misiones_5")
+        if await db.users.count_documents({"referred_by": user_id}) >= 1:
+            earned.add("embajador")
+    except Exception as exc:
+        logger.warning(f"[walking] extended achievements failed: {exc}")
+    return earned
+
+
+async def _persist_new_achievements(user_id: str, doc: Dict[str, Any],
+                                    earned: set) -> List[Dict[str, Any]]:
+    """Diff earned keys against the stored map; persist + return only NEW ones
+    (each with its award timestamp) so the client can celebrate exactly once."""
+    have = doc.get("achievements") or {}
+    fresh = sorted(earned - set(have.keys()))
+    if not fresh:
+        return []
+    ts = datetime.now(timezone.utc).isoformat()
+    await db.user_passport.update_one(
+        {"user_id": user_id},
+        {"$set": {f"achievements.{k}": ts for k in fresh}},
+    )
+    return [{"key": k, "ts": ts} for k in fresh]
+
+
+async def _explorer_percentile(my_total: int) -> Optional[Dict[str, Any]]:
+    """Honest standing among explorers with ≥1 verified stamp. Below 20 active
+    explorers a 'top X%' is noise — return the real count instead, no fake status."""
+    if my_total <= 0:
+        return None
+    try:
+        agg = db.user_passport.aggregate([
+            {"$project": {"n": {"$size": {"$ifNull": ["$discoveries", []]}}}},
+            {"$match": {"n": {"$gt": 0}}},
+            {"$group": {"_id": None, "active": {"$sum": 1},
+                        "better": {"$sum": {"$cond": [{"$gt": ["$n", my_total]}, 1, 0]}}}},
+        ])
+        row = (await agg.to_list(1) or [{}])[0]
+        active = int(row.get("active") or 0)
+        if active < 20:
+            return {"active": active}
+        pct = max(1, math.ceil((int(row.get("better") or 0) + 1) / active * 100))
+        return {"active": active, "top_pct": pct}
+    except Exception as exc:
+        logger.warning(f"[walking] percentile failed: {exc}")
+        return None
 
 
 # ── Share snapshots (Drop 3 fast-follow: OG link unfurls) ────────────
