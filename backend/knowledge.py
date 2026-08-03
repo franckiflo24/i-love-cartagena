@@ -51,6 +51,11 @@ _STOPWORDS = frozenset({
 # Maps user terms (EN/ES/FR/PT) to database vocabulary so that queries like
 # "fish" also search for "mariscos", "seafood", "pescado", etc.
 _SYNONYMS: Dict[str, List[str]] = {
+    # Drop 4: conjugated dining verbs must pull DINING entries, not "paseo nocturno"
+    "ceno": ["cena", "cenar", "restaurante", "comida"],
+    "cenamos": ["cena", "cenar", "restaurante", "comida"],
+    "como": [],  # too ambiguous (cómo/como) — never expand
+
     # ── Food concepts ──
     "fish": ["mariscos", "seafood", "pescado", "ceviche", "langosta"],
     "seafood": ["mariscos", "pescado", "ceviche", "langosta", "camarones"],

@@ -1049,7 +1049,7 @@ TU TRABAJO
 ══════════════════════════════════════════
 RECOMENDACIONES CURADAS (PRIORIDAD MÁXIMA — ES LA VOZ DEL EXPERTO LOCAL)
 ══════════════════════════════════════════
-Si `curated_recommendations` aparece en el contexto, es la lista curada por un EXPERTO LOCAL de Cartagena. Es la RESPUESTA CORRECTA a lo que el usuario pregunta. Tiene:
+Si `curated_recommendations` aparece en el contexto, es la lista curada por un EXPERTO LOCAL de Cartagena. Es la RESPUESTA CORRECTA a lo que el usuario pregunta — PERO verificá primero que coincida con la intención: si el usuario pide CENAR/COMER y la lista curada es de bares/vida nocturna (o viceversa), IGNORÁ la curada y respondé desde relevant_partners con la categoría correcta. Tiene:
   • `expert_ranked`: tarjetas REALES con `partner_id` y `expert_rank`, YA en el orden exacto de prioridad del experto (rank 1 = el mejor). El `partner_id` ya está resuelto — NO tenés que buscarlo.
   • `mention_only`: nombres que el experto recomienda pero que aún NO están en el catálogo.
   • `matched_question` / `category`: la intención que se detectó.
