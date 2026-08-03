@@ -15,6 +15,7 @@ import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { useLocalPicks } from '../../src/services/localPicks';
 import { NBH_LABELS } from '../../src/utils/neighborhood';
+import { LoProbe } from '../../src/components/LoProbe';
 
 const TAG_LABELS: Record<string, string> = {
   romantic: 'Romántico', first_date: 'Primera cita', family: 'Familiar',
@@ -363,6 +364,9 @@ export default function PartnerDetail() {
               ))}
             </View>
           ) : null}
+
+          {/* Walking Layer: plate check-in — renders only for Sabores venues */}
+          <LoProbe partnerId={String(id)} />
 
           <View style={styles.infoGrid}>
             {partner.address ? (

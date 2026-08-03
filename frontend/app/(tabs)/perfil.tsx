@@ -395,6 +395,7 @@ export default function PerfilScreen() {
         {/* ── Quick Access ── */}
         <View style={sty.sectionCard}>
           <Text style={sty.sectionTitle}>{tr('Acceso rápido')}</Text>
+          <SettingsRow icon="book-outline" label={tr('Mi Pasaporte')} onPress={() => router.push('/pasaporte' as any)} />
           <SettingsRow icon="trophy-outline" label={s('profile_rewards') || 'Rewards'} onPress={() => router.push('/rewards' as any)} />
           <SettingsRow icon="card-outline" label="City Pass" onPress={() => router.push('/city-pass' as any)} />
           <SettingsRow icon="notifications-outline" label={s('profile_notifications') || tr('Notificaciones')} onPress={() => router.push('/notifications' as any)} />

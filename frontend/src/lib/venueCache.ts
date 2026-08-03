@@ -35,9 +35,10 @@ export interface CachedVenue {
 }
 
 const DB_NAME = 'amo-walking';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // v2: + 'kv' store (passport/collections offline cache)
 const STORE = 'venues';
 const META_STORE = 'meta';
+const KV_STORE = 'kv';
 const FRESH_MS = 24 * 60 * 60 * 1000; // background-refresh cadence
 
 // Module state on globalThis: the bundler may duplicate this module across
@@ -77,6 +78,7 @@ function idbOpen(): Promise<IDBDatabase | null> {
         const db = req.result;
         if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' });
         if (!db.objectStoreNames.contains(META_STORE)) db.createObjectStore(META_STORE);
+        if (!db.objectStoreNames.contains(KV_STORE)) db.createObjectStore(KV_STORE);
       };
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => resolve(null);
@@ -121,6 +123,51 @@ async function idbWriteAll(venues: CachedVenue[]): Promise<void> {
       store.clear();
       for (const v of venues) store.put(v);
       tx.objectStore(META_STORE).put(Date.now(), 'savedAt');
+      tx.oncomplete = () => {
+        db.close();
+        resolve();
+      };
+      tx.onerror = () => {
+        db.close();
+        resolve();
+      };
+    } catch {
+      try { db.close(); } catch {}
+      resolve();
+    }
+  });
+}
+
+/** Tiny fail-soft KV on the same DB — offline cache for passport data. */
+export async function kvGet<T>(key: string): Promise<T | null> {
+  const db = await idbOpen();
+  if (!db) return null;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction([KV_STORE], 'readonly');
+      const rq = tx.objectStore(KV_STORE).get(key);
+      tx.oncomplete = () => {
+        db.close();
+        resolve((rq.result as T) ?? null);
+      };
+      tx.onerror = () => {
+        db.close();
+        resolve(null);
+      };
+    } catch {
+      try { db.close(); } catch {}
+      resolve(null);
+    }
+  });
+}
+
+export async function kvSet(key: string, value: unknown): Promise<void> {
+  const db = await idbOpen();
+  if (!db) return;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction([KV_STORE], 'readwrite');
+      tx.objectStore(KV_STORE).put(value, key);
       tx.oncomplete = () => {
         db.close();
         resolve();
