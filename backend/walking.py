@@ -18,8 +18,10 @@ Fail-soft: /nearby enrichment failures (pulse map, local picks) degrade to the
 bare venue list — they never 500 the endpoint.
 """
 
+import asyncio
 import logging
 import math
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Literal, Optional
 from zoneinfo import ZoneInfo
@@ -93,6 +95,7 @@ def _client_ip(request: Request) -> str:
 async def nearby(request: Request, lat: float, lng: float,
                  radius: int = RADIUS_DEFAULT_M, category: Optional[str] = None):
     """Venues near (lat,lng) sorted by distance, enriched. Public, cap 25."""
+    t0 = time.monotonic()
     _validate_point(lat, lng)
     radius = max(10, min(int(radius), RADIUS_MAX_M))
     _check_rate_limit(f"nearby:{_client_ip(request)}", max_calls=60, window_sec=60)
@@ -122,17 +125,23 @@ async def nearby(request: Request, lat: float, lng: float,
 
     ids = [r["partner_id"] for r in rows]
 
-    # Enrichment is fail-soft: a pulse/local-signal hiccup never kills the list.
+    # Enrichment is fail-soft AND concurrent: a pulse/local-signal hiccup
+    # never kills the list, and the two lookups don't serialize.
     pulse_map: Dict[str, Any] = {}
     pick_ids: frozenset = frozenset()
-    try:
-        pulse_map = await _get_active_pulse_map(db, ids)
-    except Exception as exc:
-        logger.warning(f"[walking] pulse enrich failed: {exc}")
-    try:
-        pick_ids = await _get_behavioral_pick_ids()
-    except Exception as exc:
-        logger.warning(f"[walking] local-pick enrich failed: {exc}")
+    pulse_res, picks_res = await asyncio.gather(
+        _get_active_pulse_map(db, ids),
+        _get_behavioral_pick_ids(),
+        return_exceptions=True,
+    )
+    if isinstance(pulse_res, dict):
+        pulse_map = pulse_res
+    else:
+        logger.warning(f"[walking] pulse enrich failed: {pulse_res}")
+    if isinstance(picks_res, frozenset):
+        pick_ids = picks_res
+    else:
+        logger.warning(f"[walking] local-pick enrich failed: {picks_res}")
 
     venues: List[Dict[str, Any]] = []
     for r in rows:
@@ -162,7 +171,8 @@ async def nearby(request: Request, lat: float, lng: float,
                       if pulse else None),
         })
 
-    return {"venues": venues, "radius_m": radius, "count": len(venues)}
+    return {"venues": venues, "radius_m": radius, "count": len(venues),
+            "took_ms": round((time.monotonic() - t0) * 1000)}
 
 
 # ── Passport ─────────────────────────────────────────────────────────
