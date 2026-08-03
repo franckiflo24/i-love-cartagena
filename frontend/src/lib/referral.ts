@@ -38,3 +38,9 @@ export async function myReferral(): Promise<{ code: string; referred_count: numb
     return null;
   }
 }
+
+
+// Boot-time capture: the entry URL (e.g. /pasaporte?ref=AMOX1234 from a share
+// landing) is only visible BEFORE client routing rewrites the query string —
+// module evaluation happens exactly then.
+captureRef();

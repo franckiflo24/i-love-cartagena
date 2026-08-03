@@ -317,6 +317,12 @@ export default function Root({ children }: PropsWithChildren) {
                   });
               });
             }
+            // Referral capture (1.5): the entry URL is only trustworthy HERE,
+            // before any bundle or client routing touches it.
+            try {
+              var rm = window.location.search.match(/[?&]ref=(AMO[A-Za-z0-9]{4,8})/);
+              if (rm) localStorage.setItem('@amo_pending_ref', rm[1].toUpperCase());
+            } catch(e) {}
             // Version check: if user has old cached version, force reload once
             try {
               var stored = localStorage.getItem('amo_app_version');
