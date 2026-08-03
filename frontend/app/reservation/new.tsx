@@ -35,6 +35,7 @@ import { SafeImage } from '../../src/components/SafeImage';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useTr } from '../../src/i18n/autoTr';
+import { useAuth } from '../../src/context/AuthContext';
 
 // Fallback AMO Cartagena concierge WhatsApp when partner has no phone
 const AMO_CONCIERGE_PHONE = process.env.EXPO_PUBLIC_AMO_WHATSAPP || '573176481183';
@@ -70,6 +71,7 @@ const DEFAULT_HOURS = ['12:00', '13:00', '14:00', '19:00', '20:00', '21:00', '22
 export default function ReservationNew() {
   const tr = useTr();
   const router = useRouter();
+  const { user } = useAuth();
   const params = useLocalSearchParams<{ partner_id: string; event_id?: string }>();
   const partnerId = String(params.partner_id || '');
   const eventId = params.event_id ? String(params.event_id) : '';
@@ -84,6 +86,18 @@ export default function ReservationNew() {
   const [time, setTime] = useState<string>('20:00');
   const [partySize, setPartySize] = useState<number>(2);
   const [notes, setNotes] = useState<string>('');
+  const [fullName, setFullName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [contactError, setContactError] = useState<string>('');
+  // Prefill once from the signed-in profile; never clobber what the user typed
+  // (auth can resolve after the screen mounts).
+  const prefilled = useRef(false);
+  useEffect(() => {
+    if (prefilled.current || !user) return;
+    prefilled.current = true;
+    if (user.name) setFullName((prev) => prev || user.name);
+    if (user.email) setEmail((prev) => prev || user.email);
+  }, [user]);
 
   // Success overlay state
   const fmtDateChip = (iso: string): string => {
@@ -165,6 +179,19 @@ export default function ReservationNew() {
   const submit = async () => {
     if (submitting) return;
     if (!partner?.name) return; // Never open WhatsApp with undefined name
+
+    // Contact validation — inline errors (Alert.alert is a no-op on web)
+    const nameClean = fullName.trim();
+    const emailClean = email.trim();
+    if (nameClean.length < 2) {
+      setContactError(tr('Ingresa tu nombre completo'));
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailClean)) {
+      setContactError(tr('Ingresa un email válido'));
+      return;
+    }
+    setContactError('');
     setSubmitting(true);
 
     // Build WhatsApp deep link with reservation details
@@ -178,12 +205,12 @@ export default function ReservationNew() {
     const notesLineEn = notes.trim() ? `\nNotes: ${notes.trim()}` : '';
 
     const msgEs = isAmo
-      ? `Hola AMO Cartagena! Quiero reservar en *${partner.name}*.${eventLine}\n\nFecha: ${date}\nHora: ${time}\nPersonas: ${partySize}${notesLine}\n\nVia AMO Cartagena`
-      : `Hola! Reserva via *AMO Cartagena* 🌴\n\nLugar: *${partner.name}*${eventLine}\nFecha: ${date}\nHora: ${time}\nPersonas: ${partySize}${notesLine}\n\nGracias!`;
+      ? `Hola AMO Cartagena! Quiero reservar en *${partner.name}*.${eventLine}\n\nNombre: ${nameClean}\nEmail: ${emailClean}\nFecha: ${date}\nHora: ${time}\nPersonas: ${partySize}${notesLine}\n\nVia AMO Cartagena`
+      : `Hola! Reserva via *AMO Cartagena* 🌴\n\nLugar: *${partner.name}*${eventLine}\nNombre: ${nameClean}\nEmail: ${emailClean}\nFecha: ${date}\nHora: ${time}\nPersonas: ${partySize}${notesLine}\n\nGracias!`;
 
     const msgEn = isAmo
-      ? `Hi AMO Cartagena! I'd like to book at *${partner.name}*.${eventLineEn}\n\nDate: ${date}\nTime: ${time}\nParty: ${partySize}${notesLineEn}\n\nVia AMO Cartagena`
-      : `Hi! Booking via *AMO Cartagena* 🌴\n\nPlace: *${partner.name}*${eventLineEn}\nDate: ${date}\nTime: ${time}\nParty: ${partySize}${notesLineEn}\n\nThank you!`;
+      ? `Hi AMO Cartagena! I'd like to book at *${partner.name}*.${eventLineEn}\n\nName: ${nameClean}\nEmail: ${emailClean}\nDate: ${date}\nTime: ${time}\nParty: ${partySize}${notesLineEn}\n\nVia AMO Cartagena`
+      : `Hi! Booking via *AMO Cartagena* 🌴\n\nPlace: *${partner.name}*${eventLineEn}\nName: ${nameClean}\nEmail: ${emailClean}\nDate: ${date}\nTime: ${time}\nParty: ${partySize}${notesLineEn}\n\nThank you!`;
 
     const msg = encodeURIComponent(`${msgEs}\n\n---\n\n${msgEn}`);
     const waUrl = `https://wa.me/${waPhone}?text=${msg}`;
@@ -325,6 +352,40 @@ export default function ReservationNew() {
               <Ionicons name="add" size={22} color={COLORS.textMain} />
             </TouchableOpacity>
           </View>
+
+          {/* Contact info — venues need a full name + email for the booking */}
+          <Text style={styles.sectionTitle}>{tr('Tus datos')}</Text>
+          <Text style={[styles.helpText, { paddingHorizontal: SPACING.md, marginBottom: 8 }]}>
+            {tr('Se comparten con el lugar para confirmar tu reserva.')}
+          </Text>
+          <TextInput
+            value={fullName}
+            onChangeText={(v) => { setFullName(v); if (contactError) setContactError(''); }}
+            placeholder={tr('Nombre completo')}
+            placeholderTextColor={COLORS.textMuted}
+            style={styles.contactInput}
+            autoCapitalize="words"
+            autoCorrect={false}
+            autoComplete="name"
+            textContentType="name"
+            maxLength={80}
+          />
+          <TextInput
+            value={email}
+            onChangeText={(v) => { setEmail(v); if (contactError) setContactError(''); }}
+            placeholder="email@ejemplo.com"
+            placeholderTextColor={COLORS.textMuted}
+            style={styles.contactInput}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            textContentType="emailAddress"
+            maxLength={120}
+          />
+          {contactError ? (
+            <Text style={styles.contactErrorText}>{contactError}</Text>
+          ) : null}
 
           {/* Notes */}
           <Text style={styles.sectionTitle}>{tr('Notas (opcional)')}</Text>
@@ -538,6 +599,24 @@ const styles = StyleSheet.create({
   stepperValue: { minWidth: 60, alignItems: 'center' },
   stepperText: { color: COLORS.textMain, fontSize: 28, ...FONTS.bold },
 
+  contactInput: {
+    marginHorizontal: SPACING.md,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    color: COLORS.textMain,
+    fontSize: 14,
+  },
+  contactErrorText: {
+    color: '#F87171',
+    fontSize: 12,
+    paddingHorizontal: SPACING.md,
+    marginTop: 2,
+  },
   notesInput: {
     marginHorizontal: SPACING.md,
     paddingHorizontal: 12,
