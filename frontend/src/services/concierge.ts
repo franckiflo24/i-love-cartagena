@@ -33,7 +33,7 @@ export async function askAgent(
     const res = await fetch(AGENT_URL, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ message: lastUserMsg?.content || '', lang: 'es' }),
+      body: JSON.stringify({ message: lastUserMsg?.content || '', language: 'es' }),
     });
     if (!res.ok) {
       const err = await res.text().catch(() => '');

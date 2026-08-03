@@ -25,6 +25,8 @@ export const AUTO_TR: Dict = {
   'A pasos de ti': { en: 'Steps away', fr: 'À deux pas', pt: 'A passos de você' },
   'Guárdalo — inicia sesión': { en: 'Save it — sign in', fr: 'Gardez-le — connectez-vous', pt: 'Salve — faça login' },
   'Un favorito local está cerca…': { en: 'A local favorite is nearby…', fr: 'Un favori local est tout près…', pt: 'Um favorito local está perto…' },
+  'Una joya escondida está cerca…': { en: 'A hidden gem is nearby…', fr: 'Une pépite cachée est tout près…', pt: 'Uma joia escondida está perto…' },
+  'Joya escondida': { en: 'Hidden gem', fr: 'Pépite cachée', pt: 'Joia escondida' },
   'camina para descubrirlo': { en: 'walk to reveal it', fr: 'marchez pour le découvrir', pt: 'caminhe para descobri-lo' },
   'Romántico': { en: 'Romantic', fr: 'Romantique', pt: 'Romântico' },
   'Vista al atardecer': { en: 'Sunset views', fr: 'Vue coucher de soleil', pt: 'Vista do pôr do sol' },

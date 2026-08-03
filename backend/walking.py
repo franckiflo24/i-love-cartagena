@@ -55,7 +55,7 @@ _CARD_PROJECTION = {
     "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
     "cuisine": 1, "tier": 1, "price_range": 1, "address": 1, "rating": 1,
     "reviews": 1, "image_url": 1, "tags": 1, "signature_dishes": 1,
-    "location": 1, "distance_m": 1,
+    "location": 1, "distance_m": 1, "experience": 1, "gem_rarity": 1,
 }
 
 
@@ -89,6 +89,31 @@ def _validate_point(lat: float, lng: float):
 
 def _client_ip(request: Request) -> str:
     return (request.headers.get("x-forwarded-for") or "").split(",")[0].strip() or "unknown"
+
+
+# Grounded gem narration (A2): one line of WHY from the venue's OWN data —
+# experience tagline, first signature dish, or top occasion tag. A gem with
+# nothing real to say gets None (generic reveal), never invention. <=15 words.
+_TAG_LINES = {
+    "sunset_view": "atardeceres que los locales guardan en secreto",
+    "rooftop": "un rooftop que los turistas pasan de largo",
+    "live_music": "música en vivo de barrio",
+    "romantic": "rincón romántico de los cartageneros",
+    "budget": "precio de local, no de turista",
+}
+
+
+def _gem_reveal_line(r: Dict[str, Any]) -> Optional[str]:
+    exp = (r.get("experience") or "").strip()
+    dishes = r.get("signature_dishes") or []
+    if exp and len(exp.split()) <= 12:
+        return exp[:90]
+    if dishes:
+        return f"Probá: {str(dishes[0])[:70]}"
+    for t in (r.get("tags") or []):
+        if t in _TAG_LINES:
+            return _TAG_LINES[t]
+    return None
 
 
 # ── GET /nearby ──────────────────────────────────────────────────────
@@ -149,6 +174,8 @@ async def nearby(request: Request, lat: float, lng: float,
     for r in rows:
         tags = r.get("tags") or []
         dishes = r.get("signature_dishes") or []
+        is_gem = "local_favorite" in tags
+        reveal_line = _gem_reveal_line(r) if is_gem else None
         pulse = pulse_map.get(r["partner_id"])
         loc = r.get("location") or {}
         venues.append({
@@ -167,7 +194,9 @@ async def nearby(request: Request, lat: float, lng: float,
             "lng": loc.get("lng"),
             "distance_m": round(r.get("distance_m", 0)),
             "tags": tags,
-            "local_favorite": ("local_favorite" in tags) or (r["partner_id"] in pick_ids),
+            "local_favorite": is_gem or (r["partner_id"] in pick_ids),
+            "gem_rarity": r.get("gem_rarity"),
+            "reveal_line": reveal_line,
             "signature_dish": (dishes[0] if dishes else None),
             "pulse": ({k: pulse.get(k) for k in ("type", "title", "details", "start_time", "end_time")}
                       if pulse else None),
@@ -248,7 +277,21 @@ async def passport_discover(request: Request, body: DiscoverBody):
         raise HTTPException(status_code=409, detail="venue has no verified location")
 
     # ── Honesty gate: claimed venue must be within VERIFY_RADIUS_M ──
+    # Linear/large landmarks (Murallas) carry multiple stamp_points in the
+    # collections defs — verification is against the NEAREST point, so any
+    # spot along the wall stamps, but a hotel room two blocks away does not.
     dist = _haversine_m(body.lat, body.lng, float(v_lat), float(v_lng))
+    try:
+        defs = _load_defs()
+        for pl in defs.get("plazas", []):
+            if pl.get("venue_id") == body.venue_id and pl.get("stamp_points"):
+                dist = min(
+                    _haversine_m(body.lat, body.lng, float(sp[0]), float(sp[1]))
+                    for sp in pl["stamp_points"]
+                )
+                break
+    except Exception:
+        pass  # defs unavailable → single-point check stands (fail-safe)
     if dist > VERIFY_RADIUS_M:
         raise HTTPException(
             status_code=403,
@@ -416,8 +459,18 @@ async def _compute_progress(discoveries: List[Dict[str, Any]]) -> Dict[str, Any]
     plates = {s["key"]: any((s["key"], v["id"]) in plate_stamps for v in s["venues"])
               for s in cols["sabores"]}
     plaza_hits = {p["id"]: (p["id"] in visit_ids) for p in cols["plazas"]}
+    # Rare gems count DOUBLE toward barrio completion (capped at total)
+    rare_ids: set = set()
+    if gem_ids:
+        async for rp in db.partners.find(
+            {"partner_id": {"$in": list(gem_ids)}, "gem_rarity": "rare"},
+            {"_id": 0, "partner_id": 1},
+        ):
+            rare_ids.add(rp["partner_id"])
     nbh = [{"slug": n["slug"], "total": n["total"],
-            "discovered": sum(1 for vid in n["venue_ids"] if vid in any_ids)}
+            "discovered": min(n["total"], sum(
+                (2 if (vid in gem_ids and vid in rare_ids) else 1)
+                for vid in n["venue_ids"] if vid in any_ids))}
            for n in cols["neighborhoods"]]
     return {
         "sabores": {"discovered": sum(plates.values()), "total": len(plates), "plates": plates},

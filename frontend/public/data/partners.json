@@ -721,8 +721,8 @@
     "hours": "Lun-Sáb 07:00 - 20:00",
     "address": "Calle de la Sierpe #9B-70, Getsemaní, Cartagena",
     "location": {
-      "lat": 10.4228,
-      "lng": -75.5512
+      "lat": 10.3899858,
+      "lng": -75.47802999999999
     },
     "phone": "+573148270592",
     "instagram": "casaboheme_cartagena",
@@ -739,8 +739,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5512,
-        10.4228
+        -75.47802999999999,
+        10.3899858
       ]
     },
     "google_place_id": "ChIJJe4rxl0l9o4Rqo4E5R3wYhs",
@@ -1123,8 +1123,8 @@
     "hours": "Jue-Sáb 22:00 - 04:00",
     "address": "Calle de la Sierpe #9B-70, Getsemaní, Cartagena",
     "location": {
-      "lat": 10.4228,
-      "lng": -75.5512
+      "lat": 10.4241036,
+      "lng": -75.5518067
     },
     "phone": "+573148270592",
     "instagram": "casaboheme_cartagena",
@@ -1141,8 +1141,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5512,
-        10.4228
+        -75.5518067,
+        10.4241036
       ]
     },
     "google_place_id": "ChIJ1UE9888v9o4RemUqLlcfB80",
@@ -1348,8 +1348,8 @@
     "hours": "Mar-Dom 17:00 - 01:00",
     "address": "Calle de la Sierpe #9B-70, Getsemaní, Cartagena",
     "location": {
-      "lat": 10.4228,
-      "lng": -75.5512
+      "lat": 10.4241036,
+      "lng": -75.5518067
     },
     "phone": "+573148270592",
     "instagram": "casaboheme_cartagena",
@@ -1372,8 +1372,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5512,
-        10.4228
+        -75.5518067,
+        10.4241036
       ]
     },
     "google_place_id": "ChIJ1UE9888v9o4RemUqLlcfB80",
@@ -1404,8 +1404,8 @@
     "hours": "Mar-Dom 18:00 - 23:00",
     "address": "Calle de la Sierpe #9B-70, Getsemaní, Cartagena",
     "location": {
-      "lat": 10.4228,
-      "lng": -75.5512
+      "lat": 10.4241036,
+      "lng": -75.5518067
     },
     "phone": "+573148270592",
     "instagram": "casaboheme_cartagena",
@@ -1428,8 +1428,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5512,
-        10.4228
+        -75.5518067,
+        10.4241036
       ]
     },
     "google_place_id": "ChIJ1UE9888v9o4RemUqLlcfB80",
@@ -5640,8 +5640,8 @@
     "description": "Beatriz Olano Peluqueria — servicios de belleza y cuidado personal en Cartagena.",
     "address": "Edificio Versalles, Cl. 25 #20 -47, Manga, Cartagena de Indias, Bolívar, Colombia",
     "location": {
-      "lat": 10.4132909,
-      "lng": -75.5391503
+      "lat": 10.4151858,
+      "lng": -75.53632999999999
     },
     "phone": "",
     "image_url": "/images/partners/ptr_beauty_0428.jpg",
@@ -5663,8 +5663,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5391503,
-        10.4132909
+        -75.53632999999999,
+        10.4151858
       ]
     },
     "google_place_id": "ChIJE-EoNXcv9o4RaaVGyAj5hEE",
@@ -6714,8 +6714,8 @@
     "description": "Angel's Perfect Nails — servicios de belleza y cuidado personal en Cartagena.",
     "address": "MANGA Cra. 22, Cl. 29 #29-69, Manga, Cartagena de Indias, Bolívar, Colombia",
     "location": {
-      "lat": 10.413809299999999,
-      "lng": -75.53346189999999
+      "lat": 10.4161185,
+      "lng": -75.5404822
     },
     "phone": "+573238022185",
     "image_url": "/images/partners/ptr_beauty_0496.jpg",
@@ -6737,8 +6737,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.53346189999999,
-        10.413809299999999
+        -75.5404822,
+        10.4161185
       ]
     },
     "google_place_id": "ChIJX0tYXkov9o4RpP4zRO6jx00",
@@ -8052,8 +8052,8 @@
     "description": "Barbershop Cartagena — servicios de belleza y cuidado personal en Cartagena.",
     "address": "#29- a Carrera 71 #29152, Santa Mónica, Cartagena de Indias, Bolívar, Colombia",
     "location": {
-      "lat": 10.389742199999999,
-      "lng": -75.4801026
+      "lat": 10.4240502,
+      "lng": -75.5459908
     },
     "phone": "+573004117930",
     "image_url": "/images/partners/ptr_beauty_0511.jpg",
@@ -8075,8 +8075,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.4801026,
-        10.389742199999999
+        -75.5459908,
+        10.4240502
       ]
     },
     "google_place_id": "ChIJkQnTszMv9o4R0WXxrugVJQ8",
@@ -8728,8 +8728,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.42,
-      "lng": -75.55
+      "lat": 10.4154779,
+      "lng": -75.5388895
     },
     "name": "Rappi Cartagena",
     "phone": "+57 XXX (soporte en app)",
@@ -8752,8 +8752,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.55,
-        10.42
+        -75.5388895,
+        10.4154779
       ]
     }
   },
@@ -8806,8 +8806,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4235,
-      "lng": -75.5505
+      "lat": 10.3938726,
+      "lng": -75.4867776
     },
     "name": "Bancolombia Centro Histórico",
     "phone": "+57 605 660 0611",
@@ -8828,8 +8828,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5505,
-        10.4235
+        -75.4867776,
+        10.3938726
       ]
     }
   },
@@ -8843,8 +8843,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.3985,
-      "lng": -75.5555
+      "lat": 10.4049464,
+      "lng": -75.5528478
     },
     "name": "Bancolombia Bocagrande",
     "phone": "+57 605 660 0612",
@@ -8865,8 +8865,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5555,
-        10.3985
+        -75.5528478,
+        10.4049464
       ]
     }
   },
@@ -8880,8 +8880,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4248,
-      "lng": -75.5498
+      "lat": 10.42332,
+      "lng": -75.548496
     },
     "name": "Banco de Bogotá Centro",
     "phone": "+57 605 664 3200",
@@ -8902,8 +8902,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5498,
-        10.4248
+        -75.548496,
+        10.42332
       ]
     }
   },
@@ -8917,8 +8917,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.3992,
-      "lng": -75.5548
+      "lat": 10.4058237,
+      "lng": -75.5532623
     },
     "name": "Davivienda Bocagrande",
     "phone": "+57 605 665 1100",
@@ -8939,8 +8939,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5548,
-        10.3992
+        -75.5532623,
+        10.4058237
       ]
     }
   },
@@ -8954,8 +8954,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4242,
-      "lng": -75.5512
+      "lat": 10.4224809,
+      "lng": -75.550421
     },
     "name": "BBVA Colombia Centro",
     "phone": "+57 605 660 0800",
@@ -8976,8 +8976,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5512,
-        10.4242
+        -75.550421,
+        10.4224809
       ]
     }
   },
@@ -9028,8 +9028,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.425,
-      "lng": -75.5493
+      "lat": 10.4049464,
+      "lng": -75.5528478
     },
     "name": "Bancolombia ATM — Torre del Reloj",
     "phone": "+57 1 800 0912345",
@@ -9050,8 +9050,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5493,
-        10.425
+        -75.5528478,
+        10.4049464
       ]
     }
   },
@@ -9065,8 +9065,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4238,
-      "lng": -75.5502
+      "lat": 10.428349,
+      "lng": -75.5457924
     },
     "name": "Casa de Cambio Unidas — Centro Histórico",
     "phone": "+57 605 664 5890",
@@ -9087,8 +9087,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5502,
-        10.4238
+        -75.5457924,
+        10.428349
       ]
     }
   },
@@ -9102,8 +9102,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.3988,
-      "lng": -75.5552
+      "lat": 10.4115633,
+      "lng": -75.55137839999999
     },
     "name": "Cambios y Divisas Bocagrande",
     "phone": "+57 605 665 7720",
@@ -9124,8 +9124,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5552,
-        10.3988
+        -75.55137839999999,
+        10.4115633
       ]
     }
   },
@@ -9176,8 +9176,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.405,
-      "lng": -75.519
+      "lat": 10.390338,
+      "lng": -75.4791317
     },
     "name": "Cambios Express — Centro Comercial La Plazuela",
     "phone": "+57 605 669 4500",
@@ -9198,8 +9198,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.519,
-        10.405
+        -75.4791317,
+        10.390338
       ]
     }
   },
@@ -9212,8 +9212,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.424,
-      "lng": -75.5505
+      "lat": 10.3909215,
+      "lng": -75.4712563
     },
     "membership_status": "inactive",
     "name": "Vera by Rausch",
@@ -9240,8 +9240,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5505,
-        10.424
+        -75.4712563,
+        10.3909215
       ]
     }
   },
@@ -9255,8 +9255,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.42,
-      "lng": -75.55
+      "lat": 10.3987473,
+      "lng": -75.5574871
     },
     "name": "Domicilios.com",
     "phone": "+57 605 6550351",
@@ -9279,8 +9279,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.55,
-        10.42
+        -75.5574871,
+        10.3987473
       ]
     }
   },
@@ -9294,8 +9294,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.42,
-      "lng": -75.55
+      "lat": 10.4080919,
+      "lng": -75.5100148
     },
     "name": "iFood Colombia",
     "phone": "+57 316 7533735",
@@ -9318,8 +9318,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.55,
-        10.42
+        -75.5100148,
+        10.4080919
       ]
     }
   },
@@ -9333,8 +9333,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.3975,
-      "lng": -75.5558
+      "lat": 10.4076351,
+      "lng": -75.5516092
     },
     "name": "Farmatodo Bocagrande",
     "phone": "+57 605 665 3100",
@@ -9357,8 +9357,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5558,
-        10.3975
+        -75.5516092,
+        10.4076351
       ]
     }
   },
@@ -9372,8 +9372,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4245,
-      "lng": -75.5508
+      "lat": 10.4242746,
+      "lng": -75.5461643
     },
     "name": "Droguería Olímpica Centro",
     "phone": "+57 605 664 8900",
@@ -9394,8 +9394,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5508,
-        10.4245
+        -75.5461643,
+        10.4242746
       ]
     }
   },
@@ -9409,8 +9409,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.41,
-      "lng": -75.535
+      "lat": 10.414434,
+      "lng": -75.5295239
     },
     "name": "Cruz Verde — Centro Comercial Caribe Plaza",
     "phone": "+57 605 669 2200",
@@ -9431,8 +9431,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.535,
-        10.41
+        -75.5295239,
+        10.414434
       ]
     }
   },
@@ -9446,8 +9446,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.424,
-      "lng": -75.5495
+      "lat": 10.422469,
+      "lng": -75.5522469
     },
     "name": "Farmatodo Centro Histórico",
     "phone": "+57 605 664 3300",
@@ -9468,8 +9468,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5495,
-        10.424
+        -75.5522469,
+        10.422469
       ]
     }
   },
@@ -9483,8 +9483,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4215,
-      "lng": -75.5485
+      "lat": 10.4204327,
+      "lng": -75.5456482
     },
     "name": "Lavandería Express Getsemaní",
     "phone": "+57 320 5383619",
@@ -9508,8 +9508,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5485,
-        10.4215
+        -75.5456482,
+        10.4204327
       ]
     }
   },
@@ -9523,8 +9523,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.401,
-      "lng": -75.5545
+      "lat": 10.4041257,
+      "lng": -75.5553987
     },
     "name": "Mr. Wash Lavandería — Bocagrande",
     "phone": "+57 320 5727364",
@@ -9545,8 +9545,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5545,
-        10.401
+        -75.5553987,
+        10.4041257
       ]
     }
   },
@@ -9560,8 +9560,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.423,
-      "lng": -75.5515
+      "lat": 10.4262537,
+      "lng": -75.5460501
     },
     "name": "Lavandería La Burbuja — Centro",
     "phone": "+57 316 0506128",
@@ -9584,8 +9584,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5515,
-        10.423
+        -75.5460501,
+        10.4262537
       ]
     }
   },
@@ -9599,8 +9599,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.424,
-      "lng": -75.55
+      "lat": 10.3986583,
+      "lng": -75.4941798
     },
     "name": "Claro — Tienda Centro Histórico",
     "phone": "+57 605 664 1000",
@@ -9621,8 +9621,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.55,
-        10.424
+        -75.4941798,
+        10.3986583
       ]
     }
   },
@@ -9636,8 +9636,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.3998,
-      "lng": -75.5553
+      "lat": 10.4002857,
+      "lng": -75.5568764
     },
     "name": "Movistar — Centro Comercial Bocagrande",
     "phone": "+57 605 665 4000",
@@ -9658,8 +9658,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5553,
-        10.3998
+        -75.5568764,
+        10.4002857
       ]
     }
   },
@@ -9673,8 +9673,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4212,
-      "lng": -75.549
+      "lat": 10.4208127,
+      "lng": -75.5455971
     },
     "membership_status": "inactive",
     "name": "Street Art de Getsemaní",
@@ -9696,8 +9696,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.549,
-        10.4212
+        -75.5455971,
+        10.4208127
       ]
     }
   },
@@ -9755,8 +9755,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4228,
-      "lng": -75.541
+      "lat": 10.4225232,
+      "lng": -75.5392887
     },
     "membership_status": "inactive",
     "name": "Castillo San Felipe de Barajas",
@@ -9779,8 +9779,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.541,
-        10.4228
+        -75.5392887,
+        10.4225232
       ]
     }
   },
@@ -9794,8 +9794,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4236,
-      "lng": -75.55
+      "lat": 10.4296098,
+      "lng": -75.54486500000002
     },
     "membership_status": "inactive",
     "name": "Las Murallas de Cartagena",
@@ -9818,8 +9818,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.55,
-        10.4236
+        -75.54486500000002,
+        10.4296098
       ]
     }
   },
@@ -9833,8 +9833,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4234,
-      "lng": -75.5509
+      "lat": 10.4229787,
+      "lng": -75.54921829999999
     },
     "membership_status": "inactive",
     "name": "Torre del Reloj",
@@ -9857,8 +9857,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5509,
-        10.4234
+        -75.54921829999999,
+        10.4229787
       ]
     }
   },
@@ -9912,8 +9912,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4255,
-      "lng": -75.5514
+      "lat": 10.4232347,
+      "lng": -75.55119049999999
     },
     "membership_status": "inactive",
     "name": "Plaza de Bolívar",
@@ -9935,8 +9935,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5514,
-        10.4255
+        -75.55119049999999,
+        10.4232347
       ]
     }
   },
@@ -9950,8 +9950,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4256,
-      "lng": -75.5512
+      "lat": 10.423112,
+      "lng": -75.5508703
     },
     "membership_status": "inactive",
     "name": "Museo del Oro Zenú",
@@ -9976,8 +9976,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5512,
-        10.4256
+        -75.5508703,
+        10.423112
       ]
     }
   },
@@ -9991,8 +9991,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4253,
-      "lng": -75.5515
+      "lat": 10.4231599,
+      "lng": -75.55152439999999
     },
     "membership_status": "inactive",
     "name": "Palacio de la Inquisición",
@@ -10016,8 +10016,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5515,
-        10.4253
+        -75.55152439999999,
+        10.4231599
       ]
     }
   },
@@ -10031,8 +10031,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4237,
-      "lng": -75.5498
+      "lat": 10.4217511,
+      "lng": -75.5510213
     },
     "membership_status": "inactive",
     "name": "Iglesia San Pedro Claver",
@@ -10055,8 +10055,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5498,
-        10.4237
+        -75.5510213,
+        10.4217511
       ]
     }
   },
@@ -10069,8 +10069,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4259,
-      "lng": -75.5508
+      "lat": 10.4236446,
+      "lng": -75.5506735
     },
     "membership_status": "inactive",
     "name": "Catedral de Santa Catalina de Alejandría",
@@ -10094,8 +10094,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5508,
-        10.4259
+        -75.5506735,
+        10.4236446
       ]
     }
   },
@@ -10109,8 +10109,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4285,
-      "lng": -75.546
+      "lat": 10.4301532,
+      "lng": -75.5464571
     },
     "membership_status": "inactive",
     "name": "Las Bóvedas",
@@ -10132,8 +10132,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.546,
-        10.4285
+        -75.5464571,
+        10.4301532
       ]
     }
   },
@@ -10147,8 +10147,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4228,
-      "lng": -75.548
+      "lat": 10.4150533,
+      "lng": -75.5292908
     },
     "name": "Tigo — Tienda San Diego",
     "phone": "+57 605 664 5500",
@@ -10172,8 +10172,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.548,
-        10.4228
+        -75.5292908,
+        10.4150533
       ]
     }
   },
@@ -10186,8 +10186,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.414,
-      "lng": -75.5295
+      "lat": 10.4261111,
+      "lng": -75.5241667
     },
     "membership_status": "inactive",
     "name": "Cerro de la Popa",
@@ -10210,8 +10210,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5295,
-        10.414
+        -75.5241667,
+        10.4261111
       ]
     }
   },
@@ -10224,8 +10224,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4248,
-      "lng": -75.5485
+      "lat": 10.4218405,
+      "lng": -75.55210579999999
     },
     "membership_status": "inactive",
     "name": "Museo Naval del Caribe",
@@ -10247,8 +10247,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5485,
-        10.4248
+        -75.55210579999999,
+        10.4218405
       ]
     }
   },
@@ -10261,8 +10261,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.423,
-      "lng": -75.5478
+      "lat": 10.4215806,
+      "lng": -75.5506849
     },
     "membership_status": "inactive",
     "name": "MAMC — Museo de Arte Moderno",
@@ -10283,8 +10283,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5478,
-        10.423
+        -75.5506849,
+        10.4215806
       ]
     }
   },
@@ -10297,8 +10297,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4245,
-      "lng": -75.551
+      "lat": 10.4266111,
+      "lng": -75.5511837
     },
     "membership_status": "inactive",
     "name": "Teatro Adolfo Mejía (Heredia)",
@@ -10320,8 +10320,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.551,
-        10.4245
+        -75.5511837,
+        10.4266111
       ]
     }
   },
@@ -10334,8 +10334,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4222,
-      "lng": -75.5405
+      "lat": 10.4212721,
+      "lng": -75.5376345
     },
     "membership_status": "inactive",
     "name": "Monumento a los Zapatos Viejos",
@@ -10356,8 +10356,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5405,
-        10.4222
+        -75.5376345,
+        10.4212721
       ]
     }
   },
@@ -10370,8 +10370,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.18,
-      "lng": -75.77
+      "lat": 10.19701320165559,
+      "lng": -75.76040007449183
     },
     "membership_status": "inactive",
     "name": "Islas del Rosario",
@@ -10397,8 +10397,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.77,
-        10.18
+        -75.76040007449183,
+        10.19701320165559
       ]
     }
   },
@@ -10411,8 +10411,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.165,
-      "lng": -75.633
+      "lat": 10.2173459,
+      "lng": -75.61335199999999
     },
     "membership_status": "inactive",
     "name": "Playa Blanca — Barú",
@@ -10439,8 +10439,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.633,
-        10.165
+        -75.61335199999999,
+        10.2173459
       ]
     }
   },
@@ -10453,8 +10453,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.465,
-      "lng": -75.51
+      "lat": 10.4861916,
+      "lng": -75.4921069
     },
     "membership_status": "inactive",
     "name": "La Boquilla — Manglares",
@@ -10478,8 +10478,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.51,
-        10.465
+        -75.4921069,
+        10.4861916
       ]
     }
   },
@@ -10492,8 +10492,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.706,
-      "lng": -75.306
+      "lat": 10.744472,
+      "lng": -75.24140299999999
     },
     "membership_status": "inactive",
     "name": "Volcán del Totumo",
@@ -10514,8 +10514,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.306,
-        10.706
+        -75.24140299999999,
+        10.744472
       ]
     }
   },
@@ -10528,8 +10528,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.0989,
-      "lng": -75.2028
+      "lat": 10.1033936,
+      "lng": -75.1991062
     },
     "membership_status": "inactive",
     "name": "San Basilio de Palenque",
@@ -10552,8 +10552,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.2028,
-        10.0989
+        -75.1991062,
+        10.1033936
       ]
     }
   },
@@ -10566,8 +10566,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.414,
-      "lng": -75.5295
+      "lat": 10.4191591,
+      "lng": -75.5255469
     },
     "membership_status": "inactive",
     "name": "Convento de la Popa",
@@ -10589,8 +10589,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5295,
-        10.414
+        -75.5255469,
+        10.4191591
       ]
     }
   },
@@ -10604,8 +10604,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.411,
-      "lng": -75.538
+      "lat": 10.4115633,
+      "lng": -75.55137839999999
     },
     "name": "Globo Cambio — Terminal de Cruceros (Manga)",
     "phone": "+57 018000180433",
@@ -10623,8 +10623,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.538,
-        10.411
+        -75.55137839999999,
+        10.4115633
       ]
     }
   },
@@ -10638,8 +10638,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.397,
-      "lng": -75.556
+      "lat": 10.3988276,
+      "lng": -75.5581548
     },
     "name": "Pet Shop & Vet — Bocagrande",
     "phone": "+57 605 665 1800",
@@ -10662,8 +10662,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.556,
-        10.397
+        -75.5581548,
+        10.3988276
       ]
     }
   },
@@ -10677,8 +10677,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4008,
-      "lng": -75.5545
+      "lat": 10.4114472,
+      "lng": -75.5511061
     },
     "name": "Bodytech — Bocagrande",
     "phone": "+57 605 665 6000",
@@ -10702,8 +10702,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5545,
-        10.4008
+        -75.5511061,
+        10.4114472
       ]
     }
   },
@@ -10717,8 +10717,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.41,
-      "lng": -75.535
+      "lat": 10.414434,
+      "lng": -75.5295239
     },
     "name": "Smart Fit — Centro Comercial Caribe Plaza",
     "phone": "+57 605 669 3200",
@@ -10742,8 +10742,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.535,
-        10.41
+        -75.5295239,
+        10.414434
       ]
     }
   },
@@ -10757,8 +10757,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4242,
-      "lng": -75.55
+      "lat": 10.4253789,
+      "lng": -75.5492106
     },
     "name": "Bounce Luggage Storage — Centro",
     "phone": "+44 1422 400776",
@@ -10781,8 +10781,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.55,
-        10.4242
+        -75.5492106,
+        10.4253789
       ]
     }
   },
@@ -10796,8 +10796,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.423,
-      "lng": -75.551
+      "lat": 10.41667,
+      "lng": -75.54997999999999
     },
     "name": "Radical Storage Cartagena",
     "phone": "+44 7782 218080",
@@ -10820,8 +10820,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.551,
-        10.423
+        -75.54997999999999,
+        10.41667
       ]
     }
   },
@@ -10836,8 +10836,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.1875,
-      "lng": -75.5842
+      "lat": 10.1517657,
+      "lng": -75.6852986
     },
     "name": "Hotel Las Islas",
     "price_range": "$$$$",
@@ -10867,8 +10867,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5842,
-        10.1875
+        -75.6852986,
+        10.1517657
       ]
     }
   },
@@ -10883,8 +10883,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.1644,
-      "lng": -75.6567
+      "lat": 10.2190224,
+      "lng": -75.611854
     },
     "name": "Playa Blanca Beach Club",
     "price_range": "$$",
@@ -10914,8 +10914,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.6567,
-        10.1644
+        -75.611854,
+        10.2190224
       ]
     }
   },
@@ -10930,8 +10930,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.3932,
-      "lng": -75.5559
+      "lat": 10.398752,
+      "lng": -75.562755
     },
     "name": "Hollywood Beach",
     "price_range": "$$$",
@@ -10958,8 +10958,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5559,
-        10.3932
+        -75.562755,
+        10.398752
       ]
     }
   },
@@ -10973,8 +10973,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4426,
-      "lng": -75.513
+      "lat": 10.4448157,
+      "lng": -75.5165246
     },
     "name": "Globo Cambio — Aeropuerto Rafael Núñez",
     "phone": "+57 018000180433",
@@ -10995,8 +10995,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.513,
-        10.4426
+        -75.5165246,
+        10.4448157
       ]
     }
   },
@@ -11010,8 +11010,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4225,
-      "lng": -75.5485
+      "lat": 10.4250429,
+      "lng": -75.5508578
     },
     "name": "Globo Cambio — Parque Centenario (Centro)",
     "phone": "+57 018000180433",
@@ -11029,8 +11029,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5485,
-        10.4225
+        -75.5508578,
+        10.4250429
       ]
     }
   },
@@ -11044,8 +11044,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.3985,
-      "lng": -75.5565
+      "lat": 10.4115633,
+      "lng": -75.55137839999999
     },
     "name": "Globo Cambio — C.C. Plaza Bocagrande",
     "phone": "+57 018000180433",
@@ -11063,8 +11063,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5565,
-        10.3985
+        -75.55137839999999,
+        10.4115633
       ]
     }
   },
@@ -11078,8 +11078,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.438,
-      "lng": -75.517
+      "lat": 10.4448157,
+      "lng": -75.5165246
     },
     "name": "Globo Cambio — Barrio Crespo",
     "phone": "+57 018000180433",
@@ -11097,8 +11097,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.517,
-        10.438
+        -75.5165246,
+        10.4448157
       ]
     }
   },
@@ -11112,8 +11112,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.413,
-      "lng": -75.54
+      "lat": 10.4174886,
+      "lng": -75.5336521
     },
     "name": "Clínica Veterinaria Animal Planet",
     "phone": "+57 605 660 3400",
@@ -11134,8 +11134,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.54,
-        10.413
+        -75.5336521,
+        10.4174886
       ]
     }
   },
@@ -11183,8 +11183,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4208,
-      "lng": -75.5488
+      "lat": 10.4224673,
+      "lng": -75.54430789999999
     },
     "name": "Punto Dollar Money Exchange — Getsemaní",
     "phone": "+57 301 555 2345",
@@ -11202,8 +11202,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5488,
-        10.4208
+        -75.54430789999999,
+        10.4224673
       ]
     }
   },
@@ -11217,8 +11217,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4205,
-      "lng": -75.5492
+      "lat": 10.4204729,
+      "lng": -75.54466029999999
     },
     "name": "Florida Money Exchange — Getsemaní",
     "phone": "+57 302 555 3456",
@@ -11236,8 +11236,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5492,
-        10.4205
+        -75.54466029999999,
+        10.4204729
       ]
     }
   },
@@ -11251,8 +11251,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4375,
-      "lng": -75.5165
+      "lat": 10.4442688,
+      "lng": -75.5178844
     },
     "name": "Comisiones Eliel",
     "phone": "+57 303 555 4567",
@@ -11272,8 +11272,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5165,
-        10.4375
+        -75.5178844,
+        10.4442688
       ]
     }
   },
@@ -11287,8 +11287,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.392,
-      "lng": -75.5625
+      "lat": 10.3974457,
+      "lng": -75.5639621
     },
     "name": "Divisa's — El Laguito",
     "phone": "+57 315 800 0418",
@@ -11306,8 +11306,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5625,
-        10.392
+        -75.5639621,
+        10.3974457
       ]
     }
   },
@@ -11321,8 +11321,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4233,
-      "lng": -75.5508
+      "lat": 10.4229787,
+      "lng": -75.54921829999999
     },
     "name": "Cambios Torre del Reloj",
     "phone": "+57 304 555 5678",
@@ -11340,8 +11340,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5508,
-        10.4233
+        -75.54921829999999,
+        10.4229787
       ]
     }
   },
@@ -11389,8 +11389,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4222,
-      "lng": -75.5415
+      "lat": 10.4224673,
+      "lng": -75.54430789999999
     },
     "name": "Casa de Cambio San Felipe",
     "phone": "+57 306 555 7890",
@@ -11408,8 +11408,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5415,
-        10.4222
+        -75.54430789999999,
+        10.4224673
       ]
     }
   },
@@ -11423,8 +11423,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.412,
-      "lng": -75.537
+      "lat": 10.4204729,
+      "lng": -75.54466029999999
     },
     "name": "Cambios Manga",
     "phone": "+57 307 555 8901",
@@ -11445,8 +11445,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.537,
-        10.412
+        -75.54466029999999,
+        10.4204729
       ]
     }
   },
@@ -11460,8 +11460,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.3975,
-      "lng": -75.5555
+      "lat": 10.4011224,
+      "lng": -75.5569048
     },
     "name": "Cambios Express — San Martín (Bocagrande)",
     "phone": "+57 308 555 9012",
@@ -11484,8 +11484,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5555,
-        10.3975
+        -75.5569048,
+        10.4011224
       ]
     }
   },
@@ -11499,8 +11499,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.391,
-      "lng": -75.559
+      "lat": 10.3975189,
+      "lng": -75.5625178
     },
     "name": "Cambios del Caribe — Castillogrande",
     "phone": "+57 309 555 0123",
@@ -11521,8 +11521,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.559,
-        10.391
+        -75.5625178,
+        10.3975189
       ]
     }
   },
@@ -11536,8 +11536,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.42,
-      "lng": -75.55
+      "lat": 10.4431321,
+      "lng": -75.514872
     },
     "name": "InDriver Cartagena",
     "phone": "+57 302 3614646",
@@ -11560,8 +11560,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.55,
-        10.42
+        -75.514872,
+        10.4431321
       ]
     }
   },
@@ -11575,8 +11575,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.3965,
-      "lng": -75.5562
+      "lat": 10.3946741,
+      "lng": -75.4860489
     },
     "name": "Éxito Bocagrande",
     "phone": "+57 605 665 8000",
@@ -11600,8 +11600,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5562,
-        10.3965
+        -75.4860489,
+        10.3946741
       ]
     }
   },
@@ -11615,8 +11615,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4255,
-      "lng": -75.552
+      "lat": 10.4247763,
+      "lng": -75.5479034
     },
     "name": "Olímpica SAO — Centro",
     "phone": "+57 605 664 7700",
@@ -11643,8 +11643,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.552,
-        10.4255
+        -75.5479034,
+        10.4247763
       ]
     }
   },
@@ -11658,8 +11658,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4002,
-      "lng": -75.5548
+      "lat": 10.4133261,
+      "lng": -75.5505508
     },
     "name": "Carulla Bocagrande",
     "phone": "+57 605 665 9100",
@@ -11682,8 +11682,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5548,
-        10.4002
+        -75.5505508,
+        10.4133261
       ]
     }
   },
@@ -11697,8 +11697,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4208,
-      "lng": -75.5492
+      "lat": 10.3914271,
+      "lng": -75.50360959999999
     },
     "name": "Minimarket La Esquina — Getsemaní",
     "phone": "+57 316 XXX XXXX",
@@ -11725,8 +11725,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5492,
-        10.4208
+        -75.50360959999999,
+        10.3914271
       ]
     }
   },
@@ -11740,8 +11740,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4212,
-      "lng": -75.5488
+      "lat": 10.4200787,
+      "lng": -75.5474416
     },
     "name": "Selina Cartagena Coworking",
     "phone": "+57 605 660 4500",
@@ -11766,8 +11766,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5488,
-        10.4212
+        -75.5474416,
+        10.4200787
       ]
     }
   },
@@ -11820,8 +11820,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.422,
-      "lng": -75.547
+      "lat": 10.4262539,
+      "lng": -75.54608979999999
     },
     "name": "Café & Cowork — San Diego",
     "phone": "+57 318 XXX XXXX",
@@ -11846,8 +11846,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.547,
-        10.422
+        -75.54608979999999,
+        10.4262539
       ]
     }
   },
@@ -11861,8 +11861,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.3995,
-      "lng": -75.555
+      "lat": 10.3974351,
+      "lng": -75.55632430000001
     },
     "name": "Clínica Medihelp — Bocagrande",
     "phone": "+57 605 665 5000",
@@ -11885,8 +11885,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.555,
-        10.3995
+        -75.55632430000001,
+        10.3974351
       ]
     }
   },
@@ -11900,8 +11900,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.415,
-      "lng": -75.538
+      "lat": 10.3918461,
+      "lng": -75.48683679999999
     },
     "name": "Clínica Blas de Lezo",
     "phone": "+57 605 665 4700",
@@ -11924,8 +11924,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.538,
-        10.415
+        -75.48683679999999,
+        10.3918461
       ]
     }
   },
@@ -11939,8 +11939,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4015,
-      "lng": -75.5542
+      "lat": 10.4092142,
+      "lng": -75.5174202
     },
     "name": "Centro Médico Crecer — Urgencias Turista",
     "phone": "+57 605 665 2100",
@@ -11963,8 +11963,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5542,
-        10.4015
+        -75.5174202,
+        10.4092142
       ]
     }
   },
@@ -12054,8 +12054,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.42,
-      "lng": -75.55
+      "lat": 10.406465,
+      "lng": -75.5059201
     },
     "name": "DiDi Cartagena",
     "phone": "+57 XXX (soporte en app)",
@@ -12078,8 +12078,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.55,
-        10.42
+        -75.5059201,
+        10.406465
       ]
     }
   },
@@ -12132,8 +12132,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.402,
-      "lng": -75.554
+      "lat": 10.4431954,
+      "lng": -75.5179727
     },
     "name": "Golf Cart Rentals Cartagena",
     "phone": "+57 317 3659708",
@@ -12157,8 +12157,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.554,
-        10.402
+        -75.5179727,
+        10.4431954
       ]
     }
   },
@@ -12172,8 +12172,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4205,
-      "lng": -75.5495
+      "lat": 10.4226306,
+      "lng": -75.5442506
     },
     "name": "Bicicletas Cartagena — Bike Rental",
     "phone": "+57 313 5064472",
@@ -12196,8 +12196,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5495,
-        10.4205
+        -75.5442506,
+        10.4226306
       ]
     }
   },
@@ -12211,8 +12211,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4235,
-      "lng": -75.5505
+      "lat": 10.4282477,
+      "lng": -75.549319
     },
     "name": "Cartagena Photo Experience",
     "phone": "+57 300 8516513",
@@ -12235,8 +12235,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5505,
-        10.4235
+        -75.549319,
+        10.4282477
       ]
     }
   },
@@ -12250,8 +12250,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.3985,
-      "lng": -75.5555
+      "lat": 10.4191875,
+      "lng": -75.5447658
     },
     "name": "Drone Cartagena — Fotografía Aérea",
     "phone": "+57 312 3218509",
@@ -12272,8 +12272,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5555,
-        10.3985
+        -75.5447658,
+        10.4191875
       ]
     }
   },
@@ -12287,8 +12287,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4213,
-      "lng": -75.5487
+      "lat": 10.4249324,
+      "lng": -75.552674
     },
     "name": "Getsemaní Ink — Tattoo Studio",
     "phone": "+57 305 3626473",
@@ -12311,8 +12311,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5487,
-        10.4213
+        -75.552674,
+        10.4249324
       ]
     }
   },
@@ -12326,8 +12326,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4218,
-      "lng": -75.5482
+      "lat": 10.4238044,
+      "lng": -75.5495782
     },
     "name": "Tattoo Caribe — Fine Line Studio",
     "phone": "+57 315 7785566",
@@ -12350,8 +12350,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5482,
-        10.4218
+        -75.5495782,
+        10.4238044
       ]
     }
   },
@@ -12365,8 +12365,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.421,
-      "lng": -75.549
+      "lat": 10.4239092,
+      "lng": -75.54967189999999
     },
     "name": "Sacred Art Tattoo Cartagena",
     "phone": "+57 304 6683607",
@@ -12389,8 +12389,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.549,
-        10.421
+        -75.54967189999999,
+        10.4239092
       ]
     }
   },
@@ -12404,8 +12404,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.4208,
-      "lng": -75.549
+      "lat": 10.4236759,
+      "lng": -75.5455714
     },
     "name": "Barbería El Caribe — Getsemaní",
     "phone": "+57 319 7973135",
@@ -12432,8 +12432,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.549,
-        10.4208
+        -75.5455714,
+        10.4236759
       ]
     }
   },
@@ -12447,8 +12447,8 @@
     "is_certified": false,
     "is_government": false,
     "location": {
-      "lat": 10.399,
-      "lng": -75.5555
+      "lat": 10.403241,
+      "lng": -75.55380269999999
     },
     "name": "The Barber House — Bocagrande",
     "phone": "+57 315 2728559",
@@ -12473,8 +12473,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5555,
-        10.399
+        -75.55380269999999,
+        10.403241
       ]
     }
   },
@@ -17366,8 +17366,8 @@
     "instagram": "",
     "is_certified": true,
     "location": {
-      "lat": 10.425062,
-      "lng": -75.55199979999999
+      "lat": 10.1835117,
+      "lng": -75.7212448
     },
     "name": "Isla del Pirata",
     "phone": "+573137044804.0",
@@ -17395,8 +17395,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.55199979999999,
-        10.425062
+        -75.7212448,
+        10.1835117
       ]
     }
   },
@@ -17411,8 +17411,8 @@
     "instagram": "",
     "is_certified": true,
     "location": {
-      "lat": 10.424341966482938,
-      "lng": -75.54981512109242
+      "lat": 10.3936678,
+      "lng": -75.5612055
     },
     "name": "Playa Scondida",
     "phone": "+573156824000.0",
@@ -17441,8 +17441,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.54981512109242,
-        10.424341966482938
+        -75.5612055,
+        10.3936678
       ]
     }
   },
@@ -17551,8 +17551,8 @@
     "instagram": "@bocagrandeproperties",
     "is_certified": true,
     "location": {
-      "lat": 10.3989,
-      "lng": -75.5547
+      "lat": 10.4066759,
+      "lng": -75.5510094
     },
     "name": "Bocagrande Properties",
     "price_range": "$$$",
@@ -17578,8 +17578,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5547,
-        10.3989
+        -75.5510094,
+        10.4066759
       ]
     }
   },
@@ -17594,8 +17594,8 @@
     "instagram": "boatingcartagena",
     "is_certified": true,
     "location": {
-      "lat": 10.4188,
-      "lng": -75.5523
+      "lat": 10.4120939,
+      "lng": -75.5399715
     },
     "name": "Boating Cartagena Premium",
     "price_range": "$$$$",
@@ -17630,8 +17630,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5523,
-        10.4188
+        -75.5399715,
+        10.4120939
       ]
     }
   },
@@ -17646,8 +17646,8 @@
     "instagram": "sailingcartagena",
     "is_certified": true,
     "location": {
-      "lat": 10.4015,
-      "lng": -75.5556
+      "lat": 10.4078577,
+      "lng": -75.54955
     },
     "name": "Sailing Cartagena",
     "price_range": "$$$",
@@ -17679,8 +17679,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5556,
-        10.4015
+        -75.54955,
+        10.4078577
       ]
     }
   },
@@ -19389,8 +19389,8 @@
     "instagram": "",
     "is_certified": true,
     "location": {
-      "lat": 10.4231651,
-      "lng": -75.5498396
+      "lat": 10.4261814,
+      "lng": -75.54846359999999
     },
     "name": "Amazing Travel Cartagena",
     "phone": "+573012601434.0",
@@ -19415,8 +19415,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5498396,
-        10.4231651
+        -75.54846359999999,
+        10.4261814
       ]
     }
   },
@@ -19612,8 +19612,8 @@
     "instagram": "cartagenadivers",
     "is_certified": true,
     "location": {
-      "lat": 10.4188,
-      "lng": -75.5523
+      "lat": 10.4123418,
+      "lng": -75.5393556
     },
     "name": "Cartagena Diving Center",
     "price_range": "$$$",
@@ -19644,8 +19644,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5523,
-        10.4188
+        -75.5393556,
+        10.4123418
       ]
     }
   },
@@ -20596,8 +20596,8 @@
     "instagram": "",
     "is_certified": true,
     "location": {
-      "lat": 10.401704,
-      "lng": -75.5563246
+      "lat": 10.3983333,
+      "lng": -75.55944439999999
     },
     "name": "Oz Hotel Cartagena",
     "phone": "+573174353450.0",
@@ -20625,8 +20625,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5563246,
-        10.401704
+        -75.55944439999999,
+        10.3983333
       ]
     }
   },
@@ -22310,8 +22310,8 @@
     "instagram": "@padelcartagena",
     "is_certified": true,
     "location": {
-      "lat": 10.3985,
-      "lng": -75.551
+      "lat": 10.4011292,
+      "lng": -75.5545262
     },
     "name": "Padel Club Cartagena",
     "price_range": "$$",
@@ -22337,8 +22337,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.551,
-        10.3985
+        -75.5545262,
+        10.4011292
       ]
     }
   },
@@ -22353,8 +22353,8 @@
     "instagram": "@bastionhotel",
     "is_certified": true,
     "location": {
-      "lat": 10.4225,
-      "lng": -75.55
+      "lat": 10.42685,
+      "lng": -75.5487373
     },
     "name": "Bastión Luxury Hotel",
     "price_range": "$$$",
@@ -22384,8 +22384,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.55,
-        10.4225
+        -75.5487373,
+        10.42685
       ]
     }
   },
@@ -22961,8 +22961,8 @@
     "instagram": "@sofitelsantaclara",
     "is_certified": true,
     "location": {
-      "lat": 10.4255,
-      "lng": -75.5482
+      "lat": 10.4282704,
+      "lng": -75.5478512
     },
     "name": "Sofitel Legend Santa Clara",
     "price_range": "$$$$",
@@ -22992,8 +22992,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5482,
-        10.4255
+        -75.5478512,
+        10.4282704
       ]
     }
   },
@@ -23147,8 +23147,8 @@
     "instagram": "@cartagenaluxuryrentals",
     "is_certified": true,
     "location": {
-      "lat": 10.4231,
-      "lng": -75.5519
+      "lat": 10.4277364,
+      "lng": -75.54817109999999
     },
     "name": "Cartagena Luxury Rentals",
     "price_range": "$$$",
@@ -23173,8 +23173,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5519,
-        10.4231
+        -75.54817109999999,
+        10.4277364
       ]
     }
   },
@@ -23189,8 +23189,8 @@
     "instagram": "@inmobiliariacentro",
     "is_certified": true,
     "location": {
-      "lat": 10.4239,
-      "lng": -75.5489
+      "lat": 10.4226639,
+      "lng": -75.5498702
     },
     "name": "Inmobiliaria Centro",
     "price_range": "$$",
@@ -23212,8 +23212,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5489,
-        10.4239
+        -75.5498702,
+        10.4226639
       ]
     }
   },
@@ -23786,8 +23786,8 @@
     "instagram": "@tropicalhair",
     "is_certified": true,
     "location": {
-      "lat": 10.4221,
-      "lng": -75.553
+      "lat": 10.4200965,
+      "lng": -75.5444193
     },
     "name": "Salón Tropical Hair Studio",
     "price_range": "$$$",
@@ -23817,8 +23817,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.553,
-        10.4221
+        -75.5444193,
+        10.4200965
       ]
     }
   },
@@ -23833,8 +23833,8 @@
     "instagram": "@tennisbocagrande",
     "is_certified": true,
     "location": {
-      "lat": 10.4019,
-      "lng": -75.553
+      "lat": 10.3940751,
+      "lng": -75.5588475
     },
     "name": "Tennis Club Bocagrande",
     "price_range": "$$",
@@ -23863,8 +23863,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.553,
-        10.4019
+        -75.5588475,
+        10.3940751
       ]
     }
   },
@@ -23879,8 +23879,8 @@
     "instagram": "caribbeanyachtclub",
     "is_certified": true,
     "location": {
-      "lat": 10.4108,
-      "lng": -75.538
+      "lat": 10.4119935,
+      "lng": -75.5412108
     },
     "name": "Caribbean Yacht Club",
     "price_range": "$$$$",
@@ -23913,8 +23913,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.538,
-        10.4108
+        -75.5412108,
+        10.4119935
       ]
     }
   },
@@ -23927,8 +23927,8 @@
     "tier": "institutional",
     "image_url": "/images/partners/ptr_alcaldia.jpg",
     "location": {
-      "lat": 10.4236,
-      "lng": -75.5519
+      "lat": 10.4220463,
+      "lng": -75.5500304
     },
     "address": "Plaza de la Aduana, Centro Histórico",
     "booking_link": "https://cartagena.gov.co",
@@ -23954,8 +23954,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5519,
-        10.4236
+        -75.5500304,
+        10.4220463
       ]
     }
   },
@@ -24296,8 +24296,8 @@
     "instagram": "",
     "is_certified": true,
     "location": {
-      "lat": 10.4136068,
-      "lng": -75.5196249
+      "lat": 10.3979813,
+      "lng": -75.5569119
     },
     "name": "Costeña Travel",
     "phone": "+573235778707.0",
@@ -24325,8 +24325,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5196249,
-        10.4136068
+        -75.5569119,
+        10.3979813
       ]
     }
   },
@@ -24612,8 +24612,8 @@
     "tier": "premium",
     "image_url": "/images/partners/ptr_007.jpg",
     "location": {
-      "lat": 10.421,
-      "lng": -75.544
+      "lat": 10.4228375,
+      "lng": -75.55065189999999
     },
     "address": "Calle del Porvenir #35-66",
     "booking_link": "https://movich.co/cartagena",
@@ -24646,8 +24646,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.544,
-        10.421
+        -75.55065189999999,
+        10.4228375
       ]
     }
   },
@@ -25217,8 +25217,8 @@
     "instagram": "@crossfitcartagena",
     "is_certified": true,
     "location": {
-      "lat": 10.4045,
-      "lng": -75.5503
+      "lat": 10.4149847,
+      "lng": -75.5313767
     },
     "name": "CrossFit Cartagena",
     "price_range": "$$",
@@ -25244,8 +25244,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5503,
-        10.4045
+        -75.5313767,
+        10.4149847
       ]
     }
   },
@@ -25821,8 +25821,8 @@
     "instagram": "@nikkeicartagena",
     "is_certified": true,
     "location": {
-      "lat": 10.4189,
-      "lng": -75.5491
+      "lat": 10.3892829,
+      "lng": -75.47796
     },
     "name": "Nikkei Cartagena",
     "price_range": "$$$",
@@ -25853,8 +25853,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5491,
-        10.4189
+        -75.47796,
+        10.3892829
       ]
     }
   },
@@ -25869,8 +25869,8 @@
     "instagram": "@verdecartagena",
     "is_certified": true,
     "location": {
-      "lat": 10.4256,
-      "lng": -75.5485
+      "lat": 10.4133642,
+      "lng": -75.5371993
     },
     "name": "Verde Cartagena",
     "price_range": "$$",
@@ -25901,8 +25901,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5485,
-        10.4256
+        -75.5371993,
+        10.4133642
       ]
     }
   },
@@ -29330,8 +29330,8 @@
     "instagram": "@burgercartagena",
     "is_certified": true,
     "location": {
-      "lat": 10.4186,
-      "lng": -75.5495
+      "lat": 10.4114545,
+      "lng": -75.5328138
     },
     "name": "Burger Cartagena",
     "price_range": "$$",
@@ -29361,8 +29361,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5495,
-        10.4186
+        -75.5328138,
+        10.4114545
       ]
     }
   },
@@ -29377,8 +29377,8 @@
     "instagram": "@tropicaltacos",
     "is_certified": true,
     "location": {
-      "lat": 10.4234,
-      "lng": -75.5478
+      "lat": 10.4200965,
+      "lng": -75.5444193
     },
     "name": "Tropical Tacos",
     "price_range": "$",
@@ -29408,8 +29408,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5478,
-        10.4234
+        -75.5444193,
+        10.4200965
       ]
     }
   },
@@ -31267,8 +31267,8 @@
     "tier": "popular",
     "image_url": "/images/partners/ptr_008.jpg",
     "location": {
-      "lat": 10.1817,
-      "lng": -75.5847
+      "lat": 10.1345356,
+      "lng": -75.6995681
     },
     "address": "Playa Blanca, Isla Barú",
     "booking_link": "https://barubeach.com",
@@ -31304,8 +31304,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5847,
-        10.1817
+        -75.6995681,
+        10.1345356
       ]
     }
   },
@@ -31320,8 +31320,8 @@
     "instagram": "@glowbeauty",
     "is_certified": true,
     "location": {
-      "lat": 10.4198,
-      "lng": -75.5512
+      "lat": 10.4436512,
+      "lng": -75.5247047
     },
     "name": "Glow Beauty Lounge",
     "price_range": "$$",
@@ -31346,8 +31346,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5512,
-        10.4198
+        -75.5247047,
+        10.4436512
       ]
     }
   },
@@ -31362,8 +31362,8 @@
     "instagram": "@bellanails",
     "is_certified": true,
     "location": {
-      "lat": 10.4068,
-      "lng": -75.5491
+      "lat": 10.4043029,
+      "lng": -75.5539586
     },
     "name": "Bella Nails Bar",
     "price_range": "$$",
@@ -31388,8 +31388,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5491,
-        10.4068
+        -75.5539586,
+        10.4043029
       ]
     }
   },
@@ -32123,8 +32123,8 @@
     "instagram": "@yogacaribe",
     "is_certified": true,
     "location": {
-      "lat": 10.4255,
-      "lng": -75.5482
+      "lat": 10.9966822,
+      "lng": -74.824923
     },
     "name": "Yoga Caribe Studio",
     "price_range": "$$",
@@ -32157,8 +32157,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5482,
-        10.4255
+        -74.824923,
+        10.9966822
       ]
     }
   },
@@ -32173,8 +32173,8 @@
     "instagram": "@pilatesbocagrande",
     "is_certified": true,
     "location": {
-      "lat": 10.4001,
-      "lng": -75.5552
+      "lat": 10.4032374,
+      "lng": -75.5542133
     },
     "name": "Pilates Studio Bocagrande",
     "price_range": "$$",
@@ -32203,8 +32203,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5552,
-        10.4001
+        -75.5542133,
+        10.4032374
       ]
     }
   },
@@ -32219,8 +32219,8 @@
     "instagram": "cartagenafoodtours",
     "is_certified": true,
     "location": {
-      "lat": 10.4228,
-      "lng": -75.551
+      "lat": 10.4300654,
+      "lng": -75.54619939999999
     },
     "name": "Cartagena Food Tours",
     "price_range": "$$",
@@ -32252,8 +32252,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.551,
-        10.4228
+        -75.54619939999999,
+        10.4300654
       ]
     }
   },
@@ -32268,8 +32268,8 @@
     "instagram": "@casasanagustin",
     "is_certified": true,
     "location": {
-      "lat": 10.4239,
-      "lng": -75.5502
+      "lat": 10.4256303,
+      "lng": -75.54922239999999
     },
     "name": "Casa San Agustín",
     "price_range": "$$$$",
@@ -32298,8 +32298,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5502,
-        10.4239
+        -75.54922239999999,
+        10.4256303
       ]
     }
   },
@@ -33466,8 +33466,8 @@
     "instagram": "@cafedelpueblo",
     "is_certified": true,
     "location": {
-      "lat": 10.4202,
-      "lng": -75.5538
+      "lat": 10.4273415,
+      "lng": -75.54831709999999
     },
     "name": "Café del Pueblo",
     "price_range": "$",
@@ -33499,8 +33499,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.5538,
-        10.4202
+        -75.54831709999999,
+        10.4273415
       ]
     }
   },
@@ -34025,8 +34025,8 @@
     "instagram": "aventurarosario",
     "is_certified": true,
     "location": {
-      "lat": 10.178,
-      "lng": -75.58
+      "lat": 10.176416,
+      "lng": -75.771991
     },
     "name": "Aventura Rosario Islands",
     "price_range": "$$",
@@ -34060,8 +34060,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.58,
-        10.178
+        -75.771991,
+        10.176416
       ]
     }
   },
@@ -34487,8 +34487,8 @@
     "tier": "popular",
     "image_url": "/images/partners/ptr_006.jpg",
     "location": {
-      "lat": 10.4215,
-      "lng": -75.547
+      "lat": 10.4202393,
+      "lng": -75.54839559999999
     },
     "address": "Calle del Arsenal #8-12, Getsemaní",
     "booking_link": "https://elarsenal.co/wellness",
@@ -34522,8 +34522,8 @@
     "geo": {
       "type": "Point",
       "coordinates": [
-        -75.547,
-        10.4215
+        -75.54839559999999,
+        10.4202393
       ]
     }
   },

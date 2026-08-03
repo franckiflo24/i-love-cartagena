@@ -79,6 +79,10 @@ async def _collect(days: int) -> Dict[str, Any]:
             "max_impressions": {"$max": {"$add": [
                 {"$size": {"$ifNull": ["$impressions", []]}},
                 {"$ifNull": ["$result_counts.partners", {"$ifNull": ["$matches_count", 0]}]},
+                # Events/concerts are results too — "eventos esta noche" returned
+                # 93 events yet read as zero-result (Drop 4 false-zero fix).
+                {"$ifNull": ["$result_counts.events", 0]},
+                {"$ifNull": ["$result_counts.concerts", 0]},
             ]}},
             "last_seen": {"$max": "$created_at"},
         }},
@@ -254,6 +258,10 @@ async def intel_overview(request: Request):
             "max_impressions": {"$max": {"$add": [
                 {"$size": {"$ifNull": ["$impressions", []]}},
                 {"$ifNull": ["$result_counts.partners", {"$ifNull": ["$matches_count", 0]}]},
+                # Events/concerts are results too — "eventos esta noche" returned
+                # 93 events yet read as zero-result (Drop 4 false-zero fix).
+                {"$ifNull": ["$result_counts.events", 0]},
+                {"$ifNull": ["$result_counts.concerts", 0]},
             ]}},
         }},
         {"$sort": {"count": -1}},

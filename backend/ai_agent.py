@@ -543,7 +543,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
         "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
         "tier": 1, "price_range": 1, "address": 1, "rating": 1,
         "neighborhood": 1, "experience": 1, "tags": 1, "signature_dishes": 1,
-        "zone": 1, "serves_destinations": 1,
+        "zone": 1, "serves_destinations": 1, "status": 1,
     }
 
     # ── Step 1: Try LLM intent routing ──
@@ -873,8 +873,12 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
             "name": (user or {}).get("name"),
             "has_city_pass": has_pass,
             **({"profile": {
+                # Drop 4 C1: user_type + travel_dates were validated/stored but
+                # never injected — the prompt's local/dates rules were dead code.
+                "user_type": profile.get("user_type"),
                 "party_type": profile.get("party_type"),
                 "interests": profile.get("interests", []),
+                "travel_dates": profile.get("travel_dates"),
             }} if (profile := (user or {}).get("_profile")) else {}),
             **({"taste": {
                 "tags": list((t.get("tags") or {}).keys())[:5],
@@ -1026,6 +1030,7 @@ TU TRABAJO
   • `interests` → priorizá categorías que coincidan con sus intereses del onboarding.
 - ⚠️ **CALIDAD DE RECOMENDACIÓN**: Cuando recomendés un lugar, SIEMPRE incluí UNA LÍNEA explicando POR QUÉ ese lugar específico encaja con lo que el usuario pidió.
 - ⚠️ **HONESTIDAD**: Cuando nada en el catálogo coincide con lo que el usuario pide, decilo honestamente y ofrecé la alternativa real más cercana. NUNCA inventés un nombre de venue, dirección, teléfono o precio.
+- ⚠️ **VENUES EN VERIFICACIÓN**: si un venue del contexto tiene `status: "pending_review"`, podés recomendarlo pero agregá una advertencia honesta de una frase ("confirmá horario/disponibilidad antes de ir — estamos verificando este lugar"). Nunca lo presentes con la misma certeza que un venue verificado.
 - ⚠️ **PERFIL DEL USUARIO**: Usá `user.profile` (user_type, party_type, interests, travel_dates) del contexto para ponderar recomendaciones: pasajeros de crucero → central/caminable/eficiente; parejas → romántico/íntimo; familias → kid-friendly/seguro; locales → hidden gems/descubrimientos.
 - ⚠️ **Usá EL CONTEXTO COMPLETO** que recibís en cada mensaje. Tenés:
   • `relevant_partners` (rich data): los 40 partners MÁS RELEVANTES para la consulta del usuario, pre-filtrados por el backend con keywords. **CITÁ partners de esta lista por nombre con su partner_id exacto.**

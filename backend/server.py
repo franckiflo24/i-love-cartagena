@@ -2926,6 +2926,22 @@ async def global_search(q: str = "", request: Request = None):
         "americano": ["cafe", "coffee"], "tinto": ["cafe", "coffee"],
         "brew": ["cafe", "coffee"],  # "cold brew" tokenizes to brew
         "postre": ["cafe", "reposteria", "helado"], "helado": ["gelato", "heladeria"],
+        # Drop 4 zero-match sprint: emeralds → jewelry venues (Museo de la
+        # Esmeralda, Mercedes Salazar, Lucy Jewelry); plural was a true zero.
+        "esmeralda": ["joyeria", "esmeralda", "jewelry"], "esmeraldas": ["joyeria", "esmeralda", "jewelry"],
+        "emerald": ["joyeria", "esmeralda", "jewelry"], "emeralds": ["joyeria", "esmeralda", "jewelry"],
+        "joyeria": ["joyeria", "jewelry"], "jewelry": ["joyeria", "jewelry"],
+        # chinese food → El Palacio Chino (cuisine=china, sub=chino)
+        "china": ["china", "chino", "chinese"], "chino": ["china", "chino", "chinese"],
+        "chinese": ["china", "chino", "chinese"],
+        # 'tour del centro' ranked island attractions above city tour operators —
+        # anchor 'tour' to operator subcategories (Drop 4 C2 fix)
+        "tour": ["tours", "tour_operator", "walking_tour", "tour"],
+        "tours": ["tours", "tour_operator", "walking_tour", "tour"],
+        # bare 'restaurante' ranked hotels (their profiles mention the word) above
+        # actual restaurants — anchor to the category (Drop 4 C2 fix)
+        "restaurante": ["restaurant"], "restaurantes": ["restaurant"],
+        "restaurant": ["restaurant"], "restaurants": ["restaurant"],
         # Knowledge tags (occasion/feature layer — see tagging.TAG_VOCAB)
         "romantico": ["romantic"], "romantica": ["romantic"], "romantic": ["romantic"],
         "pareja": ["romantic"], "cita": ["romantic", "first_date"], "date": ["romantic", "first_date"],

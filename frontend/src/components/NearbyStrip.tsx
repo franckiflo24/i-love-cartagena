@@ -64,11 +64,15 @@ const TAG_LABELS: Record<string, string> = {
 interface Enrichment {
   pulse?: { title?: string | null } | null;
   local_favorite?: boolean;
+  gem_rarity?: string | null;
+  reveal_line?: string | null;
 }
 
 interface StripVenue extends CachedVenue {
   distance: number;
   isGem: boolean;
+  isRare: boolean;
+  revealLine: string | null;
   pulseLine: string | null;
 }
 
@@ -140,7 +144,7 @@ export function NearbyStrip() {
       .then((data: any) => {
         const map: Record<string, Enrichment> = {};
         for (const v of data?.venues || []) {
-          if (v?.partner_id) map[v.partner_id] = { pulse: v.pulse, local_favorite: v.local_favorite };
+          if (v?.partner_id) map[v.partner_id] = { pulse: v.pulse, local_favorite: v.local_favorite, gem_rarity: v.gem_rarity, reveal_line: v.reveal_line };
         }
         setEnrich(map);
       })
@@ -159,6 +163,8 @@ export function NearbyStrip() {
         ...v,
         distance: Math.round(d),
         isGem: v.tags.includes('local_favorite') || !!e?.local_favorite,
+        isRare: e?.gem_rarity === 'rare',
+        revealLine: e?.reveal_line || null,
         pulseLine: e?.pulse?.title || null,
       });
     }
@@ -262,9 +268,15 @@ export function NearbyStrip() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: SPACING.lg, gap: SPACING.sm }}
       >
-        {nearby.map((v) => {
+        {(() => { let teases = 0; return nearby.map((v) => {
           const gemHidden = v.isGem && v.distance > GEM_REVEAL_M && !revealedGems.has(v.id);
-          if (gemHidden) return <GemTeaseCard key={v.id} distance={v.distance} tr={tr} />;
+          if (gemHidden) {
+            // Pacing guard: a dense street must not become tease soup — at most
+            // 3 mystery cards, nearest-first (list is distance-sorted); the
+            // rest render as ordinary venue cards.
+            teases += 1;
+            if (teases <= 3) return <GemTeaseCard key={v.id} distance={v.distance} rare={v.isRare} tr={tr} />;
+          }
           return (
             <VenueCard
               key={v.id}
@@ -278,7 +290,7 @@ export function NearbyStrip() {
               onGuestPassport={() => router.push('/login' as any)}
             />
           );
-        })}
+        }); })()}
       </ScrollView>
     </View>
   );
@@ -288,6 +300,7 @@ export function NearbyStrip() {
 
 function priorityLine(v: StripVenue, tr: (s: string) => string): string {
   if (v.pulseLine) return v.pulseLine; // pulse text is the business's own words
+  if (v.isGem && v.revealLine) return v.revealLine; // grounded gem narration (A2)
   if (v.dish) return v.dish;
   if (v.isGem) return tr('Favorito local');
   for (const t of v.tags) {
@@ -384,12 +397,15 @@ function VenueCard({
   );
 }
 
-function GemTeaseCard({ distance, tr }: { distance: number; tr: (s: string) => string }) {
+function GemTeaseCard({ distance, rare, tr }: { distance: number; rare?: boolean; tr: (s: string) => string }) {
   return (
-    <View style={[styles.card, styles.gemTease]}>
+    <View style={[styles.card, styles.gemTease, rare && styles.gemTeaseRare]}>
       <View style={styles.gemTeaseInner}>
-        <Ionicons name="sparkles" size={26} color={COLORS.primary} />
-        <Text style={styles.gemTeaseTitle}>{tr('Un favorito local está cerca…')}</Text>
+        {rare && (
+          <View style={styles.rareBadge}><Text style={styles.rareBadgeText}>{tr('Joya escondida')}</Text></View>
+        )}
+        <Ionicons name="sparkles" size={26} color={rare ? '#F5D47A' : COLORS.primary} />
+        <Text style={styles.gemTeaseTitle}>{rare ? tr('Una joya escondida está cerca…') : tr('Un favorito local está cerca…')}</Text>
         <Text style={styles.gemTeaseBody}>{tr('camina para descubrirlo')}</Text>
         <View style={styles.gemTeaseDist}>
           <Ionicons name="walk" size={11} color={COLORS.primary} />
@@ -484,6 +500,18 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     backgroundColor: 'rgba(212,175,55,0.06)',
   },
+  gemTeaseRare: {
+    borderColor: '#F5D47A',
+    borderWidth: 2,
+    backgroundColor: 'rgba(20,14,2,0.92)',
+  },
+  rareBadge: {
+    backgroundColor: '#F5D47A',
+    borderRadius: RADIUS.full,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  rareBadgeText: { fontSize: 8, color: '#000', fontWeight: '800' as any, letterSpacing: 1 },
   gemTeaseInner: {
     flex: 1,
     alignItems: 'center',

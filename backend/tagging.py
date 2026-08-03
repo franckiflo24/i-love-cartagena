@@ -137,18 +137,31 @@ async def _tag_chunk(chunk: List[Dict[str, Any]]) -> Dict[str, List[str]]:
 
 
 @router.post("/admin/tags/backfill")
-async def tags_backfill(request: Request, batch: int = 36, force: bool = False):
+async def tags_backfill(request: Request, batch: int = 36, force: bool = False,
+                        retry_empty: bool = False):
     """Tag up to `batch` untagged partners (LLM sub-batches of 12). Call
-    repeatedly until remaining=0."""
+    repeatedly until remaining=0. retry_empty=True re-offers partners the
+    tagger previously decided EMPTY (tags:[]) — same conservative prompt;
+    records may have grown richer since (coords, dishes, search_profile)."""
     await _auth(request)
     batch = max(1, min(batch, 60))
-    query = {} if force else {"tags": {"$exists": False}}
-    partners = await db.partners.find(
+    if force:
+        query: dict = {}
+    elif retry_empty:
+        query = {"tags": {"$exists": True}, "tags.0": {"$exists": False}}
+    else:
+        query = {"tags": {"$exists": False}}
+    cursor = db.partners.find(
         query,
         {"_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
          "cuisine": 1, "tier": 1, "price_range": 1, "address": 1,
          "experience": 1, "description": 1},
-    ).limit(batch).to_list(batch)
+    )
+    if retry_empty:
+        # oldest-decided first, so repeated calls sweep the whole empty pool
+        # exactly once (tagged_at bumps on every decision, incl. empty again)
+        cursor = cursor.sort("tagged_at", 1)
+    partners = await cursor.limit(batch).to_list(batch)
 
     tagged = 0
     now_iso = datetime.now(timezone.utc).isoformat()

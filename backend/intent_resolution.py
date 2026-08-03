@@ -83,8 +83,7 @@ INTENTS: tuple[Intent, ...] = (
             "lancha", "lanchita", "lanchas", "bote", "botes", "barco", "barcos",
             "catamaran", "velero", "yate", "yates", "charter", "chartear",
             "alquilar bote", "alquiler de lancha", "boat", "boat rental",
-            "private boat", "rent a boat",
-        ),
+            "private boat", "rent a boat", "sunset cruise", "sunset sail", "cruise", "sail", "velero", "crucero",),
         categories=("yacht", "service"),
         subcategories=(
             "private_charter", "sunset_cruise", "catamaran", "bay_tour",
@@ -114,7 +113,7 @@ INTENTS: tuple[Intent, ...] = (
             "tour", "tours", "walking tour", "free tour", "city tour", "guia",
             "guide", "recorrido", "excursion", "chiva",
         ),
-        categories=("service", "activity"),
+        categories=("service", "activity", "yacht"),
         subcategories=("tour_operator", "walking_tour", "party_bus"),
         priority=80,
         needs_logistics=True,
@@ -126,9 +125,8 @@ INTENTS: tuple[Intent, ...] = (
         key="island_daypass",
         patterns=(
             "pasadia", "pasadias", "dia de playa", "day pass", "daypass",
-            "beach club", "club de playa", "isla", "islas",
-        ),
-        categories=("beach_club", "hotel", "attraction"),
+            "beach club", "club de playa", "isla", "islas", "paseo", "playa blanca", "quiero ir",),
+        categories=("beach_club", "hotel", "attraction", "yacht"),
         subcategories=("island_day_pass", "mainland"),
         tags=("island_day", "day_pass", "beachfront"),
         priority=60,
@@ -141,9 +139,8 @@ INTENTS: tuple[Intent, ...] = (
             "comer", "comida", "restaurante", "restaurantes", "cena", "cenar",
             "almuerzo", "almorzar", "desayuno", "brunch", "mariscos", "ceviche",
             "langosta", "sushi", "pizza", "hamburguesa", "eat", "dinner",
-            "lunch", "breakfast", "food", "restaurant",
-        ),
-        categories=("restaurant",),
+            "lunch", "breakfast", "food", "restaurant", "ceno", "cenamos", "donde como", "thai", "paella", "fish", "pescado",),
+        categories=("restaurant", "cafe"),
         priority=70,
         label_es="gastronomía",
     ),
@@ -152,8 +149,7 @@ INTENTS: tuple[Intent, ...] = (
         patterns=(
             "bar", "bares", "trago", "tragos", "coctel", "cocteles", "cocktail",
             "rooftop", "discoteca", "club nocturno", "salsa", "rumba", "fiesta",
-            "drink", "drinks", "nightlife", "party", "martini", "mojito", "cerveza",
-        ),
+            "drink", "drinks", "nightlife", "party", "martini", "mojito", "cerveza", "cocktail", "cocktails", "coctel", "cocteles",),
         categories=("bar", "club"),
         subcategories=("rooftop", "salsa", "cocktail"),
         tags=("rooftop", "live_music", "sunset_view"),
@@ -184,8 +180,7 @@ INTENTS: tuple[Intent, ...] = (
         key="wellness",
         patterns=(
             "spa", "masaje", "masajes", "sauna", "yoga", "gimnasio", "gym",
-            "peluqueria", "salon", "uñas", "manicure", "massage",
-        ),
+            "peluqueria", "salon", "uñas", "manicure", "massage", "pilates", "yoga", "gym", "gimnasio",),
         categories=("spa", "beauty"),
         priority=70,
         label_es="bienestar",
@@ -220,8 +215,7 @@ INTENTS: tuple[Intent, ...] = (
         patterns=(
             "cata", "degustacion", "taller", "clase de cocina", "cooking class",
             "ron", "rum tasting", "chocolate", "cacao", "chef privado",
-            "private chef", "experiencia", "snorkel", "buceo", "diving",
-        ),
+            "private chef", "experiencia", "snorkel", "buceo", "diving", "pesca", "fishing",),
         categories=("activity", "service"),
         subcategories=(
             "rum_tasting", "chocolate_workshop", "private_chef", "walking_tour",
@@ -251,7 +245,7 @@ INTENTS: tuple[Intent, ...] = (
 # Destination modifiers: these NARROW a query, they never satisfy it on their own.
 # This is the "rosario" in "lancha a rosario" — the thing that hijacked the results.
 DESTINATION_TERMS: dict[str, tuple[str, ...]] = {
-    "islas_del_rosario": ("rosario", "rosarios", "islas del rosario"),
+    "islas_del_rosario": ("rosario", "rosarios", "islas del rosario" "islas", "las islas",),
     "baru": ("baru", "playa blanca"),
     "tierra_bomba": ("tierra bomba", "tierrabomba", "bomba"),
     "centro_historico": ("centro", "ciudad amurallada", "walled city", "old city"),
@@ -402,6 +396,12 @@ def check_resolution(
     intent_info = classify_intent(query)
     primary_key = intent_info["primary"]
     destinations = intent_info["destinations"]
+    # 'transporte a tierra bomba' is a BOAT question — ground transport can't
+    # take you to an island. (Drop 4 calibration.)
+    if primary_key == "transport_ground" and set(destinations) & {"islas_del_rosario", "baru", "tierra_bomba"}:
+        primary_key = "transport_charter"
+        intent_info["primary"] = primary_key
+        intent_info["primary_label_es"] = "transporte en lancha"
     count = len(results)
 
     base = dict(
@@ -437,12 +437,19 @@ def check_resolution(
     for r in top:
         name = str(r.get("name") or r.get("partner_id") or "?")
         ok_intent = result_satisfies_intent(r, intent)
-        ok_dest = result_serves_destination(r, destinations)
+        # Destination gating binds only where "getting there" is the point:
+        # logistics intents or true island destinations. A dining query with a
+        # neighborhood word ('restaurante centro') must not fail restaurants
+        # that simply lack a zone field. (Drop 4 calibration.)
+        _ISLAND_DESTS = {"islas_del_rosario", "baru", "tierra_bomba", "la_boquilla"}
+        dest_binds = bool(destinations) and (intent.needs_logistics or bool(set(destinations) & _ISLAND_DESTS))
+        ok_dest = result_serves_destination(r, destinations) if dest_binds else True
         (matching if (ok_intent and ok_dest) else offending).append(name)
 
     base["intent_matches_in_top_n"] = len(matching)
 
-    if len(matching) >= min_matches:
+    required = min(min_matches, len(top))  # 1 correct of 1 returned = resolved
+    if len(matching) >= required:
         return ResolutionVerdict(
             **base, verdict=RESOLVED,
             matching_names=matching, offending_names=offending,
@@ -514,7 +521,7 @@ async def integrate_demand_report(db, *, days: int = 30, search_fn=None) -> dict
     from datetime import datetime, timedelta, timezone
 
     since = datetime.now(timezone.utc) - timedelta(days=days)
-    cursor = db.search_history.find({"timestamp": {"$gte": since}}, {"_id": 0, "query": 1})
+    cursor = db.search_history.find({"created_at": {"$gte": since.isoformat()}}, {"_id": 0, "query": 1})
 
     seen: set[str] = set()
     verdicts: list[ResolutionVerdict] = []

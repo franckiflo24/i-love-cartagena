@@ -1,5 +1,5 @@
 {
- "version": "2026-08-03",
+ "version": "2026-08-03-drop4",
  "sabores": [
   {
    "key": "posta",
@@ -124,7 +124,9 @@
    "name": "Arepa de huevo",
    "venue_ids": [
     "ptr_cf_003"
-   ]
+   ],
+   "fragile": true,
+   "fragile_note": "frágil — un solo lugar verificado (Café del Pueblo). Catálogo minado Drop 4: cero evidencia adicional. Candidatos reales (Donde Magola, palenqueras) aún no están en el catálogo."
   },
   {
    "key": "pie_coco",
@@ -222,7 +224,26 @@
   },
   {
    "venue_id": "attr_002",
-   "name": "Las Murallas de Cartagena"
+   "name": "Las Murallas de Cartagena",
+   "stamp_points": [
+    [
+     10.42961,
+     -75.544865
+    ],
+    [
+     10.430153,
+     -75.546457
+    ],
+    [
+     10.422979,
+     -75.549218
+    ],
+    [
+     10.424478,
+     -75.553784
+    ]
+   ],
+   "stamp_note": "linear landmark: verification = nearest of 4 place-verified on-wall anchors (wall pin, Las Bóvedas, Torre del Reloj, Café del Mar)"
   },
   {
    "venue_id": "attr_008",
