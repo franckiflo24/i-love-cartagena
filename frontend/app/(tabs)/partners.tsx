@@ -298,7 +298,7 @@ export default function PartnersScreen() {
         ) : (
           <>
             <Text style={styles.title}>{tr('Partners')}</Text>
-            <Text style={styles.subtitle}>Lugares certificados por Amo Cartagena</Text>
+            <Text style={styles.subtitle}>{tr('Lugares certificados por Amo Cartagena')}</Text>
           </>
         )}
       </View>
@@ -386,7 +386,7 @@ export default function PartnersScreen() {
               <View style={styles.heroBannerOverlay} />
               <View style={styles.heroBannerContent}>
                 <Ionicons name="diamond" size={32} color={COLORS.primary} />
-                <Text style={styles.heroBannerTitle}>Lugares certificados</Text>
+                <Text style={styles.heroBannerTitle}>{tr('Lugares certificados')}</Text>
                 <Text style={styles.heroBannerDesc}>Restaurantes, clubs, hoteles y más validados por Amo Cartagena</Text>
               </View>
             </View>

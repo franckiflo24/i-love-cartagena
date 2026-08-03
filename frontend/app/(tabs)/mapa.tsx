@@ -570,7 +570,7 @@ export default function MapaScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingBox}>
           <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.loadingText}>Cargando mapa de Cartagena...</Text>
+          <Text style={styles.loadingText}>{tr('Cargando mapa de Cartagena...')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -660,7 +660,7 @@ export default function MapaScreen() {
         {locStatus === 'denied' && (
           <View style={styles.locDeniedBanner}>
             <Ionicons name="information-circle" size={14} color={COLORS.primary} />
-            <Text style={styles.locDeniedText}>Activa la ubicación para ver lugares cerca de ti</Text>
+            <Text style={styles.locDeniedText}>{tr('Activa la ubicación para ver lugares cerca de ti')}</Text>
             <TouchableOpacity onPress={requestLocation}>
               <Text style={styles.locDeniedAction}>{tr('Reintentar')}</Text>
             </TouchableOpacity>

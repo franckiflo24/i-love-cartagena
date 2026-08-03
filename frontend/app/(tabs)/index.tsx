@@ -566,10 +566,10 @@ export default function HomeScreen() {
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleRow}>
               <Ionicons name="compass" size={18} color={COLORS.primary} />
-              <Text style={styles.sectionTitle}>Explorar</Text>
+              <Text style={styles.sectionTitle}>{tr('Explorar')}</Text>
             </View>
             <TouchableOpacity onPress={() => router.push('/(tabs)/explore' as any)}>
-              <Text style={styles.seeAll}>Ver todo</Text>
+              <Text style={styles.seeAll}>{tr('Ver todo')}</Text>
             </TouchableOpacity>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
@@ -835,7 +835,7 @@ export default function HomeScreen() {
                 <Text style={styles.sectionCount}>{featured.length}</Text>
               </View>
               <TouchableOpacity onPress={() => router.push('/(tabs)/agenda' as any)}>
-                <Text style={styles.seeAll}>Ver todos</Text>
+                <Text style={styles.seeAll}>{tr('Ver todos')}</Text>
               </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
@@ -922,7 +922,7 @@ export default function HomeScreen() {
               <Text style={styles.heroTitle}>Descubre la ciudad</Text>
               <Text style={styles.heroSub}>Gastronomía · Cultura · Vida nocturna · Bienestar</Text>
               <View style={[styles.comingSoonBadge, { backgroundColor: COLORS.primary, marginTop: 10 }]}>
-                <Text style={styles.comingSoonText}>EXPLORAR AHORA</Text>
+                <Text style={styles.comingSoonText}>{tr('EXPLORAR AHORA')}</Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -936,11 +936,11 @@ export default function HomeScreen() {
             <View style={styles.sectionHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Ionicons name="heart" size={18} color="#EF4444" />
-                <Text style={styles.sectionTitle}>Mis favoritos</Text>
+                <Text style={styles.sectionTitle}>{tr('Mis favoritos')}</Text>
                 <View style={styles.favCountBubble}><Text style={styles.favCountText}>{favItems.length}</Text></View>
               </View>
               <TouchableOpacity onPress={() => router.push('/favorites')}>
-                <Text style={styles.seeAll}>Ver todos</Text>
+                <Text style={styles.seeAll}>{tr('Ver todos')}</Text>
               </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
@@ -1082,13 +1082,13 @@ export default function HomeScreen() {
                     {dayPE.length > 0 && <Text style={styles.sectionCount}>{dayPE.length}</Text>}
                   </View>
                   <TouchableOpacity onPress={() => router.push('/(tabs)/agenda' as any)}>
-                    <Text style={styles.seeAll}>Ver todos</Text>
+                    <Text style={styles.seeAll}>{tr('Ver todos')}</Text>
                   </TouchableOpacity>
                 </View>
                 {dayPE.length === 0 ? (
                   <View style={styles.emptySlot}>
                     <Ionicons name="cafe-outline" size={26} color={COLORS.textMuted} />
-                    <Text style={styles.emptySlotText}>Sin planes de día por ahora</Text>
+                    <Text style={styles.emptySlotText}>{tr('Sin planes de día por ahora')}</Text>
                   </View>
                 ) : (
                   dayPE.slice(0, 4).map(renderPECard)
@@ -1100,17 +1100,17 @@ export default function HomeScreen() {
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionTitleRow}>
                     <Ionicons name="moon" size={18} color="#A855F7" />
-                    <Text style={styles.sectionTitle}>Qué pasa esta noche</Text>
+                    <Text style={styles.sectionTitle}>{tr('Qué pasa esta noche')}</Text>
                     {nightPE.length > 0 && <Text style={styles.sectionCount}>{nightPE.length}</Text>}
                   </View>
                   <TouchableOpacity onPress={() => router.push('/(tabs)/agenda' as any)}>
-                    <Text style={styles.seeAll}>Ver todos</Text>
+                    <Text style={styles.seeAll}>{tr('Ver todos')}</Text>
                   </TouchableOpacity>
                 </View>
                 {nightPE.length === 0 ? (
                   <View style={styles.emptySlot}>
                     <Ionicons name="wine-outline" size={26} color={COLORS.textMuted} />
-                    <Text style={styles.emptySlotText}>Sin planes de noche por ahora</Text>
+                    <Text style={styles.emptySlotText}>{tr('Sin planes de noche por ahora')}</Text>
                   </View>
                 ) : (
                   nightPE.slice(0, 4).map(renderPECard)
@@ -1126,7 +1126,7 @@ export default function HomeScreen() {
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
                 <Ionicons name="pricetag" size={18} color="#EF4444" />
-                <Text style={styles.sectionTitle}>Ofertas del día</Text>
+                <Text style={styles.sectionTitle}>{tr('Ofertas del día')}</Text>
                 <Text style={styles.sectionCount}>{promotions.length}</Text>
               </View>
             </View>

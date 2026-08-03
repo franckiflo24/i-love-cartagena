@@ -400,6 +400,7 @@ function NeighborhoodDetailModal({
   visible: boolean;
   onClose: () => void;
 }) {
+  const tr = useTr();
   if (!item) return null;
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -488,7 +489,7 @@ function NeighborhoodDetailModal({
             <View style={styles.nbModalSection}>
               <View style={styles.nbModalSectionHeader}>
                 <Ionicons name="warning-outline" size={16} color="#F59E0B" />
-                <Text style={styles.nbModalSectionTitle}>Error de turista</Text>
+                <Text style={styles.nbModalSectionTitle}>{tr('Error de turista')}</Text>
               </View>
               <Text style={styles.nbModalNote}>{item.tourist_mistakes_es}</Text>
               <Text style={[styles.nbModalNote, { color: COLORS.textMuted, marginTop: 4 }]}>{item.tourist_mistakes_en}</Text>
@@ -498,7 +499,7 @@ function NeighborhoodDetailModal({
           </ScrollView>
 
           <TouchableOpacity style={styles.nbModalCloseBtn} onPress={onClose} activeOpacity={0.85}>
-            <Text style={styles.nbModalCloseBtnText}>Cerrar</Text>
+            <Text style={styles.nbModalCloseBtnText}>{tr('Cerrar')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -716,7 +717,7 @@ export default function ExploreScreen() {
         <SafeImage uri={IMAGES.cartagena_aerial} style={styles.exploreHeroImg} />
         <View style={styles.exploreHeroOverlay} />
         <View style={styles.exploreHeroContent}>
-          <Text style={styles.title}>Explorar</Text>
+          <Text style={styles.title}>{tr('Explorar')}</Text>
           <Text style={styles.subtitle}>Descubre lo mejor de Cartagena</Text>
         </View>
         <TouchableOpacity
@@ -982,7 +983,7 @@ export default function ExploreScreen() {
             </Text>
             {allCategoryPartners.length > 0 && (
               <TouchableOpacity onPress={() => setSelectedSubcategory('__all__')} activeOpacity={0.8}>
-                <Text style={styles.seeAll}>Ver todos</Text>
+                <Text style={styles.seeAll}>{tr('Ver todos')}</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -1054,7 +1055,7 @@ export default function ExploreScreen() {
         onPress={() => setSelectedCategory(CATEGORIES[0])}
         activeOpacity={0.85}
       >
-        <Text style={styles.emptyBtnText}>Ver todos</Text>
+        <Text style={styles.emptyBtnText}>{tr('Ver todos')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -1092,7 +1093,7 @@ export default function ExploreScreen() {
                 onPress={() => router.push('/partners' as any)}
                 activeOpacity={0.85}
               >
-                <Text style={styles.footerBtnText}>Ver todos los partners</Text>
+                <Text style={styles.footerBtnText}>{tr('Ver todos los partners')}</Text>
                 <Ionicons
                   name="arrow-forward"
                   size={14}

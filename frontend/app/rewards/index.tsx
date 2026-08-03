@@ -18,6 +18,7 @@ import { useRouter } from 'expo-router';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/src/constants/theme';
 import { api } from '@/src/constants/api';
 import { useLang } from '@/src/context/LanguageContext';
+import { useTr } from '@/src/i18n/autoTr';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -251,6 +252,7 @@ const historyStyles = StyleSheet.create({
 
 export default function RewardsHub() {
   const { s } = useLang();
+  const tr = useTr();
   const router = useRouter();
   const [data, setData] = useState<RewardsData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -297,7 +299,7 @@ export default function RewardsHub() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.errorWrap}>
           <Ionicons name="compass" size={40} color={COLORS.primary} />
-          <Text style={styles.errorText}>Cargando tu perfil de recompensas...</Text>
+          <Text style={styles.errorText}>{tr('Cargando tu perfil de recompensas...')}</Text>
         </View>
       </SafeAreaView>
     );

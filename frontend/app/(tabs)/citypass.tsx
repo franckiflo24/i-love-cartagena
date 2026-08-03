@@ -151,7 +151,7 @@ export default function CityPassTab() {
             <TouchableOpacity style={styles.discoverCTA} onPress={() => router.push('/(tabs)/agenda' as any)}>
               <Ionicons name="calendar" size={20} color={COLORS.primary} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.discoverCTATitle}>Ver agenda cultural</Text>
+                <Text style={styles.discoverCTATitle}>{tr('Ver agenda cultural')}</Text>
                 <Text style={styles.discoverCTADesc}>Accede a los eventos con tu pass</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />

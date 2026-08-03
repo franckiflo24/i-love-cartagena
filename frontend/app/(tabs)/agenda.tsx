@@ -319,7 +319,7 @@ export default function AgendaScreen() {
             ) : partnerEvents.length === 0 && cityEvents.length === 0 ? (
               <View style={styles.empty}>
                 <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
-                <Text style={styles.emptyTitle}>No hay eventos para este día</Text>
+                <Text style={styles.emptyTitle}>{tr('No hay eventos para este día')}</Text>
                 <Text style={styles.emptyText}>Prueba otra fecha o categoría</Text>
               </View>
             ) : (
@@ -346,7 +346,7 @@ export default function AgendaScreen() {
                           <View style={styles.cityEventImageOverlay} />
                           {ev.is_free && (
                             <View style={styles.cityEventFreeBadge}>
-                              <Text style={styles.cityEventFreeText}>GRATIS</Text>
+                              <Text style={styles.cityEventFreeText}>{tr('GRATIS')}</Text>
                             </View>
                           )}
                         </View>
@@ -400,7 +400,7 @@ export default function AgendaScreen() {
           {(!Array.isArray(calendarItems) || calendarItems.length === 0) ? (
             <View style={styles.empty}>
               <Ionicons name="calendar-outline" size={56} color={COLORS.textMuted} />
-              <Text style={styles.emptyTitle}>Tu agenda está vacía</Text>
+              <Text style={styles.emptyTitle}>{tr('Tu agenda está vacía')}</Text>
               <Text style={styles.emptyText}>
                 Añade eventos pulsando "Añadir a mi agenda" en cualquier evento de partner
               </Text>
@@ -410,14 +410,14 @@ export default function AgendaScreen() {
                 activeOpacity={0.85}
               >
                 <Ionicons name="sparkles" size={14} color={COLORS.white} />
-                <Text style={styles.exploreBtnText}>Explorar eventos</Text>
+                <Text style={styles.exploreBtnText}>{tr('Explorar eventos')}</Text>
               </TouchableOpacity>
             </View>
           ) : groupedAgenda.length === 0 ? (
             <View style={styles.empty}>
               <Ionicons name="checkmark-done-circle-outline" size={56} color={COLORS.textMuted} />
               <Text style={styles.emptyTitle}>No tienes próximos eventos</Text>
-              <Text style={styles.emptyText}>Tu agenda está al día</Text>
+              <Text style={styles.emptyText}>{tr('Tu agenda está al día')}</Text>
               {pastCount > 0 && (
                 <TouchableOpacity
                   style={styles.exploreBtn}
@@ -457,7 +457,7 @@ export default function AgendaScreen() {
                       <Text style={styles.dayHeaderText}>{formatLongDate(date)}</Text>
                       {date === t && (
                         <View style={styles.todayPill}>
-                          <Text style={styles.todayPillText}>HOY</Text>
+                          <Text style={styles.todayPillText}>{tr('HOY')}</Text>
                         </View>
                       )}
                       {isPastDay && (

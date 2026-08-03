@@ -139,7 +139,7 @@ export default function FavoritesScreen() {
           <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title}>Mis Favoritos</Text>
+          <Text style={styles.title}>{tr('Mis Favoritos')}</Text>
           <Text style={styles.subtitle}>{total} {total === 1 ? 'guardado' : 'guardados'}</Text>
         </View>
         <Ionicons name="heart" size={24} color="#EF4444" />
@@ -203,7 +203,7 @@ export default function FavoritesScreen() {
               <Text style={styles.emptyDesc}>Toca el corazón ❤️ en eventos, conciertos y eventos de partners para guardarlos aquí.</Text>
               <TouchableOpacity style={styles.exploreCta} onPress={() => router.push('/(tabs)/agenda' as any)}>
                 <Ionicons name="sparkles" size={16} color={COLORS.primary} />
-                <Text style={styles.exploreText}>Explorar agenda</Text>
+                <Text style={styles.exploreText}>{tr('Explorar agenda')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -312,11 +312,11 @@ export default function FavoritesScreen() {
           partnersCount === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="storefront-outline" size={56} color={COLORS.textMuted} />
-              <Text style={styles.emptyTitle}>Sin lugares guardados</Text>
+              <Text style={styles.emptyTitle}>{tr('Sin lugares guardados')}</Text>
               <Text style={styles.emptyDesc}>Toca el corazón ❤️ en cualquier partner (restaurante, beach club, hotel...) para guardarlo aquí.</Text>
               <TouchableOpacity style={styles.exploreCta} onPress={() => router.push('/(tabs)/partners' as any)}>
                 <Ionicons name="diamond" size={16} color={COLORS.primary} />
-                <Text style={styles.exploreText}>Explorar partners</Text>
+                <Text style={styles.exploreText}>{tr('Explorar partners')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
