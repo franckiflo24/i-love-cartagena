@@ -14,6 +14,7 @@ import { usePersonalization } from '../../src/context/PersonalizationContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GrowthCards } from '../../src/components/GrowthCards';
 
 const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
 
@@ -391,6 +392,8 @@ export default function PerfilScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        <GrowthCards signedIn={!!user} />
 
         {/* ── Quick Access ── */}
         <View style={sty.sectionCard}>

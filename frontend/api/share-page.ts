@@ -17,6 +17,8 @@ function esc(s: string): string {
 export default async function handler(req: Request) {
   const url = new URL(req.url);
   const id = url.searchParams.get('id') || '';
+  const rawRef = (url.searchParams.get('ref') || '').toUpperCase();
+  const ref = /^AMO[A-Z0-9]{4,8}$/.test(rawRef) ? rawRef : '';
   if (!/^shr_[a-f0-9]{6,20}$/.test(id)) {
     return Response.redirect(`${SITE}/pasaporte`, 302);
   }
@@ -82,7 +84,7 @@ export default async function handler(req: Request) {
 <body>
   <img class="card" src="${cardUrl}" alt="${esc(title)}"/>
   <p class="sub">Sabores, plazas y joyas locales — sellados caminando la ciudad, verificados en el lugar.</p>
-  <a class="cta" href="${SITE}/pasaporte">Crea tu pasaporte de Cartagena</a>
+  <a class="cta" href="${SITE}/pasaporte${ref ? `?ref=${ref}` : ''}">Crea tu pasaporte de Cartagena</a>
 </body>
 </html>`;
 

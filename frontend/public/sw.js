@@ -16,3 +16,23 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request)));
+
+// v5 — Web Push (Master Plan 1.4). Payload: {title, body, url} only.
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch {}
+  e.waitUntil(self.registration.showNotification(d.title || 'AMO Cartagena', {
+    body: d.body || '',
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
+    data: { url: d.url || '/pasaporte' },
+  }));
+});
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || '/pasaporte';
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((cs) => {
+    for (const c of cs) { if ('focus' in c) { c.navigate(url); return c.focus(); } }
+    return self.clients.openWindow(url);
+  }));
+});

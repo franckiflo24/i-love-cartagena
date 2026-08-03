@@ -336,6 +336,7 @@ async def passport_discover(request: Request, body: DiscoverBody):
     doc = await db.user_passport.find_one({"user_id": user_id}, {"_id": 0})
     streak = doc.get("streak") or _empty_passport(user_id)["streak"]
     if not already:
+        prev_current = int((doc.get("streak") or {}).get("current") or 0)
         streak = _next_streak(streak, today_bogota)
         category = partner.get("category") or "other"
         await db.user_passport.update_one(
@@ -343,6 +344,16 @@ async def passport_discover(request: Request, body: DiscoverBody):
             {"$set": {"streak": streak, "updated_at": now.isoformat()},
              "$inc": {f"collections.{category}": 1}},
         )
+        # 1.4: streak-milestone celebration push (value, never guilt) —
+        # fail-soft, capped 1/day server-side in webpush.notify_user.
+        if streak["current"] in (3, 7, 14, 30) and streak["current"] > prev_current:
+            try:
+                from webpush import notify_user
+                await notify_user(db, user_id,
+                                  f"🔥 Racha de {streak['current']} días",
+                                  "Tu pasaporte de Cartagena sigue creciendo — hoy sellaste otro día.")
+            except Exception as exc:
+                logger.warning(f"[walking] milestone push failed: {exc}")
 
     return {
         "ok": True,

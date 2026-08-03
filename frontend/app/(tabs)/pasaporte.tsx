@@ -140,7 +140,12 @@ export default function PasaporteScreen() {
     const recent = [...discoveries].reverse().slice(0, 6)
       .map((d) => venueName[d.venue_id]).filter(Boolean) as string[];
     const firstName = user?.name?.split(' ')[0] || null;
-    const shareUrl = await mintShareLink(firstName); // fail-soft: image-only share
+    let shareUrl = await mintShareLink(firstName); // fail-soft: image-only share
+    try {
+      const { myReferral } = await import('../../src/lib/referral');
+      const r = await myReferral();
+      if (shareUrl && r?.code) shareUrl = `${shareUrl}?ref=${r.code}`;
+    } catch {}
     const result = await shareCard({
       userName: firstName,
       streakBest: passport?.streak?.best || 0,

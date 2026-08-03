@@ -17,6 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { usePersonalization } from '../../src/context/PersonalizationContext';
 import { usePartnerCount } from '../../src/context/PartnerCountContext';
 import { COLLECTION_DEFS } from '../../src/constants/collections';
+import { captureRef, claimPendingRef } from '../../src/lib/referral';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
@@ -101,6 +102,12 @@ export default function HomeScreen() {
   const [activeSponsor, setActiveSponsor] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Referral loop (1.5): capture ?ref on arrival; claim once after sign-in.
+  useEffect(() => { captureRef(); }, []);
+  useEffect(() => {
+    if (user) claimPendingRef().catch(() => {});
+  }, [user]);
   const [activeSeasonIdx, setActiveSeasonIdx] = useState(0);
   const [favItems, setFavItems] = useState<any[]>([]);
   const [unreadNotifs, setUnreadNotifs] = useState<number>(0);

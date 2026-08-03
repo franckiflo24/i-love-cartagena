@@ -4398,6 +4398,8 @@ import occasions as _occasions
 import taste as _taste
 import local_signals as _local_signals
 import walking as _walking
+import webpush as _webpush
+import referral as _referral
 
 
 @api_router.get("/payments/config")
@@ -5535,6 +5537,13 @@ _walking.init(
 )
 app.include_router(_walking.router, prefix="/api")
 
+_webpush.init(db_=db, get_current_user=get_current_user, check_rate_limit=_check_rate_limit)
+app.include_router(_webpush.router, prefix="/api")
+
+_referral.init(db_=db, get_current_user=get_current_user,
+               check_rate_limit=_check_rate_limit, award_points=_rewards.award_points)
+app.include_router(_referral.router, prefix="/api")
+
 # ── CORS ─────────────────────────────────────────────────────
 # Browsers REJECT the combination of `allow_credentials=True` + `allow_origins=["*"]`
 # (CORS spec disallows credentialed wildcard). The previous config silently broke
@@ -5585,6 +5594,11 @@ async def startup():
         await db.trail_completions.create_index([("user_id", 1), ("trail_key", 1)], unique=True)
         await db.trail_completions.create_index("redemption_code", unique=True)
         await db.quest_claims.create_index([("user_id", 1), ("date", 1)], unique=True)
+        # 1.4 push: subscription identity + the HARD 1/day cap; 1.5 referral codes
+        await db.push_subscriptions.create_index("endpoint", unique=True)
+        await db.push_subscriptions.create_index("user_id")
+        await db.push_log.create_index([("user_id", 1), ("date", 1)], unique=True)
+        await db.users.create_index("referral_code", unique=True, sparse=True)
     except Exception as exc:
         logger.warning(f"[startup] search index creation failed: {exc}")
 

@@ -103,6 +103,16 @@ export const AUTO_TR: Dict = {
   'Activa tu ubicación para sellar': { en: 'Turn on location to stamp', fr: 'Activez la localisation pour tamponner', pt: 'Ative a localização para carimbar' },
   'Los sellos se verifican en el lugar — tu recorrido nunca se guarda.': { en: 'Stamps verify on-site — your movements are never stored.', fr: 'Les tampons se vérifient sur place — vos déplacements ne sont jamais stockés.', pt: 'Os carimbos são verificados no local — seu percurso nunca é salvo.' },
 
+  // 1.4 push + 1.5 referral
+  'Invita a un amigo — ambos ganan': { en: 'Invite a friend — you both earn', fr: 'Invitez un ami — vous gagnez tous les deux', pt: 'Convide um amigo — ambos ganham' },
+  'Tu código': { en: 'Your code', fr: 'Votre code', pt: 'Seu código' },
+  'amigos unidos': { en: 'friends joined', fr: 'amis inscrits', pt: 'amigos entraram' },
+  'Avisos de tu pasaporte': { en: 'Passport alerts', fr: 'Alertes de votre passeport', pt: 'Avisos do seu passaporte' },
+  'Activado — máximo 1 al día, solo hitos tuyos': { en: 'On — max 1 a day, only your milestones', fr: 'Activé — max 1 par jour, vos jalons seulement', pt: 'Ativado — máx. 1 por dia, só seus marcos' },
+  'Hitos de racha y recompensas — máximo 1 al día, sin spam': { en: 'Streak milestones and rewards — max 1 a day, no spam', fr: 'Jalons de série et récompenses — max 1 par jour, sans spam', pt: 'Marcos de sequência e recompensas — máx. 1 por dia, sem spam' },
+  'Instalar AMO': { en: 'Install AMO', fr: 'Installer AMO', pt: 'Instalar AMO' },
+  'Acceso directo en tu pantalla de inicio': { en: 'Shortcut on your home screen', fr: 'Raccourci sur votre écran d’accueil', pt: 'Atalho na sua tela inicial' },
+
   // Categories / Tabs
   'Todos': { en: 'All', fr: 'Tous', pt: 'Todos' },
   'Gastronomía': { en: 'Dining', fr: 'Gastronomie', pt: 'Gastronomia' },
