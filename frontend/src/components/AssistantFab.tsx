@@ -240,7 +240,7 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
       setSending(false);
       setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 200);
     },
-    [sending, sessionId, persistSession, pathname],
+    [sending, sessionId, persistSession, pathname, user],
   );
 
   const onAction = useCallback(
@@ -452,12 +452,41 @@ function MessageBubble({
   return (
     <View style={{ alignItems: 'flex-start', gap: 8 }}>
       <View style={[styles.bubble, styles.bubbleAssist]}>
-        <Text style={styles.bubbleAssistText}>{m.content}</Text>
+        <Text style={styles.bubbleAssistText}>{renderBold(m.content)}</Text>
       </View>
       {!!(m.recommendations && m.recommendations.length) && (
+        // Web: a plain CSS scroller — RNW ScrollView's JS touch responder
+        // swallows horizontal swipes inside the chat modal on iOS Safari.
+        Platform.OS === 'web' ? (
+          <View
+            style={[styles.recsScroll, styles.recsScrollContent, {
+              flexDirection: 'row',
+              overflowX: 'auto',
+              overflowY: 'hidden',
+              WebkitOverflowScrolling: 'touch',
+              touchAction: 'pan-x',
+              maxWidth: '100%',
+            } as any]}
+          >
+            {m.recommendations.map((r, i) => (
+              <RecommendationCard
+                key={`rec-${i}-${r.partner_id || r.event_id}`}
+                rec={r}
+                onPress={() =>
+                  onAction(
+                    r.kind === 'event'
+                      ? { type: 'open_event', event_id: r.event_id }
+                      : { type: 'open_partner', partner_id: r.partner_id },
+                  )
+                }
+              />
+            ))}
+          </View>
+        ) : (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
+          nestedScrollEnabled
           contentContainerStyle={styles.recsScrollContent}
           style={styles.recsScroll}
         >
@@ -475,16 +504,17 @@ function MessageBubble({
             />
           ))}
         </ScrollView>
+        )
       )}
       {!!(m.actions && m.actions.length) && (
         <View style={styles.actionsWrap}>
           {m.actions.map((a, i) => (
-            <TouchableOpacity key={i} style={styles.actionBtn} onPress={() => onAction(a)} activeOpacity={0.85}>
+            <Pressable key={i} style={({ pressed }) => [styles.actionBtn, pressed && { opacity: 0.8 }, Platform.OS === 'web' && ({ touchAction: 'manipulation', cursor: 'pointer' } as any)]} onPress={() => onAction(a)}>
               <Ionicons name={iconForAction(a.type)} size={13} color={COLORS.primary} />
               <Text style={styles.actionBtnText} numberOfLines={1}>
                 {a.label || defaultLabel(a)}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </View>
       )}
@@ -501,6 +531,14 @@ function MessageBubble({
   );
 }
 
+// Model output occasionally carries **bold** despite the no-markdown rule —
+// render it as real bold, never raw asterisks.
+function renderBold(text: string): React.ReactNode {
+  const parts = String(text || '').split(/\*\*([^*]+)\*\*/g);
+  if (parts.length === 1) return text;
+  return parts.map((p, i) => (i % 2 === 1 ? <Text key={i} style={{ fontWeight: '800' }}>{p}</Text> : p));
+}
+
 function RecommendationCard({
   rec,
   onPress,
@@ -512,7 +550,10 @@ function RecommendationCard({
   const accent = isEvent ? '#7C3AED' : COLORS.primary;
   const icon: keyof typeof Ionicons.glyphMap = isEvent ? 'calendar' : 'business';
   return (
-    <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={styles.recCard}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.recCard, pressed && { opacity: 0.85 }, Platform.OS === 'web' && ({ touchAction: 'manipulation', cursor: 'pointer' } as any)]}
+    >
       <View style={[styles.recHeader, { backgroundColor: accent + '22', borderColor: accent }]}>
         <View style={[styles.recIcon, { backgroundColor: accent }]}>
           <Ionicons name={icon} size={14} color={COLORS.white} />
@@ -563,7 +604,7 @@ function RecommendationCard({
           <Ionicons name="arrow-forward" size={13} color={COLORS.white} />
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -733,6 +774,7 @@ const styles = StyleSheet.create({
   recsScrollContent: { paddingHorizontal: SPACING.md, gap: 10 },
   recCard: {
     width: 240,
+    flexShrink: 0,
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
