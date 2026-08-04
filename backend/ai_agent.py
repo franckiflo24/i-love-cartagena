@@ -905,6 +905,7 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
         **({"live_tonight": live_tonight} if live_tonight else {}),
         **({"trust_reference": tc} if (tc := _trust_context(user_text)) else {}),
         **({"seasonal": sc} if (sc := _seasonal_context(user_text)) else {}),
+        **({"occasions": oc} if (oc := _occasion_context(user_text)) else {}),
         "relevant_partners": relevant_partners,
         "partner_directory": all_partners,
         "events": upcoming_events,
@@ -983,6 +984,57 @@ _SEASONAL_TRIGGERS = ("sello", "sellos", "temporada", "festival", "fiesta", "fie
                       "atardecer", "sunset", "evento", "eventos", "hoy", "ahora",
                       "season", "stamp", "hay festival", "independencia", "candelaria",
                       "qué hacer", "que hacer", "novena", "navidad", "semana santa")
+
+
+# Drop 9 (3d): grounded occasion → real venue guide (from occasions.py curated
+# collections). Luna cites these real tagged venues, never invents. Venues
+# flagged (verificar) are needs_confirmation — hedge, never a confident top pick.
+_OCCASION_GUIDE = {
+    "aniversario / cena romántica": ["Celele", "Carmen", "Alma", "Restaurante 1621", "La Vitrola", "Club de Pesca"],
+    "ocasión especial / celebrar": ["Celele", "Carmen", "Restaurante 1621", "Club de Pesca", "Candé"],
+    "atardecer / rooftop": ["Café del Mar", "Movich", "Alquímico", "The Townhouse"],
+    "primera cita": ["El Barón", "Demente", "Época"],
+    "con niños / familia": ["Aviario Nacional", "Gelateria Tramonti", "Isla del Encanto", "Juan del Mar"],
+    "día de lluvia": ["Palacio de la Inquisición", "Museo del Oro Zenú", "La Serrezuela"],
+    "música en vivo": ["Café Havana", "Bazurto Social Club", "Casa Quiebra-Canto"],
+    "favoritos locales / dónde comen los cartageneros": ["La Cocina de Pepina", "La Mulata", "Espíritu Santo"],
+    "café / desayuno": ["Época", "Café San Alberto", "Ábaco Libros y Café"],
+    "ceviche / mariscos": ["La Cevichería", "El Boliche", "Marea"],
+    "street food": ["Donde Magola", "Donde Olano", "Portal de los Dulces"],
+    "coctelería": ["Alquímico", "El Barón", "Malagana"],
+    "rumba / baile": ["La Movida", "La Jugada", "Bazurto Social Club"],
+    "grupo / fiesta": ["Cholón", "Bora Bora Beach Club", "Colombia Luxury Group"],
+    "beach clubs": ["Makani Beach Club", "Blue Apple Beach", "Bora Bora Beach Club", "Sabai"],
+    "saludable / vegano": ["Gokela", "Pezetarian", "Girasoles (verificar)"],
+    "café para trabajar": ["Café San Alberto", "Ábaco Libros y Café", "Café Stepping Stone"],
+    "postres": ["Gelateria Tramonti", "Mila Pastelería", "La Palettería"],
+    "spa / bienestar": ["Tcherassi Spa", "Bastión Spa", "Zaitún Spa"],
+    "lujo": ["Sofitel Legend Santa Clara", "Casa San Agustín", "Four Seasons", "Carmen", "Celele"],
+}
+_OCC_TRIGGERS = ("aniversario", "romántic", "romantic", "cita", "ceno", "cena", "cenar", "niños", "nino",
+                 "familia", "family", "lluvia", "rain", "música", "musica", "music", "atardecer", "sunset",
+                 "rooftop", "playa", "beach", "rumba", "bailar", "baile", "dance", "coctel", "cocktail",
+                 "trago", "café", "cafe", "coffee", "desayuno", "breakfast", "brunch", "ceviche", "marisco",
+                 "seafood", "postre", "dessert", "spa", "masaje", "trabajar", "work", "wifi", "fiesta",
+                 "grupo", "group", "party", "especial", "celebrar", "vegano", "vegetarian", "saludable",
+                 "qué hago", "que hago", "recomiend", "recommend", "dónde", "donde")
+
+
+def _occasion_context(user_text: str) -> Optional[Dict[str, Any]]:
+    t = (user_text or "").lower()
+    if not any(k in t for k in _OCC_TRIGGERS):
+        return None
+    try:
+        import walking as _walking
+        now = datetime.now(timezone.utc).astimezone(_walking.BOGOTA)
+        now_occ = _walking._now_occasion(now)
+    except Exception:
+        now_occ = None
+    return {
+        "right_now": now_occ,  # the occasion that fits the current real hour/sunset
+        "occasion_guide": _OCCASION_GUIDE,
+        "_rule": "Recomendá SOLO estos venues reales por ocasión. '(verificar)' = aún sin confirmar, hedgealo. Para 'qué hago ahora' usá right_now (hora + atardecer reales).",
+    }
 
 
 def _seasonal_context(user_text: str) -> Optional[Dict[str, Any]]:
@@ -1128,6 +1180,12 @@ TU TRABAJO
 - `seasonal.upcoming_confirmed` = eventos con fecha REAL futura — anunciá con la fecha ("las Fiestas de Independencia arrancan el 6 de noviembre").
 - JAMÁS anuncies un festival cuya edición ya pasó como si fuera próximo, ni una fecha "sin confirmar" como si fuera fija. Si no está en earnable_now ni upcoming_confirmed, no inventes fecha — decí "la próxima edición aún no tiene fecha confirmada".
 - `seasonal.season_now` = la temporada actual (seca/verde) — usala como color ambiental si viene al caso.
+
+## OCASIONES (la recomendación correcta para el momento)
+- Si `occasions` está en el contexto, recomendá DESDE `occasions.occasion_guide` — venues REALES por ocasión (aniversario→Celele/Carmen/Alma; atardecer→Café del Mar/Movich/Alquímico; niños→Aviario/Gelateria Tramonti; etc.). NO inventes un venue que no esté ahí ni en el catálogo.
+- Un venue marcado "(verificar)" es needs_confirmation → recomendalo con hedge ("estamos confirmando este lugar, chequeá antes de ir"), NUNCA como pick estrella confiado. Lo mismo con venues del contexto con `status: pending_review`.
+- Para "¿qué hago ahora?" / "son las 9am, ¿qué hago?" usá `occasions.right_now` — la ocasión que corresponde a la hora y al atardecer REALES ("son las {hora} — buen momento para {ocasión}"). Nunca una hora inventada.
+- Elegí 2-3 nombres, no la lista entera. Personalizá con el perfil si lo tenés.
 
 ## VOZ (lo que hace que la gente VUELVA)
 - **Nombre**: si `user.name` existe, usalo natural y con moderación — en el saludo o el remate, nunca en cada frase ("Listo, Phil —" / "Vas a amar esto").

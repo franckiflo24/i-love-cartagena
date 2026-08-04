@@ -946,6 +946,52 @@ async def _earn_specials(user_id: str, doc: Dict[str, Any], now_bogota: datetime
     return fresh
 
 
+# ── Drop 9 (3c): time-of-day → occasion context ("it just knows") ────
+# Maps the user's REAL local hour + weekday + real sunset to the occasion
+# that fits the moment. Honest: real time + real sunset; a generic browse
+# nudge if nothing fits. The keys are occasion collection keys (occasions.py).
+def _now_occasion(now: datetime) -> Dict[str, Any]:
+    h = now.hour
+    m = now.hour * 60 + now.minute
+    wd = now.weekday()  # 0=Mon
+    try:
+        lo, hi = _sunset_window_min(now)      # sunset-45 .. sunset+20
+        sunset_min = lo + 45
+    except Exception:
+        sunset_min = 1085
+    sunset_hhmm = f"{sunset_min // 60:02d}:{sunset_min % 60:02d}"
+    # sunset band = 45m before to 30m after
+    if sunset_min - 45 <= m <= sunset_min + 30:
+        return {"key": "rooftops-atardecer", "icon": "sunny",
+                "es": f"Es la hora dorada — el sol se pone ~{sunset_hhmm}. Sube a un rooftop o a la muralla.",
+                "en": f"It's golden hour — sunset ~{sunset_hhmm}. Head to a rooftop or the city wall.",
+                "sunset": sunset_hhmm}
+    if 6 <= h < 11:
+        return {"key": "cafe-desayuno", "icon": "cafe",
+                "es": "Buena hora para café y desayuno — o el fuerte antes del calor.",
+                "en": "Prime time for coffee and breakfast — or the fortress before the heat.", "sunset": sunset_hhmm}
+    if 11 <= h < 15:
+        return {"key": "favoritos-locales", "icon": "restaurant",
+                "es": "Mediodía: almuerzo local (menú del día) y aire acondicionado en el pico de calor.",
+                "en": "Midday: a local lunch (menú del día) and AC during peak heat.", "sunset": sunset_hhmm}
+    if 15 <= h < sunset_min // 60 - 0:
+        return {"key": "beach-clubs", "icon": "umbrella",
+                "es": "Tarde de playa, piscina o un postre mientras baja el sol.",
+                "en": "Afternoon for the beach, a pool, or dessert as the sun drops.", "sunset": sunset_hhmm}
+    if 18 <= h < 22:
+        return {"key": "cena-romantica", "icon": "heart",
+                "es": "Hora de cenar — patios coloniales, mariscos o una mesa para dos.",
+                "en": "Dinnertime — colonial courtyards, seafood, or a table for two.", "sunset": sunset_hhmm}
+    # late night — nightlife peaks Thu–Sat
+    if wd >= 3:
+        return {"key": "rumba", "icon": "musical-notes",
+                "es": "Noche de rumba — es temporada alta (jue–sáb). Cocteles, salsa y baile.",
+                "en": "Night to dance — peak nights (Thu–Sat). Cocktails, salsa and dancing.", "sunset": sunset_hhmm}
+    return {"key": "cocteles", "icon": "wine",
+            "es": "Noche tranquila — una coctelería de autor o música en vivo.",
+            "en": "Quiet night — an author cocktail bar or some live music.", "sunset": sunset_hhmm}
+
+
 def _season_now(now: datetime) -> Optional[Dict[str, Any]]:
     """The current season stamp (for the 'Qué pasa ahora' banner)."""
     for sp in _load_seasonal().get("stamps", []):
@@ -1469,6 +1515,18 @@ async def seasonal_now(request: Request):
                               "icon": sp.get("icon"), "venues": sp.get("venues")})
     return {"season": _season_now(now), "available_now": available,
             "pulse_active": bool(pulse_active)}
+
+
+@router.get("/now")
+async def now_context(request: Request):
+    """PUBLIC 'Ahora mismo' — the occasion that fits the real current moment
+    (clock + weekday + real sunset). Powers the Home strip and Luna's context.
+    Honest: uses the user's real local time; a generic browse nudge if unsure."""
+    _check_rate_limit(f"now:{_client_ip(request)}", max_calls=60, window_sec=60)
+    now = datetime.now(timezone.utc).astimezone(BOGOTA)
+    occ = _now_occasion(now)
+    return {"occasion": occ, "season": _season_now(now),
+            "local_time": now.strftime("%H:%M"), "weekday": now.weekday()}
 
 
 @router.get("/admin/stamps/reverify")

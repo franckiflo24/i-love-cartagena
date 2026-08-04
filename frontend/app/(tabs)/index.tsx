@@ -21,6 +21,7 @@ import { captureRef, claimPendingRef } from '../../src/lib/referral';
 import { PassportGlance } from '../../src/components/PassportGlance';
 import { SeasonBanner } from '../../src/components/SeasonBanner';
 import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
+import { NowStrip } from '../../src/components/NowStrip';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
@@ -393,6 +394,9 @@ export default function HomeScreen() {
 
         {/* Drop 8F: passport greets you when a missing stamp is steps away */}
         <PassportGlance />
+
+        {/* Drop 9 (3c): Ahora mismo — the occasion for the current moment */}
+        <NowStrip />
 
         {/* Drop 8B-data (T5c): Qué pasa ahora — season + earnable-now stamps */}
         <SeasonBanner />
