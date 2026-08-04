@@ -960,6 +960,12 @@ def _now_occasion(now: datetime) -> Dict[str, Any]:
     except Exception:
         sunset_min = 1085
     sunset_hhmm = f"{sunset_min // 60:02d}:{sunset_min % 60:02d}"
+    # Weather: no real-time rain feed, so use the REAL rainy-season calendar
+    # (May–Nov, from the seasonal research) as an honest coarse proxy — a
+    # daytime indoor-pivot hint, never a claim that it's raining right now.
+    rainy_season = now.month in (5, 6, 7, 8, 9, 10, 11)
+    rain_hint_es = " Si cae un aguacero, pivotá a museos, La Serrezuela o un café con aire." if rainy_season else ""
+    rain_hint_en = " If a downpour hits, pivot to museums, La Serrezuela or an AC café." if rainy_season else ""
     # sunset band = 45m before to 30m after
     if sunset_min - 45 <= m <= sunset_min + 30:
         return {"key": "rooftops-atardecer", "icon": "sunny",
@@ -972,12 +978,12 @@ def _now_occasion(now: datetime) -> Dict[str, Any]:
                 "en": "Prime time for coffee and breakfast — or the fortress before the heat.", "sunset": sunset_hhmm}
     if 11 <= h < 15:
         return {"key": "favoritos-locales", "icon": "restaurant",
-                "es": "Mediodía: almuerzo local (menú del día) y aire acondicionado en el pico de calor.",
-                "en": "Midday: a local lunch (menú del día) and AC during peak heat.", "sunset": sunset_hhmm}
+                "es": "Mediodía: almuerzo local (menú del día) y aire acondicionado en el pico de calor." + rain_hint_es,
+                "en": "Midday: a local lunch (menú del día) and AC during peak heat." + rain_hint_en, "sunset": sunset_hhmm}
     if 15 <= h < sunset_min // 60 - 0:
         return {"key": "beach-clubs", "icon": "umbrella",
-                "es": "Tarde de playa, piscina o un postre mientras baja el sol.",
-                "en": "Afternoon for the beach, a pool, or dessert as the sun drops.", "sunset": sunset_hhmm}
+                "es": "Tarde de playa, piscina o un postre mientras baja el sol." + rain_hint_es,
+                "en": "Afternoon for the beach, a pool, or dessert as the sun drops." + rain_hint_en, "sunset": sunset_hhmm}
     if 18 <= h < 22:
         return {"key": "cena-romantica", "icon": "heart",
                 "es": "Hora de cenar — patios coloniales, mariscos o una mesa para dos.",

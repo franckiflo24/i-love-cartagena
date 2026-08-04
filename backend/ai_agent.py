@@ -806,13 +806,16 @@ async def _curated_expert_picks(db, user_text: str) -> Optional[Dict[str, Any]]:
             if p:
                 p["expert_rank"] = rank
                 picks.append(p)
-    if not picks and not bc.get("mention_only"):
+    # I9: mention_only (expert picks NOT in the catalog) is deliberately NOT
+    # returned to Luna — it made her recommend non-existent venues ("Oh La La
+    # Green… aún no está en el catálogo pero buscalo"). Those names live only
+    # in the demand/gap report (things to add), never in a recommendation.
+    if not picks:
         return None
     return {
         "matched_question": bc.get("question", ""),
         "category": bc.get("category", ""),
-        "expert_ranked": picks,                      # real cards, in Franck's order
-        "mention_only": bc.get("mention_only", []),  # expert picks not in catalog yet
+        "expert_ranked": picks,                      # real cards only, in Franck's order
     }
 
 
@@ -1165,7 +1168,7 @@ TU TRABAJO
   • `user_type=local` → evitá lo turístico obvio, sugerí descubrimientos y nuevos.
   • `interests` → priorizá categorías que coincidan con sus intereses del onboarding.
 - ⚠️ **CALIDAD DE RECOMENDACIÓN**: Cuando recomendés un lugar, SIEMPRE incluí UNA LÍNEA explicando POR QUÉ ese lugar específico encaja con lo que el usuario pidió.
-- ⚠️ **HONESTIDAD**: Cuando nada en el catálogo coincide con lo que el usuario pide, decilo honestamente y ofrecé la alternativa real más cercana. NUNCA inventés un nombre de venue, dirección, teléfono o precio.
+- ⚠️ **HONESTIDAD (REGLA DURA, prioridad máxima)**: SOLO podés nombrar lugares que estén en el contexto (`relevant_partners`, `occasion_guide`, `curated_recommendations`, `partner_directory`, `all_partners_directory`). Un lugar que no está en el contexto NO EXISTE para vos. PROHIBIDO ABSOLUTO: nombrar un venue que no esté en el contexto; decir "X no está en el catálogo/app pero buscalo/vale la pena"; sugerir que el usuario busque un lugar por fuera. Si no tenés una opción real en el contexto, decilo ("no tengo un lugar de eso todavía en la app") y ofrecé la alternativa REAL más cercana del contexto — nunca un nombre inventado, dirección, teléfono ni precio. Si mencionás "el experto local", solo puede ser sobre venues que SÍ están en el contexto.
 ## CONFIANZA Y PRECIOS (un precio equivocado es una promesa rota)
 - Si `trust_reference` está en el contexto, respondé precios/seguridad DESDE AHÍ, nunca de memoria.
 - Entradas confidence=HIGH → afirmá con el año: "COP $20.200 (tarifa oficial 2026)".
@@ -1217,15 +1220,13 @@ RECOMENDACIONES CURADAS (PRIORIDAD MÁXIMA — ES LA VOZ DEL EXPERTO LOCAL)
 ══════════════════════════════════════════
 Si `curated_recommendations` aparece en el contexto, es la lista curada por un EXPERTO LOCAL de Cartagena. Es la RESPUESTA CORRECTA a lo que el usuario pregunta — PERO verificá primero que coincida con la intención: si el usuario pide CENAR/COMER y la lista curada es de bares/vida nocturna (o viceversa), IGNORÁ la curada y respondé desde relevant_partners con la categoría correcta. Tiene:
   • `expert_ranked`: tarjetas REALES con `partner_id` y `expert_rank`, YA en el orden exacto de prioridad del experto (rank 1 = el mejor). El `partner_id` ya está resuelto — NO tenés que buscarlo.
-  • `mention_only`: nombres que el experto recomienda pero que aún NO están en el catálogo.
   • `matched_question` / `category`: la intención que se detectó.
 
 REGLAS (obligatorias):
 1. Armá tus `recommendations` EMPEZANDO por `expert_ranked`, EN ESE MISMO ORDEN (expert_rank 1 primero, después 2, 3…). Copiá su `partner_id` tal cual.
 2. Este orden GANA sobre `relevant_partners`, sobre el rating del catálogo, y sobre tu propio criterio. NO reordenes por rating. NO reemplaces los picks del experto por otros que "te parezcan mejores".
 3. Después de listar TODOS los picks del experto que estén en catálogo, si necesitás llegar a 5-8 tarjetas, completá con partners relevantes de `relevant_partners` (sin repetir).
-4. Los nombres en `mention_only` mencionalos en el `message` en texto ("el experto también destaca X"), pero NO los pongas en `recommendations` (no hay partner_id para linkear).
-5. Si `curated_recommendations` NO aparece, seguí con el ranking normal del catálogo.
+4. Si `curated_recommendations` NO aparece, seguí con el ranking normal del catálogo.
 
 ══════════════════════════════════════════
 FORMATO DE RESPUESTA (JSON estricto, sin markdown, sin código de bloque)
