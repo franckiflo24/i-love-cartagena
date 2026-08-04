@@ -21,11 +21,11 @@ from difflib import SequenceMatcher
 from typing import Iterable
 
 # ── Dedup threshold (reported in the deliverable) ────────────────────────────
-# A create is blocked when the best existing candidate scores >= this.
-DEDUP_THRESHOLD = 0.55
-# Within the SAME neighborhood we are stricter (more likely a true dup); the
-# +0.15 same-hood boost in dedup_score is applied before this compare.
-DEDUP_THRESHOLD_SAME_HOOD = 0.50
+# A create is blocked when the best existing candidate scores >= this. The score
+# is asymmetric: it measures how much of the NEW name is covered by an existing
+# venue (see similarity()), so recreating an existing venue is blocked while a
+# genuinely different new venue that merely shares one common word is NOT.
+DEDUP_THRESHOLD = 0.60
 
 # Stop / filler words that carry no disambiguating signal in venue names:
 # articles/prepositions, the city name, and generic venue-TYPE words (multi-
@@ -103,56 +103,37 @@ def _fuzzy_inter(ta: set[str], tb: set[str]) -> int:
     return count
 
 
-def _distinctive_concat(s: str | None) -> str:
-    """Distinctive tokens (stop-words removed) concatenated with NO separators.
-
-    Defeats the token-splitting trick: "Bel lini" and "Bellini" both collapse to
-    "bellini", so a space inserted inside a brand word can't dodge the match.
-    """
-    toks = [t for t in normalize_name(s).split() if t not in _STOP]
-    if not toks:
-        toks = normalize_name(s).split()
-    return "".join(toks)
-
-
 def similarity(a: str | None, b: str | None) -> float:
-    """0..1 name similarity: max(token-Jaccard, shorter-name containment), where
-    token overlap is FUZZY (tolerates a 1-2 char typo of a distinctive token).
+    """ASYMMETRIC 0..1 similarity of NEW name `a` against EXISTING name `b`.
 
-    Shorter-name containment = inter/min(len(a), len(b)) — so a short name that
-    is FULLY inside a longer one scores 1.0 ("Bellini" vs "Bellini Ristorante",
-    "Carmen" vs "Restaurante Carmen"). Fuzzy matching also traps deliberate
-    single-character misspellings ("Belini" vs "Bellini"). False positives from a
-    shared COMMON word are handled by stripping venue-type / filler words in
-    `_STOP`, not by weakening this metric.
+    Returns max(fuzzy-Jaccard, containment-of-A), where containment-of-A =
+    inter/len(tokens(a)) — i.e. how much of the NEW name is matched by the
+    existing venue. This is the key to avoiding false positives:
+
+      - "Belini Beach Club"  vs "Bethel Bellini Beach Club" -> the new name's one
+        distinctive token fuzzy-matches -> containment 1.0 -> BLOCK (a recreation).
+      - "Carmen"             vs "Restaurante Carmen"        -> 1.0 -> BLOCK.
+      - "Loro Verde Cantina" vs "Verde Cartagena"           -> only 1 of the new
+        name's 2 distinctive tokens matches -> containment 0.5 -> NOT a dup
+        (a genuinely different venue that merely shares the common word "verde").
+
+    Token overlap is fuzzy (tolerates a 1-char typo). Deliberate space-splits
+    ("Bel lini") and 2-edit typos fall through to admin review (drafts stay
+    pending_review) rather than risk blocking a legitimate new business — an
+    over-block is a self-serve outage, strictly worse than an under-catch.
     """
-    # exact normalized string match is a hard 1.0
     if normalize_name(a) == normalize_name(b):
         return 1.0
-    # Space-collapsed distinctive form: one brand word fully inside the other
-    # (e.g. "Bel lini" inside "Bethel Bellini") is a strong duplicate signal.
-    # The full-concat ratio only counts when NEAR-identical (>=0.85) — moderate
-    # letter overlap between two genuinely different multi-word names ("Blue
-    # Apple" vs "Bethel Bellini") must not trip a false dup. Deliberate 2-edit
-    # typos that fall below this are caught by admin review (drafts stay
-    # pending_review), not the auto-filter.
-    ca, cb = _distinctive_concat(a), _distinctive_concat(b)
-    concat_score = 0.0
-    if len(ca) >= 5 and len(cb) >= 5:
-        if ca in cb or cb in ca:
-            return 1.0
-        r = SequenceMatcher(None, ca, cb).ratio()
-        concat_score = r if r >= 0.85 else 0.0
     ta, tb = _tokens(a), _tokens(b)
     if not ta or not tb:
-        return concat_score
+        return 0.0
     inter = _fuzzy_inter(ta, tb)
     if inter == 0:
-        return concat_score
+        return 0.0
     union = len(ta) + len(tb) - inter
     jaccard = inter / union if union else 0.0
-    containment_shorter = inter / min(len(ta), len(tb))
-    return max(jaccard, containment_shorter, concat_score)
+    containment_new = inter / len(ta)   # how much of the NEW name is matched
+    return max(jaccard, containment_new)
 
 
 def dedup_score(
@@ -161,21 +142,20 @@ def dedup_score(
     existing_name: str | None,
     existing_hood: str | None,
 ) -> float:
-    """Name similarity, nudged up when the neighborhood also matches."""
-    name_sim = similarity(new_name, existing_name)
-    if name_sim <= 0:
-        return 0.0
-    nh, eh = normalize_name(new_hood), normalize_name(existing_hood)
-    same_hood = bool(nh) and bool(eh) and (nh == eh or nh in eh or eh in nh)
-    if same_hood:
-        # same name-ish AND same barrio => very likely the same venue
-        return min(1.0, name_sim + 0.15)
-    return name_sim
+    """Duplicate score = asymmetric name similarity (new vs existing).
+
+    Neighborhood is deliberately NOT used to boost the score: the old +0.15
+    same-hood boost pushed borderline single-common-word overlaps over the line
+    and blocked legitimate venues. A true duplicate already scores high on name
+    alone.
+    """
+    return similarity(new_name, existing_name)
 
 
-def is_duplicate(score: float, same_hood: bool) -> bool:
-    thr = DEDUP_THRESHOLD_SAME_HOOD if same_hood else DEDUP_THRESHOLD
-    return score >= thr
+def is_duplicate(score: float, same_hood: bool = False) -> bool:
+    # same_hood is accepted for call-site compatibility but no longer changes
+    # the verdict (see dedup_score).
+    return score >= DEDUP_THRESHOLD
 
 
 def find_duplicates(

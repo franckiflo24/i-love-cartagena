@@ -1001,9 +1001,11 @@ async def _notify_admin(kind: str, title: str, meta: dict):
 
 
 async def _catalog_candidates() -> list:
-    """Lean projection of every venue for fuzzy search / dedup."""
+    """Lean projection of every LIVE venue for fuzzy search / dedup. Unapproved
+    drafts are excluded so a partner can't pre-seed junk one-word drafts to
+    poison the dedup filter (or surface them in find-your-business search)."""
     return await db.partners.find(
-        {},
+        dict(PUBLIC_PARTNER_FILTER),
         {"_id": 0, "partner_id": 1, "name": 1, "neighborhood": 1, "barrio": 1,
          "address": 1, "category": 1, "image_url": 1, "claim_status": 1, "catalog_status": 1},
     ).to_list(3000)
@@ -1088,7 +1090,6 @@ async def business_venue_precheck(request: Request):
     return {
         "blocked": blocked,
         "threshold": _pc.DEDUP_THRESHOLD,
-        "threshold_same_neighborhood": _pc.DEDUP_THRESHOLD_SAME_HOOD,
         "candidates": [{
             "partner_id": d.get("partner_id"), "name": d.get("name"),
             "neighborhood": _hood_of(d), "score": d.get("_score"),
@@ -4045,7 +4046,7 @@ async def global_search(q: str = "", request: Request = None):
             missing_ids = [pid for pid in cur_ids if pid not in pool]
             if missing_ids:
                 extra_docs = await db.partners.find(
-                    {"partner_id": {"$in": missing_ids}}, {"_id": 0}
+                    {"partner_id": {"$in": missing_ids}}, PUBLIC_PARTNER_PROJECTION
                 ).to_list(len(missing_ids))
                 for d in extra_docs:
                     pool[d.get("partner_id")] = d
