@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
   Dimensions, Platform, ScrollView, Linking, Alert,
@@ -15,6 +15,7 @@ import { useTr } from '../../src/i18n/autoTr';
 import { geoService, haversineM } from '../../src/lib/geo';
 import { getCollections } from '../../src/lib/passport';
 import { getVenues } from '../../src/lib/venueCache';
+import { nearestNeighborhood, NBH_LABELS, NbhCentroid } from '../../src/utils/neighborhood';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -31,6 +32,7 @@ type Place = {
   price: string;
   link: string;
   extra: string;
+  neighborhood?: string | null;
 };
 
 const FILTERS = [
@@ -388,7 +390,17 @@ export default function MapaScreen() {
   const [locStatus, setLocStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle');
   const [follow, setFollow] = useState(true);
   const [passportIds, setPassportIds] = useState<Set<string>>(new Set());
+  const [neighborhoods, setNeighborhoods] = useState<NbhCentroid[]>([]);
+  const [nbhFilter, setNbhFilter] = useState<string | null>(null); // null = all barrios
   const webViewRef = useRef<any>(null);
+
+  // Neighborhood centroids for the barrio filter (same source as Explore).
+  useEffect(() => {
+    fetch('/data/neighborhoods.json')
+      .then(r => (r.ok ? r.json() : []))
+      .then((n) => Array.isArray(n) && setNeighborhoods(n))
+      .catch(() => {});
+  }, []);
 
   // ── LIVE tracking: geoService watch while the map is focused ──
   useEffect(() => {
@@ -557,12 +569,31 @@ export default function MapaScreen() {
     requestLocation();
   }, []);
 
+  // Assign each place its nearest barrio once centroids load (memoized).
+  const placesWithNbh = useMemo(() => {
+    if (!neighborhoods.length) return places;
+    return places.map(p => ({ ...p, neighborhood: nearestNeighborhood(p.lat, p.lng, neighborhoods) }));
+  }, [places, neighborhoods]);
+
+  // Barrio filter ANDs with the category filter: pins in the chosen barrio only.
+  const visiblePlaces = useMemo(
+    () => (nbhFilter ? placesWithNbh.filter(p => p.neighborhood === nbhFilter) : placesWithNbh),
+    [placesWithNbh, nbhFilter],
+  );
+
+  // Barrios that actually have pins, with counts, ordered by count desc.
+  const nbhChips = useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const p of placesWithNbh) if (p.neighborhood) c[p.neighborhood] = (c[p.neighborhood] || 0) + 1;
+    return Object.entries(c).sort((a, b) => b[1] - a[1]).map(([slug, n]) => ({ slug, n }));
+  }, [placesWithNbh]);
+
   const counts = {
-    all: places.length,
-    pasaporte: places.filter(p => passportIds.has(p.id)).length,
-    venue: places.filter(p => p.category === 'venue').length,
-    partner: places.filter(p => p.category === 'partner').length,
-    concert: places.filter(p => p.category === 'concert').length,
+    all: visiblePlaces.length,
+    pasaporte: visiblePlaces.filter(p => passportIds.has(p.id)).length,
+    venue: visiblePlaces.filter(p => p.category === 'venue').length,
+    partner: visiblePlaces.filter(p => p.category === 'partner').length,
+    concert: visiblePlaces.filter(p => p.category === 'concert').length,
   };
 
   if (loading) {
@@ -576,7 +607,7 @@ export default function MapaScreen() {
     );
   }
 
-  const html = buildMapHTML(places, filter, userLoc);
+  const html = buildMapHTML(visiblePlaces, filter, userLoc);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -603,14 +634,44 @@ export default function MapaScreen() {
         </ScrollView>
       </View>
 
+      {/* Barrio filter — find everything in Manga, Bocagrande, Centro… */}
+      {nbhChips.length > 0 && (
+        <View style={styles.nbhBar}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
+            <TouchableOpacity
+              style={[styles.nbhChip, !nbhFilter && styles.nbhChipActive]}
+              onPress={() => setNbhFilter(null)}
+            >
+              <Ionicons name="map-outline" size={13} color={!nbhFilter ? COLORS.primary : COLORS.textMuted} />
+              <Text style={[styles.nbhChipText, !nbhFilter && styles.nbhChipTextActive]}>{tr('Todos los barrios')}</Text>
+            </TouchableOpacity>
+            {nbhChips.map(({ slug, n }) => {
+              const active = nbhFilter === slug;
+              return (
+                <TouchableOpacity
+                  key={slug}
+                  style={[styles.nbhChip, active && styles.nbhChipActive]}
+                  onPress={() => setNbhFilter(active ? null : slug)}
+                >
+                  <Text style={[styles.nbhChipText, active && styles.nbhChipTextActive]}>{NBH_LABELS[slug] || slug}</Text>
+                  <View style={[styles.chipCount, active && { backgroundColor: 'rgba(212,175,55,0.3)' }]}>
+                    <Text style={[styles.chipCountText, active && { color: COLORS.primary }]}>{n}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
+
       {/* Map */}
       <View style={styles.mapWrap}>
         {Platform.OS === 'web' ? (
-          <WebMapDirect places={places} filter={filter} passportIds={passportIds} userLoc={userLoc} follow={follow} onNavigate={(path) => router.push(path as any)} />
+          <WebMapDirect places={visiblePlaces} filter={filter} passportIds={passportIds} userLoc={userLoc} follow={follow} onNavigate={(path) => router.push(path as any)} />
         ) : (
           <WebView
             ref={webViewRef}
-            key={filter + (userLoc ? `_u${userLoc.lat}` : '')}
+            key={filter + (nbhFilter || 'allnbh') + (userLoc ? `_u${userLoc.lat}` : '')}
             source={{ html }}
             style={styles.webview}
             javaScriptEnabled={true}
@@ -678,6 +739,11 @@ const styles = StyleSheet.create({
 
   filterBar: { paddingVertical: SPACING.xs, backgroundColor: COLORS.background },
   filterScroll: { paddingHorizontal: SPACING.md, gap: SPACING.xs },
+  nbhBar: { paddingBottom: SPACING.xs, backgroundColor: COLORS.background, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  nbhChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 11, paddingVertical: 6, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
+  nbhChipActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(212,175,55,0.12)' },
+  nbhChipText: { fontSize: 11.5, color: COLORS.textMuted, ...FONTS.semibold },
+  nbhChipTextActive: { color: COLORS.primary },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
   chipText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold },
   chipCount: { backgroundColor: COLORS.border, borderRadius: 10, paddingHorizontal: 6, paddingVertical: 1 },

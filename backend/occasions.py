@@ -72,14 +72,49 @@ COLLECTIONS: List[Dict[str, Any]] = [
         "title_es": "Favoritos Locales", "title_en": "Local Favorites",
         "desc_es": "Donde comen los cartageneros, no los tours",
         "desc_en": "Where cartageneros actually eat",
+        # "Where cartageneros eat" = dining only. Without this filter the
+        # local_favorite tag also pulled barbershops, salons and tours.
         "tags_any": ["local_favorite"], "boost_tags": ["budget"],
-        "categories": [],
+        "categories": ["restaurant", "cafe"],
     },
     {
         "key": "lujo-total", "icon": "diamond",
         "title_es": "Lujo Total", "title_en": "Pure Luxury",
-        "desc_es": "La experiencia premium de Cartagena",
-        "desc_en": "Cartagena at its most premium",
+        "desc_es": "Lo más elite de Cartagena — hoteles legendarios y alta cocina",
+        "desc_en": "Cartagena's most elite — legendary hotels and fine dining",
+        # CURATED, not algorithm-surfaced: tag+rating scoring let 5.0 boat
+        # rentals dominate over the real icons. This is the deliberate elite
+        # of Cartagena, ordered: legendary hotels → fine dining → one elite
+        # experience. Edit this list to curate; order is preserved.
+        "curated_ids": [
+            # Legendary / luxury hotels
+            "ptr_ho_004",   # Sofitel Legend Santa Clara
+            "ptr_ho_005",   # Casa San Agustín
+            "ptr_ho_003",   # Bastión Luxury Hotel
+            "ptr_1406",     # Casa Pestagua
+            "ptr_1401",     # Hotel Charleston Santa Teresa
+            "ptr_miss_002", # Four Seasons Cartagena
+            "ptr_dv_013",   # Sofitel Barú Calablanca Beach Resort
+            "ptr_007",      # Movich Hotel Cartagena
+            "ptr_1403",     # Casa Carolina Hotel
+            "ptr_dv2_025",  # Hotel Quadrifolio
+            "ptr_dv2_024",  # Amarla Boutique Hotel
+            "ptr_X1124",    # Casa del Arzobispado
+            # Fine dining
+            "ptr_R102",     # Carmen
+            "ptr_R101",     # Celele
+            "ptr_R104",     # Alma
+            "ptr_W100",     # La Vitrola
+            "ptr_R105",     # Restaurante 1621
+            "ptr_dv_009",   # Harry's Cartagena (Harry Sasson)
+            "ptr_R103",     # Donjuán
+            "ptr_dv2_017",  # Moshi
+            "ptr_dv_008",   # Club de Pesca
+            "ptr_W102",     # Interno
+            "ptr_1300",     # Sambal
+            # One elite experience
+            "ptr_V050",     # Savage Yacht Charter
+        ],
         "tags_any": ["luxury"], "boost_tags": ["sea_view", "rooftop"],
         "categories": ["restaurant", "hotel", "beach_club", "yacht", "spa"],
     },
@@ -108,16 +143,25 @@ def _query_for(c: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def _collection_partners(c: Dict[str, Any], limit: int = 30) -> List[Dict[str, Any]]:
-    rows = await db.partners.find(_query_for(c), CARD_FIELDS).to_list(300)
-    boost = set(c.get("boost_tags") or [])
+    curated = c.get("curated_ids")
+    if curated:
+        # Curated collection: return EXACTLY these venues, in this order
+        # (missing ones simply drop). No algorithmic re-ranking — the
+        # curation IS the ranking.
+        found = {p["partner_id"]: p async for p in
+                 db.partners.find({"partner_id": {"$in": curated}}, CARD_FIELDS)}
+        rows = [found[pid] for pid in curated if pid in found][:limit]
+    else:
+        rows = await db.partners.find(_query_for(c), CARD_FIELDS).to_list(300)
+        boost = set(c.get("boost_tags") or [])
 
-    def score(p):
-        rating = p.get("rating") or 0
-        b = sum(0.25 for t in (p.get("tags") or []) if t in boost)
-        return rating + b
+        def score(p):
+            rating = p.get("rating") or 0
+            b = sum(0.25 for t in (p.get("tags") or []) if t in boost)
+            return rating + b
 
-    rows.sort(key=score, reverse=True)
-    rows = rows[:limit]
+        rows.sort(key=score, reverse=True)
+        rows = rows[:limit]
     try:
         pulse_map = await _get_active_pulse_map(db, [p["partner_id"] for p in rows])
         for p in rows:
@@ -133,7 +177,10 @@ async def _collection_partners(c: Dict[str, Any], limit: int = 30) -> List[Dict[
 async def list_collections():
     out = []
     for c in COLLECTIONS:
-        count = await db.partners.count_documents(_query_for(c))
+        if c.get("curated_ids"):
+            count = await db.partners.count_documents({"partner_id": {"$in": c["curated_ids"]}})
+        else:
+            count = await db.partners.count_documents(_query_for(c))
         out.append({
             "key": c["key"], "icon": c["icon"],
             "title_es": c["title_es"], "title_en": c["title_en"],

@@ -884,6 +884,7 @@ export const AUTO_TR: Dict = {
 
   'Tuvimos un problema mostrando esta pantalla. Ya enviamos un reporte automático al equipo.': { en: 'We had a problem showing this screen. We already sent an automatic report to the team.', fr: 'Un problème est survenu à l\'affichage de cet écran. Un rapport automatique a été envoyé à l\'équipe.', pt: 'Tivemos um problema ao mostrar esta tela. Já enviamos um relatório automático à equipe.' },
   'Ordenado según tus preferencias': { en: 'Sorted by your preferences', fr: 'Trié selon vos préférences', pt: 'Ordenado pelas suas preferências' },
+  'Todos los barrios': { en: 'All neighborhoods', fr: 'Tous les quartiers', pt: 'Todos os bairros' },
   'días de beneficios': { en: 'days of benefits', fr: 'jours d\'avantages', pt: 'dias de benefícios' },
   'beneficios más': { en: 'more benefits', fr: 'avantages de plus', pt: 'benefícios a mais' },
   // ── Triple-check sweep: tourist screens (citypass/port-tax/reviews/rewards/itineraries/payment/events) ──
