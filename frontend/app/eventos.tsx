@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, Linking } from 'react-native';
 import { Stack } from 'expo-router';
+import { useTr } from '@/src/i18n/autoTr';
 
 /**
  * /eventos  (native: iOS / Android)
@@ -22,6 +23,7 @@ try {
 }
 
 export default function EventosScreen() {
+  const tr = useTr();
   return (
     <>
       <Stack.Screen options={{ title: 'Mi entrada' }} />
@@ -47,7 +49,7 @@ export default function EventosScreen() {
             onPress={() => Linking.openURL(URL)}
             style={{ backgroundColor: '#f3b14e', borderRadius: 12, paddingVertical: 13, paddingHorizontal: 22 }}
           >
-            <Text style={{ color: '#2a1c06', fontWeight: '700' }}>Abrir entrada</Text>
+            <Text style={{ color: '#2a1c06', fontWeight: '700' }}>{tr('Abrir entrada')}</Text>
           </Pressable>
         </View>
       )}

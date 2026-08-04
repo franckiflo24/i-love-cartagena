@@ -66,14 +66,14 @@ export default function CityPassTab() {
       if (res.checkout_url && res.reference) {
         const result = await openWompiCheckout(res.checkout_url, res.reference);
         if (result.status === 'approved') {
-          Alert.alert('¡Listo!', 'Tu City Pass está activo. ¡Disfruta Cartagena!');
+          Alert.alert(tr('¡Listo!'), 'Tu City Pass está activo. ¡Disfruta Cartagena!');
           // Reload pass data
           const pass = await api.get('/city-pass/mine');
           setMyPass(pass);
         } else if (result.status === 'declined') {
-          Alert.alert('Pago rechazado', 'Intenta con otro método de pago.');
+          Alert.alert(tr('Pago rechazado'), 'Intenta con otro método de pago.');
         } else if (result.status !== 'pending') {
-          Alert.alert('Pago', `Estado: ${result.status}. Revisa tu email para más detalles.`);
+          Alert.alert(tr('Pago'), `Estado: ${result.status}. Revisa tu email para más detalles.`);
         }
       }
     } catch (e: any) {
@@ -128,7 +128,7 @@ export default function CityPassTab() {
                     backgroundColor="#FFFFFF"
                   />
                 </View>
-                <Text style={styles.qrHint}>Muestra este código en los partners</Text>
+                <Text style={styles.qrHint}>{tr('Muestra este código en los partners')}</Text>
               </View>
 
               <View style={styles.qrPassId}>
@@ -138,7 +138,7 @@ export default function CityPassTab() {
 
             {/* Benefits */}
             <View style={styles.benefitsCard}>
-              <Text style={styles.benefitsTitle}>Tus beneficios</Text>
+              <Text style={styles.benefitsTitle}>{tr('Tus beneficios')}</Text>
               {(plans.find(p => p.plan_id === myPass.plan_id)?.benefits || []).map((b, i) => (
                 <View key={i} style={styles.benefitRow}>
                   <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
@@ -152,7 +152,7 @@ export default function CityPassTab() {
               <Ionicons name="calendar" size={20} color={COLORS.primary} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.discoverCTATitle}>{tr('Ver agenda cultural')}</Text>
-                <Text style={styles.discoverCTADesc}>Accede a los eventos con tu pass</Text>
+                <Text style={styles.discoverCTADesc}>{tr('Accede a los eventos con tu pass')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
             </TouchableOpacity>
@@ -206,7 +206,7 @@ export default function CityPassTab() {
                 <Ionicons name="heart" size={22} color="#EF4444" />
               </View>
               <Text style={styles.heroTitle}>{tr('City Pass')}</Text>
-              <Text style={styles.heroSubtitle}>Vive la cultura sin límite</Text>
+              <Text style={styles.heroSubtitle}>{tr('Vive la cultura sin límite')}</Text>
               <Text style={styles.heroDesc}>
                 Tu pase cultural para vivir Cartagena al máximo. Acceso a museos, monumentos y eventos culturales.
               </Text>
@@ -239,7 +239,7 @@ export default function CityPassTab() {
                     <Text style={styles.portTaxPrice}>
                       ${(portTax.price_per_person ?? 0).toLocaleString('es-CO')}
                     </Text>
-                    <Text style={styles.portTaxUnit}>COP / persona</Text>
+                    <Text style={styles.portTaxUnit}>{tr('COP / persona')}</Text>
                   </View>
                   {activeTickets > 0 && (
                     <TouchableOpacity
@@ -267,7 +267,7 @@ export default function CityPassTab() {
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.planName, { color: plan.color }]}>{plan.name}</Text>
-                    <Text style={styles.planDuration}>{plan.duration_days} días de beneficios</Text>
+                    <Text style={styles.planDuration}>{plan.duration_days} {tr('días de beneficios')}</Text>
                   </View>
                   <View style={styles.priceBox}>
                     <Text style={styles.planPrice}>{formatPrice(plan.price)}</Text>
@@ -283,7 +283,7 @@ export default function CityPassTab() {
                     </View>
                   ))}
                   {plan.benefits.length > 4 && (
-                    <Text style={[styles.moreBenefits, { color: plan.color }]}>+{plan.benefits.length - 4} beneficios más</Text>
+                    <Text style={[styles.moreBenefits, { color: plan.color }]}>+{plan.benefits.length - 4} {tr('beneficios más')}</Text>
                   )}
                 </View>
 
@@ -311,7 +311,7 @@ export default function CityPassTab() {
             <View style={styles.trustRow}>
               <View style={styles.trustItem}>
                 <Ionicons name="shield-checkmark" size={18} color={COLORS.textMuted} />
-                <Text style={styles.trustText}>Pago seguro</Text>
+                <Text style={styles.trustText}>{tr('Pago seguro')}</Text>
               </View>
               <View style={styles.trustItem}>
                 <Ionicons name="refresh" size={18} color={COLORS.textMuted} />

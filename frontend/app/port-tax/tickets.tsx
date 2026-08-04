@@ -89,7 +89,7 @@ export default function PortTaxTicketsScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.ticketTitle}>{tr('Tasa Portuaria')}</Text>
-            <Text style={styles.ticketSub}>La Bodeguita → Islas</Text>
+            <Text style={styles.ticketSub}>{tr('La Bodeguita → Islas')}</Text>
           </View>
           <View style={[styles.statusChip, { backgroundColor: status.bg }]}>
             <Ionicons name={status.icon as any} size={11} color={status.fg} />
@@ -144,7 +144,7 @@ export default function PortTaxTicketsScreen() {
       {!user ? (
         <View style={styles.empty}>
           <Ionicons name="lock-closed-outline" size={48} color={COLORS.textMuted} />
-          <Text style={styles.emptyTitle}>Inicia sesión</Text>
+          <Text style={styles.emptyTitle}>{tr('Inicia sesión')}</Text>
           <Text style={styles.emptyText}>
             Para ver tus tiquetes guardados y volver a abrir tu QR cuando lo necesites.
           </Text>
@@ -163,7 +163,7 @@ export default function PortTaxTicketsScreen() {
           {tickets.length === 0 ? (
             <View style={styles.empty}>
               <Ionicons name="boat-outline" size={48} color={COLORS.textMuted} />
-              <Text style={styles.emptyTitle}>Aún no tienes tiquetes</Text>
+              <Text style={styles.emptyTitle}>{tr('Aún no tienes tiquetes')}</Text>
               <Text style={styles.emptyText}>
                 Compra tu tasa portuaria antes de salir a las islas. Cada QR funciona una sola vez.
               </Text>
@@ -172,7 +172,7 @@ export default function PortTaxTicketsScreen() {
                 onPress={() => router.push('/port-tax/checkout' as any)}
               >
                 <Ionicons name="qr-code" size={16} color="#FFF" />
-                <Text style={styles.ctaBtnText}>Comprar tiquete</Text>
+                <Text style={styles.ctaBtnText}>{tr('Comprar tiquete')}</Text>
               </TouchableOpacity>
             </View>
           ) : (

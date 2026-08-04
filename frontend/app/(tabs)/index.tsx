@@ -360,7 +360,7 @@ export default function HomeScreen() {
         <Text style={styles.heroSub}>{item.tags.join(' · ')}</Text>
         {item.event_count === 0 && (
           <View style={[styles.comingSoonBadge, { backgroundColor: item.color }]}>
-            <Text style={styles.comingSoonText}>PRÓXIMAMENTE</Text>
+            <Text style={styles.comingSoonText}>{tr('PRÓXIMAMENTE')}</Text>
           </View>
         )}
       </View>
@@ -424,7 +424,7 @@ export default function HomeScreen() {
         {userProfile.isPersonalized && userProfile.interests.length > 0 && (
           <View style={styles.tasteProfileCard}>
             <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4 }}>
-              <Text style={{ fontSize: 12, color: COLORS.textMuted, ...FONTS.medium }}>Tu perfil:</Text>
+              <Text style={{ fontSize: 12, color: COLORS.textMuted, ...FONTS.medium }}>{tr('Tu perfil:')}</Text>
               {userProfile.interests.slice(0, 4).map((interest: string) => {
                 const INTEREST_EMOJI: Record<string, string> = { restaurant: '\u{1F37D}\u{FE0F}', bar: '\u{1F378}', beach_club: '\u{1F3D6}\u{FE0F}', club: '\u{1F3B6}', spa: '\u{1F9D6}', beauty: '\u{1F485}', activity: '\u{1F9ED}', hotel: '\u{1F3E8}', cafe: '\u2615', yacht: '\u26F5' };
                 const INTEREST_LABEL: Record<string, string> = { restaurant: 'Restaurantes', bar: 'Bares', beach_club: 'Beach Clubs', club: 'Nightlife', spa: 'Wellness', beauty: 'Belleza', activity: 'Experiencias', hotel: 'Hoteles', cafe: 'Caf\u00E9s', yacht: 'Yates' };
@@ -919,8 +919,8 @@ export default function HomeScreen() {
             <View style={[styles.heroOverlay, { backgroundColor: 'rgba(5,8,20,0.55)' }]} />
             <View style={styles.heroContent}>
               <Text style={[styles.heroLabel, { color: COLORS.primary }]}>CARTAGENA DE INDIAS</Text>
-              <Text style={styles.heroTitle}>Descubre la ciudad</Text>
-              <Text style={styles.heroSub}>Gastronomía · Cultura · Vida nocturna · Bienestar</Text>
+              <Text style={styles.heroTitle}>{tr('Descubre la ciudad')}</Text>
+              <Text style={styles.heroSub}>{tr('Gastronomía · Cultura · Vida nocturna · Bienestar')}</Text>
               <View style={[styles.comingSoonBadge, { backgroundColor: COLORS.primary, marginTop: 10 }]}>
                 <Text style={styles.comingSoonText}>{tr('EXPLORAR AHORA')}</Text>
               </View>

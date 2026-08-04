@@ -8,6 +8,7 @@ import {
   View, Text, Pressable, ScrollView, ActivityIndicator, StyleSheet, Platform, Share,
 } from 'react-native';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
+import { useTr } from '@/src/i18n/autoTr';
 
 const PROD_HOST = process.env.EXPO_PUBLIC_APP_URL || 'https://amocartagena.co';
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
@@ -133,6 +134,7 @@ function ItemCard({ item, index, onOpen, onRemove }: { item: Item; index: number
 // ----------------------------------------------------------------------------
 export default function ItineraryScreen() {
   const router = useRouter();
+  const tr = useTr();
   const { plan } = useLocalSearchParams<{ plan?: string }>();
 
   const [mode, setMode] = useState<'form' | 'loading' | 'result' | 'error'>('form');
@@ -291,24 +293,24 @@ export default function ItineraryScreen() {
         </Pressable>
         <View>
           <Text style={s.hTitle}>Planificador IA</Text>
-          <Text style={s.hSub}>Tu Cartagena, día por día</Text>
+          <Text style={s.hSub}>{tr('Tu Cartagena, día por día')}</Text>
         </View>
       </View>
 
       {mode === 'loading' && (
-        <View style={s.center}><ActivityIndicator color={T.gold} size="large" /><Text style={s.loadTxt}>Diseñando tu Cartagena…</Text></View>
+        <View style={s.center}><ActivityIndicator color={T.gold} size="large" /><Text style={s.loadTxt}>{tr('Diseñando tu Cartagena…')}</Text></View>
       )}
 
       {mode === 'error' && (
         <View style={s.center}>
-          <Text style={s.errTxt}>No pude armar el plan ahora.</Text>
-          <Pressable style={s.btnGold} onPress={() => setMode('form')}><Text style={s.btnGoldTxt}>Volver a intentar</Text></Pressable>
+          <Text style={s.errTxt}>{tr('No pude armar el plan ahora.')}</Text>
+          <Pressable style={s.btnGold} onPress={() => setMode('form')}><Text style={s.btnGoldTxt}>{tr('Volver a intentar')}</Text></Pressable>
         </View>
       )}
 
       {mode === 'form' && (
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-          <Text style={s.lead}>Cuéntame tu viaje y armo un plan con lugares reales de Cartagena.</Text>
+          <Text style={s.lead}>{tr('Cuéntame tu viaje y armo un plan con lugares reales de Cartagena.')}</Text>
 
           <Stepper label="Días" value={days} min={1} max={7} onChange={setDays} />
           <Stepper label="Personas" value={party} min={1} max={10} onChange={setParty} />
@@ -325,7 +327,7 @@ export default function ItineraryScreen() {
           <Text style={s.sec}>Zonas (opcional)</Text>
           <View style={s.wrap}>{ZONES.map((z) => <Chip key={z} label={z} active={zones.includes(z)} onPress={() => toggle(zones, z, setZones)} />)}</View>
 
-          <Pressable style={[s.btnGold, { marginTop: 22 }]} onPress={generate}><Text style={s.btnGoldTxt}>Generar mi plan ✨</Text></Pressable>
+          <Pressable style={[s.btnGold, { marginTop: 22 }]} onPress={generate}><Text style={s.btnGoldTxt}>{tr('Generar mi plan ✨')}</Text></Pressable>
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
@@ -336,7 +338,7 @@ export default function ItineraryScreen() {
           {!!itin.summary && <Text style={s.resSummary}>{itin.summary}</Text>}
 
           <View style={s.actions}>
-            <Pressable style={s.btnGoldSm} onPress={sharePlan}><Text style={s.btnGoldTxt}>Compartir plan</Text></Pressable>
+            <Pressable style={s.btnGoldSm} onPress={sharePlan}><Text style={s.btnGoldTxt}>{tr('Compartir plan')}</Text></Pressable>
             {!plan && <Pressable style={s.btnGhost} onPress={() => setMode('form')}><Text style={s.btnGhostTxt}>Editar</Text></Pressable>}
             {!plan && <Pressable style={s.btnGhost} onPress={generate}><Text style={s.btnGhostTxt}>Otro plan</Text></Pressable>}
           </View>
@@ -358,10 +360,10 @@ export default function ItineraryScreen() {
 
           {!!plan && (
             <Pressable style={[s.btnGold, { marginTop: 18 }]} onPress={() => { setItin(null); setMode('form'); router.setParams({ plan: undefined as any }); }}>
-              <Text style={s.btnGoldTxt}>Armar mi propio plan</Text>
+              <Text style={s.btnGoldTxt}>{tr('Armar mi propio plan')}</Text>
             </Pressable>
           )}
-          <Text style={s.madeWith}>hecho con AMO Cartagena</Text>
+          <Text style={s.madeWith}>{tr('hecho con AMO Cartagena')}</Text>
           <View style={{ height: 40 }} />
         </ScrollView>
       )}

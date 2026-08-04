@@ -106,7 +106,7 @@ export default function PaymentReturn() {
         <TouchableOpacity onPress={() => router.replace('/(tabs)' as any)} style={styles.backBtn}>
           <Ionicons name="close" size={22} color={COLORS.textMain} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Resultado de pago</Text>
+        <Text style={styles.headerTitle}>{tr('Resultado de pago')}</Text>
         <View style={{ width: 36 }} />
       </View>
 
@@ -167,7 +167,7 @@ export default function PaymentReturn() {
         )}
 
         <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.replace('/(tabs)' as any)}>
-          <Text style={styles.secondaryBtnText}>Volver al inicio</Text>
+          <Text style={styles.secondaryBtnText}>{tr('Volver al inicio')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

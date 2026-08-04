@@ -19,6 +19,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '@/src/constants/theme';
 import { api } from '@/src/constants/api';
 import { useAuth } from '@/src/context/AuthContext';
 import { useLang } from '@/src/context/LanguageContext';
+import { useTr } from '@/src/i18n/autoTr';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -173,6 +174,7 @@ function CardBack({
   tier: MemberTier;
   benefits: string[];
 }) {
+  const tr = useTr();
   const cfg = TIER_CONFIG[tier] ?? TIER_CONFIG.explorer;
 
   return (
@@ -202,7 +204,7 @@ function CardBack({
           ) : (
             <View style={backStyles.benefitRow}>
               <Ionicons name="sparkles" size={14} color={cfg.accent} />
-              <Text style={backStyles.benefitText}>Acceso a beneficios exclusivos</Text>
+              <Text style={backStyles.benefitText}>{tr('Acceso a beneficios exclusivos')}</Text>
             </View>
           )}
         </View>
@@ -246,6 +248,7 @@ const backStyles = StyleSheet.create({
 
 export default function AmoCardScreen() {
   const { s } = useLang();
+  const tr = useTr();
   const router = useRouter();
   const { user } = useAuth();
 
@@ -334,7 +337,7 @@ export default function AmoCardScreen() {
         ) : (
           <>
             {/* Flip hint */}
-            <Text style={styles.flipHint}>Toca la tarjeta para voltear</Text>
+            <Text style={styles.flipHint}>{tr('Toca la tarjeta para voltear')}</Text>
 
             {/* Flip container */}
             <TouchableOpacity
@@ -393,7 +396,7 @@ export default function AmoCardScreen() {
               <View style={styles.infoRow}>
                 <Ionicons name="shield-checkmark-outline" size={18} color={cfg.accent} />
                 <View style={styles.infoText}>
-                  <Text style={styles.infoLabel}>Nivel actual</Text>
+                  <Text style={styles.infoLabel}>{tr('Nivel actual')}</Text>
                   <Text style={styles.infoValue}>{cfg.label}</Text>
                 </View>
               </View>
@@ -401,7 +404,7 @@ export default function AmoCardScreen() {
               <View style={styles.infoRow}>
                 <Ionicons name="calendar-outline" size={18} color={cfg.accent} />
                 <View style={styles.infoText}>
-                  <Text style={styles.infoLabel}>Miembro desde</Text>
+                  <Text style={styles.infoLabel}>{tr('Miembro desde')}</Text>
                   <Text style={styles.infoValue}>{memberSince}</Text>
                 </View>
               </View>

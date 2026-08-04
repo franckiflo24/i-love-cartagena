@@ -137,7 +137,7 @@ export default function PortTaxCheckoutScreen() {
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>{tr('Tasa Portuaria')}</Text>
-          <Text style={styles.subtitle}>Muelle La Bodeguita → Islas</Text>
+          <Text style={styles.subtitle}>{tr('Muelle La Bodeguita → Islas')}</Text>
         </View>
       </View>
 
@@ -239,7 +239,7 @@ export default function PortTaxCheckoutScreen() {
 
         <View style={[styles.section, styles.summary]}>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Tasa por persona</Text>
+            <Text style={styles.summaryLabel}>{tr('Tasa por persona')}</Text>
             <Text style={styles.summaryVal}>{formatPrice(cfg.price_per_person)}</Text>
           </View>
           <View style={styles.summaryRow}>

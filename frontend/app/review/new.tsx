@@ -18,6 +18,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '@/src/constants/theme';
 import { submitReview } from '@/src/services/reviewsStore';
 import { useLang } from '@/src/context/LanguageContext';
 import { useAuth } from '@/src/context/AuthContext';
+import { useTr } from '@/src/i18n/autoTr';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -68,6 +69,7 @@ export default function NewReviewScreen() {
   const { s } = useLang();
   const router = useRouter();
   const { user } = useAuth();
+  const tr = useTr();
   const { partner_id, partner_name } = useLocalSearchParams<{
     partner_id: string;
     partner_name?: string;
@@ -88,12 +90,12 @@ export default function NewReviewScreen() {
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, paddingHorizontal: 32 }}>
           <Ionicons name="person-circle-outline" size={56} color={COLORS.primary} />
-          <Text style={{ color: COLORS.textMain, fontSize: 18, ...FONTS.bold, textAlign: 'center' }}>Inicia sesión para dejar una reseña</Text>
+          <Text style={{ color: COLORS.textMain, fontSize: 18, ...FONTS.bold, textAlign: 'center' }}>{tr('Inicia sesión para dejar una reseña')}</Text>
           <TouchableOpacity
             onPress={() => router.push({ pathname: '/login', params: { next: `/review/new?partner_id=${partner_id}&partner_name=${partner_name || ''}` } } as any)}
             style={{ paddingVertical: 12, paddingHorizontal: 28, borderRadius: 24, backgroundColor: COLORS.primary }}
           >
-            <Text style={{ color: COLORS.white, fontSize: 15, ...FONTS.bold }}>Iniciar sesión</Text>
+            <Text style={{ color: COLORS.white, fontSize: 15, ...FONTS.bold }}>{tr('Iniciar sesión')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -132,7 +134,7 @@ export default function NewReviewScreen() {
         subcategories: subcategoryRatings,
         text: reviewText.trim(),
       });
-      Alert.alert('¡Gracias!', 'Tu reseña fue enviada.');
+      Alert.alert(tr('¡Gracias!'), 'Tu reseña fue enviada.');
       router.back();
     } catch (e) {
       console.error('[NewReviewScreen]', e);
@@ -186,7 +188,7 @@ export default function NewReviewScreen() {
 
           {/* ── Subcategories ── */}
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Categorías</Text>
+            <Text style={styles.sectionLabel}>{tr('Categorías')}</Text>
             <View style={styles.card}>
               {SUBCATEGORIES.map((sub, idx) => (
                 <React.Fragment key={sub.key}>
@@ -209,10 +211,10 @@ export default function NewReviewScreen() {
 
           {/* ── Review text ── */}
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Tu reseña</Text>
+            <Text style={styles.sectionLabel}>{tr('Tu reseña')}</Text>
             <TextInput
               style={[styles.textInput, reviewText.length > 0 && styles.textInputActive]}
-              placeholder="Comparte tu experiencia en detalle... (mínimo 10 caracteres)"
+              placeholder={tr('Comparte tu experiencia en detalle... (mínimo 10 caracteres)')}
               placeholderTextColor={COLORS.textMuted}
               multiline
               numberOfLines={5}
@@ -230,7 +232,7 @@ export default function NewReviewScreen() {
         {/* ── Sticky submit bar ── */}
         <View style={styles.stickyBar}>
           {!canSubmit && overallRating === 0 && (
-            <Text style={styles.validationHint}>Selecciona una calificación general</Text>
+            <Text style={styles.validationHint}>{tr('Selecciona una calificación general')}</Text>
           )}
           <TouchableOpacity
             onPress={handleSubmit}

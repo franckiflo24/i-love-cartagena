@@ -320,7 +320,7 @@ export default function AgendaScreen() {
               <View style={styles.empty}>
                 <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
                 <Text style={styles.emptyTitle}>{tr('No hay eventos para este día')}</Text>
-                <Text style={styles.emptyText}>Prueba otra fecha o categoría</Text>
+                <Text style={styles.emptyText}>{tr('Prueba otra fecha o categoría')}</Text>
               </View>
             ) : (
               <>
@@ -333,7 +333,7 @@ export default function AgendaScreen() {
                 {/* City events — major Cartagena events with images */}
                 {cityEvents.length > 0 && (
                   <View style={{ marginBottom: SPACING.md }}>
-                    <Text style={styles.cityEventsLabel}>Eventos de la ciudad</Text>
+                    <Text style={styles.cityEventsLabel}>{tr('Eventos de la ciudad')}</Text>
                     {cityEvents.map((ev: any) => (
                       <TouchableOpacity
                         key={ev.event_id || ev.id}
@@ -416,7 +416,7 @@ export default function AgendaScreen() {
           ) : groupedAgenda.length === 0 ? (
             <View style={styles.empty}>
               <Ionicons name="checkmark-done-circle-outline" size={56} color={COLORS.textMuted} />
-              <Text style={styles.emptyTitle}>No tienes próximos eventos</Text>
+              <Text style={styles.emptyTitle}>{tr('No tienes próximos eventos')}</Text>
               <Text style={styles.emptyText}>{tr('Tu agenda está al día')}</Text>
               {pastCount > 0 && (
                 <TouchableOpacity

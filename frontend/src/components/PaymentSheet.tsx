@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, ELEVATION } from '../constants/theme';
 import { payments } from '../lib/payments';
 import type { PaymentResult } from '../lib/payments';
+import { useTr } from '@/src/i18n/autoTr';
 
 type PaymentMethod = 'card' | 'pse' | 'nequi';
 
@@ -41,6 +42,7 @@ export default function PaymentSheet({
   onSuccess,
   title = 'Pago',
 }: PaymentSheetProps) {
+  const tr = useTr();
   const [step, setStep] = useState<Step>('method-select');
   const [method, setMethod] = useState<PaymentMethod | null>(null);
   const [result, setResult] = useState<PaymentResult | null>(null);
@@ -131,7 +133,7 @@ export default function PaymentSheet({
             {/* ── Step: method-select ── */}
             {step === 'method-select' && (
               <View style={styles.stepContainer}>
-                <Text style={styles.stepTitle}>Selecciona método de pago</Text>
+                <Text style={styles.stepTitle}>{tr('Selecciona método de pago')}</Text>
                 <Text style={styles.amountDisplay}>{formatCOP(amount)}</Text>
                 <View style={styles.methodList}>
                   {METHOD_OPTIONS.map((opt) => (
@@ -158,14 +160,14 @@ export default function PaymentSheet({
             {/* ── Step: summary ── */}
             {step === 'summary' && method && (
               <View style={styles.stepContainer}>
-                <Text style={styles.stepTitle}>Resumen del pago</Text>
+                <Text style={styles.stepTitle}>{tr('Resumen del pago')}</Text>
 
                 {/* Card preview for card method */}
                 {method === 'card' && (
                   <View style={styles.cardPreview}>
                     <View style={styles.cardPreviewHeader}>
                       <Ionicons name="card" size={20} color={COLORS.primary} />
-                      <Text style={styles.cardPreviewLabel}>Tarjeta de demostración</Text>
+                      <Text style={styles.cardPreviewLabel}>{tr('Tarjeta de demostración')}</Text>
                     </View>
                     <Text style={styles.cardNumber}>4242  4242  4242  4242</Text>
                     <View style={styles.cardRow}>
@@ -180,9 +182,9 @@ export default function PaymentSheet({
                   <View style={styles.cardPreview}>
                     <View style={styles.cardPreviewHeader}>
                       <Ionicons name="globe" size={20} color={COLORS.primary} />
-                      <Text style={styles.cardPreviewLabel}>PSE — Débito bancario</Text>
+                      <Text style={styles.cardPreviewLabel}>{tr('PSE — Débito bancario')}</Text>
                     </View>
-                    <Text style={styles.cardDetail}>Banco simulado · Sin datos reales</Text>
+                    <Text style={styles.cardDetail}>{tr('Banco simulado · Sin datos reales')}</Text>
                   </View>
                 )}
 
@@ -190,9 +192,9 @@ export default function PaymentSheet({
                   <View style={styles.cardPreview}>
                     <View style={styles.cardPreviewHeader}>
                       <Ionicons name="phone-portrait" size={20} color={COLORS.primary} />
-                      <Text style={styles.cardPreviewLabel}>Nequi — Pago móvil</Text>
+                      <Text style={styles.cardPreviewLabel}>{tr('Nequi — Pago móvil')}</Text>
                     </View>
-                    <Text style={styles.cardDetail}>Número simulado · Sin datos reales</Text>
+                    <Text style={styles.cardDetail}>{tr('Número simulado · Sin datos reales')}</Text>
                   </View>
                 )}
 
@@ -214,7 +216,7 @@ export default function PaymentSheet({
                     onPress={() => { setStep('method-select'); setError(null); }}
                   >
                     <Ionicons name="arrow-back" size={18} color={COLORS.textMain} />
-                    <Text style={styles.backButtonText}>Atrás</Text>
+                    <Text style={styles.backButtonText}>{tr('Atrás')}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -223,7 +225,7 @@ export default function PaymentSheet({
                     activeOpacity={0.85}
                   >
                     <Ionicons name="lock-closed" size={16} color={COLORS.white} />
-                    <Text style={styles.confirmButtonText}>Simular pago</Text>
+                    <Text style={styles.confirmButtonText}>{tr('Simular pago')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -233,8 +235,8 @@ export default function PaymentSheet({
             {step === 'processing' && (
               <View style={styles.processingContainer}>
                 <ActivityIndicator size="large" color={COLORS.primary} />
-                <Text style={styles.processingText}>Procesando pago simulado...</Text>
-                <Text style={styles.processingSubtext}>No se realizará ningún cobro real</Text>
+                <Text style={styles.processingText}>{tr('Procesando pago simulado...')}</Text>
+                <Text style={styles.processingSubtext}>{tr('No se realizará ningún cobro real')}</Text>
               </View>
             )}
 
@@ -248,11 +250,11 @@ export default function PaymentSheet({
                 {result.demo ? (
                   <>
                     <Text style={styles.resultTitle}>Reserva simulada</Text>
-                    <Text style={styles.resultSubtitle}>Pago de demostración</Text>
+                    <Text style={styles.resultSubtitle}>{tr('Pago de demostración')}</Text>
                   </>
                 ) : (
                   <>
-                    <Text style={styles.resultTitle}>Pago aprobado</Text>
+                    <Text style={styles.resultTitle}>{tr('Pago aprobado')}</Text>
                   </>
                 )}
 
@@ -286,7 +288,7 @@ export default function PaymentSheet({
                   onPress={handleClose}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.doneButtonText}>Cerrar</Text>
+                  <Text style={styles.doneButtonText}>{tr('Cerrar')}</Text>
                 </TouchableOpacity>
               </View>
             )}

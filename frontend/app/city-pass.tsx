@@ -70,13 +70,13 @@ export default function CityPassScreen() {
       if (res.checkout_url && res.reference) {
         const result = await openWompiCheckout(res.checkout_url, res.reference);
         if (result.status === 'approved') {
-          Alert.alert('¡Listo!', 'Tu City Pass está activo. ¡Disfruta Cartagena!');
+          Alert.alert(tr('¡Listo!'), 'Tu City Pass está activo. ¡Disfruta Cartagena!');
           const pass = await api.get('/city-pass/mine');
           setMyPass(pass);
         } else if (result.status === 'declined') {
-          Alert.alert('Pago rechazado', 'Intenta con otro método de pago.');
+          Alert.alert(tr('Pago rechazado'), 'Intenta con otro método de pago.');
         } else if (result.status !== 'pending') {
-          Alert.alert('Pago', `Estado: ${result.status}`);
+          Alert.alert(tr('Pago'), `Estado: ${result.status}`);
         }
       }
     } catch (e: any) {
@@ -96,7 +96,7 @@ export default function CityPassScreen() {
         </TouchableOpacity>
         <View>
           <Text style={styles.title}>{tr('City Pass')}</Text>
-          <Text style={styles.subtitle}>Tu pase a Cartagena</Text>
+          <Text style={styles.subtitle}>{tr('Tu pase a Cartagena')}</Text>
         </View>
       </View>
 
@@ -124,7 +124,7 @@ export default function CityPassScreen() {
           <>
             <View style={styles.heroBanner}>
               <Ionicons name="sparkles" size={32} color={COLORS.primary} />
-              <Text style={styles.heroTitle}>Vive Cartagena sin límites</Text>
+              <Text style={styles.heroTitle}>{tr('Vive Cartagena sin límites')}</Text>
               <Text style={styles.heroDesc}>Acceso preferente, descuentos exclusivos y beneficios en todos los partners certificados.</Text>
             </View>
 

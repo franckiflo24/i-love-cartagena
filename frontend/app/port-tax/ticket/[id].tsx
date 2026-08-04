@@ -82,7 +82,7 @@ export default function PortTaxTicketScreen() {
           <Ionicons name="arrow-back" size={20} color={COLORS.textMain} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title}>Tu tiquete</Text>
+          <Text style={styles.title}>{tr('Tu tiquete')}</Text>
           <Text style={styles.subtitle}>{tr('Tasa Portuaria')}</Text>
         </View>
         <TouchableOpacity
@@ -97,7 +97,7 @@ export default function PortTaxTicketScreen() {
         {fromCheckout === '1' && ticket.status === 'paid' && (
           <View style={styles.successBanner}>
             <Ionicons name="checkmark-circle" size={18} color="#22C55E" />
-            <Text style={styles.successText}>¡Pago confirmado! Tu QR está listo.</Text>
+            <Text style={styles.successText}>{tr('¡Pago confirmado! Tu QR está listo.')}</Text>
           </View>
         )}
 
@@ -108,7 +108,7 @@ export default function PortTaxTicketScreen() {
           </View>
 
           <Text style={styles.planName}>{tr('Tasa Portuaria')}</Text>
-          <Text style={styles.routeName}>La Bodeguita → Islas</Text>
+          <Text style={styles.routeName}>{tr('La Bodeguita → Islas')}</Text>
 
           <View style={styles.qrWrap}>
             <View style={[styles.qrWhiteBg, ticket.status !== 'paid' && { opacity: 0.4 }]}>
@@ -149,7 +149,7 @@ export default function PortTaxTicketScreen() {
 
           <View style={styles.detailRow}>
             <View style={styles.detailItem}>
-              <Text style={styles.detailLabel}>Tasa / persona</Text>
+              <Text style={styles.detailLabel}>{tr('Tasa / persona')}</Text>
               <Text style={styles.detailValSmall}>{formatPrice(ticket.price_per_person)}</Text>
             </View>
             <View style={styles.detailItem}>
@@ -188,7 +188,7 @@ export default function PortTaxTicketScreen() {
           onPress={() => router.replace('/port-tax/tickets' as any)}
         >
           <Ionicons name="list" size={18} color={COLORS.textMain} />
-          <Text style={styles.secondaryBtnText}>Ver mis tiquetes</Text>
+          <Text style={styles.secondaryBtnText}>{tr('Ver mis tiquetes')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

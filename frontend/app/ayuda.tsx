@@ -97,7 +97,7 @@ export default function HelpScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.sosTitle}>Emergencia — Llamar 123</Text>
-              <Text style={styles.sosSubtitle}>Policía, Ambulancia, Bomberos</Text>
+              <Text style={styles.sosSubtitle}>{tr('Policía, Ambulancia, Bomberos')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.6)" />
           </TouchableOpacity>
@@ -164,7 +164,7 @@ export default function HelpScreen() {
           </TouchableOpacity>
 
           {/* ── FEEDBACK ── */}
-          <Text style={[styles.sectionLabel, { marginTop: SPACING.xl }]}>Enviar comentario</Text>
+          <Text style={[styles.sectionLabel, { marginTop: SPACING.xl }]}>{tr('Enviar comentario')}</Text>
           <View style={styles.kindRow}>
             {[
               { id: 'bug' as const, label: 'Reportar problema', icon: 'bug' as const, color: '#EF4444' },
@@ -185,7 +185,7 @@ export default function HelpScreen() {
             style={styles.input}
             value={message}
             onChangeText={setMessage}
-            placeholder="Cuéntanos qué pasó o qué necesitas..."
+            placeholder={tr('Cuéntanos qué pasó o qué necesitas...')}
             placeholderTextColor={COLORS.textFaint}
             multiline
             numberOfLines={4}
@@ -200,7 +200,7 @@ export default function HelpScreen() {
           {/* ── LEGAL ── */}
           <View style={styles.legalRow}>
             <TouchableOpacity style={styles.legalBtn} onPress={() => router.push('/terminos' as any)}>
-              <Text style={styles.legalText}>Términos</Text>
+              <Text style={styles.legalText}>{tr('Términos')}</Text>
             </TouchableOpacity>
             <Text style={styles.legalDot}>·</Text>
             <TouchableOpacity style={styles.legalBtn} onPress={() => router.push('/privacidad' as any)}>

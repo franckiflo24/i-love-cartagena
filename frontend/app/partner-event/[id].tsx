@@ -10,6 +10,7 @@ import { TierBadge } from '../../src/components/TierBadge';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useMyCalendar } from '../../src/context/MyCalendarContext';
 import { useLang } from '../../src/context/LanguageContext';
+import { useTr } from '@/src/i18n/autoTr';
 
 const CAT_ICONS: Record<string, string> = {
   gastronomy: 'restaurant',
@@ -46,6 +47,7 @@ export default function PartnerEventDetail() {
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [reserving, setReserving] = useState(false);
+  const tr = useTr();
 
   useEffect(() => {
     const load = async () => {
@@ -172,7 +174,7 @@ export default function PartnerEventDetail() {
           </View>
 
           {/* Description */}
-          <Text style={styles.sectionTitle}>Sobre el evento</Text>
+          <Text style={styles.sectionTitle}>{tr('Sobre el evento')}</Text>
           <Text style={styles.description}>{event.description}</Text>
 
           {/* Add to My Calendar */}
@@ -211,7 +213,7 @@ export default function PartnerEventDetail() {
           </TouchableOpacity>
 
           {/* Partner Card */}
-          <Text style={styles.sectionTitle}>Organizado por</Text>
+          <Text style={styles.sectionTitle}>{tr('Organizado por')}</Text>
           <TouchableOpacity
             style={[styles.partnerCard, tierColors && { borderColor: tierColors.border, borderWidth: 1.5 }]}
             onPress={() => router.push(`/partner/${event.partner_id}`)}
@@ -242,7 +244,7 @@ export default function PartnerEventDetail() {
                 ) : null}
                 <View style={styles.calendarBadge}>
                   <Ionicons name="calendar-outline" size={12} color={COLORS.textMuted} />
-                  <Text style={styles.calendarBadgeText}>Ver calendario</Text>
+                  <Text style={styles.calendarBadgeText}>{tr('Ver calendario')}</Text>
                   <Ionicons name="chevron-forward" size={12} color={COLORS.textMuted} />
                 </View>
               </View>
@@ -265,7 +267,7 @@ export default function PartnerEventDetail() {
           activeOpacity={0.85}
         >
           <Ionicons name="logo-whatsapp" size={18} color="#FFF" />
-          <Text style={styles.whatsappText}>Reservar por WhatsApp</Text>
+          <Text style={styles.whatsappText}>{tr('Reservar por WhatsApp')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

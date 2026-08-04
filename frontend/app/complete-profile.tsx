@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
+import { useTr } from '@/src/i18n/autoTr';
 
 const COUNTRIES = [
   { flag: '🇨🇴', name: 'Colombia' }, { flag: '🇺🇸', name: 'USA' },
@@ -29,6 +30,7 @@ export default function CompleteProfileScreen() {
   const [instagram, setInstagram] = useState('');
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const tr = useTr();
 
   const toggleInterest = (i: string) => {
     setSelectedInterests(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i]);
@@ -59,13 +61,13 @@ export default function CompleteProfileScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Cuéntanos de ti</Text>
-          <Text style={styles.subtitle}>Esto nos ayuda a personalizar tu experiencia</Text>
+          <Text style={styles.title}>{tr('Cuéntanos de ti')}</Text>
+          <Text style={styles.subtitle}>{tr('Esto nos ayuda a personalizar tu experiencia')}</Text>
         </View>
 
         {/* Country */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>¿De dónde eres?</Text>
+          <Text style={styles.sectionTitle}>{tr('¿De dónde eres?')}</Text>
           <View style={styles.grid}>
             {COUNTRIES.map(c => (
               <TouchableOpacity
@@ -115,7 +117,7 @@ export default function CompleteProfileScreen() {
 
         {/* Interests */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>¿Qué tipo de música te gusta?</Text>
+          <Text style={styles.sectionTitle}>{tr('¿Qué tipo de música te gusta?')}</Text>
           <View style={styles.grid}>
             {INTERESTS.map(i => (
               <TouchableOpacity
@@ -137,7 +139,7 @@ export default function CompleteProfileScreen() {
           <Ionicons name="arrow-forward" size={20} color="#FFF" />
         </TouchableOpacity>
         <TouchableOpacity onPress={skip}>
-          <Text style={styles.skipText}>Saltar por ahora</Text>
+          <Text style={styles.skipText}>{tr('Saltar por ahora')}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

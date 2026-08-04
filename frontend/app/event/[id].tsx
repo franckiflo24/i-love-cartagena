@@ -68,7 +68,7 @@ export default function EventDetail() {
           <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
           <Text style={{ color: COLORS.textMuted, fontSize: 16, textAlign: 'center' }}>Evento no encontrado</Text>
           <TouchableOpacity onPress={() => { if (router.canGoBack()) router.back(); else router.replace('/' as any); }} style={{ marginTop: 8, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 20, backgroundColor: COLORS.primary }}>
-            <Text style={{ color: COLORS.white, fontWeight: '600' }}>Volver</Text>
+            <Text style={{ color: COLORS.white, fontWeight: '600' }}>{tr('Volver')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -146,12 +146,12 @@ export default function EventDetail() {
               <Ionicons name="location-outline" size={20} color={COLORS.primary} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.infoLabel}>Lugar</Text>
+              <Text style={styles.infoLabel}>{tr('Lugar')}</Text>
               <Text style={styles.infoValue}>{event.venue_name}</Text>
             </View>
             <View style={styles.mapCta}>
               <Ionicons name="map" size={14} color={COLORS.primary} />
-              <Text style={styles.mapCtaText}>Ver mapa</Text>
+              <Text style={styles.mapCtaText}>{tr('Ver mapa')}</Text>
             </View>
           </TouchableOpacity>
           <View style={styles.infoRow}>
@@ -159,7 +159,7 @@ export default function EventDetail() {
               <Ionicons name="cash-outline" size={20} color={COLORS.primary} />
             </View>
             <View>
-              <Text style={styles.infoLabel}>Precio</Text>
+              <Text style={styles.infoLabel}>{tr('Precio')}</Text>
               <Text style={[styles.infoValue, event.is_free && { color: COLORS.success }]}>
                 {formatPrice(event.price)}
               </Text>
@@ -180,7 +180,7 @@ export default function EventDetail() {
 
         {/* Description */}
         <View style={styles.descSection}>
-          <Text style={styles.descTitle}>Descripción</Text>
+          <Text style={styles.descTitle}>{tr('Descripción')}</Text>
           <Text style={styles.descText}>{event.description}</Text>
         </View>
 

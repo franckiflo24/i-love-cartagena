@@ -8,9 +8,41 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { api } from '../constants/api';
+import { useTr } from '@/src/i18n/autoTr';
 
 type Props = { children: React.ReactNode };
 type State = { hasError: boolean; error: Error | null };
+
+// Fallback UI as a function component so it can use the translation hook
+// (the boundary itself must stay a class for getDerivedStateFromError).
+function ErrorFallback({ onReset }: { onReset: () => void }) {
+  const tr = useTr();
+  return (
+    <View style={styles.container}>
+      <View style={styles.iconWrap}>
+        <Ionicons name="warning" size={48} color={COLORS.primary} />
+      </View>
+      <Text style={styles.title}>{tr('Algo salió mal')}</Text>
+      <Text style={styles.subtitle}>
+        {tr('Tuvimos un problema mostrando esta pantalla. Ya enviamos un reporte automático al equipo.')}
+      </Text>
+      <TouchableOpacity style={styles.homeBtn} onPress={() => {
+        if (typeof window !== 'undefined') {
+          window.location.href = '/';
+        } else {
+          onReset();
+        }
+      }} activeOpacity={0.85}>
+        <Ionicons name="home" size={16} color={COLORS.textMain} />
+        <Text style={styles.homeBtnText}>{tr('Volver al inicio')}</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.cta} onPress={onReset} activeOpacity={0.85}>
+        <Ionicons name="refresh" size={16} color="#FFF" />
+        <Text style={styles.ctaText}>{tr('Reintentar')}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 export default class ErrorBoundary extends React.Component<Props, State> {
   state: State = { hasError: false, error: null };
@@ -38,31 +70,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      return (
-        <View style={styles.container}>
-          <View style={styles.iconWrap}>
-            <Ionicons name="warning" size={48} color={COLORS.primary} />
-          </View>
-          <Text style={styles.title}>Algo salió mal</Text>
-          <Text style={styles.subtitle}>
-            Tuvimos un problema mostrando esta pantalla. Ya enviamos un reporte automático al equipo.
-          </Text>
-          <TouchableOpacity style={styles.homeBtn} onPress={() => {
-            if (typeof window !== 'undefined') {
-              window.location.href = '/'; // page reload resets state
-            } else {
-              this.reset(); // native only
-            }
-          }} activeOpacity={0.85}>
-            <Ionicons name="home" size={16} color={COLORS.textMain} />
-            <Text style={styles.homeBtnText}>Volver al inicio</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.cta} onPress={this.reset} activeOpacity={0.85}>
-            <Ionicons name="refresh" size={16} color="#FFF" />
-            <Text style={styles.ctaText}>Reintentar</Text>
-          </TouchableOpacity>
-        </View>
-      );
+      return <ErrorFallback onReset={this.reset} />;
     }
     return this.props.children as React.ReactElement;
   }

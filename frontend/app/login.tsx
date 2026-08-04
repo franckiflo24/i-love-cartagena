@@ -13,6 +13,7 @@ import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLang } from '../src/context/LanguageContext';
 import { Lang, LANG_FLAGS } from '../src/i18n/translations';
+import { useTr } from '@/src/i18n/autoTr';
 
 const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
 
@@ -32,6 +33,7 @@ export default function LoginScreen() {
   const [verifyStep, setVerifyStep] = useState(false);
   const [verifyCode, setVerifyCode] = useState('');
   const [resendCountdown, setResendCountdown] = useState(0);
+  const tr = useTr();
 
   useEffect(() => {
     if (user && !isLoading) {
@@ -351,14 +353,14 @@ export default function LoginScreen() {
                   ) : (
                     <>
                       <Ionicons name="mail-outline" size={18} color={COLORS.white} />
-                      <Text style={styles.modalSaveBtnText}>Enviar código</Text>
+                      <Text style={styles.modalSaveBtnText}>{tr('Enviar código')}</Text>
                     </>
                   )}
                 </TouchableOpacity>
               </>
             ) : (
               <>
-                <Text style={styles.modalTitle}>Verifica tu email</Text>
+                <Text style={styles.modalTitle}>{tr('Verifica tu email')}</Text>
                 <Text style={styles.modalSubtitle}>
                   Enviamos un código de 6 dígitos a {signupEmail.trim()}
                 </Text>

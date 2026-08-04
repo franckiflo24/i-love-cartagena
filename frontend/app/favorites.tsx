@@ -199,7 +199,7 @@ export default function FavoritesScreen() {
           agendaCount === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="calendar-outline" size={56} color={COLORS.textMuted} />
-              <Text style={styles.emptyTitle}>Sin eventos guardados</Text>
+              <Text style={styles.emptyTitle}>{tr('Sin eventos guardados')}</Text>
               <Text style={styles.emptyDesc}>Toca el corazón ❤️ en eventos, conciertos y eventos de partners para guardarlos aquí.</Text>
               <TouchableOpacity style={styles.exploreCta} onPress={() => router.push('/(tabs)/agenda' as any)}>
                 <Ionicons name="sparkles" size={16} color={COLORS.primary} />

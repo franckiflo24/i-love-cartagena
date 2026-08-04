@@ -366,7 +366,7 @@ export default function RewardsHub() {
           ) : (
             <View style={styles.heroProgress}>
               <AnimatedProgressBar pct={100} color={COLORS.white} />
-              <Text style={styles.progressLabel}>Nivel maximo alcanzado</Text>
+              <Text style={styles.progressLabel}>{tr('Nivel maximo alcanzado')}</Text>
             </View>
           )}
         </LinearGradient>
@@ -377,7 +377,7 @@ export default function RewardsHub() {
           {(Array.isArray(data.recent_history) ? data.recent_history : []).length === 0 ? (
             <View style={styles.emptyBox}>
               <Ionicons name="time-outline" size={28} color={COLORS.textMuted} />
-              <Text style={styles.emptyText}>Sin actividad reciente</Text>
+              <Text style={styles.emptyText}>{tr('Sin actividad reciente')}</Text>
             </View>
           ) : (
             <View style={styles.card}>

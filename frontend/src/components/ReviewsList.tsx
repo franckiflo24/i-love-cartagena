@@ -14,6 +14,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '@/src/constants/theme';
 import { getPartnerReviews } from '@/src/services/reviewsStore';
 import { useLang } from '@/src/context/LanguageContext';
 import ReviewCard from './ReviewCard';
+import { useTr } from '@/src/i18n/autoTr';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -160,6 +161,7 @@ export interface ReviewsListProps {
 
 export default function ReviewsList({ partnerId }: ReviewsListProps) {
   const { s } = useLang();
+  const tr = useTr();
   const router = useRouter();
 
   const [payload, setPayload] = useState<ReviewsPayload | null>(null);
@@ -240,7 +242,7 @@ export default function ReviewsList({ partnerId }: ReviewsListProps) {
       {reviews.length === 0 ? (
         <View style={styles.emptyBox}>
           <Ionicons name="chatbubble-outline" size={28} color={COLORS.textMuted} />
-          <Text style={styles.emptyText}>Sé el primero en dejar una reseña</Text>
+          <Text style={styles.emptyText}>{tr('Sé el primero en dejar una reseña')}</Text>
         </View>
       ) : (
         <View style={styles.list}>

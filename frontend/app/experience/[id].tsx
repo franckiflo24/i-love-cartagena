@@ -13,6 +13,7 @@ import { getCategoryImage } from '@/src/constants/images';
 import { api } from '@/src/constants/api';
 import { useLang } from '@/src/context/LanguageContext';
 import { useAuth } from '@/src/context/AuthContext';
+import { useTr } from '@/src/i18n/autoTr';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_HEIGHT = 300;
@@ -45,6 +46,7 @@ type Experience = {
 
 export default function ExperienceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const tr = useTr();
   const router = useRouter();
   const { s } = useLang();
   const { user } = useAuth();
@@ -170,7 +172,7 @@ export default function ExperienceDetailScreen() {
 
           {/* Description */}
           <View style={styles.descriptionSection}>
-            <Text style={styles.sectionTitle}>Descripción</Text>
+            <Text style={styles.sectionTitle}>{tr('Descripción')}</Text>
             <Text style={styles.descriptionText}>{experience.description}</Text>
           </View>
 

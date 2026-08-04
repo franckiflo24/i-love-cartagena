@@ -451,7 +451,7 @@ function NeighborhoodDetailModal({
             <View style={styles.nbModalSection}>
               <View style={styles.nbModalSectionHeader}>
                 <Ionicons name="cash-outline" size={16} color={COLORS.primary} />
-                <Text style={styles.nbModalSectionTitle}>Nivel de precios</Text>
+                <Text style={styles.nbModalSectionTitle}>{tr('Nivel de precios')}</Text>
               </View>
               <Text style={styles.nbModalPriceLevel}>
                 {'$'.repeat(item.price_index)}
@@ -463,7 +463,7 @@ function NeighborhoodDetailModal({
             <View style={styles.nbModalSection}>
               <View style={styles.nbModalSectionHeader}>
                 <Ionicons name="car-outline" size={16} color={COLORS.primary} />
-                <Text style={styles.nbModalSectionTitle}>Taxi desde el aeropuerto</Text>
+                <Text style={styles.nbModalSectionTitle}>{tr('Taxi desde el aeropuerto')}</Text>
               </View>
               <Text style={styles.nbModalFare}>
                 ${item.taxi_fare_from_airport_cop.toLocaleString()} COP
@@ -474,7 +474,7 @@ function NeighborhoodDetailModal({
             <View style={styles.nbModalSection}>
               <View style={styles.nbModalSectionHeader}>
                 <Ionicons name="heart-outline" size={16} color={COLORS.primary} />
-                <Text style={styles.nbModalSectionTitle}>Ideal para</Text>
+                <Text style={styles.nbModalSectionTitle}>{tr('Ideal para')}</Text>
               </View>
               <View style={styles.nbModalTags}>
                 {item.best_for.map((tag) => (
@@ -718,7 +718,7 @@ export default function ExploreScreen() {
         <View style={styles.exploreHeroOverlay} />
         <View style={styles.exploreHeroContent}>
           <Text style={styles.title}>{tr('Explorar')}</Text>
-          <Text style={styles.subtitle}>Descubre lo mejor de Cartagena</Text>
+          <Text style={styles.subtitle}>{tr('Descubre lo mejor de Cartagena')}</Text>
         </View>
         <TouchableOpacity
           style={styles.mapBtn}
@@ -751,7 +751,7 @@ export default function ExploreScreen() {
           activeOpacity={0.8}
         >
           <Text style={styles.personalizationText}>
-            {'\u2728'} Ordenado seg{'\u00fa'}n tus preferencias
+            {'\u2728'} {tr('Ordenado seg\u00fan tus preferencias')}
           </Text>
           <Text style={styles.personalizationEdit}>Editar</Text>
         </TouchableOpacity>

@@ -10,6 +10,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '@/src/constants/theme';
 import { api } from '@/src/constants/api';
 import { useLang } from '@/src/context/LanguageContext';
 import { openWompiCheckout } from '@/src/lib/wompi';
+import { useTr } from '@/src/i18n/autoTr';
 
 export default function ExperienceBookingScreen() {
   const params = useLocalSearchParams<{ id: string; title: string; price: string; currency: string }>();
@@ -19,6 +20,7 @@ export default function ExperienceBookingScreen() {
   const [selectedDate, setSelectedDate] = useState('');
   const [guests, setGuests] = useState(1);
   const [loading, setLoading] = useState(false);
+  const tr = useTr();
 
   const pricePerPerson = parseInt(params.price || '0', 10);
   const totalPrice = pricePerPerson * guests;
@@ -34,7 +36,7 @@ export default function ExperienceBookingScreen() {
     const d = new Date(iso + 'T12:00:00');
     const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return { day: days[d.getDay()], date: d.getDate(), month: months[d.getMonth()] };
+    return { day: tr(days[d.getDay()]), date: d.getDate(), month: tr(months[d.getMonth()]) };
   };
 
   const handleBook = async () => {
@@ -54,7 +56,7 @@ export default function ExperienceBookingScreen() {
         if (wompiResult.status === 'approved') {
           router.replace('/(tabs)/bookings' as any);
         } else {
-          Alert.alert('Pago', `Estado: ${wompiResult.status}`);
+          Alert.alert(tr('Pago'), `Estado: ${wompiResult.status}`);
         }
       } else {
         // Static mode: no checkout_url. Show clear feedback instead of silent nothing.

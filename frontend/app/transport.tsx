@@ -301,7 +301,7 @@ export default function TransportScreen() {
                 <View style={styles.details}>
                   <View style={styles.detailRow}>
                     <Ionicons name="information-circle-outline" size={14} color={COLORS.textMuted} />
-                    <Text style={styles.detailTextMuted}>Tarifa de lancha según operador · tasa portuaria aparte</Text>
+                    <Text style={styles.detailTextMuted}>{tr('Tarifa de lancha según operador · tasa portuaria aparte')}</Text>
                   </View>
                   {route.duration && (
                     <View style={styles.detailRow}>
@@ -329,7 +329,7 @@ export default function TransportScreen() {
                         activeOpacity={0.85}
                       >
                         <Ionicons name="logo-whatsapp" size={14} color={COLORS.white} />
-                        <Text style={styles.payBtnText}>Reservar vía WhatsApp</Text>
+                        <Text style={styles.payBtnText}>{tr('Reservar vía WhatsApp')}</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.simBtn}
@@ -337,7 +337,7 @@ export default function TransportScreen() {
                         activeOpacity={0.85}
                       >
                         <Ionicons name="flask" size={14} color={COLORS.primary} />
-                        <Text style={styles.simBtnText}>Simular pago</Text>
+                        <Text style={styles.simBtnText}>{tr('Simular pago')}</Text>
                       </TouchableOpacity>
                     </>
                   ) : null}

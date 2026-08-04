@@ -387,7 +387,7 @@ export default function PartnersScreen() {
               <View style={styles.heroBannerContent}>
                 <Ionicons name="diamond" size={32} color={COLORS.primary} />
                 <Text style={styles.heroBannerTitle}>{tr('Lugares certificados')}</Text>
-                <Text style={styles.heroBannerDesc}>Restaurantes, clubs, hoteles y más validados por Amo Cartagena</Text>
+                <Text style={styles.heroBannerDesc}>{tr('Restaurantes, clubs, hoteles y más validados por Amo Cartagena')}</Text>
               </View>
             </View>
 
