@@ -16,6 +16,8 @@ import { geoService, haversineM } from '../../src/lib/geo';
 import { getCollections } from '../../src/lib/passport';
 import { getVenues } from '../../src/lib/venueCache';
 import { venueBarrio, NBH_LABELS, NbhCentroid } from '../../src/utils/neighborhood';
+import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
+import { getHomeBase } from '../../src/lib/homeBase';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -392,7 +394,12 @@ export default function MapaScreen() {
   const [passportIds, setPassportIds] = useState<Set<string>>(new Set());
   const [neighborhoods, setNeighborhoods] = useState<NbhCentroid[]>([]);
   const [nbhFilter, setNbhFilter] = useState<string | null>(null); // null = all barrios
+  const [baseSheet, setBaseSheet] = useState(false);
+  const [hasBase, setHasBase] = useState(false);
   const webViewRef = useRef<any>(null);
+
+  // Reflect whether a home base is set (re-check when the sheet closes).
+  useEffect(() => { setHasBase(!!getHomeBase()); }, [baseSheet]);
 
   // Neighborhood centroids for the barrio filter (same source as Explore).
   useEffect(() => {
@@ -693,6 +700,15 @@ export default function MapaScreen() {
           />
         )}
 
+        {/* Floating "Mi Base" — set your hotel, get back from anywhere */}
+        <TouchableOpacity
+          style={[styles.locateBtn, { bottom: 138 }, hasBase && styles.locateBtnActive]}
+          onPress={() => setBaseSheet(true)}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="home" size={19} color={hasBase ? COLORS.white : COLORS.primary} />
+        </TouchableOpacity>
+
         {/* Floating "Recentrar en Cartagena" button */}
         <TouchableOpacity
           style={[styles.locateBtn, { bottom: 80 }, follow && styles.locateBtnActive]}
@@ -730,6 +746,7 @@ export default function MapaScreen() {
           </View>
         )}
       </View>
+      <HomeBaseSheet visible={baseSheet} onClose={() => setBaseSheet(false)} />
     </SafeAreaView>
   );
 }

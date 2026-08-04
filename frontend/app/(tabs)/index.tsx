@@ -20,6 +20,7 @@ import { COLLECTION_DEFS } from '../../src/constants/collections';
 import { captureRef, claimPendingRef } from '../../src/lib/referral';
 import { PassportGlance } from '../../src/components/PassportGlance';
 import { SeasonBanner } from '../../src/components/SeasonBanner';
+import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
@@ -95,6 +96,7 @@ export default function HomeScreen() {
   const { s, lang } = useLang();
   const tr = useTr();
   const { userProfile, getPersonalizedPartners, getPersonalizedCategories, getGreeting, hasCompletedOnboarding } = usePersonalization();
+  const [baseSheet, setBaseSheet] = useState(false);
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [featured, setFeatured] = useState<Event[]>([]);
   const [todayEvents, setTodayEvents] = useState<Event[]>([]);
@@ -521,6 +523,7 @@ export default function HomeScreen() {
           >
             {(() => {
               const allItems = [
+                { icon: 'home',           label: tr('Mi base'),        subtitle: tr('Cómo volver'),     color: '#D4AF37', route: '#base', cat: '' },
                 { icon: 'calendar',       label: s('home_agenda'),     subtitle: s('home_today'),       color: '#F97316', route: '/(tabs)/agenda', cat: '' },
                 { icon: 'compass',        label: 'Explorar',           subtitle: 'Lugares',             color: '#3B82F6', route: '/(tabs)/explore', cat: '' },
                 { icon: 'ribbon',         label: 'Pasaporte',          subtitle: 'Sellos',              color: '#D4AF37', route: '/(tabs)/pasaporte', cat: '' },
@@ -547,6 +550,7 @@ export default function HomeScreen() {
                 style={[styles.quickItemHero, { backgroundColor: item.color + '1A', borderColor: item.color + '4D' }]}
                 onPress={() => {
                   trackEvent('quick_access', item.label, 'navigation');
+                  if (item.route === '#base') { setBaseSheet(true); return; }
                   router.push(item.route as any);
                 }}
                 activeOpacity={0.8}
@@ -1193,6 +1197,7 @@ export default function HomeScreen() {
 
         <View style={{ height: SPACING.xxl }} />
       </ScrollView>
+      <HomeBaseSheet visible={baseSheet} onClose={() => setBaseSheet(false)} />
     </SafeAreaView>
   );
 }
