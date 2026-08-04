@@ -533,6 +533,15 @@ export default function ExploreScreen() {
   const [localsNbh, setLocalsNbh] = useState<string | null>(null);
   const localPicks = useLocalPicks();
 
+  // Hydration guard: card widths are derived from Dimensions.get('window') at
+  // module load, so the static export prerenders them with a default viewport
+  // width while the client computes the real device width — the mismatched
+  // inline widths tripped React #418 on hydration. Hold a deterministic first
+  // paint (hero only, no width-derived styles) until mounted, matching the
+  // prerender, then render the real, correctly-sized layout.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   // Walking Layer battery discipline: the geo watch runs ONLY while Explore
   // is the focused screen (geoService also clears it when the tab is hidden).
   useFocusEffect(
@@ -1059,6 +1068,24 @@ export default function ExploreScreen() {
       </TouchableOpacity>
     </View>
   );
+
+  // Deterministic pre-mount paint (see hydration guard above). Uses only
+  // fixed-dimension styles so the build prerender and the client's first
+  // render are byte-identical, then the real layout renders after mount.
+  if (!mounted) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.exploreHero}>
+          <SafeImage uri={IMAGES.cartagena_aerial} style={styles.exploreHeroImg} />
+          <View style={styles.exploreHeroOverlay} />
+          <View style={styles.exploreHeroContent}>
+            <Text style={styles.title}>{tr('Explorar')}</Text>
+            <Text style={styles.subtitle}>{tr('Descubre lo mejor de Cartagena')}</Text>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

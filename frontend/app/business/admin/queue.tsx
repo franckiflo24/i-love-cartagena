@@ -1,0 +1,140 @@
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, RefreshControl } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { COLORS, SPACING, RADIUS, FONTS } from '../../../src/constants/theme';
+import { useBusinessAuth } from '../../../src/context/BusinessAuthContext';
+import { api } from '../../../src/constants/api';
+import { useTr } from '../../../src/i18n/autoTr';
+
+// Admin moderation queue (government role). Two firewalls converge here:
+// new-venue DRAFTS awaiting approval, and CLAIMS awaiting manual review /
+// dispute resolution. This is where Phil approves/rejects.
+export default function AdminQueue() {
+  const tr = useTr();
+  const router = useRouter();
+  const { token, business, loading: authLoading } = useBusinessAuth();
+  const [drafts, setDrafts] = useState<any[]>([]);
+  const [claims, setClaims] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const auth = { headers: { Authorization: `Bearer ${token}` } };
+  const load = useCallback(async () => {
+    if (!token) return;
+    try {
+      const [d, c] = await Promise.all([
+        api.get('/business/admin/venue-drafts', auth).catch(() => ({ drafts: [] })),
+        api.get('/business/admin/claims', auth).catch(() => ({ claims: [] })),
+      ]);
+      setDrafts(d.drafts || []);
+      setClaims(c.claims || []);
+    } catch { /* fail soft */ }
+  }, [token]);
+
+  useFocusEffect(useCallback(() => {
+    if (authLoading) return;
+    if (!token) { router.replace('/business/login' as any); return; }
+    setLoading(true); load().finally(() => setLoading(false));
+  }, [token, authLoading, load]));
+
+  const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
+
+  const act = async (fn: () => Promise<any>, okMsg: string) => {
+    try { await fn(); await load(); }
+    catch (e: any) { Alert.alert('Error', e?.message || 'Error'); }
+  };
+
+  const approveDraft = (id: string) => act(() => api.post(`/business/admin/venue-drafts/${id}/approve`, {}, auth), 'ok');
+  const rejectDraft = (id: string) => act(() => api.post(`/business/admin/venue-drafts/${id}/reject`, { reason: 'rejected' }, auth), 'ok');
+  const resolveClaim = (cid: string, action: string) => act(() => api.post(`/business/admin/claims/${cid}/resolve`, { action }, auth), 'ok');
+
+  if (!authLoading && business && business.role !== 'government') {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.center}><Text style={styles.muted}>{tr('Acceso solo para la Alcaldía')}</Text></View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
+        </TouchableOpacity>
+        <Text style={styles.hTitle}>{tr('Revisión')}</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      {loading ? <ActivityIndicator color={COLORS.primary} style={{ marginTop: 60 }} /> : (
+        <ScrollView contentContainerStyle={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}>
+          <Text style={styles.section}>{tr('Negocios nuevos')} · {drafts.length}</Text>
+          {drafts.length === 0 && <Text style={styles.empty}>{tr('Sin borradores pendientes')}</Text>}
+          {drafts.map(d => (
+            <View key={d.partner_id} style={styles.card}>
+              <Text style={styles.cardName}>{d.name}</Text>
+              <Text style={styles.cardMeta}>{[d.category, d.neighborhood].filter(Boolean).join(' · ')}</Text>
+              {!!d.description && <Text style={styles.cardDesc} numberOfLines={3}>{d.description}</Text>}
+              <Text style={styles.cardBy}>{tr('Enviado por')}: {d.submitted_email || d.submitted_by}</Text>
+              <View style={styles.actions}>
+                <TouchableOpacity style={[styles.actBtn, styles.reject]} onPress={() => rejectDraft(d.partner_id)}><Text style={styles.rejectText}>{tr('Rechazar')}</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.actBtn, styles.approve]} onPress={() => approveDraft(d.partner_id)}><Text style={styles.approveText}>{tr('Aprobar')}</Text></TouchableOpacity>
+              </View>
+            </View>
+          ))}
+
+          <Text style={[styles.section, { marginTop: SPACING.xl }]}>{tr('Reclamos y disputas')} · {claims.length}</Text>
+          {claims.length === 0 && <Text style={styles.empty}>{tr('Sin reclamos pendientes')}</Text>}
+          {claims.map(c => (
+            <View key={c.claim_id} style={styles.card}>
+              <View style={styles.claimHead}>
+                <Text style={styles.cardName}>{c.partner_name || c.partner_id}</Text>
+                <View style={[styles.tag, c.state === 'disputed' ? styles.tagDispute : styles.tagManual]}>
+                  <Text style={styles.tagText}>{c.state === 'disputed' ? tr('Disputa') : tr('Manual')}</Text>
+                </View>
+              </View>
+              <Text style={styles.cardBy}>{tr('Solicitante')}: {c.actor_email || c.business_id}</Text>
+              {!!c.proof && <Text style={styles.cardDesc} numberOfLines={4}>{tr('Prueba')}: {c.proof}</Text>}
+              {!!c.note && <Text style={styles.cardDesc}>{c.note}</Text>}
+              <View style={styles.actions}>
+                <TouchableOpacity style={[styles.actBtn, styles.reject]} onPress={() => resolveClaim(c.claim_id, 'reject')}><Text style={styles.rejectText}>{tr('Rechazar')}</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.actBtn, styles.approve]} onPress={() => resolveClaim(c.claim_id, 'approve')}><Text style={styles.approveText}>{tr('Aprobar propiedad')}</Text></TouchableOpacity>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: COLORS.background },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  muted: { color: COLORS.textMuted, fontSize: 14, ...FONTS.regular },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.md, paddingTop: SPACING.sm, paddingBottom: SPACING.sm },
+  backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border },
+  hTitle: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold },
+  scroll: { padding: SPACING.lg },
+  section: { fontSize: 13, color: COLORS.textMuted, ...FONTS.bold, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: SPACING.sm },
+  empty: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, fontStyle: 'italic', marginBottom: SPACING.md },
+  card: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.md, marginBottom: SPACING.md },
+  cardName: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold },
+  cardMeta: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+  cardDesc: { fontSize: 13, color: COLORS.textMain, ...FONTS.regular, marginTop: SPACING.sm, lineHeight: 18 },
+  cardBy: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: SPACING.sm },
+  claimHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  tag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: RADIUS.full },
+  tagManual: { backgroundColor: 'rgba(217,119,6,0.15)' },
+  tagDispute: { backgroundColor: 'rgba(220,38,38,0.15)' },
+  tagText: { fontSize: 10, color: COLORS.textMain, ...FONTS.bold, letterSpacing: 0.3 },
+  actions: { flexDirection: 'row', gap: SPACING.sm, marginTop: SPACING.md },
+  actBtn: { flex: 1, alignItems: 'center', paddingVertical: 11, borderRadius: RADIUS.full },
+  approve: { backgroundColor: COLORS.primary },
+  approveText: { color: COLORS.white, fontSize: 13, ...FONTS.bold },
+  reject: { backgroundColor: COLORS.surfaceAlt, borderWidth: 1, borderColor: COLORS.border },
+  rejectText: { color: COLORS.textMuted, fontSize: 13, ...FONTS.semibold },
+});

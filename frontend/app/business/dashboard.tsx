@@ -114,6 +114,11 @@ export default function BusinessDashboard() {
 
   const tierColors = partner?.tier ? TIER_COLORS[partner.tier as Tier] : null;
   const isGovernment = business?.role === 'government';
+  // B1: edit rights require a VERIFIED claim. A partner with no venue yet, or a
+  // pending/unverified claim, sees the "find your business" flow instead of the
+  // (non-functional) venue dashboard.
+  const claimStatus = partner?.claim_status;
+  const needsClaim = !isGovernment && (!partner || claimStatus !== 'verified_owner');
 
   if (isGovernment && token && !forcePartnerView) {
     return (
@@ -123,9 +128,14 @@ export default function BusinessDashboard() {
             <Ionicons name="close" size={22} color={COLORS.textMain} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Panel Alcaldía</Text>
-          <TouchableOpacity onPress={handleLogout} style={styles.headerBtn}>
-            <Ionicons name="log-out-outline" size={22} color={COLORS.textMuted} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row' }}>
+            <TouchableOpacity onPress={() => router.push('/business/admin/queue' as any)} style={styles.headerBtn}>
+              <Ionicons name="albums-outline" size={21} color={COLORS.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleLogout} style={styles.headerBtn}>
+              <Ionicons name="log-out-outline" size={22} color={COLORS.textMuted} />
+            </TouchableOpacity>
+          </View>
         </View>
         <AlcaldiaDashboard
           token={token}
@@ -161,6 +171,29 @@ export default function BusinessDashboard() {
       </View>
 
       <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />} contentContainerStyle={{ paddingBottom: 100 }}>
+        {needsClaim && (
+          <View style={styles.claimGate}>
+            <View style={styles.claimIcon}>
+              <Ionicons name={claimStatus === 'pending_verification' ? 'hourglass-outline' : 'storefront-outline'} size={34} color={COLORS.primary} />
+            </View>
+            {claimStatus === 'pending_verification' ? (
+              <>
+                <Text style={styles.claimTitle}>{tr('Verificación en proceso')}</Text>
+                <Text style={styles.claimSub}>{tr('Estamos revisando tu solicitud de propiedad. Podrás editar tu negocio cuando sea verificada.')}</Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.claimTitle}>{tr('Encuentra tu negocio')}</Text>
+                <Text style={styles.claimSub}>{tr('Busca tu negocio en el catálogo y verifica que eres el dueño para empezar a gestionarlo.')}</Text>
+                <TouchableOpacity style={styles.claimCta} onPress={() => router.push('/business/find' as any)}>
+                  <Ionicons name="search" size={18} color={COLORS.white} />
+                  <Text style={styles.claimCtaText}>{tr('Buscar mi negocio')}</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        )}
+        {!needsClaim && (<>
         {/* Partner Profile Card */}
         <View style={[styles.profileCard, tierColors && { borderColor: tierColors.border, borderWidth: 1.5 }]}>
           {partner?.image_url ? (
@@ -171,8 +204,8 @@ export default function BusinessDashboard() {
             <View style={styles.profileBadgeRow}>
               <TierBadge tier={partner?.tier} size="sm" />
               <View style={styles.verifiedBadge}>
-                <Ionicons name="shield-checkmark" size={12} color={COLORS.primary} />
-                <Text style={styles.verifiedText}>VERIFICADO</Text>
+                <Ionicons name={partner?.catalog_status === 'pending_review' ? 'hourglass-outline' : 'shield-checkmark'} size={12} color={COLORS.primary} />
+                <Text style={styles.verifiedText}>{partner?.catalog_status === 'pending_review' ? tr('EN REVISIÓN') : tr('DUEÑO VERIFICADO')}</Text>
               </View>
             </View>
             <Text style={styles.partnerName}>{partner?.name || business?.full_name}</Text>
@@ -462,6 +495,7 @@ export default function BusinessDashboard() {
             })
           )}
         </View>
+        </>)}
       </ScrollView>
     </SafeAreaView>
   );
@@ -469,6 +503,12 @@ export default function BusinessDashboard() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
+  claimGate: { alignItems: 'center', paddingHorizontal: SPACING.lg, paddingTop: SPACING.xl * 1.5, paddingBottom: SPACING.xl },
+  claimIcon: { width: 76, height: 76, borderRadius: 38, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(217,119,6,0.15)', borderWidth: 1.5, borderColor: COLORS.primary },
+  claimTitle: { fontSize: 20, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center', marginTop: SPACING.lg },
+  claimSub: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 20, marginTop: SPACING.sm, paddingHorizontal: SPACING.sm },
+  claimCta: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 14, paddingHorizontal: SPACING.xl, marginTop: SPACING.xl },
+  claimCtaText: { color: COLORS.white, fontSize: 14, ...FONTS.bold },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   headerBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold },

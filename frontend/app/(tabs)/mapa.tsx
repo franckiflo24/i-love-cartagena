@@ -69,10 +69,10 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
 
   const markers = filtered.map(p => {
     const color = MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || '#D97706';
-    const safeName = p.name.replace(/'/g, "").replace(/"/g, "");
+    const safeName = (p.name || '').replace(/'/g, "").replace(/"/g, "");
     const safeDesc = (p.extra || p.description || '').replace(/'/g, "").replace(/"/g, "").substring(0, 80);
-    const safeAddr = p.address.replace(/'/g, "").replace(/"/g, "");
-    const safePrice = p.price.replace(/'/g, "").replace(/"/g, "");
+    const safeAddr = (p.address || '').replace(/'/g, "").replace(/"/g, "");
+    const safePrice = (p.price || '').replace(/'/g, "").replace(/"/g, "");
     const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng;
 
     const priceHtml = safePrice ? '<span style="font-size:12px;color:#D97706;font-weight:700;">' + safePrice + '</span><br>' : '';
@@ -300,9 +300,9 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
       if (!p.lat || !p.lng) return;
       const isPassport = passportIds.has(p.id);
       const color = isPassport ? GOLD : (MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || '#D97706');
-      const safeName = p.name.replace(/'/g, '').replace(/"/g, '');
+      const safeName = (p.name || '').replace(/'/g, '').replace(/"/g, '');
       const safeDesc = (p.extra || p.description || '').replace(/'/g, '').replace(/"/g, '').substring(0, 80);
-      const safeAddr = p.address.replace(/'/g, '').replace(/"/g, '');
+      const safeAddr = (p.address || '').replace(/'/g, '').replace(/"/g, '');
       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
       const priceHtml = p.price ? `<span style="font-size:12px;color:#D97706;font-weight:700">${p.price}</span><br>` : '';
       const passportHtml = isPassport
