@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+from difflib import SequenceMatcher
 from typing import Iterable
 
 # ── Dedup threshold (reported in the deliverable) ────────────────────────────
@@ -73,14 +74,45 @@ def _tokens(s: str | None, drop_stop: bool = True) -> set[str]:
     return set(toks)
 
 
+def _token_match(a: str, b: str) -> bool:
+    """Exact, or a near-miss typo of the SAME distinctive token.
+
+    Fuzzy matching is gated to tokens of length >= 4 (so short generic words like
+    "bar"/"mar" don't collide) and a high ratio, so it catches "belini"~"bellini"
+    without inventing matches between unrelated words.
+    """
+    if a == b:
+        return True
+    if len(a) < 4 or len(b) < 4:
+        return False
+    return SequenceMatcher(None, a, b).ratio() >= 0.84
+
+
+def _fuzzy_inter(ta: set[str], tb: set[str]) -> int:
+    """Count tokens of `ta` that have an exact-or-fuzzy match in `tb` (1:1)."""
+    used: set[str] = set()
+    count = 0
+    for a in ta:
+        for b in tb:
+            if b in used:
+                continue
+            if _token_match(a, b):
+                used.add(b)
+                count += 1
+                break
+    return count
+
+
 def similarity(a: str | None, b: str | None) -> float:
-    """0..1 name similarity: max(token-Jaccard, shorter-name containment).
+    """0..1 name similarity: max(token-Jaccard, shorter-name containment), where
+    token overlap is FUZZY (tolerates a 1-2 char typo of a distinctive token).
 
     Shorter-name containment = inter/min(len(a), len(b)) — so a short name that
     is FULLY inside a longer one scores 1.0 ("Bellini" vs "Bellini Ristorante",
-    "Carmen" vs "Restaurante Carmen"). The false-positive risk (a 3-token name
-    sharing one COMMON word with a 2-token name) is handled by stripping common
-    venue-type / filler words in `_STOP`, not by weakening this metric.
+    "Carmen" vs "Restaurante Carmen"). Fuzzy matching also traps deliberate
+    single-character misspellings ("Belini" vs "Bellini"). False positives from a
+    shared COMMON word are handled by stripping venue-type / filler words in
+    `_STOP`, not by weakening this metric.
     """
     # exact normalized string match is a hard 1.0
     if normalize_name(a) == normalize_name(b):
@@ -88,11 +120,11 @@ def similarity(a: str | None, b: str | None) -> float:
     ta, tb = _tokens(a), _tokens(b)
     if not ta or not tb:
         return 0.0
-    inter = len(ta & tb)
+    inter = _fuzzy_inter(ta, tb)
     if inter == 0:
         return 0.0
-    union = len(ta | tb)
-    jaccard = inter / union
+    union = len(ta) + len(tb) - inter
+    jaccard = inter / union if union else 0.0
     containment_shorter = inter / min(len(ta), len(tb))
     return max(jaccard, containment_shorter)
 
@@ -180,19 +212,23 @@ def search_catalog(
 
 # ── Edit firewall (B1E) ──────────────────────────────────────────────────────
 # The ONLY fields a verified owner may write on their own venue record.
-EDITABLE_FIELDS: set[str] = {
-    "description",
-    "hours",
-    "phone",
-    "whatsapp",
-    "website",
-    "booking_link",
-    "menu_link",
-    "instagram",
-    "address",
-    "experience",
-    "price_range",          # coarse "$$" self-description — NOT the price_reference trust object
-    "default_payment_link",
+# Each maps to a max length — enforced so an edit can't corrupt a field's type
+# or bloat the document (mirrors the caps applied at venue creation).
+_TEXT_FIELD_MAX: dict[str, int] = {
+    "description": 2000,
+    "hours": 400,
+    "phone": 40,
+    "whatsapp": 40,
+    "website": 300,
+    "booking_link": 300,
+    "menu_link": 300,
+    "instagram": 120,
+    "address": 300,
+    "experience": 2000,
+    "price_range": 40,
+    "default_payment_link": 300,
+}
+EDITABLE_FIELDS: set[str] = set(_TEXT_FIELD_MAX) | {
     "image_url",            # value must pass validate_image_value (I3)
     "photos",               # each item must pass validate_image_value (I3)
     "images",               # each item must pass validate_image_value (I3)
@@ -230,10 +266,16 @@ def is_external_url(value: str) -> bool:
     return v.startswith("http://") or v.startswith("https://")
 
 
-def validate_image_value(value: str) -> bool:
+def validate_image_value(value) -> bool:
     """I3: a partner-supplied image must be a moderated data: URL or a
-    self-hosted /images/ path — NEVER a raw external URL (e.g. Google Places)."""
-    v = (value or "").strip()
+    self-hosted /images/ path — NEVER a raw external URL (e.g. Google Places).
+
+    Non-string input (dict/list/int/None) is rejected outright — never coerced —
+    so a malformed body cleanly fails validation instead of crashing on .strip().
+    """
+    if not isinstance(value, str):
+        return False
+    v = value.strip()
     if not v:
         return False
     if v.startswith("data:image/"):
@@ -275,7 +317,18 @@ def sanitize_edit(body: dict) -> dict:
     # 2) Keep only allowlisted fields.
     update = {k: v for k, v in body.items() if k in EDITABLE_FIELDS}
 
-    # 3) I3 image validation.
+    # 3) Text fields must be strings and are length-capped — a non-string (dict /
+    #    list / number) would corrupt the field's type and break every downstream
+    #    string consumer (Luna prompt builder, CSV export, rendering); an
+    #    unbounded string is a document-bloat DoS vector.
+    for f, maxlen in _TEXT_FIELD_MAX.items():
+        if f in update:
+            val = update[f]
+            if not isinstance(val, str):
+                raise FirewallError(400, f"{f} debe ser texto / must be a string")
+            update[f] = val[:maxlen]
+
+    # 4) I3 image validation.
     for f in _IMAGE_FIELDS & set(update.keys()):
         val = update[f]
         if f == "image_url":

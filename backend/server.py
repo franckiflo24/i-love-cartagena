@@ -38,6 +38,18 @@ import partner_claims as _pc
 import emails as _emails_svc
 import hashlib as _hashlib
 
+# Every END-USER-facing partners query MUST merge this in so unreviewed /
+# rejected partner-submitted drafts never surface publicly. $nin also matches
+# documents missing the field, so the pre-existing catalog is unaffected.
+PUBLIC_PARTNER_FILTER = {"catalog_status": {"$nin": ["pending_review", "rejected"]}}
+
+# Internal ownership / moderation fields stripped from any PUBLIC partner
+# response — a claimant's account email and internal business_ids are not public.
+INTERNAL_PARTNER_FIELDS = (
+    "submitted_email", "submitted_by", "claimed_by", "claim_method",
+    "claim_verified_at", "approved_by", "rejected_by", "reject_reason",
+)
+
 # ── In-memory rate limiter for expensive AI endpoints ──────────
 from collections import defaultdict
 import time as _time
@@ -709,6 +721,7 @@ async def business_add_photo(request: Request):
 async def business_remove_photo(request: Request):
     """Remove a photo URL from the partner's photos array."""
     biz = await get_current_business(request)
+    await _require_verified_owner(biz, biz["partner_id"])
     body = await request.json()
     url = (body.get("url") or "").strip()
     if not url:
@@ -905,6 +918,17 @@ def _iso_expired(iso: str) -> bool:
         return dt < datetime.now(timezone.utc)
     except Exception:
         return True
+
+
+def _iso_within(iso: str, seconds: int) -> bool:
+    """True if `iso` is within the last `seconds` (used for claim cooldowns)."""
+    try:
+        dt = datetime.fromisoformat((iso or "").replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return (datetime.now(timezone.utc) - dt).total_seconds() < seconds
+    except Exception:
+        return False
 
 
 def _hood_of(p: dict) -> str:
@@ -1106,6 +1130,18 @@ async def business_claim_start(request: Request):
                             {"partner_id": partner_id, "claim_id": claim["claim_id"], "business_id": biz["business_id"]})
         raise HTTPException(status_code=409, detail="Este negocio ya está verificado por otra cuenta. Tu solicitud pasó a revisión de disputa. / Already verified by another account — sent to dispute review.")
 
+    # Abuse guard (F7/F8): a 90s per-(account, venue) cooldown stops verification-
+    # email bombing and admin-queue flooding; a per-account pending cap stops one
+    # account from spamming claims across many venues at once.
+    recent = await db.venue_claims.find_one(
+        {"business_id": biz["business_id"], "partner_id": partner_id, "state": "pending_verification"},
+        {"_id": 0, "created_at": 1}, sort=[("created_at", -1)],
+    )
+    if recent and _iso_within(recent.get("created_at", ""), 90):
+        raise HTTPException(status_code=429, detail="Espera un momento antes de reintentar este negocio / Please wait before retrying this venue")
+    if await db.venue_claims.count_documents({"business_id": biz["business_id"], "state": "pending_verification"}) >= 12:
+        raise HTTPException(status_code=429, detail="Tienes demasiados reclamos pendientes / Too many pending claims")
+
     if method == "email":
         target = (partner.get("email") or "").strip()
         if not target or "@" not in target:
@@ -1136,6 +1172,9 @@ async def business_claim_start(request: Request):
         proof = (body.get("proof") or "").strip()
         if len(proof) < 8:
             raise HTTPException(status_code=400, detail="Describe tu prueba de propiedad (RNT, registro, foto con código). / Provide ownership proof.")
+        # supersede any prior pending manual claim by THIS account on THIS venue
+        # so a re-submission refreshes the request instead of flooding the queue.
+        await db.venue_claims.delete_many({"business_id": biz["business_id"], "partner_id": partner_id, "state": "pending_verification", "method": "manual"})
         claim_id = f"clm_{uuid.uuid4().hex[:12]}"
         await db.venue_claims.insert_one({
             "claim_id": claim_id,
@@ -2474,12 +2513,8 @@ async def get_venue(venue_id: str):
 # ── Partners ────────────────────────────────────────────────
 @api_router.get("/partners")
 async def list_partners(category: Optional[str] = None, subcategory: Optional[str] = None):
-    query: dict = {
-        # Drop B1: partner-submitted drafts (catalog_status=pending_review) and
-        # rejected drafts never enter the public catalog. $nin ALSO matches
-        # documents missing the field, so all pre-existing venues stay live.
-        "catalog_status": {"$nin": ["pending_review", "rejected"]},
-    }
+    # Drop B1: partner-submitted / rejected drafts never enter the public catalog.
+    query: dict = dict(PUBLIC_PARTNER_FILTER)
     if category:
         query["category"] = category
     if subcategory:
@@ -2501,7 +2536,7 @@ async def nearby_partners(request: Request):
         if lat == 0 and lng == 0:
             raise HTTPException(status_code=400, detail="lat and lng required")
 
-        query: dict = {}
+        query: dict = dict(PUBLIC_PARTNER_FILTER)
         if category:
             query["category"] = category
 
@@ -2540,6 +2575,12 @@ async def get_partner(partner_id: str):
     partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0})
     if not partner:
         raise HTTPException(status_code=404, detail="Partner not found")
+    # Unreviewed / rejected drafts are not publicly viewable (the owner sees
+    # their own draft through the authenticated /business/me path).
+    if partner.get("catalog_status") in ("pending_review", "rejected"):
+        raise HTTPException(status_code=404, detail="Partner not found")
+    for _f in INTERNAL_PARTNER_FIELDS:
+        partner.pop(_f, None)
     try:
         pulse_map = await _pulse.get_active_pulse_map(db, [partner_id])
         if pulse_map.get(partner_id):
@@ -2813,7 +2854,7 @@ async def _generate_daily_itinerary(user: Optional[dict], category: str, force: 
     per_cat = max(8, 50 // len(pcats))
     for pcat in pcats:
         batch = await db.partners.find(
-            {"category": pcat},
+            {**PUBLIC_PARTNER_FILTER, "category": pcat},
             {"_id": 0}
         ).sort("rating", -1).to_list(per_cat)
         partners_pool.extend(batch)
@@ -3187,7 +3228,7 @@ async def list_concerts(date: Optional[str] = None, genre: Optional[str] = None)
         venue_names = {c.get("venue_name", "").lower() for c in concerts if c.get("venue_name")}
         if venue_names:
             partners = await db.partners.find(
-                {"name": {"$regex": "|".join(venue_names), "$options": "i"}},
+                {**PUBLIC_PARTNER_FILTER, "name": {"$regex": "|".join(venue_names), "$options": "i"}},
                 {"_id": 0, "partner_id": 1, "name": 1},
             ).to_list(50)
             venue_to_pid = {p["name"].lower(): p["partner_id"] for p in partners}
@@ -3763,7 +3804,7 @@ async def global_search(q: str = "", request: Request = None):
     ).limit(50).to_list(50)
 
     partners = await db.partners.find(
-        {"$or": [
+        {**PUBLIC_PARTNER_FILTER, "$or": [
             {"name": regex}, {"description": regex}, {"category": regex},
             {"subcategory": regex}, {"cuisine": regex}, {"address": regex},
             {"experience": regex}, {"tier": regex}, {"tags": regex},
@@ -3783,7 +3824,7 @@ async def global_search(q: str = "", request: Request = None):
                 {"category": "yacht", "serves_destinations": {"$in": served_keys}},
                 {"category": "service", "subcategory": "marina", "serves_destinations": {"$in": served_keys}},
             ]}
-        ops = await db.partners.find(op_query, {"_id": 0}).limit(60).to_list(60)
+        ops = await db.partners.find({**PUBLIC_PARTNER_FILTER, **op_query}, {"_id": 0}).limit(60).to_list(60)
         seen_pids = {p.get("partner_id") for p in partners}
         partners.extend(p for p in ops if p.get("partner_id") not in seen_pids)
 
