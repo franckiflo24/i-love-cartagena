@@ -103,6 +103,18 @@ def _fuzzy_inter(ta: set[str], tb: set[str]) -> int:
     return count
 
 
+def _distinctive_concat(s: str | None) -> str:
+    """Distinctive tokens (stop-words removed) concatenated with NO separators.
+
+    Defeats the token-splitting trick: "Bel lini" and "Bellini" both collapse to
+    "bellini", so a space inserted inside a brand word can't dodge the match.
+    """
+    toks = [t for t in normalize_name(s).split() if t not in _STOP]
+    if not toks:
+        toks = normalize_name(s).split()
+    return "".join(toks)
+
+
 def similarity(a: str | None, b: str | None) -> float:
     """0..1 name similarity: max(token-Jaccard, shorter-name containment), where
     token overlap is FUZZY (tolerates a 1-2 char typo of a distinctive token).
@@ -117,16 +129,30 @@ def similarity(a: str | None, b: str | None) -> float:
     # exact normalized string match is a hard 1.0
     if normalize_name(a) == normalize_name(b):
         return 1.0
+    # Space-collapsed distinctive form: one brand word fully inside the other
+    # (e.g. "Bel lini" inside "Bethel Bellini") is a strong duplicate signal.
+    # The full-concat ratio only counts when NEAR-identical (>=0.85) — moderate
+    # letter overlap between two genuinely different multi-word names ("Blue
+    # Apple" vs "Bethel Bellini") must not trip a false dup. Deliberate 2-edit
+    # typos that fall below this are caught by admin review (drafts stay
+    # pending_review), not the auto-filter.
+    ca, cb = _distinctive_concat(a), _distinctive_concat(b)
+    concat_score = 0.0
+    if len(ca) >= 5 and len(cb) >= 5:
+        if ca in cb or cb in ca:
+            return 1.0
+        r = SequenceMatcher(None, ca, cb).ratio()
+        concat_score = r if r >= 0.85 else 0.0
     ta, tb = _tokens(a), _tokens(b)
     if not ta or not tb:
-        return 0.0
+        return concat_score
     inter = _fuzzy_inter(ta, tb)
     if inter == 0:
-        return 0.0
+        return concat_score
     union = len(ta) + len(tb) - inter
     jaccard = inter / union if union else 0.0
     containment_shorter = inter / min(len(ta), len(tb))
-    return max(jaccard, containment_shorter)
+    return max(jaccard, containment_shorter, concat_score)
 
 
 def dedup_score(

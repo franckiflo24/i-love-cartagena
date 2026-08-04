@@ -37,6 +37,7 @@ api_router = APIRouter(prefix="/api")
 import partner_claims as _pc
 import emails as _emails_svc
 import hashlib as _hashlib
+from pymongo.errors import DuplicateKeyError as _DuplicateKeyError
 
 # Every END-USER-facing partners query MUST merge this in so unreviewed /
 # rejected partner-submitted drafts never surface publicly. $nin also matches
@@ -45,10 +46,15 @@ PUBLIC_PARTNER_FILTER = {"catalog_status": {"$nin": ["pending_review", "rejected
 
 # Internal ownership / moderation fields stripped from any PUBLIC partner
 # response — a claimant's account email and internal business_ids are not public.
+# (claim_status is intentionally KEPT — the find/claim UI shows "Reclamado".)
 INTERNAL_PARTNER_FIELDS = (
     "submitted_email", "submitted_by", "claimed_by", "claim_method",
     "claim_verified_at", "approved_by", "rejected_by", "reject_reason",
 )
+# Exclusion projection for EVERY public-facing full-document partners query, so
+# internal fields never leak — including for already-approved venues that went
+# through the claim flow (e.g. an admin-provisioned venue's claimed_by business_id).
+PUBLIC_PARTNER_PROJECTION = {"_id": 0, **{f: 0 for f in INTERNAL_PARTNER_FIELDS}}
 
 # ── In-memory rate limiter for expensive AI endpoints ──────────
 from collections import defaultdict
@@ -920,17 +926,6 @@ def _iso_expired(iso: str) -> bool:
         return True
 
 
-def _iso_within(iso: str, seconds: int) -> bool:
-    """True if `iso` is within the last `seconds` (used for claim cooldowns)."""
-    try:
-        dt = datetime.fromisoformat((iso or "").replace("Z", "+00:00"))
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
-        return (datetime.now(timezone.utc) - dt).total_seconds() < seconds
-    except Exception:
-        return False
-
-
 def _hood_of(p: dict) -> str:
     return p.get("neighborhood") or p.get("barrio") or p.get("address") or ""
 
@@ -1130,14 +1125,22 @@ async def business_claim_start(request: Request):
                             {"partner_id": partner_id, "claim_id": claim["claim_id"], "business_id": biz["business_id"]})
         raise HTTPException(status_code=409, detail="Este negocio ya está verificado por otra cuenta. Tu solicitud pasó a revisión de disputa. / Already verified by another account — sent to dispute review.")
 
-    # Abuse guard (F7/F8): a 90s per-(account, venue) cooldown stops verification-
-    # email bombing and admin-queue flooding; a per-account pending cap stops one
-    # account from spamming claims across many venues at once.
-    recent = await db.venue_claims.find_one(
-        {"business_id": biz["business_id"], "partner_id": partner_id, "state": "pending_verification"},
-        {"_id": 0, "created_at": 1}, sort=[("created_at", -1)],
-    )
-    if recent and _iso_within(recent.get("created_at", ""), 90):
+    # Abuse guard (F7/F8/N3): an ATOMIC 90s per-(account, venue) cooldown stops
+    # verification-email bombing and admin-queue flooding — even under a
+    # concurrent burst. The single upsert is the lock: the filter matches only
+    # when the last attempt is older than the cutoff (or absent); a request
+    # inside the window fails the filter, its upsert collides on the _id, and the
+    # DuplicateKeyError becomes the 429. Only ONE of N racing requests wins.
+    _now = datetime.now(timezone.utc)
+    _cutoff = (_now - timedelta(seconds=90)).isoformat()
+    _throttle_key = f"{biz['business_id']}:{partner_id}"
+    try:
+        await db.claim_throttle.update_one(
+            {"_id": _throttle_key, "last": {"$lt": _cutoff}},
+            {"$set": {"last": _now.isoformat()}},
+            upsert=True,
+        )
+    except _DuplicateKeyError:
         raise HTTPException(status_code=429, detail="Espera un momento antes de reintentar este negocio / Please wait before retrying this venue")
     if await db.venue_claims.count_documents({"business_id": biz["business_id"], "state": "pending_verification"}) >= 12:
         raise HTTPException(status_code=429, detail="Tienes demasiados reclamos pendientes / Too many pending claims")
@@ -2519,7 +2522,7 @@ async def list_partners(category: Optional[str] = None, subcategory: Optional[st
         query["category"] = category
     if subcategory:
         query["subcategory"] = subcategory
-    partners = await db.partners.find(query, {"_id": 0}).sort("order", 1).to_list(1500)
+    partners = await db.partners.find(query, PUBLIC_PARTNER_PROJECTION).sort("order", 1).to_list(1500)
     return partners
 
 
@@ -2540,7 +2543,7 @@ async def nearby_partners(request: Request):
         if category:
             query["category"] = category
 
-        partners = await db.partners.find(query, {"_id": 0}).to_list(500)
+        partners = await db.partners.find(query, PUBLIC_PARTNER_PROJECTION).to_list(500)
 
         def haversine(lat1, lon1, lat2, lon2):
             R = 6371000
@@ -2572,15 +2575,13 @@ async def nearby_partners(request: Request):
 
 @api_router.get("/partners/{partner_id}")
 async def get_partner(partner_id: str):
-    partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0})
+    partner = await db.partners.find_one({"partner_id": partner_id}, PUBLIC_PARTNER_PROJECTION)
     if not partner:
         raise HTTPException(status_code=404, detail="Partner not found")
     # Unreviewed / rejected drafts are not publicly viewable (the owner sees
     # their own draft through the authenticated /business/me path).
     if partner.get("catalog_status") in ("pending_review", "rejected"):
         raise HTTPException(status_code=404, detail="Partner not found")
-    for _f in INTERNAL_PARTNER_FIELDS:
-        partner.pop(_f, None)
     try:
         pulse_map = await _pulse.get_active_pulse_map(db, [partner_id])
         if pulse_map.get(partner_id):
@@ -2855,7 +2856,7 @@ async def _generate_daily_itinerary(user: Optional[dict], category: str, force: 
     for pcat in pcats:
         batch = await db.partners.find(
             {**PUBLIC_PARTNER_FILTER, "category": pcat},
-            {"_id": 0}
+            PUBLIC_PARTNER_PROJECTION
         ).sort("rating", -1).to_list(per_cat)
         partners_pool.extend(batch)
 
@@ -3810,7 +3811,7 @@ async def global_search(q: str = "", request: Request = None):
             {"experience": regex}, {"tier": regex}, {"tags": regex},
             {"signature_dishes": regex},
         ]},
-        {"_id": 0}
+        PUBLIC_PARTNER_PROJECTION
     ).limit(200).to_list(200)
 
     # Transport-intent recall: a query like "quiero ir a playa blanca" names no boat,
@@ -3824,7 +3825,7 @@ async def global_search(q: str = "", request: Request = None):
                 {"category": "yacht", "serves_destinations": {"$in": served_keys}},
                 {"category": "service", "subcategory": "marina", "serves_destinations": {"$in": served_keys}},
             ]}
-        ops = await db.partners.find({**PUBLIC_PARTNER_FILTER, **op_query}, {"_id": 0}).limit(60).to_list(60)
+        ops = await db.partners.find({**PUBLIC_PARTNER_FILTER, **op_query}, PUBLIC_PARTNER_PROJECTION).limit(60).to_list(60)
         seen_pids = {p.get("partner_id") for p in partners}
         partners.extend(p for p in ops if p.get("partner_id") not in seen_pids)
 
