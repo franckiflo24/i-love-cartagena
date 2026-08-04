@@ -15,7 +15,7 @@ import { useTr } from '../../src/i18n/autoTr';
 import { geoService, haversineM } from '../../src/lib/geo';
 import { getCollections } from '../../src/lib/passport';
 import { getVenues } from '../../src/lib/venueCache';
-import { nearestNeighborhood, NBH_LABELS, NbhCentroid } from '../../src/utils/neighborhood';
+import { venueBarrio, NBH_LABELS, NbhCentroid } from '../../src/utils/neighborhood';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -572,7 +572,9 @@ export default function MapaScreen() {
   // Assign each place its nearest barrio once centroids load (memoized).
   const placesWithNbh = useMemo(() => {
     if (!neighborhoods.length) return places;
-    return places.map(p => ({ ...p, neighborhood: nearestNeighborhood(p.lat, p.lng, neighborhoods) }));
+    // Name+address barrio first (reliable — many venues name their barrio),
+    // centroid fallback. Corrects ~26% that nearest-centroid misplaces.
+    return places.map(p => ({ ...p, neighborhood: venueBarrio(`${p.name} ${p.address || ''}`, p.lat, p.lng, neighborhoods) }));
   }, [places, neighborhoods]);
 
   // Barrio filter ANDs with the category filter: pins in the chosen barrio only.

@@ -34,3 +34,37 @@ export function nearestNeighborhood(
   }
   return best != null && Math.sqrt(bestD) <= MAX_DIST ? best : null;
 }
+
+// A venue's address usually NAMES its barrio — a far stronger signal than
+// nearest-centroid, which misassigns ~26% of venues on the elongated
+// peninsulas (e.g. north Bocagrande → Getsemaní). Ordered most-specific
+// first; "centro histórico" is required for `centro` so "Centro Comercial"
+// (a mall) never false-matches.
+const ADDR_BARRIO: Array<[RegExp, string]> = [
+  [/\bcastillo\s?grande\b/i, 'castillogrande'],
+  [/\bboca\s?grande\b/i, 'bocagrande'],
+  [/\bel\s+laguito\b|\blaguito\b/i, 'laguito'],
+  [/\bgetseman[ií]\b/i, 'getsemani'],
+  [/\bsan\s+diego\b/i, 'san_diego'],
+  [/\bmarbella\b/i, 'marbella'],
+  [/\bla\s+boquilla\b|\bboquilla\b/i, 'la_boquilla'],
+  [/\btierra\s?bomba\b/i, 'tierrabomba'],
+  [/\bmanga\b/i, 'manga'],
+  [/\bcentro\s+hist[oó]rico\b/i, 'centro'],
+];
+
+export function barrioFromAddress(address: string | null | undefined): string | null {
+  if (!address) return null;
+  for (const [re, slug] of ADDR_BARRIO) if (re.test(address)) return slug;
+  return null;
+}
+
+/** Best barrio for a venue: address name first (reliable), centroid fallback. */
+export function venueBarrio(
+  address: string | null | undefined,
+  lat: number | null | undefined,
+  lng: number | null | undefined,
+  neighborhoods: NbhCentroid[],
+): string | null {
+  return barrioFromAddress(address) || nearestNeighborhood(lat, lng, neighborhoods);
+}
