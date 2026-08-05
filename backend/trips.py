@@ -156,8 +156,16 @@ def _member_public(m: Dict[str, Any]) -> Dict[str, Any]:
     return {"user_id": m.get("user_id"), "name": m.get("name") or "Viajero", "role": m.get("role")}
 
 
+def _write_limit(user_id: str):
+    """One throttle for EVERY mutating trip route (audit #4) — each write also
+    touches the trip doc, so an unthrottled loop is 2x write amplification."""
+    _check_rate_limit(f"tripwrite:{user_id}", max_calls=120, window_sec=60)
+
+
 async def _trip_payload(trip: Dict[str, Any]) -> Dict[str, Any]:
-    items = await db.trip_items.find({"trip_id": trip["trip_id"]}, {"_id": 0}).sort(
+    # `history` (raw superseded edits, incl. free text) stays server-side for
+    # the edit log — it is NOT shipped to every member (audit #6b).
+    items = await db.trip_items.find({"trip_id": trip["trip_id"]}, {"_id": 0, "history": 0}).sort(
         [("day", 1), ("order", 1), ("added_at", 1)]).to_list(MAX_ITEMS_PER_TRIP)
     return {
         "trip_id": trip["trip_id"],
@@ -253,6 +261,7 @@ async def get_trip(trip_id: str, request: Request):
 async def patch_trip(trip_id: str, body: TripPatch, request: Request):
     user = await _get_current_user(request)
     await _trip_for(user["user_id"], trip_id, "owner")
+    _write_limit(user["user_id"])
     sets: Dict[str, Any] = {"updated_at": _now_iso()}
     if body.name is not None:
         sets["name"] = body.name.strip()
@@ -266,6 +275,7 @@ async def patch_trip(trip_id: str, body: TripPatch, request: Request):
 async def delete_trip(trip_id: str, request: Request):
     user = await _get_current_user(request)
     await _trip_for(user["user_id"], trip_id, "owner")
+    _write_limit(user["user_id"])
     await db.trip_items.delete_many({"trip_id": trip_id})
     await db.trips.delete_one({"trip_id": trip_id})
     return {"ok": True}
@@ -302,9 +312,14 @@ async def _ref_snapshot(ref_type: str, ref_id: Optional[str]) -> Optional[str]:
         if p:
             return p.get("name")
     elif ref_type == "experience":
+        # Same guard as the venue branch (audit #3a): the event's HOSTING
+        # venue must be catalog-approved right now, not just at publish time.
         e = await db.partner_events.find_one({"event_id": ref_id, "is_published": True},
-                                             {"_id": 0, "title": 1})
-        if e:
+                                             {"_id": 0, "title": 1, "partner_id": 1})
+        if e and await db.partners.find_one(
+            {**PUBLIC_PARTNER_FILTER, "partner_id": e.get("partner_id")},
+            {"_id": 0, "partner_id": 1},
+        ):
             return e.get("title")
     elif ref_type == "stamp":
         try:
@@ -357,6 +372,7 @@ async def add_item(trip_id: str, body: ItemCreate, request: Request):
 async def patch_item(trip_id: str, item_id: str, body: ItemPatch, request: Request):
     user = await _get_current_user(request)
     await _trip_for(user["user_id"], trip_id, "editor")
+    _write_limit(user["user_id"])
     existing = await db.trip_items.find_one({"item_id": item_id, "trip_id": trip_id}, {"_id": 0})
     if not existing:
         raise HTTPException(status_code=404, detail="Item no encontrado / Item not found")
@@ -391,6 +407,7 @@ async def patch_item(trip_id: str, item_id: str, body: ItemPatch, request: Reque
 async def delete_item(trip_id: str, item_id: str, request: Request):
     user = await _get_current_user(request)
     await _trip_for(user["user_id"], trip_id, "editor")
+    _write_limit(user["user_id"])
     r = await db.trip_items.delete_one({"item_id": item_id, "trip_id": trip_id})
     if not r.deleted_count:
         raise HTTPException(status_code=404, detail="Item no encontrado / Item not found")
@@ -404,17 +421,20 @@ async def vote_item(trip_id: str, item_id: str, request: Request):
     an edit, and the consensus view is the point of the group layer."""
     user = await _get_current_user(request)
     await _trip_for(user["user_id"], trip_id, "viewer")
+    _write_limit(user["user_id"])
     existing = await db.trip_items.find_one({"item_id": item_id, "trip_id": trip_id},
                                             {"_id": 0, "votes": 1})
     if not existing:
         raise HTTPException(status_code=404, detail="Item no encontrado / Item not found")
     if user["user_id"] in (existing.get("votes") or []):
-        await db.trip_items.update_one({"item_id": item_id}, {"$pull": {"votes": user["user_id"]},
-                                                              "$set": {"updated_at": _now_iso()}})
+        await db.trip_items.update_one({"item_id": item_id, "trip_id": trip_id},
+                                       {"$pull": {"votes": user["user_id"]},
+                                        "$set": {"updated_at": _now_iso()}})
         voted = False
     else:
-        await db.trip_items.update_one({"item_id": item_id}, {"$addToSet": {"votes": user["user_id"]},
-                                                              "$set": {"updated_at": _now_iso()}})
+        await db.trip_items.update_one({"item_id": item_id, "trip_id": trip_id},
+                                       {"$addToSet": {"votes": user["user_id"]},
+                                        "$set": {"updated_at": _now_iso()}})
         voted = True
     await _touch(trip_id)
     return {"ok": True, "voted": voted}
@@ -425,10 +445,13 @@ async def vote_item(trip_id: str, item_id: str, request: Request):
 async def ensure_share(trip_id: str, request: Request):
     user = await _get_current_user(request)
     trip = await _trip_for(user["user_id"], trip_id, "owner")
+    _write_limit(user["user_id"])
     code = trip.get("share_code")
     if not code:
         for _ in range(5):
-            code = "VIAJE" + uuid.uuid4().hex[:6].upper()
+            # 48 bits of entropy (12 hex chars) — a guessable code IS the trip's
+            # read capability, so it must not be brute-forceable (audit #2).
+            code = "VIAJE" + uuid.uuid4().hex[:12].upper()
             try:
                 await db.trips.update_one({"trip_id": trip_id}, {"$set": {"share_code": code}})
                 break
@@ -443,6 +466,10 @@ async def guest_view(share_code: str, request: Request):
     member display names only (no user_ids), items enriched, vote COUNTS.
     Actions require sign-in — enforced by every write route above."""
     _check_rate_limit(f"tripguest:{_client_ip(request)}", max_calls=30, window_sec=60)
+    # Secondary enumeration brake keyed by the CODE itself — survives spoofed
+    # X-Forwarded-For buckets (audit #2): a code can only be probed so fast
+    # globally, whoever is asking.
+    _check_rate_limit(f"tripcode:{share_code.strip().upper()[:24]}", max_calls=60, window_sec=60)
     trip = await db.trips.find_one({"share_code": share_code.strip().upper()}, {"_id": 0})
     if not trip:
         raise HTTPException(status_code=404, detail="Viaje no encontrado / Trip not found")
@@ -454,11 +481,14 @@ async def guest_view(share_code: str, request: Request):
         "dates": trip.get("dates"),
         "members": [{"name": m.get("name") or "Viajero"} for m in trip.get("members", [])],
         "updated_at": trip.get("updated_at"),
+        # Data minimization (audit #6a): the guest UI renders name/day/time/
+        # who-added/votes ONLY — so that is ALL the public payload carries.
+        # No ref_id, no member free-text notes, no vote identities.
         "items": [{
-            "item_id": i["item_id"], "ref_type": i["ref_type"], "ref_id": i.get("ref_id"),
+            "item_id": i["item_id"], "ref_type": i["ref_type"],
             "ref_name": i.get("ref_name"), "custom_text": i.get("custom_text"),
             "added_by_name": i.get("added_by_name"), "day": i.get("day"),
-            "time_slot": i.get("time_slot"), "note": i.get("note"),
+            "time_slot": i.get("time_slot"),
             "votes_count": len(i.get("votes") or []), "status": i.get("status"),
             "resolved": i.get("resolved"),
             **({"venue": i["venue"]} if i.get("venue") else {}),
@@ -504,6 +534,7 @@ class MemberPatch(BaseModel):
 async def patch_member(trip_id: str, member_user_id: str, body: MemberPatch, request: Request):
     user = await _get_current_user(request)
     trip = await _trip_for(user["user_id"], trip_id, "owner")
+    _write_limit(user["user_id"])
     if member_user_id == trip["owner_user_id"]:
         raise HTTPException(status_code=400, detail="El dueño no cambia de rol / Owner role is fixed")
     r = await db.trips.update_one(
@@ -520,6 +551,7 @@ async def remove_member(trip_id: str, member_user_id: str, request: Request):
     """Owner removes anyone (except self); any member can remove THEMSELF (leave)."""
     user = await _get_current_user(request)
     trip = await _trip_for(user["user_id"], trip_id, "viewer")
+    _write_limit(user["user_id"])
     is_owner = trip["owner_user_id"] == user["user_id"]
     if member_user_id == trip["owner_user_id"]:
         raise HTTPException(status_code=400, detail="El dueño no puede salir; borrá el viaje / Owner can't leave; delete the trip")

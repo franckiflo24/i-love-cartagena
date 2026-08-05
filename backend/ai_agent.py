@@ -862,7 +862,7 @@ async def _trip_context(db, user_id: str) -> Optional[Dict[str, Any]]:
     vids = [r["ref_id"] for r in rows if r.get("ref_type") == "venue" and r.get("ref_id")]
     cats: Dict[str, str] = {}
     if vids:
-        async for p in db.partners.find({"partner_id": {"$in": vids}},
+        async for p in db.partners.find({**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": vids}},
                                         {"_id": 0, "partner_id": 1, "category": 1}):
             cats[p["partner_id"]] = p.get("category", "")
     items = [{
