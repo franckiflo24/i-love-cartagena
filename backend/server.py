@@ -3856,11 +3856,15 @@ async def toggle_favorite(body: FavoriteToggle, request: Request):
         await db.favorites.delete_one({"_id": existing["_id"]})
         return {"status": "removed", "item_id": body.item_id}
     else:
-        # Cannot favorite a venue that isn't publicly live — a pending/rejected/
-        # sandbox draft must never enter a user's agenda (it would then leak via GET).
+        # Cannot favorite an item that isn't publicly live — a pending/rejected/
+        # sandbox draft (venue OR editorial event) must never enter a user's agenda
+        # (it would then leak its raw doc + moderation trail via GET /favorites).
         if body.item_type == "partner":
             if not await db.partners.find_one({"partner_id": body.item_id, **PUBLIC_PARTNER_FILTER}, {"_id": 0, "partner_id": 1}):
                 raise HTTPException(status_code=404, detail="Venue not found")
+        elif body.item_type == "event":
+            if not await db.events.find_one({"$or": [{"event_id": body.item_id}, {"slug": body.item_id}], **PUBLIC_CITY_EVENT_FILTER}, {"_id": 0, "event_id": 1}):
+                raise HTTPException(status_code=404, detail="Event not found")
         await db.favorites.insert_one({
             "fav_id": f"fav_{uuid.uuid4().hex[:12]}",
             "user_id": user_id,
@@ -3891,8 +3895,10 @@ async def get_favorites(request: Request):
             # project (never return internal moderation fields to the client).
             item = await db.partners.find_one({"partner_id": iid, **PUBLIC_PARTNER_FILTER}, PUBLIC_PARTNER_PROJECTION)
         elif itype == "event":
+            # Same gate+strip as the partner branch: a demoted editorial event must
+            # not resurface here, and its moderation trail must never ship.
             item = await db.events.find_one(
-                {"$or": [{"event_id": iid}, {"slug": iid}]}, {"_id": 0}
+                {"$or": [{"event_id": iid}, {"slug": iid}], **PUBLIC_CITY_EVENT_FILTER}, PUBLIC_EVENT_PROJECTION
             )
         elif itype == "concert":
             item = await db.concerts.find_one({"concert_id": iid}, {"_id": 0})
