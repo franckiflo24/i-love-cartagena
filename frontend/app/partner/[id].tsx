@@ -398,6 +398,29 @@ export default function PartnerDetail() {
             </View>
           </View>
 
+          {/* Partner-submitted price — DROP B2. Untrusted, unverified, and
+              visually + textually distinct from TrustBadges' editorial
+              "Precio de referencia" badge above. Never styled as official. */}
+          {partner.partner_price?.typical_cop ? (
+            <View style={styles.partnerPriceBox}>
+              <Ionicons name="information-circle-outline" size={14} color={COLORS.textMuted} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.partnerPriceLabel}>
+                  {tr('Precio informado por el negocio')}
+                  <Text style={styles.partnerPriceHedge}> · {tr('sin verificar')}</Text>
+                </Text>
+                <Text style={styles.partnerPriceValue}>
+                  {partner.partner_price.typical_cop.low != null && partner.partner_price.typical_cop.high != null
+                    ? `COP ${Number(partner.partner_price.typical_cop.low).toLocaleString('es-CO')}–${Number(partner.partner_price.typical_cop.high).toLocaleString('es-CO')}`
+                    : (partner.partner_price.label || '')}
+                </Text>
+                {!!partner.partner_price.label && partner.partner_price.typical_cop.low != null ? (
+                  <Text style={styles.partnerPriceNote}>{partner.partner_price.label}</Text>
+                ) : null}
+              </View>
+            </View>
+          ) : null}
+
           {partner.experience ? (
             <View style={styles.expSection}>
               <Text style={styles.sectionTitle}>{tr('Experiencia')}</Text>
@@ -553,6 +576,13 @@ const styles = StyleSheet.create({
   infoCard: { flex: 1, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.md, gap: SPACING.xs, borderWidth: 1, borderColor: COLORS.border },
   infoLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
   infoValue: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
+  // Partner-submitted price — deliberately muted/dashed, opposite of the
+  // gold-filled TrustBadges pill, so it never reads as an official badge.
+  partnerPriceBox: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.xs, marginTop: SPACING.sm, padding: SPACING.sm, borderRadius: RADIUS.md, borderWidth: 1, borderStyle: 'dashed', borderColor: COLORS.border, backgroundColor: 'transparent' },
+  partnerPriceLabel: { fontSize: 10.5, color: COLORS.textFaint, ...FONTS.medium, letterSpacing: 0.2 },
+  partnerPriceHedge: { fontSize: 10.5, color: COLORS.textFaint, ...FONTS.regular, fontStyle: 'italic' },
+  partnerPriceValue: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold, marginTop: 2 },
+  partnerPriceNote: { fontSize: 11, color: COLORS.textFaint, ...FONTS.regular, marginTop: 1 },
   expSection: { marginTop: SPACING.lg },
   sectionTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, marginBottom: SPACING.sm },
   expText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 22 },

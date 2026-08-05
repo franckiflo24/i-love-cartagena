@@ -132,6 +132,9 @@ export default function BusinessDashboard() {
             <TouchableOpacity onPress={() => router.push('/business/admin/queue' as any)} style={styles.headerBtn}>
               <Ionicons name="albums-outline" size={21} color={COLORS.primary} />
             </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/business/change-password' as any)} style={styles.headerBtn}>
+              <Ionicons name="key-outline" size={20} color={COLORS.textMuted} />
+            </TouchableOpacity>
             <TouchableOpacity onPress={handleLogout} style={styles.headerBtn}>
               <Ionicons name="log-out-outline" size={22} color={COLORS.textMuted} />
             </TouchableOpacity>
@@ -165,9 +168,14 @@ export default function BusinessDashboard() {
           <Ionicons name={isGovernment ? 'arrow-back' : 'close'} size={22} color={COLORS.textMain} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{isGovernment ? 'Mis publicaciones' : 'Dashboard'}</Text>
-        <TouchableOpacity onPress={handleLogout} style={styles.headerBtn}>
-          <Ionicons name="log-out-outline" size={22} color={COLORS.textMuted} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row' }}>
+          <TouchableOpacity onPress={() => router.push('/business/change-password' as any)} style={styles.headerBtn}>
+            <Ionicons name="key-outline" size={20} color={COLORS.textMuted} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleLogout} style={styles.headerBtn}>
+            <Ionicons name="log-out-outline" size={22} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />} contentContainerStyle={{ paddingBottom: 100 }}>
@@ -216,6 +224,16 @@ export default function BusinessDashboard() {
             <Text style={styles.editProfileText}>{tr('Editar perfil')}</Text>
           </TouchableOpacity>
         </View>
+
+        {/* B2: Mi contenido — photos, prices, submission status */}
+        <TouchableOpacity style={styles.contentLink} onPress={() => router.push('/business/content' as any)} activeOpacity={0.85}>
+          <View style={styles.contentIconWrap}><Ionicons name="images-outline" size={18} color={COLORS.primary} /></View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.contentTitle}>{tr('Mi contenido')}</Text>
+            <Text style={styles.contentSub}>{tr('Sube fotos, envía tu precio y revisa el estado')}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+        </TouchableOpacity>
 
         {/* Onboarding / Approval banner (non-government) */}
         {!isGovernment && onboarding ? (() => {
@@ -524,6 +542,10 @@ const styles = StyleSheet.create({
   partnerEmail: { fontSize: 12, color: 'rgba(255,255,255,0.7)', ...FONTS.regular, marginTop: 2 },
   editProfileBtn: { position: 'absolute', bottom: SPACING.md, right: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(217,119,6,0.2)', borderWidth: 1, borderColor: COLORS.primary, paddingHorizontal: 12, paddingVertical: 7, borderRadius: RADIUS.full },
   editProfileText: { fontSize: 11, color: COLORS.primary, ...FONTS.bold, letterSpacing: 0.5 },
+  contentLink: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, marginHorizontal: SPACING.lg, marginTop: SPACING.md, padding: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border },
+  contentIconWrap: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(217,119,6,0.15)' },
+  contentTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
+  contentSub: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
 
   statsGrid: { flexDirection: 'row', paddingHorizontal: SPACING.lg, gap: SPACING.sm, flexWrap: 'wrap' },
   statCard: { flex: 1, minWidth: '22%', alignItems: 'center', backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.sm, borderWidth: 1, borderColor: COLORS.border, gap: 2, position: 'relative' },

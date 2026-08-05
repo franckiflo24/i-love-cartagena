@@ -115,6 +115,10 @@ export default function BusinessLogin() {
               )}
             </TouchableOpacity>
 
+            <TouchableOpacity onPress={() => router.push('/business/forgot-password' as any)}>
+              <Text style={styles.forgotLink}>{tr('¿Olvidaste tu contraseña?')}</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity onPress={fillDemo}>
               <Text style={styles.demoLink}>Probar con cuenta demo</Text>
             </TouchableOpacity>
@@ -159,6 +163,7 @@ const styles = StyleSheet.create({
   input: { flex: 1, color: COLORS.textMain, fontSize: 14, ...FONTS.regular },
   loginBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 14, marginTop: SPACING.md },
   loginText: { color: COLORS.white, fontSize: 14, ...FONTS.bold },
+  forgotLink: { textAlign: 'center', color: COLORS.textMuted, fontSize: 13, ...FONTS.regular, marginTop: SPACING.md },
   demoLink: { textAlign: 'center', color: COLORS.primary, fontSize: 13, ...FONTS.semibold, marginTop: SPACING.sm },
   alcaldiaBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, marginTop: SPACING.xs, backgroundColor: 'rgba(27,79,114,0.12)', borderWidth: 1, borderColor: '#1B4F72', borderRadius: RADIUS.full },
   alcaldiaLink: { color: '#1B4F72', fontSize: 12, ...FONTS.bold, letterSpacing: 0.3 },

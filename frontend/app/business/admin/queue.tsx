@@ -8,16 +8,37 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../../src/constants/theme';
 import { useBusinessAuth } from '../../../src/context/BusinessAuthContext';
 import { api } from '../../../src/constants/api';
 import { useTr } from '../../../src/i18n/autoTr';
+import { SafeImage } from '../../../src/components/SafeImage';
 
 // Admin moderation queue (government role). Two firewalls converge here:
 // new-venue DRAFTS awaiting approval, and CLAIMS awaiting manual review /
 // dispute resolution. This is where Phil approves/rejects.
+//
+// DROP B2: a third firewall — partner-submitted CONTENT (photos, prices,
+// events) — untrusted by default, never public until a human approves it.
+type Submissions = {
+  events: any[]; media: any[]; prices: any[];
+  counts: { events: number; media: number; prices: number };
+};
+const EMPTY_SUBMISSIONS: Submissions = { events: [], media: [], prices: [], counts: { events: 0, media: 0, prices: 0 } };
+
+const fmtPriceRange = (p: any): string | null => {
+  const low = p?.typical_cop?.low;
+  const high = p?.typical_cop?.high;
+  if (low == null && high == null) return null;
+  if (low == null) return `COP ${Number(high).toLocaleString('es-CO')}`;
+  if (high == null) return `COP ${Number(low).toLocaleString('es-CO')}`;
+  if (low === high) return `COP ${Number(low).toLocaleString('es-CO')}`;
+  return `COP ${Number(low).toLocaleString('es-CO')}–${Number(high).toLocaleString('es-CO')}`;
+};
+
 export default function AdminQueue() {
   const tr = useTr();
   const router = useRouter();
   const { token, business, loading: authLoading } = useBusinessAuth();
   const [drafts, setDrafts] = useState<any[]>([]);
   const [claims, setClaims] = useState<any[]>([]);
+  const [submissions, setSubmissions] = useState<Submissions>(EMPTY_SUBMISSIONS);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -25,12 +46,19 @@ export default function AdminQueue() {
   const load = useCallback(async () => {
     if (!token) return;
     try {
-      const [d, c] = await Promise.all([
+      const [d, c, s] = await Promise.all([
         api.get('/business/admin/venue-drafts', auth).catch(() => ({ drafts: [] })),
         api.get('/business/admin/claims', auth).catch(() => ({ claims: [] })),
+        api.get('/business/admin/submissions', auth).catch(() => EMPTY_SUBMISSIONS),
       ]);
       setDrafts(d.drafts || []);
       setClaims(c.claims || []);
+      setSubmissions({
+        events: s.events || [],
+        media: s.media || [],
+        prices: s.prices || [],
+        counts: s.counts || { events: 0, media: 0, prices: 0 },
+      });
     } catch { /* fail soft */ }
   }, [token]);
 
@@ -50,6 +78,13 @@ export default function AdminQueue() {
   const approveDraft = (id: string) => act(() => api.post(`/business/admin/venue-drafts/${id}/approve`, {}, auth), 'ok');
   const rejectDraft = (id: string) => act(() => api.post(`/business/admin/venue-drafts/${id}/reject`, { reason: 'rejected' }, auth), 'ok');
   const resolveClaim = (cid: string, action: string) => act(() => api.post(`/business/admin/claims/${cid}/resolve`, { action }, auth), 'ok');
+
+  const approveMedia = (id: string) => act(() => api.post(`/business/admin/media/${id}/approve`, {}, auth), 'ok');
+  const rejectMedia = (id: string) => act(() => api.post(`/business/admin/media/${id}/reject`, { reason: 'No aprobada' }, auth), 'ok');
+  const approvePrice = (id: string) => act(() => api.post(`/business/admin/price/${id}/approve`, {}, auth), 'ok');
+  const rejectPrice = (id: string) => act(() => api.post(`/business/admin/price/${id}/reject`, { reason: 'No aprobado' }, auth), 'ok');
+  const approveEvent = (id: string) => act(() => api.post(`/business/admin/events/${id}/moderate`, { action: 'approve' }, auth), 'ok');
+  const rejectEvent = (id: string) => act(() => api.post(`/business/admin/events/${id}/moderate`, { action: 'reject', reason: 'No aprobado' }, auth), 'ok');
 
   if (!authLoading && business && business.role !== 'government') {
     return (
@@ -105,6 +140,66 @@ export default function AdminQueue() {
               </View>
             </View>
           ))}
+
+          {(() => {
+            const total = (submissions.counts.events || 0) + (submissions.counts.media || 0) + (submissions.counts.prices || 0);
+            return <Text style={[styles.section, { marginTop: SPACING.xl }]}>{tr('Contenido pendiente')} · {total}</Text>;
+          })()}
+          {submissions.media.length === 0 && submissions.prices.length === 0 && submissions.events.length === 0 && (
+            <Text style={styles.empty}>{tr('Sin contenido pendiente')}</Text>
+          )}
+
+          {submissions.media.map(m => (
+            <View key={m.media_id} style={styles.card}>
+              <View style={[styles.tag, styles.tagMedia, { alignSelf: 'flex-start', marginBottom: SPACING.xs }]}>
+                <Text style={styles.tagText}>{tr('Foto')}</Text>
+              </View>
+              <View style={styles.mediaRow}>
+                <SafeImage uri={m.data_url} style={styles.mediaThumb} />
+                <View style={{ flex: 1 }}>
+                  {!!m.caption && <Text style={styles.cardDesc} numberOfLines={2}>{m.caption}</Text>}
+                  <Text style={styles.cardBy}>{m.partner_name}</Text>
+                </View>
+              </View>
+              <View style={styles.actions}>
+                <TouchableOpacity style={[styles.actBtn, styles.reject]} onPress={() => rejectMedia(m.media_id)}><Text style={styles.rejectText}>{tr('Rechazar')}</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.actBtn, styles.approve]} onPress={() => approveMedia(m.media_id)}><Text style={styles.approveText}>{tr('Aprobar')}</Text></TouchableOpacity>
+              </View>
+            </View>
+          ))}
+
+          {submissions.prices.map(p => {
+            const range = fmtPriceRange(p);
+            return (
+              <View key={p.price_id} style={styles.card}>
+                <View style={[styles.tag, styles.tagPrice, { alignSelf: 'flex-start', marginBottom: SPACING.xs }]}>
+                  <Text style={styles.tagText}>{tr('Precio')}</Text>
+                </View>
+                <Text style={styles.cardName}>{range || p.label || tr('Sin datos')}</Text>
+                {!!range && !!p.label && <Text style={styles.cardMeta}>{p.label}</Text>}
+                <Text style={styles.cardBy}>{p.partner_name}</Text>
+                <View style={styles.actions}>
+                  <TouchableOpacity style={[styles.actBtn, styles.reject]} onPress={() => rejectPrice(p.price_id)}><Text style={styles.rejectText}>{tr('Rechazar')}</Text></TouchableOpacity>
+                  <TouchableOpacity style={[styles.actBtn, styles.approve]} onPress={() => approvePrice(p.price_id)}><Text style={styles.approveText}>{tr('Aprobar')}</Text></TouchableOpacity>
+                </View>
+              </View>
+            );
+          })}
+
+          {submissions.events.map(e => (
+            <View key={e.event_id} style={styles.card}>
+              <View style={[styles.tag, styles.tagEvent, { alignSelf: 'flex-start', marginBottom: SPACING.xs }]}>
+                <Text style={styles.tagText}>{tr('Evento')}</Text>
+              </View>
+              <Text style={styles.cardName}>{e.title}</Text>
+              <Text style={styles.cardMeta}>{e.date}</Text>
+              <Text style={styles.cardBy}>{e.partner_name}</Text>
+              <View style={styles.actions}>
+                <TouchableOpacity style={[styles.actBtn, styles.reject]} onPress={() => rejectEvent(e.event_id)}><Text style={styles.rejectText}>{tr('Rechazar')}</Text></TouchableOpacity>
+                <TouchableOpacity style={[styles.actBtn, styles.approve]} onPress={() => approveEvent(e.event_id)}><Text style={styles.approveText}>{tr('Aprobar')}</Text></TouchableOpacity>
+              </View>
+            </View>
+          ))}
         </ScrollView>
       )}
     </SafeAreaView>
@@ -130,7 +225,12 @@ const styles = StyleSheet.create({
   tag: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: RADIUS.full },
   tagManual: { backgroundColor: 'rgba(217,119,6,0.15)' },
   tagDispute: { backgroundColor: 'rgba(220,38,38,0.15)' },
+  tagMedia: { backgroundColor: 'rgba(59,130,246,0.15)' },
+  tagPrice: { backgroundColor: 'rgba(212,175,55,0.15)' },
+  tagEvent: { backgroundColor: 'rgba(168,85,247,0.15)' },
   tagText: { fontSize: 10, color: COLORS.textMain, ...FONTS.bold, letterSpacing: 0.3 },
+  mediaRow: { flexDirection: 'row', gap: SPACING.sm },
+  mediaThumb: { width: 64, height: 64, borderRadius: RADIUS.md, backgroundColor: COLORS.surfaceAlt },
   actions: { flexDirection: 'row', gap: SPACING.sm, marginTop: SPACING.md },
   actBtn: { flex: 1, alignItems: 'center', paddingVertical: 11, borderRadius: RADIUS.full },
   approve: { backgroundColor: COLORS.primary },

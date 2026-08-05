@@ -830,6 +830,11 @@ async def business_list_events(request: Request):
 @api_router.post("/business/events")
 async def business_create_event(request: Request):
     biz = await get_current_business(request)
+    # BINDING GATE (B2A2, acceptance-critical): the event MUST bind to a verified,
+    # LIVE venue the caller owns. _require_verified_owner both proves ownership AND
+    # that the venue resolves (find_one) — a claimless account or a churned/404
+    # venue_id is rejected here, so a ghost event can never be created one layer up.
+    partner = await _require_verified_owner(biz, biz["partner_id"])
     body = await request.json()
     required = ["title", "description", "category", "date", "start_time", "end_time"]
     for r in required:
@@ -838,7 +843,6 @@ async def business_create_event(request: Request):
 
     # ── AI Moderation ──
     from ai_moderation import moderate_event
-    partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "name": 1})
     mod = await moderate_event(
         title=body["title"],
         description=body["description"],
@@ -873,6 +877,7 @@ async def business_create_event(request: Request):
         "currency": body.get("currency", "COP"),
         "booking_link": body.get("booking_link", ""),
         "is_published": is_published,
+        "source": "partner",   # B2A3: coexists with editorial "seasonal" stamps, never overwrites them
         "created_at": datetime.now(timezone.utc).isoformat(),
         "views_count": 0,
         "reserve_clicks": 0,
@@ -1713,6 +1718,266 @@ async def admin_delete_account(business_id: str, request: Request):
     await db.business_sessions.delete_many({"business_id": business_id})
     await db.venue_claims.delete_many({"business_id": business_id})
     return {"deleted": True, "business_id": business_id}
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# DROP B2 — PARTNER CONTENT (media, price, moderation, recovery)
+# Moderation spine: partner submissions are UNTRUSTED. Media + price ALWAYS
+# require manual review and can NEVER render as editorially-verified. Every
+# submission binds to a verified LIVE venue (via _require_verified_owner).
+# ══════════════════════════════════════════════════════════════════════════
+
+async def _mod_log(kind: str, item_id: str, action: str, actor: str, reason: str = "", extra: dict | None = None):
+    await db.moderation_log.insert_one({
+        "log_id": f"ml_{uuid.uuid4().hex[:10]}",
+        "kind": kind, "item_id": item_id, "action": action,
+        "actor": actor, "reason": reason, **(extra or {}),
+        "at": _now_iso(),
+    })
+
+
+# ── B2C · MEDIA (self-hosted, reviewed — I3) ───────────────────────────────
+_MEDIA_MAX_B64 = 700_000   # ~500KB image; keeps the partner doc lean on approval
+
+@api_router.post("/business/media")
+async def business_submit_media(request: Request):
+    """Submit a photo for review. Stored PENDING (never public until approved).
+    I3: only a moderated data: image is accepted — never an external URL."""
+    biz = await get_current_business(request)
+    partner = await _require_verified_owner(biz, biz["partner_id"])
+    body = await request.json()
+    img = body.get("image_base64", "")
+    if not isinstance(img, str) or not img.startswith("data:image/"):
+        raise HTTPException(status_code=422, detail="Solo imágenes subidas (data:), nunca un URL externo (I3) / Only uploaded data: images, never an external URL")
+    if len(img) > _MEDIA_MAX_B64:
+        raise HTTPException(status_code=413, detail="Imagen demasiado grande (máx ~500KB) / Image too large (max ~500KB)")
+    mime = img.split(";")[0].replace("data:", "") or "image/jpeg"
+    from ai_image_moderation import moderate_image_base64
+    result = await moderate_image_base64(img, mime=mime)
+    media_id = f"pm_{uuid.uuid4().hex[:10]}"
+    if result["verdict"] == "REJECT":
+        await db.partner_media.insert_one({
+            "media_id": media_id, "business_id": biz["business_id"], "partner_id": biz["partner_id"],
+            "status": "rejected", "reason": result.get("reason", "No cumple las normas de contenido"),
+            "ai_verdict": "REJECT", "submitted_at": _now_iso(),
+        })
+        return {"submitted": False, "verdict": "REJECT", "reason": result.get("reason", ""), "media_id": media_id}
+    # AI-passed but still requires MANUAL review before public (trust-sensitive).
+    await db.partner_media.insert_one({
+        "media_id": media_id, "business_id": biz["business_id"], "partner_id": biz["partner_id"],
+        "data_url": img, "caption": (body.get("caption") or "")[:140],
+        "status": "pending", "ai_verdict": result["verdict"], "ai_caption": result.get("caption", ""),
+        "submitted_at": _now_iso(),
+    })
+    await _notify_admin("media_review", f"Foto pendiente: {partner.get('name','')}",
+                        {"media_id": media_id, "partner_id": biz["partner_id"], "business_id": biz["business_id"]})
+    return {"submitted": True, "media_id": media_id, "status": "pending"}
+
+
+@api_router.get("/business/media")
+async def business_my_media(request: Request):
+    biz = await get_current_business(request)
+    rows = await db.partner_media.find({"business_id": biz["business_id"]}, {"_id": 0, "data_url": 0}).sort("submitted_at", -1).to_list(100)
+    return {"media": rows}
+
+
+@api_router.post("/business/admin/media/{media_id}/approve")
+async def admin_approve_media(media_id: str, request: Request):
+    gov = await _require_government_role(request)
+    m = await db.partner_media.find_one({"media_id": media_id}, {"_id": 0})
+    if not m:
+        raise HTTPException(status_code=404, detail="Media no encontrada / Media not found")
+    if m.get("status") != "pending":
+        raise HTTPException(status_code=400, detail="Esta foto no está pendiente / Not pending")
+    data_url = m.get("data_url", "")
+    if not _pc.validate_image_value(data_url):
+        raise HTTPException(status_code=422, detail="Imagen inválida (I3) / Invalid image")
+    partner = await db.partners.find_one({"partner_id": m["partner_id"]}, {"_id": 0, "photos": 1})
+    photos = (partner or {}).get("photos") or []
+    if data_url not in photos and len(photos) < 12:
+        photos.append(data_url)
+        # NEVER touch image_url — only the reviewed gallery array.
+        await db.partners.update_one({"partner_id": m["partner_id"]}, {"$set": {"photos": photos}})
+    await db.partner_media.update_one({"media_id": media_id}, {"$set": {"status": "approved", "reviewed_by": gov.get("email", "admin"), "reviewed_at": _now_iso()}})
+    await _mod_log("media", media_id, "approve", gov.get("email", "admin"), extra={"partner_id": m["partner_id"]})
+    return {"approved": True, "media_id": media_id}
+
+
+@api_router.post("/business/admin/media/{media_id}/reject")
+async def admin_reject_media(media_id: str, request: Request):
+    gov = await _require_government_role(request)
+    body = await request.json()
+    reason = (body.get("reason") or "No aprobada")[:300]
+    r = await db.partner_media.update_one({"media_id": media_id, "status": "pending"}, {"$set": {"status": "rejected", "reason": reason, "reviewed_by": gov.get("email", "admin"), "reviewed_at": _now_iso()}})
+    if r.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Media pendiente no encontrada / Pending media not found")
+    await _mod_log("media", media_id, "reject", gov.get("email", "admin"), reason=reason)
+    return {"rejected": True, "media_id": media_id}
+
+
+# ── B2D · PRICE (partner-submitted tier, never editorial) ──────────────────
+@api_router.post("/business/price")
+async def business_submit_price(request: Request):
+    """Submit a price. Enters PENDING; on approval it lands as source:partner /
+    confidence:partner_submitted — it NEVER becomes the editorial price_reference
+    and NEVER overwrites a HIGH-confidence trust price."""
+    biz = await get_current_business(request)
+    await _require_verified_owner(biz, biz["partner_id"])
+    body = await request.json()
+    low = body.get("low"); high = body.get("high")
+    label = (body.get("label") or "").strip()[:120]
+    try:
+        low = int(low) if low not in (None, "") else None
+        high = int(high) if high not in (None, "") else None
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="Precio inválido / Invalid price")
+    if low is None and high is None and not label:
+        raise HTTPException(status_code=400, detail="Indica un rango o una nota de precio / Provide a price range or note")
+    price_id = f"pp_{uuid.uuid4().hex[:10]}"
+    await db.partner_price_submissions.delete_many({"business_id": biz["business_id"], "partner_id": biz["partner_id"], "status": "pending"})
+    await db.partner_price_submissions.insert_one({
+        "price_id": price_id, "business_id": biz["business_id"], "partner_id": biz["partner_id"],
+        "typical_cop": {"low": low, "high": high}, "label": label, "currency": "COP",
+        "status": "pending", "submitted_at": _now_iso(),
+    })
+    await _notify_admin("price_review", "Precio pendiente de revisión",
+                        {"price_id": price_id, "partner_id": biz["partner_id"], "business_id": biz["business_id"]})
+    return {"submitted": True, "price_id": price_id, "status": "pending"}
+
+
+@api_router.get("/business/price")
+async def business_my_price(request: Request):
+    biz = await get_current_business(request)
+    rows = await db.partner_price_submissions.find({"business_id": biz["business_id"]}, {"_id": 0}).sort("submitted_at", -1).to_list(50)
+    return {"prices": rows}
+
+
+@api_router.post("/business/admin/price/{price_id}/approve")
+async def admin_approve_price(price_id: str, request: Request):
+    gov = await _require_government_role(request)
+    p = await db.partner_price_submissions.find_one({"price_id": price_id}, {"_id": 0})
+    if not p or p.get("status") != "pending":
+        raise HTTPException(status_code=404, detail="Precio pendiente no encontrado / Pending price not found")
+    # Land it in a SEPARATE partner_price field — NEVER price_reference (editorial),
+    # NEVER overwriting a HIGH-confidence trust price.
+    partner_price = {
+        "source": "partner", "confidence": "partner_submitted",
+        "typical_cop": p.get("typical_cop"), "label": p.get("label", ""),
+        "currency": "COP", "approved_by": gov.get("email", "admin"), "approved_at": _now_iso(),
+    }
+    await db.partners.update_one({"partner_id": p["partner_id"]}, {"$set": {"partner_price": partner_price}})
+    await db.partner_price_submissions.update_one({"price_id": price_id}, {"$set": {"status": "approved", "reviewed_by": gov.get("email", "admin"), "reviewed_at": _now_iso()}})
+    await _mod_log("price", price_id, "approve", gov.get("email", "admin"), extra={"partner_id": p["partner_id"]})
+    return {"approved": True, "price_id": price_id}
+
+
+@api_router.post("/business/admin/price/{price_id}/reject")
+async def admin_reject_price(price_id: str, request: Request):
+    gov = await _require_government_role(request)
+    body = await request.json()
+    reason = (body.get("reason") or "No aprobada")[:300]
+    r = await db.partner_price_submissions.update_one({"price_id": price_id, "status": "pending"}, {"$set": {"status": "rejected", "reason": reason, "reviewed_by": gov.get("email", "admin"), "reviewed_at": _now_iso()}})
+    if r.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Precio pendiente no encontrado / Pending price not found")
+    await _mod_log("price", price_id, "reject", gov.get("email", "admin"), reason=reason)
+    return {"rejected": True, "price_id": price_id}
+
+
+# ── B2E · Unified moderation queue ─────────────────────────────────────────
+@api_router.get("/business/admin/submissions")
+async def admin_list_submissions(request: Request):
+    """Every pending partner submission in one review surface: events, media, price."""
+    await _require_government_role(request)
+    ev = await db.partner_events.find({"moderation_status": "pending"}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    media = await db.partner_media.find({"status": "pending"}, {"_id": 0}).sort("submitted_at", -1).to_list(200)
+    price = await db.partner_price_submissions.find({"status": "pending"}, {"_id": 0}).sort("submitted_at", -1).to_list(200)
+    # attach venue name
+    async def _name(pid):
+        p = await db.partners.find_one({"partner_id": pid}, {"_id": 0, "name": 1})
+        return (p or {}).get("name", "")
+    for e in ev: e["partner_name"] = await _name(e.get("partner_id"))
+    for m in media: m["partner_name"] = await _name(m.get("partner_id"))
+    for pr in price: pr["partner_name"] = await _name(pr.get("partner_id"))
+    return {"events": ev, "media": media, "prices": price,
+            "counts": {"events": len(ev), "media": len(media), "prices": len(price)}}
+
+
+@api_router.post("/business/admin/events/{event_id}/moderate")
+async def admin_moderate_event(event_id: str, request: Request):
+    gov = await _require_government_role(request)
+    body = await request.json()
+    action = (body.get("action") or "").strip().lower()  # approve | reject
+    reason = (body.get("reason") or "")[:300]
+    ev = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0, "partner_id": 1})
+    if not ev:
+        raise HTTPException(status_code=404, detail="Evento no encontrado / Event not found")
+    if action == "approve":
+        await db.partner_events.update_one({"event_id": event_id}, {"$set": {"moderation_status": "approved", "is_published": True, "reviewed_by": gov.get("email", "admin"), "reviewed_at": _now_iso()}})
+    elif action == "reject":
+        await db.partner_events.update_one({"event_id": event_id}, {"$set": {"moderation_status": "rejected", "is_published": False, "moderation_reason": reason, "reviewed_by": gov.get("email", "admin"), "reviewed_at": _now_iso()}})
+    else:
+        raise HTTPException(status_code=400, detail="action debe ser approve|reject")
+    await _mod_log("event", event_id, action, gov.get("email", "admin"), reason=reason, extra={"partner_id": ev.get("partner_id")})
+    return {"moderated": True, "action": action}
+
+
+# ── B2G · Partner sees the status of everything they submitted ──────────────
+@api_router.get("/business/submissions")
+async def business_my_submissions(request: Request):
+    biz = await get_current_business(request)
+    events = await db.partner_events.find({"partner_id": biz["partner_id"]}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    media = await db.partner_media.find({"business_id": biz["business_id"]}, {"_id": 0, "data_url": 0}).sort("submitted_at", -1).to_list(100)
+    prices = await db.partner_price_submissions.find({"business_id": biz["business_id"]}, {"_id": 0}).sort("submitted_at", -1).to_list(50)
+    return {"events": events, "media": media, "prices": prices}
+
+
+# ── B2F · Business password recovery (forgot → email code → reset) ──────────
+@api_router.post("/business/forgot-password")
+async def business_forgot_password(request: Request):
+    body = await request.json()
+    email = (body.get("email") or "").strip().lower()
+    # Always return ok (do not reveal whether the email exists).
+    if email and "@" in email:
+        _check_rate_limit(f"bizforgot:{email}", max_calls=4, window_sec=3600)
+        biz = await db.business_users.find_one({"email": email}, {"_id": 0, "business_id": 1, "full_name": 1})
+        if biz:
+            code = _emails_svc.generate_verification_code()
+            await db.business_reset_codes.delete_many({"email": email})
+            await db.business_reset_codes.insert_one({
+                "email": email, "code_hash": _hash_code(code, email),
+                "expires": (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
+                "attempts": 0, "created_at": _now_iso(),
+            })
+            await _emails_svc.send_verification_email(to=email, code=code, name=biz.get("full_name", ""))
+    return {"ok": True, "message": "Si el email existe, enviamos un código."}
+
+
+@api_router.post("/business/reset-password-with-code")
+async def business_reset_with_code(request: Request):
+    body = await request.json()
+    email = (body.get("email") or "").strip().lower()
+    code = (body.get("code") or "").strip()
+    new = body.get("new_password") or ""
+    if len(new) < 10:
+        raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 10 caracteres / Password must be ≥ 10 chars")
+    rec = await db.business_reset_codes.find_one({"email": email}, {"_id": 0})
+    if not rec:
+        raise HTTPException(status_code=400, detail="Código inválido o expirado / Invalid or expired code")
+    if _iso_expired(rec.get("expires", "")):
+        raise HTTPException(status_code=400, detail="Código expirado / Code expired")
+    if rec.get("attempts", 0) >= 5:
+        raise HTTPException(status_code=429, detail="Demasiados intentos / Too many attempts")
+    if _hash_code(code, email) != rec.get("code_hash"):
+        await db.business_reset_codes.update_one({"email": email}, {"$inc": {"attempts": 1}})
+        raise HTTPException(status_code=400, detail="Código incorrecto / Incorrect code")
+    biz = await db.business_users.find_one({"email": email}, {"_id": 0, "business_id": 1})
+    if not biz:
+        raise HTTPException(status_code=400, detail="Código inválido / Invalid code")
+    new_hash = _bcrypt.hashpw(new.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+    await db.business_users.update_one({"business_id": biz["business_id"]}, {"$set": {"password_hash": new_hash, "password_changed_at": _now_iso()}})
+    await db.business_sessions.delete_many({"business_id": biz["business_id"]})   # revoke all sessions
+    await db.business_reset_codes.delete_many({"email": email})
+    return {"reset": True}
 
 
 @api_router.put("/business/events/{event_id}")
@@ -2829,6 +3094,8 @@ async def list_partner_events(
     if partner_ids:
         async for p in db.partners.find({"partner_id": {"$in": partner_ids}}, {"_id": 0, "partner_id": 1, "name": 1, "tier": 1, "category": 1, "image_url": 1}):
             partners_map[p["partner_id"]] = p
+    # Drop ghost events whose venue no longer resolves (binding gate, one layer up).
+    events = [e for e in events if e.get("partner_id") in partners_map]
     for e in events:
         p = partners_map.get(e["partner_id"], {})
         e["partner_name"] = p.get("name", "")

@@ -231,10 +231,16 @@ _TEXT_FIELD_MAX: dict[str, int] = {
     "instagram": 120,
     "address": 300,
     "experience": 2000,
-    "price_range": 40,
     "default_payment_link": 300,
+    # NOTE: price_range is deliberately NOT here — B2D routes ALL price changes
+    # through the moderated partner-price submission, never a direct edit.
 }
-EDITABLE_FIELDS: set[str] = set(_TEXT_FIELD_MAX) | {
+# List-of-strings fields a partner may edit directly (B2B): each capped.
+_LIST_FIELD_MAX: dict[str, tuple[int, int]] = {  # field -> (max items, max item len)
+    "signature_dishes": (12, 80),
+    "amenities": (20, 40),
+}
+EDITABLE_FIELDS: set[str] = set(_TEXT_FIELD_MAX) | set(_LIST_FIELD_MAX) | {
     "image_url",            # value must pass validate_image_value (I3)
     "photos",               # each item must pass validate_image_value (I3)
     "images",               # each item must pass validate_image_value (I3)
@@ -247,6 +253,8 @@ PROTECTED_FIELDS: set[str] = {
     # trust badges + confidence tier
     "trust", "confidence", "verified", "is_certified", "price_reference",
     "rnt", "place_verified",
+    # partner_price is set ONLY by the moderated B2D flow, never a direct edit
+    "partner_price",
     # occasion tags / curated-collection membership (Luna + collections integrity)
     "tags", "occasion_tags", "collections", "curated", "is_featured", "featured",
     "gem_rarity",
@@ -333,6 +341,14 @@ def sanitize_edit(body: dict) -> dict:
             if not isinstance(val, str):
                 raise FirewallError(400, f"{f} debe ser texto / must be a string")
             update[f] = val[:maxlen]
+
+    # 3b) List-of-strings fields (signature_dishes, amenities): capped count + item length.
+    for f, (max_items, max_len) in _LIST_FIELD_MAX.items():
+        if f in update:
+            val = update[f]
+            if not isinstance(val, list) or not all(isinstance(x, str) for x in val):
+                raise FirewallError(400, f"{f} debe ser una lista de textos / must be a list of strings")
+            update[f] = [x.strip()[:max_len] for x in val if x.strip()][:max_items]
 
     # 4) I3 image validation.
     for f in _IMAGE_FIELDS & set(update.keys()):

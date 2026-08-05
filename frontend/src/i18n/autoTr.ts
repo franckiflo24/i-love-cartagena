@@ -357,6 +357,8 @@ export const AUTO_TR: Dict = {
   'Este lugar no está disponible': { en: 'This place is not available', fr: 'Ce lieu n\'est pas disponible', pt: 'Este lugar não está disponível' },
   'Reintentar': { en: 'Retry', fr: 'Réessayer', pt: 'Tentar novamente' },
   'PARTNER CERTIFICADO': { en: 'CERTIFIED PARTNER', fr: 'PARTENAIRE CERTIFIÉ', pt: 'PARCEIRO CERTIFICADO' },
+  'Precio informado por el negocio': { en: 'Price reported by the business', fr: 'Prix communiqué par le commerce', pt: 'Preço informado pelo negócio' },
+  'sin verificar': { en: 'unverified', fr: 'non vérifié', pt: 'não verificado' },
   'Experiencia': { en: 'Experience', fr: 'Expérience', pt: 'Experiência' },
   'Síguelos en Instagram': { en: 'Follow on Instagram', fr: 'Suivre sur Instagram', pt: 'Seguir no Instagram' },
   'Próximos eventos': { en: 'Upcoming events', fr: 'Événements à venir', pt: 'Próximos eventos' },
