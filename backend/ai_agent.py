@@ -944,9 +944,17 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
 
 async def get_or_create_session(db, user_id: Optional[str], session_id: Optional[str]) -> Dict[str, Any]:
     if session_id:
-        s = await db.chat_sessions.find_one({"session_id": session_id}, {"_id": 0})
+        # Ownership-scoped: only resume a session that belongs to THIS user. Trusting
+        # any client-supplied session_id let an attacker read another user's Luna
+        # history into the LLM context and inject writes into their session (IDOR).
+        # The sibling GET /agent/session/{id} already enforces this — mirror it here.
+        s = await db.chat_sessions.find_one({"session_id": session_id, "user_id": user_id}, {"_id": 0})
         if s:
             return s
+        # Supplied id is foreign (belongs to someone else) — never reuse it, or the
+        # insert below would collide with / write into their document. Mint a fresh id.
+        if await db.chat_sessions.find_one({"session_id": session_id}, {"_id": 1}):
+            session_id = None
     sid = session_id or f"chat_{uuid.uuid4().hex[:12]}"
     doc = {
         "session_id": sid,
