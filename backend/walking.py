@@ -273,8 +273,11 @@ async def passport_discover(request: Request, body: DiscoverBody):
 
     _validate_point(body.lat, body.lng)
 
+    from partner_visibility import PUBLIC_PARTNER_FILTER
+    # U9: you cannot stamp a venue that isn't publicly live — a pending/rejected/
+    # sandbox draft must never enter a passport or award points (honesty spine).
     partner = await db.partners.find_one(
-        {"partner_id": body.venue_id},
+        {"partner_id": body.venue_id, **PUBLIC_PARTNER_FILTER},
         {"_id": 0, "partner_id": 1, "name": 1, "category": 1, "location": 1, "tags": 1},
     )
     if not partner:

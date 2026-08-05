@@ -295,6 +295,19 @@ async def local_picks():
                 "neighborhood": _nearest_neighborhood(loc.get("lat"), loc.get("lng")),
             })
 
+    # U7-sibling: never emit an unapproved / draft / sandbox venue as a "local pick",
+    # even as a bare id+badge — one batched cross-check against the visibility filter.
+    from partner_visibility import PUBLIC_PARTNER_FILTER
+    pick_ids = [p["partner_id"] for p in picks if p.get("partner_id")]
+    approved: set = set()
+    if pick_ids:
+        async for p in db.partners.find(
+            {**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": pick_ids}}, {"_id": 0, "partner_id": 1}
+        ):
+            approved.add(p["partner_id"])
+        picks = [p for p in picks if p.get("partner_id") in approved]
+    beh_ids = {i for i in beh_ids if i in approved}
+
     updated_at = beh[0].get("updated_at") if beh else None
     return {
         "updated_at": updated_at,

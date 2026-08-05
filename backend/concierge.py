@@ -15,6 +15,8 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional
 
+from partner_visibility import PUBLIC_PARTNER_FILTER  # U7: Luna must never ground on unapproved/sandbox venues
+
 logger = logging.getLogger(__name__)
 
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "").strip()
@@ -226,7 +228,10 @@ async def get_grounding_data(agent: str, db, user_profile: Optional[dict] = None
     """Pull rich AMO partner data, sorted by rating, with zone awareness."""
     cats = AGENT_CATEGORIES.get(agent)
 
-    query: dict = {}
+    # U7: pending/rejected/sandbox venues never reach Luna's grounding blob
+    # (the system prompt says "SOLO RECOMIENDA DE ESTA LISTA", so an unapproved
+    # venue here WOULD get recommended to the guest).
+    query: dict = dict(PUBLIC_PARTNER_FILTER)
     if cats:
         query["category"] = {"$in": cats}
 
@@ -278,11 +283,18 @@ async def get_grounding_data(agent: str, db, user_profile: Optional[dict] = None
     # Add today's events
     if agent in ("luna", "ciro", "tino"):
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        # U7: only PUBLISHED events, and only on catalog-approved venues.
         events = await db.partner_events.find(
-            {"date": today},
-            {"_id": 0, "title": 1, "partner_name": 1, "start_time": 1,
+            {"date": today, "is_published": True},
+            {"_id": 0, "title": 1, "partner_name": 1, "partner_id": 1, "start_time": 1,
              "category": 1, "price": 1, "is_free": 1}
-        ).limit(20).to_list(20)
+        ).limit(40).to_list(40)
+        ev_pids = {e.get("partner_id") for e in events if e.get("partner_id")}
+        ev_ok = set()
+        if ev_pids:
+            async for p in db.partners.find({**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": list(ev_pids)}}, {"_id": 0, "partner_id": 1}):
+                ev_ok.add(p["partner_id"])
+        events = [e for e in events if e.get("partner_id") in ev_ok][:20]
         if events:
             lines.append("\n🎫 EVENTOS HOY:")
             for e in events:
@@ -295,7 +307,7 @@ async def get_grounding_data(agent: str, db, user_profile: Optional[dict] = None
     # Add attractions for Ciro (day planning)
     if agent == "ciro":
         attractions = await db.partners.find(
-            {"category": "attraction"},
+            {**PUBLIC_PARTNER_FILTER, "category": "attraction"},
             {"_id": 0, "name": 1, "subcategory": 1, "address": 1,
              "description": 1, "price_range": 1, "rating": 1}
         ).sort("rating", -1).to_list(25)
@@ -310,10 +322,19 @@ async def get_grounding_data(agent: str, db, user_profile: Optional[dict] = None
 
     # City Pass info for Tino
     if agent == "tino":
+        # U7: only active promos with a live window, on catalog-approved venues (N1 pattern).
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         promos = await db.partner_promotions.find(
-            {}, {"_id": 0, "title": 1, "partner_name": 1, "discount": 1,
-                 "description": 1}
-        ).limit(15).to_list(15)
+            {"is_active": True, "valid_until": {"$gte": today}},
+            {"_id": 0, "title": 1, "partner_name": 1, "partner_id": 1, "discount": 1,
+             "description": 1}
+        ).limit(40).to_list(40)
+        pr_pids = {pr.get("partner_id") for pr in promos if pr.get("partner_id")}
+        pr_ok = set()
+        if pr_pids:
+            async for p in db.partners.find({**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": list(pr_pids)}}, {"_id": 0, "partner_id": 1}):
+                pr_ok.add(p["partner_id"])
+        promos = [pr for pr in promos if pr.get("partner_id") in pr_ok][:15]
         if promos:
             lines.append("\n💰 OFERTAS ACTIVAS:")
             for pr in promos:

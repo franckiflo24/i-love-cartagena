@@ -812,7 +812,9 @@ async def _curated_expert_picks(db, user_text: str) -> Optional[Dict[str, Any]]:
             "tier": 1, "price_range": 1, "address": 1, "rating": 1,
             "neighborhood": 1, "experience": 1, "tags": 1, "signature_dishes": 1,
         }
-        found = await db.partners.find({"partner_id": {"$in": ids}}, fields).to_list(len(ids))
+        # U8: an expert-curated id that points to an unapproved / sandbox / rejected
+        # venue must NOT become a Luna recommendation — same gate as /search (4631).
+        found = await db.partners.find({**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": ids}}, fields).to_list(len(ids))
         by_id = {p.get("partner_id"): p for p in found}
         # Preserve the expert's exact rank order; drop any id missing from DB.
         for rank, pid in enumerate(ids, start=1):
