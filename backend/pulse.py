@@ -322,15 +322,29 @@ async def _handle_pulse_message(wa_id: str, text: str):
 async def business_post_pulse(request: Request):
     """Same pipeline, from the business portal. Body: {text: str}"""
     biz = await _get_current_business(request)
-    body = await request.json()
+    _check_rate_limit(f"bizpulse:{biz.get('business_id')}", max_calls=20, window_sec=3600)
+    try:
+        body = await request.json()
+        if not isinstance(body, dict):
+            raise ValueError
+    except Exception:
+        raise HTTPException(status_code=400, detail="Cuerpo JSON inválido / Invalid JSON body")
     text = (body.get("text") or "").strip()
     if not text or len(text) > 500:
         raise HTTPException(status_code=400, detail="text required (max 500 chars)")
     partner = await db.partners.find_one(
-        {"partner_id": biz.get("partner_id")}, {"_id": 0, "partner_id": 1, "name": 1},
+        {"partner_id": biz.get("partner_id")},
+        {"_id": 0, "partner_id": 1, "name": 1, "claim_status": 1, "claimed_by": 1, "catalog_status": 1},
     )
     if not partner:
         raise HTTPException(status_code=404, detail="partner not found")
+    # Binding gate (S2): only a verified owner of a catalog-APPROVED venue may pulse.
+    if biz.get("role") != "government" and (
+        partner.get("claim_status") != "verified_owner"
+        or partner.get("claimed_by") != biz.get("business_id")
+        or partner.get("catalog_status") in ("pending_review", "rejected")
+    ):
+        raise HTTPException(status_code=403, detail="Tu negocio debe estar verificado y aprobado / Venue must be verified and approved")
     parsed = await _parse_pulse(text)
     if parsed is None:
         raise HTTPException(status_code=502, detail="could not parse pulse")

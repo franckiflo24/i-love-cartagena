@@ -534,7 +534,12 @@ async def business_update_reservation(reservation_id: str, request: Request):
     `default_payment_link` (saved on the partner profile) in the reservation card.
     Locked behind PRO membership: FREE partners receive 402 and a CTA to upgrade."""
     biz = await _deps["get_current_business"](request)
-    body = await request.json()
+    try:
+        body = await request.json()
+        if not isinstance(body, dict):
+            raise ValueError
+    except Exception:
+        raise HTTPException(status_code=400, detail="Cuerpo JSON inválido / Invalid JSON body")
     action = (body.get("action") or "").strip().lower()
     note = (body.get("note") or "").strip()[:280]
 

@@ -844,6 +844,9 @@ async def business_create_event(request: Request):
         if not body.get(r):
             raise HTTPException(status_code=400, detail=f"{r} is required")
     event_price = _bounded_int(body.get("price", 0), field="price") or 0
+    flyer = (body.get("flyer_url") or "").strip()
+    if flyer and not _pc.validate_image_value(flyer):
+        raise HTTPException(status_code=422, detail="Flyer inválido (I3): solo subidas moderadas o /images/ / Invalid flyer: moderated upload or /images/ only")
 
     # ── AI Moderation ──
     from ai_moderation import moderate_event
@@ -875,7 +878,7 @@ async def business_create_event(request: Request):
         "date": body["date"],
         "start_time": body["start_time"],
         "end_time": body["end_time"],
-        "flyer_url": body.get("flyer_url", ""),
+        "flyer_url": flyer,
         "is_free": bool(body.get("is_free", False)),
         "price": event_price,
         "currency": body.get("currency", "COP"),
@@ -929,9 +932,13 @@ async def business_upload_image(request: Request):
     Returns: { url, verdict, caption, tags, reason } — url is the data URL ready to use.
     """
     biz = await get_current_business(request)
-    body = await request.json()
+    _check_rate_limit(f"bizupload:{biz['business_id']}", max_calls=20, window_sec=3600)
+    await _require_verified_owner(biz, biz["partner_id"])
+    body = await _json_body(request)
     image_b64 = body.get("image_base64", "")
     purpose = body.get("purpose", "flyer")
+    if not isinstance(image_b64, str) or len(image_b64) > 700_000:
+        raise HTTPException(status_code=413, detail="Imagen demasiado grande (máx ~500KB) / Image too large")
     if not image_b64:
         raise HTTPException(status_code=400, detail="image_base64 is required")
     # Detect mime
@@ -2047,9 +2054,18 @@ async def business_update_event(event_id: str, request: Request):
     allowed = {"title", "description", "category", "date", "start_time", "end_time", "flyer_url", "is_free", "price", "booking_link", "is_published"}
     update = {k: v for k, v in body.items() if k in allowed}
     if "price" in update:
-        update["price"] = int(update["price"] or 0)
+        update["price"] = _bounded_int(update["price"], field="price") or 0
     if "is_free" in update:
         update["is_free"] = bool(update["is_free"])
+    if "flyer_url" in update:  # S6: I3
+        fv = (update["flyer_url"] or "").strip()
+        if fv and not _pc.validate_image_value(fv):
+            raise HTTPException(status_code=422, detail="Flyer inválido (I3) / Invalid flyer")
+        update["flyer_url"] = fv
+    # S1: a partner may PAUSE (true->false) but NEVER self-publish (false->true) — a
+    # rejected/pending event can only go public through re-moderation on a content edit.
+    if update.get("is_published") is True:
+        update.pop("is_published")
 
     # ── Re-moderation if substantial fields changed ──
     needs_remoderation = any(
@@ -2205,6 +2221,7 @@ async def business_update_promotion(promo_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Promotion not found")
     if existing["partner_id"] != biz["partner_id"]:
         raise HTTPException(status_code=403, detail="Not your promotion")
+    await _require_content_owner(biz, biz["partner_id"])   # S7
     body = await _json_body(request)
     allowed = {"title", "description", "category", "discount_pct", "original_price", "promo_price", "valid_until", "image_url", "tag_label", "is_active"}
     update = {k: v for k, v in body.items() if k in allowed}
@@ -3656,7 +3673,7 @@ async def deregister_user_push_token(request: Request):
 async def register_business_push_token(request: Request):
     """Register/refresh an Expo push token for the current partner business."""
     biz = await get_current_business(request)
-    body = await request.json()
+    body = await _json_body(request)
     token = (body.get("token") or "").strip()
     platform = body.get("platform")
     device_name = body.get("device_name")
@@ -3678,7 +3695,7 @@ async def register_business_push_token(request: Request):
 @api_router.delete("/business/push-token")
 async def deregister_business_push_token(request: Request):
     await get_current_business(request)
-    body = await request.json()
+    body = await _json_body(request)
     token = (body.get("token") or "").strip()
     if not token:
         raise HTTPException(status_code=400, detail="token required")

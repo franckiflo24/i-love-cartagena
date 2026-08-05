@@ -157,12 +157,15 @@ async def for_you(request: Request, limit: int = 12):
         ors.append({"subcategory": {"$in": list(taste["subcategories"].keys())}})
     if taste.get("categories"):
         ors.append({"category": {"$in": list(taste["categories"].keys())}})
+    # Unapproved / rejected / sandbox partner-submitted drafts never enter the
+    # personalized rail (S3).
+    _pub = {"catalog_status": {"$nin": ["pending_review", "rejected", "sandbox"]}}
     if not ors:
         # Cold start: top-rated across the board
-        rows = await db.partners.find({}, CARD_FIELDS).sort([("rating", -1), ("reviews", -1)]).limit(limit).to_list(limit)
+        rows = await db.partners.find(dict(_pub), CARD_FIELDS).sort([("rating", -1), ("reviews", -1)]).limit(limit).to_list(limit)
         return {"partners": rows, "personalized": False}
 
-    cands = await db.partners.find({"$or": ors}, CARD_FIELDS).limit(400).to_list(400)
+    cands = await db.partners.find({**_pub, "$or": ors}, CARD_FIELDS).limit(400).to_list(400)
     scored = sorted(
         cands,
         key=lambda p: taste_boost(p, taste) + (p.get("rating") or 0) * 0.25,
