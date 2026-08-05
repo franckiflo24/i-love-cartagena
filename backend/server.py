@@ -1010,6 +1010,20 @@ async def _json_body(request: Request) -> dict:
     return data
 
 
+async def _approved_partner_ids(partner_ids) -> set:
+    """The subset of partner_ids that are catalog-approved (PUBLIC_PARTNER_FILTER).
+    Any route that returns partner_events to the public must drop events whose
+    venue isn't in this set — one shared guard so a new sibling can't reintroduce
+    the ghost/unapproved-content leak."""
+    pids = [p for p in set(partner_ids or []) if p]
+    if not pids:
+        return set()
+    out: set = set()
+    async for p in db.partners.find({**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": pids}}, {"_id": 0, "partner_id": 1}):
+        out.add(p["partner_id"])
+    return out
+
+
 def _bounded_int(value, lo: int = 0, hi: int = 999_999_999, field: str = "valor"):
     """Parse an int within safe bounds (M2/L1) — rejects overflow / negatives."""
     if value in (None, ""):
@@ -4571,12 +4585,15 @@ async def global_search(q: str = "", request: Request = None):
     ).limit(20).to_list(20)
 
     partner_events = await db.partner_events.find(
-        {"$or": [
+        {"is_published": True, "$or": [
             {"title": regex}, {"description": regex},
             {"category": regex}, {"partner_name": regex}, {"name_es": regex},
         ]},
         {"_id": 0}
     ).limit(50).to_list(50)
+    # drop events whose venue isn't publicly approved (T1 sibling)
+    _pe_ok = await _approved_partner_ids(e.get("partner_id") for e in partner_events)
+    partner_events = [e for e in partner_events if e.get("partner_id") in _pe_ok]
 
     matches = {
         "events": events, "concerts": concerts, "partners": partners,
@@ -4620,7 +4637,7 @@ async def global_search(q: str = "", request: Request = None):
             missing_ids = [pid for pid in cur_ids if pid not in pool]
             if missing_ids:
                 extra_docs = await db.partners.find(
-                    {"partner_id": {"$in": missing_ids}}, PUBLIC_PARTNER_PROJECTION
+                    {**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": missing_ids}}, PUBLIC_PARTNER_PROJECTION
                 ).to_list(len(missing_ids))
                 for d in extra_docs:
                     pool[d.get("partner_id")] = d
@@ -5795,14 +5812,13 @@ async def list_experiences(request: Request):
     """List experiences with optional category filter."""
     try:
         category = request.query_params.get("category")
-        query = {"$or": [{"is_active": True}, {"is_published": True}]}
+        # T1: only PUBLISHED events (no is_active bypass) whose venue is approved.
+        query = {"is_published": True}
         if category:
             query["category"] = category
-        experiences = await db.partner_events.find(
-            query,
-            {"_id": 0},
-        ).sort("created_at", -1).to_list(200)
-        return experiences
+        experiences = await db.partner_events.find(query, {"_id": 0}).sort("created_at", -1).to_list(200)
+        approved = await _approved_partner_ids(e.get("partner_id") for e in experiences)
+        return [e for e in experiences if e.get("partner_id") in approved]
     except Exception as e:
         logger.error(f"[Experiences] list error: {e}")
         raise HTTPException(status_code=500, detail="Failed to load experiences")
@@ -5813,10 +5829,11 @@ async def featured_experiences():
     """Return featured experiences (highest rated active events)."""
     try:
         featured = await db.partner_events.find(
-            {"$or": [{"is_active": True}, {"is_published": True}]},
+            {"is_published": True},
             {"_id": 0},
-        ).sort([("is_featured", -1), ("created_at", -1)]).limit(10).to_list(10)
-        return featured
+        ).sort([("is_featured", -1), ("created_at", -1)]).limit(30).to_list(30)
+        approved = await _approved_partner_ids(e.get("partner_id") for e in featured)
+        return [e for e in featured if e.get("partner_id") in approved][:10]
     except Exception as e:
         logger.error(f"[Experiences] featured error: {e}")
         raise HTTPException(status_code=500, detail="Failed to load featured experiences")
@@ -5826,10 +5843,16 @@ async def featured_experiences():
 async def get_experience(experience_id: str):
     """Get a single experience by ID."""
     try:
-        exp = await db.partner_events.find_one({"event_id": experience_id}, {"_id": 0})
+        # T1: published events only, venue must be approved, internal fields stripped.
+        exp = await db.partner_events.find_one({"event_id": experience_id, "is_published": True}, {"_id": 0})
         if not exp:
             raise HTTPException(status_code=404, detail="Experience not found")
-        partner = await db.partners.find_one({"partner_id": exp.get("partner_id")}, {"_id": 0, "name": 1, "rating": 1, "reviews": 1, "rating_breakdown": 1, "image_url": 1, "phone": 1, "whatsapp": 1})
+        partner = await db.partners.find_one(
+            {"partner_id": exp.get("partner_id"), **PUBLIC_PARTNER_FILTER},
+            {"_id": 0, "name": 1, "rating": 1, "reviews": 1, "rating_breakdown": 1, "image_url": 1, "phone": 1, "whatsapp": 1},
+        )
+        if not partner:
+            raise HTTPException(status_code=404, detail="Experience not found")
         exp["partner"] = partner
         return exp
     except HTTPException:
