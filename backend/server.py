@@ -42,7 +42,7 @@ from pymongo.errors import DuplicateKeyError as _DuplicateKeyError
 # Every END-USER-facing partners query MUST merge this in so unreviewed /
 # rejected partner-submitted drafts never surface publicly. $nin also matches
 # documents missing the field, so the pre-existing catalog is unaffected.
-PUBLIC_PARTNER_FILTER = {"catalog_status": {"$nin": ["pending_review", "rejected"]}}
+PUBLIC_PARTNER_FILTER = {"catalog_status": {"$nin": ["pending_review", "rejected", "sandbox"]}}
 
 # Internal ownership / moderation fields stripped from any PUBLIC partner
 # response — a claimant's account email and internal business_ids are not public.
@@ -529,6 +529,59 @@ async def get_current_business(request: Request) -> dict:
     return biz
 
 
+# ── Login brute-force throttle (DB-backed so it survives across serverless
+#    instances). Keyed by client IP to avoid an email-based account-lockout DoS. ──
+_LOGIN_MAX_FAILS = 12
+_LOGIN_WINDOW_SEC = 900   # 15-minute rolling window
+_LOGIN_LOCK_SEC = 900     # lock the IP for 15 min after too many fails
+# A fixed bcrypt hash of a random string, used to spend ~equal time on the
+# no-such-user path so login timing can't be used to enumerate valid emails.
+_DUMMY_PW_HASH = _bcrypt.hashpw(b"amo-timing-equalizer-constant", _bcrypt.gensalt())
+
+
+def _client_ip(request: Request) -> str:
+    xff = request.headers.get("x-forwarded-for", "")
+    if xff:
+        return xff.split(",")[0].strip()
+    return (request.client.host if request.client else "unknown")
+
+
+async def _login_throttle_guard(ip: str):
+    rec = await db.login_throttle.find_one({"_id": ip}, {"_id": 0, "locked_until": 1})
+    if rec and rec.get("locked_until"):
+        try:
+            lu = datetime.fromisoformat(rec["locked_until"])
+            if lu.tzinfo is None:
+                lu = lu.replace(tzinfo=timezone.utc)
+            if lu > datetime.now(timezone.utc):
+                raise HTTPException(status_code=429, detail="Demasiados intentos fallidos. Intenta de nuevo en unos minutos. / Too many failed attempts, try again later.")
+        except HTTPException:
+            raise
+        except Exception:
+            pass
+
+
+async def _login_record_fail(ip: str):
+    now = datetime.now(timezone.utc)
+    rec = await db.login_throttle.find_one({"_id": ip})
+    fails = (rec or {}).get("fails", 0)
+    ws = (rec or {}).get("window_start")
+    try:
+        ws_dt = datetime.fromisoformat(ws) if ws else None
+        if ws_dt and ws_dt.tzinfo is None:
+            ws_dt = ws_dt.replace(tzinfo=timezone.utc)
+    except Exception:
+        ws_dt = None
+    if not ws_dt or (now - ws_dt).total_seconds() > _LOGIN_WINDOW_SEC:
+        fails = 0
+        ws = now.isoformat()
+    fails += 1
+    upd = {"fails": fails, "window_start": ws}
+    if fails >= _LOGIN_MAX_FAILS:
+        upd["locked_until"] = (now + timedelta(seconds=_LOGIN_LOCK_SEC)).isoformat()
+    await db.login_throttle.update_one({"_id": ip}, {"$set": upd}, upsert=True)
+
+
 @api_router.post("/business/login")
 async def business_login(request: Request):
     body = await request.json()
@@ -536,12 +589,17 @@ async def business_login(request: Request):
     password = body.get("password") or ""
     if not email or not password:
         raise HTTPException(status_code=400, detail="Email and password are required")
+    ip = _client_ip(request)
+    await _login_throttle_guard(ip)
     biz = await db.business_users.find_one({"email": email}, {"_id": 0})
-    if not biz:
+    # Always run a bcrypt comparison (real hash or dummy) so response time does
+    # not reveal whether the email exists.
+    pw_hash = (biz.get("password_hash", "").encode("utf-8") if biz else b"") or _DUMMY_PW_HASH
+    ok = _bcrypt.checkpw(password.encode("utf-8"), pw_hash)
+    if not biz or not ok:
+        await _login_record_fail(ip)
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
-    pw_hash = biz.get("password_hash", "").encode("utf-8")
-    if not pw_hash or not _bcrypt.checkpw(password.encode("utf-8"), pw_hash):
-        raise HTTPException(status_code=401, detail="Credenciales inválidas")
+    await db.login_throttle.delete_one({"_id": ip})  # clear on success
     token = f"biz_{uuid.uuid4().hex}"
     await db.business_sessions.insert_one({
         "token": token,
@@ -552,6 +610,29 @@ async def business_login(request: Request):
     biz_safe = {k: v for k, v in biz.items() if k != "password_hash"}
     partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0})
     return {"token": token, "business": biz_safe, "partner": partner}
+
+
+@api_router.post("/business/change-password")
+async def business_change_password(request: Request):
+    """Rotate the calling account's password. Verifies the current password,
+    then revokes all OTHER sessions (keeps the caller's current one)."""
+    biz = await get_current_business(request)
+    body = await request.json()
+    current = body.get("current_password") or ""
+    new = body.get("new_password") or ""
+    if len(new) < 10:
+        raise HTTPException(status_code=400, detail="La nueva contraseña debe tener al menos 10 caracteres / New password must be ≥ 10 chars")
+    full = await db.business_users.find_one({"business_id": biz["business_id"]}, {"_id": 0, "password_hash": 1})
+    pw_hash = (full or {}).get("password_hash", "").encode("utf-8")
+    if not pw_hash or not _bcrypt.checkpw(current.encode("utf-8"), pw_hash):
+        raise HTTPException(status_code=401, detail="Contraseña actual incorrecta / Current password is incorrect")
+    new_hash = _bcrypt.hashpw(new.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+    await db.business_users.update_one({"business_id": biz["business_id"]}, {"$set": {"password_hash": new_hash, "password_changed_at": _now_iso()}})
+    # Revoke every other session for this account (current token stays valid).
+    auth_header = request.headers.get("Authorization", "")
+    cur_token = auth_header[7:] if auth_header.startswith("Bearer ") else None
+    await db.business_sessions.delete_many({"business_id": biz["business_id"], "token": {"$ne": cur_token}})
+    return {"changed": True}
 
 
 @api_router.post("/business/logout")
@@ -1487,6 +1568,116 @@ async def admin_backfill_ownership(request: Request):
     except Exception:
         pass
     return {"linked": linked, "skipped_ghost_venues": skipped_ghost}
+
+
+@api_router.post("/business/admin/accounts")
+async def admin_create_account(request: Request):
+    """Government-only: provision a partner OR admin (government) account.
+    Optional: link an existing venue as verified_owner, or spin up a hidden
+    sandbox venue (catalog_status=sandbox, never public) for a demo account."""
+    await _require_government_role(request)
+    body = await request.json()
+    email = (body.get("email") or "").strip().lower()
+    password = body.get("password") or ""
+    role = (body.get("role") or "business").strip().lower()
+    full_name = (body.get("full_name") or "").strip()
+    partner_id = (body.get("partner_id") or "").strip()
+    demo_sandbox = bool(body.get("demo_sandbox"))
+    if not email or "@" not in email or "." not in email.split("@")[-1]:
+        raise HTTPException(status_code=400, detail="Email inválido / Invalid email")
+    if len(password) < 10:
+        raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 10 caracteres / Password must be ≥ 10 chars")
+    if role not in ("business", "government"):
+        raise HTTPException(status_code=400, detail="role debe ser business|government")
+    if await db.business_users.find_one({"email": email}):
+        raise HTTPException(status_code=409, detail="Ese email ya tiene una cuenta / That email already has an account")
+
+    business_id = f"biz_{uuid.uuid4().hex[:12]}"
+    pw_hash = _bcrypt.hashpw(password.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+    linked_partner = None
+
+    if demo_sandbox:
+        # Idempotent hidden sandbox venue — never enters the public catalog.
+        sandbox_pid = "ptr_demo_sandbox"
+        await db.partners.update_one({"partner_id": sandbox_pid}, {"$set": {
+            "partner_id": sandbox_pid,
+            "name": "Demo · Tu Negocio",
+            "category": "restaurant",
+            "description": "Cuenta demo para explorar el panel de partners. Los cambios aquí no afectan ningún negocio real.",
+            "catalog_status": "sandbox",
+            "confidence": "partner_submitted",
+            "claim_status": "verified_owner",
+            "claimed_by": business_id,
+            "claim_method": "demo",
+            "image_url": "",
+        }}, upsert=True)
+        linked_partner = sandbox_pid
+    elif partner_id:
+        p = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "partner_id": 1})
+        if not p:
+            raise HTTPException(status_code=404, detail="partner_id no existe / Venue not found")
+        await db.partners.update_one({"partner_id": partner_id}, {"$set": {
+            "claim_status": "verified_owner", "claimed_by": business_id,
+            "claim_method": "admin_provisioned", "claim_verified_at": _now_iso(),
+        }})
+        linked_partner = partner_id
+
+    await db.business_users.insert_one({
+        "business_id": business_id,
+        "email": email,
+        "password_hash": pw_hash,
+        "full_name": full_name,
+        "role": role,
+        "status": "active",
+        "provisioned_by": "admin",
+        "partner_id": linked_partner,
+        "claimed_partner_ids": [linked_partner] if linked_partner else [],
+        "created_at": _now_iso(),
+    })
+    try:
+        await db.business_users.create_index("email", unique=True)
+    except Exception:
+        pass
+    return {"created": True, "business_id": business_id, "email": email, "role": role, "partner_id": linked_partner}
+
+
+@api_router.post("/business/admin/accounts/{business_id}/reset-password")
+async def admin_reset_password(business_id: str, request: Request):
+    """Government-only: set a new password on any account (reset a locked-out
+    partner, or an admin who lost their password). Revokes that account's sessions."""
+    await _require_government_role(request)
+    body = await request.json()
+    new = body.get("new_password") or ""
+    if len(new) < 10:
+        raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 10 caracteres / Password must be ≥ 10 chars")
+    acct = await db.business_users.find_one({"business_id": business_id}, {"_id": 0, "business_id": 1})
+    if not acct:
+        raise HTTPException(status_code=404, detail="Cuenta no encontrada / Account not found")
+    new_hash = _bcrypt.hashpw(new.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+    await db.business_users.update_one({"business_id": business_id}, {"$set": {"password_hash": new_hash, "password_changed_at": _now_iso()}})
+    await db.business_sessions.delete_many({"business_id": business_id})
+    return {"reset": True, "business_id": business_id}
+
+
+@api_router.post("/business/admin/unlock-login")
+async def admin_unlock_login(request: Request):
+    """Clear login brute-force locks (free a partner who got locked out).
+    Auth: a government session OR a Bearer CRON_SECRET (so an operator can also
+    unlock when they themselves are locked out). Optional body {ip} clears one IP;
+    otherwise clears all counters."""
+    auth = request.headers.get("Authorization", "")
+    token = auth[7:] if auth.startswith("Bearer ") else ""
+    cron = os.environ.get("CRON_SECRET", "")
+    if not (cron and token == cron):
+        await _require_government_role(request)
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    ip = (body or {}).get("ip")
+    q = {"_id": ip} if ip else {}
+    result = await db.login_throttle.delete_many(q)
+    return {"cleared": result.deleted_count}
 
 
 @api_router.delete("/business/admin/accounts/{business_id}")

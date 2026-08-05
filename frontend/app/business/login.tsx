@@ -41,8 +41,10 @@ export default function BusinessLogin() {
   };
 
   const fillDemo = () => {
-    setEmail('elarsenal@amocartagena.app');
-    setPassword('amocartagena2026');
+    // Sandbox demo account — a throwaway venue, not a real partner. Safe to ship
+    // in the bundle: it only reaches the demo dashboard, never real data.
+    setEmail('demo@amocartagena.app');
+    setPassword('AmoDemoSandbox2026');
   };
 
   const fillAlcaldia = () => {
