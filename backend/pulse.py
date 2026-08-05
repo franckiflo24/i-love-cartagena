@@ -60,11 +60,15 @@ def _digits(s: str) -> str:
 async def _resolve_partners(wa_phone: str) -> List[Dict[str, Any]]:
     """All partners sharing this phone suffix — venue complexes (e.g. Casa
     Bohème: restaurant + bar + spa on one number) return several listings."""
+    from partner_visibility import PUBLIC_PARTNER_FILTER
     suffix = _digits(wa_phone)[-10:]
     if len(suffix) < 10:
         return []
+    # U1: only catalog-APPROVED venues can be pulsed via WhatsApp — otherwise a
+    # partner could set `whatsapp` to their number on an unapproved draft and
+    # publish a live pulse, bypassing the /business/pulse approval gate (S2).
     partners = await db.partners.find(
-        {"$or": [{"phone": {"$exists": True, "$ne": ""}}, {"whatsapp": {"$exists": True, "$ne": ""}}]},
+        {**PUBLIC_PARTNER_FILTER, "$or": [{"phone": {"$exists": True, "$ne": ""}}, {"whatsapp": {"$exists": True, "$ne": ""}}]},
         {"_id": 0, "partner_id": 1, "name": 1, "category": 1, "phone": 1, "whatsapp": 1},
     ).to_list(2000)
     out = []

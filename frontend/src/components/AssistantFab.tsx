@@ -284,7 +284,10 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
         case 'open_event': {
           if (!a.event_id) return;
           setOpen(false);
-          router.push({ pathname: '/event/[id]' as any, params: { id: a.event_id } });
+          // Partner-published events (pe_*) live on their own detail screen;
+          // /event/[id] only resolves editorial events-collection ids.
+          const eventPath = String(a.event_id).startsWith('pe_') ? '/partner-event/[id]' : '/event/[id]';
+          router.push({ pathname: eventPath as any, params: { id: a.event_id } });
           return;
         }
         case 'open_port_tax_checkout': {

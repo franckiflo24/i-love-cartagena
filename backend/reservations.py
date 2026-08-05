@@ -272,7 +272,8 @@ async def create_reservation(request: Request):
     if dt > _now() + timedelta(days=365):
         raise HTTPException(status_code=400, detail="No se pueden reservar fechas con más de 1 año de antelación")
 
-    partner = await _db().partners.find_one({"partner_id": partner_id}, {"_id": 0})
+    from partner_visibility import PUBLIC_PARTNER_FILTER  # U5: no reservations against unapproved venues
+    partner = await _db().partners.find_one({"partner_id": partner_id, **PUBLIC_PARTNER_FILTER}, {"_id": 0})
     if not partner:
         raise HTTPException(status_code=404, detail="Partner no encontrado")
 

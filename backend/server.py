@@ -39,22 +39,11 @@ import emails as _emails_svc
 import hashlib as _hashlib
 from pymongo.errors import DuplicateKeyError as _DuplicateKeyError
 
-# Every END-USER-facing partners query MUST merge this in so unreviewed /
-# rejected partner-submitted drafts never surface publicly. $nin also matches
-# documents missing the field, so the pre-existing catalog is unaffected.
-PUBLIC_PARTNER_FILTER = {"catalog_status": {"$nin": ["pending_review", "rejected", "sandbox"]}}
-
-# Internal ownership / moderation fields stripped from any PUBLIC partner
-# response — a claimant's account email and internal business_ids are not public.
-# (claim_status is intentionally KEPT — the find/claim UI shows "Reclamado".)
-INTERNAL_PARTNER_FIELDS = (
-    "submitted_email", "submitted_by", "claimed_by", "claim_method",
-    "claim_verified_at", "approved_by", "rejected_by", "reject_reason",
+# Catalog-visibility guard — SINGLE SOURCE OF TRUTH, shared with every other
+# module (walking/occasions/ai_agent/reservations/pulse) so no route can drift.
+from partner_visibility import (  # noqa: E402
+    PUBLIC_PARTNER_FILTER, INTERNAL_PARTNER_FIELDS, PUBLIC_PARTNER_PROJECTION, is_publicly_visible,
 )
-# Exclusion projection for EVERY public-facing full-document partners query, so
-# internal fields never leak — including for already-approved venues that went
-# through the claim flow (e.g. an admin-provisioned venue's claimed_by business_id).
-PUBLIC_PARTNER_PROJECTION = {"_id": 0, **{f: 0 for f in INTERNAL_PARTNER_FIELDS}}
 
 # ── In-memory rate limiter for expensive AI endpoints ──────────
 from collections import defaultdict
@@ -3274,8 +3263,9 @@ async def track_promotion_click(promo_id: str):
 @api_router.post("/partner-events/{event_id}/track-reserve")
 async def track_partner_event_reserve(event_id: str, request: Request):
     """Track a reservation click and return the booking URL with UTM params so the partner knows it came from Amo Cartagena."""
-    event = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0})
-    if not event:
+    # U6: only a published event on an approved venue exposes a booking URL.
+    event = await db.partner_events.find_one({"event_id": event_id, "is_published": True}, {"_id": 0})
+    if not event or not await _approved_partner_ids([event.get("partner_id")]):
         raise HTTPException(status_code=404, detail="Event not found")
     await db.partner_events.update_one({"event_id": event_id}, {"$inc": {"reserve_clicks": 1}})
     # Try to identify user (optional)
@@ -3310,7 +3300,7 @@ async def track_partner_event_reserve(event_id: str, request: Request):
 @api_router.post("/partners/{partner_id}/track-reserve")
 async def track_partner_reserve(partner_id: str, request: Request):
     """Track a reservation click on the partner's profile (not tied to a specific event)."""
-    partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0})
+    partner = await db.partners.find_one({"partner_id": partner_id, **PUBLIC_PARTNER_FILTER}, {"_id": 0})
     if not partner:
         raise HTTPException(status_code=404, detail="Partner not found")
     try:
@@ -3472,9 +3462,11 @@ async def _generate_daily_itinerary(user: Optional[dict], category: str, force: 
     # Fetch today's partner events for category
     ecats = list(_ecats_for(cat))
     today_events = await db.partner_events.find(
-        {"date": today, "category": {"$in": ecats}, "moderation_status": {"$in": ["approved", None]}},
+        {"date": today, "category": {"$in": ecats}, "is_published": True},
         {"_id": 0},
     ).to_list(20)
+    _te_ok = await _approved_partner_ids(e.get("partner_id") for e in today_events)
+    today_events = [e for e in today_events if e.get("partner_id") in _te_ok]
 
     profile, favorites = (None, [])
     if user:
@@ -5786,8 +5778,10 @@ async def wompi_partner_event_checkout(request: Request):
         raise HTTPException(status_code=400, detail="event_id required")
     if qty < 1 or qty > 50:
         raise HTTPException(status_code=400, detail="qty must be 1..50")
-    ev = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0})
-    if not ev:
+    # U2: never process a real payment for an unpublished event or an event on a
+    # venue that isn't catalog-approved (fraud / never-reviewed party).
+    ev = await db.partner_events.find_one({"event_id": event_id, "is_published": True}, {"_id": 0})
+    if not ev or not await _approved_partner_ids([ev.get("partner_id")]):
         raise HTTPException(status_code=404, detail="Event not found")
     if ev.get("is_free"):
         raise HTTPException(status_code=400, detail="Event is free, no payment required")
@@ -5897,8 +5891,9 @@ async def wompi_experience_checkout(request: Request):
     if qty < 1 or qty > 20:
         raise HTTPException(status_code=400, detail="qty must be between 1 and 20")
 
-    exp = await db.partner_events.find_one({"event_id": experience_id, "$or": [{"is_active": True}, {"is_published": True}]}, {"_id": 0})
-    if not exp:
+    # U2: published + approved-venue only before taking money.
+    exp = await db.partner_events.find_one({"event_id": experience_id, "is_published": True}, {"_id": 0})
+    if not exp or not await _approved_partner_ids([exp.get("partner_id")]):
         raise HTTPException(status_code=404, detail="Experience not found or inactive")
 
     price_per = exp.get("price_cop") or exp.get("price") or 0

@@ -145,6 +145,11 @@ async def nearby(request: Request, lat: float, lng: float,
     radius = max(10, min(int(radius), RADIUS_MAX_M))
     _check_rate_limit(f"nearby:{_client_ip(request)}", max_calls=60, window_sec=60)
 
+    from partner_visibility import PUBLIC_PARTNER_FILTER
+    # U3: unapproved / draft / sandbox venues never surface in the nearby walk.
+    _near_q: Dict[str, Any] = dict(PUBLIC_PARTNER_FILTER)
+    if category:
+        _near_q["category"] = category
     geo_query: Dict[str, Any] = {
         "$geoNear": {
             # GeoJSON order: [lng, lat] — LONGITUDE FIRST
@@ -153,10 +158,9 @@ async def nearby(request: Request, lat: float, lng: float,
             "maxDistance": float(radius),
             "spherical": True,
             "key": "geo",
+            "query": _near_q,
         }
     }
-    if category:
-        geo_query["$geoNear"]["query"] = {"category": category}
 
     try:
         rows = await db.partners.aggregate([
@@ -510,12 +514,13 @@ async def _enriched_collections() -> Dict[str, Any]:
     if _collections_cache["enriched"] and now - _collections_cache["at"] < _COLLECTIONS_TTL:
         return _collections_cache["enriched"]
 
+    from partner_visibility import PUBLIC_PARTNER_FILTER
     defs = _load_defs()
     all_ids = sorted({v for s in defs["sabores"] for v in s["venue_ids"]}
                      | {p["venue_id"] for p in defs["plazas"]})
     found: Dict[str, Dict[str, Any]] = {}
     async for p in db.partners.find(
-        {"partner_id": {"$in": all_ids}},
+        {**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": all_ids}},
         {"_id": 0, "partner_id": 1, "name": 1, "category": 1, "image_url": 1, "location": 1},
     ):
         found[p["partner_id"]] = p
@@ -1145,10 +1150,11 @@ async def _enriched_trails() -> List[Dict[str, Any]]:
     if _trails_cache["enriched"] and now - _trails_cache["at"] < 300:
         return _trails_cache["enriched"]
     defs = _load_trails()
+    from partner_visibility import PUBLIC_PARTNER_FILTER
     all_ids = sorted({s["venue_id"] for t in defs["trails"] for s in t["stops"]})
     found: Dict[str, Dict[str, Any]] = {}
     async for p in db.partners.find(
-        {"partner_id": {"$in": all_ids}},
+        {**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": all_ids}},
         {"_id": 0, "partner_id": 1, "name": 1, "category": 1, "image_url": 1, "location": 1},
     ):
         found[p["partner_id"]] = p

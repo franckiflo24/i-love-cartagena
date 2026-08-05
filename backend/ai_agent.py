@@ -40,6 +40,7 @@ import time
 import uuid
 import re
 from datetime import datetime, timezone
+from partner_visibility import PUBLIC_PARTNER_FILTER  # U4: Luna never recommends unapproved venues
 from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -641,13 +642,13 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
                 {"experience": {"$regex": free_text[:50], "$options": "i"}},
             ]
 
-    cursor = db.partners.find(query, fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
+    cursor = db.partners.find({**PUBLIC_PARTNER_FILTER, **query}, fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
     rows = await cursor.to_list(max_results)
 
     # If LLM-routed query returned empty, try with just category (drop search_terms)
     if not rows and used_llm_routing and routed_cats:
         fallback_q: Dict[str, Any] = {"category": {"$in": routed_cats}} if len(routed_cats) > 1 else {"category": routed_cats[0]}
-        cursor = db.partners.find(fallback_q, fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
+        cursor = db.partners.find({**PUBLIC_PARTNER_FILTER, **fallback_q}, fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
         rows = await cursor.to_list(max_results)
 
     # Keyword fallback: broader bar/restaurant pool
@@ -659,13 +660,13 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
         ):
             cats = semantic.get("category_in") or ["bar", "club", "beach_club", "nightclub", "restaurant"]
             cursor = db.partners.find(
-                {"category": {"$in": cats}}, fields,
+                {**PUBLIC_PARTNER_FILTER, "category": {"$in": cats}}, fields,
             ).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
             rows = await cursor.to_list(max_results)
 
     # Ultimate fallback: diverse top partners
     if not rows:
-        cursor = db.partners.find({}, fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
+        cursor = db.partners.find(dict(PUBLIC_PARTNER_FILTER), fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
         rows = await cursor.to_list(max_results)
 
     # Transport intent: a boat query ("lancha a rosario", "cómo llego a las islas")
@@ -688,7 +689,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
         if _dest:
             op_q = {"category": {"$in": ["yacht", "service"]}, "serves_destinations": {"$in": _dest}}
         try:
-            op_rows = await db.partners.find(op_q, fields).sort(
+            op_rows = await db.partners.find({**PUBLIC_PARTNER_FILTER, **op_q}, fields).sort(
                 [("rating", -1), ("reviews", -1)]).limit(12).to_list(12)
             if op_rows:
                 seen = {r.get("partner_id") for r in op_rows}
@@ -751,7 +752,7 @@ CARTAGENA_KNOWLEDGE: Dict[str, Any] = {
 
 async def _slim_all_partners_compact(db, limit: int = 80) -> List[Dict[str, Any]]:
     """Top partners — ultra-compact. Only partner_id + name + category for ID resolution."""
-    cursor = db.partners.find({}, {
+    cursor = db.partners.find(dict(PUBLIC_PARTNER_FILTER), {
         "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
     }).sort([("rating", -1), ("reviews", -1)]).limit(limit)
     return await cursor.to_list(limit)
@@ -772,10 +773,23 @@ async def _slim_partner_events(db, limit: int = 15) -> List[Dict[str, Any]]:
     """Pull upcoming partner-curated events (Daypass / Sunset / Cena especial / etc.)"""
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     cursor = db.partner_events.find(
-        {"date": {"$gte": today_str}, "moderation_status": {"$in": ["approved", None]}},
-        {"_id": 0, "event_id": 1, "title": 1, "date": 1, "partner_id": 1, "category": 1},
+        {"date": {"$gte": today_str}, "is_published": True},
+        {"_id": 0, "event_id": 1, "title": 1, "date": 1, "start_time": 1, "partner_id": 1, "category": 1},
     ).sort("date", 1).limit(limit)
-    return await cursor.to_list(limit)
+    rows = await cursor.to_list(limit)
+    # drop events whose venue isn't catalog-approved, and carry the venue NAME —
+    # an event Luna can't place ("¿dónde?") is unusable in a recommendation
+    pids = {r.get("partner_id") for r in rows if r.get("partner_id")}
+    ok: Dict[str, str] = {}
+    if pids:
+        async for p in db.partners.find({**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": list(pids)}}, {"_id": 0, "partner_id": 1, "name": 1}):
+            ok[p["partner_id"]] = p.get("name", "")
+    out: List[Dict[str, Any]] = []
+    for r in rows:
+        if r.get("partner_id") in ok:
+            r["partner_name"] = ok[r["partner_id"]]
+            out.append(r)
+    return out
 
 
 async def _curated_expert_picks(db, user_text: str) -> Optional[Dict[str, Any]]:
@@ -1120,6 +1134,16 @@ Si el context trae "live_tonight", son novedades REALES DE HOY enviadas por los 
 - Para preguntas tipo "esta noche / hoy / ahora / qué hay", priorizá partners con entrada en live_tonight y mencioná el dato concreto (hora, promo) al recomendarlos.
 - Si recomendás un partner que aparece en live_tonight por cualquier otra razón, mencioná su novedad de hoy.
 - Si live_tonight NO existe o no aplica, no digas nada al respecto. JAMÁS inventes novedades "de hoy" que no estén en live_tonight.
+
+══════════════════════════════════════════
+🎟 AGENDA DE PARTNERS (context.partner_events)
+══════════════════════════════════════════
+"partner_events" son eventos PRÓXIMOS REALES publicados por los propios negocios y aprobados por moderación (day pass, sunset sessions, cenas especiales, clases). Cada uno trae título, fecha (date), hora (start_time), el venue (partner_name) y su event_id.
+- Para "qué hacer", "planes", "eventos", "este fin de semana" o una fecha concreta: revisá partner_events junto con events y ofrecé los que calcen con la fecha y el tipo de plan.
+- Al recomendarlos, dá el dato concreto: título + fecha/hora + venue ("el viernes hay Sunset Sessions en el rooftop del Movich a las 5pm").
+- Podés devolverlos como card: {"kind": "event", "event_id": "..."} usando el event_id EXACTO que aparece en context.partner_events.
+- Si recomendás un venue que además tiene un partner_event próximo, mencionalo ("y este sábado tienen {título}").
+- Si ningún partner_event calza, no digas nada al respecto. JAMÁS inventes eventos, fechas u horas que no estén en context.partner_events.
 
 ══════════════════════════════════════════
 CONOCIMIENTO LOCAL DE CARTAGENA (usá esto para dar contexto experto)

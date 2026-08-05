@@ -342,16 +342,17 @@ def _query_for(c: Dict[str, Any]) -> Dict[str, Any]:
 
 
 async def _collection_partners(c: Dict[str, Any], limit: int = 30) -> List[Dict[str, Any]]:
+    from partner_visibility import PUBLIC_PARTNER_FILTER  # U3: no unapproved venues in a public collection
     curated = c.get("curated_ids")
     if curated:
         # Curated collection: return EXACTLY these venues, in this order
         # (missing ones simply drop). No algorithmic re-ranking — the
         # curation IS the ranking.
         found = {p["partner_id"]: p async for p in
-                 db.partners.find({"partner_id": {"$in": curated}}, CARD_FIELDS)}
+                 db.partners.find({**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": curated}}, CARD_FIELDS)}
         rows = [found[pid] for pid in curated if pid in found][:limit]
     else:
-        rows = await db.partners.find(_query_for(c), CARD_FIELDS).to_list(300)
+        rows = await db.partners.find({**PUBLIC_PARTNER_FILTER, **_query_for(c)}, CARD_FIELDS).to_list(300)
         boost = set(c.get("boost_tags") or [])
 
         def score(p):
