@@ -42,7 +42,8 @@ from pymongo.errors import DuplicateKeyError as _DuplicateKeyError
 # Catalog-visibility guard — SINGLE SOURCE OF TRUTH, shared with every other
 # module (walking/occasions/ai_agent/reservations/pulse) so no route can drift.
 from partner_visibility import (  # noqa: E402
-    PUBLIC_PARTNER_FILTER, INTERNAL_PARTNER_FIELDS, PUBLIC_PARTNER_PROJECTION, is_publicly_visible,
+    PUBLIC_PARTNER_FILTER, INTERNAL_PARTNER_FIELDS, PUBLIC_PARTNER_PROJECTION,
+    PUBLIC_EVENT_PROJECTION, is_publicly_visible,
 )
 
 # ── In-memory rate limiter for expensive AI endpoints ──────────
@@ -3182,7 +3183,7 @@ async def list_partner_events(
     if upcoming:
         today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         query["date"] = {"$gte": today_str}
-    events = await db.partner_events.find(query, {"_id": 0}).sort([("date", 1), ("start_time", 1)]).to_list(200)
+    events = await db.partner_events.find(query, PUBLIC_EVENT_PROJECTION).sort([("date", 1), ("start_time", 1)]).to_list(200)
     # enrich with partner info — ONLY catalog-approved venues (PUBLIC_PARTNER_FILTER),
     # so an event on an unapproved / churned / sandbox venue never renders (C1/C2).
     partner_ids = list({e["partner_id"] for e in events})
@@ -3205,7 +3206,7 @@ async def list_partner_events(
 async def get_partner_event(event_id: str):
     # C2: only PUBLISHED events are publicly viewable (pending / AI-rejected events
     # must never render — the owner sees their own via GET /business/submissions).
-    event = await db.partner_events.find_one({"event_id": event_id, "is_published": True}, {"_id": 0})
+    event = await db.partner_events.find_one({"event_id": event_id, "is_published": True}, PUBLIC_EVENT_PROJECTION)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     # The venue must be publicly approved AND internal fields are stripped.
@@ -5817,7 +5818,7 @@ async def list_experiences(request: Request):
         query = {"is_published": True}
         if category:
             query["category"] = category
-        experiences = await db.partner_events.find(query, {"_id": 0}).sort("created_at", -1).to_list(200)
+        experiences = await db.partner_events.find(query, PUBLIC_EVENT_PROJECTION).sort("created_at", -1).to_list(200)
         approved = await _approved_partner_ids(e.get("partner_id") for e in experiences)
         return [e for e in experiences if e.get("partner_id") in approved]
     except Exception as e:
@@ -5831,7 +5832,7 @@ async def featured_experiences():
     try:
         featured = await db.partner_events.find(
             {"is_published": True},
-            {"_id": 0},
+            PUBLIC_EVENT_PROJECTION,
         ).sort([("is_featured", -1), ("created_at", -1)]).limit(30).to_list(30)
         approved = await _approved_partner_ids(e.get("partner_id") for e in featured)
         return [e for e in featured if e.get("partner_id") in approved][:10]
@@ -5845,7 +5846,7 @@ async def get_experience(experience_id: str):
     """Get a single experience by ID."""
     try:
         # T1: published events only, venue must be approved, internal fields stripped.
-        exp = await db.partner_events.find_one({"event_id": experience_id, "is_published": True}, {"_id": 0})
+        exp = await db.partner_events.find_one({"event_id": experience_id, "is_published": True}, PUBLIC_EVENT_PROJECTION)
         if not exp:
             raise HTTPException(status_code=404, detail="Experience not found")
         partner = await db.partners.find_one(

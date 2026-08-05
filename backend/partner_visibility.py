@@ -29,6 +29,13 @@ PUBLIC_PARTNER_PROJECTION = {
     **{f: 0 for f in INTERNAL_PARTNER_NESTED_FIELDS},
 }
 
+# partner_events carry their own moderation trail, stamped directly onto the doc by
+# the government moderation route (reviewed_by = the moderator's account email). The
+# PUBLIC event reads (/partner-events, /experiences) must strip these; the OWNER's
+# own /business/* views and the /admin moderation queue keep them (different routes).
+INTERNAL_EVENT_FIELDS = ("reviewed_by", "reviewed_at", "moderation_status", "moderation_reason")
+PUBLIC_EVENT_PROJECTION = {"_id": 0, **{f: 0 for f in INTERNAL_EVENT_FIELDS}}
+
 
 def is_publicly_visible(partner: dict) -> bool:
     """True if a partner doc may be shown publicly (used where a filter can't be
