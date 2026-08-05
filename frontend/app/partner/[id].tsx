@@ -18,6 +18,7 @@ import { NBH_LABELS } from '../../src/utils/neighborhood';
 import { LoProbe } from '../../src/components/LoProbe';
 import { LiveDistance } from '../../src/components/LiveDistance';
 import { TrustBadges } from '../../src/components/TrustBadges';
+import AddToTrip from '../../src/components/AddToTrip';
 
 const TAG_LABELS: Record<string, string> = {
   romantic: 'Romántico', first_date: 'Primera cita', family: 'Familiar',
@@ -256,6 +257,7 @@ export default function PartnerDetail() {
             </TouchableOpacity>
           </View>
           <View style={{ flexDirection: 'row', position: 'absolute', top: SPACING.md, right: SPACING.md, gap: 8, zIndex: 5 }}>
+            <AddToTrip refType="venue" refId={partner.partner_id} name={partner.name} compact />
             <TouchableOpacity style={styles.navBtn} onPress={handleShare} accessibilityLabel={tr('Compartir')}>
               <Ionicons name="share-outline" size={20} color="#FFFFFF" />
             </TouchableOpacity>

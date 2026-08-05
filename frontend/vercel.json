@@ -19,6 +19,14 @@
       "destination": "/collections/%5Bkey%5D"
     },
     {
+      "source": "/viaje/shared/:code",
+      "destination": "/viaje/shared/%5Bcode%5D"
+    },
+    {
+      "source": "/viaje/:id",
+      "destination": "/viaje/%5Bid%5D"
+    },
+    {
       "source": "/partner/:id",
       "destination": "/partner/%5Bid%5D"
     },

@@ -11,6 +11,7 @@ import { useFavorites } from '../../src/context/FavoritesContext';
 import { useMyCalendar } from '../../src/context/MyCalendarContext';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '@/src/i18n/autoTr';
+import AddToTrip from '../../src/components/AddToTrip';
 
 const CAT_ICONS: Record<string, string> = {
   gastronomy: 'restaurant',
@@ -138,6 +139,9 @@ export default function PartnerEventDetail() {
               color={event?.event_id && isFavorite(event.event_id) ? '#EF4444' : COLORS.white}
             />
           </TouchableOpacity>
+          <View style={{ position: 'absolute', top: SPACING.md, left: 152, zIndex: 5 }}>
+            <AddToTrip refType="experience" refId={event.event_id} name={event.title} compact />
+          </View>
           <View style={[styles.priceBadgeBig, event.is_free ? styles.priceFree : styles.pricePaid]}>
             <Text style={styles.priceBigText}>{formatPrice(event.price)}</Text>
           </View>

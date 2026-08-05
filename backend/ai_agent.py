@@ -842,6 +842,44 @@ async def _port_tax_price(db) -> int:
     return int((cfg or {}).get("price_per_person", 31500))
 
 
+async def _trip_context(db, user_id: str) -> Optional[Dict[str, Any]]:
+    """Drop 10 (10D): the user's most-recently-touched trip, compact, for
+    gap-aware planning. Item names come from the stored snapshot (ref_name /
+    custom_text) — Luna only ever references items that really exist."""
+    trip = await db.trips.find_one(
+        {"members.user_id": user_id},
+        {"_id": 0, "trip_id": 1, "name": 1, "dates": 1, "members": 1, "updated_at": 1},
+        sort=[("updated_at", -1)],
+    )
+    if not trip:
+        return None
+    rows = await db.trip_items.find(
+        {"trip_id": trip["trip_id"]},
+        {"_id": 0, "ref_type": 1, "ref_id": 1, "ref_name": 1, "custom_text": 1,
+         "day": 1, "time_slot": 1, "votes": 1},
+    ).sort([("day", 1), ("added_at", 1)]).to_list(30)
+    # attach real categories for venue refs so Luna can see WHAT KIND of plans exist
+    vids = [r["ref_id"] for r in rows if r.get("ref_type") == "venue" and r.get("ref_id")]
+    cats: Dict[str, str] = {}
+    if vids:
+        async for p in db.partners.find({"partner_id": {"$in": vids}},
+                                        {"_id": 0, "partner_id": 1, "category": 1}):
+            cats[p["partner_id"]] = p.get("category", "")
+    items = [{
+        "name": r.get("ref_name") or r.get("custom_text") or "",
+        "category": cats.get(r.get("ref_id"), "custom" if r.get("ref_type") == "custom" else r.get("ref_type")),
+        "day": r.get("day"),
+        "votes": len(r.get("votes") or []),
+    } for r in rows]
+    return {
+        "name": trip.get("name"),
+        "dates": trip.get("dates"),
+        "members": [m.get("name") or "Viajero" for m in trip.get("members", [])][:12],
+        "items": items,
+        "days_used": sorted({i["day"] for i in items if i["day"]}),
+    }
+
+
 async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user_text: str = "") -> Dict[str, Any]:
     """Pull the data the agent needs to reason about, focused on relevance to user_text.
 
@@ -901,8 +939,18 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
                 passport_title = (_walking._titles_for(prog).get("primary") or {}).get("name")
         except Exception:
             pass
+    # Drop 10 (10D): Luna plans WITH the user's trip — most-recently-touched
+    # trip they belong to, compact. Fail-soft: no trip → key absent → the
+    # prompt section says nothing.
+    mi_viaje = None
+    if user and user.get("user_id"):
+        try:
+            mi_viaje = await _trip_context(db, user["user_id"])
+        except Exception:
+            mi_viaje = None
     ctx: Dict[str, Any] = {
         "today": datetime.now(timezone.utc).strftime("%A %Y-%m-%d"),
+        **({"mi_viaje": mi_viaje} if mi_viaje else {}),
         "user": {
             "name": (user or {}).get("name"),
             "has_city_pass": has_pass,
@@ -1156,6 +1204,16 @@ Si el context trae "live_tonight", son novedades REALES DE HOY enviadas por los 
 - Podés devolverlos como card: {"kind": "event", "event_id": "..."} usando el event_id EXACTO que aparece en context.partner_events.
 - Si recomendás un venue que además tiene un partner_event próximo, mencionalo ("y este sábado tienen {título}").
 - Si ningún partner_event calza, no digas nada al respecto. JAMÁS inventes eventos, fechas u horas que no estén en context.partner_events.
+
+══════════════════════════════════════════
+🧳 MI VIAJE (context.mi_viaje)
+══════════════════════════════════════════
+Si el context trae "mi_viaje", es el viaje REAL que el usuario está planeando en la app (nombre, fechas, miembros, items con su día). Planeá CON él:
+- Detectá huecos REALES del itinerario: una noche sin cena, un día sin plan, ningún atardecer/rooftop, ninguna experiencia de islas. Sugerí venues reales del catálogo que llenen ese hueco ("ya tienen Celele — les falta un atardecer, ¿qué tal Café del Mar?").
+- Referite a lo que YA tienen POR NOMBRE y por día ("el día 2 tienen la lancha a Rosario"). JAMÁS menciones un item que no esté en mi_viaje.items.
+- Tus sugerencias para el viaje son cards normales (kind "partner") — desde ahí el usuario las agrega a su viaje con un tap.
+- Si hay varios miembros, hablá en plural ("les falta", "para el grupo"). Los votos (votes) te dicen qué quiere el grupo — priorizá lo más votado al armar el día.
+- Si NO hay mi_viaje, no menciones viajes ni itinerarios compartidos.
 
 ══════════════════════════════════════════
 CONOCIMIENTO LOCAL DE CARTAGENA (usá esto para dar contexto experto)

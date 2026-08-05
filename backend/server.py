@@ -5651,6 +5651,7 @@ import local_signals as _local_signals
 import walking as _walking
 import webpush as _webpush
 import referral as _referral
+import trips as _trips
 
 
 @api_router.get("/payments/config")
@@ -6804,6 +6805,10 @@ _referral.init(db_=db, get_current_user=get_current_user,
                check_rate_limit=_check_rate_limit, award_points=_rewards.award_points)
 app.include_router(_referral.router, prefix="/api")
 
+# Drop 10 — Mi Viaje: collaborative trip planner (shared-and-refreshes model)
+_trips.init(db_=db, get_current_user=get_current_user, check_rate_limit=_check_rate_limit)
+app.include_router(_trips.router, prefix="/api")
+
 # ── CORS ─────────────────────────────────────────────────────
 # Browsers REJECT the combination of `allow_credentials=True` + `allow_origins=["*"]`
 # (CORS spec disallows credentialed wildcard). The previous config silently broke
@@ -6864,6 +6869,12 @@ async def startup():
         await db.users.create_index("referral_code", unique=True, sparse=True)
         # Drop 7F: one price signal per user+venue+day
         await db.price_flags.create_index([("user_id", 1), ("venue_id", 1), ("date", 1)], unique=True)
+        # Drop 10 — Mi Viaje: trips + items (share_code sparse — most trips unshared)
+        await db.trips.create_index("trip_id", unique=True)
+        await db.trips.create_index("share_code", unique=True, sparse=True)
+        await db.trips.create_index("members.user_id")
+        await db.trip_items.create_index("item_id", unique=True)
+        await db.trip_items.create_index("trip_id")
         await db.price_flags.create_index("venue_id")
     except Exception as exc:
         logger.warning(f"[startup] search index creation failed: {exc}")

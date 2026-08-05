@@ -27,6 +27,7 @@ import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import AddToTrip from './AddToTrip';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const CONCIERGE_URL = process.env.EXPO_PUBLIC_CONCIERGE_URL || `${BACKEND_URL}/api/agent/chat`;
@@ -569,6 +570,12 @@ function RecommendationCard({
             <Text style={styles.recPriceText}>{rec.price_range}</Text>
           </View>
         )}
+        {/* Drop 10 (10D1): Luna recommends INTO the itinerary — one tap adds */}
+        {rec.kind === 'partner' && rec.partner_id ? (
+          <AddToTrip refType="venue" refId={rec.partner_id} name={rec.name} compact />
+        ) : rec.kind === 'event' && rec.event_id && String(rec.event_id).startsWith('pe_') ? (
+          <AddToTrip refType="experience" refId={rec.event_id} name={rec.name} compact />
+        ) : null}
       </View>
       <View style={styles.recBody}>
         <Text style={styles.recName} numberOfLines={2}>

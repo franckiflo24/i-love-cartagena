@@ -7,6 +7,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useLang } from '../../src/context/LanguageContext';
 import { SafeImage } from '../../src/components/SafeImage';
+import AddToTrip from '../../src/components/AddToTrip';
 
 import { COLLECTION_DEFS } from '../../src/constants/collections';
 
@@ -94,6 +95,7 @@ export default function CollectionScreen() {
               ) : (
                 <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
               )}
+              <AddToTrip refType="venue" refId={p.partner_id} name={p.name} compact />
             </TouchableOpacity>
           ))}
         </ScrollView>

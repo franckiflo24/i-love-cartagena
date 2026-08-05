@@ -12,6 +12,7 @@ import { api } from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
 import { useLang } from '../src/context/LanguageContext';
 import { SafeImage } from '../src/components/SafeImage';
+import AddToTrip from '../src/components/AddToTrip';
 
 type AIHighlight = { type: string; id: string; reason: string };
 type AIRecommendation = {
@@ -908,6 +909,7 @@ export default function SearchScreen() {
                         ) : (
                           <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
                         )}
+                        <AddToTrip refType="venue" refId={p.partner_id} name={p.name} compact />
                       </TouchableOpacity>
                     ))}
                   </View>
