@@ -106,7 +106,9 @@ def _validate_point(lat: float, lng: float):
 
 
 def _client_ip(request: Request) -> str:
-    return (request.headers.get("x-forwarded-for") or "").split(",")[0].strip() or "unknown"
+    # Drop RL (RL-A2): single trusted-IP source — never the spoofable XFF.
+    from ratelimit import client_ip
+    return client_ip(request)
 
 
 # Grounded gem narration (A2): one line of WHY from the venue's OWN data —
@@ -143,7 +145,7 @@ async def nearby(request: Request, lat: float, lng: float,
     t0 = time.monotonic()
     _validate_point(lat, lng)
     radius = max(10, min(int(radius), RADIUS_MAX_M))
-    _check_rate_limit(f"nearby:{_client_ip(request)}", max_calls=60, window_sec=60)
+    await _check_rate_limit(f"nearby:{_client_ip(request)}", max_calls=60, window_sec=60)
 
     from partner_visibility import PUBLIC_PARTNER_FILTER
     # U3: unapproved / draft / sandbox venues never surface in the nearby walk.
@@ -269,7 +271,7 @@ async def passport_discover(request: Request, body: DiscoverBody):
     the frontend turns that into a contextual sign-in prompt, never a wall)."""
     user = await _get_current_user(request)
     user_id = user["user_id"]
-    _check_rate_limit(f"passport:{user_id}", max_calls=30, window_sec=3600)
+    await _check_rate_limit(f"passport:{user_id}", max_calls=30, window_sec=3600)
 
     _validate_point(body.lat, body.lng)
 
@@ -1071,7 +1073,7 @@ async def passport_share_create(request: Request, body: ShareBody):
     import uuid as _uuid
     user = await _get_current_user(request)
     user_id = user["user_id"]
-    _check_rate_limit(f"pshare:{user_id}", max_calls=20, window_sec=3600)
+    await _check_rate_limit(f"pshare:{user_id}", max_calls=20, window_sec=3600)
 
     doc = await db.user_passport.find_one({"user_id": user_id}, {"_id": 0})
     if not doc:
@@ -1112,7 +1114,7 @@ async def passport_share_create(request: Request, body: ShareBody):
 @router.get("/passport/share/{share_id}")
 async def passport_share_get(request: Request, share_id: str):
     """PUBLIC: the card-visible fields of a share snapshot. Never user_id."""
-    _check_rate_limit(f"pshareget:{_client_ip(request)}", max_calls=60, window_sec=60)
+    await _check_rate_limit(f"pshareget:{_client_ip(request)}", max_calls=60, window_sec=60)
     if not share_id.startswith("shr_") or len(share_id) > 24:
         raise HTTPException(status_code=404, detail="not found")
     doc = await db.share_snapshots.find_one({"share_id": share_id}, {"_id": 0, "user_id": 0})
@@ -1205,7 +1207,7 @@ def _daily_quest_for(day: str) -> Dict[str, Any]:
 @router.get("/trails")
 async def trails_public(request: Request):
     """PUBLIC trail definitions with venue cards — the guest teaser."""
-    _check_rate_limit(f"trails:{_client_ip(request)}", max_calls=60, window_sec=60)
+    await _check_rate_limit(f"trails:{_client_ip(request)}", max_calls=60, window_sec=60)
     return {"trails": await _enriched_trails(),
             "daily_quest": _daily_quest_for(datetime.now(timezone.utc).astimezone(BOGOTA).strftime("%Y-%m-%d"))}
 
@@ -1246,7 +1248,7 @@ async def trail_complete(request: Request, trail_key: str):
     import uuid as _uuid
     user = await _get_current_user(request)
     user_id = user["user_id"]
-    _check_rate_limit(f"trailc:{user_id}", max_calls=10, window_sec=3600)
+    await _check_rate_limit(f"trailc:{user_id}", max_calls=10, window_sec=3600)
     trail = next((t for t in await _enriched_trails() if t["key"] == trail_key), None)
     if not trail:
         raise HTTPException(status_code=404, detail="trail not found")
@@ -1288,7 +1290,7 @@ async def daily_quest_claim(request: Request):
     """Claim today's quest — requires a REAL matching dish discovery today."""
     user = await _get_current_user(request)
     user_id = user["user_id"]
-    _check_rate_limit(f"questc:{user_id}", max_calls=10, window_sec=3600)
+    await _check_rate_limit(f"questc:{user_id}", max_calls=10, window_sec=3600)
     today = datetime.now(timezone.utc).astimezone(BOGOTA).strftime("%Y-%m-%d")
     quest = _daily_quest_for(today)
     doc = await db.user_passport.find_one({"user_id": user_id}, {"_id": 0}) or {}
@@ -1389,7 +1391,7 @@ async def group_create(request: Request, body: GroupCreateBody):
     """Create a group + join it. Returns the shareable code."""
     import uuid as _uuid
     user = await _get_current_user(request)
-    _check_rate_limit(f"grpcreate:{user['user_id']}", max_calls=5, window_sec=86400)
+    await _check_rate_limit(f"grpcreate:{user['user_id']}", max_calls=5, window_sec=86400)
     handle = body.handle.strip()
     if len(handle) < 2:
         raise HTTPException(status_code=400, detail="apodo requerido (mín. 2 caracteres)")
@@ -1422,7 +1424,7 @@ async def group_create(request: Request, body: GroupCreateBody):
 @router.post("/passport/groups/join")
 async def group_join(request: Request, body: GroupJoinBody):
     user = await _get_current_user(request)
-    _check_rate_limit(f"grpjoin:{user['user_id']}", max_calls=10, window_sec=3600)
+    await _check_rate_limit(f"grpjoin:{user['user_id']}", max_calls=10, window_sec=3600)
     handle = body.handle.strip()
     if len(handle) < 2:
         raise HTTPException(status_code=400, detail="apodo requerido (mín. 2 caracteres)")
@@ -1477,7 +1479,7 @@ async def groups_mine(request: Request):
 async def price_flag(request: Request):
     user = await _get_current_user(request)
     user_id = user["user_id"]
-    _check_rate_limit(f"pflag:{user_id}", max_calls=20, window_sec=3600)
+    await _check_rate_limit(f"pflag:{user_id}", max_calls=20, window_sec=3600)
     body = await request.json()
     venue_id = (body.get("venue_id") or "").strip()[:64]
     signal = body.get("signal")
@@ -1504,7 +1506,7 @@ async def trust_reference(request: Request):
     """PUBLIC tiered trust knowledge — powers the 'Cartagena sin sustos'
     sheet and price answers. HIGH entries carry a year; VERIFY entries carry
     ranges + the confirmá hedge. Served verbatim from the seeded file."""
-    _check_rate_limit(f"trustref:{_client_ip(request)}", max_calls=60, window_sec=60)
+    await _check_rate_limit(f"trustref:{_client_ip(request)}", max_calls=60, window_sec=60)
     if not _trust_pub_cache:
         try:
             with open(_TRUST_PUB_PATH, "r", encoding="utf-8") as f:
@@ -1522,7 +1524,7 @@ async def seasonal_now(request: Request):
     """PUBLIC 'Qué pasa ahora' — current season + which seasonal stamps are
     earnable RIGHT NOW (no auth needed; used by the Home banner). Suppressed
     (stale) stamps are never included."""
-    _check_rate_limit(f"seasonal:{_client_ip(request)}", max_calls=60, window_sec=60)
+    await _check_rate_limit(f"seasonal:{_client_ip(request)}", max_calls=60, window_sec=60)
     now = datetime.now(timezone.utc).astimezone(BOGOTA)
     pulse_active = _load_seasonal().get("pulse_active")
     available = []
@@ -1541,7 +1543,7 @@ async def now_context(request: Request):
     """PUBLIC 'Ahora mismo' — the occasion that fits the real current moment
     (clock + weekday + real sunset). Powers the Home strip and Luna's context.
     Honest: uses the user's real local time; a generic browse nudge if unsure."""
-    _check_rate_limit(f"now:{_client_ip(request)}", max_calls=60, window_sec=60)
+    await _check_rate_limit(f"now:{_client_ip(request)}", max_calls=60, window_sec=60)
     now = datetime.now(timezone.utc).astimezone(BOGOTA)
     occ = _now_occasion(now)
     return {"occasion": occ, "season": _season_now(now),

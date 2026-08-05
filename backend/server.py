@@ -50,18 +50,16 @@ from partner_visibility import (  # noqa: E402
 from collections import defaultdict
 import time as _time
 
-_rate_buckets: dict[str, list[float]] = defaultdict(list)
+# Drop RL: the limiter now lives in ratelimit.py — persistent (Mongo, shared
+# across serverless instances), atomic ($inc upsert), keyed on the TRUSTED
+# x-real-ip. This wrapper keeps the injected name every module already uses;
+# ALL call sites are awaited (grep-enforced: no bare `await _check_rate_limit(`).
+import ratelimit as _ratelimit
+_ratelimit.init(db_=db)
 
-def _check_rate_limit(key: str, max_calls: int = 10, window_sec: int = 60):
-    """Raise 429 if key has exceeded max_calls within window_sec."""
-    now = _time.time()
-    bucket = _rate_buckets[key]
-    # Prune expired entries
-    _rate_buckets[key] = [t for t in bucket if now - t < window_sec]
-    bucket = _rate_buckets[key]
-    if len(bucket) >= max_calls:
-        raise HTTPException(status_code=429, detail="Too many requests. Please wait before trying again.")
-    bucket.append(now)
+
+async def _check_rate_limit(key: str, max_calls: int = 10, window_sec: int = 60):
+    await _ratelimit.check(key, max_calls=max_calls, window_sec=window_sec)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -251,7 +249,7 @@ async def demo_login(body: DemoLoginBody, response: Response):
         raise HTTPException(400, f"provider must be one of {sorted(DEMO_LOGIN_ALLOWED_PROVIDERS)}")
 
     # Rate limit account creation — 5 signups per email per hour
-    _check_rate_limit(f"signup:{email}", max_calls=5, window_sec=3600)
+    await _check_rate_limit(f"signup:{email}", max_calls=5, window_sec=3600)
 
     # Signup code check — optional additional gate
     expected_code = os.environ.get("DEMO_SIGNUP_CODE", "").strip()
@@ -332,7 +330,7 @@ async def email_signup(body: SignupBody):
         raise HTTPException(400, "Email inválido")
 
     # Rate limit — 3 codes per email per 15 min
-    _check_rate_limit(f"verify:{email}", max_calls=3, window_sec=900)
+    await _check_rate_limit(f"verify:{email}", max_calls=3, window_sec=900)
 
     code = _emails.generate_verification_code()
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=_emails.VERIFY_CODE_TTL_MINUTES)
@@ -530,10 +528,8 @@ _DUMMY_PW_HASH = _bcrypt.hashpw(b"amo-timing-equalizer-constant", _bcrypt.gensal
 
 
 def _client_ip(request: Request) -> str:
-    xff = request.headers.get("x-forwarded-for", "")
-    if xff:
-        return xff.split(",")[0].strip()
-    return (request.client.host if request.client else "unknown")
+    # Drop RL (RL-A1): trusted IP only — never the client-supplied XFF chain.
+    return _ratelimit.client_ip(request)
 
 
 async def _login_throttle_guard(ip: str):
@@ -826,7 +822,7 @@ async def business_create_event(request: Request):
     # verified, catalog-APPROVED venue the caller owns. A claimless account, a
     # churned/404 venue_id, OR a not-yet-approved draft is rejected here — so a
     # ghost event (even AI-auto-approved) can never reach the public surface.
-    _check_rate_limit(f"bizevent:{biz['business_id']}", max_calls=12, window_sec=3600)
+    await _check_rate_limit(f"bizevent:{biz['business_id']}", max_calls=12, window_sec=3600)
     partner = await _require_content_owner(biz, biz["partner_id"])
     body = await _json_body(request)
     required = ["title", "description", "category", "date", "start_time", "end_time"]
@@ -922,7 +918,7 @@ async def business_upload_image(request: Request):
     Returns: { url, verdict, caption, tags, reason } — url is the data URL ready to use.
     """
     biz = await get_current_business(request)
-    _check_rate_limit(f"bizupload:{biz['business_id']}", max_calls=20, window_sec=3600)
+    await _check_rate_limit(f"bizupload:{biz['business_id']}", max_calls=20, window_sec=3600)
     await _require_verified_owner(biz, biz["partner_id"])
     body = await _json_body(request)
     image_b64 = body.get("image_base64", "")
@@ -1802,7 +1798,7 @@ async def business_submit_media(request: Request):
     """Submit a photo for review. Stored PENDING (never public until approved).
     I3: only a moderated data: image is accepted — never an external URL."""
     biz = await get_current_business(request)
-    _check_rate_limit(f"bizmedia:{biz['business_id']}", max_calls=15, window_sec=3600)
+    await _check_rate_limit(f"bizmedia:{biz['business_id']}", max_calls=15, window_sec=3600)
     partner = await _require_content_owner(biz, biz["partner_id"])
     body = await _json_body(request)
     img = body.get("image_base64", "")
@@ -1999,7 +1995,7 @@ async def business_forgot_password(request: Request, background_tasks: Backgroun
     # which can be dropped on serverless) so the response doesn't wait on the
     # ~300ms Resend call and can't leak account existence via timing (M1/N4).
     if email and "@" in email:
-        _check_rate_limit(f"bizforgot:{email}", max_calls=4, window_sec=3600)
+        await _check_rate_limit(f"bizforgot:{email}", max_calls=4, window_sec=3600)
         biz = await db.business_users.find_one({"email": email}, {"_id": 0, "business_id": 1, "full_name": 1})
         if biz:
             code = _emails_svc.generate_verification_code()
@@ -2025,7 +2021,7 @@ async def business_reset_with_code(request: Request):
     # record exists) so the 429 can't reveal which emails have accounts; plus ONE
     # identical 400 for missing-record / expired / wrong-code.
     if email:
-        _check_rate_limit(f"bizreset:{email}", max_calls=6, window_sec=900)
+        await _check_rate_limit(f"bizreset:{email}", max_calls=6, window_sec=900)
     _BAD = HTTPException(status_code=400, detail="Código incorrecto o expirado / Incorrect or expired code")
     rec = await db.business_reset_codes.find_one({"email": email}, {"_id": 0})
     if not rec or _iso_expired(rec.get("expires", "")):
@@ -2181,7 +2177,7 @@ async def business_create_promotion(request: Request):
     """Create a promotion. Same content spine as events/media/price (N1): binds to
     a verified, catalog-APPROVED venue; bounded numbers; no external images."""
     biz = await get_current_business(request)
-    _check_rate_limit(f"bizpromo:{biz['business_id']}", max_calls=15, window_sec=3600)
+    await _check_rate_limit(f"bizpromo:{biz['business_id']}", max_calls=15, window_sec=3600)
     await _require_content_owner(biz, biz["partner_id"])
     body = await _json_body(request)
     title = (body.get("title") or "").strip()[:200]
@@ -3553,7 +3549,7 @@ async def list_emergency_contacts():
 async def concierge_chat_endpoint(request: Request):
     # Auth required — prevents anonymous abuse of the Anthropic key
     user = await get_current_user(request)
-    _check_rate_limit(f"concierge:{user['user_id']}", max_calls=15, window_sec=60)
+    await _check_rate_limit(f"concierge:{user['user_id']}", max_calls=15, window_sec=60)
     body = await request.json()
     agent = body.get("agent", "luna")
     messages = body.get("messages", [])
@@ -4757,8 +4753,8 @@ async def search_track_tap(body: SearchTapBody, request: Request):
     """Record a tap on a search result (anonymous OK). Only counts taps on
     partners this search actually showed, once per search — the CTR data
     behind behavioral re-ranking."""
-    ip = (request.headers.get("x-forwarded-for") or "").split(",")[0].strip() or "unknown"
-    _check_rate_limit(f"searchtap:{ip}", max_calls=60, window_sec=60)
+    ip = _client_ip(request)
+    await _check_rate_limit(f"searchtap:{ip}", max_calls=60, window_sec=60)
     sid = (body.search_id or "").strip()
     pid = (body.partner_id or "").strip()
     if not sid.startswith("srch_") or len(sid) > 32 or not pid or len(pid) > 64:
@@ -6295,7 +6291,7 @@ async def agent_chat(request: Request):
     # Auth required to prevent LLM cost abuse
     user = await get_current_user(request)
     user_id = user["user_id"]
-    _check_rate_limit(f"agent:{user_id}", max_calls=15, window_sec=60)
+    await _check_rate_limit(f"agent:{user_id}", max_calls=15, window_sec=60)
 
     body = await request.json()
     user_text = (body.get("message") or "").strip()
@@ -6869,6 +6865,8 @@ async def startup():
         await db.users.create_index("referral_code", unique=True, sparse=True)
         # Drop 7F: one price signal per user+venue+day
         await db.price_flags.create_index([("user_id", 1), ("venue_id", 1), ("date", 1)], unique=True)
+        # Drop RL: shared atomic rate-limit buckets — TTL sweeps closed windows
+        await db.rate_buckets.create_index("exp", expireAfterSeconds=0)
         # Drop 10 — Mi Viaje: trips + items (share_code sparse — most trips unshared)
         await db.trips.create_index("trip_id", unique=True)
         await db.trips.create_index("share_code", unique=True, sparse=True)

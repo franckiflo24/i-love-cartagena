@@ -58,7 +58,7 @@ async def vapid_public_key():
 async def push_subscribe(request: Request):
     """Store the browser's PushSubscription for the signed-in user."""
     user = await _get_current_user(request)
-    _check_rate_limit(f"pushsub:{user['user_id']}", max_calls=10, window_sec=3600)
+    await _check_rate_limit(f"pushsub:{user['user_id']}", max_calls=10, window_sec=3600)
     body = await request.json()
     sub = body.get("subscription") or {}
     endpoint = sub.get("endpoint")

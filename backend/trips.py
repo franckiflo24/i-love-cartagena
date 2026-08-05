@@ -74,8 +74,9 @@ def _now_iso() -> str:
 
 
 def _client_ip(request: Request) -> str:
-    fwd = request.headers.get("x-forwarded-for", "")
-    return (fwd.split(",")[0].strip() if fwd else None) or (request.client.host if request.client else "?")
+    # Drop RL (RL-A2): single trusted-IP source — never the spoofable XFF.
+    from ratelimit import client_ip
+    return client_ip(request)
 
 
 # ── Access control (the IDOR gate) ───────────────────────────────────
@@ -156,10 +157,10 @@ def _member_public(m: Dict[str, Any]) -> Dict[str, Any]:
     return {"user_id": m.get("user_id"), "name": m.get("name") or "Viajero", "role": m.get("role")}
 
 
-def _write_limit(user_id: str):
+async def _write_limit(user_id: str):
     """One throttle for EVERY mutating trip route (audit #4) — each write also
     touches the trip doc, so an unthrottled loop is 2x write amplification."""
-    _check_rate_limit(f"tripwrite:{user_id}", max_calls=120, window_sec=60)
+    await _check_rate_limit(f"tripwrite:{user_id}", max_calls=120, window_sec=60)
 
 
 async def _trip_payload(trip: Dict[str, Any]) -> Dict[str, Any]:
@@ -212,7 +213,7 @@ def _clean_dates(dates: Optional[Dict[str, str]]) -> Optional[Dict[str, str]]:
 @router.post("/trips")
 async def create_trip(body: TripCreate, request: Request):
     user = await _get_current_user(request)
-    _check_rate_limit(f"trips:{user['user_id']}", max_calls=20, window_sec=3600)
+    await _check_rate_limit(f"trips:{user['user_id']}", max_calls=20, window_sec=3600)
     mine = await db.trips.count_documents({"members.user_id": user["user_id"]})
     if mine >= MAX_TRIPS_PER_USER:
         raise HTTPException(status_code=400, detail="Límite de viajes alcanzado / Trip limit reached")
@@ -261,7 +262,7 @@ async def get_trip(trip_id: str, request: Request):
 async def patch_trip(trip_id: str, body: TripPatch, request: Request):
     user = await _get_current_user(request)
     await _trip_for(user["user_id"], trip_id, "owner")
-    _write_limit(user["user_id"])
+    await _write_limit(user["user_id"])
     sets: Dict[str, Any] = {"updated_at": _now_iso()}
     if body.name is not None:
         sets["name"] = body.name.strip()
@@ -275,7 +276,7 @@ async def patch_trip(trip_id: str, body: TripPatch, request: Request):
 async def delete_trip(trip_id: str, request: Request):
     user = await _get_current_user(request)
     await _trip_for(user["user_id"], trip_id, "owner")
-    _write_limit(user["user_id"])
+    await _write_limit(user["user_id"])
     await db.trip_items.delete_many({"trip_id": trip_id})
     await db.trips.delete_one({"trip_id": trip_id})
     return {"ok": True}
@@ -337,7 +338,7 @@ async def _ref_snapshot(ref_type: str, ref_id: Optional[str]) -> Optional[str]:
 async def add_item(trip_id: str, body: ItemCreate, request: Request):
     user = await _get_current_user(request)
     await _trip_for(user["user_id"], trip_id, "editor")
-    _check_rate_limit(f"tripitem:{user['user_id']}", max_calls=60, window_sec=3600)
+    await _check_rate_limit(f"tripitem:{user['user_id']}", max_calls=60, window_sec=3600)
     if await db.trip_items.count_documents({"trip_id": trip_id}) >= MAX_ITEMS_PER_TRIP:
         raise HTTPException(status_code=400, detail="Límite de items alcanzado / Item limit reached")
     if body.ref_type == "custom" and not (body.custom_text or "").strip():
@@ -372,7 +373,7 @@ async def add_item(trip_id: str, body: ItemCreate, request: Request):
 async def patch_item(trip_id: str, item_id: str, body: ItemPatch, request: Request):
     user = await _get_current_user(request)
     await _trip_for(user["user_id"], trip_id, "editor")
-    _write_limit(user["user_id"])
+    await _write_limit(user["user_id"])
     existing = await db.trip_items.find_one({"item_id": item_id, "trip_id": trip_id}, {"_id": 0})
     if not existing:
         raise HTTPException(status_code=404, detail="Item no encontrado / Item not found")
@@ -407,7 +408,7 @@ async def patch_item(trip_id: str, item_id: str, body: ItemPatch, request: Reque
 async def delete_item(trip_id: str, item_id: str, request: Request):
     user = await _get_current_user(request)
     await _trip_for(user["user_id"], trip_id, "editor")
-    _write_limit(user["user_id"])
+    await _write_limit(user["user_id"])
     r = await db.trip_items.delete_one({"item_id": item_id, "trip_id": trip_id})
     if not r.deleted_count:
         raise HTTPException(status_code=404, detail="Item no encontrado / Item not found")
@@ -421,7 +422,7 @@ async def vote_item(trip_id: str, item_id: str, request: Request):
     an edit, and the consensus view is the point of the group layer."""
     user = await _get_current_user(request)
     await _trip_for(user["user_id"], trip_id, "viewer")
-    _write_limit(user["user_id"])
+    await _write_limit(user["user_id"])
     existing = await db.trip_items.find_one({"item_id": item_id, "trip_id": trip_id},
                                             {"_id": 0, "votes": 1})
     if not existing:
@@ -445,7 +446,7 @@ async def vote_item(trip_id: str, item_id: str, request: Request):
 async def ensure_share(trip_id: str, request: Request):
     user = await _get_current_user(request)
     trip = await _trip_for(user["user_id"], trip_id, "owner")
-    _write_limit(user["user_id"])
+    await _write_limit(user["user_id"])
     code = trip.get("share_code")
     if not code:
         for _ in range(5):
@@ -465,11 +466,11 @@ async def guest_view(share_code: str, request: Request):
     """PUBLIC guest VIEW (I6 — never wall the view). Read-only projection:
     member display names only (no user_ids), items enriched, vote COUNTS.
     Actions require sign-in — enforced by every write route above."""
-    _check_rate_limit(f"tripguest:{_client_ip(request)}", max_calls=30, window_sec=60)
+    await _check_rate_limit(f"tripguest:{_client_ip(request)}", max_calls=30, window_sec=60)
     # Secondary enumeration brake keyed by the CODE itself — survives spoofed
     # X-Forwarded-For buckets (audit #2): a code can only be probed so fast
     # globally, whoever is asking.
-    _check_rate_limit(f"tripcode:{share_code.strip().upper()[:24]}", max_calls=60, window_sec=60)
+    await _check_rate_limit(f"tripcode:{share_code.strip().upper()[:24]}", max_calls=60, window_sec=60)
     trip = await db.trips.find_one({"share_code": share_code.strip().upper()}, {"_id": 0})
     if not trip:
         raise HTTPException(status_code=404, detail="Viaje no encontrado / Trip not found")
@@ -509,7 +510,7 @@ async def join_trip(body: JoinBody, request: Request):
     invite ('Únete a nuestro viaje') — the owner shared it to collaborate.
     Owner can demote to viewer or remove afterwards."""
     user = await _get_current_user(request)
-    _check_rate_limit(f"tripjoin:{user['user_id']}", max_calls=10, window_sec=3600)
+    await _check_rate_limit(f"tripjoin:{user['user_id']}", max_calls=10, window_sec=3600)
     trip = await db.trips.find_one({"share_code": body.share_code.strip().upper()}, {"_id": 0})
     if not trip:
         raise HTTPException(status_code=404, detail="Código inválido / Invalid code")
@@ -534,7 +535,7 @@ class MemberPatch(BaseModel):
 async def patch_member(trip_id: str, member_user_id: str, body: MemberPatch, request: Request):
     user = await _get_current_user(request)
     trip = await _trip_for(user["user_id"], trip_id, "owner")
-    _write_limit(user["user_id"])
+    await _write_limit(user["user_id"])
     if member_user_id == trip["owner_user_id"]:
         raise HTTPException(status_code=400, detail="El dueño no cambia de rol / Owner role is fixed")
     r = await db.trips.update_one(
@@ -551,7 +552,7 @@ async def remove_member(trip_id: str, member_user_id: str, request: Request):
     """Owner removes anyone (except self); any member can remove THEMSELF (leave)."""
     user = await _get_current_user(request)
     trip = await _trip_for(user["user_id"], trip_id, "viewer")
-    _write_limit(user["user_id"])
+    await _write_limit(user["user_id"])
     is_owner = trip["owner_user_id"] == user["user_id"]
     if member_user_id == trip["owner_user_id"]:
         raise HTTPException(status_code=400, detail="El dueño no puede salir; borrá el viaje / Owner can't leave; delete the trip")

@@ -69,7 +69,7 @@ async def referral_claim(request: Request):
     """New user enters a friend's code — once per life, both sides earn."""
     user = await _get_current_user(request)
     user_id = user["user_id"]
-    _check_rate_limit(f"refclaim:{user_id}", max_calls=10, window_sec=3600)
+    await _check_rate_limit(f"refclaim:{user_id}", max_calls=10, window_sec=3600)
     body = await request.json()
     code = (body.get("code") or "").strip().upper()
     if not code or len(code) > 12:

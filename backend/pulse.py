@@ -271,7 +271,7 @@ async def whatsapp_webhook(request: Request):
                 if not wa_id or not text:
                     continue
                 try:
-                    _check_rate_limit(f"pulse:{wa_id}", max_calls=10, window_sec=3600)
+                    await _check_rate_limit(f"pulse:{wa_id}", max_calls=10, window_sec=3600)
                 except HTTPException:
                     continue
                 try:
@@ -342,7 +342,7 @@ async def _handle_pulse_message(wa_id: str, text: str):
 async def business_post_pulse(request: Request):
     """Same pipeline, from the business portal. Body: {text: str}"""
     biz = await _get_current_business(request)
-    _check_rate_limit(f"bizpulse:{biz.get('business_id')}", max_calls=20, window_sec=3600)
+    await _check_rate_limit(f"bizpulse:{biz.get('business_id')}", max_calls=20, window_sec=3600)
     try:
         body = await request.json()
         if not isinstance(body, dict):
