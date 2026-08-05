@@ -109,9 +109,20 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Referral loop (1.5): capture ?ref on arrival; claim once after sign-in.
+  // Drop 11 (11C1): the claim is a shared MOMENT, not a silent ledger entry —
+  // both real names, the real +500, nothing fabricated.
+  const [refMoment, setRefMoment] = useState<string | null>(null);
   useEffect(() => { captureRef(); }, []);
   useEffect(() => {
-    if (user) claimPendingRef().catch(() => {});
+    if (user) {
+      claimPendingRef().then((r) => {
+        if (r && r.points > 0) {
+          setRefMoment(r.referrer
+            ? `Vos y ${r.referrer} están explorando Cartagena · +${r.points} puntos para los dos ✨`
+            : `¡Bienvenido! +${r.points} puntos por unirte con un código de amigo ✨`);
+        }
+      }).catch(() => {});
+    }
   }, [user]);
   const [activeSeasonIdx, setActiveSeasonIdx] = useState(0);
   const [favItems, setFavItems] = useState<any[]>([]);
@@ -445,6 +456,18 @@ export default function HomeScreen() {
               <Text style={{ fontSize: 11, color: COLORS.primary, ...FONTS.bold }}>Editar</Text>
             </TouchableOpacity>
           </View>
+        )}
+
+        {/* Drop 11 (11C1): the reciprocal spark — real names, the real +500 */}
+        {refMoment && (
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: 'rgba(212,175,55,0.12)', borderRadius: RADIUS.lg, padding: SPACING.md, borderWidth: 1, borderColor: 'rgba(212,175,55,0.35)', gap: SPACING.sm }}
+            onPress={() => setRefMoment(null)}
+            activeOpacity={0.85}
+          >
+            <Text style={{ fontSize: 20 }}>🤝</Text>
+            <Text style={{ flex: 1, color: '#F5D47A', fontSize: 13, ...FONTS.semibold }}>{refMoment}</Text>
+          </TouchableOpacity>
         )}
 
         {/* Guest personalization banner */}

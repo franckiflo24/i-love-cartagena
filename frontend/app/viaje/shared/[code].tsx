@@ -32,6 +32,7 @@ export default function SharedTripScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [joining, setJoining] = useState(false);
+  const [joinedMoment, setJoinedMoment] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -54,7 +55,12 @@ export default function SharedTripScreen() {
     try {
       const res = await api.post('/trips/join', { share_code: trip.share_code });
       if (res?.trip_id) {
-        router.replace({ pathname: '/viaje/[id]' as any, params: { id: res.trip_id } });
+        // 11C2: the connection is the payoff — a real shared moment, no fake reward
+        const owner = trip.members[0]?.name?.split(' ')[0];
+        setJoinedMoment(owner ? `Vos y ${owner} ahora planean juntos ✨` : '¡Ahora planean juntos! ✨');
+        setTimeout(() => {
+          router.replace({ pathname: '/viaje/[id]' as any, params: { id: res.trip_id } });
+        }, 1600);
         return;
       }
     } catch {
@@ -90,6 +96,11 @@ export default function SharedTripScreen() {
           </View>
         ) : (
           <>
+            {trip.members[0]?.name ? (
+              <Text style={styles.inviteLine}>
+                {trip.members[0].name.split(' ')[0]} {tr('te invitó a su viaje a Cartagena')}
+              </Text>
+            ) : null}
             <Text style={styles.tripName}>{trip.name}</Text>
             {trip.dates?.start ? (
               <Text style={styles.tripDates}>{trip.dates.start}{trip.dates.end ? ` → ${trip.dates.end}` : ''}</Text>
@@ -136,14 +147,20 @@ export default function SharedTripScreen() {
 
       {trip ? (
         <View style={styles.joinBar}>
-          <TouchableOpacity style={styles.joinBtn} onPress={join} disabled={joining}>
-            {joining ? <ActivityIndicator size="small" color="#0A0A0A" /> : (
-              <>
-                <Ionicons name="people" size={18} color="#0A0A0A" />
-                <Text style={styles.joinText}>{tr('Únete a este viaje')}</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          {joinedMoment ? (
+            <View style={[styles.joinBtn, { backgroundColor: 'rgba(212,175,55,0.15)' }]}>
+              <Text style={[styles.joinText, { color: COLORS.primary }]}>{joinedMoment}</Text>
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.joinBtn} onPress={join} disabled={joining}>
+              {joining ? <ActivityIndicator size="small" color="#0A0A0A" /> : (
+                <>
+                  <Ionicons name="people" size={18} color="#0A0A0A" />
+                  <Text style={styles.joinText}>{tr('Únete a este viaje')}</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
       ) : null}
     </SafeAreaView>
@@ -172,6 +189,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md,
   },
   headerTitle: { color: COLORS.textMain, fontSize: 17, ...FONTS.bold },
+  inviteLine: { color: '#F5D47A', fontSize: 15, ...FONTS.semibold, marginBottom: 6 },
   tripName: { color: COLORS.textMain, fontSize: 22, ...FONTS.bold },
   tripDates: { color: COLORS.textMuted, fontSize: 13, marginTop: 2 },
   membersRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: SPACING.sm },

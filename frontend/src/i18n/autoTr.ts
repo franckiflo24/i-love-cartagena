@@ -1043,6 +1043,9 @@ export const AUTO_TR: Dict = {
   'Viaje compartido': { en: 'Shared trip', fr: 'Voyage partagé', pt: 'Viagem compartilhada' },
   'Este viaje no existe o el link cambió': { en: 'This trip doesn’t exist or the link changed', fr: 'Ce voyage n’existe pas ou le lien a changé', pt: 'Esta viagem não existe ou o link mudou' },
   'Únete a este viaje': { en: 'Join this trip', fr: 'Rejoignez ce voyage', pt: 'Entre nesta viagem' },
+  // Drop 11 — The Invitation
+  'te invitó a su viaje a Cartagena': { en: 'invited you to their Cartagena trip', fr: 'vous a invité à son voyage à Carthagène', pt: 'convidou você para a viagem a Cartagena' },
+  '¡Lo lograste! Compartí tu sello': { en: 'You did it! Share your stamp', fr: 'Bravo ! Partagez votre sceau', pt: 'Conseguiu! Compartilhe seu selo' },
 };
 
 /**

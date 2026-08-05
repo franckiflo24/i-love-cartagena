@@ -43,6 +43,11 @@ export default async function handler(req: Request) {
     ? `${bits.join(' · ')} — descubiertos caminando Cartagena de Indias.`
     : 'Un pasaporte de Cartagena que acaba de empezar. Crea el tuyo.';
 
+  // Drop 11 (11B2): the arrival is an INVITATION, not a download pitch.
+  const firstName = (snap.name || '').trim().split(' ')[0];
+  const inviteLine = firstName
+    ? `${firstName} te invitó a explorar Cartagena`
+    : 'Te invitaron a explorar Cartagena';
   const title = `Mi Cartagena — ${who}`;
   const cardUrl = `${SITE}/api/share-card?id=${id}`;
   const pageUrl = `${SITE}/pasaporte/share/${id}`;
@@ -82,9 +87,10 @@ export default async function handler(req: Request) {
 </style>
 </head>
 <body>
+  <h1 style="font-family:Georgia,serif;font-weight:400;font-size:clamp(22px,5vw,34px);color:#F5D47A;">${esc(inviteLine)}</h1>
   <img class="card" src="${cardUrl}" alt="${esc(title)}"/>
-  <p class="sub">Sabores, plazas y joyas locales — sellados caminando la ciudad, verificados en el lugar.</p>
-  <a class="cta" href="${SITE}/pasaporte${ref ? `?ref=${ref}` : ''}">Crea tu pasaporte de Cartagena</a>
+  <p class="sub">Cada sello es real — ganado caminando la ciudad, verificado en el lugar. Esto es lo que te espera.</p>
+  <a class="cta" href="${SITE}/pasaporte${ref ? `?ref=${ref}` : ''}">Empezá tu propio pasaporte</a>
 </body>
 </html>`;
 

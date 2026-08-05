@@ -1,8 +1,9 @@
-// Drop 10 (10E) — "Nuestro viaje" share card. Same brand system + share path
-// as the passport card (shareCard.ts): dark/gold canvas 1080×1350, image-first.
-// Privacy: trip name, dates, member first names, venue names ONLY — never
-// coordinates, never emails, never user ids.
+// Drop 10 (10E) → refined Drop 11 (11A2): "Nuestro viaje" trip card on the
+// same "wax seals on midnight paper" system as the passport trophy — shared
+// frame + seal medallions (days pressed like stamps), Georgia serif display.
+// Privacy: trip name, dates, member first names, venue names ONLY.
 import { Platform } from 'react-native';
+import { drawPassportFrame, drawSeal } from './shareCard';
 
 export interface TripCardData {
   name: string;
@@ -15,16 +16,8 @@ const W = 1080;
 const H = 1350;
 const GOLD = '#D4AF37';
 const GOLD_BRIGHT = '#F5D47A';
-
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
+const SERIF = 'Georgia, "Times New Roman", serif';
+const SANS = 'Manrope, "DM Sans", system-ui, sans-serif';
 
 export async function renderTripCard(data: TripCardData): Promise<Blob | null> {
   if (Platform.OS !== 'web' || typeof document === 'undefined') return null;
@@ -34,70 +27,67 @@ export async function renderTripCard(data: TripCardData): Promise<Blob | null> {
     canvas.height = H;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
-    const sans = 'Manrope, "DM Sans", system-ui, sans-serif';
 
-    ctx.fillStyle = '#07070B';
-    ctx.fillRect(0, 0, W, H);
-    const grad = ctx.createRadialGradient(W / 2, 260, 80, W / 2, 260, 900);
-    grad.addColorStop(0, 'rgba(212,175,55,0.14)');
-    grad.addColorStop(1, 'rgba(212,175,55,0)');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
+    drawPassportFrame(ctx);
 
-    // Header
-    ctx.fillStyle = GOLD;
-    ctx.font = `600 34px ${sans}`;
+    // Eyebrow
     ctx.textAlign = 'center';
-    ctx.fillText('NUESTRO VIAJE', W / 2, 120);
+    ctx.fillStyle = GOLD;
+    ctx.font = `700 26px ${SANS}`;
+    ctx.save();
+    (ctx as any).letterSpacing = '8px';
+    ctx.fillText('NUESTRO VIAJE A CARTAGENA', W / 2, 148);
+    ctx.restore();
+
+    // Trip name in serif
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = `800 64px ${sans}`;
-    const title = data.name.length > 26 ? data.name.slice(0, 25) + '…' : data.name;
-    ctx.fillText(title, W / 2, 205);
+    ctx.font = `56px ${SERIF}`;
+    const title = data.name.length > 24 ? data.name.slice(0, 23) + '…' : data.name;
+    ctx.fillText(title, W / 2, 230);
     if (data.dates?.start) {
       ctx.fillStyle = 'rgba(255,255,255,0.55)';
-      ctx.font = `500 30px ${sans}`;
-      ctx.fillText(`${data.dates.start}${data.dates.end ? `  →  ${data.dates.end}` : ''}`, W / 2, 258);
+      ctx.font = `italic 32px ${SERIF}`;
+      ctx.fillText(`${data.dates.start}${data.dates.end ? `  —  ${data.dates.end}` : ''}`, W / 2, 284);
     }
-
     // Members
     ctx.fillStyle = GOLD_BRIGHT;
-    ctx.font = `600 28px ${sans}`;
+    ctx.font = `600 28px ${SANS}`;
     const memberLine = data.members.slice(0, 6).join(' · ');
-    ctx.fillText(memberLine.length > 52 ? memberLine.slice(0, 51) + '…' : memberLine, W / 2, 316);
+    ctx.fillText(memberLine.length > 52 ? memberLine.slice(0, 51) + '…' : memberLine, W / 2, 342);
 
-    // Day blocks
-    let y = 390;
-    ctx.textAlign = 'left';
-    for (const block of data.itemsByDay.slice(0, 5)) {
-      if (y > H - 260) break;
-      roundRect(ctx, 70, y, W - 140, 54 + block.names.length * 46, 22);
-      ctx.fillStyle = 'rgba(255,255,255,0.045)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(212,175,55,0.28)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+    // Day blocks — each day pressed as a small seal + its plans
+    let y = 420;
+    const ROTS = [-0.08, 0.06, -0.05, 0.09, -0.07];
+    const blocks = data.itemsByDay.slice(0, 4);
+    blocks.forEach((block, bi) => {
+      if (y > H - 300) return;
+      const names = block.names.slice(0, 4);
+      const blockH = Math.max(120, 40 + names.length * 48);
+      drawSeal(ctx, 160, y + blockH / 2 - 10, 62,
+        block.day === null ? '✦' : String(block.day),
+        '', ROTS[bi % ROTS.length]);
+      ctx.textAlign = 'left';
       ctx.fillStyle = GOLD;
-      ctx.font = `700 30px ${sans}`;
-      ctx.fillText(block.day === null ? 'IDEAS' : `DÍA ${block.day}`, 100, y + 44);
-      ctx.font = `500 30px ${sans}`;
-      let iy = y + 90;
-      for (const nm of block.names) {
-        ctx.fillStyle = 'rgba(255,255,255,0.88)';
-        const line = nm.length > 40 ? nm.slice(0, 39) + '…' : nm;
-        ctx.fillText(`•  ${line}`, 100, iy);
-        iy += 46;
-      }
-      y += 54 + block.names.length * 46 + 26;
-    }
+      ctx.font = `700 24px ${SANS}`;
+      ctx.fillText(block.day === null ? 'IDEAS' : `DÍA ${block.day}`, 268, y + 18);
+      ctx.font = `34px ${SERIF}`;
+      names.forEach((nm, i) => {
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        const line = nm.length > 36 ? nm.slice(0, 35) + '…' : nm;
+        ctx.fillText(line, 268, y + 66 + i * 48);
+      });
+      ctx.textAlign = 'center';
+      y += blockH + 46;
+    });
 
-    // Footer brand
+    // Footer
     ctx.textAlign = 'center';
     ctx.fillStyle = GOLD;
-    ctx.font = `800 40px ${sans}`;
-    ctx.fillText('AMO CARTAGENA', W / 2, H - 110);
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.font = `500 28px ${sans}`;
-    ctx.fillText('amocartagena.co', W / 2, H - 64);
+    ctx.font = `800 36px ${SANS}`;
+    ctx.fillText('AMO ❤ CARTAGENA', W / 2, 1238);
+    ctx.fillStyle = 'rgba(255,255,255,0.48)';
+    ctx.font = `600 26px ${SANS}`;
+    ctx.fillText('amocartagena.co', W / 2, 1280);
 
     return await new Promise<Blob | null>((resolve) => canvas.toBlob((b) => resolve(b), 'image/png'));
   } catch {

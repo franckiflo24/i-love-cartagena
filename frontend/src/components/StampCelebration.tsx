@@ -32,9 +32,10 @@ const NEXT_LOOP: Record<string, string> = {
 interface Props {
   data: CelebrationData | null;
   onClose: () => void;
+  onShare?: () => void; // Drop 11 (11D1): the triumphant share beat
 }
 
-export function StampCelebration({ data, onClose }: Props) {
+export function StampCelebration({ data, onClose, onShare }: Props) {
   const tr = useTr();
   const backdrop = useRef(new Animated.Value(0)).current;
   const stampScale = useRef(new Animated.Value(2.4)).current;
@@ -128,6 +129,16 @@ export function StampCelebration({ data, onClose }: Props) {
           );
         })}
 
+        {/* Drop 11 (11D1): sharing is the triumphant beat, not a buried button */}
+        {onShare ? (
+          <TouchableOpacity
+            style={[styles.cta, { backgroundColor: '#D4AF37' }]}
+            onPress={onShare}
+            activeOpacity={0.85}
+          >
+            <Text style={[styles.ctaText, { color: '#0A0A0A' }]}>{tr('¡Lo lograste! Compartí tu sello')}</Text>
+          </TouchableOpacity>
+        ) : null}
         <TouchableOpacity style={styles.cta} onPress={onClose} activeOpacity={0.85}>
           <Text style={styles.ctaText}>{tr('Seguir explorando')}</Text>
         </TouchableOpacity>

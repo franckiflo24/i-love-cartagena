@@ -291,7 +291,8 @@ export default function PasaporteScreen() {
     }
   }, [geo, user, router, load, tr]);
 
-  const onShare = useCallback(async () => {
+  // 11A2/11D1: variant makes the card reflect what they ACTUALLY did.
+  const onShare = useCallback(async (variant?: 'passport' | 'first_stamp' | 'collection' | 'gem', variantLabel?: string) => {
     if (!progress) return;
     const nbh = (progress.neighborhoods || []).filter((n) => n.discovered > 0)
       .sort((a, b) => b.discovered - a.discovered)[0];
@@ -316,6 +317,8 @@ export default function PasaporteScreen() {
       recentVenueNames: recent,
       title: passport?.titles?.primary?.name || null,
       rareza: progress.rareza || 0,
+      variant: variant || 'passport',
+      variantLabel,
     }, shareUrl);
     if (result === 'downloaded') setNotice(tr('Imagen descargada — compártela donde quieras'));
     if (result === 'failed') setNotice(tr('No se pudo generar la tarjeta'));
@@ -335,7 +338,7 @@ export default function PasaporteScreen() {
           )}
           <Text style={styles.title}>{tr('Mi Pasaporte')}</Text>
           {mounted && !!user && !!progress && canShareCard() && (
-            <TouchableOpacity onPress={onShare} style={styles.shareBtn} activeOpacity={0.85}>
+            <TouchableOpacity onPress={() => onShare()} style={styles.shareBtn} activeOpacity={0.85}>
               <Ionicons name="share-social" size={16} color="#000" />
               <Text style={styles.shareBtnText}>{tr('Compartir')}</Text>
             </TouchableOpacity>
@@ -815,7 +818,18 @@ export default function PasaporteScreen() {
           </>
         )}
       </ScrollView>
-      <StampCelebration data={celebration} onClose={() => setCelebration(null)} />
+      <StampCelebration
+        data={celebration}
+        onClose={() => setCelebration(null)}
+        onShare={() => {
+          // 11A2: the card reflects what they actually did, in priority order
+          const c = celebration;
+          setCelebration(null);
+          if (c?.completions?.length) onShare('collection', c.completions[0].name);
+          else if ((discoveries || []).length <= 1) onShare('first_stamp');
+          else onShare('passport');
+        }}
+      />
     </SafeAreaView>
   );
 }
