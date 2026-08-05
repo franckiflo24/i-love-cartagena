@@ -69,6 +69,12 @@ export default function PasaporteScreen() {
   const [passport, setPassport] = useState<Passport | null>(null);
   const [fromCache, setFromCache] = useState(false);
   const [loading, setLoading] = useState(true);
+  // Hydration guard: the static export prerenders this route with no auth /
+  // no nav history, so router.canGoBack(), the Share button, and dates
+  // mismatched on hydration (React #418). Hold a deterministic first paint
+  // until mounted, then render the real, client-only state.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const [geo, setGeo] = useState<GeoState>(geoService.getState());
   const [sealing, setSealing] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -322,13 +328,13 @@ export default function PasaporteScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
         {/* Header */}
         <View style={styles.headerRow}>
-          {router.canGoBack() && (
+          {mounted && router.canGoBack() && (
             <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
               <Ionicons name="arrow-back" size={20} color={COLORS.textMain} />
             </TouchableOpacity>
           )}
           <Text style={styles.title}>{tr('Mi Pasaporte')}</Text>
-          {!!user && !!progress && canShareCard() && (
+          {mounted && !!user && !!progress && canShareCard() && (
             <TouchableOpacity onPress={onShare} style={styles.shareBtn} activeOpacity={0.85}>
               <Ionicons name="share-social" size={16} color="#000" />
               <Text style={styles.shareBtnText}>{tr('Compartir')}</Text>
@@ -346,7 +352,7 @@ export default function PasaporteScreen() {
           <View style={styles.notice}><Text style={styles.noticeText}>{notice}</Text></View>
         )}
 
-        {loading ? (
+        {(!mounted || loading) ? (
           <ActivityIndicator color={COLORS.primary} style={{ marginTop: 60 }} />
         ) : (
           <>

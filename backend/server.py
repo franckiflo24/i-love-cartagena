@@ -33,6 +33,29 @@ db = client[db_name]
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# ── Partner Claim & Verify (Drop B1) — pure logic + email delivery ──
+import partner_claims as _pc
+import emails as _emails_svc
+import hashlib as _hashlib
+from pymongo.errors import DuplicateKeyError as _DuplicateKeyError
+
+# Every END-USER-facing partners query MUST merge this in so unreviewed /
+# rejected partner-submitted drafts never surface publicly. $nin also matches
+# documents missing the field, so the pre-existing catalog is unaffected.
+PUBLIC_PARTNER_FILTER = {"catalog_status": {"$nin": ["pending_review", "rejected", "sandbox"]}}
+
+# Internal ownership / moderation fields stripped from any PUBLIC partner
+# response — a claimant's account email and internal business_ids are not public.
+# (claim_status is intentionally KEPT — the find/claim UI shows "Reclamado".)
+INTERNAL_PARTNER_FIELDS = (
+    "submitted_email", "submitted_by", "claimed_by", "claim_method",
+    "claim_verified_at", "approved_by", "rejected_by", "reject_reason",
+)
+# Exclusion projection for EVERY public-facing full-document partners query, so
+# internal fields never leak — including for already-approved venues that went
+# through the claim flow (e.g. an admin-provisioned venue's claimed_by business_id).
+PUBLIC_PARTNER_PROJECTION = {"_id": 0, **{f: 0 for f in INTERNAL_PARTNER_FIELDS}}
+
 # ── In-memory rate limiter for expensive AI endpoints ──────────
 from collections import defaultdict
 import time as _time
@@ -506,6 +529,59 @@ async def get_current_business(request: Request) -> dict:
     return biz
 
 
+# ── Login brute-force throttle (DB-backed so it survives across serverless
+#    instances). Keyed by client IP to avoid an email-based account-lockout DoS. ──
+_LOGIN_MAX_FAILS = 12
+_LOGIN_WINDOW_SEC = 900   # 15-minute rolling window
+_LOGIN_LOCK_SEC = 900     # lock the IP for 15 min after too many fails
+# A fixed bcrypt hash of a random string, used to spend ~equal time on the
+# no-such-user path so login timing can't be used to enumerate valid emails.
+_DUMMY_PW_HASH = _bcrypt.hashpw(b"amo-timing-equalizer-constant", _bcrypt.gensalt())
+
+
+def _client_ip(request: Request) -> str:
+    xff = request.headers.get("x-forwarded-for", "")
+    if xff:
+        return xff.split(",")[0].strip()
+    return (request.client.host if request.client else "unknown")
+
+
+async def _login_throttle_guard(ip: str):
+    rec = await db.login_throttle.find_one({"_id": ip}, {"_id": 0, "locked_until": 1})
+    if rec and rec.get("locked_until"):
+        try:
+            lu = datetime.fromisoformat(rec["locked_until"])
+            if lu.tzinfo is None:
+                lu = lu.replace(tzinfo=timezone.utc)
+            if lu > datetime.now(timezone.utc):
+                raise HTTPException(status_code=429, detail="Demasiados intentos fallidos. Intenta de nuevo en unos minutos. / Too many failed attempts, try again later.")
+        except HTTPException:
+            raise
+        except Exception:
+            pass
+
+
+async def _login_record_fail(ip: str):
+    now = datetime.now(timezone.utc)
+    rec = await db.login_throttle.find_one({"_id": ip})
+    fails = (rec or {}).get("fails", 0)
+    ws = (rec or {}).get("window_start")
+    try:
+        ws_dt = datetime.fromisoformat(ws) if ws else None
+        if ws_dt and ws_dt.tzinfo is None:
+            ws_dt = ws_dt.replace(tzinfo=timezone.utc)
+    except Exception:
+        ws_dt = None
+    if not ws_dt or (now - ws_dt).total_seconds() > _LOGIN_WINDOW_SEC:
+        fails = 0
+        ws = now.isoformat()
+    fails += 1
+    upd = {"fails": fails, "window_start": ws}
+    if fails >= _LOGIN_MAX_FAILS:
+        upd["locked_until"] = (now + timedelta(seconds=_LOGIN_LOCK_SEC)).isoformat()
+    await db.login_throttle.update_one({"_id": ip}, {"$set": upd}, upsert=True)
+
+
 @api_router.post("/business/login")
 async def business_login(request: Request):
     body = await request.json()
@@ -513,12 +589,17 @@ async def business_login(request: Request):
     password = body.get("password") or ""
     if not email or not password:
         raise HTTPException(status_code=400, detail="Email and password are required")
+    ip = _client_ip(request)
+    await _login_throttle_guard(ip)
     biz = await db.business_users.find_one({"email": email}, {"_id": 0})
-    if not biz:
+    # Always run a bcrypt comparison (real hash or dummy) so response time does
+    # not reveal whether the email exists.
+    pw_hash = (biz.get("password_hash", "").encode("utf-8") if biz else b"") or _DUMMY_PW_HASH
+    ok = _bcrypt.checkpw(password.encode("utf-8"), pw_hash)
+    if not biz or not ok:
+        await _login_record_fail(ip)
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
-    pw_hash = biz.get("password_hash", "").encode("utf-8")
-    if not pw_hash or not _bcrypt.checkpw(password.encode("utf-8"), pw_hash):
-        raise HTTPException(status_code=401, detail="Credenciales inválidas")
+    await db.login_throttle.delete_one({"_id": ip})  # clear on success
     token = f"biz_{uuid.uuid4().hex}"
     await db.business_sessions.insert_one({
         "token": token,
@@ -529,6 +610,29 @@ async def business_login(request: Request):
     biz_safe = {k: v for k, v in biz.items() if k != "password_hash"}
     partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0})
     return {"token": token, "business": biz_safe, "partner": partner}
+
+
+@api_router.post("/business/change-password")
+async def business_change_password(request: Request):
+    """Rotate the calling account's password. Verifies the current password,
+    then revokes all OTHER sessions (keeps the caller's current one)."""
+    biz = await get_current_business(request)
+    body = await request.json()
+    current = body.get("current_password") or ""
+    new = body.get("new_password") or ""
+    if len(new) < 10:
+        raise HTTPException(status_code=400, detail="La nueva contraseña debe tener al menos 10 caracteres / New password must be ≥ 10 chars")
+    full = await db.business_users.find_one({"business_id": biz["business_id"]}, {"_id": 0, "password_hash": 1})
+    pw_hash = (full or {}).get("password_hash", "").encode("utf-8")
+    if not pw_hash or not _bcrypt.checkpw(current.encode("utf-8"), pw_hash):
+        raise HTTPException(status_code=401, detail="Contraseña actual incorrecta / Current password is incorrect")
+    new_hash = _bcrypt.hashpw(new.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+    await db.business_users.update_one({"business_id": biz["business_id"]}, {"$set": {"password_hash": new_hash, "password_changed_at": _now_iso()}})
+    # Revoke every other session for this account (current token stays valid).
+    auth_header = request.headers.get("Authorization", "")
+    cur_token = auth_header[7:] if auth_header.startswith("Bearer ") else None
+    await db.business_sessions.delete_many({"business_id": biz["business_id"], "token": {"$ne": cur_token}})
+    return {"changed": True}
 
 
 @api_router.post("/business/logout")
@@ -651,23 +755,29 @@ async def admin_list_memberships(request: Request, status: str = "", tier: str =
 
 @api_router.put("/business/profile")
 async def update_business_profile(request: Request):
+    """Edit YOUR claimed venue's own fields (B1E). Firewalled + audited.
+
+    - Requires a VERIFIED claim on the venue (or government role).
+    - Only EDITABLE_FIELDS may be written; any PROTECTED_FIELD hard-403s.
+    - Image values must be moderated (data:) or self-hosted (/images/) — I3.
+    - Every field change is logged old->new to partner_edit_log.
+    """
     biz = await get_current_business(request)
     body = await request.json()
-    allowed = {"description", "address", "instagram", "booking_link", "price_range",
-               "experience", "image_url", "default_payment_link", "phone", "whatsapp", "email",
-               "photos", "images", "hours", "website"}
-    update = {k: v for k, v in body.items() if k in allowed}
-    # Validate photos/images are lists of strings (URLs)
-    for list_field in ("photos", "images"):
-        if list_field in update:
-            val = update[list_field]
-            if not isinstance(val, list) or not all(isinstance(u, str) for u in val):
-                raise HTTPException(status_code=400, detail=f"{list_field} must be a list of URL strings")
-            update[list_field] = val[:20]  # cap at 20 photos
+    partner_id = biz["partner_id"]
+    partner = await _require_verified_owner(biz, partner_id)
+
+    try:
+        update = _pc.sanitize_edit(body)
+    except _pc.FirewallError as fe:
+        raise HTTPException(status_code=fe.status, detail=fe.message)
+
     if not update:
         return {"updated": False}
-    await db.partners.update_one({"partner_id": biz["partner_id"]}, {"$set": update})
-    partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0})
+
+    await _log_partner_edits(biz, partner_id, partner, update)
+    await db.partners.update_one({"partner_id": partner_id}, {"$set": update})
+    partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0})
     return {"updated": True, "partner": partner}
 
 
@@ -675,10 +785,14 @@ async def update_business_profile(request: Request):
 async def business_add_photo(request: Request):
     """Add a photo URL to the partner's photos array. Returns updated photos list."""
     biz = await get_current_business(request)
+    await _require_verified_owner(biz, biz["partner_id"])
     body = await request.json()
     url = (body.get("url") or "").strip()
     if not url:
         raise HTTPException(status_code=400, detail="url required")
+    # I3: only moderated (data:) or self-hosted (/images/) — never a raw external URL.
+    if not _pc.validate_image_value(url):
+        raise HTTPException(status_code=422, detail="Imagen inválida (I3): solo subidas moderadas o /images/ / Only moderated uploads or /images/ paths")
     partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "photos": 1, "images": 1})
     photos = partner.get("photos") or partner.get("images") or []
     if len(photos) >= 20:
@@ -694,6 +808,7 @@ async def business_add_photo(request: Request):
 async def business_remove_photo(request: Request):
     """Remove a photo URL from the partner's photos array."""
     biz = await get_current_business(request)
+    await _require_verified_owner(biz, biz["partner_id"])
     body = await request.json()
     url = (body.get("url") or "").strip()
     if not url:
@@ -854,6 +969,731 @@ async def business_upload_image(request: Request):
         "reason": result.get("reason", ""),
         "issues": result.get("issues", []),
     }
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# DROP B1 — PARTNER CLAIM & VERIFY
+# Security spine: (1) impersonation — no claim reaches verified_owner without a
+# completed proof step; a verified venue LOCKS and a second claimant routes to
+# dispute. (2) duplication — no venue is created without passing the server-side
+# dedup firewall. Edit rights are gated on verified ownership and firewalled to
+# a field allowlist (trust badges / confidence / collections / Luna are off-limits).
+# ══════════════════════════════════════════════════════════════════════════
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _hash_code(code: str, claim_id: str) -> str:
+    return _hashlib.sha256(f"{code}:{claim_id}".encode("utf-8")).hexdigest()
+
+
+def _mask_email(email: str) -> str:
+    email = (email or "").strip()
+    if "@" not in email:
+        return ""
+    local, _, domain = email.partition("@")
+    head = local[0] if local else "*"
+    return f"{head}{'*' * max(2, len(local) - 1)}@{domain}"
+
+
+def _iso_expired(iso: str) -> bool:
+    try:
+        dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt < datetime.now(timezone.utc)
+    except Exception:
+        return True
+
+
+def _hood_of(p: dict) -> str:
+    return p.get("neighborhood") or p.get("barrio") or p.get("address") or ""
+
+
+async def _require_verified_owner(biz: dict, partner_id: str) -> dict:
+    """Edit gate: government, or the account that has a VERIFIED claim on the venue."""
+    partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Negocio no encontrado / Venue not found")
+    if biz.get("role") == "government":
+        return partner
+    if partner.get("claim_status") == "verified_owner" and partner.get("claimed_by") == biz.get("business_id"):
+        return partner
+    raise HTTPException(
+        status_code=403,
+        detail="Debes verificar la propiedad de tu negocio antes de editar / Verify ownership before editing",
+    )
+
+
+def _truncate(v):
+    if isinstance(v, str) and len(v) > 180:
+        return v[:180] + "…"
+    if isinstance(v, list):
+        return [(_truncate(x)) for x in v[:5]]
+    return v
+
+
+async def _log_partner_edits(biz: dict, partner_id: str, old_partner: dict, update: dict):
+    now = _now_iso()
+    rows = []
+    for field, new_val in update.items():
+        old_val = old_partner.get(field)
+        if old_val == new_val:
+            continue
+        rows.append({
+            "log_id": f"pel_{uuid.uuid4().hex[:10]}",
+            "partner_id": partner_id,
+            "business_id": biz.get("business_id"),
+            "actor_email": biz.get("email", ""),
+            "field": field,
+            "old": _truncate(old_val),
+            "new": _truncate(new_val),
+            "at": now,
+        })
+    if rows:
+        await db.partner_edit_log.insert_many(rows)
+
+
+async def _link_business_partner(business_id: str, partner_id: str):
+    """Attach a verified venue to the account (primary if none yet)."""
+    biz = await db.business_users.find_one({"business_id": business_id}, {"_id": 0})
+    if not biz:
+        return
+    upd = {"$addToSet": {"claimed_partner_ids": partner_id}, "$set": {"status": "active"}}
+    if not biz.get("partner_id"):
+        upd["$set"]["partner_id"] = partner_id
+    await db.business_users.update_one({"business_id": business_id}, upd)
+
+
+async def _notify_admin(kind: str, title: str, meta: dict):
+    try:
+        await db.admin_notifications.insert_one({
+            "notification_id": f"notif_{uuid.uuid4().hex[:10]}",
+            "type": kind,
+            "title": title,
+            **meta,
+            "is_read": False,
+            "is_resolved": False,
+            "created_at": _now_iso(),
+        })
+    except Exception as exc:
+        logger.warning(f"[B1] admin notify failed: {exc}")
+
+
+async def _catalog_candidates() -> list:
+    """Lean projection of every LIVE venue for fuzzy search / dedup. Unapproved
+    drafts are excluded so a partner can't pre-seed junk one-word drafts to
+    poison the dedup filter (or surface them in find-your-business search)."""
+    return await db.partners.find(
+        dict(PUBLIC_PARTNER_FILTER),
+        {"_id": 0, "partner_id": 1, "name": 1, "neighborhood": 1, "barrio": 1,
+         "address": 1, "category": 1, "image_url": 1, "claim_status": 1, "catalog_status": 1},
+    ).to_list(3000)
+
+
+# ── B1A · Partner account signup (self-serve, separate namespace) ──────────
+@api_router.post("/business/signup")
+async def business_signup(request: Request):
+    body = await request.json()
+    email = (body.get("email") or "").strip().lower()
+    password = body.get("password") or ""
+    phone = (body.get("phone") or "").strip()
+    name = (body.get("name") or "").strip()
+    if not email or "@" not in email or "." not in email.split("@")[-1]:
+        raise HTTPException(status_code=400, detail="Email inválido / Invalid email")
+    if len(password) < 8:
+        raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 8 caracteres / Password must be ≥ 8 chars")
+    if await db.business_users.find_one({"email": email}):
+        raise HTTPException(status_code=409, detail="Ese email ya tiene una cuenta / That email already has an account")
+    pw_hash = _bcrypt.hashpw(password.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+    business_id = f"biz_{uuid.uuid4().hex[:12]}"
+    doc = {
+        "business_id": business_id,
+        "email": email,
+        "password_hash": pw_hash,
+        "full_name": name,
+        "phone": phone,
+        "role": "business",
+        "status": "pending",          # becomes "active" on first verified claim/create
+        "provisioned_by": "self",
+        "partner_id": None,           # no venue until they claim/create one
+        "claimed_partner_ids": [],
+        "created_at": _now_iso(),
+    }
+    try:
+        await db.business_users.insert_one(doc)
+    except Exception:
+        raise HTTPException(status_code=409, detail="Ese email ya tiene una cuenta / That email already has an account")
+    doc.pop("_id", None)  # insert_one mutates doc with a non-serializable ObjectId
+    token = f"biz_{uuid.uuid4().hex}"
+    await db.business_sessions.insert_one({
+        "token": token,
+        "business_id": business_id,
+        "created_at": _now_iso(),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat(),
+    })
+    safe = {k: v for k, v in doc.items() if k not in ("password_hash", "_id")}
+    return {"token": token, "business": safe, "partner": None}
+
+
+# ── B1B · Find-your-business search + dedup precheck ───────────────────────
+@api_router.get("/business/catalog/search")
+async def business_catalog_search(request: Request, q: str = "", neighborhood: str = ""):
+    await get_current_business(request)  # portal-only; no end-user data touched
+    if not q or len(q.strip()) < 2:
+        return {"results": [], "query": q}
+    cands = await _catalog_candidates()
+    results = _pc.search_catalog(q, neighborhood or None, cands)
+    trimmed = [{
+        "partner_id": r.get("partner_id"),
+        "name": r.get("name"),
+        "neighborhood": _hood_of(r),
+        "category": r.get("category"),
+        "image_url": r.get("image_url", ""),
+        "claim_status": r.get("claim_status") or "unclaimed",
+        "score": r.get("_score"),
+    } for r in results]
+    return {"results": trimmed, "query": q}
+
+
+@api_router.post("/business/venues/precheck")
+async def business_venue_precheck(request: Request):
+    await get_current_business(request)
+    body = await request.json()
+    name = (body.get("name") or "").strip()
+    hood = (body.get("neighborhood") or "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="name required")
+    cands = await _catalog_candidates()
+    dups = _pc.find_duplicates(name, hood, cands, hood_key="neighborhood")
+    blocked = any(d.get("_is_duplicate") for d in dups)
+    return {
+        "blocked": blocked,
+        "threshold": _pc.DEDUP_THRESHOLD,
+        "candidates": [{
+            "partner_id": d.get("partner_id"), "name": d.get("name"),
+            "neighborhood": _hood_of(d), "score": d.get("_score"),
+            "is_duplicate": d.get("_is_duplicate"),
+            "claim_status": d.get("claim_status") or "unclaimed",
+        } for d in dups],
+    }
+
+
+# ── B1C · Claim an existing venue (ownership verification) ─────────────────
+@api_router.post("/business/claim/start")
+async def business_claim_start(request: Request):
+    biz = await get_current_business(request)
+    body = await request.json()
+    partner_id = (body.get("partner_id") or "").strip()
+    method = (body.get("method") or "email").strip().lower()
+    partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Negocio no encontrado / Venue not found")
+
+    # IMPERSONATION GUARD — a verified venue is LOCKED.
+    if partner.get("claim_status") == "verified_owner":
+        if partner.get("claimed_by") == biz["business_id"]:
+            return {"already_owner": True, "partner_id": partner_id}
+        claim = {
+            "claim_id": f"clm_{uuid.uuid4().hex[:12]}",
+            "business_id": biz["business_id"], "actor_email": biz.get("email", ""),
+            "partner_id": partner_id, "method": "dispute", "state": "disputed",
+            "note": "Segundo reclamante sobre un negocio ya verificado",
+            "created_at": _now_iso(),
+        }
+        await db.venue_claims.insert_one(claim)
+        await _notify_admin("claim_dispute", f"Disputa de propiedad: {partner.get('name','')}",
+                            {"partner_id": partner_id, "claim_id": claim["claim_id"], "business_id": biz["business_id"]})
+        raise HTTPException(status_code=409, detail="Este negocio ya está verificado por otra cuenta. Tu solicitud pasó a revisión de disputa. / Already verified by another account — sent to dispute review.")
+
+    # Abuse guard (F7/F8/N3): an ATOMIC 90s per-(account, venue) cooldown stops
+    # verification-email bombing and admin-queue flooding — even under a
+    # concurrent burst. The single upsert is the lock: the filter matches only
+    # when the last attempt is older than the cutoff (or absent); a request
+    # inside the window fails the filter, its upsert collides on the _id, and the
+    # DuplicateKeyError becomes the 429. Only ONE of N racing requests wins.
+    _now = datetime.now(timezone.utc)
+    _cutoff = (_now - timedelta(seconds=90)).isoformat()
+    _throttle_key = f"{biz['business_id']}:{partner_id}"
+    try:
+        await db.claim_throttle.update_one(
+            {"_id": _throttle_key, "last": {"$lt": _cutoff}},
+            {"$set": {"last": _now.isoformat()}},
+            upsert=True,
+        )
+    except _DuplicateKeyError:
+        raise HTTPException(status_code=429, detail="Espera un momento antes de reintentar este negocio / Please wait before retrying this venue")
+    if await db.venue_claims.count_documents({"business_id": biz["business_id"], "state": "pending_verification"}) >= 12:
+        raise HTTPException(status_code=429, detail="Tienes demasiados reclamos pendientes / Too many pending claims")
+
+    if method == "email":
+        target = (partner.get("email") or "").strip()
+        if not target or "@" not in target:
+            raise HTTPException(status_code=400, detail="Este negocio no tiene email registrado. Usa verificación manual. / No email on record — use manual verification.")
+        code = _emails_svc.generate_verification_code()
+        claim_id = f"clm_{uuid.uuid4().hex[:12]}"
+        # supersede any prior pending email-claim by THIS account on THIS venue
+        await db.venue_claims.delete_many({"business_id": biz["business_id"], "partner_id": partner_id, "state": "pending_verification", "method": "email"})
+        await db.venue_claims.insert_one({
+            "claim_id": claim_id,
+            "business_id": biz["business_id"], "actor_email": biz.get("email", ""),
+            "partner_id": partner_id, "method": "email", "state": "pending_verification",
+            "code_hash": _hash_code(code, claim_id),
+            "code_expires": (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
+            "attempts": 0,
+            "target_email_masked": _mask_email(target),
+            "created_at": _now_iso(),
+        })
+        if partner.get("claim_status") not in ("verified_owner",):
+            await db.partners.update_one({"partner_id": partner_id}, {"$set": {"claim_status": "pending_verification"}})
+        # Delivery ALWAYS to the on-record address (claimant never chooses it).
+        sent = await _emails_svc.send_verification_email(to=target, code=code, name=partner.get("name", ""))
+        return {"claim_id": claim_id, "method": "email", "sent": bool(sent),
+                "masked_email": _mask_email(target),
+                "message": "Enviamos un código al email registrado del negocio."}
+
+    elif method == "manual":
+        proof = (body.get("proof") or "").strip()
+        if len(proof) < 8:
+            raise HTTPException(status_code=400, detail="Describe tu prueba de propiedad (RNT, registro, foto con código). / Provide ownership proof.")
+        # supersede any prior pending manual claim by THIS account on THIS venue
+        # so a re-submission refreshes the request instead of flooding the queue.
+        await db.venue_claims.delete_many({"business_id": biz["business_id"], "partner_id": partner_id, "state": "pending_verification", "method": "manual"})
+        claim_id = f"clm_{uuid.uuid4().hex[:12]}"
+        await db.venue_claims.insert_one({
+            "claim_id": claim_id,
+            "business_id": biz["business_id"], "actor_email": biz.get("email", ""),
+            "partner_id": partner_id, "method": "manual", "state": "pending_verification",
+            "proof": proof[:2000], "proof_url": (body.get("proof_url") or "")[:500],
+            "created_at": _now_iso(),
+        })
+        if partner.get("claim_status") not in ("verified_owner",):
+            await db.partners.update_one({"partner_id": partner_id}, {"$set": {"claim_status": "pending_verification"}})
+        await _notify_admin("claim_manual", f"Reclamo manual: {partner.get('name','')}",
+                            {"partner_id": partner_id, "claim_id": claim_id, "business_id": biz["business_id"]})
+        return {"claim_id": claim_id, "method": "manual", "state": "pending_verification",
+                "message": "Tu reclamo pasó a revisión del equipo. Te avisaremos."}
+
+    raise HTTPException(status_code=400, detail="Método inválido / Invalid method")
+
+
+@api_router.post("/business/claim/verify")
+async def business_claim_verify(request: Request):
+    biz = await get_current_business(request)
+    body = await request.json()
+    claim_id = (body.get("claim_id") or "").strip()
+    code = (body.get("code") or "").strip()
+    claim = await db.venue_claims.find_one({"claim_id": claim_id}, {"_id": 0})
+    if not claim or claim.get("business_id") != biz["business_id"]:
+        raise HTTPException(status_code=404, detail="Reclamo no encontrado / Claim not found")
+    if claim.get("method") != "email":
+        raise HTTPException(status_code=400, detail="Este reclamo se resuelve manualmente / This claim is resolved manually")
+    if claim.get("state") != "pending_verification":
+        raise HTTPException(status_code=400, detail="El reclamo ya no está pendiente / Claim is not pending")
+    if _iso_expired(claim.get("code_expires", "")):
+        raise HTTPException(status_code=400, detail="Código expirado — solicita uno nuevo / Code expired")
+    if claim.get("attempts", 0) >= 5:
+        raise HTTPException(status_code=429, detail="Demasiados intentos — solicita un nuevo código / Too many attempts")
+    if _hash_code(code, claim_id) != claim.get("code_hash"):
+        await db.venue_claims.update_one({"claim_id": claim_id}, {"$inc": {"attempts": 1}})
+        raise HTTPException(status_code=400, detail="Código incorrecto / Incorrect code")
+
+    partner_id = claim["partner_id"]
+    partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0})
+    # Commit-time impersonation re-check (guards a race where someone verified first).
+    if partner and partner.get("claim_status") == "verified_owner" and partner.get("claimed_by") != biz["business_id"]:
+        await db.venue_claims.update_one({"claim_id": claim_id}, {"$set": {"state": "disputed"}})
+        await _notify_admin("claim_dispute", f"Disputa (carrera): {partner.get('name','')}",
+                            {"partner_id": partner_id, "claim_id": claim_id, "business_id": biz["business_id"]})
+        raise HTTPException(status_code=409, detail="Ya verificado por otra cuenta — enviado a disputa / Already verified by another account")
+
+    now = _now_iso()
+    await db.venue_claims.update_one({"claim_id": claim_id}, {"$set": {"state": "verified", "resolved_at": now}})
+    await db.partners.update_one({"partner_id": partner_id}, {"$set": {
+        "claim_status": "verified_owner", "claimed_by": biz["business_id"],
+        "claim_method": "email", "claim_verified_at": now,
+    }})
+    await _link_business_partner(biz["business_id"], partner_id)
+    return {"verified": True, "partner_id": partner_id}
+
+
+@api_router.get("/business/claims/mine")
+async def business_my_claims(request: Request):
+    biz = await get_current_business(request)
+    claims = await db.venue_claims.find(
+        {"business_id": biz["business_id"]},
+        {"_id": 0, "code_hash": 0},
+    ).sort("created_at", -1).to_list(100)
+    return {"claims": claims}
+
+
+# ── B1D · Create a new venue (gated, moderated draft) ──────────────────────
+@api_router.post("/business/venues/create")
+async def business_venue_create(request: Request):
+    biz = await get_current_business(request)
+    body = await request.json()
+    name = (body.get("name") or "").strip()
+    category = (body.get("category") or "").strip()
+    hood = (body.get("neighborhood") or "").strip()
+    if not name or not category:
+        raise HTTPException(status_code=400, detail="name y category son obligatorios / name and category required")
+
+    # DEDUP FIREWALL (server-side, cannot be bypassed) — a near-duplicate blocks
+    # the create and routes the partner to claim the existing record instead.
+    cands = await _catalog_candidates()
+    dups = _pc.find_duplicates(name, hood, cands, hood_key="neighborhood")
+    hard = [d for d in dups if d.get("_is_duplicate")]
+    if hard:
+        raise HTTPException(status_code=409, detail={
+            "error": "duplicate",
+            "message": "Ya existe un negocio muy similar en el catálogo. Reclama el existente en vez de crear uno nuevo. / A very similar venue already exists — claim it instead.",
+            "threshold": _pc.DEDUP_THRESHOLD,
+            "candidates": [{"partner_id": d.get("partner_id"), "name": d.get("name"),
+                            "neighborhood": _hood_of(d), "score": d.get("_score"),
+                            "claim_status": d.get("claim_status") or "unclaimed"} for d in hard[:5]],
+        })
+
+    partner_id = f"ptr_ps_{uuid.uuid4().hex[:8]}"
+    now = _now_iso()
+    doc = {
+        "partner_id": partner_id,
+        "name": name,
+        "category": category,
+        "subcategory": (body.get("subcategory") or "").strip(),
+        "neighborhood": hood,
+        "description": (body.get("description") or "").strip()[:2000],
+        "address": (body.get("address") or "").strip()[:300],
+        "phone": (body.get("phone") or "").strip()[:40],
+        "whatsapp": (body.get("whatsapp") or "").strip()[:40],
+        "website": (body.get("website") or "").strip()[:300],
+        "booking_link": (body.get("booking_link") or "").strip()[:300],
+        "instagram": (body.get("instagram") or "").strip()[:120],
+        "price_range": (body.get("price_range") or "").strip()[:20],
+        # Moderation + trust posture (all editorial-controlled, never partner-set):
+        "catalog_status": "pending_review",       # hidden from public catalog until approved
+        "confidence": "partner_submitted",         # distinct trust tier — not editorially verified
+        "claim_status": "verified_owner",          # the creator owns their own draft
+        "claimed_by": biz["business_id"],
+        "claim_method": "created",
+        "submitted_by": biz["business_id"],
+        "submitted_email": biz.get("email", ""),
+        "image_url": "",                            # NO image until admin adds a self-hosted one (I3)
+        "created_at": now,
+    }
+    await db.partners.insert_one(doc)
+    await _link_business_partner(biz["business_id"], partner_id)
+    await _notify_admin("venue_draft", f"Nuevo negocio pendiente: {name}",
+                        {"partner_id": partner_id, "business_id": biz["business_id"]})
+    return {"created": True, "partner_id": partner_id, "status": "pending_review",
+            "message": "Tu negocio pasó a revisión del equipo. No aparece en el catálogo hasta ser aprobado."}
+
+
+# ── B1E · Audit trail (partner reads their own log) ────────────────────────
+@api_router.get("/business/edit-log")
+async def business_edit_log(request: Request):
+    biz = await get_current_business(request)
+    logs = await db.partner_edit_log.find(
+        {"business_id": biz["business_id"]}, {"_id": 0},
+    ).sort("at", -1).to_list(200)
+    return {"logs": logs}
+
+
+# ── Admin (government role) · claim + draft moderation queues ───────────────
+@api_router.get("/business/admin/claims")
+async def admin_list_claims(request: Request):
+    await _require_government_role(request)
+    q = {"$or": [{"state": "disputed"}, {"state": "pending_verification", "method": "manual"}]}
+    claims = await db.venue_claims.find(q, {"_id": 0, "code_hash": 0}).sort("created_at", -1).to_list(500)
+    for c in claims:
+        p = await db.partners.find_one({"partner_id": c.get("partner_id")}, {"_id": 0, "name": 1, "claim_status": 1, "claimed_by": 1})
+        c["partner_name"] = (p or {}).get("name", "")
+        c["partner_claim_status"] = (p or {}).get("claim_status", "unclaimed")
+    return {"claims": claims, "count": len(claims)}
+
+
+@api_router.post("/business/admin/claims/{claim_id}/resolve")
+async def admin_resolve_claim(claim_id: str, request: Request):
+    gov = await _require_government_role(request)
+    body = await request.json()
+    action = (body.get("action") or "").strip().lower()  # approve | reject
+    claim = await db.venue_claims.find_one({"claim_id": claim_id}, {"_id": 0})
+    if not claim:
+        raise HTTPException(status_code=404, detail="Reclamo no encontrado / Claim not found")
+    partner_id = claim["partner_id"]
+    now = _now_iso()
+    if action == "approve":
+        partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0})
+        if partner and partner.get("claim_status") == "verified_owner" and partner.get("claimed_by") != claim["business_id"]:
+            await db.venue_claims.update_one({"claim_id": claim_id}, {"$set": {"state": "disputed", "resolved_at": now}})
+            raise HTTPException(status_code=409, detail="El negocio ya está verificado por otra cuenta / Already verified by another account")
+        await db.partners.update_one({"partner_id": partner_id}, {"$set": {
+            "claim_status": "verified_owner", "claimed_by": claim["business_id"],
+            "claim_method": claim.get("method", "manual"), "claim_verified_at": now,
+        }})
+        await _link_business_partner(claim["business_id"], partner_id)
+        await db.venue_claims.update_one({"claim_id": claim_id}, {"$set": {"state": "verified", "resolved_at": now, "resolved_by": gov.get("email", "admin")}})
+        return {"resolved": True, "state": "verified"}
+    elif action == "reject":
+        await db.venue_claims.update_one({"claim_id": claim_id}, {"$set": {"state": "rejected", "resolved_at": now, "resolved_by": gov.get("email", "admin")}})
+        # if the venue was only pending because of this claim, release it
+        others = await db.venue_claims.count_documents({"partner_id": partner_id, "state": "pending_verification"})
+        partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "claim_status": 1})
+        if others == 0 and partner and partner.get("claim_status") == "pending_verification":
+            await db.partners.update_one({"partner_id": partner_id}, {"$set": {"claim_status": "unclaimed"}})
+        return {"resolved": True, "state": "rejected"}
+    raise HTTPException(status_code=400, detail="action debe ser approve|reject")
+
+
+@api_router.get("/business/admin/venue-drafts")
+async def admin_list_venue_drafts(request: Request):
+    await _require_government_role(request)
+    drafts = await db.partners.find(
+        {"catalog_status": "pending_review"},
+        {"_id": 0, "partner_id": 1, "name": 1, "category": 1, "neighborhood": 1,
+         "description": 1, "address": 1, "phone": 1, "website": 1, "submitted_by": 1,
+         "submitted_email": 1, "confidence": 1, "created_at": 1},
+    ).sort("created_at", -1).to_list(500)
+    return {"drafts": drafts, "count": len(drafts)}
+
+
+@api_router.post("/business/admin/venue-drafts/{partner_id}/approve")
+async def admin_approve_venue_draft(partner_id: str, request: Request):
+    gov = await _require_government_role(request)
+    body = await request.json()
+    partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "catalog_status": 1})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Draft no encontrado / Draft not found")
+    if partner.get("catalog_status") != "pending_review":
+        raise HTTPException(status_code=400, detail="Este negocio no está en revisión / Not a pending draft")
+    upd = {"catalog_status": "approved", "approved_by": gov.get("email", "admin"), "approved_at": _now_iso()}
+    # Admin MAY attach a self-hosted image on approval — I3 validated.
+    img = (body.get("image_url") or "").strip()
+    if img:
+        if not _pc.validate_image_value(img):
+            raise HTTPException(status_code=422, detail="Imagen inválida (I3): solo /images/ o data: / Only /images/ or data: URLs")
+        upd["image_url"] = img
+    await db.partners.update_one({"partner_id": partner_id}, {"$set": upd})
+    return {"approved": True, "partner_id": partner_id}
+
+
+@api_router.post("/business/admin/venue-drafts/{partner_id}/reject")
+async def admin_reject_venue_draft(partner_id: str, request: Request):
+    gov = await _require_government_role(request)
+    body = await request.json()
+    partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "catalog_status": 1})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Draft no encontrado / Draft not found")
+    await db.partners.update_one({"partner_id": partner_id}, {"$set": {
+        "catalog_status": "rejected", "rejected_by": gov.get("email", "admin"),
+        "rejected_at": _now_iso(), "reject_reason": (body.get("reason") or "")[:500],
+    }})
+    return {"rejected": True, "partner_id": partner_id}
+
+
+@api_router.post("/business/admin/partners/{partner_id}/release-claim")
+async def admin_release_claim(partner_id: str, request: Request):
+    """Dispute resolution / offboarding: return a venue to UNCLAIMED and unlink
+    its owning account. Fully $unsets the claim fields so the record is pristine."""
+    gov = await _require_government_role(request)
+    partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "claimed_by": 1})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Negocio no encontrado / Venue not found")
+    owner_biz = partner.get("claimed_by")
+    await db.partners.update_one({"partner_id": partner_id}, {"$unset": {
+        "claim_status": "", "claimed_by": "", "claim_method": "", "claim_verified_at": "",
+    }})
+    # unlink from any account that had it
+    if owner_biz:
+        biz = await db.business_users.find_one({"business_id": owner_biz}, {"_id": 0, "partner_id": 1})
+        unset_primary = biz and biz.get("partner_id") == partner_id
+        upd: dict = {"$pull": {"claimed_partner_ids": partner_id}}
+        if unset_primary:
+            upd["$set"] = {"partner_id": None}
+        await db.business_users.update_one({"business_id": owner_biz}, upd)
+    await db.business_users.update_many({"claimed_partner_ids": partner_id}, {"$pull": {"claimed_partner_ids": partner_id}})
+    await _notify_admin("claim_released", f"Propiedad liberada: {partner_id}",
+                        {"partner_id": partner_id, "by": gov.get("email", "admin")})
+    return {"released": True, "partner_id": partner_id}
+
+
+@api_router.delete("/business/admin/venue-drafts/{partner_id}")
+async def admin_delete_venue_draft(partner_id: str, request: Request):
+    """Hard-delete a partner-submitted draft (spam removal). Safety: refuses to
+    delete anything that is not a partner_submitted draft — a real catalog venue
+    can never be removed through this route."""
+    await _require_government_role(request)
+    partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "confidence": 1, "catalog_status": 1})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Draft no encontrado / Draft not found")
+    if partner.get("confidence") != "partner_submitted" or partner.get("catalog_status") not in ("pending_review", "rejected"):
+        raise HTTPException(status_code=400, detail="Solo se pueden eliminar borradores de partners / Only partner-submitted drafts can be deleted")
+    await db.partners.delete_one({"partner_id": partner_id})
+    await db.venue_claims.delete_many({"partner_id": partner_id})
+    await db.business_users.update_many({"claimed_partner_ids": partner_id}, {"$pull": {"claimed_partner_ids": partner_id}})
+    await db.business_users.update_many({"partner_id": partner_id}, {"$set": {"partner_id": None}})
+    return {"deleted": True, "partner_id": partner_id}
+
+
+@api_router.post("/business/admin/backfill-ownership")
+async def admin_backfill_ownership(request: Request):
+    """Idempotent grandfather: any admin-provisioned account whose venue exists
+    but has no claim state gets linked as verified_owner. Additive only — never
+    touches images or existing values. Safe to re-run. (Serverless startup
+    events are unreliable, so this runs the same logic in a request context.)"""
+    await _require_government_role(request)
+    linked, skipped_ghost = 0, 0
+    async for biz in db.business_users.find({"partner_id": {"$nin": [None, ""]}}, {"_id": 0, "business_id": 1, "partner_id": 1}):
+        pid, bid = biz.get("partner_id"), biz.get("business_id")
+        if not pid or not bid:
+            continue
+        p = await db.partners.find_one({"partner_id": pid}, {"_id": 0, "claim_status": 1})
+        if p is None:
+            skipped_ghost += 1
+            continue
+        if not p.get("claim_status"):
+            await db.partners.update_one({"partner_id": pid}, {"$set": {
+                "claim_status": "verified_owner", "claimed_by": bid,
+                "claim_method": "admin_provisioned", "claim_verified_at": _now_iso(),
+            }})
+            linked += 1
+        await db.business_users.update_one(
+            {"business_id": bid, "provisioned_by": {"$exists": False}},
+            {"$set": {"provisioned_by": "admin", "status": "active"}},
+        )
+    try:
+        await db.venue_claims.create_index("claim_id", unique=True)
+        await db.venue_claims.create_index([("business_id", 1), ("partner_id", 1)])
+        await db.partner_edit_log.create_index([("business_id", 1), ("at", -1)])
+    except Exception:
+        pass
+    return {"linked": linked, "skipped_ghost_venues": skipped_ghost}
+
+
+@api_router.post("/business/admin/accounts")
+async def admin_create_account(request: Request):
+    """Government-only: provision a partner OR admin (government) account.
+    Optional: link an existing venue as verified_owner, or spin up a hidden
+    sandbox venue (catalog_status=sandbox, never public) for a demo account."""
+    await _require_government_role(request)
+    body = await request.json()
+    email = (body.get("email") or "").strip().lower()
+    password = body.get("password") or ""
+    role = (body.get("role") or "business").strip().lower()
+    full_name = (body.get("full_name") or "").strip()
+    partner_id = (body.get("partner_id") or "").strip()
+    demo_sandbox = bool(body.get("demo_sandbox"))
+    if not email or "@" not in email or "." not in email.split("@")[-1]:
+        raise HTTPException(status_code=400, detail="Email inválido / Invalid email")
+    if len(password) < 10:
+        raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 10 caracteres / Password must be ≥ 10 chars")
+    if role not in ("business", "government"):
+        raise HTTPException(status_code=400, detail="role debe ser business|government")
+    if await db.business_users.find_one({"email": email}):
+        raise HTTPException(status_code=409, detail="Ese email ya tiene una cuenta / That email already has an account")
+
+    business_id = f"biz_{uuid.uuid4().hex[:12]}"
+    pw_hash = _bcrypt.hashpw(password.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+    linked_partner = None
+
+    if demo_sandbox:
+        # Idempotent hidden sandbox venue — never enters the public catalog.
+        sandbox_pid = "ptr_demo_sandbox"
+        await db.partners.update_one({"partner_id": sandbox_pid}, {"$set": {
+            "partner_id": sandbox_pid,
+            "name": "Demo · Tu Negocio",
+            "category": "restaurant",
+            "description": "Cuenta demo para explorar el panel de partners. Los cambios aquí no afectan ningún negocio real.",
+            "catalog_status": "sandbox",
+            "confidence": "partner_submitted",
+            "claim_status": "verified_owner",
+            "claimed_by": business_id,
+            "claim_method": "demo",
+            "image_url": "",
+        }}, upsert=True)
+        linked_partner = sandbox_pid
+    elif partner_id:
+        p = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "partner_id": 1})
+        if not p:
+            raise HTTPException(status_code=404, detail="partner_id no existe / Venue not found")
+        await db.partners.update_one({"partner_id": partner_id}, {"$set": {
+            "claim_status": "verified_owner", "claimed_by": business_id,
+            "claim_method": "admin_provisioned", "claim_verified_at": _now_iso(),
+        }})
+        linked_partner = partner_id
+
+    await db.business_users.insert_one({
+        "business_id": business_id,
+        "email": email,
+        "password_hash": pw_hash,
+        "full_name": full_name,
+        "role": role,
+        "status": "active",
+        "provisioned_by": "admin",
+        "partner_id": linked_partner,
+        "claimed_partner_ids": [linked_partner] if linked_partner else [],
+        "created_at": _now_iso(),
+    })
+    try:
+        await db.business_users.create_index("email", unique=True)
+    except Exception:
+        pass
+    return {"created": True, "business_id": business_id, "email": email, "role": role, "partner_id": linked_partner}
+
+
+@api_router.post("/business/admin/accounts/{business_id}/reset-password")
+async def admin_reset_password(business_id: str, request: Request):
+    """Government-only: set a new password on any account (reset a locked-out
+    partner, or an admin who lost their password). Revokes that account's sessions."""
+    await _require_government_role(request)
+    body = await request.json()
+    new = body.get("new_password") or ""
+    if len(new) < 10:
+        raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 10 caracteres / Password must be ≥ 10 chars")
+    acct = await db.business_users.find_one({"business_id": business_id}, {"_id": 0, "business_id": 1})
+    if not acct:
+        raise HTTPException(status_code=404, detail="Cuenta no encontrada / Account not found")
+    new_hash = _bcrypt.hashpw(new.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+    await db.business_users.update_one({"business_id": business_id}, {"$set": {"password_hash": new_hash, "password_changed_at": _now_iso()}})
+    await db.business_sessions.delete_many({"business_id": business_id})
+    return {"reset": True, "business_id": business_id}
+
+
+@api_router.post("/business/admin/unlock-login")
+async def admin_unlock_login(request: Request):
+    """Clear login brute-force locks (free a partner who got locked out).
+    Auth: a government session OR a Bearer CRON_SECRET (so an operator can also
+    unlock when they themselves are locked out). Optional body {ip} clears one IP;
+    otherwise clears all counters."""
+    auth = request.headers.get("Authorization", "")
+    token = auth[7:] if auth.startswith("Bearer ") else ""
+    cron = os.environ.get("CRON_SECRET", "")
+    if not (cron and token == cron):
+        await _require_government_role(request)
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    ip = (body or {}).get("ip")
+    q = {"_id": ip} if ip else {}
+    result = await db.login_throttle.delete_many(q)
+    return {"cleared": result.deleted_count}
+
+
+@api_router.delete("/business/admin/accounts/{business_id}")
+async def admin_delete_account(business_id: str, request: Request):
+    """Offboard a partner account. Safety: only role=='business' accounts —
+    government accounts can never be deleted through this route."""
+    await _require_government_role(request)
+    biz = await db.business_users.find_one({"business_id": business_id}, {"_id": 0, "role": 1})
+    if not biz:
+        raise HTTPException(status_code=404, detail="Cuenta no encontrada / Account not found")
+    if biz.get("role") == "government":
+        raise HTTPException(status_code=403, detail="No se puede eliminar una cuenta de gobierno / Cannot delete a government account")
+    await db.business_users.delete_one({"business_id": business_id})
+    await db.business_sessions.delete_many({"business_id": business_id})
+    await db.venue_claims.delete_many({"business_id": business_id})
+    return {"deleted": True, "business_id": business_id}
 
 
 @api_router.put("/business/events/{event_id}")
@@ -1868,12 +2708,13 @@ async def get_venue(venue_id: str):
 # ── Partners ────────────────────────────────────────────────
 @api_router.get("/partners")
 async def list_partners(category: Optional[str] = None, subcategory: Optional[str] = None):
-    query: dict = {}
+    # Drop B1: partner-submitted / rejected drafts never enter the public catalog.
+    query: dict = dict(PUBLIC_PARTNER_FILTER)
     if category:
         query["category"] = category
     if subcategory:
         query["subcategory"] = subcategory
-    partners = await db.partners.find(query, {"_id": 0}).sort("order", 1).to_list(1500)
+    partners = await db.partners.find(query, PUBLIC_PARTNER_PROJECTION).sort("order", 1).to_list(1500)
     return partners
 
 
@@ -1890,11 +2731,11 @@ async def nearby_partners(request: Request):
         if lat == 0 and lng == 0:
             raise HTTPException(status_code=400, detail="lat and lng required")
 
-        query: dict = {}
+        query: dict = dict(PUBLIC_PARTNER_FILTER)
         if category:
             query["category"] = category
 
-        partners = await db.partners.find(query, {"_id": 0}).to_list(500)
+        partners = await db.partners.find(query, PUBLIC_PARTNER_PROJECTION).to_list(500)
 
         def haversine(lat1, lon1, lat2, lon2):
             R = 6371000
@@ -1926,8 +2767,12 @@ async def nearby_partners(request: Request):
 
 @api_router.get("/partners/{partner_id}")
 async def get_partner(partner_id: str):
-    partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0})
+    partner = await db.partners.find_one({"partner_id": partner_id}, PUBLIC_PARTNER_PROJECTION)
     if not partner:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    # Unreviewed / rejected drafts are not publicly viewable (the owner sees
+    # their own draft through the authenticated /business/me path).
+    if partner.get("catalog_status") in ("pending_review", "rejected"):
         raise HTTPException(status_code=404, detail="Partner not found")
     try:
         pulse_map = await _pulse.get_active_pulse_map(db, [partner_id])
@@ -2202,8 +3047,8 @@ async def _generate_daily_itinerary(user: Optional[dict], category: str, force: 
     per_cat = max(8, 50 // len(pcats))
     for pcat in pcats:
         batch = await db.partners.find(
-            {"category": pcat},
-            {"_id": 0}
+            {**PUBLIC_PARTNER_FILTER, "category": pcat},
+            PUBLIC_PARTNER_PROJECTION
         ).sort("rating", -1).to_list(per_cat)
         partners_pool.extend(batch)
 
@@ -2576,7 +3421,7 @@ async def list_concerts(date: Optional[str] = None, genre: Optional[str] = None)
         venue_names = {c.get("venue_name", "").lower() for c in concerts if c.get("venue_name")}
         if venue_names:
             partners = await db.partners.find(
-                {"name": {"$regex": "|".join(venue_names), "$options": "i"}},
+                {**PUBLIC_PARTNER_FILTER, "name": {"$regex": "|".join(venue_names), "$options": "i"}},
                 {"_id": 0, "partner_id": 1, "name": 1},
             ).to_list(50)
             venue_to_pid = {p["name"].lower(): p["partner_id"] for p in partners}
@@ -3152,13 +3997,13 @@ async def global_search(q: str = "", request: Request = None):
     ).limit(50).to_list(50)
 
     partners = await db.partners.find(
-        {"$or": [
+        {**PUBLIC_PARTNER_FILTER, "$or": [
             {"name": regex}, {"description": regex}, {"category": regex},
             {"subcategory": regex}, {"cuisine": regex}, {"address": regex},
             {"experience": regex}, {"tier": regex}, {"tags": regex},
             {"signature_dishes": regex},
         ]},
-        {"_id": 0}
+        PUBLIC_PARTNER_PROJECTION
     ).limit(200).to_list(200)
 
     # Transport-intent recall: a query like "quiero ir a playa blanca" names no boat,
@@ -3172,7 +4017,7 @@ async def global_search(q: str = "", request: Request = None):
                 {"category": "yacht", "serves_destinations": {"$in": served_keys}},
                 {"category": "service", "subcategory": "marina", "serves_destinations": {"$in": served_keys}},
             ]}
-        ops = await db.partners.find(op_query, {"_id": 0}).limit(60).to_list(60)
+        ops = await db.partners.find({**PUBLIC_PARTNER_FILTER, **op_query}, PUBLIC_PARTNER_PROJECTION).limit(60).to_list(60)
         seen_pids = {p.get("partner_id") for p in partners}
         partners.extend(p for p in ops if p.get("partner_id") not in seen_pids)
 
@@ -3392,7 +4237,7 @@ async def global_search(q: str = "", request: Request = None):
             missing_ids = [pid for pid in cur_ids if pid not in pool]
             if missing_ids:
                 extra_docs = await db.partners.find(
-                    {"partner_id": {"$in": missing_ids}}, {"_id": 0}
+                    {"partner_id": {"$in": missing_ids}}, PUBLIC_PARTNER_PROJECTION
                 ).to_list(len(missing_ids))
                 for d in extra_docs:
                     pool[d.get("partner_id")] = d
@@ -6969,6 +7814,40 @@ async def startup():
             await db.business_users.insert_many(demo_accounts)
             await db.business_users.create_index("email", unique=True)
             logger.info(f"Seeded {len(demo_accounts)} business accounts!")
+
+    # ── Drop B1: grandfather admin-provisioned accounts into the claim system ──
+    # Additive + idempotent: sets claim fields ONLY where absent, never touches
+    # images or any existing value. Without this, tightening edit rights to
+    # "verified_owner" would lock the pre-existing demo partner logins out of
+    # their own dashboards. Runs every startup so new seeds are covered too.
+    try:
+        async for biz in db.business_users.find({"partner_id": {"$nin": [None, ""]}}, {"_id": 0, "business_id": 1, "partner_id": 1}):
+            pid = biz.get("partner_id")
+            bid = biz.get("business_id")
+            if not pid or not bid:
+                continue
+            p = await db.partners.find_one({"partner_id": pid}, {"_id": 0, "claim_status": 1})
+            if p is not None and not p.get("claim_status"):
+                await db.partners.update_one({"partner_id": pid}, {"$set": {
+                    "claim_status": "verified_owner",
+                    "claimed_by": bid,
+                    "claim_method": "admin_provisioned",
+                    "claim_verified_at": datetime.now(timezone.utc).isoformat(),
+                }})
+            await db.business_users.update_one(
+                {"business_id": bid, "provisioned_by": {"$exists": False}},
+                {"$set": {"provisioned_by": "admin", "status": "active"}},
+            )
+        # Helpful indexes for the claim + audit collections (idempotent).
+        try:
+            await db.venue_claims.create_index("claim_id", unique=True)
+            await db.venue_claims.create_index([("business_id", 1), ("partner_id", 1)])
+            await db.partner_edit_log.create_index([("business_id", 1), ("at", -1)])
+        except Exception:
+            pass
+        logger.info("[B1] ownership backfill + indexes ensured")
+    except Exception as exc:
+        logger.warning(f"[B1] ownership backfill skipped: {exc}")
 
     # ── Seed: Alcaldía de Cartagena (Government / Admin Account) ──
     # Idempotent: ensures the Alcaldía partner + business user always exist.

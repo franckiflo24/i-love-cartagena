@@ -41,8 +41,10 @@ export default function BusinessLogin() {
   };
 
   const fillDemo = () => {
-    setEmail('casaboheme@amocartagena.app');
-    setPassword('amocartagena2026');
+    // Sandbox demo account — a throwaway venue, not a real partner. Safe to ship
+    // in the bundle: it only reaches the demo dashboard, never real data.
+    setEmail('demo@amocartagena.app');
+    setPassword('AmoDemoSandbox2026');
   };
 
   const fillAlcaldia = () => {
@@ -122,10 +124,18 @@ export default function BusinessLogin() {
             </TouchableOpacity>
           </View>
 
+          {!isAlcaldia && (
+            <TouchableOpacity style={styles.signupBtn} onPress={() => router.push('/business/signup' as any)}>
+              <Text style={styles.signupText}>{tr('¿No tienes cuenta?')} </Text>
+              <Text style={styles.signupTextBold}>{tr('Registra tu negocio')}</Text>
+              <Ionicons name="arrow-forward" size={14} color={COLORS.primary} />
+            </TouchableOpacity>
+          )}
+
           <View style={styles.helpBox}>
             <Ionicons name="information-circle-outline" size={16} color={COLORS.textMuted} />
             <Text style={styles.helpText}>
-              ¿No tienes cuenta business? Contáctanos a partners@amocartagena.app y un asesor te asignará tu cuenta.
+              {tr('Crea tu cuenta gratis, busca tu negocio en el catálogo y verifica que eres el dueño para gestionarlo.')}
             </Text>
           </View>
         </ScrollView>
@@ -152,6 +162,9 @@ const styles = StyleSheet.create({
   demoLink: { textAlign: 'center', color: COLORS.primary, fontSize: 13, ...FONTS.semibold, marginTop: SPACING.sm },
   alcaldiaBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, marginTop: SPACING.xs, backgroundColor: 'rgba(27,79,114,0.12)', borderWidth: 1, borderColor: '#1B4F72', borderRadius: RADIUS.full },
   alcaldiaLink: { color: '#1B4F72', fontSize: 12, ...FONTS.bold, letterSpacing: 0.3 },
-  helpBox: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.sm, padding: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, marginTop: SPACING.xl, width: '100%' },
+  signupBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: SPACING.lg },
+  signupText: { color: COLORS.textMuted, fontSize: 13, ...FONTS.regular },
+  signupTextBold: { color: COLORS.primary, fontSize: 13, ...FONTS.bold },
+  helpBox: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.sm, padding: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, marginTop: SPACING.lg, width: '100%' },
   helpText: { flex: 1, fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 18 },
 });
