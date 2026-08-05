@@ -31,6 +31,8 @@ import httpx
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 
+from partner_visibility import PUBLIC_PARTNER_FILTER, is_publicly_visible
+
 logger = logging.getLogger("pulse")
 
 router = APIRouter()
@@ -206,6 +208,20 @@ async def get_active_pulse_map(db_, partner_ids: Optional[List[str]] = None, lim
         query, {"_id": 0, "partner_id": 1, "partner_name": 1, "type": 1,
                 "title": 1, "details": 1, "start_time": 1, "end_time": 1},
     ).sort("created_at", -1).limit(limit).to_list(limit)
+    if partner_ids is None:
+        # Broad fetch with no caller-supplied allowlist (e.g. Luna's live_tonight):
+        # a pulse from an unapproved / demoted / sandbox venue must never surface,
+        # even if a creation-time gate ever regresses. Callers that pass an explicit
+        # id list already resolved it through PUBLIC_PARTNER_FILTER, so no extra
+        # lookup on those hot paths (/nearby, /search, itinerary).
+        pids = list({r["partner_id"] for r in rows if r.get("partner_id")})
+        if pids:
+            visible: set = set()
+            async for p in db_.partners.find(
+                {**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": pids}}, {"_id": 0, "partner_id": 1}
+            ):
+                visible.add(p["partner_id"])
+            rows = [r for r in rows if r.get("partner_id") in visible]
     out: Dict[str, Dict[str, Any]] = {}
     for r in rows:
         out.setdefault(r["partner_id"], r)  # newest first
@@ -343,10 +359,12 @@ async def business_post_pulse(request: Request):
     if not partner:
         raise HTTPException(status_code=404, detail="partner not found")
     # Binding gate (S2): only a verified owner of a catalog-APPROVED venue may pulse.
+    # is_publicly_visible covers all 3 hidden states (pending_review/rejected/SANDBOX)
+    # — the old inline tuple omitted "sandbox", letting the demo account pulse.
     if biz.get("role") != "government" and (
         partner.get("claim_status") != "verified_owner"
         or partner.get("claimed_by") != biz.get("business_id")
-        or partner.get("catalog_status") in ("pending_review", "rejected")
+        or not is_publicly_visible(partner)
     ):
         raise HTTPException(status_code=403, detail="Tu negocio debe estar verificado y aprobado / Venue must be verified and approved")
     parsed = await _parse_pulse(text)

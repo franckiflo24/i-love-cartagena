@@ -40,7 +40,7 @@ import time
 import uuid
 import re
 from datetime import datetime, timezone
-from partner_visibility import PUBLIC_PARTNER_FILTER  # U4: Luna never recommends unapproved venues
+from partner_visibility import PUBLIC_PARTNER_FILTER, PUBLIC_CITY_EVENT_FILTER  # U4: Luna never recommends unapproved venues/events
 from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -760,9 +760,11 @@ async def _slim_all_partners_compact(db, limit: int = 80) -> List[Dict[str, Any]
 
 async def _slim_upcoming_events(db, days: int = 7, limit: int = 20) -> List[Dict[str, Any]]:
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    # Events use date_start (not date)
+    # Events use date_start (not date). PUBLIC_CITY_EVENT_FILTER: a pending/rejected
+    # editorial event must not enter Luna's grounding context (parity with every REST
+    # read of db.events).
     cursor = db.events.find(
-        {"$or": [{"date_start": {"$gte": today_str}}, {"date": {"$gte": today_str}}]},
+        {**PUBLIC_CITY_EVENT_FILTER, "$or": [{"date_start": {"$gte": today_str}}, {"date": {"$gte": today_str}}]},
         {"_id": 0, "event_id": 1, "slug": 1, "title": 1, "name_es": 1,
          "date_start": 1, "date": 1, "venue": 1, "venue_name": 1, "is_free": 1},
     ).sort([("date_start", 1), ("date", 1)]).limit(limit)
