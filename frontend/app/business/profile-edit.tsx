@@ -29,27 +29,6 @@ export default function ProfileEdit() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  const handleUpload = async () => {
-    try {
-      setUploading(true);
-      const res = await pickAndUploadImage(token!, 'profile', [4, 3]);
-      if (res === null) return;
-      if (res.verdict === 'REJECT') {
-        Alert.alert('Imagen no apta', res.reason || 'La IA detectó contenido no apropiado.');
-      } else {
-        setImageUrl(res.url || imageUrl);
-        Alert.alert(
-          res.verdict === 'AUTO_APPROVE' ? '✅ Imagen aprobada' : '⏳ Imagen en revisión',
-          `${res.caption || ''}${res.tags?.length ? '\n\nTags: ' + res.tags.join(', ') : ''}`,
-        );
-      }
-    } catch (e: any) {
-      Alert.alert('Error', e?.message || 'No se pudo subir');
-    } finally {
-      setUploading(false);
-    }
-  };
-
   useEffect(() => {
     if (partner) {
       setDescription(partner.description || '');
@@ -69,13 +48,14 @@ export default function ProfileEdit() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      // Only editable fields (B1E/C3): image goes through Mi contenido (moderated),
+      // price through review, and the venue's on-record email is not partner-editable.
       const result = await api.put('/business/profile', {
         description, address, instagram, booking_link: bookingLink,
-        price_range: priceRange, experience, image_url: imageUrl,
+        experience,
         default_payment_link: defaultPaymentLink.trim(),
         whatsapp: whatsapp.trim(),
         phone: phone.trim(),
-        email: emailContact.trim(),
       }, { headers: { Authorization: `Bearer ${token}` } });
       if (!result?.updated_at) {
         Alert.alert('No disponible', 'La edición de perfil requiere conexión al servidor. Los cambios no se guardaron.');
@@ -112,22 +92,12 @@ export default function ProfileEdit() {
             </View>
           </View>
 
-          <Text style={styles.label}>Imagen principal</Text>
-          <TouchableOpacity
-            style={[styles.uploadBtn, uploading && { opacity: 0.6 }]}
-            onPress={handleUpload}
-            disabled={uploading}
-          >
-            {uploading ? (
-              <ActivityIndicator size="small" color={COLORS.white} />
-            ) : (
-              <>
-                <Ionicons name="cloud-upload" size={16} color={COLORS.white} />
-                <Text style={styles.uploadBtnText}>Subir foto · IA modera</Text>
-              </>
-            )}
+          <Text style={styles.label}>{tr('Fotos')}</Text>
+          <TouchableOpacity style={styles.uploadBtn} onPress={() => router.push('/business/content' as any)}>
+            <Ionicons name="images" size={16} color={COLORS.white} />
+            <Text style={styles.uploadBtnText}>{tr('Gestiona tus fotos en Mi contenido')}</Text>
           </TouchableOpacity>
-          <TextInput style={[styles.input, { marginTop: SPACING.xs }]} value={imageUrl} onChangeText={setImageUrl} placeholder="O pega URL externa" placeholderTextColor={COLORS.textMuted} autoCapitalize="none" />
+          <Text style={styles.hint}>{tr('Las fotos pasan por revisión (IA + equipo) antes de publicarse. La imagen principal la gestiona el equipo.')}</Text>
 
           <Text style={styles.label}>Descripción</Text>
           <TextInput style={[styles.input, styles.textarea]} value={description} onChangeText={setDescription} placeholder="Describe tu negocio en pocas líneas" placeholderTextColor={COLORS.textMuted} multiline numberOfLines={4} textAlignVertical="top" />
@@ -142,17 +112,10 @@ export default function ProfileEdit() {
           <TextInput style={styles.input} value={bookingLink} onChangeText={setBookingLink} placeholder="https://tu-sitio.com/reservar" placeholderTextColor={COLORS.textMuted} autoCapitalize="none" />
           <Text style={styles.hint}>💡 Todos los clicks se trackean con UTM (utm_source=amocartagena) para que puedas medir el tráfico desde la app.</Text>
 
-          <Text style={styles.label}>Rango de precio</Text>
-          <View style={styles.priceRow}>
-            {['$', '$$', '$$$', '$$$$'].map(p => {
-              const active = priceRange === p;
-              return (
-                <TouchableOpacity key={p} style={[styles.pricePill, active && styles.pricePillActive]} onPress={() => setPriceRange(p)}>
-                  <Text style={[styles.priceText, active && { color: COLORS.white }]}>{p}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+          <TouchableOpacity style={styles.priceLink} onPress={() => router.push('/business/content' as any)}>
+            <Ionicons name="pricetag-outline" size={15} color={COLORS.primary} />
+            <Text style={styles.priceLinkText}>{tr('Enviar precio (pasa por revisión)')}</Text>
+          </TouchableOpacity>
 
           <Text style={styles.label}>Experiencia ofrecida</Text>
           <TextInput style={styles.input} value={experience} onChangeText={setExperience} placeholder="Coctel de bienvenida, mesa preferencial..." placeholderTextColor={COLORS.textMuted} />
@@ -193,17 +156,6 @@ export default function ProfileEdit() {
             placeholder="+57 5 660 1234"
             placeholderTextColor={COLORS.textMuted}
             keyboardType="phone-pad"
-          />
-
-          <Text style={styles.label}>Email de contacto</Text>
-          <TextInput
-            style={styles.input}
-            value={emailContact}
-            onChangeText={setEmailContact}
-            placeholder="reservas@tunegocio.com"
-            placeholderTextColor={COLORS.textMuted}
-            autoCapitalize="none"
-            keyboardType="email-address"
           />
 
           <TouchableOpacity style={[styles.saveBtn, saving && { opacity: 0.6 }]} onPress={handleSave} disabled={saving}>
@@ -258,5 +210,7 @@ const styles = StyleSheet.create({
   saveText: { color: COLORS.white, fontSize: 14, ...FONTS.bold },
 
   uploadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.primary, paddingHorizontal: 16, paddingVertical: 12, borderRadius: RADIUS.full },
+  priceLink: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10 },
+  priceLinkText: { color: COLORS.primary, fontSize: 13, ...FONTS.semibold },
   uploadBtnText: { color: COLORS.white, fontSize: 13, ...FONTS.bold },
 });

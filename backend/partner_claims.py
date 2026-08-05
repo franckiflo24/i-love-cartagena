@@ -240,11 +240,11 @@ _LIST_FIELD_MAX: dict[str, tuple[int, int]] = {  # field -> (max items, max item
     "signature_dishes": (12, 80),
     "amenities": (20, 40),
 }
-EDITABLE_FIELDS: set[str] = set(_TEXT_FIELD_MAX) | set(_LIST_FIELD_MAX) | {
-    "image_url",            # value must pass validate_image_value (I3)
-    "photos",               # each item must pass validate_image_value (I3)
-    "images",               # each item must pass validate_image_value (I3)
-}
+# Images are NOT directly editable (C3): a partner cannot set image_url / photos
+# via PUT /business/profile — that path skipped AI moderation + review and had no
+# size cap. ALL partner images now go through /business/media (moderate → admin
+# review → appended to photos). The primary image_url is admin-controlled.
+EDITABLE_FIELDS: set[str] = set(_TEXT_FIELD_MAX) | set(_LIST_FIELD_MAX)
 
 # Fields a partner can NEVER write — editorial / trust / structural.
 # A request carrying ANY of these is hard-rejected (403) so the block is
@@ -255,6 +255,9 @@ PROTECTED_FIELDS: set[str] = {
     "rnt", "place_verified",
     # partner_price is set ONLY by the moderated B2D flow, never a direct edit
     "partner_price",
+    # images go ONLY through the moderated /business/media flow (C3) — a direct
+    # write hard-403s so the block is observable, not silently dropped
+    "image_url", "photos", "images",
     # occasion tags / curated-collection membership (Luna + collections integrity)
     "tags", "occasion_tags", "collections", "curated", "is_featured", "featured",
     "gem_rarity",
@@ -291,6 +294,8 @@ def validate_image_value(value) -> bool:
         return False
     v = value.strip()
     if not v:
+        return False
+    if len(v) > 700_000:   # ~500KB image — cap so a data: URL can't bloat the doc
         return False
     if v.startswith("data:image/"):
         return True
@@ -350,26 +355,6 @@ def sanitize_edit(body: dict) -> dict:
                 raise FirewallError(400, f"{f} debe ser una lista de textos / must be a list of strings")
             update[f] = [x.strip()[:max_len] for x in val if x.strip()][:max_items]
 
-    # 4) I3 image validation.
-    for f in _IMAGE_FIELDS & set(update.keys()):
-        val = update[f]
-        if f == "image_url":
-            if not validate_image_value(val):
-                raise FirewallError(
-                    422,
-                    "Imagen inválida: debe subirse moderada (I3), nunca un URL externo "
-                    "/ Image must be a moderated upload, never a raw external URL",
-                )
-        else:  # photos / images arrays
-            if not isinstance(val, list) or not all(isinstance(u, str) for u in val):
-                raise FirewallError(400, f"{f} debe ser una lista de URLs / must be a list of URLs")
-            for u in val:
-                if not validate_image_value(u):
-                    raise FirewallError(
-                        422,
-                        "Imagen inválida (I3): solo subidas moderadas o /images/ "
-                        "/ Only moderated uploads or /images/ paths allowed",
-                    )
-            update[f] = val[:20]
-
+    # Images are not in EDITABLE_FIELDS (they hard-403 as PROTECTED above); they
+    # flow only through the moderated /business/media pipeline.
     return update

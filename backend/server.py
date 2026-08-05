@@ -759,11 +759,11 @@ async def update_business_profile(request: Request):
 
     - Requires a VERIFIED claim on the venue (or government role).
     - Only EDITABLE_FIELDS may be written; any PROTECTED_FIELD hard-403s.
-    - Image values must be moderated (data:) or self-hosted (/images/) — I3.
+    - Images are NOT editable here (C3) — they go through /business/media.
     - Every field change is logged old->new to partner_edit_log.
     """
     biz = await get_current_business(request)
-    body = await request.json()
+    body = await _json_body(request)
     partner_id = biz["partner_id"]
     partner = await _require_verified_owner(biz, partner_id)
 
@@ -783,16 +783,18 @@ async def update_business_profile(request: Request):
 
 @api_router.post("/business/photos")
 async def business_add_photo(request: Request):
-    """Add a photo URL to the partner's photos array. Returns updated photos list."""
+    """Add a self-hosted /images/ photo. C3: a partner CANNOT push a data: (or any
+    unmoderated) image here — partner photos go through /business/media (AI +
+    admin review). Only already-self-hosted /images/ paths are accepted (admin/
+    editorial assets); a government caller may use this freely."""
     biz = await get_current_business(request)
     await _require_verified_owner(biz, biz["partner_id"])
-    body = await request.json()
+    body = await _json_body(request)
     url = (body.get("url") or "").strip()
     if not url:
         raise HTTPException(status_code=400, detail="url required")
-    # I3: only moderated (data:) or self-hosted (/images/) — never a raw external URL.
-    if not _pc.validate_image_value(url):
-        raise HTTPException(status_code=422, detail="Imagen inválida (I3): solo subidas moderadas o /images/ / Only moderated uploads or /images/ paths")
+    if not url.startswith("/images/"):
+        raise HTTPException(status_code=422, detail="Sube tus fotos desde 'Mi contenido' (revisión I3) / Upload photos via 'Mi contenido' (moderated)")
     partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "photos": 1, "images": 1})
     photos = partner.get("photos") or partner.get("images") or []
     if len(photos) >= 20:
@@ -830,16 +832,18 @@ async def business_list_events(request: Request):
 @api_router.post("/business/events")
 async def business_create_event(request: Request):
     biz = await get_current_business(request)
-    # BINDING GATE (B2A2, acceptance-critical): the event MUST bind to a verified,
-    # LIVE venue the caller owns. _require_verified_owner both proves ownership AND
-    # that the venue resolves (find_one) — a claimless account or a churned/404
-    # venue_id is rejected here, so a ghost event can never be created one layer up.
-    partner = await _require_verified_owner(biz, biz["partner_id"])
-    body = await request.json()
+    # BINDING GATE (B2A2/C1, acceptance-critical): the event MUST bind to a
+    # verified, catalog-APPROVED venue the caller owns. A claimless account, a
+    # churned/404 venue_id, OR a not-yet-approved draft is rejected here — so a
+    # ghost event (even AI-auto-approved) can never reach the public surface.
+    _check_rate_limit(f"bizevent:{biz['business_id']}", max_calls=12, window_sec=3600)
+    partner = await _require_content_owner(biz, biz["partner_id"])
+    body = await _json_body(request)
     required = ["title", "description", "category", "date", "start_time", "end_time"]
     for r in required:
         if not body.get(r):
             raise HTTPException(status_code=400, detail=f"{r} is required")
+    event_price = _bounded_int(body.get("price", 0), field="price") or 0
 
     # ── AI Moderation ──
     from ai_moderation import moderate_event
@@ -873,7 +877,7 @@ async def business_create_event(request: Request):
         "end_time": body["end_time"],
         "flyer_url": body.get("flyer_url", ""),
         "is_free": bool(body.get("is_free", False)),
-        "price": int(body.get("price", 0) or 0),
+        "price": event_price,
         "currency": body.get("currency", "COP"),
         "booking_link": body.get("booking_link", ""),
         "is_published": is_published,
@@ -894,6 +898,8 @@ async def business_create_event(request: Request):
     }
     await db.partner_events.insert_one(event)
     event.pop("_id", None)
+    await _mod_log("event", event["event_id"], f"ai_{verdict.lower()}", "ai",
+                   reason=mod.get("reason", ""), extra={"partner_id": biz["partner_id"], "auto_published": is_published})
 
     # If needs review or rejected, create admin notification
     if verdict != "AUTO_APPROVE":
@@ -985,6 +991,31 @@ async def business_upload_image(request: Request):
 # a field allowlist (trust badges / confidence / collections / Luna are off-limits).
 # ══════════════════════════════════════════════════════════════════════════
 
+async def _json_body(request: Request) -> dict:
+    """Parse a JSON request body, returning a clean 400 (not a 500) on malformed
+    input or a non-object payload (M3)."""
+    try:
+        data = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Cuerpo JSON inválido / Invalid JSON body")
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=400, detail="Se esperaba un objeto JSON / Expected a JSON object")
+    return data
+
+
+def _bounded_int(value, lo: int = 0, hi: int = 999_999_999, field: str = "valor"):
+    """Parse an int within safe bounds (M2/L1) — rejects overflow / negatives."""
+    if value in (None, ""):
+        return None
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail=f"{field} inválido / invalid {field}")
+    if n < lo or n > hi:
+        raise HTTPException(status_code=400, detail=f"{field} fuera de rango / {field} out of range")
+    return n
+
+
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -1029,6 +1060,22 @@ async def _require_verified_owner(biz: dict, partner_id: str) -> dict:
         status_code=403,
         detail="Debes verificar la propiedad de tu negocio antes de editar / Verify ownership before editing",
     )
+
+
+async def _require_content_owner(biz: dict, partner_id: str) -> dict:
+    """Gate for PUBLISHED content (events / media / price): verified ownership AND
+    the venue must be catalog-APPROVED. A pending_review / rejected draft owner
+    cannot publish content (C1) — otherwise an AI-auto-approved event on a
+    never-reviewed venue would reach the public surface one layer up."""
+    partner = await _require_verified_owner(biz, partner_id)
+    if biz.get("role") == "government":
+        return partner
+    if partner.get("catalog_status") in ("pending_review", "rejected"):
+        raise HTTPException(
+            status_code=403,
+            detail="Tu negocio debe estar aprobado por el equipo antes de publicar contenido / Your venue must be approved before you can publish content",
+        )
+    return partner
 
 
 def _truncate(v):
@@ -1744,8 +1791,9 @@ async def business_submit_media(request: Request):
     """Submit a photo for review. Stored PENDING (never public until approved).
     I3: only a moderated data: image is accepted — never an external URL."""
     biz = await get_current_business(request)
-    partner = await _require_verified_owner(biz, biz["partner_id"])
-    body = await request.json()
+    _check_rate_limit(f"bizmedia:{biz['business_id']}", max_calls=15, window_sec=3600)
+    partner = await _require_content_owner(biz, biz["partner_id"])
+    body = await _json_body(request)
     img = body.get("image_base64", "")
     if not isinstance(img, str) or not img.startswith("data:image/"):
         raise HTTPException(status_code=422, detail="Solo imágenes subidas (data:), nunca un URL externo (I3) / Only uploaded data: images, never an external URL")
@@ -1761,6 +1809,7 @@ async def business_submit_media(request: Request):
             "status": "rejected", "reason": result.get("reason", "No cumple las normas de contenido"),
             "ai_verdict": "REJECT", "submitted_at": _now_iso(),
         })
+        await _mod_log("media", media_id, "ai_reject", "ai", reason=result.get("reason", ""), extra={"partner_id": biz["partner_id"]})
         return {"submitted": False, "verdict": "REJECT", "reason": result.get("reason", ""), "media_id": media_id}
     # AI-passed but still requires MANUAL review before public (trust-sensitive).
     await db.partner_media.insert_one({
@@ -1822,17 +1871,15 @@ async def business_submit_price(request: Request):
     confidence:partner_submitted — it NEVER becomes the editorial price_reference
     and NEVER overwrites a HIGH-confidence trust price."""
     biz = await get_current_business(request)
-    await _require_verified_owner(biz, biz["partner_id"])
-    body = await request.json()
-    low = body.get("low"); high = body.get("high")
+    await _require_content_owner(biz, biz["partner_id"])
+    body = await _json_body(request)
+    low = _bounded_int(body.get("low"), field="low")
+    high = _bounded_int(body.get("high"), field="high")
     label = (body.get("label") or "").strip()[:120]
-    try:
-        low = int(low) if low not in (None, "") else None
-        high = int(high) if high not in (None, "") else None
-    except (TypeError, ValueError):
-        raise HTTPException(status_code=400, detail="Precio inválido / Invalid price")
     if low is None and high is None and not label:
         raise HTTPException(status_code=400, detail="Indica un rango o una nota de precio / Provide a price range or note")
+    if low is not None and high is not None and low > high:
+        raise HTTPException(status_code=400, detail="El precio mínimo no puede superar al máximo / low cannot exceed high")
     price_id = f"pp_{uuid.uuid4().hex[:10]}"
     await db.partner_price_submissions.delete_many({"business_id": biz["business_id"], "partner_id": biz["partner_id"], "status": "pending"})
     await db.partner_price_submissions.insert_one({
@@ -1934,9 +1981,11 @@ async def business_my_submissions(request: Request):
 # ── B2F · Business password recovery (forgot → email code → reset) ──────────
 @api_router.post("/business/forgot-password")
 async def business_forgot_password(request: Request):
-    body = await request.json()
+    body = await _json_body(request)
     email = (body.get("email") or "").strip().lower()
-    # Always return ok (do not reveal whether the email exists).
+    # Always return ok (do not reveal whether the email exists). The email SEND is
+    # fire-and-forget (create_task, not awaited) so response time doesn't leak
+    # whether an account exists via the ~300ms send latency (M1).
     if email and "@" in email:
         _check_rate_limit(f"bizforgot:{email}", max_calls=4, window_sec=3600)
         biz = await db.business_users.find_one({"email": email}, {"_id": 0, "business_id": 1, "full_name": 1})
@@ -1948,31 +1997,33 @@ async def business_forgot_password(request: Request):
                 "expires": (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
                 "attempts": 0, "created_at": _now_iso(),
             })
-            await _emails_svc.send_verification_email(to=email, code=code, name=biz.get("full_name", ""))
+            import asyncio as _asyncio
+            _asyncio.create_task(_emails_svc.send_verification_email(to=email, code=code, name=biz.get("full_name", "")))
     return {"ok": True, "message": "Si el email existe, enviamos un código."}
 
 
 @api_router.post("/business/reset-password-with-code")
 async def business_reset_with_code(request: Request):
-    body = await request.json()
+    body = await _json_body(request)
     email = (body.get("email") or "").strip().lower()
     code = (body.get("code") or "").strip()
     new = body.get("new_password") or ""
     if len(new) < 10:
         raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 10 caracteres / Password must be ≥ 10 chars")
+    # H1: one identical error for missing-record / expired / wrong-code so this
+    # endpoint can't be used to enumerate which emails have accounts.
+    _BAD = HTTPException(status_code=400, detail="Código incorrecto o expirado / Incorrect or expired code")
     rec = await db.business_reset_codes.find_one({"email": email}, {"_id": 0})
-    if not rec:
-        raise HTTPException(status_code=400, detail="Código inválido o expirado / Invalid or expired code")
-    if _iso_expired(rec.get("expires", "")):
-        raise HTTPException(status_code=400, detail="Código expirado / Code expired")
+    if not rec or _iso_expired(rec.get("expires", "")):
+        raise _BAD
     if rec.get("attempts", 0) >= 5:
         raise HTTPException(status_code=429, detail="Demasiados intentos / Too many attempts")
     if _hash_code(code, email) != rec.get("code_hash"):
         await db.business_reset_codes.update_one({"email": email}, {"$inc": {"attempts": 1}})
-        raise HTTPException(status_code=400, detail="Código incorrecto / Incorrect code")
+        raise _BAD
     biz = await db.business_users.find_one({"email": email}, {"_id": 0, "business_id": 1})
     if not biz:
-        raise HTTPException(status_code=400, detail="Código inválido / Invalid code")
+        raise _BAD
     new_hash = _bcrypt.hashpw(new.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
     await db.business_users.update_one({"business_id": biz["business_id"]}, {"$set": {"password_hash": new_hash, "password_changed_at": _now_iso()}})
     await db.business_sessions.delete_many({"business_id": biz["business_id"]})   # revoke all sessions
@@ -3088,13 +3139,14 @@ async def list_partner_events(
         today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         query["date"] = {"$gte": today_str}
     events = await db.partner_events.find(query, {"_id": 0}).sort([("date", 1), ("start_time", 1)]).to_list(200)
-    # enrich with partner info
+    # enrich with partner info — ONLY catalog-approved venues (PUBLIC_PARTNER_FILTER),
+    # so an event on an unapproved / churned / sandbox venue never renders (C1/C2).
     partner_ids = list({e["partner_id"] for e in events})
     partners_map = {}
     if partner_ids:
-        async for p in db.partners.find({"partner_id": {"$in": partner_ids}}, {"_id": 0, "partner_id": 1, "name": 1, "tier": 1, "category": 1, "image_url": 1}):
+        async for p in db.partners.find({**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": partner_ids}}, {"_id": 0, "partner_id": 1, "name": 1, "tier": 1, "category": 1, "image_url": 1}):
             partners_map[p["partner_id"]] = p
-    # Drop ghost events whose venue no longer resolves (binding gate, one layer up).
+    # Drop events whose venue is not publicly approved (binding gate, one layer up).
     events = [e for e in events if e.get("partner_id") in partners_map]
     for e in events:
         p = partners_map.get(e["partner_id"], {})
@@ -3107,15 +3159,17 @@ async def list_partner_events(
 
 @api_router.get("/partner-events/{event_id}")
 async def get_partner_event(event_id: str):
-    event = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0})
+    # C2: only PUBLISHED events are publicly viewable (pending / AI-rejected events
+    # must never render — the owner sees their own via GET /business/submissions).
+    event = await db.partner_events.find_one({"event_id": event_id, "is_published": True}, {"_id": 0})
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
-    # Increment views asynchronously
+    # The venue must be publicly approved AND internal fields are stripped.
+    p = await db.partners.find_one({"partner_id": event["partner_id"], **PUBLIC_PARTNER_FILTER}, PUBLIC_PARTNER_PROJECTION)
+    if not p:
+        raise HTTPException(status_code=404, detail="Event not found")
     await db.partner_events.update_one({"event_id": event_id}, {"$inc": {"views_count": 1}})
-    # enrich with partner
-    p = await db.partners.find_one({"partner_id": event["partner_id"]}, {"_id": 0})
-    if p:
-        event["partner"] = p
+    event["partner"] = p
     return event
 
 
