@@ -1570,6 +1570,25 @@ async def admin_backfill_ownership(request: Request):
     return {"linked": linked, "skipped_ghost_venues": skipped_ghost}
 
 
+@api_router.get("/business/admin/accounts")
+async def admin_list_accounts(request: Request):
+    """Government-only: list all partner/admin accounts (never the password hash)
+    with a flag for whether each linked venue actually resolves — used for the
+    dangling-reference sweep and the admin surface."""
+    await _require_government_role(request)
+    accts = await db.business_users.find({}, {"_id": 0, "password_hash": 0}).to_list(2000)
+    # resolve each account's primary + claimed venues
+    for a in accts:
+        pids = [a.get("partner_id")] + list(a.get("claimed_partner_ids") or [])
+        pids = [p for p in pids if p]
+        resolved = {}
+        for pid in set(pids):
+            resolved[pid] = (await db.partners.find_one({"partner_id": pid}, {"_id": 0, "partner_id": 1})) is not None
+        a["_venue_resolves"] = resolved
+        a["_dangling"] = any(not v for v in resolved.values()) if resolved else False
+    return {"accounts": accts, "count": len(accts)}
+
+
 @api_router.post("/business/admin/accounts")
 async def admin_create_account(request: Request):
     """Government-only: provision a partner OR admin (government) account.
