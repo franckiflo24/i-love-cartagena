@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Response
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, BackgroundTasks
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -783,11 +783,11 @@ async def update_business_profile(request: Request):
 
 @api_router.post("/business/photos")
 async def business_add_photo(request: Request):
-    """Add a self-hosted /images/ photo. C3: a partner CANNOT push a data: (or any
-    unmoderated) image here — partner photos go through /business/media (AI +
-    admin review). Only already-self-hosted /images/ paths are accepted (admin/
-    editorial assets); a government caller may use this freely."""
-    biz = await get_current_business(request)
+    """Add a self-hosted /images/ photo to the caller's venue. GOVERNMENT-ONLY
+    (N2): partners add photos through the moderated /business/media flow — this
+    admin-only route is for attaching curated /images/ assets. Government-gating
+    also blocks the cross-tenant trick of referencing another venue's image."""
+    biz = await _require_government_role(request)
     await _require_verified_owner(biz, biz["partner_id"])
     body = await _json_body(request)
     url = (body.get("url") or "").strip()
@@ -1980,12 +1980,13 @@ async def business_my_submissions(request: Request):
 
 # ── B2F · Business password recovery (forgot → email code → reset) ──────────
 @api_router.post("/business/forgot-password")
-async def business_forgot_password(request: Request):
+async def business_forgot_password(request: Request, background_tasks: BackgroundTasks):
     body = await _json_body(request)
     email = (body.get("email") or "").strip().lower()
     # Always return ok (do not reveal whether the email exists). The email SEND is
-    # fire-and-forget (create_task, not awaited) so response time doesn't leak
-    # whether an account exists via the ~300ms send latency (M1).
+    # deferred via BackgroundTasks (ASGI-lifecycle-aware, unlike a bare create_task
+    # which can be dropped on serverless) so the response doesn't wait on the
+    # ~300ms Resend call and can't leak account existence via timing (M1/N4).
     if email and "@" in email:
         _check_rate_limit(f"bizforgot:{email}", max_calls=4, window_sec=3600)
         biz = await db.business_users.find_one({"email": email}, {"_id": 0, "business_id": 1, "full_name": 1})
@@ -1997,8 +1998,7 @@ async def business_forgot_password(request: Request):
                 "expires": (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
                 "attempts": 0, "created_at": _now_iso(),
             })
-            import asyncio as _asyncio
-            _asyncio.create_task(_emails_svc.send_verification_email(to=email, code=code, name=biz.get("full_name", "")))
+            background_tasks.add_task(_emails_svc.send_verification_email, to=email, code=code, name=biz.get("full_name", ""))
     return {"ok": True, "message": "Si el email existe, enviamos un código."}
 
 
@@ -2010,14 +2010,15 @@ async def business_reset_with_code(request: Request):
     new = body.get("new_password") or ""
     if len(new) < 10:
         raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 10 caracteres / Password must be ≥ 10 chars")
-    # H1: one identical error for missing-record / expired / wrong-code so this
-    # endpoint can't be used to enumerate which emails have accounts.
+    # H1/N3: an UNCONDITIONAL per-email rate limit (fires whether or not a reset
+    # record exists) so the 429 can't reveal which emails have accounts; plus ONE
+    # identical 400 for missing-record / expired / wrong-code.
+    if email:
+        _check_rate_limit(f"bizreset:{email}", max_calls=6, window_sec=900)
     _BAD = HTTPException(status_code=400, detail="Código incorrecto o expirado / Incorrect or expired code")
     rec = await db.business_reset_codes.find_one({"email": email}, {"_id": 0})
     if not rec or _iso_expired(rec.get("expires", "")):
         raise _BAD
-    if rec.get("attempts", 0) >= 5:
-        raise HTTPException(status_code=429, detail="Demasiados intentos / Too many attempts")
     if _hash_code(code, email) != rec.get("code_hash"):
         await db.business_reset_codes.update_one({"email": email}, {"$inc": {"attempts": 1}})
         raise _BAD
@@ -2039,7 +2040,10 @@ async def business_update_event(event_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Event not found")
     if existing["partner_id"] != biz["partner_id"]:
         raise HTTPException(status_code=403, detail="Not your event")
-    body = await request.json()
+    # N6: the bound venue must still be catalog-approved — if it was later de-listed
+    # (fraud/churn), the owner can't re-publish content on it via re-moderation.
+    await _require_content_owner(biz, biz["partner_id"])
+    body = await _json_body(request)
     allowed = {"title", "description", "category", "date", "start_time", "end_time", "flyer_url", "is_free", "price", "booking_link", "is_published"}
     update = {k: v for k, v in body.items() if k in allowed}
     if "price" in update:
@@ -2154,24 +2158,35 @@ async def business_list_promotions(request: Request):
 
 @api_router.post("/business/promotions")
 async def business_create_promotion(request: Request):
-    """Create a new promotion for the authenticated partner."""
+    """Create a promotion. Same content spine as events/media/price (N1): binds to
+    a verified, catalog-APPROVED venue; bounded numbers; no external images."""
     biz = await get_current_business(request)
-    body = await request.json()
-    title = (body.get("title") or "").strip()
+    _check_rate_limit(f"bizpromo:{biz['business_id']}", max_calls=15, window_sec=3600)
+    await _require_content_owner(biz, biz["partner_id"])
+    body = await _json_body(request)
+    title = (body.get("title") or "").strip()[:200]
     if not title:
         raise HTTPException(status_code=400, detail="title required")
+    img = (body.get("image_url") or "").strip()
+    if img and not img.startswith("/images/"):
+        raise HTTPException(status_code=422, detail="Imagen de promo solo self-hosted /images/ o vía Mi contenido (I3) / Promo image must be /images/ or via Mi contenido")
+    discount = _bounded_int(body.get("discount_pct"), 0, 100, "discount_pct") or 0
+    original = _bounded_int(body.get("original_price"), field="original_price") or 0
+    promo_price = _bounded_int(body.get("promo_price"), field="promo_price") or 0
+    if original and promo_price and promo_price > original:
+        raise HTTPException(status_code=400, detail="El precio de promo no puede superar al original / promo price cannot exceed original")
     promo = {
         "promo_id": f"promo_{uuid.uuid4().hex[:10]}",
         "partner_id": biz["partner_id"],
         "title": title,
-        "description": (body.get("description") or "").strip(),
+        "description": (body.get("description") or "").strip()[:1000],
         "category": body.get("category", "gastronomy"),
-        "discount_pct": int(body.get("discount_pct") or 0),
-        "original_price": int(body.get("original_price") or 0),
-        "promo_price": int(body.get("promo_price") or 0),
-        "valid_until": (body.get("valid_until") or "").strip(),
-        "image_url": (body.get("image_url") or "").strip(),
-        "tag_label": (body.get("tag_label") or "").strip(),
+        "discount_pct": discount,
+        "original_price": original,
+        "promo_price": promo_price,
+        "valid_until": (body.get("valid_until") or "").strip()[:30],
+        "image_url": img,
+        "tag_label": (body.get("tag_label") or "").strip()[:40],
         "is_active": True,
         "click_count": 0,
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -2190,11 +2205,20 @@ async def business_update_promotion(promo_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Promotion not found")
     if existing["partner_id"] != biz["partner_id"]:
         raise HTTPException(status_code=403, detail="Not your promotion")
-    body = await request.json()
+    body = await _json_body(request)
     allowed = {"title", "description", "category", "discount_pct", "original_price", "promo_price", "valid_until", "image_url", "tag_label", "is_active"}
     update = {k: v for k, v in body.items() if k in allowed}
     if not update:
         raise HTTPException(status_code=400, detail="Nothing to update")
+    # Same bounds + I3 as create (N1/N5).
+    for f, lo, hi in (("discount_pct", 0, 100), ("original_price", 0, 999_999_999), ("promo_price", 0, 999_999_999)):
+        if f in update:
+            update[f] = _bounded_int(update[f], lo, hi, f) or 0
+    if "image_url" in update:
+        iv = (update["image_url"] or "").strip()
+        if iv and not iv.startswith("/images/"):
+            raise HTTPException(status_code=422, detail="Imagen de promo solo /images/ o vía Mi contenido (I3)")
+        update["image_url"] = iv
     update["updated_at"] = datetime.now(timezone.utc).isoformat()
     await db.partner_promotions.update_one({"promo_id": promo_id}, {"$set": update})
     updated = await db.partner_promotions.find_one({"promo_id": promo_id}, {"_id": 0})
@@ -3187,12 +3211,14 @@ async def list_today_promotions(category: Optional[str] = None):
     if category and category != "all":
         query["category"] = category
     promos = await db.partner_promotions.find(query, {"_id": 0}).sort([("created_at", -1)]).to_list(50)
-    # Enrich with partner info
+    # Enrich with partner info — ONLY catalog-approved venues (N1), so a promo on
+    # an unapproved / churned / sandbox venue never renders publicly.
     partner_ids = list({p["partner_id"] for p in promos})
     partners_map: dict = {}
     if partner_ids:
-        async for p in db.partners.find({"partner_id": {"$in": partner_ids}}, {"_id": 0, "partner_id": 1, "name": 1, "tier": 1, "category": 1, "image_url": 1, "address": 1}):
+        async for p in db.partners.find({**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": partner_ids}}, {"_id": 0, "partner_id": 1, "name": 1, "tier": 1, "category": 1, "image_url": 1, "address": 1}):
             partners_map[p["partner_id"]] = p
+    promos = [pr for pr in promos if pr.get("partner_id") in partners_map]
     # Tier ordering for sort
     TIER_ORDER = {"elite": 0, "premium": 1, "popular": 2}
     for promo in promos:
