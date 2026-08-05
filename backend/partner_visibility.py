@@ -17,7 +17,17 @@ INTERNAL_PARTNER_FIELDS = (
     "submitted_email", "submitted_by", "claimed_by", "claim_method",
     "claim_verified_at", "approved_by", "rejected_by", "reject_reason",
 )
-PUBLIC_PARTNER_PROJECTION = {"_id": 0, **{f: 0 for f in INTERNAL_PARTNER_FIELDS}}
+# Internal metadata that lives INSIDE sub-documents — a top-level exclusion can't
+# reach these, so they must be named explicitly (e.g. the moderator email stamped
+# into partner_price at approval time). MongoDB honours dotted-path exclusions.
+INTERNAL_PARTNER_NESTED_FIELDS = (
+    "partner_price.approved_by", "partner_price.approved_at",
+)
+PUBLIC_PARTNER_PROJECTION = {
+    "_id": 0,
+    **{f: 0 for f in INTERNAL_PARTNER_FIELDS},
+    **{f: 0 for f in INTERNAL_PARTNER_NESTED_FIELDS},
+}
 
 
 def is_publicly_visible(partner: dict) -> bool:

@@ -120,7 +120,8 @@ async def submit_review(request: Request):
         if not rating or not isinstance(rating, (int, float)) or rating < 1 or rating > 5:
             raise HTTPException(status_code=400, detail="rating must be between 1 and 5")
 
-        partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "partner_id": 1, "name": 1})
+        from partner_visibility import PUBLIC_PARTNER_FILTER  # no reviews against unapproved/sandbox venues
+        partner = await db.partners.find_one({"partner_id": partner_id, **PUBLIC_PARTNER_FILTER}, {"_id": 0, "partner_id": 1, "name": 1})
         if not partner:
             raise HTTPException(status_code=404, detail="Partner not found")
 
@@ -185,13 +186,21 @@ async def get_partner_reviews(request: Request, partner_id: str):
         limit = min(int(request.query_params.get("limit", "15")), 50)
         skip = (page - 1) * limit
 
+        # Public, unauthenticated surface — reviews for a pending/rejected/sandbox
+        # venue must never be served. Gate on the venue's visibility first.
+        from partner_visibility import PUBLIC_PARTNER_FILTER
+        partner = await db.partners.find_one(
+            {"partner_id": partner_id, **PUBLIC_PARTNER_FILTER},
+            {"_id": 0, "rating": 1, "reviews": 1, "rating_breakdown": 1},
+        )
+        if not partner:
+            raise HTTPException(status_code=404, detail="Partner not found")
+
         total = await db.reviews.count_documents({"partner_id": partner_id})
         reviews = await db.reviews.find(
             {"partner_id": partner_id},
             {"_id": 0},
         ).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
-
-        partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "rating": 1, "reviews": 1, "rating_breakdown": 1})
         aggregate = {
             "avg_rating": partner.get("rating", 0) if partner else 0,
             "total_reviews": partner.get("reviews", 0) if partner else 0,
@@ -205,6 +214,8 @@ async def get_partner_reviews(request: Request, partner_id: str):
             "page": page,
             "pages": (total + limit - 1) // limit if total > 0 else 1,
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"[Reviews] get_partner_reviews error: {e}")
         raise HTTPException(status_code=500, detail="Failed to load reviews")

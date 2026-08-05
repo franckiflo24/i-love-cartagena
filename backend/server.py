@@ -3146,12 +3146,12 @@ async def nearby_partners(request: Request):
 
 @api_router.get("/partners/{partner_id}")
 async def get_partner(partner_id: str):
-    partner = await db.partners.find_one({"partner_id": partner_id}, PUBLIC_PARTNER_PROJECTION)
+    # Draft / rejected / SANDBOX venues are not publicly viewable — the owner sees
+    # their own draft via the authenticated /business/me path. The visibility filter
+    # is pushed into the QUERY (the old manual catalog_status check omitted "sandbox",
+    # letting a known sandbox id leak the full doc + nested moderator email).
+    partner = await db.partners.find_one({"partner_id": partner_id, **PUBLIC_PARTNER_FILTER}, PUBLIC_PARTNER_PROJECTION)
     if not partner:
-        raise HTTPException(status_code=404, detail="Partner not found")
-    # Unreviewed / rejected drafts are not publicly viewable (the owner sees
-    # their own draft through the authenticated /business/me path).
-    if partner.get("catalog_status") in ("pending_review", "rejected"):
         raise HTTPException(status_code=404, detail="Partner not found")
     try:
         pulse_map = await _pulse.get_active_pulse_map(db, [partner_id])
@@ -3855,6 +3855,11 @@ async def toggle_favorite(body: FavoriteToggle, request: Request):
         await db.favorites.delete_one({"_id": existing["_id"]})
         return {"status": "removed", "item_id": body.item_id}
     else:
+        # Cannot favorite a venue that isn't publicly live — a pending/rejected/
+        # sandbox draft must never enter a user's agenda (it would then leak via GET).
+        if body.item_type == "partner":
+            if not await db.partners.find_one({"partner_id": body.item_id, **PUBLIC_PARTNER_FILTER}, {"_id": 0, "partner_id": 1}):
+                raise HTTPException(status_code=404, detail="Venue not found")
         await db.favorites.insert_one({
             "fav_id": f"fav_{uuid.uuid4().hex[:12]}",
             "user_id": user_id,
@@ -3881,7 +3886,9 @@ async def get_favorites(request: Request):
         iid = f.get("item_id", "")
         itype = f.get("item_type", "")
         if itype == "partner":
-            item = await db.partners.find_one({"partner_id": iid}, {"_id": 0})
+            # Filter (a venue may have been demoted since it was favorited) AND
+            # project (never return internal moderation fields to the client).
+            item = await db.partners.find_one({"partner_id": iid, **PUBLIC_PARTNER_FILTER}, PUBLIC_PARTNER_PROJECTION)
         elif itype == "event":
             item = await db.events.find_one(
                 {"$or": [{"event_id": iid}, {"slug": iid}]}, {"_id": 0}

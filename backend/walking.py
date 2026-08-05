@@ -1088,8 +1088,12 @@ async def passport_share_create(request: Request, body: ShareBody):
             break
     names: List[str] = []
     if recent_ids:
+        from partner_visibility import PUBLIC_PARTNER_FILTER
+        # A venue demoted AFTER it was stamped must not have its name baked into a
+        # public, permanent share card (retroactive-moderation gap; /passport/discover
+        # only gates at stamp time).
         name_map = {}
-        async for p in db.partners.find({"partner_id": {"$in": recent_ids}},
+        async for p in db.partners.find({**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": recent_ids}},
                                         {"_id": 0, "partner_id": 1, "name": 1}):
             name_map[p["partner_id"]] = p.get("name") or ""
         names = [name_map[i] for i in recent_ids if name_map.get(i)]
