@@ -36,6 +36,12 @@ PUBLIC_PARTNER_PROJECTION = {
 INTERNAL_EVENT_FIELDS = ("reviewed_by", "reviewed_at", "moderation_status", "moderation_reason")
 PUBLIC_EVENT_PROJECTION = {"_id": 0, **{f: 0 for f in INTERNAL_EVENT_FIELDS}}
 
+# The curated/seasonal `events` collection (editorial, NOT partner-submitted) can
+# carry a moderation_status from the AI auto-approval pipeline. Public reads must
+# never render a pending/rejected editorial draft, and must strip the trail. $nin
+# also matches docs missing the field, so plain editorial events are unaffected.
+PUBLIC_CITY_EVENT_FILTER = {"moderation_status": {"$nin": ["pending", "rejected"]}}
+
 
 def is_publicly_visible(partner: dict) -> bool:
     """True if a partner doc may be shown publicly (used where a filter can't be

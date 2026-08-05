@@ -43,7 +43,7 @@ from pymongo.errors import DuplicateKeyError as _DuplicateKeyError
 # module (walking/occasions/ai_agent/reservations/pulse) so no route can drift.
 from partner_visibility import (  # noqa: E402
     PUBLIC_PARTNER_FILTER, INTERNAL_PARTNER_FIELDS, PUBLIC_PARTNER_PROJECTION,
-    PUBLIC_EVENT_PROJECTION, is_publicly_visible,
+    PUBLIC_EVENT_PROJECTION, PUBLIC_CITY_EVENT_FILTER, is_publicly_visible,
 )
 
 # ── In-memory rate limiter for expensive AI endpoints ──────────
@@ -3026,7 +3026,7 @@ async def list_events(
     is_free: Optional[bool] = None,
     venue_id: Optional[str] = None,
 ):
-    query = {}
+    query = dict(PUBLIC_CITY_EVENT_FILTER)
     if date:
         query["date"] = date
     if event_type:
@@ -3035,29 +3035,29 @@ async def list_events(
         query["is_free"] = is_free
     if venue_id:
         query["venue_id"] = venue_id
-    events = await db.events.find(query, {"_id": 0}).sort("start_time", 1).to_list(200)
+    events = await db.events.find(query, PUBLIC_EVENT_PROJECTION).sort("start_time", 1).to_list(200)
     return events
 
 
 @api_router.get("/events/featured")
 async def featured_events():
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    events = await db.events.find({"featured": True}, {"_id": 0}).to_list(20)
+    events = await db.events.find({**PUBLIC_CITY_EVENT_FILTER, "featured": True}, PUBLIC_EVENT_PROJECTION).to_list(20)
     # Filter out events whose end date has passed
     events = [e for e in events if (e.get("date_end") or e.get("date") or "9999-12-31") >= today]
     events.sort(key=lambda e: e.get("date") or e.get("date_start") or "")
     events = events[:10]
     if not events:
-        events = await db.events.find({}, {"_id": 0}).limit(6).to_list(6)
+        events = await db.events.find(dict(PUBLIC_CITY_EVENT_FILTER), PUBLIC_EVENT_PROJECTION).limit(6).to_list(6)
         events = [e for e in events if (e.get("date_end") or e.get("date") or "9999-12-31") >= today]
     return events
 
 
 @api_router.get("/events/{event_id}")
 async def get_event(event_id: str):
-    event = await db.events.find_one({"event_id": event_id}, {"_id": 0})
+    event = await db.events.find_one({"event_id": event_id, **PUBLIC_CITY_EVENT_FILTER}, PUBLIC_EVENT_PROJECTION)
     if not event:
-        event = await db.events.find_one({"slug": event_id}, {"_id": 0})
+        event = await db.events.find_one({"slug": event_id, **PUBLIC_CITY_EVENT_FILTER}, PUBLIC_EVENT_PROJECTION)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     return event
@@ -3744,7 +3744,7 @@ async def list_my_week(request: Request):
     week = user.get("my_week", [])
     if not week:
         return []
-    events = await db.events.find({"event_id": {"$in": week}}, {"_id": 0}).to_list(100)
+    events = await db.events.find({**PUBLIC_CITY_EVENT_FILTER, "event_id": {"$in": week}}, PUBLIC_EVENT_PROJECTION).to_list(100)
     return events
 
 
@@ -3783,10 +3783,10 @@ async def get_season(season_id: str):
 
 @api_router.get("/seasons/{season_id}/events")
 async def season_events(season_id: str, date: Optional[str] = None):
-    query = {"season_id": season_id}
+    query = {**PUBLIC_CITY_EVENT_FILTER, "season_id": season_id}
     if date:
         query["date"] = date
-    events = await db.events.find(query, {"_id": 0}).sort("start_time", 1).to_list(200)
+    events = await db.events.find(query, PUBLIC_EVENT_PROJECTION).sort("start_time", 1).to_list(200)
     return events
 
 
@@ -4375,13 +4375,13 @@ async def global_search(q: str = "", request: Request = None):
         return score, has_distinctive
 
     events = await db.events.find(
-        {"$or": [
+        {**PUBLIC_CITY_EVENT_FILTER, "$or": [
             {"title": regex}, {"name_es": regex}, {"name_en": regex},
             {"description": regex}, {"description_es": regex}, {"description_en": regex},
             {"venue_name": regex}, {"venue": regex},
             {"type": regex}, {"category": regex}, {"slug": regex},
         ]},
-        {"_id": 0}
+        PUBLIC_EVENT_PROJECTION
     ).limit(100).to_list(100)
 
     concerts = await db.concerts.find(
@@ -4589,7 +4589,7 @@ async def global_search(q: str = "", request: Request = None):
             {"title": regex}, {"description": regex},
             {"category": regex}, {"partner_name": regex}, {"name_es": regex},
         ]},
-        {"_id": 0}
+        PUBLIC_EVENT_PROJECTION
     ).limit(50).to_list(50)
     # drop events whose venue isn't publicly approved (T1 sibling)
     _pe_ok = await _approved_partner_ids(e.get("partner_id") for e in partner_events)
