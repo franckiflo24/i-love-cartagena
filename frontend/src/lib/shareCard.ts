@@ -257,7 +257,7 @@ export async function renderShareCard(stats: ShareCardStats): Promise<Blob | nul
     if (stats.streakBest > 1) ledger.push(`racha de ${stats.streakBest} días`);
     if (stats.rareza && stats.rareza > 0) ledger.push(`rareza ✦ ${stats.rareza}`);
     if (ledger.length) {
-      ruledLine(ctx, ledger.join('   ·   ').toUpperCase(), Math.min(y + 40, 1160), 'rgba(245,212,122,0.9)');
+      ruledLine(ctx, ledger.join('   ·   ').toUpperCase(), Math.min(y + 8, 1182), 'rgba(245,212,122,0.9)');
     }
 
     // ── Footer brand ──
