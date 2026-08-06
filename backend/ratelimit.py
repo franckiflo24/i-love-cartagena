@@ -31,6 +31,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, Request
+from pymongo.errors import DuplicateKeyError
 
 logger = logging.getLogger("ratelimit")
 
@@ -39,10 +40,12 @@ db = None  # injected via init()
 # Prefixes whose gates protect auth, codes, enumeration brakes, or paid LLM
 # calls — these DENY when the store is unreachable (fail closed).
 SENSITIVE_PREFIXES = (
-    "verify", "signup", "refclaim",            # auth + verification codes
-    "tripguest", "tripcode", "tripjoin",       # share-code enumeration brakes
-    "bizforgot", "bizreset",                   # partner-portal recovery
-    "agent", "concierge",                      # Anthropic-key cost abuse
+    "verify", "signup", "signupip", "refclaim",   # auth + verification codes
+    "bizverify",                                  # venue-claim OTP (fraud vector)
+    "tripguest", "tripcode", "tripjoin",          # share-code enumeration brakes
+    "bizforgot", "bizforgotip", "bizreset", "bizresetip",  # partner-portal recovery
+    "paycreate",                                  # payment-record creation (pre-B3)
+    "agent", "concierge", "bizupload", "pulse", "bizpulse",  # paid-LLM cost abuse
 )
 
 # Degraded-mode fallback: the pre-RL in-process buckets. Per-instance only,
@@ -80,8 +83,9 @@ async def check(key: str, max_calls: int = 10, window_sec: int = 60):
     now = time.time()
     window_start = int(now // window_sec) * window_sec
     doc_id = f"{key}:{window_start}"
-    try:
-        doc = await db.rate_buckets.find_one_and_update(
+
+    async def _atomic_inc():
+        return await db.rate_buckets.find_one_and_update(
             {"_id": doc_id},
             {"$inc": {"n": 1},
              "$setOnInsert": {
@@ -91,6 +95,15 @@ async def check(key: str, max_calls: int = 10, window_sec: int = 60):
             upsert=True,
             return_document=True,  # AFTER
         )
+
+    try:
+        try:
+            doc = await _atomic_inc()
+        except DuplicateKeyError:
+            # Two requests raced to CREATE the same brand-new window doc (a known
+            # findAndModify-upsert race). It exists now — retry once counts it
+            # correctly instead of falsely failing closed on a legit burst.
+            doc = await _atomic_inc()
         if int(doc.get("n", 1)) > max_calls:
             raise HTTPException(status_code=429, detail="Too many requests. Please wait before trying again.")
         return

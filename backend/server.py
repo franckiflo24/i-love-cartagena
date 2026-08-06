@@ -322,14 +322,18 @@ class VerifyBody(BaseModel):
 
 
 @api_router.post("/auth/signup")
-async def email_signup(body: SignupBody):
+async def email_signup(body: SignupBody, request: Request):
     """Step 1: Send a 6-digit verification code to the user's email.
     Creates a pending verification record in DB. Does NOT create a user yet."""
     email = body.email.strip().lower()
     if not email or "@" not in email:
         raise HTTPException(400, "Email inválido")
 
-    # Rate limit — 3 codes per email per 15 min
+    # Drop RL audit (HIGH): the trusted-IP gate is BOUNDED-cardinality and runs
+    # FIRST — an attacker can't mint unbounded email-keyed rate_buckets docs (a
+    # write-flood that, on a fail-closed prefix, could DoS everyone's signup).
+    await _check_rate_limit(f"signupip:{_client_ip(request)}", max_calls=20, window_sec=3600)
+    # Then the per-email code cap: 3 codes per email per 15 min.
     await _check_rate_limit(f"verify:{email}", max_calls=3, window_sec=900)
 
     code = _emails.generate_verification_code()
@@ -358,22 +362,23 @@ async def email_signup(body: SignupBody):
 
 
 @api_router.post("/auth/verify")
-async def verify_email(body: VerifyBody, response: Response):
+async def verify_email(body: VerifyBody, request: Request, response: Response):
     """Step 2: Verify the code and create (or login to) the user account.
     Sends a welcome email on first verification."""
     email = body.email.strip().lower()
     if not email:
         raise HTTPException(400, "Email requerido")
 
+    # Drop RL audit (CRITICAL): the OTP IS the whole auth factor (900k-space
+    # 6-digit code → account access). Gate brute-force at BOTH the trusted IP
+    # and the target email (fail-closed prefix `verify`), then claim the
+    # attempt ATOMICALLY so concurrent guesses can't race past the 5-cap.
+    await _check_rate_limit(f"verify:{_client_ip(request)}", max_calls=15, window_sec=900)
+    await _check_rate_limit(f"verify:{email}", max_calls=8, window_sec=900)
+
     record = await db.email_verifications.find_one({"email": email})
     if not record:
         raise HTTPException(400, "No hay código pendiente. Solicita uno nuevo.")
-
-    # Max 5 attempts per code
-    attempts = record.get("attempts", 0)
-    if attempts >= 5:
-        await db.email_verifications.delete_one({"email": email})
-        raise HTTPException(429, "Demasiados intentos. Solicita un nuevo código.")
 
     # Check expiry
     expires_at = record.get("expires_at", "")
@@ -385,8 +390,17 @@ async def verify_email(body: VerifyBody, response: Response):
         await db.email_verifications.delete_one({"email": email})
         raise HTTPException(410, "Código expirado. Solicita uno nuevo.")
 
-    # Increment attempts
-    await db.email_verifications.update_one({"email": email}, {"$inc": {"attempts": 1}})
+    # ATOMIC attempt claim: only proceeds while attempts < 5, and the $inc is
+    # part of the same op (no read-then-write TOCTOU). A None result means the
+    # cap is already reached — lock out and burn the code.
+    claimed = await db.email_verifications.find_one_and_update(
+        {"email": email, "attempts": {"$lt": 5}},
+        {"$inc": {"attempts": 1}},
+        return_document=True,
+    )
+    if not claimed:
+        await db.email_verifications.delete_one({"email": email})
+        raise HTTPException(429, "Demasiados intentos. Solicita un nuevo código.")
 
     # Check code (constant-time comparison)
     if not hmac.compare_digest(body.code.strip(), record["code"]):
@@ -1357,6 +1371,11 @@ async def business_claim_start(request: Request):
 @api_router.post("/business/claim/verify")
 async def business_claim_verify(request: Request):
     biz = await get_current_business(request)
+    # Drop RL audit (HIGH): a guessed claim OTP grants verified_owner on someone
+    # else's venue — a fraud vector. Same brute-force gate + atomic attempt-claim
+    # as the auth OTP. `bizverify` fails closed (added to SENSITIVE_PREFIXES).
+    await _check_rate_limit(f"bizverify:{_client_ip(request)}", max_calls=15, window_sec=900)
+    await _check_rate_limit(f"bizverify:{biz['business_id']}", max_calls=10, window_sec=900)
     body = await request.json()
     claim_id = (body.get("claim_id") or "").strip()
     code = (body.get("code") or "").strip()
@@ -1369,10 +1388,15 @@ async def business_claim_verify(request: Request):
         raise HTTPException(status_code=400, detail="El reclamo ya no está pendiente / Claim is not pending")
     if _iso_expired(claim.get("code_expires", "")):
         raise HTTPException(status_code=400, detail="Código expirado — solicita uno nuevo / Code expired")
-    if claim.get("attempts", 0) >= 5:
+    # ATOMIC attempt claim (no read-then-write race under concurrent guesses).
+    claimed = await db.venue_claims.find_one_and_update(
+        {"claim_id": claim_id, "attempts": {"$lt": 5}},
+        {"$inc": {"attempts": 1}},
+        return_document=True,
+    )
+    if not claimed:
         raise HTTPException(status_code=429, detail="Demasiados intentos — solicita un nuevo código / Too many attempts")
     if _hash_code(code, claim_id) != claim.get("code_hash"):
-        await db.venue_claims.update_one({"claim_id": claim_id}, {"$inc": {"attempts": 1}})
         raise HTTPException(status_code=400, detail="Código incorrecto / Incorrect code")
 
     partner_id = claim["partner_id"]
@@ -2011,6 +2035,9 @@ async def business_forgot_password(request: Request, background_tasks: Backgroun
     # deferred via BackgroundTasks (ASGI-lifecycle-aware, unlike a bare create_task
     # which can be dropped on serverless) so the response doesn't wait on the
     # ~300ms Resend call and can't leak account existence via timing (M1/N4).
+    # Bounded-cardinality IP gate FIRST (fires unconditionally, so it neither
+    # leaks account existence nor lets an attacker flood email-keyed buckets).
+    await _check_rate_limit(f"bizforgotip:{_client_ip(request)}", max_calls=20, window_sec=3600)
     if email and "@" in email:
         await _check_rate_limit(f"bizforgot:{email}", max_calls=4, window_sec=3600)
         biz = await db.business_users.find_one({"email": email}, {"_id": 0, "business_id": 1, "full_name": 1})
@@ -2037,6 +2064,7 @@ async def business_reset_with_code(request: Request):
     # H1/N3: an UNCONDITIONAL per-email rate limit (fires whether or not a reset
     # record exists) so the 429 can't reveal which emails have accounts; plus ONE
     # identical 400 for missing-record / expired / wrong-code.
+    await _check_rate_limit(f"bizresetip:{_client_ip(request)}", max_calls=20, window_sec=900)
     if email:
         await _check_rate_limit(f"bizreset:{email}", max_calls=6, window_sec=900)
     _BAD = HTTPException(status_code=400, detail="Código incorrecto o expirado / Incorrect or expired code")
@@ -5735,6 +5763,9 @@ async def _create_payment_record(*, user, kind: str, partner_id: Optional[str], 
 async def wompi_city_pass_checkout(request: Request):
     """Initiate a Wompi checkout for a City Pass plan."""
     user = await get_current_user(request)
+    # Drop RL audit (HIGH): cap payment-record creation per user (fail-closed
+    # prefix `paycreate`) — a payment-precursor surface before B3 billing.
+    await _check_rate_limit(f"paycreate:{user['user_id']}", max_calls=12, window_sec=3600)
     body = await request.json()
     plan_id = (body.get("plan_id") or "").strip()
     _app_url = os.environ.get('PUBLIC_APP_URL')
@@ -5760,6 +5791,9 @@ async def wompi_city_pass_checkout(request: Request):
 async def wompi_port_tax_checkout(request: Request):
     """Initiate a Wompi checkout for the Tasa Portuaria."""
     user = await get_current_user(request)
+    # Drop RL audit (HIGH): cap payment-record creation per user (fail-closed
+    # prefix `paycreate`) — a payment-precursor surface before B3 billing.
+    await _check_rate_limit(f"paycreate:{user['user_id']}", max_calls=12, window_sec=3600)
     body = await request.json()
     qty_raw = body.get("qty")
     qty = int(qty_raw if qty_raw is not None else 1)
@@ -5795,6 +5829,9 @@ async def wompi_port_tax_checkout(request: Request):
 async def wompi_partner_event_checkout(request: Request):
     """Initiate a Wompi checkout for booking a partner event (e.g. dinner, beach day pass)."""
     user = await get_current_user(request)
+    # Drop RL audit (HIGH): cap payment-record creation per user (fail-closed
+    # prefix `paycreate`) — a payment-precursor surface before B3 billing.
+    await _check_rate_limit(f"paycreate:{user['user_id']}", max_calls=12, window_sec=3600)
     body = await request.json()
     event_id = (body.get("event_id") or "").strip()
     qty = int(body.get("qty") or 1)
@@ -5905,6 +5942,9 @@ async def my_experience_bookings(request: Request):
 async def wompi_experience_checkout(request: Request):
     """Initiate a Wompi checkout for an experience booking."""
     user = await get_current_user(request)
+    # Drop RL audit (HIGH): cap payment-record creation per user (fail-closed
+    # prefix `paycreate`) — a payment-precursor surface before B3 billing.
+    await _check_rate_limit(f"paycreate:{user['user_id']}", max_calls=12, window_sec=3600)
     body = await request.json()
     experience_id = (body.get("experience_id") or "").strip()
     qty = int(body.get("qty") or 1)
@@ -5945,6 +5985,9 @@ async def wompi_experience_checkout(request: Request):
 async def wompi_transport_checkout(request: Request):
     """Initiate a Wompi checkout for a transport ticket (boat, etc)."""
     user = await get_current_user(request)
+    # Drop RL audit (HIGH): cap payment-record creation per user (fail-closed
+    # prefix `paycreate`) — a payment-precursor surface before B3 billing.
+    await _check_rate_limit(f"paycreate:{user['user_id']}", max_calls=12, window_sec=3600)
     body = await request.json()
     transport_id = (body.get("transport_id") or "").strip()
     passengers = int(body.get("passengers") or 1)
