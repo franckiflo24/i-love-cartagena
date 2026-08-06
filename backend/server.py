@@ -311,14 +311,14 @@ import emails as _emails
 
 
 class SignupBody(BaseModel):
-    email: str
-    name: str = ""
+    email: str = Field(max_length=200)
+    name: str = Field(default="", max_length=80)  # audit #2: cap at the API boundary
 
 
 class VerifyBody(BaseModel):
-    email: str
-    code: str
-    name: str = ""
+    email: str = Field(max_length=200)
+    code: str = Field(max_length=12)
+    name: str = Field(default="", max_length=80)  # audit #2
 
 
 @api_router.post("/auth/signup")
@@ -2072,7 +2072,14 @@ async def business_reset_with_code(request: Request):
     rec = await db.business_reset_codes.find_one({"email": email}, {"_id": 0})
     if not rec or _iso_expired(rec.get("expires", "")):
         raise _BAD
-    if _hash_code(code, email) != rec.get("code_hash"):
+    # Drop FD audit #6: ENFORCE the per-code attempts cap (it was incremented
+    # but never read — a defense-in-depth illusion). Atomic: burn the code once
+    # 5 wrong guesses land, so document-level protection holds even if the RL
+    # layer were ever misconfigured. constant-time hash compare (matches /auth/verify).
+    if rec.get("attempts", 0) >= 5:
+        await db.business_reset_codes.delete_many({"email": email})
+        raise _BAD
+    if not hmac.compare_digest(_hash_code(code, email), rec.get("code_hash", "")):
         await db.business_reset_codes.update_one({"email": email}, {"$inc": {"attempts": 1}})
         raise _BAD
     biz = await db.business_users.find_one({"email": email}, {"_id": 0, "business_id": 1})

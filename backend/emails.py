@@ -13,6 +13,7 @@ SPF via send.amocartagena.co + DKIM resend._domainkey + DMARC all live).
 Uses httpx (already in deps) instead of the resend SDK.
 """
 import os
+import re
 import html
 import httpx
 import logging
@@ -20,11 +21,23 @@ import secrets
 
 logger = logging.getLogger(__name__)
 
+# Strip interior CR/LF + C0/C1 control chars (audit #2: a name with embedded
+# CRLF must never reach a Subject header, even though the JSON transport
+# already escapes it) and cap length before any use.
+_CTRL = re.compile(r"[\r\n\x00-\x1f\x7f]")
+
+
+def _plain(s: str) -> str:
+    """Control-stripped, length-capped user text for PLAIN-TEXT parts and
+    Subject lines — NOT entity-escaped (audit #3: text clients don't decode
+    entities, so 'D'Angelo' must stay 'D'Angelo', not 'D&#x27;Angelo')."""
+    return _CTRL.sub("", (s or "").strip())[:80]
+
 
 def _safe(s: str) -> str:
     """HTML-escape user-controlled text (name) before it enters email HTML —
-    a name like '<a href=evil>' must not inject markup into the message."""
-    return html.escape((s or "").strip())
+    a name like '<a href=evil>' must not inject markup — after control-strip."""
+    return html.escape(_plain(s))
 
 FROM_EMAIL = "hola@amocartagena.co"
 FROM_NAME = "AMO Cartagena"
@@ -48,9 +61,11 @@ def _get_resend_key() -> str:
     return os.environ.get("RESEND_API_KEY", "")
 
 
-async def _send_email(*, to: str, subject: str, html: str, text: str = "") -> bool:
+async def _send_email(*, to: str, subject: str, html: str, text: str = "", log_label: str = "") -> bool:
     """Send an email via Resend API. Returns True on success. Includes a
-    plain-text part (deliverability + accessibility) whenever provided."""
+    plain-text part whenever provided. `log_label` is a REDACTED name for the
+    log line — never log a subject that embeds a secret (audit #8: the OTP
+    lived in the verification subject and was written to Vercel logs in clear)."""
     api_key = _get_resend_key()
     if not api_key:
         logger.error("[emails] RESEND_API_KEY not configured — email not sent")
@@ -72,7 +87,7 @@ async def _send_email(*, to: str, subject: str, html: str, text: str = "") -> bo
                 timeout=10,
             )
             if r.status_code in (200, 201):
-                logger.info(f"[emails] Sent '{subject}' to {to}")
+                logger.info(f"[emails] Sent '{log_label or subject}' to {to}")
                 return True
             logger.error(f"[emails] Resend API error {r.status_code}: {r.text}")
             return False
@@ -153,11 +168,13 @@ async def send_verification_email(*, to: str, code: str, name: str = "") -> bool
       Si no lo solicitaste, podés ignorar este mensaje — nadie entra sin el código.
     </p>
   </td></tr>"""
-    text = (f"{greeting},\n\nTu código de verificación para AMO Cartagena es: {code}\n"
+    gt = f"Hola {_plain(name)}" if name else "Hola"
+    text = (f"{gt},\n\nTu código de verificación para AMO Cartagena es: {code}\n"
             f"Expira en {VERIFY_CODE_TTL_MINUTES} minutos.\n\n"
             f"Si no lo solicitaste, ignoralo.\n\n— AMO Cartagena · {SITE}")
     return await _send_email(to=to, subject=f"Tu código AMO: {code}",
-                             html=_shell(preheader=preheader, inner=inner), text=text)
+                             html=_shell(preheader=preheader, inner=inner), text=text,
+                             log_label="Código de verificación")
 
 
 async def send_password_reset_email(*, to: str, code: str, name: str = "") -> bool:
@@ -185,7 +202,8 @@ async def send_password_reset_email(*, to: str, code: str, name: str = "") -> bo
       Si no pediste este cambio, ignorá este mensaje — tu contraseña sigue igual.
     </p>
   </td></tr>"""
-    text = (f"{greeting},\n\nCódigo para restablecer tu contraseña de negocio AMO: {code}\n"
+    gt = f"Hola {_plain(name)}" if name else "Hola"
+    text = (f"{gt},\n\nCódigo para restablecer tu contraseña de negocio AMO: {code}\n"
             f"Válido {VERIFY_CODE_TTL_MINUTES} minutos, un solo uso. Pedir uno nuevo anula el anterior.\n\n"
             f"Si no lo pediste, ignoralo — tu contraseña sigue igual.\n\n— AMO Cartagena · {SITE}")
     return await _send_email(to=to, subject="Restablecé tu contraseña — AMO Cartagena",
@@ -203,6 +221,7 @@ _WELCOME_FEATURES = [
 async def send_welcome_email(*, to: str, name: str = "") -> bool:
     """Welcome email after a consumer verifies their account."""
     greeting = _safe(name) or "viajero"
+    greeting_text = _plain(name) or "viajero"
     preheader = "Tu pasaporte de Cartagena te espera — sellá tu primer lugar."
     rows = ""
     for icon, title, desc in _WELCOME_FEATURES:
@@ -231,8 +250,8 @@ async def send_welcome_email(*, to: str, name: str = "") -> bool:
       </td>
     </tr></table>
   </td></tr>"""
-    text = (f"¡Bienvenido, {greeting}!\n\nTu cuenta AMO Cartagena está lista. Esto te espera:\n"
+    text = (f"¡Bienvenido, {greeting_text}!\n\nTu cuenta AMO Cartagena está lista. Esto te espera:\n"
             + "\n".join(f"· {t}: {d}" for _, t, d in _WELCOME_FEATURES)
             + f"\n\nExplorar Cartagena: {SITE}\n\n— AMO Cartagena")
-    return await _send_email(to=to, subject=f"¡Bienvenido a AMO Cartagena, {greeting}! 🌴",
+    return await _send_email(to=to, subject=f"¡Bienvenido a AMO Cartagena, {greeting_text}! 🌴",
                              html=_shell(preheader=preheader, inner=inner), text=text)
