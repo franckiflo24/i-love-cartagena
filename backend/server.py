@@ -319,6 +319,7 @@ class VerifyBody(BaseModel):
     email: str = Field(max_length=200)
     code: str = Field(max_length=12)
     name: str = Field(default="", max_length=80)  # audit #2
+    archetype: Optional[str] = Field(default=None, max_length=12)  # Drop GATE attribution
 
 
 @api_router.post("/auth/signup")
@@ -426,6 +427,8 @@ async def verify_email(body: VerifyBody, request: Request, response: Response):
             "email_verified": True,
             "favorites": [],
             "my_week": [],
+            # Drop GATE (Part C): which archetype's wall drove this signup.
+            "entry_archetype": "invited" if (body.archetype == "invited") else "cold",
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         await db.users.insert_one(user)
@@ -5008,6 +5011,71 @@ async def track_analytics(body: AnalyticsEvent, request: Request):
     return {"ok": True}
 
 
+# ── Drop GATE (Part C): signup-wall funnel instrumentation ──────────
+class GateEvent(BaseModel):
+    event: str            # gate_shown | gate_cta | gate_dismissed | luna_taste | activation
+    action: str = "generic"
+    archetype: str = "cold"   # invited | cold
+    session: str = ""
+
+
+@api_router.post("/analytics/gate")
+async def track_gate(body: GateEvent, request: Request):
+    """Records the preview-then-gate funnel so the wall's effect on signups is
+    measurable (gate_shown → gate_cta → signup → activation), split by archetype
+    and by which action triggered the wall. Public + IP-rate-limited (cheap,
+    high-volume). Anonymous by design — the session id stitches the funnel."""
+    ip = _client_ip(request)
+    await _check_rate_limit(f"gate:{ip}", max_calls=120, window_sec=60)
+    ev = (body.event or "")[:32]
+    if ev not in ("gate_shown", "gate_cta", "gate_dismissed", "luna_taste", "activation"):
+        raise HTTPException(status_code=400, detail="invalid event")
+    await db.gate_events.insert_one({
+        "event": ev,
+        "action": (body.action or "generic")[:32],
+        "archetype": "invited" if body.archetype == "invited" else "cold",
+        "session": (body.session or "")[:40],
+        "ts": datetime.now(timezone.utc).isoformat(),
+    })
+    return {"ok": True}
+
+
+@api_router.get("/admin/gate/funnel")
+async def gate_funnel(request: Request, days: int = 30):
+    """Alcaldía/admin: the gate funnel — counts by event × archetype, plus which
+    action walls people most. Real data straight from gate_events + users."""
+    await _require_government_role(request)
+    days = max(1, min(days, 365))
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    pipeline = [
+        {"$match": {"ts": {"$gte": since}}},
+        {"$group": {"_id": {"event": "$event", "archetype": "$archetype"}, "n": {"$sum": 1}}},
+    ]
+    rows = await db.gate_events.aggregate(pipeline).to_list(200)
+    funnel: dict = {}
+    for r in rows:
+        ev = r["_id"]["event"]; arc = r["_id"]["archetype"]
+        funnel.setdefault(ev, {"invited": 0, "cold": 0, "total": 0})
+        funnel[ev][arc] = r["n"]; funnel[ev]["total"] += r["n"]
+    top_actions = await db.gate_events.aggregate([
+        {"$match": {"ts": {"$gte": since}, "event": "gate_shown"}},
+        {"$group": {"_id": "$action", "n": {"$sum": 1}}},
+        {"$sort": {"n": -1}}, {"$limit": 10},
+    ]).to_list(10)
+    # Signups + activations by archetype (attributed on the user doc).
+    signups = await db.users.aggregate([
+        {"$match": {"created_at": {"$gte": since}}},
+        {"$group": {"_id": "$entry_archetype", "n": {"$sum": 1}}},
+    ]).to_list(10)
+    activations = await db.users.count_documents({"created_at": {"$gte": since}, "activated_at": {"$exists": True}})
+    return {
+        "funnel": funnel,
+        "top_wall_actions": [{"action": a["_id"], "count": a["n"]} for a in top_actions],
+        "signups_by_archetype": {(s["_id"] or "cold"): s["n"] for s in signups},
+        "activations": activations,
+    }
+
+
 # ── Geolocation tracking + AI user profile ─────────────────────────
 class LocationPing(BaseModel):
     user_id: Optional[str] = None
@@ -6465,6 +6533,33 @@ async def admin_alcaldia_payouts(request: Request, status: Optional[str] = None)
 # ─────────────────────────────────────────────────────────────
 # AI Concierge Agent — "Amo"
 # ─────────────────────────────────────────────────────────────
+
+@api_router.post("/agent/taste")
+async def agent_taste(request: Request):
+    """Drop GATE (B2): ONE anonymous Luna exchange — the cold-conversion hook.
+    A logged-out visitor gets a single real taste of the concierge, then the
+    signup wall fires on their 2nd message. Bounded HARD to protect the LLM key:
+    ONE call per IP per day, fail-closed (`lunataste` is a SENSITIVE_PREFIX), no
+    session, no history. Not a backdoor to /agent/chat's per-user allowance."""
+    ip = _client_ip(request)
+    await _check_rate_limit(f"lunataste:{ip}", max_calls=1, window_sec=86400)
+    body = await request.json()
+    user_text = (body.get("message") or "").strip()
+    if not user_text:
+        raise HTTPException(status_code=400, detail="message required")
+    if len(user_text) > 500:
+        raise HTTPException(status_code=400, detail="message too long")
+    payload = await _ai_agent.run_agent_turn(
+        db, user=None, user_text=user_text, history=[],
+        forced_language=(body.get("language") or "").strip().lower() or None,
+    )
+    return {"assistant": {
+        "message": payload["message"],
+        "language": payload.get("language", "es"),
+        "recommendations": payload.get("recommendations", []),
+        "suggestions": payload.get("suggestions", []),
+    }, "taste": True}
+
 
 @api_router.post("/agent/chat")
 async def agent_chat(request: Request):

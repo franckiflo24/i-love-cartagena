@@ -14,7 +14,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Platform, ActivityIndicator,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -37,8 +37,12 @@ type Beat = 'arrival' | 'question';
 
 export default function OnboardingArrival() {
   const router = useRouter();
+  const { next } = useLocalSearchParams<{ next?: string }>();
   const { user } = useAuth();
   const firstName = (user?.name || '').trim().split(' ')[0];
+  // Drop GATE (B3): after the arrival activates a gated signup, return to the
+  // exact action they were headed for. Same open-redirect guard as login.
+  const dest = typeof next === 'string' && /^\/(?![/\\])[A-Za-z0-9/_\-?=&.%]*$/.test(next) ? next : null;
 
   const [beat, setBeat] = useState<Beat>('arrival');
   const [nowLine, setNowLine] = useState<{ es: string; sunset?: string; key?: string } | null>(null);
@@ -122,8 +126,8 @@ export default function OnboardingArrival() {
         profile_complete: true,   // sets onboarding_completed=true → no re-onboard
       });
     } catch { /* fail-soft — never block entry on the personalization write */ }
-    router.replace('/(tabs)');
-  }, [router]);
+    router.replace((dest as any) || ('/(tabs)' as any));
+  }, [router, dest]);
 
   const enterApp = useCallback(() => { markDone(); }, [markDone]);
 

@@ -45,7 +45,7 @@ SENSITIVE_PREFIXES = (
     "tripguest", "tripcode", "tripjoin",          # share-code enumeration brakes
     "bizforgot", "bizforgotip", "bizreset", "bizresetip",  # partner-portal recovery
     "paycreate",                                  # payment-record creation (pre-B3)
-    "agent", "concierge", "bizupload", "pulse", "bizpulse",  # paid-LLM cost abuse
+    "agent", "concierge", "bizupload", "pulse", "bizpulse", "lunataste",  # paid-LLM cost abuse
 )
 
 # Degraded-mode fallback: the pre-RL in-process buckets. Per-instance only,

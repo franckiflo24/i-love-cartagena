@@ -12,6 +12,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useSignupGate } from '../../src/context/SignupGateContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
@@ -62,6 +63,7 @@ function nearestVenueDist(venues: CollectionVenue[], geo: GeoState): number | nu
 
 export default function PasaporteScreen() {
   const router = useRouter();
+  const { openGate } = useSignupGate();
   const tr = useTr();
   const { user } = useAuth();
 
@@ -257,7 +259,7 @@ export default function PasaporteScreen() {
   const sealPlaza = useCallback(async (venue: CollectionVenue) => {
     let pos = geo.status === 'granted' ? geo.position : null;
     if (!user) {
-      router.push('/login' as any);
+      openGate({ action: 'collect_stamp', next: '/pasaporte' });
       return;
     }
     if (!pos) return;
@@ -367,8 +369,8 @@ export default function PasaporteScreen() {
                 <Text style={styles.inviteBody}>
                   {tr('Sella sabores, plazas y joyas locales mientras caminas la ciudad. Inicia sesión y guarda tu pasaporte para siempre.')}
                 </Text>
-                <TouchableOpacity style={styles.inviteBtn} onPress={() => router.push('/login' as any)} activeOpacity={0.85}>
-                  <Text style={styles.inviteBtnText}>{tr('Iniciar sesión')}</Text>
+                <TouchableOpacity style={styles.inviteBtn} onPress={() => openGate({ action: 'passport', next: '/pasaporte' })} activeOpacity={0.85}>
+                  <Text style={styles.inviteBtnText}>{tr('Crear cuenta gratis')}</Text>
                 </TouchableOpacity>
               </View>
             ) : isEmpty ? (

@@ -11,6 +11,10 @@ import { AGENTS, AGENT_ORDER, AgentId, ConciergeAgent } from '../src/constants/a
 import { askAgent, ChatMessage } from '../src/services/concierge';
 import { useAuth } from '../src/context/AuthContext';
 import { useTr } from '../src/i18n/autoTr';
+import { useLang } from '../src/context/LanguageContext';
+import { API_BASE } from '../src/constants/api';
+import { useSignupGate } from '../src/context/SignupGateContext';
+import { trackGate, getArchetype } from '../src/lib/gateAnalytics';
 
 const { width: SCREEN } = Dimensions.get('window');
 const CARD_SIZE = (SCREEN - SPACING.lg * 2 - SPACING.md) / 2;
@@ -58,6 +62,8 @@ export default function ConciergeScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const tr = useTr();
+  const { lang } = useLang();
+  const { openGate } = useSignupGate();
   const { agent: routeAgent } = useLocalSearchParams<{ agent?: string }>();
   const [activeAgent, setActiveAgent] = useState<AgentId | null>(
     routeAgent && AGENTS[routeAgent as AgentId] ? (routeAgent as AgentId) : null
@@ -79,13 +85,40 @@ export default function ConciergeScreen() {
   const sendMessage = async (text: string) => {
     if (!text.trim() || !activeAgent || loading) return;
 
-    // AI requires login
+    // Drop GATE (B2): a logged-out visitor gets ONE real Luna exchange (the
+    // cold-conversion taste), then the wall fires on the 2nd message.
     if (!user) {
-      setMessages([
-        { role: 'user', content: text.trim() },
-        { role: 'assistant', content: 'Para usar el concierge IA, necesitás iniciar sesión primero. ¡Es gratis!' },
-      ]);
-      setTimeout(() => router.push('/login' as any), 1500);
+      let tasted = false;
+      try { tasted = sessionStorage.getItem('amo_luna_tasted') === '1'; } catch {}
+      if (tasted) {
+        openGate({ action: 'luna', next: '/concierge' });
+        return;
+      }
+      const um: ChatMessage = { role: 'user', content: text.trim() };
+      setChipsVisible(false);
+      setMessages([...messages, um]);
+      setInput('');
+      setLoading(true);
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
+      try {
+        const r = await fetch(`${API_BASE}/agent/taste`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text.trim(), language: lang }),
+        });
+        if (r.ok) {
+          const d = await r.json();
+          try { sessionStorage.setItem('amo_luna_tasted', '1'); } catch {}
+          trackGate('luna_taste', { action: 'luna', archetype: getArchetype() });
+          setMessages((prev) => [...prev, { role: 'assistant', content: d?.assistant?.message || '¿En qué te ayudo?' }]);
+        } else {
+          // taste already used (429) or unavailable → the wall
+          openGate({ action: 'luna', next: '/concierge' });
+        }
+      } catch {
+        openGate({ action: 'luna', next: '/concierge' });
+      }
+      setLoading(false);
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
       return;
     }
 

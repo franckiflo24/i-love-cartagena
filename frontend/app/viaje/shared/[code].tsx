@@ -1,7 +1,7 @@
 // Drop 10 — shared trip GUEST VIEW (I6: never wall the view). Anyone with the
 // link sees the itinerary; joining/editing prompts sign-in contextually.
 // This is also the acquisition loop: the trip pulls the friend group in.
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl,
 } from 'react-native';
@@ -11,6 +11,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../../src/constants/theme';
 import { api, API_BASE } from '../../../src/constants/api';
 import { useTr } from '../../../src/i18n/autoTr';
+import { useSignupGate } from '../../../src/context/SignupGateContext';
+import { markArchetype } from '../../../src/lib/gateAnalytics';
 
 type GuestItem = {
   item_id: string; ref_type: string; ref_id?: string | null; ref_name?: string | null;
@@ -27,6 +29,7 @@ type GuestTrip = {
 export default function SharedTripScreen() {
   const tr = useTr();
   const router = useRouter();
+  const { openGate } = useSignupGate();
   const { code } = useLocalSearchParams<{ code: string }>();
   const [trip, setTrip] = useState<GuestTrip | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,6 +50,10 @@ export default function SharedTripScreen() {
     }
   }, [code]);
 
+  // Drop GATE (B1): arriving via a share link marks this visitor 'invited', so
+  // every later wall + the eventual signup attribute to the invited archetype.
+  useEffect(() => { markArchetype('invited'); }, []);
+
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
   const join = useCallback(async () => {
@@ -64,14 +71,14 @@ export default function SharedTripScreen() {
         return;
       }
     } catch {
-      // Not signed in → sign-in, then RETURN to this shared trip (FD-A1: the
-      // return-url survives login so the Drop 11 invite loop isn't dropped at
-      // the door). The guest VIEW stays open behind the prompt.
-      router.push({ pathname: '/login' as any, params: { next: `/viaje/shared/${code}` } });
+      // Drop GATE (B1): trying to JOIN while logged-out fires the honest wall,
+      // preserving ?next= to THIS trip so the invite loop survives login. The
+      // guest VIEW stays open behind the modal — the preview is never walled.
+      openGate({ action: 'join_trip', next: `/viaje/shared/${code}`, archetype: 'invited' });
     } finally {
       setJoining(false);
     }
-  }, [trip, joining, router, code]);
+  }, [trip, joining, openGate, code]);
 
   const grouped = groupByDay(trip?.items || []);
 

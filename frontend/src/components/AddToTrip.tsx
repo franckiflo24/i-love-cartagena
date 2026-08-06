@@ -9,7 +9,8 @@ import {
   View, Text, StyleSheet, TouchableOpacity, Modal, TextInput,
   ActivityIndicator, ScrollView, Platform,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, usePathname } from 'expo-router';
+import { useSignupGate } from '../context/SignupGateContext';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { api } from '../constants/api';
@@ -30,6 +31,8 @@ type TripRow = { trip_id: string; name: string; items_count: number; my_role: st
 export default function AddToTrip({ refType, refId, name, compact, style }: Props) {
   const tr = useTr();
   const router = useRouter();
+  const pathname = usePathname();
+  const { openGate } = useSignupGate();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [trips, setTrips] = useState<TripRow[]>([]);
@@ -42,17 +45,17 @@ export default function AddToTrip({ refType, refId, name, compact, style }: Prop
     try {
       const res = await api.get('/trips/mine');
       if (res?.error === 'unauthorized' || res?.status === 401 || res?.detail === 'Not authenticated') {
-        router.push('/login' as any);
+        openGate({ action: 'add_trip', next: pathname });
         return;
       }
       setTrips((res?.trips || []).filter((t: TripRow) => t.my_role !== 'viewer'));
       setOpen(true);
     } catch {
-      router.push('/login' as any);
+      openGate({ action: 'add_trip', next: pathname });
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [openGate, pathname]);
 
   const addTo = useCallback(async (trip: TripRow) => {
     setLoading(true);

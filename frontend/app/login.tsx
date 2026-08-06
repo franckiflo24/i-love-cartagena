@@ -45,11 +45,14 @@ export default function LoginScreen() {
   useEffect(() => {
     if (user && !isLoading) {
       const dest = safeNext(next);
-      if (dest) {
+      if (!user.onboarding_completed) {
+        // Drop GATE (B3): a NEW signup — including one that hit a wall — runs the
+        // Drop FR arrival to ACTIVATE (cinematic welcome + first stamp), and the
+        // return-url rides THROUGH it so they land back on the exact action after.
+        router.replace(dest ? ({ pathname: '/onboarding' as any, params: { next: dest } }) : ('/onboarding' as any));
+      } else if (dest) {
+        // Returning user with a return-url → straight to the intended action.
         router.replace(dest as any);
-      } else if (!user.onboarding_completed) {
-        // First login — send to onboarding for personalization
-        router.replace('/onboarding' as any);
       } else {
         // FR-D: a RETURNING user (already onboarded) gets a warm welcome-back
         // beat on home instead of a cold drop. Flag it for this session only.
@@ -125,19 +128,22 @@ export default function LoginScreen() {
     setLoginError('');
     setSavingSignup(true);
     try {
-      const res = await api.post('/auth/verify', { email, code, name });
+      // Drop GATE: attribute the signup to the archetype whose wall drove it.
+      let archetype: string | undefined;
+      try { archetype = (sessionStorage.getItem('amo_archetype') as any) || undefined; } catch {}
+      const res = await api.post('/auth/verify', { email, code, name, archetype });
       if (res.session_token && res.user) {
         await loginWithToken(res.session_token, res.user);
         setSavingSignup(false);
         setShowSignup(false);
         setVerifyStep(false);
-        // FD-A1/FD-B4: a user who signed up from a shared link returns to THAT
-        // destination (the invited passport/trip/venue), not a generic home.
         const dest = safeNext(next);
-        if (dest) {
+        // Drop GATE (B3): a NEW signup activates via the FR arrival, carrying the
+        // return-url THROUGH it; a returning user goes straight to the action.
+        if (!res.user.onboarding_completed) {
+          router.replace(dest ? ({ pathname: '/onboarding' as any, params: { next: dest } }) : ('/onboarding' as any));
+        } else if (dest) {
           router.replace(dest as any);
-        } else if (!res.user.onboarding_completed) {
-          router.replace('/onboarding' as any);
         } else {
           router.replace('/(tabs)');
         }

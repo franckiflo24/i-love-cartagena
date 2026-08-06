@@ -407,6 +407,16 @@ async def passport_discover(request: Request, body: DiscoverBody):
             except Exception as exc:
                 logger.warning(f"[walking] stamp points failed: {exc}")
 
+        # Drop GATE (Part C): a signup ACTIVATES on its first real stamp — stamp
+        # activated_at once so hollow signups are visible against real activations.
+        try:
+            await db.users.update_one(
+                {"user_id": user_id, "activated_at": {"$exists": False}},
+                {"$set": {"activated_at": datetime.now(timezone.utc).isoformat()}},
+            )
+        except Exception:
+            pass
+
         # Drop 8: rank-up + newly earned medals — celebrated once, client-side.
         rank_up = _rank_for(total)["key"] != _rank_for(total - 1)["key"]
         try:

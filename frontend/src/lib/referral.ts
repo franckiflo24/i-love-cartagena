@@ -12,6 +12,8 @@ export function captureRef() {
     const ref = new URLSearchParams(window.location.search).get('ref');
     if (ref && /^AMO[A-Z0-9]{4,8}$/i.test(ref)) {
       localStorage.setItem(PENDING_KEY, ref.toUpperCase());
+      // Drop GATE (B1): arrived via a share/referral link → 'invited' archetype.
+      try { sessionStorage.setItem('amo_archetype', 'invited'); } catch {}
     }
   } catch {}
 }
