@@ -120,7 +120,15 @@ export default function LoginScreen() {
         setSavingSignup(false);
         setShowSignup(false);
         setVerifyStep(false);
-        router.replace('/(tabs)');
+        // FD-A1/FD-B4: a user who signed up from a shared link returns to THAT
+        // destination (the invited passport/trip/venue), not a generic home.
+        if (typeof next === 'string' && next.startsWith('/')) {
+          router.replace(next as any);
+        } else if (!res.user.onboarding_completed) {
+          router.replace('/onboarding' as any);
+        } else {
+          router.replace('/(tabs)');
+        }
         return;
       }
       setLoginError('Error de autenticación. Respuesta inesperada del servidor.');

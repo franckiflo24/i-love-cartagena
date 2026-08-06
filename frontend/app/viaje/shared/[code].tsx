@@ -64,12 +64,14 @@ export default function SharedTripScreen() {
         return;
       }
     } catch {
-      // Not signed in → contextual sign-in prompt; the VIEW stays open behind it.
-      router.push('/login' as any);
+      // Not signed in → sign-in, then RETURN to this shared trip (FD-A1: the
+      // return-url survives login so the Drop 11 invite loop isn't dropped at
+      // the door). The guest VIEW stays open behind the prompt.
+      router.push({ pathname: '/login' as any, params: { next: `/viaje/shared/${code}` } });
     } finally {
       setJoining(false);
     }
-  }, [trip, joining, router]);
+  }, [trip, joining, router, code]);
 
   const grouped = groupByDay(trip?.items || []);
 

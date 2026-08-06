@@ -2049,7 +2049,8 @@ async def business_forgot_password(request: Request, background_tasks: Backgroun
                 "expires": (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
                 "attempts": 0, "created_at": _now_iso(),
             })
-            background_tasks.add_task(_emails_svc.send_verification_email, to=email, code=code, name=biz.get("full_name", ""))
+            # Drop FD: the dedicated premium password-reset email (was the generic code email).
+            background_tasks.add_task(_emails_svc.send_password_reset_email, to=email, code=code, name=biz.get("full_name", ""))
     return {"ok": True, "message": "Si el email existe, enviamos un código."}
 
 
