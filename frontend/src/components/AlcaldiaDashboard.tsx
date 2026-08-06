@@ -26,6 +26,35 @@ const fmtCOP = (n: number) =>
 const fmtNum = (n: number) =>
   (Number(n) || 0).toLocaleString('es-CO');
 
+const SAMPLE = '#C99A2E';
+
+// Honesty (GOV-FIX Phase 3): a clear marker on every panel whose numbers are
+// demonstration data, not real city metrics. Presenting invented numbers to a
+// government as real is the one thing that ends the relationship.
+function SampleBadge({ label = 'DATOS DE MUESTRA' }: { label?: string }) {
+  return (
+    <View style={styles.sampleBadge}>
+      <Ionicons name="flask-outline" size={10} color={SAMPLE} />
+      <Text style={styles.sampleBadgeText}>{label}</Text>
+    </View>
+  );
+}
+
+// Sets expectations up front: what's real vs. what's demonstration data.
+function DataSourceBanner() {
+  return (
+    <View style={styles.sourceBanner}>
+      <Ionicons name="information-circle" size={15} color={COLORS.primary} />
+      <Text style={styles.sourceBannerText}>
+        Ingresos, pagos, City Pass y usuarios son datos reales de la app. Los paneles marcados
+        <Text style={styles.sourceBannerEm}> Muestra </Text>
+        (perfil del turista, actividad, eventos y zonas) son datos de demostración — no métricas
+        reales de la ciudad todavía.
+      </Text>
+    </View>
+  );
+}
+
 const tabs: { key: Tab; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { key: 'overview', label: 'Resumen', icon: 'stats-chart' },
   { key: 'payments', label: 'Pagos', icon: 'card' },
@@ -184,6 +213,9 @@ export default function AlcaldiaDashboard({
         </View>
       </View>
 
+      {/* Real-vs-sample data source disclosure (honesty) */}
+      <DataSourceBanner />
+
       {/* Action Bar (events) */}
       <View style={styles.actionRow}>
         <TouchableOpacity style={styles.actionBtn} onPress={onCreateEvent}>
@@ -253,7 +285,7 @@ export default function AlcaldiaDashboard({
             <KpiTile color="#D97706" icon="people" value={fmtNum(k.total_users)} label="Total usuarios" />
             <KpiTile color="#22C55E" icon="trending-up" value={`+${fmtNum(k.new_users_30d)}`} label="Nuevos 30d" />
             <KpiTile color="#3B82F6" icon="flash" value={`+${fmtNum(k.new_users_7d)}`} label="Nuevos 7d" />
-            <KpiTile color="#A855F7" icon="globe" value={fmtNum(demo.total_profiled || 0)} label="Perfilados IA" />
+            <KpiTile color="#A855F7" icon="globe" value={fmtNum(demo.total_profiled || 0)} label="Perfilados · muestra" />
           </View>
 
           <Text style={styles.sectionTitle}>City Pass & Tasa Portuaria</Text>
@@ -267,7 +299,10 @@ export default function AlcaldiaDashboard({
           {/* Top Events */}
           {!!analytics?.top_events?.length && (
             <>
-              <Text style={styles.sectionTitle}>Eventos más vistos por turistas</Text>
+              <View style={styles.sampleTitleRow}>
+                <Text style={styles.sectionTitle}>Eventos más vistos por turistas</Text>
+                <SampleBadge label="MUESTRA" />
+              </View>
               {analytics.top_events.slice(0, 6).map((ev: any) => (
                 <View key={ev.event_id} style={styles.topRow}>
                   <View style={styles.topRowLeft}>
@@ -286,7 +321,10 @@ export default function AlcaldiaDashboard({
           {/* Top Zones */}
           {!!analytics?.top_zones?.length && (
             <>
-              <Text style={styles.sectionTitle}>Zonas más visitadas</Text>
+              <View style={styles.sampleTitleRow}>
+                <Text style={styles.sectionTitle}>Zonas más visitadas</Text>
+                <SampleBadge label="MUESTRA" />
+              </View>
               <View style={styles.chipsWrap}>
                 {analytics.top_zones.slice(0, 10).map((z: any) => (
                   <View key={z.zone} style={styles.zoneChip}>
@@ -378,9 +416,12 @@ export default function AlcaldiaDashboard({
 
       {tab === 'demographics' && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Perfil del turista</Text>
+          <View style={styles.sampleTitleRow}>
+            <Text style={styles.sectionTitle}>Perfil del turista</Text>
+            <SampleBadge />
+          </View>
           <Text style={styles.sectionSub}>
-            {fmtNum(demo.total_profiled || 0)} usuarios perfilados por IA · datos agregados
+            Datos de muestra para demostración — distribución ilustrativa, no turistas reales.
           </Text>
 
           {/* Nationalities */}
@@ -433,10 +474,11 @@ export default function AlcaldiaDashboard({
           )}
 
           <View style={styles.helpBox}>
-            <Ionicons name="information-circle" size={14} color={COLORS.textMuted} />
+            <Ionicons name="information-circle" size={14} color={SAMPLE} />
             <Text style={styles.helpText}>
-              Los datos demográficos provienen del módulo IA de perfilamiento de usuarios (basado en
-              favoritos, agenda y zonas visitadas). Anónimos y agregados.
+              Datos de muestra. El perfil demográfico real (anónimo y agregado, a partir de la
+              actividad en la app) se activará cuando el volumen de usuarios lo permita — hoy se
+              muestra una distribución ilustrativa para el diseño del panel.
             </Text>
           </View>
         </View>
@@ -671,6 +713,21 @@ const styles = StyleSheet.create({
   section: { paddingHorizontal: SPACING.lg, gap: SPACING.sm },
   sectionTitle: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.md },
   sectionSub: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: -2 },
+  sampleBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start',
+    backgroundColor: 'rgba(201,154,46,0.14)', borderColor: 'rgba(201,154,46,0.45)', borderWidth: 1,
+    borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2,
+  },
+  sampleBadgeText: { fontSize: 9, color: SAMPLE, ...FONTS.bold, letterSpacing: 0.5 },
+  sampleTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: SPACING.md },
+  sourceBanner: {
+    flexDirection: 'row', gap: 8, alignItems: 'flex-start',
+    marginHorizontal: SPACING.lg, marginTop: SPACING.sm,
+    backgroundColor: 'rgba(59,130,246,0.08)', borderColor: 'rgba(59,130,246,0.25)', borderWidth: 1,
+    borderRadius: RADIUS.md, padding: SPACING.sm,
+  },
+  sourceBannerText: { flex: 1, fontSize: 11, color: COLORS.textMuted, lineHeight: 16 },
+  sourceBannerEm: { color: SAMPLE, ...FONTS.bold },
   subTitle: {
     fontSize: 12,
     color: COLORS.textMuted,
