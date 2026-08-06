@@ -13,6 +13,8 @@ import { useTr } from '../src/i18n/autoTr';
 import { useLang } from '../src/context/LanguageContext';
 import { SafeImage } from '../src/components/SafeImage';
 import AddToTrip from '../src/components/AddToTrip';
+import { useAuth } from '../src/context/AuthContext';
+import LockedTease from '../src/components/LockedTease';
 
 type AIHighlight = { type: string; id: string; reason: string };
 type AIRecommendation = {
@@ -210,6 +212,7 @@ export default function SearchScreen() {
   const tr = useTr();
   const router = useRouter();
   const { lang } = useLang();
+  const { user } = useAuth();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Results | null>(null);
   const [loading, setLoading] = useState(false);
@@ -858,7 +861,29 @@ export default function SearchScreen() {
                   </TouchableOpacity>
                 )}
               </View>
-            ) : null}
+            ) : (!user && query.trim().length >= 2 ? (
+              // Drop FOMO: anon gets the keyword results, but Luna's ANSWER is
+              // frosted — they see a real reply exists and unlock it in one tap.
+              // No LLM runs for anon (server returns empty ai), so this is a pure
+              // client-side tease, zero API cost.
+              <View style={{ marginBottom: SPACING.md }}>
+                <LockedTease
+                  action="luna"
+                  next="/search"
+                  icon="sparkles"
+                  title={tr('Luna tiene tu respuesta')}
+                  subtitle={tr('Preguntá lo que sea y Luna arma tu plan. Creá tu cuenta gratis para ver su respuesta completa.')}
+                  cta={tr('Desbloquear Luna gratis')}
+                  minHeight={150}
+                >
+                  <View style={{ padding: SPACING.lg, gap: 9 }}>
+                    <View style={{ height: 12, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.14)', width: '92%' }} />
+                    <View style={{ height: 12, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.12)', width: '74%' }} />
+                    <View style={{ height: 12, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.10)', width: '84%' }} />
+                  </View>
+                </LockedTease>
+              </View>
+            ) : null)}
 
             {totalResults === 0 ? (
               <View style={styles.emptyState}>

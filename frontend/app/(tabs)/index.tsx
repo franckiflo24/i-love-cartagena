@@ -23,6 +23,7 @@ import { SeasonBanner } from '../../src/components/SeasonBanner';
 import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
 import { NowStrip } from '../../src/components/NowStrip';
 import WelcomeBackBeat from '../../src/components/WelcomeBackBeat';
+import LockedTease from '../../src/components/LockedTease';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
@@ -769,11 +770,10 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
-                <Ionicons name="sparkles" size={18} color="#A855F7" />
-                <Text style={styles.sectionTitle}>{tr('Para ti')}</Text>
-                <View style={styles.aiBadge}>
-                  <Text style={styles.aiBadgeText}>AI</Text>
-                </View>
+                {/* Drop FOMO: honest label — these are generic popular picks, not
+                    the AI-personalized 'Para ti' (that's the locked tease below). */}
+                <Ionicons name="flame" size={18} color={COLORS.primary} />
+                <Text style={styles.sectionTitle}>{tr('Populares en Cartagena')}</Text>
               </View>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: SPACING.lg, gap: SPACING.sm }}>
@@ -805,6 +805,31 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          </View>
+        )}
+
+        {/* Drop FOMO: the LOCKED personalized layer — an anon visitor sees the
+            SHAPE of Luna's picks (blurred), and one tap unlocks the real thing.
+            This is the desire trigger the free 'Populares' row deliberately isn't. */}
+        {!user && (
+          <View style={styles.section}>
+            <LockedTease
+              action="personalize"
+              next="/"
+              icon="sparkles"
+              title={tr('Tu Cartagena, según Luna')}
+              subtitle={tr('Luna elige lugares para vos según tu vibra. Creá tu cuenta gratis y desbloqueá los tuyos.')}
+              cta={tr('Crear cuenta gratis')}
+              minHeight={188}
+            >
+              <View style={{ flexDirection: 'row', gap: SPACING.sm, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md }}>
+                {[0, 1, 2].map((i) => (
+                  <View key={i} style={{ width: 150, height: 128, borderRadius: RADIUS.md, backgroundColor: 'rgba(212,175,55,0.09)', borderWidth: 1, borderColor: 'rgba(212,175,55,0.16)', alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="sparkles" size={22} color="rgba(212,175,55,0.45)" />
+                  </View>
+                ))}
+              </View>
+            </LockedTease>
           </View>
         )}
 

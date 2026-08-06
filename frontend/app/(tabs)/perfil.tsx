@@ -167,7 +167,21 @@ export default function PerfilScreen() {
               <Ionicons name="person-circle-outline" size={56} color={COLORS.primary} />
             </View>
             <Text style={styles.guestTitle}>{s('profile_login')}</Text>
-            <Text style={styles.guestSubtitle}>{tr('Inicia sesión para guardar favoritos, recibir recomendaciones IA y acceder a tu City Pass.')}</Text>
+            <Text style={styles.guestSubtitle}>{tr('Tu pasaporte de Cartagena te espera. Creá tu cuenta gratis y desbloqueá todo.')}</Text>
+          </View>
+
+          {/* Drop FOMO: name the magic they unlock — desire, not a bare prompt. */}
+          <View style={{ alignSelf: 'stretch', gap: 11, marginBottom: SPACING.lg }}>
+            {[
+              ['ribbon', tr('Tu pasaporte: sellos y títulos de Cartagena')],
+              ['sparkles', tr('Luna, tu concierge personal — sin límites')],
+              ['card', tr('City Pass y viajes que planeás con tu grupo')],
+            ].map(([icon, label]) => (
+              <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 11 }}>
+                <Ionicons name={icon as any} size={16} color={COLORS.primary} />
+                <Text style={{ flex: 1, color: 'rgba(255,255,255,0.82)', fontSize: 13.5, lineHeight: 18 }}>{label}</Text>
+              </View>
+            ))}
           </View>
 
           {/* Auth error from Google redirect */}
