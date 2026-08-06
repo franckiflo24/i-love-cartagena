@@ -20,6 +20,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { trackGate } from '../lib/gateAnalytics';
+import { safeNext } from '../lib/safeNext';
 
 const GOLD = '#D4AF37';
 const GOLD_BRIGHT = '#F5D47A';
@@ -72,7 +73,9 @@ export const SignupGateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       sessionStorage.setItem('amo_gate_attr', JSON.stringify({ action, archetype }));
     } catch {}
     setOpen(false);
-    const next = opts.next && opts.next.startsWith('/') && !opts.next.startsWith('//') ? opts.next : undefined;
+    // GATE-2B: the ONE canonical guard (was a weaker inline check that let the
+    // backslash open-redirect '/\evil.com' through — see src/lib/safeNext).
+    const next = safeNext(opts.next) ?? undefined;
     router.push({ pathname: '/login' as any, params: next ? { next } : {} });
   }, [opts, router]);
 

@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLang } from '../src/context/LanguageContext';
 import { Lang, LANG_FLAGS } from '../src/i18n/translations';
 import { useTr } from '@/src/i18n/autoTr';
+import { safeNext } from '../src/lib/safeNext';
 
 const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
 
@@ -35,13 +36,7 @@ export default function LoginScreen() {
   const [resendCountdown, setResendCountdown] = useState(0);
   const tr = useTr();
 
-  // A return-url must be a same-app path — NOT an external destination. A bare
-  // startsWith('/') is NOT enough: '//evil.com' and '/\evil.com' also start
-  // with '/' but are protocol-relative/backslash open-redirects. Require a
-  // single leading slash followed by a normal path char.
-  const safeNext = (n: unknown): string | null =>
-    typeof n === 'string' && /^\/(?![/\\])[A-Za-z0-9/_\-?=&.%]*$/.test(n) ? n : null;
-
+  // Same-app return-url guard is the shared canonical helper (src/lib/safeNext).
   useEffect(() => {
     if (user && !isLoading) {
       const dest = safeNext(next);

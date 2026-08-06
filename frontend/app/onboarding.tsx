@@ -22,6 +22,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { useAuth } from '../src/context/AuthContext';
 import { api, API_BASE } from '../src/constants/api';
 import { geoService, haversineM } from '../src/lib/geo';
+import { safeNext } from '../src/lib/safeNext';
 
 const GOLD = '#D4AF37';
 const GOLD_BRIGHT = '#F5D47A';
@@ -41,8 +42,8 @@ export default function OnboardingArrival() {
   const { user } = useAuth();
   const firstName = (user?.name || '').trim().split(' ')[0];
   // Drop GATE (B3): after the arrival activates a gated signup, return to the
-  // exact action they were headed for. Same open-redirect guard as login.
-  const dest = typeof next === 'string' && /^\/(?![/\\])[A-Za-z0-9/_\-?=&.%]*$/.test(next) ? next : null;
+  // exact action they were headed for. Same canonical guard as login (safeNext).
+  const dest = safeNext(next);
 
   const [beat, setBeat] = useState<Beat>('arrival');
   const [nowLine, setNowLine] = useState<{ es: string; sunset?: string; key?: string } | null>(null);

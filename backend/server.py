@@ -5030,12 +5030,16 @@ async def track_gate(body: GateEvent, request: Request):
     ev = (body.event or "")[:32]
     if ev not in ("gate_shown", "gate_cta", "gate_dismissed", "luna_taste", "activation"):
         raise HTTPException(status_code=400, detail="invalid event")
+    now = datetime.now(timezone.utc)
     await db.gate_events.insert_one({
         "event": ev,
         "action": (body.action or "generic")[:32],
         "archetype": "invited" if body.archetype == "invited" else "cold",
         "session": (body.session or "")[:40],
-        "ts": datetime.now(timezone.utc).isoformat(),
+        "ts": now.isoformat(),
+        # GATE-4B: a real BSON date so the TTL index can actually expire old
+        # telemetry (a string `ts` cannot drive TTL). Bounds gate_events growth.
+        "ts_dt": now,
     })
     return {"ok": True}
 
@@ -6534,24 +6538,41 @@ async def admin_alcaldia_payouts(request: Request, status: Optional[str] = None)
 # AI Concierge Agent — "Amo"
 # ─────────────────────────────────────────────────────────────
 
+# GATE-1A: hard daily ceiling on ANONYMOUS Luna tastes across ALL IPs. The
+# per-IP gate (1/IP/day) is provably unspoofable but bounds IDENTITY, not SPEND —
+# an attacker renting rotating proxy IPs satisfies "1/IP/day" at any scale. This
+# caps total anonymous LLM spend/day regardless of IP count. Env-overridable;
+# ~2000 Haiku tastes/day is generous legit headroom yet a bounded worst-case bill.
+_LUNA_TASTE_DAILY_CAP = int(os.environ.get("LUNA_TASTE_DAILY_CAP", "2000"))
+
+
 @api_router.post("/agent/taste")
 async def agent_taste(request: Request):
     """Drop GATE (B2): ONE anonymous Luna exchange — the cold-conversion hook.
     A logged-out visitor gets a single real taste of the concierge, then the
     signup wall fires on their 2nd message. Bounded HARD to protect the LLM key:
-    ONE call per IP per day, fail-closed (`lunataste` is a SENSITIVE_PREFIX), no
-    session, no history. Not a backdoor to /agent/chat's per-user allowance."""
-    ip = _client_ip(request)
-    await _check_rate_limit(f"lunataste:{ip}", max_calls=1, window_sec=86400)
+    ONE call per IP per day AND a global daily ceiling, both fail-closed
+    (`lunataste` is a SENSITIVE_PREFIX), on the cheap Haiku tier, no session, no
+    history. Not a backdoor to /agent/chat's per-user allowance."""
     body = await request.json()
     user_text = (body.get("message") or "").strip()
     if not user_text:
         raise HTTPException(status_code=400, detail="message required")
     if len(user_text) > 500:
         raise HTTPException(status_code=400, detail="message too long")
+    # Rate-limit AFTER validation (GATE-1F): a malformed request must not burn a
+    # real visitor's one daily taste on a shared NAT (hostel/office/campus WiFi).
+    ip = _client_ip(request)
+    await _check_rate_limit(f"lunataste:{ip}", max_calls=1, window_sec=86400)
+    # GATE-1A: global circuit breaker — bounds total spend, not just per-IP
+    # identity. Only a genuinely novel valid request reaches it (per-IP-rejected
+    # and malformed calls never increment it). When hit, cold visitors simply meet
+    # the signup wall one message sooner — degrades the hook, never drains the key.
+    await _check_rate_limit("lunataste:global", max_calls=_LUNA_TASTE_DAILY_CAP, window_sec=86400)
     payload = await _ai_agent.run_agent_turn(
         db, user=None, user_text=user_text, history=[],
         forced_language=(body.get("language") or "").strip().lower() or None,
+        fast=True,  # GATE-1B: a taste uses the cheap Haiku tier, not paid-chat Sonnet
     )
     return {"assistant": {
         "message": payload["message"],
@@ -7147,6 +7168,9 @@ async def startup():
         await db.price_flags.create_index([("user_id", 1), ("venue_id", 1), ("date", 1)], unique=True)
         # Drop RL: shared atomic rate-limit buckets — TTL sweeps closed windows
         await db.rate_buckets.create_index("exp", expireAfterSeconds=0)
+        # GATE-4B: expire anonymous gate telemetry after 180d (needs a real BSON
+        # date — see track_gate's ts_dt). Caps unbounded gate_events storage growth.
+        await db.gate_events.create_index("ts_dt", expireAfterSeconds=60 * 60 * 24 * 180)
         # Drop 10 — Mi Viaje: trips + items (share_code sparse — most trips unshared)
         await db.trips.create_index("trip_id", unique=True)
         await db.trips.create_index("share_code", unique=True, sparse=True)
