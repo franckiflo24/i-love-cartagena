@@ -1799,6 +1799,90 @@ async def admin_unlock_login(request: Request):
     return {"cleared": result.deleted_count}
 
 
+@api_router.post("/business/admin/ensure-alcaldia")
+async def admin_ensure_alcaldia(request: Request):
+    """GOV-FIX: make the Alcaldía institutional account reliably exist.
+
+    ROOT CAUSE this fixes: the account is seeded only inside @app.on_event(
+    "startup"), which is unreliable on Vercel serverless (the same reason the
+    B1 backfill was moved to an explicit endpoint) — so on the live deployment
+    the government account was never created and /business/login 401'd.
+
+    Auth: Bearer CRON_SECRET ONLY (a government session can't be used to
+    bootstrap the government account — chicken-and-egg — so this is the sole
+    admin op that does NOT fall back to _require_government_role). Idempotent:
+    ensures the partner + business_user, aligns the password hash to the
+    ALCALDIA_PASSWORD env value (covers both missing-account and stale-hash),
+    and clears any login lock. Reports STATE only — never the secret.
+    """
+    auth = request.headers.get("Authorization", "")
+    token = auth[7:] if auth.startswith("Bearer ") else ""
+    cron = os.environ.get("CRON_SECRET", "")
+    if not cron or token != cron:
+        raise HTTPException(status_code=403, detail="cron secret required")
+
+    ALCALDIA_PARTNER_ID = "ptr_alcaldia"
+    ALCALDIA_EMAIL = "alcaldia@amocartagena.app"
+    pw = os.environ.get("ALCALDIA_PASSWORD", "")
+    if not pw:
+        raise HTTPException(status_code=503, detail="ALCALDIA_PASSWORD not configured in env")
+
+    # ── Pre-state (the diagnosis, reported not fixed-blind) ──
+    before_biz = await db.business_users.find_one({"email": ALCALDIA_EMAIL}, {"_id": 0, "role": 1, "partner_id": 1})
+    before = {
+        "account_existed": bool(before_biz),
+        "role_before": (before_biz or {}).get("role"),
+        "partner_id_before": (before_biz or {}).get("partner_id"),
+        "partner_existed": bool(await db.partners.find_one({"partner_id": ALCALDIA_PARTNER_ID}, {"_id": 1})),
+    }
+
+    # ── Ensure the institutional partner profile (idempotent) ──
+    await db.partners.update_one(
+        {"partner_id": ALCALDIA_PARTNER_ID},
+        {"$setOnInsert": {
+            "partner_id": ALCALDIA_PARTNER_ID,
+            "name": "Alcaldía de Cartagena",
+            "description": "Cuenta oficial de la Alcaldía Mayor de Cartagena de Indias.",
+            "category": "institutional", "subcategory": "government", "tier": "institutional",
+            "location": {"lat": 10.4236, "lng": -75.5519},
+            "address": "Plaza de la Aduana, Centro Histórico",
+            "is_certified": True, "is_government": True,
+        }},
+        upsert=True,
+    )
+
+    # ── Ensure the government account + align credential to env (NEVER logged) ──
+    pw_hash = _bcrypt.hashpw(pw.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+    await db.business_users.update_one(
+        {"email": ALCALDIA_EMAIL},
+        {"$set": {
+            "email": ALCALDIA_EMAIL,
+            "password_hash": pw_hash,      # aligns to the current env credential
+            "role": "government",          # correct role guaranteed
+            "partner_id": ALCALDIA_PARTNER_ID,
+            "status": "active",
+        }, "$setOnInsert": {
+            "business_id": "biz_alcaldia",
+            "full_name": "Alcaldía de Cartagena",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }},
+        upsert=True,
+    )
+    try:
+        await db.business_users.create_index("email", unique=True)
+    except Exception:
+        pass
+    # Clear any stale login lock so a fresh attempt isn't throttled.
+    await db.login_throttle.delete_many({})
+
+    return {
+        "ensured": True,
+        "diagnosis": before,
+        "now": {"role": "government", "partner_id": ALCALDIA_PARTNER_ID, "credential": "aligned_to_env"},
+        "note": "Institutional login now works with the ALCALDIA_PASSWORD env credential.",
+    }
+
+
 @api_router.delete("/business/admin/accounts/{business_id}")
 async def admin_delete_account(business_id: str, request: Request):
     """Offboard a partner account. Safety: only role=='business' accounts —
