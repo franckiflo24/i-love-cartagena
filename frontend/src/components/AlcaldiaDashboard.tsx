@@ -46,10 +46,11 @@ function DataSourceBanner() {
     <View style={styles.sourceBanner}>
       <Ionicons name="information-circle" size={15} color={COLORS.primary} />
       <Text style={styles.sourceBannerText}>
-        Ingresos, pagos, City Pass y usuarios son datos reales de la app. Los paneles marcados
+        Ingresos, pagos, usuarios y zonas visitadas son datos reales de la app. Los paneles
+        marcados
         <Text style={styles.sourceBannerEm}> Muestra </Text>
-        (perfil del turista, actividad, eventos y zonas) son datos de demostración — no métricas
-        reales de la ciudad todavía.
+        (perfil del turista y eventos más vistos) son datos de demostración — no métricas reales
+        de la ciudad todavía.
       </Text>
     </View>
   );
@@ -318,13 +319,11 @@ export default function AlcaldiaDashboard({
             </>
           )}
 
-          {/* Top Zones */}
+          {/* Top Zones — REAL data (db.location_pings, written only by the live
+              ping endpoint; never seeded). No sample marker. */}
           {!!analytics?.top_zones?.length && (
             <>
-              <View style={styles.sampleTitleRow}>
-                <Text style={styles.sectionTitle}>Zonas más visitadas</Text>
-                <SampleBadge label="MUESTRA" />
-              </View>
+              <Text style={styles.sectionTitle}>Zonas más visitadas</Text>
               <View style={styles.chipsWrap}>
                 {analytics.top_zones.slice(0, 10).map((z: any) => (
                   <View key={z.zone} style={styles.zoneChip}>

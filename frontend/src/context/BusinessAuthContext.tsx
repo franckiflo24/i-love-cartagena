@@ -61,9 +61,16 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
       setBusiness(data.business);
       setPartner(data.partner);
       await AsyncStorage.setItem(BIZ_KEY, data.token);
-    } catch (e) {
-      console.error('[BusinessAuth] Login failed — backend unavailable', e);
-      throw new Error('Inicio de sesión no disponible en este momento. / Login is not available right now.');
+    } catch (e: any) {
+      // Surface the REAL reason (wrong password, too many attempts, etc.) so a
+      // failed login is diagnosable — the old blanket "no disponible" made a
+      // wrong password look like a server outage. Only genuine network/transport
+      // failures fall back to the generic offline message.
+      const msg = (e && e.message) || '';
+      if (/Failed to fetch|NetworkError|Load failed|ECONNREFUSED|timeout/i.test(msg)) {
+        throw new Error('Inicio de sesión no disponible en este momento. / Login is not available right now.');
+      }
+      throw e instanceof Error ? e : new Error(msg || 'Credenciales inválidas');
     }
   };
 
