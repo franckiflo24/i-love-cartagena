@@ -4791,6 +4791,14 @@ async def global_search(q: str = "", request: Request = None):
             _shown, None,
             extra={"fast_path": True, "intent": direct_hit["intent"], "ai_used": False},
         )
+        # Drop FOMO: the fast-path answer card IS the "Luna answered me" moment —
+        # gate it for anonymous users too. They keep the ranked matches (the hook);
+        # the ANSWER is walled into the client-side signup tease. Authed users keep
+        # the instant card. Fast-path is pure templating (no LLM), so this is a
+        # content/honesty gate, not a cost one — but the "no AI answer for anon"
+        # invariant must hold for EVERY /search path, not just the LLM branch below.
+        if user_obj is None:
+            return {**matches, "search_id": search_id, "ai": {"query": q, "intent": "general", "answer": "", "highlights": []}}
         return {**matches, "search_id": search_id, "ai": ai_payload}
 
     # ── Curated authority (Franck's ranked answer key) ──
