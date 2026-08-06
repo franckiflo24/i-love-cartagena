@@ -13,11 +13,18 @@ SPF via send.amocartagena.co + DKIM resend._domainkey + DMARC all live).
 Uses httpx (already in deps) instead of the resend SDK.
 """
 import os
+import html
 import httpx
 import logging
 import secrets
 
 logger = logging.getLogger(__name__)
+
+
+def _safe(s: str) -> str:
+    """HTML-escape user-controlled text (name) before it enters email HTML —
+    a name like '<a href=evil>' must not inject markup into the message."""
+    return html.escape((s or "").strip())
 
 FROM_EMAIL = "hola@amocartagena.co"
 FROM_NAME = "AMO Cartagena"
@@ -128,7 +135,7 @@ def _code_box(code: str) -> str:
 
 async def send_verification_email(*, to: str, code: str, name: str = "") -> bool:
     """6-digit code to prove ownership of an email (consumer sign-in + business claim)."""
-    greeting = f"Hola {name}" if name else "Hola"
+    greeting = f"Hola {_safe(name)}" if name else "Hola"
     preheader = f"Tu código AMO es {code} — válido por {VERIFY_CODE_TTL_MINUTES} minutos."
     inner = f"""
   <tr><td style="padding:26px 34px 0;">
@@ -158,7 +165,7 @@ async def send_password_reset_email(*, to: str, code: str, name: str = "") -> bo
     can't be clicked from a spoofed email into an attacker's page the way a
     reset LINK can — more phishing-resistant). The code is crypto-random,
     single-use, 15-min expiry, and invalidated when a new one is requested."""
-    greeting = f"Hola {name}" if name else "Hola"
+    greeting = f"Hola {_safe(name)}" if name else "Hola"
     preheader = f"Tu código para restablecer la contraseña: {code} (válido {VERIFY_CODE_TTL_MINUTES} min)."
     inner = f"""
   <tr><td style="padding:26px 34px 0;">
@@ -195,7 +202,7 @@ _WELCOME_FEATURES = [
 
 async def send_welcome_email(*, to: str, name: str = "") -> bool:
     """Welcome email after a consumer verifies their account."""
-    greeting = name or "viajero"
+    greeting = _safe(name) or "viajero"
     preheader = "Tu pasaporte de Cartagena te espera — sellá tu primer lugar."
     rows = ""
     for icon, title, desc in _WELCOME_FEATURES:
