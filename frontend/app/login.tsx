@@ -35,10 +35,18 @@ export default function LoginScreen() {
   const [resendCountdown, setResendCountdown] = useState(0);
   const tr = useTr();
 
+  // A return-url must be a same-app path — NOT an external destination. A bare
+  // startsWith('/') is NOT enough: '//evil.com' and '/\evil.com' also start
+  // with '/' but are protocol-relative/backslash open-redirects. Require a
+  // single leading slash followed by a normal path char.
+  const safeNext = (n: unknown): string | null =>
+    typeof n === 'string' && /^\/(?![/\\])[A-Za-z0-9/_\-?=&.%]*$/.test(n) ? n : null;
+
   useEffect(() => {
     if (user && !isLoading) {
-      if (typeof next === 'string' && next.startsWith('/')) {
-        router.replace(next as any);
+      const dest = safeNext(next);
+      if (dest) {
+        router.replace(dest as any);
       } else if (!user.onboarding_completed) {
         // First login — send to onboarding for personalization
         router.replace('/onboarding' as any);
@@ -122,8 +130,9 @@ export default function LoginScreen() {
         setVerifyStep(false);
         // FD-A1/FD-B4: a user who signed up from a shared link returns to THAT
         // destination (the invited passport/trip/venue), not a generic home.
-        if (typeof next === 'string' && next.startsWith('/')) {
-          router.replace(next as any);
+        const dest = safeNext(next);
+        if (dest) {
+          router.replace(dest as any);
         } else if (!res.user.onboarding_completed) {
           router.replace('/onboarding' as any);
         } else {
