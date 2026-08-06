@@ -22,6 +22,7 @@ import { PassportGlance } from '../../src/components/PassportGlance';
 import { SeasonBanner } from '../../src/components/SeasonBanner';
 import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
 import { NowStrip } from '../../src/components/NowStrip';
+import WelcomeBackBeat from '../../src/components/WelcomeBackBeat';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const HERO_WIDTH = SCREEN_WIDTH - SPACING.lg * 2;
@@ -457,6 +458,9 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         )}
+
+        {/* Drop FR (FR-D): warm returning-user beat — real title/streak/now */}
+        <WelcomeBackBeat />
 
         {/* Drop 11 (11C1): the reciprocal spark — real names, the real +500 */}
         {refMoment && (

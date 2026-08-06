@@ -51,6 +51,9 @@ export default function LoginScreen() {
         // First login — send to onboarding for personalization
         router.replace('/onboarding' as any);
       } else {
+        // FR-D: a RETURNING user (already onboarded) gets a warm welcome-back
+        // beat on home instead of a cold drop. Flag it for this session only.
+        try { sessionStorage.setItem('amo_welcome_back', '1'); } catch {}
         router.replace('/(tabs)');
       }
     }

@@ -1,411 +1,305 @@
-import React, { useState } from 'react';
+// Drop FR — THE FIRST-RUN ARRIVAL (cold/direct signup made alive).
+//
+// Not a form, a moment: a gold-on-midnight welcome beat with staggered reveals,
+// Luna greeting the user in character with a REAL time-aware line (Drop 9
+// /api/now — real hour + real sunset), the passport framed as invitation
+// (Drop 8/11), and the single nearest REAL stamp to chase (desire engine —
+// geoService + /api/nearby, real distance; geo-denied → a real central first
+// stamp, no phantom distance). Then ONE question (user_type, already wired into
+// Luna's personalization, Drop 4) → straight into the app. ~2 taps, skippable.
+//
+// Honesty spine: empty passport = potential, never a fake trophy; the first
+// stamp is real; Luna's line is grounded; skipping still lands in the app.
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, ScrollView, Platform,
+  View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Platform, ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
-import { IMAGES } from '../src/constants/images';
-import { useLang } from '../src/context/LanguageContext';
-import { Lang, LANG_FLAGS } from '../src/i18n/translations';
 import { useAuth } from '../src/context/AuthContext';
-import { api } from '../src/constants/api';
+import { api, API_BASE } from '../src/constants/api';
+import { geoService, haversineM } from '../src/lib/geo';
 
-const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
+const GOLD = '#D4AF37';
+const GOLD_BRIGHT = '#F5D47A';
+const INK = '#07070E';
+const SERIF = Platform.select({ web: "Georgia, 'Times New Roman', serif", default: 'serif' });
 
-const { width: W } = Dimensions.get('window');
-const ACCENT = '#D97706';
+// The real "easy first stamp" when geo is denied — the flagship sunset stamp at
+// the city wall (Drop 8: works 365 days, no re-verify). A real target, no fake distance.
+const FALLBACK_STAMP = { name: 'La muralla al atardecer', hint: 'el sello más fácil de ganar' };
 
-type Step = 'welcome' | 'type' | 'travel' | 'interests' | 'complete';
-const STEPS: Step[] = ['welcome', 'type', 'travel', 'interests', 'complete'];
+type Beat = 'arrival' | 'question';
 
-const INTEREST_ITEMS = [
-  { key: 'restaurant', icon: 'restaurant' },
-  { key: 'bar', icon: 'wine' },
-  { key: 'beach_club', icon: 'umbrella' },
-  { key: 'club', icon: 'musical-notes' },
-  { key: 'spa', icon: 'leaf' },
-  { key: 'beauty', icon: 'cut' },
-  { key: 'activity', icon: 'compass' },
-  { key: 'hotel', icon: 'bed' },
-  { key: 'cafe', icon: 'cafe' },
-  { key: 'yacht', icon: 'boat' },
-];
-
-const PARTY_TYPES = [
-  { key: 'solo', icon: 'person' },
-  { key: 'couple', icon: 'heart' },
-  { key: 'family', icon: 'people' },
-  { key: 'friends', icon: 'beer' },
-  { key: 'cruise', icon: 'boat' },
-];
-
-const addDays = (d: Date, n: number) => {
-  const r = new Date(d);
-  r.setDate(r.getDate() + n);
-  return r;
-};
-const toIso = (d: Date) => d.toISOString().slice(0, 10);
-const fmtDate = (iso: string) => {
-  const d = new Date(iso + 'T12:00:00');
-  const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  return `${d.getDate()} ${months[d.getMonth()]}`;
-};
-
-export default function OnboardingScreen() {
+export default function OnboardingArrival() {
   const router = useRouter();
-  const { s, lang, setLang } = useLang();
   const { user } = useAuth();
-  const [step, setStep] = useState<Step>('welcome');
-  const [skippedSteps, setSkippedSteps] = useState<string[]>([]);
+  const firstName = (user?.name || '').trim().split(' ')[0];
 
-  // Profile state
-  const [userType, setUserType] = useState<'visitor' | 'local' | null>(null);
-  const [startDate, setStartDate] = useState(toIso(new Date()));
-  const [endDate, setEndDate] = useState(toIso(addDays(new Date(), 3)));
-  const [partyType, setPartyType] = useState<string | null>(null);
-  const [interests, setInterests] = useState<string[]>([]);
+  const [beat, setBeat] = useState<Beat>('arrival');
+  const [nowLine, setNowLine] = useState<{ es: string; sunset?: string; icon?: string } | null>(null);
+  const [firstStamp, setFirstStamp] = useState<{ name: string; distance?: number; hint?: string } | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const stepIdx = STEPS.indexOf(step);
+  // Staggered reveal choreography — five beats fading up in sequence.
+  const anims = useRef([0, 1, 2, 3, 4].map(() => new Animated.Value(0))).current;
+  const glow = useRef(new Animated.Value(0)).current;
 
-  const skip = () => {
-    finish(false);
-  };
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glow, { toValue: 1, duration: 3600, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+        Animated.timing(glow, { toValue: 0, duration: 3600, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+      ]),
+    ).start();
+    Animated.stagger(240, anims.map((a) =>
+      Animated.timing(a, { toValue: 1, duration: 620, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+    )).start();
+  }, []);
 
-  const goNext = () => {
-    const next = stepIdx + 1;
-    if (next >= STEPS.length) {
-      finish(true);
-    } else {
-      // Locals skip travel/party screen
-      if (STEPS[next] === 'travel' && userType === 'local') {
-        setStep(STEPS[next + 1] || 'complete');
-      } else {
-        setStep(STEPS[next]);
-      }
-    }
-  };
-
-  const finish = async (completed: boolean) => {
-    await AsyncStorage.setItem('@onboarding_done', 'true');
-
-    // Persist to backend if logged in
-    if (user) {
+  // Grounded time-aware greeting (Drop 9) — public endpoint, real time + sunset.
+  useEffect(() => {
+    (async () => {
       try {
-        await api.patch('/users/me/onboarding', {
-          user_type: userType,
-          travel_dates: userType === 'visitor' ? { start: startDate, end: endDate } : null,
-          party_type: partyType,
-          interests,
-          onboarding_version: 1,
-          profile_complete: completed,
-          skipped_steps: skippedSteps,
-        });
-      } catch {}
-    } else {
-      // Cache for later sync after login
-      await AsyncStorage.setItem('@onboarding_profile', JSON.stringify({
-        user_type: userType, travel_dates: userType === 'visitor' ? { start: startDate, end: endDate } : null,
-        party_type: partyType, interests, skipped_steps: skippedSteps,
-      }));
-    }
+        const r = await fetch(`${API_BASE}/now`);
+        if (r.ok) {
+          const d = await r.json();
+          if (d?.occasion?.es) setNowLine({ es: d.occasion.es, sunset: d.occasion.sunset, icon: d.occasion.icon });
+        }
+      } catch { /* fail-soft — the beat still works without the line */ }
+    })();
+  }, []);
 
+  // First-stamp hook (Drop 8 desire engine): the nearest REAL venue + real
+  // distance if geo is granted; a real central stamp otherwise (no phantom).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const st = geoService.getState();
+        let pos = st.position;
+        if (!pos && st.status === 'not-asked') {
+          await geoService.request();
+          pos = geoService.getState().position;
+        }
+        if (pos) {
+          const r = await fetch(`${API_BASE}/nearby?lat=${pos.lat}&lng=${pos.lng}&radius=1200`);
+          if (r.ok) {
+            const d = await r.json();
+            const v = (d?.venues || [])[0];
+            if (v && !cancelled) {
+              const dist = typeof v.distance_m === 'number' ? v.distance_m
+                : (v.lat && v.lng ? Math.round(haversineM(pos.lat, pos.lng, v.lat, v.lng)) : undefined);
+              setFirstStamp({ name: v.name, distance: dist });
+              return;
+            }
+          }
+        }
+      } catch { /* fall through to the honest fallback */ }
+      if (!cancelled) setFirstStamp(FALLBACK_STAMP);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const enterApp = useCallback(async () => {
+    try { await AsyncStorage.setItem('@onboarding_done', 'true'); } catch {}
     router.replace('/(tabs)');
-  };
+  }, [router]);
 
-  const toggleInterest = (key: string) => {
-    setInterests(prev => {
-      if (prev.includes(key)) return prev.filter(k => k !== key);
-      if (prev.length >= 4) return prev;
-      return [...prev, key];
-    });
-  };
+  // The one question → user_type (already wired into Luna, Drop 4). "de paso"
+  // and "unos días" are both visitors; the party_type distinguishes cruise.
+  const pickType = useCallback(async (choice: 'cruise' | 'traveler' | 'local') => {
+    if (saving) return;
+    setSaving(true);
+    const user_type = choice === 'local' ? 'local' : 'visitor';
+    try {
+      await api.patch('/users/me/type', { user_type });
+      if (choice === 'cruise') {
+        // record the shorter-visit nuance so Luna leans day-trip-friendly
+        await api.patch('/users/me/onboarding', {
+          user_type, party_type: 'cruise', onboarding_version: 1, profile_complete: false,
+        }).catch(() => {});
+      }
+      try { await AsyncStorage.setItem('@onboarding_type', user_type); } catch {}
+    } catch { /* fail-soft — never block entry on the personalization write */ }
+    await enterApp();
+  }, [saving, enterApp]);
 
-  // Adjust date by days
-  const adjustDate = (which: 'start' | 'end', days: number) => {
-    if (which === 'start') {
-      const d = addDays(new Date(startDate + 'T12:00:00'), days);
-      const iso = toIso(d);
-      setStartDate(iso);
-      if (iso >= endDate) setEndDate(toIso(addDays(d, 1)));
-    } else {
-      const d = addDays(new Date(endDate + 'T12:00:00'), days);
-      const iso = toIso(d);
-      if (iso > startDate) setEndDate(iso);
-    }
+  const R = (i: number) => ({
+    opacity: anims[i],
+    transform: [{ translateY: anims[i].interpolate({ inputRange: [0, 1], outputRange: [26, 0] }) }],
+  });
+
+  const glowStyle = {
+    opacity: glow.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0.6] }),
   };
 
   return (
-    <View style={st.container}>
-      <Image source={{ uri: IMAGES.hero }} style={st.bg} />
-      <View style={st.overlay} />
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      <Animated.View pointerEvents="none" style={[styles.glow, glowStyle]} />
 
-      <SafeAreaView style={st.safe} edges={['top', 'bottom']}>
-        {/* Language picker (pick before setting up account) + Skip */}
-        <View style={st.topBar}>
-          <View style={st.langRow}>
-            {(Object.keys(LANG_CODES) as Lang[]).map((l) => {
-              const active = lang === l;
-              return (
-                <TouchableOpacity
-                  key={l}
-                  style={[st.langPill, active && st.langPillActive]}
-                  onPress={() => setLang(l)}
-                  activeOpacity={0.85}
-                >
-                  <Text style={st.langFlag}>{LANG_FLAGS[l]}</Text>
-                  <Text style={[st.langCode, active && st.langCodeActive]}>{LANG_CODES[l]}</Text>
-                </TouchableOpacity>
-              );
-            })}
+      {/* Skip — always available, never a wall */}
+      <TouchableOpacity style={styles.skip} onPress={enterApp} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <Text style={styles.skipText}>Saltar</Text>
+      </TouchableOpacity>
+
+      {beat === 'arrival' ? (
+        <View style={styles.stage}>
+          {/* Wordmark */}
+          <Animated.View style={[styles.wordmarkWrap, R(0)]}>
+            <Text style={styles.amoMark}>A  M  O</Text>
+            <Text style={styles.cartagenaMark}>Cartagena</Text>
+            <View style={styles.rule} />
+          </Animated.View>
+
+          {/* Welcome beat */}
+          <Animated.Text style={[styles.welcome, R(1)]}>
+            {firstName ? `Bienvenido a Cartagena,\n${firstName}` : 'Bienvenido a Cartagena'}
+          </Animated.Text>
+
+          {/* Luna greeting — grounded, time-aware */}
+          <Animated.View style={[styles.lunaRow, R(2)]}>
+            <View style={styles.lunaDot}><Text style={styles.lunaDotText}>L</Text></View>
+            <View style={styles.lunaBubble}>
+              <Text style={styles.lunaName}>Luna · tu concierge</Text>
+              <Text style={styles.lunaLine}>
+                {nowLine ? nowLine.es : 'Estoy acá para mostrarte la ciudad — a cualquier hora.'}
+                {nowLine?.sunset ? `  ·  el sol se pone ${nowLine.sunset}` : ''}
+              </Text>
+            </View>
+          </Animated.View>
+
+          {/* Passport as invitation + first-stamp hook */}
+          <Animated.View style={[styles.passportCard, R(3)]}>
+            <View style={styles.passportSealRow}>
+              <View style={styles.dashedSeal}><Ionicons name="ribbon-outline" size={22} color={GOLD} /></View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.passportTitle}>Tu pasaporte de Cartagena te espera</Text>
+                <Text style={styles.passportSub}>Cada sello se gana caminando la ciudad.</Text>
+              </View>
+            </View>
+            <View style={styles.stampHook}>
+              <Ionicons name="location" size={15} color={GOLD_BRIGHT} />
+              {firstStamp ? (
+                <Text style={styles.stampHookText}>
+                  {firstStamp.distance != null
+                    ? `Tu primer sello está a ${firstStamp.distance} m — ${firstStamp.name}`
+                    : `Empezá por ${firstStamp.name}${firstStamp.hint ? ` — ${firstStamp.hint}` : ''}`}
+                </Text>
+              ) : (
+                <Text style={styles.stampHookText}>Buscando tu primer sello…</Text>
+              )}
+            </View>
+          </Animated.View>
+
+          {/* CTA */}
+          <Animated.View style={[styles.ctaWrap, R(4)]}>
+            <TouchableOpacity style={styles.cta} onPress={() => setBeat('question')} activeOpacity={0.9}>
+              <Text style={styles.ctaText}>Empezar</Text>
+              <Ionicons name="arrow-forward" size={18} color="#0A0A0A" />
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      ) : (
+        <View style={styles.stage}>
+          <View style={styles.wordmarkWrap}>
+            <Text style={styles.amoMark}>A  M  O</Text>
+            <View style={styles.rule} />
           </View>
-          {step !== 'complete' && (
-            <TouchableOpacity onPress={skip} style={st.skipBtn}>
-              <Text style={st.skipText}>{s('onboard_skip')}</Text>
+          <Text style={styles.qTitle}>¿Cuánto tiempo en Cartagena?</Text>
+          <Text style={styles.qSub}>Una pregunta — así Luna te muestra lo que de verdad te sirve.</Text>
+
+          {([
+            { key: 'cruise', icon: 'boat', label: 'Estoy de paso', sub: 'Crucero o un día — lo esencial, rápido' },
+            { key: 'traveler', icon: 'airplane', label: 'Unos días', sub: 'De viaje — lo mejor de la ciudad' },
+            { key: 'local', icon: 'home', label: 'Vivo acá', sub: 'Local — joyas y favoritos de barrio' },
+          ] as const).map((o) => (
+            <TouchableOpacity key={o.key} style={styles.qOption} onPress={() => pickType(o.key)} disabled={saving} activeOpacity={0.85}>
+              <View style={styles.qIcon}><Ionicons name={o.icon as any} size={22} color={GOLD} /></View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.qLabel}>{o.label}</Text>
+                <Text style={styles.qOptSub}>{o.sub}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+            </TouchableOpacity>
+          ))}
+
+          {saving ? <ActivityIndicator color={GOLD} style={{ marginTop: SPACING.md }} /> : (
+            <TouchableOpacity style={styles.qSkip} onPress={enterApp}>
+              <Text style={styles.qSkipText}>Prefiero explorar solo →</Text>
             </TouchableOpacity>
           )}
         </View>
-
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={st.content} showsVerticalScrollIndicator={false}>
-
-          {/* ── WELCOME ── */}
-          {step === 'welcome' && (
-            <View style={st.center}>
-              <Text style={st.heroEmoji}>❤️</Text>
-              <Text style={st.heroTitle}>AMO{'\n'}CARTAGENA</Text>
-              <View style={st.divider} />
-              <Text style={st.heroDesc}>{s('onboard_1_desc')}</Text>
-            </View>
-          )}
-
-          {/* ── USER TYPE ── */}
-          {step === 'type' && (
-            <View style={st.center}>
-              <Text style={st.sectionTitle}>{s('onboard_type_title')}</Text>
-              <Text style={st.sectionDesc}>{s('onboard_type_desc')}</Text>
-              <View style={st.cardsRow}>
-                {(['visitor', 'local'] as const).map(t => {
-                  const active = userType === t;
-                  return (
-                    <TouchableOpacity
-                      key={t}
-                      style={[st.typeCard, active && st.typeCardActive]}
-                      onPress={() => setUserType(t)}
-                      activeOpacity={0.85}
-                    >
-                      <Ionicons name={t === 'visitor' ? 'airplane' : 'home'} size={32} color={active ? ACCENT : COLORS.textMuted} />
-                      <Text style={[st.typeLabel, active && st.typeLabelActive]}>{s(`onboard_type_${t}`)}</Text>
-                      <Text style={st.typeDesc}>{s(`onboard_type_${t}_desc`)}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          )}
-
-          {/* ── TRAVEL + PARTY ── */}
-          {step === 'travel' && (
-            <View style={st.center}>
-              <Text style={st.sectionTitle}>{s('onboard_travel_title')}</Text>
-
-              {/* Date picker */}
-              <Text style={st.label}>{s('onboard_travel_dates')}</Text>
-              <View style={st.dateRow}>
-                <View style={st.dateBox}>
-                  <Text style={st.dateLabel}>{s('onboard_travel_start')}</Text>
-                  <View style={st.dateControls}>
-                    <TouchableOpacity onPress={() => adjustDate('start', -1)} style={st.dateBtn}><Ionicons name="remove" size={18} color={COLORS.white} /></TouchableOpacity>
-                    <Text style={st.dateValue}>{fmtDate(startDate)}</Text>
-                    <TouchableOpacity onPress={() => adjustDate('start', 1)} style={st.dateBtn}><Ionicons name="add" size={18} color={COLORS.white} /></TouchableOpacity>
-                  </View>
-                </View>
-                <View style={st.dateBox}>
-                  <Text style={st.dateLabel}>{s('onboard_travel_end')}</Text>
-                  <View style={st.dateControls}>
-                    <TouchableOpacity onPress={() => adjustDate('end', -1)} style={st.dateBtn}><Ionicons name="remove" size={18} color={COLORS.white} /></TouchableOpacity>
-                    <Text style={st.dateValue}>{fmtDate(endDate)}</Text>
-                    <TouchableOpacity onPress={() => adjustDate('end', 1)} style={st.dateBtn}><Ionicons name="add" size={18} color={COLORS.white} /></TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-
-              {/* Party type */}
-              <Text style={[st.label, { marginTop: SPACING.lg }]}>{s('onboard_party_title')}</Text>
-              <View style={st.partyRow}>
-                {PARTY_TYPES.map(p => {
-                  const active = partyType === p.key;
-                  return (
-                    <TouchableOpacity
-                      key={p.key}
-                      style={[st.partyChip, active && st.partyChipActive]}
-                      onPress={() => setPartyType(p.key)}
-                      activeOpacity={0.85}
-                    >
-                      <Ionicons name={p.icon as any} size={20} color={active ? COLORS.white : COLORS.textMuted} />
-                      <Text style={[st.partyText, active && st.partyTextActive]}>{s(`onboard_party_${p.key}`)}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          )}
-
-          {/* ── INTERESTS ── */}
-          {step === 'interests' && (
-            <View style={st.center}>
-              <Text style={st.sectionTitle}>{s('onboard_interests_title')}</Text>
-              <Text style={st.sectionDesc}>{s('onboard_interests_desc')}</Text>
-              <View style={st.interestGrid}>
-                {INTEREST_ITEMS.map(item => {
-                  const active = interests.includes(item.key);
-                  const disabled = !active && interests.length >= 4;
-                  return (
-                    <TouchableOpacity
-                      key={item.key}
-                      style={[st.interestChip, active && st.interestChipActive, disabled && { opacity: 0.4 }]}
-                      onPress={() => toggleInterest(item.key)}
-                      disabled={disabled}
-                      activeOpacity={0.85}
-                    >
-                      <Ionicons name={item.icon as any} size={22} color={active ? COLORS.white : COLORS.textMuted} />
-                      <Text style={[st.interestText, active && st.interestTextActive]}>
-                        {s(`onboard_interest_${item.key}`)}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              <Text style={st.counter}>{interests.length}/4</Text>
-            </View>
-          )}
-
-          {/* ── COMPLETE ── */}
-          {step === 'complete' && (
-            <View style={st.center}>
-              <Text style={{ fontSize: 64 }}>🎉</Text>
-              <Text style={st.heroTitle}>{s('onboard_complete_title')}</Text>
-              <Text style={st.heroDesc}>{s('onboard_complete_desc')}</Text>
-            </View>
-          )}
-        </ScrollView>
-
-        {/* Bottom */}
-        <View style={st.bottom}>
-          {/* Progress dots */}
-          <View style={st.dots}>
-            {STEPS.map((_, i) => (
-              <View key={i} style={[st.dot, i === stepIdx && st.dotActive]} />
-            ))}
-          </View>
-
-          <TouchableOpacity
-            style={[st.nextBtn, step === 'type' && !userType && { opacity: 0.4 }]}
-            onPress={step === 'complete' ? () => finish(true) : goNext}
-            disabled={step === 'type' && !userType}
-            activeOpacity={0.85}
-          >
-            {step === 'complete' ? (
-              <>
-                <Ionicons name="rocket" size={20} color="#FFF" />
-                <Text style={st.nextText}>{s('onboard_start')}</Text>
-              </>
-            ) : (
-              <>
-                <Text style={st.nextText}>{s('onboard_next')}</Text>
-                <Ionicons name="arrow-forward" size={20} color="#FFF" />
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    </View>
+      )}
+    </SafeAreaView>
   );
 }
 
-const st = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#050814' },
-  bg: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
-  overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(5,8,20,0.78)' },
-  safe: { flex: 1 },
-  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm },
-  skipBtn: { paddingHorizontal: 16, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: RADIUS.full },
-  skipText: { fontSize: 14, color: COLORS.white, ...FONTS.medium },
-  langRow: { flexDirection: 'row', gap: 6 },
-  langPill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 9, paddingVertical: 5, borderRadius: RADIUS.full, backgroundColor: 'rgba(255,255,255,0.10)', borderWidth: 1, borderColor: 'transparent' },
-  langPillActive: { backgroundColor: 'rgba(217,119,6,0.25)', borderColor: ACCENT },
-  langFlag: { fontSize: 12 },
-  langCode: { fontSize: 11, color: 'rgba(255,255,255,0.7)', ...FONTS.bold },
-  langCodeActive: { color: COLORS.white },
-
-  content: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: SPACING.xl },
-  center: { alignItems: 'center', gap: SPACING.md },
-
-  // Welcome
-  heroEmoji: { fontSize: 48, marginBottom: SPACING.sm },
-  heroTitle: { fontSize: 36, color: COLORS.white, ...FONTS.bold, textAlign: 'center', letterSpacing: 2, lineHeight: 44 },
-  divider: { width: 60, height: 2, backgroundColor: ACCENT, marginVertical: SPACING.sm },
-  heroDesc: { fontSize: 15, color: 'rgba(255,255,255,0.75)', ...FONTS.regular, textAlign: 'center', lineHeight: 22, paddingHorizontal: SPACING.md },
-
-  // Section
-  sectionTitle: { fontSize: 24, color: COLORS.white, ...FONTS.bold, textAlign: 'center', lineHeight: 32 },
-  sectionDesc: { fontSize: 14, color: 'rgba(255,255,255,0.6)', ...FONTS.regular, textAlign: 'center', marginBottom: SPACING.sm },
-  label: { fontSize: 13, color: ACCENT, ...FONTS.bold, letterSpacing: 1, textTransform: 'uppercase', alignSelf: 'flex-start', marginBottom: SPACING.xs },
-
-  // Type cards
-  cardsRow: { flexDirection: 'row', gap: SPACING.md, marginTop: SPACING.md },
-  typeCard: {
-    flex: 1, alignItems: 'center', gap: 8, paddingVertical: 24, paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: RADIUS.xl,
-    borderWidth: 2, borderColor: 'rgba(255,255,255,0.1)',
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: INK },
+  glow: {
+    position: 'absolute', top: -120, alignSelf: 'center', width: 520, height: 520, borderRadius: 260,
+    backgroundColor: 'rgba(212,175,55,0.16)',
+    ...(Platform.OS === 'web' ? { filter: 'blur(90px)' } as any : {}),
   },
-  typeCardActive: { borderColor: ACCENT, backgroundColor: 'rgba(217,119,6,0.12)' },
-  typeLabel: { fontSize: 16, color: COLORS.white, ...FONTS.bold },
-  typeLabelActive: { color: ACCENT },
-  typeDesc: { fontSize: 11, color: 'rgba(255,255,255,0.5)', ...FONTS.regular, textAlign: 'center' },
-
-  // Dates
-  dateRow: { flexDirection: 'row', gap: SPACING.md, width: '100%' },
-  dateBox: { flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: RADIUS.lg, padding: SPACING.md, alignItems: 'center', gap: 6 },
-  dateLabel: { fontSize: 11, color: 'rgba(255,255,255,0.5)', ...FONTS.medium, textTransform: 'uppercase' },
-  dateControls: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
-  dateBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
-  dateValue: { fontSize: 16, color: COLORS.white, ...FONTS.bold, minWidth: 60, textAlign: 'center' },
-
-  // Party
-  partyRow: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm, justifyContent: 'center' },
-  partyChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingVertical: 10, paddingHorizontal: 16,
-    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: RADIUS.full,
-    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.1)',
+  skip: { position: 'absolute', top: 14, right: 18, zIndex: 10, paddingHorizontal: 12, paddingVertical: 6 },
+  skipText: { color: COLORS.textMuted, fontSize: 14, ...FONTS.medium },
+  stage: { flex: 1, justifyContent: 'center', paddingHorizontal: SPACING.xl, gap: SPACING.lg },
+  wordmarkWrap: { alignItems: 'center', marginBottom: SPACING.sm },
+  amoMark: { color: GOLD, fontSize: 14, letterSpacing: 6, ...FONTS.semibold },
+  cartagenaMark: { color: '#FFFFFF', fontSize: 40, fontFamily: SERIF, marginTop: 2 },
+  rule: { width: 60, height: 2, backgroundColor: GOLD, marginTop: 14, borderRadius: 1 },
+  welcome: { color: '#FFFFFF', fontSize: 30, fontFamily: SERIF, textAlign: 'center', lineHeight: 38 },
+  lunaRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  lunaDot: {
+    width: 38, height: 38, borderRadius: 19, backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center',
+    marginTop: 2,
   },
-  partyChipActive: { borderColor: ACCENT, backgroundColor: 'rgba(217,119,6,0.15)' },
-  partyText: { fontSize: 13, color: 'rgba(255,255,255,0.6)', ...FONTS.semibold },
-  partyTextActive: { color: COLORS.white },
-
-  // Interests
-  interestGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm, justifyContent: 'center', marginTop: SPACING.sm },
-  interestChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingVertical: 10, paddingHorizontal: 14,
-    backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: RADIUS.full,
-    borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.1)',
+  lunaDotText: { color: '#0A0A0A', fontSize: 18, fontFamily: SERIF, fontWeight: '700' },
+  lunaBubble: {
+    flex: 1, backgroundColor: 'rgba(212,175,55,0.07)', borderColor: 'rgba(212,175,55,0.28)', borderWidth: 1,
+    borderRadius: 16, borderTopLeftRadius: 4, padding: 14,
   },
-  interestChipActive: { borderColor: ACCENT, backgroundColor: 'rgba(217,119,6,0.18)' },
-  interestText: { fontSize: 13, color: 'rgba(255,255,255,0.6)', ...FONTS.semibold },
-  interestTextActive: { color: COLORS.white },
-  counter: { fontSize: 12, color: 'rgba(255,255,255,0.4)', ...FONTS.medium, marginTop: SPACING.xs },
-
-  // Bottom
-  bottom: { paddingHorizontal: SPACING.xl, paddingBottom: SPACING.lg, gap: SPACING.md },
-  dots: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.2)' },
-  dotActive: { width: 24, backgroundColor: ACCENT },
-  nextBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm,
-    paddingVertical: 16, borderRadius: RADIUS.full, backgroundColor: ACCENT,
+  lunaName: { color: GOLD, fontSize: 12, ...FONTS.semibold, marginBottom: 4, letterSpacing: 0.3 },
+  lunaLine: { color: 'rgba(255,255,255,0.9)', fontSize: 15, lineHeight: 22 },
+  passportCard: {
+    backgroundColor: 'rgba(255,255,255,0.035)', borderColor: 'rgba(212,175,55,0.22)', borderWidth: 1,
+    borderRadius: 18, padding: 16, gap: 14,
   },
-  nextText: { fontSize: 17, color: '#FFF', ...FONTS.bold },
+  passportSealRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  dashedSeal: {
+    width: 48, height: 48, borderRadius: 24, borderWidth: 1.5, borderColor: 'rgba(212,175,55,0.5)',
+    borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center',
+  },
+  passportTitle: { color: '#FFFFFF', fontSize: 16, ...FONTS.semibold },
+  passportSub: { color: COLORS.textMuted, fontSize: 13, marginTop: 2 },
+  stampHook: {
+    flexDirection: 'row', gap: 8, alignItems: 'center',
+    backgroundColor: 'rgba(212,175,55,0.1)', borderRadius: 12, paddingVertical: 11, paddingHorizontal: 13,
+  },
+  stampHookText: { color: GOLD_BRIGHT, fontSize: 13.5, ...FONTS.medium, flex: 1 },
+  ctaWrap: { marginTop: SPACING.sm },
+  cta: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: GOLD, borderRadius: 999, paddingVertical: 16,
+  },
+  ctaText: { color: '#0A0A0A', fontSize: 16, ...FONTS.bold },
+  qTitle: { color: '#FFFFFF', fontSize: 26, fontFamily: SERIF, textAlign: 'center' },
+  qSub: { color: COLORS.textMuted, fontSize: 14, textAlign: 'center', marginTop: -6, marginBottom: SPACING.sm, lineHeight: 20 },
+  qOption: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(212,175,55,0.2)', borderWidth: 1,
+    borderRadius: 16, padding: 16,
+  },
+  qIcon: {
+    width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(212,175,55,0.12)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  qLabel: { color: '#FFFFFF', fontSize: 17, ...FONTS.semibold },
+  qOptSub: { color: COLORS.textMuted, fontSize: 13, marginTop: 2 },
+  qSkip: { alignSelf: 'center', marginTop: SPACING.md, padding: 8 },
+  qSkipText: { color: COLORS.textMuted, fontSize: 14, ...FONTS.medium },
 });
