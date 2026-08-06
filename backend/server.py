@@ -1883,6 +1883,39 @@ async def admin_ensure_alcaldia(request: Request):
     }
 
 
+@api_router.post("/business/admin/purge-demo-passes")
+async def admin_purge_demo_passes(request: Request):
+    """GOV-FIX (data honesty): remove the fabricated City Pass rows that
+    seed_analytics_demo_data() inserted into db.city_passes. Those fakes carry
+    user_id 'user_demo{N}' (no real user ever has that) and inflated the
+    Alcaldía dashboard's City Pass count + revenue — numbers the dashboard
+    presents as REAL to a government. This makes them genuinely real.
+
+    Auth: Bearer CRON_SECRET. Idempotent. Discriminator is unambiguous
+    (^user_demo) so a real pass can never be deleted. Reports before/after.
+    Does NOT touch the demographics/analytics seed (those are separate panels
+    clearly labeled 'muestra')."""
+    auth = request.headers.get("Authorization", "")
+    token = auth[7:] if auth.startswith("Bearer ") else ""
+    cron = os.environ.get("CRON_SECRET", "")
+    if not cron or token != cron:
+        raise HTTPException(status_code=403, detail="cron secret required")
+
+    fake_q = {"user_id": {"$regex": "^user_demo"}}
+    total_before = await db.city_passes.count_documents({})
+    fakes = await db.city_passes.count_documents(fake_q)
+    real_before = total_before - fakes
+    result = await db.city_passes.delete_many(fake_q)
+    total_after = await db.city_passes.count_documents({})
+    return {
+        "purged": True,
+        "before": {"total": total_before, "fabricated": fakes, "real": real_before},
+        "deleted": result.deleted_count,
+        "after": {"total": total_after, "all_real": True},
+        "note": "City Pass count/revenue on the Alcaldía dashboard now reflect real data only.",
+    }
+
+
 @api_router.delete("/business/admin/accounts/{business_id}")
 async def admin_delete_account(business_id: str, request: Request):
     """Offboard a partner account. Safety: only role=='business' accounts —
