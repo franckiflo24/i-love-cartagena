@@ -548,24 +548,41 @@ async def _login_throttle_guard(ip: str):
 
 
 async def _login_record_fail(ip: str):
+    # Drop RL (RL-B2): ATOMIC increment — the B1 non-atomic lesson. A read-then-
+    # write $set let concurrent failed logins undercount (both read N, both write
+    # N+1), so an attacker firing parallel attempts got MORE than the max before
+    # the lock engaged. $inc is atomic, so every attempt counts exactly once.
     now = datetime.now(timezone.utc)
-    rec = await db.login_throttle.find_one({"_id": ip})
-    fails = (rec or {}).get("fails", 0)
-    ws = (rec or {}).get("window_start")
+    doc = await db.login_throttle.find_one_and_update(
+        {"_id": ip},
+        {"$inc": {"fails": 1}, "$setOnInsert": {"window_start": now.isoformat()}},
+        upsert=True, return_document=True,  # AFTER
+    )
+    fails = int(doc.get("fails", 1))
+    ws = doc.get("window_start")
     try:
         ws_dt = datetime.fromisoformat(ws) if ws else None
         if ws_dt and ws_dt.tzinfo is None:
             ws_dt = ws_dt.replace(tzinfo=timezone.utc)
     except Exception:
         ws_dt = None
-    if not ws_dt or (now - ws_dt).total_seconds() > _LOGIN_WINDOW_SEC:
-        fails = 0
-        ws = now.isoformat()
-    fails += 1
-    upd = {"fails": fails, "window_start": ws}
+    # Window rolled over → reset to a fresh window. Filter on the EXACT stale
+    # window_start so only one concurrent racer wins the reset (no lost counts).
+    if ws_dt and (now - ws_dt).total_seconds() > _LOGIN_WINDOW_SEC:
+        r = await db.login_throttle.update_one(
+            {"_id": ip, "window_start": ws},
+            {"$set": {"fails": 1, "window_start": now.isoformat()}, "$unset": {"locked_until": ""}},
+        )
+        if r.modified_count:
+            return  # this attempt started a clean window
+        # lost the reset race → re-read the winner's count
+        doc = await db.login_throttle.find_one({"_id": ip}, {"_id": 0, "fails": 1})
+        fails = int((doc or {}).get("fails", 1))
     if fails >= _LOGIN_MAX_FAILS:
-        upd["locked_until"] = (now + timedelta(seconds=_LOGIN_LOCK_SEC)).isoformat()
-    await db.login_throttle.update_one({"_id": ip}, {"$set": upd}, upsert=True)
+        await db.login_throttle.update_one(
+            {"_id": ip},
+            {"$set": {"locked_until": (now + timedelta(seconds=_LOGIN_LOCK_SEC)).isoformat()}},
+        )
 
 
 @api_router.post("/business/login")
