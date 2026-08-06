@@ -17,7 +17,7 @@ export default function WelcomeBackBeat() {
   const { user } = useAuth();
   const [show, setShow] = useState(false);
   const [title, setTitle] = useState<string | null>(null);
-  const [streak, setStreak] = useState(0);
+  const [streakLabel, setStreakLabel] = useState<string | null>(null);
   const [nowLine, setNowLine] = useState<string | null>(null);
   const fade = React.useRef(new Animated.Value(0)).current;
 
@@ -29,18 +29,28 @@ export default function WelcomeBackBeat() {
 
     (async () => {
       let realTitle: string | null = null;
-      let best = 0;
+      let label: string | null = null;
       try {
         const p = await api.get('/passport');
         realTitle = p?.titles?.primary?.name || null;   // Drop 8: earned or null, never faked
-        best = p?.streak?.best || 0;
+        // Honest tense: an ACTIVE streak only if the last stamp was today or
+        // yesterday. Otherwise the best-ever is shown as "mejor racha", never
+        // as a live "racha de N días" the user isn't actually on.
+        const st = p?.streak || {};
+        const today = new Date().toISOString().slice(0, 10);
+        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        if ((st.current || 0) > 1 && (st.last_day === today || st.last_day === yesterday)) {
+          label = `🔥 racha de ${st.current} días`;
+        } else if ((st.best || 0) > 1) {
+          label = `mejor racha: ${st.best} días`;
+        }
       } catch { /* no passport yet — that's fine, the beat still greets */ }
       try {
         const r = await fetch(`${API_BASE}/now`);
         if (r.ok) { const d = await r.json(); if (d?.occasion?.es) setNowLine(d.occasion.es); }
       } catch {}
       setTitle(realTitle);
-      setStreak(best);
+      setStreakLabel(label);
       setShow(true);
       Animated.timing(fade, { toValue: 1, duration: 500, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
       // auto-dismiss after a warm beat (not a nag)
@@ -65,7 +75,7 @@ export default function WelcomeBackBeat() {
         <View style={{ flex: 1 }}>
           <Text style={styles.heading} numberOfLines={1}>{heading}</Text>
           <Text style={styles.sub} numberOfLines={2}>
-            {streak > 1 ? `🔥 racha de ${streak} días · ` : ''}
+            {streakLabel ? `${streakLabel} · ` : ''}
             {nowLine || 'Cartagena te espera — ¿qué querés hacer hoy?'}
           </Text>
         </View>

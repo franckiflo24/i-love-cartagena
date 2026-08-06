@@ -10,7 +10,7 @@
 //
 // Honesty spine: empty passport = potential, never a fake trophy; the first
 // stamp is real; Luna's line is grounded; skipping still lands in the app.
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Platform, ActivityIndicator,
 } from 'react-native';
@@ -28,9 +28,10 @@ const GOLD_BRIGHT = '#F5D47A';
 const INK = '#07070E';
 const SERIF = Platform.select({ web: "Georgia, 'Times New Roman', serif", default: 'serif' });
 
-// The real "easy first stamp" when geo is denied — the flagship sunset stamp at
-// the city wall (Drop 8: works 365 days, no re-verify). A real target, no fake distance.
-const FALLBACK_STAMP = { name: 'La muralla al atardecer', hint: 'el sello más fácil de ganar' };
+// The real "easy first stamp" when geo is unavailable — the Murallas landmark
+// visit-stamp (passport_collections.json attr_002: earnable ANY hour, at any of
+// several anchors along the wall). A real def, honest hint, no fake distance.
+const FALLBACK_STAMP = { name: 'Las Murallas de Cartagena', hint: 'un sello que se gana a cualquier hora, en cualquier punto de la muralla' };
 
 type Beat = 'arrival' | 'question';
 
@@ -40,7 +41,7 @@ export default function OnboardingArrival() {
   const firstName = (user?.name || '').trim().split(' ')[0];
 
   const [beat, setBeat] = useState<Beat>('arrival');
-  const [nowLine, setNowLine] = useState<{ es: string; sunset?: string; icon?: string } | null>(null);
+  const [nowLine, setNowLine] = useState<{ es: string; sunset?: string; key?: string } | null>(null);
   const [firstStamp, setFirstStamp] = useState<{ name: string; distance?: number; hint?: string } | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -67,7 +68,7 @@ export default function OnboardingArrival() {
         const r = await fetch(`${API_BASE}/now`);
         if (r.ok) {
           const d = await r.json();
-          if (d?.occasion?.es) setNowLine({ es: d.occasion.es, sunset: d.occasion.sunset, icon: d.occasion.icon });
+          if (d?.occasion?.es) setNowLine({ es: d.occasion.es, sunset: d.occasion.sunset, key: d.occasion.key });
         }
       } catch { /* fail-soft — the beat still works without the line */ }
     })();
@@ -79,12 +80,11 @@ export default function OnboardingArrival() {
     let cancelled = false;
     (async () => {
       try {
-        const st = geoService.getState();
-        let pos = st.position;
-        if (!pos && st.status === 'not-asked') {
-          await geoService.request();
-          pos = geoService.getState().position;
-        }
+        // Use an EXISTING position only — never trigger a geolocation prompt at
+        // page load. geo.ts requires request() from a user gesture; a reflexive
+        // dismissal here would sticky-deny and silence the whole walking layer
+        // for that device forever. No position yet → the honest fallback stamp.
+        const pos = geoService.getState().position;
         if (pos) {
           const r = await fetch(`${API_BASE}/nearby?lat=${pos.lat}&lng=${pos.lng}&radius=1200`);
           if (r.ok) {
@@ -104,10 +104,28 @@ export default function OnboardingArrival() {
     return () => { cancelled = true; };
   }, []);
 
-  const enterApp = useCallback(async () => {
+  // Mark the arrival DONE so it never recurs on a later login (the whole point
+  // of a "first-run"). Marks onboarding_completed server-side + caches the
+  // profile locally under the key PersonalizationContext actually reads. Runs
+  // for BOTH the answer path and the skip path (skipping is a deliberate
+  // choice — don't re-ask every login). Fully fail-soft: entry is never blocked.
+  const markDone = useCallback(async (profile?: { user_type: string; party_type?: string }) => {
+    // Local caches FIRST (unconditional) so the answer survives a failed PATCH.
     try { await AsyncStorage.setItem('@onboarding_done', 'true'); } catch {}
+    if (profile) {
+      try { await AsyncStorage.setItem('@onboarding_profile', JSON.stringify(profile)); } catch {}
+    }
+    try {
+      await api.patch('/users/me/onboarding', {
+        ...(profile || {}),
+        onboarding_version: 2,
+        profile_complete: true,   // sets onboarding_completed=true → no re-onboard
+      });
+    } catch { /* fail-soft — never block entry on the personalization write */ }
     router.replace('/(tabs)');
   }, [router]);
+
+  const enterApp = useCallback(() => { markDone(); }, [markDone]);
 
   // The one question → user_type (already wired into Luna, Drop 4). "de paso"
   // and "unos días" are both visitors; the party_type distinguishes cruise.
@@ -115,18 +133,9 @@ export default function OnboardingArrival() {
     if (saving) return;
     setSaving(true);
     const user_type = choice === 'local' ? 'local' : 'visitor';
-    try {
-      await api.patch('/users/me/type', { user_type });
-      if (choice === 'cruise') {
-        // record the shorter-visit nuance so Luna leans day-trip-friendly
-        await api.patch('/users/me/onboarding', {
-          user_type, party_type: 'cruise', onboarding_version: 1, profile_complete: false,
-        }).catch(() => {});
-      }
-      try { await AsyncStorage.setItem('@onboarding_type', user_type); } catch {}
-    } catch { /* fail-soft — never block entry on the personalization write */ }
-    await enterApp();
-  }, [saving, enterApp]);
+    try { await api.patch('/users/me/type', { user_type }); } catch { /* fail-soft */ }
+    await markDone({ user_type, ...(choice === 'cruise' ? { party_type: 'cruise' } : {}) });
+  }, [saving, markDone]);
 
   const R = (i: number) => ({
     opacity: anims[i],
@@ -167,7 +176,8 @@ export default function OnboardingArrival() {
               <Text style={styles.lunaName}>Luna · tu concierge</Text>
               <Text style={styles.lunaLine}>
                 {nowLine ? nowLine.es : 'Estoy acá para mostrarte la ciudad — a cualquier hora.'}
-                {nowLine?.sunset ? `  ·  el sol se pone ${nowLine.sunset}` : ''}
+                {/* golden-hour line already states the sunset — don't repeat it */}
+                {nowLine?.sunset && nowLine.key !== 'rooftops-atardecer' ? `  ·  el sol se pone ${nowLine.sunset}` : ''}
               </Text>
             </View>
           </Animated.View>
