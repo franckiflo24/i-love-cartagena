@@ -17,6 +17,27 @@ import type { Lang } from './translations';
 type Dict = Record<string, Partial<Record<Lang, string>>>;
 
 export const AUTO_TR: Dict = {
+  // First-run arrival (onboarding.tsx) — the cold-open welcome, localized so a
+  // US / Brazil / France visitor isn't dropped into Spanish ('Saltar' + 'Empezar'
+  // already exist below; Luna's dynamic time-aware line is backend /now, still ES).
+  'Bienvenido a Cartagena': { en: 'Welcome to Cartagena', fr: 'Bienvenue à Carthagène', pt: 'Bem-vindo a Cartagena' },
+  'Luna · tu concierge': { en: 'Luna · your concierge', fr: 'Luna · votre concierge', pt: 'Luna · seu concierge' },
+  'Estoy acá para mostrarte la ciudad — a cualquier hora.': { en: "I'm here to show you the city — any time of day.", fr: 'Je suis là pour vous montrer la ville — à toute heure.', pt: 'Estou aqui para te mostrar a cidade — a qualquer hora.' },
+  'Tu pasaporte de Cartagena te espera': { en: 'Your Cartagena passport awaits', fr: 'Votre passeport de Carthagène vous attend', pt: 'Seu passaporte de Cartagena te espera' },
+  'Cada sello se gana caminando la ciudad.': { en: 'Every stamp is earned by walking the city.', fr: 'Chaque tampon se gagne en parcourant la ville.', pt: 'Cada carimbo se ganha caminhando pela cidade.' },
+  'Tu primer sello': { en: 'Your first stamp', fr: 'Votre premier tampon', pt: 'Seu primeiro carimbo' },
+  'Empezá por': { en: 'Start with', fr: 'Commencez par', pt: 'Comece por' },
+  'Buscando tu primer sello…': { en: 'Finding your first stamp…', fr: 'Recherche de votre premier tampon…', pt: 'Buscando seu primeiro carimbo…' },
+  '¿Cuánto tiempo en Cartagena?': { en: 'How long in Cartagena?', fr: 'Combien de temps à Carthagène ?', pt: 'Quanto tempo em Cartagena?' },
+  'Una pregunta — así Luna te muestra lo que de verdad te sirve.': { en: 'One question — so Luna shows you what truly matters.', fr: 'Une question — pour que Luna vous montre ce qui compte vraiment.', pt: 'Uma pergunta — assim Luna te mostra o que realmente importa.' },
+  'Estoy de paso': { en: 'Just passing through', fr: 'Je suis de passage', pt: 'Estou de passagem' },
+  'Crucero o un día — lo esencial, rápido': { en: 'Cruise or a day — the essentials, fast', fr: "Croisière ou une journée — l'essentiel, vite", pt: 'Cruzeiro ou um dia — o essencial, rápido' },
+  'Unos días': { en: 'A few days', fr: 'Quelques jours', pt: 'Alguns dias' },
+  'De viaje — lo mejor de la ciudad': { en: 'Traveling — the best of the city', fr: 'En voyage — le meilleur de la ville', pt: 'Viajando — o melhor da cidade' },
+  'Vivo acá': { en: 'I live here', fr: "J'habite ici", pt: 'Moro aqui' },
+  'Local — joyas y favoritos de barrio': { en: 'Local — neighborhood gems and favorites', fr: 'Local — pépites et favoris du quartier', pt: 'Local — joias e favoritos do bairro' },
+  'Prefiero explorar solo →': { en: "I'd rather explore on my own →", fr: 'Je préfère explorer seul →', pt: 'Prefiro explorar sozinho →' },
+
   // Walking Layer — "Cerca de ti" strip ('Favorito local' + 'Activar' exist below)
   'Cerca de ti': { en: 'Near you', fr: 'Près de vous', pt: 'Perto de você' },
   'Descubre lo que tienes cerca': { en: 'Discover what surrounds you', fr: 'Découvrez ce qui vous entoure', pt: 'Descubra o que está por perto' },

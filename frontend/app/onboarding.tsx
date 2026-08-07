@@ -21,6 +21,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { useAuth } from '../src/context/AuthContext';
 import { api, API_BASE } from '../src/constants/api';
+import { useTr } from '../src/i18n/autoTr';
 import { geoService, haversineM } from '../src/lib/geo';
 import { safeNext } from '../src/lib/safeNext';
 
@@ -40,6 +41,7 @@ export default function OnboardingArrival() {
   const router = useRouter();
   const { next } = useLocalSearchParams<{ next?: string }>();
   const { user } = useAuth();
+  const tr = useTr();
   const firstName = (user?.name || '').trim().split(' ')[0];
   // Drop GATE (B3): after the arrival activates a gated signup, return to the
   // exact action they were headed for. Same canonical guard as login (safeNext).
@@ -157,7 +159,7 @@ export default function OnboardingArrival() {
 
       {/* Skip — always available, never a wall */}
       <TouchableOpacity style={styles.skip} onPress={enterApp} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-        <Text style={styles.skipText}>Saltar</Text>
+        <Text style={styles.skipText}>{tr('Saltar')}</Text>
       </TouchableOpacity>
 
       {beat === 'arrival' ? (
@@ -171,16 +173,16 @@ export default function OnboardingArrival() {
 
           {/* Welcome beat */}
           <Animated.Text style={[styles.welcome, R(1)]}>
-            {firstName ? `Bienvenido a Cartagena,\n${firstName}` : 'Bienvenido a Cartagena'}
+            {firstName ? `${tr('Bienvenido a Cartagena')},\n${firstName}` : tr('Bienvenido a Cartagena')}
           </Animated.Text>
 
           {/* Luna greeting — grounded, time-aware */}
           <Animated.View style={[styles.lunaRow, R(2)]}>
             <View style={styles.lunaDot}><Text style={styles.lunaDotText}>L</Text></View>
             <View style={styles.lunaBubble}>
-              <Text style={styles.lunaName}>Luna · tu concierge</Text>
+              <Text style={styles.lunaName}>{tr('Luna · tu concierge')}</Text>
               <Text style={styles.lunaLine}>
-                {nowLine ? nowLine.es : 'Estoy acá para mostrarte la ciudad — a cualquier hora.'}
+                {nowLine ? nowLine.es : tr('Estoy acá para mostrarte la ciudad — a cualquier hora.')}
                 {/* golden-hour line already states the sunset — don't repeat it */}
                 {nowLine?.sunset && nowLine.key !== 'rooftops-atardecer' ? `  ·  el sol se pone ${nowLine.sunset}` : ''}
               </Text>
@@ -192,8 +194,8 @@ export default function OnboardingArrival() {
             <View style={styles.passportSealRow}>
               <View style={styles.dashedSeal}><Ionicons name="ribbon-outline" size={22} color={GOLD} /></View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.passportTitle}>Tu pasaporte de Cartagena te espera</Text>
-                <Text style={styles.passportSub}>Cada sello se gana caminando la ciudad.</Text>
+                <Text style={styles.passportTitle}>{tr('Tu pasaporte de Cartagena te espera')}</Text>
+                <Text style={styles.passportSub}>{tr('Cada sello se gana caminando la ciudad.')}</Text>
               </View>
             </View>
             <View style={styles.stampHook}>
@@ -201,11 +203,11 @@ export default function OnboardingArrival() {
               {firstStamp ? (
                 <Text style={styles.stampHookText}>
                   {firstStamp.distance != null
-                    ? `Tu primer sello está a ${firstStamp.distance} m — ${firstStamp.name}`
-                    : `Empezá por ${firstStamp.name}${firstStamp.hint ? ` — ${firstStamp.hint}` : ''}`}
+                    ? `${tr('Tu primer sello')} · ${firstStamp.name} · ${firstStamp.distance} m`
+                    : `${tr('Empezá por')} ${firstStamp.name}${firstStamp.hint ? ` — ${firstStamp.hint}` : ''}`}
                 </Text>
               ) : (
-                <Text style={styles.stampHookText}>Buscando tu primer sello…</Text>
+                <Text style={styles.stampHookText}>{tr('Buscando tu primer sello…')}</Text>
               )}
             </View>
           </Animated.View>
@@ -213,7 +215,7 @@ export default function OnboardingArrival() {
           {/* CTA */}
           <Animated.View style={[styles.ctaWrap, R(4)]}>
             <TouchableOpacity style={styles.cta} onPress={() => setBeat('question')} activeOpacity={0.9}>
-              <Text style={styles.ctaText}>Empezar</Text>
+              <Text style={styles.ctaText}>{tr('Empezar')}</Text>
               <Ionicons name="arrow-forward" size={18} color="#0A0A0A" />
             </TouchableOpacity>
           </Animated.View>
@@ -224,8 +226,8 @@ export default function OnboardingArrival() {
             <Text style={styles.amoMark}>A  M  O</Text>
             <View style={styles.rule} />
           </View>
-          <Text style={styles.qTitle}>¿Cuánto tiempo en Cartagena?</Text>
-          <Text style={styles.qSub}>Una pregunta — así Luna te muestra lo que de verdad te sirve.</Text>
+          <Text style={styles.qTitle}>{tr('¿Cuánto tiempo en Cartagena?')}</Text>
+          <Text style={styles.qSub}>{tr('Una pregunta — así Luna te muestra lo que de verdad te sirve.')}</Text>
 
           {([
             { key: 'cruise', icon: 'boat', label: 'Estoy de paso', sub: 'Crucero o un día — lo esencial, rápido' },
@@ -235,8 +237,8 @@ export default function OnboardingArrival() {
             <TouchableOpacity key={o.key} style={styles.qOption} onPress={() => pickType(o.key)} disabled={saving} activeOpacity={0.85}>
               <View style={styles.qIcon}><Ionicons name={o.icon as any} size={22} color={GOLD} /></View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.qLabel}>{o.label}</Text>
-                <Text style={styles.qOptSub}>{o.sub}</Text>
+                <Text style={styles.qLabel}>{tr(o.label)}</Text>
+                <Text style={styles.qOptSub}>{tr(o.sub)}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
             </TouchableOpacity>
@@ -244,7 +246,7 @@ export default function OnboardingArrival() {
 
           {saving ? <ActivityIndicator color={GOLD} style={{ marginTop: SPACING.md }} /> : (
             <TouchableOpacity style={styles.qSkip} onPress={enterApp}>
-              <Text style={styles.qSkipText}>Prefiero explorar solo →</Text>
+              <Text style={styles.qSkipText}>{tr('Prefiero explorar solo →')}</Text>
             </TouchableOpacity>
           )}
         </View>
