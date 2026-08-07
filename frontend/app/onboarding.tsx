@@ -186,7 +186,7 @@ export default function OnboardingArrival() {
               <Text style={styles.lunaLine}>
                 {nowLine ? (nowLine[lang] || nowLine.es) : tr('Estoy acá para mostrarte la ciudad — a cualquier hora.')}
                 {/* golden-hour line already states the sunset — don't repeat it */}
-                {nowLine?.sunset && nowLine.key !== 'rooftops-atardecer' ? `  ·  el sol se pone ${nowLine.sunset}` : ''}
+                {nowLine?.sunset && nowLine.key !== 'rooftops-atardecer' ? `  ·  ${tr('el sol se pone')} ${nowLine.sunset}` : ''}
               </Text>
             </View>
           </Animated.View>
