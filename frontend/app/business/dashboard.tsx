@@ -53,7 +53,10 @@ export default function BusinessDashboard() {
         api.get('/business/stats', { headers: { Authorization: `Bearer ${token}` } }),
         api.get('/business/reservations?limit=1', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
         api.get('/business/membership', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
-        api.get('/business/onboarding-status', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
+        // /business/onboarding-status was never built on the backend (it 404'd
+        // on every load). The onboarding banner it feeds is only for non-gov
+        // partners and stays dormant until that endpoint exists — skip the call.
+        Promise.resolve(null),
       ]);
       setEvents(eventsData);
       setStats(statsData);

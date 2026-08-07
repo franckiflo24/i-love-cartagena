@@ -2672,12 +2672,20 @@ async def admin_alcaldia_payments(request: Request, limit: int = 200):
     passes = await db.city_passes.find({}, {"_id": 0}).sort("activated_at", -1).limit(limit).to_list(limit)
     pt_tickets = await db.port_tax_tickets.find({}, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(limit)
 
+    # Batch the user lookups — ONE $in query for every row instead of a find_one
+    # per pass and per ticket (same N+1 class that stalled the users panel; here
+    # it's ≤2*limit rows, fast now but would grow with City Pass / Tasa sales).
+    uids = list({p.get("user_id") for p in passes} | {t.get("user_id") for t in pt_tickets})
+    umap = {u["user_id"]: u for u in await db.users.find(
+        {"user_id": {"$in": uids}}, {"_id": 0, "user_id": 1, "name": 1, "email": 1},
+    ).to_list(len(uids) or 1)}
+
     # Build a unified payment log
     payments = []
     for p in passes:
         plan = p.get("plan_id", "unknown")
         amount = CITY_PASS_PLAN_PRICES.get(plan, 0)
-        user = await db.users.find_one({"user_id": p.get("user_id")}, {"_id": 0, "name": 1, "email": 1}) or {}
+        user = umap.get(p.get("user_id"), {})
         payments.append({
             "id": p.get("pass_id"),
             "type": "city_pass",
@@ -2692,7 +2700,7 @@ async def admin_alcaldia_payments(request: Request, limit: int = 200):
             "metadata": {"plan_id": plan, "expires_at": p.get("expires_at")},
         })
     for t in pt_tickets:
-        user = await db.users.find_one({"user_id": t.get("user_id")}, {"_id": 0, "name": 1, "email": 1}) or {}
+        user = umap.get(t.get("user_id"), {})
         payments.append({
             "id": t.get("ticket_id"),
             "type": "port_tax",
