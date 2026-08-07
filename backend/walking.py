@@ -986,36 +986,52 @@ def _now_occasion(now: datetime) -> Dict[str, Any]:
     rainy_season = now.month in (5, 6, 7, 8, 9, 10, 11)
     rain_hint_es = " Si cae un aguacero, pivotá a museos, La Serrezuela o un café con aire." if rainy_season else ""
     rain_hint_en = " If a downpour hits, pivot to museums, La Serrezuela or an AC café." if rainy_season else ""
+    rain_hint_fr = " Si une averse tombe, repliez-vous vers les musées, La Serrezuela ou un café climatisé." if rainy_season else ""
+    rain_hint_pt = " Se cair um aguaceiro, mude para museus, La Serrezuela ou um café com ar." if rainy_season else ""
     # sunset band = 45m before to 30m after
     if sunset_min - 45 <= m <= sunset_min + 30:
         return {"key": "rooftops-atardecer", "icon": "sunny",
                 "es": f"Es la hora dorada — el sol se pone ~{sunset_hhmm}. Sube a un rooftop o a la muralla.",
                 "en": f"It's golden hour — sunset ~{sunset_hhmm}. Head to a rooftop or the city wall.",
+                "fr": f"C'est l'heure dorée — coucher ~{sunset_hhmm}. Montez sur un rooftop ou la muraille.",
+                "pt": f"É a hora dourada — o sol se põe ~{sunset_hhmm}. Suba a um rooftop ou à muralha.",
                 "sunset": sunset_hhmm}
     if 6 <= h < 11:
         return {"key": "cafe-desayuno", "icon": "cafe",
                 "es": "Buena hora para café y desayuno — o el fuerte antes del calor.",
-                "en": "Prime time for coffee and breakfast — or the fortress before the heat.", "sunset": sunset_hhmm}
+                "en": "Prime time for coffee and breakfast — or the fortress before the heat.",
+                "fr": "Bon moment pour un café et un petit-déjeuner — ou le fort avant la chaleur.",
+                "pt": "Boa hora para café e café da manhã — ou o forte antes do calor.", "sunset": sunset_hhmm}
     if 11 <= h < 15:
         return {"key": "favoritos-locales", "icon": "restaurant",
                 "es": "Mediodía: almuerzo local (menú del día) y aire acondicionado en el pico de calor." + rain_hint_es,
-                "en": "Midday: a local lunch (menú del día) and AC during peak heat." + rain_hint_en, "sunset": sunset_hhmm}
+                "en": "Midday: a local lunch (menú del día) and AC during peak heat." + rain_hint_en,
+                "fr": "Midi : un déjeuner local (menú del día) et la clim au pic de chaleur." + rain_hint_fr,
+                "pt": "Meio-dia: um almoço local (menú del día) e ar-condicionado no pico do calor." + rain_hint_pt, "sunset": sunset_hhmm}
     if 15 <= h < sunset_min // 60 - 0:
         return {"key": "beach-clubs", "icon": "umbrella",
                 "es": "Tarde de playa, piscina o un postre mientras baja el sol." + rain_hint_es,
-                "en": "Afternoon for the beach, a pool, or dessert as the sun drops." + rain_hint_en, "sunset": sunset_hhmm}
+                "en": "Afternoon for the beach, a pool, or dessert as the sun drops." + rain_hint_en,
+                "fr": "Après-midi plage, piscine ou un dessert pendant que le soleil descend." + rain_hint_fr,
+                "pt": "Tarde de praia, piscina ou uma sobremesa enquanto o sol desce." + rain_hint_pt, "sunset": sunset_hhmm}
     if 18 <= h < 22:
         return {"key": "cena-romantica", "icon": "heart",
                 "es": "Hora de cenar — patios coloniales, mariscos o una mesa para dos.",
-                "en": "Dinnertime — colonial courtyards, seafood, or a table for two.", "sunset": sunset_hhmm}
+                "en": "Dinnertime — colonial courtyards, seafood, or a table for two.",
+                "fr": "L'heure de dîner — patios coloniaux, fruits de mer ou une table pour deux.",
+                "pt": "Hora de jantar — pátios coloniais, frutos do mar ou uma mesa para dois.", "sunset": sunset_hhmm}
     # late night — nightlife peaks Thu–Sat
     if wd >= 3:
         return {"key": "rumba", "icon": "musical-notes",
                 "es": "Noche de rumba — es temporada alta (jue–sáb). Cocteles, salsa y baile.",
-                "en": "Night to dance — peak nights (Thu–Sat). Cocktails, salsa and dancing.", "sunset": sunset_hhmm}
+                "en": "Night to dance — peak nights (Thu–Sat). Cocktails, salsa and dancing.",
+                "fr": "Nuit pour danser — soirées de pointe (jeu–sam). Cocktails, salsa et danse.",
+                "pt": "Noite de dança — noites de pico (qui–sáb). Coquetéis, salsa e dança.", "sunset": sunset_hhmm}
     return {"key": "cocteles", "icon": "wine",
             "es": "Noche tranquila — una coctelería de autor o música en vivo.",
-            "en": "Quiet night — an author cocktail bar or some live music.", "sunset": sunset_hhmm}
+            "en": "Quiet night — an author cocktail bar or some live music.",
+            "fr": "Nuit tranquille — un bar à cocktails d'auteur ou de la musique live.",
+            "pt": "Noite tranquila — um bar de coquetéis autoral ou música ao vivo.", "sunset": sunset_hhmm}
 
 
 def _season_now(now: datetime) -> Optional[Dict[str, Any]]:

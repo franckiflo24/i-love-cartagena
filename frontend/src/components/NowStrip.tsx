@@ -12,7 +12,7 @@ import { useLang } from '../context/LanguageContext';
 import { api } from '../constants/api';
 
 interface NowResp {
-  occasion: { key: string; icon: string; es: string; en: string; sunset?: string } | null;
+  occasion: { key: string; icon: string; es: string; en: string; fr?: string; pt?: string; sunset?: string } | null;
   local_time?: string;
 }
 
@@ -29,7 +29,7 @@ export function NowStrip() {
 
   const occ = data?.occasion;
   if (!occ) return null;
-  const copy = lang === 'es' ? occ.es : (occ.en || occ.es);
+  const copy = occ[lang] || occ.en || occ.es;
 
   return (
     <TouchableOpacity

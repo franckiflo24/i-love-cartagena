@@ -22,6 +22,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { useAuth } from '../src/context/AuthContext';
 import { api, API_BASE } from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
+import { useLang } from '../src/context/LanguageContext';
 import { geoService, haversineM } from '../src/lib/geo';
 import { safeNext } from '../src/lib/safeNext';
 
@@ -42,13 +43,14 @@ export default function OnboardingArrival() {
   const { next } = useLocalSearchParams<{ next?: string }>();
   const { user } = useAuth();
   const tr = useTr();
+  const { lang } = useLang();
   const firstName = (user?.name || '').trim().split(' ')[0];
   // Drop GATE (B3): after the arrival activates a gated signup, return to the
   // exact action they were headed for. Same canonical guard as login (safeNext).
   const dest = safeNext(next);
 
   const [beat, setBeat] = useState<Beat>('arrival');
-  const [nowLine, setNowLine] = useState<{ es: string; sunset?: string; key?: string } | null>(null);
+  const [nowLine, setNowLine] = useState<{ es: string; en?: string; fr?: string; pt?: string; sunset?: string; key?: string } | null>(null);
   const [firstStamp, setFirstStamp] = useState<{ name: string; distance?: number; hint?: string } | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -75,7 +77,7 @@ export default function OnboardingArrival() {
         const r = await fetch(`${API_BASE}/now`);
         if (r.ok) {
           const d = await r.json();
-          if (d?.occasion?.es) setNowLine({ es: d.occasion.es, sunset: d.occasion.sunset, key: d.occasion.key });
+          if (d?.occasion?.es) setNowLine({ es: d.occasion.es, en: d.occasion.en, fr: d.occasion.fr, pt: d.occasion.pt, sunset: d.occasion.sunset, key: d.occasion.key });
         }
       } catch { /* fail-soft — the beat still works without the line */ }
     })();
@@ -182,7 +184,7 @@ export default function OnboardingArrival() {
             <View style={styles.lunaBubble}>
               <Text style={styles.lunaName}>{tr('Luna · tu concierge')}</Text>
               <Text style={styles.lunaLine}>
-                {nowLine ? nowLine.es : tr('Estoy acá para mostrarte la ciudad — a cualquier hora.')}
+                {nowLine ? (nowLine[lang] || nowLine.es) : tr('Estoy acá para mostrarte la ciudad — a cualquier hora.')}
                 {/* golden-hour line already states the sunset — don't repeat it */}
                 {nowLine?.sunset && nowLine.key !== 'rooftops-atardecer' ? `  ·  el sol se pone ${nowLine.sunset}` : ''}
               </Text>
@@ -204,7 +206,7 @@ export default function OnboardingArrival() {
                 <Text style={styles.stampHookText}>
                   {firstStamp.distance != null
                     ? `${tr('Tu primer sello')} · ${firstStamp.name} · ${firstStamp.distance} m`
-                    : `${tr('Empezá por')} ${firstStamp.name}${firstStamp.hint ? ` — ${firstStamp.hint}` : ''}`}
+                    : `${tr('Empezá por')} ${firstStamp.name}${firstStamp.hint ? ` — ${tr(firstStamp.hint)}` : ''}`}
                 </Text>
               ) : (
                 <Text style={styles.stampHookText}>{tr('Buscando tu primer sello…')}</Text>

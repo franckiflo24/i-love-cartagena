@@ -37,6 +37,7 @@ export const AUTO_TR: Dict = {
   'Vivo acá': { en: 'I live here', fr: "J'habite ici", pt: 'Moro aqui' },
   'Local — joyas y favoritos de barrio': { en: 'Local — neighborhood gems and favorites', fr: 'Local — pépites et favoris du quartier', pt: 'Local — joias e favoritos do bairro' },
   'Prefiero explorar solo →': { en: "I'd rather explore on my own →", fr: 'Je préfère explorer seul →', pt: 'Prefiro explorar sozinho →' },
+  'un sello que se gana a cualquier hora, en cualquier punto de la muralla': { en: 'a stamp you can earn any hour, anywhere along the wall', fr: 'un tampon à gagner à toute heure, partout le long de la muraille', pt: 'um carimbo que se ganha a qualquer hora, em qualquer ponto da muralha' },
 
   // Walking Layer — "Cerca de ti" strip ('Favorito local' + 'Activar' exist below)
   'Cerca de ti': { en: 'Near you', fr: 'Près de vous', pt: 'Perto de você' },
