@@ -97,14 +97,14 @@ export default function AlcaldiaDashboard({
     try {
       const [a, u, p, ev, po] = await Promise.all([
         api.get('/business/admin/analytics?days=30', { headers }),
-        api.get('/business/admin/users?limit=200', { headers }),
-        api.get('/business/admin/payments?limit=200', { headers }),
-        api.get('/business/events', { headers }),
+        api.get('/business/admin/users?limit=200', { headers }).catch(() => null),
+        api.get('/business/admin/payments?limit=200', { headers }).catch(() => null),
+        api.get('/business/events', { headers }).catch(() => null),
         api.get('/business/admin/payouts', { headers }).catch(() => null),
       ]);
       setAnalytics(a);
-      setUsers(u.users || []);
-      setPayments(p.payments || []);
+      setUsers(u?.users || []);
+      setPayments(p?.payments || []);
       setEventsCount((ev || []).length);
       setPayouts(po);
     } catch (e) {

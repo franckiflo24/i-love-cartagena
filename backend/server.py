@@ -2630,21 +2630,33 @@ async def admin_alcaldia_users(request: Request, limit: int = 100, skip: int = 0
     skip = max(0, skip)
     cursor = db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "name": 1, "picture": 1, "created_at": 1}).sort("created_at", -1).skip(skip).limit(limit)
     rows = await cursor.to_list(limit)
-    # Enrich with profile snippets (nationality, age, persona) if available
+    ids = [u["user_id"] for u in rows]
+    # Enrich in BATCH — 3 queries over the whole page instead of 3 PER USER. The
+    # old per-user loop fired ~3*limit sequential Atlas round-trips (~600 at
+    # limit=200 ≈ 25s), which never returned and hung the Alcaldía dashboard on
+    # an infinite spinner. Same output shape, ~5 queries total regardless of page.
+    profs = {p["user_id"]: p for p in await db.user_profiles.find(
+        {"user_id": {"$in": ids}},
+        {"_id": 0, "user_id": 1, "persona": 1, "interests": 1, "nationality": 1, "age_group": 1},
+    ).to_list(len(ids) or 1)}
+    pass_ids = {d["user_id"] for d in await db.city_passes.find(
+        {"user_id": {"$in": ids}, "is_active": True}, {"_id": 0, "user_id": 1},
+    ).to_list(None)}
+    pt_counts = {r["_id"]: r["n"] for r in await db.port_tax_tickets.aggregate([
+        {"$match": {"user_id": {"$in": ids}}},
+        {"$group": {"_id": "$user_id", "n": {"$sum": 1}}},
+    ]).to_list(len(ids) or 1)}
     enriched = []
     for u in rows:
-        prof = await db.user_profiles.find_one({"user_id": u["user_id"]}, {"_id": 0, "persona": 1, "interests": 1, "nationality": 1, "age_group": 1})
-        # has_pass / has_port_tax
-        has_pass = await db.city_passes.count_documents({"user_id": u["user_id"], "is_active": True}) > 0
-        pt_count = await db.port_tax_tickets.count_documents({"user_id": u["user_id"]})
+        prof = profs.get(u["user_id"]) or {}
         enriched.append({
             **u,
-            "has_active_pass": has_pass,
-            "port_tax_tickets": pt_count,
-            "persona": (prof or {}).get("persona", ""),
-            "nationality": (prof or {}).get("nationality", ""),
-            "age_group": (prof or {}).get("age_group", ""),
-            "interests": (prof or {}).get("interests", []),
+            "has_active_pass": u["user_id"] in pass_ids,
+            "port_tax_tickets": pt_counts.get(u["user_id"], 0),
+            "persona": prof.get("persona", ""),
+            "nationality": prof.get("nationality", ""),
+            "age_group": prof.get("age_group", ""),
+            "interests": prof.get("interests", []),
         })
     total = await db.users.count_documents({})
     return {"users": enriched, "total": total, "limit": limit, "skip": skip}
@@ -7172,6 +7184,9 @@ async def startup():
         await db.push_subscriptions.create_index("user_id")
         await db.push_log.create_index([("user_id", 1), ("date", 1)], unique=True)
         await db.users.create_index("referral_code", unique=True, sparse=True)
+        # Alcaldía dashboard sorts users by created_at desc — index it so the
+        # sort is a fast index scan, not an in-memory sort of the collection.
+        await db.users.create_index([("created_at", -1)])
         # Drop 7F: one price signal per user+venue+day
         await db.price_flags.create_index([("user_id", 1), ("venue_id", 1), ("date", 1)], unique=True)
         # Drop RL: shared atomic rate-limit buckets — TTL sweeps closed windows
