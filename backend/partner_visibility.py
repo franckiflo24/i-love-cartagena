@@ -14,9 +14,19 @@ leak (the U1-U6 class of finding).
 # with catalog_status:None, so the catalog_status gate alone let them leak public
 # unhedged (audit). $nin matches docs missing `status` too, so editorial venues
 # (no status) are unaffected — only genuinely pending/rejected ones are hidden.
+#
+# is_public gates the ENTIRE admin_operator lifecycle (invited/activated/suspended
+# are is_public=False; only admin approval/reactivation sets is_public=True). It was
+# previously checked NOWHERE, so the admin "suspend" action — and the whole
+# "don't show until approved" promise — was a no-op: a suspended venue stayed fully
+# visible. `{"$ne": False}` matches docs MISSING the field, so the 422 catalog
+# partners (no is_public field) are unaffected; only an explicit is_public=False is
+# hidden. Verified live: OLD vs NEW filter delta = 0 today. "suspended" is added to
+# the status $nin as a second, independent guard on the same moderation transition.
 PUBLIC_PARTNER_FILTER = {
     "catalog_status": {"$nin": ["pending_review", "rejected", "sandbox"]},
-    "status": {"$nin": ["pending_review", "rejected", "needs_verification"]},
+    "status": {"$nin": ["pending_review", "rejected", "needs_verification", "suspended"]},
+    "is_public": {"$ne": False},
 }
 
 # Internal ownership / moderation fields stripped from any PUBLIC partner response.
@@ -63,5 +73,6 @@ def is_publicly_visible(partner: dict) -> bool:
     p = partner or {}
     return (
         p.get("catalog_status") not in ("pending_review", "rejected", "sandbox")
-        and p.get("status") not in ("pending_review", "rejected", "needs_verification")
+        and p.get("status") not in ("pending_review", "rejected", "needs_verification", "suspended")
+        and p.get("is_public") is not False
     )
