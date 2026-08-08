@@ -4536,6 +4536,10 @@ async def global_search(q: str = "", request: Request = None):
             (_norm(sig_text), 3),
             (_norm(p.get("category")), 2), (_norm(p.get("subcategory")), 2),
             (_norm(p.get("experience")), 2),
+            # search_profile is the ES/EN keyword field built for essentials search
+            # ("farmacia, veterinario, maletas…") — weight 3 so a Spanish essential
+            # term clears the 3.0 distinctive-term gate and surfaces the real venue.
+            (_norm(p.get("search_profile")), 3),
             (_norm(p.get("description")), 1), (_norm(p.get("address")), 1),
         ]
         for t, tw in term_weights.items():
@@ -4596,7 +4600,7 @@ async def global_search(q: str = "", request: Request = None):
             {"name": regex}, {"description": regex}, {"category": regex},
             {"subcategory": regex}, {"cuisine": regex}, {"address": regex},
             {"experience": regex}, {"tier": regex}, {"tags": regex},
-            {"signature_dishes": regex},
+            {"signature_dishes": regex}, {"search_profile": regex},
         ]},
         PUBLIC_PARTNER_PROJECTION
     ).limit(200).to_list(200)

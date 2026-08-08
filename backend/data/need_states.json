@@ -252,7 +252,7 @@
       "title_es": "Experiencias y Paseos",
       "title_en": "Experiences & Day-Trips",
       "categories": [
-        { "key": "islands_tours", "title_es": "Islas y tours", "title_en": "Islands & tours", "icon": "boat", "tier": "SITUATIONAL", "trust_required": true, "trust_flag": "islas", "source": { "type": "collection", "collection_key": "beach-clubs" } },
+        { "key": "islands_tours", "title_es": "Islas y tours", "title_en": "Islands & tours", "icon": "boat", "tier": "SITUATIONAL", "trust_required": true, "trust_flag": "islas", "source": { "type": "partners", "category": "yacht" } },
         { "key": "cena-romantica", "title_es": "Cenas románticas", "title_en": "Romantic dinners", "icon": "heart", "tier": "SITUATIONAL", "trust_required": false, "trust_flag": null, "source": { "type": "collection", "collection_key": "cena-romantica" } },
         { "key": "rumba", "title_es": "Rumba y vida nocturna", "title_en": "Nightlife", "icon": "musical-notes", "tier": "SITUATIONAL", "trust_required": true, "trust_flag": "noche", "source": { "type": "collection", "collection_key": "rumba" } },
         { "key": "cafe-desayuno", "title_es": "Café y desayuno", "title_en": "Coffee & breakfast", "icon": "cafe", "tier": "SITUATIONAL", "trust_required": false, "trust_flag": null, "source": { "type": "collection", "collection_key": "cafe-desayuno" } }

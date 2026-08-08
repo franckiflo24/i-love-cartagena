@@ -10,7 +10,14 @@ leak (the U1-U6 class of finding).
 # Partner-submitted drafts, rejected drafts, and the demo sandbox never surface
 # publicly. $nin ALSO matches documents missing the field, so the 861 pre-existing
 # editorial venues (no catalog_status) are unaffected.
-PUBLIC_PARTNER_FILTER = {"catalog_status": {"$nin": ["pending_review", "rejected", "sandbox"]}}
+# Also honor a legacy `status` field: 14 partners carry status:"pending_review"
+# with catalog_status:None, so the catalog_status gate alone let them leak public
+# unhedged (audit). $nin matches docs missing `status` too, so editorial venues
+# (no status) are unaffected — only genuinely pending/rejected ones are hidden.
+PUBLIC_PARTNER_FILTER = {
+    "catalog_status": {"$nin": ["pending_review", "rejected", "sandbox"]},
+    "status": {"$nin": ["pending_review", "rejected", "needs_verification"]},
+}
 
 # Internal ownership / moderation fields stripped from any PUBLIC partner response.
 INTERNAL_PARTNER_FIELDS = (
