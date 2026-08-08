@@ -40,7 +40,7 @@
           "guidance_es": "Pagá SIEMPRE en pesos (COP), no en dólares — el 'dynamic currency conversion' de los datáfonos te cobra de más. Usá cajeros dentro de bancos/centros comerciales, nunca en la calle de noche.",
           "guidance_en": "Always pay in pesos (COP), not dollars — a datáfono's 'dynamic currency conversion' overcharges you. Use ATMs inside banks/malls, never on the street at night.",
           "entries": [
-            { "label_es": "Mejor tasa en cajero", "label_en": "Best ATM rate", "value_text": "Bancolombia (Bocagrande, Centro, centros comerciales). Límite diario ~$600.000 COP.", "confidence": "HIGH", "source": "CARTAGENA_KNOWLEDGE / consenso", "source_year": 2026 },
+            { "label_es": "Mejor tasa en cajero", "label_en": "Best ATM rate", "value_text": "Bancolombia (Bocagrande, Centro, centros comerciales). Límite diario ~$600.000 COP.", "confidence": "VERIFY", "source": "CARTAGENA_KNOWLEDGE / consenso (no oficial)", "source_year": 2026 },
             { "label_es": "Casas de cambio", "label_en": "Exchange houses", "value_text": "En el Centro (cerca de la Torre del Reloj) y Bocagrande. Compará tasas. NUNCA cambies en la calle.", "confidence": "HIGH", "source": "Trust research 2026", "source_year": 2026 },
             { "label_es": "Propina", "label_en": "Tipping", "value_text": "10% de servicio voluntario; el mesero debe preguntar '¿desea incluir el servicio?'. Revisá la cuenta antes de pagar.", "confidence": "HIGH", "source": "Norma nacional — propina voluntaria", "source_year": 2026 }
           ]
@@ -57,7 +57,7 @@
           "guidance_es": "Operadores: Claro, Movistar, Tigo, WOM. Claro tiene la mejor cobertura nacional (útil para tours a islas/pueblos). Comprá en tiendas oficiales o el aeropuerto — llevá tu pasaporte para registrar la SIM. Las eSIM (Airalo/Holafly) funcionan sin trámite.",
           "guidance_en": "Carriers: Claro, Movistar, Tigo, WOM. Claro has the best nationwide coverage (matters for island/town tours). Buy at official stores or the airport — bring your passport to register the SIM. eSIMs (Airalo/Holafly) work with no paperwork.",
           "entries": [
-            { "label_es": "Mejor cobertura", "label_en": "Best coverage", "value_text": "Claro (nacional)", "confidence": "HIGH", "source": "Consenso de cobertura", "source_year": 2026 }
+            { "label_es": "Mejor cobertura", "label_en": "Best coverage", "value_text": "Claro (nacional)", "confidence": "VERIFY", "source": "Consenso de cobertura (no oficial)", "source_year": 2026 }
           ]
         }
       ]
@@ -162,7 +162,7 @@
           "guidance_es": "Tomá agua embotellada (la infraestructura costera es inconsistente). Cepillarte los dientes con agua de la llave: generalmente ok. Ojo con el hielo de origen desconocido en la playa.",
           "guidance_en": "Drink bottled water (coastal infrastructure is inconsistent). Brushing your teeth with tap water is generally fine. Be cautious with ice of unknown origin at the beach.",
           "entries": [
-            { "label_es": "Recomendación", "label_en": "Recommendation", "value_text": "Embotellada para tomar; llave ok para cepillarse", "confidence": "HIGH", "source": "Consenso — infraestructura costera", "source_year": 2026 }
+            { "label_es": "Recomendación", "label_en": "Recommendation", "value_text": "Embotellada para tomar; llave ok para cepillarse", "confidence": "VERIFY", "source": "Consenso de viaje — infraestructura costera (no oficial)", "source_year": 2026 }
           ]
         }
       ]
@@ -187,7 +187,7 @@
           "guidance_en": "Dial directly, no +57 while in Colombia. 123 is free and 24/7 (police, ambulance, fire). Operators are mostly Spanish-speaking.",
           "entries": [
             { "label_es": "Emergencias (todo)", "label_en": "All emergencies", "value_text": "123", "confidence": "HIGH", "source": "Línea nacional única", "source_year": 2026 },
-            { "label_es": "Policía de Turismo", "label_en": "Tourist Police", "value_text": "+57 605 660 0583 · Calle de la Tablada, Centro (oficiales bilingües)", "confidence": "HIGH", "source": "Corpoturismo / Policía de Turismo", "source_year": 2026 },
+            { "label_es": "Policía de Turismo", "label_en": "Tourist Police", "value_text": "Calle de la Tablada, Centro (oficiales bilingües). Tel +57 605 660 0583 — confirmá vigencia; ante urgencia usá 123.", "confidence": "VERIFY", "source": "Investigación turística 2026 (no corroborado con fuente oficial en vivo)", "source_year": 2026 },
             { "label_es": "GAULA (anti-secuestro/extorsión)", "label_en": "GAULA (anti-kidnap/extortion)", "value_text": "165", "confidence": "HIGH", "source": "Línea nacional", "source_year": 2026 }
           ]
         },
@@ -200,8 +200,8 @@
           "trust_required": false,
           "trust_flag": null,
           "source": { "type": "seed" },
-          "guidance_es": "Para una urgencia con turistas, Serena del Mar es la referencia (acreditada JCI, oficina internacional bilingüe 24/7). En la ciudad: Nuevo Hospital Bocagrande y Hospital Naval. Medihelp (Bocagrande) es popular con turistas por médicos que hablan inglés.",
-          "guidance_en": "For a tourist emergency, Serena del Mar is the reference (JCI-accredited, 24/7 bilingual international office). In-city: Nuevo Hospital Bocagrande and Hospital Naval. Medihelp (Bocagrande) is popular with tourists for English-speaking doctors.",
+          "guidance_es": "Para una urgencia con turistas, Serena del Mar es la referencia (acreditada JCI, oficina internacional bilingüe 24/7). En la ciudad: Nuevo Hospital Bocagrande. Medihelp (Bocagrande) es popular con turistas por médicos que hablan inglés.",
+          "guidance_en": "For a tourist emergency, Serena del Mar is the reference (JCI-accredited, 24/7 bilingual international office). In-city: Nuevo Hospital Bocagrande. Medihelp (Bocagrande) is popular with tourists for English-speaking doctors.",
           "entries": [
             { "label_es": "Serena del Mar", "label_en": "Serena del Mar", "value_text": "Acreditado JCI · ~15 min del Centro · oficina internacional bilingüe 24/7", "confidence": "HIGH", "source": "Acreditación JCI (verificable)", "source_year": 2026 },
             { "label_es": "Nuevo Hospital Bocagrande", "label_en": "Nuevo Hospital Bocagrande", "value_text": "En Bocagrande · urgencias", "confidence": "HIGH", "source": "Health research 2026", "source_year": 2026 },

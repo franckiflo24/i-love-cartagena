@@ -239,11 +239,18 @@ CATEGORY_TO_NEED_STATE = {
 
 
 def need_state_for_category(category: str, subcategory: str = "") -> str:
-    """Slot a moderation-gated partner submission into the need-state taxonomy
-    from its category/subcategory. Essential service subcategories route to their
-    real need-state so an approved venue counts toward the RIGHT category's live-
-    gate (a HIDDEN category goes LIVE once it reaches live_gate verified entries —
-    the anti-flood growth path; coverage grows by verified self-service only)."""
+    """Tag a moderation-gated partner submission with its need-state (for
+    organization/routing), from its category/subcategory.
+
+    HONEST NOTE on the live-gate: the taxonomy's live-gate (_resolve_count's
+    "partners" branch) counts approved partners by each CATEGORY's own
+    source.category/subcategory in need_states.json — it does NOT read this stored
+    need_state field. So an approved submission grows a category's coverage ONLY
+    where that category is source.type:"partners" (today: the Services categories
+    — laundry, coworking, luggage_storage, veterinary — which DO go LIVE at
+    live_gate). Seed info-categories (pharmacy chains, hospitals, official fares)
+    are always-live curated blocks and do not grow by partner count. To let info-
+    categories grow via partners later, wire _resolve_count to also read need_state."""
     cat = (category or "").lower().strip()
     sub = (subcategory or "").lower().strip()
     if sub in {"laundry", "coworking", "luggage_storage", "veterinary", "rental", "tattoo", "barbershop"}:

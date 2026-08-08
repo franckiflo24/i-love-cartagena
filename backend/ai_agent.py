@@ -505,7 +505,14 @@ async def _route_intent(db, user_text: str) -> Dict[str, Any]:
     essential_kws = {"money", "dinero", "safe", "seguro", "emergency", "emergencia",
                      "hospital", "pharmacy", "farmacia", "atm", "cajero", "sim", "esim",
                      "agua", "water", "clinic", "clinica", "clínica",
-                     "supermercado", "supermarket", "laundry", "lavandería", "lavanderia"}
+                     "supermercado", "supermarket", "laundry", "lavandería", "lavanderia",
+                     # Every essentials taxonomy category MUST have a trigger, or the honesty
+                     # layer (essentials_layer) never loads and Luna answers ungrounded — the
+                     # exact invention risk for health/safety categories (adversarial CAT-HIGH).
+                     "médico", "medico", "doctor", "enfermo", "fiebre", "vacuna", "ambulancia",
+                     "veterinario", "veterinaria", "vet", "mascota", "perro", "gato",
+                     "coworking", "maleta", "equipaje", "luggage", "guardaequipaje",
+                     "cambio", "dólares", "dolares", "exchange", "banco", "bank"}
     logistics_kws = {"taxi", "uber", "airport", "aeropuerto", "boat", "lancha",
                      "transport", "transporte", "transfer", "bus"}
     if any(kw in t for kw in event_kws):
