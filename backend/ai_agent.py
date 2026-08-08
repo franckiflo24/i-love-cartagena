@@ -503,7 +503,9 @@ async def _route_intent(db, user_text: str) -> Dict[str, Any]:
     event_kws = {"event", "evento", "concert", "concierto", "tonight", "noche",
                  "esta noche", "agenda", "hoy", "ce soir", "hoje"}
     essential_kws = {"money", "dinero", "safe", "seguro", "emergency", "emergencia",
-                     "hospital", "pharmacy", "farmacia", "atm", "cajero", "sim"}
+                     "hospital", "pharmacy", "farmacia", "atm", "cajero", "sim", "esim",
+                     "agua", "water", "clinic", "clinica", "clínica",
+                     "supermercado", "supermarket", "laundry", "lavandería", "lavanderia"}
     logistics_kws = {"taxi", "uber", "airport", "aeropuerto", "boat", "lancha",
                      "transport", "transporte", "transfer", "bus"}
     if any(kw in t for kw in event_kws):
@@ -983,6 +985,14 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
     # Include knowledge spine ONLY for essentials/logistics queries
     if intent_type in {"essentials", "logistics"}:
         ctx["cartagena_knowledge"] = CARTAGENA_KNOWLEDGE
+        # Drop CAT: the LIVE essentials taxonomy — the verified essentials Luna
+        # MAY answer from + the categories she must honestly DECLINE (same live-
+        # gate as the user UI, so Luna and the app never disagree; no empty shelves).
+        try:
+            import essentials as _ess
+            ctx["essentials_layer"] = await _ess.essentials_coverage()
+        except Exception as exc:
+            logger.warning(f"[agent] essentials layer load failed: {exc}")
     return ctx
 
 
@@ -1270,6 +1280,11 @@ TU TRABAJO
 - Si el dato no está en trust_reference ni en el catálogo → "confírmalo en el lugar", nunca una cifra inventada.
 - Una línea proactiva de seguridad cuando el intent lo amerita (UNA, no un sermón): lancha/islas → "la tasa del muelle/parque se paga en efectivo ($16–41 mil según el tour), confirmá qué incluye"; vida nocturna → "nunca dejes tu trago solo"; taxi → "acordá el precio antes de subir".
 - Zonas: hablá de "zonas turísticas principales" — nunca declares una zona "peligrosa".
+
+## ESENCIALES DE LA CIUDAD (la capa invisible — SOLO lo verificado, sin estantes vacíos)
+- Si `essentials_layer` está en el contexto, respondé las necesidades básicas (traslado del aeropuerto, taxi, cajeros/cambio, SIM, farmacias, supermercados, agua, emergencias, hospitales, salud del viajero) DESDE `essentials_layer.live_essentials` — cada categoría trae `guidance` y `entries` verificadas (cadenas reales, tarifas oficiales, números). Da el dato con su fuente/año cuando es HIGH.
+- Datos clave verificados que SÍ podés afirmar (están en el contexto): emergencias **123**, Policía de Turismo, aeropuerto→Centro **$20.200** (oficial 2026), mínima taxi **$12.250**, farmacias = cadenas (Cruz Verde/Farmatodo/La Rebaja/Olímpica), hospital de referencia = **Serena del Mar** (JCI). Nunca inventes otro número, cadena, clínica o tarifa.
+- `essentials_layer.hidden_categories` = categorías SIN cobertura verificada suficiente todavía. Si el usuario pide una de esas —o cualquier esencial que NO esté en `live_essentials`— decí honestamente "eso todavía no lo tengo cubierto en la app" y ofrecé lo más cercano que SÍ esté vivo. JAMÁS inventes una farmacia, clínica, tarifa, dirección ni número que no esté en `live_essentials`. Un estante vacío inventado es peor que decir "todavía no".
 
 ## SELLOS DE TEMPORADA (una fecha vencida es una mentira)
 - Si `seasonal` está en el contexto, hablá de sellos/temporada/festivales DESDE AHÍ, nunca de memoria.

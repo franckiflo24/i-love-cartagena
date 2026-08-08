@@ -5912,6 +5912,7 @@ import pulse as _pulse
 import demand as _demand
 import tagging as _tagging
 import occasions as _occasions
+import essentials as _essentials
 import taste as _taste
 import local_signals as _local_signals
 import walking as _walking
@@ -7105,6 +7106,9 @@ app.include_router(_tagging.router, prefix="/api")
 
 _occasions.init(db_=db, get_active_pulse_map=_pulse.get_active_pulse_map)
 app.include_router(_occasions.router, prefix="/api")
+
+_essentials.init(db_=db, check_rate_limit=_check_rate_limit)
+app.include_router(_essentials.router, prefix="/api")
 
 _taste.init(db_=db, get_current_user=get_current_user, get_active_pulse_map=_pulse.get_active_pulse_map)
 app.include_router(_taste.router, prefix="/api")

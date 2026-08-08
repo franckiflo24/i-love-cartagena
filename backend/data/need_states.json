@@ -1,0 +1,283 @@
+{
+  "version": "2026-08-07-drop-cat",
+  "_spine": "The guest-need ESSENTIALS taxonomy — AMO as the invisible operating layer of the city. Every essential entry is HIGH (official/primary-sourced) or clearly REFERENCE/VERIFY. A category with fewer than live_gate VERIFIED entries is HIDDEN from users and Luna declines it — no empty shelves, no fake coverage. Occasion collections nest under need-states by collection_key. Seeded ONLY from verified sources: trust_knowledge.json (Decreto 0051 fares, emergency 123, water/tipping), the Aug-2026 Tourist Trust/Safety research, and CARTAGENA_KNOWLEDGE. Situational/partner-backed categories fill via the partner self-service portal (moderation-gated), never manual bulk-load.",
+  "live_gate": 3,
+  "need_states": [
+    {
+      "key": "arrival",
+      "order": 1,
+      "icon": "airplane",
+      "title_es": "Llegada y Orientación",
+      "title_en": "Arrival & Orientation",
+      "categories": [
+        {
+          "key": "airport_transfer",
+          "title_es": "Traslado del aeropuerto",
+          "title_en": "Airport transfer",
+          "icon": "car",
+          "tier": "CORE",
+          "trust_required": true,
+          "trust_flag": "taxi",
+          "source": { "type": "seed" },
+          "guidance_es": "Tarifas OFICIALES por zona (sin taxímetro). Pedí el tiquete impreso del kiosko del aeropuerto; hay tableros QR en las bandas de equipaje. Acordá SIEMPRE la zona antes de subir.",
+          "guidance_en": "OFFICIAL fixed fares by zone (taxis have no meter). Ask for the printed ticket at the airport kiosk; QR boards are on the baggage belts. Always confirm the zone before getting in.",
+          "entries": [
+            { "label_es": "Aeropuerto → Centro Histórico / San Diego / Getsemaní", "label_en": "Airport → Old City / San Diego / Getsemaní", "value_cop": 20200, "confidence": "HIGH", "source": "Decreto 0051, Alcaldía de Cartagena (tabla oficial del aeropuerto)", "source_year": 2026 },
+            { "label_es": "Aeropuerto → Bocagrande / Castillogrande / Laguito", "label_en": "Airport → Bocagrande / Castillogrande / Laguito", "value_cop": 34400, "confidence": "HIGH", "source": "Decreto 0051", "source_year": 2026 },
+            { "label_es": "Aeropuerto → Manga / Pie de la Popa", "label_en": "Airport → Manga / Pie de la Popa", "value_cop": 28500, "confidence": "HIGH", "source": "Decreto 0051", "source_year": 2026 },
+            { "label_es": "Aeropuerto → Muelle de la Bodeguita / La Boquilla", "label_en": "Airport → Bodeguita dock / La Boquilla", "value_cop": 24300, "confidence": "HIGH", "source": "Decreto 0051", "source_year": 2026 }
+          ]
+        },
+        {
+          "key": "money_atm_exchange",
+          "title_es": "Dinero: cajeros y cambio",
+          "title_en": "Money: ATMs & exchange",
+          "icon": "cash",
+          "tier": "CORE",
+          "trust_required": true,
+          "trust_flag": "cambio",
+          "source": { "type": "seed" },
+          "guidance_es": "Pagá SIEMPRE en pesos (COP), no en dólares — el 'dynamic currency conversion' de los datáfonos te cobra de más. Usá cajeros dentro de bancos/centros comerciales, nunca en la calle de noche.",
+          "guidance_en": "Always pay in pesos (COP), not dollars — a datáfono's 'dynamic currency conversion' overcharges you. Use ATMs inside banks/malls, never on the street at night.",
+          "entries": [
+            { "label_es": "Mejor tasa en cajero", "label_en": "Best ATM rate", "value_text": "Bancolombia (Bocagrande, Centro, centros comerciales). Límite diario ~$600.000 COP.", "confidence": "HIGH", "source": "CARTAGENA_KNOWLEDGE / consenso", "source_year": 2026 },
+            { "label_es": "Casas de cambio", "label_en": "Exchange houses", "value_text": "En el Centro (cerca de la Torre del Reloj) y Bocagrande. Compará tasas. NUNCA cambies en la calle.", "confidence": "HIGH", "source": "Trust research 2026", "source_year": 2026 },
+            { "label_es": "Propina", "label_en": "Tipping", "value_text": "10% de servicio voluntario; el mesero debe preguntar '¿desea incluir el servicio?'. Revisá la cuenta antes de pagar.", "confidence": "HIGH", "source": "Norma nacional — propina voluntaria", "source_year": 2026 }
+          ]
+        },
+        {
+          "key": "connectivity_sim",
+          "title_es": "SIM / eSIM e internet",
+          "title_en": "SIM / eSIM & internet",
+          "icon": "cellular",
+          "tier": "CORE",
+          "trust_required": false,
+          "trust_flag": null,
+          "source": { "type": "seed" },
+          "guidance_es": "Operadores: Claro, Movistar, Tigo, WOM. Claro tiene la mejor cobertura nacional (útil para tours a islas/pueblos). Comprá en tiendas oficiales o el aeropuerto — llevá tu pasaporte para registrar la SIM. Las eSIM (Airalo/Holafly) funcionan sin trámite.",
+          "guidance_en": "Carriers: Claro, Movistar, Tigo, WOM. Claro has the best nationwide coverage (matters for island/town tours). Buy at official stores or the airport — bring your passport to register the SIM. eSIMs (Airalo/Holafly) work with no paperwork.",
+          "entries": [
+            { "label_es": "Mejor cobertura", "label_en": "Best coverage", "value_text": "Claro (nacional)", "confidence": "HIGH", "source": "Consenso de cobertura", "source_year": 2026 }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "getting_around",
+      "order": 2,
+      "icon": "navigate",
+      "title_es": "Cómo Moverte",
+      "title_en": "Getting Around",
+      "categories": [
+        {
+          "key": "taxi",
+          "title_es": "Taxi",
+          "title_en": "Taxi",
+          "icon": "car-sport",
+          "tier": "CORE",
+          "trust_required": true,
+          "trust_flag": "taxi",
+          "source": { "type": "seed" },
+          "guidance_es": "Los taxis NO tienen taxímetro — acordá el precio ANTES de subir. Tarifa mínima 2026: $12.250 (en la práctica se redondea a $13.000). Recargo nocturno 7pm–5am: ~$1.100.",
+          "guidance_en": "Taxis have NO meter — agree the price BEFORE getting in. 2026 minimum fare: $12,250 (rounded to ~$13,000 in practice). Night surcharge 7pm–5am: ~$1,100.",
+          "entries": [
+            { "label_es": "Tarifa mínima (2026)", "label_en": "Minimum fare (2026)", "value_cop": 12250, "confidence": "HIGH", "source": "Decreto 0051, Alcaldía de Cartagena", "source_year": 2026 },
+            { "label_es": "Recargo nocturno (7pm–5am)", "label_en": "Night surcharge (7pm–5am)", "value_cop": 1100, "confidence": "HIGH", "source": "Decreto 0051", "source_year": 2026 }
+          ]
+        },
+        {
+          "key": "ride_hailing",
+          "title_es": "Apps de transporte",
+          "title_en": "Ride-hailing apps",
+          "icon": "phone-portrait",
+          "tier": "CORE",
+          "trust_required": false,
+          "trust_flag": null,
+          "source": { "type": "seed" },
+          "guidance_es": "Uber, InDrive, DiDi y Cabify funcionan en Cartagena. La ventaja: la tarifa se muestra ANTES — es tu mejor herramienta anti-estafa vs. el taxi sin taxímetro. De noche, incluso para trayectos cortos, usá app o taxi.",
+          "guidance_en": "Uber, InDrive, DiDi and Cabify work in Cartagena. The advantage: the fare is shown UP FRONT — your best anti-scam tool vs. an unmetered taxi. At night, even for short trips, use an app or a taxi.",
+          "entries": [
+            { "label_es": "Apps disponibles", "label_en": "Available apps", "value_text": "Uber · InDrive · DiDi · Cabify (tarifa mostrada antes de aceptar)", "confidence": "HIGH", "source": "Trust research 2026", "source_year": 2026 }
+          ]
+        },
+        {
+          "key": "walkable_zones",
+          "title_es": "Zonas caminables",
+          "title_en": "Walkable zones",
+          "icon": "walk",
+          "tier": "CORE",
+          "trust_required": false,
+          "trust_flag": null,
+          "source": { "type": "zones" }
+        }
+      ]
+    },
+    {
+      "key": "daily_essentials",
+      "order": 3,
+      "icon": "basket",
+      "title_es": "Esenciales del Día",
+      "title_en": "Daily Essentials",
+      "categories": [
+        {
+          "key": "pharmacy",
+          "title_es": "Farmacias",
+          "title_en": "Pharmacies",
+          "icon": "medkit",
+          "tier": "CORE",
+          "trust_required": false,
+          "trust_flag": null,
+          "source": { "type": "seed" },
+          "guidance_es": "Cadenas confiables: Cruz Verde, Farmatodo, Droguerías La Rebaja, Olímpica (y farmacias dentro de Éxito/Jumbo). Varias 24 horas. Rappi entrega medicamentos a domicilio. Llevá el nombre genérico del medicamento — las marcas cambian.",
+          "guidance_en": "Reliable chains: Cruz Verde, Farmatodo, Droguerías La Rebaja, Olímpica (plus pharmacies inside Éxito/Jumbo). Several are 24-hour. Rappi delivers medication. Bring the generic drug name — brands differ.",
+          "entries": [
+            { "label_es": "Cadenas", "label_en": "Chains", "value_text": "Cruz Verde · Farmatodo · La Rebaja · Olímpica · Éxito/Jumbo (24h existen)", "confidence": "HIGH", "source": "Cadenas nacionales verificadas", "source_year": 2026 },
+            { "label_es": "A domicilio", "label_en": "Delivery", "value_text": "Rappi entrega medicamentos", "confidence": "HIGH", "source": "Trust research 2026", "source_year": 2026 }
+          ]
+        },
+        {
+          "key": "supermarket",
+          "title_es": "Supermercados",
+          "title_en": "Supermarkets",
+          "icon": "cart",
+          "tier": "CORE",
+          "trust_required": false,
+          "trust_flag": null,
+          "source": { "type": "seed" },
+          "guidance_es": "Cadenas: Éxito, Carulla, Olímpica, Jumbo (en Bocagrande y centros comerciales). Carulla es la más premium; Olímpica la más económica.",
+          "guidance_en": "Chains: Éxito, Carulla, Olímpica, Jumbo (in Bocagrande and malls). Carulla is the most upscale; Olímpica the most budget-friendly.",
+          "entries": [
+            { "label_es": "Cadenas", "label_en": "Chains", "value_text": "Éxito · Carulla · Olímpica · Jumbo", "confidence": "HIGH", "source": "Cadenas nacionales verificadas", "source_year": 2026 }
+          ]
+        },
+        {
+          "key": "drinking_water",
+          "title_es": "Agua para tomar",
+          "title_en": "Drinking water",
+          "icon": "water",
+          "tier": "CORE",
+          "trust_required": false,
+          "trust_flag": null,
+          "source": { "type": "seed" },
+          "guidance_es": "Tomá agua embotellada (la infraestructura costera es inconsistente). Cepillarte los dientes con agua de la llave: generalmente ok. Ojo con el hielo de origen desconocido en la playa.",
+          "guidance_en": "Drink bottled water (coastal infrastructure is inconsistent). Brushing your teeth with tap water is generally fine. Be cautious with ice of unknown origin at the beach.",
+          "entries": [
+            { "label_es": "Recomendación", "label_en": "Recommendation", "value_text": "Embotellada para tomar; llave ok para cepillarse", "confidence": "HIGH", "source": "Consenso — infraestructura costera", "source_year": 2026 }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "health_safety",
+      "order": 4,
+      "icon": "medical",
+      "title_es": "Salud y Seguridad",
+      "title_en": "Health & Safety",
+      "categories": [
+        {
+          "key": "emergency",
+          "title_es": "Emergencias",
+          "title_en": "Emergency",
+          "icon": "alert-circle",
+          "tier": "CORE",
+          "trust_required": false,
+          "trust_flag": null,
+          "source": { "type": "seed" },
+          "guidance_es": "Marcá directo, sin +57 estando en Colombia. El 123 es gratis y 24/7 (policía, ambulancia, bomberos). Operadores mayormente en español.",
+          "guidance_en": "Dial directly, no +57 while in Colombia. 123 is free and 24/7 (police, ambulance, fire). Operators are mostly Spanish-speaking.",
+          "entries": [
+            { "label_es": "Emergencias (todo)", "label_en": "All emergencies", "value_text": "123", "confidence": "HIGH", "source": "Línea nacional única", "source_year": 2026 },
+            { "label_es": "Policía de Turismo", "label_en": "Tourist Police", "value_text": "+57 605 660 0583 · Calle de la Tablada, Centro (oficiales bilingües)", "confidence": "HIGH", "source": "Corpoturismo / Policía de Turismo", "source_year": 2026 },
+            { "label_es": "GAULA (anti-secuestro/extorsión)", "label_en": "GAULA (anti-kidnap/extortion)", "value_text": "165", "confidence": "HIGH", "source": "Línea nacional", "source_year": 2026 }
+          ]
+        },
+        {
+          "key": "hospitals",
+          "title_es": "Hospitales y clínicas",
+          "title_en": "Hospitals & clinics",
+          "icon": "medkit",
+          "tier": "CORE",
+          "trust_required": false,
+          "trust_flag": null,
+          "source": { "type": "seed" },
+          "guidance_es": "Para una urgencia con turistas, Serena del Mar es la referencia (acreditada JCI, oficina internacional bilingüe 24/7). En la ciudad: Nuevo Hospital Bocagrande y Hospital Naval. Medihelp (Bocagrande) es popular con turistas por médicos que hablan inglés.",
+          "guidance_en": "For a tourist emergency, Serena del Mar is the reference (JCI-accredited, 24/7 bilingual international office). In-city: Nuevo Hospital Bocagrande and Hospital Naval. Medihelp (Bocagrande) is popular with tourists for English-speaking doctors.",
+          "entries": [
+            { "label_es": "Serena del Mar", "label_en": "Serena del Mar", "value_text": "Acreditado JCI · ~15 min del Centro · oficina internacional bilingüe 24/7", "confidence": "HIGH", "source": "Acreditación JCI (verificable)", "source_year": 2026 },
+            { "label_es": "Nuevo Hospital Bocagrande", "label_en": "Nuevo Hospital Bocagrande", "value_text": "En Bocagrande · urgencias", "confidence": "HIGH", "source": "Health research 2026", "source_year": 2026 },
+            { "label_es": "Medihelp", "label_en": "Medihelp", "value_text": "Bocagrande · médicos que hablan inglés", "confidence": "HIGH", "source": "CARTAGENA_KNOWLEDGE", "source_year": 2026 }
+          ]
+        },
+        {
+          "key": "health_info",
+          "title_es": "Salud del viajero",
+          "title_en": "Traveler health",
+          "icon": "fitness",
+          "tier": "CORE",
+          "trust_required": false,
+          "trust_flag": null,
+          "source": { "type": "seed" },
+          "guidance_es": "Dengue y Zika están presentes en la costa — usá repelente. La malaria NO circula en la ciudad. La vacuna de fiebre amarilla generalmente NO se exige para una visita solo-ciudad (sí para ciertas zonas rurales/selva). El sol y el calor son intensos: hidratate y protegete.",
+          "guidance_en": "Dengue and Zika are present on the coast — use repellent. Malaria does NOT circulate in the city. Yellow-fever vaccination is generally NOT required for a city-only visit (it is for certain rural/jungle areas). Sun and heat are intense: hydrate and protect yourself.",
+          "entries": [
+            { "label_es": "Mosquitos", "label_en": "Mosquitoes", "value_text": "Dengue/Zika presentes — repelente. Malaria NO en la ciudad.", "confidence": "HIGH", "source": "Health research 2026", "source_year": 2026 },
+            { "label_es": "Vacuna fiebre amarilla", "label_en": "Yellow-fever vaccine", "value_text": "Generalmente NO exigida para visita solo-ciudad", "confidence": "VERIFY", "source": "Guías de salud — confirmá según tu itinerario", "source_year": 2026 }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "practical",
+      "order": 5,
+      "icon": "information-circle",
+      "title_es": "Práctico",
+      "title_en": "Practical",
+      "categories": [
+        {
+          "key": "safety_flags",
+          "title_es": "Cartagena sin sustos",
+          "title_en": "Cartagena, no surprises",
+          "icon": "shield-checkmark",
+          "tier": "CORE",
+          "trust_required": true,
+          "trust_flag": "general",
+          "source": { "type": "trust_scam_cards" }
+        }
+      ]
+    },
+    {
+      "key": "experiences",
+      "order": 6,
+      "icon": "compass",
+      "title_es": "Experiencias y Paseos",
+      "title_en": "Experiences & Day-Trips",
+      "categories": [
+        { "key": "islands_tours", "title_es": "Islas y tours", "title_en": "Islands & tours", "icon": "boat", "tier": "SITUATIONAL", "trust_required": true, "trust_flag": "islas", "source": { "type": "collection", "collection_key": "beach-clubs" } },
+        { "key": "cena-romantica", "title_es": "Cenas románticas", "title_en": "Romantic dinners", "icon": "heart", "tier": "SITUATIONAL", "trust_required": false, "trust_flag": null, "source": { "type": "collection", "collection_key": "cena-romantica" } },
+        { "key": "rumba", "title_es": "Rumba y vida nocturna", "title_en": "Nightlife", "icon": "musical-notes", "tier": "SITUATIONAL", "trust_required": true, "trust_flag": "noche", "source": { "type": "collection", "collection_key": "rumba" } },
+        { "key": "cafe-desayuno", "title_es": "Café y desayuno", "title_en": "Coffee & breakfast", "icon": "cafe", "tier": "SITUATIONAL", "trust_required": false, "trust_flag": null, "source": { "type": "collection", "collection_key": "cafe-desayuno" } }
+      ]
+    },
+    {
+      "key": "family_kids",
+      "order": 7,
+      "icon": "people",
+      "title_es": "Familia y Niños",
+      "title_en": "Family & Kids",
+      "categories": [
+        { "key": "con-ninos", "title_es": "Con niños", "title_en": "With kids", "icon": "happy", "tier": "SITUATIONAL", "trust_required": false, "trust_flag": null, "source": { "type": "collection", "collection_key": "con-ninos" } }
+      ]
+    },
+    {
+      "key": "services",
+      "order": 8,
+      "icon": "construct",
+      "title_es": "Servicios",
+      "title_en": "Services",
+      "categories": [
+        { "key": "laundry", "title_es": "Lavanderías", "title_en": "Laundry", "icon": "shirt", "tier": "SITUATIONAL", "trust_required": false, "trust_flag": null, "source": { "type": "partners", "category": "service", "subcategory": "laundry" } },
+        { "key": "coworking", "title_es": "Coworking", "title_en": "Coworking", "icon": "laptop", "tier": "SITUATIONAL", "trust_required": false, "trust_flag": null, "source": { "type": "partners", "category": "service", "subcategory": "coworking" } }
+      ]
+    }
+  ]
+}

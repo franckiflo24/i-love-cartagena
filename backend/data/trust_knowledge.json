@@ -45,6 +45,9 @@
   {"key": "taxi", "icon": "car", "title": "Taxis", "line": "Acordá el precio ANTES de subir o usá una app. Mínima 2026: $12.250; del aeropuerto al Centro: $20.200 (oficial)."},
   {"key": "islas", "icon": "boat", "title": "Islas y playas", "line": "Confirmá qué incluye tu tour. La tasa del muelle/parque se paga en EFECTIVO ($16-41k según tour). Rechazá el 'mesero personal' que no pediste."},
   {"key": "comida", "icon": "restaurant", "title": "Comida", "line": "Preguntá '¿precio?' y sacale foto al menú antes de consumir. 'Precio de mercado' sin número = cuenta sorpresa."},
-  {"key": "noche", "icon": "moon", "title": "De noche", "line": "Nunca dejes tu trago solo. Cuidado con encuentros de apps de citas (vector documentado por la Embajada de EE.UU.). Botellas selladas."}
+  {"key": "noche", "icon": "moon", "title": "De noche", "line": "Nunca dejes tu trago solo. Cuidado con encuentros de apps de citas (vector documentado por la Embajada de EE.UU.). Botellas selladas."},
+  {"key": "cambio", "icon": "cash", "title": "Dinero y cajeros", "line": "Pagá SIEMPRE en pesos, nunca en dólares (el datáfono te cobra de más en 'conversión'). Cajeros dentro de bancos o centros comerciales. NUNCA cambies dinero en la calle."},
+  {"key": "esmeraldas", "icon": "diamond", "title": "Esmeraldas", "line": "Comprá solo en joyerías establecidas y exigí el CERTIFICADO de autenticidad ANTES de pagar. Nunca a un vendedor callejero — es el estafa clásica de Cartagena."},
+  {"key": "playa", "icon": "umbrella", "title": "Vendedores de playa", "line": "Acordá CUALQUIER precio antes (silla, masaje, comida, foto, coctel). El 'te lo regalo' termina en cuenta sorpresa (bait-and-switch). Llevá billetes chicos."}
  ]
 }
