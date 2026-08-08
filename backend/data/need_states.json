@@ -276,7 +276,9 @@
       "title_en": "Services",
       "categories": [
         { "key": "laundry", "title_es": "Lavanderías", "title_en": "Laundry", "icon": "shirt", "tier": "SITUATIONAL", "trust_required": false, "trust_flag": null, "source": { "type": "partners", "category": "service", "subcategory": "laundry" } },
-        { "key": "coworking", "title_es": "Coworking", "title_en": "Coworking", "icon": "laptop", "tier": "SITUATIONAL", "trust_required": false, "trust_flag": null, "source": { "type": "partners", "category": "service", "subcategory": "coworking" } }
+        { "key": "coworking", "title_es": "Coworking", "title_en": "Coworking", "icon": "laptop", "tier": "SITUATIONAL", "trust_required": false, "trust_flag": null, "source": { "type": "partners", "category": "service", "subcategory": "coworking" } },
+        { "key": "luggage_storage", "title_es": "Guarda-equipaje", "title_en": "Luggage storage", "icon": "bag-handle", "tier": "SITUATIONAL", "trust_required": false, "trust_flag": null, "source": { "type": "partners", "category": "service", "subcategory": "luggage_storage" } },
+        { "key": "veterinary", "title_es": "Veterinarias", "title_en": "Veterinary", "icon": "paw", "tier": "SITUATIONAL", "trust_required": false, "trust_flag": null, "source": { "type": "partners", "category": "service", "subcategory": "veterinary" } }
       ]
     }
   ]
