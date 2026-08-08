@@ -37,26 +37,31 @@ const EXAMPLES = [
 export default function BusinessPulse() {
   const tr = useTr();
   const router = useRouter();
-  const { token, partner, loading: authLoading } = useBusinessAuth();
+  const { token, business, partner, loading: authLoading, refresh } = useBusinessAuth();
 
   const [active, setActive] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [text, setText] = useState('');
-  const [result, setResult] = useState<{ reply?: string; pulses?: any[]; cleared?: boolean; published?: number } | null>(null);
+  const [result, setResult] = useState<{ reply?: string; pulses?: any[]; cleared?: boolean; published?: number; hadActive?: boolean } | null>(null);
 
-  // Backend gate mirror: is_publicly_visible blocks pending_review/rejected/sandbox,
-  // AND the pulse gate requires a verified owner. Match it so we never invite a
-  // partner to type something the server will 403.
-  const canPulse = partner?.claim_status === 'verified_owner'
-    && !['pending_review', 'rejected', 'sandbox'].includes(partner?.catalog_status || '');
+  // Mirror the backend gate (pulse.py:364-369) EXACTLY: government role bypasses;
+  // otherwise verified owner AND publicly-visible. is_publicly_visible checks BOTH
+  // catalog_status and the legacy `status` field, so mirror both — else the "how
+  // travelers see it" label could show for a venue guests can't actually see.
+  const canPulse = business?.role === 'government'
+    || (partner?.claim_status === 'verified_owner'
+      && !['pending_review', 'rejected', 'sandbox'].includes(partner?.catalog_status || '')
+      && !['pending_review', 'rejected', 'needs_verification'].includes((partner as any)?.status || ''));
 
   const loadActive = useCallback(async () => {
     if (!token) return;
     try {
       const data = await api.get('/business/pulse', { headers: { Authorization: `Bearer ${token}` } });
       setActive(Array.isArray(data?.pulses) ? data.pulses : []);
-    } catch (e) { console.error('[pulse] load', e); }
+      setLoadError(false);
+    } catch (e) { console.error('[pulse] load', e); setLoadError(true); }
   }, [token]);
 
   useEffect(() => {
@@ -66,28 +71,43 @@ export default function BusinessPulse() {
     loadActive().finally(() => setLoading(false));
   }, [token, authLoading, loadActive, router]);
 
-  useFocusEffect(useCallback(() => { loadActive(); }, [loadActive]));
+  // Refresh the partner object too, so canPulse + the visibility label reflect a
+  // mid-session approval/suspension (sessions live for days) — not a stale snapshot.
+  useFocusEffect(useCallback(() => { loadActive(); refresh(); }, [loadActive, refresh]));
 
   const post = async () => {
     if (text.trim().length < 3) { Alert.alert(tr('Escribe algo'), tr('Cuéntanos qué está pasando en tu negocio hoy.')); return; }
+    const hadActive = active.length > 0;
     setBusy(true); setResult(null);
     try {
       const r = await api.post('/business/pulse', { text: text.trim() }, { headers: { Authorization: `Bearer ${token}` } });
-      setResult({ reply: r?.reply, pulses: r?.pulses || [], cleared: !!r?.cleared, published: r?.published || 0 });
+      // A misconfigured/empty backend URL makes api.post a silent no-op that echoes
+      // the request body (no `ok`). Never claim success on that — the partner would
+      // believe a live update reached travelers when it never left the device.
+      if (!r?.ok) throw new Error(tr('No se pudo publicar. Verifica tu conexión e intenta de nuevo.'));
       setText('');
       await loadActive();
+      // hadActive distinguishes an intended clear from an unparseable message: the
+      // backend returns cleared:true for BOTH, but only the former should read as
+      // "we removed your updates".
+      setResult({ reply: r?.reply, pulses: r?.pulses || [], cleared: !!r?.cleared, published: r?.published || 0, hadActive });
     } catch (e: any) {
-      Alert.alert(tr('No se pudo publicar'), e?.message || tr('Intenta de nuevo en un momento.'));
+      const msg = /429|too many requests/i.test(e?.message || '')
+        ? tr('Publicaste demasiadas veces. Espera un momento.')
+        : (e?.message || tr('Intenta de nuevo en un momento.'));
+      Alert.alert(tr('No se pudo publicar'), msg);
     }
     setBusy(false);
   };
 
   const clearAll = () => {
     const doClear = async () => {
+      setBusy(true);
       try {
         await api.delete('/business/pulse', { headers: { Authorization: `Bearer ${token}` } });
         setActive([]); setResult(null);
       } catch (e: any) { Alert.alert(tr('No se pudo actualizar'), e?.message || tr('Intenta de nuevo.')); }
+      setBusy(false);
     };
     if (Platform.OS === 'web') { if (window.confirm(tr('¿Quitar tus novedades de hoy?'))) doClear(); }
     else Alert.alert(tr('Quitar novedades'), tr('¿Quitar tus novedades de hoy?'), [
@@ -137,22 +157,31 @@ export default function BusinessPulse() {
           {result && (
             <View style={styles.replyCard}>
               <Ionicons name="sparkles" size={16} color={COLORS.primary} />
-              <Text style={styles.replyText}>{result.reply || (result.cleared ? tr('Listo, quitamos tus novedades.') : tr('Publicado.'))}</Text>
+              <Text style={styles.replyText}>{result.reply || (result.cleared
+                ? (result.hadActive ? tr('Listo, quitamos tus novedades.') : tr('No entendimos tu mensaje. Cuéntanos qué pasa hoy, ej: música en vivo 21:00.'))
+                : tr('Publicado.'))}</Text>
             </View>
+          )}
+
+          {loadError && (
+            <TouchableOpacity style={styles.retryBanner} onPress={() => loadActive()} activeOpacity={0.8}>
+              <Ionicons name="refresh" size={15} color={COLORS.textMuted} />
+              <Text style={styles.retryText}>{tr('No pudimos cargar tus novedades.')} · {tr('Reintentar')}</Text>
+            </TouchableOpacity>
           )}
 
           {/* Live now — rendered exactly as guests see it (⚡HOY badge) */}
           {active.length > 0 && (
             <View style={styles.liveSection}>
               <View style={styles.liveHeader}>
-                <View style={styles.liveDot} />
-                <Text style={styles.liveLabel}>{tr('Así lo ven los viajeros ahora')}</Text>
-                <TouchableOpacity onPress={clearAll} style={styles.clearBtn}>
+                <View style={[styles.liveDot, !canPulse && { backgroundColor: COLORS.textMuted }]} />
+                <Text style={styles.liveLabel}>{canPulse ? tr('Así lo ven los viajeros ahora') : tr('Tus novedades activas')}</Text>
+                <TouchableOpacity onPress={clearAll} style={[styles.clearBtn, busy && { opacity: 0.5 }]} disabled={busy}>
                   <Ionicons name="close" size={13} color={COLORS.textMuted} />
                   <Text style={styles.clearText}>{tr('Quitar')}</Text>
                 </TouchableOpacity>
               </View>
-              {active.map((p) => {
+              {active.filter(Boolean).map((p) => {
                 const m = metaFor(p.type);
                 return (
                   <View key={p.pulse_id} style={styles.pulseBanner}>
@@ -170,6 +199,7 @@ export default function BusinessPulse() {
                   </View>
                 );
               })}
+              {!canPulse && <Text style={styles.hiddenNote}>{tr('No visibles para viajeros hasta que tu negocio esté aprobado.')}</Text>}
               <Text style={styles.expiryNote}>{tr('Activo hoy · se borra solo a las 23:59.')}</Text>
             </View>
           )}
@@ -191,8 +221,8 @@ export default function BusinessPulse() {
             {active.length > 0 ? <Text style={styles.replaceNote}>{tr('Publicar reemplaza lo de arriba')}</Text> : null}
           </View>
 
-          {/* Example prefills */}
-          {canPulse && (
+          {/* Example prefills — only when the box is empty, so tapping never wipes typed text */}
+          {canPulse && text.trim().length === 0 && (
             <View style={styles.chips}>
               {EXAMPLES.map((ex, i) => (
                 <TouchableOpacity key={i} style={styles.chip} onPress={() => setText(tr(ex))}>
@@ -233,6 +263,8 @@ const styles = StyleSheet.create({
   gateBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(59,130,246,0.10)', borderWidth: 1, borderColor: '#3B82F6', borderRadius: RADIUS.lg, padding: SPACING.md, marginTop: SPACING.md },
   gateText: { flex: 1, fontSize: 12, color: COLORS.textMain, ...FONTS.medium, lineHeight: 17 },
 
+  retryBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.lg, padding: SPACING.md, marginTop: SPACING.md },
+  retryText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold },
   replyCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: 'rgba(217,119,6,0.10)', borderWidth: 1, borderColor: COLORS.primary, borderRadius: RADIUS.lg, padding: SPACING.md, marginTop: SPACING.md },
   replyText: { flex: 1, fontSize: 13, color: COLORS.textMain, ...FONTS.medium, lineHeight: 18 },
 
@@ -252,6 +284,7 @@ const styles = StyleSheet.create({
   pulseTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
   pulseDetails: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2, lineHeight: 16 },
   expiryNote: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, fontStyle: 'italic', marginTop: 2 },
+  hiddenNote: { fontSize: 11.5, color: '#3B82F6', ...FONTS.semibold, marginTop: 2, lineHeight: 16 },
 
   label: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: SPACING.lg, marginBottom: SPACING.xs },
   compose: { minHeight: 96, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.md, color: COLORS.textMain, fontSize: 15, ...FONTS.regular, textAlignVertical: 'top', lineHeight: 21 },

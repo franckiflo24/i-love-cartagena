@@ -52,5 +52,16 @@ PUBLIC_CITY_EVENT_FILTER = {"moderation_status": {"$nin": ["pending", "rejected"
 
 def is_publicly_visible(partner: dict) -> bool:
     """True if a partner doc may be shown publicly (used where a filter can't be
-    pushed into the query, e.g. after a geo/aggregation stage)."""
-    return (partner or {}).get("catalog_status") not in ("pending_review", "rejected", "sandbox")
+    pushed into the query, e.g. after a geo/aggregation stage).
+
+    MUST match PUBLIC_PARTNER_FILTER field-for-field — this is the in-Python mirror
+    of that query. It previously checked only catalog_status, so a partner hidden by
+    the legacy `status` field (pending_review/rejected/needs_verification with a null
+    catalog_status) could pass this gate yet be excluded from every guest query —
+    e.g. pulse.py's POST gate would let them publish a 'live' pulse no guest ever
+    sees. Keep the two in lockstep."""
+    p = partner or {}
+    return (
+        p.get("catalog_status") not in ("pending_review", "rejected", "sandbox")
+        and p.get("status") not in ("pending_review", "rejected", "needs_verification")
+    )

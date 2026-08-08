@@ -104,6 +104,7 @@ Reglas:
 - Si el mensaje pide borrar/cancelar lo publicado, devolvé {"clear": true, "pulses": [], "reply": "confirmación de borrado"}.
 - Horas en formato 24h HH:MM. No inventes horas ni datos que no estén en el mensaje.
 - title SIEMPRE presente y autocontenido (ej: "Música en vivo 20:00", "2x1 mojitos hasta 21:00").
+- Solo describí lo que pasa en ESTE negocio. Nunca menciones, compares ni nombres a otro negocio, y no generes afirmaciones no verificables tipo "el mejor de Cartagena" o "el único autorizado".
 - Si el mensaje incluye una lista "candidatos" (varios negocios comparten este número), agregá "target_partner_id" al nivel superior con el partner_id del negocio que MEJOR corresponde al contenido del mensaje (ej: promo de cócteles → el bar; plato/cena → el restaurante). Si no es claro, usá el primero."""
 
 

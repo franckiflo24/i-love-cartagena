@@ -63,7 +63,11 @@ export default function BusinessPromotions() {
   // a promo only reaches the consumer feed from a catalog-public venue, so the
   // success copy must not claim "ya aparece" for a sandbox/unapproved venue.
   const notApproved = partner?.catalog_status === 'pending_review' || partner?.catalog_status === 'rejected';
-  const willShowPublicly = !!partner && !['pending_review', 'rejected', 'sandbox'].includes(partner.catalog_status || '');
+  // Mirror PUBLIC_PARTNER_FILTER field-for-field (catalog_status AND legacy status),
+  // so "ya aparece en Ofertas del día" is never claimed for a venue guests can't see.
+  const willShowPublicly = !!partner
+    && !['pending_review', 'rejected', 'sandbox'].includes(partner.catalog_status || '')
+    && !['pending_review', 'rejected', 'needs_verification'].includes((partner as any).status || '');
 
   const load = useCallback(async () => {
     if (!token) return;
