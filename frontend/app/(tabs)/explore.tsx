@@ -182,6 +182,21 @@ const SUBCATEGORIES: Record<string, Subcat[]> = {
     { key: 'aesthetic_clinic', label: 'Clínica Estética',icon: 'medkit' },
     { key: 'lashes_brows',   label: 'Cejas & Pestañas', icon: 'eye' },
   ],
+  // Drop CAT: the guest-essentials as browsable service subcategories — keys MUST
+  // match the stored partner.subcategory values so the existing subcategory filter
+  // (p.subcategory === selectedSubcategory) surfaces the real venues.
+  service: [
+    { key: 'pharmacy',          label: 'Farmacias',         icon: 'medkit' },
+    { key: 'currency_exchange', label: 'Cambio de divisas', icon: 'cash' },
+    { key: 'bank',              label: 'Bancos / Cajeros',  icon: 'card' },
+    { key: 'grocery',           label: 'Supermercados',     icon: 'cart' },
+    { key: 'laundry',           label: 'Lavanderías',       icon: 'shirt' },
+    { key: 'coworking',         label: 'Coworking',         icon: 'laptop' },
+    { key: 'sim_card',          label: 'SIM / eSIM',        icon: 'cellular' },
+    { key: 'medical',           label: 'Médico',            icon: 'medical' },
+    { key: 'veterinary',        label: 'Veterinarias',      icon: 'paw' },
+    { key: 'luggage_storage',   label: 'Guarda-equipaje',   icon: 'bag-handle' },
+  ],
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

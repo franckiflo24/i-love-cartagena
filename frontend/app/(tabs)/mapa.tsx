@@ -42,6 +42,7 @@ const FILTERS = [
   { key: 'pasaporte', label: 'Pasaporte', icon: 'ribbon', color: '#D4AF37' },
   { key: 'venue', label: 'Venues', icon: 'location', color: '#3B82F6' },
   { key: 'partner', label: 'Partners', icon: 'diamond', color: '#8B5CF6' },
+  { key: 'esenciales', label: 'Esenciales', icon: 'medkit', color: '#14B8A6' },
   { key: 'concert', label: 'Conciertos', icon: 'musical-notes', color: '#EC4899' },
 ];
 
@@ -62,10 +63,13 @@ const MARKER_COLORS: Record<string, string> = {
   wellness: '#22C55E',
   concert: '#EC4899',
   partner: '#8B5CF6',
+  service: '#14B8A6',
 };
 
 function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null) {
-  const filtered = filter === 'all' ? places : places.filter(p => p.category === filter);
+  const filtered = filter === 'all' ? places
+    : filter === 'esenciales' ? places.filter(p => p.type === 'service')
+    : places.filter(p => p.category === filter);
 
   const markers = filtered.map(p => {
     const color = MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || '#D97706';
@@ -295,6 +299,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
     const layer = L.layerGroup();
     const filtered = filter === 'all' ? places
       : filter === 'pasaporte' ? places.filter(p => passportIds.has(p.id))
+      : filter === 'esenciales' ? places.filter(p => p.type === 'service')
       : places.filter(p => p.category === filter);
     filtered.forEach(p => {
       if (!p.lat || !p.lng) return;
@@ -602,6 +607,7 @@ export default function MapaScreen() {
     pasaporte: visiblePlaces.filter(p => passportIds.has(p.id)).length,
     venue: visiblePlaces.filter(p => p.category === 'venue').length,
     partner: visiblePlaces.filter(p => p.category === 'partner').length,
+    esenciales: visiblePlaces.filter(p => p.type === 'service').length,
     concert: visiblePlaces.filter(p => p.category === 'concert').length,
   };
 

@@ -885,7 +885,29 @@ export default function SearchScreen() {
               </View>
             ) : null)}
 
-            {totalResults === 0 ? (
+            {/* Drop CAT: an essentials-shaped query surfaces the verified Esenciales
+                hub (works even when the catalog has no matching venue — fares, 123). */}
+            {(results as any)?.essentials ? (
+              <TouchableOpacity
+                onPress={() => router.push('/esenciales' as any)}
+                activeOpacity={0.85}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(20,184,166,0.45)' }}
+              >
+                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#14B8A6', alignItems: 'center', justifyContent: 'center' }}>
+                  <Ionicons name={((results as any).essentials.icon || 'medkit') as any} size={20} color="#0A0A0A" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 14, color: COLORS.textMain, ...FONTS.bold }}>
+                    {(lang !== 'es' && (results as any).essentials.title_en) || (results as any).essentials.title_es}
+                  </Text>
+                  <Text style={{ fontSize: 12, color: COLORS.textMuted, ...FONTS.medium, marginTop: 1 }}>{tr('Info verificada en Esenciales')}</Text>
+                </View>
+                {(results as any).essentials.trust_flag ? <Ionicons name="shield-checkmark" size={16} color="#F5D47A" /> : null}
+                <Ionicons name="chevron-forward" size={18} color="#14B8A6" />
+              </TouchableOpacity>
+            ) : null}
+
+            {totalResults === 0 && !(results as any)?.essentials ? (
               <View style={styles.emptyState}>
                 <Ionicons name="search-outline" size={48} color={COLORS.textMuted} />
                 <Text style={styles.emptyTitle}>{tr('Sin resultados')}</Text>
@@ -909,7 +931,7 @@ export default function SearchScreen() {
               </View>
             ) : (
               <>
-                <Text style={styles.resultCount}>{totalResults} {totalResults !== 1 ? tr('resultados') : tr('resultado')}</Text>
+                {totalResults > 0 ? <Text style={styles.resultCount}>{totalResults} {totalResults !== 1 ? tr('resultados') : tr('resultado')}</Text> : null}
 
                 {/* Partners */}
                 {results!.partners.length > 0 && (

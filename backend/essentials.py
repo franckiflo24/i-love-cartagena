@@ -20,6 +20,7 @@ Read-only, public. Situational/partner categories grow via the partner portal
 import json
 import logging
 import os
+import re
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Request
@@ -272,3 +273,43 @@ def need_state_for_category(category: str, subcategory: str = "") -> str:
     if sub in {"transport_app", "taxi", "transport"}:
         return "getting_around"
     return CATEGORY_TO_NEED_STATE.get(cat, "services")
+
+
+# ── Search integration: surface the essentials hub for essentials-shaped queries ──
+_ESSENTIALS_QUERY_MAP = {
+    "aeropuerto": "airport_transfer", "airport": "airport_transfer", "traslado": "airport_transfer",
+    "cajero": "money_atm_exchange", "atm": "money_atm_exchange", "cambio": "money_atm_exchange",
+    "dólares": "money_atm_exchange", "dolares": "money_atm_exchange", "exchange": "money_atm_exchange",
+    "sim": "connectivity_sim", "esim": "connectivity_sim", "chip": "connectivity_sim",
+    "taxi": "taxi", "tarifa": "taxi",
+    "farmacia": "pharmacy", "pharmacy": "pharmacy", "droguería": "pharmacy", "drogueria": "pharmacy", "medicamento": "pharmacy",
+    "supermercado": "supermarket", "supermarket": "supermarket", "grocery": "supermarket",
+    "agua": "drinking_water", "water": "drinking_water",
+    "emergencia": "emergency", "emergency": "emergency", "ambulancia": "emergency", "policía": "emergency", "policia": "emergency",
+    "hospital": "hospitals", "clínica": "hospitals", "clinica": "hospitals", "clinic": "hospitals",
+    "médico": "hospitals", "medico": "hospitals", "doctor": "hospitals",
+    "vacuna": "health_info", "fiebre": "health_info", "dengue": "health_info", "repelente": "health_info",
+    "esenciales": "airport_transfer", "essentials": "airport_transfer",
+}
+
+
+def match_essentials_query(text: str) -> Optional[Dict[str, Any]]:
+    """The best-matching essentials category for a search query (word-boundary), or
+    None. Lets /search surface the VERIFIED essentials hub for terms the partner
+    catalog can't answer (airport fares, 123, hospitals) — findability, never
+    invention. Returns a small card the frontend routes to /esenciales."""
+    t = (text or "").lower().strip()
+    if len(t) < 2:
+        return None
+    for kw, cat_key in _ESSENTIALS_QUERY_MAP.items():
+        if re.search(rf"(?<!\w){re.escape(kw)}(?!\w)", t):
+            cat = _find_category(cat_key)
+            if not cat:
+                continue
+            return {
+                "category": cat_key, "need_state": cat["_need_state"],
+                "title_es": cat.get("title_es"), "title_en": cat.get("title_en"),
+                "icon": cat.get("icon"), "trust_flag": cat.get("trust_flag"),
+                "route": "/esenciales",
+            }
+    return None

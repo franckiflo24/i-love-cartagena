@@ -4797,6 +4797,15 @@ async def global_search(q: str = "", request: Request = None):
         "events": events, "concerts": concerts, "partners": partners,
         "venues": venues, "transport": transport, "partner_events": partner_events,
     }
+    # Drop CAT: surface the verified Essentials hub for essentials-shaped queries
+    # (farmacia/aeropuerto/emergencia/cajero/hospital…) — findability for the info
+    # layer the partner catalog can't answer. Spreads through EVERY return branch.
+    try:
+        _ess_card = _essentials.match_essentials_query(q)
+        if _ess_card:
+            matches["essentials"] = _ess_card
+    except Exception:
+        pass
 
     # ── FAST-PATH: if the user typed something that uniquely identifies a partner
     # (e.g. "carmen", "casa boheme", "celele"), skip the LLM entirely and respond

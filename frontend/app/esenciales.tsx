@@ -99,8 +99,12 @@ export default function EsencialesScreen() {
                               </View>
                             ))}
                             {!!d.resolve_via && (
-                              <TouchableOpacity onPress={() => router.push('/(tabs)/explore' as any)}>
-                                <Text style={styles.link}>{tr('Ver lugares en el mapa')} →</Text>
+                              <TouchableOpacity onPress={() => {
+                                const rv: string = d.resolve_via || '';
+                                if (rv.includes('category=service')) router.push(`/(tabs)/explore?category=service&subcategory=${c.key}` as any);
+                                else router.push('/(tabs)/explore' as any);
+                              }}>
+                                <Text style={styles.link}>{tr('Ver lugares')} →</Text>
                               </TouchableOpacity>
                             )}
                             {(d.entries || []).length === 0 && !d.guidance_es && !d.resolve_via && (

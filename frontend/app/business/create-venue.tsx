@@ -12,7 +12,7 @@ import { useTr } from '../../src/i18n/autoTr';
 // dedup precheck runs first; a near-duplicate blocks the create and routes the
 // partner to CLAIM the existing record instead. New venues enter as a
 // pending_review DRAFT — never live until an admin approves.
-const CATEGORIES = ['restaurant', 'bar', 'beach_club', 'club', 'hotel', 'cafe', 'spa', 'activity'];
+const CATEGORIES = ['restaurant', 'bar', 'beach_club', 'club', 'hotel', 'cafe', 'spa', 'activity', 'service', 'beauty', 'yacht', 'attraction'];
 
 export default function CreateVenue() {
   const tr = useTr();

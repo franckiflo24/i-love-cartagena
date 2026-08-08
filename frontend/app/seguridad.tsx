@@ -65,7 +65,7 @@ export default function SeguridadScreen() {
             </View>
 
             {/* The 4 scam cards */}
-            <Text style={styles.sectionTitle}>{tr('Los 4 que hay que saber')}</Text>
+            <Text style={styles.sectionTitle}>{tr('Lo que hay que saber')}</Text>
             {(data.scam_cards || []).map((c: any) => (
               <View key={c.key} style={styles.scamCard}>
                 <Ionicons name={CARD_ICONS[c.icon] || 'alert-circle'} size={20} color={COLORS.primary} />
