@@ -248,6 +248,19 @@ export default function BusinessDashboard() {
           <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
         </TouchableOpacity>
 
+        {/* B4: Pulse — real-time "what's live now", surfaces to guests + Luna instantly */}
+        <TouchableOpacity style={styles.contentLink} onPress={() => router.push('/business/pulse' as any)} activeOpacity={0.85}>
+          <View style={[styles.contentIconWrap, { backgroundColor: 'rgba(251,191,36,0.15)' }]}><Ionicons name="flash" size={18} color="#FBBF24" /></View>
+          <View style={{ flex: 1 }}>
+            <View style={styles.pulseTitleRow}>
+              <Text style={styles.contentTitle}>{tr('En vivo hoy')}</Text>
+              <View style={styles.pulseLiveTag}><View style={styles.pulseLiveDot} /><Text style={styles.pulseLiveText}>{tr('EN VIVO')}</Text></View>
+            </View>
+            <Text style={styles.contentSub}>{tr('Publica qué pasa ahora — lo ve todo el mundo y Luna')}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+        </TouchableOpacity>
+
         {/* Onboarding / Approval banner (non-government) */}
         {!isGovernment && onboarding ? (() => {
           const pct = onboarding.percent ?? 0;
@@ -559,6 +572,10 @@ const styles = StyleSheet.create({
   contentIconWrap: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(217,119,6,0.15)' },
   contentTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
   contentSub: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+  pulseTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  pulseLiveTag: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(34,197,94,0.15)', paddingHorizontal: 7, paddingVertical: 2, borderRadius: RADIUS.full },
+  pulseLiveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#22C55E' },
+  pulseLiveText: { fontSize: 9, color: '#22C55E', ...FONTS.bold, letterSpacing: 0.5 },
 
   statsGrid: { flexDirection: 'row', paddingHorizontal: SPACING.lg, gap: SPACING.sm, flexWrap: 'wrap' },
   statCard: { flex: 1, minWidth: '22%', alignItems: 'center', backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.sm, borderWidth: 1, borderColor: COLORS.border, gap: 2, position: 'relative' },
