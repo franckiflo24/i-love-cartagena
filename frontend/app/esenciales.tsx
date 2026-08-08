@@ -101,7 +101,10 @@ export default function EsencialesScreen() {
                             {!!d.resolve_via && (
                               <TouchableOpacity onPress={() => {
                                 const rv: string = d.resolve_via || '';
-                                if (rv.includes('category=service')) router.push(`/(tabs)/explore?category=service&subcategory=${c.key}` as any);
+                                if (rv.includes('/collections/')) { router.push(`/collections/${rv.split('/collections/')[1]}` as any); return; }
+                                const cat = (rv.match(/category=([^&]+)/) || [])[1];
+                                if (cat === 'service') router.push(`/(tabs)/explore?category=service&subcategory=${c.key}` as any);
+                                else if (cat) router.push(`/(tabs)/explore?category=${cat}` as any);
                                 else router.push('/(tabs)/explore' as any);
                               }}>
                                 <Text style={styles.link}>{tr('Ver lugares')} →</Text>

@@ -45,6 +45,9 @@ export const AUTO_TR: Dict = {
   'Ver lugares en el mapa': { en: 'See places on the map', fr: 'Voir les lieux sur la carte', pt: 'Ver lugares no mapa' },
   'Aún no cubierto en la app.': { en: 'Not yet covered in the app.', fr: "Pas encore couvert dans l'app.", pt: 'Ainda não coberto no app.' },
   'confirmá': { en: 'confirm', fr: 'à confirmer', pt: 'confirme' },
+  'Planeá con tu grupo': { en: 'Plan with your group', fr: 'Planifiez avec votre groupe', pt: 'Planeje com seu grupo' },
+  'Info verificada en Esenciales': { en: 'Verified info in Essentials', fr: 'Info vérifiée dans Essentiels', pt: 'Info verificada em Essenciais' },
+  'Tipo': { en: 'Type', fr: 'Type', pt: 'Tipo' },
 
   // Walking Layer — "Cerca de ti" strip ('Favorito local' + 'Activar' exist below)
   'Cerca de ti': { en: 'Near you', fr: 'Près de vous', pt: 'Perto de você' },

@@ -559,13 +559,14 @@ export default function HomeScreen() {
                 { icon: 'calendar',       label: s('home_agenda'),     subtitle: s('home_today'),       color: '#F97316', route: '/(tabs)/agenda', cat: '' },
                 { icon: 'compass',        label: 'Explorar',           subtitle: 'Lugares',             color: '#3B82F6', route: '/(tabs)/explore', cat: '' },
                 { icon: 'ribbon',         label: 'Pasaporte',          subtitle: 'Sellos',              color: '#D4AF37', route: '/(tabs)/pasaporte', cat: '' },
+                { icon: 'briefcase',      label: tr('Mi Viaje'),       subtitle: tr('Planeá con tu grupo'), color: '#8B5CF6', route: '/viaje', cat: '' },
+                { icon: 'medkit',         label: tr('Esenciales'),     subtitle: tr('Todo lo básico'),  color: '#14B8A6', route: '/esenciales', cat: '' },
+                { icon: 'shield-checkmark', label: 'Sin sustos',       subtitle: 'Precios+Tips',        color: '#22C55E', route: '/seguridad', cat: '' },
                 { icon: 'musical-notes',  label: s('home_concerts'),   subtitle: s('home_live'),        color: '#A855F7', route: '/concerts', cat: 'club' },
                 { icon: 'star',           label: 'Rewards',            subtitle: 'Puntos',              color: '#F59E0B', route: '/rewards', cat: '' },
                 { icon: 'heart',          label: s('home_favorites'),  subtitle: s('home_my_list'),     color: '#EF4444', route: '/favorites', cat: '' },
                 { icon: 'boat',           label: s('home_transport'),  subtitle: s('home_boats'),       color: '#06B6D4', route: '/transport', cat: 'activity' },
                 { icon: 'trail-sign',     label: s('home_routes'),     subtitle: 'IA',                  color: '#10B981', route: '/itineraries', cat: '' },
-                { icon: 'shield-checkmark', label: 'Sin sustos',       subtitle: 'Precios+Tips',        color: '#22C55E', route: '/seguridad', cat: '' },
-                { icon: 'medkit',         label: tr('Esenciales'),     subtitle: tr('Todo lo básico'),  color: '#14B8A6', route: '/esenciales', cat: '' },
                 { icon: 'shield',         label: 'Emergencias',        subtitle: 'SOS',                 color: '#DC2626', route: '/ayuda', cat: '' },
               ];
               // Cruise users: pin transport + itineraries (day-plan tools) to front

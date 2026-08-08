@@ -14,6 +14,25 @@ import { useTr } from '../../src/i18n/autoTr';
 // pending_review DRAFT — never live until an admin approves.
 const CATEGORIES = ['restaurant', 'bar', 'beach_club', 'club', 'hotel', 'cafe', 'spa', 'activity', 'service', 'beauty', 'yacht', 'attraction'];
 
+// Subcategory keys MUST match SUBCATEGORIES in explore.tsx + the essentials
+// need_states.json, so an approved venue slots under the right browse/gate.
+const SUBCATS: Record<string, { key: string; label: string }[]> = {
+  service: [
+    { key: 'pharmacy', label: 'Farmacia' }, { key: 'currency_exchange', label: 'Cambio de divisas' },
+    { key: 'bank', label: 'Banco / Cajero' }, { key: 'grocery', label: 'Supermercado' },
+    { key: 'laundry', label: 'Lavandería' }, { key: 'coworking', label: 'Coworking' },
+    { key: 'sim_card', label: 'SIM / eSIM' }, { key: 'medical', label: 'Médico / Clínica' },
+    { key: 'veterinary', label: 'Veterinaria' }, { key: 'luggage_storage', label: 'Guarda-equipaje' },
+    { key: 'rental', label: 'Alquiler' },
+  ],
+  restaurant: [
+    { key: 'seafood', label: 'Mariscos' }, { key: 'colombian', label: 'Colombiana' },
+    { key: 'international', label: 'Internacional' }, { key: 'italian', label: 'Italiana' }, { key: 'asian', label: 'Asiática' },
+  ],
+  bar: [{ key: 'cocktail_bar', label: 'Cocktail Bar' }, { key: 'rooftop', label: 'Rooftop' }, { key: 'salsa_bar', label: 'Salsa' }],
+  beauty: [{ key: 'salon', label: 'Salón' }, { key: 'barbershop', label: 'Barbería' }, { key: 'nails', label: 'Uñas' }, { key: 'facial_spa', label: 'Facial & Spa' }],
+};
+
 export default function CreateVenue() {
   const tr = useTr();
   const router = useRouter();
@@ -21,6 +40,7 @@ export default function CreateVenue() {
   const { token, refresh, loading: authLoading } = useBusinessAuth();
   const [name, setName] = useState(params.name || '');
   const [category, setCategory] = useState('restaurant');
+  const [subcategory, setSubcategory] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
   const [description, setDescription] = useState('');
   const [phone, setPhone] = useState('');
@@ -43,7 +63,7 @@ export default function CreateVenue() {
       }
       // 2) create the draft.
       const r = await api.post('/business/venues/create', {
-        name: name.trim(), category, neighborhood: neighborhood.trim(),
+        name: name.trim(), category, subcategory, neighborhood: neighborhood.trim(),
         description: description.trim(), phone: phone.trim(), website: website.trim(),
       }, { headers: { Authorization: `Bearer ${token}` } });
       await refresh();
@@ -74,11 +94,24 @@ export default function CreateVenue() {
           <Text style={styles.label}>{tr('Categoría')}</Text>
           <View style={styles.chips}>
             {CATEGORIES.map(c => (
-              <TouchableOpacity key={c} style={[styles.chip, category === c && styles.chipActive]} onPress={() => setCategory(c)}>
+              <TouchableOpacity key={c} style={[styles.chip, category === c && styles.chipActive]} onPress={() => { setCategory(c); setSubcategory(''); }}>
                 <Text style={[styles.chipText, category === c && styles.chipTextActive]}>{tr(c)}</Text>
               </TouchableOpacity>
             ))}
           </View>
+
+          {SUBCATS[category] ? (
+            <>
+              <Text style={styles.label}>{tr('Tipo')}</Text>
+              <View style={styles.chips}>
+                {SUBCATS[category].map(sc => (
+                  <TouchableOpacity key={sc.key} style={[styles.chip, subcategory === sc.key && styles.chipActive]} onPress={() => setSubcategory(sc.key)}>
+                    <Text style={[styles.chipText, subcategory === sc.key && styles.chipTextActive]}>{tr(sc.label)}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          ) : null}
 
           <Text style={styles.label}>{tr('Barrio')}</Text>
           <View style={styles.inputWrap}><TextInput style={styles.input} value={neighborhood} onChangeText={setNeighborhood} placeholder="Getsemaní, Centro, Bocagrande…" placeholderTextColor={COLORS.textMuted} /></View>
