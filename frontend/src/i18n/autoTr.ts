@@ -1110,6 +1110,7 @@ export const AUTO_TR: Dict = {
   'Arte': { en: 'Art', fr: 'Art', pt: 'Arte' },
   'Oferta publicada': { en: 'Deal published', fr: 'Offre publiée', pt: 'Oferta publicada' },
   'Ya aparece en "Ofertas del día" en la pantalla principal.': { en: 'It now appears in "Today\'s Offers" on the home screen.', fr: 'Elle apparaît maintenant dans « Offres du jour » sur l\'accueil.', pt: 'Já aparece em "Ofertas do dia" na tela inicial.' },
+  'Se publicará en "Ofertas del día" cuando tu negocio esté aprobado y público.': { en: 'It will appear in "Today\'s Offers" once your business is approved and public.', fr: 'Elle apparaîtra dans « Offres du jour » une fois votre établissement approuvé et public.', pt: 'Será publicada em "Ofertas do dia" quando seu negócio for aprovado e público.' },
   'Falta el título': { en: 'Title missing', fr: 'Titre manquant', pt: 'Falta o título' },
   'Ponle un título a tu oferta.': { en: 'Give your deal a title.', fr: 'Donnez un titre à votre offre.', pt: 'Dê um título à sua oferta.' },
   'Falta la vigencia': { en: 'End date missing', fr: 'Date de fin manquante', pt: 'Falta a validade' },

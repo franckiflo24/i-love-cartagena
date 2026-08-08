@@ -58,7 +58,12 @@ export default function BusinessPromotions() {
   const [validDays, setValidDays] = useState<number | null>(null);
   const [description, setDescription] = useState('');
 
+  // Hard gate: the API's _require_content_owner 403s pending_review/rejected, so
+  // disable publishing there. `willShowPublicly` mirrors PUBLIC_PARTNER_FILTER —
+  // a promo only reaches the consumer feed from a catalog-public venue, so the
+  // success copy must not claim "ya aparece" for a sandbox/unapproved venue.
   const notApproved = partner?.catalog_status === 'pending_review' || partner?.catalog_status === 'rejected';
+  const willShowPublicly = !!partner && !['pending_review', 'rejected', 'sandbox'].includes(partner.catalog_status || '');
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -115,7 +120,9 @@ export default function BusinessPromotions() {
       const created = await api.post('/business/promotions', payload, { headers: { Authorization: `Bearer ${token}` } });
       setPromos((prev) => [created, ...prev]);
       resetForm();
-      Alert.alert(tr('Oferta publicada'), tr('Ya aparece en "Ofertas del día" en la pantalla principal.'));
+      Alert.alert(tr('Oferta publicada'), willShowPublicly
+        ? tr('Ya aparece en "Ofertas del día" en la pantalla principal.')
+        : tr('Se publicará en "Ofertas del día" cuando tu negocio esté aprobado y público.'));
     } catch (e: any) {
       Alert.alert(tr('No se pudo publicar'), e?.message || tr('Intenta de nuevo en un momento.'));
     }
