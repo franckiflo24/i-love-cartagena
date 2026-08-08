@@ -64,11 +64,12 @@ const MARKER_COLORS: Record<string, string> = {
   concert: '#EC4899',
   partner: '#8B5CF6',
   service: '#14B8A6',
+  essential: '#DC2626',
 };
 
 function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null) {
   const filtered = filter === 'all' ? places
-    : filter === 'esenciales' ? places.filter(p => p.type === 'service')
+    : filter === 'esenciales' ? places.filter(p => p.type === 'service' || p.type === 'essential')
     : places.filter(p => p.category === filter);
 
   const markers = filtered.map(p => {
@@ -299,7 +300,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
     const layer = L.layerGroup();
     const filtered = filter === 'all' ? places
       : filter === 'pasaporte' ? places.filter(p => passportIds.has(p.id))
-      : filter === 'esenciales' ? places.filter(p => p.type === 'service')
+      : filter === 'esenciales' ? places.filter(p => p.type === 'service' || p.type === 'essential')
       : places.filter(p => p.category === filter);
     filtered.forEach(p => {
       if (!p.lat || !p.lng) return;
@@ -496,6 +497,14 @@ export default function MapaScreen() {
   };
 
   useEffect(() => {
+    // Verified essentials pins (Google-Places-geocoded hospitals) — the seed
+    // safety layer isn't in the partner catalog, so it needs its own pin source.
+    let essentialsPins: any[] = [];
+    const essToPlaces = (): Place[] => essentialsPins.map((e: any) => ({
+      id: `ess_${e.place_id || e.name}`, name: e.name, description: e.note || '',
+      category: 'partner', type: 'essential', address: e.note || '',
+      lat: e.lat, lng: e.lng, image_url: '', price: '', link: '', extra: e.note || '',
+    }));
     const buildPlaces = (venues: any[], partners: any[], concerts: any[]): Place[] => {
       const allPlaces: Place[] = [];
       const seenNames = new Set<string>();
@@ -541,6 +550,7 @@ export default function MapaScreen() {
         }
       });
 
+      allPlaces.push(...essToPlaces());
       return allPlaces.filter(p => p.lat !== 0);
     };
 
@@ -573,7 +583,9 @@ export default function MapaScreen() {
       api.get('/venues').catch(() => []),
       api.get('/partners').catch(() => []),
       api.get('/concerts').catch(() => []),
-    ]).then(([venues, partners, concerts]) => {
+      api.get('/essentials/pins').catch(() => ({ pins: [] })),
+    ]).then(([venues, partners, concerts, essRes]: any[]) => {
+      essentialsPins = (essRes && essRes.pins) || [];
       if (Array.isArray(partners) && partners.length > 0) {
         setPlaces(buildPlaces(venues, partners, concerts));
       }
@@ -607,7 +619,7 @@ export default function MapaScreen() {
     pasaporte: visiblePlaces.filter(p => passportIds.has(p.id)).length,
     venue: visiblePlaces.filter(p => p.category === 'venue').length,
     partner: visiblePlaces.filter(p => p.category === 'partner').length,
-    esenciales: visiblePlaces.filter(p => p.type === 'service').length,
+    esenciales: visiblePlaces.filter(p => p.type === 'service' || p.type === 'essential').length,
     concert: visiblePlaces.filter(p => p.category === 'concert').length,
   };
 

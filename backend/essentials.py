@@ -204,6 +204,32 @@ async def essentials_category(cat_key: str, request: Request):
     return base
 
 
+@router.get("/essentials/pins")
+async def essentials_pins(request: Request):
+    """Coordinate-carrying essentials (verified hospitals) for the MAP. The seed
+    safety layer isn't in the partner catalog, so without this the single most
+    safety-critical essential — hospitals — has no pin. Only entries with a REAL
+    lat/lng (from Google Places, verified) are returned; never a fabricated point."""
+    if _check_rate_limit:
+        ip = request.headers.get("x-real-ip") or (request.client.host if request.client else "unknown")
+        await _check_rate_limit(f"essentials:{ip}", max_calls=60, window_sec=60)
+    pins = []
+    for ns in _TAXONOMY.get("need_states", []):
+        for cat in ns.get("categories", []):
+            if (cat.get("source") or {}).get("type") != "seed":
+                continue
+            for e in (cat.get("entries") or []):
+                if isinstance(e.get("lat"), (int, float)) and isinstance(e.get("lng"), (int, float)):
+                    pins.append({
+                        "name": e.get("label_es"), "name_en": e.get("label_en"),
+                        "lat": e["lat"], "lng": e["lng"],
+                        "need_state": ns["key"], "category": cat["key"], "icon": cat.get("icon"),
+                        "trust_flag": cat.get("trust_flag"), "note": e.get("value_text"),
+                        "place_id": e.get("place_id"),
+                    })
+    return {"pins": pins}
+
+
 # ── Luna essentials context (honesty boundary) ──────────────────────────────
 async def essentials_coverage() -> Dict[str, Any]:
     """For Luna's grounding, built from the SAME live-gate as the user taxonomy so

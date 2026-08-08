@@ -203,9 +203,10 @@
           "guidance_es": "Para una urgencia con turistas, Serena del Mar es la referencia (acreditada JCI, oficina internacional bilingüe 24/7). En la ciudad: Nuevo Hospital Bocagrande. Medihelp (Bocagrande) es popular con turistas por médicos que hablan inglés.",
           "guidance_en": "For a tourist emergency, Serena del Mar is the reference (JCI-accredited, 24/7 bilingual international office). In-city: Nuevo Hospital Bocagrande. Medihelp (Bocagrande) is popular with tourists for English-speaking doctors.",
           "entries": [
-            { "label_es": "Serena del Mar", "label_en": "Serena del Mar", "value_text": "Acreditado JCI · ~15 min del Centro · oficina internacional bilingüe 24/7", "confidence": "HIGH", "source": "Acreditación JCI (verificable)", "source_year": 2026 },
-            { "label_es": "Nuevo Hospital Bocagrande", "label_en": "Nuevo Hospital Bocagrande", "value_text": "En Bocagrande · urgencias", "confidence": "HIGH", "source": "Health research 2026", "source_year": 2026 },
-            { "label_es": "Medihelp", "label_en": "Medihelp", "value_text": "Bocagrande · médicos que hablan inglés", "confidence": "HIGH", "source": "CARTAGENA_KNOWLEDGE", "source_year": 2026 }
+            { "label_es": "Serena del Mar", "label_en": "Serena del Mar", "value_text": "Acreditado JCI · ~15 min del Centro · oficina internacional bilingüe 24/7", "confidence": "HIGH", "source": "Acreditación JCI + Google Places (verificado)", "source_year": 2026, "lat": 10.5068656, "lng": -75.4666725, "place_id": "ChIJf6UrMnE79o4RtClsBTZkE6M" },
+            { "label_es": "Nuevo Hospital de Bocagrande", "label_en": "Nuevo Hospital de Bocagrande", "value_text": "Castillogrande / Bocagrande · urgencias", "confidence": "HIGH", "source": "Google Places (verificado)", "source_year": 2026, "lat": 10.3953794, "lng": -75.5561358, "place_id": "ChIJAVacsD4v9o4RP5tPcMZ1Z_0" },
+            { "label_es": "Hospital Naval de Cartagena", "label_en": "Cartagena Naval Hospital", "value_text": "Av. San Martín, Bocagrande · urgencias", "confidence": "HIGH", "source": "Google Places (verificado)", "source_year": 2026, "lat": 10.4158979, "lng": -75.5507807, "place_id": "ChIJeWODV3Mv9o4Rd66ZcGi57fQ" },
+            { "label_es": "Medihelp", "label_en": "Medihelp", "value_text": "Bocagrande · médicos que hablan inglés", "confidence": "HIGH", "source": "CARTAGENA_KNOWLEDGE + Google Places (verificado)", "source_year": 2026, "lat": 10.3974351, "lng": -75.5563243, "place_id": "ChIJpZWBhD4v9o4RACuAJV7_QAQ" }
           ]
         },
         {
