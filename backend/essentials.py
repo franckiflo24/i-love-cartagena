@@ -39,7 +39,14 @@ def _load(name: str) -> Any:
         return json.load(f)
 
 
-_TAXONOMY: Dict[str, Any] = _load("need_states.json")
+try:
+    _TAXONOMY: Dict[str, Any] = _load("need_states.json")
+except Exception as _e:
+    # Fail SOFT, never crash server startup: a malformed taxonomy disables the
+    # essentials layer (empty → nothing renders, Luna declines all) rather than
+    # taking the whole backend down. Honesty gate holds even on load failure.
+    logging.getLogger("essentials").error(f"need_states.json failed to load — essentials disabled: {_e}")
+    _TAXONOMY = {"version": "unloaded", "live_gate": 3, "need_states": []}
 try:
     _TRUST: Dict[str, Any] = _load("trust_knowledge.json")
 except Exception:
