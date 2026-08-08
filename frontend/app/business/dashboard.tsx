@@ -238,6 +238,16 @@ export default function BusinessDashboard() {
           <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
         </TouchableOpacity>
 
+        {/* B3: Promociones — deals that surface in "Ofertas del día" on the home tab */}
+        <TouchableOpacity style={styles.contentLink} onPress={() => router.push('/business/promotions' as any)} activeOpacity={0.85}>
+          <View style={styles.contentIconWrap}><Ionicons name="megaphone-outline" size={18} color={COLORS.primary} /></View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.contentTitle}>{tr('Promociones')}</Text>
+            <Text style={styles.contentSub}>{tr('Publica ofertas que aparecen en "Ofertas del día"')}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+        </TouchableOpacity>
+
         {/* Onboarding / Approval banner (non-government) */}
         {!isGovernment && onboarding ? (() => {
           const pct = onboarding.percent ?? 0;
