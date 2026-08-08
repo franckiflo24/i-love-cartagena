@@ -440,6 +440,20 @@ export default function RewardsHub() {
           </View>
         )}
 
+        {/* Audit fix: /rewards/offers (the redemption catalog) was unreachable —
+            always-visible entry regardless of the inline offers rail above. */}
+        <TouchableOpacity
+          style={[styles.cardCta, { borderColor: `${COLORS.primary}50` }]}
+          onPress={() => router.push('/rewards/offers' as any)}
+          activeOpacity={0.85}
+        >
+          <View style={styles.cardCtaLeft}>
+            <Ionicons name="pricetags-outline" size={22} color={COLORS.primary} />
+            <Text style={styles.cardCtaText}>{s('rewards_offers')}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={COLORS.primary} />
+        </TouchableOpacity>
+
         {/* ── AMO Card CTA ── */}
         <TouchableOpacity
           style={[styles.cardCta, { borderColor: `${COLORS.primary}50` }]}

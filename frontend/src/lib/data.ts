@@ -260,10 +260,6 @@ export async function getTransport(): Promise<TransportFare[]> {
   return raw.map(normaliseTransport).filter((t) => t.id);
 }
 
-export async function getCruiseCalls(): Promise<CruiseCall[]> {
-  return load<CruiseCall>('cruise-calls');
-}
-
 export async function getPractical(): Promise<Practical[]> {
   const raw = await load<Record<string, unknown>>('emergency-contacts');
   return raw.map(normalisePractical).filter((p) => p.id);

@@ -3741,23 +3741,7 @@ async def list_emergency_contacts():
 
 
 # ── Concierge (Four-Agent Claude Chat) ──────────────────────
-@api_router.post("/concierge/chat")
-async def concierge_chat_endpoint(request: Request):
-    # Auth required — prevents anonymous abuse of the Anthropic key
-    user = await get_current_user(request)
-    await _check_rate_limit(f"concierge:{user['user_id']}", max_calls=15, window_sec=60)
-    body = await request.json()
-    agent = body.get("agent", "luna")
-    messages = body.get("messages", [])
-    if not messages:
-        raise HTTPException(400, "messages required")
-    # Load user profile for personalized recommendations
-    user_profile = await db.user_profiles.find_one({"user_id": user["user_id"]}, {"_id": 0})
-    if not user_profile:
-        user_profile = {k: user.get(k) for k in ("user_type", "party_type", "interests", "travel_dates")}
-    from concierge import concierge_chat
-    result = await concierge_chat(agent, messages, db, user_profile=user_profile)
-    return result
+# (Removed dead endpoint /concierge/chat — 3rd concierge impl, 0 callers; live path is /agent/chat.)
 
 
 # ── Notifications ───────────────────────────────────────────
@@ -3941,16 +3925,7 @@ async def list_my_week(request: Request):
 
 
 # ── Event Types & Categories ────────────────────────────────
-@api_router.get("/event-types")
-async def event_types():
-    return ["sunset", "concert", "wellness", "brunch", "beach_club", "after_party", "cultural", "candlelight", "pop_up"]
-
-
-@api_router.get("/partner-categories")
-async def partner_categories():
-    cats = await db.partners.distinct("category")
-    return sorted(cats)
-
+# (Removed dead endpoints /event-types + /partner-categories — 0 callers, audit.)
 
 # ── Seasons (Multi-event platform) ──────────────────────────
 @api_router.get("/seasons")
