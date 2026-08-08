@@ -205,11 +205,17 @@ async def essentials_category(cat_key: str, request: Request):
 
 # ── Luna essentials context (honesty boundary) ──────────────────────────────
 async def essentials_coverage() -> Dict[str, Any]:
-    """For Luna's grounding: which essentials are LIVE (answerable from verified
-    data) and which are HIDDEN (must be honestly declined). Built from the SAME
-    live-gate as the user taxonomy so Luna and the UI never disagree."""
+    """For Luna's grounding, built from the SAME live-gate as the user taxonomy so
+    Luna and the UI never disagree:
+      - live_essentials  = LIVE seed categories (answer from their guidance/entries)
+      - live_directory   = LIVE partner/collection/zone/trust categories that DO
+                           have real coverage but are answered from relevant_partners
+                           / the map (NOT a seed block). Surfaced so Luna does not
+                           wrongly decline a category the app shows as live.
+      - hidden_categories = under-seeded (< gate) — must be honestly declined."""
     gate = int(_TAXONOMY.get("live_gate", 3))
     live: Dict[str, Any] = {}
+    live_directory: List[str] = []
     hidden: List[str] = []
     for ns in _TAXONOMY.get("need_states", []):
         for cat in ns.get("categories", []):
@@ -225,8 +231,10 @@ async def essentials_coverage() -> Dict[str, Any]:
                     "entries": cat.get("entries") or [],
                     "trust_flag": cat.get("trust_flag"),
                 }
-    return {"live_essentials": live, "hidden_categories": hidden,
-            "_rule": "Answer essentials ONLY from live_essentials (verified). For any hidden_category or anything not here, say honestly it's not yet covered — NEVER invent a pharmacy, clinic, fare, or number."}
+            else:
+                live_directory.append(cat["key"])
+    return {"live_essentials": live, "live_directory": live_directory, "hidden_categories": hidden,
+            "_rule": "Answer seed essentials ONLY from live_essentials. live_directory categories ARE covered — answer them from relevant_partners/the map, never decline. For any hidden_category or anything in neither, say honestly it's not yet covered — NEVER invent a pharmacy, clinic, fare, or number."}
 
 
 # ── Partner self-service → need-state slotting (D1/D2, anti-flood growth) ────

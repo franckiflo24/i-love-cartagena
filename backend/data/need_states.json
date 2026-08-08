@@ -54,8 +54,8 @@
           "trust_required": false,
           "trust_flag": null,
           "source": { "type": "seed" },
-          "guidance_es": "Operadores: Claro, Movistar, Tigo, WOM. Claro tiene la mejor cobertura nacional (útil para tours a islas/pueblos). Comprá en tiendas oficiales o el aeropuerto — llevá tu pasaporte para registrar la SIM. Las eSIM (Airalo/Holafly) funcionan sin trámite.",
-          "guidance_en": "Carriers: Claro, Movistar, Tigo, WOM. Claro has the best nationwide coverage (matters for island/town tours). Buy at official stores or the airport — bring your passport to register the SIM. eSIMs (Airalo/Holafly) work with no paperwork.",
+          "guidance_es": "Operadores: Claro, Movistar, Tigo, WOM. La cobertura varía por operador — confirmá la del tuyo antes de un tour a islas/pueblos. Comprá en tiendas oficiales o el aeropuerto — llevá tu pasaporte para registrar la SIM. Las eSIM (Airalo/Holafly) funcionan sin trámite.",
+          "guidance_en": "Carriers: Claro, Movistar, Tigo, WOM. Coverage varies by carrier — confirm yours before an island/town tour. Buy at official stores or the airport — bring your passport to register the SIM. eSIMs (Airalo/Holafly) work with no paperwork.",
           "entries": [
             { "label_es": "Mejor cobertura", "label_en": "Best coverage", "value_text": "Claro (nacional)", "confidence": "VERIFY", "source": "Consenso de cobertura (no oficial)", "source_year": 2026 }
           ]
@@ -144,8 +144,8 @@
           "trust_required": false,
           "trust_flag": null,
           "source": { "type": "seed" },
-          "guidance_es": "Cadenas: Éxito, Carulla, Olímpica, Jumbo (en Bocagrande y centros comerciales). Carulla es la más premium; Olímpica la más económica.",
-          "guidance_en": "Chains: Éxito, Carulla, Olímpica, Jumbo (in Bocagrande and malls). Carulla is the most upscale; Olímpica the most budget-friendly.",
+          "guidance_es": "Cadenas: Éxito, Carulla, Olímpica, Jumbo (en Bocagrande y centros comerciales). Cubren distintos presupuestos.",
+          "guidance_en": "Chains: Éxito, Carulla, Olímpica, Jumbo (in Bocagrande and malls). They span different budgets.",
           "entries": [
             { "label_es": "Cadenas", "label_en": "Chains", "value_text": "Éxito · Carulla · Olímpica · Jumbo", "confidence": "HIGH", "source": "Cadenas nacionales verificadas", "source_year": 2026 }
           ]

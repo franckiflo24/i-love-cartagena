@@ -510,16 +510,22 @@ async def _route_intent(db, user_text: str) -> Dict[str, Any]:
                      # layer (essentials_layer) never loads and Luna answers ungrounded — the
                      # exact invention risk for health/safety categories (adversarial CAT-HIGH).
                      "médico", "medico", "doctor", "enfermo", "fiebre", "vacuna", "ambulancia",
-                     "veterinario", "veterinaria", "vet", "mascota", "perro", "gato",
+                     "veterinario", "veterinaria", "mascota",
                      "coworking", "maleta", "equipaje", "luggage", "guardaequipaje",
-                     "cambio", "dólares", "dolares", "exchange", "banco", "bank"}
+                     "dólares", "dolares", "exchange"}
+    # Word-BOUNDARY match, not substring: "vet"∈muévete, "agua"∈aguacate, "bus"∈busca
+    # were misrouting normal queries into essentials/logistics (adversarial re-audit).
+    # Ambiguous real-words (vet/perro/gato/banco/cambio) dropped — mascota/veterinario/
+    # dólares/exchange cover the real intent without the collisions.
+    def _kw_hit(kws):
+        return any(re.search(rf"(?<!\w){re.escape(kw)}(?!\w)", t) for kw in kws)
     logistics_kws = {"taxi", "uber", "airport", "aeropuerto", "boat", "lancha",
                      "transport", "transporte", "transfer", "bus"}
-    if any(kw in t for kw in event_kws):
+    if _kw_hit(event_kws):
         intent_type = "events"
-    elif any(kw in t for kw in essential_kws):
+    elif _kw_hit(essential_kws):
         intent_type = "essentials"
-    elif any(kw in t for kw in logistics_kws):
+    elif _kw_hit(logistics_kws):
         intent_type = "logistics"
     elif categories or subcategories:
         intent_type = "recommendation"
@@ -726,7 +732,7 @@ CARTAGENA_KNOWLEDGE: Dict[str, Any] = {
     },
     "transport": {
         "airport": "Rafael Nunez International (CTG), ~15 min to Centro Historico by taxi",
-        "taxis": "Safe if official (yellow). No meter — agree on price BEFORE. ~$15,000-25,000 COP within city. Uber/InDriver/DiDi work but legally grey.",
+        "taxis": "Safe if official (yellow). No meter — agree on price BEFORE. Official 2026 minimum ~$12,250 COP; use essentials_layer/trust_reference for exact per-zone fares. Uber/InDriver/DiDi work but legally grey.",
         "water_taxis": "To islands from Muelle de la Bodeguita (main dock, Centro) and Muelle de Manga. Tasa Portuaria required (~$31,500 COP/person).",
         "transcaribe": "TransCaribe bus system, prepaid card, covers Bocagrande-Centro-Manga corridor. Cheap but crowded.",
         "cruise_terminal": "SPRC terminal in Manga, ~10-15 min to Centro Historico by taxi.",
@@ -1290,8 +1296,11 @@ TU TRABAJO
 
 ## ESENCIALES DE LA CIUDAD (la capa invisible — SOLO lo verificado, sin estantes vacíos)
 - Si `essentials_layer` está en el contexto, respondé las necesidades básicas (traslado del aeropuerto, taxi, cajeros/cambio, SIM, farmacias, supermercados, agua, emergencias, hospitales, salud del viajero) DESDE `essentials_layer.live_essentials` — cada categoría trae `guidance` y `entries` verificadas (cadenas reales, tarifas oficiales, números). Da el dato con su fuente/año cuando es HIGH.
-- Datos clave verificados que SÍ podés afirmar (están en el contexto): emergencias **123**, Policía de Turismo, aeropuerto→Centro **$20.200** (oficial 2026), mínima taxi **$12.250**, farmacias = cadenas (Cruz Verde/Farmatodo/La Rebaja/Olímpica), hospital de referencia = **Serena del Mar** (JCI). Nunca inventes otro número, cadena, clínica o tarifa.
-- `essentials_layer.hidden_categories` = categorías SIN cobertura verificada suficiente todavía. Si el usuario pide una de esas —o cualquier esencial que NO esté en `live_essentials`— decí honestamente "eso todavía no lo tengo cubierto en la app" y ofrecé lo más cercano que SÍ esté vivo. JAMÁS inventes una farmacia, clínica, tarifa, dirección ni número que no esté en `live_essentials`. Un estante vacío inventado es peor que decir "todavía no".
+- AUTORIDAD: para ATM/hospital/tarifa/policía de turismo/agua, `essentials_layer` y `trust_reference` MANDAN sobre `cartagena_knowledge` (que es solo contexto de fondo, sin verificar). Si difieren, seguí SIEMPRE a essentials_layer/trust_reference.
+- Datos clave verificados que SÍ podés afirmar (HIGH): emergencias **123**, aeropuerto→Centro **$20.200** (oficial 2026), mínima taxi **$12.250**, farmacias = cadenas (Cruz Verde/Farmatodo/La Rebaja/Olímpica), hospital de referencia = **Serena del Mar** (JCI). Nunca inventes otro número, cadena, clínica o tarifa.
+- Entradas confidence=VERIFY en `essentials_layer` → decilas SIEMPRE con la salvedad exacta de su value_text/source ("no oficial", "confirmá vigencia"); ante urgencia remití al 123. NUNCA las afirmes con el mismo peso que una HIGH (ej: el teléfono de la Policía de Turismo es VERIFY — dalo con el hedge, no como dato firme).
+- `essentials_layer.live_directory` = categorías que SÍ están cubiertas con lugares reales (lavanderías, coworking, etc.). RESPONDELAS desde `relevant_partners`/el mapa — NUNCA digas que no están cubiertas.
+- `essentials_layer.hidden_categories` = categorías SIN cobertura verificada suficiente todavía. Si el usuario pide una de esas —o cualquier esencial que NO esté en `live_essentials` ni en `live_directory`— decí honestamente "eso todavía no lo tengo cubierto en la app" y ofrecé lo más cercano que SÍ esté vivo. JAMÁS inventes una farmacia, clínica, tarifa, dirección ni número. Un estante vacío inventado es peor que decir "todavía no".
 
 ## SELLOS DE TEMPORADA (una fecha vencida es una mentira)
 - Si `seasonal` está en el contexto, hablá de sellos/temporada/festivales DESDE AHÍ, nunca de memoria.
