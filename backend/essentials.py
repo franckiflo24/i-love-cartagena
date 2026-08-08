@@ -220,3 +220,33 @@ async def essentials_coverage() -> Dict[str, Any]:
                 }
     return {"live_essentials": live, "hidden_categories": hidden,
             "_rule": "Answer essentials ONLY from live_essentials (verified). For any hidden_category or anything not here, say honestly it's not yet covered — NEVER invent a pharmacy, clinic, fare, or number."}
+
+
+# ── Partner self-service → need-state slotting (D1/D2, anti-flood growth) ────
+CATEGORY_TO_NEED_STATE = {
+    "restaurant": "experiences", "bar": "experiences", "cafe": "experiences",
+    "club": "experiences", "beach_club": "experiences", "yacht": "experiences",
+    "activity": "experiences", "attraction": "experiences", "spa": "experiences",
+    "hotel": "services", "beauty": "services", "service": "services",
+}
+
+
+def need_state_for_category(category: str, subcategory: str = "") -> str:
+    """Slot a moderation-gated partner submission into the need-state taxonomy
+    from its category/subcategory. Essential service subcategories route to their
+    real need-state so an approved venue counts toward the RIGHT category's live-
+    gate (a HIDDEN category goes LIVE once it reaches live_gate verified entries —
+    the anti-flood growth path; coverage grows by verified self-service only)."""
+    cat = (category or "").lower().strip()
+    sub = (subcategory or "").lower().strip()
+    if sub in {"laundry", "coworking", "luggage_storage", "veterinary", "rental", "tattoo", "barbershop"}:
+        return "services"
+    if sub in {"pharmacy", "grocery", "supermarket"}:
+        return "daily_essentials"
+    if sub in {"medical", "clinic", "hospital"}:
+        return "health_safety"
+    if sub in {"currency_exchange", "bank", "atm", "sim_card"}:
+        return "arrival"
+    if sub in {"transport_app", "taxi", "transport"}:
+        return "getting_around"
+    return CATEGORY_TO_NEED_STATE.get(cat, "services")

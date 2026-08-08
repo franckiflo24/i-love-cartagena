@@ -1464,6 +1464,9 @@ async def business_venue_create(request: Request):
         "name": name,
         "category": category,
         "subcategory": (body.get("subcategory") or "").strip(),
+        # Drop CAT: slot the submission into the need-state taxonomy so an approved
+        # venue counts toward the right category's live-gate (moderation-gated).
+        "need_state": _essentials.need_state_for_category(category, (body.get("subcategory") or "").strip()),
         "neighborhood": hood,
         "description": (body.get("description") or "").strip()[:2000],
         "address": (body.get("address") or "").strip()[:300],

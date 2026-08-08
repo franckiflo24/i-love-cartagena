@@ -39,6 +39,12 @@ export const AUTO_TR: Dict = {
   'Prefiero explorar solo →': { en: "I'd rather explore on my own →", fr: 'Je préfère explorer seul →', pt: 'Prefiro explorar sozinho →' },
   'un sello que se gana a cualquier hora, en cualquier punto de la muralla': { en: 'a stamp you can earn any hour, anywhere along the wall', fr: 'un tampon à gagner à toute heure, partout le long de la muraille', pt: 'um carimbo que se ganha a qualquer hora, em qualquer ponto da muralha' },
   'el sol se pone': { en: 'sunset', fr: 'coucher du soleil', pt: 'pôr do sol' },
+  'Esenciales': { en: 'Essentials', fr: 'Essentiels', pt: 'Essenciais' },
+  'Todo lo básico': { en: 'The basics', fr: "L'essentiel", pt: 'O básico' },
+  'Todo lo que necesitás en Cartagena — verificado': { en: 'Everything you need in Cartagena — verified', fr: "Tout ce dont vous avez besoin à Carthagène — vérifié", pt: 'Tudo o que você precisa em Cartagena — verificado' },
+  'Ver lugares en el mapa': { en: 'See places on the map', fr: 'Voir les lieux sur la carte', pt: 'Ver lugares no mapa' },
+  'Aún no cubierto en la app.': { en: 'Not yet covered in the app.', fr: "Pas encore couvert dans l'app.", pt: 'Ainda não coberto no app.' },
+  'confirmá': { en: 'confirm', fr: 'à confirmer', pt: 'confirme' },
 
   // Walking Layer — "Cerca de ti" strip ('Favorito local' + 'Activar' exist below)
   'Cerca de ti': { en: 'Near you', fr: 'Près de vous', pt: 'Perto de você' },

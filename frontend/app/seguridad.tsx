@@ -13,7 +13,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
 
-const CARD_ICONS: Record<string, any> = { car: 'car', boat: 'boat', restaurant: 'restaurant', moon: 'moon' };
+const CARD_ICONS: Record<string, any> = { car: 'car', boat: 'boat', restaurant: 'restaurant', moon: 'moon', cash: 'cash', diamond: 'diamond', umbrella: 'umbrella' };
 
 export default function SeguridadScreen() {
   const router = useRouter();
