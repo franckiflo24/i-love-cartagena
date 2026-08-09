@@ -1799,7 +1799,7 @@ async def admin_unlock_login(request: Request):
     auth = request.headers.get("Authorization", "")
     token = auth[7:] if auth.startswith("Bearer ") else ""
     cron = os.environ.get("CRON_SECRET", "")
-    if not (cron and token == cron):
+    if not (cron and hmac.compare_digest(token, cron)):
         await _require_government_role(request)
     try:
         body = await request.json()
@@ -1830,7 +1830,7 @@ async def admin_ensure_alcaldia(request: Request):
     auth = request.headers.get("Authorization", "")
     token = auth[7:] if auth.startswith("Bearer ") else ""
     cron = os.environ.get("CRON_SECRET", "")
-    if not cron or token != cron:
+    if not cron or not hmac.compare_digest(token, cron):
         raise HTTPException(status_code=403, detail="cron secret required")
 
     ALCALDIA_PARTNER_ID = "ptr_alcaldia"
@@ -1910,7 +1910,7 @@ async def admin_purge_demo_passes(request: Request):
     auth = request.headers.get("Authorization", "")
     token = auth[7:] if auth.startswith("Bearer ") else ""
     cron = os.environ.get("CRON_SECRET", "")
-    if not cron or token != cron:
+    if not cron or not hmac.compare_digest(token, cron):
         raise HTTPException(status_code=403, detail="cron secret required")
 
     fake_q = {"user_id": {"$regex": "^user_demo"}}
@@ -5813,8 +5813,9 @@ async def port_tax_checkout(request: Request):
         "issued_at": datetime.now(timezone.utc).isoformat(),
         "app": "amo_cartagena",
     }
-    # Default to pending_payment. Auto-pay is opt-in via env var for demo only.
-    auto_pay = os.environ.get("PORT_TAX_AUTO_PAY") == "1"
+    # Default to pending_payment. Auto-pay is demo-only and HARD-disabled in prod
+    # regardless of the flag (sibling of the MOCK_PAY hole — same VERCEL_ENV guard).
+    auto_pay = os.environ.get("PORT_TAX_AUTO_PAY") == "1" and os.environ.get("VERCEL_ENV") != "production"
     initial_status = "paid" if auto_pay else "pending_payment"
     now_iso = datetime.now(timezone.utc).isoformat()
     ticket = {
@@ -7053,21 +7054,11 @@ async def seed_analytics_demo_data():
     if hourly_docs:
         await db.analytics_hourly.insert_many(hourly_docs)
 
-    # ── Seed some City Passes for revenue demo ──
-    pass_docs = []
-    for i in range(25):
-        plan = random.choices(["pass_basic", "pass_premium", "pass_ultimate"], weights=[50, 35, 15])[0]
-        pass_docs.append({
-            "pass_id": f"cp_{uuid.uuid4().hex[:12]}",
-            "user_id": f"user_demo{random.randint(1, 50)}",
-            "plan_id": plan,
-            "activated_at": (base_date + timedelta(days=random.randint(0, 13))).isoformat(),
-            "expires_at": (base_date + timedelta(days=random.randint(7, 20))).isoformat(),
-            "is_active": True,
-        })
-
-    if pass_docs:
-        await db.city_passes.insert_many(pass_docs)
+    # City Pass revenue-demo seeding REMOVED (honesty, P0 audit): it inserted 25
+    # fabricated `user_demo*` passes that inflated the Alcaldía (government) dashboard's
+    # REAL pass count + revenue — numbers presented to a government as real. The
+    # dashboard must reflect only genuine city_passes. (0 such rows in prod today;
+    # removing the generator prevents a relapse on any future/accidental seed run.)
 
     logger.info("Analytics demo data seeded!")
 

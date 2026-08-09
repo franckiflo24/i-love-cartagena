@@ -248,13 +248,17 @@ async def whatsapp_webhook(request: Request):
     raw = await request.body()
 
     app_secret = os.environ.get("WHATSAPP_APP_SECRET", "").strip()
-    if app_secret:
-        sig = request.headers.get("x-hub-signature-256", "")
-        expected = "sha256=" + hmac.new(app_secret.encode(), raw, hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(sig, expected):
-            raise HTTPException(status_code=403, detail="bad signature")
-    else:
-        logger.warning("[pulse] WHATSAPP_APP_SECRET not set — webhook signature NOT verified")
+    if not app_secret:
+        # Fail CLOSED: without the app secret we cannot prove a webhook came from Meta,
+        # so an attacker could forge a POST claiming a partner's (semi-public) WhatsApp
+        # number and inject fake pulses (fake promos/closures) attributed to that
+        # business. Reject rather than trust-anyone (was: log a warning and process).
+        logger.error("[pulse] WHATSAPP_APP_SECRET not set — rejecting unsigned webhook")
+        raise HTTPException(status_code=503, detail="webhook not configured")
+    sig = request.headers.get("x-hub-signature-256", "")
+    expected = "sha256=" + hmac.new(app_secret.encode(), raw, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(sig, expected):
+        raise HTTPException(status_code=403, detail="bad signature")
 
     try:
         payload = json.loads(raw)

@@ -122,16 +122,12 @@ export async function getPartnerReviews(partnerId: string): Promise<ReviewsPaylo
     }
   }
 
-  // Fall back to static seed data if backend returned nothing
-  if (reviews.length === 0) {
-    try {
-      const res = await fetch('/data/reviews.json');
-      if (res.ok) {
-        const seeds = await res.json();
-        reviews = seeds[partnerId] || [];
-      }
-    } catch { /* static file not available */ }
-  }
+  // HONESTY: do NOT fall back to /data/reviews.json — it was seeded with fabricated
+  // testimonials (invented author names, is_verified:true) that rendered as REAL
+  // reviews for the ~892 partners with 0 real reviews. Round-1 unset the fabricated
+  // rating/review NUMBERS; this closes the parallel path that served fake review
+  // TEXT + a star aggregate computed from it. 0 real reviews → honest empty state.
+  // reviews.json is also emptied to {} as defense-in-depth.
 
   // Sort by date descending
   reviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

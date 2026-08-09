@@ -55,7 +55,11 @@ export default function PortTaxTicketScreen() {
   useEffect(() => {
     if (!id) return;
     api.get(`/port-tax/tickets/${id}`)
-      .then(setTicket)
+      // Shape guard: []/{} (STATIC_MODE / bad 200) is truthy and slipped past
+      // `if (!ticket)` → STATUS_COLORS[undefined] defaulted to the green "ACTIVO"
+      // badge over a broken QR — a paying tourist turned away at the pier. Require a
+      // real ticket object; else fall through to the not-found state.
+      .then((t: any) => setTicket(t && typeof t === 'object' && !Array.isArray(t) && (t.ticket_id || t.id || t.status) ? t : null))
       .catch(e => {
         console.error(e);
         Alert.alert('Error', 'No se pudo cargar el tiquete.');

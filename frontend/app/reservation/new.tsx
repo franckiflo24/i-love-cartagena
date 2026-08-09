@@ -130,7 +130,9 @@ export default function ReservationNew() {
         const calls: Promise<any>[] = [api.get(`/partners/${partnerId}`)];
         if (eventId) calls.push(api.get(`/partner-events/${eventId}`).catch(() => null));
         const [p, ev] = await Promise.all(calls);
-        setPartner(p);
+        // Guard: []/{} (STATIC_MODE / bad 200) is truthy → slipped past `if (!partner)`
+        // and rendered a blank reservation form. Require a real partner object.
+        setPartner(p && typeof p === 'object' && !Array.isArray(p) && (p.partner_id || p.id || p.name) ? p : null);
         if (ev) {
           setEvent(ev);
           if (ev.date) setDate(ev.date);
