@@ -106,8 +106,11 @@ export async function checkWompiEnabled(): Promise<{ enabled: boolean; env: stri
 }
 
 export function notConfiguredAlert() {
+  // Shown to END USERS (e.g. City Pass "Activar") when online payments aren't live.
+  // Must NOT leak dev/config instructions — mirror the honest "Próximamente" tone
+  // port-tax already uses. (A tourist seeing "edit backend/.env" was a launch blocker.)
   Alert.alert(
-    'Pagos no configurados',
-    'El equipo aún no ha conectado Wompi. Si eres administrador, agrega WOMPI_PUBLIC_KEY/PRIVATE_KEY/EVENTS_SECRET/INTEGRITY_SECRET en backend/.env y reinicia el backend.',
+    'Próximamente',
+    'El pago en línea estará disponible muy pronto. Gracias por tu paciencia.',
   );
 }

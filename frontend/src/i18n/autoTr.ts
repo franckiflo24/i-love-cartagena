@@ -1162,6 +1162,17 @@ export const AUTO_TR: Dict = {
   '¿Quitar tus novedades de hoy?': { en: "Remove today's pulse?", fr: 'Retirer vos nouveautés du jour ?', pt: 'Remover suas novidades de hoje?' },
   'Quitar novedades': { en: 'Remove pulse', fr: 'Retirer les nouveautés', pt: 'Remover novidades' },
   'Publica qué pasa ahora — lo ve todo el mundo y Luna': { en: 'Post what\'s happening now — everyone and Luna sees it', fr: 'Publiez ce qui se passe — tout le monde et Luna le voient', pt: 'Publique o que rola agora — todos e a Luna veem' },
+  // Launch audit — i18n gaps on core conversion screens (home CTA, search gate, map)
+  'Populares en Cartagena': { en: 'Popular in Cartagena', fr: 'Populaires à Carthagène', pt: 'Populares em Cartagena' },
+  'Tu Cartagena, según Luna': { en: 'Your Cartagena, curated by Luna', fr: 'Votre Carthagène, selon Luna', pt: 'Sua Cartagena, segundo a Luna' },
+  'Crear cuenta gratis': { en: 'Create free account', fr: 'Créer un compte gratuit', pt: 'Criar conta grátis' },
+  'Luna tiene tu respuesta': { en: 'Luna has your answer', fr: 'Luna a votre réponse', pt: 'A Luna tem sua resposta' },
+  'Preguntá lo que sea y Luna arma tu plan. Creá tu cuenta gratis para ver su respuesta completa.': { en: 'Ask anything and Luna builds your plan. Create your free account to see the full answer.', fr: 'Demandez ce que vous voulez et Luna crée votre plan. Créez votre compte gratuit pour voir la réponse complète.', pt: 'Pergunte o que quiser e a Luna monta seu plano. Crie sua conta grátis para ver a resposta completa.' },
+  'Desbloquear Luna gratis': { en: 'Unlock Luna free', fr: 'Débloquer Luna gratuitement', pt: 'Desbloquear a Luna grátis' },
+  'Permiso de ubicación': { en: 'Location permission', fr: 'Autorisation de localisation', pt: 'Permissão de localização' },
+  'Activa el permiso para ver lugares cerca de ti y mejorar tus recomendaciones.': { en: 'Enable permission to see places near you and improve your recommendations.', fr: 'Activez l\'autorisation pour voir les lieux près de vous et améliorer vos recommandations.', pt: 'Ative a permissão para ver lugares perto de você e melhorar suas recomendações.' },
+  'Tu ubicación': { en: 'Your location', fr: 'Votre position', pt: 'Sua localização' },
+  'Todos los Lugares': { en: 'All Places', fr: 'Tous les lieux', pt: 'Todos os Lugares' },
 };
 
 /**

@@ -1047,10 +1047,10 @@ export default function ExploreScreen() {
             )}
             <Text style={styles.sectionTitle}>
               {selectedCategory.key === 'all'
-                ? 'Todos los Lugares'
+                ? tr('Todos los Lugares')
                 : selectedSubcategory && selectedSubcategory !== '__all__'
-                ? `${selectedCategory.label} · ${subcatLabel}`
-                : selectedCategory.label}
+                ? `${tr(selectedCategory.label)} · ${subcatLabel}`
+                : tr(selectedCategory.label)}
             </Text>
           </View>
           {partners.length > 0 && (

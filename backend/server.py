@@ -90,9 +90,15 @@ async def health():
 
 @api_router.post("/admin/batch-update")
 async def batch_update(request: Request):
+    # Catalog mutation — gate on the DEDICATED admin secret (constant-time compare)
+    # + rate limit. Was gated on DEMO_SIGNUP_CODE, the PUBLIC signup code: anyone
+    # holding a signup code could silently rewrite any partner's category/image,
+    # with no throttle and a non-constant-time compare (P1 security audit).
+    await _check_rate_limit(f"batchupdate:{_client_ip(request)}", max_calls=10, window_sec=60)
     body = await request.json()
-    if body.get("secret") != os.environ.get("DEMO_SIGNUP_CODE", ""):
-        raise HTTPException(403, "Invalid secret")
+    _admin_secret = os.environ.get("ADMIN_OPERATOR_PASSWORD", "")
+    if not _admin_secret or not hmac.compare_digest(str(body.get("secret") or ""), _admin_secret):
+        raise HTTPException(403, "Invalid admin secret")
     updated = 0
     for u in body.get("updates", []):
         fields = {}

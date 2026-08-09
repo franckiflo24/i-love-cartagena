@@ -310,9 +310,11 @@ export default function RewardsHub() {
   let memberSince = 'junio 2026';
   try { memberSince = new Date(data.account?.member_since ?? Date.now()).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }); } catch {}
 
-  const handleRedeem = (offer: Offer) => {
-    // Navigate to offer detail or show confirmation — placeholder for future route
-    router.push(`/rewards/card`);
+  const handleRedeem = (_offer: Offer) => {
+    // Route to the offers screen where redemption ACTUALLY happens
+    // (POST /rewards/redeem). Previously pushed /rewards/card (the QR card) and
+    // never redeemed anything — a dead CTA that lied about its action.
+    router.push('/rewards/offers');
   };
 
   return (

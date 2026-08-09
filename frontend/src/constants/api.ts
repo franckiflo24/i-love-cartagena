@@ -9,7 +9,11 @@ export const API_BASE = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 // Optional: a Vercel Edge Function (or any server) that proxies queries to
 // Anthropic Claude. When set, /search calls fetch this first and merges the
 // AI payload into the static result. Configure via env: EXPO_PUBLIC_AI_PROXY_URL
-const AI_PROXY_URL = process.env.EXPO_PUBLIC_AI_PROXY_URL || (BACKEND_URL ? `${BACKEND_URL}/api/search` : '/api/ai-search');
+// NOTE: the standalone /api/ai-search|concierge|itinerary edge functions were
+// DELETED — they were unauthenticated, unmetered, wildcard-CORS proxies holding
+// ANTHROPIC_API_KEY (P0). AI enrichment now goes ONLY through the authenticated,
+// rate-limited backend /api/search. No unset-BACKEND_URL fallback to a public proxy.
+const AI_PROXY_URL = process.env.EXPO_PUBLIC_AI_PROXY_URL || (BACKEND_URL ? `${BACKEND_URL}/api/search` : '');
 
 // ── STATIC FALLBACK ──────────────────────────────────────────────
 // When STATIC_MODE is on (or no backend URL configured), GET requests

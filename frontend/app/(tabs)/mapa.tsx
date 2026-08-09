@@ -459,8 +459,8 @@ export default function MapaScreen() {
       if (status !== 'granted') {
         setLocStatus('denied');
         Alert.alert(
-          'Permiso de ubicación',
-          'Activa el permiso para ver lugares cerca de ti y mejorar tus recomendaciones.',
+          tr('Permiso de ubicación'),
+          tr('Activa el permiso para ver lugares cerca de ti y mejorar tus recomendaciones.'),
         );
         return;
       }

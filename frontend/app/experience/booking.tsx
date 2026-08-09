@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/src/constants/theme';
 import { api } from '@/src/constants/api';
 import { useLang } from '@/src/context/LanguageContext';
-import { openWompiCheckout } from '@/src/lib/wompi';
+import { openWompiCheckout, checkWompiEnabled } from '@/src/lib/wompi';
 import { useTr } from '@/src/i18n/autoTr';
 
 export default function ExperienceBookingScreen() {
@@ -46,6 +46,19 @@ export default function ExperienceBookingScreen() {
     }
     setLoading(true);
     try {
+      // Gate on Wompi config BEFORE POSTing. Unlike city-pass/port-tax, this flow
+      // was ungated → when Wompi is off, the backend 503 ("edit backend/.env") was
+      // shown raw to the user. Degrade gracefully to the WhatsApp fallback instead.
+      const cfg = await checkWompiEnabled();
+      if (!cfg.enabled) {
+        setLoading(false);
+        Alert.alert(
+          'Reserva tu experiencia',
+          `El pago en línea estará disponible pronto.\n\nMientras tanto, contacta al operador por WhatsApp para reservar "${params.title}" el ${selectedDate} para ${guests} persona${guests > 1 ? 's' : ''}.`,
+          [{ text: 'OK', onPress: () => router.back() }],
+        );
+        return;
+      }
       const result = await api.post('/payments/wompi/experience', {
         experience_id: params.id,
         qty: guests,

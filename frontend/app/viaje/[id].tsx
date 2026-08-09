@@ -51,7 +51,12 @@ export default function ViajeDetailScreen() {
   const load = useCallback(async () => {
     try {
       const t = await api.get(`/trips/${id}`);
-      setTrip(t);
+      // Shape guard: api.get returns [] for an unknown id (STATIC_MODE) or a bad
+      // 200 — and [] is truthy, so it slipped past the `if (!trip)` not-found guard
+      // and reached trip.members.map / groupByDay(trip.items) during render →
+      // "undefined is not iterable" → the GLOBAL ErrorBoundary blanked the whole app.
+      // Only accept a real trip object; anything else falls through to not-found.
+      setTrip(t && typeof t === 'object' && !Array.isArray(t) && (t as any).trip_id ? t : null);
     } catch {
       setTrip(null);
     } finally {

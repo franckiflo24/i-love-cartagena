@@ -96,9 +96,16 @@ def _get_db(request: Request):
 
 @router.post("/login")
 async def admin_login(request: Request):
+    # Brute-force throttle on the single master password — none existed, so an
+    # attacker had unlimited unthrottled guesses at the password controlling the
+    # whole partner catalog lifecycle (P1 security audit). 8 tries / 15 min per IP,
+    # constant-time compare, fail-closed via the "adminlogin" SENSITIVE_PREFIX.
+    ip = request.client.host if request.client else "unknown"
+    from ratelimit import check as _rl_check
+    await _rl_check(f"adminlogin:{ip}", max_calls=8, window_sec=900)
     body = await request.json()
     password = (body.get("password") or "").strip()
-    if not password or password != ADMIN_PASSWORD:
+    if not password or not hmac.compare_digest(password, ADMIN_PASSWORD):
         raise HTTPException(status_code=401, detail="Contraseña incorrecta")
     return {"token": _sign_token(), "expires_in_hours": ADMIN_TOKEN_TTL_HOURS}
 

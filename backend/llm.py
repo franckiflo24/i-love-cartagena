@@ -35,7 +35,12 @@ def _get_anthropic():
     except Exception as exc:  # SDK not installed
         logger.warning(f"anthropic SDK unavailable: {exc}")
         return None
-    _anthropic_client = AsyncAnthropic(api_key=api_key)
+    # Bounded timeout + single retry: Vercel maxDuration is 60s, but the SDK
+    # default timeout is 600s and it retries transient 429/500/529 twice with
+    # backoff — a slow/overloaded Claude would otherwise hang the function to the
+    # 60s ceiling → 504 on Luna (/agent/chat) and pulse POST. 20s×(1+1 retry)
+    # stays well under 60s and lets llm_complete's None-fallback actually fire.
+    _anthropic_client = AsyncAnthropic(api_key=api_key, timeout=20.0, max_retries=1)
     return _anthropic_client
 
 

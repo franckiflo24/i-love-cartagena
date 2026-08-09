@@ -455,7 +455,9 @@ export default function BookingsScreen() {
         router.push('/city-pass' as any);
         break;
       case 'porttax':
-        router.push('/port-tax' as any);
+        // /port-tax has no index route → pushing it fell through to +not-found and
+        // bounced the user to Home. The real ticket screen is /port-tax/tickets.
+        router.push('/port-tax/tickets' as any);
         break;
     }
   };
