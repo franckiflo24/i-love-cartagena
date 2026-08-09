@@ -2181,6 +2181,9 @@ async def business_reset_with_code(request: Request):
 @api_router.put("/business/events/{event_id}")
 async def business_update_event(event_id: str, request: Request):
     biz = await get_current_business(request)
+    # Rate-limit: editing title/description/category re-runs the paid moderate_event
+    # LLM on every request. Share the create endpoint's per-business AI budget.
+    await _check_rate_limit(f"bizevent:{biz['business_id']}", max_calls=12, window_sec=3600)
     existing = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0})
     if not existing:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -3673,6 +3676,8 @@ async def list_itineraries(request: Request, category: Optional[str] = None):
 async def regenerate_itinerary(request: Request):
     # Auth required — itinerary regeneration calls the LLM
     user = await get_current_user(request)
+    # force=True skips the cache → every call is a fresh paid LLM call; throttle it.
+    await _check_rate_limit(f"itinregen:{user['user_id']}", max_calls=10, window_sec=3600)
     body = await request.json() if await request.body() else {}
     raw_category = (body.get("category") or "lifestyle").lower()
     interests = body.get("interests") or []
@@ -5117,6 +5122,10 @@ async def build_or_refresh_user_profile(request: Request):
         body = await request.json()
     except Exception:
         body = {}
+    # Rate-limit the paid LLM profile build (per user_id if provided, else per IP) —
+    # was unthrottled, so any account/IP could loop it for unbounded Anthropic spend.
+    _pb_key = (body.get("user_id") or _client_ip(request))
+    await _check_rate_limit(f"profilebuild:{_pb_key}", max_calls=10, window_sec=3600)
 
     user = await get_current_user(request)
     user_id = user["user_id"]
