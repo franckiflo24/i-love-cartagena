@@ -23,7 +23,10 @@ export default function EventDetail() {
     const load = async () => {
       try {
         const data = await api.get(`/events/${id}`);
-        setEvent(data);
+        // [] (STATIC_MODE unknown id) and {} are truthy → they slipped past the
+        // `if (!event)` not-found guard and rendered a blank event page. Only accept
+        // a real event object; else fall through to "Evento no encontrado".
+        setEvent(data && typeof data === 'object' && !Array.isArray(data) && (data.event_id || data.id || data.title) ? data : null);
       } catch (e) { console.error(e); }
       setLoading(false);
     };

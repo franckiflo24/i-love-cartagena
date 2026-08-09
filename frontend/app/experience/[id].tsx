@@ -56,7 +56,8 @@ export default function ExperienceDetailScreen() {
   const loadExperience = useCallback(async () => {
     try {
       const data = await api.get(`/experiences/${id}`);
-      setExperience(data);
+      // Guard against []/{} slipping past the not-found check (see event/[id]).
+      setExperience(data && typeof data === 'object' && !Array.isArray(data) && (data.experience_id || data.id || data.title) ? data : null);
     } catch (e) {
       console.error('[ExperienceDetail]', e);
     } finally {

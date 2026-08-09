@@ -54,7 +54,8 @@ export default function PartnerEventDetail() {
     const load = async () => {
       try {
         const data = await api.get(`/partner-events/${id}`);
-        setEvent(data);
+        // Guard against []/{} slipping past the not-found check (see event/[id]).
+        setEvent(data && typeof data === 'object' && !Array.isArray(data) && (data.event_id || data.id || data.title) ? data : null);
       } catch (e) { console.error(e); }
       setLoading(false);
     };

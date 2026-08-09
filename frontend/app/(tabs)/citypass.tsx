@@ -43,7 +43,10 @@ export default function CityPassTab() {
         if (pt) setPortTax(pt);
         if (user) {
           const mp = await api.get('/city-pass/mine').catch(() => null);
-          setMyPass(mp);
+          // STATIC_MODE returns [] (truthy) → without this guard the tab rendered a
+          // fake "PASS ACTIVO" QR with plan_id undefined / "Invalid Date" (P2 audit).
+          // Match the sibling screen: only a real object with a plan_id is an active pass.
+          setMyPass(mp && !Array.isArray(mp) && typeof mp === 'object' && mp.plan_id ? mp : null);
           const tickets = await api.get('/port-tax/my-tickets').catch(() => []);
           setActiveTickets((Array.isArray(tickets) ? tickets : []).filter((t: any) => t.status === 'paid').length);
         }

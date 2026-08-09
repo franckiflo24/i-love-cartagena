@@ -24,7 +24,7 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ.get('MONGO_URL')
 if not mongo_url:
     raise RuntimeError("MONGO_URL environment variable is required")
-client = AsyncIOMotorClient(mongo_url)
+client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000)
 db_name = os.environ.get('DB_NAME')
 if not db_name:
     raise RuntimeError("DB_NAME environment variable is required")
@@ -5287,7 +5287,10 @@ async def buy_transport_ticket(transport_id: str, body: TransportTicketBody, req
 
     # Payment status — default to pending_payment, not paid. Stripe/Wompi
     # webhook flips it to 'paid'. MOCK_PAY=1 env var opt-in for demo only.
-    _mock_pay = os.environ.get("MOCK_PAY") == "1"
+    # MOCK_PAY mints a free "paid" ticket/pass — demo-only. HARD-disabled in prod
+    # regardless of the env flag (it was found set to "1" in production, arming a
+    # free-ticket hole on these auth-only endpoints). Vercel sets VERCEL_ENV.
+    _mock_pay = os.environ.get("MOCK_PAY") == "1" and os.environ.get("VERCEL_ENV") != "production"
     _payment_status = "paid" if _mock_pay else "pending_payment"
     _payment_method = "mock_card" if _mock_pay else "pending"
 
@@ -5686,7 +5689,10 @@ async def activate_city_pass(request: Request):
     if existing:
         return {"status": "already_active", "pass": existing}
 
-    _mock_pay = os.environ.get("MOCK_PAY") == "1"
+    # MOCK_PAY mints a free "paid" ticket/pass — demo-only. HARD-disabled in prod
+    # regardless of the env flag (it was found set to "1" in production, arming a
+    # free-ticket hole on these auth-only endpoints). Vercel sets VERCEL_ENV.
+    _mock_pay = os.environ.get("MOCK_PAY") == "1" and os.environ.get("VERCEL_ENV") != "production"
     now = datetime.now(timezone.utc)
     pass_doc = {
         "pass_id": f"cp_{uuid.uuid4().hex[:12]}",
@@ -6684,12 +6690,15 @@ async def agent_chat(request: Request):
 
 @api_router.get("/agent/session/{session_id}")
 async def agent_get_session(session_id: str, request: Request):
-    user = await _get_optional_user(request)
+    # Strict ownership: require auth AND a matching owner. Was _get_optional_user
+    # with a check that SKIPPED when the stored user_id was null → a null-owner
+    # (legacy/anonymous) session was readable by ANY caller (IDOR, P2 audit). No app
+    # screen calls this endpoint, so tightening it breaks nothing.
+    user = await get_current_user(request)
     s = await db.chat_sessions.find_one({"session_id": session_id}, {"_id": 0})
     if not s:
         raise HTTPException(status_code=404, detail="Session not found")
-    # If session has a user_id, only that user can read it
-    if s.get("user_id") and s["user_id"] != (user or {}).get("user_id"):
+    if s.get("user_id") != user.get("user_id"):
         raise HTTPException(status_code=403, detail="Forbidden")
     return s
 

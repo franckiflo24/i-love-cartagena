@@ -41,7 +41,9 @@ export default function SharedTripScreen() {
     try {
       // Raw fetch: this endpoint is PUBLIC — works with no session at all.
       const res = await fetch(`${API_BASE}/trips/shared/${code}`);
-      setTrip(res.ok ? await res.json() : null);
+      const _j = res.ok ? await res.json() : null;
+      // Guard: a 200 with []/{} is truthy and slipped past `if (!trip)` → trip.members.map crashed.
+      setTrip(_j && typeof _j === 'object' && !Array.isArray(_j) && (_j as any).trip_id ? _j : null);
     } catch {
       setTrip(null);
     } finally {
