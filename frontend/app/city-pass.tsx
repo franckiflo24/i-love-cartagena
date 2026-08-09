@@ -72,7 +72,9 @@ export default function CityPassScreen() {
         if (result.status === 'approved') {
           Alert.alert(tr('¡Listo!'), 'Tu City Pass está activo. ¡Disfruta Cartagena!');
           const pass = await api.get('/city-pass/mine');
-          setMyPass(pass);
+          // Same guard as the initial load: a static-fallback [] right after returning
+          // from Wompi must not render a fake "PASS ACTIVO" QR with Invalid Date.
+          setMyPass(pass && !Array.isArray(pass) && typeof pass === 'object' && pass.plan_id ? pass : null);
         } else if (result.status === 'declined') {
           Alert.alert(tr('Pago rechazado'), 'Intenta con otro método de pago.');
         } else if (result.status !== 'pending') {

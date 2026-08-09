@@ -42,8 +42,12 @@ export default function SharedTripScreen() {
       // Raw fetch: this endpoint is PUBLIC — works with no session at all.
       const res = await fetch(`${API_BASE}/trips/shared/${code}`);
       const _j = res.ok ? await res.json() : null;
-      // Guard: a 200 with []/{} is truthy and slipped past `if (!trip)` → trip.members.map crashed.
-      setTrip(_j && typeof _j === 'object' && !Array.isArray(_j) && (_j as any).trip_id ? _j : null);
+      // Guard against []/{} slipping past `if (!trip)` → trip.members.map crashed.
+      // NOTE: the guest-view endpoint (trips.py GET /trips/shared/{code}) returns a
+      // minimized payload keyed by share_code/name/members/items — it does NOT include
+      // trip_id, so we must validate on a field it actually returns (an earlier guard
+      // checked trip_id and rejected EVERY valid shared trip — 100% dead share links).
+      setTrip(_j && typeof _j === 'object' && !Array.isArray(_j) && ((_j as any).share_code || (_j as any).name) ? _j : null);
     } catch {
       setTrip(null);
     } finally {

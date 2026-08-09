@@ -99,8 +99,11 @@ export default function FavoritesScreen() {
         if (cancelled) return;
         setEvents((allEvents || []).filter((e: any) => ids.event.has(e.event_id)));
         setConcerts((allConcerts || []).filter((c: any) => ids.concert.has(c.concert_id)));
-        setPartnerEvents((peList || []).filter(Boolean));
-        setPartners((pList || []).filter(Boolean));
+        // .filter(Boolean) drops null (caught fetch errors) but NOT a resolved []
+        // ([] is truthy) → a stale favorite whose detail 404s would push a blank
+        // card. Require a real object with an id.
+        setPartnerEvents((peList || []).filter((p: any) => p && typeof p === 'object' && !Array.isArray(p) && (p.event_id || p.id)));
+        setPartners((pList || []).filter((p: any) => p && typeof p === 'object' && !Array.isArray(p) && (p.partner_id || p.id)));
       } catch (e) { console.error(e); }
       if (!cancelled) setLoading(false);
     };
