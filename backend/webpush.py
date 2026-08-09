@@ -139,7 +139,8 @@ async def push_test(request: Request):
     """Admin/cron-secret: send a test push to a user_id (verification only)."""
     secret = os.environ.get("CRON_SECRET", "").strip()
     auth = request.headers.get("Authorization", "")
-    if not secret or auth != f"Bearer {secret}":
+    import hmac
+    if not secret or not hmac.compare_digest(auth, f"Bearer {secret}"):
         raise HTTPException(status_code=403, detail="forbidden")
     body = await request.json()
     uid = (body.get("user_id") or "").strip()

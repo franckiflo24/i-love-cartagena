@@ -714,7 +714,11 @@ const getToken = async (): Promise<string | null> => {
 };
 
 const buildHeaders = async (override?: Record<string, string>): Promise<Record<string, string>> => {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  // X-Requested-With is a CSRF defense: a cross-site page cannot set a custom header
+  // without triggering a CORS preflight, which the backend's origin allowlist blocks.
+  // Sent on every app request so the backend can (in a follow-up) require it on
+  // mutating cookie-auth routes (session cookie is SameSite=None for cross-origin auth).
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
   if (!override?.Authorization) {
     const token = await getToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;

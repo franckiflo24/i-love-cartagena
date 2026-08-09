@@ -61,7 +61,8 @@ def init(*, db_, require_admin):
 
 async def _auth(request: Request):
     secret = os.environ.get("CRON_SECRET", "").strip()
-    if secret and request.headers.get("Authorization", "") == f"Bearer {secret}":
+    import hmac
+    if secret and hmac.compare_digest(request.headers.get("Authorization", ""), f"Bearer {secret}"):
         return
     try:
         await _require_admin(request)

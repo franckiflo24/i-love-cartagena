@@ -89,7 +89,8 @@ async def _auth(request: Request):
     """Admin user OR the Vercel cron secret (mirrors demand.py)."""
     secret = os.environ.get("CRON_SECRET", "").strip()
     auth_header = request.headers.get("Authorization", "")
-    if secret and auth_header == f"Bearer {secret}":
+    import hmac
+    if secret and hmac.compare_digest(auth_header, f"Bearer {secret}"):
         return {"via": "cron"}
     try:
         user = await _require_admin(request)

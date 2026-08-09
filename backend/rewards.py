@@ -347,8 +347,6 @@ async def redeem_offer(request: Request):
             raise HTTPException(status_code=403, detail=f"Requires {offer.get('min_tier', 'explorer')} tier or higher")
 
         points_cost = offer.get("points_cost", 0)
-        if account["points_balance"] < points_cost:
-            raise HTTPException(status_code=400, detail=f"Not enough points. Need {points_cost}, have {account['points_balance']}")
 
         max_uses = offer.get("max_uses", 0)
         uses_count = offer.get("uses_count", 0)
@@ -356,6 +354,17 @@ async def redeem_offer(request: Request):
             raise HTTPException(status_code=400, detail="Offer fully redeemed")
 
         now = datetime.now(timezone.utc).isoformat()
+        # ATOMIC guarded decrement — the real concurrency guard. Was: a non-atomic
+        # balance check (read) followed by award_points (re-read + $set), so two
+        # parallel redeems could BOTH pass the check and double-spend (free reward).
+        # Now only the request that still finds balance >= cost mutates (TOCTOU fix).
+        dec = await db.rewards_accounts.update_one(
+            {"user_id": user["user_id"], "points_balance": {"$gte": points_cost}},
+            {"$inc": {"points_balance": -points_cost}, "$set": {"updated_at": now}},
+        )
+        if dec.modified_count == 0:
+            raise HTTPException(status_code=400, detail=f"Not enough points. Need {points_cost}, have {account['points_balance']}")
+
         redemption = {
             "redemption_id": f"rdm_{uuid.uuid4().hex[:12]}",
             "user_id": user["user_id"],
@@ -374,10 +383,18 @@ async def redeem_offer(request: Request):
             {"$inc": {"uses_count": 1}},
         )
 
-        await award_points(
-            db, user["user_id"], -points_cost, "redeem", redemption["redemption_id"],
-            f"Redeemed: {offer.get('title', 'Offer')}",
-        )
+        # Ledger entry ONLY — the deduction was already applied atomically above, so
+        # do NOT call award_points here (it would deduct a second time).
+        await db.rewards_history.insert_one({
+            "history_id": f"rh_{uuid.uuid4().hex[:12]}",
+            "user_id": user["user_id"],
+            "delta": -points_cost,
+            "balance_after": account["points_balance"] - points_cost,
+            "action_type": "redeem",
+            "source_id": redemption["redemption_id"],
+            "description": f"Redeemed: {offer.get('title', 'Offer')}",
+            "created_at": now,
+        })
 
         return {"redemption": {k: v for k, v in redemption.items() if k != "_id"}, "new_balance": account["points_balance"] - points_cost}
     except HTTPException:

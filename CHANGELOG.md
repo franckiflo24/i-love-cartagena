@@ -90,3 +90,53 @@ confirmed LIVE + non-regressed (52/52 routes resolve, 0 leaked `${tr}`, home mou
    to the same `ADMIN_OPERATOR_PASSWORD`.)
 2. **Unset `MOCK_PAY`** in prod (code now neuters it in prod, but clean it up).
 3. **Set `WHATSAPP_APP_SECRET`** if using WhatsApp pulse ingestion (webhook now 503s without it — safe).
+
+## 2026-08-09 — Round 3 (convergence audit — deeper siblings + a public-repo leak)
+
+Two convergence agents (honesty+state, security+regression) + a spec-miner. The
+regression, honesty-fix, and round-1/2-verification dimensions came back CLEAN (tsc 0,
+py_compile 0, live smoke green, 3 LLM proxies 404, batch-update 403, WhatsApp 503,
+IDOR fixed). New/deeper findings found + closed:
+
+### CLOSED (code)
+- **R3-P0 (honesty)**: fabricated star ratings were ALSO in partner `description` prose
+  (170 partners) — stripped from prod DB + static json + per-partner files (0 remain);
+  legit claims (Sofitel/PADI/real-Michelin) preserved; Michelin attribution clarified.
+- **R3-P1 (my regression)**: viaje/shared guard checked `trip_id` (never returned) →
+  broke 100% of share links → now checks share_code/name.
+- **R3-P1**: City Pass post-payment reload lacked the []-guard → fake "PASS ACTIVO" →
+  guarded (both screens).
+- **R3sec-P0**: hardcoded Google API key fallback in backfill_phones_websites.py (public
+  repo) → removed (fail-loud on unset). 🔴 KEY MUST BE ROTATED (see owner actions).
+- **R3sec-P1**: GET /search ran the paid LLM concierge with NO rate limit → added the
+  same 15/60s guard as /agent/chat.
+- **R3sec-P1**: deleted leftover POST /auth/session (third-party session minting, 0 callers).
+- **R3sec-P2**: rewards redeem TOCTOU double-spend → atomic guarded `$inc` decrement.
+- **R3sec-P2**: 5 more CRON_SECRET non-constant-time compares (demand/local_signals/
+  tagging/walking/webpush) → hmac.compare_digest.
+- **R3-P2**: favorites blank-card + orphan review + citypass reload — all guarded/cleaned.
+- **R3sec-P1 (CSRF, partial)**: added X-Requested-With to the api client (defense +
+  enables enforcement); full server-side enforcement flagged (see owner actions).
+
+### ACCEPTED / FLAGGED (P2/P3)
+- Reservations create has no per-user rate limit (auth-required; bounded) — wire check_rate_limit.
+- reviews/{id}/helpful no idempotency/rate-limit (low-stakes social-proof inflation).
+- A dev-placeholder backend/.env sat in git history (no real secret) — add a pre-commit secret scanner.
+- Dead PaymentSheet in city-pass.tsx; payment provider hardcoded Mock (labeled).
+
+### 🔴 OWNER ACTIONS (cannot be done in code / require your credentials)
+1. **ROTATE the leaked Google API key** in Google Cloud immediately (public repo = permanently
+   disclosed) + restrict the new key to Places API + referrer/IP allowlist. (Code no longer embeds it.)
+2. **Set `ADMIN_OPERATOR_PASSWORD` + `ADMIN_TOKEN_SECRET`** in backend Vercel prod → mounts
+   admin_operator (fixes /business/activate) + re-enables /admin/batch-update (currently fail-closed).
+3. **Unset `MOCK_PAY`** in prod (code neuters it, but clean it up).
+4. **Set `WHATSAPP_APP_SECRET`** if using WhatsApp pulse (webhook now 503s without it).
+5. **Delete the stray `deploy-backend` Vercel project** (broken duplicate of the backend, undocumented surface).
+6. **Add a pre-commit secret scanner** (gitleaks/git-secrets) — the auto-commit flow bypassed .gitignore once.
+7. **Enforce CSRF** server-side (require X-Requested-With on mutating cookie-auth routes; client now sends it)
+   + make `/admin/local-picks/refresh` GET cron-secret-only.
+8. `enrich_partners.py`: set `BATCH_SECRET` = `ADMIN_OPERATOR_PASSWORD`. Verify `@amocartagena.app` mailbox.
+
+### Deliverable
+- **MASTER_SPEC.md** created — reverse-compiled as-built map (11 sections: modules, 82 routes,
+  ~258 endpoints, 68 collections, integrations, flows, failure modes, non-functional floor, non-goals).

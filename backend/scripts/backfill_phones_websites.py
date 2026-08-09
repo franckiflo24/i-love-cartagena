@@ -24,7 +24,12 @@ import time
 import httpx
 from pymongo import MongoClient
 
-API_KEY = os.environ.get("GOOGLE_PLACES_KEY") or "AIzaSyDleYuNXfTaVRPy9hjLZcqc5B95Oy0CwdU"
+# SECURITY: never hardcode the key (this file previously embedded a real key that
+# leaked on the PUBLIC repo — the committed key MUST be rotated in Google Cloud).
+# Match every sibling script: read from env, fail loudly if unset.
+API_KEY = os.environ.get("GOOGLE_PLACES_KEY", "")
+if not API_KEY:
+    raise SystemExit("ERROR: set GOOGLE_PLACES_KEY env var (never hardcode)")
 FIND = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json"
 DETAILS = "https://maps.googleapis.com/maps/api/place/details/json"
 

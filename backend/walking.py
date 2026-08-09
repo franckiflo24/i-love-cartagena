@@ -1582,7 +1582,8 @@ async def admin_stamps_reverify(request: Request):
     official dates. Auth: Bearer CRON_SECRET (same key the Intel dashboard
     uses). This is the surface that keeps 'reverify' honest."""
     secret = os.environ.get("CRON_SECRET", "").strip()
-    if not secret or request.headers.get("Authorization", "") != f"Bearer {secret}":
+    import hmac
+    if not secret or not hmac.compare_digest(request.headers.get("Authorization", ""), f"Bearer {secret}"):
         raise HTTPException(status_code=403, detail="cron secret required")
     now = datetime.now(timezone.utc).astimezone(BOGOTA)
     items = _reverify_list(now)

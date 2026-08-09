@@ -177,53 +177,10 @@ async def google_auth(body: GoogleAuthBody, response: Response):
     return {"user": {k: user.get(k, "") for k in ("user_id", "email", "name", "picture", "provider")}, "session_token": session_token}
 
 
-@api_router.post("/auth/session")
-async def exchange_session(body: SessionExchange, response: Response):
-    try:
-        async with httpx.AsyncClient() as hc:
-            r = await hc.get(
-                "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-                headers={"X-Session-ID": body.session_id},
-                timeout=15
-            )
-            if r.status_code != 200:
-                raise HTTPException(status_code=401, detail="Invalid session")
-            data = r.json()
-    except httpx.HTTPError:
-        raise HTTPException(status_code=502, detail="Auth service unavailable")
-
-    email = data["email"]
-    user = await db.users.find_one({"email": email}, {"_id": 0})
-    if not user:
-        user_id = f"user_{uuid.uuid4().hex[:12]}"
-        user = {
-            "user_id": user_id,
-            "email": email,
-            "name": data.get("name", ""),
-            "picture": data.get("picture", ""),
-            "favorites": [],
-            "my_week": [],
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        }
-        await db.users.insert_one(user)
-        user = await db.users.find_one({"email": email}, {"_id": 0})
-    else:
-        user_id = user["user_id"]
-
-    session_token = data.get("session_token", f"st_{uuid.uuid4().hex}")
-    await db.user_sessions.insert_one({
-        "session_token": session_token,
-        "user_id": user["user_id"],
-        "expires_at": datetime.now(timezone.utc) + timedelta(days=7),
-        "created_at": datetime.now(timezone.utc),
-    })
-
-    response.set_cookie(
-        key="session_token", value=session_token,
-        httponly=True, secure=True, samesite="none",
-        path="/", max_age=7*24*3600
-    )
-    return {"user": {k: user.get(k, "") for k in ("user_id", "email", "name", "picture", "provider")}, "session_token": session_token}
+# DELETED: POST /auth/session — a leftover Emergent-platform scaffold that minted a
+# real session cookie by trusting a third-party (demobackend.emergentagent.com)
+# session-data lookup with no audience verification → a latent account-takeover path.
+# Zero frontend callers (like the 3 deleted LLM proxies). Removed rather than trusted.
 
 
 class DemoLoginBody(BaseModel):
@@ -4864,6 +4821,11 @@ async def global_search(q: str = "", request: Request = None):
         return {**matches, "search_id": search_id, "ai": {"query": q, "intent": "general", "answer": "", "highlights": []}}
 
     user_id = user_obj.get("user_id")
+
+    # Rate-limit the paid LLM concierge path (same guard as /agent/chat) — this block
+    # invokes run_agent_turn on Anthropic and was previously UNCAPPED here, so an
+    # authed account could loop GET /search for unbounded Anthropic spend.
+    await _check_rate_limit(f"agent:{user_id}", max_calls=15, window_sec=60)
 
     # ── FULL CONCIERGE AGENT ──
     # Run the Amo agent so the search bar feels like a real concierge:
