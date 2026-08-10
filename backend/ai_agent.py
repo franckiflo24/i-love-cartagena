@@ -41,6 +41,7 @@ import uuid
 import re
 from datetime import datetime, timezone
 from partner_visibility import PUBLIC_PARTNER_FILTER, PUBLIC_CITY_EVENT_FILTER  # U4: Luna never recommends unapproved venues/events
+from events_time import upcoming_query, filter_live, now_bogota  # Luna's "now" is Bogota; passed events fall out
 from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -774,26 +775,24 @@ async def _slim_all_partners_compact(db, limit: int = 80) -> List[Dict[str, Any]
 
 
 async def _slim_upcoming_events(db, days: int = 7, limit: int = 20) -> List[Dict[str, Any]]:
-    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    # Events use date_start (not date). PUBLIC_CITY_EVENT_FILTER: a pending/rejected
-    # editorial event must not enter Luna's grounding context (parity with every REST
-    # read of db.events).
+    # "Now" is Bogota, not UTC; a passed event must never enter Luna's grounding.
+    # PUBLIC_CITY_EVENT_FILTER: a pending/rejected editorial event is excluded too.
     cursor = db.events.find(
-        {**PUBLIC_CITY_EVENT_FILTER, "$or": [{"date_start": {"$gte": today_str}}, {"date": {"$gte": today_str}}]},
+        upcoming_query(dict(PUBLIC_CITY_EVENT_FILTER)),
         {"_id": 0, "event_id": 1, "slug": 1, "title": 1, "name_es": 1,
-         "date_start": 1, "date": 1, "venue": 1, "venue_name": 1, "is_free": 1},
-    ).sort([("date_start", 1), ("date", 1)]).limit(limit)
-    return await cursor.to_list(limit)
+         "date_start": 1, "date": 1, "date_end": 1, "start_time": 1, "venue": 1, "venue_name": 1, "is_free": 1},
+    ).sort([("date_start", 1), ("date", 1)]).limit(limit * 2)
+    rows = await cursor.to_list(limit * 2)
+    return filter_live(rows)[:limit]
 
 
 async def _slim_partner_events(db, limit: int = 15) -> List[Dict[str, Any]]:
     """Pull upcoming partner-curated events (Daypass / Sunset / Cena especial / etc.)"""
-    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     cursor = db.partner_events.find(
-        {"date": {"$gte": today_str}, "is_published": True},
-        {"_id": 0, "event_id": 1, "title": 1, "date": 1, "start_time": 1, "partner_id": 1, "category": 1},
-    ).sort("date", 1).limit(limit)
-    rows = await cursor.to_list(limit)
+        upcoming_query({"is_published": True}),
+        {"_id": 0, "event_id": 1, "title": 1, "date": 1, "date_end": 1, "start_time": 1, "end_time": 1, "partner_id": 1, "category": 1},
+    ).sort([("date", 1), ("start_time", 1)]).limit(limit * 2)
+    rows = filter_live(await cursor.to_list(limit * 2))[:limit]
     # drop events whose venue isn't catalog-approved, and carry the venue NAME —
     # an event Luna can't place ("¿dónde?") is unusable in a recommendation
     pids = {r.get("partner_id") for r in rows if r.get("partner_id")}
@@ -963,8 +962,18 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
             mi_viaje = await _trip_context(db, user["user_id"])
         except Exception:
             mi_viaje = None
+    _nb = now_bogota()
+    _part = ("madrugada" if _nb.hour < 6 else "mañana" if _nb.hour < 12
+             else "tarde" if _nb.hour < 18 else "noche")
     ctx: Dict[str, Any] = {
-        "today": datetime.now(timezone.utc).strftime("%A %Y-%m-%d"),
+        "today": _nb.strftime("%A %Y-%m-%d"),
+        "now": {
+            "date": _nb.strftime("%Y-%m-%d"),
+            "weekday": _nb.strftime("%A"),
+            "local_time": _nb.strftime("%H:%M"),
+            "part_of_day": _part,
+            "is_weekend": _nb.weekday() >= 4,
+        },
         **({"mi_viaje": mi_viaje} if mi_viaje else {}),
         "user": {
             "name": (user or {}).get("name"),
@@ -1308,6 +1317,11 @@ TU TRABAJO
 - `seasonal.upcoming_confirmed` = eventos con fecha REAL futura — anunciá con la fecha ("las Fiestas de Independencia arrancan el 6 de noviembre").
 - JAMÁS anuncies un festival cuya edición ya pasó como si fuera próximo, ni una fecha "sin confirmar" como si fuera fija. Si no está en earnable_now ni upcoming_confirmed, no inventes fecha — decí "la próxima edición aún no tiene fecha confirmada".
 - `seasonal.season_now` = la temporada actual (seca/verde) — usala como color ambiental si viene al caso.
+
+## AHORA MISMO EN CARTAGENA (contexto temporal REAL — usalo SIEMPRE)
+- `now` trae el momento REAL en Cartagena: `now.weekday` (día), `now.local_time` (hora), `now.part_of_day` (madrugada/mañana/tarde/noche), `now.is_weekend`. Recomendá para ESTE momento, no en abstracto: mañana→desayuno/brunch/café; tarde→almuerzo/playa/plan; atardecer→rooftop/muralla; noche→cena/cócteles; finde de noche→rumba. Fin de semana ≠ día de semana (jue–sáb hay más vida nocturna; lun–mié más tranquilo).
+- Si el usuario no dice cuándo, asumí AHORA (`now`) y decilo con naturalidad ("son las {now.local_time} de un {now.weekday} — buen momento para…").
+- `events`/`partner_events` que recibís YA vienen filtrados a lo que sigue vigente (nada pasado, hora de Cartagena). Si algo es HOY, priorizalo ("hoy a las {start_time}…"). Un evento que NO está en la lista NO existe para vos — jamás menciones una fecha ya pasada.
 
 ## OCASIONES (la recomendación correcta para el momento)
 - Si `occasions` está en el contexto, recomendá DESDE `occasions.occasion_guide` — venues REALES por ocasión (aniversario→Celele/Carmen/Alma; atardecer→Café del Mar/Movich/Alquímico; niños→Aviario/Gelateria Tramonti; etc.). NO inventes un venue que no esté ahí ni en el catálogo.

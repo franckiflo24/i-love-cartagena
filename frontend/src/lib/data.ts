@@ -17,7 +17,7 @@ import type {
   CruiseCall,
   Practical,
 } from './schema';
-import { isUpcoming } from './dates';
+import { filterLiveEvents } from './eventTime';
 
 // ---------------------------------------------------------------------------
 // Cache
@@ -272,20 +272,9 @@ export async function getPartnerBySlug(slug: string): Promise<Partner | undefine
 
 export async function getUpcomingEvents(): Promise<EventRecord[]> {
   const events = await getEvents();
-  const today = new Date().toISOString().slice(0, 10);
-  return events
-    .filter((e) => {
-      if (e.status === 'cancelled') return false;
-      // Include if date_start is upcoming OR if the event spans today (date_end >= today)
-      if (isUpcoming(e.date_start)) return true;
-      const end = (e as any).date_end || e.date_start || '';
-      return end >= today;
-    })
-    .sort((a, b) => {
-      const da = new Date(a.date_start).getTime() || 0;
-      const db = new Date(b.date_start).getTime() || 0;
-      return da - db;
-    });
+  // Bogota-correct freshness + soonest-first (UTC rolled the date at 19:00 local,
+  // hiding today's events every evening). Mirrors backend events_time.py.
+  return filterLiveEvents(events.filter((e) => e.status !== 'cancelled'));
 }
 
 /** Clear the module-level cache (useful for tests / hot-reload). */

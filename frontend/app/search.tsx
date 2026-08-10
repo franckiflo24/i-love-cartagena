@@ -15,6 +15,7 @@ import { SafeImage } from '../src/components/SafeImage';
 import AddToTrip from '../src/components/AddToTrip';
 import { useAuth } from '../src/context/AuthContext';
 import LockedTease from '../src/components/LockedTease';
+import { filterLiveEvents } from '../src/lib/eventTime';
 
 type AIHighlight = { type: string; id: string; reason: string };
 type AIRecommendation = {
@@ -509,8 +510,8 @@ export default function SearchScreen() {
 
         const [allPartners, allEvents, allConcerts] = await Promise.all([
           fetch('/data/partners.json').then(r => r.json()).catch(() => []),
-          fetch('/data/events.json').then(r => r.json()).catch(() => []),
-          fetch('/data/concerts.json').then(r => r.json()).catch(() => []),
+          fetch('/data/events.json').then(r => r.json()).then((d) => filterLiveEvents(Array.isArray(d) ? d : (d?.events || []))).catch(() => []),
+          fetch('/data/concerts.json').then(r => r.json()).then((d) => filterLiveEvents(Array.isArray(d) ? d : (d?.concerts || []))).catch(() => []),
         ]);
 
         const minScore = distinctiveTerms.length > 0 ? 3 : 1.5;

@@ -13,6 +13,7 @@ import { useTr } from '../src/i18n/autoTr';
 import { SafeImage } from '../src/components/SafeImage';
 import PaymentSheet from '../src/components/PaymentSheet';
 import type { PaymentResult } from '../src/lib/payments';
+import { bogotaToday } from '../src/lib/eventTime';
 
 type Concert = {
   concert_id: string; artist: string; title: string; genre: string;
@@ -120,7 +121,7 @@ export default function ConcertsScreen() {
     }).catch(() => {});
   }, []);
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = bogotaToday(); // Bogota, not UTC
 
   // Only show upcoming concerts (hide past events)
   const upcomingConcerts = concerts.filter(c => c.date >= todayStr);

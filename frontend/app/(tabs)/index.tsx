@@ -13,6 +13,7 @@ import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
 import { SkeletonList } from '../../src/components/Skeleton';
 import { getUpcomingEvents } from '../../src/lib/data';
+import { bogotaToday } from '../../src/lib/eventTime';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { usePersonalization } from '../../src/context/PersonalizationContext';
 import { usePartnerCount } from '../../src/context/PartnerCountContext';
@@ -72,7 +73,7 @@ const getBudgetStyle = (isFree: boolean, price: number) => {
   return { main: '#EF4444', bg: 'rgba(239,68,68,0.18)', label: `$${(price/1000).toFixed(0)}K` };
 };
 
-const todayIso = () => new Date().toISOString().slice(0, 10);
+const todayIso = () => bogotaToday(); // Bogota date, not UTC (events must not roll over at 19:00 local)
 const isNightTime = (t: string) => {
   // Considera "noche" eventos que arrancan a partir de las 17:00 (sunset, cena, fiesta)
   if (!t) return false;

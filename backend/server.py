@@ -45,6 +45,9 @@ from partner_visibility import (  # noqa: E402
     PUBLIC_PARTNER_FILTER, INTERNAL_PARTNER_FIELDS, PUBLIC_PARTNER_PROJECTION,
     PUBLIC_EVENT_PROJECTION, PUBLIC_CITY_EVENT_FILTER, is_publicly_visible,
 )
+from events_time import (  # noqa: E402  — past events must fall out; "now" is Bogota, not UTC
+    upcoming_query, filter_live, today_str as _today_bogota,
+)
 
 # ── In-memory rate limiter for expensive AI endpoints ──────────
 from collections import defaultdict
@@ -3193,21 +3196,18 @@ async def list_events(
         query["is_free"] = is_free
     if venue_id:
         query["venue_id"] = venue_id
-    events = await db.events.find(query, PUBLIC_EVENT_PROJECTION).sort("start_time", 1).to_list(200)
-    return events
+    # Past events fall out automatically; "today" is Bogota, not UTC.
+    events = await db.events.find(upcoming_query(query), PUBLIC_EVENT_PROJECTION).to_list(200)
+    return filter_live(events)
 
 
 @api_router.get("/events/featured")
 async def featured_events():
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    events = await db.events.find({**PUBLIC_CITY_EVENT_FILTER, "featured": True}, PUBLIC_EVENT_PROJECTION).to_list(20)
-    # Filter out events whose end date has passed
-    events = [e for e in events if (e.get("date_end") or e.get("date") or "9999-12-31") >= today]
-    events.sort(key=lambda e: e.get("date") or e.get("date_start") or "")
-    events = events[:10]
+    events = await db.events.find(upcoming_query({**PUBLIC_CITY_EVENT_FILTER, "featured": True}), PUBLIC_EVENT_PROJECTION).to_list(40)
+    events = filter_live(events)[:10]
     if not events:
-        events = await db.events.find(dict(PUBLIC_CITY_EVENT_FILTER), PUBLIC_EVENT_PROJECTION).limit(6).to_list(6)
-        events = [e for e in events if (e.get("date_end") or e.get("date") or "9999-12-31") >= today]
+        fb = await db.events.find(upcoming_query(dict(PUBLIC_CITY_EVENT_FILTER)), PUBLIC_EVENT_PROJECTION).to_list(40)
+        events = filter_live(fb)[:6]
     return events
 
 
@@ -3223,8 +3223,9 @@ async def get_event(event_id: str):
 
 @api_router.get("/events/dates/available")
 async def available_dates():
-    dates = await db.events.distinct("date")
-    return sorted(dates)
+    today = _today_bogota()
+    dates = await db.events.distinct("date", PUBLIC_CITY_EVENT_FILTER)
+    return sorted(d for d in dates if d and d >= today)
 
 
 # ── Venues ──────────────────────────────────────────────────
@@ -3338,10 +3339,8 @@ async def list_partner_events(
         query["category"] = category
     if partner_id:
         query["partner_id"] = partner_id
-    if upcoming:
-        today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        query["date"] = {"$gte": today_str}
-    events = await db.partner_events.find(query, PUBLIC_EVENT_PROJECTION).sort([("date", 1), ("start_time", 1)]).to_list(200)
+    # Past events ALWAYS fall out now (Bogota-based); the `upcoming` param is the default.
+    events = await db.partner_events.find(upcoming_query(query), PUBLIC_EVENT_PROJECTION).sort([("date", 1), ("start_time", 1)]).to_list(200)
     # enrich with partner info — ONLY catalog-approved venues (PUBLIC_PARTNER_FILTER),
     # so an event on an unapproved / churned / sandbox venue never renders (C1/C2).
     partner_ids = list({e["partner_id"] for e in events})
@@ -3357,7 +3356,7 @@ async def list_partner_events(
         e["partner_tier"] = p.get("tier", "popular")
         e["partner_category"] = p.get("category", "")
         e["partner_image"] = p.get("image_url", "")
-    return events
+    return filter_live(events)
 
 
 @api_router.get("/partner-events/{event_id}")
@@ -3889,7 +3888,7 @@ async def list_my_week(request: Request):
     if not week:
         return []
     events = await db.events.find({**PUBLIC_CITY_EVENT_FILTER, "event_id": {"$in": week}}, PUBLIC_EVENT_PROJECTION).to_list(100)
-    return events
+    return filter_live(events)
 
 
 # ── Event Types & Categories ────────────────────────────────
@@ -3903,7 +3902,7 @@ async def list_seasons(active: Optional[bool] = None):
         query["is_active"] = active
     seasons = await db.seasons.find(query, {"_id": 0}).sort("start_date", 1).to_list(50)
     # Filter out seasons whose end_date has passed
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today = _today_bogota()
     seasons = [s for s in seasons if (s.get("end_date") or "9999-12-31") >= today]
     return seasons
 
@@ -3921,8 +3920,8 @@ async def season_events(season_id: str, date: Optional[str] = None):
     query = {**PUBLIC_CITY_EVENT_FILTER, "season_id": season_id}
     if date:
         query["date"] = date
-    events = await db.events.find(query, PUBLIC_EVENT_PROJECTION).sort("start_time", 1).to_list(200)
-    return events
+    events = await db.events.find(upcoming_query(query), PUBLIC_EVENT_PROJECTION).to_list(200)
+    return filter_live(events)
 
 
 # ── Sponsors ─────────────────────────────────────────────────
@@ -6076,9 +6075,9 @@ async def list_experiences(request: Request):
         query = {"is_published": True}
         if category:
             query["category"] = category
-        experiences = await db.partner_events.find(query, PUBLIC_EVENT_PROJECTION).sort("created_at", -1).to_list(200)
+        experiences = await db.partner_events.find(upcoming_query(query), PUBLIC_EVENT_PROJECTION).sort("created_at", -1).to_list(200)
         approved = await _approved_partner_ids(e.get("partner_id") for e in experiences)
-        return [e for e in experiences if e.get("partner_id") in approved]
+        return filter_live([e for e in experiences if e.get("partner_id") in approved])
     except Exception as e:
         logger.error(f"[Experiences] list error: {e}")
         raise HTTPException(status_code=500, detail="Failed to load experiences")
@@ -6089,11 +6088,11 @@ async def featured_experiences():
     """Return featured experiences (highest rated active events)."""
     try:
         featured = await db.partner_events.find(
-            {"is_published": True},
+            upcoming_query({"is_published": True}),
             PUBLIC_EVENT_PROJECTION,
-        ).sort([("is_featured", -1), ("created_at", -1)]).limit(30).to_list(30)
+        ).sort([("is_featured", -1), ("created_at", -1)]).limit(40).to_list(40)
         approved = await _approved_partner_ids(e.get("partner_id") for e in featured)
-        return [e for e in featured if e.get("partner_id") in approved][:10]
+        return filter_live([e for e in featured if e.get("partner_id") in approved])[:10]
     except Exception as e:
         logger.error(f"[Experiences] featured error: {e}")
         raise HTTPException(status_code=500, detail="Failed to load featured experiences")
