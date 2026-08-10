@@ -246,7 +246,7 @@ export default function PartnerDetail() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
-          <SafeImage uri={partner.image_url} category={partner.category} style={styles.heroImage} />
+          <SafeImage uri={`/images/partners/${partner.partner_id || id}.jpg`} category={partner.category} style={styles.heroImage} />
           <View style={styles.heroOverlay} />
           <View style={{ flexDirection: 'row', position: 'absolute', top: SPACING.md, left: SPACING.md, gap: 8, zIndex: 5 }}>
             <TouchableOpacity testID="partner-back-btn" style={styles.navBtn} onPress={() => router.back()}>
