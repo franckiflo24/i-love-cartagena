@@ -36,9 +36,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useTr } from '../../src/i18n/autoTr';
 import { useAuth } from '../../src/context/AuthContext';
-
-// Fallback AMO Cartagena concierge WhatsApp when partner has no phone
-const AMO_CONCIERGE_PHONE = process.env.EXPO_PUBLIC_AMO_WHATSAPP || '573176481183';
+import { venueWhatsApp } from '../../src/lib/whatsapp';
 
 type Partner = {
   partner_id: string;
@@ -48,6 +46,7 @@ type Partner = {
   image_url?: string;
   address?: string;
   phone?: string;
+  whatsapp?: string;
 };
 
 type PEvent = {
@@ -196,10 +195,10 @@ export default function ReservationNew() {
     setContactError('');
     setSubmitting(true);
 
-    // Build WhatsApp deep link with reservation details
-    const phone = (partner.phone || '').replace(/[^\d+]/g, '').replace('+', '');
-    const waPhone = phone || AMO_CONCIERGE_PHONE;
-    const isAmo = !phone;
+    // Build WhatsApp deep link. Only a venue's VALIDATED mobile is used; anything
+    // else (landline, scraped/shared, empty) routes to the AMO concierge line —
+    // the button never opens WhatsApp to a wrong/dead number.
+    const { number: waPhone, isAmo } = venueWhatsApp(partner);
 
     const eventLine = event ? `\nEvento: ${event.title}` : '';
     const eventLineEn = event ? `\nEvent: ${event.title}` : '';

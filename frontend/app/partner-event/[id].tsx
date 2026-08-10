@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
+import { venueWhatsApp } from '../../src/lib/whatsapp';
 import { TierBadge } from '../../src/components/TierBadge';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useMyCalendar } from '../../src/context/MyCalendarContext';
@@ -81,8 +82,7 @@ export default function PartnerEventDetail() {
     // Try to get partner phone directly
     try {
       const partnerData = await api.get(`/partners/${event.partner_id}`);
-      const phone = (partnerData?.phone || '').replace(/[^\d+]/g, '').replace('+', '');
-      const waPhone = phone || process.env.EXPO_PUBLIC_AMO_WHATSAPP || '573176481183';
+      const { number: waPhone } = venueWhatsApp(partnerData); // validated mobile or AMO concierge — never a wrong number
       const msg = encodeURIComponent(
         `¡Hola! Reserva via *AMO Cartagena* 🌴\n\n`
         + `Evento: *${event.title}*\n`

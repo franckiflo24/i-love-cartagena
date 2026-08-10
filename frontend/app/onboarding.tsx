@@ -221,6 +221,20 @@ export default function OnboardingArrival() {
               <Ionicons name="arrow-forward" size={18} color="#0A0A0A" />
             </TouchableOpacity>
           </Animated.View>
+
+          {/* Partner entry — a business owner arriving must find how to join */}
+          <Animated.View style={[styles.partnerEntry, R(4)]}>
+            <TouchableOpacity
+              onPress={() => router.push('/business/signup' as any)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.partnerEntryText}>
+                {tr('¿Tienes un negocio en Cartagena?')}{'  '}
+                <Text style={styles.partnerEntryLink}>{tr('Regístralo')} →</Text>
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
         </View>
       ) : (
         <View style={styles.stage}>
@@ -306,6 +320,9 @@ const styles = StyleSheet.create({
     backgroundColor: GOLD, borderRadius: 999, paddingVertical: 16,
   },
   ctaText: { color: '#0A0A0A', fontSize: 16, ...FONTS.bold },
+  partnerEntry: { alignItems: 'center', marginTop: SPACING.md },
+  partnerEntryText: { color: COLORS.textMuted, fontSize: 13.5, ...FONTS.medium, textAlign: 'center' },
+  partnerEntryLink: { color: GOLD_BRIGHT, ...FONTS.semibold },
   qTitle: { color: '#FFFFFF', fontSize: 26, fontFamily: SERIF, textAlign: 'center' },
   qSub: { color: COLORS.textMuted, fontSize: 14, textAlign: 'center', marginTop: -6, marginBottom: SPACING.sm, lineHeight: 20 },
   qOption: {
