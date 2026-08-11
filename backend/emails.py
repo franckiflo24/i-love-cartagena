@@ -148,6 +148,39 @@ def _code_box(code: str) -> str:
       </td></tr></table>"""
 
 
+def _admin_rows(title: str, lines: list) -> str:
+    body = "".join(
+        f'<p style="margin:0 0 6px;font-family:{_SANS};font-size:14px;color:{_TEXT};line-height:20px;">{_safe(str(l))}</p>'
+        for l in lines
+    )
+    return f"""<tr><td style="padding:6px 32px 26px;">
+      <p style="margin:0 0 12px;font-family:{_SERIF};font-size:21px;color:{_GOLD_BRIGHT};">{_safe(title)}</p>
+      {body}
+      <p style="margin:20px 0 0;font-family:{_SANS};font-size:12px;color:{_MUTED};">
+        Revisá y gestioná en el panel:
+        <a href="{SITE}/admin" style="color:{_GOLD};text-decoration:none;">{SITE}/admin</a>
+      </p>
+    </td></tr>"""
+
+
+async def send_admin_alert(*, subject: str, title: str, lines: list) -> bool:
+    """Notify the AMO team of a business event — signup, ownership claim, or a
+    new-venue submission. Recipients come from ADMIN_ALERT_EMAILS (comma-sep).
+    Fail-soft: a no-op when unset so it NEVER blocks the user's action, and each
+    recipient is sent independently so one bad address can't drop the rest."""
+    raw = os.environ.get("ADMIN_ALERT_EMAILS", "").strip()
+    recipients = [e.strip() for e in raw.split(",") if e.strip() and "@" in e]
+    if not recipients:
+        return False
+    html = _shell(preheader=title, inner=_admin_rows(title, lines))
+    text = f"{title}\n\n" + "\n".join(str(l) for l in lines) + f"\n\nPanel: {SITE}/admin"
+    sent_any = False
+    for addr in recipients:
+        if await _send_email(to=addr, subject=subject, html=html, text=text, log_label="admin_alert"):
+            sent_any = True
+    return sent_any
+
+
 async def send_verification_email(*, to: str, code: str, name: str = "") -> bool:
     """6-digit code to prove ownership of an email (consumer sign-in + business claim)."""
     greeting = f"Hola {_safe(name)}" if name else "Hola"

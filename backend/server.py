@@ -1125,7 +1125,11 @@ async def _link_business_partner(business_id: str, partner_id: str):
     await db.business_users.update_one({"business_id": business_id}, upd)
 
 
-async def _notify_admin(kind: str, title: str, meta: dict):
+async def _notify_admin(kind: str, title: str, meta: dict, alert: bool = False):
+    """Write an in-app admin_notifications row. When alert=True, ALSO email the
+    AMO team (Phil + Sergio via ADMIN_ALERT_EMAILS) — used for the business
+    lifecycle (signup / claim / new venue) so nobody has to watch a dashboard.
+    Both halves are fail-soft: a notification never blocks the user's action."""
     try:
         await db.admin_notifications.insert_one({
             "notification_id": f"notif_{uuid.uuid4().hex[:10]}",
@@ -1138,6 +1142,12 @@ async def _notify_admin(kind: str, title: str, meta: dict):
         })
     except Exception as exc:
         logger.warning(f"[B1] admin notify failed: {exc}")
+    if alert:
+        try:
+            lines = [title] + [f"{k}: {v}" for k, v in meta.items() if v]
+            await _emails_svc.send_admin_alert(subject=f"AMO · {title}", title=title, lines=lines)
+        except Exception as exc:
+            logger.warning(f"[B1] admin email alert failed: {exc}")
 
 
 async def _catalog_candidates() -> list:
@@ -1193,6 +1203,9 @@ async def business_signup(request: Request):
         "expires_at": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat(),
     })
     safe = {k: v for k, v in doc.items() if k not in ("password_hash", "_id")}
+    # Business signup was previously SILENT — the team now gets pinged (email + in-app).
+    await _notify_admin("business_signup", f"Nueva cuenta de negocio: {name or email}",
+                        {"email": email, "phone": phone, "business_id": business_id}, alert=True)
     return {"token": token, "business": safe, "partner": None}
 
 
@@ -1263,7 +1276,7 @@ async def business_claim_start(request: Request):
         }
         await db.venue_claims.insert_one(claim)
         await _notify_admin("claim_dispute", f"Disputa de propiedad: {partner.get('name','')}",
-                            {"partner_id": partner_id, "claim_id": claim["claim_id"], "business_id": biz["business_id"]})
+                            {"partner_id": partner_id, "email": biz.get("email", ""), "claim_id": claim["claim_id"], "business_id": biz["business_id"]}, alert=True)
         raise HTTPException(status_code=409, detail="Este negocio ya está verificado por otra cuenta. Tu solicitud pasó a revisión de disputa. / Already verified by another account — sent to dispute review.")
 
     # Abuse guard (F7/F8/N3): an ATOMIC 90s per-(account, venue) cooldown stops
@@ -1329,8 +1342,8 @@ async def business_claim_start(request: Request):
         })
         if partner.get("claim_status") not in ("verified_owner",):
             await db.partners.update_one({"partner_id": partner_id}, {"$set": {"claim_status": "pending_verification"}})
-        await _notify_admin("claim_manual", f"Reclamo manual: {partner.get('name','')}",
-                            {"partner_id": partner_id, "claim_id": claim_id, "business_id": biz["business_id"]})
+        await _notify_admin("claim_manual", f"Reclamo manual de propiedad: {partner.get('name','')}",
+                            {"partner_id": partner_id, "email": biz.get("email", ""), "claim_id": claim_id, "business_id": biz["business_id"]}, alert=True)
         return {"claim_id": claim_id, "method": "manual", "state": "pending_verification",
                 "message": "Tu reclamo pasó a revisión del equipo. Te avisaremos."}
 
@@ -1374,7 +1387,7 @@ async def business_claim_verify(request: Request):
     if partner and partner.get("claim_status") == "verified_owner" and partner.get("claimed_by") != biz["business_id"]:
         await db.venue_claims.update_one({"claim_id": claim_id}, {"$set": {"state": "disputed"}})
         await _notify_admin("claim_dispute", f"Disputa (carrera): {partner.get('name','')}",
-                            {"partner_id": partner_id, "claim_id": claim_id, "business_id": biz["business_id"]})
+                            {"partner_id": partner_id, "email": biz.get("email", ""), "claim_id": claim_id, "business_id": biz["business_id"]}, alert=True)
         raise HTTPException(status_code=409, detail="Ya verificado por otra cuenta — enviado a disputa / Already verified by another account")
 
     now = _now_iso()
@@ -1384,6 +1397,8 @@ async def business_claim_verify(request: Request):
         "claim_method": "email", "claim_verified_at": now,
     }})
     await _link_business_partner(biz["business_id"], partner_id)
+    await _notify_admin("claim_verified", f"Propiedad verificada por su dueño: {partner.get('name', '') if partner else partner_id}",
+                        {"partner_id": partner_id, "email": biz.get("email", ""), "business_id": biz["business_id"]}, alert=True)
     return {"verified": True, "partner_id": partner_id}
 
 
@@ -1455,8 +1470,8 @@ async def business_venue_create(request: Request):
     }
     await db.partners.insert_one(doc)
     await _link_business_partner(biz["business_id"], partner_id)
-    await _notify_admin("venue_draft", f"Nuevo negocio pendiente: {name}",
-                        {"partner_id": partner_id, "business_id": biz["business_id"]})
+    await _notify_admin("venue_draft", f"Nuevo negocio pendiente de aprobación: {name}",
+                        {"partner_id": partner_id, "email": biz.get("email", ""), "business_id": biz["business_id"]}, alert=True)
     return {"created": True, "partner_id": partner_id, "status": "pending_review",
             "message": "Tu negocio pasó a revisión del equipo. No aparece en el catálogo hasta ser aprobado."}
 
