@@ -1290,6 +1290,12 @@ async def business_claim_start(request: Request):
                             {"partner_id": partner_id, "email": biz.get("email", ""), "claim_id": claim["claim_id"], "business_id": biz["business_id"]}, alert=True)
         raise HTTPException(status_code=409, detail="Este negocio ya está verificado por otra cuenta. Tu solicitud pasó a revisión de disputa. / Already verified by another account — sent to dispute review.")
 
+    # NIT / registro — validate BEFORE the throttle, so a validation error never
+    # burns the 90s cooldown (else a fix-and-retry would 429 the real owner).
+    nit = (body.get("nit") or "").strip()[:40]
+    if len(_nit_digits(nit)) < 5:
+        raise HTTPException(status_code=400, detail="Confirma el NIT o registro del negocio / Confirm the business tax ID (NIT)")
+
     # Abuse guard (F7/F8/N3): an ATOMIC 90s per-(account, venue) cooldown stops
     # verification-email bombing and admin-queue flooding — even under a
     # concurrent burst. The single upsert is the lock: the filter matches only
@@ -1309,11 +1315,6 @@ async def business_claim_start(request: Request):
         raise HTTPException(status_code=429, detail="Espera un momento antes de reintentar este negocio / Please wait before retrying this venue")
     if await db.venue_claims.count_documents({"business_id": biz["business_id"], "state": "pending_verification"}) >= 12:
         raise HTTPException(status_code=429, detail="Tienes demasiados reclamos pendientes / Too many pending claims")
-
-    # NIT / registro — confirm the business you're claiming (built into the claim record).
-    nit = (body.get("nit") or "").strip()[:40]
-    if len(_nit_digits(nit)) < 5:
-        raise HTTPException(status_code=400, detail="Confirma el NIT o registro del negocio / Confirm the business tax ID (NIT)")
 
     if method == "email":
         target = (partner.get("email") or "").strip()
