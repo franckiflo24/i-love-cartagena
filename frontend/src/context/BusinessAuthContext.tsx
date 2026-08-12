@@ -20,7 +20,7 @@ interface BusinessAuthContextType {
   partner: Partner | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, name: string, phone: string) => Promise<void>;
+  signup: (email: string, password: string, name: string, phone: string, nit: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
   setPartner: (p: Partner) => void;
@@ -74,10 +74,10 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signup = async (email: string, password: string, name: string, phone: string) => {
+  const signup = async (email: string, password: string, name: string, phone: string, nit: string) => {
     // Errors bubble up with the backend's bilingual detail (e.g. "email already
     // has an account") so the signup screen can surface them verbatim.
-    const data = await api.post('/business/signup', { email, password, name, phone });
+    const data = await api.post('/business/signup', { email, password, name, phone, nit });
     setToken(data.token);
     setBusiness(data.business);
     setPartner(data.partner ?? null);

@@ -16,6 +16,7 @@ export default function BusinessSignup() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [nit, setNit] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -25,13 +26,17 @@ export default function BusinessSignup() {
       Alert.alert(tr('Faltan datos'), tr('Ingresa tu email y una contraseña'));
       return;
     }
+    if (nit.replace(/\D/g, '').length < 5) {
+      Alert.alert(tr('NIT requerido'), tr('Ingresa el NIT o registro de tu negocio para confirmarlo'));
+      return;
+    }
     if (password.length < 8) {
       Alert.alert(tr('Contraseña muy corta'), tr('La contraseña debe tener al menos 8 caracteres'));
       return;
     }
     setLoading(true);
     try {
-      await signup(email.trim().toLowerCase(), password, name.trim(), phone.trim());
+      await signup(email.trim().toLowerCase(), password, name.trim(), phone.trim(), nit.trim());
       // New account has no venue yet → go find/claim it.
       router.replace('/business/find' as any);
     } catch (e: any) {
@@ -72,6 +77,12 @@ export default function BusinessSignup() {
             <View style={styles.inputWrap}>
               <Ionicons name="call-outline" size={18} color={COLORS.textMuted} />
               <TextInput style={styles.input} value={phone} onChangeText={setPhone} placeholder="+57 300 000 0000" placeholderTextColor={COLORS.textMuted} keyboardType="phone-pad" />
+            </View>
+
+            <Text style={styles.label}>{tr('NIT o registro del negocio')}</Text>
+            <View style={styles.inputWrap}>
+              <Ionicons name="document-text-outline" size={18} color={COLORS.textMuted} />
+              <TextInput style={styles.input} value={nit} onChangeText={setNit} placeholder={tr('Ej: 900.123.456-7')} placeholderTextColor={COLORS.textMuted} autoCapitalize="none" autoCorrect={false} />
             </View>
 
             <Text style={styles.label}>{tr('Contraseña')}</Text>

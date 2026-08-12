@@ -1161,6 +1161,11 @@ async def _catalog_candidates() -> list:
     ).to_list(3000)
 
 
+def _nit_digits(raw) -> str:
+    """Digits only from a NIT / registro (for validation, dedup and matching)."""
+    return "".join(ch for ch in str(raw or "") if ch.isdigit())
+
+
 # ── B1A · Partner account signup (self-serve, separate namespace) ──────────
 @api_router.post("/business/signup")
 async def business_signup(request: Request):
@@ -1169,10 +1174,14 @@ async def business_signup(request: Request):
     password = body.get("password") or ""
     phone = (body.get("phone") or "").strip()
     name = (body.get("name") or "").strip()
+    nit = (body.get("nit") or "").strip()[:40]
     if not email or "@" not in email or "." not in email.split("@")[-1]:
         raise HTTPException(status_code=400, detail="Email inválido / Invalid email")
     if len(password) < 8:
         raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 8 caracteres / Password must be ≥ 8 chars")
+    # NIT / registro required — confirms the business and builds the NIT registry.
+    if len(_nit_digits(nit)) < 5:
+        raise HTTPException(status_code=400, detail="Ingresa el NIT o registro del negocio / Enter your business tax ID (NIT)")
     if await db.business_users.find_one({"email": email}):
         raise HTTPException(status_code=409, detail="Ese email ya tiene una cuenta / That email already has an account")
     pw_hash = _bcrypt.hashpw(password.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
@@ -1183,6 +1192,8 @@ async def business_signup(request: Request):
         "password_hash": pw_hash,
         "full_name": name,
         "phone": phone,
+        "nit": nit,
+        "nit_digits": _nit_digits(nit),
         "role": "business",
         "status": "pending",          # becomes "active" on first verified claim/create
         "provisioned_by": "self",
@@ -1299,6 +1310,11 @@ async def business_claim_start(request: Request):
     if await db.venue_claims.count_documents({"business_id": biz["business_id"], "state": "pending_verification"}) >= 12:
         raise HTTPException(status_code=429, detail="Tienes demasiados reclamos pendientes / Too many pending claims")
 
+    # NIT / registro — confirm the business you're claiming (built into the claim record).
+    nit = (body.get("nit") or "").strip()[:40]
+    if len(_nit_digits(nit)) < 5:
+        raise HTTPException(status_code=400, detail="Confirma el NIT o registro del negocio / Confirm the business tax ID (NIT)")
+
     if method == "email":
         target = (partner.get("email") or "").strip()
         if not target or "@" not in target:
@@ -1311,6 +1327,7 @@ async def business_claim_start(request: Request):
             "claim_id": claim_id,
             "business_id": biz["business_id"], "actor_email": biz.get("email", ""),
             "partner_id": partner_id, "method": "email", "state": "pending_verification",
+            "nit": nit, "nit_digits": _nit_digits(nit),
             "code_hash": _hash_code(code, claim_id),
             "code_expires": (datetime.now(timezone.utc) + timedelta(minutes=15)).isoformat(),
             "attempts": 0,
@@ -1337,6 +1354,7 @@ async def business_claim_start(request: Request):
             "claim_id": claim_id,
             "business_id": biz["business_id"], "actor_email": biz.get("email", ""),
             "partner_id": partner_id, "method": "manual", "state": "pending_verification",
+            "nit": nit, "nit_digits": _nit_digits(nit),
             "proof": proof[:2000], "proof_url": (body.get("proof_url") or "")[:500],
             "created_at": _now_iso(),
         })
@@ -1392,9 +1410,11 @@ async def business_claim_verify(request: Request):
 
     now = _now_iso()
     await db.venue_claims.update_one({"claim_id": claim_id}, {"$set": {"state": "verified", "resolved_at": now}})
+    _cnit = claim.get("nit") or ""
     await db.partners.update_one({"partner_id": partner_id}, {"$set": {
         "claim_status": "verified_owner", "claimed_by": biz["business_id"],
         "claim_method": "email", "claim_verified_at": now,
+        **({"nit": _cnit, "nit_digits": _nit_digits(_cnit)} if _cnit else {}),
     }})
     await _link_business_partner(biz["business_id"], partner_id)
     await _notify_admin("claim_verified", f"Propiedad verificada por su dueño: {partner.get('name', '') if partner else partner_id}",
@@ -1420,8 +1440,11 @@ async def business_venue_create(request: Request):
     name = (body.get("name") or "").strip()
     category = (body.get("category") or "").strip()
     hood = (body.get("neighborhood") or "").strip()
+    nit = (body.get("nit") or "").strip()[:40]
     if not name or not category:
         raise HTTPException(status_code=400, detail="name y category son obligatorios / name and category required")
+    if len(_nit_digits(nit)) < 5:
+        raise HTTPException(status_code=400, detail="Ingresa el NIT o registro del negocio / Enter your business tax ID (NIT)")
 
     # DEDUP FIREWALL (server-side, cannot be bypassed) — a near-duplicate blocks
     # the create and routes the partner to claim the existing record instead.
@@ -1451,6 +1474,8 @@ async def business_venue_create(request: Request):
         "neighborhood": hood,
         "description": (body.get("description") or "").strip()[:2000],
         "address": (body.get("address") or "").strip()[:300],
+        "nit": nit,
+        "nit_digits": _nit_digits(nit),
         "phone": (body.get("phone") or "").strip()[:40],
         "whatsapp": (body.get("whatsapp") or "").strip()[:40],
         "website": (body.get("website") or "").strip()[:300],

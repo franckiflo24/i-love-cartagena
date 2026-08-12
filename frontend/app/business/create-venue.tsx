@@ -37,7 +37,7 @@ export default function CreateVenue() {
   const tr = useTr();
   const router = useRouter();
   const params = useLocalSearchParams<{ name?: string }>();
-  const { token, refresh, loading: authLoading } = useBusinessAuth();
+  const { token, business, refresh, loading: authLoading } = useBusinessAuth();
   const [name, setName] = useState(params.name || '');
   const [category, setCategory] = useState('restaurant');
   const [subcategory, setSubcategory] = useState('');
@@ -45,6 +45,7 @@ export default function CreateVenue() {
   const [description, setDescription] = useState('');
   const [phone, setPhone] = useState('');
   const [website, setWebsite] = useState('');
+  const [nit, setNit] = useState<string>((business as any)?.nit || '');
   const [dupes, setDupes] = useState<any[]>([]);
   const [busy, setBusy] = useState(false);
 
@@ -52,6 +53,7 @@ export default function CreateVenue() {
 
   const submit = async () => {
     if (name.trim().length < 2 || !category) { Alert.alert(tr('Faltan datos'), tr('Ingresa el nombre y la categoría')); return; }
+    if (nit.replace(/\D/g, '').length < 5) { Alert.alert(tr('NIT requerido'), tr('Ingresa el NIT o registro del negocio')); return; }
     setBusy(true); setDupes([]);
     try {
       // 1) dedup precheck — surface existing candidates before creating.
@@ -64,7 +66,7 @@ export default function CreateVenue() {
       // 2) create the draft.
       const r = await api.post('/business/venues/create', {
         name: name.trim(), category, subcategory, neighborhood: neighborhood.trim(),
-        description: description.trim(), phone: phone.trim(), website: website.trim(),
+        description: description.trim(), phone: phone.trim(), website: website.trim(), nit: nit.trim(),
       }, { headers: { Authorization: `Bearer ${token}` } });
       await refresh();
       Alert.alert(tr('Enviado a revisión'), tr('Tu negocio pasó a revisión del equipo. No aparece en el catálogo hasta ser aprobado.'), [
@@ -124,6 +126,9 @@ export default function CreateVenue() {
 
           <Text style={styles.label}>{tr('Sitio web')}</Text>
           <View style={styles.inputWrap}><TextInput style={styles.input} value={website} onChangeText={setWebsite} placeholder="https://" placeholderTextColor={COLORS.textMuted} autoCapitalize="none" /></View>
+
+          <Text style={styles.label}>{tr('NIT o registro del negocio')}</Text>
+          <View style={styles.inputWrap}><TextInput style={styles.input} value={nit} onChangeText={setNit} placeholder={tr('Ej: 900.123.456-7')} placeholderTextColor={COLORS.textMuted} autoCapitalize="none" autoCorrect={false} /></View>
 
           {dupes.length > 0 && (
             <View style={styles.dupBox}>

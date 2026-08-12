@@ -15,13 +15,14 @@ export default function ClaimVenue() {
   const tr = useTr();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { token, refresh, loading: authLoading } = useBusinessAuth();
+  const { token, business, refresh, loading: authLoading } = useBusinessAuth();
   const [partner, setPartner] = useState<any>(null);
   const [step, setStep] = useState<'method' | 'code' | 'manual' | 'done'>('method');
   const [claimId, setClaimId] = useState('');
   const [maskedEmail, setMaskedEmail] = useState('');
   const [code, setCode] = useState('');
   const [proof, setProof] = useState('');
+  const [nit, setNit] = useState<string>((business as any)?.nit || '');
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -33,9 +34,10 @@ export default function ClaimVenue() {
   if (!authLoading && !token) { router.replace('/business/login' as any); return null; }
 
   const startEmail = async () => {
+    if (nit.replace(/\D/g, '').length < 5) { Alert.alert(tr('NIT requerido'), tr('Confirma el NIT o registro del negocio')); return; }
     setBusy(true);
     try {
-      const r = await api.post('/business/claim/start', { partner_id: id, method: 'email' }, { headers: { Authorization: `Bearer ${token}` } });
+      const r = await api.post('/business/claim/start', { partner_id: id, method: 'email', nit: nit.trim() }, { headers: { Authorization: `Bearer ${token}` } });
       if (r.already_owner) { setStep('done'); await refresh(); }
       else { setClaimId(r.claim_id); setMaskedEmail(r.masked_email || ''); setStep('code'); }
     } catch (e: any) {
@@ -58,10 +60,11 @@ export default function ClaimVenue() {
   };
 
   const submitManual = async () => {
+    if (nit.replace(/\D/g, '').length < 5) { Alert.alert(tr('NIT requerido'), tr('Confirma el NIT o registro del negocio')); return; }
     if (proof.trim().length < 8) { Alert.alert(tr('Prueba requerida'), tr('Describe cómo podemos verificar que eres el dueño (RNT, registro, etc.)')); return; }
     setBusy(true);
     try {
-      await api.post('/business/claim/start', { partner_id: id, method: 'manual', proof: proof.trim() }, { headers: { Authorization: `Bearer ${token}` } });
+      await api.post('/business/claim/start', { partner_id: id, method: 'manual', proof: proof.trim(), nit: nit.trim() }, { headers: { Authorization: `Bearer ${token}` } });
       setStep('done');
     } catch (e: any) {
       Alert.alert(tr('Revisión manual'), e?.message || tr('No se pudo enviar'));
@@ -87,6 +90,12 @@ export default function ClaimVenue() {
 
         {step === 'method' && (
           <>
+            <Text style={styles.claimLabel}>{tr('NIT o registro del negocio')}</Text>
+            <View style={styles.inputWrap}>
+              <Ionicons name="document-text-outline" size={18} color={COLORS.textMuted} />
+              <TextInput style={[styles.input, { fontSize: 15 }]} value={nit} onChangeText={setNit} placeholder={tr('Ej: 900.123.456-7')} placeholderTextColor={COLORS.textMuted} autoCapitalize="none" autoCorrect={false} />
+            </View>
+            <Text style={styles.claimHint}>{tr('Confírmalo para verificar tu negocio.')}</Text>
             <Text style={styles.lead}>{tr('¿Cómo quieres verificar que eres el dueño?')}</Text>
             <TouchableOpacity style={styles.optCard} onPress={startEmail} disabled={busy}>
               <Ionicons name="mail" size={20} color={COLORS.primary} />
@@ -167,7 +176,9 @@ const styles = StyleSheet.create({
   scroll: { padding: SPACING.lg },
   venueCard: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.md, marginBottom: SPACING.lg },
   venueName: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold, flex: 1 },
-  lead: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold, marginBottom: SPACING.md, lineHeight: 20 },
+  lead: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold, marginBottom: SPACING.md, lineHeight: 20, marginTop: SPACING.md },
+  claimLabel: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: SPACING.xs },
+  claimHint: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: SPACING.xs },
   optCard: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.md, marginBottom: SPACING.md },
   optTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
   optSub: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2, lineHeight: 17 },
