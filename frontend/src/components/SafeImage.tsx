@@ -28,7 +28,7 @@ const OPACITY_MAX = 0.7;
  * fades out once `onLoad` fires.
  */
 export function SafeImage({ uri, category, fallbackUri, style, onLoad, ...rest }: Props) {
-  const isValidUri = uri && (uri.startsWith('http') || uri.startsWith('/'));
+  const isValidUri = uri && (uri.startsWith('http') || uri.startsWith('/') || uri.startsWith('data:'));
   const initial = isValidUri ? uri : (fallbackUri || getCategoryImage(category) || IMAGES.placeholder);
   const [currentUri, setCurrentUri] = useState<string>(initial);
   const [stage, setStage] = useState<0 | 1 | 2 | 3>(0); // 0=primary, 1=fallbackUri, 2=category, 3=inline-svg
@@ -58,7 +58,7 @@ export function SafeImage({ uri, category, fallbackUri, style, onLoad, ...rest }
 
   // If parent passes a new uri, reset
   useEffect(() => {
-    const nextValid = uri && (uri.startsWith('http') || uri.startsWith('/'));
+    const nextValid = uri && (uri.startsWith('http') || uri.startsWith('/') || uri.startsWith('data:'));
     const next = nextValid ? uri : (fallbackUri || getCategoryImage(category) || IMAGES.placeholder);
     setCurrentUri(next);
     setStage(0);

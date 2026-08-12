@@ -801,11 +801,36 @@ async def business_remove_photo(request: Request):
     url = (body.get("url") or "").strip()
     if not url:
         raise HTTPException(status_code=400, detail="url required")
-    partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "photos": 1, "images": 1})
+    partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "photos": 1, "images": 1, "hero_photo": 1})
     photos = partner.get("photos") or partner.get("images") or []
     photos = [p for p in photos if p != url]
-    await db.partners.update_one({"partner_id": biz["partner_id"]}, {"$set": {"photos": photos}})
+    upd: dict = {"$set": {"photos": photos}}
+    # If the removed photo was the chosen hero, revert to the editorial hero.
+    if partner.get("hero_photo") == url:
+        upd["$unset"] = {"hero_photo": ""}
+    await db.partners.update_one({"partner_id": biz["partner_id"]}, upd)
     return {"photos": photos}
+
+
+@api_router.post("/business/photos/set-main")
+async def business_set_main_photo(request: Request):
+    """Set the venue's HERO image to one of the owner's already-APPROVED gallery
+    photos (must exist in partner.photos). Pass {url: ""} to clear it and revert to
+    the editorial hero. The public detail page prefers `hero_photo` over the
+    self-hosted /images/ hero (B2 — partner controls their main photo)."""
+    biz = await get_current_business(request)
+    await _require_verified_owner(biz, biz["partner_id"])
+    body = await _json_body(request)
+    url = (body.get("url") or "").strip()
+    partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "photos": 1})
+    photos = (partner or {}).get("photos") or []
+    if url == "":
+        await db.partners.update_one({"partner_id": biz["partner_id"]}, {"$unset": {"hero_photo": ""}})
+        return {"hero_photo": None}
+    if url not in photos:
+        raise HTTPException(status_code=400, detail="Elige una foto ya aprobada de tu galería / Pick an approved photo from your gallery")
+    await db.partners.update_one({"partner_id": biz["partner_id"]}, {"$set": {"hero_photo": url}})
+    return {"hero_photo": url}
 
 
 @api_router.get("/business/events")
@@ -3294,7 +3319,9 @@ async def list_partners(category: Optional[str] = None, subcategory: Optional[st
         query["category"] = category
     if subcategory:
         query["subcategory"] = subcategory
-    partners = await db.partners.find(query, PUBLIC_PARTNER_PROJECTION).sort("order", 1).to_list(1500)
+    # Exclude the heavy base64 gallery from the full-catalog list — cards never use
+    # it (only the detail page renders photos). Keeps this hot payload lean.
+    partners = await db.partners.find(query, {**PUBLIC_PARTNER_PROJECTION, "photos": 0, "hero_photo": 0}).sort("order", 1).to_list(1500)
     return partners
 
 
@@ -3315,7 +3342,7 @@ async def nearby_partners(request: Request):
         if category:
             query["category"] = category
 
-        partners = await db.partners.find(query, PUBLIC_PARTNER_PROJECTION).to_list(500)
+        partners = await db.partners.find(query, {**PUBLIC_PARTNER_PROJECTION, "photos": 0, "hero_photo": 0}).to_list(500)
 
         def haversine(lat1, lon1, lat2, lon2):
             R = 6371000

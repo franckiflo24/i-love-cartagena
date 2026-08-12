@@ -246,7 +246,7 @@ export default function PartnerDetail() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
-          <SafeImage uri={`/images/partners/${partner.partner_id || id}.jpg`} category={partner.category} style={styles.heroImage} />
+          <SafeImage uri={partner.hero_photo || `/images/partners/${partner.partner_id || id}.jpg`} fallbackUri={`/images/partners/${partner.partner_id || id}.jpg`} category={partner.category} style={styles.heroImage} />
           <View style={styles.heroOverlay} />
           <View style={{ flexDirection: 'row', position: 'absolute', top: SPACING.md, left: SPACING.md, gap: 8, zIndex: 5 }}>
             <TouchableOpacity testID="partner-back-btn" style={styles.navBtn} onPress={() => router.back()}>
@@ -352,6 +352,15 @@ export default function PartnerDetail() {
               {partner.tags.filter((t: string) => TAG_LABELS[t]).map((t: string) => (
                 <View key={t} style={styles.tagChip}><Text style={styles.tagChipText}>{tr(TAG_LABELS[t])}</Text></View>
               ))}
+            </View>
+          ) : null}
+          {Array.isArray(partner.photos) && partner.photos.length > 0 ? (
+            <View style={styles.galleryBox}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.galleryRow}>
+                {partner.photos.map((ph: string, i: number) => (
+                  <SafeImage key={i} uri={ph} category={partner.category} style={styles.galleryImg} resizeMode="cover" />
+                ))}
+              </ScrollView>
             </View>
           ) : null}
           <TrustBadges partner={partner} />
@@ -528,6 +537,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   hero: { height: 280, position: 'relative' },
   heroImage: { width: '100%', height: '100%' },
+  galleryBox: { marginTop: SPACING.md },
+  galleryRow: { gap: SPACING.sm, paddingRight: SPACING.sm },
+  galleryImg: { width: 150, height: 110, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface },
   heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5,8,20,0.4)' },
   backBtn: { position: 'absolute', top: SPACING.md, left: SPACING.md, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(5,8,20,0.6)', alignItems: 'center', justifyContent: 'center' },
   navBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(5,8,20,0.6)', alignItems: 'center', justifyContent: 'center' },

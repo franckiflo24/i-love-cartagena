@@ -11,6 +11,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { api } from '../../src/constants/api';
 import { downscaleForUpload } from '../../src/lib/downscaleImage';
+import { SafeImage } from '../../src/components/SafeImage';
 import { useTr } from '../../src/i18n/autoTr';
 
 // DROP B2 — "Mi contenido": the partner-facing counterpart to the admin
@@ -37,7 +38,21 @@ type StatusMeta = { bg: string; color: string; label: string };
 export default function MyContent() {
   const tr = useTr();
   const router = useRouter();
-  const { token, loading: authLoading } = useBusinessAuth();
+  const { token, partner, refresh, loading: authLoading } = useBusinessAuth();
+  const [settingMain, setSettingMain] = useState<string | null>(null);
+
+  const handleSetMain = async (url: string) => {
+    if (!token || settingMain) return;
+    setSettingMain(url);
+    try {
+      await api.post('/business/photos/set-main', { url }, { headers: { Authorization: `Bearer ${token}` } });
+      await refresh();
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || tr('No se pudo actualizar'));
+    } finally {
+      setSettingMain(null);
+    }
+  };
 
   const statusMeta = (status: string): StatusMeta => {
     if (status === 'approved') return { bg: 'rgba(34,197,94,0.15)', color: '#22C55E', label: tr('Aprobado') };
@@ -189,6 +204,29 @@ export default function MyContent() {
             )}
           </View>
 
+          {/* (a2) Approved photos → pick the main/hero image */}
+          {Array.isArray((partner as any)?.photos) && (partner as any).photos.length > 0 ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{tr('Tus fotos')}</Text>
+              <Text style={styles.hint}>{tr('Toca una foto para usarla como imagen principal de tu negocio.')}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: SPACING.sm, marginTop: SPACING.sm }}>
+                {(partner as any).photos.map((ph: string, i: number) => {
+                  const isMain = (partner as any).hero_photo === ph;
+                  return (
+                    <TouchableOpacity key={i} activeOpacity={0.85} onPress={() => handleSetMain(ph)} disabled={settingMain !== null}>
+                      <SafeImage uri={ph} style={StyleSheet.flatten([styles.galleryThumb, isMain && styles.galleryThumbMain])} resizeMode="cover" />
+                      {isMain ? (
+                        <View style={styles.mainBadge}><Ionicons name="star" size={11} color="#0A0A0A" /><Text style={styles.mainBadgeText}>{tr('Principal')}</Text></View>
+                      ) : settingMain === ph ? (
+                        <View style={styles.mainBadge}><ActivityIndicator size="small" color="#0A0A0A" /></View>
+                      ) : null}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          ) : null}
+
           {/* (b) Price submit */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{tr('Envía un precio')}</Text>
@@ -309,6 +347,10 @@ const styles = StyleSheet.create({
   section: { marginBottom: SPACING.xl, paddingBottom: SPACING.lg, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   sectionTitle: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold, marginBottom: SPACING.xs },
   hint: { fontSize: 11.5, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 16, marginTop: 4 },
+  galleryThumb: { width: 108, height: 84, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, borderWidth: 2, borderColor: 'transparent' },
+  galleryThumbMain: { borderColor: COLORS.primary },
+  mainBadge: { position: 'absolute', bottom: 6, left: 6, flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: COLORS.primary, paddingHorizontal: 7, paddingVertical: 3, borderRadius: RADIUS.full },
+  mainBadgeText: { fontSize: 10, color: '#0A0A0A', ...FONTS.bold },
   empty: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, fontStyle: 'italic', marginTop: SPACING.sm },
 
   label: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: SPACING.md, marginBottom: SPACING.xs },
