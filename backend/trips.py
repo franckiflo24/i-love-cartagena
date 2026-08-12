@@ -258,6 +258,45 @@ async def get_trip(trip_id: str, request: Request):
     return await _trip_payload(trip)
 
 
+def _item_to_stop(it: Dict[str, Any]) -> Dict[str, Any]:
+    """Flatten a trip item into a stop the itinerary email can render."""
+    day = it.get("day")
+    tlabel = f"Día {day}" if day else ""
+    note = it.get("note") or it.get("notes") or ""
+    rt = it.get("ref_type")
+    if rt == "venue" and it.get("venue"):
+        v = it["venue"]
+        return {"time": tlabel, "title": v.get("name") or "", "venue": v.get("category") or "", "why": note}
+    if rt == "experience" and it.get("experience"):
+        ex = it["experience"]
+        return {"time": tlabel, "title": ex.get("title") or "", "venue": ex.get("venue") or ex.get("partner_name") or "", "why": note}
+    if rt == "stamp" and it.get("stamp"):
+        return {"time": tlabel, "title": it["stamp"].get("name") or "Sello", "venue": "Sello del pasaporte", "why": ""}
+    return {"time": tlabel, "title": it.get("title") or note or "Parada", "venue": "", "why": note}
+
+
+@router.post("/trips/{trip_id}/email")
+async def email_trip(trip_id: str, request: Request):
+    """Email a member's trip itinerary as a branded plan. Rate-limited — the
+    recipient is caller-supplied, so this is a spam vector without a throttle."""
+    user = await _get_current_user(request)
+    trip = await _trip_for(user["user_id"], trip_id, "viewer")
+    await _check_rate_limit(f"tripemail:{user['user_id']}", max_calls=8, window_sec=3600)
+    body = await request.json()
+    to = (body.get("to") or "").strip().lower()
+    if "@" not in to or "." not in to.rsplit("@", 1)[-1]:
+        raise HTTPException(status_code=400, detail="Email inválido / Invalid email")
+    payload = await _trip_payload(trip)
+    stops = [_item_to_stop(it) for it in payload.get("items", [])]
+    dates = payload.get("dates") or {}
+    subtitle = (dates.get("start", "") + (f" → {dates['end']}" if dates.get("end") else "")) if dates.get("start") else ""
+    import emails as _em
+    ok = await _em.send_itinerary_email(
+        to=to, title=payload.get("name") or "Mi viaje a Cartagena",
+        stops=stops, subtitle=subtitle, sender_name=user.get("name") or "")
+    return {"sent": bool(ok)}
+
+
 @router.patch("/trips/{trip_id}")
 async def patch_trip(trip_id: str, body: TripPatch, request: Request):
     user = await _get_current_user(request)

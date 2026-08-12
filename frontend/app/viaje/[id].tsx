@@ -45,6 +45,10 @@ export default function ViajeDetailScreen() {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [emailTo, setEmailTo] = useState('');
+  const [emailBusy, setEmailBusy] = useState(false);
+  const [emailDone, setEmailDone] = useState(false);
 
   const canEdit = trip?.my_role === 'owner' || trip?.my_role === 'editor';
 
@@ -131,6 +135,20 @@ export default function ViajeDetailScreen() {
       })),
     }, shareUrl || (trip.share_code ? `https://www.amocartagena.co/viaje/shared/${trip.share_code}` : null));
   }, [trip, shareUrl]);
+
+  const emailItinerary = useCallback(async () => {
+    if (!trip || emailBusy) return;
+    const to = emailTo.trim().toLowerCase();
+    if (!to.includes('@') || !to.split('@')[1]?.includes('.')) return;
+    setEmailBusy(true);
+    try {
+      await api.post(`/trips/${trip.trip_id}/email`, { to });
+      setEmailDone(true);
+      setEmailTo('');
+      setTimeout(() => { setEmailDone(false); setEmailOpen(false); }, 2600);
+    } catch { /* fail-soft — rate-limited or offline */ }
+    setEmailBusy(false);
+  }, [trip, emailTo, emailBusy]);
 
   const suggestOrder = useCallback(async () => {
     if (!trip || suggesting) return;
@@ -229,6 +247,33 @@ export default function ViajeDetailScreen() {
             <Ionicons name="sparkles-outline" size={15} color={COLORS.primary} />
             <Text style={styles.suggestText}>{suggesting ? tr('Calculando…') : tr('Sugerir orden del día')}</Text>
           </TouchableOpacity>
+        ) : null}
+
+        {trip.items.length > 0 ? (
+          emailOpen ? (
+            <View style={styles.suggestRow}>
+              <Ionicons name="mail-outline" size={15} color={COLORS.primary} />
+              <TextInput
+                style={styles.emailInput}
+                value={emailTo}
+                onChangeText={setEmailTo}
+                placeholder={tr('tu@email.com')}
+                placeholderTextColor={COLORS.textMuted}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                onSubmitEditing={emailItinerary}
+              />
+              <TouchableOpacity onPress={emailItinerary} disabled={emailBusy} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Text style={styles.suggestText}>{emailDone ? tr('¡Enviado! ✓') : emailBusy ? tr('Enviando…') : tr('Enviar')}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.suggestRow} onPress={() => setEmailOpen(true)}>
+              <Ionicons name="mail-outline" size={15} color={COLORS.primary} />
+              <Text style={styles.suggestText}>{tr('Enviar itinerario por email')}</Text>
+            </TouchableOpacity>
+          )
         ) : null}
 
         {/* Items grouped by day */}
@@ -390,6 +435,7 @@ const styles = StyleSheet.create({
   shareRowText: { color: COLORS.primary, fontSize: 13, ...FONTS.semibold },
   suggestRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: SPACING.xs },
   suggestText: { color: COLORS.primary, fontSize: 13, ...FONTS.semibold },
+  emailInput: { flex: 1, color: COLORS.textMain, fontSize: 13, ...FONTS.regular, paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   dayHeader: { color: COLORS.textMain, fontSize: 15, ...FONTS.bold, marginBottom: 6 },
   itemRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,

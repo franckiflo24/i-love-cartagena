@@ -117,10 +117,11 @@ def _shell(*, preheader: str, inner: str) -> str:
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{_INK};margin:0;padding:0;">
 <tr><td align="center" style="padding:32px 16px;">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:{_CARD};border:1px solid rgba(212,175,55,0.30);border-radius:20px;overflow:hidden;">
-  <tr><td align="center" style="padding:38px 32px 8px;">
-    <div style="font-family:{_SERIF};font-size:15px;letter-spacing:6px;color:{_GOLD};">A M O</div>
-    <div style="font-family:{_SERIF};font-size:34px;color:{_TEXT};margin-top:2px;">Cartagena</div>
-    <div style="width:64px;height:2px;background:{_GOLD};margin:16px auto 0;line-height:2px;font-size:0;">&nbsp;</div>
+  <tr><td align="center" style="padding:36px 32px 6px;">
+    <img src="{SITE}/splash/amo-icon-512.png" width="66" height="66" alt="AMO Cartagena"
+         style="display:block;margin:0 auto;border-radius:16px;border:1px solid rgba(212,175,55,0.30);">
+    <div style="font-family:{_SERIF};font-size:29px;color:{_TEXT};margin-top:13px;">Cartagena</div>
+    <div style="width:58px;height:2px;background:{_GOLD};margin:15px auto 0;line-height:2px;font-size:0;">&nbsp;</div>
   </td></tr>
   {inner}
   <tr><td style="padding:24px 32px 34px;border-top:1px solid rgba(255,255,255,0.06);">
@@ -288,3 +289,105 @@ async def send_welcome_email(*, to: str, name: str = "") -> bool:
             + f"\n\nExplorar Cartagena: {SITE}\n\n— AMO Cartagena")
     return await _send_email(to=to, subject=f"¡Bienvenido a AMO Cartagena, {greeting_text}! 🌴",
                              html=_shell(preheader=preheader, inner=inner), text=text)
+
+
+def _button(label: str, url: str) -> str:
+    """The shared gold pill CTA — one look for every email's primary action."""
+    return f"""<tr><td align="center" style="padding:6px 34px 28px;">
+      <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+        <td style="background:{_GOLD};border-radius:999px;">
+          <a href="{url}" style="display:inline-block;padding:14px 36px;font-family:{_SANS};font-size:15px;font-weight:700;color:#0A0A0A;text-decoration:none;">{label}</a>
+        </td></tr></table>
+    </td></tr>"""
+
+
+async def send_partner_invite_email(*, to: str, name: str, activation_url: str, category: str = "") -> bool:
+    """Invite a business to activate its AMO Cartagena listing (magic activation link)."""
+    cat = f" · {_safe(category)}" if category else ""
+    preheader = f"Activá el perfil de {_plain(name)} en AMO Cartagena."
+    inner = f"""
+  <tr><td align="center" style="padding:22px 34px 2px;">
+    <div style="font-family:{_SERIF};font-size:25px;color:{_TEXT};">Te invitamos a AMO Cartagena</div>
+  </td></tr>
+  <tr><td style="padding:14px 34px 0;">
+    <p style="margin:0 0 8px;font-family:{_SANS};font-size:16px;color:{_TEXT};">Hola {_safe(name)},</p>
+    <p style="margin:0 0 22px;font-family:{_SANS};font-size:14px;line-height:1.6;color:{_MUTED};">
+      Tu negocio <b style="color:{_GOLD_BRIGHT};">{_safe(name)}{cat}</b> fue seleccionado para estar en
+      AMO Cartagena — la guía y concierge de la ciudad. Activá tu perfil para gestionar tus fotos,
+      horarios y reservas por WhatsApp, y aparecer ante miles de viajeros y locales.
+    </p>
+  </td></tr>
+  {_button("Activar mi negocio →", activation_url)}
+  <tr><td style="padding:0 34px 30px;">
+    <p style="margin:0;font-family:{_SANS};font-size:12.5px;line-height:1.5;color:{_FAINT};">
+      Si el botón no abre, copiá este enlace:<br>
+      <a href="{activation_url}" style="color:{_GOLD};word-break:break-all;">{activation_url}</a>
+    </p>
+  </td></tr>"""
+    text = (f"Hola {_plain(name)},\n\nTu negocio {_plain(name)}{(' - '+_plain(category)) if category else ''} "
+            f"fue invitado a AMO Cartagena. Activá tu perfil aquí:\n{activation_url}\n\n— AMO Cartagena · {SITE}")
+    return await _send_email(to=to, subject="Activá tu negocio en AMO Cartagena 🌴",
+                             html=_shell(preheader=preheader, inner=inner), text=text,
+                             log_label="Invitación de negocio")
+
+
+async def send_venue_approved_email(*, to: str, name: str) -> bool:
+    """Tell a partner their venue is approved and now live in the catalog."""
+    preheader = f"{_plain(name)} ya está en vivo en AMO Cartagena."
+    inner = f"""
+  <tr><td align="center" style="padding:22px 34px 2px;">
+    <div style="font-family:{_SERIF};font-size:25px;color:{_TEXT};">¡{_safe(name)} está en vivo! 🎉</div>
+  </td></tr>
+  <tr><td style="padding:14px 34px 4px;">
+    <p style="margin:0 0 20px;font-family:{_SANS};font-size:14px;line-height:1.6;color:{_MUTED};text-align:center;">
+      Tu negocio ya aparece en AMO Cartagena ante miles de viajeros y locales.
+      Entrá cuando quieras para mantener tus fotos, horarios y ofertas al día.
+    </p>
+  </td></tr>
+  {_button("Gestionar mi negocio →", f"{SITE}/business/login")}"""
+    text = (f"¡{_plain(name)} ya está en vivo en AMO Cartagena!\n"
+            f"Gestioná tu perfil: {SITE}/business/login\n\n— AMO Cartagena")
+    return await _send_email(to=to, subject=f"¡{_plain(name)} ya está en AMO Cartagena! 🌴",
+                             html=_shell(preheader=preheader, inner=inner), text=text,
+                             log_label="Negocio aprobado")
+
+
+async def send_itinerary_email(*, to: str, title: str, stops: list, subtitle: str = "", sender_name: str = "") -> bool:
+    """Email a trip / day itinerary as a branded, keepable plan."""
+    rows = ""
+    for s in (stops or []):
+        t = _safe(s.get("time") or "")
+        nm = _safe(s.get("title") or s.get("venue") or s.get("name") or "")
+        venue = _safe(s.get("venue") or "")
+        why = _safe(s.get("why") or s.get("note") or "")
+        meta = venue if venue and venue != nm else ""
+        rows += f"""
+      <tr>
+        <td width="56" valign="top" style="padding:0 14px 18px 0;font-family:{_SERIF};font-size:15px;color:{_GOLD_BRIGHT};white-space:nowrap;">{t or '•'}</td>
+        <td valign="top" style="padding:0 0 18px 16px;border-left:1px solid rgba(212,175,55,0.25);">
+          <div style="font-family:{_SANS};font-size:15px;color:{_TEXT};font-weight:700;">{nm}</div>
+          {f'<div style="font-family:{_SANS};font-size:13px;color:{_MUTED};margin-top:2px;">{meta}</div>' if meta else ''}
+          {f'<div style="font-family:{_SANS};font-size:12.5px;color:{_FAINT};margin-top:4px;line-height:1.5;">{why}</div>' if why else ''}
+        </td>
+      </tr>"""
+    frm = f" · de {_safe(sender_name)}" if sender_name else ""
+    sub = f"{_safe(subtitle)}{frm}" if (subtitle or frm) else ""
+    preheader = f"{_plain(title)} — tu plan para Cartagena."
+    inner = f"""
+  <tr><td align="center" style="padding:22px 34px 2px;">
+    <div style="font-family:{_SERIF};font-size:25px;color:{_TEXT};">{_safe(title)}</div>
+    {f'<div style="font-family:{_SANS};font-size:13px;color:{_MUTED};margin-top:6px;">{sub}</div>' if sub else ''}
+  </td></tr>
+  <tr><td style="padding:24px 34px 8px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">{rows or '<tr><td style="color:'+_MUTED+';font-family:'+_SANS+';font-size:14px;">Tu plan está vacío — agregá lugares en la app.</td></tr>'}</table>
+  </td></tr>
+  {_button("Abrir en AMO Cartagena →", SITE)}"""
+    tlines = []
+    for s in (stops or []):
+        nm = s.get("title") or s.get("venue") or s.get("name") or ""
+        v = s.get("venue") or ""
+        tlines.append(f"{s.get('time','•')}  {_plain(nm)}" + (f" — {_plain(v)}" if v and v != nm else ""))
+    text = f"{_plain(title)}\n\n" + "\n".join(tlines) + f"\n\nAbrir en AMO Cartagena: {SITE}\n\n— AMO Cartagena"
+    return await _send_email(to=to, subject=f"Tu plan para Cartagena: {_plain(title)} 🌴",
+                             html=_shell(preheader=preheader, inner=inner), text=text,
+                             log_label="Itinerario")

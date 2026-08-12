@@ -32,6 +32,8 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+import emails as _emails  # branded invite + approval emails
+
 from fastapi import APIRouter, HTTPException, Request
 
 logger = logging.getLogger("amo.admin_operator")
@@ -191,6 +193,11 @@ async def create_partner(request: Request):
         f"Hola {name} 🌟 Te invitamos a Amo Cartagena, la plataforma oficial de la ciudad. "
         f"Activa tu cuenta aquí y empieza a recibir reservas: {activation_url}"
     )
+    # Send the branded invite email (fail-soft — the admin still gets the URL/WA back).
+    try:
+        await _emails.send_partner_invite_email(to=owner_email, name=name, activation_url=activation_url, category=category)
+    except Exception as exc:
+        logger.warning(f"[admin_operator] invite email failed: {exc}")
     return {
         "partner": _strip_internal(doc),
         "activation_url": activation_url,
@@ -222,6 +229,12 @@ async def regenerate_invite(partner_id: str, request: Request):
         f"Hola {partner.get('name')} 🌟 Tu link de activación de Amo Cartagena fue actualizado. "
         f"Activa aquí: {activation_url}"
     )
+    try:
+        if partner.get("owner_email"):
+            await _emails.send_partner_invite_email(to=partner["owner_email"], name=partner.get("name", ""),
+                                                    activation_url=activation_url, category=partner.get("category", ""))
+    except Exception as exc:
+        logger.warning(f"[admin_operator] re-invite email failed: {exc}")
     return {"activation_url": activation_url, "whatsapp_message": wa_message}
 
 
@@ -244,6 +257,13 @@ async def set_approval(partner_id: str, request: Request):
     res = await db.partners.update_one({"partner_id": partner_id}, {"$set": update})
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Partner not found")
+    if action == "approve":
+        try:
+            p = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "owner_email": 1, "name": 1})
+            if p and p.get("owner_email"):
+                await _emails.send_venue_approved_email(to=p["owner_email"], name=p.get("name", ""))
+        except Exception as exc:
+            logger.warning(f"[admin_operator] approved email failed: {exc}")
     return {"ok": True, "status": update.get("status"), "is_public": update.get("is_public")}
 
 
