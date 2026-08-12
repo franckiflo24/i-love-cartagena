@@ -1,6 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import { Platform } from 'react-native';
 import { api } from '../constants/api';
+import { downscaleForUpload } from './downscaleImage';
 
 export type ImageUploadResult = {
   uploaded: boolean;
@@ -48,6 +49,10 @@ export async function pickAndUploadImage(
   } else {
     throw new Error('No se pudo leer la imagen seleccionada');
   }
+
+  // Shrink to fit the backend's ~500KB cap — the picker `quality` alone doesn't
+  // resize dimensions (and web ignores it), so full-res photos would 413.
+  dataUrl = await downscaleForUpload(dataUrl);
 
   const res = await api.post('/business/upload-image', {
     image_base64: dataUrl,

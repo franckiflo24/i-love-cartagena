@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { api } from '../../src/constants/api';
+import { downscaleForUpload } from '../../src/lib/downscaleImage';
 import { useTr } from '../../src/i18n/autoTr';
 
 // DROP B2 — "Mi contenido": the partner-facing counterpart to the admin
@@ -89,8 +90,16 @@ export default function MyContent() {
         base64: true,
         quality: 0.6,
       });
-      if (result.canceled || !result.assets?.[0]?.base64) return;
-      const dataUrl = `data:image/jpeg;base64,${result.assets[0].base64}`;
+      if (result.canceled || !result.assets?.[0]) return;
+      const asset = result.assets[0];
+      // Web often returns no base64 (only a blob uri) — fall back to it so the
+      // upload doesn't silently no-op.
+      const source = asset.base64
+        ? `data:image/jpeg;base64,${asset.base64}`
+        : (Platform.OS === 'web' ? asset.uri : '');
+      if (!source) { Alert.alert('Error', tr('No se pudo leer la foto')); return; }
+      // Shrink to fit the backend's ~500KB cap (picker quality doesn't resize).
+      const dataUrl = await downscaleForUpload(source);
       setUploading(true);
       setPhotoResult(null);
       const res = await api.post('/business/media', { image_base64: dataUrl, caption: caption.trim() }, { headers: { Authorization: `Bearer ${token}` } });
