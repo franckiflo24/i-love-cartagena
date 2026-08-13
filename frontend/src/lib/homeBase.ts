@@ -2,9 +2,12 @@
 // from anywhere with one tap: directions, a ride, or the address to show a
 // driver. No more remembering a Spanish address in a foreign city.
 //
-// PRIVACY: the base lives ONLY on this device (localStorage). It is never
-// sent to our servers — the same spine as the passport's location handling.
-// A home address is sensitive; keeping it device-only is the honest default.
+// STORAGE: the base is saved to the signed-in user's ACCOUNT (server-side) so it
+// follows them across devices, AND cached in localStorage for instant, offline
+// reads. If the user isn't signed in, it stays device-local until they are, then
+// migrates up on the next sync. Only the owner can read it (auth-scoped endpoint).
+
+import { api } from '../constants/api';
 
 const KEY = '@amo_home_base';
 
@@ -25,12 +28,62 @@ export function getHomeBase(): HomeBase | null {
   return null;
 }
 
+function setHomeBaseLocal(b: HomeBase | null): void {
+  try {
+    if (b) localStorage.setItem(KEY, JSON.stringify(b));
+    else localStorage.removeItem(KEY);
+  } catch { /* storage blocked */ }
+}
+
+// Persist to the account (fire-and-forget so the UI stays instant) + local cache.
 export function setHomeBase(b: HomeBase): void {
-  try { localStorage.setItem(KEY, JSON.stringify(b)); } catch { /* storage blocked */ }
+  setHomeBaseLocal(b);
+  void pushHomeBaseToServer(b);
 }
 
 export function clearHomeBase(): void {
-  try { localStorage.removeItem(KEY); } catch { /* noop */ }
+  setHomeBaseLocal(null);
+  void api.delete('/profile/home-base').catch(() => { /* anonymous/offline → local clear is enough */ });
+}
+
+// Drop ONLY the local cache (not the account copy). Call on logout so the next
+// account on this device doesn't inherit — or accidentally migrate up — the
+// previous user's base. Their saved base stays on their account for next login.
+export function forgetLocalHomeBase(): void {
+  setHomeBaseLocal(null);
+}
+
+async function pushHomeBaseToServer(b: HomeBase): Promise<void> {
+  try {
+    await api.put('/profile/home-base', { lat: b.lat, lng: b.lng, label: b.label, saved_at: b.savedAt });
+  } catch { /* anonymous or offline → the local copy holds until the next sync */ }
+}
+
+// Reconcile the account base with the local cache. Call on app open / sheet open /
+// map mount so a signed-in user sees their base on ANY device.
+//  - signed-in + server has a base  → adopt it locally, return it
+//  - signed-in + server empty + local exists → migrate local up, keep it
+//  - not signed in / offline → keep whatever is local
+export async function syncHomeBase(): Promise<HomeBase | null> {
+  const local = getHomeBase();
+  try {
+    const res = await api.get('/profile/home-base');   // 401 if anonymous → throws
+    const sb = res?.base;
+    if (sb && typeof sb.lat === 'number' && typeof sb.lng === 'number') {
+      const b: HomeBase = {
+        lat: sb.lat, lng: sb.lng,
+        label: sb.label || 'Mi base',
+        savedAt: sb.saved_at || Date.now(),
+      };
+      setHomeBaseLocal(b);
+      return b;
+    }
+    // Authenticated but no server base yet — migrate a locally-set one up.
+    if (local) void pushHomeBaseToServer(local);
+    return local;
+  } catch {
+    return local;   // anonymous / offline → local cache is the source of truth
+  }
 }
 
 // ── "Take me back" deep links ────────────────────────────────────────

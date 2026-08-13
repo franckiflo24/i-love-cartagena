@@ -17,7 +17,7 @@ import { getCollections } from '../../src/lib/passport';
 import { getVenues } from '../../src/lib/venueCache';
 import { venueBarrio, NBH_LABELS, NbhCentroid } from '../../src/utils/neighborhood';
 import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
-import { getHomeBase } from '../../src/lib/homeBase';
+import { getHomeBase, syncHomeBase } from '../../src/lib/homeBase';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -405,7 +405,12 @@ export default function MapaScreen() {
   const webViewRef = useRef<any>(null);
 
   // Reflect whether a home base is set (re-check when the sheet closes).
-  useEffect(() => { setHasBase(!!getHomeBase()); }, [baseSheet]);
+  useEffect(() => {
+    setHasBase(!!getHomeBase());
+    // On mount / after closing the sheet, reconcile with the account so the button
+    // reflects a base saved on another device.
+    if (!baseSheet) syncHomeBase().then(sb => setHasBase(!!sb)).catch(() => {});
+  }, [baseSheet]);
 
   // Neighborhood centroids for the barrio filter (same source as Explore).
   useEffect(() => {

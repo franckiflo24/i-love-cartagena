@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import { forgetLocalHomeBase } from '../lib/homeBase';
 
 const saveToken = async (token: string) => {
   if (Platform.OS === 'web') {
@@ -286,6 +287,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (e) { console.error('[AuthContext] logout failed', e); }
     await removeToken();
     await AsyncStorage.removeItem('user_data');
+    // Drop the local Mi Base cache so the next account on this device doesn't
+    // inherit it (their own base still lives on their account).
+    try { forgetLocalHomeBase(); } catch { /* noop */ }
     setUser(null);
   }, []);
 

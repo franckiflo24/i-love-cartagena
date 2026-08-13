@@ -3373,6 +3373,49 @@ async def get_profile(request: Request):
     return {k: user.get(k, "") for k in _PROFILE_SAFE_FIELDS}
 
 
+# ── "Mi Base" (home base) — account-scoped so it follows the user across devices ──
+class HomeBaseIn(BaseModel):
+    lat: float
+    lng: float
+    label: Optional[str] = None
+    saved_at: Optional[int] = None
+
+
+@api_router.get("/profile/home-base")
+async def get_home_base(request: Request):
+    """The user's saved home base (hotel/Airbnb), stored on THEIR account so it works
+    on every device they sign into. Only the authenticated owner can read it."""
+    user = await get_current_user(request)
+    prof = await db.user_profiles.find_one({"user_id": user["user_id"]}, {"_id": 0, "home_base": 1})
+    return {"base": (prof or {}).get("home_base")}
+
+
+@api_router.put("/profile/home-base")
+async def set_home_base(body: HomeBaseIn, request: Request):
+    user = await get_current_user(request)
+    if not (-90.0 <= body.lat <= 90.0) or not (-180.0 <= body.lng <= 180.0):
+        raise HTTPException(status_code=400, detail="Invalid coordinates")
+    base = {
+        "lat": float(body.lat),
+        "lng": float(body.lng),
+        "label": ((body.label or "Mi base").strip()[:60]) or "Mi base",
+        "saved_at": int(body.saved_at) if body.saved_at else int(datetime.now(timezone.utc).timestamp() * 1000),
+    }
+    await db.user_profiles.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"home_base": base, "home_base_updated_at": _now_iso()}},
+        upsert=True,
+    )
+    return {"base": base}
+
+
+@api_router.delete("/profile/home-base")
+async def delete_home_base(request: Request):
+    user = await get_current_user(request)
+    await db.user_profiles.update_one({"user_id": user["user_id"]}, {"$unset": {"home_base": ""}})
+    return {"ok": True}
+
+
 # ── Onboarding Profile ──────────────────────────────────────
 
 VALID_USER_TYPES = {"visitor", "local"}

@@ -10,7 +10,7 @@ import { useTr } from '../i18n/autoTr';
 import { geoService } from '../lib/geo';
 import { nearestNeighborhood, NBH_LABELS, NbhCentroid } from '../utils/neighborhood';
 import {
-  getHomeBase, setHomeBase, clearHomeBase, directionsUrl, uberUrl, shareText, HomeBase,
+  getHomeBase, setHomeBase, clearHomeBase, syncHomeBase, directionsUrl, uberUrl, shareText, HomeBase,
 } from '../lib/homeBase';
 
 export function HomeBaseSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
@@ -29,6 +29,10 @@ export function HomeBaseSheet({ visible, onClose }: { visible: boolean; onClose:
     setEditing(!b);
     setLabel(b?.label || '');
     fetch('/data/neighborhoods.json').then(r => (r.ok ? r.json() : [])).then(setNeighborhoods).catch(() => {});
+    // Pull the base saved to the account so it shows on ANY device the user signs into.
+    syncHomeBase().then(sb => {
+      if (sb) { setBase(sb); setEditing(false); setLabel(sb.label); }
+    }).catch(() => {});
   }, [visible]);
 
   const flash = (m: string) => { setNotice(m); setTimeout(() => setNotice(null), 3500); };
@@ -120,7 +124,7 @@ export function HomeBaseSheet({ visible, onClose }: { visible: boolean; onClose:
                   <Text style={styles.linkBtnText}>{tr('Guardar solo el nombre')}</Text>
                 </TouchableOpacity>
               )}
-              <Text style={styles.privacy}>{tr('Tu base se guarda solo en este dispositivo, nunca en nuestros servidores.')}</Text>
+              <Text style={styles.privacy}>{tr('Se guarda en tu cuenta para que puedas volver desde cualquier dispositivo.')}</Text>
             </View>
           ) : (
             <View style={{ gap: 12 }}>
