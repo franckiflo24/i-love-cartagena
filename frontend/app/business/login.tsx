@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +17,10 @@ export default function BusinessLogin() {
   const [passcode, setPasscode] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
+  // Inline, VISIBLE error. Alert.alert is a silent no-op on react-native-web, so a
+  // failed login (401/429/missing fields) showed nothing — the "no error, no login"
+  // bug. Every failure branch now writes here and renders in a banner.
+  const [error, setError] = useState<string | null>(null);
 
   const isAlcaldia = role === 'alcaldia';
 
@@ -28,32 +32,38 @@ export default function BusinessLogin() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Faltan datos', 'Por favor ingresa tu email y contraseña');
+      setError('Ingresa tu email y contraseña. / Enter your email and password.');
       return;
     }
+    setError(null);
     setLoading(true);
     try {
       await login(email.trim(), password);
       router.replace('/business/dashboard');
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Credenciales inválidas');
+      // Backend detail is bilingual and non-enumerating (same "Credenciales
+      // inválidas" for wrong email or wrong password) — show it verbatim.
+      setError(e?.message || 'Credenciales inválidas / Invalid credentials');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleAlcaldia = async () => {
     if (!passcode.trim()) {
-      Alert.alert(tr('Falta el código'), tr('Ingresa el código de acceso'));
+      setError(tr('Ingresa el código de acceso'));
       return;
     }
+    setError(null);
     setLoading(true);
     try {
       await passcodeLogin(passcode);
       router.replace('/business/dashboard');
     } catch (e: any) {
-      Alert.alert(tr('Acceso'), e?.message || tr('Código incorrecto'));
+      setError(e?.message || tr('Código incorrecto'));
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const fillDemo = () => {
@@ -84,6 +94,12 @@ export default function BusinessLogin() {
           </Text>
 
           <View style={styles.form}>
+            {error ? (
+              <View style={styles.errorBox} accessibilityRole="alert" accessibilityLiveRegion="assertive">
+                <Ionicons name="alert-circle" size={18} color="#EF4444" />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
             {isAlcaldia ? (
               <>
                 <Text style={styles.label}>{tr('Código de acceso')}</Text>
@@ -92,7 +108,7 @@ export default function BusinessLogin() {
                   <TextInput
                     style={[styles.input, { letterSpacing: 4 }]}
                     value={passcode}
-                    onChangeText={setPasscode}
+                    onChangeText={(t) => { setPasscode(t); if (error) setError(null); }}
                     placeholder="••••••••••"
                     placeholderTextColor={COLORS.textMuted}
                     keyboardType="number-pad"
@@ -127,7 +143,7 @@ export default function BusinessLogin() {
                   <TextInput
                     style={styles.input}
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={(t) => { setEmail(t); if (error) setError(null); }}
                     placeholder="tu@negocio.com"
                     placeholderTextColor={COLORS.textMuted}
                     keyboardType="email-address"
@@ -142,7 +158,7 @@ export default function BusinessLogin() {
                   <TextInput
                     style={styles.input}
                     value={password}
-                    onChangeText={setPassword}
+                    onChangeText={(t) => { setPassword(t); if (error) setError(null); }}
                     placeholder="••••••••"
                     placeholderTextColor={COLORS.textMuted}
                     secureTextEntry={!showPw}
@@ -208,6 +224,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 26, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.lg, textAlign: 'center' },
   subtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 20, paddingHorizontal: SPACING.md, marginTop: SPACING.xs },
   form: { width: '100%', marginTop: SPACING.xl, gap: SPACING.sm },
+  errorBox: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, backgroundColor: 'rgba(239,68,68,0.12)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(239,68,68,0.5)' },
+  errorText: { flex: 1, color: '#FCA5A5', fontSize: 13, ...FONTS.semibold, lineHeight: 18 },
   label: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: SPACING.sm },
   inputWrap: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: SPACING.md, height: 50 },
   input: { flex: 1, color: COLORS.textMain, fontSize: 14, ...FONTS.regular },
