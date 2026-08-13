@@ -11,7 +11,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { api } from '../../src/constants/api';
 import { downscaleForUpload } from '../../src/lib/downscaleImage';
-import { averageHash } from '../../src/lib/imageHash';
+import { perceptualHash } from '../../src/lib/imageHash';
 import { SafeImage } from '../../src/components/SafeImage';
 import { useTr } from '../../src/i18n/autoTr';
 
@@ -116,7 +116,7 @@ export default function MyContent() {
       if (!source) { Alert.alert('Error', tr('No se pudo leer la foto')); return; }
       // Shrink to fit the backend's ~500KB cap (picker quality doesn't resize).
       const dataUrl = await downscaleForUpload(source);
-      const image_hash = await averageHash(dataUrl); // for server-side duplicate detection
+      const image_hash = await perceptualHash(dataUrl); // for server-side duplicate detection
       setUploading(true);
       setPhotoResult(null);
       const res = await api.post('/business/media', { image_base64: dataUrl, caption: caption.trim(), image_hash }, { headers: { Authorization: `Bearer ${token}` } });

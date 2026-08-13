@@ -2044,7 +2044,8 @@ def _fold_hero(partners: list) -> None:
 
 
 # ── Partner photo intelligence: perceptual-hash dedup + AI visual tags ─────────
-_PHOTO_DUP_HAMMING = 6   # ≤6 differing bits on a 64-bit average-hash ≈ the same image
+_PHOTO_DUP_HAMMING = 8   # ≤8 differing bits on a 64-bit dHash ≈ the same image (a
+                         # re-uploaded/re-compressed copy); different photos sit far higher.
 
 
 def _hex_hamming(a: str, b: str) -> int:
