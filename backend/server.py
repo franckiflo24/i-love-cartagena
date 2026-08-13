@@ -602,10 +602,14 @@ async def business_login(request: Request):
 @api_router.post("/business/alcaldia/access")
 async def alcaldia_demo_access(request: Request):
     """Passcode-only entry for the Alcaldía (mayor's office) DEMO. A single shared
-    passcode (env ALCALDIA_DEMO_PASSCODE) mints a session for the alcaldía
-    government account — no email/password. Constant-time compare + rate limited so
-    nobody reaches the demo without the code."""
-    await _check_rate_limit(f"alcaldiapass:{_client_ip(request)}", max_calls=8, window_sec=900)
+    passcode (env ALCALDIA_DEMO_PASSCODE) mints a SHORT-LIVED, DEMO-SCOPED session
+    (role `alcaldia_demo`, business_id biz_alcaldia_demo) — NOT the real government
+    account. Constant-time compare + rate limited. The token grants ONLY the
+    aggregate demo overview (see _require_alcaldia_view); it can NOT read individual
+    user PII, payments, payouts, exports, moderation, or any other government
+    surface — those stay behind the real role-based login. Demo speed-bump, not
+    institutional security."""
+    await _check_rate_limit(f"alcaldiapass:{_client_ip(request)}", max_calls=6, window_sec=900)
     body = await request.json()
     passcode = (body.get("passcode") or "").strip()
     expected = os.environ.get("ALCALDIA_DEMO_PASSCODE", "")
@@ -613,19 +617,19 @@ async def alcaldia_demo_access(request: Request):
         raise HTTPException(status_code=503, detail="Acceso no configurado / Access not configured")
     if not passcode or not hmac.compare_digest(passcode, expected):
         raise HTTPException(status_code=401, detail="Código incorrecto / Incorrect passcode")
-    biz = await db.business_users.find_one({"business_id": "biz_alcaldia"}, {"_id": 0})
-    if not biz or biz.get("role") != "government":
-        raise HTTPException(status_code=404, detail="Cuenta de Alcaldía no disponible / Alcaldía account unavailable")
+    biz = await db.business_users.find_one({"business_id": "biz_alcaldia_demo", "role": "alcaldia_demo"}, {"_id": 0, "password_hash": 0})
+    if not biz:
+        raise HTTPException(status_code=503, detail="Demo no disponible / Demo unavailable")
     token = f"biz_{uuid.uuid4().hex}"
     await db.business_sessions.insert_one({
         "token": token,
-        "business_id": "biz_alcaldia",
+        "business_id": "biz_alcaldia_demo",
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "expires_at": (datetime.now(timezone.utc) + timedelta(days=2)).isoformat(),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat(),
         "via": "alcaldia_passcode",
+        "scope": "alcaldia_demo",
     })
-    biz_safe = {k: v for k, v in biz.items() if k != "password_hash"}
-    return {"token": token, "business": biz_safe, "partner": None}
+    return {"token": token, "business": biz, "partner": None}
 
 
 @api_router.post("/business/change-password")
@@ -2678,10 +2682,24 @@ async def business_delete_promotion(promo_id: str, request: Request):
 
 # ── Government (Alcaldía) Admin Endpoints ───────────────────
 async def _require_government_role(request: Request) -> dict:
-    """Ensure the requesting business user has the `government` role."""
+    """Ensure the requesting business user has the `government` role. This is the REAL
+    institutional gate — individual user PII, payments, payouts, CSV exports and
+    account management all require it; the demo passcode NEVER satisfies it."""
     biz = await get_current_business(request)
     if biz.get("role") != "government":
         raise HTTPException(status_code=403, detail="Access restricted to government accounts")
+    return biz
+
+
+async def _require_alcaldia_view(request: Request) -> dict:
+    """Read-only AGGREGATE Alcaldía overview — the real `government` role OR the
+    short-lived `alcaldia_demo` passcode session. Used ONLY on the aggregate KPI
+    overview (no PII, no individual records). Every sensitive endpoint keeps the
+    stricter `_require_government_role`, so a demo token can see the showcase numbers
+    but nothing real about any individual."""
+    biz = await get_current_business(request)
+    if biz.get("role") not in ("government", "alcaldia_demo"):
+        raise HTTPException(status_code=403, detail="Acceso restringido / Access restricted")
     return biz
 
 
@@ -2730,8 +2748,11 @@ async def admin_alcaldia_analytics(request: Request, days: int = 30):
     """Aggregate analytics for the Alcaldía dashboard.
     Focused on tourists / app users (NOT individual partners).
     Returns: KPIs, demographics, payments (City Pass + Port Tax), user growth.
+    AGGREGATE ONLY — no individual PII/records — so the demo passcode view may read
+    it (real government login gets it too). Every individual-record endpoint keeps
+    _require_government_role.
     """
-    await _require_government_role(request)
+    await _require_alcaldia_view(request)
 
     now = datetime.now(timezone.utc)
     days = max(1, min(days, 365))

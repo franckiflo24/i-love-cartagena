@@ -119,27 +119,35 @@ export default function BusinessDashboard() {
 
   const tierColors = partner?.tier ? TIER_COLORS[partner.tier as Tier] : null;
   const isGovernment = business?.role === 'government';
+  // Demo-scoped passcode session: sees the AGGREGATE overview only, no moderation /
+  // account / individual-record access.
+  const isDemo = business?.role === 'alcaldia_demo';
+  const isAlcaldiaView = isGovernment || isDemo;
   // B1: edit rights require a VERIFIED claim. A partner with no venue yet, or a
   // pending/unverified claim, sees the "find your business" flow instead of the
   // (non-functional) venue dashboard.
   const claimStatus = partner?.claim_status;
-  const needsClaim = !isGovernment && (!partner || claimStatus !== 'verified_owner');
+  const needsClaim = !isAlcaldiaView && (!partner || claimStatus !== 'verified_owner');
 
-  if (isGovernment && token && !forcePartnerView) {
+  if (isAlcaldiaView && token && !forcePartnerView) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
+          <TouchableOpacity onPress={() => (isDemo ? handleLogout() : router.back())} style={styles.headerBtn}>
             <Ionicons name="close" size={22} color={COLORS.textMain} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Panel Alcaldía</Text>
+          <Text style={styles.headerTitle}>{isDemo ? 'Panel Alcaldía · Demo' : 'Panel Alcaldía'}</Text>
           <View style={{ flexDirection: 'row' }}>
-            <TouchableOpacity onPress={() => router.push('/business/admin/queue' as any)} style={styles.headerBtn}>
-              <Ionicons name="albums-outline" size={21} color={COLORS.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.push('/business/change-password' as any)} style={styles.headerBtn}>
-              <Ionicons name="key-outline" size={20} color={COLORS.textMuted} />
-            </TouchableOpacity>
+            {!isDemo && (
+              <>
+                <TouchableOpacity onPress={() => router.push('/business/admin/queue' as any)} style={styles.headerBtn}>
+                  <Ionicons name="albums-outline" size={21} color={COLORS.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push('/business/change-password' as any)} style={styles.headerBtn}>
+                  <Ionicons name="key-outline" size={20} color={COLORS.textMuted} />
+                </TouchableOpacity>
+              </>
+            )}
             <TouchableOpacity onPress={handleLogout} style={styles.headerBtn}>
               <Ionicons name="log-out-outline" size={22} color={COLORS.textMuted} />
             </TouchableOpacity>
@@ -149,6 +157,7 @@ export default function BusinessDashboard() {
           token={token}
           business={business}
           partner={partner}
+          demo={isDemo}
           onEditProfile={() => router.push('/business/profile-edit')}
           onCreateEvent={() => router.push('/business/event-form')}
           onMyEvents={() => setForcePartnerView(true)}

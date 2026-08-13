@@ -68,6 +68,7 @@ type Props = {
   token: string;
   business: any;
   partner: any;
+  demo?: boolean;
   onEditProfile: () => void;
   onCreateEvent: () => void;
   onMyEvents: () => void;
@@ -77,11 +78,15 @@ export default function AlcaldiaDashboard({
   token,
   business,
   partner,
+  demo = false,
   onEditProfile,
   onCreateEvent,
   onMyEvents,
 }: Props) {
   const tr = useTr();
+  // Demo passcode session sees ONLY the aggregate overview + sample demographics —
+  // no individual users, payments, or payouts (those 401 server-side anyway).
+  const visibleTabs = demo ? tabs.filter(t => t.key === 'overview' || t.key === 'demographics') : tabs;
   const [tab, setTab] = useState<Tab>('overview');
   const [analytics, setAnalytics] = useState<any>(null);
   const [users, setUsers] = useState<any[]>([]);
@@ -95,22 +100,27 @@ export default function AlcaldiaDashboard({
   const load = useCallback(async () => {
     const headers = { Authorization: `Bearer ${token}` };
     try {
-      const [a, u, p, ev, po] = await Promise.all([
-        api.get('/business/admin/analytics?days=30', { headers }),
-        api.get('/business/admin/users?limit=200', { headers }).catch(() => null),
-        api.get('/business/admin/payments?limit=200', { headers }).catch(() => null),
-        api.get('/business/events', { headers }).catch(() => null),
-        api.get('/business/admin/payouts', { headers }).catch(() => null),
-      ]);
+      // Overview is aggregate + allowed for the demo token. The individual-record
+      // endpoints (users/payments/payouts) are 403 for demo, so we don't even call
+      // them — the real government login fetches the full set.
+      const a = await api.get('/business/admin/analytics?days=30', { headers });
       setAnalytics(a);
-      setUsers(u?.users || []);
-      setPayments(p?.payments || []);
-      setEventsCount((ev || []).length);
-      setPayouts(po);
+      if (!demo) {
+        const [u, p, ev, po] = await Promise.all([
+          api.get('/business/admin/users?limit=200', { headers }).catch(() => null),
+          api.get('/business/admin/payments?limit=200', { headers }).catch(() => null),
+          api.get('/business/events', { headers }).catch(() => null),
+          api.get('/business/admin/payouts', { headers }).catch(() => null),
+        ]);
+        setUsers(u?.users || []);
+        setPayments(p?.payments || []);
+        setEventsCount((ev || []).length);
+        setPayouts(po);
+      }
     } catch (e) {
       console.error('Alcaldia load error', e);
     }
-  }, [token]);
+  }, [token, demo]);
 
   useEffect(() => {
     setLoading(true);
@@ -184,7 +194,7 @@ export default function AlcaldiaDashboard({
   }
 
   const k = analytics?.kpis || {};
-  const demo = analytics?.demographics || {};
+  const demog = analytics?.demographics || {};
 
   return (
     <ScrollView
@@ -206,37 +216,50 @@ export default function AlcaldiaDashboard({
         />
         <View style={{ flex: 1 }}>
           <View style={styles.govBadge}>
-            <Ionicons name="shield-checkmark" size={11} color="#1B4F72" />
-            <Text style={styles.govBadgeText}>CUENTA OFICIAL · GOBIERNO</Text>
+            <Ionicons name={demo ? 'eye-outline' : 'shield-checkmark'} size={11} color="#1B4F72" />
+            <Text style={styles.govBadgeText}>{demo ? 'VISTA DE DEMOSTRACIÓN' : 'CUENTA OFICIAL · GOBIERNO'}</Text>
           </View>
           <Text style={styles.govName}>{partner?.name || 'Alcaldía de Cartagena'}</Text>
-          <Text style={styles.govSubtitle}>Panel de datos de la ciudad · Amo Cartagena</Text>
+          <Text style={styles.govSubtitle}>{demo ? 'Propuesta · métricas agregadas de la ciudad' : 'Panel de datos de la ciudad · Amo Cartagena'}</Text>
         </View>
       </View>
 
       {/* Real-vs-sample data source disclosure (honesty) */}
       <DataSourceBanner />
 
-      {/* Action Bar (events) */}
-      <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.actionBtn} onPress={onCreateEvent}>
-          <Ionicons name="add-circle" size={18} color={COLORS.white} />
-          <Text style={styles.actionBtnText}>Publicar evento cultural</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtnAlt} onPress={onMyEvents}>
-          <Ionicons name="calendar" size={16} color={COLORS.primary} />
-          <Text style={styles.actionBtnAltText}>Mis eventos ({eventsCount})</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtnAlt} onPress={onEditProfile}>
-          <Ionicons name="create" size={16} color={COLORS.primary} />
-          <Text style={styles.actionBtnAltText}>{tr('Editar perfil')}</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Demo-scope disclosure: aggregate only, real records need institutional login */}
+      {demo && (
+        <View style={styles.demoScope}>
+          <Ionicons name="lock-closed" size={14} color={COLORS.primary} style={{ marginTop: 1 }} />
+          <Text style={styles.demoScopeText}>
+            Vista de demostración — métricas agregadas de la ciudad. Los datos individuales
+            (usuarios, pagos, liquidaciones) requieren acceso institucional con credenciales.
+          </Text>
+        </View>
+      )}
+
+      {/* Action Bar (events) — real government only, not the demo view */}
+      {!demo && (
+        <View style={styles.actionRow}>
+          <TouchableOpacity style={styles.actionBtn} onPress={onCreateEvent}>
+            <Ionicons name="add-circle" size={18} color={COLORS.white} />
+            <Text style={styles.actionBtnText}>Publicar evento cultural</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionBtnAlt} onPress={onMyEvents}>
+            <Ionicons name="calendar" size={16} color={COLORS.primary} />
+            <Text style={styles.actionBtnAltText}>Mis eventos ({eventsCount})</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionBtnAlt} onPress={onEditProfile}>
+            <Ionicons name="create" size={16} color={COLORS.primary} />
+            <Text style={styles.actionBtnAltText}>{tr('Editar perfil')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Tabs */}
       <View style={styles.tabsWrap}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {tabs.map((t) => (
+          {visibleTabs.map((t) => (
             <TouchableOpacity
               key={t.key}
               style={[styles.tabPill, tab === t.key && styles.tabPillActive]}
@@ -286,7 +309,7 @@ export default function AlcaldiaDashboard({
             <KpiTile color="#D97706" icon="people" value={fmtNum(k.total_users)} label="Total usuarios" />
             <KpiTile color="#22C55E" icon="trending-up" value={`+${fmtNum(k.new_users_30d)}`} label="Nuevos 30d" />
             <KpiTile color="#3B82F6" icon="flash" value={`+${fmtNum(k.new_users_7d)}`} label="Nuevos 7d" />
-            <KpiTile color="#A855F7" icon="globe" value={fmtNum(demo.total_profiled || 0)} label="Perfilados · muestra" />
+            <KpiTile color="#A855F7" icon="globe" value={fmtNum(demog.total_profiled || 0)} label="Perfilados · muestra" />
           </View>
 
           <Text style={styles.sectionTitle}>City Pass & Tasa Portuaria</Text>
@@ -425,7 +448,7 @@ export default function AlcaldiaDashboard({
 
           {/* Nationalities */}
           <Text style={styles.subTitle}>Nacionalidad</Text>
-          {(demo.nationalities || []).slice(0, 12).map((n: any) => (
+          {(demog.nationalities || []).slice(0, 12).map((n: any) => (
             <View key={n.country} style={styles.barRow}>
               <Text style={styles.barLabel}>{n.country}</Text>
               <View style={styles.barBg}>
@@ -443,11 +466,11 @@ export default function AlcaldiaDashboard({
           ))}
 
           {/* Age */}
-          {!!(demo.age_groups || []).length && (
+          {!!(demog.age_groups || []).length && (
             <>
               <Text style={styles.subTitle}>Grupos de edad</Text>
               <View style={styles.chipsWrap}>
-                {(demo.age_groups || []).map((a: any) => (
+                {(demog.age_groups || []).map((a: any) => (
                   <View key={a.group} style={styles.miniBox}>
                     <Text style={styles.miniBoxLabel}>{a.group}</Text>
                     <Text style={styles.miniBoxValue}>{fmtNum(a.count)}</Text>
@@ -458,11 +481,11 @@ export default function AlcaldiaDashboard({
           )}
 
           {/* Gender */}
-          {!!(demo.genders || []).length && (
+          {!!(demog.genders || []).length && (
             <>
               <Text style={styles.subTitle}>Género</Text>
               <View style={styles.chipsWrap}>
-                {(demo.genders || []).map((g: any) => (
+                {(demog.genders || []).map((g: any) => (
                   <View key={g.gender} style={styles.miniBox}>
                     <Text style={styles.miniBoxLabel}>{g.gender}</Text>
                     <Text style={styles.miniBoxValue}>{fmtNum(g.count)}</Text>
@@ -725,6 +748,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(59,130,246,0.08)', borderColor: 'rgba(59,130,246,0.25)', borderWidth: 1,
     borderRadius: RADIUS.md, padding: SPACING.sm,
   },
+  demoScope: {
+    flexDirection: 'row', gap: 8, alignItems: 'flex-start',
+    marginHorizontal: SPACING.lg, marginTop: SPACING.sm,
+    backgroundColor: 'rgba(212,175,55,0.08)', borderColor: 'rgba(212,175,55,0.3)', borderWidth: 1,
+    borderRadius: RADIUS.md, padding: SPACING.sm,
+  },
+  demoScopeText: { flex: 1, color: COLORS.textMuted, fontSize: 11.5, lineHeight: 16, ...FONTS.regular },
   sourceBannerText: { flex: 1, fontSize: 11, color: COLORS.textMuted, lineHeight: 16 },
   sourceBannerEm: { color: SAMPLE, ...FONTS.bold },
   subTitle: {
