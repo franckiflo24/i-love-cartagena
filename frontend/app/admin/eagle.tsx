@@ -106,7 +106,7 @@ export default function EagleEye() {
         {k && (
           <View style={styles.grid}>
             <Kpi big={k.users_total} label="Usuarios" sub={`+${k.users_today} hoy · ${k.users_7d} en 7d`} icon="people" accent={COLORS.primary} />
-            <Kpi big={k.active_sessions} label="En línea ahora" sub="sesiones activas" icon="pulse" accent="#22C55E" />
+            <Kpi big={k.active_sessions} label="Sesiones activas" sub="tokens vigentes ahora" icon="pulse" accent="#22C55E" />
             <Kpi big={k.searches_total} label="Búsquedas" sub={`${k.searches_today} hoy · ${k.searches_zero} sin resultado`} icon="search" accent="#38BDF8" />
             <Kpi big={k.bookings_total} label="Reservas" sub={`${k.bookings_today} hoy`} icon="calendar" accent="#A78BFA" />
             <Kpi big={k.business_total} label="Negocios" sub="cuentas de socios" icon="briefcase" accent="#F59E0B" />

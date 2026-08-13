@@ -3223,6 +3223,22 @@ async def admin_eagle(request: Request):
     today = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
     d7 = (now - timedelta(days=7)).isoformat()
 
+    def _iso(v):
+        # date fields are stored as ISO strings in some collections, BSON datetimes in
+        # others — normalize so merged feeds sort and serialize cleanly.
+        if isinstance(v, str):
+            return v
+        if isinstance(v, datetime):
+            return v.isoformat()
+        return ""
+
+    # active sessions: expires_at may be an ISO string OR a BSON date depending on the
+    # writer — a plain string `$gt` would miscount date-typed docs, so match both types.
+    _active = {"$or": [
+        {"expires_at": {"$type": "string", "$gt": now_iso}},
+        {"expires_at": {"$type": "date", "$gt": now}},
+    ]}
+
     # ── KPIs (counts only; cheap) ─────────────────────────────
     users_total = await db.users.count_documents({})
     users_today = await db.users.count_documents({"created_at": {"$gte": today}})
@@ -3234,8 +3250,8 @@ async def admin_eagle(request: Request):
     searches_zero = await db.search_history.count_documents({"matches_count": 0})
     bookings_total = await db.reservations.count_documents({})
     bookings_today = await db.reservations.count_documents({"created_at": {"$gte": today}})
-    active_user_sessions = await db.user_sessions.count_documents({"expires_at": {"$gt": now_iso}})
-    active_biz_sessions = await db.business_sessions.count_documents({"expires_at": {"$gt": now_iso}})
+    active_user_sessions = await db.user_sessions.count_documents(_active)
+    active_biz_sessions = await db.business_sessions.count_documents(_active)
     passes_active = await db.city_passes.count_documents({"is_active": True})
     claims_pending = await db.venue_claims.count_documents({"state": {"$in": ["pending_verification", "pending", "code_sent"]}})
     media_pending = await db.partner_media.count_documents({"status": "pending"})
@@ -3250,9 +3266,9 @@ async def admin_eagle(request: Request):
     ).sort("created_at", -1).limit(15).to_list(15)
     signups = (
         [{"kind": "user", "name": u.get("name") or "—", "email": u.get("email"),
-          "detail": u.get("provider") or "email", "when": u.get("created_at")} for u in recent_users]
+          "detail": u.get("provider") or "email", "when": _iso(u.get("created_at"))} for u in recent_users]
         + [{"kind": "business", "name": b.get("full_name") or b.get("email") or "—", "email": b.get("email"),
-            "detail": f"{b.get('role', 'business')} · {b.get('status', '')}".strip(" ·"), "when": b.get("created_at")} for b in recent_biz]
+            "detail": f"{b.get('role', 'business')} · {b.get('status', '')}".strip(" ·"), "when": _iso(b.get("created_at"))} for b in recent_biz]
     )
     signups.sort(key=lambda x: x.get("when") or "", reverse=True)
     signups = signups[:35]
@@ -3272,9 +3288,9 @@ async def admin_eagle(request: Request):
             bmap[b["business_id"]] = b
     logins = (
         [{"kind": "user", "who": (umap.get(s.get("user_id")) or {}).get("email") or s.get("user_id") or "—",
-          "detail": (umap.get(s.get("user_id")) or {}).get("name") or "", "when": s.get("created_at")} for s in u_sess]
+          "detail": (umap.get(s.get("user_id")) or {}).get("name") or "", "when": _iso(s.get("created_at"))} for s in u_sess]
         + [{"kind": "business", "who": (bmap.get(s.get("business_id")) or {}).get("email") or s.get("business_id") or "—",
-            "detail": (bmap.get(s.get("business_id")) or {}).get("role") or (s.get("via") or ""), "when": s.get("created_at")} for s in b_sess]
+            "detail": (bmap.get(s.get("business_id")) or {}).get("role") or (s.get("via") or ""), "when": _iso(s.get("created_at"))} for s in b_sess]
     )
     logins.sort(key=lambda x: x.get("when") or "", reverse=True)
     logins = logins[:35]
