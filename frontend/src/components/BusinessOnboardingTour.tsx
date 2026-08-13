@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Animated, Platform } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Animated, Platform, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
@@ -136,6 +136,11 @@ export default function BusinessOnboardingTour({
   const next = () => { if (step < STEPS.length - 1) animateTo(step + 1); else close(); };
   const back = () => { if (step > 0) animateTo(step - 1); };
 
+  const openWhatsApp = () => {
+    const msg = isEn ? 'Hi, I need help with my business on AMO' : 'Hola, necesito ayuda con mi negocio en AMO';
+    Linking.openURL(`https://wa.me/33698576202?text=${encodeURIComponent(msg)}`).catch(() => {});
+  };
+
   if (!visible) return null;
   const s = STEPS[step];
   const last = step === STEPS.length - 1;
@@ -162,6 +167,12 @@ export default function BusinessOnboardingTour({
                 <Ionicons name="bulb" size={15} color={COLORS.primary} style={{ marginTop: 1 }} />
                 <Text style={styles.tipText}>{pick(s.tip)}</Text>
               </View>
+            ) : null}
+            {last ? (
+              <TouchableOpacity style={styles.wa} onPress={openWhatsApp} activeOpacity={0.85}>
+                <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
+                <Text style={styles.waText}>{isEn ? 'Message us on WhatsApp' : 'Escríbenos por WhatsApp'}</Text>
+              </TouchableOpacity>
             ) : null}
           </Animated.View>
 
@@ -212,6 +223,11 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(212,175,55,0.24)', borderRadius: 12, padding: 12,
   },
   tipText: { flex: 1, color: 'rgba(255,255,255,0.82)', fontSize: 13, lineHeight: 18 },
+  wa: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, alignSelf: 'stretch', marginTop: 18,
+    backgroundColor: 'rgba(37,211,102,0.12)', borderWidth: 1, borderColor: 'rgba(37,211,102,0.45)', borderRadius: 999, paddingVertical: 13,
+  },
+  waText: { color: COLORS.textMain, fontSize: 14.5, ...FONTS.semibold },
   dots: { flexDirection: 'row', gap: 7, justifyContent: 'center', marginTop: 26, marginBottom: 18 },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.18)' },
   dotOn: { width: 20, backgroundColor: COLORS.primary },
