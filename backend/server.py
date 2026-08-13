@@ -114,6 +114,14 @@ async def batch_update(request: Request):
     return {"updated": updated, "total": await db.partners.count_documents({})}
 
 
+@api_router.get("/admin/blob-probe")
+async def admin_blob_probe(request: Request):
+    """TEMP — verify Blob connectivity from the runtime. Moderator-gated. Remove
+    once Blob is confirmed working. Exposes no secret."""
+    await _require_moderator(request)
+    return await _blob.probe()
+
+
 # ── Auth Endpoints ──────────────────────────────────────────
 
 @api_router.post("/auth/google")
