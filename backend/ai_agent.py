@@ -421,6 +421,79 @@ _KEYWORD_FALLBACK: Dict[str, Dict[str, Any]] = {
 }
 
 
+import unicodedata as _ud
+
+
+def _strip_accents(s: str) -> str:
+    return "".join(c for c in _ud.normalize("NFD", s or "") if _ud.category(c) != "Mn")
+
+
+# Generic words that name a whole category (handled by category routing) — excluded
+# from the distinctive stems so "mediterranean restaurant" recalls the mediterranean
+# venues, not every restaurant.
+_STEM_STOPWORDS = {
+    "el", "la", "de", "en", "un", "una", "los", "las", "que", "es", "para", "con",
+    "the", "a", "an", "in", "of", "for", "to", "is", "i", "my", "me", "do", "can",
+    "where", "what", "how", "want", "quiero", "donde", "cual", "como", "busco",
+    "recomienda", "recomiendame", "cerca", "near", "best", "mejor", "mejores", "good",
+    "restaurant", "restaurante", "restaurantes", "comida", "food", "lugar", "sitio",
+    "place", "bar", "cafe", "hotel", "spa", "club", "algo", "sitios", "lugares",
+}
+
+
+def _query_stems(search_terms, user_text: str):
+    """Accent-stripped 6-char prefix stems of the distinctive query words. A prefix
+    stem bridges EN/ES morphology and accents WITHOUT a per-word synonym table:
+    barbero→'barber' (matches barber/barbershop/barbería), bohème→'boheme' (matches
+    Bohême), mediterranean/mediterráneo→'medite' (and 'medite' does NOT prefix
+    'medicina', so aesthetic-medicine venues are not pulled in)."""
+    words = list(search_terms or [])
+    words += _strip_accents((user_text or "").lower()).split()
+    stems, seen = [], set()
+    for w in words:
+        w = _strip_accents(str(w).lower()).strip()
+        if len(w) < 4 or w in _STEM_STOPWORDS:
+            continue
+        stem = w[:6] if len(w) > 6 else w
+        if stem not in seen:
+            seen.add(stem)
+            stems.append(stem)
+    return stems[:6]
+
+
+def _accent_flex(frag: str) -> str:
+    """Turn an accent-stripped fragment into an accent-insensitive regex fragment."""
+    m = {"a": "[aáàäâ]", "e": "[eéèëê]", "i": "[iíìïî]", "o": "[oóòöô]", "u": "[uúùüû]", "n": "[nñ]", "c": "[cç]"}
+    return "".join(m.get(ch, re.escape(ch)) for ch in frag)
+
+
+def _relevance_rerank(rows, stems):
+    """Re-order fetched rows by how well name/subcategory/cuisine/category/tags match
+    the query stems (accent-insensitive), rating as the tiebreak. Pure reordering —
+    it never drops or invents a venue. Fixes the rating-sorted pool burying the venue
+    the user actually asked for (Casa Bohême under generic 'Casa' hotels; barbershops
+    under higher-rated nail salons)."""
+    if not rows or not stems:
+        return rows
+
+    def sc(p):
+        name = _strip_accents((p.get("name") or "").lower())
+        sub = _strip_accents((p.get("subcategory") or "").lower())
+        cui = _strip_accents((p.get("cuisine") or "").lower())
+        cat = _strip_accents((p.get("category") or "").lower())
+        tags = _strip_accents(" ".join(p.get("tags") or []).lower())
+        s = 0
+        for st in stems:
+            if st in name: s += 6
+            if st in sub: s += 4
+            if st in cui: s += 4
+            if st in cat: s += 2
+            if st in tags: s += 1
+        return (s, p.get("rating") or 0, p.get("reviews") or 0)
+
+    return sorted(rows, key=sc, reverse=True)
+
+
 def _extract_filters_from_text(text: str) -> Dict[str, Any]:
     """Use simple keyword matching to extract semantic filters from the user message.
     This is the FALLBACK path used when LLM intent routing fails."""
@@ -561,6 +634,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
         "tier": 1, "price_range": 1, "address": 1, "rating": 1,
         "neighborhood": 1, "experience": 1, "tags": 1, "signature_dishes": 1,
         "zone": 1, "serves_destinations": 1, "status": 1,
+        "cuisine": 1,  # needed for cuisine-based recall/ranking (e.g. "Mediterráneo")
     }
 
     # ── Step 1: Try LLM intent routing ──
@@ -685,6 +759,27 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
         cursor = db.partners.find(dict(PUBLIC_PARTNER_FILTER), fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
         rows = await cursor.to_list(max_results)
 
+    # ── Recall + relevance pass (accent/language-insensitive) ──
+    # The queries above sort by rating, which BURIES or misses the venues that
+    # literally match the user's words across accents/languages (barbero↔barber,
+    # bohème↔Bohême, mediterráneo↔mediterranean). Fetch those directly by stem and
+    # merge (never dropping the routed results), then relevance-rank so the real
+    # matches surface for the LLM instead of generic high-rated lookalikes.
+    stems = _query_stems(search_terms, user_text)
+    if stems:
+        stem_regex = "|".join(_accent_flex(s) for s in stems)
+        stem_q = {"$or": [{f: {"$regex": stem_regex, "$options": "i"}}
+                          for f in ("name", "subcategory", "cuisine", "tags", "experience")]}
+        try:
+            stem_rows = await db.partners.find(
+                {**PUBLIC_PARTNER_FILTER, **stem_q}, fields
+            ).sort([("rating", -1), ("reviews", -1)]).limit(80).to_list(80)
+            seen = {r.get("partner_id") for r in rows}
+            rows = rows + [r for r in stem_rows if r.get("partner_id") not in seen]
+        except Exception as exc:
+            logger.warning(f"[concierge] stem recall failed: {exc}")
+        rows = _relevance_rerank(rows, stems)
+
     # Transport intent: a boat query ("lancha a rosario", "cómo llego a las islas")
     # must be answered by the OPERATORS first, then the destinations they serve —
     # the concierge's rosario->beach_club routing would otherwise return only islands.
@@ -713,7 +808,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
         except Exception as exc:
             logger.warning(f"[concierge] transport prepend failed: {exc}")
 
-    return rows, routed
+    return rows[:max_results], routed
 
 
 # ────────────────────────────────────────────────
