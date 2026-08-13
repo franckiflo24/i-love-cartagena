@@ -3212,6 +3212,107 @@ async def admin_moderation_stats(request: Request):
     }
 
 
+@api_router.get("/admin/eagle")
+async def admin_eagle(request: Request):
+    """EAGLE EYE — super-admin god-view. Live KPIs + recent activity across every
+    domain: signups, logins, searches, bookings, claims, content. Returns PII, so it
+    is gated on the tightest role we have (is_admin: Phil / Franck). Read-only."""
+    await require_admin(request)
+    now = datetime.now(timezone.utc)
+    now_iso = now.isoformat()
+    today = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    d7 = (now - timedelta(days=7)).isoformat()
+
+    # ── KPIs (counts only; cheap) ─────────────────────────────
+    users_total = await db.users.count_documents({})
+    users_today = await db.users.count_documents({"created_at": {"$gte": today}})
+    users_7d = await db.users.count_documents({"created_at": {"$gte": d7}})
+    biz_total = await db.business_users.count_documents({})
+    partners_total = await db.partners.count_documents({})
+    searches_total = await db.search_history.count_documents({})
+    searches_today = await db.search_history.count_documents({"ts": {"$gte": today}})
+    searches_zero = await db.search_history.count_documents({"matches_count": 0})
+    bookings_total = await db.reservations.count_documents({})
+    bookings_today = await db.reservations.count_documents({"created_at": {"$gte": today}})
+    active_user_sessions = await db.user_sessions.count_documents({"expires_at": {"$gt": now_iso}})
+    active_biz_sessions = await db.business_sessions.count_documents({"expires_at": {"$gt": now_iso}})
+    passes_active = await db.city_passes.count_documents({"is_active": True})
+    claims_pending = await db.venue_claims.count_documents({"state": {"$in": ["pending_verification", "pending", "code_sent"]}})
+    media_pending = await db.partner_media.count_documents({"status": "pending"})
+    events_pending = await db.partner_events.count_documents({"moderation_status": "pending"})
+
+    # ── recent signups (users + business accounts), merged, newest first ──
+    recent_users = await db.users.find(
+        {}, {"_id": 0, "user_id": 1, "name": 1, "email": 1, "provider": 1, "created_at": 1}
+    ).sort("created_at", -1).limit(30).to_list(30)
+    recent_biz = await db.business_users.find(
+        {}, {"_id": 0, "business_id": 1, "full_name": 1, "email": 1, "role": 1, "status": 1, "created_at": 1}
+    ).sort("created_at", -1).limit(15).to_list(15)
+    signups = (
+        [{"kind": "user", "name": u.get("name") or "—", "email": u.get("email"),
+          "detail": u.get("provider") or "email", "when": u.get("created_at")} for u in recent_users]
+        + [{"kind": "business", "name": b.get("full_name") or b.get("email") or "—", "email": b.get("email"),
+            "detail": f"{b.get('role', 'business')} · {b.get('status', '')}".strip(" ·"), "when": b.get("created_at")} for b in recent_biz]
+    )
+    signups.sort(key=lambda x: x.get("when") or "", reverse=True)
+    signups = signups[:35]
+
+    # ── recent logins (user + business sessions), merged, names resolved ──
+    u_sess = await db.user_sessions.find({}, {"_id": 0, "user_id": 1, "created_at": 1}).sort("created_at", -1).limit(25).to_list(25)
+    b_sess = await db.business_sessions.find({}, {"_id": 0, "business_id": 1, "created_at": 1, "via": 1}).sort("created_at", -1).limit(15).to_list(15)
+    uids = list({s["user_id"] for s in u_sess if s.get("user_id")})
+    umap = {}
+    if uids:
+        for u in await db.users.find({"user_id": {"$in": uids}}, {"_id": 0, "user_id": 1, "email": 1, "name": 1}).to_list(len(uids)):
+            umap[u["user_id"]] = u
+    bids = list({s["business_id"] for s in b_sess if s.get("business_id")})
+    bmap = {}
+    if bids:
+        for b in await db.business_users.find({"business_id": {"$in": bids}}, {"_id": 0, "business_id": 1, "email": 1, "full_name": 1, "role": 1}).to_list(len(bids)):
+            bmap[b["business_id"]] = b
+    logins = (
+        [{"kind": "user", "who": (umap.get(s.get("user_id")) or {}).get("email") or s.get("user_id") or "—",
+          "detail": (umap.get(s.get("user_id")) or {}).get("name") or "", "when": s.get("created_at")} for s in u_sess]
+        + [{"kind": "business", "who": (bmap.get(s.get("business_id")) or {}).get("email") or s.get("business_id") or "—",
+            "detail": (bmap.get(s.get("business_id")) or {}).get("role") or (s.get("via") or ""), "when": s.get("created_at")} for s in b_sess]
+    )
+    logins.sort(key=lambda x: x.get("when") or "", reverse=True)
+    logins = logins[:35]
+
+    # ── recent searches (what people are looking for, incl. zero-result) ──
+    searches = await db.search_history.find(
+        {}, {"_id": 0, "query": 1, "matches_count": 1, "intent": 1, "ai_used": 1, "ts": 1, "user_id": 1}
+    ).sort("ts", -1).limit(40).to_list(40)
+
+    # ── recent bookings ──
+    bookings = await db.reservations.find(
+        {}, {"_id": 0, "partner_name": 1, "user_name": 1, "user_email": 1, "user_whatsapp": 1,
+             "date": 1, "time": 1, "party_size": 1, "status": 1, "amount_cop": 1, "type": 1, "created_at": 1}
+    ).sort("created_at", -1).limit(25).to_list(25)
+
+    # ── recent ownership claims ──
+    claims = await db.venue_claims.find(
+        {}, {"_id": 0, "partner_id": 1, "actor_email": 1, "state": 1, "method": 1, "created_at": 1}
+    ).sort("created_at", -1).limit(20).to_list(20)
+
+    return {
+        "kpis": {
+            "users_total": users_total, "users_today": users_today, "users_7d": users_7d,
+            "business_total": biz_total, "partners_total": partners_total,
+            "searches_total": searches_total, "searches_today": searches_today, "searches_zero": searches_zero,
+            "bookings_total": bookings_total, "bookings_today": bookings_today,
+            "active_sessions": active_user_sessions + active_biz_sessions,
+            "passes_active": passes_active,
+            "claims_pending": claims_pending, "media_pending": media_pending, "events_pending": events_pending,
+        },
+        "signups": signups,
+        "logins": logins,
+        "searches": searches,
+        "bookings": bookings,
+        "claims": claims,
+        "generated_at": now_iso,
+    }
+
 
 @api_router.get("/auth/me")
 async def auth_me(request: Request):

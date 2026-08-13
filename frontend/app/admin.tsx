@@ -212,6 +212,24 @@ export default function AdminDashboard() {
 
   const renderGeneral = () => (
     <>
+      {/* EAGLE EYE — super-admin god-view of the whole system */}
+      <TouchableOpacity
+        style={styles.eagleBanner}
+        onPress={() => router.push('/admin/eagle' as any)}
+        activeOpacity={0.85}
+      >
+        <View style={styles.modBannerLeft}>
+          <View style={[styles.modBannerIcon, { backgroundColor: 'rgba(217,119,6,0.25)' }]}>
+            <Ionicons name="eye" size={20} color={COLORS.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.modBannerTitle}>Eagle Eye · Vista total</Text>
+            <Text style={styles.modBannerSubtitle}>Registros, accesos, búsquedas y reservas en vivo</Text>
+          </View>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
+      </TouchableOpacity>
+
       {/* AI Moderation Banner */}
       <TouchableOpacity
         style={[styles.modBanner, modStats && modStats.pending > 0 && styles.modBannerAlert]}
@@ -669,6 +687,7 @@ const styles = StyleSheet.create({
   // AI Moderation Banner
   modBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(217,119,6,0.3)' },
   modBannerAlert: { borderColor: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.08)' },
+  eagleBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: 'rgba(217,119,6,0.10)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(217,119,6,0.5)' },
   modBannerLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, flex: 1 },
   modBannerIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(217,119,6,0.15)', position: 'relative' },
   modBadge: { position: 'absolute', top: -4, right: -4, minWidth: 20, height: 20, borderRadius: 10, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
