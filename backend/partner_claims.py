@@ -301,6 +301,11 @@ def validate_image_value(value) -> bool:
         return True
     if v.startswith("/images/"):
         return True
+    # Our OWN Vercel Blob store — the URL is always generated server-side from the
+    # partner's moderated upload (never partner-supplied), so it's trusted, not an
+    # arbitrary external URL. Public Blob host: <store>.public.blob.vercel-storage.com
+    if v.startswith("https://") and "blob.vercel-storage.com" in v:
+        return True
     return False
 
 

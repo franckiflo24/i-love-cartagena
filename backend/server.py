@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os, json, logging, uuid, httpx, hmac
+import blob_storage as _blob
 from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
@@ -809,6 +810,7 @@ async def business_remove_photo(request: Request):
     if partner.get("hero_photo") == url:
         upd["$unset"] = {"hero_photo": ""}
     await db.partners.update_one({"partner_id": biz["partner_id"]}, upd)
+    await _blob.delete_url(url)  # best-effort Blob cleanup; no-op for base64/self-hosted
     return {"photos": photos}
 
 
@@ -975,6 +977,10 @@ async def business_upload_image(request: Request):
 
     # Ensure a data URL is returned
     data_url = image_b64 if image_b64.startswith("data:") else f"data:{mime};base64,{image_b64}"
+    # Store in Vercel Blob when configured → return a short CDN URL instead of the
+    # heavy base64 (fail-soft: falls back to the data: URL if Blob is off/errors).
+    blob_url = await _blob.upload_data_url(data_url, pathname=f"partners/{biz['partner_id']}/{purpose}-{uuid.uuid4().hex[:8]}.jpg")
+    stored_url = blob_url or data_url
 
     # Persist record (optional — for tracking in admin)
     await db.uploaded_images.insert_one({
@@ -986,12 +992,12 @@ async def business_upload_image(request: Request):
         "tags": result.get("tags", []),
         "reason": result.get("reason", ""),
         "uploaded_at": datetime.now(timezone.utc).isoformat(),
-        "data_url_preview": data_url[:80],  # don't save full image to keep DB lean
+        "data_url_preview": stored_url[:120],  # blob URL, or a base64 preview if inline
     })
 
     return {
         "uploaded": True,
-        "url": data_url,
+        "url": stored_url,
         "verdict": result["verdict"],
         "caption": result.get("caption", ""),
         "tags": result.get("tags", []),
@@ -2015,9 +2021,11 @@ async def business_submit_media(request: Request):
         await _mod_log("media", media_id, "ai_reject", "ai", reason=result.get("reason", ""), extra={"partner_id": biz["partner_id"]})
         return {"submitted": False, "verdict": "REJECT", "reason": result.get("reason", ""), "media_id": media_id}
     # AI-passed but still requires MANUAL review before public (trust-sensitive).
+    # Store in Vercel Blob → a short CDN URL (fail-soft: keeps the base64 if Blob off).
+    stored_url = (await _blob.upload_data_url(img, pathname=f"partners/{biz['partner_id']}/photo-{media_id}.jpg")) or img
     await db.partner_media.insert_one({
         "media_id": media_id, "business_id": biz["business_id"], "partner_id": biz["partner_id"],
-        "data_url": img, "caption": (body.get("caption") or "")[:140],
+        "data_url": stored_url, "caption": (body.get("caption") or "")[:140],
         "status": "pending", "ai_verdict": result["verdict"], "ai_caption": result.get("caption", ""),
         "submitted_at": _now_iso(),
     })
