@@ -2042,13 +2042,57 @@ def _fold_hero(partners: list) -> None:
         if hp:
             p["image_url"] = hp
 
+
+# ── Partner photo intelligence: perceptual-hash dedup + AI visual tags ─────────
+_PHOTO_DUP_HAMMING = 6   # ≤6 differing bits on a 64-bit average-hash ≈ the same image
+
+
+def _hex_hamming(a: str, b: str) -> int:
+    """Bit distance between two hex-encoded perceptual hashes (999 on parse error)."""
+    try:
+        return bin(int(a, 16) ^ int(b, 16)).count("1")
+    except Exception:
+        return 999
+
+
+def _clean_visual_tags(tags) -> list:
+    """Sanitize the AI's free-form visual tags (sunset, cocktail…) — kept in a
+    SEPARATE `visual_tags` field, never the curated `tags` that drive search."""
+    seen, out = set(), []
+    for t in (tags or []):
+        s = str(t).strip().lower().replace(" ", "_")[:24]
+        if s and s.isascii() and s.replace("_", "").replace("-", "").isalnum() and s not in seen:
+            seen.add(s)
+            out.append(s)
+        if len(out) >= 8:
+            break
+    return out
+
+
+async def _photo_dup_scan(partner_id: str, image_hash: str) -> dict:
+    """Find the closest APPROVED photo whose perceptual hash is within the dup
+    threshold. Returns {same_venue, other_partner, distance} or {} if none."""
+    if not image_hash or len(image_hash) < 8:
+        return {}
+    best = None
+    async for h in db.photo_hashes.find({}, {"_id": 0, "hash": 1, "partner_id": 1}).limit(8000):
+        d = _hex_hamming(image_hash, h.get("hash", ""))
+        if d <= _PHOTO_DUP_HAMMING and (best is None or d < best[0]):
+            best = (d, h.get("partner_id"))
+            if d == 0:
+                break
+    if best is None:
+        return {}
+    same = best[1] == partner_id
+    return {"same_venue": same, "other_partner": None if same else best[1], "distance": best[0]}
+
 @api_router.post("/business/media")
 async def business_submit_media(request: Request):
     """Submit a photo for review. Stored PENDING (never public until approved).
     I3: only a moderated data: image is accepted — never an external URL."""
     biz = await get_current_business(request)
     await _check_rate_limit(f"bizmedia:{biz['business_id']}", max_calls=15, window_sec=3600)
-    partner = await _require_content_owner(biz, biz["partner_id"])
+    await _require_content_owner(biz, biz["partner_id"])
     body = await _json_body(request)
     img = body.get("image_base64", "")
     if not isinstance(img, str) or not img.startswith("data:image/"):
@@ -2067,18 +2111,61 @@ async def business_submit_media(request: Request):
         })
         await _mod_log("media", media_id, "ai_reject", "ai", reason=result.get("reason", ""), extra={"partner_id": biz["partner_id"]})
         return {"submitted": False, "verdict": "REJECT", "reason": result.get("reason", ""), "media_id": media_id}
-    # AI-passed but still requires MANUAL review before public (trust-sensitive).
+    # ── Beyond the AI verdict: perceptual-hash dedup + graduated-trust + AI tags ──
+    image_hash = (body.get("image_hash") or "").strip().lower()[:32]
+    dup = await _photo_dup_scan(biz["partner_id"], image_hash) if image_hash else {}
+    if dup.get("same_venue"):
+        # Re-upload of a photo this venue already has — block, no queue noise.
+        return {"submitted": False, "verdict": "DUPLICATE",
+                "reason": "Ya tienes esta misma foto en tu galería / You already have this exact photo",
+                "media_id": media_id}
+    cross_dup = bool(dup.get("other_partner"))  # same image on ANOTHER venue → always human-reviewed
+
     # Store in Vercel Blob → a short CDN URL (fail-soft: keeps the base64 if Blob off).
     stored_url = (await _blob.upload_data_url(img, pathname=f"partners/{biz['partner_id']}/photo-{media_id}.jpg")) or img
-    await db.partner_media.insert_one({
+    ai_tags = _clean_visual_tags(result.get("tags"))
+    pdoc = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "photos": 1, "photo_trusted": 1, "name": 1}) or {}
+    photos = pdoc.get("photos") or []
+    # Trusted = admin flag, OR the venue already has a human-approved gallery photo
+    # (a person vetted this venue's standards at least once). Clean AUTO_APPROVE photos
+    # from a trusted venue skip the queue; NEEDS_REVIEW, the FIRST-ever photo, and
+    # cross-venue duplicates ALWAYS get human eyes.
+    trusted = bool(pdoc.get("photo_trusted")) or len(photos) >= 1
+    auto_ok = result["verdict"] == "AUTO_APPROVE" and trusted and not cross_dup
+
+    doc = {
         "media_id": media_id, "business_id": biz["business_id"], "partner_id": biz["partner_id"],
-        "data_url": stored_url, "caption": (body.get("caption") or "")[:140],
-        "status": "pending", "ai_verdict": result["verdict"], "ai_caption": result.get("caption", ""),
-        "submitted_at": _now_iso(),
-    })
-    await _notify_admin("media_review", f"Foto pendiente: {partner.get('name','')}",
-                        {"media_id": media_id, "partner_id": biz["partner_id"], "business_id": biz["business_id"]})
-    return {"submitted": True, "media_id": media_id, "status": "pending"}
+        "data_url": stored_url, "caption": (body.get("caption") or result.get("caption") or "")[:140],
+        "ai_verdict": result["verdict"], "ai_caption": result.get("caption", ""), "ai_tags": ai_tags,
+        "image_hash": image_hash, "submitted_at": _now_iso(),
+    }
+    if cross_dup:
+        doc["dup_of_partner"] = dup.get("other_partner")
+        doc["dup_distance"] = dup.get("distance")
+
+    if auto_ok:
+        if stored_url not in photos and len(photos) < 12:
+            photos.append(stored_url)
+        upd: dict = {"$set": {"photos": photos}}
+        if ai_tags:
+            upd["$addToSet"] = {"visual_tags": {"$each": ai_tags}}
+        await db.partners.update_one({"partner_id": biz["partner_id"]}, upd)
+        doc.update({"status": "approved", "reviewed_by": "auto:ai+trust", "reviewed_at": _now_iso()})
+        await db.partner_media.insert_one(doc)
+        if image_hash:
+            await db.photo_hashes.insert_one({"hash": image_hash, "partner_id": biz["partner_id"], "media_id": media_id, "created_at": _now_iso()})
+        await _mod_log("media", media_id, "auto_approve", "ai+trust", extra={"partner_id": biz["partner_id"], "ai_verdict": result["verdict"]})
+        return {"submitted": True, "media_id": media_id, "status": "approved", "auto": True}
+
+    # Otherwise → human review queue (flagged if it duplicates another venue's photo).
+    doc["status"] = "pending"
+    await db.partner_media.insert_one(doc)
+    title = f"Foto pendiente: {pdoc.get('name','')}" + (" · ⚠ POSIBLE DUPLICADO" if cross_dup else "")
+    await _notify_admin("media_review", title,
+                        {"media_id": media_id, "partner_id": biz["partner_id"], "business_id": biz["business_id"],
+                         **({"dup_of_partner": dup.get("other_partner")} if cross_dup else {})})
+    return {"submitted": True, "media_id": media_id, "status": "pending",
+            **({"flagged": "duplicate"} if cross_dup else {})}
 
 
 @api_router.get("/business/media")
@@ -2101,10 +2188,20 @@ async def admin_approve_media(media_id: str, request: Request):
         raise HTTPException(status_code=422, detail="Imagen inválida (I3) / Invalid image")
     partner = await db.partners.find_one({"partner_id": m["partner_id"]}, {"_id": 0, "photos": 1})
     photos = (partner or {}).get("photos") or []
+    upd: dict = {}
     if data_url not in photos and len(photos) < 12:
         photos.append(data_url)
-        # NEVER touch image_url — only the reviewed gallery array.
-        await db.partners.update_one({"partner_id": m["partner_id"]}, {"$set": {"photos": photos}})
+        upd["$set"] = {"photos": photos}  # NEVER touch image_url — only the reviewed gallery array.
+    mtags = _clean_visual_tags(m.get("ai_tags"))
+    if mtags:
+        upd["$addToSet"] = {"visual_tags": {"$each": mtags}}
+    if upd:
+        await db.partners.update_one({"partner_id": m["partner_id"]}, upd)
+    # Register the perceptual hash so future uploads dedup against this approved photo.
+    ih = (m.get("image_hash") or "").strip()
+    if ih:
+        await db.photo_hashes.update_one({"media_id": media_id},
+            {"$set": {"hash": ih, "partner_id": m["partner_id"], "media_id": media_id, "created_at": _now_iso()}}, upsert=True)
     await db.partner_media.update_one({"media_id": media_id}, {"$set": {"status": "approved", "reviewed_by": gov.get("email", "admin"), "reviewed_at": _now_iso()}})
     await _mod_log("media", media_id, "approve", gov.get("email", "admin"), extra={"partner_id": m["partner_id"]})
     return {"approved": True, "media_id": media_id}

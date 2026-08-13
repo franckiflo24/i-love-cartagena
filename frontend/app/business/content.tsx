@@ -11,6 +11,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { api } from '../../src/constants/api';
 import { downscaleForUpload } from '../../src/lib/downscaleImage';
+import { averageHash } from '../../src/lib/imageHash';
 import { SafeImage } from '../../src/components/SafeImage';
 import { useTr } from '../../src/i18n/autoTr';
 
@@ -115,9 +116,10 @@ export default function MyContent() {
       if (!source) { Alert.alert('Error', tr('No se pudo leer la foto')); return; }
       // Shrink to fit the backend's ~500KB cap (picker quality doesn't resize).
       const dataUrl = await downscaleForUpload(source);
+      const image_hash = await averageHash(dataUrl); // for server-side duplicate detection
       setUploading(true);
       setPhotoResult(null);
-      const res = await api.post('/business/media', { image_base64: dataUrl, caption: caption.trim() }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await api.post('/business/media', { image_base64: dataUrl, caption: caption.trim(), image_hash }, { headers: { Authorization: `Bearer ${token}` } });
       setPhotoResult(res);
       if (res?.submitted) {
         setCaption('');
@@ -195,10 +197,15 @@ export default function MyContent() {
                   <Ionicons name="close-circle" size={16} color="#EF4444" />
                   <Text style={[styles.resultText, { color: '#EF4444' }]}>{photoResult.reason || tr('Imagen rechazada')}</Text>
                 </View>
+              ) : photoResult.status === 'approved' ? (
+                <View style={[styles.resultBox, { backgroundColor: 'rgba(34,197,94,0.10)', borderColor: '#22C55E' }]}>
+                  <Ionicons name="checkmark-circle" size={16} color="#22C55E" />
+                  <Text style={[styles.resultText, { color: '#22C55E' }]}>{tr('¡Publicada! Ya aparece en tu galería.')}</Text>
+                </View>
               ) : (
                 <View style={[styles.resultBox, { backgroundColor: 'rgba(245,158,11,0.10)', borderColor: '#F59E0B' }]}>
                   <Ionicons name="hourglass" size={16} color="#F59E0B" />
-                  <Text style={[styles.resultText, { color: '#F59E0B' }]}>{tr('En revisión')}</Text>
+                  <Text style={[styles.resultText, { color: '#F59E0B' }]}>{photoResult.flagged === 'duplicate' ? tr('En revisión (posible duplicado)') : tr('En revisión')}</Text>
                 </View>
               )
             )}
