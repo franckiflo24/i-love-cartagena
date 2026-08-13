@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../../src/constants/theme';
 import { useBusinessAuth } from '../../../src/context/BusinessAuthContext';
+import { useAuth } from '../../../src/context/AuthContext';
 import { api } from '../../../src/constants/api';
 import { useTr } from '../../../src/i18n/autoTr';
 import { SafeImage } from '../../../src/components/SafeImage';
@@ -36,13 +37,19 @@ export default function AdminQueue() {
   const tr = useTr();
   const router = useRouter();
   const { token, business, loading: authLoading } = useBusinessAuth();
+  // Unified access: a government BUSINESS login OR an is_admin USER (one inbox).
+  const { user, isLoading: userLoading } = useAuth();
+  const canModerate = business?.role === 'government' || !!user?.is_admin;
   const [drafts, setDrafts] = useState<any[]>([]);
   const [claims, setClaims] = useState<any[]>([]);
   const [submissions, setSubmissions] = useState<Submissions>(EMPTY_SUBMISSIONS);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const auth = { headers: { Authorization: `Bearer ${token}` } };
+  // Government business login → its token; otherwise (is_admin user) pass no
+  // override so the API client attaches the user session token. The backend
+  // `_require_moderator` accepts either identity.
+  const auth = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
   const load = useCallback(async () => {
     if (!token) return;
     try {
@@ -63,10 +70,10 @@ export default function AdminQueue() {
   }, [token]);
 
   useFocusEffect(useCallback(() => {
-    if (authLoading) return;
-    if (!token) { router.replace('/business/login' as any); return; }
+    if (authLoading || userLoading) return;
+    if (!canModerate) { router.replace((token ? '/business/dashboard' : '/business/login') as any); return; }
     setLoading(true); load().finally(() => setLoading(false));
-  }, [token, authLoading, load]));
+  }, [canModerate, token, authLoading, userLoading, load]));
 
   const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
 
@@ -86,10 +93,10 @@ export default function AdminQueue() {
   const approveEvent = (id: string) => act(() => api.post(`/business/admin/events/${id}/moderate`, { action: 'approve' }, auth), 'ok');
   const rejectEvent = (id: string) => act(() => api.post(`/business/admin/events/${id}/moderate`, { action: 'reject', reason: 'No aprobado' }, auth), 'ok');
 
-  if (!authLoading && business && business.role !== 'government') {
+  if (!authLoading && !userLoading && !canModerate) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.center}><Text style={styles.muted}>{tr('Acceso solo para la Alcaldía')}</Text></View>
+        <View style={styles.center}><Text style={styles.muted}>{tr('Acceso solo para administradores')}</Text></View>
       </SafeAreaView>
     );
   }

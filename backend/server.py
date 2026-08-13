@@ -1546,7 +1546,7 @@ async def business_edit_log(request: Request):
 # ── Admin (government role) · claim + draft moderation queues ───────────────
 @api_router.get("/business/admin/claims")
 async def admin_list_claims(request: Request):
-    await _require_government_role(request)
+    await _require_moderator(request)
     q = {"$or": [{"state": "disputed"}, {"state": "pending_verification", "method": "manual"}]}
     claims = await db.venue_claims.find(q, {"_id": 0, "code_hash": 0}).sort("created_at", -1).to_list(500)
     for c in claims:
@@ -1558,7 +1558,7 @@ async def admin_list_claims(request: Request):
 
 @api_router.post("/business/admin/claims/{claim_id}/resolve")
 async def admin_resolve_claim(claim_id: str, request: Request):
-    gov = await _require_government_role(request)
+    gov = await _require_moderator(request)
     body = await request.json()
     action = (body.get("action") or "").strip().lower()  # approve | reject
     claim = await db.venue_claims.find_one({"claim_id": claim_id}, {"_id": 0})
@@ -1591,7 +1591,7 @@ async def admin_resolve_claim(claim_id: str, request: Request):
 
 @api_router.get("/business/admin/venue-drafts")
 async def admin_list_venue_drafts(request: Request):
-    await _require_government_role(request)
+    await _require_moderator(request)
     drafts = await db.partners.find(
         {"catalog_status": "pending_review"},
         {"_id": 0, "partner_id": 1, "name": 1, "category": 1, "neighborhood": 1,
@@ -1603,7 +1603,7 @@ async def admin_list_venue_drafts(request: Request):
 
 @api_router.post("/business/admin/venue-drafts/{partner_id}/approve")
 async def admin_approve_venue_draft(partner_id: str, request: Request):
-    gov = await _require_government_role(request)
+    gov = await _require_moderator(request)
     body = await request.json()
     partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "catalog_status": 1})
     if not partner:
@@ -1623,7 +1623,7 @@ async def admin_approve_venue_draft(partner_id: str, request: Request):
 
 @api_router.post("/business/admin/venue-drafts/{partner_id}/reject")
 async def admin_reject_venue_draft(partner_id: str, request: Request):
-    gov = await _require_government_role(request)
+    gov = await _require_moderator(request)
     body = await request.json()
     partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "catalog_status": 1})
     if not partner:
@@ -1639,7 +1639,7 @@ async def admin_reject_venue_draft(partner_id: str, request: Request):
 async def admin_release_claim(partner_id: str, request: Request):
     """Dispute resolution / offboarding: return a venue to UNCLAIMED and unlink
     its owning account. Fully $unsets the claim fields so the record is pristine."""
-    gov = await _require_government_role(request)
+    gov = await _require_moderator(request)
     partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "claimed_by": 1})
     if not partner:
         raise HTTPException(status_code=404, detail="Negocio no encontrado / Venue not found")
@@ -1666,7 +1666,7 @@ async def admin_delete_venue_draft(partner_id: str, request: Request):
     """Hard-delete a partner-submitted draft (spam removal). Safety: refuses to
     delete anything that is not a partner_submitted draft — a real catalog venue
     can never be removed through this route."""
-    await _require_government_role(request)
+    await _require_moderator(request)
     partner = await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "confidence": 1, "catalog_status": 1})
     if not partner:
         raise HTTPException(status_code=404, detail="Draft no encontrado / Draft not found")
@@ -2043,7 +2043,7 @@ async def business_my_media(request: Request):
 
 @api_router.post("/business/admin/media/{media_id}/approve")
 async def admin_approve_media(media_id: str, request: Request):
-    gov = await _require_government_role(request)
+    gov = await _require_moderator(request)
     m = await db.partner_media.find_one({"media_id": media_id}, {"_id": 0})
     if not m:
         raise HTTPException(status_code=404, detail="Media no encontrada / Media not found")
@@ -2065,7 +2065,7 @@ async def admin_approve_media(media_id: str, request: Request):
 
 @api_router.post("/business/admin/media/{media_id}/reject")
 async def admin_reject_media(media_id: str, request: Request):
-    gov = await _require_government_role(request)
+    gov = await _require_moderator(request)
     body = await request.json()
     reason = (body.get("reason") or "No aprobada")[:300]
     r = await db.partner_media.update_one({"media_id": media_id, "status": "pending"}, {"$set": {"status": "rejected", "reason": reason, "reviewed_by": gov.get("email", "admin"), "reviewed_at": _now_iso()}})
@@ -2112,7 +2112,7 @@ async def business_my_price(request: Request):
 
 @api_router.post("/business/admin/price/{price_id}/approve")
 async def admin_approve_price(price_id: str, request: Request):
-    gov = await _require_government_role(request)
+    gov = await _require_moderator(request)
     p = await db.partner_price_submissions.find_one({"price_id": price_id}, {"_id": 0})
     if not p or p.get("status") != "pending":
         raise HTTPException(status_code=404, detail="Precio pendiente no encontrado / Pending price not found")
@@ -2131,7 +2131,7 @@ async def admin_approve_price(price_id: str, request: Request):
 
 @api_router.post("/business/admin/price/{price_id}/reject")
 async def admin_reject_price(price_id: str, request: Request):
-    gov = await _require_government_role(request)
+    gov = await _require_moderator(request)
     body = await request.json()
     reason = (body.get("reason") or "No aprobada")[:300]
     r = await db.partner_price_submissions.update_one({"price_id": price_id, "status": "pending"}, {"$set": {"status": "rejected", "reason": reason, "reviewed_by": gov.get("email", "admin"), "reviewed_at": _now_iso()}})
@@ -2145,7 +2145,7 @@ async def admin_reject_price(price_id: str, request: Request):
 @api_router.get("/business/admin/submissions")
 async def admin_list_submissions(request: Request):
     """Every pending partner submission in one review surface: events, media, price."""
-    await _require_government_role(request)
+    await _require_moderator(request)
     ev = await db.partner_events.find({"moderation_status": "pending"}, {"_id": 0}).sort("created_at", -1).to_list(200)
     media = await db.partner_media.find({"status": "pending"}, {"_id": 0}).sort("submitted_at", -1).to_list(200)
     price = await db.partner_price_submissions.find({"status": "pending"}, {"_id": 0}).sort("submitted_at", -1).to_list(200)
@@ -2162,7 +2162,7 @@ async def admin_list_submissions(request: Request):
 
 @api_router.post("/business/admin/events/{event_id}/moderate")
 async def admin_moderate_event(event_id: str, request: Request):
-    gov = await _require_government_role(request)
+    gov = await _require_moderator(request)
     body = await request.json()
     action = (body.get("action") or "").strip().lower()  # approve | reject
     reason = (body.get("reason") or "")[:300]
@@ -2481,6 +2481,32 @@ async def _require_government_role(request: Request) -> dict:
     if biz.get("role") != "government":
         raise HTTPException(status_code=403, detail="Access restricted to government accounts")
     return biz
+
+
+async def _require_moderator(request: Request) -> dict:
+    """Unified content-moderation gate — a government BUSINESS account OR an
+    is_admin USER may approve/reject partner content (photos, prices, claims,
+    venue drafts, partner events). This is what lets an operator review EVERYTHING
+    from a single admin login instead of a separate government-business session
+    (admin-surface unification). Returns whichever identity dict authorized — both
+    carry `email`, used for the reviewed_by/resolved_by audit stamp.
+
+    Sensitive endpoints (accounts, password resets, money/payouts, alcaldía
+    analytics) deliberately KEEP the stricter `_require_government_role`, so
+    broadening the moderation inbox never widens access to those."""
+    try:
+        biz = await get_current_business(request)
+        if biz.get("role") == "government":
+            return biz
+    except HTTPException:
+        pass
+    try:
+        user = await get_current_user(request)
+        if user.get("is_admin"):
+            return user
+    except HTTPException:
+        pass
+    raise HTTPException(status_code=403, detail="Acceso solo para administradores / Admin access only")
 
 
 # ── City Pass Plans — single source of truth ──────────────────

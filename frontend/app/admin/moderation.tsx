@@ -117,6 +117,16 @@ export default function AdminModeration() {
           </View>
         </View>
 
+        {/* Unified inbox bridge → partner-submitted content (photos/prices/claims/venues) */}
+        <TouchableOpacity style={styles.bridgeCard} onPress={() => router.push('/business/admin/queue' as any)} activeOpacity={0.85}>
+          <Ionicons name="albums-outline" size={20} color={COLORS.primary} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.bridgeTitle}>Contenido de socios</Text>
+            <Text style={styles.bridgeDesc}>Fotos, precios, reclamos y negocios nuevos por aprobar</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+        </TouchableOpacity>
+
         {/* Stats */}
         {stats && (
           <View style={styles.statsGrid}>
@@ -245,6 +255,9 @@ const styles = StyleSheet.create({
   aiIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(217,119,6,0.2)' },
   aiTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
   aiDesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2, lineHeight: 16 },
+  bridgeCard: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, padding: SPACING.md, marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border },
+  bridgeTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
+  bridgeDesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2, lineHeight: 16 },
 
   statsGrid: { flexDirection: 'row', gap: SPACING.sm, paddingHorizontal: SPACING.lg, marginBottom: SPACING.md },
   statCard: { flex: 1, alignItems: 'center', padding: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1 },
