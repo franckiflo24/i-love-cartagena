@@ -77,6 +77,7 @@ class UserOut(BaseModel):
     provider: Optional[str] = None
     phone: Optional[str] = None
     onboarding_completed: Optional[bool] = None
+    is_admin: Optional[bool] = None  # so /auth/me exposes admin status → client guards work on refresh/deep-link
 
 class SessionExchange(BaseModel):
     session_id: str
