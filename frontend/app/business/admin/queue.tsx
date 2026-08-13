@@ -18,10 +18,10 @@ import { SafeImage } from '../../../src/components/SafeImage';
 // DROP B2: a third firewall — partner-submitted CONTENT (photos, prices,
 // events) — untrusted by default, never public until a human approves it.
 type Submissions = {
-  events: any[]; media: any[]; prices: any[];
-  counts: { events: number; media: number; prices: number };
+  events: any[]; media: any[]; prices: any[]; auto: any[];
+  counts: { events: number; media: number; prices: number; auto: number };
 };
-const EMPTY_SUBMISSIONS: Submissions = { events: [], media: [], prices: [], counts: { events: 0, media: 0, prices: 0 } };
+const EMPTY_SUBMISSIONS: Submissions = { events: [], media: [], prices: [], auto: [], counts: { events: 0, media: 0, prices: 0, auto: 0 } };
 
 const fmtPriceRange = (p: any): string | null => {
   const low = p?.typical_cop?.low;
@@ -64,7 +64,8 @@ export default function AdminQueue() {
         events: s.events || [],
         media: s.media || [],
         prices: s.prices || [],
-        counts: s.counts || { events: 0, media: 0, prices: 0 },
+        auto: s.auto_media || [],
+        counts: s.counts || { events: 0, media: 0, prices: 0, auto: 0 },
       });
     } catch { /* fail soft */ }
   }, [token]);
@@ -88,6 +89,8 @@ export default function AdminQueue() {
 
   const approveMedia = (id: string) => act(() => api.post(`/business/admin/media/${id}/approve`, {}, auth), 'ok');
   const rejectMedia = (id: string) => act(() => api.post(`/business/admin/media/${id}/reject`, { reason: 'No aprobada' }, auth), 'ok');
+  const removeMedia = (id: string) => act(() => api.post(`/business/admin/media/${id}/remove`, {}, auth), 'ok');
+  const trustPartner = (pid: string, trusted: boolean) => act(() => api.post(`/business/admin/partners/${pid}/photo-trust`, { trusted }, auth), 'ok');
   const approvePrice = (id: string) => act(() => api.post(`/business/admin/price/${id}/approve`, {}, auth), 'ok');
   const rejectPrice = (id: string) => act(() => api.post(`/business/admin/price/${id}/reject`, { reason: 'No aprobado' }, auth), 'ok');
   const approveEvent = (id: string) => act(() => api.post(`/business/admin/events/${id}/moderate`, { action: 'approve' }, auth), 'ok');
@@ -168,6 +171,17 @@ export default function AdminQueue() {
                   <Text style={styles.cardBy}>{m.partner_name}</Text>
                 </View>
               </View>
+              {m.partner_trusted ? (
+                <View style={styles.trustOn}>
+                  <Ionicons name="shield-checkmark" size={12} color="#22C55E" />
+                  <Text style={styles.trustOnText}>{tr('Negocio de confianza — sus fotos limpias se publican solas')}</Text>
+                </View>
+              ) : (
+                <TouchableOpacity style={styles.trustBtn} onPress={() => trustPartner(m.partner_id, true)}>
+                  <Ionicons name="shield-outline" size={13} color={COLORS.primary} />
+                  <Text style={styles.trustBtnText}>{tr('Confiar en este negocio (sus próximas fotos se publican solas)')}</Text>
+                </TouchableOpacity>
+              )}
               <View style={styles.actions}>
                 <TouchableOpacity style={[styles.actBtn, styles.reject]} onPress={() => rejectMedia(m.media_id)}><Text style={styles.rejectText}>{tr('Rechazar')}</Text></TouchableOpacity>
                 <TouchableOpacity style={[styles.actBtn, styles.approve]} onPress={() => approveMedia(m.media_id)}><Text style={styles.approveText}>{tr('Aprobar')}</Text></TouchableOpacity>
@@ -207,6 +221,31 @@ export default function AdminQueue() {
               </View>
             </View>
           ))}
+
+          {submissions.auto.length > 0 && (
+            <>
+              <Text style={[styles.section, { marginTop: SPACING.xl }]}>{tr('Publicadas automáticamente')} · {submissions.auto.length}</Text>
+              <Text style={styles.autoHint}>{tr('Fotos de negocios de confianza que la IA aprobó. No requieren acción — quítalas si algo no cuadra (eso también revisa sus próximas fotos).')}</Text>
+              {submissions.auto.map((m: any) => (
+                <View key={m.media_id} style={styles.card}>
+                  <View style={styles.mediaRow}>
+                    <SafeImage uri={m.data_url} style={styles.mediaThumb} />
+                    <View style={{ flex: 1 }}>
+                      {!!m.caption && <Text style={styles.cardDesc} numberOfLines={2}>{m.caption}</Text>}
+                      <Text style={styles.cardBy}>{m.partner_name}</Text>
+                    </View>
+                    <View style={[styles.tag, { backgroundColor: 'rgba(34,197,94,0.15)', alignSelf: 'flex-start' }]}>
+                      <Text style={[styles.tagText, { color: '#22C55E' }]}>{tr('Auto')}</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity style={[styles.actBtn, styles.reject, { marginTop: SPACING.sm, flexDirection: 'row', justifyContent: 'center' }]} onPress={() => removeMedia(m.media_id)}>
+                    <Ionicons name="trash-outline" size={14} color={COLORS.textMuted} />
+                    <Text style={[styles.rejectText, { marginLeft: 6 }]}>{tr('Quitar y revisar sus fotos')}</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </>
+          )}
         </ScrollView>
       )}
     </SafeAreaView>
@@ -238,6 +277,11 @@ const styles = StyleSheet.create({
   tagText: { fontSize: 10, color: COLORS.textMain, ...FONTS.bold, letterSpacing: 0.3 },
   mediaRow: { flexDirection: 'row', gap: SPACING.sm },
   mediaThumb: { width: 64, height: 64, borderRadius: RADIUS.md, backgroundColor: COLORS.surfaceAlt },
+  trustBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: SPACING.sm, paddingVertical: 9, borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(217,119,6,0.4)', backgroundColor: 'rgba(217,119,6,0.08)' },
+  trustBtnText: { color: COLORS.primary, fontSize: 12, ...FONTS.semibold },
+  trustOn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: SPACING.sm, paddingVertical: 8 },
+  trustOnText: { color: '#22C55E', fontSize: 11.5, ...FONTS.semibold },
+  autoHint: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 17, marginBottom: SPACING.md, marginTop: -2 },
   actions: { flexDirection: 'row', gap: SPACING.sm, marginTop: SPACING.md },
   actBtn: { flex: 1, alignItems: 'center', paddingVertical: 11, borderRadius: RADIUS.full },
   approve: { backgroundColor: COLORS.primary },

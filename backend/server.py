@@ -2087,6 +2087,16 @@ async def _photo_dup_scan(partner_id: str, image_hash: str) -> dict:
     same = best[1] == partner_id
     return {"same_venue": same, "other_partner": None if same else best[1], "distance": best[0]}
 
+
+def _photo_trusted(partner: dict) -> bool:
+    """Tri-state photo trust: an explicit `photo_trusted` flag wins (True = pre-trusted,
+    False = revoked → every photo reviewed); if unset, trust is EARNED by having at
+    least one human-approved gallery photo."""
+    pt = (partner or {}).get("photo_trusted")
+    if isinstance(pt, bool):
+        return pt
+    return len((partner or {}).get("photos") or []) >= 1
+
 @api_router.post("/business/media")
 async def business_submit_media(request: Request):
     """Submit a photo for review. Stored PENDING (never public until approved).
@@ -2131,7 +2141,7 @@ async def business_submit_media(request: Request):
     # (a person vetted this venue's standards at least once). Clean AUTO_APPROVE photos
     # from a trusted venue skip the queue; NEEDS_REVIEW, the FIRST-ever photo, and
     # cross-venue duplicates ALWAYS get human eyes.
-    trusted = bool(pdoc.get("photo_trusted")) or len(photos) >= 1
+    trusted = _photo_trusted(pdoc)
     auto_ok = result["verdict"] == "AUTO_APPROVE" and trusted and not cross_dup
 
     doc = {
@@ -2220,6 +2230,50 @@ async def admin_reject_media(media_id: str, request: Request):
     return {"rejected": True, "media_id": media_id}
 
 
+@api_router.post("/business/admin/media/{media_id}/remove")
+async def admin_remove_media(media_id: str, request: Request):
+    """Pull an APPROVED / auto-published photo from the gallery AND revoke the venue's
+    photo auto-trust — so every future photo from that venue goes back to human review.
+    Self-healing: if a person had to remove an auto-published photo, the venue re-earns
+    trust. Reversible via the trust toggle."""
+    gov = await _require_moderator(request)
+    m = await db.partner_media.find_one({"media_id": media_id}, {"_id": 0})
+    if not m:
+        raise HTTPException(status_code=404, detail="Media no encontrada / Media not found")
+    url = m.get("data_url", "")
+    pid = m.get("partner_id")
+    partner = await db.partners.find_one({"partner_id": pid}, {"_id": 0, "photos": 1, "hero_photo": 1})
+    photos = [p for p in ((partner or {}).get("photos") or []) if p != url]
+    upd: dict = {"$set": {"photos": photos, "photo_trusted": False}}
+    if (partner or {}).get("hero_photo") == url:
+        upd["$unset"] = {"hero_photo": ""}
+    await db.partners.update_one({"partner_id": pid}, upd)
+    await _blob.delete_url(url)  # best-effort; no-op for base64/self-hosted
+    await db.photo_hashes.delete_one({"media_id": media_id})
+    await db.partner_media.update_one({"media_id": media_id}, {"$set": {"status": "removed", "reviewed_by": gov.get("email", "admin"), "reviewed_at": _now_iso()}})
+    await _mod_log("media", media_id, "remove", gov.get("email", "admin"), extra={"partner_id": pid, "revoked_trust": True})
+    return {"removed": True, "media_id": media_id, "trust_revoked": True}
+
+
+@api_router.post("/business/admin/partners/{partner_id}/photo-trust")
+async def admin_set_photo_trust(partner_id: str, request: Request):
+    """Set a venue's photo trust: true = pre-trusted (clean photos auto-publish),
+    false = revoked (all photos reviewed), null = reset to earned (trusted once it has
+    an approved photo)."""
+    await _require_moderator(request)
+    body = await request.json()
+    val = body.get("trusted")
+    if not await db.partners.find_one({"partner_id": partner_id}, {"_id": 0, "partner_id": 1}):
+        raise HTTPException(status_code=404, detail="Negocio no encontrado / Venue not found")
+    if val is None:
+        await db.partners.update_one({"partner_id": partner_id}, {"$unset": {"photo_trusted": ""}})
+        state = "earned"
+    else:
+        await db.partners.update_one({"partner_id": partner_id}, {"$set": {"photo_trusted": bool(val)}})
+        state = "trusted" if val else "revoked"
+    return {"partner_id": partner_id, "photo_trust": state}
+
+
 # ── B2D · PRICE (partner-submitted tier, never editorial) ──────────────────
 @api_router.post("/business/price")
 async def business_submit_price(request: Request):
@@ -2294,15 +2348,18 @@ async def admin_list_submissions(request: Request):
     ev = await db.partner_events.find({"moderation_status": "pending"}, {"_id": 0}).sort("created_at", -1).to_list(200)
     media = await db.partner_media.find({"status": "pending"}, {"_id": 0}).sort("submitted_at", -1).to_list(200)
     price = await db.partner_price_submissions.find({"status": "pending"}, {"_id": 0}).sort("submitted_at", -1).to_list(200)
-    # attach venue name
-    async def _name(pid):
-        p = await db.partners.find_one({"partner_id": pid}, {"_id": 0, "name": 1})
-        return (p or {}).get("name", "")
-    for e in ev: e["partner_name"] = await _name(e.get("partner_id"))
-    for m in media: m["partner_name"] = await _name(m.get("partner_id"))
-    for pr in price: pr["partner_name"] = await _name(pr.get("partner_id"))
-    return {"events": ev, "media": media, "prices": price,
-            "counts": {"events": len(ev), "media": len(media), "prices": len(price)}}
+    # Recently AUTO-published photos — no action needed, but the team can glance / pull one.
+    auto = await db.partner_media.find({"status": "approved", "reviewed_by": "auto:ai+trust"}, {"_id": 0}).sort("reviewed_at", -1).to_list(24)
+    # attach venue name (+ photo-trust state where the UI needs it)
+    async def _pinfo(pid):
+        p = await db.partners.find_one({"partner_id": pid}, {"_id": 0, "name": 1, "photo_trusted": 1, "photos": 1})
+        return (p or {}).get("name", ""), _photo_trusted(p or {})
+    for e in ev: e["partner_name"] = (await _pinfo(e.get("partner_id")))[0]
+    for pr in price: pr["partner_name"] = (await _pinfo(pr.get("partner_id")))[0]
+    for m in media: m["partner_name"], m["partner_trusted"] = await _pinfo(m.get("partner_id"))
+    for a in auto: a["partner_name"], a["partner_trusted"] = await _pinfo(a.get("partner_id"))
+    return {"events": ev, "media": media, "prices": price, "auto_media": auto,
+            "counts": {"events": len(ev), "media": len(media), "prices": len(price), "auto": len(auto)}}
 
 
 @api_router.post("/business/admin/events/{event_id}/moderate")
