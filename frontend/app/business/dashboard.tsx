@@ -9,6 +9,7 @@ import { api } from '../../src/constants/api';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { TierBadge } from '../../src/components/TierBadge';
 import AlcaldiaDashboard from '../../src/components/AlcaldiaDashboard';
+import BusinessOnboardingTour from '../../src/components/BusinessOnboardingTour';
 import { useTr } from '../../src/i18n/autoTr';
 
 type Stats = { total_events: number; upcoming_events: number; total_views: number; total_reserves: number; };
@@ -44,6 +45,7 @@ export default function BusinessDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [forcePartnerView, setForcePartnerView] = useState(false);
+  const [tourReplay, setTourReplay] = useState(false);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -157,6 +159,12 @@ export default function BusinessDashboard() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <BusinessOnboardingTour
+        businessId={business?.business_id}
+        enabled={!isGovernment}
+        forceOpen={tourReplay}
+        onForceHandled={() => setTourReplay(false)}
+      />
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => {
@@ -172,6 +180,9 @@ export default function BusinessDashboard() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{isGovernment ? 'Mis publicaciones' : 'Dashboard'}</Text>
         <View style={{ flexDirection: 'row' }}>
+          <TouchableOpacity onPress={() => setTourReplay(true)} style={styles.headerBtn} accessibilityLabel={tr('Ver guía')}>
+            <Ionicons name="help-circle-outline" size={22} color={COLORS.textMuted} />
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/business/change-password' as any)} style={styles.headerBtn}>
             <Ionicons name="key-outline" size={20} color={COLORS.textMuted} />
           </TouchableOpacity>

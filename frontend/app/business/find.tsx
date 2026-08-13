@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeImage } from '../../src/components/SafeImage';
+import BusinessOnboardingTour from '../../src/components/BusinessOnboardingTour';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { api } from '../../src/constants/api';
@@ -17,7 +18,7 @@ type Hit = { partner_id: string; name: string; neighborhood?: string; category?:
 export default function FindBusiness() {
   const tr = useTr();
   const router = useRouter();
-  const { token, loading: authLoading } = useBusinessAuth();
+  const { token, business, loading: authLoading } = useBusinessAuth();
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<Hit[]>([]);
   const [searched, setSearched] = useState(false);
@@ -38,6 +39,7 @@ export default function FindBusiness() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <BusinessOnboardingTour businessId={business?.business_id} />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
