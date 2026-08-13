@@ -11,9 +11,10 @@ export default function BusinessLogin() {
   const tr = useTr();
   const router = useRouter();
   const { role } = useLocalSearchParams<{ role?: string }>();
-  const { login } = useBusinessAuth();
+  const { login, passcodeLogin } = useBusinessAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passcode, setPasscode] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -40,16 +41,26 @@ export default function BusinessLogin() {
     setLoading(false);
   };
 
+  const handleAlcaldia = async () => {
+    if (!passcode.trim()) {
+      Alert.alert(tr('Falta el código'), tr('Ingresa el código de acceso'));
+      return;
+    }
+    setLoading(true);
+    try {
+      await passcodeLogin(passcode);
+      router.replace('/business/dashboard');
+    } catch (e: any) {
+      Alert.alert(tr('Acceso'), e?.message || tr('Código incorrecto'));
+    }
+    setLoading(false);
+  };
+
   const fillDemo = () => {
     // Sandbox demo account — a throwaway venue, not a real partner. Safe to ship
     // in the bundle: it only reaches the demo dashboard, never real data.
     setEmail('demo@amocartagena.app');
     setPassword('AmoDemoSandbox2026');
-  };
-
-  const fillAlcaldia = () => {
-    setEmail('alcaldia@amocartagena.app');
-    setPassword('');
   };
 
   return (
@@ -73,59 +84,98 @@ export default function BusinessLogin() {
           </Text>
 
           <View style={styles.form}>
-            <Text style={styles.label}>Email business</Text>
-            <View style={styles.inputWrap}>
-              <Ionicons name="mail-outline" size={18} color={COLORS.textMuted} />
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="tu@negocio.com"
-                placeholderTextColor={COLORS.textMuted}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-            </View>
+            {isAlcaldia ? (
+              <>
+                <Text style={styles.label}>{tr('Código de acceso')}</Text>
+                <View style={styles.inputWrap}>
+                  <Ionicons name="key-outline" size={18} color={COLORS.textMuted} />
+                  <TextInput
+                    style={[styles.input, { letterSpacing: 4 }]}
+                    value={passcode}
+                    onChangeText={setPasscode}
+                    placeholder="••••••••••"
+                    placeholderTextColor={COLORS.textMuted}
+                    keyboardType="number-pad"
+                    secureTextEntry
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    maxLength={24}
+                    returnKeyType="go"
+                    onSubmitEditing={handleAlcaldia}
+                  />
+                </View>
+                <TouchableOpacity style={[styles.loginBtn, styles.alcaldiaLoginBtn, loading && { opacity: 0.6 }]} onPress={handleAlcaldia} disabled={loading}>
+                  {loading ? (
+                    <ActivityIndicator size="small" color={COLORS.white} />
+                  ) : (
+                    <>
+                      <Text style={styles.loginText}>{tr('Entrar')}</Text>
+                      <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
+                    </>
+                  )}
+                </TouchableOpacity>
+                <View style={styles.lockNote}>
+                  <Ionicons name="lock-closed" size={13} color={COLORS.textMuted} />
+                  <Text style={styles.lockNoteText}>{tr('Acceso solo con código. Solicítalo al equipo AMO.')}</Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={styles.label}>Email business</Text>
+                <View style={styles.inputWrap}>
+                  <Ionicons name="mail-outline" size={18} color={COLORS.textMuted} />
+                  <TextInput
+                    style={styles.input}
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="tu@negocio.com"
+                    placeholderTextColor={COLORS.textMuted}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
 
-            <Text style={styles.label}>{tr('Contraseña')}</Text>
-            <View style={styles.inputWrap}>
-              <Ionicons name="lock-closed-outline" size={18} color={COLORS.textMuted} />
-              <TextInput
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="••••••••"
-                placeholderTextColor={COLORS.textMuted}
-                secureTextEntry={!showPw}
-              />
-              <TouchableOpacity onPress={() => setShowPw(s => !s)}>
-                <Ionicons name={showPw ? 'eye-off-outline' : 'eye-outline'} size={18} color={COLORS.textMuted} />
-              </TouchableOpacity>
-            </View>
+                <Text style={styles.label}>{tr('Contraseña')}</Text>
+                <View style={styles.inputWrap}>
+                  <Ionicons name="lock-closed-outline" size={18} color={COLORS.textMuted} />
+                  <TextInput
+                    style={styles.input}
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="••••••••"
+                    placeholderTextColor={COLORS.textMuted}
+                    secureTextEntry={!showPw}
+                  />
+                  <TouchableOpacity onPress={() => setShowPw(s => !s)}>
+                    <Ionicons name={showPw ? 'eye-off-outline' : 'eye-outline'} size={18} color={COLORS.textMuted} />
+                  </TouchableOpacity>
+                </View>
 
-            <TouchableOpacity style={[styles.loginBtn, loading && { opacity: 0.6 }]} onPress={handleLogin} disabled={loading}>
-              {loading ? (
-                <ActivityIndicator size="small" color={COLORS.white} />
-              ) : (
-                <>
-                  <Text style={styles.loginText}>Entrar al dashboard</Text>
-                  <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
-                </>
-              )}
-            </TouchableOpacity>
+                <TouchableOpacity style={[styles.loginBtn, loading && { opacity: 0.6 }]} onPress={handleLogin} disabled={loading}>
+                  {loading ? (
+                    <ActivityIndicator size="small" color={COLORS.white} />
+                  ) : (
+                    <>
+                      <Text style={styles.loginText}>Entrar al dashboard</Text>
+                      <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
+                    </>
+                  )}
+                </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => router.push('/business/forgot-password' as any)}>
-              <Text style={styles.forgotLink}>{tr('¿Olvidaste tu contraseña?')}</Text>
-            </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push('/business/forgot-password' as any)}>
+                  <Text style={styles.forgotLink}>{tr('¿Olvidaste tu contraseña?')}</Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity onPress={fillDemo}>
-              <Text style={styles.demoLink}>Probar con cuenta demo</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={fillAlcaldia} style={styles.alcaldiaBtn}>
-              <Ionicons name="shield-checkmark" size={14} color="#1B4F72" />
-              <Text style={styles.alcaldiaLink}>Acceso Alcaldía de Cartagena</Text>
-            </TouchableOpacity>
+                <TouchableOpacity onPress={fillDemo}>
+                  <Text style={styles.demoLink}>Probar con cuenta demo</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => router.push('/business/login?role=alcaldia' as any)} style={styles.alcaldiaBtn}>
+                  <Ionicons name="shield-checkmark" size={14} color="#1B4F72" />
+                  <Text style={styles.alcaldiaLink}>Acceso Alcaldía de Cartagena</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
 
           {!isAlcaldia && (
@@ -167,6 +217,9 @@ const styles = StyleSheet.create({
   demoLink: { textAlign: 'center', color: COLORS.primary, fontSize: 13, ...FONTS.semibold, marginTop: SPACING.sm },
   alcaldiaBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, marginTop: SPACING.xs, backgroundColor: 'rgba(27,79,114,0.12)', borderWidth: 1, borderColor: '#1B4F72', borderRadius: RADIUS.full },
   alcaldiaLink: { color: '#1B4F72', fontSize: 12, ...FONTS.bold, letterSpacing: 0.3 },
+  alcaldiaLoginBtn: { backgroundColor: '#1B4F72' },
+  lockNote: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: SPACING.md },
+  lockNoteText: { color: COLORS.textMuted, fontSize: 12, ...FONTS.regular },
   signupBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: SPACING.lg },
   signupText: { color: COLORS.textMuted, fontSize: 13, ...FONTS.regular },
   signupTextBold: { color: COLORS.primary, fontSize: 13, ...FONTS.bold },

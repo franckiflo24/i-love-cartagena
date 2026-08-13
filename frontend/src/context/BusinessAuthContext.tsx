@@ -20,6 +20,7 @@ interface BusinessAuthContextType {
   partner: Partner | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  passcodeLogin: (passcode: string) => Promise<void>;
   signup: (email: string, password: string, name: string, phone: string, nit: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -74,6 +75,23 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Alcaldía (mayor's office) DEMO — passcode-only entry, no email/password.
+  const passcodeLogin = async (passcode: string) => {
+    try {
+      const data = await api.post('/business/alcaldia/access', { passcode: passcode.trim() });
+      setToken(data.token);
+      setBusiness(data.business);
+      setPartner(data.partner ?? null);
+      await AsyncStorage.setItem(BIZ_KEY, data.token);
+    } catch (e: any) {
+      const msg = (e && e.message) || '';
+      if (/Failed to fetch|NetworkError|Load failed|ECONNREFUSED|timeout/i.test(msg)) {
+        throw new Error('Acceso no disponible en este momento. / Access not available right now.');
+      }
+      throw e instanceof Error ? e : new Error(msg || 'Código incorrecto');
+    }
+  };
+
   const signup = async (email: string, password: string, name: string, phone: string, nit: string) => {
     // Errors bubble up with the backend's bilingual detail (e.g. "email already
     // has an account") so the signup screen can surface them verbatim.
@@ -106,7 +124,7 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <BusinessAuthContext.Provider value={{ token, business, partner, loading, login, signup, logout, refresh, setPartner }}>
+    <BusinessAuthContext.Provider value={{ token, business, partner, loading, login, passcodeLogin, signup, logout, refresh, setPartner }}>
       {children}
     </BusinessAuthContext.Provider>
   );

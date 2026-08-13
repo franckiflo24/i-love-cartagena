@@ -599,6 +599,35 @@ async def business_login(request: Request):
     return {"token": token, "business": biz_safe, "partner": partner}
 
 
+@api_router.post("/business/alcaldia/access")
+async def alcaldia_demo_access(request: Request):
+    """Passcode-only entry for the Alcaldía (mayor's office) DEMO. A single shared
+    passcode (env ALCALDIA_DEMO_PASSCODE) mints a session for the alcaldía
+    government account — no email/password. Constant-time compare + rate limited so
+    nobody reaches the demo without the code."""
+    await _check_rate_limit(f"alcaldiapass:{_client_ip(request)}", max_calls=8, window_sec=900)
+    body = await request.json()
+    passcode = (body.get("passcode") or "").strip()
+    expected = os.environ.get("ALCALDIA_DEMO_PASSCODE", "")
+    if not expected:
+        raise HTTPException(status_code=503, detail="Acceso no configurado / Access not configured")
+    if not passcode or not hmac.compare_digest(passcode, expected):
+        raise HTTPException(status_code=401, detail="Código incorrecto / Incorrect passcode")
+    biz = await db.business_users.find_one({"business_id": "biz_alcaldia"}, {"_id": 0})
+    if not biz or biz.get("role") != "government":
+        raise HTTPException(status_code=404, detail="Cuenta de Alcaldía no disponible / Alcaldía account unavailable")
+    token = f"biz_{uuid.uuid4().hex}"
+    await db.business_sessions.insert_one({
+        "token": token,
+        "business_id": "biz_alcaldia",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(days=2)).isoformat(),
+        "via": "alcaldia_passcode",
+    })
+    biz_safe = {k: v for k, v in biz.items() if k != "password_hash"}
+    return {"token": token, "business": biz_safe, "partner": None}
+
+
 @api_router.post("/business/change-password")
 async def business_change_password(request: Request):
     """Rotate the calling account's password. Verifies the current password,
