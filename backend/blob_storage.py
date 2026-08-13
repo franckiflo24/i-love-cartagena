@@ -70,9 +70,12 @@ async def upload_bytes(data: bytes, *, pathname: str, content_type: str = "image
         return None
     try:
         async with httpx.AsyncClient(timeout=30) as client:
+            # Vercel Blob wants the pathname in the QUERY STRING (?pathname=...),
+            # NOT the URL path — the SDK does `PUT /?pathname=<path>`.
             resp = await client.put(
-                f"{_API}/{pathname.lstrip('/')}",
+                f"{_API}/",
                 content=data,
+                params={"pathname": pathname.lstrip("/")},
                 headers={
                     "authorization": f"Bearer {token}",
                     "x-api-version": _API_VERSION,
@@ -96,45 +99,6 @@ async def upload_bytes(data: bytes, *, pathname: str, content_type: str = "image
 
 def is_blob_url(url: str) -> bool:
     return isinstance(url, str) and "blob.vercel-storage.com" in url
-
-
-async def probe() -> dict:
-    """TEMP diagnostic — attempt a tiny Blob PUT and return the raw outcome so the
-    exact API response is visible without Vercel logs. Exposes NO secret (only the
-    token's presence/length/format)."""
-    token = _token()
-    info: dict = {
-        "blob_enabled": bool(token),
-        "token_len": len(token),
-        "token_format_ok": token.startswith("vercel_blob_rw_"),
-        "api": _API, "api_version": _API_VERSION,
-    }
-    if not token:
-        info["error"] = "no BLOB_READ_WRITE_TOKEN in this runtime"
-        return info
-    try:
-        async with httpx.AsyncClient(timeout=20) as client:
-            r = await client.put(
-                f"{_API}/diag/probe.txt",
-                content=b"amo-blob-probe",
-                headers={
-                    "authorization": f"Bearer {token}",
-                    "x-api-version": _API_VERSION,
-                    "x-content-type": "text/plain",
-                    "x-add-random-suffix": "1",
-                    "x-vercel-blob-access": "public",
-                    "x-cache-control-max-age": _MAX_AGE,
-                },
-            )
-        info["status"] = r.status_code
-        info["body"] = r.text[:400]
-        try:
-            info["result_url"] = r.json().get("url")
-        except Exception:
-            pass
-    except Exception as exc:  # noqa: BLE001
-        info["exception"] = f"{type(exc).__name__}: {str(exc)[:300]}"
-    return info
 
 
 async def delete_url(blob_url: str) -> bool:

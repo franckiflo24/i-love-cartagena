@@ -114,14 +114,6 @@ async def batch_update(request: Request):
     return {"updated": updated, "total": await db.partners.count_documents({})}
 
 
-@api_router.get("/admin/blob-probe")
-async def admin_blob_probe(request: Request):
-    """TEMP — verify Blob connectivity from the runtime. Moderator-gated. Remove
-    once Blob is confirmed working. Exposes no secret."""
-    await _require_moderator(request)
-    return await _blob.probe()
-
-
 # ── Auth Endpoints ──────────────────────────────────────────
 
 @api_router.post("/auth/google")
@@ -958,8 +950,8 @@ async def business_upload_image(request: Request):
     body = await _json_body(request)
     image_b64 = body.get("image_base64", "")
     purpose = body.get("purpose", "flyer")
-    if not isinstance(image_b64, str) or len(image_b64) > 700_000:
-        raise HTTPException(status_code=413, detail="Imagen demasiado grande (máx ~500KB) / Image too large")
+    if not isinstance(image_b64, str) or len(image_b64) > _upload_cap():
+        raise HTTPException(status_code=413, detail="Imagen demasiado grande / Image too large")
     if not image_b64:
         raise HTTPException(status_code=400, detail="image_base64 is required")
     # Detect mime
@@ -2003,6 +1995,24 @@ async def _mod_log(kind: str, item_id: str, action: str, actor: str, reason: str
 # ── B2C · MEDIA (self-hosted, reviewed — I3) ───────────────────────────────
 _MEDIA_MAX_B64 = 700_000   # ~500KB image; keeps the partner doc lean on approval
 
+
+def _upload_cap() -> int:
+    """Max image_base64 length accepted. With Blob we store a short URL (not the
+    base64), so we accept much larger images — capped under Vercel's ~4.5MB function
+    request-body limit. Without Blob, keep the tight inline-base64 cap."""
+    return 3_800_000 if _blob.blob_enabled() else 700_000
+
+
+def _fold_hero(partners: list) -> None:
+    """In LIST responses, a partner's chosen hero photo (a Blob URL) becomes their
+    card image_url — so an approved partner photo shows EVERYWHERE (cards, map,
+    rails), not just the detail page. Mutates in place and drops the hero_photo
+    field (cards read image_url). The detail endpoint keeps hero_photo separate."""
+    for p in partners:
+        hp = p.pop("hero_photo", None)
+        if hp:
+            p["image_url"] = hp
+
 @api_router.post("/business/media")
 async def business_submit_media(request: Request):
     """Submit a photo for review. Stored PENDING (never public until approved).
@@ -2014,8 +2024,8 @@ async def business_submit_media(request: Request):
     img = body.get("image_base64", "")
     if not isinstance(img, str) or not img.startswith("data:image/"):
         raise HTTPException(status_code=422, detail="Solo imágenes subidas (data:), nunca un URL externo (I3) / Only uploaded data: images, never an external URL")
-    if len(img) > _MEDIA_MAX_B64:
-        raise HTTPException(status_code=413, detail="Imagen demasiado grande (máx ~500KB) / Image too large (max ~500KB)")
+    if len(img) > _upload_cap():
+        raise HTTPException(status_code=413, detail="Imagen demasiado grande / Image too large")
     mime = img.split(";")[0].replace("data:", "") or "image/jpeg"
     from ai_image_moderation import moderate_image_base64
     result = await moderate_image_base64(img, mime=mime)
@@ -3363,7 +3373,8 @@ async def list_partners(category: Optional[str] = None, subcategory: Optional[st
         query["subcategory"] = subcategory
     # Exclude the heavy base64 gallery from the full-catalog list — cards never use
     # it (only the detail page renders photos). Keeps this hot payload lean.
-    partners = await db.partners.find(query, {**PUBLIC_PARTNER_PROJECTION, "photos": 0, "hero_photo": 0}).sort("order", 1).to_list(1500)
+    partners = await db.partners.find(query, {**PUBLIC_PARTNER_PROJECTION, "photos": 0}).sort("order", 1).to_list(1500)
+    _fold_hero(partners)
     return partners
 
 
@@ -3384,7 +3395,8 @@ async def nearby_partners(request: Request):
         if category:
             query["category"] = category
 
-        partners = await db.partners.find(query, {**PUBLIC_PARTNER_PROJECTION, "photos": 0, "hero_photo": 0}).to_list(500)
+        partners = await db.partners.find(query, {**PUBLIC_PARTNER_PROJECTION, "photos": 0}).to_list(500)
+        _fold_hero(partners)
 
         def haversine(lat1, lon1, lat2, lon2):
             R = 6371000

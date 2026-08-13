@@ -11,8 +11,10 @@
 // would be the native follow-up.
 
 // Measured against the FULL `data:image/jpeg;base64,...` string, exactly like the
-// server (`len(image_b64)`). Keep a margin under 700_000.
-const TARGET_LEN = 640_000;
+// server (`len(image_b64)`). Photos now go to Vercel Blob (URL, not inline base64),
+// so we keep full quality — target well under the backend cap (~3.8M) + Vercel's
+// ~4.5MB function request-body limit. Big source photos still step down to fit.
+const TARGET_LEN = 3_500_000;
 
 /** Downscale a data:/blob: image URL to a JPEG under the upload cap. Web only;
  *  returns the input unchanged on native or if it's already small enough. */
@@ -36,9 +38,10 @@ export async function downscaleForUpload(
   }
 
   let best = input;
-  // Largest → smallest longest-edge; at each size step quality down.
-  for (const maxDim of [opts.maxDim ?? 1600, 1280, 1024, 800, 640]) {
-    for (const quality of [0.82, 0.72, 0.62, 0.5, 0.4]) {
+  // Largest → smallest longest-edge; at each size step quality down. Start high
+  // (2400px @ 0.9) for full-quality photos; only shrink if a source is huge.
+  for (const maxDim of [opts.maxDim ?? 2400, 2000, 1600, 1200, 900]) {
+    for (const quality of [0.9, 0.82, 0.72, 0.6, 0.5]) {
       const encoded = drawToJpeg(img, maxDim, quality);
       if (!encoded) continue;
       if (encoded.length <= targetLen) return encoded;
