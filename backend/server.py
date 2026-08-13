@@ -4804,6 +4804,20 @@ async def global_search(q: str = "", request: Request = None):
                     hit = True
             if hit and t in distinctive_set:
                 has_distinctive = True
+        # Visual tags from AI photo analysis (patio, cóctel, terraza…). A LOW-weight,
+        # ADDITIVE signal scored SEPARATELY from the fields above so it NEVER sets
+        # has_distinctive — it can gently surface / break ties on soft queries but can
+        # NOT push a photo-tag-only match past a real content match on a distinctive
+        # query (the gate at line ~4901 still requires a real distinctive hit). Weight
+        # sits below every content field, so it never reorders strong matches.
+        vtags = p.get("visual_tags")
+        if isinstance(vtags, list) and vtags:
+            vt_words = set(_norm(" ".join(str(v) for v in vtags)).split())
+            for t, tw in term_weights.items():
+                if t in vt_words:
+                    score += 1.5 * tw
+                elif len(t) >= 4 and any(t in w for w in vt_words):
+                    score += 0.6 * tw
         # Location is a boost, not a filter: "thai centro" with zero Thai in
         # Centro should still surface the Getsemaní one, ranked honestly.
         if neighborhood_matchers:
@@ -4848,6 +4862,7 @@ async def global_search(q: str = "", request: Request = None):
             {"name": regex}, {"description": regex}, {"category": regex},
             {"subcategory": regex}, {"cuisine": regex}, {"address": regex},
             {"experience": regex}, {"tier": regex}, {"tags": regex},
+            {"visual_tags": regex},
             {"signature_dishes": regex}, {"search_profile": regex},
         ]},
         PUBLIC_PARTNER_PROJECTION
