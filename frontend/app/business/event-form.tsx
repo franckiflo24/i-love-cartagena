@@ -97,19 +97,20 @@ export default function EventForm() {
       }
       const verdict = result?._remoderation?.verdict || result?.moderation_verdict;
       const reason = result?._remoderation?.reason || result?.moderation_reason;
+      // Route DIRECTLY on every outcome — never gate navigation on an Alert button's
+      // onPress (Alert is a no-op on react-native-web). The message is informational.
+      router.back();
       if (verdict === 'NEEDS_REVIEW') {
-        Alert.alert('En revisión', reason || 'La IA marcó tu evento para revisión manual del admin. Te avisaremos cuando se apruebe.', [{ text: 'OK', onPress: () => router.back() }]);
+        Alert.alert('En revisión', reason || 'La IA marcó tu evento para revisión manual del admin. Te avisaremos cuando se apruebe.');
       } else if (verdict === 'REJECT') {
-        Alert.alert('Rechazado', reason || 'La IA detectó contenido no apto.', [{ text: 'OK', onPress: () => router.back() }]);
+        Alert.alert('Rechazado', reason || 'La IA detectó contenido no apto.');
       } else {
         // In static mode, result has no verdict (just the payload back).
-        // Show success so the partner gets clear feedback.
         Alert.alert(
           isEdit ? 'Cambios guardados' : 'Evento creado',
           isEdit
             ? 'Tu evento fue actualizado exitosamente.'
             : 'Tu evento fue creado. Aparecerá en la agenda una vez aprobado.',
-          [{ text: 'OK', onPress: () => router.back() }],
         );
       }
     } catch (e: any) {

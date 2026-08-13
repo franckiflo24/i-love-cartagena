@@ -17,6 +17,10 @@ export default function ForgotPassword() {
   const [code, setCode] = useState('');
   const [next, setNext] = useState('');
   const [busy, setBusy] = useState(false);
+  // Robust success: routing must NOT depend on an Alert button's onPress (Alert is a
+  // no-op on react-native-web — that gated route was the "reset completes but nothing
+  // happens" bug). On success we flip to a visible done-state rendered by React.
+  const [done, setDone] = useState(false);
 
   const requestCode = async () => {
     if (!email || !email.includes('@')) { Alert.alert(tr('Email inválido'), tr('Ingresa tu email')); return; }
@@ -34,9 +38,7 @@ export default function ForgotPassword() {
     setBusy(true);
     try {
       await api.post('/business/reset-password-with-code', { email: email.trim().toLowerCase(), code: code.trim(), new_password: next });
-      Alert.alert(tr('Contraseña restablecida'), tr('Ya puedes iniciar sesión con tu nueva contraseña.'), [
-        { text: 'OK', onPress: () => router.replace('/business/login' as any) },
-      ]);
+      setDone(true); // visible success state + explicit route button — never gated on an Alert callback
     } catch (e: any) {
       Alert.alert(tr('No se pudo restablecer'), e?.message || tr('Código incorrecto o expirado'));
     }
@@ -54,7 +56,16 @@ export default function ForgotPassword() {
       </View>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          {step === 'email' ? (
+          {done ? (
+            <View style={styles.doneWrap}>
+              <Ionicons name="checkmark-circle" size={64} color="#22C55E" />
+              <Text style={styles.doneTitle}>{tr('Contraseña restablecida')}</Text>
+              <Text style={[styles.lead, { textAlign: 'center' }]}>{tr('Ya puedes iniciar sesión con tu nueva contraseña.')}</Text>
+              <TouchableOpacity style={[styles.btn, { width: '100%' }]} onPress={() => router.replace('/business/login' as any)}>
+                <Text style={styles.btnText}>{tr('Iniciar sesión')}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : step === 'email' ? (
             <>
               <Text style={styles.lead}>{tr('Ingresa el email de tu cuenta y te enviaremos un código para restablecer tu contraseña.')}</Text>
               <View style={styles.inputWrap}>
@@ -97,6 +108,8 @@ const styles = StyleSheet.create({
   hTitle: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold },
   scroll: { padding: SPACING.lg },
   lead: { fontSize: 14, color: COLORS.textMain, ...FONTS.regular, lineHeight: 20, marginBottom: SPACING.lg },
+  doneWrap: { alignItems: 'center', gap: SPACING.md, paddingTop: SPACING.xl },
+  doneTitle: { fontSize: 20, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
   label: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: SPACING.md, marginBottom: SPACING.xs },
   inputWrap: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: SPACING.md, height: 50 },
   input: { flex: 1, color: COLORS.textMain, fontSize: 14, ...FONTS.regular },

@@ -70,9 +70,11 @@ export default function CreateVenue() {
         description: description.trim(), phone: phone.trim(), website: website.trim(), nit: nit.trim(),
       }, { headers: { Authorization: `Bearer ${token}` } });
       await refresh();
-      Alert.alert(tr('Enviado a revisión'), tr('Tu negocio pasó a revisión del equipo. No aparece en el catálogo hasta ser aprobado.'), [
-        { text: 'OK', onPress: () => router.replace('/business/dashboard' as any) },
-      ]);
+      // Route DIRECTLY on success — never gate navigation on an Alert button's onPress
+      // (Alert is a no-op on react-native-web). The message is informational; AlertHost
+      // is at the app root so it still shows over the destination.
+      router.replace('/business/dashboard' as any);
+      Alert.alert(tr('Enviado a revisión'), tr('Tu negocio pasó a revisión del equipo. No aparece en el catálogo hasta ser aprobado.'));
       void r;
     } catch (e: any) {
       Alert.alert(tr('No se pudo crear'), tr('Ya existe un negocio muy similar. Recláchalo en vez de crear uno nuevo.').replace('Recláchalo', 'Reclámalo'));
