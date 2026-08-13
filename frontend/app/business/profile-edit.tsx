@@ -58,7 +58,12 @@ export default function ProfileEdit() {
         whatsapp: whatsapp.trim(),
         phone: phone.trim(),
       }, { headers: { Authorization: `Bearer ${token}` } });
-      if (!result?.updated_at) {
+      // Backend returns { updated: true|false, partner }. It NEVER returns
+      // `updated_at`, so the old `!result?.updated_at` check declared every save a
+      // failure even though it persisted. `updated === undefined` means we didn't get
+      // the server's real response (e.g. a static/no-op build) — that's the only case
+      // where the change genuinely didn't reach the backend.
+      if (result?.updated === undefined) {
         Alert.alert('No disponible', 'La edición de perfil requiere conexión al servidor. Los cambios no se guardaron.');
         setSaving(false);
         return;
