@@ -1,4 +1,5 @@
-import { Platform, Alert } from 'react-native';
+import { Platform } from 'react-native';
+import { Alert } from './alert';
 import * as WebBrowser from 'expo-web-browser';
 import { api } from '../constants/api';
 

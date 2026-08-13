@@ -13,6 +13,7 @@ import { PartnerCountProvider } from '../src/context/PartnerCountContext';
 import { SignupGateProvider } from '../src/context/SignupGateContext';
 import PushBootstrap from '../src/components/PushBootstrap';
 import ErrorBoundary from '../src/components/ErrorBoundary';
+import { AlertHost } from '../src/lib/alert';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -80,6 +81,7 @@ export default function RootLayout() {
         <Stack.Screen name="eventos" options={{ presentation: 'modal' }} />
         <Stack.Screen name="favoritos" options={{ presentation: 'modal' }} />
       </Stack>
+      <AlertHost />
       </SignupGateProvider>
       </PartnerCountProvider>
       </RewardsProvider>
