@@ -252,9 +252,16 @@ export default function Root({ children }: PropsWithChildren) {
           (function(){
             var p=document.getElementById('amo-preloader');
             if(!p)return;
+            // Hold the brand moment at least MIN ms so the logo reveal (AMO → heart →
+            // tagline) always completes even when the app hydrates in <1s. Fast loads
+            // wait up to MIN; slow loads dismiss as soon as they're ready past it.
+            var START=Date.now(), MIN=2000, done=false;
             var dismiss=function(){
-              p.classList.add('hide');
-              setTimeout(function(){if(p.parentNode)p.parentNode.removeChild(p)},600);
+              if(done)return; done=true;
+              setTimeout(function(){
+                p.classList.add('hide');
+                setTimeout(function(){if(p.parentNode)p.parentNode.removeChild(p)},600);
+              }, Math.max(0, MIN-(Date.now()-START)));
             };
             // Watch for React hydration: Expo sets __EXPO_ROUTER_HYDRATE__ then
             // the real UI replaces the static shell. Use MutationObserver on #root
