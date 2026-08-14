@@ -49,7 +49,8 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="AMO Cartagena" />
         <meta name="twitter:description" content="Descubre 800+ lugares en Cartagena de Indias" />
-        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Cdefs%3E%3ClinearGradient id='h' x1='8' y1='12' x2='48' y2='48'%3E%3Cstop offset='0%25' stop-color='%23F59E0B'/%3E%3Cstop offset='100%25' stop-color='%23D97706'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M28 48s-18-11.2-18-24.5C10 16.6 15.6 11 22.5 11c4 0 5.5 2.5 5.5 2.5S29.5 11 33.5 11C40.4 11 46 16.6 46 23.5 46 36.8 28 48 28 48z' fill='url(%23h)'/%3E%3C/svg%3E" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/brand/amo-heart-512.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/brand/amo-heart-32.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -184,8 +185,7 @@ export default function Root({ children }: PropsWithChildren) {
             justify-content: center;
             background: #020408;
             background-image:
-              radial-gradient(ellipse 600px 400px at 30% 35%, rgba(217,119,6,0.06) 0%, transparent 70%),
-              radial-gradient(ellipse 500px 500px at 75% 60%, rgba(217,119,6,0.03) 0%, transparent 70%);
+              radial-gradient(ellipse 720px 520px at 50% 45%, rgba(245,11,27,0.05) 0%, transparent 70%);
             transition: opacity 0.5s ease, visibility 0.5s ease;
           }
           #amo-preloader.hide {
@@ -194,52 +194,16 @@ export default function Root({ children }: PropsWithChildren) {
             pointer-events: none;
           }
 
-          /* Heart icon */
-          .amo-heart {
-            width: 56px;
-            height: 56px;
-            margin-bottom: 20px;
-            animation: amo-heartbeat 1.6s ease-in-out infinite;
-          }
-          .amo-heart svg {
-            width: 100%;
-            height: 100%;
-            filter: drop-shadow(0 0 20px rgba(217,119,6,0.3));
-          }
-          @keyframes amo-heartbeat {
-            0%, 100% { transform: scale(1); }
-            15% { transform: scale(1.15); }
-            30% { transform: scale(1); }
-            45% { transform: scale(1.1); }
-            60% { transform: scale(1); }
-          }
-
-          /* Brand text */
-          .amo-brand {
-            font-family: 'Outfit', system-ui, sans-serif;
-            font-weight: 700;
-            font-size: 28px;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            background: linear-gradient(135deg, #D97706, #F59E0B, #D97706);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            opacity: 0;
-            animation: amo-fadein 0.8s ease 0.2s forwards;
-          }
-          .amo-sub {
-            font-family: 'Outfit', system-ui, sans-serif;
-            font-weight: 300;
-            font-size: 12px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.25);
-            margin-top: 6px;
-            opacity: 0;
-            animation: amo-fadein 0.8s ease 0.5s forwards;
+          /* Brand logo video (animated AMO ❤ world · Cityguide & Lifestyle lockup) */
+          .amo-logo-video {
+            width: min(74vw, 380px);
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 44px rgba(245,11,27,0.16));
+            animation: amo-fadein 0.5s ease forwards;
           }
           @keyframes amo-fadein {
+            from { opacity: 0; }
             to { opacity: 1; }
           }
 
@@ -262,7 +226,7 @@ export default function Root({ children }: PropsWithChildren) {
             height: 100%;
             width: 40%;
             border-radius: 2px;
-            background: linear-gradient(90deg, transparent, #D97706, transparent);
+            background: linear-gradient(90deg, transparent, #F50B1B, transparent);
             animation: amo-slide 1.4s ease-in-out infinite;
           }
           @keyframes amo-slide {
@@ -273,20 +237,14 @@ export default function Root({ children }: PropsWithChildren) {
       </head>
       <body>
         <div id="amo-preloader">
-          <div className="amo-heart">
-            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="hg" x1="8" y1="12" x2="48" y2="48">
-                  <stop offset="0%" stopColor="#F59E0B" />
-                  <stop offset="50%" stopColor="#D97706" />
-                  <stop offset="100%" stopColor="#B45309" />
-                </linearGradient>
-              </defs>
-              <path d="M28 48s-18-11.2-18-24.5C10 16.6 15.6 11 22.5 11c4 0 5.5 2.5 5.5 2.5S29.5 11 33.5 11C40.4 11 46 16.6 46 23.5 46 36.8 28 48 28 48z" fill="url(#hg)" />
-            </svg>
-          </div>
-          <div className="amo-brand">AMO</div>
-          <div className="amo-sub">Cartagena</div>
+          {/* New brand logo (AMO ❤ world · Cityguide & Lifestyle). The <video> plays
+              the animated reveal; the poster is the final logo frame so the full brand
+              paints instantly and remains if the video can't play (Safari-only HEVC is
+              transcoded to H.264 mp4 + VP9 webm, muted+playsinline for autoplay). */}
+          <video className="amo-logo-video" autoPlay muted playsInline poster="/brand/amo-logo-poster.jpg" aria-label="AMO — Cityguide & Lifestyle">
+            <source src="/brand/amo-logo.webm" type="video/webm" />
+            <source src="/brand/amo-logo.mp4" type="video/mp4" />
+          </video>
           <div className="amo-progress"><i></i></div>
         </div>
         {children}

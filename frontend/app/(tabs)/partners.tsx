@@ -7,6 +7,7 @@ import { COLORS, SPACING, RADIUS, FONTS, PARTNER_CATEGORY_LABELS, TIER_COLORS, T
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
+import { BrandLoader } from '../../src/components/BrandLoader';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { matchesCuisine } from '../../src/lib/cuisineMatch';
@@ -322,7 +323,7 @@ export default function PartnersScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
         {loading ? (
-          <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
+          <BrandLoader />
         ) : tierShowcase ? (
           /* ── Tier Showcase: all partners of a tier across categories ── */
           <View style={styles.list}>
