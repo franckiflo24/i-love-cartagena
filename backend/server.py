@@ -4786,7 +4786,11 @@ async def global_search(q: str = "", request: Request = None):
         "burger": ["fastfood", "hamburguesa"], "hamburguesa": ["fastfood", "burger"],
         "hamburguesas": ["fastfood", "burger"],
         "argentino": ["argentina", "parrilla", "carnes"], "argentina": ["parrilla"],
-        "mediterraneo": ["mediterranean"], "mediterranea": ["mediterranean"],
+        # Mediterranean is a basin: pull the Levantine/Arab, Spanish, French, Greek
+        # kitchens too (the enriched style_tags), not only the 4 tagged 'mediterranean'.
+        "mediterraneo": ["mediterranean", "middle_eastern", "spanish", "french", "greek", "arabe"],
+        "mediterranea": ["mediterranean", "middle_eastern", "spanish", "french", "greek", "arabe"],
+        "mediterranean": ["mediterranean", "middle_eastern", "spanish", "french", "greek", "arabe"],
         "desayuno": ["cafe", "brunch"],
         # Coffee drinks — anchor espresso-vocabulary to the cafe category so
         # "un buen macchiato" resolves to cafés, never a fuzzy "buen*" name hit
@@ -7139,12 +7143,22 @@ async def agent_chat(request: Request):
     except Exception as exc:
         logger.warning(f"[agent] taste load failed: {exc}")
 
+    # Speed: Haiku 4.5 (~2-3s) for the common recommendation/lookup queries; reserve
+    # Sonnet (~8-15s) only for genuinely complex multi-day planning. Concierge answers
+    # are retrieval-grounded, so Haiku gives the same real venues far faster.
+    _lt = user_text.lower()
+    _complex = len(user_text) > 240 or any(
+        w in _lt for w in ("itinerario", "itinerary", "planea", "plan my", "plan me", "3 dias",
+                           "3 días", "3 days", "cuatro dias", "4 days", "fin de semana completo",
+                           "full weekend", "día por día", "day by day", "week ", "semana entera")
+    )
     assistant_payload = await _ai_agent.run_agent_turn(
         db,
         user=user,
         user_text=user_text,
         history=short_history,
         forced_language=forced_lang or None,
+        fast=not _complex,
     )
 
     now_iso = datetime.now(timezone.utc).isoformat()

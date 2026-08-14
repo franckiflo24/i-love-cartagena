@@ -533,12 +533,21 @@ _TAG_SYN = {
     "cocktails": "cocktails", "cocteles": "cocktails", "coctel": "cocktails",
 }
 
+# "Mediterranean" is a basin, not one cuisine: a guest asking for Mediterranean
+# means the Levantine/Arab, Spanish, French and Greek kitchens too — expand it so
+# the search returns the whole family, not only the 4 tagged literally 'mediterranean'.
+_TAG_EXPAND = {
+    "mediterranean": ["mediterranean", "middle_eastern", "spanish", "french", "greek"],
+}
+
 def _canonical_tags(terms):
     out = []
     for t in terms or []:
         k = _strip_accents(str(t).lower()).strip()
-        if k in _TAG_SYN and _TAG_SYN[k] not in out:
-            out.append(_TAG_SYN[k])
+        if k in _TAG_SYN:
+            for tag in _TAG_EXPAND.get(_TAG_SYN[k], [_TAG_SYN[k]]):
+                if tag not in out:
+                    out.append(tag)
     return out
 
 
