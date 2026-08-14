@@ -40,7 +40,7 @@ const CATEGORIES: CategoryCard[] = [
   { key: 'wellness',   label: 'Wellness & Spa',icon: 'leaf',       color: '#10B981', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=300&fit=crop',
     dbKeys: ['wellness', 'spa', 'beauty'] },
   { key: 'nightlife',  label: 'Bares & Clubs', icon: 'wine',       color: '#8B5CF6', image: 'https://images.unsplash.com/photo-1645496761317-d4122dfc2264?w=600&h=300&fit=crop',
-    dbKeys: ['bar', 'club'] },
+    dbKeys: ['bar', 'nightlife', 'club'] },
   { key: 'beach_club', label: 'Beach Clubs',   icon: 'sunny',      color: '#06B6D4', image: 'https://images.unsplash.com/photo-1546484458-6904289cd4f0?w=600&h=300&fit=crop',
     dbKeys: ['beach_club'] },
   { key: 'service',    label: 'Servicios',     icon: 'construct',  color: '#64748B', image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&h=300&fit=crop',
@@ -192,7 +192,7 @@ export default function PartnersScreen() {
     if (!subKey || subKey === 'all') return true;
     if (selectedCard?.tierAsSubcat) return p.tier === subKey;
     if (subKey === 'cafe' && p.category === 'cafe') return true;
-    if (subKey === 'spa'  && p.category === 'spa')  return true;
+    if (subKey === 'spa'  && (p.category === 'wellness' || p.category === 'spa'))  return true;
 
     // Activity card: filter by top-level category
     if (subKey === 'tours'       && (p.category === 'activity')) return true;

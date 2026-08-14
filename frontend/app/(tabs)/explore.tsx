@@ -109,8 +109,8 @@ const CATEGORIES: CategoryItem[] = [
   { key: 'restaurants',label: 'Restaurantes',icon: 'restaurant',       apiValue: 'restaurant' },
   { key: 'bars',       label: 'Bares',       icon: 'wine',             apiValue: 'bar' },
   { key: 'cafes',      label: 'Cafés',       icon: 'cafe',             apiValue: 'cafe' },
-  { key: 'nightlife',  label: 'Nightlife',   icon: 'musical-notes',    apiValue: 'club' },
-  { key: 'spas',       label: 'Spa',         icon: 'leaf',             apiValue: 'spa' },
+  { key: 'nightlife',  label: 'Nightlife',   icon: 'musical-notes',    apiValue: 'nightlife' },
+  { key: 'spas',       label: 'Spa',         icon: 'leaf',             apiValue: 'wellness' },
   { key: 'beachclubs', label: 'Beach Clubs', icon: 'umbrella',         apiValue: 'beach_club' },
   { key: 'yachts',     label: 'Yachts',      icon: 'boat',             apiValue: 'yacht' },
   { key: 'beauty',     label: 'Belleza',     icon: 'cut',              apiValue: 'beauty' },
@@ -142,7 +142,7 @@ const SUBCATEGORIES: Record<string, Subcat[]> = {
     { key: 'lounge',        label: 'Lounge',         icon: 'cafe' },
     { key: 'salsa_bar',     label: 'Salsa Bar',      icon: 'musical-notes' },
   ],
-  club: [
+  nightlife: [
     { key: 'nightclub',     label: 'Nightclub',      icon: 'musical-notes' },
     { key: 'live_music',    label: 'Live Music',     icon: 'mic' },
     { key: 'champeta',      label: 'Champeta',       icon: 'musical-note' },
@@ -153,7 +153,7 @@ const SUBCATEGORIES: Record<string, Subcat[]> = {
     { key: 'brunch',        label: 'Brunch',         icon: 'sunny' },
     { key: 'bakery',        label: 'Panadería',      icon: 'pizza' },
   ],
-  spa: [
+  wellness: [
     { key: 'massage',         label: 'Masajes',         icon: 'hand-right' },
     { key: 'wellness_center', label: 'Centros Wellness',icon: 'leaf' },
   ],

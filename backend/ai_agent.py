@@ -482,16 +482,64 @@ def _relevance_rerank(rows, stems):
         cui = _strip_accents((p.get("cuisine") or "").lower())
         cat = _strip_accents((p.get("category") or "").lower())
         tags = _strip_accents(" ".join(p.get("tags") or []).lower())
+        stags = _strip_accents(" ".join(p.get("style_tags") or []).lower())
         s = 0
         for st in stems:
             if st in name: s += 6
             if st in sub: s += 4
             if st in cui: s += 4
+            if st in stags: s += 4
             if st in cat: s += 2
             if st in tags: s += 1
-        return (s, p.get("rating") or 0, p.get("reviews") or 0)
+        # tiebreak by rank_score (tier + claimed + engagement) so among equally-relevant
+        # venues the elite/claimed/high-engagement ones surface first.
+        return (s, p.get("rank_score") or 0, p.get("rating") or 0)
 
     return sorted(rows, key=sc, reverse=True)
+
+
+# DB categories were renamed in CATALOG-MIGRATE (spa→wellness, club→nightlife).
+# Normalize legacy keys so every existing keyword/synonym mapping — which still says
+# spa/club — resolves to the live category instead of returning zero.
+_CAT_ALIAS = {"spa": "wellness", "club": "nightlife"}
+
+def _alias_cats(cats):
+    return [_CAT_ALIAS.get(c, c) for c in (cats or [])]
+
+# Multilingual cuisine terms → canonical style_tags (the enriched multi-cuisine field),
+# so "mariscos"/"seafood" both hit style_tags:seafood, "mediterránea"/"mediterranean"
+# hit :mediterranean, "árabe"/"lebanese" hit :middle_eastern — both languages, one venue set.
+_TAG_SYN = {
+    "seafood": "seafood", "mariscos": "seafood", "pescado": "seafood", "ceviche": "seafood",
+    "mediterranean": "mediterranean", "mediterranea": "mediterranean", "mediterraneo": "mediterranean",
+    "middle_eastern": "middle_eastern", "arabe": "middle_eastern", "arabic": "middle_eastern",
+    "libanes": "middle_eastern", "libanesa": "middle_eastern", "lebanese": "middle_eastern",
+    "marroqui": "middle_eastern", "moroccan": "middle_eastern", "turco": "middle_eastern", "turkish": "middle_eastern",
+    "italian": "italian", "italiana": "italian", "italiano": "italian", "pizza": "italian", "pasta": "italian",
+    "french": "french", "francesa": "french", "frances": "french",
+    "spanish": "spanish", "espanola": "spanish", "espanol": "spanish", "tapas": "spanish", "paella": "spanish",
+    "mexican": "mexican", "mexicana": "mexican", "tacos": "mexican",
+    "peruvian": "peruvian", "peruana": "peruvian", "nikkei": "peruvian",
+    "asian": "asian", "asiatica": "asian", "asiatico": "asian", "thai": "thai", "tailandesa": "thai",
+    "sushi": "sushi", "japonesa": "sushi", "japanese": "sushi",
+    "colombian": "colombian", "colombiana": "colombian", "tipica": "colombian",
+    "caribbean": "caribbean", "caribena": "caribbean", "caribeno": "caribbean",
+    "healthy": "healthy", "saludable": "healthy", "vegano": "healthy", "vegetariano": "healthy", "vegan": "healthy",
+    "grill": "grill", "parrilla": "grill", "asado": "grill", "steak": "grill", "carnes": "grill",
+    "fine_dining": "fine_dining", "gourmet": "fine_dining",
+    "fast_food": "fast_food", "burger": "fast_food", "hamburguesa": "fast_food",
+    "cafe_brunch": "cafe_brunch", "brunch": "cafe_brunch", "desayuno": "cafe_brunch",
+    "fusion": "fusion", "international": "international", "internacional": "international",
+    "cocktails": "cocktails", "cocteles": "cocktails", "coctel": "cocktails",
+}
+
+def _canonical_tags(terms):
+    out = []
+    for t in terms or []:
+        k = _strip_accents(str(t).lower()).strip()
+        if k in _TAG_SYN and _TAG_SYN[k] not in out:
+            out.append(_TAG_SYN[k])
+    return out
 
 
 def _extract_filters_from_text(text: str) -> Dict[str, Any]:
@@ -635,11 +683,12 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
         "neighborhood": 1, "experience": 1, "tags": 1, "signature_dishes": 1,
         "zone": 1, "serves_destinations": 1, "status": 1,
         "cuisine": 1,  # needed for cuisine-based recall/ranking (e.g. "Mediterráneo")
+        "style_tags": 1, "rank_score": 1, "brand": 1,  # enriched catalog (CATALOG-MIGRATE)
     }
 
     # ── Step 1: Try LLM intent routing ──
     routed = await _route_intent(db, user_text)
-    routed_cats = routed.get("categories") or []
+    routed_cats = _alias_cats(routed.get("categories") or [])  # spa→wellness, club→nightlife
     routed_subcats = routed.get("subcategories") or []
     search_terms = routed.get("search_terms") or []
     used_llm_routing = bool(routed_cats or routed_subcats or search_terms)
@@ -665,7 +714,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
             else:
                 conditions.append({"subcategory": {"$in": routed_subcats}})
 
-        # Text-search search_terms against multiple fields
+        # Text-search search_terms against multiple fields (incl. the enriched style_tags)
         if search_terms:
             term_regex = "|".join(re.escape(t) for t in search_terms)
             text_or = [
@@ -677,7 +726,12 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
                 {"search_profile": {"$regex": term_regex, "$options": "i"}},
                 {"tags": {"$regex": term_regex, "$options": "i"}},
                 {"signature_dishes": {"$regex": term_regex, "$options": "i"}},
+                {"style_tags": {"$regex": term_regex, "$options": "i"}},
             ]
+            # Multilingual → canonical style_tags (mariscos→seafood, mediterránea→mediterranean…)
+            canon = _canonical_tags(search_terms + (user_text or "").split())
+            if canon:
+                text_or.append({"style_tags": {"$in": canon}})
             conditions.append({"$or": text_or})
 
         if conditions:
@@ -688,11 +742,11 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
                 # (not $and, which would be too restrictive)
                 query = {"$or": conditions}
     else:
-        # Keyword fallback path (same as original logic)
+        # Keyword fallback path (alias legacy spa/club → wellness/nightlife)
         if "category" in semantic:
-            query["category"] = semantic["category"]
+            query["category"] = _CAT_ALIAS.get(semantic["category"], semantic["category"])
         elif "category_in" in semantic:
-            query["category"] = {"$in": semantic["category_in"]}
+            query["category"] = {"$in": _alias_cats(semantic["category_in"])}
         if "subcategory" in semantic:
             query["subcategory"] = semantic["subcategory"]
         if "tier" in semantic:
@@ -732,13 +786,13 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
                 {"experience": {"$regex": free_text[:50], "$options": "i"}},
             ]
 
-    cursor = db.partners.find({**PUBLIC_PARTNER_FILTER, **query}, fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
+    cursor = db.partners.find({**PUBLIC_PARTNER_FILTER, **query}, fields).sort([("rank_score", -1), ("rating", -1)]).limit(max_results)
     rows = await cursor.to_list(max_results)
 
     # If LLM-routed query returned empty, try with just category (drop search_terms)
     if not rows and used_llm_routing and routed_cats:
         fallback_q: Dict[str, Any] = {"category": {"$in": routed_cats}} if len(routed_cats) > 1 else {"category": routed_cats[0]}
-        cursor = db.partners.find({**PUBLIC_PARTNER_FILTER, **fallback_q}, fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
+        cursor = db.partners.find({**PUBLIC_PARTNER_FILTER, **fallback_q}, fields).sort([("rank_score", -1), ("rating", -1)]).limit(max_results)
         rows = await cursor.to_list(max_results)
 
     # Keyword fallback: broader bar/restaurant pool
@@ -748,15 +802,15 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
             vibe in {"aperitivo", "sunset", "rooftop", "sea_view", "electro", "salsa", "reggaeton", "champeta"}
             or "category_in" in semantic
         ):
-            cats = semantic.get("category_in") or ["bar", "club", "beach_club", "nightclub", "restaurant"]
+            cats = _alias_cats(semantic.get("category_in") or ["bar", "nightlife", "beach_club", "restaurant"])
             cursor = db.partners.find(
                 {**PUBLIC_PARTNER_FILTER, "category": {"$in": cats}}, fields,
-            ).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
+            ).sort([("rank_score", -1), ("rating", -1)]).limit(max_results)
             rows = await cursor.to_list(max_results)
 
     # Ultimate fallback: diverse top partners
     if not rows:
-        cursor = db.partners.find(dict(PUBLIC_PARTNER_FILTER), fields).sort([("rating", -1), ("reviews", -1)]).limit(max_results)
+        cursor = db.partners.find(dict(PUBLIC_PARTNER_FILTER), fields).sort([("rank_score", -1), ("rating", -1)]).limit(max_results)
         rows = await cursor.to_list(max_results)
 
     # ── Recall + relevance pass (accent/language-insensitive) ──
@@ -769,11 +823,11 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
     if stems:
         stem_regex = "|".join(_accent_flex(s) for s in stems)
         stem_q = {"$or": [{f: {"$regex": stem_regex, "$options": "i"}}
-                          for f in ("name", "subcategory", "cuisine", "tags", "experience")]}
+                          for f in ("name", "subcategory", "cuisine", "tags", "experience", "style_tags")]}
         try:
             stem_rows = await db.partners.find(
                 {**PUBLIC_PARTNER_FILTER, **stem_q}, fields
-            ).sort([("rating", -1), ("reviews", -1)]).limit(80).to_list(80)
+            ).sort([("rank_score", -1), ("rating", -1)]).limit(80).to_list(80)
             seen = {r.get("partner_id") for r in rows}
             rows = rows + [r for r in stem_rows if r.get("partner_id") not in seen]
         except Exception as exc:
@@ -801,7 +855,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
             op_q = {"category": {"$in": ["yacht", "service"]}, "serves_destinations": {"$in": _dest}}
         try:
             op_rows = await db.partners.find({**PUBLIC_PARTNER_FILTER, **op_q}, fields).sort(
-                [("rating", -1), ("reviews", -1)]).limit(12).to_list(12)
+                [("rank_score", -1), ("rating", -1)]).limit(12).to_list(12)
             if op_rows:
                 seen = {r.get("partner_id") for r in op_rows}
                 rows = op_rows + [r for r in rows if r.get("partner_id") not in seen]
@@ -865,7 +919,7 @@ async def _slim_all_partners_compact(db, limit: int = 80) -> List[Dict[str, Any]
     """Top partners — ultra-compact. Only partner_id + name + category for ID resolution."""
     cursor = db.partners.find(dict(PUBLIC_PARTNER_FILTER), {
         "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
-    }).sort([("rating", -1), ("reviews", -1)]).limit(limit)
+    }).sort([("rank_score", -1), ("rating", -1)]).limit(limit)
     return await cursor.to_list(limit)
 
 

@@ -4718,9 +4718,9 @@ async def global_search(q: str = "", request: Request = None):
         "beer": "bar", "cerveza": "bar", "wine": "bar", "vino": "bar",
         "thirsty": "bar", "sed": "bar",
         # Nightlife
-        "dance": "club", "bailar": "club", "salsa": "club", "champeta": "club",
-        "nightlife": "club", "fiesta": "club", "party": "club",
-        "noche": "club", "tonight": "club", "vibes": "bar",
+        "dance": "nightlife", "bailar": "nightlife", "salsa": "nightlife", "champeta": "nightlife",
+        "nightlife": "nightlife", "fiesta": "nightlife", "party": "nightlife",
+        "noche": "nightlife", "tonight": "nightlife", "vibes": "bar",
         # Beach/Pool
         "beach": "beach_club", "playa": "beach_club", "pool": "beach_club",
         "island": "beach_club", "isla": "beach_club",
@@ -4734,8 +4734,8 @@ async def global_search(q: str = "", request: Request = None):
         # "sunset cruise"/"sunset sail" were returning rooftop bars, not operators.
         "cruise": "yacht", "crucero": "yacht", "sail": "yacht", "sailing": "yacht",
         # Wellness
-        "relax": "spa", "massage": "spa", "masaje": "spa", "tired": "spa",
-        "yoga": "spa", "gym": "activity", "fitness": "activity",
+        "relax": "wellness", "massage": "wellness", "masaje": "wellness", "tired": "wellness",
+        "spa": "wellness", "wellness": "wellness", "yoga": "wellness", "gym": "activity", "fitness": "activity",
         # Beauty
         "hair": "beauty", "nails": "beauty", "salon": "beauty", "barber": "beauty",
         # Hotels
@@ -5000,6 +5000,19 @@ async def global_search(q: str = "", request: Request = None):
                     score += 1.5 * tw
                 elif len(t) >= 4 and any(t in w for w in vt_words):
                     score += 0.6 * tw
+        # Enriched multi-cuisine style_tags (CATALOG-MIGRATE): a curated canonical
+        # cuisine array. A term hit here is a REAL cuisine match (a mediterranean venue
+        # tagged 'mediterranean'), so it counts toward has_distinctive and surfaces.
+        stags = p.get("style_tags")
+        if isinstance(stags, list) and stags:
+            st_set = set(_norm(" ".join(str(v) for v in stags)).split())
+            for t, tw in term_weights.items():
+                if t in st_set:
+                    score += 3.0 * tw
+                    if t in distinctive_set:
+                        has_distinctive = True
+                elif len(t) >= 5 and any(t in w for w in st_set):
+                    score += 1.0 * tw
         # Location is a boost, not a filter: "thai centro" with zero Thai in
         # Centro should still surface the Getsemaní one, ranked honestly.
         if neighborhood_matchers:
@@ -5044,7 +5057,7 @@ async def global_search(q: str = "", request: Request = None):
             {"name": regex}, {"description": regex}, {"category": regex},
             {"subcategory": regex}, {"cuisine": regex}, {"address": regex},
             {"experience": regex}, {"tier": regex}, {"tags": regex},
-            {"visual_tags": regex},
+            {"visual_tags": regex}, {"style_tags": regex},
             {"signature_dishes": regex}, {"search_profile": regex},
         ]},
         PUBLIC_PARTNER_PROJECTION
