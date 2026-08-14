@@ -175,11 +175,11 @@ const SUBCATEGORIES: Record<string, Subcat[]> = {
     { key: 'yacht',         label: 'Yates',          icon: 'boat' },
     { key: 'concierge',     label: 'Concierge',      icon: 'briefcase' },
   ],
-  beach_club: [
-    { key: 'beach_club',    label: 'Beach Clubs',    icon: 'umbrella' },
-    { key: 'cocktail_bar',  label: 'Cocktails',      icon: 'wine' },
-    { key: 'boutique',      label: 'Boutique',       icon: 'bed' },
-  ],
+  // NO beach_club gateway: the old tiles [beach_club, cocktail_bar, boutique] matched
+  // only the 10 in-city venues (sub=beach_club) and HID the 37 island beach clubs
+  // (sub=islas_rosario/tierra_bomba/baru) — incl. the top ones (Bellini, Bora Bora,
+  // Pao Pao, Capri). With no subcats here, beach_club shows every venue ranked by
+  // tier+rank_score, so the top beach clubs surface immediately.
   beauty: [
     { key: 'salon',           label: 'Salón',           icon: 'cut' },
     { key: 'barbershop',      label: 'Barbería',        icon: 'cut' },
