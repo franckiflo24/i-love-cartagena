@@ -2,6 +2,7 @@ import { AgentId } from '@/src/constants/agents';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import { offlineReply } from '../lib/lunaOffline';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -22,30 +23,37 @@ export async function askAgent(
   agent: AgentId,
   messages: ChatMessage[],
 ): Promise<string> {
+  const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+  const query = lastUserMsg?.content || '';
   try {
     const token = await getToken();
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    // Use the grounded + ID-sanitized agent/chat endpoint.
-    // Pass the last user message; the agent maintains its own session.
-    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
-    const res = await fetch(AGENT_URL, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ message: lastUserMsg?.content || '', language: 'es' }),
-    });
+    // Timeout so a slow LLM/backend never hangs the user — fall back to the local
+    // catalog after 12s instead of an endless spinner.
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    let res: Response;
+    try {
+      res = await fetch(AGENT_URL, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ message: query, language: 'es' }),
+        signal: ctrl.signal,
+      });
+    } finally { clearTimeout(timer); }
+
     if (!res.ok) {
-      const err = await res.text().catch(() => '');
-      console.error('[Concierge] API error:', res.status, err);
-      return 'Disculpa, tuve un problema. Inténtalo de nuevo.';
+      console.error('[Concierge] API error:', res.status);
+      return offlineReply(query);   // backend errored → still answer from the guide
     }
     const data = await res.json();
-    // Extract text from the agent response structure
     const reply = data?.assistant?.content || data?.reply || '';
-    return reply || 'Sin respuesta del concierge.';
+    return reply || offlineReply(query);
   } catch (e) {
-    console.error('[Concierge] network error:', e);
-    return 'Uy, se me fue la señal un momento. Inténtalo otra vez en un segundo.';
+    // Network down / timeout / offline → real venues from the bundled catalog.
+    console.error('[Concierge] falling back to offline catalog:', e);
+    return offlineReply(query);
   }
 }

@@ -19,6 +19,7 @@ import { LoProbe } from '../../src/components/LoProbe';
 import { LiveDistance } from '../../src/components/LiveDistance';
 import { TrustBadges } from '../../src/components/TrustBadges';
 import AddToTrip from '../../src/components/AddToTrip';
+import { loadCatalog, brandFamily, CatalogVenue } from '../../src/lib/lunaOffline';
 
 const TAG_LABELS: Record<string, string> = {
   romantic: 'Romántico', first_date: 'Primera cita', family: 'Familiar',
@@ -42,6 +43,8 @@ export default function PartnerDetail() {
   const [notFound, setNotFound] = useState(false);
   const [networkError, setNetworkError] = useState(false);
   const [partnerEvents, setPartnerEvents] = useState<any[]>([]);
+  const [brandSiblings, setBrandSiblings] = useState<CatalogVenue[]>([]);
+  const [brandName, setBrandName] = useState('');
   const [reserving, setReserving] = useState(false);
 
   const loadPartner = async () => {
@@ -72,6 +75,22 @@ export default function PartnerDetail() {
   };
 
   useEffect(() => { loadPartner(); }, [id]);
+
+  // Brand family (from the bundled catalog — works offline too). Derive the brand
+  // from the catalog by partner_id so it works even if the partner API omits `brand`.
+  const pid = partner?.partner_id || (id as string);
+  useEffect(() => {
+    if (!pid) { setBrandSiblings([]); return; }
+    let alive = true;
+    loadCatalog()
+      .then((cat) => {
+        const self = cat.find((v) => v.partner_id === pid);
+        const brand = (partner as any)?.brand || self?.brand || '';
+        if (alive) { setBrandName(brand); setBrandSiblings(brand ? brandFamily(cat, brand, pid) : []); }
+      })
+      .catch(() => { if (alive) setBrandSiblings([]); });
+    return () => { alive = false; };
+  }, [pid]);
 
   if (loading) {
     return (
@@ -496,6 +515,21 @@ export default function PartnerDetail() {
             )}
           </View>
         </View>
+        {/* Brand family — other outlets of this brand (e.g. Casa Bohème → its venues) */}
+        {brandSiblings.length > 0 && (
+          <View style={{ paddingHorizontal: SPACING.md, marginTop: SPACING.lg }}>
+            <Text style={styles.sectionTitle}>{tr('Más de')} {brandName}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: SPACING.sm, paddingRight: SPACING.md }}>
+              {brandSiblings.map((v) => (
+                <TouchableOpacity key={v.partner_id} style={styles.brandCard} onPress={() => router.push(`/partner/${v.partner_id}` as any)} activeOpacity={0.85}>
+                  <SafeImage uri={v.image || `/images/partners/${v.partner_id}.jpg`} fallbackUri={`/images/partners/${v.partner_id}.jpg`} category={v.category} style={styles.brandImg} />
+                  <Text style={styles.brandName} numberOfLines={1}>{v.name.replace(` — ${brandName}`, '').replace(`${brandName} — `, '')}</Text>
+                  <Text style={styles.brandKind} numberOfLines={1}>{v.display_es || PARTNER_CATEGORY_LABELS[v.category] || v.category}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
         {/* Reviews Section */}
         {partner?.partner_id && (
           <View style={{ paddingHorizontal: SPACING.md, marginTop: SPACING.lg }}>
@@ -537,6 +571,10 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   hero: { height: 280, position: 'relative' },
   heroImage: { width: '100%', height: '100%' },
+  brandCard: { width: 150 },
+  brandImg: { width: 150, height: 100, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface },
+  brandName: { fontSize: 13, color: COLORS.textMain, ...FONTS.semibold, marginTop: 6 },
+  brandKind: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 1 },
   galleryBox: { marginTop: SPACING.md },
   galleryRow: { gap: SPACING.sm, paddingRight: SPACING.sm },
   galleryImg: { width: 150, height: 110, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface },
