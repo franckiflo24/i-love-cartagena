@@ -332,6 +332,21 @@ export default function Root({ children }: PropsWithChildren) {
                   .then(function(reg) {
                     // Force check for updates immediately
                     reg.update();
+                    // Re-check on every foreground. A PWA / tab left OPEN since a
+                    // previous deploy never re-runs this shell script, so the version
+                    // check below never fires and it keeps serving yesterday's bundle
+                    // (the recurring "I don't see the changes" report). On
+                    // visibility→visible we force an SW update check; if a new SW is
+                    // live it activates → nukes caches → posts SW_UPDATED → the
+                    // listener above reloads. Throttled to once / 30s.
+                    var lastCheck = Date.now();
+                    document.addEventListener('visibilitychange', function() {
+                      if (document.visibilityState !== 'visible') return;
+                      var now = Date.now();
+                      if (now - lastCheck < 30000) return;
+                      lastCheck = now;
+                      reg.update();
+                    });
                   });
               });
             }
