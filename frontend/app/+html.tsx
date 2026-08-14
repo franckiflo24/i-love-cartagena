@@ -196,10 +196,14 @@ export default function Root({ children }: PropsWithChildren) {
 
           /* Brand logo video (animated AMO ❤ world · Cityguide & Lifestyle lockup) */
           .amo-logo-video {
-            width: min(74vw, 380px);
+            width: min(76vw, 400px);
             height: auto;
             object-fit: contain;
-            filter: drop-shadow(0 0 44px rgba(245,11,27,0.16));
+            /* Feather the video edges into the black bg so the compression-gray border
+               and the reveal glow never read as a rectangle. The center stays fully
+               opaque, so the AMO ❤ lockup + tagline are never clipped. */
+            -webkit-mask-image: radial-gradient(ellipse 72% 82% at 50% 50%, #000 62%, transparent 96%);
+            mask-image: radial-gradient(ellipse 72% 82% at 50% 50%, #000 62%, transparent 96%);
             animation: amo-fadein 0.5s ease forwards;
           }
           @keyframes amo-fadein {
