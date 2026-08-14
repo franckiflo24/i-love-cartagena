@@ -36,6 +36,7 @@ import { useLocalPicks, behavioralPick } from '../../src/services/localPicks';
 import { nearestNeighborhood } from '../../src/utils/neighborhood';
 import { NearbyStrip } from '../../src/components/NearbyStrip';
 import { geoService } from '../../src/lib/geo';
+import { matchesCuisine } from '../../src/lib/cuisineMatch';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - SPACING.lg * 2 - SPACING.sm) / 2;
@@ -124,17 +125,23 @@ const CATEGORIES: CategoryItem[] = [
 type Subcat = { key: string; label: string; icon: string };
 
 const SUBCATEGORIES: Record<string, Subcat[]> = {
+  // Canonical cuisines (CATALOG-MIGRATE). Keys match stored subcategory/style_tags
+  // so matchesCuisine() surfaces the real venues; 'mediterranean' fans out to the
+  // whole basin. Tiles auto-hide when their count is 0.
   restaurant: [
-    { key: 'international', label: 'Internacional',  icon: 'globe' },
-    { key: 'seafood',       label: 'Mariscos',       icon: 'fish' },
+    { key: 'mediterranean', label: 'Mediterránea',   icon: 'wine' },
     { key: 'colombian',     label: 'Colombiana',     icon: 'flag' },
+    { key: 'seafood',       label: 'Mariscos',       icon: 'fish' },
     { key: 'italian',       label: 'Italiana',       icon: 'pizza' },
     { key: 'asian',         label: 'Asiática',       icon: 'restaurant' },
-    { key: 'mediterranean', label: 'Mediterránea',   icon: 'leaf' },
-    { key: 'vegetarian',    label: 'Vegetariana',    icon: 'nutrition' },
-    { key: 'gastronomic',   label: 'Gastronómica',   icon: 'wine' },
-    { key: 'fastfood',      label: 'Rápida',         icon: 'fast-food' },
-    { key: 'arab',          label: 'Árabe',          icon: 'restaurant' },
+    { key: 'middle_eastern',label: 'Árabe',          icon: 'restaurant' },
+    { key: 'grill',         label: 'Parrilla',       icon: 'flame' },
+    { key: 'healthy',       label: 'Saludable',      icon: 'nutrition' },
+    { key: 'fine_dining',   label: 'Alta Cocina',    icon: 'star' },
+    { key: 'fast_food',     label: 'Rápida',         icon: 'fast-food' },
+    { key: 'french',        label: 'Francesa',       icon: 'wine' },
+    { key: 'mexican',       label: 'Mexicana',       icon: 'restaurant' },
+    { key: 'international',  label: 'Internacional',  icon: 'globe' },
   ],
   bar: [
     { key: 'cocktail_bar',  label: 'Cocktail Bar',   icon: 'wine' },
@@ -593,7 +600,10 @@ export default function ExploreScreen() {
       const ta = tierOrder[(a as any).tier] ?? 3;
       const tb = tierOrder[(b as any).tier] ?? 3;
       if (ta !== tb) return ta - tb;
-      return ((b as any).rating || 0) - ((a as any).rating || 0);
+      // Within a tier, order by AMO's own rank_score (tier + claimed + 30d engagement).
+      const ra = (a as any).rank_score ?? (a as any).rating ?? 0;
+      const rb = (b as any).rank_score ?? (b as any).rating ?? 0;
+      return rb - ra;
     });
     return filtered;
   }, []);
@@ -694,7 +704,10 @@ export default function ExploreScreen() {
   // '__all__' sentinel means "show all in this category" (skip subcat filter).
   let partners: Partner[] =
     selectedSubcategory && selectedSubcategory !== '__all__'
-      ? allCategoryPartners.filter(p => (p as any).subcategory === selectedSubcategory)
+      ? allCategoryPartners.filter(p =>
+          selectedCategory.apiValue === 'restaurant'
+            ? matchesCuisine(p, selectedSubcategory)          // basin + multi-cuisine
+            : (p as any).subcategory === selectedSubcategory)
       : allCategoryPartners;
   // "Locals recommend" filter: keep only venues locals favor (behavioral picks
   // + local_favorite-tagged baseline). Never empties the catalog when off.
@@ -722,11 +735,20 @@ export default function ExploreScreen() {
         .sort((a, b) => b.count - a.count)
     : [];
 
-  // Count of partners per subcategory for tile badges
+  // Count of partners per subcategory tile. Restaurants count via matchesCuisine so
+  // cross-cutting cuisines (Mediterránea = the whole basin) and multi-cuisine venues
+  // are included — not only the single stored subcategory — otherwise the tile would
+  // read 0 and hide (the reported "Mediterranean missing" bug).
   const subcatCounts: Record<string, number> = {};
-  for (const p of allCategoryPartners) {
-    const sk = (p as any).subcategory;
-    if (sk) subcatCounts[sk] = (subcatCounts[sk] || 0) + 1;
+  if (selectedCategory.apiValue === 'restaurant') {
+    for (const sc of availableSubcats) {
+      subcatCounts[sc.key] = allCategoryPartners.filter(p => matchesCuisine(p, sc.key)).length;
+    }
+  } else {
+    for (const p of allCategoryPartners) {
+      const sk = (p as any).subcategory;
+      if (sk) subcatCounts[sk] = (subcatCounts[sk] || 0) + 1;
+    }
   }
 
   // Resolved label for currently selected subcategory (for the back-header)

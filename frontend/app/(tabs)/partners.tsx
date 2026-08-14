@@ -9,6 +9,7 @@ import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
+import { matchesCuisine } from '../../src/lib/cuisineMatch';
 
 type Partner = {
   partner_id: string; name: string; description: string; category: string;
@@ -62,17 +63,25 @@ const WELLNESS_SUBCATEGORIES = [
   { key: 'yoga', label: 'Yoga', icon: 'leaf', image: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=600&h=400&fit=crop' },
 ];
 
+// Canonical restaurant cuisines (CATALOG-MIGRATE taxonomy). Keys MUST match the
+// stored `subcategory` / `style_tags` values so matchesCuisine() surfaces the real
+// venues. 'mediterranean' is a cross-cutting style_tag (the whole basin), not a
+// subcategory — matchesCuisine fans it out. Pills auto-hide when their count is 0.
 const RESTAURANT_SUBCATEGORIES = [
-  { key: 'cafe', label: 'Café', icon: 'cafe', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&h=400&fit=crop' },
   { key: 'mediterranean', label: 'Mediterráneo', icon: 'wine', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&h=400&fit=crop' },
-  { key: 'fastfood', label: 'Fast Food', icon: 'fast-food', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&h=400&fit=crop' },
-  { key: 'italian', label: 'Italiano', icon: 'pizza', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop' },
-  { key: 'asian', label: 'Asiático', icon: 'restaurant', image: 'https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=600&h=400&fit=crop' },
   { key: 'colombian', label: 'Colombiano', icon: 'flag', image: 'https://images.unsplash.com/photo-1518176258769-f227c798150e?w=600&h=400&fit=crop' },
   { key: 'seafood', label: 'Del Mar', icon: 'fish', image: 'https://images.unsplash.com/photo-1559737558-2f5a35f4523b?w=600&h=400&fit=crop' },
+  { key: 'italian', label: 'Italiano', icon: 'pizza', image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop' },
+  { key: 'asian', label: 'Asiático', icon: 'restaurant', image: 'https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=600&h=400&fit=crop' },
+  { key: 'middle_eastern', label: 'Árabe', icon: 'restaurant', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&h=400&fit=crop' },
+  { key: 'grill', label: 'Parrilla', icon: 'flame', image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop' },
+  { key: 'healthy', label: 'Saludable', icon: 'nutrition', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&h=400&fit=crop' },
+  { key: 'fine_dining', label: 'Alta Cocina', icon: 'star', image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop' },
+  { key: 'fast_food', label: 'Rápida', icon: 'fast-food', image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&h=400&fit=crop' },
+  { key: 'french', label: 'Francés', icon: 'wine', image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop' },
+  { key: 'mexican', label: 'Mexicano', icon: 'restaurant', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop' },
   { key: 'international', label: 'Internacional', icon: 'globe', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop' },
-  { key: 'gastronomic', label: 'Gastronómicos', icon: 'star', image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop' },
-  { key: 'vegetarian', label: 'Vegetariano', icon: 'leaf', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&h=400&fit=crop' },
+  { key: 'cafe', label: 'Café', icon: 'cafe', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&h=400&fit=crop' },
 ];
 
 // Hotel sub-cards filter by TIER (popular/premium/elite), not `subcategory` —
@@ -213,6 +222,11 @@ export default function PartnersScreen() {
       return false;
     }
 
+    // Restaurant cuisines: match canonical subcategory OR any style_tag, and
+    // 'mediterranean' fans out to the whole basin — so a multi-cuisine venue
+    // surfaces under each of its cuisines, not just its single subcategory.
+    if (p.category === 'restaurant') return matchesCuisine(p, subKey);
+
     return (p as any).subcategory === subKey;
   };
 
@@ -229,6 +243,9 @@ export default function PartnersScreen() {
         if (subcatList && selectedSubcat && !matchesSubcat(p, selectedSubcat)) return false;
         return true;
       })
+        // Rank by AMO's own signal (rank_score = tier + claimed + 30d engagement),
+        // so elite/premium and high-engagement venues lead each cuisine.
+        .sort((a, b) => ((b as any).rank_score || 0) - ((a as any).rank_score || 0))
     : [];
 
   const subcatCount = (key: string): number => {
