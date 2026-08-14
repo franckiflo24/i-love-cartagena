@@ -183,9 +183,9 @@ export default function Root({ children }: PropsWithChildren) {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: #020408;
-            background-image:
-              radial-gradient(ellipse 720px 520px at 50% 45%, rgba(245,11,27,0.05) 0%, transparent 70%);
+            /* Pure black to match the logo video's own background (no visible box edge);
+               the red heart in the logo provides the colour pop. */
+            background: #000;
             transition: opacity 0.5s ease, visibility 0.5s ease;
           }
           #amo-preloader.hide {
