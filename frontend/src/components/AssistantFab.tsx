@@ -28,6 +28,7 @@ import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import AddToTrip from './AddToTrip';
+import { loadCatalog, matchCatalog, type CatalogVenue } from '../lib/lunaOffline';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 const CONCIERGE_URL = process.env.EXPO_PUBLIC_CONCIERGE_URL || `${BACKEND_URL}/api/agent/chat`;
@@ -67,9 +68,35 @@ type Message = {
   suggestions?: string[];
   language?: string;
   created_at?: string;
+  provisional?: boolean;   // instant local results shown while Amo (Sonnet) thinks
 };
 
 const STORAGE_SESSION_KEY = 'amo_agent_session_id';
+
+// Real venues from the bundled catalog → concierge recommendation cards. Used for
+// the instant preview (perceived speed) AND the fallback when Amo is slow/errors,
+// so the guest ALWAYS gets real places instead of a dead "Tuve un problema".
+function venuesToRecs(venues: CatalogVenue[], lang: string): Recommendation[] {
+  const en = lang.startsWith('en');
+  return venues.map((v) => ({
+    kind: 'partner' as const,
+    partner_id: v.partner_id,
+    name: v.name,
+    type: (en ? v.display_en : v.display_es) || v.category,
+    price_range: v.price_range,
+    address: v.zone || (v.address ? v.address.split(',')[0] : ''),
+  }));
+}
+const FAB_STR: Record<string, { preview: string; here: string; slow: string; nohit: string }> = {
+  es: { preview: 'Ideas al instante mientras Amo prepara todo:', here: 'Esto es lo que encontré 👇',
+        slow: 'Amo se está tomando un momento — mientras, estas opciones reales:', nohit: 'Amo tardó en responder. Probá de nuevo en un momento 🙏' },
+  en: { preview: 'Instant ideas while Amo puts it together:', here: "Here's what I found 👇",
+        slow: 'Amo is taking a moment — meanwhile, these real options:', nohit: 'Amo took too long. Try again in a moment 🙏' },
+  fr: { preview: 'Idées immédiates pendant qu’Amo prépare tout :', here: 'Voici ce que j’ai trouvé 👇',
+        slow: 'Amo prend un instant — en attendant, ces options réelles :', nohit: 'Amo a mis trop de temps. Réessayez dans un instant 🙏' },
+  pt: { preview: 'Ideias instantâneas enquanto o Amo prepara tudo:', here: 'Isto foi o que encontrei 👇',
+        slow: 'O Amo está demorando um instante — enquanto isso, estas opções reais:', nohit: 'O Amo demorou demais. Tente de novo num instante 🙏' },
+};
 
 // Pulse animation hook for FAB
 function usePulse() {
@@ -185,63 +212,86 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
 
       setSending(true);
       setInput('');
+      const strs = FAB_STR[lang] || FAB_STR.es;
       setMessages((prev) => [...prev, { role: 'user', content: trimmed }]);
-      // typing indicator
-      setMessages((prev) => [...prev, { role: 'assistant', content: '__typing__' }]);
+
+      // Instant local preview: real venues from the bundled catalog shown WHILE Amo
+      // (Sonnet, ~10-15s) thinks — so a venue query feels instant, and if Amo is slow
+      // or errors we still have real places to show instead of a dead error.
+      let localRecs: Recommendation[] = [];
+      try {
+        const catalog = await loadCatalog();
+        const { venues, cats, tags } = matchCatalog(catalog, trimmed, 6);
+        if (venues.length && (cats.size || tags.size || venues.length >= 3)) {
+          localRecs = venuesToRecs(venues, lang);
+        }
+      } catch { /* bundled catalog unavailable — fall through to the typing indicator */ }
+      if (localRecs.length) {
+        setMessages((prev) => [...prev, { role: 'assistant', content: strs.preview, recommendations: localRecs, provisional: true }]);
+      } else {
+        setMessages((prev) => [...prev, { role: 'assistant', content: '__typing__' }]);
+      }
+
+      const clearTransient = (list: Message[]) => list.filter((m) => m.content !== '__typing__' && !m.provisional);
+
       try {
         const token = Platform.OS === 'web'
           ? await AsyncStorage.getItem('session_token')
           : await SecureStore.getItemAsync('session_token');
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
-        const apiRes = await fetch(CONCIERGE_URL, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            message: trimmed,
-            session_id: sessionId,
-            screen_context: pathname,
-            language: lang,
-          }),
-        });
+        // Bound the wait: a slow Sonnet turn (or a 5xx) falls back to the instant local
+        // venues below instead of hanging or dead-erroring.
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 14000);
+        let apiRes: Response;
+        try {
+          apiRes = await fetch(CONCIERGE_URL, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              message: trimmed,
+              session_id: sessionId,
+              screen_context: pathname,
+              language: lang,
+            }),
+            signal: ctrl.signal,
+          });
+        } finally { clearTimeout(timer); }
         if (!apiRes.ok) throw new Error(`HTTP ${apiRes.status}`);
         const res = await apiRes.json();
         const sid: string = res.session_id;
-        if (sid !== sessionId) {
+        if (sid && sid !== sessionId) {
           setSessionId(sid);
           persistSession(sid);
         }
         const a = res.assistant;
-        setMessages((prev) => {
-          const next = prev.filter((m) => m.content !== '__typing__');
-          return [
-            ...next,
-            {
-              role: 'assistant',
-              content: a.content,
-              actions: a.actions || [],
-              recommendations: a.recommendations || [],
-              suggestions: a.suggestions || [],
-              language: a.language,
-            },
-          ];
-        });
+        setMessages((prev) => [
+          ...clearTransient(prev),
+          {
+            role: 'assistant',
+            content: a.content,
+            actions: a.actions || [],
+            recommendations: a.recommendations || [],
+            suggestions: a.suggestions || [],
+            language: a.language,
+          },
+        ]);
       } catch (e: any) {
+        // Amo slow / errored / timed out → keep the guest moving with REAL venues,
+        // never a dead "Tuve un problema".
         setMessages((prev) => {
-          const next = prev.filter((m) => m.content !== '__typing__');
-          return [
-            ...next,
-            {
-              role: 'assistant',
-              content: 'Tuve un problema para responder. Probá de nuevo en un momento 🙏',
-            },
-          ];
+          const next = clearTransient(prev);
+          if (localRecs.length) {
+            return [...next, { role: 'assistant', content: strs.slow, recommendations: localRecs }];
+          }
+          return [...next, { role: 'assistant', content: strs.nohit }];
         });
       }
       setSending(false);
       setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 200);
     },
-    [sending, sessionId, persistSession, pathname, user],
+    [sending, sessionId, persistSession, pathname, user, lang],
   );
 
   const onAction = useCallback(
