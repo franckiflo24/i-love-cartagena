@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { AGENTS, AGENT_ORDER, AgentId, ConciergeAgent } from '../src/constants/agents';
 import { askAgent, ChatMessage } from '../src/services/concierge';
+import { quickPicks } from '../src/lib/lunaOffline';
 import { useAuth } from '../src/context/AuthContext';
 import { useTr } from '../src/i18n/autoTr';
 import { useLang } from '../src/context/LanguageContext';
@@ -130,7 +131,21 @@ export default function ConciergeScreen() {
     setLoading(true);
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
 
+    // Instant-local-then-enrich (Luna): show real venue picks from the bundled catalog
+    // in <1s while the LLM composes the full answer, then replace with it. `answered`
+    // guards the (much faster) preview from overwriting the real reply.
+    let answered = false;
+    if (activeAgent === 'luna') {
+      quickPicks(text.trim(), lang).then((preview) => {
+        if (preview && !answered) {
+          setMessages([...updated, { role: 'assistant', content: preview, provisional: true }]);
+          setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
+        }
+      }).catch(() => {});
+    }
+
     const reply = await askAgent(activeAgent, updated);
+    answered = true;
     setMessages([...updated, { role: 'assistant', content: reply }]);
     setLoading(false);
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
@@ -223,9 +238,11 @@ export default function ConciergeScreen() {
               ? msg.content.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1')
               : msg.content;
             return (
-              <View key={i} style={[styles.bubble, msg.role === 'user' ? styles.bubbleUser : styles.bubbleAgent]}>
+              <View key={i} style={[styles.bubble, msg.role === 'user' ? styles.bubbleUser : styles.bubbleAgent, msg.provisional && styles.bubbleProvisional]}>
                 {msg.role === 'assistant' && (
-                  <Text style={[styles.bubbleLabel, { color: agent.accent }]}>{agent.emoji} {agent.name}</Text>
+                  <Text style={[styles.bubbleLabel, { color: agent.accent }]}>
+                    {agent.emoji} {agent.name}{msg.provisional ? ` · ⚡ ${tr('al instante')}` : ''}
+                  </Text>
                 )}
                 <Text style={[styles.bubbleText, msg.role === 'user' && { color: COLORS.black }]}>{text}</Text>
               </View>
@@ -304,6 +321,7 @@ const styles = StyleSheet.create({
   bubble: { maxWidth: '88%', borderRadius: RADIUS.lg, padding: SPACING.md },
   bubbleAgent: { alignSelf: 'flex-start', backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderTopLeftRadius: 4 },
   bubbleUser: { alignSelf: 'flex-end', backgroundColor: COLORS.primary, borderTopRightRadius: 4 },
+  bubbleProvisional: { borderStyle: 'dashed', borderColor: COLORS.primary + '66', opacity: 0.92 },
   bubbleLabel: { fontSize: 10, ...FONTS.bold, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 4 },
   bubbleText: { fontSize: 14, color: COLORS.textMain, ...FONTS.regular, lineHeight: 21 },
 

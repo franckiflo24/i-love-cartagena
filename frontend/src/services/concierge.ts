@@ -7,6 +7,7 @@ import { offlineReply } from '../lib/lunaOffline';
 export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  provisional?: boolean;   // instant local "quick picks" shown while the LLM answers
 }
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';

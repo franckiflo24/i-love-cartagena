@@ -116,6 +116,26 @@ export function brandFamily(catalog: CatalogVenue[], brand: string, excludeId?: 
     .sort((a, b) => (b.rank_score || 0) - (a.rank_score || 0));
 }
 
+// Instant "quick picks" from the catalog to show WHILE the LLM is thinking (online).
+// Returns null when the query isn't a venue lookup, so non-venue turns just wait for
+// Luna's full answer instead of showing an irrelevant list.
+export async function quickPicks(query: string, lang: string = 'es'): Promise<string | null> {
+  const catalog = await loadCatalog();
+  if (!catalog.length) return null;
+  const { venues, cats, tags } = matchCatalog(catalog, query, 5);
+  // Only preview when the query clearly maps to venues (a category/cuisine or real hits).
+  if (!venues.length || (!cats.size && !tags.size && venues.length < 3)) return null;
+  const head = lang.startsWith('en')
+    ? 'Quick picks while I put together the full answer:'
+    : 'Ideas al instante mientras preparo la respuesta completa:';
+  const lines = venues.map((v) => {
+    const where = v.zone || (v.address ? v.address.split(',')[0] : '');
+    const kind = (lang.startsWith('en') ? v.display_en : v.display_es) || v.category;
+    return `• ${v.name}${where ? ` — ${where}` : ''}${kind ? ` · ${kind}` : ''}`;
+  });
+  return `${head}\n${lines.join('\n')}`;
+}
+
 // Build a helpful text reply from the catalog — real venues, instantly, offline.
 export async function offlineReply(query: string, lang: string = 'es'): Promise<string> {
   const catalog = await loadCatalog();
