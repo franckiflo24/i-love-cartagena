@@ -612,6 +612,20 @@ _reg_sub("attraction", "church", ["church", "iglesia", "cathedral", "catedral", 
 _reg_sub("hotel", "boutique_hotel", ["boutiquehotel"])
 _reg_sub("hotel", "luxury_hotel", ["luxuryhotel", "hoteldelujo", "5stars", "cincoestrellas"])
 _reg_sub("yacht", "yacht", ["yacht", "yate", "catamaran", "sailboat", "velero", "charter"])
+_reg_sub("yacht", "marina", ["marina", "puertodeportivo", "muelle"])
+_reg_sub("service", "medical", ["doctor", "hospital", "clinic", "clinica", "medico", "urgencias", "physician", "medecin", "medico"])
+_reg_sub("service", "photography", ["photographer", "photography", "photoshoot", "fotografo", "fotografia", "photo", "photographe"])
+_reg_sub("service", "grocery", ["grocery", "supermarket", "supermercado", "supermarche", "mercado", "abarrotes"])
+_reg_sub("service", "rideshare", ["taxi", "uber", "cabify", "didi", "indriver", "rideshare"])
+_reg_sub("service", "delivery", ["delivery", "domicilio", "livraison", "entrega"])
+_reg_sub("wellness", "recovery", ["recovery", "crioterapia", "cryotherapy", "coldplunge", "icebath", "recuperacion", "recuperacao"])
+_reg_sub("wellness", "wellness_center", ["wellnesscenter", "centrodebienestar", "holistic", "holistico"])
+_reg_sub("bar", "sports_bar", ["sportsbar", "sportbar", "watchthegame", "barderdeportes"])
+_reg_sub("bar", "lounge", ["lounge"])
+_reg_sub("attraction", "fortress", ["castle", "castillo", "fortress", "fort", "murallas", "fortaleza", "chateau"])
+_reg_sub("attraction", "nature", ["park", "parque", "garden", "jardin", "nature", "naturaleza"])
+_reg_sub("attraction", "market", ["market", "mercado", "marche", "mercadopublico"])
+_reg_sub("attraction", "plaza", ["plaza", "square", "place"])
 
 
 def _extract_filters_from_text(text: str) -> Dict[str, Any]:

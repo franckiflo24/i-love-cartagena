@@ -4764,8 +4764,24 @@ async def global_search(q: str = "", request: Request = None):
         "show": "concert", "dj": "concert",
         # Services
         "taxi": "transporte", "uber": "transporte", "airport": "aeropuerto",
-        "pharmacy": "farmacia", "doctor": "hospital",
+        "pharmacy": "farmacia",
         "money": "cajero", "atm": "cajero",
+        # Health — real venues are named "Clínica …" / "Centro Médico", NOT "hospital",
+        # so the old doctor→hospital returned 0. Map to terms in the actual names.
+        "doctor": "clinica", "hospital": "clinica", "clinic": "clinica",
+        "clinica": "clinica", "medico": "clinica", "urgencias": "clinica", "medical": "clinica",
+        # Aesthetic ("Medicina Estética …")
+        "botox": "estetica", "aesthetic": "estetica", "estetica": "estetica",
+        "filler": "estetica", "depilacion": "estetica", "rejuvenecimiento": "estetica",
+        # Photography — EN venues say "Photo", ES say "Fotografía" (map each so both hit)
+        "photographer": "photo", "photography": "photo", "photoshoot": "photo",
+        "fotografo": "fotografia", "fotografia": "fotografia", "fotografo ": "fotografia",
+        # Sports bar / marina / recovery / fortress / rentals / lounge / coworking
+        "sports": "sport", "marina": "marina", "deportivo": "marina",
+        "recovery": "recovery", "crioterapia": "recovery", "cryotherapy": "recovery",
+        "castle": "castillo", "castillo": "castillo", "fortress": "castillo", "fort": "castillo",
+        "rental": "rental", "alquiler": "rental",
+        "coworking": "coworking", "lounge": "lounge",
         # Vibes
         "bored": "activity", "adventure": "activity",
         "romantic": "restaurant", "date": "restaurant",
