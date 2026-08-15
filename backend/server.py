@@ -4741,8 +4741,8 @@ async def global_search(q: str = "", request: Request = None):
         # Beauty micro-categories → the subcategory value, so recall matches venues whose
         # NAME is Spanish ("Pestañas X") but subcategory is the English key. Without this
         # "eyelashes"/"manicure" returned 0 (no name/subcategory literally contains them).
-        "eyelashes": "lashes_brows", "lashes": "lashes_brows", "pestanas": "lashes_brows",
-        "cejas": "lashes_brows", "brows": "lashes_brows", "eyebrows": "lashes_brows",
+        "eyelashes": "pestanas", "lashes": "pestanas", "pestanas": "pestanas",
+        "cejas": "cejas", "brows": "cejas", "eyebrows": "cejas", "lash": "pestanas",
         "manicure": "nails", "pedicure": "nails", "unas": "nails",
         "makeup": "makeup", "maquillaje": "makeup",
         "botox": "aesthetic_clinic", "estetica": "aesthetic_clinic", "depilacion": "aesthetic_clinic",
