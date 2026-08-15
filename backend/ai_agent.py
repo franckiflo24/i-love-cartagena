@@ -552,12 +552,27 @@ def _canonical_tags(terms):
 
 
 def _extract_filters_from_text(text: str) -> Dict[str, Any]:
-    """Use simple keyword matching to extract semantic filters from the user message.
-    This is the FALLBACK path used when LLM intent routing fails."""
+    """Extract semantic filters (category/subcategory) from the user message via the
+    keyword map. WORD-AWARE, not raw substring: a plain `kw in t` let 'bar' match
+    'BARbershop' (→ bar/club/beach_club) and 'art' match 'cARTagena' (→ culture), so
+    "best barbershop in cartagena" got routed to bars + events and Luna wrongly said it
+    had no barbershops. Rule: multi-word/hyphen keys → phrase match; single keys ≥4
+    chars → a query WORD that equals or STARTS WITH the key (barber→barbershop/barbers,
+    restaurant→restaurantes); short keys (<4 chars: bar, spa, art, gym, pub…) → exact
+    word only, so they can't hide inside a longer unrelated word. Mirrors the
+    word-boundary fix already on intent-type routing (_kw_hit)."""
     t = (text or "").lower()
+    words = re.findall(r"[0-9a-záéíóúñüçàâêôãõ]+", t)
+    wordset = set(words)
     filters: Dict[str, Any] = {}
     for kw, fil in _KEYWORD_FALLBACK.items():
-        if kw in t:
+        if " " in kw or "-" in kw:
+            matched = kw in t
+        elif len(kw) >= 4:
+            matched = any(w == kw or w.startswith(kw) for w in words)
+        else:
+            matched = kw in wordset
+        if matched:
             for k, v in fil.items():
                 if k not in filters:
                     filters[k] = v

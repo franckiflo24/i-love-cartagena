@@ -4876,6 +4876,12 @@ async def global_search(q: str = "", request: Request = None):
         "san", "santa", "santo", "calle", "carrera", "avenida",
         # Time words — they express when, not what
         "hoy", "ahora", "manana", "esta", "este", "today", "now",
+        # The city / country itself carries ZERO discriminative info — EVERY venue is
+        # in Cartagena, so "best barbershop in cartagena" was letting 'cartagena' match
+        # hotels/tours that have "Cartagena" in their NAME and bury the real barbershops
+        # (the distinctive term). Treat the place as a stopword so the actual category
+        # term wins. (Neighborhoods stay meaningful — they're in _NEIGHBORHOOD_PATTERNS.)
+        "cartagena", "indias", "colombia", "ciudad", "city",
     }
 
     import unicodedata as _ud

@@ -269,6 +269,10 @@ export default function SearchScreen() {
           'san', 'santa', 'santo', 'calle', 'carrera', 'avenida',
           // Time words — they express when, not what
           'hoy', 'ahora', 'manana', 'esta', 'este', 'today', 'now',
+          // The city / country carries zero discriminative info (every venue is in
+          // Cartagena) — as a distinctive term it buried real matches under hotels/
+          // tours that have "Cartagena" in their name. Neighborhoods stay meaningful.
+          'cartagena', 'indias', 'colombia', 'ciudad', 'city',
         ]);
 
         const queryTerms = norm(q).split(/\s+/).filter(w => w.length >= 3 || !STOP_WORDS.has(w));
