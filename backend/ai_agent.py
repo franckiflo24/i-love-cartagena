@@ -558,28 +558,96 @@ def _canonical_tags(terms):
     return out
 
 
+# Micro-category (SUBCATEGORY) routing — terms that must pin a SPECIFIC subcategory,
+# not just the broad category, so the subcategory-priority sort leads with the exact
+# micro-category ("manicure"→nails not a hair salon, "tattoo"→tattoo, "mariscos"→
+# seafood, "eyelashes"→lashes_brows). Keys map to (category, subcategory) validated
+# against the live taxonomy. Multilingual ES/EN/FR/PT. Checked BEFORE the broad
+# _KEYWORD_FALLBACK so the precise route wins.
+_SUBCAT_ROUTES: Dict[str, Tuple[str, str]] = {}
+def _reg_sub(cat, sub, terms):
+    for tm in terms:
+        _SUBCAT_ROUTES[tm] = (cat, sub)
+_reg_sub("beauty", "nails", ["manicure", "manicura", "pedicure", "pedicura", "nails", "unas", "unia", "ongles", "unhas", "nail"])
+_reg_sub("beauty", "lashes_brows", ["eyelashes", "lashes", "pestanas", "cejas", "brows", "eyebrows", "cils", "sourcils", "cilios", "sobrancelhas", "lash", "microblading"])
+_reg_sub("beauty", "makeup", ["makeup", "maquillaje", "maquillage", "maquiagem"])
+_reg_sub("beauty", "aesthetic_clinic", ["aesthetic", "estetica", "botox", "filler", "rellenos", "depilacion", "peeling", "rejuvenecimiento", "esthetique", "estetico"])
+_reg_sub("beauty", "barbershop", ["barbershop", "barber", "barbers", "barberia", "barbero", "barbeiro", "barbier"])
+_reg_sub("beauty", "salon", ["hairdresser", "peluqueria", "coiffeur", "cabeleireiro", "hairsalon"])
+_reg_sub("service", "tattoo", ["tattoo", "tatuaje", "tatuajes", "tatouage", "tatuagem", "piercing", "tatuador"])
+_reg_sub("service", "bank", ["atm", "cajero", "cajeros", "distributeur", "caixaeletronico"])
+_reg_sub("service", "currency_exchange", ["exchange", "cambio", "casadecambio", "divisas", "bureaudechange", "cambista"])
+_reg_sub("service", "pharmacy", ["pharmacy", "farmacia", "pharmacie", "drogueria", "botica"])
+_reg_sub("service", "laundry", ["laundry", "laundromat", "lavanderia", "blanchisserie", "lavagem"])
+_reg_sub("service", "car_rental", ["carrental", "rentacar", "alquilerdeauto", "locationdevoiture", "alugueldecarro"])
+_reg_sub("service", "sim_card", ["simcard", "esim", "chip", "puce"])
+_reg_sub("service", "private_chef", ["privatechef", "chefprivado", "chefadomicilio", "chefpriveado", "chefprive"])
+_reg_sub("service", "jewelry", ["jewelry", "jewellery", "joyeria", "bijouterie", "joalheria", "esmeralda", "esmeraldas", "emerald", "emeralds"])
+_reg_sub("service", "veterinary", ["veterinary", "veterinario", "veterinaria", "veterinaire", "veterinario"])
+_reg_sub("service", "luggage_storage", ["luggagestorage", "guardaequipaje", "consigne", "guardavolumes", "consigna"])
+_reg_sub("wellness", "fitness", ["gym", "gimnasio", "gimnasios", "crossfit", "musculacion", "weights", "pesas", "musculation", "academia"])
+_reg_sub("wellness", "yoga", ["yoga", "pilates"])
+_reg_sub("wellness", "massage", ["massage", "masaje", "masajes", "massagem"])
+_reg_sub("wellness", "spa", ["spa", "spas", "termal", "hammam", "sauna"])
+_reg_sub("restaurant", "seafood", ["seafood", "mariscos", "marisco", "pescado", "ceviche", "cevicheria", "fruitsdemer", "frutosdomar", "marisqueria"])
+_reg_sub("restaurant", "grill", ["steak", "steakhouse", "parrilla", "carnes", "asado", "churrasco", "grillhouse"])
+_reg_sub("restaurant", "healthy", ["vegan", "vegano", "vegana", "vegetarian", "vegetariano", "vegetariana", "vegetal", "vegetariens"])
+_reg_sub("restaurant", "italian", ["italian", "italiana", "italiano", "pizza", "pizzeria", "pasta", "trattoria"])
+_reg_sub("restaurant", "asian", ["sushi", "japanese", "japonesa", "japones", "thai", "tailandesa", "ramen", "chino", "chinese", "asiatica", "asian"])
+_reg_sub("restaurant", "mexican", ["mexican", "mexicana", "mexicano", "tacos", "taqueria"])
+_reg_sub("restaurant", "middle_eastern", ["arab", "arabe", "lebanese", "libanesa", "shawarma", "kebab", "falafel", "hummus"])
+_reg_sub("restaurant", "french", ["french", "francesa", "frances", "bistro", "brasserie"])
+_reg_sub("restaurant", "spanish", ["spanish", "espanola", "espanol", "tapas", "paella"])
+_reg_sub("restaurant", "peruvian", ["peruvian", "peruana", "peruano", "nikkei"])
+_reg_sub("restaurant", "colombian", ["colombian", "colombiana", "typical", "tipica", "criolla", "caribena"])
+_reg_sub("bar", "rooftop", ["rooftop", "azotea", "terraza", "skybar", "terrasse"])
+_reg_sub("bar", "cocktail_bar", ["cocktail", "cocteleria", "mixology", "coctel", "cocktails"])
+_reg_sub("bar", "live_music", ["livemusic", "musicaenvivo", "musicelive", "musicaaovivo"])
+_reg_sub("nightlife", "nightclub", ["nightclub", "discoteca", "disco", "boitedenuit", "balada", "clubbing"])
+_reg_sub("beach_club", "beach_club", ["beachclub", "clubdeplaya", "clubdeplage"])
+_reg_sub("cafe", "coworking", ["coworking", "cotrabajo", "espacedetravail"])
+_reg_sub("cafe", "cafe_brunch", ["coffee", "cafe", "cafeteria", "brunch", "desayuno", "petitdejeuner", "cafeteria"])
+_reg_sub("attraction", "museum", ["museum", "museo", "musee", "museu"])
+_reg_sub("attraction", "church", ["church", "iglesia", "cathedral", "catedral", "eglise", "igreja"])
+_reg_sub("hotel", "boutique_hotel", ["boutiquehotel"])
+_reg_sub("hotel", "luxury_hotel", ["luxuryhotel", "hoteldelujo", "5stars", "cincoestrellas"])
+_reg_sub("yacht", "yacht", ["yacht", "yate", "catamaran", "sailboat", "velero", "charter"])
+
+
 def _extract_filters_from_text(text: str) -> Dict[str, Any]:
-    """Extract semantic filters (category/subcategory) from the user message via the
-    keyword map. WORD-AWARE, not raw substring: a plain `kw in t` let 'bar' match
-    'BARbershop' (→ bar/club/beach_club) and 'art' match 'cARTagena' (→ culture), so
-    "best barbershop in cartagena" got routed to bars + events and Luna wrongly said it
-    had no barbershops. Rule: multi-word/hyphen keys → phrase match; single keys ≥4
-    chars → a query WORD that equals or STARTS WITH the key (barber→barbershop/barbers,
-    restaurant→restaurantes); short keys (<4 chars: bar, spa, art, gym, pub…) → exact
-    word only, so they can't hide inside a longer unrelated word. Mirrors the
-    word-boundary fix already on intent-type routing (_kw_hit)."""
+    """Extract semantic filters (category/subcategory) from the user message. WORD-AWARE,
+    not raw substring: a plain `kw in t` let 'bar' match 'BARbershop' (→ bar/club) and
+    'art' match 'cARTagena' (→ culture), so "best barbershop in cartagena" got routed to
+    bars + events. Rule: multi-word/hyphen keys → phrase match; single keys ≥4 chars → a
+    query WORD that equals or STARTS WITH the key (barber→barbershop/barbers); short keys
+    (<4: bar, spa, art, gym…) → exact word only. Micro-category (_SUBCAT_ROUTES) is
+    checked FIRST so a specific term ("manicure", "tattoo", "mariscos") pins its exact
+    subcategory (→ the subcategory-priority sort leads with it), then the broad
+    _KEYWORD_FALLBACK fills the category."""
     t = (text or "").lower()
     words = re.findall(r"[0-9a-záéíóúñüçàâêôãõ]+", t)
+    # accent-stripped words too, so unaccented map keys (unas, pestanas) match accented
+    # input (uñas, pestañas) and vice-versa without a per-word table.
+    words = list({*words, *(_strip_accents(w) for w in words)})
     wordset = set(words)
-    filters: Dict[str, Any] = {}
-    for kw, fil in _KEYWORD_FALLBACK.items():
+
+    def _match(kw: str) -> bool:
         if " " in kw or "-" in kw:
-            matched = kw in t
-        elif len(kw) >= 4:
-            matched = any(w == kw or w.startswith(kw) for w in words)
-        else:
-            matched = kw in wordset
-        if matched:
+            return kw in t or kw.replace(" ", "") in "".join(words)
+        if len(kw) >= 4:
+            return any(w == kw or w.startswith(kw) for w in words)
+        return kw in wordset
+
+    filters: Dict[str, Any] = {}
+    # 1) Micro-category first (most specific).
+    for kw, (cat, sub) in _SUBCAT_ROUTES.items():
+        if _match(kw):
+            filters.setdefault("category", cat)
+            filters.setdefault("subcategory", sub)
+            break
+    # 2) Broad keyword fallback (fills category / other filters).
+    for kw, fil in _KEYWORD_FALLBACK.items():
+        if _match(kw):
             for k, v in fil.items():
                 if k not in filters:
                     filters[k] = v
@@ -853,6 +921,26 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
         cursor = db.partners.find(dict(PUBLIC_PARTNER_FILTER), fields).sort([("rank_score", -1), ("rating", -1)]).limit(max_results)
         rows = await cursor.to_list(max_results)
 
+    # Guarantee the exact routed subcategory is present even when it's LOW-RANK inside a
+    # crowded parent category: the {category OR subcategory} query above sorts by
+    # rank_score and takes the top N, so a small low-rank micro-category (lashes_brows in
+    # 109 beauty venues; bank in the service pool) never made the cut and Luna returned
+    # hair salons for "eyelashes"/boutiques for "atm". Fetch the micro-category directly
+    # (scoped to the routed category to avoid cross-category subcategory collisions like
+    # beauty/salon vs wellness/salon) and merge — the subcategory-priority sort leads it.
+    if routed_subcats:
+        try:
+            _subq: Dict[str, Any] = {"subcategory": {"$in": routed_subcats}}
+            if routed_cats:
+                _subq["category"] = {"$in": routed_cats}
+            sub_rows = await db.partners.find(
+                {**PUBLIC_PARTNER_FILTER, **_subq}, fields
+            ).sort([("rank_score", -1), ("rating", -1)]).limit(30).to_list(30)
+            _seen = {r.get("partner_id") for r in rows}
+            rows = rows + [r for r in sub_rows if r.get("partner_id") not in _seen]
+        except Exception as exc:
+            logger.warning(f"[concierge] subcategory recall failed: {exc}")
+
     # ── Recall + relevance pass (accent/language-insensitive) ──
     # The queries above sort by rating, which BURIES or misses the venues that
     # literally match the user's words across accents/languages (barbero↔barber,
@@ -874,15 +962,23 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
             logger.warning(f"[concierge] stem recall failed: {exc}")
         rows = _relevance_rerank(rows, stems)
 
-    # Prioritize the routed category (STABLE sort — preserves the rank_score/relevance
-    # order within it): recall stays inclusive (category OR text/stem), but venues that
-    # are actually IN the asked-for category lead. Without this a bare category word
-    # ("spa", "hotel", "barbershop") surfaced a high-rated lookalike from another
-    # category first (a hotel-with-spa above real spas; a restaurant-in-a-hotel above
-    # hotels). Runs before the transport prepend so boat operators still lead their case.
-    if routed_cats:
+    # Prioritize the routed subcategory THEN category (STABLE — preserves the
+    # rank_score/relevance order within each group): recall stays inclusive (category OR
+    # text/stem), but the exact micro-category leads, then the broad category, then the
+    # rest. Without this a bare term surfaced a high-rated lookalike first — "manicure"
+    # gave hair salons above nail bars, "spa" a hotel-with-spa above real spas, "hotel"
+    # a restaurant-in-a-hotel above hotels. Runs before the transport prepend so boat
+    # operators still lead their case.
+    if routed_cats or routed_subcats:
         _rc = set(routed_cats)
-        rows = sorted(rows, key=lambda p: 0 if p.get("category") in _rc else 1)
+        _rs = set(routed_subcats)
+        def _prio(p):
+            if _rs and p.get("subcategory") in _rs:
+                return 0
+            if _rc and p.get("category") in _rc:
+                return 1
+            return 2
+        rows = sorted(rows, key=_prio)
 
     # Transport intent: a boat query ("lancha a rosario", "cómo llego a las islas")
     # must be answered by the OPERATORS first, then the destinations they serve —
