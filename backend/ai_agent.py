@@ -438,6 +438,13 @@ _STEM_STOPWORDS = {
     "recomienda", "recomiendame", "cerca", "near", "best", "mejor", "mejores", "good",
     "restaurant", "restaurante", "restaurantes", "comida", "food", "lugar", "sitio",
     "place", "bar", "cafe", "hotel", "spa", "club", "algo", "sitios", "lugares",
+    # City/country + filler adjectives — a stem like 'cartag' from "cartagena" matched
+    # EVERY "…Cartagena" venue name and _relevance_rerank then floated those yachts/
+    # hotels above the real category. This is the same junk-token class as the other
+    # three stopword sets; keep them in lockstep.
+    "cartagena", "indias", "colombia", "ciudad", "city", "ciudade",
+    "great", "top", "nice", "cool", "bueno", "buena", "buen", "buenos", "buenas",
+    "cherche", "meilleur", "meilleure", "melhor", "melhores", "bom", "boa",
 }
 
 
@@ -641,7 +648,16 @@ async def _route_intent(db, user_text: str) -> Dict[str, Any]:
     stopwords = {"el", "la", "de", "en", "un", "una", "los", "las", "que", "es",
                  "para", "con", "the", "a", "an", "in", "of", "for", "to", "is",
                  "i", "my", "me", "do", "can", "where", "what", "how", "want",
-                 "quiero", "donde", "cual", "como"}
+                 "quiero", "donde", "cual", "como",
+                 # City/country + filler adjectives carry ZERO discriminative signal —
+                 # as free-text search terms they matched every "…Cartagena" venue NAME
+                 # (yachts, hotels, tours) which then floated to the top by rank_score and
+                 # buried the routed category (barbershop → beauty). Mirrors global_search
+                 # _STOP_WORDS/_GENERIC_TERMS. Neighborhoods are handled separately.
+                 "cartagena", "indias", "colombia", "ciudad", "city", "ciudade",
+                 "best", "mejor", "mejores", "bueno", "buena", "buen", "buenos", "buenas",
+                 "good", "great", "top", "nice", "cool", "cerca", "near", "recomienda",
+                 "cherche", "meilleur", "meilleure", "melhor", "melhores", "bom", "boa"}
     search_terms = [w for w in t.split() if len(w) >= 3 and w not in stopwords][:4]
 
     # Detect intent type
@@ -857,6 +873,16 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
         except Exception as exc:
             logger.warning(f"[concierge] stem recall failed: {exc}")
         rows = _relevance_rerank(rows, stems)
+
+    # Prioritize the routed category (STABLE sort — preserves the rank_score/relevance
+    # order within it): recall stays inclusive (category OR text/stem), but venues that
+    # are actually IN the asked-for category lead. Without this a bare category word
+    # ("spa", "hotel", "barbershop") surfaced a high-rated lookalike from another
+    # category first (a hotel-with-spa above real spas; a restaurant-in-a-hotel above
+    # hotels). Runs before the transport prepend so boat operators still lead their case.
+    if routed_cats:
+        _rc = set(routed_cats)
+        rows = sorted(rows, key=lambda p: 0 if p.get("category") in _rc else 1)
 
     # Transport intent: a boat query ("lancha a rosario", "cómo llego a las islas")
     # must be answered by the OPERATORS first, then the destinations they serve —
