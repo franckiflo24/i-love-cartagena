@@ -4997,6 +4997,19 @@ async def global_search(q: str = "", request: Request = None):
         recall_terms = sorted(term_weights.keys()) + neighborhood_matchers + [q_norm]
     regex = {"$regex": "|".join(_accent_pattern(t) for t in recall_terms if t), "$options": "i"}
 
+    # Micro-category lead: reuse Luna's routing to learn the EXACT subcategory the query
+    # asks for ("spa"→spa, "boutique hotel"→boutique_hotel, "massage"→massage). Venues in
+    # that subcategory get a strong boost in _score_partner so they lead adjacent ones in
+    # the same category — parity with Luna's subcategory-priority sort. Without it a
+    # wellness-center named "…Spa" outscored real spas on the name hit.
+    _target_subs: set = set()
+    try:
+        _routed_sub = _ai_agent._extract_filters_from_text(q).get("subcategory")
+        if _routed_sub:
+            _target_subs.add(_norm(_routed_sub))
+    except Exception as exc:
+        logger.warning(f"[search] subcategory routing failed: {exc}")
+
     def _score_partner(p: dict):
         score = 0.0
         has_distinctive = False
@@ -5072,6 +5085,13 @@ async def global_search(q: str = "", request: Request = None):
                 score += 8
             elif cat == "service" and sub in ("marina", "tour_operator", "tours"):
                 score += 6
+        # Exact micro-category lead (parity with Luna): a venue in the routed subcategory
+        # ranks above adjacent ones in the same category. All exact-subcat venues get the
+        # same bump, so their relative relevance order is preserved — it only lifts the
+        # exact block above the lookalikes (spa above wellness_center, boutique_hotel
+        # above luxury_hotel).
+        if _target_subs and _norm(p.get("subcategory")) in _target_subs:
+            score += 8
         return score, has_distinctive
 
     events = await db.events.find(

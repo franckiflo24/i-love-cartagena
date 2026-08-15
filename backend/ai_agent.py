@@ -639,17 +639,23 @@ def _extract_filters_from_text(text: str) -> Dict[str, Any]:
     subcategory (→ the subcategory-priority sort leads with it), then the broad
     _KEYWORD_FALLBACK fills the category."""
     t = (text or "").lower()
-    words = re.findall(r"[0-9a-záéíóúñüçàâêôãõ]+", t)
+    raw = re.findall(r"[0-9a-záéíóúñüçàâêôãõ]+", t)
+    ordered = [_strip_accents(w) for w in raw]     # accent-stripped, ORIGINAL order
+    joined = "".join(ordered)                       # space-stripped query for multi-word keys
     # accent-stripped words too, so unaccented map keys (unas, pestanas) match accented
     # input (uñas, pestañas) and vice-versa without a per-word table.
-    words = list({*words, *(_strip_accents(w) for w in words)})
+    words = list({*raw, *ordered})
     wordset = set(words)
 
     def _match(kw: str) -> bool:
         if " " in kw or "-" in kw:
-            return kw in t or kw.replace(" ", "") in "".join(words)
+            return kw in t or kw.replace(" ", "").replace("-", "") in joined
         if len(kw) >= 4:
-            return any(w == kw or w.startswith(kw) for w in words)
+            if any(w == kw or w.startswith(kw) for w in words):
+                return True
+            # concatenated multi-word key (boutiquehotel, cocktailbar, rentacar) → match
+            # the space-stripped query so "boutique hotel" hits "boutiquehotel".
+            return len(kw) >= 8 and kw in joined
         return kw in wordset
 
     filters: Dict[str, Any] = {}
