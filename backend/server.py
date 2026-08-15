@@ -4738,6 +4738,21 @@ async def global_search(q: str = "", request: Request = None):
         "spa": "wellness", "wellness": "wellness", "yoga": "wellness", "gym": "activity", "fitness": "activity",
         # Beauty
         "hair": "beauty", "nails": "beauty", "salon": "beauty", "barber": "beauty",
+        # Beauty micro-categories → the subcategory value, so recall matches venues whose
+        # NAME is Spanish ("Pestañas X") but subcategory is the English key. Without this
+        # "eyelashes"/"manicure" returned 0 (no name/subcategory literally contains them).
+        "eyelashes": "lashes_brows", "lashes": "lashes_brows", "pestanas": "lashes_brows",
+        "cejas": "lashes_brows", "brows": "lashes_brows", "eyebrows": "lashes_brows",
+        "manicure": "nails", "pedicure": "nails", "unas": "nails",
+        "makeup": "makeup", "maquillaje": "makeup",
+        "botox": "aesthetic_clinic", "estetica": "aesthetic_clinic", "depilacion": "aesthetic_clinic",
+        "barbershop": "barbershop",
+        # Service micro-categories
+        "tattoo": "tattoo", "tatuaje": "tattoo", "piercing": "tattoo",
+        "laundry": "laundry", "lavanderia": "laundry",
+        "jewelry": "jewelry", "joyeria": "jewelry", "esmeralda": "jewelry", "emerald": "jewelry",
+        "veterinary": "veterinary", "veterinario": "veterinary",
+        "coworking": "coworking", "sim": "sim_card", "esim": "sim_card",
         # Hotels
         "hotel": "hotel", "hostal": "hotel", "hospedaje": "hotel",
         # Activities
