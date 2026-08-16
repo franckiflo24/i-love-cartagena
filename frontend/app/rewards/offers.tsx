@@ -71,7 +71,7 @@ export default function OffersScreen() {
               const result = await api.post('/rewards/redeem', { offer_id: offer.offer_id });
               // In static mode api.post returns the body with no redemption_id.
               // Generate one locally so the flow completes.
-              const redemptionId = result?.redemption_id || `rdm_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+              const redemptionId = result?.redemption?.redemption_id || `rdm_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
               // Persist redemption locally
               const stored = await AsyncStorage.getItem('amo_redemptions');
               const redemptions = stored ? JSON.parse(stored) : [];

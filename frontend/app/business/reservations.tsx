@@ -104,7 +104,7 @@ function fmtRelative(iso: string): string {
 export default function BusinessReservations() {
   const tr = useTr();
   const router = useRouter();
-  const { token, authLoading } = useBusinessAuth() as any;
+  const { token, loading: authLoading } = useBusinessAuth() as any;
 
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -143,12 +143,13 @@ export default function BusinessReservations() {
   }, [token, tr]);
 
   useEffect(() => {
+    if (authLoading) return;          // wait for the token to rehydrate on cold refresh
     if (!token) {
       router.replace('/business/login');
       return;
     }
     load();
-  }, [token, load, router]);
+  }, [token, authLoading, load, router]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
 
