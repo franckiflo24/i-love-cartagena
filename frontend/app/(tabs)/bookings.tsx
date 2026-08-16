@@ -8,8 +8,8 @@ import {
   ActivityIndicator,
   RefreshControl,
   Dimensions,
-  Alert,
 } from 'react-native';
+import { Alert } from '../../src/lib/alert';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
