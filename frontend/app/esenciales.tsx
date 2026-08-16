@@ -29,7 +29,17 @@ export default function EsencialesScreen() {
   }, []);
   useEffect(load, [load]);
 
-  const T = (o: any, base: string) => (lang !== 'es' && o?.[`${base}_en`]) || o?.[`${base}_es`] || '';
+  // 4-language field picker: <base>_<lang> → _en → _es → bare <base>. Works across the
+  // heterogeneous essentials entries (need_states use *_es/*_en; trust scam cards use a
+  // bare title/line; zones use name/character_*) and adds FR/PT (fall back to EN, then ES)
+  // instead of always showing Spanish.
+  const L = (o: any, base: string) =>
+    o?.[`${base}_${lang}`] || o?.[`${base}_en`] || o?.[`${base}_es`] || o?.[base] || '';
+  const pick = (o: any, bases: string[]) => {
+    for (const b of bases) { const v = L(o, b); if (v) return v; }
+    return '';
+  };
+  const T = (o: any, base: string) => L(o, base);
 
   const toggle = useCallback((key: string) => {
     setOpen((cur) => (cur === key ? null : key));
@@ -86,14 +96,14 @@ export default function EsencialesScreen() {
                       <View style={styles.catBody}>
                         {!d ? <ActivityIndicator color={COLORS.primary} size="small" /> : (
                           <>
-                            {!!(d.guidance_es || d.guidance_en) && (
-                              <Text style={styles.guidance}>{lang !== 'es' && d.guidance_en ? d.guidance_en : d.guidance_es}</Text>
+                            {!!L(d, 'guidance') && (
+                              <Text style={styles.guidance}>{L(d, 'guidance')}</Text>
                             )}
                             {(d.entries || []).map((e: any, i: number) => (
                               <View key={i} style={styles.entryRow}>
-                                <Text style={styles.entryLabel}>{(lang !== 'es' && (e.label_en || e.name)) || e.label_es || e.name || e.title || ''}</Text>
+                                <Text style={styles.entryLabel}>{pick(e, ['label', 'title', 'name'])}</Text>
                                 <Text style={styles.entryValue}>
-                                  {e.value_cop !== undefined ? fmtCop(e.value_cop) : (e.value_text || e.line || e.character_es || '')}
+                                  {e.value_cop !== undefined ? fmtCop(e.value_cop) : pick(e, ['value_text', 'line', 'character'])}
                                 </Text>
                                 {e.confidence === 'VERIFY' ? <Text style={styles.verify}>{tr('confirmá')}</Text> : null}
                               </View>
@@ -110,7 +120,7 @@ export default function EsencialesScreen() {
                                 <Text style={styles.link}>{tr('Ver lugares')} →</Text>
                               </TouchableOpacity>
                             )}
-                            {(d.entries || []).length === 0 && !d.guidance_es && !d.resolve_via && (
+                            {(d.entries || []).length === 0 && !L(d, 'guidance') && !d.resolve_via && (
                               <Text style={styles.guidance}>{tr('Aún no cubierto en la app.')}</Text>
                             )}
                           </>
