@@ -137,6 +137,7 @@ async def essentials_taxonomy(request: Request, include_hidden: int = 0):
             live = _is_live(source.get("type", ""), count, gate)
             summary = {
                 "key": cat["key"], "title_es": cat.get("title_es"), "title_en": cat.get("title_en"),
+                "title_fr": cat.get("title_fr"), "title_pt": cat.get("title_pt"),
                 "icon": cat.get("icon"), "tier": cat.get("tier"),
                 "trust_required": bool(cat.get("trust_required")), "trust_flag": cat.get("trust_flag"),
                 "verified_count": count, "source_type": source.get("type"),
@@ -145,6 +146,7 @@ async def essentials_taxonomy(request: Request, include_hidden: int = 0):
         state = {
             "key": ns["key"], "order": ns.get("order"), "icon": ns.get("icon"),
             "title_es": ns.get("title_es"), "title_en": ns.get("title_en"),
+            "title_fr": ns.get("title_fr"), "title_pt": ns.get("title_pt"),
             "categories": live_cats,
         }
         if include_hidden:
@@ -180,9 +182,11 @@ async def essentials_category(cat_key: str, request: Request):
     base = {
         "key": cat["key"], "need_state": cat["_need_state"],
         "title_es": cat.get("title_es"), "title_en": cat.get("title_en"),
+        "title_fr": cat.get("title_fr"), "title_pt": cat.get("title_pt"),
         "icon": cat.get("icon"), "tier": cat.get("tier"),
         "trust_required": bool(cat.get("trust_required")), "trust_flag": cat.get("trust_flag"),
         "guidance_es": cat.get("guidance_es"), "guidance_en": cat.get("guidance_en"),
+        "guidance_fr": cat.get("guidance_fr"), "guidance_pt": cat.get("guidance_pt"),
         "verified_count": count, "live": live,
     }
     if not live:
@@ -335,6 +339,7 @@ def match_essentials_query(text: str) -> Optional[Dict[str, Any]]:
             return {
                 "category": cat_key, "need_state": cat["_need_state"],
                 "title_es": cat.get("title_es"), "title_en": cat.get("title_en"),
+                "title_fr": cat.get("title_fr"), "title_pt": cat.get("title_pt"),
                 "icon": cat.get("icon"), "trust_flag": cat.get("trust_flag"),
                 "route": "/esenciales",
             }
