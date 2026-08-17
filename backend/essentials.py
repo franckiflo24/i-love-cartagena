@@ -56,12 +56,12 @@ except Exception:
 # Walkable core zones — verified in frontend/public/data/neighborhoods.json.
 # Kept here so the backend stays self-contained (that file is frontend-static).
 WALKABLE_ZONES = [
-    {"slug": "centro", "name": "Centro Histórico", "character_es": "Ciudad amurallada, colonial, caminable", "character_en": "Walled colonial city, walkable", "safety": 4},
-    {"slug": "san-diego", "name": "San Diego", "character_es": "Barrio tranquilo dentro de la muralla", "character_en": "Quiet quarter inside the wall", "safety": 4},
-    {"slug": "getsemani", "name": "Getsemaní", "character_es": "Bohemio, arte callejero, vida nocturna", "character_en": "Bohemian, street art, nightlife", "safety": 3},
-    {"slug": "bocagrande", "name": "Bocagrande", "character_es": "Moderno, playa urbana, bancos y farmacias", "character_en": "Modern, urban beach, banks & pharmacies", "safety": 4},
-    {"slug": "manga", "name": "Manga", "character_es": "Residencial local, terminal de cruceros", "character_en": "Local residential, cruise terminal", "safety": 3},
-    {"slug": "castillogrande", "name": "Castillogrande", "character_es": "Península tranquila, atardeceres, familias", "character_en": "Quiet peninsula, sunsets, families", "safety": 4},
+    {"slug": "centro", "name": "Centro Histórico", "character_es": "Ciudad amurallada, colonial, caminable", "character_en": "Walled colonial city, walkable", "character_fr": "Ville fortifiée, coloniale, à pied", "character_pt": "Cidade murada, colonial, caminhável", "safety": 4},
+    {"slug": "san-diego", "name": "San Diego", "character_es": "Barrio tranquilo dentro de la muralla", "character_en": "Quiet quarter inside the wall", "character_fr": "Quartier tranquille dans les remparts", "character_pt": "Bairro tranquilo dentro da muralha", "safety": 4},
+    {"slug": "getsemani", "name": "Getsemaní", "character_es": "Bohemio, arte callejero, vida nocturna", "character_en": "Bohemian, street art, nightlife", "character_fr": "Bohème, art de rue, vie nocturne", "character_pt": "Boêmio, arte de rua, vida noturna", "safety": 3},
+    {"slug": "bocagrande", "name": "Bocagrande", "character_es": "Moderno, playa urbana, bancos y farmacias", "character_en": "Modern, urban beach, banks & pharmacies", "character_fr": "Moderne, plage urbaine, banques et pharmacies", "character_pt": "Moderno, praia urbana, bancos e farmácias", "safety": 4},
+    {"slug": "manga", "name": "Manga", "character_es": "Residencial local, terminal de cruceros", "character_en": "Local residential, cruise terminal", "character_fr": "Résidentiel local, terminal de croisière", "character_pt": "Residencial local, terminal de cruzeiros", "safety": 3},
+    {"slug": "castillogrande", "name": "Castillogrande", "character_es": "Península tranquila, atardeceres, familias", "character_en": "Quiet peninsula, sunsets, families", "character_fr": "Péninsule tranquille, couchers de soleil, familles", "character_pt": "Península tranquila, pôr do sol, famílias", "safety": 4},
 ]
 
 
