@@ -4,7 +4,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, ELEVATION, PARTNER_CATEGORY_LABELS, TIER_COLORS, Tier } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, ELEVATION, PARTNER_CATEGORY_LABELS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
@@ -296,19 +296,19 @@ export default function PartnerDetail() {
           </View>
           {partner.is_certified && (
             <View style={styles.sealBadge}>
-              <Ionicons name="shield-checkmark" size={16} color={COLORS.primary} />
+              <Ionicons name="shield-checkmark" size={16} color={COLORS.official} />
               <Text style={styles.sealText}>{tr('PARTNER CERTIFICADO')}</Text>
             </View>
           )}
           <View style={styles.heroBottom}>
             <View style={styles.heroBadgeRow}>
-              <View style={styles.catBadge}>
+              <View style={[styles.catBadge, { backgroundColor: colorForKey(partner.category || partner.subcategory) }]}>
                 <Text style={styles.catText}>{tr(PARTNER_CATEGORY_LABELS[partner.category] || partner.category)}</Text>
               </View>
               <TierBadge tier={partner.tier} size="sm" />
               {partner.rating ? (
                 <View style={styles.ratingBadge}>
-                  <Ionicons name="star" size={12} color={COLORS.primary} />
+                  <Ionicons name="star" size={12} color={COLORS.mustard} />
                   <Text style={styles.ratingBadgeText}>{Number(partner.rating).toFixed(1)}</Text>
                   {partner.reviews ? <Text style={styles.ratingBadgeCount}>({partner.reviews})</Text> : null}
                 </View>
@@ -351,7 +351,7 @@ export default function PartnerDetail() {
             const barrio = pick.neighborhood ? (NBH_LABELS[pick.neighborhood] || null) : null;
             return (
               <View style={styles.localCallout}>
-                <Ionicons name="home" size={18} color={COLORS.primary} />
+                <Ionicons name="home" size={18} color={COLORS.bougainvillea} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.localCalloutTitle}>
                     {tr('Favorito local')}{barrio ? ` · ${barrio}` : ''}
@@ -405,7 +405,7 @@ export default function PartnerDetail() {
           <View style={styles.infoGrid}>
             {partner.address ? (
               <TouchableOpacity style={styles.infoCard} onPress={openMaps} activeOpacity={0.7}>
-                <Ionicons name="location-outline" size={20} color={COLORS.primary} />
+                <Ionicons name="location-outline" size={20} color={COLORS.icon} />
                 <Text style={styles.infoLabel}>{tr('Ubicación')}</Text>
                 <Text style={[styles.infoValue, { textDecorationLine: 'underline' }]}>{partner.address}</Text>
                 <LiveDistance lat={partner.location?.lat} lng={partner.location?.lng} />
@@ -414,13 +414,13 @@ export default function PartnerDetail() {
             ) : null}
             {partner.price_range ? (
               <View style={styles.infoCard}>
-                <Ionicons name="cash-outline" size={20} color={COLORS.primary} />
+                <Ionicons name="cash-outline" size={20} color={COLORS.icon} />
                 <Text style={styles.infoLabel}>{tr('Rango de precio')}</Text>
                 <Text style={styles.infoValue}>{partner.price_range}</Text>
               </View>
             ) : null}
             <View style={styles.infoCard}>
-              <Ionicons name="time-outline" size={20} color={COLORS.primary} />
+              <Ionicons name="time-outline" size={20} color={COLORS.icon} />
               <Text style={styles.infoLabel}>{tr('Horario')}</Text>
               <Text style={styles.infoValue}>
                 {(partner as any).hours || tr('Contactar para horarios')}
@@ -466,7 +466,7 @@ export default function PartnerDetail() {
               onPress={() => openExternal(`instagram://user?username=${igHandle}`, `https://www.instagram.com/${igHandle}/`)}
               activeOpacity={0.85}
             >
-              <Ionicons name="logo-instagram" size={20} color={COLORS.primary} />
+              <Ionicons name="logo-instagram" size={20} color={COLORS.icon} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.instagramLabel}>{tr('Síguelos en Instagram')}</Text>
                 <Text style={styles.instagramHandle}>@{igHandle}</Text>
@@ -478,7 +478,7 @@ export default function PartnerDetail() {
           {/* Calendar of upcoming events */}
           <View style={styles.calendarSection}>
             <View style={styles.calendarHeader}>
-              <Ionicons name="calendar" size={16} color={COLORS.primary} />
+              <Ionicons name="calendar" size={16} color={COLORS.icon} />
               <Text style={styles.sectionTitle}>{tr('Próximos eventos')}</Text>
               {partnerEvents.length > 0 && (
                 <View style={styles.calendarCount}>
@@ -595,8 +595,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(239,68,68,0.18)',
     borderColor: '#EF4444',
   },
-  sealBadge: { position: 'absolute', top: SPACING.md + 56, right: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(5,8,20,0.85)', borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.primary },
-  sealText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1 },
+  sealBadge: { position: 'absolute', top: SPACING.md + 56, right: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(5,8,20,0.85)', borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.official },
+  sealText: { fontSize: 10, color: COLORS.official, ...FONTS.bold, letterSpacing: 1 },
   heroBottom: { position: 'absolute', bottom: SPACING.lg, left: SPACING.lg, right: SPACING.lg },
   heroBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flexWrap: 'wrap' },
   catBadge: { alignSelf: 'flex-start', backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 4 },
@@ -620,8 +620,8 @@ const styles = StyleSheet.create({
   tierCallout: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, borderRadius: RADIUS.lg, borderWidth: 1, marginBottom: SPACING.md },
   tierCalloutTitle: { fontSize: 14, ...FONTS.bold, letterSpacing: 0.5 },
   tierCalloutDesc: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
-  localCallout: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, borderRadius: RADIUS.lg, borderWidth: 1, marginBottom: SPACING.md, backgroundColor: `${COLORS.primary}12`, borderColor: `${COLORS.primary}40` },
-  localCalloutTitle: { fontSize: 14, ...FONTS.bold, letterSpacing: 0.5, color: COLORS.primary },
+  localCallout: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, borderRadius: RADIUS.lg, borderWidth: 1, marginBottom: SPACING.md, backgroundColor: `${COLORS.bougainvillea}12`, borderColor: `${COLORS.bougainvillea}40` },
+  localCalloutTitle: { fontSize: 14, ...FONTS.bold, letterSpacing: 0.5, color: COLORS.bougainvillea },
   localCalloutDesc: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
   description: { fontSize: 15, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 24 },
   infoGrid: { flexDirection: 'row', gap: SPACING.md, marginTop: SPACING.lg },
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: 'rgba(18,181,165,0.3)',
+    borderColor: COLORS.border,
     marginTop: SPACING.lg,
   },
   instagramLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, letterSpacing: 0.5, textTransform: 'uppercase' },
@@ -657,23 +657,23 @@ const styles = StyleSheet.create({
   // Calendar section
   calendarSection: { marginTop: SPACING.lg },
   calendarHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, marginBottom: SPACING.sm },
-  calendarCount: { backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 2 },
+  calendarCount: { backgroundColor: COLORS.iconMuted, borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 2 },
   calendarCountText: { fontSize: 11, color: COLORS.white, ...FONTS.bold },
   calendarEmpty: { alignItems: 'center', paddingVertical: SPACING.lg, gap: SPACING.xs, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border },
   calendarEmptyText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
   calendarItem: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, marginBottom: SPACING.xs },
   calendarFlyer: { width: 56, height: 56, borderRadius: RADIUS.md },
   calendarItemBody: { flex: 1, gap: 2 },
-  calendarItemDate: { fontSize: 11, color: COLORS.primary, ...FONTS.bold, letterSpacing: 0.3 },
+  calendarItemDate: { fontSize: 11, color: COLORS.icon, ...FONTS.bold, letterSpacing: 0.3 },
   calendarItemTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.semibold },
   calendarItemFooter: { flexDirection: 'row', marginTop: 2 },
   calendarPriceTag: { borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 2 },
   calendarFree: { backgroundColor: 'rgba(34,197,94,0.2)' },
-  calendarPaid: { backgroundColor: 'rgba(18,181,165,0.2)' },
+  calendarPaid: { backgroundColor: 'rgba(233,185,73,0.2)' },
   calendarPriceText: { fontSize: 10, color: COLORS.textMain, ...FONTS.bold },
   bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', padding: SPACING.md, paddingBottom: SPACING.lg, gap: SPACING.sm, backgroundColor: COLORS.background, borderTopWidth: 1, borderTopColor: COLORS.border },
   ratingBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(10,10,15,0.8)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: RADIUS.full },
-  ratingBadgeText: { fontSize: 13, color: COLORS.primary, ...FONTS.bold },
+  ratingBadgeText: { fontSize: 13, color: COLORS.mustard, ...FONTS.bold },
   ratingBadgeCount: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
   actionCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center' },
   bookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 14 },

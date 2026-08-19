@@ -117,7 +117,7 @@ export default function PortTaxTicketsScreen() {
           <Text style={styles.ticketCtaText}>
             {t.status === 'paid' ? 'Ver QR' : 'Ver detalles'}
           </Text>
-          <Ionicons name="chevron-forward" size={14} color={COLORS.primary} />
+          <Ionicons name="chevron-forward" size={14} color={COLORS.iconMuted} />
         </View>
       </TouchableOpacity>
     );

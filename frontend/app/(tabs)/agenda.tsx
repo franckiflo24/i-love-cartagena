@@ -4,7 +4,7 @@ import { Alert } from '../../src/lib/alert';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { PartnerEventCard, PartnerEvent } from '../../src/components/PartnerEventCard';
 import { useMyCalendar, CalendarItem } from '../../src/context/MyCalendarContext';
@@ -316,7 +316,7 @@ export default function AgendaScreen() {
 
           <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
             {loadingSalir ? (
-              <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
+              <ActivityIndicator size="large" color={COLORS.icon} style={{ marginTop: 40 }} />
             ) : partnerEvents.length === 0 && cityEvents.length === 0 ? (
               <View style={styles.empty}>
                 <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
@@ -335,7 +335,9 @@ export default function AgendaScreen() {
                 {cityEvents.length > 0 && (
                   <View style={{ marginBottom: SPACING.md }}>
                     <Text style={styles.cityEventsLabel}>{tr('Eventos de la ciudad')}</Text>
-                    {cityEvents.map((ev: any) => (
+                    {cityEvents.map((ev: any) => {
+                      const catColor = colorForKey(ev.category || ev.type);
+                      return (
                       <TouchableOpacity
                         key={ev.event_id || ev.id}
                         style={styles.cityEventCard}
@@ -362,21 +364,22 @@ export default function AgendaScreen() {
                             </View>
                           )}
                           <View style={styles.cityEventTagRow}>
-                            <View style={styles.cityEventCatBadge}>
-                              <Text style={styles.cityEventCatText}>
+                            <View style={[styles.cityEventCatBadge, { backgroundColor: `${catColor}26`, borderColor: `${catColor}66` }]}>
+                              <Text style={[styles.cityEventCatText, { color: catColor }]}>
                                 {(ev.category || ev.type || '').toUpperCase()}
                               </Text>
                             </View>
                             {ev.time_start && (
                               <View style={styles.cityEventTimeBadge}>
-                                <Ionicons name="time-outline" size={10} color={COLORS.primary} />
+                                <Ionicons name="time-outline" size={10} color={COLORS.icon} />
                                 <Text style={styles.cityEventTimeText}>{ev.time_start}</Text>
                               </View>
                             )}
                           </View>
                         </View>
                       </TouchableOpacity>
-                    ))}
+                      );
+                    })}
                   </View>
                 )}
 
@@ -484,14 +487,14 @@ export default function AgendaScreen() {
                             </View>
                           ) : (
                             <View style={[styles.agendaFlyerWrap, styles.agendaFlyerPlaceholder]}>
-                              <Ionicons name="calendar" size={28} color={COLORS.primary} />
+                              <Ionicons name="calendar" size={28} color={COLORS.icon} />
                             </View>
                           )}
                           <View style={styles.agendaBody}>
                             <View style={styles.agendaTopRow}>
                               {it.start_time && (
                                 <View style={styles.timePill}>
-                                  <Ionicons name="time-outline" size={11} color={COLORS.primary} />
+                                  <Ionicons name="time-outline" size={11} color={COLORS.icon} />
                                   <Text style={styles.timePillText}>
                                     {it.start_time}{it.end_time ? ` - ${it.end_time}` : ''}
                                   </Text>
@@ -568,7 +571,7 @@ const styles = StyleSheet.create({
     minWidth: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.coral,
     paddingHorizontal: 5,
     alignItems: 'center',
     justifyContent: 'center',
@@ -669,7 +672,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
     marginTop: SPACING.sm,
   },
-  dayDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.primary },
+  dayDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.icon },
   dayHeaderText: {
     fontSize: 13,
     color: COLORS.textMain,
@@ -707,7 +710,7 @@ const styles = StyleSheet.create({
   agendaFlyer: { width: '100%', height: '100%' },
   agendaFlyerOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.18)' },
   agendaFlyerPlaceholder: {
-    backgroundColor: 'rgba(18,181,165,0.1)',
+    backgroundColor: 'rgba(174,182,196,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -719,15 +722,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: 'rgba(18,181,165,0.15)',
+    backgroundColor: 'rgba(174,182,196,0.15)',
     borderRadius: RADIUS.full,
     paddingHorizontal: 7,
     paddingVertical: 2,
   },
-  timePillText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold },
+  timePillText: { fontSize: 10, color: COLORS.icon, ...FONTS.bold },
   pricePill: { borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2 },
   priceFreeBg: { backgroundColor: COLORS.success },
-  pricePaidBg: { backgroundColor: 'rgba(5,8,20,0.6)', borderWidth: 1, borderColor: COLORS.primary },
+  pricePaidBg: { backgroundColor: 'rgba(5,8,20,0.6)', borderWidth: 1, borderColor: COLORS.mustard },
   pricePillText: { fontSize: 9, color: COLORS.white, ...FONTS.bold, letterSpacing: 0.4 },
 
   agendaTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold, marginTop: 4, lineHeight: 17 },
@@ -749,7 +752,7 @@ const styles = StyleSheet.create({
   // City events in Salir mode
   cityEventsLabel: {
     fontSize: 12,
-    color: COLORS.primary,
+    color: COLORS.icon,
     ...FONTS.bold,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
@@ -840,14 +843,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: 'rgba(18,181,165,0.15)',
+    backgroundColor: 'rgba(174,182,196,0.15)',
     borderRadius: RADIUS.full,
     paddingHorizontal: 7,
     paddingVertical: 2,
   },
   cityEventTimeText: {
     fontSize: 9,
-    color: COLORS.primary,
+    color: COLORS.icon,
     ...FONTS.bold,
   },
 });

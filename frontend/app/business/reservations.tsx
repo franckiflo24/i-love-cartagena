@@ -455,7 +455,7 @@ export default function BusinessReservations() {
                     <Text style={styles.lockedActionText}>
                       {tr('Activa PRO para ver al cliente y confirmar')}
                     </Text>
-                    <Ionicons name="arrow-forward" size={14} color={COLORS.primary} />
+                    <Ionicons name="arrow-forward" size={14} color={COLORS.iconMuted} />
                   </TouchableOpacity>
                 ) : r.status === 'confirmed' ? (
                   <View style={styles.actionRow}>

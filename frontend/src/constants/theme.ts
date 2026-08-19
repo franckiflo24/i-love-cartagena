@@ -3,18 +3,22 @@
 // everything: teal = primary/interactive, coral = live/now, mustard = hero/
 // premium, bougainvillea = the ❤️ brand pop, blue = official/institutional.
 export const COLORS = {
-  background: '#0A0E1A',
-  backgroundSolid: '#0A0E1A',
-  surface: '#141A2A',
-  surfaceAlt: '#1C2438',
-  surfaceGlass: 'rgba(20, 26, 42, 0.6)',
-  primary: '#12B5A5',          // Caribbean teal — the main interactive accent
+  background: '#080C16',       // deep Caribbean night — darker, richer base
+  backgroundSolid: '#080C16',
+  surface: '#0F1524',          // navy card, lifted for separation
+  surfaceAlt: '#161E30',
+  surfaceGlass: 'rgba(15, 21, 36, 0.62)',
+  primary: '#12B5A5',          // Caribbean teal — reserved for PRIMARY actions only
   primaryHover: '#3ED0C1',
   primaryMuted: '#0C7D72',
   textMain: '#F5F7FA',
   textMuted: '#8A93A6',
   textFaint: '#5E6675',
-  border: '#242C3E',
+  // ── Neutral chrome — quiet by default so teal stops flooding ──
+  icon: '#AEB6C4',             // decorative / utility icons (chevrons, meta)
+  iconMuted: '#6B7688',        // secondary icons
+  hairline: 'rgba(255,255,255,0.06)',  // quiet dividers/borders
+  border: '#1C2537',
   success: '#15803D',
   warning: '#B45309',
   error: '#DC2626',

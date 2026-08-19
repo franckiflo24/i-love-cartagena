@@ -140,7 +140,7 @@ export default function CreateVenue() {
               {dupes.map(d => (
                 <TouchableOpacity key={d.partner_id} style={styles.dupItem} onPress={() => router.replace(`/business/claim/${d.partner_id}` as any)}>
                   <Text style={styles.dupName} numberOfLines={1}>{d.name}</Text>
-                  <View style={styles.dupClaim}><Text style={styles.dupClaimText}>{tr('Reclamar')}</Text><Ionicons name="chevron-forward" size={14} color={COLORS.primary} /></View>
+                  <View style={styles.dupClaim}><Text style={styles.dupClaimText}>{tr('Reclamar')}</Text><Ionicons name="chevron-forward" size={14} color={COLORS.iconMuted} /></View>
                 </TouchableOpacity>
               ))}
             </View>

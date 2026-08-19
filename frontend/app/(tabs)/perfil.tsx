@@ -190,7 +190,7 @@ export default function PerfilScreen() {
               activeOpacity={0.85}
             >
               <View style={styles.partnerResumeIcon}>
-                <Ionicons name="briefcase" size={20} color={COLORS.primary} />
+                <Ionicons name="briefcase" size={20} color={COLORS.icon} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.partnerResumeTitle}>{tr('Ya iniciaste sesión como socio')}</Text>
@@ -198,7 +198,7 @@ export default function PerfilScreen() {
                   {bizBusiness?.full_name || tr('Continúa a tu tablero de socio')}
                 </Text>
               </View>
-              <Ionicons name="arrow-forward" size={18} color={COLORS.primary} />
+              <Ionicons name="arrow-forward" size={18} color={COLORS.iconMuted} />
             </TouchableOpacity>
           ) : null}
 
@@ -219,7 +219,7 @@ export default function PerfilScreen() {
               ['card', tr('City Pass y viajes que planeás con tu grupo')],
             ].map(([icon, label]) => (
               <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 11 }}>
-                <Ionicons name={icon as any} size={16} color={COLORS.primary} />
+                <Ionicons name={icon as any} size={16} color={COLORS.icon} />
                 <Text style={{ flex: 1, color: 'rgba(255,255,255,0.82)', fontSize: 13.5, lineHeight: 18 }}>{label}</Text>
               </View>
             ))}
@@ -292,7 +292,7 @@ export default function PerfilScreen() {
             activeOpacity={0.85}
           >
             <View style={[styles.specialIconWrap, { backgroundColor: 'rgba(18,181,165,0.15)' }]}>
-              <Ionicons name="business" size={22} color={COLORS.primary} />
+              <Ionicons name="business" size={22} color={COLORS.icon} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.specialTitle}>{tr('¿Eres partner de Amo Cartagena?')}</Text>
@@ -351,7 +351,7 @@ export default function PerfilScreen() {
   const SettingsRow = ({ icon, iconColor, label, onPress, right, destructive }: { icon: string; iconColor?: string; label: string; onPress: () => void; right?: React.ReactNode; destructive?: boolean }) => (
     <TouchableOpacity style={sty.settingsRow} onPress={onPress} activeOpacity={0.7}>
       <View style={[sty.settingsIconWrap, destructive && { backgroundColor: 'rgba(239,68,68,0.1)' }]}>
-        <Ionicons name={icon as any} size={18} color={destructive ? '#EF4444' : (iconColor || COLORS.primary)} />
+        <Ionicons name={icon as any} size={18} color={destructive ? '#EF4444' : (iconColor || COLORS.icon)} />
       </View>
       <Text style={[sty.settingsLabel, destructive && { color: '#EF4444' }]}>{label}</Text>
       {right || <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />}
@@ -375,13 +375,13 @@ export default function PerfilScreen() {
           <Text style={sty.email}>{user.email}</Text>
           {providerLabel ? (
             <View style={sty.providerBadge}>
-              <Ionicons name={user.provider === 'google' ? 'logo-google' : user.provider?.includes('whatsapp') ? 'logo-whatsapp' : 'mail'} size={11} color={COLORS.primary} />
+              <Ionicons name={user.provider === 'google' ? 'logo-google' : user.provider?.includes('whatsapp') ? 'logo-whatsapp' : 'mail'} size={11} color={COLORS.iconMuted} />
               <Text style={sty.providerText}>{providerLabel}</Text>
             </View>
           ) : null}
           {rewards.tier && (
             <TouchableOpacity style={sty.rewardsBadge} onPress={() => router.push('/rewards' as any)} activeOpacity={0.8}>
-              <Ionicons name="trophy" size={13} color={COLORS.primary} />
+              <Ionicons name="trophy" size={13} color={COLORS.mustard} />
               <Text style={sty.rewardsTier}>{rewards.tierLabel}</Text>
               <Text style={sty.rewardsPoints}>{rewards.points} pts</Text>
             </TouchableOpacity>
@@ -417,7 +417,7 @@ export default function PerfilScreen() {
                     onPress={() => handleSetType(t)}
                     activeOpacity={0.85}
                   >
-                    <Ionicons name={t === 'local' ? 'home' : 'airplane'} size={16} color={active ? COLORS.white : COLORS.primary} />
+                    <Ionicons name={t === 'local' ? 'home' : 'airplane'} size={16} color={active ? COLORS.white : COLORS.icon} />
                     <Text style={[sty.typePickerText, active && sty.typePickerTextActive]}>{s(`onboard_type_${t}` as any)}</Text>
                   </TouchableOpacity>
                 );
@@ -501,7 +501,7 @@ export default function PerfilScreen() {
         {/* ── Partner Access ── */}
         <View style={sty.sectionCard}>
           <Text style={sty.sectionTitle}>{tr('Partners')}</Text>
-          <SettingsRow icon="business" iconColor={COLORS.primary} label={tr('Dashboard de negocio')} onPress={() => router.push('/business/login' as any)} />
+          <SettingsRow icon="business" iconColor={COLORS.icon} label={tr('Dashboard de negocio')} onPress={() => router.push('/business/login' as any)} />
         </View>
 
         {/* ── Support & Legal ── */}
@@ -883,7 +883,7 @@ const sty = StyleSheet.create({
     backgroundColor: COLORS.primary + '15',
     borderWidth: 1, borderColor: COLORS.primary + '30',
   },
-  providerText: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },
+  providerText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold },
   rewardsBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     marginTop: 8,
@@ -892,7 +892,7 @@ const sty = StyleSheet.create({
     borderRadius: RADIUS.full,
     borderWidth: 1, borderColor: COLORS.border,
   },
-  rewardsTier: { fontSize: 13, color: COLORS.primary, ...FONTS.bold },
+  rewardsTier: { fontSize: 13, color: COLORS.mustard, ...FONTS.bold },
   rewardsPoints: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
 
   typeBadge: {

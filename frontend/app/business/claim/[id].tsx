@@ -104,7 +104,7 @@ export default function ClaimVenue() {
                 <Text style={styles.optTitle}>{tr('Código por email')}</Text>
                 <Text style={styles.optSub}>{tr('Enviamos un código al email registrado del negocio.')}</Text>
               </View>
-              {busy ? <ActivityIndicator size="small" color={COLORS.primary} /> : <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />}
+              {busy ? <ActivityIndicator size="small" color={COLORS.iconMuted} /> : <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />}
             </TouchableOpacity>
             <TouchableOpacity style={styles.optCard} onPress={() => setStep('manual')} disabled={busy}>
               <Ionicons name="document-text" size={20} color={COLORS.primary} />

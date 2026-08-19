@@ -198,7 +198,7 @@ export default function BusinessLogin() {
             <TouchableOpacity style={styles.signupBtn} onPress={() => router.push('/business/signup' as any)}>
               <Text style={styles.signupText}>{tr('¿No tienes cuenta?')} </Text>
               <Text style={styles.signupTextBold}>{tr('Registra tu negocio')}</Text>
-              <Ionicons name="arrow-forward" size={14} color={COLORS.primary} />
+              <Ionicons name="arrow-forward" size={14} color={COLORS.iconMuted} />
             </TouchableOpacity>
           )}
 

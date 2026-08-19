@@ -90,7 +90,7 @@ export default function FindBusiness() {
               {claimed ? (
                 <View style={styles.claimedTag}><Ionicons name="lock-closed" size={11} color={COLORS.textMuted} /><Text style={styles.claimedTagText}>{tr('Reclamado')}</Text></View>
               ) : (
-                <View style={styles.claimTag}><Text style={styles.claimTagText}>{tr('Reclamar')}</Text><Ionicons name="chevron-forward" size={14} color={COLORS.primary} /></View>
+                <View style={styles.claimTag}><Text style={styles.claimTagText}>{tr('Reclamar')}</Text><Ionicons name="chevron-forward" size={14} color={COLORS.iconMuted} /></View>
               )}
             </TouchableOpacity>
           );

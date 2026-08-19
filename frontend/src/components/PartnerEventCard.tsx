@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier, colorForKey } from '../constants/theme';
 import { getCategoryImage } from '../constants/images';
 import { TierBadge } from './TierBadge';
 import { SafeImage } from './SafeImage';
@@ -65,12 +65,12 @@ export const PartnerEventCard: React.FC<Props> = ({ event, onPress }) => {
       <View style={styles.body}>
         <View style={styles.timeRow}>
           <View style={styles.timePill}>
-            <Ionicons name="time-outline" size={11} color={COLORS.primary} />
+            <Ionicons name="time-outline" size={11} color={COLORS.icon} />
             <Text style={styles.timeText}>{event.start_time}</Text>
           </View>
-          <View style={styles.catPill}>
-            <Ionicons name={(CAT_ICONS[event.category] || 'pricetag') as any} size={11} color={COLORS.textMuted} />
-            <Text style={styles.catText}>{CAT_LABELS[event.category] || event.category}</Text>
+          <View style={[styles.catPill, { backgroundColor: `${colorForKey(event.category)}22` }]}>
+            <Ionicons name={(CAT_ICONS[event.category] || 'pricetag') as any} size={11} color={colorForKey(event.category)} />
+            <Text style={[styles.catText, { color: colorForKey(event.category) }]}>{CAT_LABELS[event.category] || event.category}</Text>
           </View>
         </View>
         <Text style={styles.title} numberOfLines={2}>{event.title}</Text>
@@ -100,13 +100,13 @@ const styles = StyleSheet.create({
   tierStripe: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3 },
   priceTag: { position: 'absolute', top: 6, right: 6, borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 3 },
   priceFree: { backgroundColor: COLORS.success },
-  pricePaid: { backgroundColor: 'rgba(5,8,20,0.85)', borderWidth: 1, borderColor: COLORS.primary },
+  pricePaid: { backgroundColor: 'rgba(5,8,20,0.85)', borderWidth: 1, borderColor: COLORS.icon },
   priceText: { fontSize: 10, color: COLORS.white, ...FONTS.bold, letterSpacing: 0.5 },
 
   body: { flex: 1, padding: SPACING.md, justifyContent: 'space-between' },
   timeRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
-  timePill: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(18,181,165,0.15)', borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2 },
-  timeText: { fontSize: 11, color: COLORS.primary, ...FONTS.bold },
+  timePill: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(174,182,196,0.14)', borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2 },
+  timeText: { fontSize: 11, color: COLORS.icon, ...FONTS.bold },
   catPill: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2 },
   catText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.semibold },
 

@@ -394,7 +394,7 @@ export default function PartnersScreen() {
               <SafeImage uri="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&h=300&fit=crop" style={styles.heroBannerImage} />
               <View style={styles.heroBannerOverlay} />
               <View style={styles.heroBannerContent}>
-                <Ionicons name="diamond" size={32} color={COLORS.primary} />
+                <Ionicons name="diamond" size={32} color={COLORS.official} />
                 <Text style={styles.heroBannerTitle}>{tr('Lugares certificados')}</Text>
                 <Text style={styles.heroBannerDesc}>{tr('Restaurantes, clubs, hoteles y más validados por Amo Cartagena')}</Text>
               </View>
@@ -446,8 +446,8 @@ export default function PartnersScreen() {
                     <Text style={styles.categoryName}>{cat.label}</Text>
                     <Text style={styles.categoryCount}>{cat.count} lugares</Text>
                   </View>
-                  <View style={[styles.categoryArrowCircle, { backgroundColor: `${COLORS.primary}25` }]}>
-                    <Ionicons name="chevron-forward" size={18} color={COLORS.primary} />
+                  <View style={[styles.categoryArrowCircle, { backgroundColor: `${COLORS.icon}25` }]}>
+                    <Ionicons name="chevron-forward" size={18} color={COLORS.iconMuted} />
                   </View>
                 </View>
               </TouchableOpacity>
@@ -626,7 +626,7 @@ export default function PartnersScreen() {
 
                   {partner.is_certified && (
                     <View style={styles.certifiedBadge}>
-                      <Ionicons name="shield-checkmark" size={14} color={COLORS.primary} />
+                      <Ionicons name="shield-checkmark" size={14} color={COLORS.official} />
                       <Text style={styles.certifiedText}>CERTIFICADO</Text>
                     </View>
                   )}
@@ -801,13 +801,13 @@ const styles = StyleSheet.create({
   subcatBadgeActive: { backgroundColor: 'rgba(255,255,255,0.25)' },
   subcatBadgeText: { fontSize: 10, color: '#10B981', ...FONTS.bold },
   subcatBadgeTextActive: { color: COLORS.white },
-  partnerCard: { borderRadius: RADIUS.xl, overflow: 'hidden', marginBottom: SPACING.md, borderWidth: 1, borderColor: 'rgba(18,181,165, 0.2)', position: 'relative' },
+  partnerCard: { borderRadius: RADIUS.xl, overflow: 'hidden', marginBottom: SPACING.md, borderWidth: 1, borderColor: COLORS.border, position: 'relative' },
   partnerImage: { width: '100%', height: 160 },
   partnerOverlay: { position: 'absolute', top: 0, left: 0, right: 0, height: 160, backgroundColor: 'rgba(0,0,0,0.2)' },
   tierStripe: { position: 'absolute', top: 0, left: 0, right: 0, height: 4, zIndex: 2 },
   topBadgeRow: { position: 'absolute', top: SPACING.md, left: SPACING.md, zIndex: 3 },
-  certifiedBadge: { position: 'absolute', top: SPACING.md, right: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(5,8,20,0.85)', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: COLORS.primary, zIndex: 3 },
-  certifiedText: { fontSize: 9, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1 },
+  certifiedBadge: { position: 'absolute', top: SPACING.md, right: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(5,8,20,0.85)', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: COLORS.official, zIndex: 3 },
+  certifiedText: { fontSize: 9, color: COLORS.official, ...FONTS.bold, letterSpacing: 1 },
   partnerContent: { padding: SPACING.md, backgroundColor: COLORS.surface },
   partnerName: { fontSize: 20, color: COLORS.textMain, ...FONTS.bold },
   partnerDesc: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 4, lineHeight: 20 },

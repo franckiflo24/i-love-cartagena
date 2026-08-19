@@ -105,7 +105,7 @@ function AggregateHeader({
                 key={n}
                 name={n <= stars ? 'star' : 'star-outline'}
                 size={14}
-                color={n <= stars ? COLORS.primary : 'rgba(255,255,255,0.2)'}
+                color={n <= stars ? COLORS.mustard : 'rgba(255,255,255,0.2)'}
               />
             ))}
           </View>
@@ -119,7 +119,7 @@ function AggregateHeader({
           {subcategories.map((sub, i) => (
             <View key={i} style={aggStyles.subRow}>
               <Text style={aggStyles.subLabel} numberOfLines={1}>{sub.label}</Text>
-              <AnimatedBar score={sub.score} color={COLORS.primary} />
+              <AnimatedBar score={sub.score} color={COLORS.mustard} />
               <Text style={aggStyles.subScore}>{(sub.score || 0).toFixed(1)}</Text>
             </View>
           ))}
@@ -204,7 +204,7 @@ export default function ReviewsList({ partnerId }: ReviewsListProps) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.icon} />
       </View>
     );
   }
@@ -263,7 +263,7 @@ export default function ReviewsList({ partnerId }: ReviewsListProps) {
           {reviews.length > 3 && !showAll && (
             <TouchableOpacity style={styles.showMoreBtn} onPress={() => setShowAll(true)} activeOpacity={0.85}>
               <Text style={styles.showMoreText}>Ver las {reviews.length - 3} reseñas restantes</Text>
-              <Ionicons name="chevron-down" size={14} color={COLORS.primary} />
+              <Ionicons name="chevron-down" size={14} color={COLORS.iconMuted} />
             </TouchableOpacity>
           )}
         </View>
@@ -325,5 +325,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  showMoreText: { fontSize: 13, color: COLORS.primary, ...FONTS.semibold },
+  showMoreText: { fontSize: 13, color: COLORS.icon, ...FONTS.semibold },
 });

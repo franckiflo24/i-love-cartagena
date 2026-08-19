@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     marginHorizontal: SPACING.lg, marginBottom: SPACING.md,
-    padding: SPACING.md, backgroundColor: COLORS.primary, borderRadius: RADIUS.lg,
+    padding: SPACING.md, backgroundColor: COLORS.mustard, borderRadius: RADIUS.lg,
   },
   title: { fontSize: 13, color: '#000', ...FONTS.bold },
   sub: { fontSize: 11, color: 'rgba(0,0,0,0.65)', ...FONTS.semibold, marginTop: 1 },

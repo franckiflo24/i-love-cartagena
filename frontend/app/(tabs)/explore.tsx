@@ -324,7 +324,7 @@ function PartnerGridCard({
         {partner.tier && <TierBadge tier={partner.tier} size="xs" showLabel={false} />}
         {partner.is_certified && (
           <View style={styles.certDot}>
-            <Ionicons name="shield-checkmark" size={10} color={COLORS.primary} />
+            <Ionicons name="shield-checkmark" size={10} color={COLORS.official} />
           </View>
         )}
       </View>
@@ -337,7 +337,7 @@ function PartnerGridCard({
           ) : null}
           {(partner as any).rating ? (
             <View style={styles.gridRatingPill}>
-              <Ionicons name="star" size={10} color={COLORS.primary} />
+              <Ionicons name="star" size={10} color={COLORS.mustard} />
               <Text style={styles.gridRatingText}>{Number((partner as any).rating).toFixed(1)}</Text>
             </View>
           ) : null}
@@ -350,7 +350,7 @@ function PartnerGridCard({
         </Text>
         {typeof localCount === 'number' && localCount > 0 && (
           <View style={styles.localPickBadge}>
-            <Ionicons name="home" size={9} color={COLORS.primary} />
+            <Ionicons name="home" size={9} color={COLORS.icon} />
             <Text style={styles.localPickText} numberOfLines={1}>
               {tr('Favorito local')} · {localCount}
             </Text>
@@ -386,13 +386,13 @@ function NeighborhoodCard({
         <Text style={styles.nbCharacter} numberOfLines={2}>{item.character_es}</Text>
         <View style={styles.nbRatingsRow}>
           <View style={styles.nbRatingGroup}>
-            <Ionicons name="shield-checkmark" size={12} color={COLORS.primary} />
+            <Ionicons name="shield-checkmark" size={12} color={COLORS.icon} />
             {Array.from({ length: 5 }).map((_, i) => (
               <Ionicons
                 key={`s${i}`}
                 name={i < item.safety_rating ? 'star' : 'star-outline'}
                 size={10}
-                color={i < item.safety_rating ? COLORS.primary : COLORS.textMuted}
+                color={i < item.safety_rating ? COLORS.mustard : COLORS.textMuted}
               />
             ))}
           </View>
@@ -444,7 +444,7 @@ function NeighborhoodDetailModal({
             {/* Safety */}
             <View style={styles.nbModalSection}>
               <View style={styles.nbModalSectionHeader}>
-                <Ionicons name="shield-checkmark" size={16} color={COLORS.primary} />
+                <Ionicons name="shield-checkmark" size={16} color={COLORS.icon} />
                 <Text style={styles.nbModalSectionTitle}>Seguridad</Text>
               </View>
               <View style={styles.nbModalStarsRow}>
@@ -453,7 +453,7 @@ function NeighborhoodDetailModal({
                     key={`ms${i}`}
                     name={i < item.safety_rating ? 'star' : 'star-outline'}
                     size={16}
-                    color={i < item.safety_rating ? COLORS.primary : COLORS.textMuted}
+                    color={i < item.safety_rating ? COLORS.mustard : COLORS.textMuted}
                   />
                 ))}
                 <Text style={styles.nbModalRatingText}>{item.safety_rating}/5</Text>
@@ -473,7 +473,7 @@ function NeighborhoodDetailModal({
             {/* Price Level */}
             <View style={styles.nbModalSection}>
               <View style={styles.nbModalSectionHeader}>
-                <Ionicons name="cash-outline" size={16} color={COLORS.primary} />
+                <Ionicons name="cash-outline" size={16} color={COLORS.icon} />
                 <Text style={styles.nbModalSectionTitle}>{tr('Nivel de precios')}</Text>
               </View>
               <Text style={styles.nbModalPriceLevel}>
@@ -485,7 +485,7 @@ function NeighborhoodDetailModal({
             {/* Airport taxi fare */}
             <View style={styles.nbModalSection}>
               <View style={styles.nbModalSectionHeader}>
-                <Ionicons name="car-outline" size={16} color={COLORS.primary} />
+                <Ionicons name="car-outline" size={16} color={COLORS.icon} />
                 <Text style={styles.nbModalSectionTitle}>{tr('Taxi desde el aeropuerto')}</Text>
               </View>
               <Text style={styles.nbModalFare}>
@@ -496,7 +496,7 @@ function NeighborhoodDetailModal({
             {/* Best for */}
             <View style={styles.nbModalSection}>
               <View style={styles.nbModalSectionHeader}>
-                <Ionicons name="heart-outline" size={16} color={COLORS.primary} />
+                <Ionicons name="heart-outline" size={16} color={COLORS.icon} />
                 <Text style={styles.nbModalSectionTitle}>{tr('Ideal para')}</Text>
               </View>
               <View style={styles.nbModalTags}>
@@ -772,14 +772,14 @@ export default function ExploreScreen() {
           onPress={() => router.push('/mapa' as any)}
           activeOpacity={0.8}
         >
-          <Ionicons name="map-outline" size={18} color={COLORS.primary} />
+          <Ionicons name="map-outline" size={18} color={COLORS.icon} />
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.mapBtn, { top: 64 }]}
           onPress={() => router.push('/pasaporte' as any)}
           activeOpacity={0.8}
         >
-          <Ionicons name="ribbon-outline" size={18} color={COLORS.primary} />
+          <Ionicons name="ribbon-outline" size={18} color={COLORS.icon} />
         </TouchableOpacity>
       </View>
       <View style={styles.header}>
@@ -819,7 +819,7 @@ export default function ExploreScreen() {
           onPress={() => { setLocalsOnly(v => !v); setLocalsNbh(null); }}
           activeOpacity={0.8}
         >
-          <Ionicons name="home" size={12} color={localsOnly ? COLORS.white : COLORS.primary} />
+          <Ionicons name="home" size={12} color={localsOnly ? COLORS.white : COLORS.icon} />
           <Text style={[styles.chipText, styles.localsChipText, localsOnly && styles.chipTextActive]}>
             {tr('Locales')}
           </Text>
@@ -874,7 +874,7 @@ export default function ExploreScreen() {
                 onPress={() => setLocalsNbh(active ? null : n.slug)}
                 activeOpacity={0.8}
               >
-                <Ionicons name="location" size={10} color={active ? COLORS.white : COLORS.primary} />
+                <Ionicons name="location" size={10} color={active ? COLORS.white : COLORS.icon} />
                 <Text style={[styles.nbhChipText, active && styles.nbhChipTextActive]}>{n.name} · {n.count}</Text>
               </TouchableOpacity>
             );
@@ -887,7 +887,7 @@ export default function ExploreScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
-              <Ionicons name="sparkles" size={14} color={COLORS.primary} />
+              <Ionicons name="sparkles" size={14} color={COLORS.icon} />
               {'  '}Experiencias Destacadas
             </Text>
             <TouchableOpacity
@@ -927,7 +927,7 @@ export default function ExploreScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
-              <Ionicons name="calendar" size={14} color={COLORS.primary} />
+              <Ionicons name="calendar" size={14} color={COLORS.icon} />
               {'  '}Eventos destacados
             </Text>
             <TouchableOpacity
@@ -993,7 +993,7 @@ export default function ExploreScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
-              <Ionicons name="location" size={14} color={COLORS.primary} />
+              <Ionicons name="location" size={14} color={COLORS.icon} />
               {'  '}{tr('Barrios de Cartagena')}
             </Text>
           </View>
@@ -1066,7 +1066,7 @@ export default function ExploreScreen() {
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 style={{ marginRight: SPACING.sm }}
               >
-                <Ionicons name="chevron-back" size={20} color={COLORS.primary} />
+                <Ionicons name="chevron-back" size={20} color={COLORS.iconMuted} />
               </TouchableOpacity>
             )}
             <Text style={styles.sectionTitle}>
@@ -1274,13 +1274,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: 10,
     borderRadius: RADIUS.lg,
-    backgroundColor: 'rgba(18,181,165,0.1)',
+    backgroundColor: `${COLORS.icon}1A`,
     borderWidth: 1,
-    borderColor: 'rgba(18,181,165,0.25)',
+    borderColor: `${COLORS.icon}40`,
   },
   personalizationText: {
     fontSize: 12,
-    color: COLORS.primary,
+    color: COLORS.icon,
     ...FONTS.medium,
   },
   personalizationEdit: {
@@ -1322,17 +1322,17 @@ const styles = StyleSheet.create({
   chipTextActive: {
     color: COLORS.white,
   },
-  // "Locals recommend" toggle — gold outline, distinct from category chips
+  // "Locals recommend" toggle — quiet neutral chrome; only the active fill stays teal
   localsChip: {
-    backgroundColor: `${COLORS.primary}12`,
-    borderColor: COLORS.primary,
+    backgroundColor: `${COLORS.icon}14`,
+    borderColor: COLORS.icon,
   },
   localsChipActive: {
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
   },
   localsChipText: {
-    color: COLORS.primary,
+    color: COLORS.icon,
   },
   chipDivider: {
     width: 1,
@@ -1348,9 +1348,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 11,
     paddingVertical: 6,
     borderRadius: RADIUS.full,
-    backgroundColor: `${COLORS.primary}0D`,
+    backgroundColor: `${COLORS.icon}0D`,
     borderWidth: 1,
-    borderColor: `${COLORS.primary}33`,
+    borderColor: `${COLORS.icon}33`,
   },
   nbhChipActive: {
     backgroundColor: COLORS.primary,
@@ -1358,7 +1358,7 @@ const styles = StyleSheet.create({
   },
   nbhChipText: {
     fontSize: 11,
-    color: COLORS.primary,
+    color: COLORS.icon,
     ...FONTS.semibold,
   },
   nbhChipTextActive: {
@@ -1374,13 +1374,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: RADIUS.full,
-    backgroundColor: `${COLORS.primary}18`,
+    backgroundColor: `${COLORS.icon}18`,
     borderWidth: 1,
-    borderColor: `${COLORS.primary}40`,
+    borderColor: `${COLORS.icon}40`,
   },
   localPickText: {
     fontSize: 9,
-    color: COLORS.primary,
+    color: COLORS.icon,
     ...FONTS.bold,
   },
 
@@ -1466,7 +1466,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.success,
   },
   pricePillPaid: {
-    backgroundColor: 'rgba(18,181,165,0.85)',
+    backgroundColor: 'rgba(5,8,20,0.85)',
   },
   pricePillText: {
     fontSize: 10,
@@ -1547,7 +1547,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(18,181,165,0.4)',
+    borderColor: `${COLORS.official}66`,
   },
   gridContent: {
     position: 'absolute',
@@ -1564,11 +1564,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderWidth: 1,
-    borderColor: 'rgba(18,181,165,0.35)',
+    borderColor: `${COLORS.icon}59`,
   },
   gridPriceText: {
     fontSize: 9,
-    color: COLORS.primary,
+    color: COLORS.icon,
     ...FONTS.bold,
     letterSpacing: 0.4,
   },
@@ -1588,7 +1588,7 @@ const styles = StyleSheet.create({
   },
   gridRatingText: {
     fontSize: 9,
-    color: COLORS.primary,
+    color: COLORS.mustard,
     ...FONTS.bold,
   },
   gridName: {
@@ -1702,7 +1702,7 @@ const styles = StyleSheet.create({
   },
   subcatCount: {
     fontSize: 11,
-    color: COLORS.primary,
+    color: COLORS.icon,
     ...FONTS.medium,
     letterSpacing: 0.3,
   },
@@ -1743,7 +1743,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: SPACING.sm,
     right: SPACING.sm,
-    backgroundColor: COLORS.primary,
+    backgroundColor: 'rgba(5,8,20,0.85)',
     borderRadius: RADIUS.full,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -1799,10 +1799,10 @@ const styles = StyleSheet.create({
   nbCharacter: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 17 },
   nbRatingsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const },
   nbRatingGroup: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 2 },
-  nbPrice: { fontSize: 13, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1 },
+  nbPrice: { fontSize: 13, color: COLORS.icon, ...FONTS.bold, letterSpacing: 1 },
   nbTagsRow: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 4 },
-  nbTag: { backgroundColor: 'rgba(18,181,165,0.12)', borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: 'rgba(18,181,165,0.25)' },
-  nbTagText: { fontSize: 10, color: COLORS.primary, ...FONTS.semibold },
+  nbTag: { backgroundColor: `${COLORS.icon}1F`, borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: `${COLORS.icon}40` },
+  nbTagText: { fontSize: 10, color: COLORS.icon, ...FONTS.semibold },
   nbModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' as const },
   nbModalSheet: { backgroundColor: COLORS.background, borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl, maxHeight: '85%' as const, paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, paddingBottom: SPACING.lg },
   nbModalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: COLORS.textMuted, alignSelf: 'center' as const, marginBottom: SPACING.md },
@@ -1815,11 +1815,11 @@ const styles = StyleSheet.create({
   nbModalStarsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 4 },
   nbModalRatingText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium, marginLeft: SPACING.xs },
   nbModalNote: { fontSize: 13, color: COLORS.textMain, ...FONTS.regular, lineHeight: 19 },
-  nbModalPriceLevel: { fontSize: 18, color: COLORS.primary, ...FONTS.bold, letterSpacing: 2 },
-  nbModalFare: { fontSize: 18, color: COLORS.primary, ...FONTS.bold },
+  nbModalPriceLevel: { fontSize: 18, color: COLORS.icon, ...FONTS.bold, letterSpacing: 2 },
+  nbModalFare: { fontSize: 18, color: COLORS.icon, ...FONTS.bold },
   nbModalTags: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 6 },
-  nbModalTag: { backgroundColor: 'rgba(18,181,165,0.12)', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: 'rgba(18,181,165,0.25)' },
-  nbModalTagText: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold },
+  nbModalTag: { backgroundColor: `${COLORS.icon}1F`, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: `${COLORS.icon}40` },
+  nbModalTagText: { fontSize: 12, color: COLORS.icon, ...FONTS.semibold },
   nbModalCloseBtn: { backgroundColor: COLORS.surface, borderRadius: RADIUS.full, paddingVertical: 14, alignItems: 'center' as const, borderWidth: 1, borderColor: COLORS.border, marginTop: SPACING.sm },
   nbModalCloseBtnText: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold },
 });

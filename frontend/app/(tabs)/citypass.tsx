@@ -106,7 +106,7 @@ export default function CityPassTab() {
       )}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30 }}>
         {loading ? (
-          <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 80 }} />
+          <ActivityIndicator size="large" color={COLORS.icon} style={{ marginTop: 80 }} />
         ) : myPass ? (
           /* ── Active Pass with QR Code ── */
           <View style={styles.activeSection}>
@@ -158,7 +158,7 @@ export default function CityPassTab() {
               <Text style={styles.benefitsTitle}>{tr('Tus beneficios')}</Text>
               {(plans.find(p => p.plan_id === myPass.plan_id)?.benefits || []).map((b, i) => (
                 <View key={i} style={styles.benefitRow}>
-                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.mustard} />
                   <Text style={styles.benefitText}>{b}</Text>
                 </View>
               ))}
@@ -202,7 +202,7 @@ export default function CityPassTab() {
                       style={styles.myTicketsBtn}
                       onPress={() => router.push('/port-tax/tickets' as any)}
                     >
-                      <Ionicons name="ticket" size={12} color={COLORS.primary} />
+                      <Ionicons name="ticket" size={12} color={COLORS.icon} />
                       <Text style={styles.myTicketsText}>
                         {activeTickets} tiquete{activeTickets !== 1 ? 's' : ''} activo{activeTickets !== 1 ? 's' : ''}
                       </Text>
@@ -219,7 +219,7 @@ export default function CityPassTab() {
             {/* Hero */}
             <View style={styles.hero}>
               <View style={styles.heroIconRow}>
-                <Ionicons name="sparkles" size={28} color={COLORS.primary} />
+                <Ionicons name="sparkles" size={28} color={COLORS.mustard} />
                 <Ionicons name="heart" size={22} color="#EF4444" />
               </View>
               <Text style={styles.heroTitle}>{tr('City Pass')}</Text>
@@ -263,7 +263,7 @@ export default function CityPassTab() {
                       style={styles.myTicketsBtn}
                       onPress={() => router.push('/port-tax/tickets' as any)}
                     >
-                      <Ionicons name="ticket" size={12} color={COLORS.primary} />
+                      <Ionicons name="ticket" size={12} color={COLORS.icon} />
                       <Text style={styles.myTicketsText}>
                         {activeTickets} tiquete{activeTickets !== 1 ? 's' : ''} activo{activeTickets !== 1 ? 's' : ''}
                       </Text>
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
   hero: { alignItems: 'center', paddingTop: SPACING.lg, paddingHorizontal: SPACING.lg, paddingBottom: SPACING.md },
   heroIconRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.sm },
   heroTitle: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold },
-  heroSubtitle: { fontSize: 16, color: COLORS.primary, ...FONTS.semibold, marginTop: 2 },
+  heroSubtitle: { fontSize: 16, color: COLORS.mustard, ...FONTS.semibold, marginTop: 2 },
   heroDesc: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 20, marginTop: SPACING.sm },
 
   // Highlights
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
 
   // Plan Card
   planCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, borderRadius: RADIUS.xl, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden' },
-  planCardFeatured: { borderColor: COLORS.primary, borderWidth: 2 },
+  planCardFeatured: { borderColor: COLORS.mustard, borderWidth: 2 },
   popularBadge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, backgroundColor: COLORS.primary, paddingVertical: 6 },
   popularText: { fontSize: 11, color: '#FFF', ...FONTS.bold, letterSpacing: 1 },
 
@@ -443,5 +443,5 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(18,181,165,0.10)', borderRadius: RADIUS.full,
     paddingHorizontal: 8, paddingVertical: 3, marginTop: 6,
   },
-  myTicketsText: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },
+  myTicketsText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold },
 });

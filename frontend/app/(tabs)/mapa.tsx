@@ -40,14 +40,14 @@ type Place = {
 
 const FILTERS = [
   { key: 'all', label: 'Todos', icon: 'grid', color: '#12B5A5' },
-  { key: 'pasaporte', label: 'Pasaporte', icon: 'ribbon', color: '#12B5A5' },
+  { key: 'pasaporte', label: 'Pasaporte', icon: 'ribbon', color: COLORS.mustard },
   { key: 'venue', label: 'Venues', icon: 'location', color: '#3B82F6' },
   { key: 'partner', label: 'Partners', icon: 'diamond', color: '#8B5CF6' },
   { key: 'esenciales', label: 'Esenciales', icon: 'medkit', color: '#14B8A6' },
   { key: 'concert', label: 'Conciertos', icon: 'musical-notes', color: '#EC4899' },
 ];
 
-const GOLD = '#12B5A5';
+const GOLD = COLORS.mustard; // passport pins — distinct gold accent, never teal
 
 function fmtLiveDist(m: number): string {
   return m < 1000 ? `a ${Math.round(m / 10) * 10}m de ti` : `a ${(m / 1000).toFixed(1)}km de ti`;
@@ -74,14 +74,14 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     : places.filter(p => p.category === filter);
 
   const markers = filtered.map(p => {
-    const color = MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || '#12B5A5';
+    const color = MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || COLORS.icon;
     const safeName = (p.name || '').replace(/'/g, "").replace(/"/g, "");
     const safeDesc = (p.extra || p.description || '').replace(/'/g, "").replace(/"/g, "").substring(0, 80);
     const safeAddr = (p.address || '').replace(/'/g, "").replace(/"/g, "");
     const safePrice = (p.price || '').replace(/'/g, "").replace(/"/g, "");
     const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng;
 
-    const priceHtml = safePrice ? '<span style="font-size:12px;color:#12B5A5;font-weight:700;">' + safePrice + '</span><br>' : '';
+    const priceHtml = safePrice ? '<span style="font-size:12px;color:' + COLORS.mustard + ';font-weight:700;">' + safePrice + '</span><br>' : '';
 
     const detailUrl = '/partner/' + p.id;
     const popupContent = '<div style=font-family:sans-serif;min-width:180px>'
@@ -129,7 +129,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '.leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }'
     + '.leaflet-popup-tip { display: none; }'
     + '.leaflet-control-zoom { border: none !important; }'
-    + '.leaflet-control-zoom a { background: #1a1a2e !important; color: #12B5A5 !important; border: 1px solid #2a2a4e !important; font-weight: 700; }'
+    + '.leaflet-control-zoom a { background: #1a1a2e !important; color: ' + COLORS.icon + ' !important; border: 1px solid #2a2a4e !important; font-weight: 700; }'
     + '.leaflet-control-zoom a:hover { background: #2a2a4e !important; }'
     + '.leaflet-control-attribution { display: none; }'
     + '.user-pulse-icon { position: relative; width: 22px; height: 22px; }'
@@ -243,7 +243,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
           .leaflet-popup-content-wrapper { border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important; }
           .leaflet-popup-tip { display: none !important; }
           .leaflet-control-zoom { border: none !important; }
-          .leaflet-control-zoom a { background: #1a1a2e !important; color: #12B5A5 !important; border: 1px solid #2a2a4e !important; font-weight: 700; }
+          .leaflet-control-zoom a { background: #1a1a2e !important; color: ${COLORS.icon} !important; border: 1px solid #2a2a4e !important; font-weight: 700; }
           .leaflet-control-attribution { display: none !important; }
         `;
         document.head.appendChild(style);
@@ -257,12 +257,12 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
         ['Manga', [10.405, -75.535], [10.420, -75.525]],
       ];
       ZONES.forEach(([name, sw, ne]) => {
-        L.rectangle([sw, ne] as any, { color: '#12B5A5', weight: 1, opacity: 0.35, fillColor: '#12B5A5', fillOpacity: 0.05, interactive: false }).addTo(map);
+        L.rectangle([sw, ne] as any, { color: COLORS.icon, weight: 1, opacity: 0.35, fillColor: COLORS.icon, fillOpacity: 0.05, interactive: false }).addTo(map);
       });
       const legend = (L as any).control({ position: 'bottomleft' });
       legend.onAdd = () => {
         const div = document.createElement('div');
-        div.style.cssText = 'background:rgba(5,8,20,0.85);color:#12B5A5;font:600 10px sans-serif;padding:4px 8px;border-radius:10px;border:1px solid rgba(18,181,165,0.4)';
+        div.style.cssText = 'background:rgba(5,8,20,0.85);color:' + COLORS.icon + ';font:600 10px sans-serif;padding:4px 8px;border-radius:10px;border:1px solid rgba(174,182,196,0.4)';
         div.textContent = 'Zonas turísticas principales';
         return div;
       };
@@ -306,12 +306,12 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
     filtered.forEach(p => {
       if (!p.lat || !p.lng) return;
       const isPassport = passportIds.has(p.id);
-      const color = isPassport ? GOLD : (MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || '#12B5A5');
+      const color = isPassport ? GOLD : (MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || COLORS.icon);
       const safeName = (p.name || '').replace(/'/g, '').replace(/"/g, '');
       const safeDesc = (p.extra || p.description || '').replace(/'/g, '').replace(/"/g, '').substring(0, 80);
       const safeAddr = (p.address || '').replace(/'/g, '').replace(/"/g, '');
       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
-      const priceHtml = p.price ? `<span style="font-size:12px;color:#12B5A5;font-weight:700">${p.price}</span><br>` : '';
+      const priceHtml = p.price ? `<span style="font-size:12px;color:${COLORS.mustard};font-weight:700">${p.price}</span><br>` : '';
       const passportHtml = isPassport
         ? `<span style="font-size:10px;color:#8a6d1f;font-weight:800">🛂 SELLO DEL PASAPORTE</span><br>`
         : '';
@@ -633,7 +633,7 @@ export default function MapaScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.loadingBox}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={COLORS.icon} />
           <Text style={styles.loadingText}>{tr('Cargando mapa de Cartagena...')}</Text>
         </View>
       </SafeAreaView>
@@ -730,7 +730,7 @@ export default function MapaScreen() {
           onPress={() => setBaseSheet(true)}
           activeOpacity={0.85}
         >
-          <Ionicons name="home" size={19} color={hasBase ? COLORS.white : COLORS.primary} />
+          <Ionicons name="home" size={19} color={hasBase ? COLORS.white : COLORS.icon} />
         </TouchableOpacity>
 
         {/* Floating "Recentrar en Cartagena" button */}
@@ -739,7 +739,7 @@ export default function MapaScreen() {
           onPress={() => setFollow(f => !f)}
           activeOpacity={0.85}
         >
-          <Ionicons name="walk" size={20} color={follow ? COLORS.white : COLORS.primary} />
+          <Ionicons name="walk" size={20} color={follow ? COLORS.white : COLORS.icon} />
         </TouchableOpacity>
 
         {/* Floating "Locate me" button */}
@@ -754,7 +754,7 @@ export default function MapaScreen() {
             <Ionicons
               name={locStatus === 'granted' ? 'navigate' : 'locate'}
               size={20}
-              color={locStatus === 'granted' ? COLORS.white : COLORS.primary}
+              color={locStatus === 'granted' ? COLORS.white : COLORS.icon}
             />
           )}
         </TouchableOpacity>
@@ -762,7 +762,7 @@ export default function MapaScreen() {
         {/* Permission denied banner */}
         {locStatus === 'denied' && (
           <View style={styles.locDeniedBanner}>
-            <Ionicons name="information-circle" size={14} color={COLORS.primary} />
+            <Ionicons name="information-circle" size={14} color={COLORS.icon} />
             <Text style={styles.locDeniedText}>{tr('Activa la ubicación para ver lugares cerca de ti')}</Text>
             <TouchableOpacity onPress={requestLocation}>
               <Text style={styles.locDeniedAction}>{tr('Reintentar')}</Text>
@@ -804,7 +804,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     backgroundColor: COLORS.surface,
     borderWidth: 1.5,
-    borderColor: COLORS.primary,
+    borderColor: COLORS.icon,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -830,5 +830,5 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   locDeniedText: { flex: 1, fontSize: 11, color: COLORS.textMain, ...FONTS.medium },
-  locDeniedAction: { fontSize: 11, color: COLORS.primary, ...FONTS.bold },
+  locDeniedAction: { fontSize: 11, color: COLORS.icon, ...FONTS.bold },
 });

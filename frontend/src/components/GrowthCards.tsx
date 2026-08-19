@@ -84,7 +84,7 @@ export function GrowthCards({ signedIn }: { signedIn: boolean }) {
     <View style={styles.card}>
       {signedIn && !!ref && (
         <TouchableOpacity style={styles.row} onPress={shareRef} activeOpacity={0.85}>
-          <Ionicons name="gift" size={20} color={COLORS.primary} />
+          <Ionicons name="gift" size={20} color={COLORS.icon} />
           <View style={{ flex: 1 }}>
             <Text style={styles.rowTitle}>{tr('Invita a un amigo — ambos ganan')} {ref.points_each} pts</Text>
             <Text style={styles.rowSub}>
@@ -92,12 +92,12 @@ export function GrowthCards({ signedIn }: { signedIn: boolean }) {
               {ref.referred_count > 0 ? ` · ${ref.referred_count} ${tr('amigos unidos')}` : ''}
             </Text>
           </View>
-          <Ionicons name="share-social" size={18} color={COLORS.primary} />
+          <Ionicons name="share-social" size={18} color={COLORS.icon} />
         </TouchableOpacity>
       )}
       {showPush && (
         <TouchableOpacity style={styles.row} onPress={togglePush} disabled={busy} activeOpacity={0.85}>
-          <Ionicons name={push === 'subscribed' ? 'notifications' : 'notifications-outline'} size={20} color={COLORS.primary} />
+          <Ionicons name={push === 'subscribed' ? 'notifications' : 'notifications-outline'} size={20} color={COLORS.icon} />
           <View style={{ flex: 1 }}>
             <Text style={styles.rowTitle}>{tr('Avisos de tu pasaporte')}</Text>
             <Text style={styles.rowSub}>
@@ -111,7 +111,7 @@ export function GrowthCards({ signedIn }: { signedIn: boolean }) {
       )}
       {canInstall && (
         <TouchableOpacity style={styles.row} onPress={install} activeOpacity={0.85}>
-          <Ionicons name="download" size={20} color={COLORS.primary} />
+          <Ionicons name="download" size={20} color={COLORS.icon} />
           <View style={{ flex: 1 }}>
             <Text style={styles.rowTitle}>{tr('Instalar AMO')}</Text>
             <Text style={styles.rowSub}>{tr('Acceso directo en tu pantalla de inicio')}</Text>
@@ -120,12 +120,12 @@ export function GrowthCards({ signedIn }: { signedIn: boolean }) {
       )}
       {iosInstall && !canInstall && (
         <View style={styles.row}>
-          <Ionicons name="add-circle-outline" size={20} color={COLORS.primary} />
+          <Ionicons name="add-circle-outline" size={20} color={COLORS.icon} />
           <View style={{ flex: 1 }}>
             <Text style={styles.rowTitle}>{tr('Instalar AMO')}</Text>
             <Text style={styles.rowSub}>{tr('Toca Compartir y luego “Agregar a inicio” — abre la app y quedas siempre conectado')}</Text>
           </View>
-          <Ionicons name="share-outline" size={18} color={COLORS.primary} />
+          <Ionicons name="share-outline" size={18} color={COLORS.icon} />
         </View>
       )}
     </View>
@@ -133,12 +133,12 @@ export function GrowthCards({ signedIn }: { signedIn: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  card: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: 'rgba(18,181,165,0.3)', overflow: 'hidden' },
+  card: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: SPACING.md, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   rowTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
   rowSub: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, marginTop: 1 },
-  code: { color: COLORS.primary, ...FONTS.bold },
-  toggle: { fontSize: 12, color: COLORS.primary, ...FONTS.bold },
+  code: { color: COLORS.mustard, ...FONTS.bold },
+  toggle: { fontSize: 12, color: COLORS.icon, ...FONTS.bold },
 });
 
 export default GrowthCards;

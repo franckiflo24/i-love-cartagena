@@ -119,12 +119,12 @@ const normalizePortTax = (p: Record<string, unknown>): UnifiedBooking => ({
 type StatusStyle = { label: string; color: string; bg: string };
 
 const STATUS_MAP: Record<string, StatusStyle> = {
-  pending_confirmation: { label: 'Pendiente',     color: '#F59E0B', bg: 'rgba(245,158,11,0.15)' },
+  pending_confirmation: { label: 'Pendiente',     color: COLORS.mustard, bg: 'rgba(233,185,73,0.15)' },
   confirmed:           { label: 'Confirmada',     color: COLORS.success, bg: 'rgba(34,197,94,0.15)' },
   pending_partner_activation: { label: 'En proceso', color: '#06B6D4', bg: 'rgba(6,182,212,0.15)' },
   paid:                { label: 'Pagada',          color: COLORS.success, bg: 'rgba(34,197,94,0.15)' },
   active:              { label: 'Activa',          color: COLORS.success, bg: 'rgba(34,197,94,0.15)' },
-  pending:             { label: 'Pendiente',       color: '#F59E0B', bg: 'rgba(245,158,11,0.15)' },
+  pending:             { label: 'Pendiente',       color: COLORS.mustard, bg: 'rgba(233,185,73,0.15)' },
   completed:           { label: 'Completada',      color: COLORS.textMuted, bg: 'rgba(168,178,193,0.12)' },
   no_show:             { label: 'No se presentó',  color: COLORS.textMuted, bg: 'rgba(168,178,193,0.12)' },
   expired:             { label: 'Vencida',         color: COLORS.textMuted, bg: 'rgba(168,178,193,0.12)' },
@@ -556,7 +556,7 @@ export default function BookingsScreen() {
         {ListHeader}
         <ActivityIndicator
           size="large"
-          color={COLORS.primary}
+          color={COLORS.icon}
           style={{ marginTop: SPACING.xl }}
         />
       </SafeAreaView>
@@ -575,7 +575,7 @@ export default function BookingsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={COLORS.primary}
+            tintColor={COLORS.icon}
           />
         }
         ListEmptyComponent={
@@ -670,7 +670,7 @@ const styles = StyleSheet.create({
     minWidth: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: 'rgba(18,181,165,0.2)',
+    backgroundColor: 'rgba(174,182,196,0.2)',
     paddingHorizontal: 5,
     alignItems: 'center',
     justifyContent: 'center',
@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
   },
   segmentBadgeText: {
     fontSize: 10,
-    color: COLORS.primary,
+    color: COLORS.icon,
     ...FONTS.bold,
   },
   segmentBadgeTextActive: {

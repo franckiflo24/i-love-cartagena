@@ -113,7 +113,7 @@ export default function TransportScreen() {
                   <Text style={styles.faresSectionSub}>{tr('Decreto DATT 2025 - Aeropuerto y ciudad')}</Text>
                 </View>
               </View>
-              <Ionicons name={faresExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={COLORS.primary} />
+              <Ionicons name={faresExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={COLORS.iconMuted} />
             </TouchableOpacity>
 
             {/* Always show airport fares */}

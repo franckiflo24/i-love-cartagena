@@ -358,7 +358,7 @@ export default function PasaporteScreen() {
         )}
 
         {(!mounted || loading) ? (
-          <ActivityIndicator color={COLORS.primary} style={{ marginTop: 60 }} />
+          <ActivityIndicator color={COLORS.icon} style={{ marginTop: 60 }} />
         ) : (
           <>
             {/* Guest teaser CTA / streak header */}
@@ -477,7 +477,7 @@ export default function PasaporteScreen() {
                 <Text style={{ fontSize: 14, color: COLORS.textMain, ...FONTS.bold }}>{tr('Rutas de Cartagena')}</Text>
                 <Text style={{ fontSize: 11, color: COLORS.textMuted, ...FONTS.medium }}>{tr('Getsemaní, sabores, atardecer y el circuito de crucero — completa y gana')}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={COLORS.primary} />
+              <Ionicons name="chevron-forward" size={18} color={COLORS.iconMuted} />
             </TouchableOpacity>
 
             {/* ── Sabores de Cartagena ── */}
@@ -570,7 +570,7 @@ export default function PasaporteScreen() {
                           <Text style={styles.plazaName} numberOfLines={2}>{p.name}</Text>
                           {done ? (
                             <View style={styles.plazaSealed}>
-                              <Ionicons name="checkmark-circle" size={13} color={COLORS.primary} />
+                              <Ionicons name="checkmark-circle" size={13} color={COLORS.mustard} />
                               <Text style={styles.plazaSealedText}>{tr('Sellado')}</Text>
                             </View>
                           ) : canSeal ? (
@@ -598,7 +598,7 @@ export default function PasaporteScreen() {
                 <View style={{ paddingHorizontal: SPACING.lg, gap: 8 }}>
                   {discoveries.filter((d) => d.type === 'gem').map((d) => (
                     <TouchableOpacity key={`${d.venue_id}-gem`} style={styles.gemRow} onPress={() => router.push(`/partner/${d.venue_id}` as any)} activeOpacity={0.8}>
-                      <Ionicons name="sparkles" size={15} color={COLORS.primary} />
+                      <Ionicons name="sparkles" size={15} color={COLORS.icon} />
                       <Text style={styles.gemName}>{venueName[d.venue_id] || d.venue_id}</Text>
                       <Text style={styles.gemDate}>{new Date(d.ts).toLocaleDateString()}</Text>
                     </TouchableOpacity>
@@ -701,7 +701,7 @@ export default function PasaporteScreen() {
 
                         {/* Prominent, tappable code (tap = share/copy) */}
                         <TouchableOpacity style={styles.groupCodePill} onPress={() => onGroupShare(g)} activeOpacity={0.8}>
-                          <Ionicons name="key-outline" size={13} color={COLORS.primary} />
+                          <Ionicons name="key-outline" size={13} color={COLORS.icon} />
                           <Text style={styles.groupCodeText}>{g.code}</Text>
                           <Text style={styles.groupCodeHint}>{tr('toca para compartir')}</Text>
                         </TouchableOpacity>
@@ -849,7 +849,7 @@ const styles = StyleSheet.create({
   syncBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, padding: 10, backgroundColor: 'rgba(245,158,11,0.10)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)' },
   syncBannerText: { flex: 1, fontSize: 11, color: '#F59E0B', ...FONTS.medium },
   notice: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, padding: 10, backgroundColor: 'rgba(18,181,165,0.12)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(18,181,165,0.4)' },
-  noticeText: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold, textAlign: 'center' },
+  noticeText: { fontSize: 12, color: COLORS.textMain, ...FONTS.semibold, textAlign: 'center' },
 
   inviteCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.lg, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: 'rgba(18,181,165,0.35)', alignItems: 'center', gap: 8 },
   inviteEmoji: { fontSize: 40 },
@@ -881,34 +881,34 @@ const styles = StyleSheet.create({
   nudgeTitle: { fontSize: 13, color: '#000', ...FONTS.bold },
   nudgeSub: { fontSize: 11, color: 'rgba(0,0,0,0.65)', ...FONTS.medium, marginTop: 1 },
 
-  medalTile: { width: '30.5%', minWidth: 96, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(18,181,165,0.45)', alignItems: 'center', padding: 10, gap: 3 },
+  medalTile: { width: '30.5%', minWidth: 96, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(233,185,73,0.45)', alignItems: 'center', padding: 10, gap: 3 },
   medalTileLocked: { borderColor: COLORS.border },
   medalTileIcon: { fontSize: 24 },
   medalTileName: { fontSize: 10.5, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
-  medalTileDate: { fontSize: 8.5, color: COLORS.primary, ...FONTS.medium },
+  medalTileDate: { fontSize: 8.5, color: COLORS.mustard, ...FONTS.medium },
   medalTileHint: { fontSize: 8.5, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'center', lineHeight: 11 },
 
   titleText: { fontSize: 12, color: COLORS.primary, ...FONTS.bold, marginTop: 2, fontStyle: 'italic' },
   rarezaText: { fontSize: 9, color: COLORS.primary, ...FONTS.semibold, marginTop: 2 },
 
-  pullLine: { fontSize: 11, color: 'rgba(18,181,165,0.85)', ...FONTS.medium, paddingHorizontal: SPACING.lg, marginTop: -4, marginBottom: SPACING.sm },
-  almostCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, padding: 12, backgroundColor: 'rgba(18,181,165,0.12)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.primary, gap: 2 },
-  almostTitle: { fontSize: 12, color: COLORS.primary, ...FONTS.bold },
+  pullLine: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, paddingHorizontal: SPACING.lg, marginTop: -4, marginBottom: SPACING.sm },
+  almostCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, padding: 12, backgroundColor: 'rgba(18,181,165,0.12)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.mustard, gap: 2 },
+  almostTitle: { fontSize: 12, color: COLORS.mustard, ...FONTS.bold },
   almostText: { fontSize: 12, color: COLORS.textMain, ...FONTS.semibold },
 
   specialRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, padding: 12 },
-  specialEarned: { borderColor: COLORS.primary, backgroundColor: 'rgba(18,181,165,0.10)' },
+  specialEarned: { borderColor: COLORS.mustard, backgroundColor: 'rgba(18,181,165,0.10)' },
   specialNow: { borderColor: '#22C55E', backgroundColor: 'rgba(34,197,94,0.08)' },
   specialIcon: { fontSize: 22 },
   specialName: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
   specialDesc: { fontSize: 10.5, color: COLORS.textMuted, ...FONTS.medium, marginTop: 1 },
-  specialDate: { fontSize: 10, color: COLORS.primary, ...FONTS.semibold },
+  specialDate: { fontSize: 10, color: COLORS.mustard, ...FONTS.semibold },
   specialMuted: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium, maxWidth: 96, textAlign: 'right' },
-  specialGroupLabel: { fontSize: 11, color: COLORS.primary, ...FONTS.bold, letterSpacing: 0.5, marginTop: 6, textTransform: 'uppercase' },
+  specialGroupLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.bold, letterSpacing: 0.5, marginTop: 6, textTransform: 'uppercase' },
   specialNowChip: { backgroundColor: '#22C55E', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
   specialNowChipText: { fontSize: 9, color: '#000', ...FONTS.bold, letterSpacing: 1 },
 
-  groupCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(18,181,165,0.3)', padding: 12, gap: 6 },
+  groupCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: 12, gap: 6 },
   groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
   groupName: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
   groupMeta: { fontSize: 10.5, color: COLORS.textMuted, ...FONTS.medium, marginTop: 1 },
@@ -935,17 +935,17 @@ const styles = StyleSheet.create({
 
   streakRow: { flexDirection: 'row', gap: 10, paddingHorizontal: SPACING.lg, marginBottom: SPACING.md },
   streakBox: { flex: 1, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', paddingVertical: 14, gap: 2 },
-  streakNum: { fontSize: 24, color: COLORS.primary, ...FONTS.bold },
+  streakNum: { fontSize: 24, color: COLORS.textMain, ...FONTS.bold },
   streakLabel: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
 
   section: { marginBottom: SPACING.lg },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.lg, marginBottom: SPACING.sm },
   sectionTitle: { fontSize: 17, color: COLORS.textMain, ...FONTS.bold },
-  sectionCount: { fontSize: 13, color: COLORS.primary, ...FONTS.bold },
+  sectionCount: { fontSize: 13, color: COLORS.textMuted, ...FONTS.bold },
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingHorizontal: SPACING.lg },
   tile: { width: '30.5%', minWidth: 96, aspectRatio: 0.92, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center', padding: 8, gap: 4 },
-  tileDone: { borderColor: COLORS.primary, backgroundColor: 'rgba(18,181,165,0.10)' },
+  tileDone: { borderColor: COLORS.mustard, backgroundColor: 'rgba(18,181,165,0.10)' },
   tileIcon: { fontSize: 26 },
   tileIconOff: { opacity: 0.35 },
   tileName: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold, textAlign: 'center', lineHeight: 14 },
@@ -960,17 +960,17 @@ const styles = StyleSheet.create({
   plazaName: { fontSize: 12, color: '#FFF', ...FONTS.bold, lineHeight: 15 },
   plazaDist: { fontSize: 10, color: 'rgba(18,181,165,0.9)', ...FONTS.semibold },
   plazaSealed: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  plazaSealedText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold },
+  plazaSealedText: { fontSize: 10, color: COLORS.mustard, ...FONTS.bold },
   sealBtn: { backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 5, alignItems: 'center' },
   sealBtnText: { fontSize: 10, color: '#000', ...FONTS.bold },
 
-  gemRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(18,181,165,0.3)', padding: 12 },
+  gemRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, padding: 12 },
   gemName: { flex: 1, fontSize: 13, color: COLORS.textMain, ...FONTS.semibold },
   gemDate: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
 
   nbhRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
   nbhName: { fontSize: 13, color: COLORS.textMain, ...FONTS.semibold },
-  nbhCount: { fontSize: 12, color: COLORS.primary, ...FONTS.bold },
+  nbhCount: { fontSize: 12, color: COLORS.textMuted, ...FONTS.bold },
   nbhBar: { height: 6, borderRadius: 3, backgroundColor: COLORS.surface, overflow: 'hidden' },
   nbhFill: { height: '100%', backgroundColor: COLORS.primary, borderRadius: 3 },
 

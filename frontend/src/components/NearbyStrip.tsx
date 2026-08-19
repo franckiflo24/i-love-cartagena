@@ -255,7 +255,7 @@ export function NearbyStrip() {
     if (explainerDismissed) return null;
     return (
       <View style={styles.explainer}>
-        <Ionicons name="walk" size={20} color={COLORS.primary} />
+        <Ionicons name="walk" size={20} color={COLORS.icon} />
         <View style={{ flex: 1 }}>
           <Text style={styles.explainerTitle}>{tr('Descubre lo que tienes cerca')}</Text>
           <Text style={styles.explainerBody}>
@@ -278,11 +278,11 @@ export function NearbyStrip() {
   return (
     <View style={styles.section}>
       <View style={styles.headerRow}>
-        <Ionicons name="footsteps" size={16} color={COLORS.primary} />
+        <Ionicons name="footsteps" size={16} color={COLORS.icon} />
         <Text style={styles.headerTitle}>{tr('Cerca de ti')}</Text>
         {needsCompassTap && (
           <TouchableOpacity style={styles.compassBtn} onPress={offerCompass} activeOpacity={0.8}>
-            <Ionicons name="compass-outline" size={13} color={COLORS.primary} />
+            <Ionicons name="compass-outline" size={13} color={COLORS.icon} />
             <Text style={styles.compassBtnText}>{tr('Brújula')}</Text>
           </TouchableOpacity>
         )}
@@ -436,11 +436,11 @@ function GemTeaseCard({ distance, rare, tr }: { distance: number; rare?: boolean
         {rare && (
           <View style={styles.rareBadge}><Text style={styles.rareBadgeText}>{tr('Joya escondida')}</Text></View>
         )}
-        <Ionicons name="sparkles" size={26} color={rare ? '#FF6B75' : COLORS.primary} />
+        <Ionicons name="sparkles" size={26} color={rare ? '#FF6B75' : COLORS.mustard} />
         <Text style={styles.gemTeaseTitle}>{rare ? tr('Una joya escondida está cerca…') : tr('Un favorito local está cerca…')}</Text>
         <Text style={styles.gemTeaseBody}>{tr('camina para descubrirlo')}</Text>
         <View style={styles.gemTeaseDist}>
-          <Ionicons name="walk" size={11} color={COLORS.primary} />
+          <Ionicons name="walk" size={11} color={COLORS.icon} />
           <Text style={styles.gemTeaseDistText}>~{Math.round(distance / 10) * 10}m</Text>
         </View>
       </View>
@@ -464,12 +464,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(18,181,165,0.12)',
+    backgroundColor: 'rgba(174,182,196,0.14)',
     borderRadius: RADIUS.full,
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
-  compassBtnText: { fontSize: 10, color: COLORS.primary, ...FONTS.semibold },
+  compassBtnText: { fontSize: 10, color: COLORS.icon, ...FONTS.semibold },
 
   card: {
     width: 150,
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
   },
-  cardGem: { borderColor: COLORS.primary },
+  cardGem: { borderColor: COLORS.mustard },
   cardImage: { width: '100%', height: '100%' },
   cardOverlay: {
     position: 'absolute',
@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.mustard,
     borderRadius: RADIUS.full,
     paddingHorizontal: 6,
     paddingVertical: 1,
@@ -519,18 +519,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.icon,
     borderRadius: RADIUS.full,
     paddingHorizontal: 7,
     paddingVertical: 2,
   },
   distChipText: { fontSize: 10, color: '#000', ...FONTS.bold },
-  passportHint: { fontSize: 9, color: COLORS.primary, ...FONTS.semibold },
+  passportHint: { fontSize: 9, color: COLORS.mustard, ...FONTS.semibold },
 
   gemTease: {
-    borderColor: 'rgba(18,181,165,0.55)',
+    borderColor: 'rgba(233,185,73,0.55)',
     borderWidth: 1.5,
-    backgroundColor: 'rgba(18,181,165,0.06)',
+    backgroundColor: 'rgba(233,185,73,0.06)',
   },
   gemTeaseRare: {
     borderColor: '#FF6B75',
@@ -563,13 +563,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(18,181,165,0.14)',
+    backgroundColor: 'rgba(233,185,73,0.14)',
     borderRadius: RADIUS.full,
     paddingHorizontal: 8,
     paddingVertical: 3,
     marginTop: 2,
   },
-  gemTeaseDistText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold },
+  gemTeaseDistText: { fontSize: 10, color: COLORS.mustard, ...FONTS.bold },
 
   explainer: {
     flexDirection: 'row',
@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: 'rgba(18,181,165,0.35)',
+    borderColor: COLORS.border,
   },
   explainerTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
   explainerBody: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, lineHeight: 15 },

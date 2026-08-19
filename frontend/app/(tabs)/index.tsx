@@ -483,7 +483,7 @@ export default function HomeScreen() {
             onPress={() => { setShowGuestBanner(false); router.push('/onboarding' as any); }}
             activeOpacity={0.85}
           >
-            <Ionicons name="sparkles" size={20} color="#12B5A5" />
+            <Ionicons name="sparkles" size={20} color="#A855F7" />
             <Text style={{ flex: 1, fontSize: 13, color: COLORS.white, ...FONTS.medium }}>{s('home_guest_banner')}</Text>
             <Text style={{ fontSize: 12, color: '#12B5A5', ...FONTS.bold }}>{s('home_guest_banner_cta')}</Text>
             <TouchableOpacity
@@ -524,16 +524,16 @@ export default function HomeScreen() {
               {sponsors[activeSponsor]?.logo_url ? (
                 <SafeImage uri={sponsors[activeSponsor].logo_url} category="institutional" style={styles.sponsorLogo} resizeMode="contain" />
               ) : (
-                <View style={[styles.sponsorIconCircle, { backgroundColor: `${sponsors[activeSponsor]?.color || COLORS.primary}20` }]}>
-                  <Ionicons name="business" size={18} color={sponsors[activeSponsor]?.color || COLORS.primary} />
+                <View style={[styles.sponsorIconCircle, { backgroundColor: `${sponsors[activeSponsor]?.color || COLORS.icon}20` }]}>
+                  <Ionicons name="business" size={18} color={sponsors[activeSponsor]?.color || COLORS.icon} />
                 </View>
               )}
               <View style={{ flex: 1 }}>
                 <Text style={styles.sponsorName}>{sponsors[activeSponsor]?.name}</Text>
                 <Text style={styles.sponsorTagline}>{sponsors[activeSponsor]?.tagline}</Text>
               </View>
-              <View style={[styles.sponsorTierBadge, { backgroundColor: `${sponsors[activeSponsor]?.color || COLORS.primary}20` }]}>
-                <Text style={[styles.sponsorTierText, { color: sponsors[activeSponsor]?.color || COLORS.primary }]}>
+              <View style={[styles.sponsorTierBadge, { backgroundColor: `${sponsors[activeSponsor]?.color || COLORS.official}20` }]}>
+                <Text style={[styles.sponsorTierText, { color: sponsors[activeSponsor]?.color || COLORS.official }]}>
                   {sponsors[activeSponsor]?.tier === 'gold' ? 'GOLD' : sponsors[activeSponsor]?.tier === 'institutional' ? 'OFICIAL' : 'PARTNER'}
                 </Text>
               </View>
@@ -541,7 +541,7 @@ export default function HomeScreen() {
             {/* Progress dots */}
             <View style={styles.sponsorDots}>
               {sponsors.map((_, i) => (
-                <View key={i} style={[styles.sponsorDot, i === activeSponsor && { backgroundColor: sponsors[activeSponsor]?.color || COLORS.primary, width: 20, borderRadius: 5 }]} />
+                <View key={i} style={[styles.sponsorDot, i === activeSponsor && { backgroundColor: sponsors[activeSponsor]?.color || COLORS.icon, width: 20, borderRadius: 5 }]} />
               ))}
             </View>
           </TouchableOpacity>
@@ -604,7 +604,7 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleRow}>
-              <Ionicons name="compass" size={18} color={COLORS.primary} />
+              <Ionicons name="compass" size={18} color={COLORS.icon} />
               <Text style={styles.sectionTitle}>{tr('Explorar')}</Text>
             </View>
             <TouchableOpacity onPress={() => router.push('/(tabs)/explore' as any)}>
@@ -737,7 +737,7 @@ export default function HomeScreen() {
                         <Text style={styles.recPulseText} numberOfLines={1}>⚡ {p.live_pulse.title}</Text>
                       </View>
                     ) : p.tier ? (
-                      <View style={[styles.recTierBadge, { backgroundColor: TIER_COLORS[p.tier as Tier]?.main || COLORS.primary }]}>
+                      <View style={[styles.recTierBadge, { backgroundColor: TIER_COLORS[p.tier as Tier]?.main || COLORS.icon }]}>
                         <Text style={styles.recTierText}>{(p.tier || '').toUpperCase()}</Text>
                       </View>
                     ) : null}
@@ -775,7 +775,7 @@ export default function HomeScreen() {
               <View style={styles.sectionTitleRow}>
                 {/* Drop FOMO: honest label — these are generic popular picks, not
                     the AI-personalized 'Para ti' (that's the locked tease below). */}
-                <Ionicons name="flame" size={18} color={COLORS.primary} />
+                <Ionicons name="flame" size={18} color={COLORS.coral} />
                 <Text style={styles.sectionTitle}>{tr('Populares en Cartagena')}</Text>
               </View>
             </View>
@@ -794,7 +794,7 @@ export default function HomeScreen() {
                   />
                   <View style={styles.recOverlay}>
                     {p.tier && (
-                      <View style={[styles.recTierBadge, { backgroundColor: TIER_COLORS[p.tier as Tier]?.main || COLORS.primary }]}>
+                      <View style={[styles.recTierBadge, { backgroundColor: TIER_COLORS[p.tier as Tier]?.main || COLORS.icon }]}>
                         <Text style={styles.recTierText}>{(p.tier || '').toUpperCase()}</Text>
                       </View>
                     )}
@@ -863,7 +863,7 @@ export default function HomeScreen() {
                   />
                   <View style={styles.recOverlay}>
                     {p.tier && (
-                      <View style={[styles.recTierBadge, { backgroundColor: TIER_COLORS[p.tier as Tier]?.main || COLORS.primary }]}>
+                      <View style={[styles.recTierBadge, { backgroundColor: TIER_COLORS[p.tier as Tier]?.main || COLORS.icon }]}>
                         <Text style={styles.recTierText}>{(p.tier || '').toUpperCase()}</Text>
                       </View>
                     )}
@@ -871,7 +871,7 @@ export default function HomeScreen() {
                     <View style={styles.recMeta}>
                       {p.rating ? (
                         <View style={styles.recRating}>
-                          <Ionicons name="star" size={10} color={COLORS.primary} />
+                          <Ionicons name="star" size={10} color={COLORS.mustard} />
                           <Text style={styles.recRatingText}>{Number(p.rating).toFixed(1)}</Text>
                         </View>
                       ) : null}
@@ -891,7 +891,7 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
-                <Ionicons name="star" size={18} color={COLORS.primary} />
+                <Ionicons name="star" size={18} color={COLORS.mustard} />
                 <Text style={styles.sectionTitle}>
                   {userProfile.userType === 'visitor' && userProfile.travelDates ? s('home_during_visit') : tr('Próximos eventos')}
                 </Text>
@@ -1360,12 +1360,12 @@ const styles = StyleSheet.create({
   favHeartBadge: { position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.95)', alignItems: 'center', justifyContent: 'center' },
   favTierStripe: { position: 'absolute', top: 0, left: 0, right: 0, height: 3 },
   favInfo: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: SPACING.sm },
-  favSubtitle: { fontSize: 9, color: COLORS.primary, ...FONTS.bold, letterSpacing: 0.8 },
+  favSubtitle: { fontSize: 9, color: COLORS.icon, ...FONTS.bold, letterSpacing: 0.8 },
   favTitle: { fontSize: 13, color: COLORS.white, ...FONTS.bold, marginTop: 4, lineHeight: 17 },
   featuredCard: { width: 260, height: 200, borderRadius: RADIUS.xl, overflow: 'hidden' },
   featuredImage: { width: '100%', height: '100%', position: 'absolute' },
   featuredOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' },
-  featuredBadge: { position: 'absolute', top: SPACING.md, right: SPACING.md, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
+  featuredBadge: { position: 'absolute', top: SPACING.md, right: SPACING.md, backgroundColor: COLORS.coral, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
   badgeText: { fontSize: 11, color: COLORS.white, ...FONTS.bold },
   featuredInfo: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: SPACING.md },
   featuredType: { fontSize: 10, color: COLORS.primary, ...FONTS.bold, letterSpacing: 2, textTransform: 'uppercase' },
@@ -1482,7 +1482,7 @@ const styles = StyleSheet.create({
   recName: { fontSize: 13, color: '#FFF', ...FONTS.bold, lineHeight: 17 },
   recMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   recRating: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  recRatingText: { fontSize: 10, color: COLORS.primary, ...FONTS.semibold },
+  recRatingText: { fontSize: 10, color: COLORS.icon, ...FONTS.semibold },
   recCategory: { fontSize: 10, color: 'rgba(255,255,255,0.7)', ...FONTS.medium, textTransform: 'capitalize' },
   sectionCount: {
     fontSize: 11,

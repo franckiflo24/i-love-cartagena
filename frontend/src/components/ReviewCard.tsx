@@ -18,7 +18,7 @@ export interface ReviewCardProps {
 
 // ─── Star Row ─────────────────────────────────────────────────────────────────
 
-function StarRow({ rating, size = 14, color = COLORS.primary }: { rating: number; size?: number; color?: string }) {
+function StarRow({ rating, size = 14, color = COLORS.mustard }: { rating: number; size?: number; color?: string }) {
   return (
     <View style={{ flexDirection: 'row', gap: 2 }}>
       {[1, 2, 3, 4, 5].map((n) => (

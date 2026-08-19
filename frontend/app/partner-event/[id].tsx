@@ -5,7 +5,7 @@ import { SafeImage } from '../../src/components/SafeImage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { venueWhatsApp } from '../../src/lib/whatsapp';
 import { TierBadge } from '../../src/components/TierBadge';
@@ -149,7 +149,7 @@ export default function PartnerEventDetail() {
           </View>
           <View style={styles.flyerBottom}>
             <View style={styles.catRow}>
-              <View style={styles.catBadge}>
+              <View style={[styles.catBadge, { backgroundColor: colorForKey(event.category) }]}>
                 <Ionicons name={(CAT_ICONS[event.category] || 'pricetag') as any} size={12} color={COLORS.white} />
                 <Text style={styles.catText}>{CAT_LABELS[event.category] || event.category}</Text>
               </View>
@@ -163,7 +163,7 @@ export default function PartnerEventDetail() {
         <View style={styles.body}>
           <View style={styles.dateTimeBox}>
             <View style={styles.dateTimeItem}>
-              <Ionicons name="calendar" size={18} color={COLORS.primary} />
+              <Ionicons name="calendar" size={18} color={COLORS.icon} />
               <View>
                 <Text style={styles.dateTimeLabel}>Fecha</Text>
                 <Text style={styles.dateTimeValue}>{formatDate(event.date)}</Text>
@@ -171,7 +171,7 @@ export default function PartnerEventDetail() {
             </View>
             <View style={styles.dateTimeDivider} />
             <View style={styles.dateTimeItem}>
-              <Ionicons name="time" size={18} color={COLORS.primary} />
+              <Ionicons name="time" size={18} color={COLORS.icon} />
               <View>
                 <Text style={styles.dateTimeLabel}>Hora</Text>
                 <Text style={styles.dateTimeValue}>{event.start_time} – {event.end_time}</Text>
@@ -211,7 +211,7 @@ export default function PartnerEventDetail() {
             <Ionicons
               name={isInCalendar(event.event_id) ? 'checkmark-circle' : 'calendar'}
               size={18}
-              color={isInCalendar(event.event_id) ? '#22C55E' : COLORS.primary}
+              color={isInCalendar(event.event_id) ? '#22C55E' : COLORS.icon}
             />
             <Text style={[styles.calendarBtnText, isInCalendar(event.event_id) && { color: '#22C55E' }]}>
               {isInCalendar(event.event_id) ? s('in_my_calendar') : s('add_to_calendar')}
@@ -244,7 +244,7 @@ export default function PartnerEventDetail() {
                     style={styles.iconBtn}
                     onPress={() => RNLinking.openURL(`https://instagram.com/${partner.instagram}`)}
                   >
-                    <Ionicons name="logo-instagram" size={14} color={COLORS.primary} />
+                    <Ionicons name="logo-instagram" size={14} color={COLORS.icon} />
                     <Text style={styles.iconBtnText}>@{partner.instagram}</Text>
                   </TouchableOpacity>
                 ) : null}
@@ -265,7 +265,7 @@ export default function PartnerEventDetail() {
           style={styles.partnerProfileBtn}
           onPress={() => router.push(`/partner/${event.partner_id}`)}
         >
-          <Ionicons name="person-outline" size={18} color={COLORS.primary} />
+          <Ionicons name="person-outline" size={18} color={COLORS.icon} />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.whatsappBtn}
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   heartBtn: { position: 'absolute', top: SPACING.md, left: 104, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
   priceBadgeBig: { position: 'absolute', top: SPACING.md, right: SPACING.md, borderRadius: RADIUS.full, paddingHorizontal: 14, paddingVertical: 7 },
   priceFree: { backgroundColor: COLORS.success },
-  pricePaid: { backgroundColor: 'rgba(5,8,20,0.85)', borderWidth: 1, borderColor: COLORS.primary },
+  pricePaid: { backgroundColor: 'rgba(5,8,20,0.85)', borderWidth: 1, borderColor: COLORS.mustard },
   priceBigText: { fontSize: 13, color: COLORS.white, ...FONTS.bold, letterSpacing: 0.5 },
   flyerBottom: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: SPACING.lg },
   catRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, marginBottom: SPACING.sm, flexWrap: 'wrap' },
@@ -307,9 +307,9 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold, marginBottom: SPACING.sm, marginTop: SPACING.md, letterSpacing: 0.3 },
   description: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 22 },
 
-  calendarBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: SPACING.lg, paddingVertical: 12, borderRadius: RADIUS.full, borderWidth: 1.5, borderColor: COLORS.primary, backgroundColor: 'rgba(18,181,165,0.1)' },
+  calendarBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: SPACING.lg, paddingVertical: 12, borderRadius: RADIUS.full, borderWidth: 1.5, borderColor: COLORS.iconMuted, backgroundColor: 'rgba(174,182,196,0.08)' },
   calendarBtnActive: { borderColor: '#22C55E', backgroundColor: 'rgba(34,197,94,0.12)' },
-  calendarBtnText: { fontSize: 14, color: COLORS.primary, ...FONTS.bold, letterSpacing: 0.3 },
+  calendarBtnText: { fontSize: 14, color: COLORS.icon, ...FONTS.bold, letterSpacing: 0.3 },
 
   partnerCard: { borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface, position: 'relative', height: 140 },
   partnerImage: { position: 'absolute', width: '100%', height: '100%' },
@@ -320,13 +320,13 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 },
   metaText: { fontSize: 11, color: 'rgba(255,255,255,0.7)', ...FONTS.regular, flex: 1 },
   partnerActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SPACING.xs, marginTop: SPACING.sm },
-  iconBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(18,181,165,0.2)', borderWidth: 1, borderColor: COLORS.primary, paddingHorizontal: 10, paddingVertical: 5, borderRadius: RADIUS.full },
-  iconBtnText: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },
+  iconBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(174,182,196,0.14)', borderWidth: 1, borderColor: COLORS.iconMuted, paddingHorizontal: 10, paddingVertical: 5, borderRadius: RADIUS.full },
+  iconBtnText: { fontSize: 11, color: COLORS.icon, ...FONTS.semibold },
   calendarBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 8, paddingVertical: 5, borderRadius: RADIUS.full },
   calendarBadgeText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.semibold },
 
   bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', padding: SPACING.lg, gap: SPACING.sm, backgroundColor: COLORS.background, borderTopWidth: 1, borderTopColor: COLORS.border },
-  partnerProfileBtn: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.primary },
+  partnerProfileBtn: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.border },
   reserveBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 14 },
   reserveText: { fontSize: 14, color: COLORS.white, ...FONTS.bold },
   whatsappBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#25D366', borderRadius: RADIUS.full, paddingVertical: 14 },

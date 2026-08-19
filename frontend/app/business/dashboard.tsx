@@ -417,7 +417,7 @@ export default function BusinessDashboard() {
                 : tr('Confirma o rechaza solicitudes de tus clientes')}
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={COLORS.primary} />
+          <Ionicons name="chevron-forward" size={20} color={COLORS.iconMuted} />
         </TouchableOpacity>
 
         {/* Membership Card */}

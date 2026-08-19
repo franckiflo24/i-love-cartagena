@@ -51,7 +51,7 @@ export function SeasonBanner() {
           </Text>
         )}
       </View>
-      <Ionicons name="chevron-forward" size={16} color={COLORS.primary} />
+      <Ionicons name="chevron-forward" size={16} color={COLORS.iconMuted} />
     </TouchableOpacity>
   );
 }
@@ -61,10 +61,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 8,
     marginHorizontal: SPACING.lg, marginBottom: SPACING.md,
     paddingVertical: 10, paddingHorizontal: 14,
-    backgroundColor: 'rgba(18,181,165,0.09)', borderRadius: RADIUS.lg,
-    borderWidth: 1, borderColor: 'rgba(18,181,165,0.35)',
+    backgroundColor: 'rgba(255,107,74,0.09)', borderRadius: RADIUS.lg,
+    borderWidth: 1, borderColor: 'rgba(255,107,74,0.35)',
   },
-  season: { fontSize: 12, color: COLORS.primary, ...FONTS.bold },
+  season: { fontSize: 12, color: COLORS.coral, ...FONTS.bold },
   earn: { fontSize: 11.5, color: COLORS.textMain, ...FONTS.semibold },
 });
 

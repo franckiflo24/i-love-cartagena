@@ -453,7 +453,7 @@ export default function RewardsHub() {
             <Ionicons name="pricetags-outline" size={22} color={COLORS.primary} />
             <Text style={styles.cardCtaText}>{s('rewards_offers')}</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={COLORS.primary} />
+          <Ionicons name="chevron-forward" size={20} color={COLORS.iconMuted} />
         </TouchableOpacity>
 
         {/* ── AMO Card CTA ── */}
