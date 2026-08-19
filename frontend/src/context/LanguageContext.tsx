@@ -49,7 +49,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       if (val && (val === 'es' || val === 'en' || val === 'fr' || val === 'pt')) {
         setLangState(val as Lang);
       }
-    });
+    }).catch(() => {});
   }, []);
 
   const setLang = useCallback((l: Lang) => {

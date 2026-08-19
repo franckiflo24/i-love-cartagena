@@ -91,7 +91,7 @@ export default function PortTaxTicketScreen() {
           <Text style={styles.subtitle}>{tr('Tasa Portuaria')}</Text>
         </View>
         <TouchableOpacity
-          onPress={() => Share.share({ message: `Tiquete Tasa Portuaria — ID ${ticket.ticket_id.toUpperCase()} · ${ticket.qty} pax · ${formatHumanDate(ticket.travel_date)}` })}
+          onPress={() => Share.share({ message: `Tiquete Tasa Portuaria — ID ${ticket.ticket_id.toUpperCase()} · ${ticket.qty} pax · ${formatHumanDate(ticket.travel_date)}` }).catch(() => {})}
           style={styles.iconBtn}
         >
           <Ionicons name="share-outline" size={20} color={COLORS.textMain} />

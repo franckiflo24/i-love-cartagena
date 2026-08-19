@@ -191,10 +191,16 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
   const userPosRef = useRef<{ lat: number; lng: number } | null>(null);
   const followRef = useRef(follow);
   followRef.current = follow;
+  // Blocked CDN (hotel/VPN/ad-block networks — our tourists) means the script
+  // never loads → permanently blank map with no signal. Surface a retry.
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [retryTick, setRetryTick] = useState(0);
+  const tr = useTr();
 
-  // ── Map bootstrap: once ──
+  // ── Map bootstrap: once (re-run on manual retry) ──
   useEffect(() => {
     if (typeof window === 'undefined' || !mapRef.current) return;
+    setLoadFailed(false);
     if (!document.querySelector('link[href*="leaflet"]')) {
       const link = document.createElement('link');
       link.rel = 'stylesheet';
@@ -276,6 +282,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
       script.onload = init;
+      script.onerror = () => setLoadFailed(true);
       document.head.appendChild(script);
     }
     return () => {
@@ -287,7 +294,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [retryTick]);
 
   // ── Place markers: rebuild only when data/filter changes ──
   const renderMarkers = () => {
@@ -382,10 +389,32 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
   }, [userLoc]);
 
   return (
-    <div
-      ref={mapRef as any}
-      style={{ width: '100%', height: '100%', background: '#050814' }}
-    />
+    <div style={{ width: '100%', height: '100%', position: 'relative', background: '#050814' }}>
+      <div
+        ref={mapRef as any}
+        style={{ width: '100%', height: '100%', background: '#050814' }}
+      />
+      {loadFailed && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: 12, padding: 24, textAlign: 'center', background: '#050814',
+        }}>
+          <span style={{ color: COLORS.textMuted, fontFamily: 'sans-serif', fontSize: 14, maxWidth: 280 }}>
+            {tr('No pudimos cargar el mapa')}
+          </span>
+          <button
+            onClick={() => setRetryTick(t => t + 1)}
+            style={{
+              background: COLORS.primary, color: '#fff', border: 'none', borderRadius: 999,
+              padding: '10px 22px', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'sans-serif',
+            }}
+          >
+            {tr('Reintentar')}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -657,7 +686,7 @@ export default function MapaScreen() {
                 onPress={() => setFilter(f.key)}
               >
                 <Ionicons name={f.icon as any} size={14} color={isActive ? f.color : COLORS.textMuted} />
-                <Text style={[styles.chipText, isActive && { color: f.color }]}>{f.label}</Text>
+                <Text style={[styles.chipText, isActive && { color: f.color }]}>{tr(f.label)}</Text>
                 <View style={[styles.chipCount, isActive && { backgroundColor: `${f.color}30` }]}>
                   <Text style={[styles.chipCountText, isActive && { color: f.color }]}>{count}</Text>
                 </View>

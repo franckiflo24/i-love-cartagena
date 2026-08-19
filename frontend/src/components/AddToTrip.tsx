@@ -39,9 +39,11 @@ export default function AddToTrip({ refType, refId, name, compact, style }: Prop
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
   const [done, setDone] = useState<string | null>(null); // trip name we added to
+  const [error, setError] = useState<string | null>(null);
 
   const openPicker = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await api.get('/trips/mine');
       if (res?.error === 'unauthorized' || res?.status === 401 || res?.detail === 'Not authenticated') {
@@ -59,21 +61,25 @@ export default function AddToTrip({ refType, refId, name, compact, style }: Prop
 
   const addTo = useCallback(async (trip: TripRow) => {
     setLoading(true);
+    setError(null);
     try {
       const res = await api.post(`/trips/${trip.trip_id}/items`, { ref_type: refType, ref_id: refId });
       if (res?.item_id) {
         setDone(trip.name);
         setTimeout(() => { setDone(null); setOpen(false); }, 1400);
       }
+    } catch {
+      setError(tr('No se pudo agregar. Intentá de nuevo.'));
     } finally {
       setLoading(false);
     }
-  }, [refType, refId]);
+  }, [refType, refId, tr]);
 
   const createAndAdd = useCallback(async () => {
     const nm = newName.trim();
     if (!nm) return;
     setLoading(true);
+    setError(null);
     try {
       const t = await api.post('/trips', { name: nm });
       if (t?.trip_id) {
@@ -81,10 +87,12 @@ export default function AddToTrip({ refType, refId, name, compact, style }: Prop
         setNewName('');
         await addTo({ trip_id: t.trip_id, name: t.name, items_count: 0, my_role: 'owner' });
       }
+    } catch {
+      setError(tr('No se pudo agregar. Intentá de nuevo.'));
     } finally {
       setLoading(false);
     }
-  }, [newName, addTo]);
+  }, [newName, addTo, tr]);
 
   return (
     <>
@@ -124,6 +132,7 @@ export default function AddToTrip({ refType, refId, name, compact, style }: Prop
               <>
                 <Text style={styles.title}>{tr('Agregar a mi viaje')}</Text>
                 {name ? <Text style={styles.subtitle} numberOfLines={1}>{name}</Text> : null}
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
                 <ScrollView style={{ maxHeight: 260 }}>
                   {trips.map((t) => (
                     <TouchableOpacity key={t.trip_id} style={styles.row} onPress={() => addTo(t)}>
@@ -189,6 +198,7 @@ const styles = StyleSheet.create({
   },
   title: { color: COLORS.textMain, fontSize: 17, ...FONTS.bold },
   subtitle: { color: COLORS.textMuted, fontSize: 13, marginTop: 2, marginBottom: SPACING.sm },
+  errorText: { color: '#FCA5A5', fontSize: 12, marginTop: 2, marginBottom: SPACING.sm },
   row: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(255,255,255,0.08)',

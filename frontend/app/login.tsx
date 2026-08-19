@@ -68,7 +68,7 @@ export default function LoginScreen() {
           if (u?.phone) setSignupPhone(u.phone);
         } catch { /* malformed stored user_data */ }
       }
-    });
+    }).catch(() => {});
   }, []);
 
   const storeSessionToken = async (token: string) => {

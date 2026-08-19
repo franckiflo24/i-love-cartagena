@@ -50,6 +50,7 @@ export default function PartnerEventDetail() {
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [reserving, setReserving] = useState(false);
+  const [partnerContact, setPartnerContact] = useState<{ number: string; name?: string } | null>(null);
   const tr = useTr();
 
   useEffect(() => {
@@ -63,6 +64,25 @@ export default function PartnerEventDetail() {
     };
     load();
   }, [id]);
+
+  // Prefetch the partner's WhatsApp contact as soon as we know partner_id, so
+  // the WhatsApp button can open synchronously on tap. An `await api.get(...)`
+  // inside the tap handler is exactly what iOS Safari's popup blocker kills —
+  // openURL must fire in the same event tick as the user gesture.
+  useEffect(() => {
+    if (!event?.partner_id) return;
+    let active = true;
+    api.get(`/partners/${event.partner_id}`)
+      .then((partnerData: any) => {
+        if (!active) return;
+        const { number } = venueWhatsApp(partnerData);
+        setPartnerContact({ number, name: partnerData?.name });
+      })
+      .catch(() => {
+        // Prefetch failed — handleWhatsApp falls back to its own async path.
+      });
+    return () => { active = false; };
+  }, [event?.partner_id]);
 
   const handleReserve = () => {
     if (!event) return;
@@ -80,7 +100,27 @@ export default function PartnerEventDetail() {
 
   const handleWhatsApp = async () => {
     if (!event) return;
-    // Try to get partner phone directly
+    // Prefetched on mount — open synchronously in the same tap so iOS Safari
+    // never treats it as a popup triggered outside a user gesture.
+    if (partnerContact) {
+      const msg = encodeURIComponent(
+        `¡Hola! Reserva via *AMO Cartagena* 🌴\n\n`
+        + `Evento: *${event.title}*\n`
+        + `Lugar: *${event.partner_name || partnerContact.name || ''}*\n`
+        + `Fecha: ${event.date}\n`
+        + `Hora: ${event.start_time}\n\n`
+        + `¿Disponibilidad?\n\n---\n\n`
+        + `Hi! Booking via *AMO Cartagena* 🌴\n\n`
+        + `Event: *${event.title}*\n`
+        + `Venue: *${event.partner_name || partnerContact.name || ''}*\n`
+        + `Date: ${event.date}\n`
+        + `Time: ${event.start_time}\n\n`
+        + `Availability?`
+      );
+      RNLinking.openURL(`https://wa.me/${partnerContact.number}?text=${msg}`);
+      return;
+    }
+    // Prefetch hasn't resolved yet — fall back to the original async lookup.
     try {
       const partnerData = await api.get(`/partners/${event.partner_id}`);
       const { number: waPhone } = venueWhatsApp(partnerData); // validated mobile or AMO concierge — never a wrong number

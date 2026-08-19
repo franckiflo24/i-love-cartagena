@@ -88,10 +88,14 @@ export function useTutorial() {
 
   const checkAndShow = async () => {
     if (Platform.OS !== 'web') return;
-    const seen = await AsyncStorage.getItem('@tutorial_seen');
-    const onboardDone = await AsyncStorage.getItem('@onboarding_done');
-    if (onboardDone && !seen) {
-      setShowTutorial(true);
+    try {
+      const seen = await AsyncStorage.getItem('@tutorial_seen');
+      const onboardDone = await AsyncStorage.getItem('@onboarding_done');
+      if (onboardDone && !seen) {
+        setShowTutorial(true);
+      }
+    } catch {
+      // AsyncStorage read failed — silently skip; tutorial just won't show this time.
     }
   };
 

@@ -114,7 +114,7 @@ const CATEGORIES: CategoryItem[] = [
   { key: 'nightlife',  label: 'Nightlife',   icon: 'musical-notes',    apiValue: 'nightlife' },
   { key: 'spas',       label: 'Spa',         icon: 'leaf',             apiValue: 'wellness' },
   { key: 'beachclubs', label: 'Beach Clubs', icon: 'umbrella',         apiValue: 'beach_club' },
-  { key: 'yachts',     label: 'Yachts',      icon: 'boat',             apiValue: 'yacht' },
+  { key: 'yachts',     label: 'Yates',       icon: 'boat',             apiValue: 'yacht' },
   { key: 'beauty',     label: 'Belleza',     icon: 'cut',              apiValue: 'beauty' },
   { key: 'activities', label: 'Experiencias',icon: 'compass',          apiValue: 'activity' },
   { key: 'hotels',     label: 'Hoteles',     icon: 'bed',              apiValue: 'hotel' },
@@ -152,7 +152,7 @@ const SUBCATEGORIES: Record<string, Subcat[]> = {
   ],
   nightlife: [
     { key: 'nightclub',     label: 'Nightclub',      icon: 'musical-notes' },
-    { key: 'live_music',    label: 'Live Music',     icon: 'mic' },
+    { key: 'live_music',    label: 'Música en vivo', icon: 'mic' },
     { key: 'champeta',      label: 'Champeta',       icon: 'musical-note' },
     { key: 'lounge',        label: 'Lounge',         icon: 'cafe' },
   ],
@@ -445,7 +445,7 @@ function NeighborhoodDetailModal({
             <View style={styles.nbModalSection}>
               <View style={styles.nbModalSectionHeader}>
                 <Ionicons name="shield-checkmark" size={16} color={COLORS.icon} />
-                <Text style={styles.nbModalSectionTitle}>Seguridad</Text>
+                <Text style={styles.nbModalSectionTitle}>{tr('Seguridad')}</Text>
               </View>
               <View style={styles.nbModalStarsRow}>
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -888,7 +888,7 @@ export default function ExploreScreen() {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
               <Ionicons name="sparkles" size={14} color={COLORS.icon} />
-              {'  '}Experiencias Destacadas
+              {'  '}{tr('Experiencias Destacadas')}
             </Text>
             <TouchableOpacity
               onPress={() => router.push('/search')}
@@ -928,7 +928,7 @@ export default function ExploreScreen() {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
               <Ionicons name="calendar" size={14} color={COLORS.icon} />
-              {'  '}Eventos destacados
+              {'  '}{tr('Eventos destacados')}
             </Text>
             <TouchableOpacity
               onPress={() => router.push('/(tabs)/agenda' as any)}
@@ -953,7 +953,7 @@ export default function ExploreScreen() {
                   dateLabel = `${d.getDate()} ${MONTHS[d.getMonth() + 1]}`;
                 } catch { /* invalid event date — skip label */ dateLabel = ''; }
               }
-              const catLabel = ev.category === 'festival' ? 'Festival' : ev.category === 'cultural' ? 'Cultural' : ev.category === 'music' ? 'Musica' : ev.category === 'religious' ? 'Religioso' : ev.category === 'sports' ? 'Deportes' : ev.category || ev.type || '';
+              const catLabel = ev.category === 'festival' ? 'Festival' : ev.category === 'cultural' ? 'Cultural' : ev.category === 'music' ? 'Música' : ev.category === 'religious' ? 'Religioso' : ev.category === 'sports' ? 'Deportes' : ev.category || ev.type || '';
               return (
                 <TouchableOpacity
                   style={styles.eventCard}
@@ -969,7 +969,7 @@ export default function ExploreScreen() {
                   ) : null}
                   <View style={styles.eventCardContent}>
                     <View style={styles.eventCardCatBadge}>
-                      <Text style={styles.eventCardCatText}>{catLabel.toUpperCase()}</Text>
+                      <Text style={styles.eventCardCatText}>{tr(catLabel).toUpperCase()}</Text>
                     </View>
                     <Text style={styles.eventCardTitle} numberOfLines={2}>
                       {ev.title || ev.name_es || ''}
@@ -1026,7 +1026,7 @@ export default function ExploreScreen() {
         <View>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
-              Elige tu {selectedCategory.label.replace(/s$/, '').toLowerCase()}
+              {tr('Elige tu')} {selectedCategory.label.replace(/s$/, '').toLowerCase()}
             </Text>
             {allCategoryPartners.length > 0 && (
               <TouchableOpacity onPress={() => setSelectedSubcategory('__all__')} activeOpacity={0.8}>
@@ -1073,7 +1073,7 @@ export default function ExploreScreen() {
               {selectedCategory.key === 'all'
                 ? tr('Todos los Lugares')
                 : selectedSubcategory && selectedSubcategory !== '__all__'
-                ? `${tr(selectedCategory.label)} · ${subcatLabel}`
+                ? `${tr(selectedCategory.label)} · ${tr(subcatLabel)}`
                 : tr(selectedCategory.label)}
             </Text>
           </View>

@@ -201,6 +201,15 @@ export default function HomeScreen() {
       const staticFetch = (file: string) =>
         fetch(`/data/${file}.json`).then(r => r.ok ? r.json() : []).catch(() => []);
 
+      // Partner-events must reflect TODAY, never a stale bundled date. An event
+      // counts as "today" if today falls in its date window (defensive: static
+      // JSON only has `date`, but honor date_start/date_end if the API sends them).
+      const filterPeToday = (arr: any[]) => (Array.isArray(arr) ? arr : []).filter((e: any) => {
+        const start = e.date_start || e.date || '';
+        const end = e.date_end || start;
+        return start <= today && end >= today;
+      });
+
       // 1. Instant paint from static data (< 1s)
       const [staticSeasons, staticEvents, staticSponsors, staticPE, staticPromos] = await Promise.all([
         staticFetch('seasons'),
@@ -225,7 +234,7 @@ export default function HomeScreen() {
         }));
         setFeatured(evts);
         setSponsors(Array.isArray(sp) ? sp : []);
-        setTodayPEvents(Array.isArray(pe) ? pe : []);
+        setTodayPEvents(filterPeToday(pe));
         setPromotions(Array.isArray(promos) ? promos : []);
         const todayFiltered = evts.filter((e: any) => {
           const start = e.date_start || e.date || '';
@@ -247,6 +256,10 @@ export default function HomeScreen() {
         api.get(`/partner-events?date=${today}`).catch(() => []),
         api.get('/promotions/today').catch(() => []),
       ]).then(([s, f, sp, pe, promos]) => {
+        // Partner-events hydration must NEVER wait on an active season — live
+        // data always wins over the bundled static snapshot, even when
+        // /seasons returns empty (no active season right now).
+        setTodayPEvents(filterPeToday(pe));
         if (Array.isArray(s) && s.length > 0) {
           applyData(s, f, sp, pe, promos);
         }
@@ -447,10 +460,9 @@ export default function HomeScreen() {
               <Text style={{ fontSize: 12, color: COLORS.textMuted, ...FONTS.medium }}>{tr('Tu perfil:')}</Text>
               {userProfile.interests.slice(0, 4).map((interest: string) => {
                 const INTEREST_EMOJI: Record<string, string> = { restaurant: '\u{1F37D}\u{FE0F}', bar: '\u{1F378}', beach_club: '\u{1F3D6}\u{FE0F}', club: '\u{1F3B6}', spa: '\u{1F9D6}', beauty: '\u{1F485}', activity: '\u{1F9ED}', hotel: '\u{1F3E8}', cafe: '\u2615', yacht: '\u26F5' };
-                const INTEREST_LABEL: Record<string, string> = { restaurant: 'Restaurantes', bar: 'Bares', beach_club: 'Beach Clubs', club: 'Nightlife', spa: 'Wellness', beauty: 'Belleza', activity: 'Experiencias', hotel: 'Hoteles', cafe: 'Caf\u00E9s', yacht: 'Yates' };
                 return (
                   <Text key={interest} style={{ fontSize: 12, color: COLORS.textMain, ...FONTS.medium }}>
-                    {INTEREST_EMOJI[interest] || '\u2728'} {INTEREST_LABEL[interest] || interest}
+                    {INTEREST_EMOJI[interest] || '\u2728'} {s(`onboard_interest_${interest}`)}
                   </Text>
                 );
               })}
@@ -504,11 +516,8 @@ export default function HomeScreen() {
             <Text style={styles.heroBannerTitle}>{partnerCount || '...'} lugares para descubrir</Text>
             <Text style={styles.heroBannerSub}>
               {userProfile.isPersonalized && userProfile.interests.length > 0
-                ? userProfile.interests.map((i: string) => {
-                    const LABEL: Record<string, string> = { restaurant: 'Restaurantes', bar: 'Bares', beach_club: 'Beach Clubs', club: 'Nightlife', spa: 'Wellness', beauty: 'Belleza', activity: 'Experiencias', hotel: 'Hoteles', cafe: 'Caf\u00E9s', yacht: 'Yates' };
-                    return LABEL[i] || i;
-                  }).join(' \u00B7 ')
-                : 'Restaurantes \u00B7 Bares \u00B7 Beach Clubs \u00B7 Spas \u00B7 Nightlife'}
+                ? userProfile.interests.map((i: string) => s(`onboard_interest_${i}`)).join(' \u00B7 ')
+                : tr('Restaurantes \u00B7 Bares \u00B7 Beach Clubs \u00B7 Spas \u00B7 Nightlife')}
             </Text>
           </View>
         </TouchableOpacity>
@@ -517,7 +526,7 @@ export default function HomeScreen() {
         {sponsors.length > 0 && (
           <TouchableOpacity
             style={styles.sponsorBanner}
-            onPress={() => sponsors[activeSponsor]?.url ? Linking.openURL(sponsors[activeSponsor].url) : null}
+            onPress={() => sponsors[activeSponsor]?.url ? Linking.openURL(sponsors[activeSponsor].url).catch(() => {}) : null}
             activeOpacity={0.9}
           >
             <View style={styles.sponsorContent}>
@@ -558,17 +567,17 @@ export default function HomeScreen() {
               const allItems = [
                 { icon: 'home',           label: tr('Mi base'),        subtitle: tr('Cómo volver'),     color: '#12B5A5', route: '#base', cat: '' },
                 { icon: 'calendar',       label: s('home_agenda'),     subtitle: s('home_today'),       color: '#F97316', route: '/(tabs)/agenda', cat: '' },
-                { icon: 'compass',        label: 'Explorar',           subtitle: 'Lugares',             color: '#3B82F6', route: '/(tabs)/explore', cat: '' },
-                { icon: 'ribbon',         label: 'Pasaporte',          subtitle: 'Sellos',              color: '#12B5A5', route: '/(tabs)/pasaporte', cat: '' },
+                { icon: 'compass',        label: tr('Explorar'),       subtitle: tr('Lugares'),         color: '#3B82F6', route: '/(tabs)/explore', cat: '' },
+                { icon: 'ribbon',         label: tr('Pasaporte'),      subtitle: tr('Sellos'),          color: '#12B5A5', route: '/(tabs)/pasaporte', cat: '' },
                 { icon: 'briefcase',      label: tr('Mi Viaje'),       subtitle: tr('Planeá con tu grupo'), color: '#8B5CF6', route: '/viaje', cat: '' },
                 { icon: 'medkit',         label: tr('Esenciales'),     subtitle: tr('Todo lo básico'),  color: '#14B8A6', route: '/esenciales', cat: '' },
-                { icon: 'shield-checkmark', label: 'Sin sustos',       subtitle: 'Precios+Tips',        color: '#22C55E', route: '/seguridad', cat: '' },
+                { icon: 'shield-checkmark', label: tr('Sin sustos'),   subtitle: tr('Precios+Tips'),    color: '#22C55E', route: '/seguridad', cat: '' },
                 { icon: 'musical-notes',  label: s('home_concerts'),   subtitle: s('home_live'),        color: '#A855F7', route: '/concerts', cat: 'club' },
                 { icon: 'star',           label: 'Rewards',            subtitle: 'Puntos',              color: '#F59E0B', route: '/rewards', cat: '' },
                 { icon: 'heart',          label: s('home_favorites'),  subtitle: s('home_my_list'),     color: COLORS.bougainvillea, route: '/favorites', cat: '' },
                 { icon: 'boat',           label: s('home_transport'),  subtitle: s('home_boats'),       color: '#06B6D4', route: '/transport', cat: 'activity' },
                 { icon: 'trail-sign',     label: s('home_routes'),     subtitle: 'IA',                  color: '#10B981', route: '/itineraries', cat: '' },
-                { icon: 'shield',         label: 'Emergencias',        subtitle: 'SOS',                 color: '#DC2626', route: '/ayuda', cat: '' },
+                { icon: 'shield',         label: tr('Emergencias'),    subtitle: 'SOS',                 color: '#DC2626', route: '/ayuda', cat: '' },
               ];
               // Cruise users: pin transport + itineraries (day-plan tools) to front
               if (userProfile.partyType === 'cruise') {
@@ -616,9 +625,9 @@ export default function HomeScreen() {
               const allCats = [
                 { uri: IMAGES.cartagena_aerial, label: 'Restaurantes', sub: '111+', cat: 'restaurant', icon: 'restaurant' },
                 { uri: IMAGES.cartagena_streets, label: 'Bares', sub: '30+', cat: 'bar', icon: 'wine' },
-                { uri: IMAGES.umbrellas, label: 'Nightlife', sub: '22 clubs', cat: 'club', icon: 'musical-notes' },
+                { uri: IMAGES.umbrellas, label: 'Nightlife', sub: '22 clubs', cat: 'nightlife', icon: 'musical-notes' },
                 { uri: IMAGES.fountain_market, label: 'Cafés', sub: '17 spots', cat: 'cafe', icon: 'cafe' },
-                { uri: IMAGES.flag_rooftops, label: 'Wellness', sub: '51+', cat: 'spa', icon: 'leaf' },
+                { uri: IMAGES.flag_rooftops, label: 'Wellness', sub: '51+', cat: 'wellness', icon: 'leaf' },
                 { uri: IMAGES.wax_palms, label: 'Experiencias', sub: '74 tours', cat: 'activity', icon: 'compass' },
                 { uri: IMAGES.hero, label: 'Hoteles', sub: '80+', cat: 'hotel', icon: 'bed' },
                 { uri: IMAGES.cartagena_aerial, label: 'Beach Clubs', sub: '26 islas', cat: 'beach_club', icon: 'umbrella' },
@@ -656,7 +665,7 @@ export default function HomeScreen() {
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleRow}>
               <Ionicons name="albums" size={18} color="#FBBF24" />
-              <Text style={styles.sectionTitle}>{lang === 'en' ? 'Collections' : 'Colecciones'}</Text>
+              <Text style={styles.sectionTitle}>{tr('Colecciones')}</Text>
             </View>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
@@ -927,7 +936,7 @@ export default function HomeScreen() {
                 const months = ['', 'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
                 let dateLabel = '';
                 if (dateStart <= todayStr && dateEnd >= todayStr) {
-                  dateLabel = 'HOY';
+                  dateLabel = tr('HOY');
                 } else if (dateStart) {
                   try {
                     const d = new Date(dateStart + 'T00:00:00');

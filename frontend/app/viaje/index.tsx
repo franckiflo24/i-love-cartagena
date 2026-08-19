@@ -80,7 +80,7 @@ export default function MisViajesScreen() {
             <Ionicons name="briefcase-outline" size={44} color={COLORS.primary} />
             <Text style={styles.emptyTitle}>{tr('Planeá tu viaje a Cartagena')}</Text>
             <Text style={styles.emptyText}>{tr('Guardá lugares, armá tus días y planeá en grupo. Iniciá sesión para empezar.')}</Text>
-            <TouchableOpacity style={styles.cta} onPress={() => router.push('/login' as any)}>
+            <TouchableOpacity style={styles.cta} onPress={() => router.push({ pathname: '/login' as any, params: { next: '/viaje' } })}>
               <Text style={styles.ctaText}>{tr('Iniciar sesión')}</Text>
             </TouchableOpacity>
           </View>

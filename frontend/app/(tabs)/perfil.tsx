@@ -66,7 +66,7 @@ export default function PerfilScreen() {
       let active = true;
       AsyncStorage.getItem('@profile_completed').then((v) => {
         if (active) setProfileCompleted(v === 'true');
-      });
+      }).catch(() => {});
       return () => { active = false; };
     }, [])
   );

@@ -14,7 +14,8 @@ export default function Index() {
         setShowOnboarding(true);
       }
       setReady(true);
-    });
+    }).catch(() => setReady(true)); // sandboxed in-app browsers throw on storage access —
+    // default to showing the tabs (no forced onboarding) instead of an infinite spinner
   }, []);
 
   if (!ready) {

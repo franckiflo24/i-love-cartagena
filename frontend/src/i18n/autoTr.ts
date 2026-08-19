@@ -17,6 +17,19 @@ import type { Lang } from './translations';
 type Dict = Record<string, Partial<Record<Lang, string>>>;
 
 export const AUTO_TR: Dict = {
+  // LAUNCH-DAY resilience pack — Aug 19: City Pass i18n gaps, AddToTrip inline
+  // error, map CDN-blocked fallback. ('Pasaporte' / 'Reintentar' / 'Estado' /
+  // 'Todos' / 'Esenciales' / 'Conciertos' already exist elsewhere — reused, not duplicated.)
+  'PASS ACTIVO': { en: 'PASS ACTIVE', fr: 'PASS ACTIF', pt: 'PASS ATIVO' },
+  'Válido hasta': { en: 'Valid until', fr: 'Valide jusqu\'au', pt: 'Válido até' },
+  'Tu pase cultural para vivir Cartagena al máximo. Acceso a museos, monumentos y eventos culturales.': { en: 'Your cultural pass to experience Cartagena to the fullest. Access to museums, monuments and cultural events.', fr: 'Votre pass culturel pour profiter de Carthagène à fond. Accès aux musées, monuments et événements culturels.', pt: 'Seu passe cultural para viver Cartagena ao máximo. Acesso a museus, monumentos e eventos culturais.' },
+  'Tu City Pass está activo. ¡Disfruta Cartagena!': { en: 'Your City Pass is active. Enjoy Cartagena!', fr: 'Votre City Pass est actif. Profitez de Carthagène !', pt: 'Seu City Pass está ativo. Aproveite Cartagena!' },
+  'Intenta con otro método de pago.': { en: 'Try another payment method.', fr: 'Essayez un autre moyen de paiement.', pt: 'Tente outro método de pagamento.' },
+  'Revisa tu email para más detalles.': { en: 'Check your email for more details.', fr: 'Consultez votre email pour plus de détails.', pt: 'Verifique seu email para mais detalhes.' },
+  'No se pudo procesar el pago': { en: 'Could not process the payment', fr: 'Le paiement n\'a pas pu être traité', pt: 'Não foi possível processar o pagamento' },
+  'No se pudo agregar. Intentá de nuevo.': { en: 'Couldn\'t add it. Try again.', fr: 'Impossible d\'ajouter. Réessayez.', pt: 'Não foi possível adicionar. Tente de novo.' },
+  'No pudimos cargar el mapa': { en: 'We couldn\'t load the map', fr: 'Impossible de charger la carte', pt: 'Não foi possível carregar o mapa' },
+
   // First-run arrival (onboarding.tsx) — the cold-open welcome, localized so a
   // US / Brazil / France visitor isn't dropped into Spanish ('Saltar' + 'Empezar'
   // already exist below; Luna's dynamic time-aware line is backend /now, still ES).
@@ -297,6 +310,16 @@ export const AUTO_TR: Dict = {
   'Pop-up': { en: 'Pop-up', fr: 'Pop-up', pt: 'Pop-up' },
   'Pasa día': { en: 'Day Pass', fr: 'Journée', pt: 'Passa o dia' },
   'Sunset Experience': { en: 'Sunset Experience', fr: 'Coucher de soleil', pt: 'Pôr do sol' },
+
+  // Home quick-access grid + hero subtitle (LAUNCH-DAY i18n fixes)
+  'Lugares': { en: 'Places', fr: 'Lieux', pt: 'Lugares' },
+  'Pasaporte': { en: 'Passport', fr: 'Passeport', pt: 'Passaporte' },
+  'Sellos': { en: 'Stamps', fr: 'Tampons', pt: 'Selos' },
+  'Sin sustos': { en: 'No surprises', fr: 'Zéro arnaque', pt: 'Sem sustos' },
+  'Precios+Tips': { en: 'Prices+Tips', fr: 'Prix+Astuces', pt: 'Preços+Dicas' },
+  'Emergencias': { en: 'Emergencies', fr: 'Urgences', pt: 'Emergências' },
+  'Restaurantes · Bares · Beach Clubs · Spas · Nightlife': { en: 'Restaurants · Bars · Beach Clubs · Spas · Nightlife', fr: 'Restaurants · Bars · Beach Clubs · Spas · Vie nocturne', pt: 'Restaurantes · Bares · Beach Clubs · Spas · Vida noturna' },
+  'Colecciones': { en: 'Collections', fr: 'Collections', pt: 'Coleções' },
 
   // Plurals
   'lugar': { en: 'place', fr: 'lieu', pt: 'lugar' },
@@ -1291,6 +1314,30 @@ export const AUTO_TR: Dict = {
   'Activa el permiso para ver lugares cerca de ti y mejorar tus recomendaciones.': { en: 'Enable permission to see places near you and improve your recommendations.', fr: 'Activez l\'autorisation pour voir les lieux près de vous et améliorer vos recommandations.', pt: 'Ative a permissão para ver lugares perto de você e melhorar suas recomendações.' },
   'Tu ubicación': { en: 'Your location', fr: 'Votre position', pt: 'Sua localização' },
   'Todos los Lugares': { en: 'All Places', fr: 'Tous les lieux', pt: 'Todos os Lugares' },
+
+  // LAUNCH-DAY i18n fix pack — explore / agenda / favorites / search / collections
+  'Yates': { en: 'Yachts', fr: 'Yachts', pt: 'Iates' },
+  'Experiencias Destacadas': { en: 'Featured Experiences', fr: 'Expériences en vedette', pt: 'Experiências em destaque' },
+  'Eventos destacados': { en: 'Featured Events', fr: 'Événements à la une', pt: 'Eventos em destaque' },
+  'Elige tu': { en: 'Choose your', fr: 'Choisissez votre', pt: 'Escolha seu' },
+  'Religioso': { en: 'Religious', fr: 'Religieux', pt: 'Religioso' },
+  'Deportes': { en: 'Sports', fr: 'Sports', pt: 'Esportes' },
+  'Seguridad': { en: 'Safety', fr: 'Sécurité', pt: 'Segurança' },
+  'Salir Hoy': { en: 'Go Out Today', fr: "Sortir aujourd'hui", pt: 'Sair Hoje' },
+  'Mi Agenda': { en: 'My Agenda', fr: 'Mon Agenda', pt: 'Minha Agenda' },
+  // Companion fragments for agenda.tsx's dynamic remove-confirmation body
+  // (¿Quitar "${item.title}" de tu agenda?) — the title is interpolated so the
+  // sentence can't be a single dict key; these wrap the static parts around it.
+  '¿Quitar': { en: 'Remove', fr: 'Retirer', pt: 'Remover' },
+  'este evento': { en: 'this event', fr: 'cet événement', pt: 'este evento' },
+  'de tu agenda?': { en: 'from your agenda?', fr: 'de votre agenda ?', pt: 'da sua agenda?' },
+  'Eventos de partners': { en: 'Partner events', fr: 'Événements partenaires', pt: 'Eventos de parceiros' },
+  'Lugares que amo': { en: 'Places I love', fr: "Lieux que j'aime", pt: 'Lugares que amo' },
+  'guardado': { en: 'saved', fr: 'enregistré', pt: 'salvo' },
+  'guardados': { en: 'saved', fr: 'enregistrés', pt: 'salvos' },
+  'Toca el corazón ❤️ en eventos, conciertos y eventos de partners para guardarlos aquí.': { en: 'Tap the heart ❤️ on events, concerts and partner events to save them here.', fr: 'Touchez le cœur ❤️ sur les événements, concerts et événements partenaires pour les enregistrer ici.', pt: 'Toque no coração ❤️ em eventos, shows e eventos de parceiros para salvá-los aqui.' },
+  'Toca el corazón ❤️ en cualquier partner (restaurante, beach club, hotel...) para guardarlo aquí.': { en: 'Tap the heart ❤️ on any partner (restaurant, beach club, hotel...) to save it here.', fr: "Touchez le cœur ❤️ sur n'importe quel partenaire (restaurant, beach club, hôtel...) pour l'enregistrer ici.", pt: 'Toque no coração ❤️ em qualquer parceiro (restaurante, beach club, hotel...) para salvá-lo aqui.' },
+  'Sugerencia': { en: 'Suggestion', fr: 'Suggestion', pt: 'Sugestão' },
 };
 
 /**

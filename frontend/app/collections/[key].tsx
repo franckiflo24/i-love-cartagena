@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useLang } from '../../src/context/LanguageContext';
+import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
 import AddToTrip from '../../src/components/AddToTrip';
 
@@ -15,13 +16,17 @@ export default function CollectionScreen() {
   const router = useRouter();
   const { key } = useLocalSearchParams<{ key: string }>();
   const { lang } = useLang();
+  const tr = useTr();
   const [partners, setPartners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const def = COLLECTION_DEFS[key || ''];
-  const isEs = lang !== 'en';
-  const title = def ? (isEs ? def.title_es : def.title_en) : '';
-  const desc = def ? (isEs ? def.desc_es : def.desc_en) : '';
+  // COLLECTION_DEFS only carries _es/_en copy pairs (no _fr/_pt). Falling back to
+  // English — the international default — for fr/pt is correct; the previous
+  // `lang !== 'en'` check treated fr/pt as "isEs" and served them Spanish copy.
+  const useEs = lang === 'es';
+  const title = def ? (useEs ? def.title_es : def.title_en) : '';
+  const desc = def ? (useEs ? def.desc_es : def.desc_en) : '';
 
   useEffect(() => {
     if (!key || !def) { setLoading(false); return; }
@@ -73,7 +78,7 @@ export default function CollectionScreen() {
       ) : (
         <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
           {partners.length === 0 ? (
-            <Text style={styles.emptyText}>{isEs ? 'Pronto habrá lugares aquí' : 'Places coming soon'}</Text>
+            <Text style={styles.emptyText}>{useEs ? 'Pronto habrá lugares aquí' : 'Places coming soon'}</Text>
           ) : partners.map((p) => (
             <TouchableOpacity key={p.partner_id} style={styles.card} onPress={() => router.push(`/partner/${p.partner_id}` as any)} activeOpacity={0.8}>
               <SafeImage uri={p.image_url} category={p.category} style={styles.cardImage} />
@@ -84,7 +89,7 @@ export default function CollectionScreen() {
                 </Text>
                 <Text style={styles.cardSub} numberOfLines={1}>{p.address}</Text>
                 {p.live_pulse?.title ? (
-                  <Text style={styles.cardPulse} numberOfLines={1}>⚡ {isEs ? 'HOY' : 'TODAY'} · {p.live_pulse.title}</Text>
+                  <Text style={styles.cardPulse} numberOfLines={1}>⚡ {tr('HOY')} · {p.live_pulse.title}</Text>
                 ) : null}
               </View>
               {p.rating ? (

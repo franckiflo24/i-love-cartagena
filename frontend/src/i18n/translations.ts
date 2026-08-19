@@ -36,7 +36,7 @@ export const t: Translations = {
     home_boats: 'Boats',
 
     // Tabs
-    tab_home: 'Home',
+    tab_home: 'Inicio',
     tab_agenda: 'Agenda',
     tab_map: 'Mapa',
     tab_partners: 'Partners',

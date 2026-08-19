@@ -70,20 +70,20 @@ export default function CityPassTab() {
       if (res.checkout_url && res.reference) {
         const result = await openWompiCheckout(res.checkout_url, res.reference);
         if (result.status === 'approved') {
-          Alert.alert(tr('¡Listo!'), 'Tu City Pass está activo. ¡Disfruta Cartagena!');
+          Alert.alert(tr('¡Listo!'), tr('Tu City Pass está activo. ¡Disfruta Cartagena!'));
           // Reload pass data
           const pass = await api.get('/city-pass/mine');
           // Same guard as the initial load: a static-fallback [] right after returning
           // from Wompi must not render a fake "PASS ACTIVO" QR with Invalid Date.
           setMyPass(pass && !Array.isArray(pass) && typeof pass === 'object' && pass.plan_id ? pass : null);
         } else if (result.status === 'declined') {
-          Alert.alert(tr('Pago rechazado'), 'Intenta con otro método de pago.');
+          Alert.alert(tr('Pago rechazado'), tr('Intenta con otro método de pago.'));
         } else if (result.status !== 'pending') {
-          Alert.alert(tr('Pago'), `Estado: ${result.status}. Revisa tu email para más detalles.`);
+          Alert.alert(tr('Pago'), `${tr('Estado')}: ${result.status}. ${tr('Revisa tu email para más detalles.')}`);
         }
       }
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'No se pudo procesar el pago');
+      Alert.alert('Error', e?.message || tr('No se pudo procesar el pago'));
     } finally {
       setActivatingId(null);
     }
@@ -115,18 +115,18 @@ export default function CityPassTab() {
               <View style={styles.qrHeader}>
                 <View style={styles.qrBadge}>
                   <Ionicons name="shield-checkmark" size={14} color="#22C55E" />
-                  <Text style={styles.qrBadgeText}>PASS ACTIVO</Text>
+                  <Text style={styles.qrBadgeText}>{tr('PASS ACTIVO')}</Text>
                 </View>
                 <TouchableOpacity onPress={() => {
                   const planName = plans.find(p => p.plan_id === myPass.plan_id)?.name || '';
-                  Share.share({ message: `🎫 Mi City Pass ${planName} de Amo Cartagena está activo! Descarga la app 🎧` });
+                  Share.share({ message: `🎫 Mi City Pass ${planName} de Amo Cartagena está activo! Descarga la app 🎧` }).catch(() => {});
                 }}>
                   <Ionicons name="share-social-outline" size={20} color={COLORS.textMuted} />
                 </TouchableOpacity>
               </View>
 
               <Text style={styles.qrPlanName}>{plans.find(p => p.plan_id === myPass.plan_id)?.name || 'City Pass'}</Text>
-              <Text style={styles.qrExpiry}>Válido hasta: {new Date(myPass.expires_at).toLocaleDateString('es-CO')}</Text>
+              <Text style={styles.qrExpiry}>{tr('Válido hasta')}: {new Date(myPass.expires_at).toLocaleDateString('es-CO')}</Text>
 
               {/* QR Code */}
               <View style={styles.qrContainer}>
@@ -225,7 +225,7 @@ export default function CityPassTab() {
               <Text style={styles.heroTitle}>{tr('City Pass')}</Text>
               <Text style={styles.heroSubtitle}>{tr('Vive la cultura sin límite')}</Text>
               <Text style={styles.heroDesc}>
-                Tu pase cultural para vivir Cartagena al máximo. Acceso a museos, monumentos y eventos culturales.
+                {tr('Tu pase cultural para vivir Cartagena al máximo. Acceso a museos, monumentos y eventos culturales.')}
               </Text>
             </View>
 
@@ -293,13 +293,13 @@ export default function CityPassTab() {
                 </View>
 
                 <View style={styles.planBenefits}>
-                  {plan.benefits.slice(0, 4).map((b, i) => (
+                  {(plan.benefits || []).slice(0, 4).map((b, i) => (
                     <View key={i} style={styles.benefitRow}>
                       <Ionicons name="checkmark-circle" size={15} color={plan.color} />
                       <Text style={styles.benefitText}>{b}</Text>
                     </View>
                   ))}
-                  {plan.benefits.length > 4 && (
+                  {(plan.benefits || []).length > 4 && (
                     <Text style={[styles.moreBenefits, { color: plan.color }]}>+{plan.benefits.length - 4} {tr('beneficios más')}</Text>
                   )}
                 </View>

@@ -143,7 +143,7 @@ export default function FavoritesScreen() {
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>{tr('Mis Favoritos')}</Text>
-          <Text style={styles.subtitle}>{total} {total === 1 ? 'guardado' : 'guardados'}</Text>
+          <Text style={styles.subtitle}>{total} {total === 1 ? tr('guardado') : tr('guardados')}</Text>
         </View>
         <Ionicons name="heart" size={24} color={COLORS.bougainvillea} />
       </View>
@@ -203,7 +203,7 @@ export default function FavoritesScreen() {
             <View style={styles.emptyState}>
               <Ionicons name="calendar-outline" size={56} color={COLORS.textMuted} />
               <Text style={styles.emptyTitle}>{tr('Sin eventos guardados')}</Text>
-              <Text style={styles.emptyDesc}>Toca el corazón ❤️ en eventos, conciertos y eventos de partners para guardarlos aquí.</Text>
+              <Text style={styles.emptyDesc}>{tr('Toca el corazón ❤️ en eventos, conciertos y eventos de partners para guardarlos aquí.')}</Text>
               <TouchableOpacity style={styles.exploreCta} onPress={() => router.push('/(tabs)/agenda' as any)}>
                 <Ionicons name="sparkles" size={16} color={COLORS.primary} />
                 <Text style={styles.exploreText}>{tr('Explorar agenda')}</Text>
@@ -214,7 +214,7 @@ export default function FavoritesScreen() {
               {/* Partner Events */}
               {partnerEvents.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>📅 Eventos de partners ({partnerEvents.length})</Text>
+                  <Text style={styles.sectionTitle}>📅 {tr('Eventos de partners')} ({partnerEvents.length})</Text>
                   {partnerEvents.map(e => {
                     const tierColors = e.partner?.tier ? TIER_COLORS[e.partner.tier as Tier] : null;
                     return (
@@ -236,12 +236,12 @@ export default function FavoritesScreen() {
                               <Text style={styles.timePillText}>{e.start_time}</Text>
                             </View>
                             <View style={[styles.pricePill, e.is_free ? styles.priceFreeBg : styles.pricePaidBg]}>
-                              <Text style={styles.pricePillText}>{e.is_free ? 'GRATIS' : `$${(e.price / 1000).toFixed(0)}K`}</Text>
+                              <Text style={styles.pricePillText}>{e.is_free ? tr('GRATIS') : `$${(e.price / 1000).toFixed(0)}K`}</Text>
                             </View>
                           </View>
                           <Text style={styles.peTitle} numberOfLines={2}>{e.title}</Text>
                           <View style={styles.peFooter}>
-                            <Text style={styles.peCat}>{CAT_LABELS[e.category] || e.category}</Text>
+                            <Text style={styles.peCat}>{tr(CAT_LABELS[e.category] || e.category)}</Text>
                             {e.partner?.tier && <TierBadge tier={e.partner.tier} size="xs" />}
                           </View>
                         </View>
@@ -261,7 +261,7 @@ export default function FavoritesScreen() {
               {/* Concerts */}
               {concerts.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>🎵 Conciertos ({concerts.length})</Text>
+                  <Text style={styles.sectionTitle}>🎵 {tr('Conciertos')} ({concerts.length})</Text>
                   {concerts.map(c => (
                     <TouchableOpacity key={c.concert_id} style={styles.card} onPress={() => router.push('/concerts' as any)} activeOpacity={0.85}>
                       <SafeImage uri={c.image_url} category="concert" style={styles.cardImage} />
@@ -281,7 +281,7 @@ export default function FavoritesScreen() {
                           <Ionicons name="time-outline" size={12} color="rgba(255,255,255,0.7)" />
                           <Text style={styles.cardMetaText}>{c.start_time}</Text>
                         </View>
-                        <Text style={styles.cardPrice}>{c.is_free ? 'GRATIS' : `$${(c.price / 1000).toFixed(0)}K COP`}</Text>
+                        <Text style={styles.cardPrice}>{c.is_free ? tr('GRATIS') : `$${(c.price / 1000).toFixed(0)}K COP`}</Text>
                       </View>
                     </TouchableOpacity>
                   ))}
@@ -291,7 +291,7 @@ export default function FavoritesScreen() {
               {/* Festival Events */}
               {events.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>🎶 Music Week ({events.length})</Text>
+                  <Text style={styles.sectionTitle}>🎶 {tr('Music Week')} ({events.length})</Text>
                   {events.map(e => (
                     <TouchableOpacity key={e.event_id} style={styles.eventRow} onPress={() => router.push(`/event/${e.event_id}` as any)}>
                       <View style={styles.eventTime}>
@@ -316,7 +316,7 @@ export default function FavoritesScreen() {
             <View style={styles.emptyState}>
               <Ionicons name="storefront-outline" size={56} color={COLORS.textMuted} />
               <Text style={styles.emptyTitle}>{tr('Sin lugares guardados')}</Text>
-              <Text style={styles.emptyDesc}>Toca el corazón ❤️ en cualquier partner (restaurante, beach club, hotel...) para guardarlo aquí.</Text>
+              <Text style={styles.emptyDesc}>{tr('Toca el corazón ❤️ en cualquier partner (restaurante, beach club, hotel...) para guardarlo aquí.')}</Text>
               <TouchableOpacity style={styles.exploreCta} onPress={() => router.push('/(tabs)/partners' as any)}>
                 <Ionicons name="diamond" size={16} color={COLORS.primary} />
                 <Text style={styles.exploreText}>{tr('Explorar partners')}</Text>
@@ -324,7 +324,7 @@ export default function FavoritesScreen() {
             </View>
           ) : (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>📍 Lugares que amo ({partnersCount})</Text>
+              <Text style={styles.sectionTitle}>📍 {tr('Lugares que amo')} ({partnersCount})</Text>
               {partners.map(p => {
                 const tierColors = p.tier ? TIER_COLORS[p.tier as Tier] : null;
                 return (

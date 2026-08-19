@@ -180,11 +180,11 @@ export default function AgendaScreen() {
 
   const handleRemove = (item: CalendarItem) => {
     Alert.alert(
-      'Quitar de mi agenda',
-      `¿Quitar "${item.title || 'este evento'}" de tu agenda?`,
+      tr('Quitar de mi agenda'),
+      `${tr('¿Quitar')} "${item.title || tr('este evento')}" ${tr('de tu agenda?')}`,
       [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Quitar', style: 'destructive', onPress: () => removeFromCalendar(item.item_id) },
+        { text: tr('Cancelar'), style: 'cancel' },
+        { text: tr('Quitar'), style: 'destructive', onPress: () => removeFromCalendar(item.item_id) },
       ]
     );
   };
@@ -201,7 +201,7 @@ export default function AgendaScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>{tr('Agenda')}</Text>
         <Text style={styles.subtitle}>
-          {mode === 'salir' ? 'Qué hacer hoy en Cartagena' : 'Tus eventos guardados'}
+          {mode === 'salir' ? tr('Qué hacer hoy en Cartagena') : tr('Tus eventos guardados')}
         </Text>
         <View style={styles.segmentedControl}>
           <TouchableOpacity
@@ -211,7 +211,7 @@ export default function AgendaScreen() {
           >
             <Ionicons name="sparkles" size={14} color={mode === 'salir' ? COLORS.white : COLORS.textMuted} />
             <Text style={[styles.segmentText, mode === 'salir' && styles.segmentTextActive]}>
-              Salir Hoy
+              {tr('Salir Hoy')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -221,7 +221,7 @@ export default function AgendaScreen() {
           >
             <Ionicons name="calendar" size={14} color={mode === 'mi_agenda' ? COLORS.white : COLORS.textMuted} />
             <Text style={[styles.segmentText, mode === 'mi_agenda' && styles.segmentTextActive]}>
-              Mi Agenda
+              {tr('Mi Agenda')}
             </Text>
             {Array.isArray(calendarItems) && calendarItems.length > 0 && (
               <View style={[styles.badge, mode === 'mi_agenda' && styles.badgeActive]}>

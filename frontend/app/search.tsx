@@ -806,7 +806,7 @@ export default function SearchScreen() {
                       styles.aiIntentText,
                       { color: INTENT_META[results!.ai!.intent]?.color || COLORS.primary },
                     ]}>
-                      {INTENT_META[results!.ai!.intent]?.label || 'AI'}
+                      {tr(INTENT_META[results!.ai!.intent]?.label || 'AI')}
                     </Text>
                   </View>
                   <Text style={styles.aiBadge}>AMO IA</Text>

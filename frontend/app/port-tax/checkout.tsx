@@ -20,6 +20,12 @@ type Cfg = {
   note?: string;
 };
 
+// Wompi's redirect_url must land on a FRONTEND route that actually exists.
+// On web, the live origin (amocartagena.co, a preview URL, localhost, etc.) is
+// known at runtime — window.location.origin is always correct. Non-web has no
+// window, so fall back to the canonical production frontend host.
+const RETURN_URL_FALLBACK = 'https://www.amocartagena.co/payments/return';
+
 function ymdToday(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -80,41 +86,53 @@ export default function PortTaxCheckoutScreen() {
   }, []);
 
   const onConfirm = async () => {
-    if (!user) {
-      // Not logged in: jump straight to the login/create-account flow.
-      // Pass `?next=...` so the login screen can return here after auth.
-      router.push({
-        pathname: '/login' as any,
-        params: { next: '/port-tax/checkout' },
-      });
-      return;
-    }
-    if (!travelDate) {
-      Alert.alert('Fecha requerida', 'Selecciona una fecha de viaje.');
-      return;
-    }
     setSubmitting(true);
     try {
-      const cfg = await checkWompiEnabled();
-      if (!cfg.enabled) {
+      // Check payments-enabled FIRST, before the login gate. Previously a
+      // guest was sent to sign up and only discovered AFTER creating an
+      // account that payments are disabled — the pier-payment notice must be
+      // reachable without demanding signup. The login gate only makes sense
+      // once payments are actually live.
+      const wompiCfg = await checkWompiEnabled();
+      if (!wompiCfg.enabled) {
         Alert.alert(
           'Próximamente',
           'El pago en línea de la tasa portuaria estará disponible pronto. Por ahora, paga directamente en el Muelle La Bodeguita.',
         );
-      } else {
-        const redirect = (process.env.EXPO_PUBLIC_BACKEND_URL || '') + '/payments/return';
-        const order = await api.post('/payments/wompi/port-tax', {
-          qty,
-          travel_date: travelDate,
-          passengers: passengers.filter(Boolean),
-          redirect_url: redirect,
+        setSubmitting(false);
+        return;
+      }
+      if (!user) {
+        // Payments are enabled: gate on login now, with `next` so the user
+        // returns here to complete checkout after auth.
+        setSubmitting(false);
+        router.push({
+          pathname: '/login' as any,
+          params: { next: '/port-tax/checkout' },
         });
-        if (!order?.checkout_url) {
-          Alert.alert('Error', 'No se pudo iniciar el pago. Intenta de nuevo.');
-        } else {
-          await openWompiCheckout(order.checkout_url, order.reference);
-          router.replace({ pathname: '/payments/return' as any, params: { reference: order.reference } });
-        }
+        return;
+      }
+      if (!travelDate) {
+        setSubmitting(false);
+        Alert.alert('Fecha requerida', 'Selecciona una fecha de viaje.');
+        return;
+      }
+      // Redirect must land on the FRONTEND origin — the backend host has no
+      // /payments/return page, so this used to 404 after a successful payment.
+      const redirect = Platform.OS === 'web' && typeof window !== 'undefined'
+        ? window.location.origin + '/payments/return'
+        : RETURN_URL_FALLBACK;
+      const order = await api.post('/payments/wompi/port-tax', {
+        qty,
+        travel_date: travelDate,
+        passengers: passengers.filter(Boolean),
+        redirect_url: redirect,
+      });
+      if (!order?.checkout_url) {
+        Alert.alert('Error', 'No se pudo iniciar el pago. Intenta de nuevo.');
+      } else {
+        await openWompiCheckout(order.checkout_url, order.reference);
+        router.replace({ pathname: '/payments/return' as any, params: { reference: order.reference } });
       }
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'No se pudo procesar la compra.');
