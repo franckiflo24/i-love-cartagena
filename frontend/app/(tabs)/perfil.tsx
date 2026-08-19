@@ -205,7 +205,7 @@ export default function PerfilScreen() {
           {/* Welcome header */}
           <View style={styles.guestHero}>
             <View style={styles.guestAvatarCircle}>
-              <Ionicons name="person-circle-outline" size={56} color={COLORS.primary} />
+              <Ionicons name="person-circle-outline" size={56} color={COLORS.icon} />
             </View>
             <Text style={styles.guestTitle}>{s('profile_login')}</Text>
             <Text style={styles.guestSubtitle}>{tr('Tu pasaporte de Cartagena te espera. Creá tu cuenta gratis y desbloqueá todo.')}</Text>
@@ -243,7 +243,7 @@ export default function PerfilScreen() {
             onPress={() => { clearAuthError(); login(); }}
             activeOpacity={0.85}
           >
-            <Ionicons name="logo-google" size={20} color={COLORS.white} />
+            <Ionicons name="logo-google" size={20} color="#4285F4" />
             <Text style={styles.googleButtonText}>{s('login_google')}</Text>
           </TouchableOpacity>
 
@@ -735,12 +735,12 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: 'rgba(18,181,165,0.12)',
+    backgroundColor: COLORS.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.xs,
     borderWidth: 1,
-    borderColor: 'rgba(18,181,165,0.3)',
+    borderColor: COLORS.border,
   },
   guestTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
   guestSubtitle: {
@@ -754,11 +754,11 @@ const styles = StyleSheet.create({
 
   googleButton: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: COLORS.primary, borderRadius: RADIUS.full,
+    backgroundColor: '#FFFFFF', borderRadius: RADIUS.full,
     paddingVertical: 14, paddingHorizontal: SPACING.xl, width: '100%', gap: SPACING.sm,
-    shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 6,
+    shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 6,
   },
-  googleButtonText: { fontSize: 16, color: COLORS.white, ...FONTS.bold },
+  googleButtonText: { fontSize: 16, color: '#1F2937', ...FONTS.bold },
 
   orRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginVertical: SPACING.sm },
   orLine: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.12)' },
@@ -866,10 +866,10 @@ const sty = StyleSheet.create({
     paddingBottom: SPACING.xl,
     paddingHorizontal: SPACING.lg,
   },
-  avatar: { width: 88, height: 88, borderRadius: 44, borderWidth: 2.5, borderColor: COLORS.primary },
+  avatar: { width: 88, height: 88, borderRadius: 44, borderWidth: 2.5, borderColor: COLORS.border },
   avatarFallback: {
     width: 88, height: 88, borderRadius: 44,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.surfaceAlt,
     alignItems: 'center', justifyContent: 'center',
   },
   avatarLetter: { fontSize: 36, color: COLORS.white, ...FONTS.bold },

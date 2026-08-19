@@ -284,24 +284,30 @@ function EmptyBookings({
   onExplore: () => void;
 }) {
   const tr = useTr();
-  const EMPTY_CONFIG: Record<TabKey, { icon: string; title: string; text: string; showCTA: boolean }> = {
+  const EMPTY_CONFIG: Record<TabKey, { icon: string; title: string; text: string; showCTA: boolean; iconColor: string; iconBg: string }> = {
     upcoming: {
       icon: 'calendar-outline',
       title: 'Sin reservas próximas',
       text: 'Explora lugares y haz tu primera reserva en Cartagena',
       showCTA: true,
+      iconColor: COLORS.mustard,
+      iconBg: 'rgba(233,185,73,0.14)',
     },
     past: {
       icon: 'time-outline',
       title: 'Sin historial',
       text: 'Tus reservas completadas aparecerán aquí',
       showCTA: false,
+      iconColor: COLORS.official,
+      iconBg: 'rgba(57,184,255,0.14)',
     },
     cancelled: {
       icon: 'close-circle-outline',
       title: 'Sin cancelaciones',
       text: 'No tienes reservas canceladas',
       showCTA: false,
+      iconColor: COLORS.textMuted,
+      iconBg: COLORS.surface,
     },
   };
 
@@ -309,8 +315,8 @@ function EmptyBookings({
 
   return (
     <View style={styles.emptyWrap}>
-      <View style={styles.emptyIconCircle}>
-        <Ionicons name={cfg.icon as any} size={40} color={COLORS.textMuted} />
+      <View style={[styles.emptyIconCircle, { backgroundColor: cfg.iconBg }]}>
+        <Ionicons name={cfg.icon as any} size={40} color={cfg.iconColor} />
       </View>
       <Text style={styles.emptyTitle}>{tr(cfg.title)}</Text>
       <Text style={styles.emptyText}>{tr(cfg.text)}</Text>

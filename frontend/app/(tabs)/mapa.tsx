@@ -672,11 +672,11 @@ export default function MapaScreen() {
         <View style={styles.nbhBar}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
             <TouchableOpacity
-              style={[styles.nbhChip, !nbhFilter && styles.nbhChipActive]}
+              style={styles.nbhChip}
               onPress={() => setNbhFilter(null)}
             >
-              <Ionicons name="map-outline" size={13} color={!nbhFilter ? COLORS.primary : COLORS.textMuted} />
-              <Text style={[styles.nbhChipText, !nbhFilter && styles.nbhChipTextActive]}>{tr('Todos los barrios')}</Text>
+              <Ionicons name="map-outline" size={13} color={COLORS.icon} />
+              <Text style={styles.nbhChipText}>{tr('Todos los barrios')}</Text>
             </TouchableOpacity>
             {nbhChips.map(({ slug, n }) => {
               const active = nbhFilter === slug;

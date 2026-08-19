@@ -851,7 +851,7 @@ const styles = StyleSheet.create({
   notice: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, padding: 10, backgroundColor: 'rgba(18,181,165,0.12)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(18,181,165,0.4)' },
   noticeText: { fontSize: 12, color: COLORS.textMain, ...FONTS.semibold, textAlign: 'center' },
 
-  inviteCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.lg, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: 'rgba(18,181,165,0.35)', alignItems: 'center', gap: 8 },
+  inviteCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.lg, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', gap: 8 },
   inviteEmoji: { fontSize: 40 },
   inviteTitle: { fontSize: 17, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
   inviteBody: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'center', lineHeight: 19 },
