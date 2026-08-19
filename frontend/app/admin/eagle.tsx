@@ -14,22 +14,26 @@ type Kpis = {
   searches_total: number; searches_today: number; searches_zero: number;
   bookings_total: number; bookings_today: number;
   active_sessions: number; passes_active: number;
+  failed_logins_today: number;
   claims_pending: number; media_pending: number; events_pending: number;
 };
 type Eagle = {
   kpis: Kpis;
   signups: { kind: string; name: string; email?: string; detail?: string; when?: string }[];
   logins: { kind: string; who: string; detail?: string; when?: string }[];
+  failed_logins: { email?: string; ip?: string; detail?: string; scope?: string; ts?: string }[];
+  logouts: { user_id?: string; scope?: string; ip?: string; ts?: string }[];
   searches: { query?: string; matches_count?: number; intent?: string; ai_used?: boolean; ts?: string; user_id?: string }[];
   bookings: { partner_name?: string; user_name?: string; user_email?: string; user_whatsapp?: string; date?: string; time?: string; party_size?: number; status?: string; amount_cop?: number; type?: string; created_at?: string }[];
   claims: { partner_id?: string; actor_email?: string; state?: string; method?: string; created_at?: string }[];
   generated_at?: string;
 };
 
-type Tab = 'signups' | 'logins' | 'searches' | 'bookings' | 'claims';
+type Tab = 'signups' | 'logins' | 'security' | 'searches' | 'bookings' | 'claims';
 const TABS: { key: Tab; label: string; icon: any }[] = [
   { key: 'signups', label: 'Registros', icon: 'person-add' },
   { key: 'logins', label: 'Accesos', icon: 'log-in' },
+  { key: 'security', label: 'Seguridad', icon: 'shield-checkmark' },
   { key: 'searches', label: 'Búsquedas', icon: 'search' },
   { key: 'bookings', label: 'Reservas', icon: 'calendar' },
   { key: 'claims', label: 'Reclamos', icon: 'business' },
@@ -114,6 +118,7 @@ export default function EagleEye() {
             <Kpi big={k.passes_active} label="City Pass" sub="activos" icon="ticket" accent="#34D399" />
             <Kpi big={k.media_pending + k.events_pending + k.claims_pending} label="Por revisar"
               sub={`${k.media_pending} fotos · ${k.events_pending} eventos · ${k.claims_pending} reclamos`} icon="alert-circle" accent="#EF4444" />
+            <Kpi big={k.failed_logins_today} label="Logins fallidos" sub="hoy · contraseñas erróneas" icon="lock-closed" accent="#F97316" />
           </View>
         )}
 
@@ -145,6 +150,23 @@ export default function EagleEye() {
                 title={r.who} sub={r.detail || undefined} chip={r.kind === 'business' ? 'socio' : 'usuario'} time={ago(r.when)} />
             ))
             : <Empty text="Sin accesos todavía." />)}
+
+          {tab === 'security' && ((data?.failed_logins?.length || data?.logouts?.length)
+            ? (
+              <>
+                {(data?.failed_logins || []).map((r, i) => (
+                  <Row key={`f${i}`} icon="lock-closed" iconColor="#EF4444"
+                    title={r.email || '—'} sub={r.ip ? `IP ${r.ip}` : undefined}
+                    chip={r.scope === 'business' ? 'socio · contraseña' : 'contraseña'} chipDanger time={ago(r.ts)} />
+                ))}
+                {(data?.logouts || []).map((r, i) => (
+                  <Row key={`o${i}`} icon="log-out" iconColor="#94A3B8"
+                    title={r.user_id || '—'} sub={r.ip ? `IP ${r.ip}` : undefined}
+                    chip={r.scope === 'business' ? 'socio · salida' : 'salida'} time={ago(r.ts)} />
+                ))}
+              </>
+            )
+            : <Empty text="Sin eventos de seguridad." />)}
 
           {tab === 'searches' && (data?.searches?.length
             ? data.searches.map((r, i) => {

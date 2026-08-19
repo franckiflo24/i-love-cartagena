@@ -26,8 +26,8 @@ import { useLang } from '../src/context/LanguageContext';
 import { geoService, haversineM } from '../src/lib/geo';
 import { safeNext } from '../src/lib/safeNext';
 
-const GOLD = '#D4AF37';
-const GOLD_BRIGHT = '#F5D47A';
+const GOLD = '#F50B1B';
+const GOLD_BRIGHT = '#FF6B75';
 const INK = '#07070E';
 const SERIF = Platform.select({ web: "Georgia, 'Times New Roman', serif", default: 'serif' });
 
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: INK },
   glow: {
     position: 'absolute', top: -120, alignSelf: 'center', width: 520, height: 520, borderRadius: 260,
-    backgroundColor: 'rgba(212,175,55,0.16)',
+    backgroundColor: 'rgba(245,11,27,0.16)',
     ...(Platform.OS === 'web' ? { filter: 'blur(90px)' } as any : {}),
   },
   skip: { position: 'absolute', top: 14, right: 18, zIndex: 10, paddingHorizontal: 12, paddingVertical: 6 },
@@ -293,25 +293,25 @@ const styles = StyleSheet.create({
   },
   lunaDotText: { color: '#0A0A0A', fontSize: 18, fontFamily: SERIF, fontWeight: '700' },
   lunaBubble: {
-    flex: 1, backgroundColor: 'rgba(212,175,55,0.07)', borderColor: 'rgba(212,175,55,0.28)', borderWidth: 1,
+    flex: 1, backgroundColor: 'rgba(245,11,27,0.07)', borderColor: 'rgba(245,11,27,0.28)', borderWidth: 1,
     borderRadius: 16, borderTopLeftRadius: 4, padding: 14,
   },
   lunaName: { color: GOLD, fontSize: 12, ...FONTS.semibold, marginBottom: 4, letterSpacing: 0.3 },
   lunaLine: { color: 'rgba(255,255,255,0.9)', fontSize: 15, lineHeight: 22 },
   passportCard: {
-    backgroundColor: 'rgba(255,255,255,0.035)', borderColor: 'rgba(212,175,55,0.22)', borderWidth: 1,
+    backgroundColor: 'rgba(255,255,255,0.035)', borderColor: 'rgba(245,11,27,0.22)', borderWidth: 1,
     borderRadius: 18, padding: 16, gap: 14,
   },
   passportSealRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   dashedSeal: {
-    width: 48, height: 48, borderRadius: 24, borderWidth: 1.5, borderColor: 'rgba(212,175,55,0.5)',
+    width: 48, height: 48, borderRadius: 24, borderWidth: 1.5, borderColor: 'rgba(245,11,27,0.5)',
     borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center',
   },
   passportTitle: { color: '#FFFFFF', fontSize: 16, ...FONTS.semibold },
   passportSub: { color: COLORS.textMuted, fontSize: 13, marginTop: 2 },
   stampHook: {
     flexDirection: 'row', gap: 8, alignItems: 'center',
-    backgroundColor: 'rgba(212,175,55,0.1)', borderRadius: 12, paddingVertical: 11, paddingHorizontal: 13,
+    backgroundColor: 'rgba(245,11,27,0.1)', borderRadius: 12, paddingVertical: 11, paddingHorizontal: 13,
   },
   stampHookText: { color: GOLD_BRIGHT, fontSize: 13.5, ...FONTS.medium, flex: 1 },
   ctaWrap: { marginTop: SPACING.sm },
@@ -327,11 +327,11 @@ const styles = StyleSheet.create({
   qSub: { color: COLORS.textMuted, fontSize: 14, textAlign: 'center', marginTop: -6, marginBottom: SPACING.sm, lineHeight: 20 },
   qOption: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
-    backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(212,175,55,0.2)', borderWidth: 1,
+    backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(245,11,27,0.2)', borderWidth: 1,
     borderRadius: 16, padding: 16,
   },
   qIcon: {
-    width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(212,175,55,0.12)',
+    width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(245,11,27,0.12)',
     alignItems: 'center', justifyContent: 'center',
   },
   qLabel: { color: '#FFFFFF', fontSize: 17, ...FONTS.semibold },

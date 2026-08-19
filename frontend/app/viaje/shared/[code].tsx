@@ -163,7 +163,7 @@ export default function SharedTripScreen() {
       {trip ? (
         <View style={styles.joinBar}>
           {joinedMoment ? (
-            <View style={[styles.joinBtn, { backgroundColor: 'rgba(212,175,55,0.15)' }]}>
+            <View style={[styles.joinBtn, { backgroundColor: 'rgba(245,11,27,0.15)' }]}>
               <Text style={[styles.joinText, { color: COLORS.primary }]}>{joinedMoment}</Text>
             </View>
           ) : (
@@ -204,13 +204,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md,
   },
   headerTitle: { color: COLORS.textMain, fontSize: 17, ...FONTS.bold },
-  inviteLine: { color: '#F5D47A', fontSize: 15, ...FONTS.semibold, marginBottom: 6 },
+  inviteLine: { color: '#FF6B75', fontSize: 15, ...FONTS.semibold, marginBottom: 6 },
   tripName: { color: COLORS.textMain, fontSize: 22, ...FONTS.bold },
   tripDates: { color: COLORS.textMuted, fontSize: 13, marginTop: 2 },
   membersRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: SPACING.sm },
   memberChip: {
-    backgroundColor: 'rgba(212,175,55,0.1)', borderRadius: 999,
-    paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(212,175,55,0.25)',
+    backgroundColor: 'rgba(245,11,27,0.1)', borderRadius: 999,
+    paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(245,11,27,0.25)',
   },
   memberChipText: { color: COLORS.primary, fontSize: 12, ...FONTS.semibold },
   dayHeader: { color: COLORS.textMain, fontSize: 15, ...FONTS.bold, marginBottom: 6 },
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   emptyTitle: { color: COLORS.textMain, fontSize: 16, ...FONTS.bold, textAlign: 'center' },
   joinBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0, padding: SPACING.lg,
-    backgroundColor: 'rgba(10,10,12,0.94)', borderTopWidth: 1, borderTopColor: 'rgba(212,175,55,0.2)',
+    backgroundColor: 'rgba(10,10,12,0.94)', borderTopWidth: 1, borderTopColor: 'rgba(245,11,27,0.2)',
   },
   joinBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,

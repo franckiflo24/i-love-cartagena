@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   hTitle: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold },
   scroll: { padding: SPACING.lg, paddingBottom: SPACING.xl * 2 },
 
-  loopCard: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(217,119,6,0.10)', borderWidth: 1, borderColor: COLORS.primary, borderRadius: RADIUS.lg, padding: SPACING.md },
+  loopCard: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(245,11,27,0.10)', borderWidth: 1, borderColor: COLORS.primary, borderRadius: RADIUS.lg, padding: SPACING.md },
   loopText: { flex: 1, fontSize: 12, color: COLORS.textMain, ...FONTS.medium, lineHeight: 17 },
 
   gateBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(59,130,246,0.10)', borderWidth: 1, borderColor: '#3B82F6', borderRadius: RADIUS.lg, padding: SPACING.md, marginTop: SPACING.md },
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   submitText: { color: COLORS.white, fontSize: 14, ...FONTS.bold },
 
   listHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: SPACING.xl },
-  count: { fontSize: 12, color: COLORS.primary, ...FONTS.bold, backgroundColor: 'rgba(217,119,6,0.15)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.full, overflow: 'hidden' },
+  count: { fontSize: 12, color: COLORS.primary, ...FONTS.bold, backgroundColor: 'rgba(245,11,27,0.15)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.full, overflow: 'hidden' },
   empty: { alignItems: 'center', gap: SPACING.sm, padding: SPACING.xl, marginTop: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, borderStyle: 'dashed' },
   emptyText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center' },
 

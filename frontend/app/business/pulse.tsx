@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
 
   retryBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.lg, padding: SPACING.md, marginTop: SPACING.md },
   retryText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold },
-  replyCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: 'rgba(217,119,6,0.10)', borderWidth: 1, borderColor: COLORS.primary, borderRadius: RADIUS.lg, padding: SPACING.md, marginTop: SPACING.md },
+  replyCard: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: 'rgba(245,11,27,0.10)', borderWidth: 1, borderColor: COLORS.primary, borderRadius: RADIUS.lg, padding: SPACING.md, marginTop: SPACING.md },
   replyText: { flex: 1, fontSize: 13, color: COLORS.textMain, ...FONTS.medium, lineHeight: 18 },
 
   liveSection: { marginTop: SPACING.lg },

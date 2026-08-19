@@ -328,6 +328,25 @@ function EmptyBookings({
   );
 }
 
+// Distinct from EmptyBookings: shown only when the whole load failed, so a user
+// with real bookings never sees "you have none" on a transient backend hiccup.
+function ErrorBookings({ onRetry }: { onRetry: () => void }) {
+  const tr = useTr();
+  return (
+    <View style={styles.emptyWrap}>
+      <View style={styles.emptyIconCircle}>
+        <Ionicons name="cloud-offline-outline" size={40} color={COLORS.textMuted} />
+      </View>
+      <Text style={styles.emptyTitle}>{tr('No pudimos cargar la información')}</Text>
+      <Text style={styles.emptyText}>{tr('Revisa tu conexión e intenta de nuevo.')}</Text>
+      <TouchableOpacity style={styles.emptyBtn} onPress={onRetry} activeOpacity={0.85}>
+        <Ionicons name="refresh" size={15} color={COLORS.white} />
+        <Text style={styles.emptyBtnText}>{tr('Reintentar')}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 // ── Main screen ───────────────────────────────────────────────────────────────
 
 const TABS: { key: TabKey; label: string }[] = [
@@ -344,6 +363,9 @@ export default function BookingsScreen() {
   const [allBookings, setAllBookings] = useState<UnifiedBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // True only when EVERY source failed → the empty list is a load failure, not a
+  // genuinely-empty account. Partial failures still show what did load.
+  const [error, setError] = useState(false);
 
   const fetchAll = useCallback(async () => {
     const results = await Promise.allSettled([
@@ -393,6 +415,9 @@ export default function BookingsScreen() {
 
     merged.sort(sortByDate);
     setAllBookings(merged);
+    // Only a total wipe-out (all 4 sources rejected) is a real error; any success
+    // means the list is trustworthy and an empty result is genuinely empty.
+    setError(results.every((r) => r.status === 'rejected'));
   }, []);
 
   useEffect(() => {
@@ -452,7 +477,7 @@ export default function BookingsScreen() {
         router.push('/reservations' as any);
         break;
       case 'citypass':
-        router.push('/city-pass' as any);
+        router.push('/(tabs)/citypass' as any);
         break;
       case 'porttax':
         // /port-tax has no index route → pushing it fell through to +not-found and
@@ -554,10 +579,14 @@ export default function BookingsScreen() {
           />
         }
         ListEmptyComponent={
-          <EmptyBookings
-            tab={activeTab}
-            onExplore={() => router.push('/explore' as any)}
-          />
+          error ? (
+            <ErrorBookings onRetry={onRefresh} />
+          ) : (
+            <EmptyBookings
+              tab={activeTab}
+              onExplore={() => router.push('/explore' as any)}
+            />
+          )
         }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         renderItem={({ item }) => {
@@ -641,7 +670,7 @@ const styles = StyleSheet.create({
     minWidth: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: 'rgba(217,119,6,0.2)',
+    backgroundColor: 'rgba(245,11,27,0.2)',
     paddingHorizontal: 5,
     alignItems: 'center',
     justifyContent: 'center',

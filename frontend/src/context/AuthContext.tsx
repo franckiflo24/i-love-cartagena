@@ -41,6 +41,12 @@ const removeToken = async () => {
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '';
 
+// Auth calls go SAME-ORIGIN on web (/api/auth/* → backend via the vercel.json
+// rewrite) so the session cookie is FIRST-PARTY and survives iOS Safari's ITP
+// (which wipes localStorage + blocks third-party cookies). Native keeps the
+// absolute backend URL. This is what makes "open the app → already logged in" work.
+const AUTH_BASE = (Platform.OS === 'web' ? '' : (BACKEND_URL || '')) + '/api/auth';
+
 type User = {
   user_id: string;
   email: string;
@@ -154,10 +160,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const exchangeGoogleToken = useCallback(async (idToken: string) => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/google`, {
+      const res = await fetch(`${AUTH_BASE}/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_token: idToken }),
+        credentials: 'include',
       });
       if (!res.ok) {
         const detail = await res.json().catch(() => ({}));
@@ -183,42 +190,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [loginWithToken]);
 
   const checkAuth = useCallback(async () => {
+    const token = await getToken();
     try {
-      const token = await getToken();
-      if (!token) {
-        const cached = await AsyncStorage.getItem('user_data');
-        if (cached) {
-          try {
-            const parsed = JSON.parse(cached);
-            if (parsed?.user_id || parsed?.email) {
-              setUser(parsed);
-              setIsLoading(false);
-              return;
-            }
-          } catch { /* malformed */ }
-        }
-        setUser(null);
-        setIsLoading(false);
-        return;
-      }
-      const res = await fetch(`${BACKEND_URL}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
+      // ALWAYS ask /auth/me — with the Bearer token if we still have one, otherwise
+      // rely purely on the first-party session cookie. On iOS Safari the cookie
+      // survives even after ITP wiped localStorage, so the user stays logged in and
+      // the app opens "already ready". A 200 also returns a fresh session_token we
+      // re-save locally so the cross-origin data calls keep working.
+      const res = await fetch(`${AUTH_BASE}/me`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        credentials: 'include',
       });
       if (res.ok) {
         const userData = await res.json();
         setUser(userData);
         await AsyncStorage.setItem('user_data', JSON.stringify(userData));
-      } else {
+        if (userData.session_token) { try { await saveToken(userData.session_token); } catch { /* noop */ } }
+        setIsLoading(false);
+        return;
+      }
+      if (res.status === 401 || res.status === 403) {
+        // Session genuinely gone (no valid token AND no valid cookie) → clear.
         await removeToken();
         await AsyncStorage.removeItem('user_data');
         setUser(null);
+        setIsLoading(false);
+        return;
       }
+      throw new Error(`auth/me ${res.status}`); // 5xx / transient → fall through to cache
     } catch (e) {
-      console.error('[AuthContext] checkAuth failed', e);
+      // Network / transient error → keep the user optimistically from cache; never
+      // log someone out over a blip.
       try {
         const cached = await AsyncStorage.getItem('user_data');
-        if (cached) setUser(JSON.parse(cached));
-      } catch { /* malformed */ }
+        const parsed = cached ? JSON.parse(cached) : null;
+        setUser(parsed?.user_id || parsed?.email ? parsed : null);
+      } catch { setUser(null); }
     } finally {
       setIsLoading(false);
     }
@@ -280,9 +287,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = useCallback(async () => {
     try {
       const token = await getToken();
-      await fetch(`${BACKEND_URL}/api/auth/logout`, {
+      await fetch(`${AUTH_BASE}/logout`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token || ''}` },
+        credentials: 'include',
       }).catch(() => {});
     } catch (e) { console.error('[AuthContext] logout failed', e); }
     await removeToken();

@@ -301,15 +301,6 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Guest */}
-          <TouchableOpacity
-            testID="explore-guest-btn"
-            onPress={() => router.replace('/(tabs)')}
-            activeOpacity={0.7}
-            hitSlop={{ top: 6, bottom: 6 }}
-          >
-            <Text style={styles.guestLink}>{s('login_guest')}</Text>
-          </TouchableOpacity>
 
           {/* Login error display */}
           {(loginError || authError) ? (
@@ -473,7 +464,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.12)',
   },
   langPillActive: {
-    backgroundColor: 'rgba(217,119,6,0.25)',
+    backgroundColor: 'rgba(245,11,27,0.25)',
     borderColor: COLORS.primary,
   },
   langFlag: { fontSize: 14 },

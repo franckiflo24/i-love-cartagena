@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Platform } from '
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
+import { useTr } from '../i18n/autoTr';
 
 const { width: W, height: H } = Dimensions.get('window');
 
@@ -22,6 +23,7 @@ interface TutorialOverlayProps {
 
 export function TutorialOverlay({ visible, onComplete, stops }: TutorialOverlayProps) {
   const [step, setStep] = useState(0);
+  const tr = useTr();
 
   useEffect(() => { if (visible) setStep(0); }, [visible]);
 
@@ -49,7 +51,7 @@ export function TutorialOverlay({ visible, onComplete, stops }: TutorialOverlayP
       <View style={[st.tooltip, current.position === 'top' ? { top: H * 0.15 } : { bottom: H * 0.18 }]}>
         {/* Icon spotlight */}
         <View style={st.spotlight}>
-          <Ionicons name={current.icon as any} size={32} color="#D97706" />
+          <Ionicons name={current.icon as any} size={32} color="#F50B1B" />
         </View>
 
         <Text style={st.title}>{current.title}</Text>
@@ -66,11 +68,11 @@ export function TutorialOverlay({ visible, onComplete, stops }: TutorialOverlayP
           <View style={st.actions}>
             {!isLast && (
               <TouchableOpacity onPress={skip} style={st.skipBtn}>
-                <Text style={st.skipText}>Skip</Text>
+                <Text style={st.skipText}>{tr('Saltar')}</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity onPress={next} style={st.nextBtn}>
-              <Text style={st.nextText}>{isLast ? 'Got it' : 'Next'}</Text>
+              <Text style={st.nextText}>{isLast ? tr('Entendido') : tr('Siguiente')}</Text>
               {!isLast && <Ionicons name="arrow-forward" size={14} color="#FFF" />}
             </TouchableOpacity>
           </View>
@@ -119,15 +121,15 @@ const st = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.xl,
     padding: SPACING.lg,
-    borderWidth: 1, borderColor: 'rgba(217,119,6,0.3)',
+    borderWidth: 1, borderColor: 'rgba(245,11,27,0.3)',
     gap: SPACING.sm,
     alignItems: 'center',
   },
   spotlight: {
     width: 64, height: 64, borderRadius: 32,
-    backgroundColor: 'rgba(217,119,6,0.15)',
+    backgroundColor: 'rgba(245,11,27,0.15)',
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: 'rgba(217,119,6,0.3)',
+    borderWidth: 2, borderColor: 'rgba(245,11,27,0.3)',
     marginBottom: SPACING.xs,
   },
   title: { fontSize: 20, color: COLORS.white, ...FONTS.bold, textAlign: 'center' },
@@ -135,14 +137,14 @@ const st = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginTop: SPACING.sm },
   dots: { flexDirection: 'row', gap: 6 },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.2)' },
-  dotActive: { width: 18, backgroundColor: '#D97706' },
+  dotActive: { width: 18, backgroundColor: '#F50B1B' },
   actions: { flexDirection: 'row', gap: SPACING.sm, alignItems: 'center' },
   skipBtn: { paddingVertical: 6, paddingHorizontal: 12 },
   skipText: { fontSize: 13, color: 'rgba(255,255,255,0.5)', ...FONTS.medium },
   nextBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
     paddingVertical: 8, paddingHorizontal: 16,
-    backgroundColor: '#D97706', borderRadius: RADIUS.full,
+    backgroundColor: '#F50B1B', borderRadius: RADIUS.full,
   },
   nextText: { fontSize: 13, color: '#FFF', ...FONTS.bold },
 });

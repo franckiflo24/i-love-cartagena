@@ -20,12 +20,12 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="AMO Cartagena" />
-        {/* PWA manifest + installed-app icon (gold brand, matches the preloader) */}
+        {/* PWA manifest + installed-app icon (red brand, matches the preloader) */}
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/splash/amo-icon-192.png" />
-        {/* iOS home-screen LAUNCH images — the gold AMO·Cartagena splash, so the
+        {/* iOS home-screen LAUNCH images — the red AMO·Cartagena splash, so the
             installed app opens with the same brand moment as the web preloader
-            (instead of a blank screen / the old red splash-icon). Per-device. */}
+            (instead of a blank screen). Per-device. */}
         <link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/apple-splash-1320x2868.png" />
         <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/apple-splash-1290x2796.png" />
         <link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/apple-splash-1284x2778.png" />
@@ -94,8 +94,8 @@ export default function Root({ children }: PropsWithChildren) {
               min-height: 100vh;
               background: #020408;
               background-image:
-                radial-gradient(ellipse at 30% 20%, rgba(217,119,6,0.03) 0%, transparent 50%),
-                radial-gradient(ellipse at 70% 80%, rgba(217,119,6,0.02) 0%, transparent 50%);
+                radial-gradient(ellipse at 30% 20%, rgba(245,11,27,0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(245,11,27,0.02) 0%, transparent 50%);
             }
 
             #root {
@@ -109,7 +109,7 @@ export default function Root({ children }: PropsWithChildren) {
                 0 0 0 8px #0a0a0a,
                 0 0 0 9px rgba(255,255,255,0.08),
                 0 25px 80px rgba(0,0,0,0.6),
-                0 0 120px rgba(217,119,6,0.04);
+                0 0 120px rgba(245,11,27,0.04);
               position: relative;
             }
 
@@ -159,7 +159,7 @@ export default function Root({ children }: PropsWithChildren) {
 
           /* Selection color */
           ::selection {
-            background: rgba(217,119,6,0.3);
+            background: rgba(245,11,27,0.3);
             color: #FAFAF9;
           }
 

@@ -54,8 +54,8 @@ const styles = StyleSheet.create({
   strip: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     marginHorizontal: SPACING.lg, marginBottom: SPACING.md,
-    padding: SPACING.md, backgroundColor: 'rgba(212,175,55,0.10)',
-    borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(212,175,55,0.4)',
+    padding: SPACING.md, backgroundColor: 'rgba(245,11,27,0.10)',
+    borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(245,11,27,0.4)',
   },
   iconWrap: { width: 34, height: 34, borderRadius: 17, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
   kicker: { fontSize: 9.5, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1.2 },

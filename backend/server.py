@@ -170,14 +170,17 @@ async def google_auth(body: GoogleAuthBody, response: Response):
     await db.user_sessions.insert_one({
         "session_token": session_token,
         "user_id": user["user_id"],
-        "expires_at": datetime.now(timezone.utc) + timedelta(days=7),
+        # 30 days — matches the email/WhatsApp paths. Was 7, which silently logged
+        # out Google users (the primary login) weekly → "reconnect again and again".
+        "expires_at": datetime.now(timezone.utc) + timedelta(days=30),
         "created_at": datetime.now(timezone.utc),
     })
+    await _log_activity("login", scope="user", user_id=user["user_id"], email=user.get("email", ""), detail="google")
 
     response.set_cookie(
         key="session_token", value=session_token,
         httponly=True, secure=True, samesite="none",
-        path="/", max_age=7 * 24 * 3600
+        path="/", max_age=30 * 24 * 3600
     )
     return {"user": {k: user.get(k, "") for k in ("user_id", "email", "name", "picture", "provider")}, "session_token": session_token}
 
@@ -570,6 +573,29 @@ async def _login_record_fail(ip: str):
         )
 
 
+async def _log_activity(kind: str, *, scope: str = "user", user_id: str = "",
+                        email: str = "", ip: str = "", detail: str = "",
+                        meta: dict | None = None):
+    """Append one row to the live user_activity feed — login / logout /
+    login_failed / search / etc. Read by the Eagle Eye god-view and the
+    government analytics. Fail-soft by design: telemetry must NEVER block or
+    break the auth action it observes."""
+    try:
+        await db.user_activity.insert_one({
+            "activity_id": f"act_{uuid.uuid4().hex[:12]}",
+            "kind": kind,
+            "scope": scope,
+            "user_id": user_id or "",
+            "email": (email or "").lower()[:160],
+            "ip": ip or "",
+            "detail": detail or "",
+            "meta": meta or {},
+            "ts": _now_iso(),
+        })
+    except Exception as exc:
+        logger.warning(f"[activity] {kind} log failed: {exc}")
+
+
 @api_router.post("/business/login")
 async def business_login(request: Request):
     body = await request.json()
@@ -586,6 +612,7 @@ async def business_login(request: Request):
     ok = _bcrypt.checkpw(password.encode("utf-8"), pw_hash)
     if not biz or not ok:
         await _login_record_fail(ip)
+        await _log_activity("login_failed", scope="business", email=email, ip=ip, detail="wrong_password")
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
     await db.login_throttle.delete_one({"_id": ip})  # clear on success
     token = f"biz_{uuid.uuid4().hex}"
@@ -595,6 +622,7 @@ async def business_login(request: Request):
         "created_at": datetime.now(timezone.utc).isoformat(),
         "expires_at": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat(),
     })
+    await _log_activity("login", scope="business", user_id=biz["business_id"], email=email, ip=ip, detail=biz.get("role", "business"))
     biz_safe = {k: v for k, v in biz.items() if k != "password_hash"}
     partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0})
     return {"token": token, "business": biz_safe, "partner": partner}
@@ -661,7 +689,9 @@ async def business_logout(request: Request):
     auth_header = request.headers.get("Authorization", "")
     token = auth_header[7:] if auth_header.startswith("Bearer ") else None
     if token:
+        sess = await db.business_sessions.find_one({"token": token}, {"_id": 0, "business_id": 1})
         await db.business_sessions.delete_one({"token": token})
+        await _log_activity("logout", scope="business", user_id=(sess or {}).get("business_id", ""), ip=_client_ip(request))
     return {"ok": True}
 
 
@@ -967,6 +997,16 @@ async def business_create_event(request: Request):
             "is_resolved": False,
             "created_at": datetime.now(timezone.utc).isoformat(),
         })
+        # Ping the team for the flagged minority (fail-soft).
+        try:
+            await _emails_svc.send_admin_alert(
+                subject=f"AMO · Evento para revisar: {(partner or {}).get('name','')}",
+                title=f"Evento {verdict}: {event['title']}",
+                lines=[f"Negocio: {(partner or {}).get('name','')}",
+                       f"Motivo: {mod.get('reason','')}", f"Fecha: {event['date']}"],
+            )
+        except Exception as exc:
+            logger.warning(f"[AutoVerify] event alert email failed: {exc}")
 
     return event
 
@@ -2142,12 +2182,14 @@ async def business_submit_media(request: Request):
     ai_tags = _clean_visual_tags(result.get("tags"))
     pdoc = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "photos": 1, "photo_trusted": 1, "name": 1}) or {}
     photos = pdoc.get("photos") or []
-    # Trusted = admin flag, OR the venue already has a human-approved gallery photo
-    # (a person vetted this venue's standards at least once). Clean AUTO_APPROVE photos
-    # from a trusted venue skip the queue; NEEDS_REVIEW, the FIRST-ever photo, and
-    # cross-venue duplicates ALWAYS get human eyes.
-    trusted = _photo_trusted(pdoc)
-    auto_ok = result["verdict"] == "AUTO_APPROVE" and trusted and not cross_dup
+    # DIRECT UPLOAD (Franck: "no revisión for pictures, immediate, without us to
+    # accept"): a partner's photo publishes to their gallery IMMEDIATELY — no review
+    # queue, no trust gate, ZERO human acceptance. The one automatic floor is a hard
+    # safety block on a genuinely unsafe image (AI REJECT = nudity/violence/hate),
+    # handled above and requiring no human. A cross-venue duplicate still publishes,
+    # but is recorded (dup_of_partner) so possible photo-theft is auditable and
+    # removable AFTER the fact — never blocked or queued upfront.
+    auto_ok = result["verdict"] != "REJECT"
 
     doc = {
         "media_id": media_id, "business_id": biz["business_id"], "partner_id": biz["partner_id"],
@@ -2166,11 +2208,13 @@ async def business_submit_media(request: Request):
         if ai_tags:
             upd["$addToSet"] = {"visual_tags": {"$each": ai_tags}}
         await db.partners.update_one({"partner_id": biz["partner_id"]}, upd)
-        doc.update({"status": "approved", "reviewed_by": "auto:ai+trust", "reviewed_at": _now_iso()})
+        doc.update({"status": "approved", "reviewed_by": "auto:direct", "reviewed_at": _now_iso()})
         await db.partner_media.insert_one(doc)
         if image_hash:
             await db.photo_hashes.insert_one({"hash": image_hash, "partner_id": biz["partner_id"], "media_id": media_id, "created_at": _now_iso()})
-        await _mod_log("media", media_id, "auto_approve", "ai+trust", extra={"partner_id": biz["partner_id"], "ai_verdict": result["verdict"]})
+        await _mod_log("media", media_id, "auto_approve", "direct",
+                       extra={"partner_id": biz["partner_id"], "ai_verdict": result["verdict"],
+                              **({"dup_of_partner": dup.get("other_partner")} if cross_dup else {})})
         return {"submitted": True, "media_id": media_id, "status": "approved", "auto": True}
 
     # Otherwise → human review queue (flagged if it duplicates another venue's photo).
@@ -2179,7 +2223,7 @@ async def business_submit_media(request: Request):
     title = f"Foto pendiente: {pdoc.get('name','')}" + (" · ⚠ POSIBLE DUPLICADO" if cross_dup else "")
     await _notify_admin("media_review", title,
                         {"media_id": media_id, "partner_id": biz["partner_id"], "business_id": biz["business_id"],
-                         **({"dup_of_partner": dup.get("other_partner")} if cross_dup else {})})
+                         **({"dup_of_partner": dup.get("other_partner")} if cross_dup else {})}, alert=True)
     return {"submitted": True, "media_id": media_id, "status": "pending",
             **({"flagged": "duplicate"} if cross_dup else {})}
 
@@ -2282,9 +2326,11 @@ async def admin_set_photo_trust(partner_id: str, request: Request):
 # ── B2D · PRICE (partner-submitted tier, never editorial) ──────────────────
 @api_router.post("/business/price")
 async def business_submit_price(request: Request):
-    """Submit a price. Enters PENDING; on approval it lands as source:partner /
-    confidence:partner_submitted — it NEVER becomes the editorial price_reference
-    and NEVER overwrites a HIGH-confidence trust price."""
+    """Submit a price. Auto-Verify (deterministic) publishes a PLAUSIBLE range
+    immediately as source:partner / confidence:partner_submitted — it NEVER
+    becomes the editorial price_reference and NEVER overwrites a HIGH-confidence
+    trust price. An implausible / unverifiable range goes to human review,
+    pre-analyzed with the reason, and pings the team."""
     biz = await get_current_business(request)
     await _require_content_owner(biz, biz["partner_id"])
     body = await _json_body(request)
@@ -2296,15 +2342,46 @@ async def business_submit_price(request: Request):
     if low is not None and high is not None and low > high:
         raise HTTPException(status_code=400, detail="El precio mínimo no puede superar al máximo / low cannot exceed high")
     price_id = f"pp_{uuid.uuid4().hex[:10]}"
+
+    # ── Auto-Verify: deterministic check vs the venue's OWN declared tier + bounds ──
+    pdoc = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "price_range": 1, "name": 1}) or {}
+    from auto_verify import verify_price
+    av = verify_price(price_range=pdoc.get("price_range"), low=low, high=high, label=label)
+
+    # One pending submission per venue — a new one supersedes the old.
     await db.partner_price_submissions.delete_many({"business_id": biz["business_id"], "partner_id": biz["partner_id"], "status": "pending"})
-    await db.partner_price_submissions.insert_one({
+
+    doc = {
         "price_id": price_id, "business_id": biz["business_id"], "partner_id": biz["partner_id"],
         "typical_cop": {"low": low, "high": high}, "label": label, "currency": "COP",
-        "status": "pending", "submitted_at": _now_iso(),
-    })
-    await _notify_admin("price_review", "Precio pendiente de revisión",
-                        {"price_id": price_id, "partner_id": biz["partner_id"], "business_id": biz["business_id"]})
-    return {"submitted": True, "price_id": price_id, "status": "pending"}
+        "submitted_at": _now_iso(),
+        "auto_verdict": av["verdict"], "auto_reason": av["reason"], "auto_evidence": av["evidence"],
+    }
+
+    if av["verdict"] == "AUTO_APPROVE":
+        # Publish immediately — mirrors admin_approve_price. Lands ONLY in
+        # partner_price (source:partner), never price_reference / trust.
+        partner_price = {
+            "source": "partner", "confidence": "partner_submitted",
+            "typical_cop": {"low": low, "high": high}, "label": label,
+            "currency": "COP", "approved_by": "auto:verify", "approved_at": _now_iso(),
+        }
+        await db.partners.update_one({"partner_id": biz["partner_id"]}, {"$set": {"partner_price": partner_price}})
+        doc.update({"status": "approved", "reviewed_by": "auto:verify", "reviewed_at": _now_iso()})
+        await db.partner_price_submissions.insert_one(doc)
+        await _mod_log("price", price_id, "auto_approve", "auto:verify",
+                       reason=av["reason"], extra={"partner_id": biz["partner_id"], "evidence": av["evidence"]})
+        return {"submitted": True, "price_id": price_id, "status": "approved", "auto": True}
+
+    # NEEDS_REVIEW → human queue, pre-analyzed, with a flagged alert to the team.
+    doc["status"] = "pending"
+    await db.partner_price_submissions.insert_one(doc)
+    await _mod_log("price", price_id, "auto_needs_review", "auto:verify",
+                   reason=av["reason"], extra={"partner_id": biz["partner_id"], "evidence": av["evidence"]})
+    await _notify_admin("price_review", f"Precio para revisar: {pdoc.get('name','')}",
+                        {"price_id": price_id, "partner_id": biz["partner_id"], "business_id": biz["business_id"],
+                         "motivo": av["reason"], "rango": f"{low}–{high} COP"}, alert=True)
+    return {"submitted": True, "price_id": price_id, "status": "pending", "reason": av["reason"]}
 
 
 @api_router.get("/business/price")
@@ -2390,6 +2467,28 @@ async def admin_moderate_event(event_id: str, request: Request):
 @api_router.get("/business/submissions")
 async def business_my_submissions(request: Request):
     biz = await get_current_business(request)
+    # Photos are now direct/instant publish. Any of THIS partner's photos left in
+    # the old review queue (pre-policy-change) is published now, so no one is left
+    # with a stuck "En revisión" that will never be reviewed. Scoped + idempotent +
+    # fail-soft (a hiccup here must never break the content view).
+    try:
+        stuck = await db.partner_media.find(
+            {"business_id": biz["business_id"], "status": "pending"}, {"_id": 0}
+        ).to_list(50)
+        if stuck:
+            pdoc = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "photos": 1}) or {}
+            photos = pdoc.get("photos") or []
+            for m in stuck:
+                url = m.get("data_url")
+                if url and url not in photos and len(photos) < 12:
+                    photos.append(url)
+            await db.partners.update_one({"partner_id": biz["partner_id"]}, {"$set": {"photos": photos}})
+            await db.partner_media.update_many(
+                {"business_id": biz["business_id"], "status": "pending"},
+                {"$set": {"status": "approved", "reviewed_by": "auto:direct-migration", "reviewed_at": _now_iso()}},
+            )
+    except Exception as exc:
+        logger.warning(f"[submissions] pending-photo migration skipped: {exc}")
     events = await db.partner_events.find({"partner_id": biz["partner_id"]}, {"_id": 0}).sort("created_at", -1).to_list(100)
     media = await db.partner_media.find({"business_id": biz["business_id"]}, {"_id": 0, "data_url": 0}).sort("submitted_at", -1).to_list(100)
     prices = await db.partner_price_submissions.find({"business_id": biz["business_id"]}, {"_id": 0}).sort("submitted_at", -1).to_list(50)
@@ -2870,9 +2969,23 @@ async def admin_alcaldia_analytics(request: Request, days: int = 30):
 
     total_revenue = citypass_revenue + pt_revenue
 
+    # ── live user activity (government monitoring view) ──
+    act_today = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    activity = {
+        "logins_today": await db.user_activity.count_documents({"kind": "login", "ts": {"$gte": act_today}}),
+        "logouts_today": await db.user_activity.count_documents({"kind": "logout", "ts": {"$gte": act_today}}),
+        "failed_logins_today": await db.user_activity.count_documents({"kind": "login_failed", "ts": {"$gte": act_today}}),
+        "searches_today": await db.search_history.count_documents({"ts": {"$gte": act_today}}),
+        "active_sessions": await db.user_sessions.count_documents({"$or": [
+            {"expires_at": {"$type": "string", "$gt": now.isoformat()}},
+            {"expires_at": {"$type": "date", "$gt": now}},
+        ]}),
+    }
+
     return {
         "period_days": days,
         "generated_at": now.isoformat(),
+        "activity": activity,
         "kpis": {
             "total_users": total_users,
             "new_users_period": new_users_period,
@@ -3312,6 +3425,15 @@ async def admin_eagle(request: Request):
         {}, {"_id": 0, "partner_id": 1, "actor_email": 1, "state": 1, "method": 1, "created_at": 1}
     ).sort("created_at", -1).limit(20).to_list(20)
 
+    # ── auth activity: failed logins (wrong passwords) + logouts, live ──
+    failed_today = await db.user_activity.count_documents({"kind": "login_failed", "ts": {"$gte": today}})
+    failed_logins = await db.user_activity.find(
+        {"kind": "login_failed"}, {"_id": 0, "email": 1, "ip": 1, "detail": 1, "scope": 1, "ts": 1}
+    ).sort("ts", -1).limit(30).to_list(30)
+    logouts = await db.user_activity.find(
+        {"kind": "logout"}, {"_id": 0, "user_id": 1, "scope": 1, "ip": 1, "ts": 1}
+    ).sort("ts", -1).limit(25).to_list(25)
+
     return {
         "kpis": {
             "users_total": users_total, "users_today": users_today, "users_7d": users_7d,
@@ -3320,10 +3442,13 @@ async def admin_eagle(request: Request):
             "bookings_total": bookings_total, "bookings_today": bookings_today,
             "active_sessions": active_user_sessions + active_biz_sessions,
             "passes_active": passes_active,
+            "failed_logins_today": failed_today,
             "claims_pending": claims_pending, "media_pending": media_pending, "events_pending": events_pending,
         },
         "signups": signups,
         "logins": logins,
+        "failed_logins": failed_logins,
+        "logouts": logouts,
         "searches": searches,
         "bookings": bookings,
         "claims": claims,
@@ -3334,7 +3459,18 @@ async def admin_eagle(request: Request):
 @api_router.get("/auth/me")
 async def auth_me(request: Request):
     user = await get_current_user(request)
-    return UserOut(**user)
+    # Return the session token so a web client whose localStorage was wiped by
+    # Safari ITP can REHYDRATE it from the still-valid first-party session cookie
+    # (served same-origin via the /api/auth rewrite) → stays logged in like a native app.
+    token = request.cookies.get("session_token") or ""
+    if not token:
+        ah = request.headers.get("Authorization", "")
+        if ah.startswith("Bearer "):
+            token = ah[7:].strip()
+    uo = UserOut(**user)
+    data = uo.model_dump() if hasattr(uo, "model_dump") else uo.dict()
+    data["session_token"] = token
+    return data
 
 
 # ── User Profile ─────────────────────────────────────────────
@@ -3614,8 +3750,11 @@ async def logout(request: Request, response: Response):
             token = auth_header[7:].strip()
     deleted = 0
     if token:
+        sess = await db.user_sessions.find_one({"session_token": token}, {"_id": 0, "user_id": 1})
         result = await db.user_sessions.delete_one({"session_token": token})
         deleted = result.deleted_count
+        if deleted:
+            await _log_activity("logout", scope="user", user_id=(sess or {}).get("user_id", ""), ip=_client_ip(request))
     response.delete_cookie("session_token", path="/")
     return {"ok": True, "session_revoked": bool(deleted)}
 

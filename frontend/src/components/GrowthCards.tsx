@@ -24,12 +24,25 @@ export function GrowthCards({ signedIn }: { signedIn: boolean }) {
   const [push, setPush] = useState<PushState>('unsupported');
   const [ref, setRef] = useState<{ code: string; referred_count: number; points_each: number; share_url: string } | null>(null);
   const [canInstall, setCanInstall] = useState(!!deferredInstall);
+  const [iosInstall, setIosInstall] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     pushState().then(setPush);
     if (signedIn) myReferral().then(setRef);
     const t = setInterval(() => setCanInstall(!!deferredInstall), 3000);
+    // iOS Safari never fires beforeinstallprompt, so show a manual "Add to Home
+    // Screen" hint there (unless already installed) — an installed PWA keeps the
+    // user logged in like a native app, the most persistent path of all.
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      try {
+        const ua = (window.navigator?.userAgent) || '';
+        const isIOS = /iPhone|iPad|iPod/.test(ua);
+        const standalone = (window.navigator as any)?.standalone === true
+          || window.matchMedia?.('(display-mode: standalone)')?.matches;
+        setIosInstall(isIOS && !standalone);
+      } catch { /* noop */ }
+    }
     return () => clearInterval(t);
   }, [signedIn]);
 
@@ -65,7 +78,7 @@ export function GrowthCards({ signedIn }: { signedIn: boolean }) {
   }, []);
 
   const showPush = signedIn && (push === 'ready' || push === 'subscribed');
-  if (!showPush && !signedIn && !canInstall) return null;
+  if (!showPush && !signedIn && !canInstall && !iosInstall) return null;
 
   return (
     <View style={styles.card}>
@@ -105,12 +118,22 @@ export function GrowthCards({ signedIn }: { signedIn: boolean }) {
           </View>
         </TouchableOpacity>
       )}
+      {iosInstall && !canInstall && (
+        <View style={styles.row}>
+          <Ionicons name="add-circle-outline" size={20} color={COLORS.primary} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowTitle}>{tr('Instalar AMO')}</Text>
+            <Text style={styles.rowSub}>{tr('Toca Compartir y luego “Agregar a inicio” — abre la app y quedas siempre conectado')}</Text>
+          </View>
+          <Ionicons name="share-outline" size={18} color={COLORS.primary} />
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: 'rgba(212,175,55,0.3)', overflow: 'hidden' },
+  card: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: 'rgba(245,11,27,0.3)', overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: SPACING.md, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   rowTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
   rowSub: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, marginTop: 1 },

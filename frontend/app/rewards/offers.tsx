@@ -27,7 +27,7 @@ type Offer = {
 
 const TIER_COLORS_MAP: Record<string, string> = {
   explorer: '#3B82F6',
-  voyager: '#D97706',
+  voyager: '#F50B1B',
   elite: '#A855F7',
   legend: '#F59E0B',
 };

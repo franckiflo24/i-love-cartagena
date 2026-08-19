@@ -199,18 +199,18 @@ const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.82)', justifyContent: 'center', alignItems: 'center', padding: SPACING.lg },
   card: {
     width: '100%', maxWidth: 400, backgroundColor: '#0C0C13', borderRadius: 26, paddingTop: 34,
-    paddingHorizontal: SPACING.xl, paddingBottom: SPACING.lg, borderWidth: 1, borderColor: 'rgba(212,175,55,0.28)',
+    paddingHorizontal: SPACING.xl, paddingBottom: SPACING.lg, borderWidth: 1, borderColor: 'rgba(245,11,27,0.28)',
     overflow: 'hidden', alignItems: 'center',
   },
   glow: {
     position: 'absolute', top: -90, alignSelf: 'center', width: 320, height: 320, borderRadius: 160,
-    backgroundColor: 'rgba(212,175,55,0.16)', ...(Platform.OS === 'web' ? ({ filter: 'blur(70px)' } as any) : {}),
+    backgroundColor: 'rgba(245,11,27,0.16)', ...(Platform.OS === 'web' ? ({ filter: 'blur(70px)' } as any) : {}),
   },
   skip: { position: 'absolute', top: 14, right: 16, zIndex: 5, padding: 4 },
   skipText: { color: COLORS.textMuted, fontSize: 13, ...FONTS.semibold },
   iconWrap: {
     width: 62, height: 62, borderRadius: 31, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(212,175,55,0.14)', borderWidth: 1.5, borderColor: 'rgba(212,175,55,0.5)', marginBottom: 16,
+    backgroundColor: 'rgba(245,11,27,0.14)', borderWidth: 1.5, borderColor: 'rgba(245,11,27,0.5)', marginBottom: 16,
   },
   eyebrow: { color: COLORS.primary, fontSize: 11, letterSpacing: 2.4, ...FONTS.bold, marginBottom: 10 },
   title: {
@@ -219,8 +219,8 @@ const styles = StyleSheet.create({
   },
   body: { color: 'rgba(255,255,255,0.78)', fontSize: 15, textAlign: 'center', lineHeight: 22, paddingHorizontal: 2 },
   tip: {
-    flexDirection: 'row', gap: 9, alignItems: 'flex-start', marginTop: 16, backgroundColor: 'rgba(212,175,55,0.09)',
-    borderWidth: 1, borderColor: 'rgba(212,175,55,0.24)', borderRadius: 12, padding: 12,
+    flexDirection: 'row', gap: 9, alignItems: 'flex-start', marginTop: 16, backgroundColor: 'rgba(245,11,27,0.09)',
+    borderWidth: 1, borderColor: 'rgba(245,11,27,0.24)', borderRadius: 12, padding: 12,
   },
   tipText: { flex: 1, color: 'rgba(255,255,255,0.82)', fontSize: 13, lineHeight: 18 },
   wa: {

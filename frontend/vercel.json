@@ -11,6 +11,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/auth/:path*",
+      "destination": "https://backend-mu-one-74.vercel.app/api/auth/:path*"
+    },
+    {
       "source": "/pasaporte/share/:id",
       "destination": "/api/share-page?id=:id"
     },

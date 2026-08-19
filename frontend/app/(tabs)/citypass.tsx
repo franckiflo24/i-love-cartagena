@@ -93,6 +93,17 @@ export default function CityPassTab() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Canonical City Pass screen. Reached almost always via router.push (hidden
+          tab, href:null) — from perfil, bookings, search, Luna, payment return —
+          so it needs its own back affordance. Gated on canGoBack() so it never
+          shows a broken control if ever surfaced as a root. */}
+      {router.canGoBack() && (
+        <View style={styles.backHeader}>
+          <TouchableOpacity testID="citypass-back-btn" onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
+          </TouchableOpacity>
+        </View>
+      )}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30 }}>
         {loading ? (
           <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 80 }} />
@@ -180,11 +191,11 @@ export default function CityPassTab() {
                     <Text style={styles.portTaxTitle}>{tr('Tasa Portuaria')}</Text>
                     <View style={styles.portTaxBadge}>
                       <Ionicons name="qr-code" size={10} color="#22C55E" />
-                      <Text style={styles.portTaxBadgeText}>PAGA Y EMBARCA</Text>
+                      <Text style={styles.portTaxBadgeText}>{tr('PAGA Y EMBARCA')}</Text>
                     </View>
                   </View>
                   <Text style={styles.portTaxSub}>
-                    ${(portTax.price_per_person ?? 0).toLocaleString('es-CO')} COP / persona · Muelle La Bodeguita
+                    ${(portTax.price_per_person ?? 0).toLocaleString('es-CO')} {tr('COP / persona')} · Muelle La Bodeguita
                   </Text>
                   {activeTickets > 0 && (
                     <TouchableOpacity
@@ -235,11 +246,11 @@ export default function CityPassTab() {
                     <Text style={styles.portTaxTitle}>{tr('Tasa Portuaria')}</Text>
                     <View style={styles.portTaxBadge}>
                       <Ionicons name="qr-code" size={10} color="#22C55E" />
-                      <Text style={styles.portTaxBadgeText}>PAGA Y EMBARCA</Text>
+                      <Text style={styles.portTaxBadgeText}>{tr('PAGA Y EMBARCA')}</Text>
                     </View>
                   </View>
                   <Text style={styles.portTaxSub}>
-                    Pago oficial Muelle La Bodeguita → Islas
+                    {tr('Pago oficial Muelle La Bodeguita → Islas')}
                   </Text>
                   <View style={styles.portTaxMeta}>
                     <Text style={styles.portTaxPrice}>
@@ -321,11 +332,11 @@ export default function CityPassTab() {
               </View>
               <View style={styles.trustItem}>
                 <Ionicons name="refresh" size={18} color={COLORS.textMuted} />
-                <Text style={styles.trustText}>Reembolso 24h</Text>
+                <Text style={styles.trustText}>{tr('Reembolso 24h')}</Text>
               </View>
               <View style={styles.trustItem}>
                 <Ionicons name="headset" size={18} color={COLORS.textMuted} />
-                <Text style={styles.trustText}>Soporte 24/7</Text>
+                <Text style={styles.trustText}>{tr('Soporte 24/7')}</Text>
               </View>
             </View>
           </>
@@ -337,6 +348,8 @@ export default function CityPassTab() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
+  backHeader: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.sm },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
 
   // Hero
   hero: { alignItems: 'center', paddingTop: SPACING.lg, paddingHorizontal: SPACING.lg, paddingBottom: SPACING.md },
@@ -404,12 +417,12 @@ const styles = StyleSheet.create({
     marginHorizontal: SPACING.lg, marginBottom: SPACING.md, marginTop: SPACING.sm,
     paddingHorizontal: SPACING.md, paddingVertical: SPACING.md,
     backgroundColor: COLORS.surface, borderRadius: RADIUS.xl,
-    borderWidth: 1.5, borderColor: 'rgba(217,119,6,0.35)',
+    borderWidth: 1.5, borderColor: 'rgba(245,11,27,0.35)',
   },
   portTaxLeft: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   portTaxIconWrap: {
     width: 48, height: 48, borderRadius: 24,
-    backgroundColor: 'rgba(217,119,6,0.15)',
+    backgroundColor: 'rgba(245,11,27,0.15)',
     alignItems: 'center', justifyContent: 'center',
   },
   portTaxTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
@@ -427,7 +440,7 @@ const styles = StyleSheet.create({
 
   myTicketsBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start',
-    backgroundColor: 'rgba(217,119,6,0.10)', borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(245,11,27,0.10)', borderRadius: RADIUS.full,
     paddingHorizontal: 8, paddingVertical: 3, marginTop: 6,
   },
   myTicketsText: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },

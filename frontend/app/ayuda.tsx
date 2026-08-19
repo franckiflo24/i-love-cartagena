@@ -86,7 +86,7 @@ export default function HelpScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
           </TouchableOpacity>
-          <Text style={styles.title}>Ayuda y Emergencias</Text>
+          <Text style={styles.title}>{tr('Ayuda y Emergencias')}</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
@@ -97,7 +97,7 @@ export default function HelpScreen() {
               <Ionicons name="call" size={24} color="#FFF" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.sosTitle}>Emergencia — Llamar 123</Text>
+              <Text style={styles.sosTitle}>{tr('Emergencia — Llamar 123')}</Text>
               <Text style={styles.sosSubtitle}>{tr('Policía, Ambulancia, Bomberos')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.6)" />
@@ -153,7 +153,7 @@ export default function HelpScreen() {
           })}
 
           {/* ── CONTACT AMO ── */}
-          <Text style={[styles.sectionLabel, { marginTop: SPACING.xl }]}>Contactar AMO Cartagena</Text>
+          <Text style={[styles.sectionLabel, { marginTop: SPACING.xl }]}>{tr('Contactar AMO Cartagena')}</Text>
           <TouchableOpacity style={styles.amoContact} onPress={() => Linking.openURL('mailto:soporte@amocartagena.app')}>
             <View style={[styles.contactIcon, { backgroundColor: COLORS.primary + '18' }]}>
               <Ionicons name="mail" size={16} color={COLORS.primary} />
@@ -169,7 +169,7 @@ export default function HelpScreen() {
           <View style={styles.kindRow}>
             {[
               { id: 'bug' as const, label: 'Reportar problema', icon: 'bug' as const, color: '#EF4444' },
-              { id: 'idea' as const, label: 'Sugerencia', icon: 'bulb' as const, color: '#D4AF37' },
+              { id: 'idea' as const, label: 'Sugerencia', icon: 'bulb' as const, color: '#F50B1B' },
             ].map(k => (
               <TouchableOpacity
                 key={k.id}
@@ -205,7 +205,7 @@ export default function HelpScreen() {
             </TouchableOpacity>
             <Text style={styles.legalDot}>·</Text>
             <TouchableOpacity style={styles.legalBtn} onPress={() => router.push('/privacidad' as any)}>
-              <Text style={styles.legalText}>Privacidad</Text>
+              <Text style={styles.legalText}>{tr('Privacidad')}</Text>
             </TouchableOpacity>
           </View>
 

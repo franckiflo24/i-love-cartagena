@@ -252,8 +252,8 @@ const styles = StyleSheet.create({
   headerCenter: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   headerTitle: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold },
 
-  aiHero: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, padding: SPACING.md, margin: SPACING.lg, marginBottom: SPACING.sm, backgroundColor: 'rgba(217,119,6,0.1)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(217,119,6,0.4)' },
-  aiIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(217,119,6,0.2)' },
+  aiHero: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, padding: SPACING.md, margin: SPACING.lg, marginBottom: SPACING.sm, backgroundColor: 'rgba(245,11,27,0.1)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(245,11,27,0.4)' },
+  aiIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(245,11,27,0.2)' },
   aiTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
   aiDesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2, lineHeight: 16 },
   bridgeCard: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, padding: SPACING.md, marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border },
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   eventDate: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold, marginHorizontal: SPACING.md, marginTop: 2 },
   eventDesc: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 19, marginHorizontal: SPACING.md, marginTop: SPACING.xs },
 
-  aiBox: { flexDirection: 'row', gap: SPACING.sm, margin: SPACING.md, padding: SPACING.sm, backgroundColor: 'rgba(217,119,6,0.08)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(217,119,6,0.3)' },
+  aiBox: { flexDirection: 'row', gap: SPACING.sm, margin: SPACING.md, padding: SPACING.sm, backgroundColor: 'rgba(245,11,27,0.08)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(245,11,27,0.3)' },
   aiBoxLabel: { fontSize: 10, color: COLORS.primary, ...FONTS.bold, letterSpacing: 0.5, textTransform: 'uppercase' },
   aiBoxText: { fontSize: 12, color: COLORS.textMain, ...FONTS.regular, marginTop: 2, lineHeight: 17 },
   aiBoxIssues: { fontSize: 11, color: '#EF4444', ...FONTS.semibold, marginTop: 4 },

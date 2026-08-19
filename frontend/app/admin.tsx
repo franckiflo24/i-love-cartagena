@@ -54,14 +54,14 @@ const COUNTRY_FLAGS: Record<string, string> = {
   'Francia': '🇫🇷', 'Alemania': '🇩🇪', 'UK': '🇬🇧', 'Italia': '🇮🇹',
 };
 
-const PIE_COLORS = ['#D97706', '#3B82F6', '#22C55E', '#EC4899', '#8B5CF6', '#F59E0B', '#EF4444', '#06B6D4', '#84CC16', '#F97316', '#6366F1', '#14B8A6'];
+const PIE_COLORS = ['#F50B1B', '#3B82F6', '#22C55E', '#EC4899', '#8B5CF6', '#F59E0B', '#EF4444', '#06B6D4', '#84CC16', '#F97316', '#6366F1', '#14B8A6'];
 
 const chartConfig = {
   backgroundColor: 'transparent',
   backgroundGradientFrom: COLORS.surface,
   backgroundGradientTo: COLORS.surface,
   decimalCount: 0,
-  color: (opacity = 1) => `rgba(217, 119, 6, ${opacity})`,
+  color: (opacity = 1) => `rgba(245, 11, 27, ${opacity})`,
   labelColor: () => COLORS.textMuted,
   propsForBackgroundLines: { stroke: 'rgba(255,255,255,0.05)', strokeDasharray: '' },
   propsForLabels: { fontSize: 10 },
@@ -219,7 +219,7 @@ export default function AdminDashboard() {
         activeOpacity={0.85}
       >
         <View style={styles.modBannerLeft}>
-          <View style={[styles.modBannerIcon, { backgroundColor: 'rgba(217,119,6,0.25)' }]}>
+          <View style={[styles.modBannerIcon, { backgroundColor: 'rgba(245,11,27,0.25)' }]}>
             <Ionicons name="eye" size={20} color={COLORS.primary} />
           </View>
           <View style={{ flex: 1 }}>
@@ -260,7 +260,7 @@ export default function AdminDashboard() {
       {/* KPI Grid */}
       <View style={styles.kpiGrid}>
         <KPICard icon="people" label="Usuarios" value={data.kpis.total_users} color="#3B82F6" />
-        <KPICard icon="pulse" label="Interacciones" value={data.kpis.total_interactions} color="#D97706" />
+        <KPICard icon="pulse" label="Interacciones" value={data.kpis.total_interactions} color="#F50B1B" />
         <KPICard icon="calendar" label={tr('Eventos')} value={data.kpis.total_events} color="#22C55E" />
         <KPICard icon="diamond" label={tr('Partners')} value={data.kpis.total_partners} color="#8B5CF6" />
         <KPICard icon="ticket" label={tr('City Pass')} value={data.kpis.total_passes} color="#F59E0B" />
@@ -290,7 +290,7 @@ export default function AdminDashboard() {
             data={{
               labels: dailyLabels.filter((_, i) => i % 2 === 0),
               datasets: [
-                { data: dailyInteractions, color: () => '#D97706', strokeWidth: 2 },
+                { data: dailyInteractions, color: () => '#F50B1B', strokeWidth: 2 },
                 { data: dailyUsers, color: () => '#3B82F6', strokeWidth: 2 },
               ],
               legend: ['Interacciones', 'Usuarios'],
@@ -539,7 +539,7 @@ export default function AdminDashboard() {
             <Text style={styles.emptyText}>No hay ventas registradas</Text>
           ) : (
             data.revenue.by_tier.map((t, i) => {
-              const tierColors = ['#D97706', '#EAB308', '#F59E0B'];
+              const tierColors = ['#F50B1B', '#EAB308', '#F59E0B'];
               return (
                 <View key={t.tier} style={styles.tierRow}>
                   <View style={[styles.tierDot, { backgroundColor: tierColors[i] || COLORS.primary }]} />
@@ -584,7 +584,7 @@ export default function AdminDashboard() {
         <Card>
           <View style={styles.econRow}>
             <View style={styles.econItem}>
-              <Ionicons name="card" size={22} color="#D97706" />
+              <Ionicons name="card" size={22} color="#F50B1B" />
               <Text style={styles.econValue}>{formatCOP(data.revenue.total_cop)}</Text>
               <Text style={styles.econLabel}>Revenue directo</Text>
             </View>
@@ -685,11 +685,11 @@ const styles = StyleSheet.create({
   kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: SPACING.lg, gap: SPACING.sm, marginBottom: SPACING.md },
 
   // AI Moderation Banner
-  modBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(217,119,6,0.3)' },
+  modBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(245,11,27,0.3)' },
   modBannerAlert: { borderColor: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.08)' },
-  eagleBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: 'rgba(217,119,6,0.10)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(217,119,6,0.5)' },
+  eagleBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: 'rgba(245,11,27,0.10)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(245,11,27,0.5)' },
   modBannerLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, flex: 1 },
-  modBannerIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(217,119,6,0.15)', position: 'relative' },
+  modBannerIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(245,11,27,0.15)', position: 'relative' },
   modBadge: { position: 'absolute', top: -4, right: -4, minWidth: 20, height: 20, borderRadius: 10, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   modBadgeText: { color: '#FFF', fontSize: 11, ...FONTS.bold },
   modBannerTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
@@ -773,7 +773,7 @@ const styles = StyleSheet.create({
   peakHourText: { fontSize: 12, color: '#F59E0B', ...FONTS.semibold },
 
   // Revenue
-  revenueHero: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: 'rgba(217,119,6,0.08)', borderRadius: RADIUS.xl, padding: SPACING.lg, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(217,119,6,0.2)' },
+  revenueHero: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: 'rgba(245,11,27,0.08)', borderRadius: RADIUS.xl, padding: SPACING.lg, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(245,11,27,0.2)' },
   revenueHeroLabel: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
   revenueHeroValue: { fontSize: 32, color: COLORS.primary, ...FONTS.bold, marginTop: 4 },
   revenueHeroSub: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },

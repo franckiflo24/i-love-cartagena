@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
 
   body: { flex: 1, padding: SPACING.md, justifyContent: 'space-between' },
   timeRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
-  timePill: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(217,119,6,0.15)', borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2 },
+  timePill: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(245,11,27,0.15)', borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2 },
   timeText: { fontSize: 11, color: COLORS.primary, ...FONTS.bold },
   catPill: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2 },
   catText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.semibold },

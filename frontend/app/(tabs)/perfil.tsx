@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { Alert } from '../../src/lib/alert';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
+import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { useLang } from '../../src/context/LanguageContext';
 import { LANG_LABELS, LANG_FLAGS, Lang } from '../../src/i18n/translations';
 import { useFavorites } from '../../src/context/FavoritesContext';
@@ -29,6 +30,10 @@ export default function PerfilScreen() {
   const tr = useTr();
   const router = useRouter();
   const { user, login, logout, authError, clearAuthError } = useAuth();
+  // A partner may hold a business session but no consumer session — without this
+  // the consumer login screen looks like "you're logged out" (Franck: "losing my
+  // profile going to the main page"). Surface their dashboard instead.
+  const { token: bizToken, business: bizBusiness } = useBusinessAuth();
   const { lang, setLang, s } = useLang();
   const { favorites: favIds } = useFavorites();
   const rewards = useRewards();
@@ -42,6 +47,9 @@ export default function PerfilScreen() {
   // Local / tourist type — backend (/profile/me) is authoritative, AsyncStorage is the fallback
   const [typeChoice, setTypeChoice] = useState<'local' | 'visitor' | null>(null);
   const [showTypePicker, setShowTypePicker] = useState(false);
+  // Soft profile-completion nudge. Default true → never flash the card before we
+  // know; re-read on every focus so it vanishes the moment the user completes it.
+  const [profileCompleted, setProfileCompleted] = useState(true);
 
   // Sync the badge from whichever source knows the type (backend wins)
   useEffect(() => {
@@ -52,6 +60,16 @@ export default function PerfilScreen() {
       setTypeChoice(userProfile.userType);
     }
   }, [aiProfile, userProfile.userType]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      AsyncStorage.getItem('@profile_completed').then((v) => {
+        if (active) setProfileCompleted(v === 'true');
+      });
+      return () => { active = false; };
+    }, [])
+  );
 
   const handleSetType = async (type: 'local' | 'visitor') => {
     setShowTypePicker(false);
@@ -162,6 +180,28 @@ export default function PerfilScreen() {
             })}
           </View>
 
+          {/* Partner already signed in on the business side → don't make them feel
+              logged out; take them straight back to their dashboard. */}
+          {bizToken ? (
+            <TouchableOpacity
+              testID="partner-resume-card"
+              style={styles.partnerResume}
+              onPress={() => router.push('/business/dashboard' as any)}
+              activeOpacity={0.85}
+            >
+              <View style={styles.partnerResumeIcon}>
+                <Ionicons name="briefcase" size={20} color={COLORS.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.partnerResumeTitle}>{tr('Ya iniciaste sesión como socio')}</Text>
+                <Text style={styles.partnerResumeSub} numberOfLines={1}>
+                  {bizBusiness?.full_name || tr('Continúa a tu tablero de socio')}
+                </Text>
+              </View>
+              <Ionicons name="arrow-forward" size={18} color={COLORS.primary} />
+            </TouchableOpacity>
+          ) : null}
+
           {/* Welcome header */}
           <View style={styles.guestHero}>
             <View style={styles.guestAvatarCircle}>
@@ -251,7 +291,7 @@ export default function PerfilScreen() {
             onPress={() => router.push('/business/login')}
             activeOpacity={0.85}
           >
-            <View style={[styles.specialIconWrap, { backgroundColor: 'rgba(217,119,6,0.15)' }]}>
+            <View style={[styles.specialIconWrap, { backgroundColor: 'rgba(245,11,27,0.15)' }]}>
               <Ionicons name="business" size={22} color={COLORS.primary} />
             </View>
             <View style={{ flex: 1 }}>
@@ -408,6 +448,24 @@ export default function PerfilScreen() {
           </View>
         </View>
 
+        {!profileCompleted && (
+          <TouchableOpacity
+            testID="complete-profile-card"
+            style={sty.completeProfileCard}
+            onPress={() => router.push('/complete-profile' as any)}
+            activeOpacity={0.85}
+          >
+            <View style={sty.completeProfileIcon}>
+              <Ionicons name="sparkles" size={20} color={COLORS.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={sty.completeProfileTitle}>{tr('Completa tu perfil')}</Text>
+              <Text style={sty.completeProfileSub}>{tr('Recomendaciones personalizadas según tus gustos')}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        )}
+
         <GrowthCards signedIn={!!user} />
 
         {/* ── Quick Access ── */}
@@ -417,7 +475,7 @@ export default function PerfilScreen() {
           <SettingsRow icon="briefcase-outline" label={tr('Mi Viaje')} onPress={() => router.push('/viaje' as any)} />
           <SettingsRow icon="trail-sign-outline" label={tr('Rutas de Cartagena')} onPress={() => router.push('/rutas' as any)} />
           <SettingsRow icon="trophy-outline" label={s('profile_rewards') || 'Rewards'} onPress={() => router.push('/rewards' as any)} />
-          <SettingsRow icon="card-outline" label="City Pass" onPress={() => router.push('/city-pass' as any)} />
+          <SettingsRow icon="card-outline" label="City Pass" onPress={() => router.push('/(tabs)/citypass' as any)} />
           <SettingsRow icon="notifications-outline" label={s('profile_notifications') || tr('Notificaciones')} onPress={() => router.push('/notifications' as any)} />
           <SettingsRow icon="star-outline" label={tr('Mis reseñas')} onPress={() => router.push('/review/new' as any)} />
           <SettingsRow icon="trail-sign-outline" label={tr('Itinerarios IA')} onPress={() => router.push('/itineraries' as any)} />
@@ -611,7 +669,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: 'rgba(217,119,6,0.4)',
+    borderColor: 'rgba(245,11,27,0.4)',
   },
   businessIconWrap: {
     width: 40,
@@ -619,7 +677,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(217,119,6,0.15)',
+    backgroundColor: 'rgba(245,11,27,0.15)',
   },
   businessTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
   businessDesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
@@ -647,7 +705,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.12)',
   },
   langPillActive: {
-    backgroundColor: 'rgba(217,119,6,0.22)',
+    backgroundColor: 'rgba(245,11,27,0.22)',
     borderColor: COLORS.primary,
   },
   langPillFlag: { fontSize: 13 },
@@ -660,16 +718,29 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
     gap: SPACING.xs,
   },
+  partnerResume: {
+    flexDirection: 'row', alignItems: 'center', gap: SPACING.md,
+    marginTop: SPACING.md,
+    padding: SPACING.md, backgroundColor: `${COLORS.primary}12`,
+    borderRadius: RADIUS.lg, borderWidth: 1, borderColor: `${COLORS.primary}40`,
+  },
+  partnerResumeIcon: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: `${COLORS.primary}1A`,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  partnerResumeTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
+  partnerResumeSub: { fontSize: 12, color: COLORS.primary, ...FONTS.medium, marginTop: 2 },
   guestAvatarCircle: {
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: 'rgba(217,119,6,0.12)',
+    backgroundColor: 'rgba(245,11,27,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.xs,
     borderWidth: 1,
-    borderColor: 'rgba(217,119,6,0.3)',
+    borderColor: 'rgba(245,11,27,0.3)',
   },
   guestTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
   guestSubtitle: {
@@ -733,7 +804,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: 'rgba(217,119,6,0.3)',
+    borderColor: 'rgba(245,11,27,0.3)',
     marginBottom: SPACING.sm,
   },
   alcaldiaCard: {
@@ -776,6 +847,19 @@ const styles = StyleSheet.create({
 
 // ── Clean profile styles (logged-in view) ──
 const sty = StyleSheet.create({
+  completeProfileCard: {
+    flexDirection: 'row', alignItems: 'center', gap: SPACING.md,
+    marginHorizontal: SPACING.lg, marginBottom: SPACING.md,
+    padding: SPACING.md, backgroundColor: `${COLORS.primary}10`,
+    borderRadius: RADIUS.lg, borderWidth: 1, borderColor: `${COLORS.primary}35`,
+  },
+  completeProfileIcon: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: `${COLORS.primary}18`,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  completeProfileTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
+  completeProfileSub: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, marginTop: 2 },
   header: {
     alignItems: 'center',
     paddingTop: SPACING.lg,

@@ -132,7 +132,7 @@ export function StampCelebration({ data, onClose, onShare }: Props) {
         {/* Drop 11 (11D1): sharing is the triumphant beat, not a buried button */}
         {onShare ? (
           <TouchableOpacity
-            style={[styles.cta, { backgroundColor: '#D4AF37' }]}
+            style={[styles.cta, { backgroundColor: '#F50B1B' }]}
             onPress={onShare}
             activeOpacity={0.85}
           >
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   stamp: {
     width: 210, height: 210, borderRadius: 105, borderWidth: 3, borderColor: COLORS.primary,
     borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', gap: 6,
-    backgroundColor: 'rgba(212,175,55,0.06)', padding: 18,
+    backgroundColor: 'rgba(245,11,27,0.06)', padding: 18,
   },
   stampArc: { fontSize: 11, color: COLORS.primary, ...FONTS.bold, letterSpacing: 3 },
   stampVenue: { fontSize: 17, color: '#FFF', ...FONTS.bold, textAlign: 'center', lineHeight: 22 },
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   pointsText: { fontSize: 14, color: '#000', ...FONTS.bold },
   rankBanner: {
     flexDirection: 'row', alignItems: 'center', gap: 12, width: '100%',
-    backgroundColor: 'rgba(212,175,55,0.14)', borderRadius: RADIUS.lg, borderWidth: 1,
+    backgroundColor: 'rgba(245,11,27,0.14)', borderRadius: RADIUS.lg, borderWidth: 1,
     borderColor: COLORS.primary, padding: 14,
   },
   rankBannerIcon: { fontSize: 30 },
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   medalRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12, width: '100%',
     backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: RADIUS.lg, borderWidth: 1,
-    borderColor: 'rgba(212,175,55,0.4)', padding: 12,
+    borderColor: 'rgba(245,11,27,0.4)', padding: 12,
   },
   medalIcon: { fontSize: 26 },
   medalName: { fontSize: 14, color: '#FFF', ...FONTS.bold },

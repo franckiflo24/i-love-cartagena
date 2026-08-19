@@ -52,7 +52,6 @@ export default function RootLayout() {
         <Stack.Screen name="transport" options={{ presentation: 'modal' }} />
         <Stack.Screen name="itineraries" options={{ presentation: 'modal' }} />
         <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="city-pass" options={{ presentation: 'modal' }} />
         <Stack.Screen name="concerts" options={{ presentation: 'modal' }} />
         <Stack.Screen name="favorites" options={{ presentation: 'modal' }} />
         <Stack.Screen name="complete-profile" options={{ presentation: 'modal' }} />
@@ -78,7 +77,6 @@ export default function RootLayout() {
         <Stack.Screen name="ayuda" options={{ presentation: 'modal' }} />
         <Stack.Screen name="privacidad" options={{ presentation: 'modal' }} />
         <Stack.Screen name="terminos" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="eventos" options={{ presentation: 'modal' }} />
         <Stack.Screen name="favoritos" options={{ presentation: 'modal' }} />
       </Stack>
       <AlertHost />

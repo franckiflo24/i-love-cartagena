@@ -87,7 +87,7 @@ export default function EsencialesScreen() {
                     <TouchableOpacity style={styles.catHead} onPress={() => toggle(c.key)} activeOpacity={0.8}>
                       <Ionicons name={c.icon || 'ellipse'} size={18} color={COLORS.primary} />
                       <Text style={styles.catTitle}>{T(c, 'title')}</Text>
-                      {c.trust_required ? <Ionicons name="shield-checkmark" size={14} color="#F5D47A" style={{ marginLeft: 6 }} /> : null}
+                      {c.trust_required ? <Ionicons name="shield-checkmark" size={14} color="#FF6B75" style={{ marginLeft: 6 }} /> : null}
                       <View style={{ flex: 1 }} />
                       <Ionicons name={isOpen ? 'chevron-up' : 'chevron-down'} size={16} color={COLORS.textMuted} />
                     </TouchableOpacity>
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   section: { marginTop: SPACING.md },
   sectionHead: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: SPACING.lg, marginBottom: SPACING.sm },
   sectionTitle: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold },
-  catCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(212,175,55,0.22)', overflow: 'hidden' },
+  catCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(245,11,27,0.22)', overflow: 'hidden' },
   catHead: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: SPACING.md },
   catTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
   catBody: { paddingHorizontal: SPACING.md, paddingBottom: SPACING.md, gap: 7 },
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   entryRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   entryLabel: { flex: 1, fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
   entryValue: { fontSize: 12.5, color: COLORS.primary, ...FONTS.bold, textAlign: 'right' },
-  verify: { fontSize: 9, color: '#F5D47A', ...FONTS.bold, marginLeft: 4 },
+  verify: { fontSize: 9, color: '#FF6B75', ...FONTS.bold, marginLeft: 4 },
   link: { fontSize: 13, color: COLORS.primary, ...FONTS.bold, marginTop: 6 },
   footer: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'center', paddingHorizontal: SPACING.xl, marginTop: SPACING.lg, opacity: 0.7 },
 });

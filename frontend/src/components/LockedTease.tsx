@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { useSignupGate, GateAction } from '../context/SignupGateContext';
 
-const GOLD = '#D4AF37';
+const GOLD = '#F50B1B';
 
 interface Props {
   title: string;
@@ -60,7 +60,7 @@ export default function LockedTease({
 const styles = StyleSheet.create({
   wrap: {
     position: 'relative', borderRadius: RADIUS.lg, overflow: 'hidden',
-    borderWidth: 1, borderColor: 'rgba(212,175,55,0.25)', backgroundColor: COLORS.surface,
+    borderWidth: 1, borderColor: 'rgba(245,11,27,0.25)', backgroundColor: COLORS.surface,
   },
   blurLayer: { width: '100%' },
   scrim: {
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     padding: SPACING.lg, gap: 7,
   },
   seal: {
-    width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: 'rgba(212,175,55,0.5)',
+    width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, borderColor: 'rgba(245,11,27,0.5)',
     borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', marginBottom: 3,
   },
   title: {

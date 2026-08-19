@@ -436,7 +436,7 @@ function GemTeaseCard({ distance, rare, tr }: { distance: number; rare?: boolean
         {rare && (
           <View style={styles.rareBadge}><Text style={styles.rareBadgeText}>{tr('Joya escondida')}</Text></View>
         )}
-        <Ionicons name="sparkles" size={26} color={rare ? '#F5D47A' : COLORS.primary} />
+        <Ionicons name="sparkles" size={26} color={rare ? '#FF6B75' : COLORS.primary} />
         <Text style={styles.gemTeaseTitle}>{rare ? tr('Una joya escondida está cerca…') : tr('Un favorito local está cerca…')}</Text>
         <Text style={styles.gemTeaseBody}>{tr('camina para descubrirlo')}</Text>
         <View style={styles.gemTeaseDist}>
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(212,175,55,0.12)',
+    backgroundColor: 'rgba(245,11,27,0.12)',
     borderRadius: RADIUS.full,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -528,17 +528,17 @@ const styles = StyleSheet.create({
   passportHint: { fontSize: 9, color: COLORS.primary, ...FONTS.semibold },
 
   gemTease: {
-    borderColor: 'rgba(212,175,55,0.55)',
+    borderColor: 'rgba(245,11,27,0.55)',
     borderWidth: 1.5,
-    backgroundColor: 'rgba(212,175,55,0.06)',
+    backgroundColor: 'rgba(245,11,27,0.06)',
   },
   gemTeaseRare: {
-    borderColor: '#F5D47A',
+    borderColor: '#FF6B75',
     borderWidth: 2,
     backgroundColor: 'rgba(20,14,2,0.92)',
   },
   rareBadge: {
-    backgroundColor: '#F5D47A',
+    backgroundColor: '#FF6B75',
     borderRadius: RADIUS.full,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(212,175,55,0.14)',
+    backgroundColor: 'rgba(245,11,27,0.14)',
     borderRadius: RADIUS.full,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: 'rgba(212,175,55,0.35)',
+    borderColor: 'rgba(245,11,27,0.35)',
   },
   explainerTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
   explainerBody: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, lineHeight: 15 },

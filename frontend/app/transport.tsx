@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator,
   Linking as RNLinking,
@@ -9,8 +9,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
-import PaymentSheet from '../src/components/PaymentSheet';
-import type { PaymentResult } from '../src/lib/payments';
 
 const TRANSPORT_ICONS: Record<string, string> = {
   boat: 'boat',
@@ -33,9 +31,6 @@ export default function TransportScreen() {
   const router = useRouter();
   const [routes, setRoutes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [paySheetVisible, setPaySheetVisible] = useState(false);
-  const [payRoute, setPayRoute] = useState<any>(null);
-  const [payResult, setPayResult] = useState<PaymentResult | null>(null);
 
   const [officialFares, setOfficialFares] = useState<any[]>([]);
   const [faresExpanded, setFaresExpanded] = useState(false);
@@ -85,16 +80,6 @@ export default function TransportScreen() {
     RNLinking.openURL(`https://wa.me/${AMO_WHATSAPP}?text=${msg}`);
   };
 
-  const openPaySheet = useCallback((route: any) => {
-    setPayRoute(route);
-    setPayResult(null);
-    setPaySheetVisible(true);
-  }, []);
-
-  const handlePaySuccess = useCallback((result: PaymentResult) => {
-    setPayResult(result);
-  }, []);
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
@@ -103,7 +88,7 @@ export default function TransportScreen() {
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>{tr('Transporte')}</Text>
-          <Text style={styles.subtitle}>Lanchas, shuttles y transfers en Cartagena</Text>
+          <Text style={styles.subtitle}>{tr('Lanchas, shuttles y transfers en Cartagena')}</Text>
         </View>
         <TouchableOpacity onPress={() => router.push('/port-tax/tickets' as any)} style={styles.ticketsBtn}>
           <Ionicons name="ticket" size={18} color={COLORS.primary} />
@@ -234,7 +219,7 @@ export default function TransportScreen() {
                   <View style={styles.scheduleSection}>
                     <View style={styles.scheduleHeader}>
                       <Ionicons name="time" size={12} color={COLORS.primary} />
-                      <Text style={styles.scheduleTitle}>Salidas</Text>
+                      <Text style={styles.scheduleTitle}>{tr('Salidas')}</Text>
                       <View style={styles.scheduleCount}>
                         <Text style={styles.scheduleCountText}>{route.schedule.length}</Text>
                       </View>
@@ -318,7 +303,7 @@ export default function TransportScreen() {
                     onPress={() => openMaps(route.departure_location)}
                   >
                     <Ionicons name="navigate" size={14} color={COLORS.primary} />
-                    <Text style={styles.mapBtnText}>Punto de salida</Text>
+                    <Text style={styles.mapBtnText}>{tr('Punto de salida')}</Text>
                   </TouchableOpacity>
 
                   {(route.type === 'boat' || route.type === 'shuttle') ? (
@@ -331,14 +316,6 @@ export default function TransportScreen() {
                         <Ionicons name="logo-whatsapp" size={14} color={COLORS.white} />
                         <Text style={styles.payBtnText}>{tr('Reservar vía WhatsApp')}</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.simBtn}
-                        onPress={() => openPaySheet(route)}
-                        activeOpacity={0.85}
-                      >
-                        <Ionicons name="flask" size={14} color={COLORS.primary} />
-                        <Text style={styles.simBtnText}>{tr('Simular pago')}</Text>
-                      </TouchableOpacity>
                     </>
                   ) : null}
                 </View>
@@ -349,16 +326,6 @@ export default function TransportScreen() {
         <View style={{ height: SPACING.xxl }} />
       </ScrollView>
 
-      {/* Payment simulation sheet */}
-      <PaymentSheet
-        visible={paySheetVisible}
-        onClose={() => setPaySheetVisible(false)}
-        amount={payRoute ? parsePrice(payRoute.price || '').roundTrip || parsePrice(payRoute.price || '').oneWay || 50000 : 50000}
-        currency="COP"
-        meta={{ type: 'transport', route: payRoute?.route_name || payRoute?.route || '' }}
-        onSuccess={handlePaySuccess}
-        title="Simular pago — Transporte"
-      />
     </SafeAreaView>
   );
 }
@@ -373,7 +340,7 @@ const styles = StyleSheet.create({
   list: { flex: 1, paddingHorizontal: SPACING.lg },
   card: { backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, padding: SPACING.lg, marginBottom: SPACING.md, borderWidth: 1, borderColor: COLORS.border },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, marginBottom: SPACING.md },
-  iconWrap: { width: 44, height: 44, borderRadius: RADIUS.md, backgroundColor: 'rgba(217, 119, 6, 0.15)', alignItems: 'center', justifyContent: 'center' },
+  iconWrap: { width: 44, height: 44, borderRadius: RADIUS.md, backgroundColor: 'rgba(245, 11, 27, 0.15)', alignItems: 'center', justifyContent: 'center' },
   routeName: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold },
   routePartner: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
   qrBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(34,197,94,0.15)', borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 3, borderWidth: 1, borderColor: 'rgba(34,197,94,0.4)' },
@@ -382,7 +349,7 @@ const styles = StyleSheet.create({
   scheduleHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: SPACING.sm },
   scheduleTitle: { fontSize: 11, color: COLORS.textMain, ...FONTS.bold, letterSpacing: 1, textTransform: 'uppercase' },
   scheduleCount: {
-    backgroundColor: 'rgba(217,119,6,0.18)', borderRadius: 999,
+    backgroundColor: 'rgba(245,11,27,0.18)', borderRadius: 999,
     paddingHorizontal: 8, paddingVertical: 1, minWidth: 22, alignItems: 'center',
   },
   scheduleCountText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold },
@@ -395,14 +362,14 @@ const styles = StyleSheet.create({
   },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.primary },
   timePill: {
-    backgroundColor: 'rgba(217,119,6,0.15)', paddingHorizontal: 10, paddingVertical: 4,
+    backgroundColor: 'rgba(245,11,27,0.15)', paddingHorizontal: 10, paddingVertical: 4,
     borderRadius: RADIUS.md, minWidth: 56, alignItems: 'center',
   },
   timePillArrival: { backgroundColor: 'rgba(255,255,255,0.06)' },
   timePillText: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold, letterSpacing: 0.3 },
   routeLine: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4 },
   routeDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: COLORS.primary },
-  routeDash: { flex: 1, height: 1, backgroundColor: 'rgba(217,119,6,0.35)' },
+  routeDash: { flex: 1, height: 1, backgroundColor: 'rgba(245,11,27,0.35)' },
   durationChip: {
     backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 999,
     paddingHorizontal: 8, paddingVertical: 2,
@@ -429,19 +396,17 @@ const styles = StyleSheet.create({
   mapBtnText: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold },
   payBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 10, borderRadius: RADIUS.full, backgroundColor: COLORS.primary },
   payBtnText: { fontSize: 12, color: COLORS.white, ...FONTS.bold },
-  simBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 8, paddingHorizontal: 12, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary, backgroundColor: 'rgba(212,175,55,0.08)' },
-  simBtnText: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },
 
   // ── Official Fares Section ──
   faresSection: { backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, padding: SPACING.lg, marginBottom: SPACING.lg, borderWidth: 1, borderColor: COLORS.border },
   faresSectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   faresHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, flex: 1 },
-  faresIconWrap: { width: 44, height: 44, borderRadius: RADIUS.md, backgroundColor: 'rgba(212,175,55,0.15)', alignItems: 'center', justifyContent: 'center' },
+  faresIconWrap: { width: 44, height: 44, borderRadius: RADIUS.md, backgroundColor: 'rgba(245,11,27,0.15)', alignItems: 'center', justifyContent: 'center' },
   faresSectionTitle: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold },
   faresSectionSub: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
   fareRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: SPACING.sm, paddingHorizontal: SPACING.sm, marginTop: SPACING.sm, backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', gap: SPACING.sm },
   fareRouteCol: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-  fareZonePill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(212,175,55,0.12)', borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 3 },
+  fareZonePill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(245,11,27,0.12)', borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 3 },
   fareZoneText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold },
   fareDestText: { fontSize: 12, color: COLORS.textMain, ...FONTS.medium, flex: 1 },
   farePriceCol: { alignItems: 'flex-end', minWidth: 80 },

@@ -11,8 +11,6 @@ import { api } from '../src/constants/api';
 import { useFavorites } from '../src/context/FavoritesContext';
 import { useTr } from '../src/i18n/autoTr';
 import { SafeImage } from '../src/components/SafeImage';
-import PaymentSheet from '../src/components/PaymentSheet';
-import type { PaymentResult } from '../src/lib/payments';
 import { bogotaToday } from '../src/lib/eventTime';
 
 type Concert = {
@@ -24,8 +22,8 @@ type Concert = {
 };
 
 const GENRE_COLORS: Record<string, string> = {
-  'Deep House': '#D97706',
-  'Melodic Techno': '#D97706',
+  'Deep House': '#F50B1B',
+  'Melodic Techno': '#F50B1B',
   'Reggaeton': '#EC4899',
   'Latin Pop': '#EC4899',
   'Trap Latino': '#EC4899',
@@ -42,11 +40,11 @@ const GENRE_COLORS: Record<string, string> = {
   'Cumbia': '#F97316',
   'Melodic House': '#3B82F6',
   'Progressive': '#3B82F6',
-  'Multi-género': '#D97706',
+  'Multi-género': '#F50B1B',
 };
 
 const GENRE_FILTERS = [
-  { key: 'house', label: 'Electro', color: '#D97706' },
+  { key: 'house', label: 'Electro', color: '#F50B1B' },
   { key: 'reggaeton', label: 'Reggaeton', color: '#EC4899' },
   { key: 'salsa', label: 'Salsa', color: '#EF4444' },
   { key: 'jazz', label: 'Jazz', color: '#F59E0B' },
@@ -87,8 +85,6 @@ export default function ConcertsScreen() {
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
-  const [paySheetVisible, setPaySheetVisible] = useState(false);
-  const [payConcert, setPayConcert] = useState<Concert | null>(null);
 
   useEffect(() => {
     // Static-first: paint from /data/*.json, then hydrate from backend in background
@@ -358,17 +354,6 @@ export default function ConcertsScreen() {
                       </View>
                     )}
 
-                    {/* Simulate purchase (paid concerts only) */}
-                    {!concert.is_free && (
-                      <TouchableOpacity
-                        style={styles.simPurchaseBtn}
-                        onPress={() => { setPayConcert(concert); setPaySheetVisible(true); }}
-                        activeOpacity={0.85}
-                      >
-                        <Ionicons name="flask" size={16} color={COLORS.primary} />
-                        <Text style={styles.simPurchaseText}>Simular compra</Text>
-                      </TouchableOpacity>
-                    )}
                   </View>
                 )}
               </TouchableOpacity>
@@ -377,15 +362,6 @@ export default function ConcertsScreen() {
         )}
       </ScrollView>
 
-      {/* Payment simulation sheet */}
-      <PaymentSheet
-        visible={paySheetVisible}
-        onClose={() => setPaySheetVisible(false)}
-        amount={payConcert?.price || 50000}
-        currency="COP"
-        meta={{ type: 'concert', concert_id: payConcert?.concert_id || '', artist: payConcert?.artist || '' }}
-        title="Simular compra — Concierto"
-      />
     </SafeAreaView>
   );
 }
@@ -465,10 +441,6 @@ const styles = StyleSheet.create({
   ticketBtnText: { fontSize: 15, color: '#FFF', ...FONTS.bold },
   locationCta: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: `${COLORS.primary}10`, paddingHorizontal: 12, paddingVertical: 10, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: `${COLORS.primary}25` },
   locationCtaText: { flex: 1, fontSize: 13, color: COLORS.primary, ...FONTS.semibold },
-
-  // Simulate purchase
-  simPurchaseBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, paddingVertical: 12, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary, backgroundColor: 'rgba(212,175,55,0.08)', marginTop: 4 },
-  simPurchaseText: { fontSize: 14, color: COLORS.primary, ...FONTS.semibold },
 
   // Empty
   pastBadge: { position: 'absolute', top: 12, left: 60, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(0,0,0,0.7)', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4, zIndex: 3 },

@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   chipText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold },
   chipTextActive: { color: COLORS.white },
-  dupBox: { marginTop: SPACING.lg, padding: SPACING.md, backgroundColor: 'rgba(217,119,6,0.08)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.primary },
+  dupBox: { marginTop: SPACING.lg, padding: SPACING.md, backgroundColor: 'rgba(245,11,27,0.08)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.primary },
   dupHead: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dupTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
   dupSub: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 4, marginBottom: SPACING.sm },

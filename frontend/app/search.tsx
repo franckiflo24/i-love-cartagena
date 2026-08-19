@@ -71,7 +71,7 @@ const INTENT_META: Record<string, { color: string; icon: string; label: string }
   concert:    { color: '#F472B6', icon: 'musical-notes',     label: 'Concierto' },
   transport:  { color: '#3B82F6', icon: 'boat',              label: 'Transporte' },
   itinerary:  { color: '#FBBF24', icon: 'map',               label: 'Itinerario' },
-  city_pass:  { color: '#D97706', icon: 'sparkles',          label: 'City Pass' },
+  city_pass:  { color: '#F50B1B', icon: 'sparkles',          label: 'City Pass' },
   port_tax:   { color: '#06B6D4', icon: 'qr-code',           label: 'Tasa Portuaria' },
   general:    { color: COLORS.primary, icon: 'compass',      label: 'Sugerencia' },
 };
@@ -767,7 +767,7 @@ export default function SearchScreen() {
                 { label: 'Cena romántica' },
                 { label: 'Conciertos' },
                 { label: 'Lancha a Rosario' },
-                { label: 'City Pass', route: '/city-pass' },
+                { label: 'City Pass', route: '/(tabs)/citypass' },
                 { label: 'Tasa portuaria', route: '/port-tax/checkout' },
                 { label: 'Brunch' },
                 { label: 'Salsa' },
@@ -910,7 +910,7 @@ export default function SearchScreen() {
                   </Text>
                   <Text style={{ fontSize: 12, color: COLORS.textMuted, ...FONTS.medium, marginTop: 1 }}>{tr('Info verificada en Esenciales')}</Text>
                 </View>
-                {(results as any).essentials.trust_flag ? <Ionicons name="shield-checkmark" size={16} color="#F5D47A" /> : null}
+                {(results as any).essentials.trust_flag ? <Ionicons name="shield-checkmark" size={16} color="#FF6B75" /> : null}
                 <Ionicons name="chevron-forward" size={18} color="#14B8A6" />
               </TouchableOpacity>
             ) : null}
@@ -1247,7 +1247,7 @@ const styles = StyleSheet.create({
     marginHorizontal: SPACING.lg, marginTop: SPACING.md,
     padding: SPACING.md, borderRadius: RADIUS.xl,
     backgroundColor: COLORS.surface,
-    borderWidth: 1.5, borderColor: 'rgba(217,119,6,0.35)',
+    borderWidth: 1.5, borderColor: 'rgba(245,11,27,0.35)',
     gap: SPACING.sm,
   },
   aiHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
@@ -1374,8 +1374,8 @@ const styles = StyleSheet.create({
   actionsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: SPACING.xs },
   actionBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: 'rgba(217,119,6,0.12)',
-    borderWidth: 1, borderColor: 'rgba(217,119,6,0.4)',
+    backgroundColor: 'rgba(245,11,27,0.12)',
+    borderWidth: 1, borderColor: 'rgba(245,11,27,0.4)',
     paddingHorizontal: 10, paddingVertical: 7,
     borderRadius: RADIUS.full,
   },

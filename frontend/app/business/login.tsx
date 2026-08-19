@@ -173,7 +173,7 @@ export default function BusinessLogin() {
                     <ActivityIndicator size="small" color={COLORS.white} />
                   ) : (
                     <>
-                      <Text style={styles.loginText}>Entrar al dashboard</Text>
+                      <Text style={styles.loginText}>{tr('Entrar al dashboard')}</Text>
                       <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
                     </>
                   )}
@@ -188,7 +188,7 @@ export default function BusinessLogin() {
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => router.push('/business/login?role=alcaldia' as any)} style={styles.alcaldiaBtn}>
                   <Ionicons name="shield-checkmark" size={14} color="#1B4F72" />
-                  <Text style={styles.alcaldiaLink}>Acceso Alcaldía de Cartagena</Text>
+                  <Text style={styles.alcaldiaLink}>{tr('Acceso Alcaldía de Cartagena')}</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -201,6 +201,15 @@ export default function BusinessLogin() {
               <Ionicons name="arrow-forward" size={14} color={COLORS.primary} />
             </TouchableOpacity>
           )}
+
+          {/* Escape hatch back to the CONSUMER side — this is the partner login;
+              a person who just wants to use the app as themselves goes straight to
+              the personal login (Google / email), bypassing the partner-resume card. */}
+          <TouchableOpacity style={styles.personalBtn} onPress={() => router.replace('/login' as any)}>
+            <Ionicons name="person-circle-outline" size={16} color={COLORS.textMuted} />
+            <Text style={styles.personalText}>{tr('¿Eres un usuario? Inicia sesión personal')}</Text>
+            <Ionicons name="arrow-forward" size={13} color={COLORS.textMuted} />
+          </TouchableOpacity>
 
           <View style={styles.helpBox}>
             <Ionicons name="information-circle-outline" size={16} color={COLORS.textMuted} />
@@ -219,7 +228,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', paddingHorizontal: SPACING.md, paddingTop: SPACING.sm },
   backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border },
   scroll: { padding: SPACING.lg, alignItems: 'center' },
-  heroIcon: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(217,119,6,0.15)', borderWidth: 1.5, borderColor: COLORS.primary, marginTop: SPACING.lg },
+  heroIcon: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(245,11,27,0.15)', borderWidth: 1.5, borderColor: COLORS.primary, marginTop: SPACING.lg },
   heroIconAlcaldia: { backgroundColor: 'rgba(27,79,114,0.18)', borderColor: '#1B4F72' },
   title: { fontSize: 26, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.lg, textAlign: 'center' },
   subtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 20, paddingHorizontal: SPACING.md, marginTop: SPACING.xs },
@@ -241,6 +250,8 @@ const styles = StyleSheet.create({
   signupBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginTop: SPACING.lg },
   signupText: { color: COLORS.textMuted, fontSize: 13, ...FONTS.regular },
   signupTextBold: { color: COLORS.primary, fontSize: 13, ...FONTS.bold },
+  personalBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 12, marginTop: SPACING.md, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.full },
+  personalText: { color: COLORS.textMain, fontSize: 13, ...FONTS.bold },
   helpBox: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.sm, padding: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, marginTop: SPACING.lg, width: '100%' },
   helpText: { flex: 1, fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 18 },
 });

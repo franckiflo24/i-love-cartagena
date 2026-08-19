@@ -173,7 +173,7 @@ export default function AddToTrip({ refType, refId, name, compact, style }: Prop
 const styles = StyleSheet.create({
   chip: {
     width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(212,175,55,0.12)', borderWidth: 1, borderColor: 'rgba(212,175,55,0.35)',
+    backgroundColor: 'rgba(245,11,27,0.12)', borderWidth: 1, borderColor: 'rgba(245,11,27,0.35)',
   },
   button: {
     flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'center',
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   sheet: {
     backgroundColor: '#101014', borderTopLeftRadius: 20, borderTopRightRadius: 20,
     padding: SPACING.lg, paddingBottom: Platform.OS === 'web' ? SPACING.lg : SPACING.xl,
-    borderWidth: 1, borderColor: 'rgba(212,175,55,0.2)',
+    borderWidth: 1, borderColor: 'rgba(245,11,27,0.2)',
   },
   title: { color: COLORS.textMain, fontSize: 17, ...FONTS.bold },
   subtitle: { color: COLORS.textMuted, fontSize: 13, marginTop: 2, marginBottom: SPACING.sm },

@@ -34,18 +34,21 @@ type Itinerary = { title: string; summary: string; days: Day[] };
 // Small UI atoms
 // ----------------------------------------------------------------------------
 function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  const tr = useTr();
   return (
     <Pressable onPress={onPress} style={[s.chip, active && s.chipOn]}>
-      <Text style={[s.chipTxt, active && s.chipTxtOn]}>{label}</Text>
+      {/* Display is translated; the ES `label` stays the value sent to the AI. */}
+      <Text style={[s.chipTxt, active && s.chipTxtOn]}>{tr(label)}</Text>
     </Pressable>
   );
 }
 function Segmented({ options, value, onChange }: { options: string[]; value: string; onChange: (v: string) => void }) {
+  const tr = useTr();
   return (
     <View style={s.segment}>
       {options.map((o) => (
         <Pressable key={o} onPress={() => onChange(o)} style={[s.segBtn, value === o && s.segBtnOn]}>
-          <Text style={[s.segTxt, value === o && s.segTxtOn]}>{o}</Text>
+          <Text style={[s.segTxt, value === o && s.segTxtOn]}>{tr(o)}</Text>
         </Pressable>
       ))}
     </View>
@@ -292,7 +295,7 @@ export default function ItineraryScreen() {
           <Text style={s.backTxt}>‹</Text>
         </Pressable>
         <View>
-          <Text style={s.hTitle}>Planificador IA</Text>
+          <Text style={s.hTitle}>{tr('Planificador IA')}</Text>
           <Text style={s.hSub}>{tr('Tu Cartagena, día por día')}</Text>
         </View>
       </View>
@@ -312,19 +315,19 @@ export default function ItineraryScreen() {
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
           <Text style={s.lead}>{tr('Cuéntame tu viaje y armo un plan con lugares reales de Cartagena.')}</Text>
 
-          <Stepper label="Días" value={days} min={1} max={7} onChange={setDays} />
-          <Stepper label="Personas" value={party} min={1} max={10} onChange={setParty} />
+          <Stepper label={tr('Días')} value={days} min={1} max={7} onChange={setDays} />
+          <Stepper label={tr('Personas')} value={party} min={1} max={10} onChange={setParty} />
 
-          <Text style={s.sec}>Intereses</Text>
+          <Text style={s.sec}>{tr('Intereses')}</Text>
           <View style={s.wrap}>{INTERESTS.map((i) => <Chip key={i} label={i} active={interests.includes(i)} onPress={() => toggle(interests, i, setInterests)} />)}</View>
 
-          <Text style={s.sec}>Presupuesto</Text>
+          <Text style={s.sec}>{tr('Presupuesto')}</Text>
           <Segmented options={BUDGET} value={budget} onChange={setBudget} />
 
-          <Text style={s.sec}>Ritmo</Text>
+          <Text style={s.sec}>{tr('Ritmo')}</Text>
           <Segmented options={PACE} value={pace} onChange={setPace} />
 
-          <Text style={s.sec}>Zonas (opcional)</Text>
+          <Text style={s.sec}>{tr('Zonas (opcional)')}</Text>
           <View style={s.wrap}>{ZONES.map((z) => <Chip key={z} label={z} active={zones.includes(z)} onPress={() => toggle(zones, z, setZones)} />)}</View>
 
           <Pressable style={[s.btnGold, { marginTop: 22 }]} onPress={generate}><Text style={s.btnGoldTxt}>{tr('Generar mi plan ✨')}</Text></Pressable>
@@ -339,14 +342,14 @@ export default function ItineraryScreen() {
 
           <View style={s.actions}>
             <Pressable style={s.btnGoldSm} onPress={sharePlan}><Text style={s.btnGoldTxt}>{tr('Compartir plan')}</Text></Pressable>
-            {!plan && <Pressable style={s.btnGhost} onPress={() => setMode('form')}><Text style={s.btnGhostTxt}>Editar</Text></Pressable>}
-            {!plan && <Pressable style={s.btnGhost} onPress={generate}><Text style={s.btnGhostTxt}>Otro plan</Text></Pressable>}
+            {!plan && <Pressable style={s.btnGhost} onPress={() => setMode('form')}><Text style={s.btnGhostTxt}>{tr('Editar')}</Text></Pressable>}
+            {!plan && <Pressable style={s.btnGhost} onPress={generate}><Text style={s.btnGhostTxt}>{tr('Otro plan')}</Text></Pressable>}
           </View>
 
           {itin.days.map((d, di) => (
             <View key={di} style={s.day}>
               <View style={s.dayHead}>
-                <View style={s.dayBadge}><Text style={s.dayBadgeTxt}>Día {d.day}</Text></View>
+                <View style={s.dayBadge}><Text style={s.dayBadgeTxt}>{tr('Día')} {d.day}</Text></View>
                 {!!d.theme && <Text style={s.dayTheme}>{d.theme}</Text>}
               </View>
               <DayMap items={d.items} />

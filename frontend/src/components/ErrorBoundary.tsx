@@ -78,7 +78,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background, alignItems: 'center', justifyContent: 'center', padding: SPACING.xl, gap: SPACING.md },
-  iconWrap: { width: 88, height: 88, borderRadius: 44, backgroundColor: 'rgba(217,119,6,0.12)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(217,119,6,0.3)' },
+  iconWrap: { width: 88, height: 88, borderRadius: 44, backgroundColor: 'rgba(245,11,27,0.12)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(245,11,27,0.3)' },
   title: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
   subtitle: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 20 },
   homeBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.surface, paddingVertical: 11, paddingHorizontal: 24, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border },

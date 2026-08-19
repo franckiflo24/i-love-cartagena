@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold, marginBottom: SPACING.sm, marginTop: SPACING.md, letterSpacing: 0.3 },
   description: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 22 },
 
-  calendarBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: SPACING.lg, paddingVertical: 12, borderRadius: RADIUS.full, borderWidth: 1.5, borderColor: COLORS.primary, backgroundColor: 'rgba(217,119,6,0.1)' },
+  calendarBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: SPACING.lg, paddingVertical: 12, borderRadius: RADIUS.full, borderWidth: 1.5, borderColor: COLORS.primary, backgroundColor: 'rgba(245,11,27,0.1)' },
   calendarBtnActive: { borderColor: '#22C55E', backgroundColor: 'rgba(34,197,94,0.12)' },
   calendarBtnText: { fontSize: 14, color: COLORS.primary, ...FONTS.bold, letterSpacing: 0.3 },
 
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 4 },
   metaText: { fontSize: 11, color: 'rgba(255,255,255,0.7)', ...FONTS.regular, flex: 1 },
   partnerActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: SPACING.xs, marginTop: SPACING.sm },
-  iconBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(217,119,6,0.2)', borderWidth: 1, borderColor: COLORS.primary, paddingHorizontal: 10, paddingVertical: 5, borderRadius: RADIUS.full },
+  iconBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(245,11,27,0.2)', borderWidth: 1, borderColor: COLORS.primary, paddingHorizontal: 10, paddingVertical: 5, borderRadius: RADIUS.full },
   iconBtnText: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },
   calendarBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 8, paddingVertical: 5, borderRadius: RADIUS.full },
   calendarBadgeText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.semibold },

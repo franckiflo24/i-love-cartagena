@@ -175,7 +175,7 @@ export default function MyContent() {
           {/* (a) Photo upload */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{tr('Sube una foto')}</Text>
-            <Text style={styles.hint}>{tr('Tu foto pasa por revisión de IA y del equipo antes de aparecer en tu galería.')}</Text>
+            <Text style={styles.hint}>{tr('Tu foto se publica al instante en tu galería. Solo bloqueamos automáticamente contenido inseguro.')}</Text>
             <TextInput
               style={[styles.input, { marginTop: SPACING.sm }]}
               value={caption}
@@ -267,16 +267,24 @@ export default function MyContent() {
               )}
             </TouchableOpacity>
             {priceResult?.submitted && (
-              <View style={[styles.resultBox, { backgroundColor: 'rgba(245,158,11,0.10)', borderColor: '#F59E0B' }]}>
-                <Ionicons name="hourglass" size={16} color="#F59E0B" />
-                <Text style={[styles.resultText, { color: '#F59E0B' }]}>{tr('Precio enviado a revisión')}</Text>
-              </View>
+              priceResult.status === 'approved' ? (
+                <View style={[styles.resultBox, { backgroundColor: 'rgba(34,197,94,0.10)', borderColor: '#22C55E' }]}>
+                  <Ionicons name="checkmark-circle" size={16} color="#22C55E" />
+                  <Text style={[styles.resultText, { color: '#22C55E' }]}>{tr('¡Precio publicado! Ya aparece en tu perfil.')}</Text>
+                </View>
+              ) : (
+                <View style={[styles.resultBox, { backgroundColor: 'rgba(245,158,11,0.10)', borderColor: '#F59E0B' }]}>
+                  <Ionicons name="hourglass" size={16} color="#F59E0B" />
+                  <Text style={[styles.resultText, { color: '#F59E0B' }]}>{tr('Precio enviado a revisión')}</Text>
+                </View>
+              )
             )}
           </View>
 
           {/* (c) Mis envíos — status of everything ever submitted */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{tr('Mis envíos')}</Text>
+            <Text style={styles.hint}>{tr('Las fotos se publican al instante. Precios y eventos suelen publicarse al instante; algunos casos pasan por una revisión rápida.')}</Text>
             {subsLoading ? (
               <ActivityIndicator color={COLORS.primary} style={{ marginTop: SPACING.md }} />
             ) : !hasSubs ? (
@@ -306,7 +314,7 @@ export default function MyContent() {
                   return (
                     <View key={p.price_id} style={styles.subCard}>
                       <View style={styles.subRow}>
-                        <View style={[styles.typeTag, { backgroundColor: 'rgba(212,175,55,0.15)' }]}>
+                        <View style={[styles.typeTag, { backgroundColor: 'rgba(245,11,27,0.15)' }]}>
                           <Text style={styles.typeTagText}>{tr('Precio')}</Text>
                         </View>
                         <View style={[styles.chip, { backgroundColor: meta.bg }]}>

@@ -426,8 +426,8 @@ const styles = StyleSheet.create({
   metaRow: { gap: 6 },
   membersRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   memberChip: {
-    backgroundColor: 'rgba(212,175,55,0.1)', borderRadius: 999,
-    paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(212,175,55,0.25)',
+    backgroundColor: 'rgba(245,11,27,0.1)', borderRadius: 999,
+    paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: 'rgba(245,11,27,0.25)',
   },
   memberChipText: { color: COLORS.primary, fontSize: 12, ...FONTS.semibold },
   updatedText: { color: COLORS.textMuted, fontSize: 11 },
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.72)', justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: '#101014', borderTopLeftRadius: 20, borderTopRightRadius: 20,
-    padding: SPACING.lg, borderWidth: 1, borderColor: 'rgba(212,175,55,0.2)',
+    padding: SPACING.lg, borderWidth: 1, borderColor: 'rgba(245,11,27,0.2)',
   },
   sheetTitle: { color: COLORS.textMain, fontSize: 16, ...FONTS.bold, marginBottom: SPACING.sm },
   sheetLabel: { color: COLORS.textMuted, fontSize: 12, marginTop: SPACING.sm, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },

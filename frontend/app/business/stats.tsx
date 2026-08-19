@@ -23,7 +23,7 @@ type BusinessEvent = {
 };
 
 const META: Record<StatType, { title: string; icon: keyof typeof Ionicons.glyphMap; color: string; subtitle: string }> = {
-  upcoming:     { title: 'Eventos próximos',  icon: 'calendar',        color: '#D97706', subtitle: 'Tus eventos publicados desde hoy en adelante' },
+  upcoming:     { title: 'Eventos próximos',  icon: 'calendar',        color: '#F50B1B', subtitle: 'Tus eventos publicados desde hoy en adelante' },
   views:        { title: 'Vistas totales',    icon: 'eye',             color: '#22C55E', subtitle: 'Cuántas veces los clientes vieron tus eventos' },
   reservations: { title: 'Reservas',          icon: 'flash',           color: '#A855F7', subtitle: 'Solicitudes recibidas y reservas confirmadas' },
   total:        { title: 'Todos tus eventos', icon: 'layers',          color: '#F59E0B', subtitle: 'Publicados, borradores y archivados' },

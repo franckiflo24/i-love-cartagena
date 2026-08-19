@@ -468,7 +468,7 @@ export default function PasaporteScreen() {
 
             {/* ── Rutas entry (Drop 5) ── */}
             <TouchableOpacity
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: 'rgba(212,175,55,0.07)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(212,175,55,0.35)' }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: 'rgba(245,11,27,0.07)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(245,11,27,0.35)' }}
               onPress={() => router.push('/rutas' as any)}
               activeOpacity={0.85}
             >
@@ -846,10 +846,10 @@ const styles = StyleSheet.create({
 
   syncBanner: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, padding: 10, backgroundColor: 'rgba(245,158,11,0.10)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)' },
   syncBannerText: { flex: 1, fontSize: 11, color: '#F59E0B', ...FONTS.medium },
-  notice: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, padding: 10, backgroundColor: 'rgba(212,175,55,0.12)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(212,175,55,0.4)' },
+  notice: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, padding: 10, backgroundColor: 'rgba(245,11,27,0.12)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(245,11,27,0.4)' },
   noticeText: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold, textAlign: 'center' },
 
-  inviteCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.lg, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: 'rgba(212,175,55,0.35)', alignItems: 'center', gap: 8 },
+  inviteCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.lg, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: 'rgba(245,11,27,0.35)', alignItems: 'center', gap: 8 },
   inviteEmoji: { fontSize: 40 },
   inviteTitle: { fontSize: 17, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
   inviteBody: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'center', lineHeight: 19 },
@@ -857,9 +857,9 @@ const styles = StyleSheet.create({
   inviteBtnText: { fontSize: 13, color: '#000', ...FONTS.bold },
 
   // Drop 8 — passport cover
-  cover: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, padding: SPACING.md, backgroundColor: 'rgba(212,175,55,0.07)', borderRadius: RADIUS.xl, borderWidth: 1.5, borderColor: 'rgba(212,175,55,0.5)', gap: 12 },
+  cover: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, padding: SPACING.md, backgroundColor: 'rgba(245,11,27,0.07)', borderRadius: RADIUS.xl, borderWidth: 1.5, borderColor: 'rgba(245,11,27,0.5)', gap: 12 },
   coverTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  rankSeal: { width: 58, height: 58, borderRadius: 29, borderWidth: 2, borderColor: COLORS.primary, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(212,175,55,0.10)' },
+  rankSeal: { width: 58, height: 58, borderRadius: 29, borderWidth: 2, borderColor: COLORS.primary, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(245,11,27,0.10)' },
   rankSealIcon: { fontSize: 28 },
   coverKicker: { fontSize: 9, color: COLORS.primary, ...FONTS.bold, letterSpacing: 2 },
   rankName: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, marginTop: 1 },
@@ -879,7 +879,7 @@ const styles = StyleSheet.create({
   nudgeTitle: { fontSize: 13, color: '#000', ...FONTS.bold },
   nudgeSub: { fontSize: 11, color: 'rgba(0,0,0,0.65)', ...FONTS.medium, marginTop: 1 },
 
-  medalTile: { width: '30.5%', minWidth: 96, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(212,175,55,0.45)', alignItems: 'center', padding: 10, gap: 3 },
+  medalTile: { width: '30.5%', minWidth: 96, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(245,11,27,0.45)', alignItems: 'center', padding: 10, gap: 3 },
   medalTileLocked: { borderColor: COLORS.border },
   medalTileIcon: { fontSize: 24 },
   medalTileName: { fontSize: 10.5, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
@@ -889,13 +889,13 @@ const styles = StyleSheet.create({
   titleText: { fontSize: 12, color: COLORS.primary, ...FONTS.bold, marginTop: 2, fontStyle: 'italic' },
   rarezaText: { fontSize: 9, color: COLORS.primary, ...FONTS.semibold, marginTop: 2 },
 
-  pullLine: { fontSize: 11, color: 'rgba(212,175,55,0.85)', ...FONTS.medium, paddingHorizontal: SPACING.lg, marginTop: -4, marginBottom: SPACING.sm },
-  almostCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, padding: 12, backgroundColor: 'rgba(212,175,55,0.12)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.primary, gap: 2 },
+  pullLine: { fontSize: 11, color: 'rgba(245,11,27,0.85)', ...FONTS.medium, paddingHorizontal: SPACING.lg, marginTop: -4, marginBottom: SPACING.sm },
+  almostCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, padding: 12, backgroundColor: 'rgba(245,11,27,0.12)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.primary, gap: 2 },
   almostTitle: { fontSize: 12, color: COLORS.primary, ...FONTS.bold },
   almostText: { fontSize: 12, color: COLORS.textMain, ...FONTS.semibold },
 
   specialRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, padding: 12 },
-  specialEarned: { borderColor: COLORS.primary, backgroundColor: 'rgba(212,175,55,0.10)' },
+  specialEarned: { borderColor: COLORS.primary, backgroundColor: 'rgba(245,11,27,0.10)' },
   specialNow: { borderColor: '#22C55E', backgroundColor: 'rgba(34,197,94,0.08)' },
   specialIcon: { fontSize: 22 },
   specialName: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
@@ -906,17 +906,17 @@ const styles = StyleSheet.create({
   specialNowChip: { backgroundColor: '#22C55E', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
   specialNowChipText: { fontSize: 9, color: '#000', ...FONTS.bold, letterSpacing: 1 },
 
-  groupCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(212,175,55,0.3)', padding: 12, gap: 6 },
+  groupCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(245,11,27,0.3)', padding: 12, gap: 6 },
   groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
   groupName: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
   groupMeta: { fontSize: 10.5, color: COLORS.textMuted, ...FONTS.medium, marginTop: 1 },
   groupShareBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6 },
   groupShareBtnText: { fontSize: 11, color: '#000', ...FONTS.bold },
-  groupCodePill: { flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: 'rgba(212,175,55,0.10)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(212,175,55,0.4)', borderStyle: 'dashed', paddingHorizontal: 12, paddingVertical: 8, marginBottom: 2 },
+  groupCodePill: { flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: 'rgba(245,11,27,0.10)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(245,11,27,0.4)', borderStyle: 'dashed', paddingHorizontal: 12, paddingVertical: 8, marginBottom: 2 },
   groupCodeText: { fontSize: 15, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1 },
   groupCodeHint: { flex: 1, fontSize: 10, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'right' },
   groupRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 5, paddingHorizontal: 8, borderRadius: RADIUS.sm },
-  groupRowMe: { backgroundColor: 'rgba(212,175,55,0.08)' },
+  groupRowMe: { backgroundColor: 'rgba(245,11,27,0.08)' },
   groupPos: { fontSize: 13, width: 26 },
   groupHandle: { flex: 1, fontSize: 13, color: COLORS.textMain, ...FONTS.semibold },
   groupStat: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
@@ -943,26 +943,26 @@ const styles = StyleSheet.create({
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingHorizontal: SPACING.lg },
   tile: { width: '30.5%', minWidth: 96, aspectRatio: 0.92, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', justifyContent: 'center', padding: 8, gap: 4 },
-  tileDone: { borderColor: COLORS.primary, backgroundColor: 'rgba(212,175,55,0.10)' },
+  tileDone: { borderColor: COLORS.primary, backgroundColor: 'rgba(245,11,27,0.10)' },
   tileIcon: { fontSize: 26 },
   tileIconOff: { opacity: 0.35 },
   tileName: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold, textAlign: 'center', lineHeight: 14 },
   tileNameDone: { color: COLORS.textMain },
   tileCheck: { position: 'absolute', top: 6, right: 6, width: 18, height: 18, borderRadius: 9, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
-  tileDist: { fontSize: 9, color: 'rgba(212,175,55,0.8)', ...FONTS.medium },
+  tileDist: { fontSize: 9, color: 'rgba(245,11,27,0.8)', ...FONTS.medium },
 
   plazaCard: { width: 150, height: 170, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
   plazaImg: { width: '100%', height: '100%' },
   plazaShade: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(7,7,11,0.55)' },
   plazaOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 10, backgroundColor: 'rgba(0,0,0,0.6)', gap: 4 },
   plazaName: { fontSize: 12, color: '#FFF', ...FONTS.bold, lineHeight: 15 },
-  plazaDist: { fontSize: 10, color: 'rgba(212,175,55,0.9)', ...FONTS.semibold },
+  plazaDist: { fontSize: 10, color: 'rgba(245,11,27,0.9)', ...FONTS.semibold },
   plazaSealed: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   plazaSealedText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold },
   sealBtn: { backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 5, alignItems: 'center' },
   sealBtnText: { fontSize: 10, color: '#000', ...FONTS.bold },
 
-  gemRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(212,175,55,0.3)', padding: 12 },
+  gemRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(245,11,27,0.3)', padding: 12 },
   gemName: { flex: 1, fontSize: 13, color: COLORS.textMain, ...FONTS.semibold },
   gemDate: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
 

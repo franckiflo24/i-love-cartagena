@@ -83,7 +83,7 @@ export default function ExperienceBookingScreen() {
         );
       }
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Booking failed');
+      Alert.alert('Error', e.message || tr('No se pudo reservar'));
     } finally {
       setLoading(false);
     }
@@ -96,7 +96,7 @@ export default function ExperienceBookingScreen() {
         <TouchableOpacity onPress={() => step > 1 ? setStep(step - 1) : router.back()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.textMain} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{params.title || 'Book Experience'}</Text>
+        <Text style={styles.headerTitle}>{params.title || tr('Reservar experiencia')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -134,7 +134,7 @@ export default function ExperienceBookingScreen() {
               onPress={() => selectedDate && setStep(2)}
               disabled={!selectedDate}
             >
-              <Text style={styles.nextButtonText}>Continue</Text>
+              <Text style={styles.nextButtonText}>{tr('Continuar')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -159,7 +159,7 @@ export default function ExperienceBookingScreen() {
               </TouchableOpacity>
             </View>
             <TouchableOpacity style={styles.nextButton} onPress={() => setStep(3)}>
-              <Text style={styles.nextButtonText}>Continue</Text>
+              <Text style={styles.nextButtonText}>{tr('Continuar')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -167,23 +167,23 @@ export default function ExperienceBookingScreen() {
         {/* Step 3: Summary & Pay */}
         {step === 3 && (
           <View>
-            <Text style={styles.stepTitle}>Order Summary</Text>
+            <Text style={styles.stepTitle}>{tr('Resumen del pedido')}</Text>
             <View style={styles.summaryCard}>
               <Text style={styles.summaryTitle}>{params.title}</Text>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Date</Text>
+                <Text style={styles.summaryLabel}>{tr('Fecha')}</Text>
                 <Text style={styles.summaryValue}>{selectedDate}</Text>
               </View>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Guests</Text>
+                <Text style={styles.summaryLabel}>{tr('Personas')}</Text>
                 <Text style={styles.summaryValue}>{guests}</Text>
               </View>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Price per person</Text>
+                <Text style={styles.summaryLabel}>{tr('Precio por persona')}</Text>
                 <Text style={styles.summaryValue}>${pricePerPerson.toLocaleString()} {currency}</Text>
               </View>
               <View style={[styles.summaryRow, styles.summaryTotal]}>
-                <Text style={styles.totalLabel}>Total</Text>
+                <Text style={styles.totalLabel}>{tr('Total')}</Text>
                 <Text style={styles.totalValue}>${totalPrice.toLocaleString()} {currency}</Text>
               </View>
             </View>
@@ -195,7 +195,7 @@ export default function ExperienceBookingScreen() {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.payButtonText}>Pay ${totalPrice.toLocaleString()} {currency}</Text>
+                <Text style={styles.payButtonText}>{tr('Pagar')} ${totalPrice.toLocaleString()} {currency}</Text>
               )}
             </TouchableOpacity>
           </View>

@@ -193,7 +193,12 @@ async def get_partner_reviews(request: Request, partner_id: str):
             {"partner_id": partner_id, **PUBLIC_PARTNER_FILTER},
             {"_id": 0, "rating": 1, "reviews": 1, "rating_breakdown": 1},
         )
-        if not partner:
+        # find_one returns None only when no visible venue matches. With this
+        # projection a matched-but-unrated venue comes back as {} (empty dict,
+        # which is falsy) — most catalog venues have no rating fields yet, so a
+        # plain `if not partner` 404s every one of them. Gate on identity, not
+        # truthiness: {} means "venue exists, zero reviews" and must serve.
+        if partner is None:
             raise HTTPException(status_code=404, detail="Partner not found")
 
         total = await db.reviews.count_documents({"partner_id": partner_id})

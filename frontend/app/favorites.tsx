@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
   tierStripe: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3 },
   peBody: { flex: 1, padding: SPACING.sm, justifyContent: 'space-between', paddingRight: 32 },
   peTopRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-  timePill: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(217,119,6,0.15)', borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2 },
+  timePill: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(245,11,27,0.15)', borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2 },
   timePillText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold },
   pricePill: { borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2 },
   priceFreeBg: { backgroundColor: COLORS.success },

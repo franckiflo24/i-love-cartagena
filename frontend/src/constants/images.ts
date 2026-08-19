@@ -95,7 +95,7 @@ const CATEGORY_MAP: Record<string, keyof typeof IMAGES> = {
 // ---------------------------------------------------------------------------
 
 const makeSVG = (icon: string, label: string): string => {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="#14141C"/><defs><radialGradient id="g" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#D4AF37" stop-opacity=".12"/><stop offset="100%" stop-color="#14141C" stop-opacity="0"/></radialGradient></defs><rect width="400" height="300" fill="url(#g)"/><text x="200" y="148" text-anchor="middle" font-size="52" fill="#D4AF37" opacity=".35">${icon}</text><text x="200" y="182" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#9CA3AF" opacity=".5" letter-spacing="3">${label}</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="#14141C"/><defs><radialGradient id="g" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#F50B1B" stop-opacity=".12"/><stop offset="100%" stop-color="#14141C" stop-opacity="0"/></radialGradient></defs><rect width="400" height="300" fill="url(#g)"/><text x="200" y="148" text-anchor="middle" font-size="52" fill="#F50B1B" opacity=".35">${icon}</text><text x="200" y="182" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#9CA3AF" opacity=".5" letter-spacing="3">${label}</text></svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 };
 

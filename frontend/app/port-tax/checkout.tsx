@@ -303,18 +303,18 @@ const styles = StyleSheet.create({
 
   heroCard: {
     marginHorizontal: SPACING.lg, padding: SPACING.lg, borderRadius: RADIUS.xl,
-    backgroundColor: COLORS.surface, borderWidth: 1, borderColor: 'rgba(217,119,6,0.25)',
+    backgroundColor: COLORS.surface, borderWidth: 1, borderColor: 'rgba(245,11,27,0.25)',
     gap: SPACING.sm, alignItems: 'flex-start',
   },
   heroIconWrap: {
     width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(217,119,6,0.12)',
+    backgroundColor: 'rgba(245,11,27,0.12)',
   },
   heroTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold },
   heroDesc: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 20 },
   seasonChip: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: 'rgba(217,119,6,0.12)',
+    backgroundColor: 'rgba(245,11,27,0.12)',
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.full,
   },
   seasonText: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },

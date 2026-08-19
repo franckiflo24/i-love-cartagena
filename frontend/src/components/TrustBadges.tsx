@@ -67,7 +67,7 @@ export function TrustBadges({ partner }: { partner: any }) {
 const styles = StyleSheet.create({
   wrap: { marginTop: SPACING.sm, gap: 6 },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(212,175,55,0.10)', borderColor: 'rgba(212,175,55,0.45)', borderWidth: 1, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(245,11,27,0.10)', borderColor: 'rgba(245,11,27,0.45)', borderWidth: 1, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
   badgeText: { fontSize: 11, color: COLORS.primary, ...FONTS.bold },
   detail: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, lineHeight: 16, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, padding: 10 },
 });

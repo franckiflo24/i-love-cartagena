@@ -194,6 +194,7 @@ export default function AlcaldiaDashboard({
   }
 
   const k = analytics?.kpis || {};
+  const act = analytics?.activity || {};
   const demog = analytics?.demographics || {};
 
   return (
@@ -306,10 +307,19 @@ export default function AlcaldiaDashboard({
 
           <Text style={styles.sectionTitle}>Usuarios de la app</Text>
           <View style={styles.kpiGrid}>
-            <KpiTile color="#D97706" icon="people" value={fmtNum(k.total_users)} label="Total usuarios" />
+            <KpiTile color="#F50B1B" icon="people" value={fmtNum(k.total_users)} label="Total usuarios" />
             <KpiTile color="#22C55E" icon="trending-up" value={`+${fmtNum(k.new_users_30d)}`} label="Nuevos 30d" />
             <KpiTile color="#3B82F6" icon="flash" value={`+${fmtNum(k.new_users_7d)}`} label="Nuevos 7d" />
             <KpiTile color="#A855F7" icon="globe" value={fmtNum(demog.total_profiled || 0)} label="Perfilados · muestra" />
+          </View>
+
+          {/* Live user activity — communicated in real time from the app */}
+          <Text style={styles.sectionTitle}>Actividad en vivo · hoy</Text>
+          <View style={styles.kpiGrid}>
+            <KpiTile color="#22C55E" icon="log-in" value={fmtNum(act.active_sessions)} label="Sesiones activas" />
+            <KpiTile color="#38BDF8" icon="search" value={fmtNum(act.searches_today)} label="Búsquedas hoy" />
+            <KpiTile color="#3B82F6" icon="log-in" value={`${fmtNum(act.logins_today)}`} label="Inicios de sesión hoy" />
+            <KpiTile color="#EF4444" icon="lock-closed" value={fmtNum(act.failed_logins_today)} label="Logins fallidos hoy" />
           </View>
 
           <Text style={styles.sectionTitle}>City Pass & Tasa Portuaria</Text>
@@ -455,7 +465,7 @@ export default function AlcaldiaDashboard({
                 <View
                   style={[
                     styles.barFill,
-                    { width: `${Math.min(n.percentage || 0, 100)}%`, backgroundColor: '#D97706' },
+                    { width: `${Math.min(n.percentage || 0, 100)}%`, backgroundColor: '#F50B1B' },
                   ]}
                 />
               </View>
@@ -529,7 +539,7 @@ export default function AlcaldiaDashboard({
           ) : (
             payouts.rows.map((r: any) => (
               <View key={r.partner_id || r.partner_name} style={styles.payRow}>
-                <View style={[styles.payIcon, { backgroundColor: 'rgba(217,119,6,0.18)' }]}>
+                <View style={[styles.payIcon, { backgroundColor: 'rgba(245,11,27,0.18)' }]}>
                   <Ionicons name="business" size={16} color={COLORS.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -751,7 +761,7 @@ const styles = StyleSheet.create({
   demoScope: {
     flexDirection: 'row', gap: 8, alignItems: 'flex-start',
     marginHorizontal: SPACING.lg, marginTop: SPACING.sm,
-    backgroundColor: 'rgba(212,175,55,0.08)', borderColor: 'rgba(212,175,55,0.3)', borderWidth: 1,
+    backgroundColor: 'rgba(245,11,27,0.08)', borderColor: 'rgba(245,11,27,0.3)', borderWidth: 1,
     borderRadius: RADIUS.md, padding: SPACING.sm,
   },
   demoScopeText: { flex: 1, color: COLORS.textMuted, fontSize: 11.5, lineHeight: 16, ...FONTS.regular },
@@ -770,7 +780,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.xl,
     borderWidth: 1,
-    borderColor: 'rgba(217,119,6,0.4)',
+    borderColor: 'rgba(245,11,27,0.4)',
     padding: SPACING.md,
     gap: SPACING.sm,
   },
@@ -816,7 +826,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: RADIUS.full,
-    backgroundColor: 'rgba(217,119,6,0.15)',
+    backgroundColor: 'rgba(245,11,27,0.15)',
   },
   topBadgeText: { fontSize: 11, color: COLORS.primary, ...FONTS.bold },
 
@@ -849,7 +859,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
     borderWidth: 1,
     borderColor: COLORS.primary,
-    backgroundColor: 'rgba(217,119,6,0.1)',
+    backgroundColor: 'rgba(245,11,27,0.1)',
   },
   exportBtnText: { fontSize: 11, color: COLORS.primary, ...FONTS.bold },
 

@@ -3,6 +3,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../constants/api';
 
 const BIZ_KEY = 'amocartagena_business_token';
+const BIZ_DATA_KEY = 'amocartagena_business_data';
+
+// A dropped /business/me during navigation must not read as "logged out" — only a
+// definitive auth rejection means the token is actually bad.
+const isAuthRejection = (e: any) =>
+  /\b401\b|\b403\b|unauthor|invalid|expired|forbidden/i.test((e && e.message) || '');
 
 type BusinessUser = {
   business_id: string;
@@ -41,15 +47,27 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
         const stored = await AsyncStorage.getItem(BIZ_KEY);
         if (stored) {
           setToken(stored);
+          // Paint the dashboard from cache first so a slow/failed /business/me
+          // during navigation never blanks the partner's profile.
+          try {
+            const cached = await AsyncStorage.getItem(BIZ_DATA_KEY);
+            if (cached) { const d = JSON.parse(cached); setBusiness(d.business); setPartner(d.partner); }
+          } catch { /* no cache yet */ }
           const data = await api.get('/business/me', { headers: { Authorization: `Bearer ${stored}` } });
           setBusiness(data.business);
           setPartner(data.partner);
+          try { await AsyncStorage.setItem(BIZ_DATA_KEY, JSON.stringify({ business: data.business, partner: data.partner })); } catch {}
         }
       } catch (e) {
-        // Token invalid / expired → clear
-        console.error('[BusinessAuth] stored token invalid or expired', e);
-        await AsyncStorage.removeItem(BIZ_KEY);
-        setToken(null);
+        // Only clear on a real auth rejection. A network/5xx blip during a
+        // partner → main-page navigation must keep the session (Franck: "losing
+        // my profile → need to reconnect again").
+        if (isAuthRejection(e)) {
+          await AsyncStorage.multiRemove([BIZ_KEY, BIZ_DATA_KEY]);
+          setToken(null); setBusiness(null); setPartner(null);
+        } else {
+          console.error('[BusinessAuth] /business/me transient failure — keeping session', e);
+        }
       }
       setLoading(false);
     })();
@@ -62,6 +80,7 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
       setBusiness(data.business);
       setPartner(data.partner);
       await AsyncStorage.setItem(BIZ_KEY, data.token);
+      try { await AsyncStorage.setItem(BIZ_DATA_KEY, JSON.stringify({ business: data.business, partner: data.partner ?? null })); } catch {}
     } catch (e: any) {
       // Surface the REAL reason (wrong password, too many attempts, etc.) so a
       // failed login is diagnosable — the old blanket "no disponible" made a
@@ -83,6 +102,7 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
       setBusiness(data.business);
       setPartner(data.partner ?? null);
       await AsyncStorage.setItem(BIZ_KEY, data.token);
+      try { await AsyncStorage.setItem(BIZ_DATA_KEY, JSON.stringify({ business: data.business, partner: data.partner ?? null })); } catch {}
     } catch (e: any) {
       const msg = (e && e.message) || '';
       if (/Failed to fetch|NetworkError|Load failed|ECONNREFUSED|timeout/i.test(msg)) {
@@ -110,7 +130,7 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
         console.error('[BusinessAuth] Logout call failed — clearing local session', e);
       }
     }
-    await AsyncStorage.removeItem(BIZ_KEY);
+    await AsyncStorage.multiRemove([BIZ_KEY, BIZ_DATA_KEY]);
     setToken(null);
     setBusiness(null);
     setPartner(null);

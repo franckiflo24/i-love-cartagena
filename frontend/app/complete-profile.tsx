@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
+import { usePersonalization } from '../src/context/PersonalizationContext';
 import { useTr } from '@/src/i18n/autoTr';
 
 const COUNTRIES = [
@@ -25,6 +26,7 @@ const INTERESTS = ['Electro', 'Reggaeton', 'Jazz', 'Salsa', 'Techno', 'House', '
 
 export default function CompleteProfileScreen() {
   const router = useRouter();
+  const { updateProfile } = usePersonalization();
   const [nationality, setNationality] = useState('');
   const [ageGroup, setAgeGroup] = useState('');
   const [instagram, setInstagram] = useState('');
@@ -46,14 +48,28 @@ export default function CompleteProfileScreen() {
         interests: selectedInterests,
       });
     } catch (e) { console.error(e); }
-    await AsyncStorage.setItem('@profile_completed', 'true');
+    // Persist locally in the exact shape PersonalizationContext reads at mount
+    // (@profile_data) + the completion flag. Previously this screen only PUT to
+    // the backend, so nationality/age/music never reached the on-device
+    // personalization engine. updateProfile() also applies it live this session,
+    // not just on next app load.
+    try {
+      await AsyncStorage.setItem('@profile_data', JSON.stringify({
+        nationality,
+        age_group: ageGroup,
+        music_preferences: selectedInterests,
+      }));
+      await AsyncStorage.setItem('@profile_completed', 'true');
+      await updateProfile({ nationality, ageGroup, musicPreferences: selectedInterests, isPersonalized: true });
+    } catch (e) { console.error('[CompleteProfile]', e); }
     setSaving(false);
-    router.replace('/(tabs)');
+    if (router.canGoBack()) router.back(); else router.replace('/(tabs)');
   };
 
-  const skip = async () => {
-    await AsyncStorage.setItem('@profile_completed', 'true');
-    router.replace('/(tabs)');
+  const skip = () => {
+    // "Saltar por ahora" = later. Don't mark completed, so the soft prompt in
+    // the Profile tab stays available until the user actually fills it in.
+    if (router.canGoBack()) router.back(); else router.replace('/(tabs)');
   };
 
   return (

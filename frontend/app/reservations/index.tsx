@@ -78,12 +78,17 @@ export default function MyReservations() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
+  // A failed load must not look like "you have no reservations" — track it so the
+  // empty branch can show a retryable error state instead (Alert is a web no-op).
+  const [error, setError] = useState(false);
 
   const load = useCallback(async () => {
     try {
+      setError(false);
       const res = await api.get('/reservations/my');
       setData(res);
     } catch (e: any) {
+      setError(true);
       Alert.alert(tr('Error'), String(e?.message || 'No se pudo cargar tus reservas'));
     } finally {
       setLoading(false);
@@ -175,6 +180,16 @@ export default function MyReservations() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
       >
         {list.length === 0 ? (
+          error ? (
+            <View style={styles.empty}>
+              <Ionicons name="cloud-offline-outline" size={48} color={COLORS.textMuted} />
+              <Text style={styles.emptyText}>{tr('No pudimos cargar la información')}</Text>
+              <TouchableOpacity style={styles.emptyBtn} onPress={() => { setLoading(true); load(); }}>
+                <Ionicons name="refresh" size={16} color={COLORS.white} />
+                <Text style={styles.emptyBtnText}>{tr('Reintentar')}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
           <View style={styles.empty}>
             <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
             <Text style={styles.emptyText}>
@@ -189,6 +204,7 @@ export default function MyReservations() {
               </TouchableOpacity>
             )}
           </View>
+          )
         ) : (
           list.map((r) => {
             const meta = STATUS_META[r.status] || { label: r.status, color: COLORS.textMuted, bg: 'rgba(148,163,184,0.12)' };
@@ -477,7 +493,7 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: 8,
     borderRadius: RADIUS.md,
-    backgroundColor: 'rgba(217,119,6,0.12)',
+    backgroundColor: 'rgba(245,11,27,0.12)',
     borderWidth: 1,
     borderColor: COLORS.primary,
   },

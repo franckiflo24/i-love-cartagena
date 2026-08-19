@@ -163,7 +163,7 @@ export function HomeBaseSheet({ visible, onClose }: { visible: boolean; onClose:
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
-  sheet: { backgroundColor: COLORS.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: SPACING.lg, paddingBottom: Platform.OS === 'ios' ? 36 : SPACING.lg, gap: 12, borderTopWidth: 1, borderColor: 'rgba(212,175,55,0.3)' },
+  sheet: { backgroundColor: COLORS.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: SPACING.lg, paddingBottom: Platform.OS === 'ios' ? 36 : SPACING.lg, gap: 12, borderTopWidth: 1, borderColor: 'rgba(245,11,27,0.3)' },
   handle: { alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: COLORS.border, marginBottom: 4 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   title: { flex: 1, fontSize: 18, color: COLORS.textMain, ...FONTS.bold },
@@ -177,11 +177,11 @@ const styles = StyleSheet.create({
   outlineBtnText: { fontSize: 13, color: COLORS.primary, ...FONTS.bold },
   linkBtn: { alignItems: 'center', paddingVertical: 6 },
   linkBtnText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold },
-  baseCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(212,175,55,0.10)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(212,175,55,0.4)', padding: 14 },
+  baseCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(245,11,27,0.10)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(245,11,27,0.4)', padding: 14 },
   baseLabel: { flex: 1, fontSize: 15, color: COLORS.textMain, ...FONTS.bold },
   editRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
   editLink: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold },
-  notice: { backgroundColor: 'rgba(212,175,55,0.12)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(212,175,55,0.4)', padding: 10 },
+  notice: { backgroundColor: 'rgba(245,11,27,0.12)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(245,11,27,0.4)', padding: 10 },
   noticeText: { fontSize: 12.5, color: COLORS.primary, ...FONTS.semibold, textAlign: 'center' },
   privacy: { fontSize: 10.5, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'center', opacity: 0.75 },
 });

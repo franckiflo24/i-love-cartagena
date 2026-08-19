@@ -39,15 +39,15 @@ type Place = {
 };
 
 const FILTERS = [
-  { key: 'all', label: 'Todos', icon: 'grid', color: '#D97706' },
-  { key: 'pasaporte', label: 'Pasaporte', icon: 'ribbon', color: '#D4AF37' },
+  { key: 'all', label: 'Todos', icon: 'grid', color: '#F50B1B' },
+  { key: 'pasaporte', label: 'Pasaporte', icon: 'ribbon', color: '#F50B1B' },
   { key: 'venue', label: 'Venues', icon: 'location', color: '#3B82F6' },
   { key: 'partner', label: 'Partners', icon: 'diamond', color: '#8B5CF6' },
   { key: 'esenciales', label: 'Esenciales', icon: 'medkit', color: '#14B8A6' },
   { key: 'concert', label: 'Conciertos', icon: 'musical-notes', color: '#EC4899' },
 ];
 
-const GOLD = '#D4AF37';
+const GOLD = '#F50B1B';
 
 function fmtLiveDist(m: number): string {
   return m < 1000 ? `a ${Math.round(m / 10) * 10}m de ti` : `a ${(m / 1000).toFixed(1)}km de ti`;
@@ -60,7 +60,7 @@ const MARKER_COLORS: Record<string, string> = {
   beach_club: '#06B6D4',
   hotel: '#3B82F6',
   cultural: '#8B5CF6',
-  club: '#D97706',
+  club: '#F50B1B',
   wellness: '#22C55E',
   concert: '#EC4899',
   partner: '#8B5CF6',
@@ -74,14 +74,14 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     : places.filter(p => p.category === filter);
 
   const markers = filtered.map(p => {
-    const color = MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || '#D97706';
+    const color = MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || '#F50B1B';
     const safeName = (p.name || '').replace(/'/g, "").replace(/"/g, "");
     const safeDesc = (p.extra || p.description || '').replace(/'/g, "").replace(/"/g, "").substring(0, 80);
     const safeAddr = (p.address || '').replace(/'/g, "").replace(/"/g, "");
     const safePrice = (p.price || '').replace(/'/g, "").replace(/"/g, "");
     const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng;
 
-    const priceHtml = safePrice ? '<span style="font-size:12px;color:#D97706;font-weight:700;">' + safePrice + '</span><br>' : '';
+    const priceHtml = safePrice ? '<span style="font-size:12px;color:#F50B1B;font-weight:700;">' + safePrice + '</span><br>' : '';
 
     const detailUrl = '/partner/' + p.id;
     const popupContent = '<div style=font-family:sans-serif;min-width:180px>'
@@ -94,7 +94,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
       + '<span style=font-size:11px;color:#888>📍 ' + safeAddr + '</span><br>'
       + priceHtml
       + '<div style=display:flex;gap:6px;margin-top:6px>'
-      + '<a href=' + detailUrl + ' style=display:inline-block;padding:6px_14px;background:#D97706;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600 onclick=window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:\"navigate\",path:\"' + detailUrl + '\"}));return_false;>Ver detalle →</a>'
+      + '<a href=' + detailUrl + ' style=display:inline-block;padding:6px_14px;background:#F50B1B;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600 onclick=window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:\"navigate\",path:\"' + detailUrl + '\"}));return_false;>Ver detalle →</a>'
       + '<a href=' + mapsUrl + ' target=_blank style=display:inline-block;padding:6px_14px;background:rgba(26,26,46,0.1);color:#1a1a2e;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px_solid_#ddd>📍 Mapa</a>'
       + '</div>'
       + '</div>';
@@ -129,7 +129,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '.leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }'
     + '.leaflet-popup-tip { display: none; }'
     + '.leaflet-control-zoom { border: none !important; }'
-    + '.leaflet-control-zoom a { background: #1a1a2e !important; color: #D97706 !important; border: 1px solid #2a2a4e !important; font-weight: 700; }'
+    + '.leaflet-control-zoom a { background: #1a1a2e !important; color: #F50B1B !important; border: 1px solid #2a2a4e !important; font-weight: 700; }'
     + '.leaflet-control-zoom a:hover { background: #2a2a4e !important; }'
     + '.leaflet-control-attribution { display: none; }'
     + '.user-pulse-icon { position: relative; width: 22px; height: 22px; }'
@@ -243,7 +243,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
           .leaflet-popup-content-wrapper { border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important; }
           .leaflet-popup-tip { display: none !important; }
           .leaflet-control-zoom { border: none !important; }
-          .leaflet-control-zoom a { background: #1a1a2e !important; color: #D97706 !important; border: 1px solid #2a2a4e !important; font-weight: 700; }
+          .leaflet-control-zoom a { background: #1a1a2e !important; color: #F50B1B !important; border: 1px solid #2a2a4e !important; font-weight: 700; }
           .leaflet-control-attribution { display: none !important; }
         `;
         document.head.appendChild(style);
@@ -257,12 +257,12 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
         ['Manga', [10.405, -75.535], [10.420, -75.525]],
       ];
       ZONES.forEach(([name, sw, ne]) => {
-        L.rectangle([sw, ne] as any, { color: '#D4AF37', weight: 1, opacity: 0.35, fillColor: '#D4AF37', fillOpacity: 0.05, interactive: false }).addTo(map);
+        L.rectangle([sw, ne] as any, { color: '#F50B1B', weight: 1, opacity: 0.35, fillColor: '#F50B1B', fillOpacity: 0.05, interactive: false }).addTo(map);
       });
       const legend = (L as any).control({ position: 'bottomleft' });
       legend.onAdd = () => {
         const div = document.createElement('div');
-        div.style.cssText = 'background:rgba(5,8,20,0.85);color:#D4AF37;font:600 10px sans-serif;padding:4px 8px;border-radius:10px;border:1px solid rgba(212,175,55,0.4)';
+        div.style.cssText = 'background:rgba(5,8,20,0.85);color:#F50B1B;font:600 10px sans-serif;padding:4px 8px;border-radius:10px;border:1px solid rgba(245,11,27,0.4)';
         div.textContent = 'Zonas turísticas principales';
         return div;
       };
@@ -306,12 +306,12 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
     filtered.forEach(p => {
       if (!p.lat || !p.lng) return;
       const isPassport = passportIds.has(p.id);
-      const color = isPassport ? GOLD : (MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || '#D97706');
+      const color = isPassport ? GOLD : (MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || '#F50B1B');
       const safeName = (p.name || '').replace(/'/g, '').replace(/"/g, '');
       const safeDesc = (p.extra || p.description || '').replace(/'/g, '').replace(/"/g, '').substring(0, 80);
       const safeAddr = (p.address || '').replace(/'/g, '').replace(/"/g, '');
       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
-      const priceHtml = p.price ? `<span style="font-size:12px;color:#D97706;font-weight:700">${p.price}</span><br>` : '';
+      const priceHtml = p.price ? `<span style="font-size:12px;color:#F50B1B;font-weight:700">${p.price}</span><br>` : '';
       const passportHtml = isPassport
         ? `<span style="font-size:10px;color:#8a6d1f;font-weight:800">🛂 SELLO DEL PASAPORTE</span><br>`
         : '';
@@ -327,7 +327,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
         <span style="font-size:11px;color:#888">📍 ${safeAddr}</span><br>
         ${priceHtml}
         <div style="display:flex;gap:6px;margin-top:6px">
-          <a href="#" data-partner="${p.id}" style="display:inline-block;padding:6px 14px;background:#D97706;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">Ver detalle →</a>
+          <a href="#" data-partner="${p.id}" style="display:inline-block;padding:6px 14px;background:#F50B1B;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">Ver detalle →</a>
           <a href="${mapsUrl}" target="_blank" style="display:inline-block;padding:6px 14px;background:rgba(26,26,46,0.1);color:#1a1a2e;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px solid #ddd">📍 Mapa</a>
         </div>
       </div>`;
@@ -687,7 +687,7 @@ export default function MapaScreen() {
                   onPress={() => setNbhFilter(active ? null : slug)}
                 >
                   <Text style={[styles.nbhChipText, active && styles.nbhChipTextActive]}>{NBH_LABELS[slug] || slug}</Text>
-                  <View style={[styles.chipCount, active && { backgroundColor: 'rgba(212,175,55,0.3)' }]}>
+                  <View style={[styles.chipCount, active && { backgroundColor: 'rgba(245,11,27,0.3)' }]}>
                     <Text style={[styles.chipCountText, active && { color: COLORS.primary }]}>{n}</Text>
                   </View>
                 </TouchableOpacity>
@@ -784,7 +784,7 @@ const styles = StyleSheet.create({
   filterScroll: { paddingHorizontal: SPACING.md, gap: SPACING.xs },
   nbhBar: { paddingBottom: SPACING.xs, backgroundColor: COLORS.background, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   nbhChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 11, paddingVertical: 6, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
-  nbhChipActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(212,175,55,0.12)' },
+  nbhChipActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(245,11,27,0.12)' },
   nbhChipText: { fontSize: 11.5, color: COLORS.textMuted, ...FONTS.semibold },
   nbhChipTextActive: { color: COLORS.primary },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },

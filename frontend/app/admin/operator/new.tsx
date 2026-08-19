@@ -21,7 +21,7 @@ const CATEGORIES = [
 
 const TIERS = [
   { id: 'popular',  label: 'Popular', color: '#94A3B8' },
-  { id: 'premium',  label: 'Premium', color: '#D97706' },
+  { id: 'premium',  label: 'Premium', color: '#F50B1B' },
   { id: 'elite',    label: 'Elite',   color: '#A855F7' },
   { id: 'lujo',     label: 'Lujo',    color: '#FBBF24' },
 ];

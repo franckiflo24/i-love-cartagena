@@ -23,6 +23,7 @@ const CARD_SIZE = (SCREEN - SPACING.lg * 2 - SPACING.md) / 2;
 // ── Agent Card ──
 function AgentCard({ agent, onPress }: { agent: ConciergeAgent; onPress: () => void }) {
   const scale = useRef(new Animated.Value(1)).current;
+  const tr = useTr();
   const pressIn = () => Animated.spring(scale, { toValue: 0.97, useNativeDriver: true, tension: 180, friction: 22 }).start();
   const pressOut = () => Animated.spring(scale, { toValue: 1, useNativeDriver: true, tension: 180, friction: 22 }).start();
 
@@ -33,7 +34,7 @@ function AgentCard({ agent, onPress }: { agent: ConciergeAgent; onPress: () => v
           <Text style={styles.agentEmoji}>{agent.emoji}</Text>
         </View>
         <Text style={styles.agentName}>{agent.name}</Text>
-        <Text style={styles.agentTagline}>{agent.tagline}</Text>
+        <Text style={styles.agentTagline}>{tr(agent.tagline)}</Text>
       </Animated.View>
     </TouchableOpacity>
   );
@@ -199,7 +200,7 @@ export default function ConciergeScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.chatHeaderName}>{agent.name}</Text>
-            <Text style={styles.chatHeaderTag}>{agent.tagline}</Text>
+            <Text style={styles.chatHeaderTag}>{tr(agent.tagline)}</Text>
           </View>
           {/* Switch agent mini chips */}
           <View style={{ flexDirection: 'row', gap: 4 }}>
@@ -216,7 +217,7 @@ export default function ConciergeScreen() {
           {/* Opening */}
           <View style={[styles.bubble, styles.bubbleAgent]}>
             <Text style={[styles.bubbleLabel, { color: agent.accent }]}>{agent.emoji} {agent.name}</Text>
-            <Text style={styles.bubbleText}>{agent.opening}</Text>
+            <Text style={styles.bubbleText}>{tr(agent.opening)}</Text>
           </View>
 
           {/* Chips */}
@@ -224,7 +225,7 @@ export default function ConciergeScreen() {
             <View style={styles.chipsWrap}>
               {agent.starterChips.map((chip, i) => (
                 <TouchableOpacity key={i} style={[styles.chip, { borderColor: agent.accent + '40', backgroundColor: agent.accent + '0D' }]} onPress={() => sendMessage(chip)} activeOpacity={0.8}>
-                  <Text style={[styles.chipText, { color: agent.accent }]}>{chip}</Text>
+                  <Text style={[styles.chipText, { color: agent.accent }]}>{tr(chip)}</Text>
                   <Ionicons name="arrow-forward" size={12} color={agent.accent} />
                 </TouchableOpacity>
               ))}
@@ -259,7 +260,7 @@ export default function ConciergeScreen() {
             style={styles.inputField}
             value={input}
             onChangeText={setInput}
-            placeholder={tr(`Escríbele a ${agent.name}...`)}
+            placeholder={tr('Escríbele a {name}...').replace('{name}', agent.name)}
             placeholderTextColor={COLORS.textFaint}
             returnKeyType="send"
             onSubmitEditing={() => sendMessage(input)}

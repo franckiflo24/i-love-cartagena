@@ -5,9 +5,9 @@ export const COLORS = {
   surface: '#14141C',
   surfaceAlt: '#1C1C26',
   surfaceGlass: 'rgba(20, 20, 28, 0.6)',
-  primary: '#D4AF37',
-  primaryHover: '#E5C04B',
-  primaryMuted: '#8A7228',
+  primary: '#F50B1B',
+  primaryHover: '#FF3B4A',
+  primaryMuted: '#A00812',
   textMain: '#FFFFFF',
   textMuted: '#9CA3AF',
   textFaint: '#6B7280',
@@ -16,10 +16,10 @@ export const COLORS = {
   warning: '#B45309',
   error: '#DC2626',
   free: '#15803D',
-  paid: '#D4AF37',
+  paid: '#F50B1B',
   white: '#FFFFFF',
   black: '#000000',
-  goldGlow: 'rgba(212, 175, 55, 0.25)',
+  goldGlow: 'rgba(245, 11, 27, 0.25)',
 };
 
 // ── SPACING — 8-point grid ──
@@ -54,7 +54,7 @@ export const FONTS = {
 export const ELEVATION = {
   card: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 4 },
   sheet: { shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.5, shadowRadius: 24, elevation: 8 },
-  goldGlow: { shadowColor: '#D4AF37', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 16, elevation: 6 },
+  goldGlow: { shadowColor: '#F50B1B', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 16, elevation: 6 },
 };
 
 // ── MOTION ──
@@ -118,10 +118,10 @@ export const TIER_COLORS: Record<Tier, { main: string; bg: string; border: strin
     gradient: ['#166534', '#15803D'],
   },
   premium: {
-    main: '#D4AF37',
-    bg: 'rgba(212, 175, 55, 0.15)',
-    border: 'rgba(212, 175, 55, 0.5)',
-    gradient: ['#8A7228', '#D4AF37'],
+    main: '#F50B1B',
+    bg: 'rgba(245, 11, 27, 0.15)',
+    border: 'rgba(245, 11, 27, 0.5)',
+    gradient: ['#A00812', '#F50B1B'],
   },
   elite: {
     main: '#A855F7',

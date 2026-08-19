@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.sm },
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
   body: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: SPACING.xl, gap: SPACING.md },
-  crown: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(217,119,6,0.12)', borderWidth: 1, borderColor: 'rgba(217,119,6,0.4)', alignItems: 'center', justifyContent: 'center' },
+  crown: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(245,11,27,0.12)', borderWidth: 1, borderColor: 'rgba(245,11,27,0.4)', alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.sm },
   subtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', marginBottom: SPACING.lg },
   inputRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: SPACING.md, height: 52, width: '100%' },

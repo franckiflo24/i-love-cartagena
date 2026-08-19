@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   },
   cardIcon: {
     width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(212,175,55,0.12)',
+    backgroundColor: 'rgba(245,11,27,0.12)',
   },
   cardName: { color: COLORS.textMain, fontSize: 16, ...FONTS.semibold },
   cardMeta: { color: COLORS.textMuted, fontSize: 12, marginTop: 2 },

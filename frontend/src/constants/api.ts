@@ -732,6 +732,14 @@ const buildHeaders = async (override?: Record<string, string>): Promise<Record<s
 // this; auth is handled via Bearer token header instead of cookies.
 const CREDS: RequestCredentials = Platform.OS === 'web' ? 'same-origin' : 'include';
 
+// Auth calls go SAME-ORIGIN on web (/api/auth/* → backend via the vercel.json
+// rewrite) so the session cookie is FIRST-PARTY and survives iOS Safari's ITP;
+// data calls stay cross-origin with the Bearer token. credentials:'include' on
+// auth is safe because it's now a same-origin request.
+const _authPath = (p: string) => p.startsWith('/auth/');
+const _apiUrl = (p: string) => (Platform.OS === 'web' && _authPath(p)) ? `/api${p}` : `${BACKEND_URL}/api${p}`;
+const _creds = (p: string): RequestCredentials => (Platform.OS === 'web' && _authPath(p)) ? 'include' : CREDS;
+
 type Opts = { headers?: Record<string, string> };
 
 export const api = {
@@ -754,7 +762,7 @@ export const api = {
     }
     try {
       const headers = await buildHeaders(opts?.headers);
-      const res = await fetch(`${BACKEND_URL}/api${path}`, { headers, credentials: CREDS });
+      const res = await fetch(`${_apiUrl(path)}`, { headers, credentials: _creds(path) });
       if (!res.ok) {
         // Network OK but backend errored → try static fallback before throwing
         const fallback = await tryStatic(path);
@@ -775,10 +783,10 @@ export const api = {
       return body ?? {};
     }
     const headers = await buildHeaders(opts?.headers);
-    const res = await fetch(`${BACKEND_URL}/api${path}`, {
+    const res = await fetch(`${_apiUrl(path)}`, {
       method: 'POST',
       headers,
-      credentials: CREDS,
+      credentials: _creds(path),
       body: body ? JSON.stringify(body) : undefined,
     });
     if (!res.ok) {
@@ -794,10 +802,10 @@ export const api = {
   put: async (path: string, body?: any, opts?: Opts) => {
     if (STATIC_MODE) return body ?? {};
     const headers = await buildHeaders(opts?.headers);
-    const res = await fetch(`${BACKEND_URL}/api${path}`, {
+    const res = await fetch(`${_apiUrl(path)}`, {
       method: 'PUT',
       headers,
-      credentials: CREDS,
+      credentials: _creds(path),
       body: body ? JSON.stringify(body) : undefined,
     });
     if (!res.ok) throw new Error(`PUT ${path} failed: ${res.status}`);
@@ -806,10 +814,10 @@ export const api = {
   patch: async (path: string, body?: any, opts?: Opts) => {
     if (STATIC_MODE) return body ?? {};
     const headers = await buildHeaders(opts?.headers);
-    const res = await fetch(`${BACKEND_URL}/api${path}`, {
+    const res = await fetch(`${_apiUrl(path)}`, {
       method: 'PATCH',
       headers,
-      credentials: CREDS,
+      credentials: _creds(path),
       body: body ? JSON.stringify(body) : undefined,
     });
     if (!res.ok) {
@@ -825,11 +833,11 @@ export const api = {
   delete: async (path: string, body?: any, opts?: Opts) => {
     if (STATIC_MODE) return {};
     const headers = await buildHeaders(opts?.headers);
-    const res = await fetch(`${BACKEND_URL}/api${path}`, {
+    const res = await fetch(`${_apiUrl(path)}`, {
       method: 'DELETE',
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
-      credentials: CREDS,
+      credentials: _creds(path),
     });
     if (!res.ok) throw new Error(`DELETE ${path} failed: ${res.status}`);
     return res.json();
