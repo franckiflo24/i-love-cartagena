@@ -15,7 +15,7 @@ import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSignupGate } from '../../src/context/SignupGateContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, colorForKey } from '../../src/constants/theme';
 import { SafeImage } from '../../src/components/SafeImage';
 import { useTr } from '../../src/i18n/autoTr';
 import { useAuth } from '../../src/context/AuthContext';
@@ -468,11 +468,11 @@ export default function PasaporteScreen() {
 
             {/* ── Rutas entry (Drop 5) ── */}
             <TouchableOpacity
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: 'rgba(18,181,165,0.07)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(18,181,165,0.35)' }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: 'rgba(57,184,255,0.08)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(57,184,255,0.35)' }}
               onPress={() => router.push('/rutas' as any)}
               activeOpacity={0.85}
             >
-              <Ionicons name="trail-sign" size={22} color={COLORS.primary} />
+              <Ionicons name="trail-sign" size={22} color={COLORS.official} />
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 14, color: COLORS.textMain, ...FONTS.bold }}>{tr('Rutas de Cartagena')}</Text>
                 <Text style={{ fontSize: 11, color: COLORS.textMuted, ...FONTS.medium }}>{tr('Getsemaní, sabores, atardecer y el circuito de crucero — completa y gana')}</Text>
@@ -506,10 +506,11 @@ export default function PasaporteScreen() {
                   {cols.sabores.map((s) => {
                     const done = !!progress?.sabores.plates[s.key];
                     const dist = !done ? nearestVenueDist(s.venues, geo) : null;
+                    const accent = colorForKey(s.key);
                     return (
                       <TouchableOpacity
                         key={s.key}
-                        style={[styles.tile, done && styles.tileDone]}
+                        style={[styles.tile, !done && { borderColor: accent + '55', backgroundColor: accent + '22' }, done && styles.tileDone]}
                         activeOpacity={0.8}
                         onPress={() => {
                           const v = s.venues[0];
@@ -521,9 +522,9 @@ export default function PasaporteScreen() {
                         {done ? (
                           <View style={styles.tileCheck}><Ionicons name="checkmark" size={11} color="#000" /></View>
                         ) : dist !== null ? (
-                          <Text style={styles.tileDist}>{fmtDist(dist)}</Text>
+                          <Text style={[styles.tileDist, { color: accent }]}>{fmtDist(dist)}</Text>
                         ) : (
-                          <Text style={styles.tileDist}>{s.venues.length === 1 ? s.venues[0].name.slice(0, 16) : `${s.venues.length} ${tr('lugares')}`}</Text>
+                          <Text style={[styles.tileDist, { color: accent }]}>{s.venues.length === 1 ? s.venues[0].name.slice(0, 16) : `${s.venues.length} ${tr('lugares')}`}</Text>
                         )}
                       </TouchableOpacity>
                     );
@@ -560,8 +561,9 @@ export default function PasaporteScreen() {
                     const pos = geo.status === 'granted' ? geo.position : null;
                     const d = pos && typeof p.lat === 'number' ? haversineM(pos.lat, pos.lng, p.lat, p.lng) : null;
                     const canSeal = !!user && !done && d !== null && d <= SEAL_RADIUS_M;
+                    const accent = colorForKey(p.id);
                     return (
-                      <View key={p.id} style={[styles.plazaCard, done && styles.tileDone]}>
+                      <View key={p.id} style={[styles.plazaCard, !done && { borderColor: accent + '77' }, done && styles.tileDone]}>
                         <SafeImage uri={p.image_url} category="attraction" style={styles.plazaImg} />
                         {!done && <View style={styles.plazaShade} />}
                         <View style={styles.plazaOverlay}>
@@ -576,7 +578,7 @@ export default function PasaporteScreen() {
                               <Text style={styles.sealBtnText}>{sealing === p.id ? '…' : tr('Estoy aquí — sellar')}</Text>
                             </TouchableOpacity>
                           ) : d !== null ? (
-                            <Text style={styles.plazaDist}>{fmtDist(d)}</Text>
+                            <Text style={[styles.plazaDist, { color: accent }]}>{fmtDist(d)}</Text>
                           ) : null}
                         </View>
                       </View>

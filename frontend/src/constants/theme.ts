@@ -147,3 +147,90 @@ export const TIER_ICONS: Record<Tier, string> = {
   elite: 'diamond',
 };
 
+// ── CATEGORY / CUISINE COLORS — Caribbean Spectrum, distributed ──
+// The app must NOT read monochrome. Interactive chrome (nav, search, CTAs,
+// selected chips) stays teal = COLORS.primary — that consistency is correct.
+// But every CONTENT category/cuisine/subcategory gets its OWN spectrum color
+// so category tiles, cuisine grids and venue accents feel like Cartagena, not
+// one wash. Use colorForKey(key) for a stable, distinct color per key, and
+// `colorForKey(key) + '22'` (RN 8-digit hex alpha) for its translucent bg.
+export const SPECTRUM = [
+  '#12B5A5', // teal
+  '#FF6B4A', // coral
+  '#E9B949', // mustard
+  '#E5476D', // bougainvillea
+  '#39B8FF', // caribbean blue
+  '#A855F7', // purple
+  '#22C55E', // green
+  '#06B6D4', // cyan
+  '#F97316', // orange
+  '#EC4899', // pink
+  '#6366F1', // indigo
+  '#84CC16', // lime
+  '#F59E0B', // amber
+];
+
+// Explicit assignments for the high-traffic categories + restaurant cuisines
+// (the tiles users actually see). Keys match apiValue (categories) and the
+// SUBCATEGORIES / style_tag keys (cuisines). Anything not listed falls back to
+// a stable hashed spectrum color, so NOTHING is ever monochrome.
+export const CATEGORY_COLORS: Record<string, string> = {
+  // top-level categories (apiValue)
+  restaurant: '#FF6B4A',   // coral
+  bar: '#E5476D',          // bougainvillea
+  cafe: '#E9B949',         // mustard
+  nightlife: '#A855F7',    // purple
+  wellness: '#22C55E',     // green
+  spa: '#22C55E',
+  beach_club: '#39B8FF',   // caribbean blue
+  yacht: '#06B6D4',        // cyan
+  beauty: '#EC4899',       // pink
+  activity: '#12B5A5',     // teal
+  attraction: '#6366F1',   // indigo
+  hotel: '#F59E0B',        // amber
+  service: '#84CC16',      // lime
+  institutional: '#39B8FF',
+  // restaurant cuisines (SUBCATEGORIES / style_tags)
+  mediterranean: '#12B5A5',
+  colombian: '#E9B949',
+  seafood: '#39B8FF',
+  italian: '#FF6B4A',
+  asian: '#E5476D',
+  middle_eastern: '#A855F7',
+  grill: '#F97316',
+  healthy: '#22C55E',
+  fine_dining: '#F59E0B',
+  fast_food: '#EC4899',
+  french: '#6366F1',
+  mexican: '#84CC16',
+  international: '#06B6D4',
+  // bar / nightlife / cafe subcats
+  cocktail_bar: '#E5476D',
+  rooftop: '#E9B949',
+  lounge: '#A855F7',
+  salsa_bar: '#FF6B4A',
+  nightclub: '#A855F7',
+  live_music: '#EC4899',
+  champeta: '#FF6B4A',
+  coffee: '#E9B949',
+  brunch: '#F59E0B',
+  bakery: '#FF6B4A',
+  // hotel / wellness subcats
+  lujo: '#F59E0B',
+  premium: '#E9B949',
+  boutique: '#A855F7',
+  popular: '#22C55E',
+  massage: '#06B6D4',
+  wellness_center: '#22C55E',
+};
+
+// Stable, deterministic color for ANY category/cuisine/subcategory key.
+export function colorForKey(key?: string | null): string {
+  if (!key) return SPECTRUM[0];
+  const k = String(key).toLowerCase();
+  if (CATEGORY_COLORS[k]) return CATEGORY_COLORS[k];
+  let h = 0;
+  for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0;
+  return SPECTRUM[h % SPECTRUM.length];
+}
+

@@ -22,6 +22,7 @@ import {
   TIER_COLORS,
   PARTNER_CATEGORY_LABELS,
   Tier,
+  colorForKey,
 } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { IMAGES, getCategoryImage } from '../../src/constants/images';
@@ -344,7 +345,7 @@ function PartnerGridCard({
         <Text style={styles.gridName} numberOfLines={2}>
           {partner.name}
         </Text>
-        <Text style={styles.gridCategory} numberOfLines={1}>
+        <Text style={[styles.gridCategory, { color: colorForKey((partner as any).category) }]} numberOfLines={1}>
           {tr(PARTNER_CATEGORY_LABELS[(partner as any).category] || (partner as any).category || '')}
         </Text>
         {typeof localCount === 'number' && localCount > 0 && (
@@ -836,7 +837,7 @@ export default function ExploreScreen() {
               <Ionicons
                 name={cat.icon as any}
                 size={12}
-                color={active ? COLORS.white : COLORS.textMuted}
+                color={active ? COLORS.white : colorForKey(cat.apiValue || cat.key)}
               />
               <Text
                 style={[styles.chipText, active && styles.chipTextActive]}
@@ -1037,6 +1038,7 @@ export default function ExploreScreen() {
             {availableSubcats.map((sc) => {
               const count = subcatCounts[sc.key] || 0;
               if (count === 0) return null;
+              const scColor = colorForKey(sc.key);
               return (
                 <TouchableOpacity
                   key={sc.key}
@@ -1044,8 +1046,8 @@ export default function ExploreScreen() {
                   activeOpacity={0.85}
                   onPress={() => setSelectedSubcategory(sc.key)}
                 >
-                  <View style={styles.subcatIconWrap}>
-                    <Ionicons name={sc.icon as any} size={22} color={COLORS.primary} />
+                  <View style={[styles.subcatIconWrap, { backgroundColor: `${scColor}22`, borderColor: `${scColor}55` }]}>
+                    <Ionicons name={sc.icon as any} size={22} color={scColor} />
                   </View>
                   <Text style={styles.subcatLabel} numberOfLines={1}>{tr(sc.label)}</Text>
                   <Text style={styles.subcatCount}>{count} {count !== 1 ? tr('lugares') : tr('lugar')}</Text>

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, D
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS, TIER_COLORS, Tier } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
 import { IMAGES, getCategoryImage } from '../../src/constants/images';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
@@ -640,7 +640,7 @@ export default function HomeScreen() {
                 <SafeImage uri={item.uri} style={styles.photoImage} resizeMode="cover" />
                 <View style={styles.photoOverlay} />
                 <View style={styles.photoContent}>
-                  <View style={styles.photoCatIcon}>
+                  <View style={[styles.photoCatIcon, { backgroundColor: colorForKey(item.cat) + '4D' }]}>
                     <Ionicons name={item.icon as any} size={16} color={COLORS.white} />
                   </View>
                   <Text style={styles.photoLabel}>{item.label}</Text>
@@ -919,7 +919,7 @@ export default function HomeScreen() {
                 }
                 return evts;
               })().slice(0, 10).map((event) => {
-                const cat = CAT_COLORS[event.type] || CAT_COLORS[(event as any).category] || { main: COLORS.primary, bg: 'rgba(18,181,165,0.15)', label: event.type || (event as any).category || '' };
+                const cat = CAT_COLORS[event.type] || CAT_COLORS[(event as any).category] || { main: colorForKey(event.type || (event as any).category), bg: colorForKey(event.type || (event as any).category) + '22', label: event.type || (event as any).category || '' };
                 const budget = getBudgetStyle(event.is_free, event.price);
                 const dateStart = (event as any).date_start || event.date || '';
                 const dateEnd = (event as any).date_end || dateStart;
@@ -1075,7 +1075,7 @@ export default function HomeScreen() {
           const dayPE = allDayItems;
           const nightPE = allNightItems;
           const renderPECard = (event: PEvent) => {
-            const cat = CAT_COLORS[event.category] || { main: COLORS.primary, bg: 'rgba(18,181,165,0.15)', label: event.category };
+            const cat = CAT_COLORS[event.category] || { main: colorForKey(event.category), bg: colorForKey(event.category) + '22', label: event.category };
             const budget = getBudgetStyle(event.is_free, event.price);
             return (
               <TouchableOpacity
@@ -1199,7 +1199,7 @@ export default function HomeScreen() {
               contentContainerStyle={styles.horizontalList}
             >
               {promotions.map((promo) => {
-                const cat = CAT_COLORS[promo.category] || { main: COLORS.primary, bg: 'rgba(18,181,165,0.15)', label: promo.category };
+                const cat = CAT_COLORS[promo.category] || { main: colorForKey(promo.category), bg: colorForKey(promo.category) + '22', label: promo.category };
                 const tierColors = promo.partner_tier ? TIER_COLORS[promo.partner_tier as Tier] : null;
                 return (
                   <TouchableOpacity

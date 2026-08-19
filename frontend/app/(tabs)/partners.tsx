@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, PARTNER_CATEGORY_LABELS, TIER_COLORS, Tier } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, PARTNER_CATEGORY_LABELS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
@@ -120,15 +120,6 @@ const SUBCATEGORIES_BY_CAT: Record<string, { key: string; label: string; icon: s
   service: SERVICE_SUBCATEGORIES,
 };
 
-// Color theme per subcategory parent (for pill styling)
-const SUBCAT_THEME: Record<string, string> = {
-  wellness: '#10B981',
-  restaurant: '#EF4444',
-  hotel: '#3B82F6',
-  activity: '#F59E0B',
-  service: '#64748B',
-};
-
 export default function PartnersScreen() {
   const tr = useTr();
   const router = useRouter();
@@ -168,7 +159,7 @@ export default function PartnersScreen() {
 
   const selectedCard = selectedCategory ? CATEGORIES.find(c => c.key === selectedCategory) ?? null : null;
   const subcatList = selectedCategory ? SUBCATEGORIES_BY_CAT[selectedCategory] : null;
-  const subcatTheme = selectedCategory ? SUBCAT_THEME[selectedCategory] || COLORS.primary : COLORS.primary;
+  const subcatTheme = selectedCategory ? colorForKey(selectedCategory) : COLORS.primary;
   const requireSubcatPick = !!(selectedCategory && REQUIRE_SUBCAT_PICK.has(selectedCategory) && !selectedSubcat);
 
   // Frontend pill-to-DB-subcategory mapping. Lets us present clean guest-facing
@@ -441,22 +432,22 @@ export default function PartnersScreen() {
               .map(cat => (
               <TouchableOpacity
                 key={cat.key}
-                style={styles.categoryCard}
+                style={[styles.categoryCard, { borderColor: `${colorForKey(cat.key)}55` }]}
                 onPress={() => setSelectedCategory(cat.key)}
                 activeOpacity={0.85}
               >
                 <SafeImage uri={cat.image} style={styles.categoryImage} />
                 <View style={styles.categoryOverlay} />
                 <View style={styles.categoryContent}>
-                  <View style={[styles.categoryIconBadge, { backgroundColor: `${cat.color}30` }]}>
-                    <Ionicons name={cat.icon as any} size={20} color={cat.color} />
+                  <View style={[styles.categoryIconBadge, { backgroundColor: `${colorForKey(cat.key)}22` }]}>
+                    <Ionicons name={cat.icon as any} size={20} color={colorForKey(cat.key)} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.categoryName}>{cat.label}</Text>
                     <Text style={styles.categoryCount}>{cat.count} lugares</Text>
                   </View>
-                  <View style={[styles.categoryArrowCircle, { backgroundColor: `${cat.color}25` }]}>
-                    <Ionicons name="chevron-forward" size={18} color={cat.color} />
+                  <View style={[styles.categoryArrowCircle, { backgroundColor: `${COLORS.primary}25` }]}>
+                    <Ionicons name="chevron-forward" size={18} color={COLORS.primary} />
                   </View>
                 </View>
               </TouchableOpacity>
@@ -492,10 +483,11 @@ export default function PartnersScreen() {
             <View style={styles.subcatGrid}>
               {subcatList.filter(sc => subcatCount(sc.key) > 0).map(sc => {
                 const count = subcatCount(sc.key);
+                const tileColor = colorForKey(sc.key);
                 return (
                   <TouchableOpacity
                     key={sc.key}
-                    style={[styles.subcatCard, { borderColor: subcatTheme + '40' }]}
+                    style={[styles.subcatCard, { borderColor: tileColor + '55' }]}
                     onPress={() => setSelectedSubcat(sc.key)}
                     activeOpacity={0.85}
                     disabled={count === 0}
@@ -503,11 +495,11 @@ export default function PartnersScreen() {
                     {sc.image && <SafeImage uri={sc.image} style={styles.subcatCardImg} />}
                     <View style={styles.subcatCardOverlay} />
                     <View style={styles.subcatCardContent}>
-                      <View style={[styles.subcatCardIconBadge, { backgroundColor: subcatTheme + '40' }]}>
-                        <Ionicons name={sc.icon as any} size={20} color={subcatTheme} />
+                      <View style={[styles.subcatCardIconBadge, { backgroundColor: tileColor + '22' }]}>
+                        <Ionicons name={sc.icon as any} size={20} color={tileColor} />
                       </View>
                       <Text style={styles.subcatCardLabel}>{sc.label}</Text>
-                      <View style={[styles.subcatCardCountBadge, { backgroundColor: subcatTheme }]}>
+                      <View style={[styles.subcatCardCountBadge, { backgroundColor: tileColor }]}>
                         <Text style={styles.subcatCardCountText}>{count}</Text>
                       </View>
                     </View>
@@ -534,29 +526,30 @@ export default function PartnersScreen() {
                 {subcatList.filter(sc => subcatCount(sc.key) > 0).map(sc => {
                   const active = selectedSubcat === sc.key;
                   const count = subcatCount(sc.key);
+                  const pillColor = colorForKey(sc.key);
                   return (
                     <TouchableOpacity
                       key={sc.key}
                       onPress={() => setSelectedSubcat(sc.key)}
                       style={[
                         styles.subcatPill,
-                        { backgroundColor: subcatTheme + '1A', borderColor: subcatTheme + '4D' },
-                        active && { backgroundColor: subcatTheme, borderColor: subcatTheme },
+                        { backgroundColor: pillColor + '1A', borderColor: pillColor + '4D' },
+                        active && { backgroundColor: pillColor, borderColor: pillColor },
                       ]}
                       activeOpacity={0.85}
                     >
-                      <Ionicons name={sc.icon as any} size={14} color={active ? COLORS.white : subcatTheme} />
-                      <Text style={[styles.subcatText, { color: subcatTheme }, active && styles.subcatTextActive]}>
+                      <Ionicons name={sc.icon as any} size={14} color={active ? COLORS.white : pillColor} />
+                      <Text style={[styles.subcatText, { color: pillColor }, active && styles.subcatTextActive]}>
                         {sc.label}
                       </Text>
                       <View style={[
                         styles.subcatBadge,
-                        { backgroundColor: subcatTheme + '33' },
+                        { backgroundColor: pillColor + '33' },
                         active && styles.subcatBadgeActive,
                       ]}>
                         <Text style={[
                           styles.subcatBadgeText,
-                          { color: subcatTheme },
+                          { color: pillColor },
                           active && styles.subcatBadgeTextActive,
                         ]}>
                           {count}
