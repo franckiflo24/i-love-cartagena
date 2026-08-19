@@ -145,7 +145,7 @@ export default function FavoritesScreen() {
           <Text style={styles.title}>{tr('Mis Favoritos')}</Text>
           <Text style={styles.subtitle}>{total} {total === 1 ? 'guardado' : 'guardados'}</Text>
         </View>
-        <Ionicons name="heart" size={24} color="#EF4444" />
+        <Ionicons name="heart" size={24} color={COLORS.bougainvillea} />
       </View>
 
       {/* Segmented tabs — compact with distinct colors per category */}
@@ -250,7 +250,7 @@ export default function FavoritesScreen() {
                           onPress={() => toggleFavorite(e.event_id, 'partner_event')}
                           hitSlop={{ top: 10, left: 10, right: 10, bottom: 10 }}
                         >
-                          <Ionicons name="heart" size={16} color="#EF4444" />
+                          <Ionicons name="heart" size={16} color={COLORS.bougainvillea} />
                         </TouchableOpacity>
                       </TouchableOpacity>
                     );
@@ -270,7 +270,7 @@ export default function FavoritesScreen() {
                         style={styles.heartBtn}
                         onPress={() => toggleFavorite(c.concert_id, 'concert')}
                       >
-                        <Ionicons name="heart" size={18} color="#EF4444" />
+                        <Ionicons name="heart" size={18} color={COLORS.bougainvillea} />
                       </TouchableOpacity>
                       <View style={styles.cardContent}>
                         <Text style={styles.cardGenre}>{c.genre}</Text>
@@ -302,7 +302,7 @@ export default function FavoritesScreen() {
                         <Text style={styles.eventVenue} numberOfLines={1}>{e.venue_name} · {e.type}</Text>
                       </View>
                       <TouchableOpacity onPress={() => toggleFavorite(e.event_id, 'event')} hitSlop={{ top: 10, left: 10, right: 10, bottom: 10 }}>
-                        <Ionicons name="heart" size={20} color="#EF4444" />
+                        <Ionicons name="heart" size={20} color={COLORS.bougainvillea} />
                       </TouchableOpacity>
                     </TouchableOpacity>
                   ))}
@@ -341,7 +341,7 @@ export default function FavoritesScreen() {
                       style={styles.heartBtn}
                       onPress={() => toggleFavorite(p.partner_id, 'partner')}
                     >
-                      <Ionicons name="heart" size={18} color="#EF4444" />
+                      <Ionicons name="heart" size={18} color={COLORS.bougainvillea} />
                     </TouchableOpacity>
                     <View style={styles.partnerContent}>
                       <View style={styles.partnerTopRow}>
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
   tierStripe: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 3 },
   peBody: { flex: 1, padding: SPACING.sm, justifyContent: 'space-between', paddingRight: 32 },
   peTopRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
-  timePill: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(245,11,27,0.15)', borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2 },
+  timePill: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(18,181,165,0.15)', borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2 },
   timePillText: { fontSize: 10, color: COLORS.primary, ...FONTS.bold },
   pricePill: { borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2 },
   priceFreeBg: { backgroundColor: COLORS.success },

@@ -217,7 +217,7 @@ export default function AlcaldiaDashboard({
         />
         <View style={{ flex: 1 }}>
           <View style={styles.govBadge}>
-            <Ionicons name={demo ? 'eye-outline' : 'shield-checkmark'} size={11} color="#1B4F72" />
+            <Ionicons name={demo ? 'eye-outline' : 'shield-checkmark'} size={11} color={COLORS.official} />
             <Text style={styles.govBadgeText}>{demo ? 'VISTA DE DEMOSTRACIÓN' : 'CUENTA OFICIAL · GOBIERNO'}</Text>
           </View>
           <Text style={styles.govName}>{partner?.name || 'Alcaldía de Cartagena'}</Text>
@@ -307,7 +307,7 @@ export default function AlcaldiaDashboard({
 
           <Text style={styles.sectionTitle}>Usuarios de la app</Text>
           <View style={styles.kpiGrid}>
-            <KpiTile color="#F50B1B" icon="people" value={fmtNum(k.total_users)} label="Total usuarios" />
+            <KpiTile color="#12B5A5" icon="people" value={fmtNum(k.total_users)} label="Total usuarios" />
             <KpiTile color="#22C55E" icon="trending-up" value={`+${fmtNum(k.new_users_30d)}`} label="Nuevos 30d" />
             <KpiTile color="#3B82F6" icon="flash" value={`+${fmtNum(k.new_users_7d)}`} label="Nuevos 7d" />
             <KpiTile color="#A855F7" icon="globe" value={fmtNum(demog.total_profiled || 0)} label="Perfilados · muestra" />
@@ -465,7 +465,7 @@ export default function AlcaldiaDashboard({
                 <View
                   style={[
                     styles.barFill,
-                    { width: `${Math.min(n.percentage || 0, 100)}%`, backgroundColor: '#F50B1B' },
+                    { width: `${Math.min(n.percentage || 0, 100)}%`, backgroundColor: '#12B5A5' },
                   ]}
                 />
               </View>
@@ -539,7 +539,7 @@ export default function AlcaldiaDashboard({
           ) : (
             payouts.rows.map((r: any) => (
               <View key={r.partner_id || r.partner_name} style={styles.payRow}>
-                <View style={[styles.payIcon, { backgroundColor: 'rgba(245,11,27,0.18)' }]}>
+                <View style={[styles.payIcon, { backgroundColor: 'rgba(18,181,165,0.18)' }]}>
                   <Ionicons name="business" size={16} color={COLORS.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -676,10 +676,10 @@ const styles = StyleSheet.create({
     gap: SPACING.md,
     margin: SPACING.lg,
     padding: SPACING.md,
-    backgroundColor: 'rgba(27,79,114,0.12)',
+    backgroundColor: 'rgba(57,184,255,0.12)',
     borderRadius: RADIUS.xl,
     borderWidth: 1.5,
-    borderColor: '#1B4F72',
+    borderColor: COLORS.official,
   },
   govLogo: { width: 60, height: 60 },
   govBadge: {
@@ -692,7 +692,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
     alignSelf: 'flex-start',
   },
-  govBadgeText: { fontSize: 9, color: '#1B4F72', ...FONTS.bold, letterSpacing: 0.6 },
+  govBadgeText: { fontSize: 9, color: COLORS.official, ...FONTS.bold, letterSpacing: 0.6 },
   govName: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, marginTop: 4 },
   govSubtitle: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
 
@@ -761,7 +761,7 @@ const styles = StyleSheet.create({
   demoScope: {
     flexDirection: 'row', gap: 8, alignItems: 'flex-start',
     marginHorizontal: SPACING.lg, marginTop: SPACING.sm,
-    backgroundColor: 'rgba(245,11,27,0.08)', borderColor: 'rgba(245,11,27,0.3)', borderWidth: 1,
+    backgroundColor: 'rgba(18,181,165,0.08)', borderColor: 'rgba(18,181,165,0.3)', borderWidth: 1,
     borderRadius: RADIUS.md, padding: SPACING.sm,
   },
   demoScopeText: { flex: 1, color: COLORS.textMuted, fontSize: 11.5, lineHeight: 16, ...FONTS.regular },
@@ -780,7 +780,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.xl,
     borderWidth: 1,
-    borderColor: 'rgba(245,11,27,0.4)',
+    borderColor: 'rgba(18,181,165,0.4)',
     padding: SPACING.md,
     gap: SPACING.sm,
   },
@@ -826,7 +826,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: RADIUS.full,
-    backgroundColor: 'rgba(245,11,27,0.15)',
+    backgroundColor: 'rgba(18,181,165,0.15)',
   },
   topBadgeText: { fontSize: 11, color: COLORS.primary, ...FONTS.bold },
 
@@ -859,7 +859,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.full,
     borderWidth: 1,
     borderColor: COLORS.primary,
-    backgroundColor: 'rgba(245,11,27,0.1)',
+    backgroundColor: 'rgba(18,181,165,0.1)',
   },
   exportBtnText: { fontSize: 11, color: COLORS.primary, ...FONTS.bold },
 

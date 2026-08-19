@@ -22,8 +22,8 @@ type Concert = {
 };
 
 const GENRE_COLORS: Record<string, string> = {
-  'Deep House': '#F50B1B',
-  'Melodic Techno': '#F50B1B',
+  'Deep House': '#12B5A5',
+  'Melodic Techno': '#12B5A5',
   'Reggaeton': '#EC4899',
   'Latin Pop': '#EC4899',
   'Trap Latino': '#EC4899',
@@ -40,11 +40,11 @@ const GENRE_COLORS: Record<string, string> = {
   'Cumbia': '#F97316',
   'Melodic House': '#3B82F6',
   'Progressive': '#3B82F6',
-  'Multi-género': '#F50B1B',
+  'Multi-género': '#12B5A5',
 };
 
 const GENRE_FILTERS = [
-  { key: 'house', label: 'Electro', color: '#F50B1B' },
+  { key: 'house', label: 'Electro', color: '#12B5A5' },
   { key: 'reggaeton', label: 'Reggaeton', color: '#EC4899' },
   { key: 'salsa', label: 'Salsa', color: '#EF4444' },
   { key: 'jazz', label: 'Jazz', color: '#F59E0B' },

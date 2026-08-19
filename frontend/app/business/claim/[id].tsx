@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   primaryBtnText: { color: COLORS.white, fontSize: 14, ...FONTS.bold },
   linkText: { textAlign: 'center', color: COLORS.primary, fontSize: 13, ...FONTS.semibold, marginTop: SPACING.md },
   doneBox: { alignItems: 'center', paddingTop: SPACING.xl },
-  doneIcon: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(245,11,27,0.15)', borderWidth: 1.5, borderColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
+  doneIcon: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(18,181,165,0.15)', borderWidth: 1.5, borderColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
   doneTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center', marginTop: SPACING.lg },
   doneSub: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 20, marginTop: SPACING.sm, paddingHorizontal: SPACING.md },
 });

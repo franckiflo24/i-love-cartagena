@@ -58,7 +58,7 @@ export async function getExpoPushToken(): Promise<string | null> {
         name: 'Amo Cartagena',
         importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#F50B1B',
+        lightColor: '#12B5A5',
       });
     }
     // projectId is needed for EAS-managed projects. Falls back to undefined for Expo Go.

@@ -808,7 +808,7 @@ const styles = StyleSheet.create({
   subcatBadgeActive: { backgroundColor: 'rgba(255,255,255,0.25)' },
   subcatBadgeText: { fontSize: 10, color: '#10B981', ...FONTS.bold },
   subcatBadgeTextActive: { color: COLORS.white },
-  partnerCard: { borderRadius: RADIUS.xl, overflow: 'hidden', marginBottom: SPACING.md, borderWidth: 1, borderColor: 'rgba(245, 11, 27, 0.2)', position: 'relative' },
+  partnerCard: { borderRadius: RADIUS.xl, overflow: 'hidden', marginBottom: SPACING.md, borderWidth: 1, borderColor: 'rgba(18,181,165, 0.2)', position: 'relative' },
   partnerImage: { width: '100%', height: 160 },
   partnerOverlay: { position: 'absolute', top: 0, left: 0, right: 0, height: 160, backgroundColor: 'rgba(0,0,0,0.2)' },
   tierStripe: { position: 'absolute', top: 0, left: 0, right: 0, height: 4, zIndex: 2 },
@@ -843,7 +843,7 @@ const styles = StyleSheet.create({
   // Tier Filter Pills (en lista)
   tierFilterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.xs, marginBottom: SPACING.md },
   tierPill: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 6, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border, backgroundColor: 'transparent' },
-  tierPillActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(245,11,27,0.15)' },
+  tierPillActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(18,181,165,0.15)' },
   tierPillDot: { width: 7, height: 7, borderRadius: 4 },
   tierPillText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold },
   tierPillTextActive: { color: COLORS.primary },

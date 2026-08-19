@@ -291,7 +291,7 @@ export default function PerfilScreen() {
             onPress={() => router.push('/business/login')}
             activeOpacity={0.85}
           >
-            <View style={[styles.specialIconWrap, { backgroundColor: 'rgba(245,11,27,0.15)' }]}>
+            <View style={[styles.specialIconWrap, { backgroundColor: 'rgba(18,181,165,0.15)' }]}>
               <Ionicons name="business" size={22} color={COLORS.primary} />
             </View>
             <View style={{ flex: 1 }}>
@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: 'rgba(245,11,27,0.4)',
+    borderColor: 'rgba(18,181,165,0.4)',
   },
   businessIconWrap: {
     width: 40,
@@ -677,7 +677,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(245,11,27,0.15)',
+    backgroundColor: 'rgba(18,181,165,0.15)',
   },
   businessTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
   businessDesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
@@ -705,7 +705,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.12)',
   },
   langPillActive: {
-    backgroundColor: 'rgba(245,11,27,0.22)',
+    backgroundColor: 'rgba(18,181,165,0.22)',
     borderColor: COLORS.primary,
   },
   langPillFlag: { fontSize: 13 },
@@ -735,12 +735,12 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: 'rgba(245,11,27,0.12)',
+    backgroundColor: 'rgba(18,181,165,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.xs,
     borderWidth: 1,
-    borderColor: 'rgba(245,11,27,0.3)',
+    borderColor: 'rgba(18,181,165,0.3)',
   },
   guestTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
   guestSubtitle: {
@@ -804,7 +804,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: 'rgba(245,11,27,0.3)',
+    borderColor: 'rgba(18,181,165,0.3)',
     marginBottom: SPACING.sm,
   },
   alcaldiaCard: {

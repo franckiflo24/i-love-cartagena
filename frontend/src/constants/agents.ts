@@ -44,7 +44,7 @@ export const AGENTS: Record<AgentId, ConciergeAgent> = {
     name: 'Tino',
     emoji: '🍽️',
     tagline: 'Gastronomía curada',
-    accent: '#F50B1B',
+    accent: '#12B5A5',
     opening:
       'Buenas. Soy Tino, su guía gastronómico en Cartagena. Desde ceviches frente al mar hasta cocina de autor en casas coloniales — conozco cada mesa que vale la pena. ¿Cuál es la ocasión?',
     starterChips: [

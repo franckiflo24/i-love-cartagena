@@ -40,9 +40,9 @@ const TIER_CONFIG: Record<
   voyager: {
     label: 'Voyager',
     icon: 'boat',
-    gradient: ['#92400E', '#F50B1B'],
-    accent: '#F50B1B',
-    border: 'rgba(245,11,27,0.5)',
+    gradient: ['#92400E', '#12B5A5'],
+    accent: '#12B5A5',
+    border: 'rgba(18,181,165,0.5)',
   },
   elite: {
     label: 'Elite',
@@ -68,7 +68,7 @@ const ACTION_ICONS: Record<string, { icon: keyof typeof Ionicons.glyphMap; color
   referral:      { icon: 'people-outline',        color: '#22C55E' },
   profile:       { icon: 'person-outline',        color: '#A855F7' },
   redemption:    { icon: 'gift-outline',          color: '#EF4444' },
-  checkin:       { icon: 'location-outline',      color: '#F50B1B' },
+  checkin:       { icon: 'location-outline',      color: '#12B5A5' },
   default:       { icon: 'ellipse-outline',       color: COLORS.textMuted },
 };
 

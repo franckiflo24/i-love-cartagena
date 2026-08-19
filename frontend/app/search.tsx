@@ -71,7 +71,7 @@ const INTENT_META: Record<string, { color: string; icon: string; label: string }
   concert:    { color: '#F472B6', icon: 'musical-notes',     label: 'Concierto' },
   transport:  { color: '#3B82F6', icon: 'boat',              label: 'Transporte' },
   itinerary:  { color: '#FBBF24', icon: 'map',               label: 'Itinerario' },
-  city_pass:  { color: '#F50B1B', icon: 'sparkles',          label: 'City Pass' },
+  city_pass:  { color: '#12B5A5', icon: 'sparkles',          label: 'City Pass' },
   port_tax:   { color: '#06B6D4', icon: 'qr-code',           label: 'Tasa Portuaria' },
   general:    { color: COLORS.primary, icon: 'compass',      label: 'Sugerencia' },
 };
@@ -1247,7 +1247,7 @@ const styles = StyleSheet.create({
     marginHorizontal: SPACING.lg, marginTop: SPACING.md,
     padding: SPACING.md, borderRadius: RADIUS.xl,
     backgroundColor: COLORS.surface,
-    borderWidth: 1.5, borderColor: 'rgba(245,11,27,0.35)',
+    borderWidth: 1.5, borderColor: 'rgba(18,181,165,0.35)',
     gap: SPACING.sm,
   },
   aiHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
@@ -1374,8 +1374,8 @@ const styles = StyleSheet.create({
   actionsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: SPACING.xs },
   actionBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    backgroundColor: 'rgba(245,11,27,0.12)',
-    borderWidth: 1, borderColor: 'rgba(245,11,27,0.4)',
+    backgroundColor: 'rgba(18,181,165,0.12)',
+    borderWidth: 1, borderColor: 'rgba(18,181,165,0.4)',
     paddingHorizontal: 10, paddingVertical: 7,
     borderRadius: RADIUS.full,
   },

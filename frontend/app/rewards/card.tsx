@@ -34,7 +34,7 @@ const TIER_CONFIG: Record<
   { label: string; icon: keyof typeof Ionicons.glyphMap; gradient: [string, string]; accent: string }
 > = {
   explorer: { label: 'Explorer', icon: 'compass',  gradient: ['#1E3A8A', '#3B82F6'], accent: '#3B82F6' },
-  voyager:  { label: 'Voyager',  icon: 'boat',     gradient: ['#92400E', '#F50B1B'], accent: '#F50B1B' },
+  voyager:  { label: 'Voyager',  icon: 'boat',     gradient: ['#92400E', '#12B5A5'], accent: '#12B5A5' },
   elite:    { label: 'Elite',    icon: 'diamond',  gradient: ['#581C87', '#A855F7'], accent: '#A855F7' },
   legend:   { label: 'Legend',   icon: 'star',     gradient: ['#92400E', '#F59E0B'], accent: '#F59E0B' },
 };

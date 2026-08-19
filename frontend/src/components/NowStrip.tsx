@@ -45,20 +45,22 @@ export function NowStrip() {
         <Text style={styles.kicker}>{lang === 'es' ? 'AHORA MISMO' : 'RIGHT NOW'}{data?.local_time ? ` · ${data.local_time}` : ''}</Text>
         <Text style={styles.copy} numberOfLines={2}>{copy}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={16} color={COLORS.primary} />
+      <Ionicons name="chevron-forward" size={16} color={COLORS.coral} />
     </TouchableOpacity>
   );
 }
 
+// "Right now" is the app's live moment → coral, not the teal used for
+// general navigation. This is the one section that should feel urgent-warm.
 const styles = StyleSheet.create({
   strip: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     marginHorizontal: SPACING.lg, marginBottom: SPACING.md,
-    padding: SPACING.md, backgroundColor: 'rgba(245,11,27,0.10)',
-    borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(245,11,27,0.4)',
+    padding: SPACING.md, backgroundColor: 'rgba(255,107,74,0.10)',
+    borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(255,107,74,0.4)',
   },
-  iconWrap: { width: 34, height: 34, borderRadius: 17, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
-  kicker: { fontSize: 9.5, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1.2 },
+  iconWrap: { width: 34, height: 34, borderRadius: 17, backgroundColor: COLORS.coral, alignItems: 'center', justifyContent: 'center' },
+  kicker: { fontSize: 9.5, color: COLORS.coral, ...FONTS.bold, letterSpacing: 1.2 },
   copy: { fontSize: 12.5, color: COLORS.textMain, ...FONTS.semibold, marginTop: 2 },
 });
 

@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(245,11,27,0.12)',
+    backgroundColor: 'rgba(18,181,165,0.12)',
     borderRadius: RADIUS.full,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -528,9 +528,9 @@ const styles = StyleSheet.create({
   passportHint: { fontSize: 9, color: COLORS.primary, ...FONTS.semibold },
 
   gemTease: {
-    borderColor: 'rgba(245,11,27,0.55)',
+    borderColor: 'rgba(18,181,165,0.55)',
     borderWidth: 1.5,
-    backgroundColor: 'rgba(245,11,27,0.06)',
+    backgroundColor: 'rgba(18,181,165,0.06)',
   },
   gemTeaseRare: {
     borderColor: '#FF6B75',
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(245,11,27,0.14)',
+    backgroundColor: 'rgba(18,181,165,0.14)',
     borderRadius: RADIUS.full,
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
-    borderColor: 'rgba(245,11,27,0.35)',
+    borderColor: 'rgba(18,181,165,0.35)',
   },
   explainerTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
   explainerBody: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, lineHeight: 15 },

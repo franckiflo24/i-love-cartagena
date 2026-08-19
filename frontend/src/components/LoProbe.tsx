@@ -139,17 +139,17 @@ export function LoProbe({ partnerId }: { partnerId: string }) {
 }
 
 const styles = StyleSheet.create({
-  box: { marginTop: SPACING.md, backgroundColor: 'rgba(245,11,27,0.06)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(245,11,27,0.3)', padding: SPACING.md, gap: 8 },
+  box: { marginTop: SPACING.md, backgroundColor: 'rgba(18,181,165,0.06)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(18,181,165,0.3)', padding: SPACING.md, gap: 8 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   title: { flex: 1, fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
   link: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, paddingVertical: 9, paddingHorizontal: 12 },
-  rowDone: { borderColor: 'rgba(245,11,27,0.5)' },
+  rowDone: { borderColor: 'rgba(18,181,165,0.5)' },
   plateName: { flex: 1, fontSize: 13, color: COLORS.textMain, ...FONTS.semibold },
   plateNameDone: { color: COLORS.textMuted },
   ctaChip: { backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 5 },
   ctaChipText: { fontSize: 11, color: '#000', ...FONTS.bold },
-  doneChip: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(245,11,27,0.85)', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 5 },
+  doneChip: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(18,181,165,0.85)', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 5 },
   doneChipText: { fontSize: 10, color: '#000', ...FONTS.bold },
   notice: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold, textAlign: 'center', marginTop: 2 },
 });

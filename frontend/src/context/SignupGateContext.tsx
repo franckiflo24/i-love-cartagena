@@ -22,7 +22,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { trackGate } from '../lib/gateAnalytics';
 import { safeNext } from '../lib/safeNext';
 
-const GOLD = '#F50B1B';
+const GOLD = '#12B5A5';
 const GOLD_BRIGHT = '#FF6B75';
 
 export type GateAction =
@@ -136,15 +136,15 @@ const styles = StyleSheet.create({
   sheet: {
     backgroundColor: '#0C0C13', borderTopLeftRadius: 24, borderTopRightRadius: 24,
     paddingTop: 30, paddingHorizontal: SPACING.xl, paddingBottom: Platform.OS === 'web' ? 34 : 44,
-    borderWidth: 1, borderColor: 'rgba(245,11,27,0.28)', overflow: 'hidden', alignItems: 'center',
+    borderWidth: 1, borderColor: 'rgba(18,181,165,0.28)', overflow: 'hidden', alignItems: 'center',
   },
   glow: {
     position: 'absolute', top: -80, alignSelf: 'center', width: 340, height: 340, borderRadius: 170,
-    backgroundColor: 'rgba(245,11,27,0.15)', ...(Platform.OS === 'web' ? { filter: 'blur(70px)' } as any : {}),
+    backgroundColor: 'rgba(18,181,165,0.15)', ...(Platform.OS === 'web' ? { filter: 'blur(70px)' } as any : {}),
   },
   close: { position: 'absolute', top: 14, right: 16, zIndex: 5 },
   seal: {
-    width: 56, height: 56, borderRadius: 28, borderWidth: 1.5, borderColor: 'rgba(245,11,27,0.5)',
+    width: 56, height: 56, borderRadius: 28, borderWidth: 1.5, borderColor: 'rgba(18,181,165,0.5)',
     borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', marginBottom: 14,
   },
   amo: { color: GOLD, fontSize: 12, letterSpacing: 6, fontFamily: Platform.select({ web: 'Georgia, serif', default: 'serif' }), marginBottom: 12 },

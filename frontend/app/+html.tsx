@@ -94,8 +94,8 @@ export default function Root({ children }: PropsWithChildren) {
               min-height: 100vh;
               background: #020408;
               background-image:
-                radial-gradient(ellipse at 30% 20%, rgba(245,11,27,0.03) 0%, transparent 50%),
-                radial-gradient(ellipse at 70% 80%, rgba(245,11,27,0.02) 0%, transparent 50%);
+                radial-gradient(ellipse at 30% 20%, rgba(18,181,165,0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(18,181,165,0.02) 0%, transparent 50%);
             }
 
             #root {
@@ -109,7 +109,7 @@ export default function Root({ children }: PropsWithChildren) {
                 0 0 0 8px #0a0a0a,
                 0 0 0 9px rgba(255,255,255,0.08),
                 0 25px 80px rgba(0,0,0,0.6),
-                0 0 120px rgba(245,11,27,0.04);
+                0 0 120px rgba(18,181,165,0.04);
               position: relative;
             }
 
@@ -159,7 +159,7 @@ export default function Root({ children }: PropsWithChildren) {
 
           /* Selection color */
           ::selection {
-            background: rgba(245,11,27,0.3);
+            background: rgba(18,181,165,0.3);
             color: #FAFAF9;
           }
 
@@ -230,7 +230,7 @@ export default function Root({ children }: PropsWithChildren) {
             height: 100%;
             width: 40%;
             border-radius: 2px;
-            background: linear-gradient(90deg, transparent, #F50B1B, transparent);
+            background: linear-gradient(90deg, transparent, #12B5A5, transparent);
             animation: amo-slide 1.4s ease-in-out infinite;
           }
           @keyframes amo-slide {

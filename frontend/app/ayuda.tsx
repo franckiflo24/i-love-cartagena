@@ -169,7 +169,7 @@ export default function HelpScreen() {
           <View style={styles.kindRow}>
             {[
               { id: 'bug' as const, label: 'Reportar problema', icon: 'bug' as const, color: '#EF4444' },
-              { id: 'idea' as const, label: 'Sugerencia', icon: 'bulb' as const, color: '#F50B1B' },
+              { id: 'idea' as const, label: 'Sugerencia', icon: 'bulb' as const, color: '#12B5A5' },
             ].map(k => (
               <TouchableOpacity
                 key={k.id}

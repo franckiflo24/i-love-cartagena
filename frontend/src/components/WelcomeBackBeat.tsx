@@ -10,7 +10,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { api, API_BASE } from '../constants/api';
 import { useAuth } from '../context/AuthContext';
 
-const GOLD = '#F50B1B';
+const GOLD = '#12B5A5';
 const GOLD_BRIGHT = '#FF6B75';
 
 export default function WelcomeBackBeat() {
@@ -90,7 +90,7 @@ export default function WelcomeBackBeat() {
 const styles = StyleSheet.create({
   wrap: {
     marginHorizontal: SPACING.lg, marginTop: SPACING.sm, marginBottom: SPACING.xs,
-    backgroundColor: 'rgba(245,11,27,0.1)', borderColor: 'rgba(245,11,27,0.32)', borderWidth: 1,
+    backgroundColor: 'rgba(18,181,165,0.1)', borderColor: 'rgba(18,181,165,0.32)', borderWidth: 1,
     borderRadius: RADIUS.lg, padding: SPACING.md,
   },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },

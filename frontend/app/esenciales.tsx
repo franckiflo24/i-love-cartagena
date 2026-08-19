@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   section: { marginTop: SPACING.md },
   sectionHead: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: SPACING.lg, marginBottom: SPACING.sm },
   sectionTitle: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold },
-  catCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(245,11,27,0.22)', overflow: 'hidden' },
+  catCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(18,181,165,0.22)', overflow: 'hidden' },
   catHead: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: SPACING.md },
   catTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
   catBody: { paddingHorizontal: SPACING.md, paddingBottom: SPACING.md, gap: 7 },

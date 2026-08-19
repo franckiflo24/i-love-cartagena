@@ -79,15 +79,15 @@ export default async function handler(req: Request) {
   body { background: #07070B; color: #fff; font-family: 'Manrope','DM Sans',system-ui,sans-serif;
          min-height: 100vh; display: flex; flex-direction: column; align-items: center;
          justify-content: center; gap: 28px; padding: 24px; text-align: center; }
-  img.card { width: min(92vw, 640px); border-radius: 18px; border: 1px solid rgba(212,175,55,0.35);
+  img.card { width: min(92vw, 640px); border-radius: 18px; border: 1px solid rgba(233,185,73,0.35);
              box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
-  a.cta { background: #D4AF37; color: #000; font-weight: 800; text-decoration: none;
+  a.cta { background: #E9B949; color: #000; font-weight: 800; text-decoration: none;
           padding: 14px 30px; border-radius: 999px; font-size: 16px; }
   p.sub { color: rgba(255,255,255,0.5); font-size: 14px; max-width: 420px; line-height: 1.5; }
 </style>
 </head>
 <body>
-  <h1 style="font-family:Georgia,serif;font-weight:400;font-size:clamp(22px,5vw,34px);color:#F5D47A;">${esc(inviteLine)}</h1>
+  <h1 style="font-family:Georgia,serif;font-weight:400;font-size:clamp(22px,5vw,34px);color:#F2D06B;">${esc(inviteLine)}</h1>
   <img class="card" src="${cardUrl}" alt="${esc(title)}"/>
   <p class="sub">Cada sello es real — ganado caminando la ciudad, verificado en el lugar. Esto es lo que te espera.</p>
   <a class="cta" href="${SITE}/pasaporte${ref ? `?ref=${ref}` : ''}">Empezá tu propio pasaporte</a>

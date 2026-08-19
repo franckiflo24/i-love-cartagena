@@ -314,7 +314,7 @@ export default function MyContent() {
                   return (
                     <View key={p.price_id} style={styles.subCard}>
                       <View style={styles.subRow}>
-                        <View style={[styles.typeTag, { backgroundColor: 'rgba(245,11,27,0.15)' }]}>
+                        <View style={[styles.typeTag, { backgroundColor: 'rgba(18,181,165,0.15)' }]}>
                           <Text style={styles.typeTagText}>{tr('Precio')}</Text>
                         </View>
                         <View style={[styles.chip, { backgroundColor: meta.bg }]}>

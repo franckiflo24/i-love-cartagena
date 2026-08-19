@@ -28,15 +28,15 @@ export function TrustBadges({ partner }: { partner: any }) {
     <View style={styles.wrap}>
       <View style={styles.row}>
         {!!trust.place_verified && (
-          <TouchableOpacity style={styles.badge} onPress={() => setOpen(open === 'v' ? null : 'v')} activeOpacity={0.8}>
-            <Ionicons name="checkmark-circle" size={13} color={COLORS.primary} />
-            <Text style={styles.badgeText}>{tr('Verificado')}</Text>
+          <TouchableOpacity style={[styles.badge, styles.badgeOfficial]} onPress={() => setOpen(open === 'v' ? null : 'v')} activeOpacity={0.8}>
+            <Ionicons name="checkmark-circle" size={13} color={COLORS.official} />
+            <Text style={[styles.badgeText, styles.badgeTextOfficial]}>{tr('Verificado')}</Text>
           </TouchableOpacity>
         )}
         {!!trust.rnt && (
-          <TouchableOpacity style={styles.badge} onPress={() => setOpen(open === 'r' ? null : 'r')} activeOpacity={0.8}>
-            <Ionicons name="shield-checkmark" size={13} color={COLORS.primary} />
-            <Text style={styles.badgeText}>RNT</Text>
+          <TouchableOpacity style={[styles.badge, styles.badgeOfficial]} onPress={() => setOpen(open === 'r' ? null : 'r')} activeOpacity={0.8}>
+            <Ionicons name="shield-checkmark" size={13} color={COLORS.official} />
+            <Text style={[styles.badgeText, styles.badgeTextOfficial]}>RNT</Text>
           </TouchableOpacity>
         )}
         {!!priceLabel && (
@@ -67,8 +67,10 @@ export function TrustBadges({ partner }: { partner: any }) {
 const styles = StyleSheet.create({
   wrap: { marginTop: SPACING.sm, gap: 6 },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  badge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(245,11,27,0.10)', borderColor: 'rgba(245,11,27,0.45)', borderWidth: 1, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
+  badge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(18,181,165,0.10)', borderColor: 'rgba(18,181,165,0.45)', borderWidth: 1, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
+  badgeOfficial: { backgroundColor: 'rgba(57,184,255,0.10)', borderColor: 'rgba(57,184,255,0.45)' },
   badgeText: { fontSize: 11, color: COLORS.primary, ...FONTS.bold },
+  badgeTextOfficial: { color: COLORS.official },
   detail: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, lineHeight: 16, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, padding: 10 },
 });
 

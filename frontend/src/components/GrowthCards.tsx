@@ -133,7 +133,7 @@ export function GrowthCards({ signedIn }: { signedIn: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  card: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: 'rgba(245,11,27,0.3)', overflow: 'hidden' },
+  card: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: 'rgba(18,181,165,0.3)', overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: SPACING.md, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   rowTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
   rowSub: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, marginTop: 1 },

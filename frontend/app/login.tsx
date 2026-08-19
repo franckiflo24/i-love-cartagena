@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.12)',
   },
   langPillActive: {
-    backgroundColor: 'rgba(245,11,27,0.25)',
+    backgroundColor: 'rgba(18,181,165,0.25)',
     borderColor: COLORS.primary,
   },
   langFlag: { fontSize: 14 },

@@ -32,7 +32,7 @@ const STATUS_COLORS: Record<string, { bg: string; fg: string; label: string; ico
   paid: { bg: 'rgba(34,197,94,0.15)', fg: '#22C55E', label: 'ACTIVO', icon: 'shield-checkmark' },
   used: { bg: 'rgba(168,85,247,0.15)', fg: '#A855F7', label: 'USADO', icon: 'checkmark-done' },
   expired: { bg: 'rgba(148,163,184,0.15)', fg: '#94A3B8', label: 'EXPIRADO', icon: 'time' },
-  pending: { bg: 'rgba(245,11,27,0.15)', fg: '#F50B1B', label: 'PENDIENTE', icon: 'hourglass' },
+  pending: { bg: 'rgba(18,181,165,0.15)', fg: '#12B5A5', label: 'PENDIENTE', icon: 'hourglass' },
 };
 
 function formatHumanDate(ymd: string): string {

@@ -35,9 +35,9 @@ export interface ShareCardStats {
 
 const W = 1080;
 const H = 1350;
-const GOLD = '#F50B1B';
+const GOLD = '#12B5A5';
 const GOLD_BRIGHT = '#FF6B75';
-const GOLD_DIM = 'rgba(245,11,27,0.28)';
+const GOLD_DIM = 'rgba(18,181,165,0.28)';
 const INK = '#07070B';
 const SERIF = 'Georgia, "Times New Roman", serif';
 const SANS = 'Manrope, "DM Sans", system-ui, sans-serif';
@@ -47,13 +47,13 @@ export function drawPassportFrame(ctx: CanvasRenderingContext2D) {
   ctx.fillStyle = INK;
   ctx.fillRect(0, 0, W, H);
   const halo = ctx.createRadialGradient(W / 2, 300, 60, W / 2, 420, 1050);
-  halo.addColorStop(0, 'rgba(245,11,27,0.13)');
-  halo.addColorStop(0.5, 'rgba(245,11,27,0.03)');
+  halo.addColorStop(0, 'rgba(18,181,165,0.13)');
+  halo.addColorStop(0.5, 'rgba(18,181,165,0.03)');
   halo.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = halo;
   ctx.fillRect(0, 0, W, H);
   // grain: sparse gold dust, deterministic
-  ctx.fillStyle = 'rgba(245,11,27,0.05)';
+  ctx.fillStyle = 'rgba(18,181,165,0.05)';
   for (let i = 0; i < 90; i++) {
     const gx = ((i * 379) % 1013) + 34;
     const gy = ((i * 691) % 1283) + 34;
@@ -108,8 +108,8 @@ export function drawSeal(
     ctx.setLineDash([]);
   } else {
     const fill = ctx.createRadialGradient(0, -r * 0.35, r * 0.1, 0, 0, r);
-    fill.addColorStop(0, 'rgba(245,11,27,0.20)');
-    fill.addColorStop(1, 'rgba(245,11,27,0.05)');
+    fill.addColorStop(0, 'rgba(18,181,165,0.20)');
+    fill.addColorStop(1, 'rgba(18,181,165,0.05)');
     ctx.fillStyle = fill;
     ctx.fill();
     ctx.strokeStyle = accent;
@@ -125,7 +125,7 @@ export function drawSeal(
   // monogram
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = opts?.dashed ? 'rgba(245,11,27,0.4)' : GOLD_BRIGHT;
+  ctx.fillStyle = opts?.dashed ? 'rgba(18,181,165,0.4)' : GOLD_BRIGHT;
   ctx.font = `${Math.round(r * 0.82)}px ${SERIF}`;
   ctx.fillText(monogram, 0, r * 0.04);
   ctx.restore();

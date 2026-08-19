@@ -417,12 +417,12 @@ const styles = StyleSheet.create({
     marginHorizontal: SPACING.lg, marginBottom: SPACING.md, marginTop: SPACING.sm,
     paddingHorizontal: SPACING.md, paddingVertical: SPACING.md,
     backgroundColor: COLORS.surface, borderRadius: RADIUS.xl,
-    borderWidth: 1.5, borderColor: 'rgba(245,11,27,0.35)',
+    borderWidth: 1.5, borderColor: 'rgba(18,181,165,0.35)',
   },
   portTaxLeft: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   portTaxIconWrap: {
     width: 48, height: 48, borderRadius: 24,
-    backgroundColor: 'rgba(245,11,27,0.15)',
+    backgroundColor: 'rgba(18,181,165,0.15)',
     alignItems: 'center', justifyContent: 'center',
   },
   portTaxTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
 
   myTicketsBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start',
-    backgroundColor: 'rgba(245,11,27,0.10)', borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(18,181,165,0.10)', borderRadius: RADIUS.full,
     paddingHorizontal: 8, paddingVertical: 3, marginTop: 6,
   },
   myTicketsText: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },

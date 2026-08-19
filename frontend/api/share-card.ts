@@ -8,8 +8,8 @@ import { Resvg } from '@resvg/resvg-js';
 import { MANROPE_700_B64, MANROPE_800_B64, HEART_SVG } from '../og-assets/fonts';
 
 const BACKEND = 'https://backend-mu-one-74.vercel.app';
-const GOLD = '#D4AF37';
-const GOLD_BRIGHT = '#F5D47A';
+const GOLD = '#E9B949';
+const GOLD_BRIGHT = '#F2D06B';
 
 const NBH_NAMES: Record<string, string> = {
   centro: 'Centro Histórico', san_diego: 'San Diego', getsemani: 'Getsemaní',
@@ -30,7 +30,7 @@ function tile(num: string, label: string) {
   return h('div', {
     display: 'flex', flexDirection: 'column', alignItems: 'center',
     justifyContent: 'center', width: 210, height: 130, borderRadius: 20,
-    border: '1.5px solid rgba(212,175,55,0.4)', backgroundColor: 'rgba(255,255,255,0.04)',
+    border: '1.5px solid rgba(233,185,73,0.4)', backgroundColor: 'rgba(255,255,255,0.04)',
   },
     h('div', { display: 'flex', fontSize: 52, fontWeight: 800, color: GOLD_BRIGHT }, num),
     h('div', { display: 'flex', fontSize: 16, fontWeight: 700, color: 'rgba(255,255,255,0.55)', letterSpacing: 2 }, label),
@@ -55,7 +55,7 @@ function card(snap: any) {
   ];
   // 8C3: earned title + rareza — only rendered when the snapshot carries them
   if (snap.title) {
-    inner.push(h('div', { display: 'flex', fontSize: 24, fontWeight: 800, color: '#F5D47A', marginTop: 6 },
+    inner.push(h('div', { display: 'flex', fontSize: 24, fontWeight: 800, color: '#F2D06B', marginTop: 6 },
       `★ ${snap.title}${snap.rareza ? `  ·  rareza ${snap.rareza}` : ''}`));
   }
   if (tiles.length > 0) {
@@ -68,7 +68,7 @@ function card(snap: any) {
     inner.push(h('div', { display: 'flex', fontSize: 22, fontWeight: 700, color: 'rgba(255,255,255,0.75)', marginTop: 22 }, bits.join('   ·   ')));
   }
   if (venues.length > 0) {
-    inner.push(h('div', { display: 'flex', fontSize: 19, fontWeight: 700, color: 'rgba(212,175,55,0.85)', marginTop: 12 }, venues.join('  ·  ')));
+    inner.push(h('div', { display: 'flex', fontSize: 19, fontWeight: 700, color: 'rgba(233,185,73,0.85)', marginTop: 12 }, venues.join('  ·  ')));
   }
   inner.push(
     h('div', { display: 'flex', alignItems: 'center', gap: 12, marginTop: 30 },
@@ -82,7 +82,7 @@ function card(snap: any) {
   return h('div', {
     width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
     alignItems: 'center', justifyContent: 'center', backgroundColor: '#07070B',
-    backgroundImage: 'radial-gradient(circle at 50% 35%, rgba(212,175,55,0.12) 0%, rgba(212,175,55,0.03) 45%, rgba(0,0,0,0) 75%)',
+    backgroundImage: 'radial-gradient(circle at 50% 35%, rgba(233,185,73,0.12) 0%, rgba(233,185,73,0.03) 45%, rgba(0,0,0,0) 75%)',
   },
     h('div', {
       display: 'flex', flexDirection: 'column', alignItems: 'center',

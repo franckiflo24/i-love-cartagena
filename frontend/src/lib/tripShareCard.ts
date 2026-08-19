@@ -14,7 +14,7 @@ export interface TripCardData {
 
 const W = 1080;
 const H = 1350;
-const GOLD = '#F50B1B';
+const GOLD = '#12B5A5';
 const GOLD_BRIGHT = '#FF6B75';
 const SERIF = 'Georgia, "Times New Roman", serif';
 const SANS = 'Manrope, "DM Sans", system-ui, sans-serif';

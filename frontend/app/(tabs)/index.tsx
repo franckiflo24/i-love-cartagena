@@ -467,7 +467,7 @@ export default function HomeScreen() {
         {/* Drop 11 (11C1): the reciprocal spark — real names, the real +500 */}
         {refMoment && (
           <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: 'rgba(245,11,27,0.12)', borderRadius: RADIUS.lg, padding: SPACING.md, borderWidth: 1, borderColor: 'rgba(245,11,27,0.35)', gap: SPACING.sm }}
+            style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: 'rgba(18,181,165,0.12)', borderRadius: RADIUS.lg, padding: SPACING.md, borderWidth: 1, borderColor: 'rgba(18,181,165,0.35)', gap: SPACING.sm }}
             onPress={() => setRefMoment(null)}
             activeOpacity={0.85}
           >
@@ -479,13 +479,13 @@ export default function HomeScreen() {
         {/* Guest personalization banner */}
         {showGuestBanner && !hasCompletedOnboarding && (
           <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: 'rgba(245,11,27,0.12)', borderRadius: RADIUS.lg, padding: SPACING.md, borderWidth: 1, borderColor: 'rgba(245,11,27,0.3)', gap: SPACING.sm }}
+            style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: 'rgba(18,181,165,0.12)', borderRadius: RADIUS.lg, padding: SPACING.md, borderWidth: 1, borderColor: 'rgba(18,181,165,0.3)', gap: SPACING.sm }}
             onPress={() => { setShowGuestBanner(false); router.push('/onboarding' as any); }}
             activeOpacity={0.85}
           >
-            <Ionicons name="sparkles" size={20} color="#F50B1B" />
+            <Ionicons name="sparkles" size={20} color="#12B5A5" />
             <Text style={{ flex: 1, fontSize: 13, color: COLORS.white, ...FONTS.medium }}>{s('home_guest_banner')}</Text>
-            <Text style={{ fontSize: 12, color: '#F50B1B', ...FONTS.bold }}>{s('home_guest_banner_cta')}</Text>
+            <Text style={{ fontSize: 12, color: '#12B5A5', ...FONTS.bold }}>{s('home_guest_banner_cta')}</Text>
             <TouchableOpacity
               onPress={(e) => { e.stopPropagation(); setShowGuestBanner(false); AsyncStorage.setItem('@guest_banner_dismissed', 'true'); }}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -556,16 +556,16 @@ export default function HomeScreen() {
           >
             {(() => {
               const allItems = [
-                { icon: 'home',           label: tr('Mi base'),        subtitle: tr('Cómo volver'),     color: '#F50B1B', route: '#base', cat: '' },
+                { icon: 'home',           label: tr('Mi base'),        subtitle: tr('Cómo volver'),     color: '#12B5A5', route: '#base', cat: '' },
                 { icon: 'calendar',       label: s('home_agenda'),     subtitle: s('home_today'),       color: '#F97316', route: '/(tabs)/agenda', cat: '' },
                 { icon: 'compass',        label: 'Explorar',           subtitle: 'Lugares',             color: '#3B82F6', route: '/(tabs)/explore', cat: '' },
-                { icon: 'ribbon',         label: 'Pasaporte',          subtitle: 'Sellos',              color: '#F50B1B', route: '/(tabs)/pasaporte', cat: '' },
+                { icon: 'ribbon',         label: 'Pasaporte',          subtitle: 'Sellos',              color: '#12B5A5', route: '/(tabs)/pasaporte', cat: '' },
                 { icon: 'briefcase',      label: tr('Mi Viaje'),       subtitle: tr('Planeá con tu grupo'), color: '#8B5CF6', route: '/viaje', cat: '' },
                 { icon: 'medkit',         label: tr('Esenciales'),     subtitle: tr('Todo lo básico'),  color: '#14B8A6', route: '/esenciales', cat: '' },
                 { icon: 'shield-checkmark', label: 'Sin sustos',       subtitle: 'Precios+Tips',        color: '#22C55E', route: '/seguridad', cat: '' },
                 { icon: 'musical-notes',  label: s('home_concerts'),   subtitle: s('home_live'),        color: '#A855F7', route: '/concerts', cat: 'club' },
                 { icon: 'star',           label: 'Rewards',            subtitle: 'Puntos',              color: '#F59E0B', route: '/rewards', cat: '' },
-                { icon: 'heart',          label: s('home_favorites'),  subtitle: s('home_my_list'),     color: '#EF4444', route: '/favorites', cat: '' },
+                { icon: 'heart',          label: s('home_favorites'),  subtitle: s('home_my_list'),     color: COLORS.bougainvillea, route: '/favorites', cat: '' },
                 { icon: 'boat',           label: s('home_transport'),  subtitle: s('home_boats'),       color: '#06B6D4', route: '/transport', cat: 'activity' },
                 { icon: 'trail-sign',     label: s('home_routes'),     subtitle: 'IA',                  color: '#10B981', route: '/itineraries', cat: '' },
                 { icon: 'shield',         label: 'Emergencias',        subtitle: 'SOS',                 color: '#DC2626', route: '/ayuda', cat: '' },
@@ -827,8 +827,8 @@ export default function HomeScreen() {
             >
               <View style={{ flexDirection: 'row', gap: SPACING.sm, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md }}>
                 {[0, 1, 2].map((i) => (
-                  <View key={i} style={{ width: 150, height: 128, borderRadius: RADIUS.md, backgroundColor: 'rgba(245,11,27,0.09)', borderWidth: 1, borderColor: 'rgba(245,11,27,0.16)', alignItems: 'center', justifyContent: 'center' }}>
-                    <Ionicons name="sparkles" size={22} color="rgba(245,11,27,0.45)" />
+                  <View key={i} style={{ width: 150, height: 128, borderRadius: RADIUS.md, backgroundColor: 'rgba(18,181,165,0.09)', borderWidth: 1, borderColor: 'rgba(18,181,165,0.16)', alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="sparkles" size={22} color="rgba(18,181,165,0.45)" />
                   </View>
                 ))}
               </View>
@@ -919,7 +919,7 @@ export default function HomeScreen() {
                 }
                 return evts;
               })().slice(0, 10).map((event) => {
-                const cat = CAT_COLORS[event.type] || CAT_COLORS[(event as any).category] || { main: COLORS.primary, bg: 'rgba(245,11,27,0.15)', label: event.type || (event as any).category || '' };
+                const cat = CAT_COLORS[event.type] || CAT_COLORS[(event as any).category] || { main: COLORS.primary, bg: 'rgba(18,181,165,0.15)', label: event.type || (event as any).category || '' };
                 const budget = getBudgetStyle(event.is_free, event.price);
                 const dateStart = (event as any).date_start || event.date || '';
                 const dateEnd = (event as any).date_end || dateStart;
@@ -981,7 +981,7 @@ export default function HomeScreen() {
             <SafeImage uri={IMAGES.hero} style={styles.heroImage} resizeMode="cover" />
             <View style={[styles.heroOverlay, { backgroundColor: 'rgba(5,8,20,0.55)' }]} />
             <View style={styles.heroContent}>
-              <Text style={[styles.heroLabel, { color: COLORS.primary }]}>CARTAGENA DE INDIAS</Text>
+              <Text style={[styles.heroLabel, { color: COLORS.mustard }]}>CARTAGENA DE INDIAS</Text>
               <Text style={styles.heroTitle}>{tr('Descubre la ciudad')}</Text>
               <Text style={styles.heroSub}>{tr('Gastronomía · Cultura · Vida nocturna · Bienestar')}</Text>
               <View style={[styles.comingSoonBadge, { backgroundColor: COLORS.primary, marginTop: 10 }]}>
@@ -998,7 +998,7 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Ionicons name="heart" size={18} color="#EF4444" />
+                <Ionicons name="heart" size={18} color={COLORS.bougainvillea} />
                 <Text style={styles.sectionTitle}>{tr('Mis favoritos')}</Text>
                 <View style={styles.favCountBubble}><Text style={styles.favCountText}>{favItems.length}</Text></View>
               </View>
@@ -1019,7 +1019,7 @@ export default function HomeScreen() {
                     <SafeImage uri={item.image} fallbackUri={IMAGES.placeholder} style={styles.favImage} resizeMode="cover" />
                     <View style={styles.favOverlay} />
                     <View style={styles.favHeartBadge}>
-                      <Ionicons name="heart" size={11} color="#EF4444" />
+                      <Ionicons name="heart" size={11} color={COLORS.bougainvillea} />
                     </View>
                     {tier && <View style={[styles.favTierStripe, { backgroundColor: tier.main }]} />}
                     <View style={styles.favInfo}>
@@ -1075,7 +1075,7 @@ export default function HomeScreen() {
           const dayPE = allDayItems;
           const nightPE = allNightItems;
           const renderPECard = (event: PEvent) => {
-            const cat = CAT_COLORS[event.category] || { main: COLORS.primary, bg: 'rgba(245,11,27,0.15)', label: event.category };
+            const cat = CAT_COLORS[event.category] || { main: COLORS.primary, bg: 'rgba(18,181,165,0.15)', label: event.category };
             const budget = getBudgetStyle(event.is_free, event.price);
             return (
               <TouchableOpacity
@@ -1199,7 +1199,7 @@ export default function HomeScreen() {
               contentContainerStyle={styles.horizontalList}
             >
               {promotions.map((promo) => {
-                const cat = CAT_COLORS[promo.category] || { main: COLORS.primary, bg: 'rgba(245,11,27,0.15)', label: promo.category };
+                const cat = CAT_COLORS[promo.category] || { main: COLORS.primary, bg: 'rgba(18,181,165,0.15)', label: promo.category };
                 const tierColors = promo.partner_tier ? TIER_COLORS[promo.partner_tier as Tier] : null;
                 return (
                   <TouchableOpacity
@@ -1316,7 +1316,7 @@ const styles = StyleSheet.create({
   heroBannerImage: { width: '100%', height: '100%', position: 'absolute' },
   heroBannerOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(10,10,15,0.5)' },
   heroBannerContent: { flex: 1, justifyContent: 'flex-end', padding: SPACING.lg },
-  heroBannerLabel: { fontSize: 10, color: COLORS.primary, ...FONTS.bold, letterSpacing: 3 },
+  heroBannerLabel: { fontSize: 10, color: COLORS.mustard, ...FONTS.bold, letterSpacing: 3 },
   heroBannerTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, marginTop: 4 },
   heroBannerSub: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium, marginTop: 4 },
   heroCard: { borderRadius: RADIUS.xl, overflow: 'hidden', height: 220 },
@@ -1352,7 +1352,7 @@ const styles = StyleSheet.create({
   horizontalList: { paddingLeft: SPACING.lg, gap: SPACING.md, paddingRight: SPACING.lg },
 
   // Favorites carousel
-  favCountBubble: { backgroundColor: '#EF4444', minWidth: 22, paddingHorizontal: 6, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  favCountBubble: { backgroundColor: COLORS.bougainvillea, minWidth: 22, paddingHorizontal: 6, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   favCountText: { color: COLORS.white, fontSize: 11, ...FONTS.bold },
   favCard: { width: 160, height: 200, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: 1.5, borderColor: COLORS.border, position: 'relative' },
   favImage: { position: 'absolute', width: '100%', height: '100%' },
@@ -1382,7 +1382,7 @@ const styles = StyleSheet.create({
   eventTags: { flexDirection: 'row', marginTop: 4, gap: SPACING.xs },
   tag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.full },
   tagFree: { backgroundColor: 'rgba(34, 197, 94, 0.15)' },
-  tagPaid: { backgroundColor: 'rgba(245, 11, 27, 0.15)' },
+  tagPaid: { backgroundColor: 'rgba(18,181,165, 0.15)' },
   tagText: { fontSize: 10, ...FONTS.bold },
   partnersCta: { marginHorizontal: SPACING.lg, borderRadius: RADIUS.xl, overflow: 'hidden', height: 130 },
   partnersCtaImage: { width: '100%', height: '100%', position: 'absolute' },
@@ -1476,7 +1476,7 @@ const styles = StyleSheet.create({
   recImage: { width: '100%', height: '100%' },
   recOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: SPACING.sm, backgroundColor: 'rgba(0,0,0,0.55)', gap: 3 },
   recTierBadge: { alignSelf: 'flex-start', borderRadius: RADIUS.full, paddingHorizontal: 6, paddingVertical: 1 },
-  recPulseBadge: { alignSelf: 'flex-start', borderRadius: RADIUS.full, paddingHorizontal: 6, paddingVertical: 1, backgroundColor: '#FBBF24', maxWidth: 150 },
+  recPulseBadge: { alignSelf: 'flex-start', borderRadius: RADIUS.full, paddingHorizontal: 6, paddingVertical: 1, backgroundColor: COLORS.coral, maxWidth: 150 },
   recPulseText: { fontSize: 9, color: '#000000', ...FONTS.bold },
   recTierText: { fontSize: 8, color: '#FFF', ...FONTS.bold, letterSpacing: 0.5 },
   recName: { fontSize: 13, color: '#FFF', ...FONTS.bold, lineHeight: 17 },
@@ -1512,7 +1512,7 @@ const styles = StyleSheet.create({
   photoImage: { width: '100%', height: '100%', position: 'absolute' },
   photoOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(10,10,15,0.5)' },
   photoContent: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: SPACING.md, gap: 4 },
-  photoCatIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(245,11,27,0.3)', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  photoCatIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(18,181,165,0.3)', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
   photoLabel: { fontSize: 15, color: COLORS.white, ...FONTS.bold },
   photoSub: { fontSize: 11, color: 'rgba(255,255,255,0.6)', ...FONTS.medium },
   peCard: {

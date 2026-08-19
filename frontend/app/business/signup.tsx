@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', paddingHorizontal: SPACING.md, paddingTop: SPACING.sm },
   backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border },
   scroll: { padding: SPACING.lg, alignItems: 'center' },
-  heroIcon: { width: 76, height: 76, borderRadius: 38, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(245,11,27,0.15)', borderWidth: 1.5, borderColor: COLORS.primary, marginTop: SPACING.md },
+  heroIcon: { width: 76, height: 76, borderRadius: 38, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(18,181,165,0.15)', borderWidth: 1.5, borderColor: COLORS.primary, marginTop: SPACING.md },
   title: { fontSize: 24, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.lg, textAlign: 'center' },
   subtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 20, paddingHorizontal: SPACING.sm, marginTop: SPACING.xs },
   form: { width: '100%', marginTop: SPACING.lg, gap: SPACING.xs },

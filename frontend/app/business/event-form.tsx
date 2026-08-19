@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 15, marginTop: SPACING.xl },
   saveText: { color: COLORS.white, fontSize: 14, ...FONTS.bold },
 
-  aiBanner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, backgroundColor: 'rgba(245,11,27,0.1)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(245,11,27,0.4)', marginBottom: SPACING.sm },
+  aiBanner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, backgroundColor: 'rgba(18,181,165,0.1)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(18,181,165,0.4)', marginBottom: SPACING.sm },
   aiBannerTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
   aiBannerText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2, lineHeight: 16 },
 });
