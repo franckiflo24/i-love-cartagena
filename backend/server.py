@@ -25,7 +25,19 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ.get('MONGO_URL')
 if not mongo_url:
     raise RuntimeError("MONGO_URL environment variable is required")
-client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000)
+# maxPoolSize caps connections PER serverless instance. Motor defaults to 100;
+# under load a 60s launch-burst drove Atlas from 118 to 774 connections and
+# STILL climbing (never plateaued) — Vercel fan-out × 100 would exhaust the
+# 1500 cap and 500 on new connections. Cap at 10/instance (serverless functions
+# handle low per-instance concurrency), reap idle sockets so bursts don't leave
+# a long tail of dead connections. Verified post-fix: peak plateaus well under cap.
+client = AsyncIOMotorClient(
+    mongo_url,
+    serverSelectionTimeoutMS=5000,
+    maxPoolSize=10,
+    minPoolSize=0,
+    maxIdleTimeMS=30000,
+)
 db_name = os.environ.get('DB_NAME')
 if not db_name:
     raise RuntimeError("DB_NAME environment variable is required")
