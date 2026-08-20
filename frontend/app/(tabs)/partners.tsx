@@ -19,9 +19,10 @@ type Partner = {
   tier?: Tier;
 };
 
-// Each card accepts one or more backend `category` values, so closely-related
-// DB categories roll up into a single guest-facing bucket (e.g. café partners
-// appear inside "Restaurantes"). Order = display order on the grid.
+// Each card maps 1:1 to a canonical backend `category` value — the client's
+// 13-category taxonomy (Aug 2026 re-curation). `dbKeys` is single-element for
+// every card except Servicios, which still rolls up the 1 legacy
+// `institutional` partner alongside `service`. Order = display order on grid.
 type CategoryCard = {
   key: string;
   label: string;
@@ -33,19 +34,29 @@ type CategoryCard = {
 };
 
 const CATEGORIES: CategoryCard[] = [
-  { key: 'restaurant', label: 'Restaurantes',  icon: 'restaurant', color: '#EF4444', image: 'https://images.unsplash.com/photo-1644621972139-cec33bf68a60?w=600&h=300&fit=crop',
-    dbKeys: ['restaurant', 'cafe'] },
-  { key: 'hotel',      label: 'Hoteles',       icon: 'bed',        color: '#3B82F6', image: 'https://images.unsplash.com/photo-1488345979593-09db0f85545f?w=600&h=300&fit=crop',
+  { key: 'restaurant',  label: 'Restaurantes',   icon: 'restaurant',    color: '#FF6B4A', image: 'https://images.unsplash.com/photo-1644621972139-cec33bf68a60?w=600&h=300&fit=crop',
+    dbKeys: ['restaurant'] },
+  { key: 'hotel',       label: 'Hoteles',        icon: 'bed',           color: '#F59E0B', image: 'https://images.unsplash.com/photo-1488345979593-09db0f85545f?w=600&h=300&fit=crop',
     dbKeys: ['hotel'], tierAsSubcat: true },
-  { key: 'activity',   label: 'Actividades',   icon: 'compass',    color: '#F59E0B', image: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=600&h=300&fit=crop',
-    dbKeys: ['activity', 'yacht', 'attraction'] },
-  { key: 'wellness',   label: 'Wellness & Spa',icon: 'leaf',       color: '#10B981', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=300&fit=crop',
-    dbKeys: ['wellness', 'spa', 'beauty'] },
-  { key: 'nightlife',  label: 'Bares & Clubs', icon: 'wine',       color: '#8B5CF6', image: 'https://images.unsplash.com/photo-1645496761317-d4122dfc2264?w=600&h=300&fit=crop',
-    dbKeys: ['bar', 'nightlife', 'club'] },
-  { key: 'beach_club', label: 'Beach Clubs',   icon: 'sunny',      color: '#06B6D4', image: 'https://images.unsplash.com/photo-1546484458-6904289cd4f0?w=600&h=300&fit=crop',
+  { key: 'beauty',      label: 'Belleza',        icon: 'cut',           color: '#EC4899', image: 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=600&h=300&fit=crop',
+    dbKeys: ['beauty'] },
+  { key: 'wellness',    label: 'Wellness & Spa', icon: 'leaf',          color: '#22C55E', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=300&fit=crop',
+    dbKeys: ['wellness'] },
+  { key: 'activity',    label: 'Experiencias',   icon: 'compass',       color: '#12B5A5', image: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=600&h=300&fit=crop',
+    dbKeys: ['activity'] },
+  { key: 'bar',         label: 'Bares',          icon: 'wine',          color: '#E5476D', image: 'https://images.unsplash.com/photo-1645496761317-d4122dfc2264?w=600&h=300&fit=crop',
+    dbKeys: ['bar'] },
+  { key: 'beach_club',  label: 'Beach Clubs',    icon: 'sunny',         color: '#39B8FF', image: 'https://images.unsplash.com/photo-1546484458-6904289cd4f0?w=600&h=300&fit=crop',
     dbKeys: ['beach_club'] },
-  { key: 'service',    label: 'Servicios',     icon: 'construct',  color: '#64748B', image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&h=300&fit=crop',
+  { key: 'nightlife',   label: 'Nightlife',      icon: 'musical-notes', color: '#A855F7', image: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600&h=300&fit=crop',
+    dbKeys: ['nightlife'] },
+  { key: 'cafe',        label: 'Cafés',          icon: 'cafe',          color: '#E9B949', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&h=300&fit=crop',
+    dbKeys: ['cafe'] },
+  { key: 'attraction',  label: 'Atracciones',    icon: 'camera',        color: '#6366F1', image: 'https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&h=300&fit=crop',
+    dbKeys: ['attraction'] },
+  { key: 'yacht',       label: 'Yates',          icon: 'boat',          color: '#06B6D4', image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=300&fit=crop',
+    dbKeys: ['yacht'] },
+  { key: 'service',     label: 'Servicios',      icon: 'construct',     color: '#84CC16', image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&h=300&fit=crop',
     dbKeys: ['service', 'institutional'] },
 ];
 
@@ -53,21 +64,11 @@ const CATEGORIES: CategoryCard[] = [
 const dbKeysFor = (cardKey: string): string[] =>
   CATEGORIES.find(c => c.key === cardKey)?.dbKeys ?? [cardKey];
 
-const WELLNESS_SUBCATEGORIES = [
-  { key: 'spa', label: 'Spa', icon: 'water', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=400&fit=crop' },
-  { key: 'beauty', label: 'Belleza', icon: 'sparkles', image: 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=600&h=400&fit=crop' },
-  { key: 'hair', label: 'Cabello', icon: 'cut', image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&h=400&fit=crop' },
-  { key: 'nails', label: 'Uñas', icon: 'hand-left', image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=600&h=400&fit=crop' },
-  { key: 'recovery', label: 'Recuperación', icon: 'medkit', image: 'https://images.unsplash.com/photo-1599447421416-3414500d18a5?w=600&h=400&fit=crop' },
-  { key: 'fitness', label: 'Fitness', icon: 'barbell', image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=400&fit=crop' },
-  { key: 'sport', label: 'Sport', icon: 'football', image: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&h=400&fit=crop' },
-  { key: 'yoga', label: 'Yoga', icon: 'leaf', image: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=600&h=400&fit=crop' },
-];
-
 // Canonical restaurant cuisines (CATALOG-MIGRATE taxonomy). Keys MUST match the
 // stored `subcategory` / `style_tags` values so matchesCuisine() surfaces the real
 // venues. 'mediterranean' is a cross-cutting style_tag (the whole basin), not a
 // subcategory — matchesCuisine fans it out. Pills auto-hide when their count is 0.
+// No 'cafe' pill — cafe is its own top-level card now (Cafés), matching Explore.
 const RESTAURANT_SUBCATEGORIES = [
   { key: 'mediterranean', label: 'Mediterráneo', icon: 'wine', image: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&h=400&fit=crop' },
   { key: 'colombian', label: 'Colombiano', icon: 'flag', image: 'https://images.unsplash.com/photo-1518176258769-f227c798150e?w=600&h=400&fit=crop' },
@@ -82,7 +83,6 @@ const RESTAURANT_SUBCATEGORIES = [
   { key: 'french', label: 'Francés', icon: 'wine', image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop' },
   { key: 'mexican', label: 'Mexicano', icon: 'restaurant', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop' },
   { key: 'international', label: 'Internacional', icon: 'globe', image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop' },
-  { key: 'cafe', label: 'Café', icon: 'cafe', image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&h=400&fit=crop' },
 ];
 
 // Hotel sub-cards filter by TIER (popular/premium/elite), not `subcategory` —
@@ -94,31 +94,58 @@ const HOTEL_SUBCATEGORIES = [
   { key: 'elite',   label: 'Lujo',    icon: 'diamond', image: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=600&h=400&fit=crop' },
 ];
 
-const ACTIVITY_SUBCATEGORIES = [
-  { key: 'tours', label: 'Tours', icon: 'walk', image: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=600&h=400&fit=crop' },
-  { key: 'attractions', label: 'Atracciones', icon: 'camera', image: 'https://images.unsplash.com/photo-1583531352515-8884af319dc1?w=600&h=400&fit=crop' },
-  { key: 'water', label: 'Náutico', icon: 'boat', image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop' },
-];
+// Shared shape for every subcategory pill/tile — restaurant + hotel use the
+// curated arrays above; every other card derives this at render time from
+// live partner data (see deriveSubcats in the component below).
+type Subcat = { key: string; label: string; icon: string; image?: string };
 
-const SERVICE_SUBCATEGORIES = [
-  { key: 'money', label: 'Cambio & Banco', icon: 'cash', image: 'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=600&h=400&fit=crop' },
-  { key: 'health', label: 'Salud', icon: 'medkit', image: 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=600&h=400&fit=crop' },
-  { key: 'daily', label: 'Día a Día', icon: 'cart', image: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=600&h=400&fit=crop' },
-  { key: 'connect', label: 'Conectar', icon: 'wifi', image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop' },
-  { key: 'personal', label: 'Personal', icon: 'person', image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&h=400&fit=crop' },
-];
-
-// Categories that REQUIRE subcategory selection before showing partners
-const REQUIRE_SUBCAT_PICK = new Set(['wellness', 'restaurant', 'hotel']);
-
-// Map of category → subcategory list (extensible)
-const SUBCATEGORIES_BY_CAT: Record<string, { key: string; label: string; icon: string; image?: string }[]> = {
-  wellness: WELLNESS_SUBCATEGORIES,
-  restaurant: RESTAURANT_SUBCATEGORIES,
-  hotel: HOTEL_SUBCATEGORIES,
-  activity: ACTIVITY_SUBCATEGORIES,
-  service: SERVICE_SUBCATEGORIES,
+// Label overrides for data-derived subcategory pills — mirrors the labels in
+// app/(tabs)/explore.tsx's own SUBCATEGORIES map (client-curated, CATALOG-MIGRATE)
+// so pill copy matches Explore, plus keys unique to categories Explore never
+// gated behind a picker (beach_club/yacht island destinations). Unknown keys
+// fall back to prettifySubcat() so nothing ever renders raw snake_case.
+const SUBCAT_LABELS: Record<string, string> = {
+  cocktail_bar: 'Cocktail Bar', rooftop: 'Rooftop', lounge: 'Lounge', salsa_bar: 'Salsa Bar',
+  nightclub: 'Nightclub', live_music: 'Música en vivo', champeta: 'Champeta',
+  coffee: 'Café', brunch: 'Brunch', bakery: 'Panadería',
+  massage: 'Masajes', wellness_center: 'Centro Wellness',
+  cultural: 'Cultural', concierge: 'Concierge',
+  salon: 'Salón', barbershop: 'Barbería', nails: 'Uñas', makeup: 'Maquillaje',
+  facial_spa: 'Facial & Spa', aesthetic_clinic: 'Estética', lashes_brows: 'Pestañas & Cejas',
+  tattoo: 'Tattoo',
+  pharmacy: 'Farmacias', currency_exchange: 'Cambio de divisas', bank: 'Bancos / Cajeros',
+  grocery: 'Supermercados', laundry: 'Lavanderías', coworking: 'Coworking',
+  sim_card: 'SIM / eSIM', medical: 'Médico', veterinary: 'Veterinarias',
+  luggage_storage: 'Guarda-equipaje',
+  islas_rosario: 'Islas del Rosario', tierra_bomba: 'Tierra Bomba', baru: 'Barú',
 };
+
+const SUBCAT_ICONS: Record<string, string> = {
+  cocktail_bar: 'wine', rooftop: 'business', lounge: 'cafe', salsa_bar: 'musical-notes',
+  nightclub: 'musical-notes', live_music: 'mic', champeta: 'musical-note',
+  coffee: 'cafe', brunch: 'sunny', bakery: 'pizza',
+  massage: 'hand-right', wellness_center: 'leaf',
+  cultural: 'library', concierge: 'briefcase',
+  salon: 'cut', barbershop: 'cut', nails: 'color-palette', makeup: 'brush',
+  facial_spa: 'flower', aesthetic_clinic: 'medkit', lashes_brows: 'eye',
+  tattoo: 'body-outline',
+  pharmacy: 'medkit', currency_exchange: 'cash', bank: 'card', grocery: 'cart',
+  laundry: 'shirt', coworking: 'laptop', sim_card: 'cellular', medical: 'medical',
+  veterinary: 'paw', luggage_storage: 'bag-handle',
+  islas_rosario: 'boat', tierra_bomba: 'sunny', baru: 'water',
+};
+
+// Unknown subcategory key → "Some Label" so nothing ever renders raw snake_case.
+const prettifySubcat = (key: string): string =>
+  key.split('_').filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+const subcatLabelFor = (key: string): string => SUBCAT_LABELS[key] || prettifySubcat(key);
+
+// Categories that REQUIRE subcategory selection before showing partners.
+// Wellness dropped: its old picker existed only because the pre-CATALOG-MIGRATE
+// card merged wellness+spa+beauty; now that beauty is its own card, wellness
+// (84 partners) is inline-pill-filterable like every other non-curated card.
+const REQUIRE_SUBCAT_PICK = new Set(['restaurant', 'hotel']);
 
 export default function PartnersScreen() {
   const tr = useTr();
@@ -158,67 +185,46 @@ export default function PartnersScreen() {
   }, [selectedCategory]);
 
   const selectedCard = selectedCategory ? CATEGORIES.find(c => c.key === selectedCategory) ?? null : null;
-  const subcatList = selectedCategory ? SUBCATEGORIES_BY_CAT[selectedCategory] : null;
+
+  // Data-derived subcategory pills for every card EXCEPT restaurant (curated
+  // cuisine tiles via matchesCuisine) and hotel (tier pills, tierAsSubcat) —
+  // those keep their existing curated arrays below. Everyone else computes
+  // distinct `subcategory` values straight from live partners, ranked by
+  // count desc; count-0 values never appear since they're only counted when
+  // actually observed on a partner.
+  const deriveSubcats = (card: CategoryCard): Subcat[] => {
+    const counts = new Map<string, number>();
+    for (const p of partners) {
+      if (!card.dbKeys.includes(p.category)) continue;
+      const sub = (p as any).subcategory;
+      if (!sub) continue;
+      counts.set(sub, (counts.get(sub) || 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([key]) => ({ key, label: subcatLabelFor(key), icon: SUBCAT_ICONS[key] || card.icon }));
+  };
+  const derivedSubcats = selectedCard && selectedCard.key !== 'restaurant' && selectedCard.key !== 'hotel'
+    ? deriveSubcats(selectedCard)
+    : [];
+  const subcatList: Subcat[] | null =
+    !selectedCard ? null :
+    selectedCard.key === 'restaurant' ? RESTAURANT_SUBCATEGORIES :
+    selectedCard.key === 'hotel' ? HOTEL_SUBCATEGORIES :
+    derivedSubcats.length > 0 ? derivedSubcats : null;
   const subcatTheme = selectedCategory ? colorForKey(selectedCategory) : COLORS.primary;
   const requireSubcatPick = !!(selectedCategory && REQUIRE_SUBCAT_PICK.has(selectedCategory) && !selectedSubcat);
-
-  // Frontend pill-to-DB-subcategory mapping. Lets us present clean guest-facing
-  // filter pills without changing DB subcategory values.
-  const PILL_MAP: Record<string, Record<string, string[] | null>> = {
-    // Wellness: beauty-category partners roll up into 4 pills
-    beauty: {
-      hair:   ['barbershop', 'salon', 'hair'],
-      beauty: ['aesthetic_clinic', 'makeup', 'lashes_brows', 'beauty'],
-      nails:  ['nails'],
-      spa:    ['facial_spa'],
-    },
-    // Activity card: group by type across activity/yacht/attraction categories
-    activity: {
-      tours:       null,  // handled by category match below
-      attractions: null,
-      water:       null,
-    },
-    // Service card: group 17 DB subcategories into 5 guest-facing pills
-    service: {
-      money:    ['currency_exchange', 'bank'],
-      health:   ['pharmacy', 'medical', 'veterinary'],
-      daily:    ['grocery', 'laundry', 'delivery', 'luggage_storage'],
-      connect:  ['sim_card', 'coworking', 'transport_app'],
-      personal: ['tattoo', 'barbershop', 'photography', 'fitness', 'rental'],
-    },
-  };
 
   // Does a partner match this sub-key for the active category card?
   const matchesSubcat = (p: Partner, subKey: string): boolean => {
     if (!subKey || subKey === 'all') return true;
     if (selectedCard?.tierAsSubcat) return p.tier === subKey;
-    if (subKey === 'cafe' && p.category === 'cafe') return true;
-    if (subKey === 'spa'  && (p.category === 'wellness' || p.category === 'spa'))  return true;
-
-    // Activity card: filter by top-level category
-    if (subKey === 'tours'       && (p.category === 'activity')) return true;
-    if (subKey === 'attractions' && (p.category === 'attraction')) return true;
-    if (subKey === 'water'       && (p.category === 'yacht')) return true;
-
-    // Beauty-category partners: match via pill mapping
-    if (p.category === 'beauty') {
-      const mapped = PILL_MAP.beauty[subKey];
-      if (mapped) return mapped.includes((p as any).subcategory || '');
-      return false;
-    }
-
-    // Service-category partners: match via pill mapping
-    if (p.category === 'service' || p.category === 'institutional') {
-      const mapped = PILL_MAP.service[subKey];
-      if (mapped) return mapped.includes((p as any).subcategory || '');
-      return false;
-    }
-
     // Restaurant cuisines: match canonical subcategory OR any style_tag, and
     // 'mediterranean' fans out to the whole basin — so a multi-cuisine venue
     // surfaces under each of its cuisines, not just its single subcategory.
-    if (p.category === 'restaurant') return matchesCuisine(p, subKey);
-
+    if (selectedCard?.key === 'restaurant') return matchesCuisine(p, subKey);
+    // Every other card's pills are derived straight from the stored
+    // `subcategory` (see deriveSubcats above), so matching is a direct check.
     return (p as any).subcategory === subKey;
   };
 
@@ -278,7 +284,7 @@ export default function PartnersScreen() {
             <TouchableOpacity
               onPress={() => {
                 if (selectedSubcat && REQUIRE_SUBCAT_PICK.has(selectedCategory!)) {
-                  // Step back to subcat picker (instead of leaving wellness)
+                  // Step back to subcat picker (instead of leaving restaurant/hotel)
                   setSelectedSubcat(null);
                 } else {
                   setSelectedCategory(null);
@@ -291,10 +297,10 @@ export default function PartnersScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.title}>
                 {requireSubcatPick
-                  ? CATEGORIES.find(c => c.key === selectedCategory)?.label
+                  ? tr(CATEGORIES.find(c => c.key === selectedCategory)?.label)
                   : (subcatList && selectedSubcat && selectedSubcat !== 'all'
-                      ? subcatList.find(s => s.key === selectedSubcat)?.label
-                      : CATEGORIES.find(c => c.key === selectedCategory)?.label)
+                      ? tr(subcatList.find(s => s.key === selectedSubcat)?.label)
+                      : tr(CATEGORIES.find(c => c.key === selectedCategory)?.label))
                 }
               </Text>
               <Text style={styles.subtitle}>
@@ -443,7 +449,7 @@ export default function PartnersScreen() {
                     <Ionicons name={cat.icon as any} size={20} color={colorForKey(cat.key)} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.categoryName}>{cat.label}</Text>
+                    <Text style={styles.categoryName}>{tr(cat.label)}</Text>
                     <Text style={styles.categoryCount}>{cat.count} lugares</Text>
                   </View>
                   <View style={[styles.categoryArrowCircle, { backgroundColor: `${COLORS.icon}25` }]}>
@@ -472,7 +478,7 @@ export default function PartnersScreen() {
                   />
                 </View>
                 <Text style={styles.subcatPickerHeroTitle}>
-                  {CATEGORIES.find(c => c.key === selectedCategory)?.label}
+                  {tr(CATEGORIES.find(c => c.key === selectedCategory)?.label)}
                 </Text>
                 <Text style={styles.subcatPickerHeroDesc}>
                   Selecciona una sub-categoría para ver los partners
@@ -498,7 +504,7 @@ export default function PartnersScreen() {
                       <View style={[styles.subcatCardIconBadge, { backgroundColor: tileColor + '22' }]}>
                         <Ionicons name={sc.icon as any} size={20} color={tileColor} />
                       </View>
-                      <Text style={styles.subcatCardLabel}>{sc.label}</Text>
+                      <Text style={styles.subcatCardLabel}>{tr(sc.label)}</Text>
                       <View style={[styles.subcatCardCountBadge, { backgroundColor: tileColor }]}>
                         <Text style={styles.subcatCardCountText}>{count}</Text>
                       </View>
@@ -540,7 +546,7 @@ export default function PartnersScreen() {
                     >
                       <Ionicons name={sc.icon as any} size={14} color={active ? COLORS.white : pillColor} />
                       <Text style={[styles.subcatText, { color: pillColor }, active && styles.subcatTextActive]}>
-                        {sc.label}
+                        {tr(sc.label)}
                       </Text>
                       <View style={[
                         styles.subcatBadge,

@@ -708,7 +708,8 @@ export default function ExploreScreen() {
       ? allCategoryPartners.filter(p =>
           selectedCategory.apiValue === 'restaurant'
             ? matchesCuisine(p, selectedSubcategory)          // basin + multi-cuisine
-            : (p as any).subcategory === selectedSubcategory)
+            : (p as any).subcategory === selectedSubcategory ||
+              (Array.isArray((p as any).style_tags) && (p as any).style_tags.includes(selectedSubcategory)))
       : allCategoryPartners;
   // "Locals recommend" filter: keep only venues locals favor (behavioral picks
   // + local_favorite-tagged baseline). Never empties the catalog when off.
@@ -746,9 +747,11 @@ export default function ExploreScreen() {
       subcatCounts[sc.key] = allCategoryPartners.filter(p => matchesCuisine(p, sc.key)).length;
     }
   } else {
-    for (const p of allCategoryPartners) {
-      const sk = (p as any).subcategory;
-      if (sk) subcatCounts[sk] = (subcatCounts[sk] || 0) + 1;
+    for (const sc of availableSubcats) {
+      subcatCounts[sc.key] = allCategoryPartners.filter(p =>
+        (p as any).subcategory === sc.key ||
+        (Array.isArray((p as any).style_tags) && (p as any).style_tags.includes(sc.key))
+      ).length;
     }
   }
 
