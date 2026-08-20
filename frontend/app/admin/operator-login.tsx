@@ -21,7 +21,7 @@ export default function OperatorLogin() {
       const data = await api.post('/admin/operator/login', { password });
       if (!data?.token) throw new Error('Sin token');
       await AsyncStorage.setItem('admin_operator_token', data.token);
-      router.replace('/admin/operator' as any);
+      router.replace('/admin' as any);
     } catch (e: any) {
       Alert.alert('Acceso denegado', 'Contraseña incorrecta');
     }

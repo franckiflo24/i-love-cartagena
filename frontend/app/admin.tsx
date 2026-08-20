@@ -2,12 +2,14 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, RefreshControl, Dimensions, Platform,
+  TextInput, KeyboardAvoidingView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LineChart, BarChart } from 'react-native-chart-kit';
-import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { COLORS, SPACING, RADIUS, FONTS, colorForKey } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
 import { useAuth } from '../src/context/AuthContext';
@@ -38,6 +40,8 @@ type DashboardData = {
   interactions_by_type: { type: string; count: number }[];
   events_per_season: { season_id: string; count: number; name: string; color: string }[];
 };
+
+type ModStats = { pending: number; unread_notifications: number; auto_corrected_categories: number };
 
 const TABS = ['General', 'CRM', 'Engagement', 'Revenue'];
 const TAB_ICONS: Record<string, string> = { General: 'grid', CRM: 'people', Engagement: 'pulse', Revenue: 'card' };
@@ -133,69 +137,48 @@ const RankRow = ({ rank, title, subtitle, value, valueLabel }: { rank: number; t
   );
 };
 
-// ── Main Dashboard ──
-export default function AdminDashboard() {
-  const tr = useTr();
-  const router = useRouter();
-  const { user, isLoading: authLoading } = useAuth();
+// ── Portal hub card ──
+type HubCardDef = {
+  key: string;
+  title: string;
+  subtitle: string;
+  lockReason: string;
+  icon: string;
+  accent: string;
+  available: boolean;
+  badge?: number;
+  onPress: () => void;
+};
 
-  // Auth guard: redirect non-admin users
-  useEffect(() => {
-    if (!authLoading && (!user || !user.is_admin)) {
-      router.replace('/');
-    }
-  }, [user, authLoading, router]);
-
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [modStats, setModStats] = useState<{ pending: number; unread_notifications: number; auto_corrected_categories: number } | null>(null);
-  const [usersData, setUsersData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
-
-  const fetchData = useCallback(async () => {
-    try {
-      const [d, u, ms] = await Promise.all([
-        api.get('/analytics/dashboard'),
-        api.get('/admin/users').catch(() => null),
-        api.get('/admin/moderation/stats').catch(() => null),
-      ]);
-      setData(d);
-      if (u) setUsersData(u);
-      if (ms) setModStats(ms);
-    } catch (e) { console.error('Dashboard fetch error:', e); }
-    setLoading(false);
-    setRefreshing(false);
-  }, []);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    fetchData();
-  }, [fetchData]);
-
-  // Block render for non-admin users
-  if (authLoading || !user?.is_admin) {
-    return <View style={styles.container}><ActivityIndicator color={COLORS.primary} /></View>;
-  }
-
-  if (loading || !data) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
-          </TouchableOpacity>
-          <View>
-            <Text style={styles.title}>Dashboard</Text>
-            <Text style={styles.subtitle}>Cargando datos...</Text>
-          </View>
+const PortalCard = ({ card }: { card: HubCardDef }) => (
+  <TouchableOpacity
+    style={[styles.hubCard, !card.available && styles.hubCardLocked]}
+    onPress={card.onPress}
+    disabled={!card.available}
+    activeOpacity={0.85}
+  >
+    <View style={[styles.hubCardIconWrap, { backgroundColor: `${card.accent}20`, borderColor: `${card.accent}40` }]}>
+      <Ionicons name={(card.available ? card.icon : 'lock-closed') as any} size={20} color={card.available ? card.accent : COLORS.textFaint} />
+      {card.available && !!card.badge && (
+        <View style={styles.hubCardBadge}>
+          <Text style={styles.hubCardBadgeText}>{card.badge > 99 ? '99+' : card.badge}</Text>
         </View>
-        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 80 }} />
-      </SafeAreaView>
-    );
-  }
+      )}
+    </View>
+    <Text style={[styles.hubCardTitle, !card.available && styles.hubCardTitleLocked]} numberOfLines={1}>{card.title}</Text>
+    <Text style={[styles.hubCardSubtitle, !card.available && styles.hubCardSubtitleLocked]} numberOfLines={2}>
+      {card.available ? card.subtitle : card.lockReason}
+    </Text>
+    {card.available && <Ionicons name="chevron-forward" size={14} color={COLORS.textFaint} style={styles.hubCardChevron} />}
+  </TouchableOpacity>
+);
+
+// ── Dashboard body (the original analytics dashboard — unchanged content,
+// only relocated behind the "Usuarios & Analytics" hub card). Only ever
+// mounted when isAdmin, and only once `data` has resolved. ──
+function DashboardBody({ data, usersData }: { data: DashboardData; usersData: any }) {
+  const tr = useTr();
+  const [activeTab, setActiveTab] = useState(0);
 
   // Prepare chart data
   const dailyLabels = data.daily_activity.map(d => d.date.slice(8));
@@ -205,58 +188,12 @@ export default function AdminDashboard() {
   const hourlyLabels = data.hourly_activity.filter((_, i) => i % 3 === 0).map(h => h.label);
   const hourlyValues = data.hourly_activity.map(h => h.avg_interactions);
 
-
   const maxFunnel = Math.max(...data.funnel.map(f => f.count), 1);
 
   // ── Tab Content Rendering ──
 
   const renderGeneral = () => (
     <>
-      {/* EAGLE EYE — super-admin god-view of the whole system */}
-      <TouchableOpacity
-        style={styles.eagleBanner}
-        onPress={() => router.push('/admin/eagle' as any)}
-        activeOpacity={0.85}
-      >
-        <View style={styles.modBannerLeft}>
-          <View style={[styles.modBannerIcon, { backgroundColor: 'rgba(18,181,165,0.25)' }]}>
-            <Ionicons name="eye" size={20} color={COLORS.primary} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.modBannerTitle}>Eagle Eye · Vista total</Text>
-            <Text style={styles.modBannerSubtitle}>Registros, accesos, búsquedas y reservas en vivo</Text>
-          </View>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
-      </TouchableOpacity>
-
-      {/* AI Moderation Banner */}
-      <TouchableOpacity
-        style={[styles.modBanner, modStats && modStats.pending > 0 && styles.modBannerAlert]}
-        onPress={() => router.push('/admin/moderation')}
-        activeOpacity={0.85}
-      >
-        <View style={styles.modBannerLeft}>
-          <View style={[styles.modBannerIcon, modStats && modStats.pending > 0 && { backgroundColor: 'rgba(245,158,11,0.25)' }]}>
-            <Ionicons name="sparkles" size={20} color={modStats && modStats.pending > 0 ? '#F59E0B' : COLORS.primary} />
-            {modStats && modStats.pending > 0 && (
-              <View style={styles.modBadge}>
-                <Text style={styles.modBadgeText}>{modStats.pending}</Text>
-              </View>
-            )}
-          </View>
-          <View>
-            <Text style={styles.modBannerTitle}>Moderación IA</Text>
-            <Text style={styles.modBannerSubtitle}>
-              {modStats && modStats.pending > 0
-                ? `${modStats.pending} evento${modStats.pending > 1 ? 's' : ''} esperan tu revisión`
-                : `Todo en orden · ${modStats?.auto_corrected_categories || 0} auto-correcciones IA`}
-            </Text>
-          </View>
-        </View>
-        <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
-      </TouchableOpacity>
-
       {/* KPI Grid */}
       <View style={styles.kpiGrid}>
         <KPICard icon="people" label="Usuarios" value={data.kpis.total_users} color="#3B82F6" />
@@ -619,21 +556,7 @@ export default function AdminDashboard() {
   const tabContent = [renderGeneral, renderCRM, renderEngagement, renderRevenue];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
-        </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.title}>Back Office</Text>
-          <Text style={styles.subtitle}>Amo Cartagena · Analytics</Text>
-        </View>
-        <TouchableOpacity onPress={onRefresh} style={styles.refreshBtn}>
-          <Ionicons name="refresh" size={20} color={COLORS.primary} />
-        </TouchableOpacity>
-      </View>
-
+    <>
       {/* Tabs */}
       <View style={styles.tabBar}>
         {TABS.map((tab, i) => (
@@ -649,18 +572,287 @@ export default function AdminDashboard() {
       </View>
 
       {/* Content */}
+      {tabContent[activeTab]()}
+    </>
+  );
+}
+
+// ── Main Portal Shell ──
+export default function AdminPortal() {
+  const tr = useTr();
+  const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
+
+  const isAdmin = !!user?.is_admin;
+
+  // ── Operator-token capability: state + effect, re-checked on focus so a
+  // login (or logout) that happened on another screen is picked up here. ──
+  const [isOperator, setIsOperator] = useState(false);
+  const [operatorChecked, setOperatorChecked] = useState(false);
+
+  const checkOperatorToken = useCallback(async () => {
+    const tok = await AsyncStorage.getItem('admin_operator_token');
+    setIsOperator(!!tok);
+    setOperatorChecked(true);
+  }, []);
+
+  useEffect(() => { checkOperatorToken(); }, [checkOperatorToken]);
+  useFocusEffect(useCallback(() => { checkOperatorToken(); }, [checkOperatorToken]));
+
+  // ── Embedded operator-password login (the gate screen's primary path) ──
+  const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [gateLoading, setGateLoading] = useState(false);
+  const [gateError, setGateError] = useState('');
+
+  const onOperatorLogin = useCallback(async () => {
+    if (!password) return;
+    setGateLoading(true);
+    setGateError('');
+    try {
+      const res = await api.post('/admin/operator/login', { password });
+      if (!res?.token) throw new Error('Sin token');
+      await AsyncStorage.setItem('admin_operator_token', res.token);
+      setIsOperator(true);
+      setPassword('');
+    } catch {
+      setGateError(tr('Contraseña incorrecta'));
+    }
+    setGateLoading(false);
+  }, [password, tr]);
+
+  const onOperatorLogout = useCallback(async () => {
+    await AsyncStorage.removeItem('admin_operator_token');
+    setIsOperator(false);
+  }, []);
+
+  // ── Dashboard data — is_admin-gated endpoints. Guarded so operators never
+  // trigger a 401 against them (they carry no user session). ──
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [modStats, setModStats] = useState<ModStats | null>(null);
+  const [usersData, setUsersData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(true);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [d, u, ms] = await Promise.all([
+        api.get('/analytics/dashboard'),
+        api.get('/admin/users').catch(() => null),
+        api.get('/admin/moderation/stats').catch(() => null),
+      ]);
+      setData(d);
+      if (u) setUsersData(u);
+      if (ms) setModStats(ms);
+    } catch (e) { console.error('Dashboard fetch error:', e); }
+    setLoading(false);
+    setRefreshing(false);
+  }, []);
+
+  useEffect(() => {
+    if (isAdmin) fetchData();
+    else setLoading(false);
+  }, [isAdmin, fetchData]);
+
+  const onRefresh = useCallback(() => {
+    if (!isAdmin) return;
+    setRefreshing(true);
+    fetchData();
+  }, [isAdmin, fetchData]);
+
+  // ── Resolving auth + operator-token state ──
+  if (authLoading || !operatorChecked) {
+    return <View style={styles.container}><ActivityIndicator color={COLORS.primary} /></View>;
+  }
+
+  // ── Neither principal → single beautiful login screen (never redirect away) ──
+  if (!isAdmin && !isOperator) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <ScrollView contentContainerStyle={styles.gateScroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+            <View style={styles.gateWordmark}>
+              <Text style={styles.gateLogo}>AMO</Text>
+              <Text style={styles.gateLogoSub}>CARTAGENA</Text>
+              <View style={styles.gateDivider} />
+              <Text style={styles.gateTitle}>{tr('Portal de administración')}</Text>
+            </View>
+
+            <View style={styles.gateCard}>
+              <View style={styles.gateInputRow}>
+                <Ionicons name="lock-closed" size={18} color={COLORS.textMuted} />
+                <TextInput
+                  testID="portal-operator-password"
+                  style={styles.gateInput}
+                  value={password}
+                  onChangeText={(t) => { setPassword(t); if (gateError) setGateError(''); }}
+                  placeholder={tr('Contraseña')}
+                  placeholderTextColor={COLORS.textMuted}
+                  secureTextEntry={!showPw}
+                  autoCapitalize="none"
+                  autoComplete="password"
+                  onSubmitEditing={onOperatorLogin}
+                  returnKeyType="go"
+                />
+                <TouchableOpacity onPress={() => setShowPw(!showPw)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <Ionicons name={showPw ? 'eye-off' : 'eye'} size={18} color={COLORS.textMuted} />
+                </TouchableOpacity>
+              </View>
+
+              {!!gateError && (
+                <View style={styles.gateErrorRow}>
+                  <Ionicons name="alert-circle" size={14} color="#EF4444" />
+                  <Text style={styles.gateErrorText}>{gateError}</Text>
+                </View>
+              )}
+
+              <TouchableOpacity
+                testID="portal-operator-submit"
+                style={[styles.gateCta, (gateLoading || !password) && styles.gateCtaDisabled]}
+                onPress={onOperatorLogin}
+                disabled={gateLoading || !password}
+                activeOpacity={0.85}
+              >
+                {gateLoading ? <ActivityIndicator color="#FFF" /> : (
+                  <>
+                    <Ionicons name="log-in" size={16} color="#FFF" />
+                    <Text style={styles.gateCtaText}>{tr('Entrar')}</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.gateAdminLink}
+              onPress={() => router.push('/login?next=/admin' as any)}
+              activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8 }}
+            >
+              <Text style={styles.gateAdminLinkText}>{tr('¿Sos admin? Iniciá sesión')}</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
+  }
+
+  // ── Hub ──
+  const hubCards: HubCardDef[] = [
+    {
+      key: 'eagle',
+      title: 'Eagle — KPIs',
+      subtitle: tr('Vista total del sistema en vivo'),
+      lockReason: tr('Requiere sesión admin'),
+      icon: 'eye',
+      accent: colorForKey('eagle'),
+      available: isAdmin,
+      onPress: () => router.push('/admin/eagle' as any),
+    },
+    {
+      key: 'partners',
+      title: tr('Partners — Perfiles'),
+      subtitle: tr('Aprobación y gestión de partners'),
+      lockReason: tr('Requiere clave de operador'),
+      icon: 'business',
+      accent: colorForKey('partners'),
+      available: isAdmin || isOperator,
+      // The operator screen itself needs the operator token. An is_admin user
+      // without one gets routed straight to the operator login instead of
+      // bouncing off /admin/operator's own internal redirect.
+      onPress: () => router.push((isOperator ? '/admin/operator' : '/admin/operator-login') as any),
+    },
+    {
+      key: 'moderation',
+      title: tr('Moderación'),
+      subtitle: tr('Eventos pendientes de revisión'),
+      lockReason: tr('Requiere sesión admin'),
+      icon: 'shield-checkmark',
+      accent: colorForKey('moderation'),
+      available: isAdmin,
+      badge: modStats?.pending,
+      onPress: () => router.push('/admin/moderation'),
+    },
+    {
+      key: 'claims',
+      title: tr('Cola de negocios (claims)'),
+      subtitle: tr('Negocios y reclamos por aprobar'),
+      lockReason: tr('Requiere sesión admin'),
+      icon: 'albums',
+      accent: colorForKey('claims'),
+      available: isAdmin,
+      onPress: () => router.push('/business/admin/queue' as any),
+    },
+    {
+      key: 'analytics',
+      title: tr('Usuarios & Analytics'),
+      subtitle: tr('Métricas, CRM y revenue'),
+      lockReason: tr('Requiere sesión admin'),
+      icon: 'stats-chart',
+      accent: colorForKey('analytics'),
+      available: isAdmin,
+      onPress: () => setShowDashboard(v => !v),
+    },
+    // "Demanda" card intentionally omitted — no /admin/demand screen exists.
+  ];
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         contentContainerStyle={{ paddingBottom: 40 }}
       >
-        {tabContent[activeTab]()}
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Ionicons name="information-circle-outline" size={14} color={COLORS.textMuted} />
-          <Text style={styles.footerText}>Datos actualizados en tiempo real · Pull to refresh</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.title}>Portal AMO</Text>
+            <Text style={styles.subtitle}>Amo Cartagena</Text>
+            <View style={[styles.roleChip, isAdmin ? styles.roleChipAdmin : styles.roleChipOperator]}>
+              <Ionicons name={isAdmin ? 'shield-checkmark' : 'key'} size={11} color={isAdmin ? COLORS.mustard : COLORS.official} />
+              <Text style={[styles.roleChipText, { color: isAdmin ? COLORS.mustard : COLORS.official }]}>
+                {isAdmin ? 'Admin' : tr('Operador')}
+              </Text>
+            </View>
+          </View>
+          {!isAdmin && isOperator && (
+            <TouchableOpacity onPress={onOperatorLogout} style={styles.refreshBtn}>
+              <Ionicons name="log-out-outline" size={18} color={COLORS.textMuted} />
+            </TouchableOpacity>
+          )}
         </View>
+
+        {/* Tools grid */}
+        <View style={styles.hubGrid}>
+          {hubCards.map(card => <PortalCard key={card.key} card={card} />)}
+        </View>
+
+        {/* Dashboard — collapsible, is_admin only, data fetched only for is_admin */}
+        {isAdmin && (
+          <>
+            <TouchableOpacity style={styles.dashHeader} onPress={() => setShowDashboard(v => !v)} activeOpacity={0.7}>
+              <View style={styles.dashHeaderLeft}>
+                <Ionicons name="stats-chart" size={16} color={COLORS.primary} />
+                <Text style={styles.dashHeaderTitle}>{tr('Dashboard')}</Text>
+              </View>
+              <Ionicons name={showDashboard ? 'chevron-up' : 'chevron-down'} size={18} color={COLORS.textMuted} />
+            </TouchableOpacity>
+
+            {showDashboard && (
+              loading || !data ? (
+                <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40, marginBottom: 40 }} />
+              ) : (
+                <DashboardBody data={data} usersData={usersData} />
+              )
+            )}
+
+            {/* Footer */}
+            <View style={styles.footer}>
+              <Ionicons name="information-circle-outline" size={14} color={COLORS.textMuted} />
+              <Text style={styles.footerText}>Datos actualizados en tiempo real · Pull to refresh</Text>
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -669,10 +861,51 @@ export default function AdminDashboard() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm },
-  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
   refreshBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold },
   subtitle: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
+
+  // Role chip (header)
+  roleChip: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', marginTop: 6, paddingHorizontal: 9, paddingVertical: 3, borderRadius: RADIUS.full, borderWidth: 1 },
+  roleChipAdmin: { backgroundColor: `${COLORS.mustard}1F`, borderColor: `${COLORS.mustard}55` },
+  roleChipOperator: { backgroundColor: `${COLORS.official}1F`, borderColor: `${COLORS.official}55` },
+  roleChipText: { fontSize: 10, ...FONTS.bold, letterSpacing: 0.4, textTransform: 'uppercase' },
+
+  // ── Portal login gate ──
+  gateScroll: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: SPACING.xl, paddingVertical: SPACING.xxl, gap: SPACING.lg },
+  gateWordmark: { alignItems: 'center', marginBottom: SPACING.md },
+  gateLogo: { fontSize: 34, letterSpacing: 3, color: COLORS.textMain, ...FONTS.bold },
+  gateLogoSub: { fontSize: 14, letterSpacing: 4, color: COLORS.textMuted, ...FONTS.medium, marginTop: 2 },
+  gateDivider: { width: 48, height: 2, backgroundColor: COLORS.primary, marginTop: SPACING.md, borderRadius: 1 },
+  gateTitle: { fontSize: 15, color: COLORS.textMuted, ...FONTS.medium, marginTop: SPACING.md, textAlign: 'center' },
+  gateCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.lg, gap: SPACING.md },
+  gateInputRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: SPACING.md, height: 52 },
+  gateInput: { flex: 1, fontSize: 15, color: COLORS.textMain, ...FONTS.regular },
+  gateErrorRow: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(239,68,68,0.12)', borderRadius: RADIUS.md, paddingVertical: 8, paddingHorizontal: 12, borderWidth: 1, borderColor: 'rgba(239,68,68,0.25)' },
+  gateErrorText: { flex: 1, fontSize: 12, color: '#FCA5A5', ...FONTS.medium },
+  gateCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 14 },
+  gateCtaDisabled: { opacity: 0.5 },
+  gateCtaText: { fontSize: 15, color: '#FFF', ...FONTS.bold },
+  gateAdminLink: { alignItems: 'center', paddingVertical: SPACING.sm },
+  gateAdminLinkText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium, textDecorationLine: 'underline' },
+
+  // ── Hub tools grid ──
+  hubGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: SPACING.lg, gap: SPACING.sm, marginTop: SPACING.md, marginBottom: SPACING.lg },
+  hubCard: { width: '47%', flexGrow: 1, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.md, gap: 4 },
+  hubCardLocked: { opacity: 0.55 },
+  hubCardIconWrap: { width: 40, height: 40, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center', borderWidth: 1, position: 'relative' },
+  hubCardBadge: { position: 'absolute', top: -6, right: -6, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  hubCardBadgeText: { color: '#FFF', fontSize: 10, ...FONTS.bold },
+  hubCardTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold, marginTop: 6 },
+  hubCardTitleLocked: { color: COLORS.textMuted },
+  hubCardSubtitle: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 15 },
+  hubCardSubtitleLocked: { color: COLORS.textFaint },
+  hubCardChevron: { position: 'absolute', top: SPACING.md, right: SPACING.md },
+
+  // ── Dashboard collapsible section ──
+  dashHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, paddingVertical: SPACING.sm, paddingHorizontal: SPACING.md, backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border },
+  dashHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  dashHeaderTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold, letterSpacing: 0.3 },
 
   // Tabs
   tabBar: { flexDirection: 'row', paddingHorizontal: SPACING.md, marginBottom: SPACING.md, gap: SPACING.xs },
@@ -684,16 +917,6 @@ const styles = StyleSheet.create({
   // KPI Grid
   kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: SPACING.lg, gap: SPACING.sm, marginBottom: SPACING.md },
 
-  // AI Moderation Banner
-  modBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(18,181,165,0.3)' },
-  modBannerAlert: { borderColor: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.08)' },
-  eagleBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: 'rgba(18,181,165,0.10)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(18,181,165,0.5)' },
-  modBannerLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, flex: 1 },
-  modBannerIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(18,181,165,0.15)', position: 'relative' },
-  modBadge: { position: 'absolute', top: -4, right: -4, minWidth: 20, height: 20, borderRadius: 10, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  modBadgeText: { color: '#FFF', fontSize: 11, ...FONTS.bold },
-  modBannerTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
-  modBannerSubtitle: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
   kpiCard: { width: '31%', backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.sm, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', gap: 2 },
   kpiIcon: { width: 32, height: 32, borderRadius: RADIUS.sm, alignItems: 'center', justifyContent: 'center' },
   kpiValue: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, marginTop: 2 },

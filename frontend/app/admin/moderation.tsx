@@ -103,7 +103,9 @@ export default function AdminModeration() {
           <Ionicons name="shield-checkmark" size={16} color={COLORS.primary} />
           <Text style={styles.headerTitle}>Moderación IA</Text>
         </View>
-        <View style={styles.headerBtn} />
+        <TouchableOpacity onPress={() => router.push('/admin' as any)} style={styles.headerBtn}>
+          <Ionicons name="apps-outline" size={18} color={COLORS.textMuted} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />} contentContainerStyle={{ paddingBottom: 80 }}>

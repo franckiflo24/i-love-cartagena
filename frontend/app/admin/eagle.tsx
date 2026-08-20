@@ -92,9 +92,14 @@ export default function EagleEye() {
           <Ionicons name="eye" size={16} color={COLORS.primary} />
           <Text style={styles.headerTitle}>Eagle Eye</Text>
         </View>
-        <TouchableOpacity onPress={onRefresh} style={styles.headerBtn}>
-          <Ionicons name="refresh" size={18} color={COLORS.textMuted} />
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => router.push('/admin' as any)} style={styles.headerBtn}>
+            <Ionicons name="apps-outline" size={18} color={COLORS.textMuted} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onRefresh} style={styles.headerBtn}>
+            <Ionicons name="refresh" size={18} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -256,6 +261,7 @@ const styles = StyleSheet.create({
   headerBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   headerCenter: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   headerTitle: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold, letterSpacing: 0.5 },
+  headerRight: { flexDirection: 'row', alignItems: 'center' },
 
   subhead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, paddingBottom: SPACING.xs },
   subheadText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold, letterSpacing: 0.5, textTransform: 'uppercase' },

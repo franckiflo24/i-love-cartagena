@@ -1338,6 +1338,25 @@ export const AUTO_TR: Dict = {
   'Toca el corazón ❤️ en eventos, conciertos y eventos de partners para guardarlos aquí.': { en: 'Tap the heart ❤️ on events, concerts and partner events to save them here.', fr: 'Touchez le cœur ❤️ sur les événements, concerts et événements partenaires pour les enregistrer ici.', pt: 'Toque no coração ❤️ em eventos, shows e eventos de parceiros para salvá-los aqui.' },
   'Toca el corazón ❤️ en cualquier partner (restaurante, beach club, hotel...) para guardarlo aquí.': { en: 'Tap the heart ❤️ on any partner (restaurant, beach club, hotel...) to save it here.', fr: "Touchez le cœur ❤️ sur n'importe quel partenaire (restaurant, beach club, hôtel...) pour l'enregistrer ici.", pt: 'Toque no coração ❤️ em qualquer parceiro (restaurante, beach club, hotel...) para salvá-lo aqui.' },
   'Sugerencia': { en: 'Suggestion', fr: 'Suggestion', pt: 'Sugestão' },
+
+  // Unified admin portal (app/admin.tsx) — gate screen + hub cards
+  'Portal de administración': { en: 'Admin portal', fr: "Portail d'administration", pt: 'Portal de administração' },
+  'Contraseña incorrecta': { en: 'Incorrect password', fr: 'Mot de passe incorrect', pt: 'Senha incorreta' },
+  'Entrar': { en: 'Log in', fr: 'Se connecter', pt: 'Entrar' },
+  '¿Sos admin? Iniciá sesión': { en: 'Are you an admin? Sign in', fr: 'Vous êtes admin ? Connectez-vous', pt: 'É admin? Faça login' },
+  'Operador': { en: 'Operator', fr: 'Opérateur', pt: 'Operador' },
+  'Partners — Perfiles': { en: 'Partners — Profiles', fr: 'Partenaires — Profils', pt: 'Parceiros — Perfis' },
+  'Vista total del sistema en vivo': { en: 'Live full-system view', fr: 'Vue globale du système en direct', pt: 'Visão total do sistema ao vivo' },
+  'Aprobación y gestión de partners': { en: 'Partner approval & management', fr: 'Approbation et gestion des partenaires', pt: 'Aprovação e gestão de parceiros' },
+  'Moderación': { en: 'Moderation', fr: 'Modération', pt: 'Moderação' },
+  'Eventos pendientes de revisión': { en: 'Events pending review', fr: 'Événements en attente de révision', pt: 'Eventos pendentes de revisão' },
+  'Cola de negocios (claims)': { en: 'Business queue (claims)', fr: 'File des commerces (réclamations)', pt: 'Fila de negócios (reivindicações)' },
+  'Negocios y reclamos por aprobar': { en: 'Businesses & claims awaiting approval', fr: 'Commerces et réclamations à approuver', pt: 'Negócios e reivindicações a aprovar' },
+  'Usuarios & Analytics': { en: 'Users & Analytics', fr: 'Utilisateurs & Analytics', pt: 'Usuários & Analytics' },
+  'Métricas, CRM y revenue': { en: 'Metrics, CRM & revenue', fr: 'Métriques, CRM et revenus', pt: 'Métricas, CRM e receita' },
+  'Requiere sesión admin': { en: 'Requires admin session', fr: 'Nécessite une session admin', pt: 'Requer sessão de admin' },
+  'Requiere clave de operador': { en: 'Requires operator password', fr: 'Nécessite le mot de passe opérateur', pt: 'Requer senha de operador' },
+  'Dashboard': { en: 'Dashboard', fr: 'Tableau de bord', pt: 'Dashboard' },
 };
 
 /**

@@ -125,9 +125,14 @@ export default function OperatorIndex() {
           <Text style={styles.title}>Admin Operator 👑</Text>
           <Text style={styles.subtitle}>Gestión de partners</Text>
         </View>
-        <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
-          <Ionicons name="log-out-outline" size={18} color={COLORS.textMuted} />
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => router.push('/admin' as any)} style={styles.logoutBtn}>
+            <Ionicons name="apps-outline" size={18} color={COLORS.textMuted} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
+            <Ionicons name="log-out-outline" size={18} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Summary cards (clickable filters) */}
@@ -239,6 +244,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold },
   subtitle: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
   logoutBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   summaryRow: { flexDirection: 'row', gap: 6, paddingHorizontal: SPACING.lg, marginTop: SPACING.md },
   sumCard: { flex: 1, alignItems: 'center', padding: 8, gap: 2, backgroundColor: COLORS.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border },
   sumValue: { fontSize: 18, ...FONTS.bold },
