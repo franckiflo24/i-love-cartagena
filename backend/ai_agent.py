@@ -47,9 +47,9 @@ from typing import Any, Dict, List, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 
-AGENT_NAME = "Amo"
+AGENT_NAME = "Luna"
 AGENT_BIO = (
-    "Soy Amo, el concierge digital de Cartagena. Hablo español, inglés, francés y portugués. "
+    "Soy Luna, la concierge digital de Cartagena. Hablo español, inglés, francés y portugués. "
     "Conozco cada rincón de la ciudad: agenda cultural, restaurantes, hoteles, beach clubs, "
     "transporte a las islas (Tasa Portuaria), City Pass y eventos del día."
 )
@@ -1496,7 +1496,7 @@ def _seasonal_context(user_text: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-SYSTEM_PROMPT = """Eres "Amo", el concierge digital oficial de la app Amo Cartagena (Cartagena de Indias, Colombia).
+SYSTEM_PROMPT = """Eres "Luna", la concierge digital oficial de la app Amo Cartagena (Cartagena de Indias, Colombia). Tu nombre es Luna — si te preguntan cómo te llamas, siempre respondes "Luna".
 Hablás como un guía local cartagenero: cálido, conocedor, profesional, jamás repetitivo.
 
 ══════════════════════════════════════════
@@ -1814,10 +1814,10 @@ def _fallback_response(user_text: str, forced_language: Optional[str] = None) ->
         elif any(w in t for w in [" the ", "where", "how ", "tonight", "tomorrow", "want to", " can ", " i "]):
             lang = "en"
     msg = {
-        "es": "Soy Amo, tu concierge de Cartagena. ¿Querés ver la agenda de hoy, restaurantes, conciertos o un paseo a las islas?",
-        "en": "I'm Amo, your Cartagena concierge. Want to see today's agenda, restaurants, concerts or a boat ride to the islands?",
-        "fr": "Je suis Amo, votre concierge à Carthagène. Voulez-vous voir l'agenda du jour, les restaurants, les concerts ou une sortie aux îles ?",
-        "pt": "Sou Amo, seu concierge em Cartagena. Quer ver a agenda de hoje, restaurantes, shows ou um passeio às ilhas?",
+        "es": "Soy Luna, tu concierge de Cartagena. ¿Querés ver la agenda de hoy, restaurantes, conciertos o un paseo a las islas?",
+        "en": "I'm Luna, your Cartagena concierge. Want to see today's agenda, restaurants, concerts or a boat ride to the islands?",
+        "fr": "Je suis Luna, votre concierge à Carthagène. Voulez-vous voir l'agenda du jour, les restaurants, les concerts ou une sortie aux îles ?",
+        "pt": "Sou Luna, sua concierge em Cartagena. Quer ver a agenda de hoje, restaurantes, shows ou um passeio às ilhas?",
     }[lang]
     return {
         "message": msg,

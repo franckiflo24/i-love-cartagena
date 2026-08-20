@@ -31,7 +31,7 @@ if not db_name:
     raise RuntimeError("DB_NAME environment variable is required")
 db = client[db_name]
 
-app = FastAPI()
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 api_router = APIRouter(prefix="/api")
 
 # ── Partner Claim & Verify (Drop B1) — pure logic + email delivery ──

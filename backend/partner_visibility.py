@@ -30,9 +30,19 @@ PUBLIC_PARTNER_FILTER = {
 }
 
 # Internal ownership / moderation fields stripped from any PUBLIC partner response.
+# Launch audit (2026-08-20): the anon /api/partners payload was leaking partner
+# CONTACT PII (email, nit — tax ID) on 7 real listings [Ley 1581 violation] plus
+# raw growth analytics (bookings/searches/views_30d, tier_score, claimed_boost)
+# on all 893 — competitor-scrapeable ranking signal. Added below. NOTE: rank_score,
+# tier and membership_* are deliberately KEPT — the client sorts/badges on them
+# (partners.tsx/explore.tsx/data.ts). Full allowlist refactor is a post-launch item.
 INTERNAL_PARTNER_FIELDS = (
     "submitted_email", "submitted_by", "claimed_by", "claim_method",
     "claim_verified_at", "approved_by", "rejected_by", "reject_reason",
+    # ── contact PII (not read by any public client) ──
+    "email", "nit",
+    # ── raw growth/ranking analytics (internal signal) ──
+    "bookings_30d", "searches_30d", "views_30d", "tier_score", "claimed_boost",
 )
 # Internal metadata that lives INSIDE sub-documents — a top-level exclusion can't
 # reach these, so they must be named explicitly (e.g. the moderator email stamped
