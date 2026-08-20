@@ -1,10 +1,12 @@
 /**
  * Global ErrorBoundary — catches React rendering errors so the app doesn't
- * white-screen in production. Reports the error to the backend (/api/feedback)
- * and shows a friendly fallback with a "Try again" button.
+ * white-screen in production. Reports the crash to the backend crash beacon
+ * (/api/client-error → client_errors + admin alert + Eagle Eye KPI) and shows
+ * a friendly fallback with a "Try again" button.
  */
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { api } from '../constants/api';
@@ -54,16 +56,31 @@ export default class ErrorBoundary extends React.Component<Props, State> {
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     // Log to console for debugging — never show to user
     console.error('[ErrorBoundary]', error?.message, error?.stack?.slice(0, 2000));
-    // Best-effort backend report. Never crash the boundary itself.
+    // Crash beacon → POST /api/client-error (anonymous, rate-limited server-side).
+    // Fire-and-forget: context gathering is async but nothing here blocks the
+    // fallback render, and a reporting failure can never worsen the crash.
     try {
-      api.post('/feedback', {
-        kind: 'crash',
-        message: error?.message || 'Unknown',
-        stack: (error?.stack || '').slice(0, 4000),
-        component_stack: (info?.componentStack || '').slice(0, 2000),
-        platform: 'app',
-      }).catch(() => null);
-    } catch { /* error report itself failed — cannot crash the boundary */ }
+      const message = (error?.message || 'Unknown').slice(0, 500);
+      const stack = [error?.stack || '', info?.componentStack || '']
+        .filter(Boolean).join('\n— component stack —\n').slice(0, 2000);
+      const route = (typeof window !== 'undefined' && window.location?.pathname) || '';
+      const ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+      (async () => {
+        let app_version = '';
+        let lang = '';
+        let user_type = '';
+        try {
+          // Same stamp +html.tsx writes at build time (web); empty on native.
+          if (typeof window !== 'undefined' && window.localStorage) {
+            app_version = window.localStorage.getItem('amo_app_version') || '';
+          }
+          lang = (await AsyncStorage.getItem('@musica_lang')) || '';
+          const prof = await AsyncStorage.getItem('@onboarding_profile');
+          if (prof) user_type = JSON.parse(prof)?.user_type || '';
+        } catch { /* context is best-effort — report the crash regardless */ }
+        await api.post('/client-error', { message, stack, route, app_version, user_type, lang, ua });
+      })().catch(() => null);
+    } catch { /* crash report itself failed — cannot crash the boundary */ }
   }
 
   reset = () => this.setState({ hasError: false, error: null });

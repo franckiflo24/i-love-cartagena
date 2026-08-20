@@ -16,6 +16,7 @@ type Kpis = {
   active_sessions: number; passes_active: number;
   failed_logins_today: number;
   claims_pending: number; media_pending: number; events_pending: number;
+  crashes_24h?: number; // optional: absent until the backend crash beacon deploys
 };
 type Eagle = {
   kpis: Kpis;
@@ -124,6 +125,9 @@ export default function EagleEye() {
             <Kpi big={k.media_pending + k.events_pending + k.claims_pending} label="Por revisar"
               sub={`${k.media_pending} fotos · ${k.events_pending} eventos · ${k.claims_pending} reclamos`} icon="alert-circle" accent="#EF4444" />
             <Kpi big={k.failed_logins_today} label="Logins fallidos" sub="hoy · contraseñas erróneas" icon="lock-closed" accent="#F97316" />
+            {typeof k.crashes_24h === 'number' ? (
+              <Kpi big={k.crashes_24h} label="App crashes" sub="últimas 24 h · reporte automático" icon="bug" accent="#EF4444" />
+            ) : null}
           </View>
         )}
 

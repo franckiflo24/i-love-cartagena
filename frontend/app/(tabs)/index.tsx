@@ -1044,7 +1044,15 @@ export default function HomeScreen() {
 
         {/* Hoy & Esta noche - Partner Events + Today Events */}
         {(() => {
-          // Merge partner events with regular today events for richer content
+          // Merge partner events with regular today events for richer content.
+          // CONTENT RESILIENCE: todayPEvents has no fallback of its own — on
+          // quiet days/launch weeks with 0 live partner-events it is simply
+          // []. This merge with todayEvents (which already falls back to
+          // upcoming events in fetchData — see `evts.slice(0, 8)` above) is
+          // what guarantees these two primary home sections are never a
+          // blank gap. Do not remove this merge without preserving that
+          // fallback (empty state below still renders a friendly message,
+          // never an empty container).
           const allDayItems = [
             ...todayPEvents.filter(e => !isNightTime(e.start_time)),
             ...todayEvents.filter(e => !isNightTime(e.start_time)).map(e => ({

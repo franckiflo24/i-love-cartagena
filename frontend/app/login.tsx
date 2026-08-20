@@ -18,6 +18,19 @@ import { safeNext } from '../src/lib/safeNext';
 
 const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
 
+// Sign in with Apple is NOT implemented — no `expo-apple-authentication`, no
+// native iOS build, no backend /auth/apple endpoint. The button used to call
+// the generic `login()` handler above, which is web-only Google OAuth
+// (see AuthContext.tsx) — on native it silently no-ops, on web it would sign
+// the user in with GOOGLE while showing an Apple logo. That is a mislabeled
+// button and, combined with offering Google sign-in, is a near-certain App
+// Store Guideline 4.8 rejection (any third-party social login requires SIWA).
+// Keep this OFF until real Sign in with Apple ships end-to-end. Flip to
+// `true` only after: expo-apple-authentication is installed + configured,
+// a native iOS build exists to test on-device, and the backend has a working
+// /auth/apple endpoint. Full steps in APP_STORE_HANDOFF.md.
+const APPLE_SIGNIN_ENABLED = false;
+
 export default function LoginScreen() {
   const { user, isLoading, login, loginWithToken, authError, clearAuthError } = useAuth();
   const router = useRouter();
@@ -281,10 +294,11 @@ export default function LoginScreen() {
               <Text style={styles.methodBtnText}>{s('login_email_signup')}</Text>
             </TouchableOpacity>
 
-            {Platform.OS === 'ios' && (
+            {/* Hidden until real Sign in with Apple ships — see APPLE_SIGNIN_ENABLED above. */}
+            {APPLE_SIGNIN_ENABLED && Platform.OS === 'ios' && (
               <TouchableOpacity
                 style={[styles.methodBtn, styles.appleBtn]}
-                onPress={login}
+                onPress={() => {}}
                 activeOpacity={0.85}
               >
                 <Ionicons name="logo-apple" size={20} color={COLORS.white} />
