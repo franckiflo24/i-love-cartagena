@@ -286,12 +286,30 @@ export default function Root({ children }: PropsWithChildren) {
         <script dangerouslySetInnerHTML={{ __html: `
           (function(){
             var APP_VERSION = '${BUILD_VERSION}';
-            // Listen for SW update message → reload
+            // Listen for SW update message → reload AT MOST ONCE per version.
+            // Version-aware guard: if we've already reloaded for (or are already
+            // running) this version, ignore the message. This makes reload
+            // loops structurally impossible even if the SW re-activates or the
+            // CDN serves inconsistent sw.js bytes — and prevents the second
+            // reload that used to fire on every deploy (HTML stamp reload +
+            // SW_UPDATED reload were two separate events).
             if (navigator.serviceWorker) {
               navigator.serviceWorker.addEventListener('message', function(e) {
-                if (e.data && e.data.type === 'SW_UPDATED') {
-                  window.location.reload();
-                }
+                if (!e.data || e.data.type !== 'SW_UPDATED') return;
+                var v = e.data.version || '';
+                try {
+                  var cur = localStorage.getItem('amo_app_version');
+                  if (v && cur === v) return;           // already on this version
+                  if (v && v === APP_VERSION) {          // shell already matches the new SW
+                    try { localStorage.setItem('amo_app_version', v); } catch(err) {}
+                    return;
+                  }
+                  var last = sessionStorage.getItem('amo_sw_reloaded_for');
+                  if (v && last === v) return;           // this tab already reloaded for it
+                  try { sessionStorage.setItem('amo_sw_reloaded_for', v); } catch(err) {}
+                  if (v) { try { localStorage.setItem('amo_app_version', v); } catch(err) {} }
+                } catch(err) {}
+                window.location.reload();
               });
             }
             // Register/update SW on load
@@ -331,12 +349,19 @@ export default function Root({ children }: PropsWithChildren) {
               var gm = window.location.search.match(/[?&]join=(AMOG-[A-Za-z0-9]{4,8})/i);
               if (gm) localStorage.setItem('@amo_pending_group', gm[1].toUpperCase());
             } catch(e) {}
-            // Version check: if user has old cached version, force reload once
+            // Version check: if user has old cached version, force reload once.
+            // Per-tab sessionStorage guard: even if localStorage writes fail or
+            // stamps disagree pathologically, one tab can never reload twice in
+            // a row for the same version — loops are impossible by construction.
             try {
               var stored = localStorage.getItem('amo_app_version');
               if (stored && stored !== APP_VERSION) {
+                var vGuard = sessionStorage.getItem('amo_ver_reloaded_for');
                 localStorage.setItem('amo_app_version', APP_VERSION);
-                window.location.reload();
+                if (vGuard !== APP_VERSION) {
+                  try { sessionStorage.setItem('amo_ver_reloaded_for', APP_VERSION); } catch(err) {}
+                  window.location.reload();
+                }
               } else if (!stored) {
                 localStorage.setItem('amo_app_version', APP_VERSION);
               }

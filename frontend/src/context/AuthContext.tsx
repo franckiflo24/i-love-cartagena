@@ -165,6 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_token: idToken }),
         credentials: 'include',
+        keepalive: true, // survive an SW-update reload landing mid-exchange
       });
       if (!res.ok) {
         const detail = await res.json().catch(() => ({}));
@@ -287,10 +288,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = useCallback(async () => {
     try {
       const token = await getToken();
+      // keepalive: the revocation must survive any navigation/reload that
+      // lands mid-flight (SW update reloads were aborting this request →
+      // server session + cookie survived → user got "logged back in").
       await fetch(`${AUTH_BASE}/logout`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token || ''}` },
         credentials: 'include',
+        keepalive: true,
       }).catch(() => {});
     } catch (e) { console.error('[AuthContext] logout failed', e); }
     await removeToken();
