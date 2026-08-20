@@ -148,13 +148,16 @@ type HubCardDef = {
   available: boolean;
   badge?: number;
   onPress: () => void;
+  // Locked cards must never dead-end: tapping one routes to the unlock path
+  // (e.g. admin sign-in). Franck hit locked cards with no way forward.
+  onLockedPress?: () => void;
 };
 
 const PortalCard = ({ card }: { card: HubCardDef }) => (
   <TouchableOpacity
     style={[styles.hubCard, !card.available && styles.hubCardLocked]}
-    onPress={card.onPress}
-    disabled={!card.available}
+    onPress={card.available ? card.onPress : card.onLockedPress}
+    disabled={!card.available && !card.onLockedPress}
     activeOpacity={0.85}
   >
     <View style={[styles.hubCardIconWrap, { backgroundColor: `${card.accent}20`, borderColor: `${card.accent}40` }]}>
@@ -169,7 +172,11 @@ const PortalCard = ({ card }: { card: HubCardDef }) => (
     <Text style={[styles.hubCardSubtitle, !card.available && styles.hubCardSubtitleLocked]} numberOfLines={2}>
       {card.available ? card.subtitle : card.lockReason}
     </Text>
-    {card.available && <Ionicons name="chevron-forward" size={14} color={COLORS.textFaint} style={styles.hubCardChevron} />}
+    {card.available
+      ? <Ionicons name="chevron-forward" size={14} color={COLORS.textFaint} style={styles.hubCardChevron} />
+      : card.onLockedPress
+        ? <Ionicons name="log-in-outline" size={14} color={COLORS.official} style={styles.hubCardChevron} />
+        : null}
   </TouchableOpacity>
 );
 
@@ -738,16 +745,18 @@ export default function AdminPortal() {
   }
 
   // ── Hub ──
+  const goAdminLogin = () => router.push('/login?next=/admin' as any);
   const hubCards: HubCardDef[] = [
     {
       key: 'eagle',
       title: 'Eagle — KPIs',
       subtitle: tr('Vista total del sistema en vivo'),
-      lockReason: tr('Requiere sesión admin'),
+      lockReason: tr('Requiere sesión admin · tocá para entrar'),
       icon: 'eye',
       accent: colorForKey('eagle'),
       available: isAdmin,
       onPress: () => router.push('/admin/eagle' as any),
+      onLockedPress: goAdminLogin,
     },
     {
       key: 'partners',
@@ -766,32 +775,35 @@ export default function AdminPortal() {
       key: 'moderation',
       title: tr('Moderación'),
       subtitle: tr('Eventos pendientes de revisión'),
-      lockReason: tr('Requiere sesión admin'),
+      lockReason: tr('Requiere sesión admin · tocá para entrar'),
       icon: 'shield-checkmark',
       accent: colorForKey('moderation'),
       available: isAdmin,
       badge: modStats?.pending,
       onPress: () => router.push('/admin/moderation'),
+      onLockedPress: goAdminLogin,
     },
     {
       key: 'claims',
       title: tr('Cola de negocios (claims)'),
       subtitle: tr('Negocios y reclamos por aprobar'),
-      lockReason: tr('Requiere sesión admin'),
+      lockReason: tr('Requiere sesión admin · tocá para entrar'),
       icon: 'albums',
       accent: colorForKey('claims'),
       available: isAdmin,
       onPress: () => router.push('/business/admin/queue' as any),
+      onLockedPress: goAdminLogin,
     },
     {
       key: 'analytics',
       title: tr('Usuarios & Analytics'),
       subtitle: tr('Métricas, CRM y revenue'),
-      lockReason: tr('Requiere sesión admin'),
+      lockReason: tr('Requiere sesión admin · tocá para entrar'),
       icon: 'stats-chart',
       accent: colorForKey('analytics'),
       available: isAdmin,
       onPress: () => setShowDashboard(v => !v),
+      onLockedPress: goAdminLogin,
     },
     // "Demanda" card intentionally omitted — no /admin/demand screen exists.
   ];
@@ -821,6 +833,21 @@ export default function AdminPortal() {
             </TouchableOpacity>
           )}
         </View>
+
+        {/* Operator-only: clear path to full access. Franck landed here with
+            the operator key and found every admin card locked with no way in. */}
+        {!isAdmin && isOperator && (
+          <TouchableOpacity style={styles.adminUpgradeBanner} onPress={goAdminLogin} activeOpacity={0.85}>
+            <Ionicons name="shield-checkmark" size={20} color={COLORS.mustard} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.adminUpgradeTitle}>{tr('Desbloqueá el portal completo')}</Text>
+              <Text style={styles.adminUpgradeText}>{tr('Iniciá sesión con tu cuenta admin (Google) para Eagle, Moderación y Analytics.')}</Text>
+            </View>
+            <View style={styles.adminUpgradeBtn}>
+              <Text style={styles.adminUpgradeBtnText}>{tr('Iniciar sesión')}</Text>
+            </View>
+          </TouchableOpacity>
+        )}
 
         {/* Tools grid */}
         <View style={styles.hubGrid}>
@@ -891,6 +918,11 @@ const styles = StyleSheet.create({
 
   // ── Hub tools grid ──
   hubGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: SPACING.lg, gap: SPACING.sm, marginTop: SPACING.md, marginBottom: SPACING.lg },
+  adminUpgradeBanner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginHorizontal: SPACING.lg, marginTop: SPACING.md, padding: SPACING.md, backgroundColor: 'rgba(233,185,73,0.10)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(233,185,73,0.35)' },
+  adminUpgradeTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
+  adminUpgradeText: { fontSize: 11.5, color: COLORS.textMuted, marginTop: 2, lineHeight: 15 },
+  adminUpgradeBtn: { backgroundColor: COLORS.mustard, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 7 },
+  adminUpgradeBtnText: { fontSize: 12, color: '#000', ...FONTS.bold },
   hubCard: { width: '47%', flexGrow: 1, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.md, gap: 4 },
   hubCardLocked: { opacity: 0.55 },
   hubCardIconWrap: { width: 40, height: 40, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center', borderWidth: 1, position: 'relative' },
