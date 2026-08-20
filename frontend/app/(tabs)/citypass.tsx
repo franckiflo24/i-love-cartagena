@@ -66,6 +66,10 @@ export default function CityPassTab() {
         notConfiguredAlert();
         return;
       }
+      if (!user) {
+        router.push('/login?next=/(tabs)/citypass' as any);
+        return;
+      }
       const res = await api.post('/payments/wompi/city-pass', { plan_id: planId });
       if (res.checkout_url && res.reference) {
         const result = await openWompiCheckout(res.checkout_url, res.reference);
@@ -126,7 +130,7 @@ export default function CityPassTab() {
               </View>
 
               <Text style={styles.qrPlanName}>{plans.find(p => p.plan_id === myPass.plan_id)?.name || 'City Pass'}</Text>
-              <Text style={styles.qrExpiry}>{tr('Válido hasta')}: {new Date(myPass.expires_at).toLocaleDateString('es-CO')}</Text>
+              <Text style={styles.qrExpiry}>{tr('Válido hasta')}: {myPass.expires_at ? new Date(myPass.expires_at).toLocaleDateString('es-CO') : tr('—')}</Text>
 
               {/* QR Code */}
               <View style={styles.qrContainer}>

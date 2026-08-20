@@ -151,7 +151,7 @@ function OfferCard({ offer, accent, onRedeem }: { offer: Offer; accent: string; 
   return (
     <View style={[offerStyles.card, { borderColor: offer.eligible ? `${accent}50` : COLORS.border }]}>
       <View style={[offerStyles.badge, { backgroundColor: `${accent}20`, borderColor: `${accent}40` }]}>
-        <Text style={[offerStyles.badgeTier, { color: accent }]}>{offer.min_tier.toUpperCase()}</Text>
+        <Text style={[offerStyles.badgeTier, { color: accent }]}>{(offer.min_tier || 'explorer').toUpperCase()}</Text>
       </View>
       <Text style={offerStyles.title} numberOfLines={2}>{offer.title}</Text>
       <View style={offerStyles.footer}>

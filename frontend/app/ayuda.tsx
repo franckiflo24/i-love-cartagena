@@ -34,11 +34,11 @@ const CATEGORY_COLORS: Record<string, { bg: string; fg: string }> = {
 function dialPhone(phone: string) {
   const clean = phone.replace(/[^\d]/g, '');
   if (clean.length <= 3) {
-    Linking.openURL(`tel:${clean}`);
+    Linking.openURL(`tel:${clean}`).catch(() => {});
   } else if (clean.startsWith('57')) {
-    Linking.openURL(`tel:+${clean}`);
+    Linking.openURL(`tel:+${clean}`).catch(() => {});
   } else {
-    Linking.openURL(`tel:+57${clean}`);
+    Linking.openURL(`tel:+57${clean}`).catch(() => {});
   }
 }
 
@@ -154,7 +154,7 @@ export default function HelpScreen() {
 
           {/* ── CONTACT AMO ── */}
           <Text style={[styles.sectionLabel, { marginTop: SPACING.xl }]}>{tr('Contactar AMO Cartagena')}</Text>
-          <TouchableOpacity style={styles.amoContact} onPress={() => Linking.openURL('mailto:soporte@amocartagena.app')}>
+          <TouchableOpacity style={styles.amoContact} onPress={() => Linking.openURL('mailto:soporte@amocartagena.app').catch(() => {})}>
             <View style={[styles.contactIcon, { backgroundColor: COLORS.primary + '18' }]}>
               <Ionicons name="mail" size={16} color={COLORS.primary} />
             </View>

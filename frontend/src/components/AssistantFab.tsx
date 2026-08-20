@@ -503,13 +503,17 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
           if (!tasteRes.ok) throw new Error(`HTTP ${tasteRes.status}`);
           const res = await tasteRes.json();
           const a = res.assistant; // { message, language, recommendations, suggestions } — NOTE: `message`, not `content`
+          const enriched = enrichRecommendations(a.recommendations || [], gCatalog);
           setMessages((prev) => [
             ...clearGuestTransient(prev),
             {
               role: 'assistant',
               content: a.message,
               actions: a.actions || [],
-              recommendations: enrichRecommendations(a.recommendations || [], gCatalog),
+              // A 200 with zero recs must not erase the real venues already shown
+              // by the provisional local preview — fall back to those instead of
+              // letting the cards vanish.
+              recommendations: enriched.length ? enriched : gLocalRecs,
               suggestions: a.suggestions || [],
               language: a.language,
             },

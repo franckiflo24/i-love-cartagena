@@ -645,7 +645,7 @@ export default function AdminPortal() {
   const fetchData = useCallback(async () => {
     try {
       const [d, u, ms] = await Promise.all([
-        api.get('/analytics/dashboard'),
+        api.get('/analytics/dashboard').catch(() => null),
         api.get('/admin/users').catch(() => null),
         api.get('/admin/moderation/stats').catch(() => null),
       ]);
@@ -866,8 +866,17 @@ export default function AdminPortal() {
             </TouchableOpacity>
 
             {showDashboard && (
-              loading || !data ? (
+              loading ? (
                 <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40, marginBottom: 40 }} />
+              ) : !data ? (
+                <View style={styles.dashError}>
+                  <Ionicons name="cloud-offline-outline" size={26} color={COLORS.textMuted} />
+                  <Text style={styles.dashErrorText}>{tr('No pudimos cargar el dashboard')}</Text>
+                  <TouchableOpacity style={styles.dashErrorBtn} onPress={fetchData} activeOpacity={0.85}>
+                    <Ionicons name="refresh" size={14} color="#FFF" />
+                    <Text style={styles.dashErrorBtnText}>{tr('Reintentar')}</Text>
+                  </TouchableOpacity>
+                </View>
               ) : (
                 <DashboardBody data={data} usersData={usersData} />
               )
@@ -938,6 +947,10 @@ const styles = StyleSheet.create({
   dashHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: SPACING.lg, marginBottom: SPACING.md, paddingVertical: SPACING.sm, paddingHorizontal: SPACING.md, backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border },
   dashHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
   dashHeaderTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold, letterSpacing: 0.3 },
+  dashError: { alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, paddingVertical: 40, paddingHorizontal: SPACING.lg },
+  dashErrorText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'center' },
+  dashErrorBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 16, paddingVertical: 10, marginTop: 4 },
+  dashErrorBtnText: { fontSize: 13, color: '#FFF', ...FONTS.bold },
 
   // Tabs
   tabBar: { flexDirection: 'row', paddingHorizontal: SPACING.md, marginBottom: SPACING.md, gap: SPACING.xs },

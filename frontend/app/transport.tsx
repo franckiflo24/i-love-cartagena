@@ -58,7 +58,7 @@ export default function TransportScreen() {
 
   const openMaps = (loc: any) => {
     if (!loc) return;
-    RNLinking.openURL(`https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}`);
+    RNLinking.openURL(`https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}`).catch(() => {});
   };
 
   const openWhatsAppBooking = (route: any) => {
@@ -77,7 +77,7 @@ export default function TransportScreen() {
       + `Passengers: 1\n\n`
       + `Availability?`
     );
-    RNLinking.openURL(`https://wa.me/${AMO_WHATSAPP}?text=${msg}`);
+    RNLinking.openURL(`https://wa.me/${AMO_WHATSAPP}?text=${msg}`).catch(() => {});
   };
 
   return (

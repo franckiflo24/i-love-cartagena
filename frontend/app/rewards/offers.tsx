@@ -72,9 +72,16 @@ export default function OffersScreen() {
               // In static mode api.post returns the body with no redemption_id.
               // Generate one locally so the flow completes.
               const redemptionId = result?.redemption?.redemption_id || `rdm_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-              // Persist redemption locally
-              const stored = await AsyncStorage.getItem('amo_redemptions');
-              const redemptions = stored ? JSON.parse(stored) : [];
+              // Persist redemption locally. Read+parse is isolated in its own
+              // try/catch — a corrupt local cache must never mask a successful
+              // server charge (points already deducted) as a failed redemption.
+              let redemptions: any[] = [];
+              try {
+                const stored = await AsyncStorage.getItem('amo_redemptions');
+                redemptions = stored ? JSON.parse(stored) : [];
+              } catch {
+                redemptions = [];
+              }
               redemptions.unshift({ redemption_id: redemptionId, offer_id: offer.offer_id, title: offer.title, redeemed_at: new Date().toISOString() });
               await AsyncStorage.setItem('amo_redemptions', JSON.stringify(redemptions));
               Alert.alert(tr('¡Canjeado!'), `Tu código: ${redemptionId.slice(0, 12).toUpperCase()}\nMuéstralo al partner para reclamar tu recompensa.`);
@@ -96,7 +103,7 @@ export default function OffersScreen() {
       <View style={styles.cardHeader}>
         <View style={[styles.tierBadge, { backgroundColor: `${TIER_COLORS_MAP[item.min_tier] || COLORS.textMuted}20` }]}>
           <Text style={[styles.tierText, { color: TIER_COLORS_MAP[item.min_tier] || COLORS.textMuted }]}>
-            {item.min_tier.toUpperCase()}
+            {(item.min_tier || 'explorer').toUpperCase()}
           </Text>
         </View>
         <Text style={styles.costText}>{item.points_cost} pts</Text>

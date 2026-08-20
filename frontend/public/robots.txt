@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /business
+Disallow: /api
+Sitemap: https://www.amocartagena.co/sitemap.xml

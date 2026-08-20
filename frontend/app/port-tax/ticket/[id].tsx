@@ -176,7 +176,7 @@ export default function PortTaxTicketScreen() {
           )}
 
           <View style={styles.idRow}>
-            <Text style={styles.idText}>ID: {ticket.ticket_id.toUpperCase()}</Text>
+            <Text style={styles.idText}>ID: {(ticket.ticket_id || (ticket as any).id || '').toString().toUpperCase() || '—'}</Text>
           </View>
         </View>
 

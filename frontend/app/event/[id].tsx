@@ -35,7 +35,7 @@ export default function EventDetail() {
 
   const shareEvent = async () => {
     if (!event) return;
-    const priceText = event.is_free ? 'GRATIS' : `$${(event.price / 1000).toFixed(0)}K COP`;
+    const priceText = event.is_free ? 'GRATIS' : `$${((event.price || 0) / 1000).toFixed(0)}K COP`;
     try {
       await Share.share({
         message: `🎉 ${event.title}\n📍 ${event.venue_name}\n🗓 ${event.date} · ${event.start_time}\n💰 ${priceText}\n\nDescarga Amo Cartagena para ver todo el programa 🎧`,
@@ -53,7 +53,7 @@ export default function EventDetail() {
     } else {
       return;
     }
-    RNLinking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`);
+    RNLinking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`).catch(() => {});
   };
 
   if (loading) {
@@ -213,7 +213,7 @@ export default function EventDetail() {
             style={styles.bookBtn}
             onPress={() => {
               RNLinking.canOpenURL(event.booking_link).then(supported => {
-                if (supported) RNLinking.openURL(event.booking_link);
+                if (supported) RNLinking.openURL(event.booking_link).catch(() => {});
               });
             }}
           >

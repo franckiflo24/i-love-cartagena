@@ -52,8 +52,8 @@ export default function BusinessDashboard() {
     if (!token) return;
     try {
       const [eventsData, statsData, reservData, memData, onbData] = await Promise.all([
-        api.get('/business/events', { headers: { Authorization: `Bearer ${token}` } }),
-        api.get('/business/stats', { headers: { Authorization: `Bearer ${token}` } }),
+        api.get('/business/events', { headers: { Authorization: `Bearer ${token}` } }).catch(() => []),
+        api.get('/business/stats', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
         api.get('/business/reservations?limit=1', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
         api.get('/business/membership', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
         // /business/onboarding-status was never built on the backend (it 404'd
@@ -61,7 +61,7 @@ export default function BusinessDashboard() {
         // partners and stays dormant until that endpoint exists — skip the call.
         Promise.resolve(null),
       ]);
-      setEvents(eventsData);
+      setEvents(Array.isArray(eventsData) ? eventsData : []);
       setStats(statsData);
       setReservationStats(reservData?.stats || null);
       setMembership(memData || null);

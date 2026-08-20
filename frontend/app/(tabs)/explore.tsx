@@ -90,7 +90,7 @@ type Neighborhood = {
   best_for: string[];
   how_to_get_there_es?: string;
   how_to_get_there_en?: string;
-  taxi_fare_from_airport_cop: number;
+  taxi_fare_from_airport_cop?: number;
   tourist_mistakes_es: string;
   tourist_mistakes_en: string;
   centroid_lat: number;
@@ -482,16 +482,20 @@ function NeighborhoodDetailModal({
               </Text>
             </View>
 
-            {/* Airport taxi fare */}
-            <View style={styles.nbModalSection}>
-              <View style={styles.nbModalSectionHeader}>
-                <Ionicons name="car-outline" size={16} color={COLORS.icon} />
-                <Text style={styles.nbModalSectionTitle}>{tr('Taxi desde el aeropuerto')}</Text>
+            {/* Airport taxi fare — absent for boat-access-only neighborhoods
+                (e.g. Tierrabomba); hide the row rather than show a broken/misleading
+                fare, matching the guarded-block style used in Safety above. */}
+            {item.taxi_fare_from_airport_cop != null && (
+              <View style={styles.nbModalSection}>
+                <View style={styles.nbModalSectionHeader}>
+                  <Ionicons name="car-outline" size={16} color={COLORS.icon} />
+                  <Text style={styles.nbModalSectionTitle}>{tr('Taxi desde el aeropuerto')}</Text>
+                </View>
+                <Text style={styles.nbModalFare}>
+                  ${item.taxi_fare_from_airport_cop.toLocaleString()} COP
+                </Text>
               </View>
-              <Text style={styles.nbModalFare}>
-                ${item.taxi_fare_from_airport_cop.toLocaleString()} COP
-              </Text>
-            </View>
+            )}
 
             {/* Best for */}
             <View style={styles.nbModalSection}>

@@ -126,7 +126,7 @@ export default function ConcertsScreen() {
 
   const filteredConcerts = upcomingConcerts.filter(c => {
     if (selectedDate && c.date !== selectedDate) return false;
-    if (selectedGenre && !c.genre.toLowerCase().includes(selectedGenre.toLowerCase())) return false;
+    if (selectedGenre && !(c.genre || '').toLowerCase().includes(selectedGenre.toLowerCase())) return false;
     return true;
   }).sort((a, b) => a.date.localeCompare(b.date));
 

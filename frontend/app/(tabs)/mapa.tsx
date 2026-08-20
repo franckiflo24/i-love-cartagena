@@ -7,7 +7,7 @@ import { Alert } from '../../src/lib/alert';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, colorForKey } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
@@ -53,20 +53,14 @@ function fmtLiveDist(m: number): string {
   return m < 1000 ? `a ${Math.round(m / 10) * 10}m de ti` : `a ${(m / 1000).toFixed(1)}km de ti`;
 }
 
-const MARKER_COLORS: Record<string, string> = {
-  historic: '#F59E0B',
-  nightclub: '#EC4899',
-  restaurant: '#EF4444',
-  beach_club: '#06B6D4',
-  hotel: '#3B82F6',
-  cultural: '#8B5CF6',
-  club: '#12B5A5',
-  wellness: '#22C55E',
-  concert: '#EC4899',
-  partner: '#8B5CF6',
-  service: '#14B8A6',
-  essential: '#DC2626',
-};
+// Marker color per place: delegates to the app's shared colorForKey() spectrum
+// (src/constants/theme.ts) instead of a parallel hardcoded table — that old table
+// had `club: '#12B5A5'`, reusing the reserved primary teal for a content category.
+// colorForKey() falls back gracefully (deterministic spectrum hash) for any
+// type/category not explicitly assigned a color.
+function markerColor(p: Place): string {
+  return colorForKey(p.type || p.category);
+}
 
 function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null) {
   const filtered = filter === 'all' ? places
@@ -74,7 +68,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     : places.filter(p => p.category === filter);
 
   const markers = filtered.map(p => {
-    const color = MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || COLORS.icon;
+    const color = markerColor(p);
     const safeName = (p.name || '').replace(/'/g, "").replace(/"/g, "");
     const safeDesc = (p.extra || p.description || '').replace(/'/g, "").replace(/"/g, "").substring(0, 80);
     const safeAddr = (p.address || '').replace(/'/g, "").replace(/"/g, "");
@@ -89,13 +83,13 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
       + '<div style=width:10px;height:10px;border-radius:50%;background:' + color + ';flex-shrink:0></div>'
       + '<span style=font-size:10px;color:' + color + ';text-transform:uppercase;font-weight:700>' + p.type + '</span>'
       + '</div>'
-      + '<b style=font-size:15px;color:#1a1a2e>' + safeName + '</b><br>'
-      + '<span style=font-size:11px;color:#666>' + safeDesc + '</span><br>'
-      + '<span style=font-size:11px;color:#888>📍 ' + safeAddr + '</span><br>'
+      + '<b style=font-size:15px;color:' + COLORS.textMain + '>' + safeName + '</b><br>'
+      + '<span style=font-size:11px;color:' + COLORS.textMuted + '>' + safeDesc + '</span><br>'
+      + '<span style=font-size:11px;color:' + COLORS.textMuted + '>📍 ' + safeAddr + '</span><br>'
       + priceHtml
       + '<div style=display:flex;gap:6px;margin-top:6px>'
       + '<a href=' + detailUrl + ' style=display:inline-block;padding:6px_14px;background:#12B5A5;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600 onclick=window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:\"navigate\",path:\"' + detailUrl + '\"}));return_false;>Ver detalle →</a>'
-      + '<a href=' + mapsUrl + ' target=_blank style=display:inline-block;padding:6px_14px;background:rgba(26,26,46,0.1);color:#1a1a2e;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px_solid_#ddd>📍 Mapa</a>'
+      + '<a href=' + mapsUrl + ' target=_blank style=display:inline-block;padding:6px_14px;background:rgba(255,255,255,0.08);color:' + COLORS.textMain + ';text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px_solid_rgba(255,255,255,0.08)>📍 Mapa</a>'
       + '</div>'
       + '</div>';
 
@@ -114,7 +108,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     });
     L.marker([${userLoc.lat}, ${userLoc.lng}], {icon: userIcon, zIndexOffset: 1000})
       .addTo(map)
-      .bindPopup('<b style="color:#1a1a2e">📍 Tu ubicación</b>');
+      .bindPopup('<b style="color:${COLORS.textMain}">📍 Tu ubicación</b>');
     ${isInCartagena(userLoc.lat, userLoc.lng) ? `map.setView([${userLoc.lat}, ${userLoc.lng}], 14);` : '/* User outside Cartagena — keep default center */'}
   ` : '';
 
@@ -124,13 +118,13 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>'
     + '<style>'
     + '* { margin: 0; padding: 0; box-sizing: border-box; }'
-    + 'body { background: #050814; }'
+    + 'body { background: ' + COLORS.background + '; }'
     + '#map { width: 100vw; height: 100vh; }'
-    + '.leaflet-popup-content-wrapper { border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }'
+    + '.leaflet-popup-content-wrapper { background: ' + COLORS.surface + '; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }'
     + '.leaflet-popup-tip { display: none; }'
     + '.leaflet-control-zoom { border: none !important; }'
-    + '.leaflet-control-zoom a { background: #1a1a2e !important; color: ' + COLORS.icon + ' !important; border: 1px solid #2a2a4e !important; font-weight: 700; }'
-    + '.leaflet-control-zoom a:hover { background: #2a2a4e !important; }'
+    + '.leaflet-control-zoom a { background: ' + COLORS.surface + ' !important; color: ' + COLORS.icon + ' !important; border: 1px solid ' + COLORS.surfaceAlt + ' !important; font-weight: 700; }'
+    + '.leaflet-control-zoom a:hover { background: ' + COLORS.surfaceAlt + ' !important; }'
     + '.leaflet-control-attribution { display: none; }'
     + '.user-pulse-icon { position: relative; width: 22px; height: 22px; }'
     + '.pulse-dot { position: absolute; top: 4px; left: 4px; width: 14px; height: 14px; border-radius: 50%; background: #2563EB; border: 2px solid #fff; box-shadow: 0 0 6px rgba(37,99,235,0.7); z-index: 2; }'
@@ -246,10 +240,10 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
         style.textContent = `
           @keyframes pulse { 0% { transform: scale(0.6); opacity: 1; } 100% { transform: scale(2.4); opacity: 0; } }
           .dark-tiles { filter: invert(1) hue-rotate(180deg) brightness(0.7) saturate(1.5) contrast(1.1); }
-          .leaflet-popup-content-wrapper { border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important; }
+          .leaflet-popup-content-wrapper { background: ${COLORS.surface} !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important; }
           .leaflet-popup-tip { display: none !important; }
           .leaflet-control-zoom { border: none !important; }
-          .leaflet-control-zoom a { background: #1a1a2e !important; color: ${COLORS.icon} !important; border: 1px solid #2a2a4e !important; font-weight: 700; }
+          .leaflet-control-zoom a { background: ${COLORS.surface} !important; color: ${COLORS.icon} !important; border: 1px solid ${COLORS.surfaceAlt} !important; font-weight: 700; }
           .leaflet-control-attribution { display: none !important; }
         `;
         document.head.appendChild(style);
@@ -313,7 +307,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
     filtered.forEach(p => {
       if (!p.lat || !p.lng) return;
       const isPassport = passportIds.has(p.id);
-      const color = isPassport ? GOLD : (MARKER_COLORS[p.type] || MARKER_COLORS[p.category] || COLORS.icon);
+      const color = isPassport ? GOLD : markerColor(p);
       const safeName = (p.name || '').replace(/'/g, '').replace(/"/g, '');
       const safeDesc = (p.extra || p.description || '').replace(/'/g, '').replace(/"/g, '').substring(0, 80);
       const safeAddr = (p.address || '').replace(/'/g, '').replace(/"/g, '');
@@ -327,15 +321,15 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
           <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></div>
           <span style="font-size:10px;color:${color};text-transform:uppercase;font-weight:700">${isPassport ? 'pasaporte' : p.type}</span>
         </div>
-        <b style="font-size:15px;color:#1a1a2e">${safeName}</b><br>
+        <b style="font-size:15px;color:${COLORS.textMain}">${safeName}</b><br>
         <span data-dist style="display:none;font-size:12px;color:#1a7f37;font-weight:700"></span>
         ${passportHtml}
-        <span style="font-size:11px;color:#666">${safeDesc}</span><br>
-        <span style="font-size:11px;color:#888">📍 ${safeAddr}</span><br>
+        <span style="font-size:11px;color:${COLORS.textMuted}">${safeDesc}</span><br>
+        <span style="font-size:11px;color:${COLORS.textMuted}">📍 ${safeAddr}</span><br>
         ${priceHtml}
         <div style="display:flex;gap:6px;margin-top:6px">
           <a href="#" data-partner="${p.id}" style="display:inline-block;padding:6px 14px;background:#12B5A5;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">Ver detalle →</a>
-          <a href="${mapsUrl}" target="_blank" style="display:inline-block;padding:6px 14px;background:rgba(26,26,46,0.1);color:#1a1a2e;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px solid #ddd">📍 Mapa</a>
+          <a href="${mapsUrl}" target="_blank" style="display:inline-block;padding:6px 14px;background:rgba(255,255,255,0.08);color:${COLORS.textMain};text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,0.08)">📍 Mapa</a>
         </div>
       </div>`;
       L.circleMarker([p.lat, p.lng], {
@@ -374,7 +368,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
       });
       userMarkerRef.current = L.marker([userLoc.lat, userLoc.lng], { icon: userIcon, zIndexOffset: 1000 })
         .addTo(map)
-        .bindPopup('<b style="color:#1a1a2e">📍 Tu ubicación</b>');
+        .bindPopup('<b style="color:' + COLORS.textMain + '">📍 Tu ubicación</b>');
       if (isInCartagena(userLoc.lat, userLoc.lng)) map.setView([userLoc.lat, userLoc.lng], 15);
     } else {
       userMarkerRef.current.setLatLng([userLoc.lat, userLoc.lng]);
@@ -389,16 +383,16 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
   }, [userLoc]);
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative', background: '#050814' }}>
+    <div style={{ width: '100%', height: '100%', position: 'relative', background: COLORS.background }}>
       <div
         ref={mapRef as any}
-        style={{ width: '100%', height: '100%', background: '#050814' }}
+        style={{ width: '100%', height: '100%', background: COLORS.background }}
       />
       {loadFailed && (
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          gap: 12, padding: 24, textAlign: 'center', background: '#050814',
+          gap: 12, padding: 24, textAlign: 'center', background: COLORS.background,
         }}>
           <span style={{ color: COLORS.textMuted, fontFamily: 'sans-serif', fontSize: 14, maxWidth: 280 }}>
             {tr('No pudimos cargar el mapa')}
@@ -545,7 +539,7 @@ export default function MapaScreen() {
       const seenNames = new Set<string>();
 
       venues.forEach((v: any) => {
-        seenNames.add(v.name.toLowerCase());
+        seenNames.add((v.name || '').toLowerCase());
         allPlaces.push({
           id: v.venue_id, name: v.name, description: v.description,
           category: 'venue', type: v.type, address: v.address,
@@ -559,7 +553,7 @@ export default function MapaScreen() {
       venues.forEach((v: any) => { venueLocs[v.venue_id] = v.location; });
 
       partners.forEach((p: any) => {
-        if (!seenNames.has(p.name.toLowerCase()) && p.location) {
+        if (!seenNames.has((p.name || '').toLowerCase()) && p.location) {
           allPlaces.push({
             id: p.partner_id, name: p.name, description: p.description,
             category: 'partner', type: p.category || 'partner', address: p.address,
@@ -599,7 +593,7 @@ export default function MapaScreen() {
         setPlaces(buildPlaces([], sp, []));
         setLoading(false);
       }
-    }).catch(() => {});
+    }).catch((e) => { console.error('[mapa]', e); setLoading(false); });
 
     // Venues + concerts arrive slightly later — merge in
     Promise.all([staticFetch('venues'), staticFetch('concerts')])
@@ -610,8 +604,8 @@ export default function MapaScreen() {
             setPlaces(buildPlaces(sv, sp, sc));
           }
           setLoading(false);
-        });
-      }).catch(() => setLoading(false));
+        }).catch((e) => { console.error('[mapa]', e); setLoading(false); });
+      }).catch((e) => { console.error('[mapa]', e); setLoading(false); });
 
     // Hydrate from backend (non-blocking)
     Promise.all([
@@ -624,7 +618,7 @@ export default function MapaScreen() {
       if (Array.isArray(partners) && partners.length > 0) {
         setPlaces(buildPlaces(venues, partners, concerts));
       }
-    }).catch(() => {});
+    }).catch((e) => { console.error('[mapa]', e); setLoading(false); });
     requestLocation();
   }, []);
 
@@ -822,7 +816,7 @@ const styles = StyleSheet.create({
   chipCountText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.bold },
 
   mapWrap: { flex: 1, overflow: 'hidden', borderTopWidth: 1, borderTopColor: COLORS.border },
-  webview: { flex: 1, backgroundColor: '#050814' },
+  webview: { flex: 1, backgroundColor: COLORS.background },
 
   locateBtn: {
     position: 'absolute',

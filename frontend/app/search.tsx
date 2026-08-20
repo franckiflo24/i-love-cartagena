@@ -546,12 +546,15 @@ export default function SearchScreen() {
       }
 
       const normalized: Results = {
-        events:         Array.isArray(data?.events) ? data.events : [],
+        // Backend buckets are NOT date-filtered server-side (only the static-fallback
+        // path above was) — without this, a live Reserve button could sit on a
+        // months-old event. filterLiveEvents no-ops on items missing date fields.
+        events:         filterLiveEvents(Array.isArray(data?.events) ? data.events : []),
         concerts:       Array.isArray(data?.concerts) ? data.concerts : [],
         partners:       Array.isArray(data?.partners) ? data.partners : [],
         venues:         Array.isArray(data?.venues) ? data.venues : [],
         transport:      Array.isArray(data?.transport) ? data.transport : [],
-        partner_events: Array.isArray(data?.partner_events) ? data.partner_events : [],
+        partner_events: filterLiveEvents(Array.isArray(data?.partner_events) ? data.partner_events : []),
         ai:             data?.ai,
         search_id:      typeof data?.search_id === 'string' ? data.search_id : undefined,
       };

@@ -387,7 +387,7 @@ export default function HomeScreen() {
       <View style={styles.heroContent}>
         <Text style={[styles.heroLabel, { color: item.color }]}>{formatDateRange(item.start_date, item.end_date)}</Text>
         <Text style={styles.heroTitle}>{item.name}</Text>
-        <Text style={styles.heroSub}>{item.tags.join(' · ')}</Text>
+        <Text style={styles.heroSub}>{(item.tags || []).join(' · ')}</Text>
         {item.event_count === 0 && (
           <View style={[styles.comingSoonBadge, { backgroundColor: item.color }]}>
             <Text style={styles.comingSoonText}>{tr('PRÓXIMAMENTE')}</Text>

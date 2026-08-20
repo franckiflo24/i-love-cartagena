@@ -117,7 +117,7 @@ export default function PartnerEventDetail() {
         + `Time: ${event.start_time}\n\n`
         + `Availability?`
       );
-      RNLinking.openURL(`https://wa.me/${partnerContact.number}?text=${msg}`);
+      RNLinking.openURL(`https://wa.me/${partnerContact.number}?text=${msg}`).catch(() => {});
       return;
     }
     // Prefetch hasn't resolved yet — fall back to the original async lookup.
@@ -138,7 +138,7 @@ export default function PartnerEventDetail() {
         + `Time: ${event.start_time}\n\n`
         + `Availability?`
       );
-      RNLinking.openURL(`https://wa.me/${waPhone}?text=${msg}`);
+      RNLinking.openURL(`https://wa.me/${waPhone}?text=${msg}`).catch(() => {});
     } catch {
       // Fallback to AMO concierge
       const msg = encodeURIComponent(`¡Hola! Quiero reservar para *${event.title}* via AMO Cartagena 🌴`);
@@ -282,7 +282,7 @@ export default function PartnerEventDetail() {
                 {partner.instagram ? (
                   <TouchableOpacity
                     style={styles.iconBtn}
-                    onPress={() => RNLinking.openURL(`https://instagram.com/${partner.instagram}`)}
+                    onPress={() => RNLinking.openURL(`https://instagram.com/${partner.instagram}`).catch(() => {})}
                   >
                     <Ionicons name="logo-instagram" size={14} color={COLORS.icon} />
                     <Text style={styles.iconBtnText}>@{partner.instagram}</Text>

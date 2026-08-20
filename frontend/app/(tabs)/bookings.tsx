@@ -490,6 +490,9 @@ export default function BookingsScreen() {
         // bounced the user to Home. The real ticket screen is /port-tax/tickets.
         router.push('/port-tax/tickets' as any);
         break;
+      default:
+        router.push('/reservations' as any);
+        break;
     }
   };
 

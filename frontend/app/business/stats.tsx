@@ -221,7 +221,7 @@ export default function StatsDetail() {
                 <TouchableOpacity
                   key={ev.event_id}
                   style={styles.eventCard}
-                  onPress={() => router.push(`/business/event-form?id=${ev.event_id}` as any)}
+                  onPress={() => router.push(`/business/event-form?eventId=${ev.event_id}` as any)}
                   activeOpacity={0.85}
                 >
                   <View style={styles.eventLeftRail}>
