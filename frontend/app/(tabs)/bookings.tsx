@@ -235,7 +235,7 @@ function BookingCard({
         </View>
 
         <Text style={styles.cardTitle} numberOfLines={2}>
-          {booking.title}
+          {tr(booking.title)}
         </Text>
 
         {booking.partnerName && (
@@ -450,28 +450,29 @@ export default function BookingsScreen() {
 
   const handleCancelBooking = useCallback(async (booking: UnifiedBooking) => {
     if (booking.type !== 'reservation') return;
+    // Mirrors app/reservations/index.tsx's cancel() — same endpoint, same copy,
+    // so both entry points to the identical feature translate identically.
     Alert.alert(
-      'Cancelar reserva',
-      `¿Estás seguro de que quieres cancelar tu reserva en ${booking.title}?`,
+      tr('Cancelar reserva'),
+      tr('¿Estás seguro que quieres cancelar esta reserva?'),
       [
-        { text: 'No', style: 'cancel' },
+        { text: tr('No'), style: 'cancel' },
         {
-          text: 'Sí, cancelar',
+          text: tr('Sí, cancelar'),
           style: 'destructive',
           onPress: async () => {
             try {
-              const res = await api.post(`/reservations/${booking.id}/cancel`);
-              const msg = res?.message || 'Reserva cancelada correctamente.';
-              Alert.alert('Cancelada', msg);
+              await api.post(`/reservations/${booking.id}/cancel`);
+              Alert.alert(tr('Reserva cancelada'), tr('Tu reserva fue cancelada exitosamente.'));
               await fetchAll();
             } catch (e: any) {
-              Alert.alert('Error', e?.message || 'No se pudo cancelar la reserva');
+              Alert.alert(tr('Error'), String(e?.message || ''));
             }
           },
         },
       ],
     );
-  }, [fetchAll]);
+  }, [fetchAll, tr]);
 
   const navigateToBooking = (booking: UnifiedBooking) => {
     switch (booking.type) {

@@ -21,6 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { trackGate } from '../lib/gateAnalytics';
 import { safeNext } from '../lib/safeNext';
+import { useTr } from '../i18n/autoTr';
 
 const GOLD = '#12B5A5';
 const GOLD_BRIGHT = '#FF6B75';
@@ -52,6 +53,7 @@ export const useSignupGate = () => useContext(SignupGateContext);
 
 export const SignupGateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
+  const tr = useTr();
   const [open, setOpen] = useState(false);
   const [opts, setOpts] = useState<GateOpts>({});
 
@@ -101,7 +103,7 @@ export const SignupGateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               <Ionicons name="ribbon-outline" size={26} color={GOLD} />
             </View>
             <Text style={styles.amo}>A · M · O</Text>
-            <Text style={styles.title}>Crea tu cuenta gratis{'\n'}<Text style={styles.titleAccent}>{phrase}</Text></Text>
+            <Text style={styles.title}>{tr('Crea tu cuenta gratis')}{'\n'}<Text style={styles.titleAccent}>{tr(phrase)}</Text></Text>
 
             <View style={styles.perks}>
               {[
@@ -111,18 +113,18 @@ export const SignupGateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               ].map(([icon, label]) => (
                 <View key={label} style={styles.perkRow}>
                   <Ionicons name={icon as any} size={15} color={GOLD} />
-                  <Text style={styles.perkText}>{label}</Text>
+                  <Text style={styles.perkText}>{tr(label)}</Text>
                 </View>
               ))}
             </View>
 
             <TouchableOpacity style={styles.cta} onPress={proceed} activeOpacity={0.9}>
-              <Text style={styles.ctaText}>Crear cuenta gratis</Text>
+              <Text style={styles.ctaText}>{tr('Crear cuenta gratis')}</Text>
               <Ionicons name="arrow-forward" size={18} color="#0A0A0A" />
             </TouchableOpacity>
-            <Text style={styles.free}>Es gratis · toda la app se desbloquea al crear tu cuenta</Text>
+            <Text style={styles.free}>{tr('Es gratis · toda la app se desbloquea al crear tu cuenta')}</Text>
             <TouchableOpacity style={styles.keepLooking} onPress={dismiss}>
-              <Text style={styles.keepLookingText}>Seguir mirando</Text>
+              <Text style={styles.keepLookingText}>{tr('Seguir mirando')}</Text>
             </TouchableOpacity>
           </View>
         </View>

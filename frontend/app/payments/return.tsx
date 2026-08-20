@@ -119,7 +119,7 @@ export default function PaymentReturn() {
           )}
         </View>
 
-        <Text style={[styles.title, { color: toneColor }]}>{meta.title}</Text>
+        <Text style={[styles.title, { color: toneColor }]}>{tr(meta.title)}</Text>
 
         {!!payment?.description && <Text style={styles.subtitle}>{payment.description}</Text>}
 
@@ -127,7 +127,7 @@ export default function PaymentReturn() {
           <Row label="Referencia" value={reference || '—'} />
           {!!payment?.amount_cop && <Row label="Monto" value={fmtCOP(payment.amount_cop)} bold />}
           {!!payment?.wompi_payment_method_type && (
-            <Row label="Método" value={prettyMethod(payment.wompi_payment_method_type)} />
+            <Row label="Método" value={tr(prettyMethod(payment.wompi_payment_method_type))} />
           )}
           {!!payment?.wompi_transaction_id && (
             <Row label="ID Wompi" value={payment.wompi_transaction_id} small />
@@ -142,9 +142,7 @@ export default function PaymentReturn() {
           <View style={styles.helpBox}>
             <Ionicons name="information-circle" size={16} color={COLORS.textMuted} />
             <Text style={styles.helpText}>
-              Tu pago aún se está procesando con Wompi. Esta página se actualiza automáticamente. Si Wompi tarda
-              más de un minuto, puedes cerrar esta pantalla — tu pago se confirmará en el fondo y verás el
-              resultado en tu perfil.
+              {tr('Tu pago aún se está procesando con Wompi. Esta página se actualiza automáticamente. Si Wompi tarda más de un minuto, puedes cerrar esta pantalla — tu pago se confirmará en el fondo y verás el resultado en tu perfil.')}
             </Text>
           </View>
         )}
@@ -152,7 +150,7 @@ export default function PaymentReturn() {
         {status === 'approved' && (
           <TouchableOpacity style={[styles.primaryBtn, { backgroundColor: toneColor }]} onPress={goNext}>
             <Text style={styles.primaryBtnText}>
-              {payment?.kind === 'port_tax' ? 'Ver mi tiquete' : payment?.kind === 'city_pass' ? 'Ver mi City Pass' : 'Continuar'}
+              {payment?.kind === 'port_tax' ? tr('Ver mi tiquete') : payment?.kind === 'city_pass' ? tr('Ver mi City Pass') : tr('Continuar')}
             </Text>
           </TouchableOpacity>
         )}
@@ -175,9 +173,10 @@ export default function PaymentReturn() {
 }
 
 function Row({ label, value, bold, small }: { label: string; value: string; bold?: boolean; small?: boolean }) {
+  const tr = useTr();
   return (
     <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowLabel}>{tr(label)}</Text>
       <Text style={[styles.rowValue, bold && { ...FONTS.bold, color: COLORS.textMain }, small && { fontSize: 11 }]}>
         {value}
       </Text>

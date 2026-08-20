@@ -1360,6 +1360,75 @@ export const AUTO_TR: Dict = {
   'Requiere sesión admin': { en: 'Requires admin session', fr: 'Nécessite une session admin', pt: 'Requer sessão de admin' },
   'Requiere clave de operador': { en: 'Requires operator password', fr: 'Nécessite le mot de passe opérateur', pt: 'Requer senha de operador' },
   'Dashboard': { en: 'Dashboard', fr: 'Tableau de bord', pt: 'Dashboard' },
+
+  // ── LAUNCH-DAY i18n fixes (Aug 20) — SignupGateContext.tsx: the universal
+  // "create free account" gate wall shown on every gated guest action
+  // (favorite, stamp, add-to-trip, Luna, book, review) had zero i18n. ──
+  'para coleccionar este sello': { en: 'to collect this stamp', fr: 'pour collectionner ce tampon', pt: 'para colecionar este carimbo' },
+  'para agregar esto a tu viaje': { en: 'to add this to your trip', fr: 'pour ajouter ceci à votre voyage', pt: 'para adicionar isso à sua viagem' },
+  'para armar tu viaje': { en: 'to build your trip', fr: 'pour organiser votre voyage', pt: 'para montar sua viagem' },
+  'para unirte a este viaje': { en: 'to join this trip', fr: 'pour rejoindre ce voyage', pt: 'para entrar nesta viagem' },
+  'para seguir chateando con Luna': { en: 'to keep chatting with Luna', fr: 'pour continuer à discuter avec Luna', pt: 'para continuar conversando com a Luna' },
+  'para guardar tus favoritos': { en: 'to save your favorites', fr: 'pour enregistrer vos favoris', pt: 'para salvar seus favoritos' },
+  'para empezar tu pasaporte': { en: 'to start your passport', fr: 'pour commencer votre passeport', pt: 'para começar seu passaporte' },
+  'para reservar': { en: 'to book', fr: 'pour réserver', pt: 'para reservar' },
+  'para dejar tu reseña': { en: 'to leave your review', fr: 'pour laisser votre avis', pt: 'para deixar sua avaliação' },
+  'para reclamar esto': { en: 'to claim this', fr: 'pour réclamer ceci', pt: 'para resgatar isso' },
+  'para personalizar tu Cartagena': { en: 'to personalize your Cartagena', fr: 'pour personnaliser votre Carthagène', pt: 'para personalizar sua Cartagena' },
+  'para continuar': { en: 'to continue', fr: 'pour continuer', pt: 'para continuar' },
+  'Crea tu cuenta gratis': { en: 'Create your free account', fr: 'Créez votre compte gratuit', pt: 'Crie sua conta grátis' },
+  'Luna, tu concierge — sin límites': { en: 'Luna, your concierge — no limits', fr: 'Luna, votre concierge — sans limites', pt: 'Luna, sua concierge — sem limites' },
+  'Tu pasaporte, sellos y títulos': { en: 'Your passport, stamps and titles', fr: 'Votre passeport, tampons et titres', pt: 'Seu passaporte, carimbos e títulos' },
+  'Viajes que planeás con tu grupo': { en: 'Trips you plan with your group', fr: 'Des voyages que vous planifiez avec votre groupe', pt: 'Viagens que você planeja com seu grupo' },
+  'Es gratis · toda la app se desbloquea al crear tu cuenta': { en: 'It\'s free · the whole app unlocks when you create your account', fr: 'C\'est gratuit · toute l\'app se débloque à la création de votre compte', pt: 'É grátis · o app inteiro se desbloqueia ao criar sua conta' },
+  'Seguir mirando': { en: 'Keep browsing', fr: 'Continuer à regarder', pt: 'Continuar navegando' },
+
+  // ── LAUNCH-DAY i18n fixes — wompi.ts: payment status headline + the
+  // "Próximamente" alert fired on every buy CTA before payments go live. ──
+  'Pago anulado': { en: 'Payment voided', fr: 'Paiement annulé', pt: 'Pagamento anulado' },
+  'Error al procesar el pago': { en: 'Error processing the payment', fr: 'Erreur lors du traitement du paiement', pt: 'Erro ao processar o pagamento' },
+  'Pago en proceso…': { en: 'Payment processing…', fr: 'Paiement en cours…', pt: 'Pagamento em processamento…' },
+  'Pago cancelado': { en: 'Payment cancelled', fr: 'Paiement abandonné', pt: 'Pagamento cancelado' },
+  'Estado desconocido': { en: 'Unknown status', fr: 'Statut inconnu', pt: 'Status desconhecido' },
+  'El pago en línea estará disponible muy pronto. Gracias por tu paciencia.': { en: 'Online payment will be available very soon. Thank you for your patience.', fr: 'Le paiement en ligne sera bientôt disponible. Merci de votre patience.', pt: 'O pagamento online estará disponível muito em breve. Obrigado pela paciência.' },
+
+  // ── LAUNCH-DAY i18n fixes — app/payments/return.tsx: the payment result screen. ──
+  'Referencia': { en: 'Reference', fr: 'Référence', pt: 'Referência' },
+  'Monto': { en: 'Amount', fr: 'Montant', pt: 'Valor' },
+  'Método': { en: 'Method', fr: 'Méthode', pt: 'Método' },
+  'Ver mi tiquete': { en: 'View my ticket', fr: 'Voir mon billet', pt: 'Ver meu tíquete' },
+  'Ver mi City Pass': { en: 'View my City Pass', fr: 'Voir mon City Pass', pt: 'Ver meu City Pass' },
+  'Tarjeta': { en: 'Card', fr: 'Carte', pt: 'Cartão' },
+  'Tu pago aún se está procesando con Wompi. Esta página se actualiza automáticamente. Si Wompi tarda más de un minuto, puedes cerrar esta pantalla — tu pago se confirmará en el fondo y verás el resultado en tu perfil.': { en: 'Your payment is still being processed by Wompi. This page updates automatically. If Wompi takes more than a minute, you can close this screen — your payment will be confirmed in the background and you\'ll see the result in your profile.', fr: 'Votre paiement est toujours en cours de traitement par Wompi. Cette page se met à jour automatiquement. Si Wompi prend plus d\'une minute, vous pouvez fermer cet écran — votre paiement sera confirmé en arrière-plan et vous verrez le résultat dans votre profil.', pt: 'Seu pagamento ainda está sendo processado pela Wompi. Esta página se atualiza automaticamente. Se a Wompi demorar mais de um minuto, você pode fechar esta tela — seu pagamento será confirmado em segundo plano e você verá o resultado no seu perfil.' },
+
+  // ── LAUNCH-DAY i18n fixes — app/login.tsx: auth errors + verify-code screen
+  // (were raw setState strings, never routed through tr()). ──
+  'Email inválido. Por favor introduce un email válido.': { en: 'Invalid email. Please enter a valid email.', fr: 'E-mail invalide. Veuillez saisir un e-mail valide.', pt: 'Email inválido. Por favor, insira um email válido.' },
+  'Demasiadas solicitudes. Espera un momento.': { en: 'Too many requests. Please wait a moment.', fr: 'Trop de demandes. Veuillez patienter un instant.', pt: 'Muitas solicitações. Aguarde um momento.' },
+  'No se pudo enviar el código. Intenta de nuevo.': { en: 'Couldn\'t send the code. Please try again.', fr: 'Impossible d\'envoyer le code. Réessayez.', pt: 'Não foi possível enviar o código. Tente novamente.' },
+  'Introduce el código de 6 dígitos.': { en: 'Enter the 6-digit code.', fr: 'Saisissez le code à 6 chiffres.', pt: 'Digite o código de 6 dígitos.' },
+  'Código incorrecto. Verifica e intenta de nuevo.': { en: 'Incorrect code. Check it and try again.', fr: 'Code incorrect. Vérifiez-le et réessayez.', pt: 'Código incorreto. Verifique e tente novamente.' },
+  'Código expirado. Solicita uno nuevo.': { en: 'Code expired. Request a new one.', fr: 'Code expiré. Demandez-en un nouveau.', pt: 'Código expirado. Solicite um novo.' },
+  'Demasiados intentos. Solicita un nuevo código.': { en: 'Too many attempts. Request a new code.', fr: 'Trop de tentatives. Demandez un nouveau code.', pt: 'Muitas tentativas. Solicite um novo código.' },
+  'Verificar': { en: 'Verify', fr: 'Vérifier', pt: 'Verificar' },
+  'Reenviar código': { en: 'Resend code', fr: 'Renvoyer le code', pt: 'Reenviar código' },
+  'Cambiar email': { en: 'Change email', fr: 'Changer d\'e-mail', pt: 'Alterar email' },
+  'Enviamos un código de 6 dígitos a': { en: 'We sent a 6-digit code to', fr: 'Nous avons envoyé un code à 6 chiffres à', pt: 'Enviamos um código de 6 dígitos para' },
+
+  // ── LAUNCH-DAY i18n fixes — app/partner/[id].tsx: TAG_LABELS chips shown on
+  // most partner pages (english_friendly source string also fixed at its
+  // declaration so it no longer renders literal English inside Spanish). ──
+  'Primera cita': { en: 'First date', fr: 'Premier rendez-vous', pt: 'Primeiro encontro' },
+  'Para niños': { en: 'Kid-friendly', fr: 'Pour enfants', pt: 'Para crianças' },
+  'Grupos': { en: 'Groups', fr: 'Groupes', pt: 'Grupos' },
+  'Negocios': { en: 'Business', fr: 'Affaires', pt: 'Negócios' },
+  'Celebraciones': { en: 'Celebrations', fr: 'Célébrations', pt: 'Celebrações' },
+  'Atardecer': { en: 'Sunset', fr: 'Coucher de soleil', pt: 'Pôr do sol' },
+  'Hasta tarde': { en: 'Late night', fr: 'Jusque tard', pt: 'Até tarde' },
+  'Alta gama': { en: 'Upscale', fr: 'Haut de gamme', pt: 'Alto padrão' },
+  'Saludable': { en: 'Healthy', fr: 'Sain', pt: 'Saudável' },
+  'Más de': { en: 'More from', fr: 'Plus de', pt: 'Mais de' },
+  'Habla inglés': { en: 'English spoken', fr: 'Parle anglais', pt: 'Fala inglês' },
 };
 
 /**

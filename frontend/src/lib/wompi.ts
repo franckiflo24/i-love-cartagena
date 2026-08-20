@@ -81,7 +81,7 @@ async function pollForFinalStatus(
 export function describeStatus(status: string): { title: string; tone: 'success' | 'error' | 'warning' | 'info' } {
   switch (status) {
     case 'approved':
-      return { title: '¡Pago aprobado!', tone: 'success' };
+      return { title: 'Pago aprobado', tone: 'success' };
     case 'declined':
       return { title: 'Pago rechazado', tone: 'error' };
     case 'voided':
@@ -106,12 +106,17 @@ export async function checkWompiEnabled(): Promise<{ enabled: boolean; env: stri
   }
 }
 
-export function notConfiguredAlert() {
+export function notConfiguredAlert(tr?: (s: string) => string) {
   // Shown to END USERS (e.g. City Pass "Activar") when online payments aren't live.
   // Must NOT leak dev/config instructions — mirror the honest "Próximamente" tone
   // port-tax already uses. (A tourist seeing "edit backend/.env" was a launch blocker.)
+  // tr is optional: this is a plain (non-hook) function reachable from onPress
+  // handlers, so it can't call useTr() itself. Callers that already have
+  // `const tr = useTr()` in scope should pass it through for full i18n; callers
+  // that don't still get the honest Spanish copy (unchanged behavior).
+  const t = tr || ((s: string) => s);
   Alert.alert(
-    'Próximamente',
-    'El pago en línea estará disponible muy pronto. Gracias por tu paciencia.',
+    t('Próximamente'),
+    t('El pago en línea estará disponible muy pronto. Gracias por tu paciencia.'),
   );
 }

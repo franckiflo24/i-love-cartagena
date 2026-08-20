@@ -26,7 +26,7 @@ const TAG_LABELS: Record<string, string> = {
   kid_friendly: 'Para niños', group_friendly: 'Grupos', business: 'Negocios',
   celebration: 'Celebraciones', sea_view: 'Vista al mar', sunset_view: 'Atardecer',
   rooftop: 'Rooftop', outdoor_terrace: 'Terraza', live_music: 'Música en vivo',
-  late_night: 'Hasta tarde', english_friendly: 'English OK', indoor: 'Bajo techo',
+  late_night: 'Hasta tarde', english_friendly: 'Habla inglés', indoor: 'Bajo techo',
   budget: 'Económico', luxury: 'Alta gama', local_favorite: 'Favorito local',
   pet_friendly: 'Pet friendly', healthy: 'Saludable',
 };

@@ -306,7 +306,7 @@ export default function LoginScreen() {
           {(loginError || authError) ? (
             <View style={styles.errorRow}>
               <Ionicons name="alert-circle" size={16} color="#EF4444" />
-              <Text style={styles.errorText}>{loginError || authError}</Text>
+              <Text style={styles.errorText}>{tr(loginError) || tr(authError)}</Text>
             </View>
           ) : null}
         </View>
@@ -374,7 +374,7 @@ export default function LoginScreen() {
               <>
                 <Text style={styles.modalTitle}>{tr('Verifica tu email')}</Text>
                 <Text style={styles.modalSubtitle}>
-                  Enviamos un código de 6 dígitos a {signupEmail.trim()}
+                  {tr('Enviamos un código de 6 dígitos a')} {signupEmail.trim()}
                 </Text>
 
                 <View style={[styles.inputWrap, { justifyContent: 'center' }]}>
@@ -402,7 +402,7 @@ export default function LoginScreen() {
                   ) : (
                     <>
                       <Ionicons name="checkmark-circle" size={18} color={COLORS.white} />
-                      <Text style={styles.modalSaveBtnText}>Verificar</Text>
+                      <Text style={styles.modalSaveBtnText}>{tr('Verificar')}</Text>
                     </>
                   )}
                 </TouchableOpacity>
@@ -414,20 +414,20 @@ export default function LoginScreen() {
                   activeOpacity={0.85}
                 >
                   <Text style={styles.modalCancelText}>
-                    {resendCountdown > 0 ? `Reenviar código (${resendCountdown}s)` : 'Reenviar código'}
+                    {resendCountdown > 0 ? `${tr('Reenviar código')} (${resendCountdown}s)` : tr('Reenviar código')}
                   </Text>
                 </TouchableOpacity>
               </>
             )}
             {loginError ? (
-              <Text style={{ color: '#EF4444', fontSize: 13, textAlign: 'center', marginTop: 8 }}>{loginError}</Text>
+              <Text style={{ color: '#EF4444', fontSize: 13, textAlign: 'center', marginTop: 8 }}>{tr(loginError)}</Text>
             ) : null}
             <TouchableOpacity
               style={styles.modalCancelBtn}
               onPress={() => { setShowSignup(false); setVerifyStep(false); setLoginError(''); }}
               activeOpacity={0.85}
             >
-              <Text style={styles.modalCancelText}>{verifyStep ? 'Cambiar email' : s('login_cancel')}</Text>
+              <Text style={styles.modalCancelText}>{verifyStep ? tr('Cambiar email') : s('login_cancel')}</Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
