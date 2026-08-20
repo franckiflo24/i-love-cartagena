@@ -34,7 +34,7 @@ if not mongo_url:
 client = AsyncIOMotorClient(
     mongo_url,
     serverSelectionTimeoutMS=5000,
-    maxPoolSize=10,
+    maxPoolSize=5,
     minPoolSize=0,
     maxIdleTimeMS=30000,
 )
