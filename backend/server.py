@@ -3382,6 +3382,9 @@ async def admin_eagle(request: Request):
     claims_pending = await db.venue_claims.count_documents({"state": {"$in": ["pending_verification", "pending", "code_sent"]}})
     media_pending = await db.partner_media.count_documents({"status": "pending"})
     events_pending = await db.partner_events.count_documents({"moderation_status": "pending"})
+    # client crashes reported by the ErrorBoundary beacon (POST /client-error)
+    crashes_24h = await db.client_errors.count_documents(
+        {"created_at": {"$gte": (now - timedelta(hours=24)).isoformat()}})
 
     # ── recent signups (users + business accounts), merged, newest first ──
     recent_users = await db.users.find(
@@ -3456,6 +3459,7 @@ async def admin_eagle(request: Request):
             "passes_active": passes_active,
             "failed_logins_today": failed_today,
             "claims_pending": claims_pending, "media_pending": media_pending, "events_pending": events_pending,
+            "crashes_24h": crashes_24h,
         },
         "signups": signups,
         "logins": logins,
@@ -4417,6 +4421,64 @@ async def submit_feedback(request: Request):
         logger.error(f"CRASH report: {message[:200]}")
     return {"ok": True, "feedback_id": doc["feedback_id"]}
 
+
+# ── Client crash beacon (ErrorBoundary → here; anonymous by design) ─────────
+@api_router.post("/client-error")
+async def report_client_error(request: Request):
+    """Crash beacon for the frontend ErrorBoundary. Anonymous — the boundary
+    can fire before auth hydrates — and rate-limited per IP so it can't be
+    spammed. Every crash is stored in `client_errors` AND pinged to the team
+    via _notify_admin (in-app + email), so crashes are SEEN in Eagle Eye
+    instead of discovered on WhatsApp. Defensively parsed: a malformed body
+    must never turn one user crash into a second server error."""
+    ip = _client_ip(request)
+    await _check_rate_limit(f"clienterr:{ip}", max_calls=20, window_sec=60)
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    if not isinstance(body, dict):
+        body = {}
+
+    def _txt(v, cap: int) -> str:
+        if v is None:
+            return ""
+        return (v if isinstance(v, str) else str(v)).strip()[:cap]
+
+    message = _txt(body.get("message"), 500) or "Unknown client error"
+    doc = {
+        "error_id": f"cerr_{uuid.uuid4().hex[:10]}",
+        "message": message,
+        "stack": _txt(body.get("stack"), 2000) or None,
+        "route": _txt(body.get("route"), 200) or None,
+        "app_version": _txt(body.get("app_version"), 40) or None,
+        "user_type": _txt(body.get("user_type"), 20) or None,
+        "lang": _txt(body.get("lang"), 8) or None,
+        "ua": _txt(body.get("ua"), 300) or request.headers.get("user-agent", "")[:300],
+        "ip": ip,
+        "created_at": _now_iso(),
+    }
+    try:
+        await db.client_errors.insert_one(doc)
+    except Exception as exc:
+        # Storage hiccup must not kill the alert below — the crash still gets seen.
+        logger.warning(f"[client-error] insert failed: {exc}")
+    # Email-storm brake: the alert EMAIL is capped globally; the stored doc and
+    # in-app notification row are NOT — a crash loop pings the team, not bombs
+    # the inbox. Not a SENSITIVE prefix: a store blip degrades, never blocks.
+    email_alert = True
+    try:
+        await _check_rate_limit("clienterralert:global", max_calls=6, window_sec=3600)
+    except HTTPException:
+        email_alert = False
+    await _notify_admin(
+        "client_crash",
+        f"App crash: {message[:80]}",
+        {"route": doc["route"], "app_version": doc["app_version"], "lang": doc["lang"],
+         "user_type": doc["user_type"], "ip": ip},
+        alert=email_alert,
+    )
+    return {"ok": True}
 
 
 @api_router.post("/users/push-token")
