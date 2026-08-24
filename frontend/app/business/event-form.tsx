@@ -101,16 +101,16 @@ export default function EventForm() {
       // onPress (Alert is a no-op on react-native-web). The message is informational.
       router.back();
       if (verdict === 'NEEDS_REVIEW') {
-        Alert.alert('En revisión', reason || 'La IA marcó tu evento para revisión manual del admin. Te avisaremos cuando se apruebe.');
+        Alert.alert('¡Publicado!', 'Tu evento ya está en vivo en la agenda. El equipo puede darle un vistazo adicional, pero no necesitas hacer nada más.');
       } else if (verdict === 'REJECT') {
         Alert.alert('Rechazado', reason || 'La IA detectó contenido no apto.');
       } else {
         // In static mode, result has no verdict (just the payload back).
         Alert.alert(
-          isEdit ? 'Cambios guardados' : 'Evento creado',
+          isEdit ? 'Cambios guardados' : '¡Publicado!',
           isEdit
             ? 'Tu evento fue actualizado exitosamente.'
-            : 'Tu evento fue creado. Aparecerá en la agenda una vez aprobado.',
+            : 'Tu evento fue creado y ya está en vivo en la agenda.',
         );
       }
     } catch (e: any) {
@@ -139,8 +139,8 @@ export default function EventForm() {
             <View style={{ flex: 1 }}>
               <Text style={styles.aiBannerTitle}>Moderación IA activa</Text>
               <Text style={styles.aiBannerText}>
-                {isEdit ? 'Tus cambios pasarán por revisión IA. ' : 'La IA revisará y publicará tu evento al instante. '}
-                Si detecta dudas, lo enviará al admin para aprobación manual.
+                {isEdit ? 'Tus cambios se publican al instante. ' : 'Tu evento se publica al instante. '}
+                La IA solo bloquea contenido no apto.
               </Text>
             </View>
           </View>

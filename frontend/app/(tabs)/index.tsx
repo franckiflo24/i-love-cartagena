@@ -23,6 +23,7 @@ import { PassportGlance } from '../../src/components/PassportGlance';
 import { SeasonBanner } from '../../src/components/SeasonBanner';
 import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
 import { NowStrip } from '../../src/components/NowStrip';
+import { FxStrip } from '../../src/components/FxStrip';
 import WelcomeBackBeat from '../../src/components/WelcomeBackBeat';
 import LockedTease from '../../src/components/LockedTease';
 
@@ -427,6 +428,9 @@ export default function HomeScreen() {
 
         {/* Drop 8B-data (T5c): Qué pasa ahora — season + earnable-now stamps */}
         <SeasonBanner />
+
+        {/* Cambio del día — USD/EUR→COP daily rate (tourists keep asking) */}
+        <FxStrip />
 
         {/* Unified AI + Search Bar — tap left side for keyword search, right side opens AI Concierge */}
         <View style={styles.searchBar}>

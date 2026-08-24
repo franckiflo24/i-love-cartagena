@@ -914,6 +914,7 @@ async def business_set_main_photo(request: Request):
 @api_router.get("/business/events")
 async def business_list_events(request: Request):
     biz = await get_current_business(request)
+    await _migrate_stuck_pending_events()
     events = await db.partner_events.find({"partner_id": biz["partner_id"]}, {"_id": 0}).sort("date", -1).to_list(200)
     return events
 
@@ -944,6 +945,12 @@ async def business_create_event(request: Request):
         description=body["description"],
         category=body["category"],
         partner_name=(partner or {}).get("name", ""),
+        date=body["date"],
+        start_time=body["start_time"],
+        end_time=body["end_time"],
+        price=event_price,
+        is_free=bool(body.get("is_free", False)),
+        booking_link=body.get("booking_link", ""),
     )
     verdict = mod["verdict"]
     final_category = mod["category"] if verdict == "AUTO_APPROVE" else body["category"]
@@ -951,7 +958,10 @@ async def business_create_event(request: Request):
     if verdict == "AUTO_APPROVE" and mod.get("improved_description") and mod["completeness_score"] < 70:
         final_description = mod["improved_description"]
 
-    is_published = (verdict == "AUTO_APPROVE")
+    # Publish-first (Franck, Aug 24 2026): partner events go live unless the AI
+    # REJECTS them outright. NEEDS_REVIEW no longer gates publication — it only
+    # keeps moderation_status="pending" as a flag for an optional admin spot-check.
+    is_published = (verdict != "REJECT")
     moderation_status = {
         "AUTO_APPROVE": "approved",
         "NEEDS_REVIEW": "pending",
@@ -1009,11 +1019,18 @@ async def business_create_event(request: Request):
             "is_resolved": False,
             "created_at": datetime.now(timezone.utc).isoformat(),
         })
-        # Ping the team for the flagged minority (fail-soft).
+        # Ping the team (fail-soft). NEEDS_REVIEW is informational — the event is
+        # already live; only REJECT actually blocked publication.
         try:
+            if verdict == "REJECT":
+                subject = f"AMO · Evento RECHAZADO: {(partner or {}).get('name','')}"
+                title_line = f"Evento rechazado (no publicado): {event['title']}"
+            else:
+                subject = f"AMO · Evento publicado (revisión opcional): {(partner or {}).get('name','')}"
+                title_line = f"Evento publicado — revisión opcional: {event['title']}"
             await _emails_svc.send_admin_alert(
-                subject=f"AMO · Evento para revisar: {(partner or {}).get('name','')}",
-                title=f"Evento {verdict}: {event['title']}",
+                subject=subject,
+                title=title_line,
                 lines=[f"Negocio: {(partner or {}).get('name','')}",
                        f"Motivo: {mod.get('reason','')}", f"Fecha: {event['date']}"],
             )
@@ -2600,7 +2617,8 @@ async def business_update_event(event_id: str, request: Request):
             raise HTTPException(status_code=422, detail="Flyer inválido (I3) / Invalid flyer")
         update["flyer_url"] = fv
     # S1: a partner may PAUSE (true->false) but NEVER self-publish (false->true) — a
-    # rejected/pending event can only go public through re-moderation on a content edit.
+    # rejected event can only go public through re-moderation on a content edit.
+    # (Publish-first model: only REJECT unpublishes; server decides is_published.)
     if update.get("is_published") is True:
         update.pop("is_published")
 
@@ -2618,6 +2636,12 @@ async def business_update_event(event_id: str, request: Request):
         mod = await moderate_event(
             title=new_title, description=new_desc, category=new_cat,
             partner_name=(partner or {}).get("name", ""),
+            date=update.get("date", existing.get("date", "")),
+            start_time=update.get("start_time", existing.get("start_time", "")),
+            end_time=update.get("end_time", existing.get("end_time", "")),
+            price=update.get("price", existing.get("price", 0)),
+            is_free=bool(update.get("is_free", existing.get("is_free", False))),
+            booking_link=update.get("booking_link", existing.get("booking_link", "")),
         )
         verdict = mod["verdict"]
         update["moderation_status"] = {"AUTO_APPROVE": "approved", "NEEDS_REVIEW": "pending", "REJECT": "rejected"}[verdict]
@@ -2626,7 +2650,8 @@ async def business_update_event(event_id: str, request: Request):
         update["moderation_issues"] = mod.get("issues", [])
         update["moderation_score"] = mod.get("completeness_score", 0)
         update["moderation_tags"] = mod.get("tags", [])
-        update["is_published"] = (verdict == "AUTO_APPROVE")
+        # Publish-first: only REJECT takes the event offline after an edit.
+        update["is_published"] = (verdict != "REJECT")
         if verdict == "AUTO_APPROVE" and mod.get("category") in ("gastronomy","music","party","wellness","art","popup"):
             update["category"] = mod["category"]
             if mod.get("category") != new_cat:
@@ -3319,6 +3344,33 @@ async def admin_reject_event(event_id: str, request: Request):
     return {"rejected": True}
 
 
+@api_router.post("/admin/verification-code")
+async def admin_mint_verification_code(request: Request):
+    """Support escape hatch: mint a signup/login code for a user whose email
+    provider is eating the verification emails (e.g. yahoo.es), so the team can
+    relay it over WhatsApp. Admin-only; 12h expiry; single-use like any code."""
+    admin = await require_admin(request)
+    body = await _json_body(request)
+    email = (body.get("email") or "").strip().lower()
+    if not email or "@" not in email:
+        raise HTTPException(400, "Email inválido")
+    code = _emails.generate_verification_code()
+    await db.email_verifications.update_one(
+        {"email": email},
+        {"$set": {
+            "email": email,
+            "code": code,
+            "name": (body.get("name") or "").strip(),
+            "expires_at": (datetime.now(timezone.utc) + timedelta(hours=12)).isoformat(),
+            "attempts": 0,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "issued_by": f"admin:{admin.get('email','')}",
+        }},
+        upsert=True,
+    )
+    return {"email": email, "code": code, "expires_in_hours": 12}
+
+
 @api_router.get("/admin/moderation/stats")
 async def admin_moderation_stats(request: Request):
     await require_admin(request)
@@ -3967,6 +4019,29 @@ async def get_partner(partner_id: str):
 
 
 # ── Partner Events (publicados por los partners) ────────────
+# Publish-first migration (Aug 24 2026): events stuck in the old pre-approval
+# queue ("pending" + unpublished) go live. Runs once per cold start, scoped so it
+# never touches partner-paused (approved+unpublished) or admin-rejected events.
+_pending_events_migrated = False
+
+
+async def _migrate_stuck_pending_events():
+    global _pending_events_migrated
+    if _pending_events_migrated:
+        return
+    _pending_events_migrated = True
+    try:
+        res = await db.partner_events.update_many(
+            {"source": "partner", "moderation_status": "pending", "is_published": False},
+            {"$set": {"is_published": True, "published_by": "auto:publish-first-migration",
+                      "published_at": datetime.now(timezone.utc).isoformat()}},
+        )
+        if res.modified_count:
+            logger.info(f"[publish-first] auto-published {res.modified_count} stuck pending events")
+    except Exception as exc:
+        logger.warning(f"[publish-first] pending-event migration skipped: {exc}")
+
+
 @api_router.get("/partner-events")
 async def list_partner_events(
     date: Optional[str] = None,
@@ -3975,6 +4050,7 @@ async def list_partner_events(
     upcoming: Optional[bool] = None,
 ):
     """List partner-published events. Filter by date (YYYY-MM-DD), category, partner_id, or upcoming=true."""
+    await _migrate_stuck_pending_events()
     query: dict = {"is_published": True}
     if date:
         query["date"] = date
@@ -4623,6 +4699,62 @@ async def season_events(season_id: str, date: Optional[str] = None):
         query["date"] = date
     events = await db.events.find(upcoming_query(query), PUBLIC_EVENT_PROJECTION).to_list(200)
     return filter_live(events)
+
+
+# ── FX (tasa de cambio del día) ──────────────────────────────
+# Tourists keep asking the day's EUR/USD→COP rate (Franck, Aug 24 2026).
+# Layers: warm-lambda memory (6h) → Mongo doc (same Bogota day) → external fetch
+# (primary: fawazahmed0 currency CDN, fallback: open.er-api.com) → stale Mongo doc.
+_fx_cache: dict = {"data": None, "at": 0.0}
+_FX_TTL = 6 * 3600.0
+
+
+async def _fetch_fx_external() -> Optional[dict]:
+    """Fetch USD→COP and EUR→COP from free daily-rate sources. Returns None on failure."""
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        try:
+            r = await client.get("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json")
+            r.raise_for_status()
+            usd = r.json().get("usd", {})
+            usd_cop, usd_eur = float(usd["cop"]), float(usd["eur"])
+            if usd_cop > 0 and usd_eur > 0:
+                return {"usd_cop": round(usd_cop, 2), "eur_cop": round(usd_cop / usd_eur, 2), "source": "currency-api"}
+        except Exception as exc:
+            logger.warning(f"[fx] primary source failed: {exc}")
+        try:
+            r = await client.get("https://open.er-api.com/v6/latest/USD")
+            r.raise_for_status()
+            rates = r.json().get("rates", {})
+            usd_cop, usd_eur = float(rates["COP"]), float(rates["EUR"])
+            if usd_cop > 0 and usd_eur > 0:
+                return {"usd_cop": round(usd_cop, 2), "eur_cop": round(usd_cop / usd_eur, 2), "source": "open.er-api.com"}
+        except Exception as exc:
+            logger.warning(f"[fx] fallback source failed: {exc}")
+    return None
+
+
+@api_router.get("/fx")
+async def fx_rates(request: Request):
+    """Today's exchange rates (USD→COP, EUR→COP) for the tourist-facing FX strip."""
+    await _check_rate_limit(f"fx:{_client_ip(request)}", max_calls=30, window_sec=3600)
+    if _fx_cache["data"] and _time.monotonic() - _fx_cache["at"] < _FX_TTL:
+        return _fx_cache["data"]
+    bogota_today = (datetime.now(timezone.utc) - timedelta(hours=5)).strftime("%Y-%m-%d")
+    doc = await db.fx_rates.find_one({"cache_key": "latest"}, {"_id": 0}) or {}
+    if doc.get("date") != bogota_today:
+        fresh = await _fetch_fx_external()
+        if fresh:
+            doc = {"cache_key": "latest", "date": bogota_today,
+                   "updated_at": datetime.now(timezone.utc).isoformat(), **fresh}
+            await db.fx_rates.update_one({"cache_key": "latest"}, {"$set": doc}, upsert=True)
+        elif doc:
+            doc = {**doc, "stale": True}  # serve yesterday's rate rather than nothing
+    if not doc:
+        return {"usd_cop": None, "eur_cop": None, "date": None}
+    payload = {k: doc.get(k) for k in ("usd_cop", "eur_cop", "date", "updated_at", "source", "stale") if k in doc}
+    _fx_cache["data"] = payload
+    _fx_cache["at"] = _time.monotonic()
+    return payload
 
 
 # ── Sponsors ─────────────────────────────────────────────────

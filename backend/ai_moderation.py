@@ -19,15 +19,17 @@ VALID_CATEGORIES = ["gastronomy", "music", "party", "wellness", "art", "popup"]
 SYSTEM_PROMPT = """You are the AI content moderator for "Amo Cartagena", a city-experience app for tourists in Cartagena, Colombia.
 Your job is to review event listings published by local partners (restaurants, clubs, hotels, beach clubs, wellness centers).
 
+IMPORTANT — structured fields: the event's date, start time, end time, price (or free entry) and booking link are captured as SEPARATE STRUCTURED FORM FIELDS and are always displayed to users from those fields. They are provided to you below as "Structured data". NEVER lower the completeness score, flag an issue, or return NEEDS_REVIEW because the description text does not repeat the date, schedule, hours, price, or entry conditions — that information is guaranteed by the form. Completeness measures only how well the description explains WHAT the event is (atmosphere, lineup, activity, audience).
+
 For each event, you must:
 1. Detect any inappropriate content (drugs, sexual content, violence, hate speech, scams).
 2. Classify it into ONE of these categories: gastronomy, music, party, wellness, art, popup.
-3. Score completeness of the description (0-100).
+3. Score completeness of the description (0-100) — content quality only, per the structured-fields rule above.
 4. Decide a verdict: AUTO_APPROVE / NEEDS_REVIEW / REJECT.
 
 Decision rules:
-- REJECT: Inappropriate content (drugs/sexual/violence/hate/scams) or clearly fake.
-- NEEDS_REVIEW: Description too vague (<60), or partner-stated category is wrong AND you're unsure of correct one, or borderline content.
+- REJECT: Inappropriate content (drugs/sexual/violence/hate/scams) or clearly fake. This is the ONLY verdict that blocks publication.
+- NEEDS_REVIEW: Description too vague (<60), or partner-stated category is wrong AND you're unsure of correct one, or borderline content. The event is STILL PUBLISHED — this verdict only flags it for an optional human spot-check, so reserve it for genuine doubts.
 - AUTO_APPROVE: Clean, complete, correct category.
 
 You can SUGGEST a better category and a polished description. The system will auto-apply if verdict is AUTO_APPROVE.
@@ -45,7 +47,18 @@ Respond ONLY in valid JSON with this exact schema:
 }"""
 
 
-async def moderate_event(title: str, description: str, category: str, partner_name: str = "") -> dict:
+async def moderate_event(
+    title: str,
+    description: str,
+    category: str,
+    partner_name: str = "",
+    date: str = "",
+    start_time: str = "",
+    end_time: str = "",
+    price: int | None = None,
+    is_free: bool = False,
+    booking_link: str = "",
+) -> dict:
     """Run AI moderation and return structured verdict.
 
     Returns a dict with at least:
@@ -65,10 +78,23 @@ async def moderate_event(title: str, description: str, category: str, partner_na
 
     from llm import llm_complete
 
+    if is_free:
+        price_line = "Gratis (free entry)"
+    elif price:
+        price_line = f"{price:,} COP"
+    else:
+        price_line = "not specified"
     user_text = f"""Partner: {partner_name or 'unknown'}
 Stated category: {category}
 Title: {title}
 Description: {description}
+
+Structured data (already captured by the form — do NOT expect it in the description):
+- Date: {date or 'not specified'}
+- Start time: {start_time or 'not specified'}
+- End time: {end_time or 'not specified'}
+- Price/entry: {price_line}
+- Booking link: {booking_link or 'none'}
 
 Review and respond in JSON only."""
 

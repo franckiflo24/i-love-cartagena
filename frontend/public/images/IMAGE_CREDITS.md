@@ -1,0 +1,110 @@
+# Image Credits — AMO Cartagena
+
+Event imagery on this site includes photographs under Creative Commons licenses.
+Replaced Aug 24 2026 (topical-accuracy pass). Format: `file — creator — license — source`.
+
+## events/
+
+- salsa-a-la-plaza-cartagena-2026.jpg — _LidOK_ — CC BY 2.0 — https://www.flickr.com/photos/80097351@N08/7337368754
+- donde-fidel-salsa-club.jpg — iangbl — CC BY 2.0 — https://www.flickr.com/photos/67893781@N00/2574950089
+- festival-mundial-salsa-bolero-2026.jpg — Wikioutlaw — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Festival_Mundial_de_Salsa_2015.jpg
+- festival-jorge-garcia-usta-2026.jpg — WorldLitToday — CC BY-SA 2.0 — https://www.flickr.com/photos/79278787@N04/10568622483
+- festival-internacional-poesia-cartagena-2026.jpg — WorldLitToday — CC BY-SA 2.0 — https://www.flickr.com/photos/79278787@N04/10568627593
+- parlamento-internacional-escritores-2026.jpg — summonedbyfells — CC BY 2.0 — https://www.flickr.com/photos/8521690@N02/8131940097
+- pop-up-art-gallery.jpg — HonysTorresArt — CC BY 4.0 — https://commons.wikimedia.org/wiki/File:Exhibition_view_of_%E2%80%9CLETZTE_CHANCE!%E2%80%9D_%E2%80%93_United_Art_Z%C3%BCrich_2023.jpg
+- museo-arte-moderno-cartagena.jpg — HonysTorresArt — CC BY 4.0 — https://commons.wikimedia.org/wiki/File:Exhibition_view_with_visitors_%E2%80%93_RedART,_Z%C3%BCrich_2025.jpg
+- festival-arte-universitario-ascun-2026.jpg — Akw OHhaks — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:HKU_%E9%A6%99%E6%B8%AF%E5%A4%A7%E5%AD%B8%E7%BE%8E%E8%A1%93%E5%8D%9A%E7%89%A9%E9%A4%A8_Art_Gallery_Exhibition_hall_TT_Tsui_Building_June_2017_IX1_07_visitors.jpg
+- dia-artista-plastico-2026.jpg — Shixart1985 — CC BY 2.0 — https://commons.wikimedia.org/wiki/File:Artist_creating_a_vibrant_painting_of_blue_feathers_in_a_cozy_studio_with_bright_walls_and_flowing_natural_light.jpg
+- chiva-rumbera-party-bus.jpg — pat_ossa — CC BY 2.0 — https://commons.wikimedia.org/wiki/File:Bus_chiva_tradicional.jpg
+- volcan-de-lodo-el-totumo.jpg — Jaroslav Jelínek — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Bahenn%C3%AD_l%C3%A1ze%C5%88_El_Totumo.jpg
+- exposiciones-museo-naval-2026.jpg — Kamilokardona — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:Vista_frontal_del_Museo_Naval_del_Caribe._Cartagena._Colombia.JPG
+- aniversario-cartagena-2026.jpg — David Shankbone — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:024_Torre_del_Reloj_Cartagena_Colombia.JPG
+- mes-patrimonio-turismo-2026.jpg — Cinematicguy — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:La_ciudad_amurallada_de_Cartagena_de_Indias.JPG
+- puente-festivo-san-pedro-san-pablo-2026.jpg — Bernard Gagnon — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:View_of_Cartagena_from_Convento_de_Santa_Cruz_de_la_Popa_01.jpg
+- ficci-66-cartagena-2026.jpg — Redes Black Velvet — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Edici%C3%B3n_56_del_Festival_de_cine_de_Cartagena_de_Indias.jpg
+- after-party-f-nix.jpg — ConorLuddy — CC BY 2.0 — https://www.flickr.com/photos/46624185@N07/4278661901
+- bololo-del-arsenal-2026.jpg — Infrogmation of New Orleans — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:QueensPartyCarrollton98StreetDancing.jpg
+- dia-inocentes-cartagena-2026.jpg — Petrdolomicky — CC0 — https://commons.wikimedia.org/wiki/File:Disco_Party_akce_confetti.jpg
+- me-electronica-tierra-bomba-2026.jpg — Mixtribe Photo — CC BY 2.0 — https://www.flickr.com/photos/24279287@N03/4409366978
+- eivissa-cartagena-nightclub.jpg — Mixtribe Photo — CC BY 2.0 — https://www.flickr.com/photos/24279287@N03/4779134902
+- la-jugada-cartagena-weekends.jpg — jencu — CC BY 2.0 — https://commons.wikimedia.org/wiki/File:XS_Nightclub_Las_Vegas_Confetti_1.jpg
+- festival-voces-jazz-caribe-2026.jpg — Gavin Tapp — CC BY 2.0 — https://www.flickr.com/photos/92795775@N00/5263298788
+- jazz---wine-night.jpg — Cristian Ştefănescu — CC BY 2.0 — https://www.flickr.com/photos/46145615@N02/16199696935
+- preludio-universitario-2026.jpg — curran.kelleher — CC BY 2.0 — https://www.flickr.com/photos/10604632@N02/3748638529
+- festival-concuerda-2026.jpg — nattu — CC BY 2.0 — https://www.flickr.com/photos/33345813@N00/2719621319
+- tercer-preludio-2026.jpg — John Rabbit — CC BY 2.0 — https://www.flickr.com/photos/35116312@N02/8660242398
+- costellita-fest-2026.jpg — maxime.bober — CC BY 2.0 — https://www.flickr.com/photos/91650053@N08/14410133394
+- manuel-medrano-cartagena-2026.jpg — chocolatedazzles — CC BY 2.0 — https://www.flickr.com/photos/186095195@N02/49370741492
+- kany-garcia-cartagena-2026.jpg — Gethen — CC BY 2.0 — https://www.flickr.com/photos/12978395@N00/9896274093
+- candlelight-classical.jpg — Lukas Gotze — CC BY 4.0 — https://commons.wikimedia.org/wiki/File:Candlelight_concert_Villa_Bossi_Lago_di_Varese_July_2026_14.png
+- cartagena-festival-musica-2027.jpg — www.audio-luci-store.it — CC BY 2.0 — https://www.flickr.com/photos/65304769@N05/7403735110
+- evt_season_wellness_week_019f5806.jpg — Strubbl — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Eisbader_am_Spitzingsee_Bild_2_2026-01-18.jpg
+- evt_season_wellness_week_44778faf.jpg — Maddi Bazzocco — CC0 — https://commons.wikimedia.org/wiki/File:Pilates_reformer.jpg
+- sound-bath-ceremonial.jpg — Anuppanthi — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Singing_Bowl_in_the_Himalayas.jpg
+- evt_season_wellness_week_f2ea091f.jpg — Unique Hotels Group — CC BY-SA 2.0 — https://www.flickr.com/photos/62485988@N05/5692414729
+- evt_004.jpg — bady qb — CC0 — https://commons.wikimedia.org/wiki/File:Yoga_in_the_beach_(Unsplash).jpg
+- evt_season_wellness_week_aaedabcb.jpg — Rhododendrites — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Yoga_in_Bryant_Park_(01194).jpg
+- sunset-yoga-mezcal.jpg — dennis — CC BY 2.0 — https://www.flickr.com/photos/41894190608@N01/11500905496
+- rooftop-sundown-sessions.jpg — Maria Eklind — CC BY-SA 2.0 — https://commons.wikimedia.org/wiki/File:Sunset_by_Westlight_(explore)_-_Flickr_-_Maria_Eklind.jpg
+- sunset-session.jpg — Leodb — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:Sunset_Agta_Beach_Resort_-_Biliran_Philippines.jpg
+- yacht-day---islas-privadas.jpg — _dChris — CC BY 2.0 — https://www.flickr.com/photos/23392528@N02/16037821025
+- cholon-island-daily-boat-party.jpg — tiarescott — CC BY 2.0 — https://www.flickr.com/photos/80403443@N00/33499530
+- sunset-sessions--rosario-islands.jpg — Julian Lupyan — CC0 — https://commons.wikimedia.org/wiki/File:Sunset_Key_and_Sailboats,_Florida,_2025.jpg
+- fiesta-blanca-barco-cartagena.jpg — Ninara — CC BY 2.0 — https://commons.wikimedia.org/wiki/File:Bosphorus_Dinner_Cruise_(52126576295).jpg
+- festival-nautico-cartagena-2026.jpg — rawpixel.com — CC0 1.0 — https://www.rawpixel.com/image/6029233/photo-image-public-domain-person-summer
+- cartagena-sailing-week-2027.jpg — rawpixel.com — CC0 1.0 — https://www.rawpixel.com/image/6032858/photo-image-public-domain-person-free
+- evt_season_summer_vibes_9a0a257b.jpg — Danyo016 — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Dreams-Curacao-Infinity-Pool.jpg
+- tierra-bomba-beach-sundays.jpg — David Shankbone — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:014_Playa_Blanca_Cartagena_Colombia.JPG
+- fenix-beach-club-tierra-bomba.jpg — David Shankbone — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:015_Playa_Blanca_Beach_Cartagena_Colombia.JPG
+- bomba-beach-club-punta-arena.jpg — Jorge Láscar — CC BY 2.0 — https://commons.wikimedia.org/wiki/File:Playa_Blanca_-_Islas_del_Rosario_(4625669665).jpg
+- festival-huellas-mundo-2026.jpg — NatalyG2 — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Baile_de_cumbia_en_Mompox,_Bolivar.jpg
+- folklore-show.jpg — Norma Gòmez — CC BY 2.0 — https://commons.wikimedia.org/wiki/File:Baile_de_la_Cumbia_-_Barranquilla.jpg
+- festival-musica-danza-mundo-2026.jpg — Aquos — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Caim%C3%A1n_Cienaguero.jpg
+- fesnasol-internacional-2026.jpg — JulioChiroqueP — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Cumbia_All_stars.jpg
+- festival-regional-gaita-2026.jpg — SolReyes — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:SolReyes20120906_172.JPG
+- dia-raza-2026.jpg — Luz A. Villa — CC BY 2.0 — https://commons.wikimedia.org/wiki/File:Palenqueras_al_natural.jpg
+- festival-folklorico-colombia-canta-2026.jpg — SolReyes — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:SolReyes20120906_095.JPG
+- activaciones-culturales-julio-2026.jpg — Mariordo (Mario Roberto Durán Ortiz) — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Palenqueras_CTG_11_2019_2503.jpg
+- cabildos-noviembre-2026.jpg — Jdvillalobos — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Congos_carnaval_de_Barranquilla2024-02-14.jpg
+- reinado-popular-independencia-2026.jpg — Jsalast2 — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:Carrosa_del_Carnaval_de_Barranquilla.JPG
+- concurso-belleza-2026.jpg — Philip Nelson — CC BY-SA 2.0 — https://commons.wikimedia.org/wiki/File:Miss_Universe_2009_prepares_to_give_up_her_crown.jpg
+- concurso-nacional-belleza-2026.jpg — Fandemiss2023 — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:L%C3%A9na_Santilli,_miss_jeunesse_grand_est.jpg
+- velada-coronacion-2026.jpg — Ministry of Tourism and Creative Economy of Indonesia — Public domain — https://commons.wikimedia.org/wiki/File:Puteri_Indonesia_2020_Crowning_Moment.jpg
+- desfile-traje-bano-reinado-2026.jpg — Paul Chin — CC BY-SA 2.0 — https://commons.wikimedia.org/wiki/File:Binibining_Pilipinas_2008_Swimsuit.jpg
+- entrega-reconocimientos-hacedores-2026.jpg — I Should Be Folding Laundry — CC BY 2.0 — https://www.flickr.com/photos/54547540@N00/8977920571
+- ente-caribe-2026.jpg — Prayitno — CC BY 2.0 — https://www.flickr.com/photos/34128007@N04/4632130180
+- dia-alianza-francesa-cartagena-2026.jpg — Chairman of the Joint Chiefs of Staff — CC BY 2.0 — https://www.flickr.com/photos/42310076@N04/35142775934
+- alianza-francesa-2026.jpg — Chairman of the Joint Chiefs of Staff — CC BY 2.0 — https://www.flickr.com/photos/42310076@N04/35172503313
+- super-navidad-cartagena-2026.jpg — davedehetre — CC BY 2.0 — https://www.flickr.com/photos/22433418@N04/4328945897
+- un-sueno-de-navidad-2026.jpg — Corey Leopold — CC BY 2.0 — https://www.flickr.com/photos/97708873@N00/3108947437
+- nochebuena-cartagena-2026.jpg — TOTORORO.RORO — CC BY 2.0 — https://www.flickr.com/photos/7798382@N03/6877028003
+- novenas-aguinaldo-2026.jpg — Hidroituango — CC BY 2.0 — https://commons.wikimedia.org/wiki/File:Eco_Navidad_Hidroituango._(5226761295).jpg
+- noche-velitas-2026.jpg — Barelyok — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:D%C3%ADa_de_las_velitas_(candles_day).jpg
+- ano-nuevo-cartagena-2027.jpg — Theo Crazzolara — CC BY 2.0 — https://www.flickr.com/photos/141324643@N05/46849134635
+- nochevieja-cartagena-2026.jpg — prague.czech.photo — CC BY 2.0 — https://www.flickr.com/photos/99424477@N04/23741249829
+- noche-san-juan-cartagena-2026.jpg — Dominic's pics — CC BY 2.0 — https://www.flickr.com/photos/64097751@N00/4051674312
+- puente-festivo-sagrado-corazon-junio-2026.jpg — Joe Lopez — CC BY 2.0 — https://commons.wikimedia.org/wiki/File:Catedral_de_Cartagena_de_Indias-Nave_Central.jpg
+- virgen-del-carmen-2026.jpg — Carlos Figueroa — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Procesi%C3%B3n_de_la_Virgen_del_Carmen_2017_-_09.jpg
+- virgen-de-la-candelaria-2027.jpg — Mariordo (Mario Roberto Durán Ortiz) — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Patio_Convento_de_Santa_Cruz_de_la_Popa_CTG_11_2019_1837.jpg
+- dia-todos-santos-2026.jpg — Marek Ślusarczyk (Tupungato) — CC BY 3.0 — https://commons.wikimedia.org/wiki/File:029_All_Saints_Day_in_Poland_-_Wszystkich_%C5%9Awi%C4%99tych,_znicze_na_cmentarzu_wieczorem.jpg
+- batalla-de-boyaca-2026.jpg — Michele Mariani — CC BY-SA 2.0 — https://commons.wikimedia.org/wiki/File:Carnaval_de_Barranquilla_-_6964117247.jpg
+- primer-preludio-2026.jpg — Yves Picq — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Baranquilla_1901a.jpg
+- segundo-preludio-2026.jpg — Jdvillalobos — CC BY 3.0 — https://commons.wikimedia.org/wiki/File:Africano_-_Carnaval_de_Barranquilla.jpg
+- cabildo-getsemani-2026.jpg — Aquos — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Congo_en_carnaval.jpg
+- fiestas-de-independencia-2026.jpg — (Commons uploader) — CC — https://commons.wikimedia.org/wiki/File:Comparsa_del_C._de_B.quilla.jpg
+- festival-tambores-cartagena-2026.jpg — SolReyes — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:SolReyes20120906_172.JPG
+- noche-candela-tambores-2026.jpg — Manzanita2203 — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Cuerda_de_tambores_Desfile_de_Llamadas_2023_Comparsa_ECMA.jpg
+- noche-de-tambores-piedra-bolivar-2026.jpg — Manzanita2203 — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Mujeres_en_cuerda_de_tambores._ECMA.jpg
+- festival-regional-gaita-2026.jpg — SolReyes — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:SolReyes20120906_023.JPG
+- ctg-plus-2026-convention.jpg — Phillie Casablanca — CC BY 2.0 — https://www.flickr.com/photos/19451080@N00/2290425731
+- andicom-congreso-tic-2026.jpg — vancouverfilmschool — CC BY 2.0 — https://www.flickr.com/photos/38174668@N05/4519017824
+- cmc-colombia-2026-cartagena.jpg — Cory Doctorow — CC BY-SA 2.0 — https://www.flickr.com/photos/37996580417@N01/2085664039
+- weef-2026-cartagena.jpg — LeWeb14 — CC BY 2.0 — https://www.flickr.com/photos/86704644@N00/6498845413
+- expoferia-cartagena-2027.jpg — 5of7 — CC BY-SA 2.0 — https://www.flickr.com/photos/53936799@N05/6979784584
+- farex-feria-artesanal-2027.jpg — HARGOC — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:MERCADO_ARTESANAL,_ALTA_GUAJIRA.jpg
+- festival-del-frito-cartagenero-2027.jpg — Jdvillalobos — CC BY 3.0 — https://commons.wikimedia.org/wiki/File:Luruaco_-_Festival_de_la_arepa_de_huevo.jpg
+- festival-dulce-comida-tipica-2027.jpg — P R — CC BY 2.0 — https://commons.wikimedia.org/wiki/File:Cocadas_colombianas_by_P_R.png
+- festival-pastel-cartagenero-2026.jpg — JOAN — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Tamal_tolimense_sin_abrir.jpg
+- ironman-5150-cartagena-2026.jpg — Vater_fotografo — CC BY-SA 2.0 — https://commons.wikimedia.org/wiki/File:D7C3714_bis_Triathlon_San_Vito_Lo_Capo_2014.jpg
+- media-maraton-del-mar-2027.jpg — Richard Humphrey — CC BY-SA 2.0 — https://commons.wikimedia.org/wiki/File:Cambridge_Half_Marathon_runners_on_Sidney_Street_-_geograph.org.uk_-_6414112.jpg
+- morning-spinning.jpg — www.localfitness.com.au — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:Spin_Cycle_Indoor_Cycling_Class_at_a_Gym.JPG

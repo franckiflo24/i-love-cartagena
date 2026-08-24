@@ -520,7 +520,13 @@ export default function BusinessDashboard() {
                     <View style={styles.eventTopRow}>
                       <Text style={styles.eventDate}>{ev.date} · {ev.start_time}</Text>
                       {isPast && <Text style={styles.pastTag}>FINALIZADO</Text>}
-                      {ev.moderation_status === 'pending' && (
+                      {ev.moderation_status === 'pending' && ev.is_published && (
+                        <View style={[styles.modTag, { backgroundColor: 'rgba(18,181,165,0.15)' }]}>
+                          <Ionicons name="checkmark-circle" size={9} color={COLORS.teal} />
+                          <Text style={[styles.modTagText, { color: COLORS.teal }]}>PUBLICADO</Text>
+                        </View>
+                      )}
+                      {ev.moderation_status === 'pending' && !ev.is_published && (
                         <View style={[styles.modTag, { backgroundColor: 'rgba(245,158,11,0.15)' }]}>
                           <Ionicons name="time" size={9} color="#F59E0B" />
                           <Text style={[styles.modTagText, { color: '#F59E0B' }]}>EN REVISIÓN</Text>

@@ -328,7 +328,10 @@ export default function MyContent() {
                   );
                 })}
                 {subs.events.map((e: any) => {
-                  const meta = statusMeta(e.moderation_status);
+                  // Publish-first: a "pending" event that is live shows as published.
+                  const meta = (e.moderation_status === 'pending' && e.is_published)
+                    ? { bg: 'rgba(34,197,94,0.15)', color: '#22C55E', label: tr('Publicado') }
+                    : statusMeta(e.moderation_status);
                   return (
                     <View key={e.event_id} style={styles.subCard}>
                       <View style={styles.subRow}>

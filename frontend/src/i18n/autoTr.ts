@@ -17,6 +17,7 @@ import type { Lang } from './translations';
 type Dict = Record<string, Partial<Record<Lang, string>>>;
 
 export const AUTO_TR: Dict = {
+  'Cambio del día': { en: "Today's exchange rate", fr: 'Taux de change du jour', pt: 'Câmbio do dia' },
   'Iniciá sesión con tu cuenta admin (Google) para Eagle, Moderación y Analytics.': { en: 'Sign in with your admin (Google) account to unlock Eagle, Moderation and Analytics.', fr: "Connectez-vous avec votre compte admin (Google) pour Eagle, Modération et Analytics.", pt: 'Entre com sua conta admin (Google) para Eagle, Moderação e Analytics.' },
   'Desbloqueá el portal completo': { en: 'Unlock the full portal', fr: "Débloquez le portail complet", pt: 'Desbloqueie o portal completo' },
   'Requiere sesión admin · tocá para entrar': { en: 'Requires admin session · tap to sign in', fr: "Session admin requise · touchez pour entrer", pt: 'Requer sessão admin · toque para entrar' },
