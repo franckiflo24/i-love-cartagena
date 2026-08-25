@@ -1430,7 +1430,7 @@ _OCCASION_GUIDE = {
     "grupo / fiesta": ["Cholón", "Bora Bora Beach Club", "Colombia Luxury Group"],
     "beach clubs": ["Makani Beach Club", "Blue Apple Beach", "Bora Bora Beach Club", "Sabai"],
     "saludable / vegano": ["Gokela", "Pezetarian"],
-    "café para trabajar": ["Café San Alberto", "Ábaco Libros y Café", "Café Stepping Stone"],
+    "café para trabajar": ["Café San Alberto", "Ábaco Libros y Café", "Época"],
     "postres": ["Gelateria Tramonti", "Mila Pastelería", "La Palettería"],
     "spa / bienestar": ["Tcherassi Spa", "Bastión Spa", "Zaitún Spa"],
     "lujo": ["Sofitel Legend Santa Clara", "Casa San Agustín", "Four Seasons", "Carmen", "Celele"],

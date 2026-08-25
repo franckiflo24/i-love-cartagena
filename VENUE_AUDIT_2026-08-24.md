@@ -92,3 +92,40 @@ are gone and we'll remove them with the same script.
 - Cerro de la Popa (attr_012)
 - Islas del Rosario (attr_017)
 - San Basilio de Palenque (tour) (ptr_dv2_041)
+
+---
+
+# ROUND 2 — Aug 25 2026: deep research on the TEMP + no-listing sets (web + TripAdvisor + directories + DIAN registry)
+
+## REMOVED (16 more; total now 28) — soft-hidden, reversible with one command
+Confirmed closed: Café Stepping Stone (Google), Boundless Mezcal Café (TripAdvisor
+"permanently closed"), Moshi (TripAdvisor CLOSED), iFood Colombia (exited the country
+Nov 2022). Strong-evidence closures: Beirut (TripAdvisor delisted), La Piccola Fattoria
+(dormant since 2018), La Pepita Centro + La Diva Centro (dead branches; Bocagrande
+siblings still operate — those stay). Zero-footprint ghosts: Tu Rumba, Café del Pueblo,
+El Charro, La Parisienne, Casa Ritual, Bella Nails Bar, Sereno Spa Boutique, and
+Titan Intercambio (absent from DIAN's authorized money-changer registry).
+
+## FIXED (not removed)
+- Bazurto Social Club — NOT closed: relocated 2024 to Casa Cruxada, Plaza Santo Domingo
+  (Google pin was the abandoned Getsemaní address). Address updated.
+- "Bohaza" → real name Bozha Café Bar (La Matuna) — renamed + address set.
+- "InDriver Cartagena" → inDrive (2022 rebrand) — renamed. NOTE: ptr_dv2_046 "InDrive"
+  looks like a duplicate listing — Franck may want to merge.
+
+## VERIFIED OPERATING (leave as-is)
+Norma, Kona, Members Only, Taco Beach (address is Calle Santo Domingo, not Bocagrande),
+Makani, Pao Pao, Sabai (books as "Barú Playa Eco Beach Resort"), Eco Hotel Islabela,
+Oceanario CEINER, Bequia Eagle, La Fantástica, Juan Ballena, En Colombia Kitesurf,
+WEAT, Take a Chef, Savoya, Clínica Medihelp, Palacio de la Inquisición (Google name:
+MUHCA), Monumento Zapatos Viejos, Distrito (operating as Distrito Tabaquero cigar
+lounge — confirm it's the same place Franck means), Santoco (likely = SANATO.co in
+Manga — name garbled, Franck to confirm), plus Yeyanails, BodyBrite Manga, Julis Pérez
+spa, Playa Scondida, Gente de Mar, OndadeMar, La Burbuja, Lavandería Express.
+
+## STILL UNVERIFIABLE — Franck's call (left live)
+Badillo Comisiones (Google: temp closed) and the ~9 generic editorial service stubs
+(Casa de Cambio Unidas, Cambios y Divisas Bocagrande, Multicambios, Cambios Express
+San Martín, Cambios del Caribe, Scooter Rental Getsemaní, Golf Cart Rentals, Barbería
+El Caribe, Pet Shop & Vet, Minimarket La Esquina) — generic names, unverifiable;
+recommend replacing with real named businesses over time.
