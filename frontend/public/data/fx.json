@@ -1,8 +1,9 @@
 {
-  "usd_cop": 3048.23,
-  "eur_cop": 3559.66,
+  "usd_cop": 3048.12,
+  "eur_cop": 3559.53,
   "date": "2026-08-24",
-  "updated_at": "2026-08-24T22:00:00Z",
-  "source": "currency-api",
+  "updated_at": "2026-08-24T23:59:00Z",
+  "source": "TRM-SFC",
+  "trm": true,
   "static_snapshot": true
 }

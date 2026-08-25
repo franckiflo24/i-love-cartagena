@@ -14,6 +14,7 @@ interface FxResp {
   usd_cop: number | null;
   eur_cop: number | null;
   date?: string;
+  trm?: boolean;
   stale?: boolean;
 }
 
@@ -37,7 +38,7 @@ export function FxStrip() {
         <Ionicons name="cash-outline" size={18} color="#000" />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={styles.kicker}>{tr('Cambio del día').toUpperCase()}{data.date ? ` · ${data.date.slice(5).replace('-', '/')}` : ''}</Text>
+        <Text style={styles.kicker}>{tr('Cambio del día').toUpperCase()}{data.trm ? ' · TRM OFICIAL' : ''}{data.date ? ` · ${data.date.slice(5).replace('-', '/')}` : ''}</Text>
         <View style={styles.ratesRow}>
           <Text style={styles.rate}>🇺🇸 1 USD ≈ <Text style={styles.rateVal}>{fmtCop(data.usd_cop)}</Text></Text>
           <Text style={styles.rate}>🇪🇺 1 EUR ≈ <Text style={styles.rateVal}>{fmtCop(data.eur_cop)}</Text></Text>

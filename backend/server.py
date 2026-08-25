@@ -4709,28 +4709,62 @@ _fx_cache: dict = {"data": None, "at": 0.0}
 _FX_TTL = 6 * 3600.0
 
 
-async def _fetch_fx_external() -> Optional[dict]:
-    """Fetch USD→COP and EUR→COP from free daily-rate sources. Returns None on failure."""
+async def _fetch_trm_official(client: httpx.AsyncClient, bogota_today: str) -> Optional[float]:
+    """Official USD→COP: the TRM certified by the Superintendencia Financiera
+    (datos.gov.co open API, keyless). Picks the record whose vigencia covers
+    today in Bogota — the SFC publishes the NEXT business day's TRM each
+    afternoon, so the newest record isn't always today's rate."""
+    try:
+        r = await client.get(
+            "https://www.datos.gov.co/resource/32sa-8pi3.json",
+            params={"$limit": "5", "$order": "vigenciahasta DESC"},
+        )
+        r.raise_for_status()
+        rows = r.json()
+        for row in rows:  # newest-first: first vigencia window covering today wins
+            desde = (row.get("vigenciadesde") or "")[:10]
+            hasta = (row.get("vigenciahasta") or "")[:10]
+            if desde and hasta and desde <= bogota_today <= hasta:
+                return float(row["valor"])
+        # Weekend/holiday edge: no covering window — newest already-effective rate.
+        for row in rows:
+            if (row.get("vigenciadesde") or "")[:10] <= bogota_today:
+                return float(row["valor"])
+    except Exception as exc:
+        logger.warning(f"[fx] TRM source failed: {exc}")
+    return None
+
+
+async def _fetch_fx_external(bogota_today: str) -> Optional[dict]:
+    """USD→COP and EUR→COP. Primary USD→COP is the official TRM; the EUR cross
+    (and full fallback if TRM is down) comes from free daily mid-rate sources."""
     async with httpx.AsyncClient(timeout=8.0) as client:
+        trm = await _fetch_trm_official(client, bogota_today)
+        usd_eur = None
+        market_usd_cop = None
         try:
             r = await client.get("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json")
             r.raise_for_status()
             usd = r.json().get("usd", {})
-            usd_cop, usd_eur = float(usd["cop"]), float(usd["eur"])
-            if usd_cop > 0 and usd_eur > 0:
-                return {"usd_cop": round(usd_cop, 2), "eur_cop": round(usd_cop / usd_eur, 2), "source": "currency-api"}
+            usd_eur, market_usd_cop = float(usd["eur"]), float(usd["cop"])
         except Exception as exc:
-            logger.warning(f"[fx] primary source failed: {exc}")
-        try:
-            r = await client.get("https://open.er-api.com/v6/latest/USD")
-            r.raise_for_status()
-            rates = r.json().get("rates", {})
-            usd_cop, usd_eur = float(rates["COP"]), float(rates["EUR"])
-            if usd_cop > 0 and usd_eur > 0:
-                return {"usd_cop": round(usd_cop, 2), "eur_cop": round(usd_cop / usd_eur, 2), "source": "open.er-api.com"}
-        except Exception as exc:
-            logger.warning(f"[fx] fallback source failed: {exc}")
-    return None
+            logger.warning(f"[fx] currency-api failed: {exc}")
+            try:
+                r = await client.get("https://open.er-api.com/v6/latest/USD")
+                r.raise_for_status()
+                rates = r.json().get("rates", {})
+                usd_eur, market_usd_cop = float(rates["EUR"]), float(rates["COP"])
+            except Exception as exc2:
+                logger.warning(f"[fx] er-api failed: {exc2}")
+    usd_cop = trm or market_usd_cop
+    if not usd_cop or not usd_eur or usd_cop <= 0 or usd_eur <= 0:
+        return None
+    return {
+        "usd_cop": round(usd_cop, 2),
+        "eur_cop": round(usd_cop / usd_eur, 2),
+        "trm": trm is not None,
+        "source": "TRM-SFC" if trm is not None else "market-mid",
+    }
 
 
 @api_router.get("/fx")
@@ -4741,8 +4775,9 @@ async def fx_rates(request: Request):
         return _fx_cache["data"]
     bogota_today = (datetime.now(timezone.utc) - timedelta(hours=5)).strftime("%Y-%m-%d")
     doc = await db.fx_rates.find_one({"cache_key": "latest"}, {"_id": 0}) or {}
-    if doc.get("date") != bogota_today:
-        fresh = await _fetch_fx_external()
+    # Refetch on a new Bogota day, or once to upgrade a pre-TRM cached doc.
+    if doc.get("date") != bogota_today or "trm" not in doc:
+        fresh = await _fetch_fx_external(bogota_today)
         if fresh:
             doc = {"cache_key": "latest", "date": bogota_today,
                    "updated_at": datetime.now(timezone.utc).isoformat(), **fresh}
@@ -4751,7 +4786,7 @@ async def fx_rates(request: Request):
             doc = {**doc, "stale": True}  # serve yesterday's rate rather than nothing
     if not doc:
         return {"usd_cop": None, "eur_cop": None, "date": None}
-    payload = {k: doc.get(k) for k in ("usd_cop", "eur_cop", "date", "updated_at", "source", "stale") if k in doc}
+    payload = {k: doc.get(k) for k in ("usd_cop", "eur_cop", "date", "updated_at", "source", "trm", "stale") if k in doc}
     _fx_cache["data"] = payload
     _fx_cache["at"] = _time.monotonic()
     return payload
