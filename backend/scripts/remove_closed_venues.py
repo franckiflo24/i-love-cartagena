@@ -81,6 +81,9 @@ def log(msg):
 def clean_static(target):
     names, rx = target["names"], name_rx(target["names"])
     pid = target.get("partner_id")
+    # listing_only: remove just the partner/catalog listing (e.g. a duplicate) —
+    # the entity itself still exists, so leave knowledge/events/calendar untouched.
+    listing_only = bool(target.get("listing_only"))
 
     p = DATA / "partners.json"
     partners = load(p)
@@ -103,6 +106,9 @@ def clean_static(target):
         if len(kept) != len(items):
             save(fp, kept)
             log(f"{fname}: removed {len(items)-len(kept)}")
+
+    if listing_only:
+        return
 
     fp = DATA / "concerts.json"
     if fp.exists():
@@ -182,12 +188,14 @@ def clean_mongo(db, target):
 
     marks = {"is_public": False, "status": "suspended", "closed_permanently": True,
              "closed_reason": reason, "closed_at": NOW}
-    q = {"$or": [{"partner_id": pid}, {"name": {"$in": names}}]}
+    q = {"partner_id": pid} if target.get("listing_only") else {"$or": [{"partner_id": pid}, {"name": {"$in": names}}]}
     if not DRY:
         r = db.partners.update_many(q, {"$set": marks})
         log(f"mongo partners: hidden {r.modified_count}")
     else:
         log(f"mongo partners would hide {db.partners.count_documents(q)}")
+    if target.get("listing_only"):
+        return
 
     for v in db.venues.find({"name": {"$in": names}}):
         if not DRY:

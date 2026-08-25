@@ -129,3 +129,16 @@ Badillo Comisiones (Google: temp closed) and the ~9 generic editorial service st
 San Martín, Cambios del Caribe, Scooter Rental Getsemaní, Golf Cart Rentals, Barbería
 El Caribe, Pet Shop & Vet, Minimarket La Esquina) — generic names, unverifiable;
 recommend replacing with real named businesses over time.
+
+---
+
+# ROUND 3 — Aug 25 2026 (Phil-approved): stubs removed + names fixed
+- Removed the 10 generic editorial service stubs (5 casas de cambio, scooter/golf-cart
+  rentals, barbería, pet shop, minimarket) — unverifiable placeholder businesses.
+- Removed ptr_dv2_046 "InDrive" as a duplicate LISTING ONLY (the app is alive;
+  knowledge/transport answers untouched; canonical listing: svc_036 "inDrive Cartagena").
+- Name/record fixes: Santoco → SANATO.co (Manga, real address), Distrito → Distrito
+  Tabaquero (cigar lounge, Centro, category bar), Taco Beach address → Calle Santo
+  Domingo #35-96 (was listed Bocagrande).
+- Still listed (deliberate): Badillo Comisiones (real, Google temp-closed).
+Catalog now 854 public partners (was 893 pre-audit).
