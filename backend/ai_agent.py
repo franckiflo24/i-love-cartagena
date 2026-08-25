@@ -1416,20 +1416,20 @@ _SEASONAL_TRIGGERS = ("sello", "sellos", "temporada", "festival", "fiesta", "fie
 _OCCASION_GUIDE = {
     "aniversario / cena romántica": ["Celele", "Carmen", "Alma", "Restaurante 1621", "La Vitrola", "Club de Pesca"],
     "ocasión especial / celebrar": ["Celele", "Carmen", "Restaurante 1621", "Club de Pesca", "Candé"],
-    "atardecer / rooftop": ["Café del Mar", "Movich", "Alquímico", "The Townhouse"],
-    "primera cita": ["El Barón", "Demente", "Época"],
+    "atardecer / rooftop": ["Movich", "Alquímico", "The Townhouse"],
+    "primera cita": ["El Barón", "Época"],
     "con niños / familia": ["Aviario Nacional", "Gelateria Tramonti", "Isla del Encanto", "Juan del Mar"],
     "día de lluvia": ["Palacio de la Inquisición", "Museo del Oro Zenú", "La Serrezuela"],
     "música en vivo": ["Café Havana", "Bazurto Social Club", "Casa Quiebra-Canto"],
     "favoritos locales / dónde comen los cartageneros": ["La Cocina de Pepina", "La Mulata", "Espíritu Santo"],
     "café / desayuno": ["Época", "Café San Alberto", "Ábaco Libros y Café"],
-    "ceviche / mariscos": ["La Cevichería", "El Boliche", "Marea"],
-    "street food": ["Donde Magola", "Donde Olano", "Portal de los Dulces"],
+    "ceviche / mariscos": ["La Cevichería", "Marea"],
+    "street food": ["Donde Olano", "Portal de los Dulces"],
     "coctelería": ["Alquímico", "El Barón", "Malagana"],
     "rumba / baile": ["La Movida", "La Jugada", "Bazurto Social Club"],
     "grupo / fiesta": ["Cholón", "Bora Bora Beach Club", "Colombia Luxury Group"],
     "beach clubs": ["Makani Beach Club", "Blue Apple Beach", "Bora Bora Beach Club", "Sabai"],
-    "saludable / vegano": ["Gokela", "Pezetarian", "Girasoles (verificar)"],
+    "saludable / vegano": ["Gokela", "Pezetarian"],
     "café para trabajar": ["Café San Alberto", "Ábaco Libros y Café", "Café Stepping Stone"],
     "postres": ["Gelateria Tramonti", "Mila Pastelería", "La Palettería"],
     "spa / bienestar": ["Tcherassi Spa", "Bastión Spa", "Zaitún Spa"],
@@ -1556,7 +1556,7 @@ Si el context trae "live_tonight", son novedades REALES DE HOY enviadas por los 
 🧳 MI VIAJE (context.mi_viaje)
 ══════════════════════════════════════════
 Si el context trae "mi_viaje", es el viaje REAL que el usuario está planeando en la app (nombre, fechas, miembros, items con su día). Planeá CON él:
-- Detectá huecos REALES del itinerario: una noche sin cena, un día sin plan, ningún atardecer/rooftop, ninguna experiencia de islas. Sugerí venues reales del catálogo que llenen ese hueco ("ya tienen Celele — les falta un atardecer, ¿qué tal Café del Mar?").
+- Detectá huecos REALES del itinerario: una noche sin cena, un día sin plan, ningún atardecer/rooftop, ninguna experiencia de islas. Sugerí venues reales del catálogo que llenen ese hueco ("ya tienen Celele — les falta un atardecer, ¿qué tal el rooftop del Movich?").
 - Referite a lo que YA tienen POR NOMBRE y por día ("el día 2 tienen la lancha a Rosario"). JAMÁS menciones un item que no esté en mi_viaje.items.
 - Tus sugerencias para el viaje son cards normales (kind "partner") — desde ahí el usuario las agrega a su viaje con un tap.
 - Si hay varios miembros, hablá en plural ("les falta", "para el grupo"). Los votos (votes) te dicen qué quiere el grupo — priorizá lo más votado al armar el día.
@@ -1567,7 +1567,7 @@ CONOCIMIENTO LOCAL DE CARTAGENA (usá esto para dar contexto experto)
 ══════════════════════════════════════════
 BARRIOS Y ZONAS:
 - Centro Histórico (Ciudad Amurallada): UNESCO, colonial, restaurantes premium, galerías, San Pedro Claver, Catedral, Plaza Santo Domingo (Botero). Caminar es la mejor forma de moverse.
-- San Diego: dentro de las murallas, más tranquilo, boutique hotels, Las Bóvedas artesanías. Café del Mar está en la muralla.
+- San Diego: dentro de las murallas, más tranquilo, boutique hotels, Las Bóvedas artesanías.
 - Getsemaní: barrio bohemio, street art, Plaza Trinidad vida nocturna, hostels, salsa en vivo (Café Havana, Bazurto Social Club). Más económico que Centro.
 - Bocagrande: zona hotelera moderna, playas urbanas, centros comerciales, bancos, farmacias. Más cómodo pero menos auténtico.
 - Manga: barrio residencial, terminal de cruceros SPRC (3.2km del Centro), restaurantes locales.
@@ -1639,7 +1639,7 @@ TU TRABAJO
 - `events`/`partner_events` que recibís YA vienen filtrados a lo que sigue vigente (nada pasado, hora de Cartagena). Si algo es HOY, priorizalo ("hoy a las {start_time}…"). Un evento que NO está en la lista NO existe para vos — jamás menciones una fecha ya pasada.
 
 ## OCASIONES (la recomendación correcta para el momento)
-- Si `occasions` está en el contexto, recomendá DESDE `occasions.occasion_guide` — venues REALES por ocasión (aniversario→Celele/Carmen/Alma; atardecer→Café del Mar/Movich/Alquímico; niños→Aviario/Gelateria Tramonti; etc.). NO inventes un venue que no esté ahí ni en el catálogo.
+- Si `occasions` está en el contexto, recomendá DESDE `occasions.occasion_guide` — venues REALES por ocasión (aniversario→Celele/Carmen/Alma; atardecer→Movich/Alquímico; niños→Aviario/Gelateria Tramonti; etc.). NO inventes un venue que no esté ahí ni en el catálogo.
 - Un venue marcado "(verificar)" es needs_confirmation → recomendalo con hedge ("estamos confirmando este lugar, chequeá antes de ir"), NUNCA como pick estrella confiado. Lo mismo con venues del contexto con `status: pending_review`.
 - Para "¿qué hago ahora?" / "son las 9am, ¿qué hago?" usá `occasions.right_now` — la ocasión que corresponde a la hora y al atardecer REALES ("son las {hora} — buen momento para {ocasión}"). Nunca una hora inventada.
 - Elegí 2-3 nombres, no la lista entera. Personalizá con el perfil si lo tenés.
