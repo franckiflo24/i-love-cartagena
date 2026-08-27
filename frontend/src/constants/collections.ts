@@ -3,6 +3,9 @@
 export const COLLECTION_DEFS: Record<string, {
   icon: string; title_es: string; title_en: string; desc_es: string; desc_en: string;
   tags_any: string[]; categories?: string[];
+  // mode:'category' => dynamic collection (all venues in `categories`, ranked
+  // quality-first), mirroring backend occasions.py. Offline fallback only.
+  mode?: 'category'; limit?: number;
 }> = {
   'cena-romantica': { icon: 'heart', title_es: 'Cenas Románticas', title_en: 'Romantic Dinners', desc_es: 'Velas, patios coloniales y música para dos', desc_en: 'Candlelit colonial courtyards for two', tags_any: ['romantic'], categories: ['restaurant', 'bar'] },
   'rooftops-atardecer': { icon: 'sunny', title_es: 'Rooftops al Atardecer', title_en: 'Sunset Rooftops', desc_es: 'La hora dorada sobre la ciudad amurallada', desc_en: 'Golden hour above the walled city', tags_any: ['rooftop', 'sunset'], categories: ['bar', 'restaurant', 'hotel', 'nightlife'] },
@@ -18,7 +21,7 @@ export const COLLECTION_DEFS: Record<string, {
   'cocteles': { icon: 'wine', title_es: 'Coctelería de Autor', title_en: 'Cocktail Bars', desc_es: 'Los mejores tragos de la ciudad', desc_en: 'The city\'s best cocktails', tags_any: ['cocktails'], categories: ['bar', 'nightlife', 'restaurant'] },
   'rumba': { icon: 'musical-notes', title_es: 'Rumba y Baile', title_en: 'Dancing & Nightclubs', desc_es: 'Donde se baila hasta tarde (jue–sáb)', desc_en: 'Where the city dances late (Thu–Sat)', tags_any: ['nightlife', 'dancing'], categories: ['nightlife', 'bar'] },
   'grupo-fiesta': { icon: 'people', title_es: 'Planes de Grupo', title_en: 'Group & Party', desc_es: 'Yates, islas de fiesta y noche en grupo', desc_en: 'Yachts, party islands and group nights', tags_any: ['group', 'party'], categories: ['beach_club', 'nightlife', 'yacht', 'service'] },
-  'beach-clubs': { icon: 'umbrella', title_es: 'Beach Clubs', title_en: 'Beach Clubs', desc_es: 'Islas y playas — de fiesta a familia', desc_en: 'Islands and beaches — party to family', tags_any: ['beach'], categories: ['beach_club', 'hotel'] },
+  'beach-clubs': { icon: 'umbrella', title_es: 'Beach Clubs', title_en: 'Beach Clubs', desc_es: 'Islas y playas — de fiesta a familia', desc_en: 'Islands and beaches — party to family', tags_any: ['beach'], categories: ['beach_club'], mode: 'category', limit: 60 },
   'saludable': { icon: 'leaf', title_es: 'Saludable y Veggie', title_en: 'Healthy & Vegan', desc_es: 'Bowls, veggie y opciones conscientes', desc_en: 'Bowls, veggie and mindful options', tags_any: ['healthy'], categories: ['restaurant'] },
   'cafes-trabajo': { icon: 'laptop', title_es: 'Cafés para Trabajar', title_en: 'Work-Friendly Cafés', desc_es: 'Wifi, enchufes y ambiente para portátil', desc_en: 'Wifi, outlets and a laptop-friendly vibe', tags_any: ['work_friendly'], categories: ['cafe', 'restaurant'] },
   'postres': { icon: 'ice-cream', title_es: 'Postres y Dulces', title_en: 'Dessert & Sweets', desc_es: 'Gelato, paletas y patisserie para refrescar', desc_en: 'Gelato, popsicles and patisserie to cool off', tags_any: ['dessert'], categories: ['cafe', 'restaurant', 'attraction'] },

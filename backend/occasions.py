@@ -222,19 +222,14 @@ COLLECTIONS: List[Dict[str, Any]] = [
         "key": "beach-clubs", "icon": "umbrella",
         "title_es": "Beach Clubs", "title_en": "Beach Clubs",
         "desc_es": "Islas y playas — de fiesta a familia", "desc_en": "Islands and beaches — party to family",
-        "curated_ids": [
-            "ptr_W141",
-            "ptr_W142",
-            "ptr_W140",
-            "ptr_X1123",
-            "ptr_dv2_009",
-            "ptr_X1215",
-            "ptr_occ_011",
-            "ptr_dv2_007",
-            "ptr_occ_012",
-            "ptr_X1189",
-        ],
-        "categories": ["beach_club", "hotel"],
+        # DYNAMIC (2026-08, Franck): every publicly-visible beach club, ranked
+        # quality-first (tier → certified → active → rating) instead of a frozen
+        # hand-picked list of 10 that hid ~36 real beach clubs — incl. the elite,
+        # certified Bethel Bellini ("Falta Bethel Bellini" / "no está curado como
+        # queremos"). New certified venues now appear automatically.
+        "categories": ["beach_club"],
+        "sort": "quality",
+        "limit": 60,
     },
     {
         "key": "saludable", "icon": "leaf",
@@ -325,7 +320,22 @@ CARD_FIELDS = {
     "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
     "cuisine": 1, "tier": 1, "price_range": 1, "address": 1, "rating": 1,
     "reviews": 1, "image_url": 1, "tags": 1,
+    # public badge fields — also used as quality-sort keys for dynamic collections
+    "is_certified": 1, "membership_status": 1,
 }
+
+# Quality ranking for dynamic (non-curated) collections. Beach clubs carry no
+# rating, so tier is the primary signal; certified + active break ties.
+_TIER_RANK = {"elite": 4, "premium": 3, "popular": 2, "standard": 1}
+
+
+def _quality_key(p: Dict[str, Any]):
+    return (
+        _TIER_RANK.get((p.get("tier") or "").lower(), 0),
+        1 if p.get("is_certified") else 0,
+        1 if p.get("membership_status") == "active" else 0,
+        p.get("rating") or 0,
+    )
 
 
 def init(*, db_, get_active_pulse_map):
@@ -335,7 +345,9 @@ def init(*, db_, get_active_pulse_map):
 
 
 def _query_for(c: Dict[str, Any]) -> Dict[str, Any]:
-    q: Dict[str, Any] = {"tags": {"$in": c["tags_any"]}}
+    q: Dict[str, Any] = {}
+    if c.get("tags_any"):
+        q["tags"] = {"$in": c["tags_any"]}
     if c.get("categories"):
         q["category"] = {"$in": c["categories"]}
     return q
@@ -352,16 +364,20 @@ async def _collection_partners(c: Dict[str, Any], limit: int = 30) -> List[Dict[
                  db.partners.find({**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": curated}}, CARD_FIELDS)}
         rows = [found[pid] for pid in curated if pid in found][:limit]
     else:
+        cap = c.get("limit", limit)
         rows = await db.partners.find({**PUBLIC_PARTNER_FILTER, **_query_for(c)}, CARD_FIELDS).to_list(300)
-        boost = set(c.get("boost_tags") or [])
+        if c.get("sort") == "quality":
+            rows.sort(key=_quality_key, reverse=True)
+        else:
+            boost = set(c.get("boost_tags") or [])
 
-        def score(p):
-            rating = p.get("rating") or 0
-            b = sum(0.25 for t in (p.get("tags") or []) if t in boost)
-            return rating + b
+            def score(p):
+                rating = p.get("rating") or 0
+                b = sum(0.25 for t in (p.get("tags") or []) if t in boost)
+                return rating + b
 
-        rows.sort(key=score, reverse=True)
-        rows = rows[:limit]
+            rows.sort(key=score, reverse=True)
+        rows = rows[:cap]
     try:
         pulse_map = await _get_active_pulse_map(db, [p["partner_id"] for p in rows])
         for p in rows:
@@ -375,12 +391,14 @@ async def _collection_partners(c: Dict[str, Any], limit: int = 30) -> List[Dict[
 
 @router.get("/collections")
 async def list_collections():
+    from partner_visibility import PUBLIC_PARTNER_FILTER  # count only publicly-visible venues
     out = []
     for c in COLLECTIONS:
         if c.get("curated_ids"):
-            count = await db.partners.count_documents({"partner_id": {"$in": c["curated_ids"]}})
+            count = await db.partners.count_documents(
+                {**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": c["curated_ids"]}})
         else:
-            count = await db.partners.count_documents(_query_for(c))
+            count = await db.partners.count_documents({**PUBLIC_PARTNER_FILTER, **_query_for(c)})
         out.append({
             "key": c["key"], "icon": c["icon"],
             "title_es": c["title_es"], "title_en": c["title_en"],

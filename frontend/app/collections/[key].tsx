@@ -38,11 +38,28 @@ export default function CollectionScreen() {
       } catch { /* fall through to static */ }
       try {
         const all = await fetch('/data/partners.json').then(r => r.json());
-        const rows = (Array.isArray(all) ? all : [])
-          .filter((p: any) => Array.isArray(p.tags) && p.tags.some((t: string) => def.tags_any.includes(t)))
-          .filter((p: any) => !def.categories || def.categories.includes(p.category))
-          .sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0))
-          .slice(0, 30);
+        const list = Array.isArray(all) ? all : [];
+        let rows: any[];
+        if (def.mode === 'category') {
+          // Dynamic collection: every venue in `categories`, ranked quality-first
+          // (tier → certified → active → rating) — mirrors backend occasions.py.
+          const TIER: Record<string, number> = { elite: 4, premium: 3, popular: 2, standard: 1 };
+          const q = (p: any) =>
+            (TIER[(p.tier || '').toLowerCase()] || 0) * 1000 +
+            (p.is_certified ? 100 : 0) +
+            (p.membership_status === 'active' ? 10 : 0) +
+            (p.rating || 0);
+          rows = list
+            .filter((p: any) => def.categories?.includes(p.category))
+            .sort((a: any, b: any) => q(b) - q(a))
+            .slice(0, def.limit || 60);
+        } else {
+          rows = list
+            .filter((p: any) => Array.isArray(p.tags) && p.tags.some((t: string) => def.tags_any.includes(t)))
+            .filter((p: any) => !def.categories || def.categories.includes(p.category))
+            .sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0))
+            .slice(0, 30);
+        }
         if (alive) setPartners(rows);
       } catch { /* keep empty */ }
       if (alive) setLoading(false);
