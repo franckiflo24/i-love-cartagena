@@ -542,7 +542,7 @@ export default function ExploreScreen() {
     useLocalSearchParams<{ category?: string; subcategory?: string }>();
   const { s } = useLang();
   const tr = useTr();
-  const { getPersonalizedPartners, userProfile } = usePersonalization();
+  const { getPersonalizedPartners, userProfile, isLoading: profileLoading } = usePersonalization();
 
   const [selectedCategory, setSelectedCategory] = useState<CategoryItem>(CATEGORIES[0]);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
@@ -685,8 +685,14 @@ export default function ExploreScreen() {
   }, [loadFeatured, loadNeighborhoods, loadUpcomingEvents]);
 
   useEffect(() => {
+    // Wait for the taste profile to finish loading before the first paint. Otherwise
+    // the list paints the NON-personalized order (by rank_score) first, then re-sorts
+    // once AsyncStorage resolves isPersonalized → a visible flicker where a top-ranked
+    // venue (e.g. Bethel) appears then drops. The loadingPartners skeleton covers the
+    // brief wait. (Franck Aug 2026: "Bethel reflects then disappears".)
+    if (profileLoading) return;
     loadPartners(selectedCategory);
-  }, [selectedCategory, loadPartners, userProfile.isPersonalized]);
+  }, [selectedCategory, loadPartners, userProfile.isPersonalized, profileLoading]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
