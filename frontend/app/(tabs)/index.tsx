@@ -69,6 +69,8 @@ const CAT_COLORS: Record<string, { main: string; bg: string; label: string }> = 
 
 const getBudgetStyle = (isFree: boolean, price: number) => {
   if (isFree) return { main: '#22C55E', bg: 'rgba(34,197,94,0.18)', label: 'GRATIS' };
+  // Unpriced paid event ("a consultar") — never render "$0K".
+  if (!price) return { main: '#94A3B8', bg: 'rgba(148,163,184,0.18)', label: 'Consultar' };
   if (price <= 30000) return { main: '#3B82F6', bg: 'rgba(59,130,246,0.18)', label: `$${(price/1000).toFixed(0)}K` };
   if (price <= 80000) return { main: '#F97316', bg: 'rgba(249,115,22,0.18)', label: `$${(price/1000).toFixed(0)}K` };
   return { main: '#EF4444', bg: 'rgba(239,68,68,0.18)', label: `$${(price/1000).toFixed(0)}K` };
@@ -100,7 +102,7 @@ export default function HomeScreen() {
   const { favorites } = useFavorites();
   const { s, lang } = useLang();
   const tr = useTr();
-  const { userProfile, getPersonalizedPartners, getPersonalizedCategories, getGreeting, hasCompletedOnboarding } = usePersonalization();
+  const { userProfile, getPersonalizedPartners, getPersonalizedCategories, getGreeting, hasCompletedOnboarding, isLoading: profileLoading } = usePersonalization();
   const [baseSheet, setBaseSheet] = useState(false);
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [featured, setFeatured] = useState<Event[]>([]);
@@ -353,11 +355,6 @@ export default function HomeScreen() {
     } catch {}
   };
 
-  const formatPrice = (price: number) => {
-    if (price === 0) return 'Gratis';
-    return `$${(price / 1000).toFixed(0)}K COP`;
-  };
-
   const onSeasonScroll = (e: any) => {
     const idx = Math.round(e.nativeEvent.contentOffset.x / (HERO_WIDTH + SPACING.md));
     if (idx !== activeSeasonIdx && idx >= 0 && idx < seasons.length) {
@@ -365,7 +362,11 @@ export default function HomeScreen() {
     }
   };
 
-  if (loading) {
+  // Also gate on the taste profile finishing its AsyncStorage load, otherwise the
+  // "Explorar" category carousel (and quick-access row) commit the NON-personalized
+  // default order first, then re-sort once the profile lands — the same flicker
+  // fixed in explore.tsx. (Audit Aug 2026.)
+  if (loading || profileLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <SkeletonList />
@@ -673,8 +674,10 @@ export default function HomeScreen() {
                 <View style={styles.collIcon}>
                   <Ionicons name={c.icon as any} size={18} color="#FBBF24" />
                 </View>
-                <Text style={styles.collTitle} numberOfLines={2}>{lang === 'en' ? c.title_en : c.title_es}</Text>
-                <Text style={styles.collDesc} numberOfLines={2}>{lang === 'en' ? c.desc_en : c.desc_es}</Text>
+                {/* fr/pt fall back to English (the international default), matching the
+                    collection detail screen — never serve them Spanish here then EN there. */}
+                <Text style={styles.collTitle} numberOfLines={2}>{lang === 'es' ? c.title_es : c.title_en}</Text>
+                <Text style={styles.collDesc} numberOfLines={2}>{lang === 'es' ? c.desc_es : c.desc_en}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -1307,11 +1310,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(168,85,247,0.2)',
     gap: SPACING.sm,
   },
-  searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, paddingLeft: SPACING.md, paddingRight: 6, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.border },
-  searchTapZone: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, flex: 1, paddingVertical: 6 },
-  searchPlaceholder: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, flex: 1 },
-  aiInlineBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 7, borderRadius: RADIUS.full, backgroundColor: COLORS.primary },
-  aiInlineBtnText: { color: COLORS.white, fontSize: 11.5, ...FONTS.bold, letterSpacing: 0.4 },
   // Big AI search hero — the primary tool, elevated with a teal accent (Franck Aug 2026)
   searchHero: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, paddingLeft: SPACING.sm, paddingRight: SPACING.md, paddingVertical: SPACING.sm + 2, borderWidth: 1.5, borderColor: 'rgba(18,181,165,0.45)' },
   searchHeroIcon: { width: 40, height: 40, borderRadius: RADIUS.full, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },

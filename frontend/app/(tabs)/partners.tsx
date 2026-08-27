@@ -242,8 +242,11 @@ export default function PartnersScreen() {
         return true;
       })
         // Rank by AMO's own signal (rank_score = tier + claimed + 30d engagement),
-        // so elite/premium and high-engagement venues lead each cuisine.
-        .sort((a, b) => ((b as any).rank_score || 0) - ((a as any).rank_score || 0))
+        // so elite/premium and high-engagement venues lead each cuisine. partner_id is a
+        // stable tiebreak so equal-score venues don't reshuffle between the static snapshot
+        // and the live hydrate.
+        .sort((a, b) => (((b as any).rank_score || 0) - ((a as any).rank_score || 0))
+          || String((a as any).partner_id).localeCompare(String((b as any).partner_id)))
     : [];
 
   const subcatCount = (key: string): number => {

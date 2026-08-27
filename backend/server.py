@@ -1057,7 +1057,9 @@ async def seed_bethel_events(request: Request):
         raise HTTPException(status_code=404, detail="Bethel Bellini (ptr_dv_003) not found")
 
     from datetime import date as _date, timedelta as _td
-    today = _date.today()
+    # America/Bogota, per the app's temporal doctrine (events_time.py) — date.today()
+    # is UTC on Vercel and would drift a day between 00:00–05:00 UTC.
+    today = _date.fromisoformat(_today_bogota())
     horizon = today + _td(days=35)
     weekend_dates = []
     d = today
@@ -1069,9 +1071,6 @@ async def seed_bethel_events(request: Request):
     created, skipped = [], []
     for dd in weekend_dates:
         eid = f"pe_bethel_dj_{dd.isoformat()}"
-        if await db.partner_events.find_one({"event_id": eid}, {"_id": 1}):
-            skipped.append(eid)
-            continue
         weekend = dd.weekday() in (5, 6)
         ev = {
             "event_id": eid,
@@ -1102,9 +1101,11 @@ async def seed_bethel_events(request: Request):
             "partner_tier": partner.get("tier"),
             "partner_image": partner.get("image_url"),
         }
-        await db.partner_events.insert_one(ev)
-        ev.pop("_id", None)
-        created.append(eid)
+        # Idempotent, race-tolerant upsert keyed on event_id — re-runs and concurrent
+        # double-fires never create a duplicate row (no unique index required).
+        res = await db.partner_events.update_one(
+            {"event_id": eid}, {"$setOnInsert": ev}, upsert=True)
+        (created if res.upserted_id is not None else skipped).append(eid)
 
     return {"partner": partner.get("name"), "created": created, "skipped": skipped,
             "total_created": len(created), "total_skipped": len(skipped)}
@@ -7650,10 +7651,12 @@ async def agent_chat(request: Request):
     except Exception as exc:
         logger.warning(f"[agent] taste load failed: {exc}")
 
-    # Chat stays on Sonnet: the card-heavy concierge response needs the larger token
-    # budget (the fast/Haiku path caps output and truncated 5-8 cards into a parse
-    # fail → 0 recommendations). Perceived speed + offline resilience are delivered
-    # client-side: the app shows instant local catalog results while this resolves.
+    # Model selection lives in ai_agent.run_agent_turn (both search AND chat now run
+    # on claude-haiku-4-5). Sonnet 4.6 was DROPPED: its ~15-17s completions crossed the
+    # SDK timeout → llm_complete returned None → Luna served the canned greeting. Do NOT
+    # "restore Sonnet for chat" here — that reintroduces the timeout regression.
+    # Chat keeps the larger max_tokens (2048) for the card-heavy response; perceived speed
+    # + offline resilience come from the client showing instant local catalog results.
     assistant_payload = await _ai_agent.run_agent_turn(
         db,
         user=user,

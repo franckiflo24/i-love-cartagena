@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
+import { eventPriceLabel } from '../src/utils/price';
 import { useFavorites } from '../src/context/FavoritesContext';
 import { useTr } from '../src/i18n/autoTr';
 import { SafeImage } from '../src/components/SafeImage';
@@ -135,7 +136,7 @@ export default function ConcertsScreen() {
   };
 
   const shareConcert = async (concert: Concert) => {
-    const priceText = concert.is_free ? 'GRATIS' : `$${(concert.price / 1000).toFixed(0)}K COP`;
+    const priceText = eventPriceLabel(concert.price, concert.is_free, { cop: true });
     try {
       await Share.share({
         message: `🎵 ${concert.artist} - ${concert.title}\n📍 ${concert.venue_name}\n🗓 ${concert.date} · ${concert.start_time}-${concert.end_time}\n🎶 ${concert.genre}\n💰 ${priceText}\n\nDescarga Amo Cartagena para ver todo el programa 🎧`,

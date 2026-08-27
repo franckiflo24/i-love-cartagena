@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../src/constants/theme';
 import { useFavorites } from '../src/context/FavoritesContext';
 import { api } from '../src/constants/api';
+import { eventPriceLabel } from '../src/utils/price';
 import { TierBadge } from '../src/components/TierBadge';
 import { SafeImage } from '../src/components/SafeImage';
 import { useTr } from '../src/i18n/autoTr';
@@ -236,7 +237,7 @@ export default function FavoritesScreen() {
                               <Text style={styles.timePillText}>{e.start_time}</Text>
                             </View>
                             <View style={[styles.pricePill, e.is_free ? styles.priceFreeBg : styles.pricePaidBg]}>
-                              <Text style={styles.pricePillText}>{e.is_free ? tr('GRATIS') : `$${(e.price / 1000).toFixed(0)}K`}</Text>
+                              <Text style={styles.pricePillText}>{eventPriceLabel(e.price, e.is_free)}</Text>
                             </View>
                           </View>
                           <Text style={styles.peTitle} numberOfLines={2}>{e.title}</Text>
@@ -281,7 +282,7 @@ export default function FavoritesScreen() {
                           <Ionicons name="time-outline" size={12} color="rgba(255,255,255,0.7)" />
                           <Text style={styles.cardMetaText}>{c.start_time}</Text>
                         </View>
-                        <Text style={styles.cardPrice}>{c.is_free ? tr('GRATIS') : `$${(c.price / 1000).toFixed(0)}K COP`}</Text>
+                        <Text style={styles.cardPrice}>{eventPriceLabel(c.price, c.is_free, { cop: true })}</Text>
                       </View>
                     </TouchableOpacity>
                   ))}

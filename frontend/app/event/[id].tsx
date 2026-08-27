@@ -9,6 +9,7 @@ import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
+import { eventPriceLabel } from '../../src/utils/price';
 
 export default function EventDetail() {
   const tr = useTr();
@@ -35,7 +36,7 @@ export default function EventDetail() {
 
   const shareEvent = async () => {
     if (!event) return;
-    const priceText = event.is_free ? 'GRATIS' : `$${((event.price || 0) / 1000).toFixed(0)}K COP`;
+    const priceText = eventPriceLabel(event.price, event.is_free, { cop: true });
     try {
       await Share.share({
         message: `🎉 ${event.title}\n📍 ${event.venue_name}\n🗓 ${event.date} · ${event.start_time}\n💰 ${priceText}\n\nDescarga Amo Cartagena para ver todo el programa 🎧`,
@@ -78,7 +79,6 @@ export default function EventDetail() {
     );
   }
 
-  const formatPrice = (p: number | undefined | null) => !p ? 'Gratis' : `$${(p ?? 0).toLocaleString()} COP`;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -164,7 +164,7 @@ export default function EventDetail() {
             <View>
               <Text style={styles.infoLabel}>{tr('Precio')}</Text>
               <Text style={[styles.infoValue, event.is_free && { color: COLORS.success }]}>
-                {formatPrice(event.price)}
+                {eventPriceLabel(event.price, event.is_free, { cop: true })}
               </Text>
             </View>
           </View>

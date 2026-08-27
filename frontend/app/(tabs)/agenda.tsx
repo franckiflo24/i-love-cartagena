@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
+import { eventPriceLabel } from '../../src/utils/price';
 import { PartnerEventCard, PartnerEvent } from '../../src/components/PartnerEventCard';
 import { useMyCalendar, CalendarItem } from '../../src/context/MyCalendarContext';
 import { TierBadge } from '../../src/components/TierBadge';
@@ -503,7 +504,7 @@ export default function AgendaScreen() {
                               {it.is_free !== undefined && (
                                 <View style={[styles.pricePill, it.is_free ? styles.priceFreeBg : styles.pricePaidBg]}>
                                   <Text style={styles.pricePillText}>
-                                    {it.is_free ? 'GRATIS' : `$${((it.price || 0) / 1000).toFixed(0)}K`}
+                                    {eventPriceLabel(it.price, it.is_free)}
                                   </Text>
                                 </View>
                               )}

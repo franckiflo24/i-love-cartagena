@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { COLORS, SPACING, RADIUS, FONTS, colorForKey } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
+import { eventPriceLabel } from '../../src/utils/price';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -573,7 +574,7 @@ export default function MapaScreen() {
             category: 'concert', type: 'concert', address: c.venue_name,
             lat: loc.lat + offset, lng: loc.lng + offset,
             image_url: c.image_url || '',
-            price: c.is_free ? 'GRATIS' : `$${(c.price / 1000).toFixed(0)}K COP`,
+            price: eventPriceLabel(c.price, c.is_free, { cop: true }),
             link: c.ticket_link || '', extra: `${c.genre} · ${c.start_time}`,
           });
         }

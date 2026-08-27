@@ -241,7 +241,11 @@ function FeaturedCard({
   item: Experience;
   onPress: () => void;
 }) {
-  const price = formatPrice(item.price ?? 0, item.is_free ?? !item.price);
+  // NEVER infer free from a missing price — an unpriced experience is "a consultar",
+  // not free (audit Aug 2026: 13/13 featured items had price=null,is_free=null and
+  // rendered "Gratis" on paid yacht charters). formatPrice returns null for an
+  // unpriced paid item, so the pill simply hides.
+  const price = formatPrice(item.price ?? 0, !!item.is_free);
   const tierStr = item.partner_tier || item.tier || '';
   const tierColor = tierStr ? TIER_COLORS[tierStr as Tier] : null;
   return (

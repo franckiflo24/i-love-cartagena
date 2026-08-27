@@ -391,20 +391,27 @@ async def _collection_partners(c: Dict[str, Any], limit: int = 30) -> List[Dict[
 
 @router.get("/collections")
 async def list_collections():
+    import asyncio
     from partner_visibility import PUBLIC_PARTNER_FILTER  # count only publicly-visible venues
-    out = []
-    for c in COLLECTIONS:
+
+    async def _count(c):
         if c.get("curated_ids"):
-            count = await db.partners.count_documents(
+            return await db.partners.count_documents(
                 {**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": c["curated_ids"]}})
-        else:
-            count = await db.partners.count_documents({**PUBLIC_PARTNER_FILTER, **_query_for(c)})
-        out.append({
-            "key": c["key"], "icon": c["icon"],
-            "title_es": c["title_es"], "title_en": c["title_en"],
-            "desc_es": c["desc_es"], "desc_en": c["desc_en"],
-            "count": count,
-        })
+        n = await db.partners.count_documents({**PUBLIC_PARTNER_FILTER, **_query_for(c)})
+        # The badge must match what the collection page renders — the dynamic page
+        # caps at c["limit"], so an uncapped count would diverge once results exceed it.
+        cap = c.get("limit")
+        return min(n, cap) if cap else n
+
+    # Parallelize: 21 collections × 1 count each, gathered instead of serial round-trips.
+    counts = await asyncio.gather(*[_count(c) for c in COLLECTIONS])
+    out = [{
+        "key": c["key"], "icon": c["icon"],
+        "title_es": c["title_es"], "title_en": c["title_en"],
+        "desc_es": c["desc_es"], "desc_en": c["desc_en"],
+        "count": counts[i],
+    } for i, c in enumerate(COLLECTIONS)]
     return {"collections": out}
 
 
