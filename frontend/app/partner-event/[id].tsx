@@ -39,7 +39,9 @@ const formatDate = (iso: string) => {
     return d.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' });
   } catch { return iso; }
 };
-const formatPrice = (p: number | undefined | null) => !p ? 'GRATIS' : `$${(p ?? 0).toLocaleString('es-CO')} COP`;
+// no price ≠ free — a venue may publish no price ("a consultar"). The is_free
+// case is handled at the call site; here 0/undefined means unpriced.
+const formatPrice = (p: number | undefined | null) => !p ? 'Consultar' : `$${(p ?? 0).toLocaleString('es-CO')} COP`;
 
 export default function PartnerEventDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -185,7 +187,7 @@ export default function PartnerEventDetail() {
             <AddToTrip refType="experience" refId={event.event_id} name={event.title} compact />
           </View>
           <View style={[styles.priceBadgeBig, event.is_free ? styles.priceFree : styles.pricePaid]}>
-            <Text style={styles.priceBigText}>{formatPrice(event.price)}</Text>
+            <Text style={styles.priceBigText}>{event.is_free ? 'GRATIS' : formatPrice(event.price)}</Text>
           </View>
           <View style={styles.flyerBottom}>
             <View style={styles.catRow}>

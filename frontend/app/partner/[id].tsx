@@ -259,7 +259,9 @@ export default function PartnerDetail() {
       return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
     } catch { return iso; }
   };
-  const formatPrice = (p: number | undefined | null) => !p ? tr('GRATIS') : `$${(p / 1000).toFixed(0)}K`;
+  // Only called for NON-free events (is_free is checked before this), so a
+  // missing/0 price means "no public price" (a consultar), NOT free.
+  const formatPrice = (p: number | undefined | null) => !p ? tr('Consultar') : `$${(p / 1000).toFixed(0)}K`;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
