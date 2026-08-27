@@ -1799,8 +1799,15 @@ def _safe_json_parse(text: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-def _fallback_response(user_text: str, forced_language: Optional[str] = None) -> Dict[str, Any]:
-    """If the LLM fails, return a useful canned response."""
+def _fallback_response(
+    user_text: str,
+    forced_language: Optional[str] = None,
+    context: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """If the LLM fails, still answer with REAL venues from the retrieved context
+    (context['relevant_partners']) instead of a dead-end greeting — mirrors the
+    frontend offlineReply so the guest always gets real names/areas. Falls back to
+    the concierge greeting only when there is no venue context to surface."""
     t = (user_text or "").lower()
     lang = "es"  # default
     if forced_language and forced_language in {"es", "en", "fr", "pt"}:
@@ -1813,15 +1820,42 @@ def _fallback_response(user_text: str, forced_language: Optional[str] = None) ->
             lang = "pt"
         elif any(w in t for w in [" the ", "where", "how ", "tonight", "tomorrow", "want to", " can ", " i "]):
             lang = "en"
-    msg = {
-        "es": "Soy Luna, tu concierge de Cartagena. ¿Querés ver la agenda de hoy, restaurantes, conciertos o un paseo a las islas?",
-        "en": "I'm Luna, your Cartagena concierge. Want to see today's agenda, restaurants, concerts or a boat ride to the islands?",
-        "fr": "Je suis Luna, votre concierge à Carthagène. Voulez-vous voir l'agenda du jour, les restaurants, les concerts ou une sortie aux îles ?",
-        "pt": "Sou Luna, sua concierge em Cartagena. Quer ver a agenda de hoje, restaurantes, shows ou um passeio às ilhas?",
-    }[lang]
+
+    # Surface the venues the backend already retrieved for THIS query — the same
+    # data the LLM would have drawn from — as real recommendation cards.
+    recs: List[Dict[str, Any]] = []
+    for p in ((context or {}).get("relevant_partners") or [])[:6]:
+        if not isinstance(p, dict) or not p.get("partner_id"):
+            continue
+        recs.append({
+            "kind": "partner",
+            "partner_id": p.get("partner_id"),
+            "name": str(p.get("name") or "")[:80],
+            "type": str(p.get("subcategory") or p.get("category") or "").replace("_", " ")[:60],
+            "vibe": str(p.get("experience") or "")[:120],
+            "price_range": str(p.get("price_range") or "")[:8],
+            "address": str(p.get("address") or "")[:100],
+            "reason": "",
+        })
+
+    if recs:
+        msg = {
+            "es": "Aquí tenés algunas opciones reales para lo que buscás:",
+            "en": "Here are some real options for what you're looking for:",
+            "fr": "Voici quelques options réelles pour ce que vous cherchez :",
+            "pt": "Aqui estão algumas opções reais para o que você procura:",
+        }[lang]
+    else:
+        msg = {
+            "es": "Soy Luna, tu concierge de Cartagena. ¿Querés ver la agenda de hoy, restaurantes, conciertos o un paseo a las islas?",
+            "en": "I'm Luna, your Cartagena concierge. Want to see today's agenda, restaurants, concerts or a boat ride to the islands?",
+            "fr": "Je suis Luna, votre concierge à Carthagène. Voulez-vous voir l'agenda du jour, les restaurants, les concerts ou une sortie aux îles ?",
+            "pt": "Sou Luna, sua concierge em Cartagena. Quer ver a agenda de hoje, restaurantes, shows ou um passeio às ilhas?",
+        }[lang]
     return {
         "message": msg,
         "language": lang,
+        "recommendations": recs,
         "actions": [
             {"type": "navigate", "screen": "agenda", "label": {"es": "Ver agenda", "en": "See agenda", "fr": "Voir l'agenda", "pt": "Ver agenda"}[lang]},
             {"type": "navigate", "screen": "partners", "label": {"es": "Ver partners", "en": "See partners", "fr": "Voir partenaires", "pt": "Ver parceiros"}[lang]},
@@ -1960,9 +1994,13 @@ async def run_agent_turn(
             + SYSTEM_PROMPT
         )
 
-    # fast=True (search bar): Haiku 4.5 for 2-3s responses
-    # fast=False (chat sessions): Sonnet 4.6 for deeper reasoning
-    model = "claude-haiku-4-5" if fast else "claude-sonnet-4-6"
+    # Haiku 4.5 for BOTH search and chat (~3-4s, reliable). Sonnet 4.6 chat
+    # completions ran ~15-17s (6.9k-token system prompt + retrieved context +
+    # 2048 out) and routinely crossed the SDK timeout → llm_complete returned None
+    # → Luna served the generic _fallback_response greeting instead of real recs
+    # ("search too long / not curated", Franck 2026-08). Haiku answers from the
+    # same context in a few seconds.
+    model = "claude-haiku-4-5"
     max_tok = 1024 if fast else 2048
 
     response = await llm_complete(
@@ -1974,12 +2012,12 @@ async def run_agent_turn(
 
     parsed = _safe_json_parse(response or "")
     if not parsed or not isinstance(parsed, dict):
-        return _fallback_response(user_text, forced or None)
+        return _fallback_response(user_text, forced or None, context)
 
     # Validate keys
     message = (parsed.get("message") or "").strip()
     if not message:
-        return _fallback_response(user_text, forced or None)
+        return _fallback_response(user_text, forced or None, context)
     language = parsed.get("language") or "es"
     if language not in {"es", "en", "fr", "pt"}:
         language = "es"

@@ -38,9 +38,14 @@ def _get_anthropic():
     # Bounded timeout + single retry: Vercel maxDuration is 60s, but the SDK
     # default timeout is 600s and it retries transient 429/500/529 twice with
     # backoff — a slow/overloaded Claude would otherwise hang the function to the
-    # 60s ceiling → 504 on Luna (/agent/chat) and pulse POST. 20s×(1+1 retry)
-    # stays well under 60s and lets llm_complete's None-fallback actually fire.
-    _anthropic_client = AsyncAnthropic(api_key=api_key, timeout=20.0, max_retries=1)
+    # 60s ceiling → 504 on Luna (/agent/chat) and pulse POST.
+    # 30s is a rare-HANG safety net, not typical latency: Luna now runs on Haiku
+    # 4.5 (~3-5s). The old 20s cap was clipping legitimate ~15-17s Sonnet chat
+    # completions → None → Luna's canned greeting ("search too long / not curated",
+    # Franck 2026-08). A typical transient error (429/529) returns immediately, so
+    # the retry costs little; a genuine double-hang (→60s) is still caught by the
+    # frontend offlineReply (real venues), so the guest never dead-ends.
+    _anthropic_client = AsyncAnthropic(api_key=api_key, timeout=30.0, max_retries=1)
     return _anthropic_client
 
 
