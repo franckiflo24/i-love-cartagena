@@ -41,7 +41,9 @@ const CAT_LABELS: Record<string, string> = {
   popup: 'Pop-up',
 };
 
-const formatPrice = (p: number) => p === 0 ? 'GRATIS' : `$${(p / 1000).toFixed(0)}K`;
+// price 0 does NOT mean free — many venues publish no price ("a consultar por
+// WhatsApp"). Only is_free means GRATIS; an unpriced paid event shows "Consultar".
+const formatPrice = (p: number, isFree: boolean) => isFree ? 'GRATIS' : (p > 0 ? `$${(p / 1000).toFixed(0)}K` : 'Consultar');
 
 interface Props {
   event: PartnerEvent;
@@ -58,7 +60,7 @@ export const PartnerEventCard: React.FC<Props> = ({ event, onPress }) => {
         <View style={styles.flyerOverlay} />
         {tierColors && <View style={[styles.tierStripe, { backgroundColor: tierColors.main }]} />}
         <View style={[styles.priceTag, event.is_free ? styles.priceFree : styles.pricePaid]}>
-          <Text style={styles.priceText}>{formatPrice(event.price)}</Text>
+          <Text style={styles.priceText}>{formatPrice(event.price, event.is_free)}</Text>
         </View>
       </View>
       {/* Info */}

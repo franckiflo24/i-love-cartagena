@@ -1040,6 +1040,76 @@ async def business_create_event(request: Request):
     return event
 
 
+@api_router.post("/admin/seed-bethel-events")
+async def seed_bethel_events(request: Request):
+    """One-off admin seed (Franck Aug 2026): Bethel Bellini is an UNCLAIMED
+    editorial venue, so there is no business dashboard to post its recurring
+    events. This inserts its real "DJ al Atardecer" sunset sessions into the
+    Agenda — derived ONLY from the verified venue record (Tierra Bomba beach club,
+    deep/organic house at sunset, Mar–Dom, weekends until 22:00, price via
+    WhatsApp). Idempotent by stable event_id; safe to re-run. Requires is_admin.
+    """
+    await require_admin(request)
+    pid = "ptr_dv_003"
+    partner = await db.partners.find_one(
+        {"partner_id": pid}, {"_id": 0, "name": 1, "tier": 1, "image_url": 1, "booking_link": 1})
+    if not partner:
+        raise HTTPException(status_code=404, detail="Bethel Bellini (ptr_dv_003) not found")
+
+    from datetime import date as _date, timedelta as _td
+    today = _date.today()
+    horizon = today + _td(days=35)
+    weekend_dates = []
+    d = today
+    while d <= horizon and len(weekend_dates) < 15:
+        if d.weekday() in (4, 5, 6):  # Fri, Sat, Sun — the venue's real operating weekend
+            weekend_dates.append(d)
+        d += _td(days=1)
+
+    created, skipped = [], []
+    for dd in weekend_dates:
+        eid = f"pe_bethel_dj_{dd.isoformat()}"
+        if await db.partner_events.find_one({"event_id": eid}, {"_id": 1}):
+            skipped.append(eid)
+            continue
+        weekend = dd.weekday() in (5, 6)
+        ev = {
+            "event_id": eid,
+            "partner_id": pid,
+            "title": "DJ al Atardecer — Sunset Sessions",
+            "description": ("DJ en vivo con deep & organic house al atardecer en el beach club "
+                            "más nuevo de Tierra Bomba (~15 min en lancha del Muelle de la "
+                            "Bodeguita). Zonas de sol y sombra, cocina caribeña-contemporánea y "
+                            "salones VIP. Pase por WhatsApp — precio a consultar."),
+            "category": "music",
+            "date": dd.isoformat(),
+            "start_time": "16:00",
+            "end_time": "22:00" if weekend else "20:00",
+            "flyer_url": partner.get("image_url") or "/images/partners/ptr_dv_003.jpg",
+            "is_free": False,
+            "price": 0,
+            "currency": "COP",
+            "booking_link": partner.get("booking_link") or "https://bethelbellinibeachclub.com",
+            "is_published": True,
+            "source": "editorial_seed",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "views_count": 0,
+            "reserve_clicks": 0,
+            "moderation_status": "approved",
+            "moderation_verdict": "AUTO_APPROVE",
+            "moderation_reason": "Editorial seed from verified venue record (admin)",
+            "partner_name": partner.get("name"),
+            "partner_tier": partner.get("tier"),
+            "partner_image": partner.get("image_url"),
+        }
+        await db.partner_events.insert_one(ev)
+        ev.pop("_id", None)
+        created.append(eid)
+
+    return {"partner": partner.get("name"), "created": created, "skipped": skipped,
+            "total_created": len(created), "total_skipped": len(skipped)}
+
+
 @api_router.post("/business/upload-image")
 async def business_upload_image(request: Request):
     """Upload + AI-moderate a business image (flyer / profile).
