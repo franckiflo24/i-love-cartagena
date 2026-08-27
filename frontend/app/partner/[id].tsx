@@ -537,6 +537,26 @@ export default function PartnerDetail() {
           </View>
         )}
 
+        {/* "Is this your business?" — entry point into the existing claim flow
+            (find → claim → verify → activate → dashboard). Hidden once verified.
+            Franck Aug 2026: partners need a discoverable way to claim their profile. */}
+        {partner?.partner_id && (partner as any).claim_status !== 'verified_owner' && (
+          <TouchableOpacity
+            style={styles.claimCta}
+            onPress={() => router.push(`/business/claim/${partner.partner_id}` as any)}
+            activeOpacity={0.85}
+          >
+            <View style={styles.claimIcon}>
+              <Ionicons name="pricetag" size={18} color={COLORS.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.claimTitle}>{tr('¿Es tu negocio?')}</Text>
+              <Text style={styles.claimSub}>{tr('Reclamalo y gestioná tu perfil, eventos y promociones')}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        )}
+
         <View style={{ height: 100 }} />
       </ScrollView>
 
@@ -597,6 +617,10 @@ const styles = StyleSheet.create({
   },
   sealBadge: { position: 'absolute', top: SPACING.md + 56, right: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(5,8,20,0.85)', borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.official },
   sealText: { fontSize: 10, color: COLORS.official, ...FONTS.bold, letterSpacing: 1 },
+  claimCta: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginHorizontal: SPACING.md, marginTop: SPACING.lg, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.md, borderWidth: 1, borderColor: 'rgba(18,181,165,0.4)' },
+  claimIcon: { width: 36, height: 36, borderRadius: RADIUS.full, backgroundColor: 'rgba(18,181,165,0.12)', alignItems: 'center', justifyContent: 'center' },
+  claimTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
+  claimSub: { fontSize: 11.5, color: COLORS.textMuted, ...FONTS.regular, marginTop: 1 },
   heroBottom: { position: 'absolute', bottom: SPACING.lg, left: SPACING.lg, right: SPACING.lg },
   heroBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flexWrap: 'wrap' },
   catBadge: { alignSelf: 'flex-start', backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 4 },
