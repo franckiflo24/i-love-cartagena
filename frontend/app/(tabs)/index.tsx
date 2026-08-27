@@ -423,39 +423,23 @@ export default function HomeScreen() {
         {/* Drop 8F: passport greets you when a missing stamp is steps away */}
         <PassportGlance />
 
-        {/* Drop 9 (3c): Ahora mismo — the occasion for the current moment */}
-        <NowStrip />
-
-        {/* Drop 8B-data (T5c): Qué pasa ahora — season + earnable-now stamps */}
-        <SeasonBanner />
-
-        {/* Cambio del día — USD/EUR→COP daily rate (tourists keep asking) */}
-        <FxStrip />
-
-        {/* Unified AI + Search Bar — tap left side for keyword search, right side opens AI Concierge */}
-        <View style={styles.searchBar}>
-          <TouchableOpacity
-            style={styles.searchTapZone}
-            onPress={() => router.push('/search')}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="search" size={18} color={COLORS.textMuted} />
-            <Text style={styles.searchPlaceholder} numberOfLines={1}>
-              {tr('Buscar en Cartagena…')}
-            </Text>
-          </TouchableOpacity>
-          {/* Amo IA inline button hidden — investor demo */}
-          {false && (
-            <TouchableOpacity
-              style={styles.aiInlineBtn}
-              onPress={() => router.push('/concierge' as any)}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="sparkles" size={15} color={COLORS.white} />
-              <Text style={styles.aiInlineBtnText}>Amo IA</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        {/* Primary tool — a big AI-powered search HERO (Franck Aug 2026: "search is
+            the main tool", make it bigger + AI, above the fold). Tap → /search (Luna). */}
+        <TouchableOpacity
+          style={styles.searchHero}
+          onPress={() => router.push('/search')}
+          activeOpacity={0.9}
+          testID="home-search-hero"
+        >
+          <View style={styles.searchHeroIcon}>
+            <Ionicons name="sparkles" size={20} color={COLORS.white} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.searchHeroText} numberOfLines={1}>{tr('Buscar en Cartagena con IA…')}</Text>
+            <Text style={styles.searchHeroSub} numberOfLines={1}>{tr('Preguntá lo que sea — Luna te guía')}</Text>
+          </View>
+          <Ionicons name="mic-outline" size={20} color={COLORS.textMuted} />
+        </TouchableOpacity>
 
         {/* Taste profile mini-card — shown when personalized */}
         {userProfile.isPersonalized && userProfile.interests.length > 0 && (
@@ -612,6 +596,12 @@ export default function HomeScreen() {
             ))}
           </ScrollView>
         </View>
+
+        {/* Moment strips — relocated BELOW the search hero (Franck Aug 2026: give the
+            search tool the top; Green Season / Right Now / FX live here now). */}
+        <NowStrip />
+        <SeasonBanner />
+        <FxStrip />
 
         {/* Explore by Category — tappable photo cards */}
         <View style={styles.section}>
@@ -849,8 +839,9 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Recomendados para ti — AI profile-powered */}
-        {recommendations.length > 0 && (
+        {/* Recomendados para ti — AI profile-powered. Franck Aug 2026: only ONE
+            "Para ti" row — this is a fallback when the taste-engine row (forYou) is empty. */}
+        {recommendations.length > 0 && forYou.length === 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
@@ -1321,6 +1312,11 @@ const styles = StyleSheet.create({
   searchPlaceholder: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, flex: 1 },
   aiInlineBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 7, borderRadius: RADIUS.full, backgroundColor: COLORS.primary },
   aiInlineBtnText: { color: COLORS.white, fontSize: 11.5, ...FONTS.bold, letterSpacing: 0.4 },
+  // Big AI search hero — the primary tool, elevated with a teal accent (Franck Aug 2026)
+  searchHero: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, paddingLeft: SPACING.sm, paddingRight: SPACING.md, paddingVertical: SPACING.sm + 2, borderWidth: 1.5, borderColor: 'rgba(18,181,165,0.45)' },
+  searchHeroIcon: { width: 40, height: 40, borderRadius: RADIUS.full, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
+  searchHeroText: { fontSize: 16, color: COLORS.textMain, ...FONTS.semibold },
+  searchHeroSub: { fontSize: 11.5, color: COLORS.textMuted, ...FONTS.regular, marginTop: 1 },
 
   // Sponsor Banner
   sponsorBanner: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.08)', overflow: 'hidden', paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md },
@@ -1493,14 +1489,14 @@ const styles = StyleSheet.create({
   // AI Recommendations
   aiBadge: { backgroundColor: 'rgba(168,85,247,0.15)', borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 2 },
   aiBadgeText: { fontSize: 9, color: '#A855F7', ...FONTS.bold, letterSpacing: 1 },
-  recCard: { width: 160, height: 200, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border },
+  recCard: { width: 232, height: 244, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border },
   recImage: { width: '100%', height: '100%' },
   recOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: SPACING.sm, backgroundColor: 'rgba(0,0,0,0.55)', gap: 3 },
   recTierBadge: { alignSelf: 'flex-start', borderRadius: RADIUS.full, paddingHorizontal: 6, paddingVertical: 1 },
   recPulseBadge: { alignSelf: 'flex-start', borderRadius: RADIUS.full, paddingHorizontal: 6, paddingVertical: 1, backgroundColor: COLORS.coral, maxWidth: 150 },
   recPulseText: { fontSize: 9, color: '#000000', ...FONTS.bold },
   recTierText: { fontSize: 8, color: '#FFF', ...FONTS.bold, letterSpacing: 0.5 },
-  recName: { fontSize: 13, color: '#FFF', ...FONTS.bold, lineHeight: 17 },
+  recName: { fontSize: 15, color: '#FFF', ...FONTS.bold, lineHeight: 19 },
   recMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   recRating: { flexDirection: 'row', alignItems: 'center', gap: 2 },
   recRatingText: { fontSize: 10, color: COLORS.icon, ...FONTS.semibold },
