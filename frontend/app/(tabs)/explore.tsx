@@ -32,6 +32,7 @@ import { IMAGES, getCategoryImage } from '../../src/constants/images';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
 import { PressableScale } from '../../src/components/PressableScale';
+import { FadeInUp } from '../../src/components/FadeInUp';
 import { SkeletonFeaturedRow, SkeletonGrid } from '../../src/components/Skeleton';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
@@ -914,7 +915,7 @@ export default function ExploreScreen() {
 
       {/* ── Featured experiences (only on "Todos" view) ── */}
       {selectedCategory.key === 'all' && (loadingFeatured || featured.length > 0) && (
-        <View style={styles.section}>
+        <FadeInUp style={styles.section} delay={0}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
               <Ionicons name="sparkles" size={14} color={COLORS.icon} />
@@ -949,12 +950,12 @@ export default function ExploreScreen() {
               )}
             />
           )}
-        </View>
+        </FadeInUp>
       )}
 
       {/* ── Eventos destacados (only on "Todos" view) ── */}
       {selectedCategory.key === 'all' && upcomingEvents.length > 0 && (
-        <View style={styles.section}>
+        <FadeInUp style={styles.section} delay={90}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
               <Ionicons name="calendar" size={14} color={COLORS.icon} />
@@ -1015,12 +1016,12 @@ export default function ExploreScreen() {
               );
             }}
           />
-        </View>
+        </FadeInUp>
       )}
 
       {/* ── Barrios de Cartagena (only on "Todos" view) ── */}
       {selectedCategory.key === 'all' && (loadingNeighborhoods || neighborhoods.length > 0) && (
-        <View style={styles.section}>
+        <FadeInUp style={styles.section} delay={180}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
               <Ionicons name="location" size={14} color={COLORS.icon} />
@@ -1048,7 +1049,7 @@ export default function ExploreScreen() {
               )}
             />
           )}
-        </View>
+        </FadeInUp>
       )}
 
       {/* ── Partners grid header / sub-category gateway ── */}

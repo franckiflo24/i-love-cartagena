@@ -621,7 +621,7 @@ export default function HomeScreen() {
         <FxStrip />
 
         {/* Explore by Category — tappable photo cards */}
-        <View style={styles.section}>
+        <FadeInUp style={styles.section} delay={0}>
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleRow}>
               <Ionicons name="compass" size={18} color={COLORS.icon} />
@@ -669,10 +669,10 @@ export default function HomeScreen() {
               </TouchableOpacity>
             ))}
           </ScrollView>
-        </View>
+        </FadeInUp>
 
         {/* Colecciones — curated occasion collections (knowledge-tag powered) */}
-        <View style={styles.section}>
+        <FadeInUp style={styles.section} delay={90}>
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleRow}>
               <Ionicons name="albums" size={18} color={COLORS.icon} />
@@ -697,7 +697,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
             ))}
           </ScrollView>
-        </View>
+        </FadeInUp>
 
         {/* Season Carousel */}
         <FlatList
