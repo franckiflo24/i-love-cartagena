@@ -8,6 +8,7 @@ import { COLORS, SPACING, RADIUS, FONTS, ELEVATION, PARTNER_CATEGORY_LABELS, TIE
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
+import { LinearGradient } from 'expo-linear-gradient';
 import ReviewsList from '../../src/components/ReviewsList';
 import { SkeletonPartnerDetail } from '../../src/components/Skeleton';
 import { useLang } from '../../src/context/LanguageContext';
@@ -268,7 +269,12 @@ export default function PartnerDetail() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
           <SafeImage uri={partner.hero_photo || `/images/partners/${partner.partner_id || id}.jpg`} fallbackUri={`/images/partners/${partner.partner_id || id}.jpg`} category={partner.category} style={styles.heroImage} />
-          <View style={styles.heroOverlay} />
+          <LinearGradient
+            colors={['transparent', 'rgba(8,12,22,0.55)', COLORS.background]}
+            locations={[0, 0.55, 1]}
+            style={styles.heroOverlay}
+            pointerEvents="none"
+          />
           <View style={{ flexDirection: 'row', position: 'absolute', top: SPACING.md, left: SPACING.md, gap: 8, zIndex: 5 }}>
             <TouchableOpacity testID="partner-back-btn" style={styles.navBtn} onPress={() => router.back()}>
               <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />

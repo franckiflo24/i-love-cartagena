@@ -22,6 +22,7 @@ import { captureRef, claimPendingRef } from '../../src/lib/referral';
 import { PassportGlance } from '../../src/components/PassportGlance';
 import { SeasonBanner } from '../../src/components/SeasonBanner';
 import { PressableScale } from '../../src/components/PressableScale';
+import { LinearGradient } from 'expo-linear-gradient';
 import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
 import { NowStrip } from '../../src/components/NowStrip';
 import { FxStrip } from '../../src/components/FxStrip';
@@ -386,7 +387,12 @@ export default function HomeScreen() {
       }}
     >
       <SafeImage uri={item.image_url} fallbackUri={IMAGES.season_fallback} style={styles.heroImage} />
-      <View style={styles.heroOverlay} />
+      <LinearGradient
+        colors={['transparent', 'rgba(8,12,22,0.5)', COLORS.background]}
+        locations={[0, 0.55, 1]}
+        style={styles.heroOverlay}
+        pointerEvents="none"
+      />
       <View style={styles.heroContent}>
         <Text style={[styles.heroLabel, { color: item.color }]}>{formatDateRange(item.start_date, item.end_date)}</Text>
         <Text style={styles.heroTitle}>{item.name}</Text>
@@ -501,7 +507,12 @@ export default function HomeScreen() {
         {/* Hero Image — Cartagena first impression */}
         <TouchableOpacity style={styles.heroBanner} activeOpacity={0.95} onPress={() => router.push('/(tabs)/explore' as any)}>
           <SafeImage uri={IMAGES.hero} style={styles.heroBannerImage} />
-          <View style={styles.heroBannerOverlay} />
+          <LinearGradient
+            colors={['transparent', 'rgba(8,12,22,0.5)', COLORS.background]}
+            locations={[0, 0.55, 1]}
+            style={styles.heroBannerOverlay}
+            pointerEvents="none"
+          />
           <View style={styles.heroBannerContent}>
             <Text style={styles.heroBannerLabel}>CARTAGENA DE INDIAS</Text>
             <Text style={styles.heroBannerTitle}>{partnerCount || '...'} lugares para descubrir</Text>

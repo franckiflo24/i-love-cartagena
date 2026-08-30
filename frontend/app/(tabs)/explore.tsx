@@ -14,6 +14,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   COLORS,
   SPACING,
@@ -260,7 +261,12 @@ function FeaturedCard({
         category={item.category}
         style={styles.featuredImage}
       />
-      <View style={styles.featuredOverlay} />
+      <LinearGradient
+        colors={['transparent', 'rgba(8,12,22,0.5)', COLORS.background]}
+        locations={[0, 0.55, 1]}
+        style={styles.featuredOverlay}
+        pointerEvents="none"
+      />
       {tierColor && (
         <View style={[styles.featuredTierStripe, { backgroundColor: tierColor.main }]} />
       )}
@@ -321,7 +327,12 @@ function PartnerGridCard({
         category={partner.category}
         style={styles.gridImage}
       />
-      <View style={styles.gridOverlay} />
+      <LinearGradient
+        colors={['transparent', 'rgba(8,12,22,0.5)', COLORS.background]}
+        locations={[0, 0.55, 1]}
+        style={styles.gridOverlay}
+        pointerEvents="none"
+      />
       {tierColor && (
         <View style={[styles.gridTierStripe, { backgroundColor: tierColor.main }]} />
       )}
