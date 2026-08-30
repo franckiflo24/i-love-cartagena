@@ -31,6 +31,7 @@ import { api } from '../../src/constants/api';
 import { IMAGES, getCategoryImage } from '../../src/constants/images';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
+import { PressableScale } from '../../src/components/PressableScale';
 import { SkeletonFeaturedRow, SkeletonGrid } from '../../src/components/Skeleton';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
@@ -315,13 +316,12 @@ function PartnerGridCard({
   const tr = useTr();
   const tierColor = partner.tier ? TIER_COLORS[partner.tier] : null;
   return (
-    <TouchableOpacity
+    <PressableScale
       style={[
         styles.gridCard,
         tierColor && { borderColor: tierColor.border, borderWidth: 1.5 },
       ]}
       onPress={onPress}
-      activeOpacity={0.85}
     >
       <SafeImage
         uri={partner.image_url}
@@ -374,7 +374,7 @@ function PartnerGridCard({
           </View>
         )}
       </View>
-    </TouchableOpacity>
+    </PressableScale>
   );
 }
 

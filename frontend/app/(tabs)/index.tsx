@@ -22,6 +22,7 @@ import { captureRef, claimPendingRef } from '../../src/lib/referral';
 import { PassportGlance } from '../../src/components/PassportGlance';
 import { SeasonBanner } from '../../src/components/SeasonBanner';
 import { PressableScale } from '../../src/components/PressableScale';
+import { FadeInUp } from '../../src/components/FadeInUp';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
 import { NowStrip } from '../../src/components/NowStrip';
@@ -505,7 +506,8 @@ export default function HomeScreen() {
         )}
 
         {/* Hero Image — Cartagena first impression */}
-        <TouchableOpacity style={styles.heroBanner} activeOpacity={0.95} onPress={() => router.push('/(tabs)/explore' as any)}>
+        <FadeInUp distance={20}>
+        <PressableScale style={styles.heroBanner} onPress={() => router.push('/(tabs)/explore' as any)}>
           <SafeImage uri={IMAGES.hero} style={styles.heroBannerImage} />
           <LinearGradient
             colors={['transparent', 'rgba(8,12,22,0.5)', COLORS.background]}
@@ -522,7 +524,8 @@ export default function HomeScreen() {
                 : tr('Restaurantes \u00B7 Bares \u00B7 Beach Clubs \u00B7 Spas \u00B7 Nightlife')}
             </Text>
           </View>
-        </TouchableOpacity>
+        </PressableScale>
+        </FadeInUp>
 
         {/* Sponsor Banner */}
         {sponsors.length > 0 && (

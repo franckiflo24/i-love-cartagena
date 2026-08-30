@@ -7,6 +7,7 @@ import { COLORS, SPACING, RADIUS, FONTS, TYPE, ELEVATION, PARTNER_CATEGORY_LABEL
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
+import { PressableScale } from '../../src/components/PressableScale';
 import { BrandLoader } from '../../src/components/BrandLoader';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
@@ -439,11 +440,10 @@ export default function PartnersScreen() {
               .map(cat => ({ ...cat, count: getCategoryCount(cat.key) }))
               .filter(cat => cat.count > 0)
               .map(cat => (
-              <TouchableOpacity
+              <PressableScale
                 key={cat.key}
                 style={[styles.categoryCard, { borderColor: `${colorForKey(cat.key)}55` }]}
                 onPress={() => setSelectedCategory(cat.key)}
-                activeOpacity={0.85}
               >
                 <SafeImage uri={cat.image} style={styles.categoryImage} />
                 <View style={styles.categoryOverlay} />
@@ -459,7 +459,7 @@ export default function PartnersScreen() {
                     <Ionicons name="chevron-forward" size={18} color={COLORS.iconMuted} />
                   </View>
                 </View>
-              </TouchableOpacity>
+              </PressableScale>
             ))}
             </View>
           </>
