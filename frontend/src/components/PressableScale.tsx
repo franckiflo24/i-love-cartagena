@@ -8,6 +8,9 @@ type Props = {
   onLongPress?: (e: GestureResponderEvent) => void;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
+  /** Applied to the outer Pressable (not the scaled view) — use for layout props
+   *  the parent needs on the touch target itself, e.g. `flex: 1` in a row. */
+  containerStyle?: StyleProp<ViewStyle>;
   /** Fires a light haptic on press-in (native only). Reserve for commit actions. */
   haptic?: boolean;
   accessibilityRole?: any;
@@ -23,7 +26,7 @@ type Props = {
  * rows where it could fight horizontal scroll drag.
  */
 export function PressableScale({
-  children, onPress, onLongPress, disabled, style, haptic,
+  children, onPress, onLongPress, disabled, style, containerStyle, haptic,
   accessibilityRole = 'button', accessibilityLabel, hitSlop, testID,
 }: Props) {
   const scale = useRef(new Animated.Value(1)).current;
@@ -59,6 +62,7 @@ export function PressableScale({
       accessibilityLabel={accessibilityLabel}
       hitSlop={hitSlop}
       testID={testID}
+      style={containerStyle}
     >
       <Animated.View style={[{ transform: [{ scale }] }, style]}>
         {children}

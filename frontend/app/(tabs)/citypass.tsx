@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   // Hero
   hero: { alignItems: 'center', paddingTop: SPACING.lg, paddingHorizontal: SPACING.lg, paddingBottom: SPACING.md },
   heroIconRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.sm },
-  heroTitle: { ...TYPE.title1, color: COLORS.textMain },
+  heroTitle: { ...TYPE.display, color: COLORS.textMain },
   heroSubtitle: { fontSize: 16, color: COLORS.mustard, ...FONTS.semibold, marginTop: 2 },
   heroDesc: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 20, marginTop: SPACING.sm },
 

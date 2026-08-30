@@ -1230,7 +1230,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: {
-    ...TYPE.title1,
+    ...TYPE.display,
     color: COLORS.textMain,
   },
   subtitle: {

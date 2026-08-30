@@ -544,7 +544,7 @@ export default function AgendaScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, paddingBottom: SPACING.xs },
-  title: { ...TYPE.title1, color: COLORS.textMain },
+  title: { ...TYPE.display, color: COLORS.textMain },
   subtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
 
   segmentedControl: {

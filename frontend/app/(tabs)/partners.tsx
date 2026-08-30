@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, paddingBottom: SPACING.sm },
   headerWithBack: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
-  title: { ...TYPE.title1, color: COLORS.textMain },
+  title: { ...TYPE.display, color: COLORS.textMain },
   subtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
 
   // Hero Banner

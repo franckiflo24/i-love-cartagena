@@ -8,6 +8,8 @@ import { COLORS, SPACING, RADIUS, FONTS, TYPE, ELEVATION, PARTNER_CATEGORY_LABEL
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
+import { PressableScale } from '../../src/components/PressableScale';
+import { FadeInUp } from '../../src/components/FadeInUp';
 import { LinearGradient } from 'expo-linear-gradient';
 import ReviewsList from '../../src/components/ReviewsList';
 import { SkeletonPartnerDetail } from '../../src/components/Skeleton';
@@ -308,7 +310,7 @@ export default function PartnerDetail() {
               <Text style={styles.sealText}>{tr('PARTNER CERTIFICADO')}</Text>
             </View>
           )}
-          <View style={styles.heroBottom}>
+          <FadeInUp style={styles.heroBottom} distance={22}>
             <View style={styles.heroBadgeRow}>
               <View style={[styles.catBadge, { backgroundColor: colorForKey(partner.category || partner.subcategory) }]}>
                 <Text style={styles.catText}>{tr(PARTNER_CATEGORY_LABELS[partner.category] || partner.category)}</Text>
@@ -323,7 +325,7 @@ export default function PartnerDetail() {
               ) : null}
             </View>
             <Text style={styles.heroTitle}>{partner.name}</Text>
-          </View>
+          </FadeInUp>
         </View>
 
         <View style={styles.body}>
@@ -569,18 +571,25 @@ export default function PartnerDetail() {
       </ScrollView>
 
       <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.actionCircle} onPress={handleUber} accessibilityLabel={tr('Pedir Uber')}>
+        <PressableScale style={styles.actionCircle} onPress={handleUber} accessibilityLabel={tr('Pedir Uber')}>
           <Ionicons name="car" size={20} color={COLORS.textMain} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionCircle} onPress={openMaps} accessibilityLabel={tr('Cómo llegar')}>
+        </PressableScale>
+        <PressableScale style={styles.actionCircle} onPress={openMaps} accessibilityLabel={tr('Cómo llegar')}>
           <Ionicons name="navigate" size={20} color={COLORS.textMain} />
-        </TouchableOpacity>
+        </PressableScale>
         {partner.phone ? (
-          <TouchableOpacity style={styles.actionCircle} onPress={handleCall} accessibilityLabel={tr('Llamar')}>
+          <PressableScale style={styles.actionCircle} onPress={handleCall} accessibilityLabel={tr('Llamar')}>
             <Ionicons name="call" size={20} color={COLORS.textMain} />
-          </TouchableOpacity>
+          </PressableScale>
         ) : null}
-        <TouchableOpacity style={[styles.bookBtn, reserving && { opacity: 0.6 }]} onPress={handleReserve} disabled={reserving} accessibilityLabel={tr('Reservar')}>
+        <PressableScale
+          containerStyle={{ flex: 1 }}
+          style={[styles.bookBtn, reserving && { opacity: 0.6 }]}
+          onPress={handleReserve}
+          disabled={reserving}
+          accessibilityLabel={tr('Reservar')}
+          haptic
+        >
           {reserving ? (
             <ActivityIndicator size="small" color={COLORS.black} />
           ) : (
@@ -589,7 +598,7 @@ export default function PartnerDetail() {
               <Text style={styles.bookText}>{tr('Reservar')}</Text>
             </>
           )}
-        </TouchableOpacity>
+        </PressableScale>
       </View>
     </SafeAreaView>
   );
@@ -633,7 +642,7 @@ const styles = StyleSheet.create({
   heroBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flexWrap: 'wrap' },
   catBadge: { alignSelf: 'flex-start', backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 4 },
   catText: { fontSize: 10, color: COLORS.white, ...FONTS.bold, letterSpacing: 1, textTransform: 'uppercase' },
-  heroTitle: { ...TYPE.title1, color: COLORS.textMain, marginTop: SPACING.sm },
+  heroTitle: { ...TYPE.title1, fontSize: 32, lineHeight: 37, color: COLORS.textMain, marginTop: SPACING.sm },
   body: { padding: SPACING.lg },
   sigBox: { backgroundColor: 'rgba(251,191,36,0.05)', borderWidth: 1, borderColor: 'rgba(251,191,36,0.18)', borderRadius: RADIUS.lg, padding: SPACING.md, marginTop: SPACING.md, gap: 4 },
   sigHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
