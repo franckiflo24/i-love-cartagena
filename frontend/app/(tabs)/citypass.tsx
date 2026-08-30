@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
-import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, TYPE } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { openWompiCheckout, checkWompiEnabled, notConfiguredAlert } from '../../src/lib/wompi';
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
   // Hero
   hero: { alignItems: 'center', paddingTop: SPACING.lg, paddingHorizontal: SPACING.lg, paddingBottom: SPACING.md },
   heroIconRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginBottom: SPACING.sm },
-  heroTitle: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold },
+  heroTitle: { ...TYPE.title1, color: COLORS.textMain },
   heroSubtitle: { fontSize: 16, color: COLORS.mustard, ...FONTS.semibold, marginTop: 2 },
   heroDesc: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 20, marginTop: SPACING.sm },
 

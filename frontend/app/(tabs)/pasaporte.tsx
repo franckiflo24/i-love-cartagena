@@ -15,7 +15,7 @@ import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSignupGate } from '../../src/context/SignupGateContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, colorForKey } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, TYPE, colorForKey } from '../../src/constants/theme';
 import { SafeImage } from '../../src/components/SafeImage';
 import { useTr } from '../../src/i18n/autoTr';
 import { useAuth } from '../../src/context/AuthContext';
@@ -842,7 +842,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md },
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
-  title: { flex: 1, fontSize: 22, color: COLORS.textMain, ...FONTS.bold },
+  title: { flex: 1, ...TYPE.title2, color: COLORS.textMain },
   shareBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 14, paddingVertical: 8 },
   shareBtnText: { fontSize: 12, color: '#000', ...FONTS.bold },
 
@@ -864,7 +864,7 @@ const styles = StyleSheet.create({
   rankSeal: { width: 58, height: 58, borderRadius: 29, borderWidth: 2, borderColor: COLORS.primary, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(18,181,165,0.10)' },
   rankSealIcon: { fontSize: 28 },
   coverKicker: { fontSize: 9, color: COLORS.primary, ...FONTS.bold, letterSpacing: 2 },
-  rankName: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, marginTop: 1 },
+  rankName: { ...TYPE.title3, color: COLORS.textMain, marginTop: 1 },
   standingText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold, marginTop: 2 },
   coverStamps: { alignItems: 'center' },
   coverStampsNum: { fontSize: 26, color: COLORS.primary, ...FONTS.bold },
@@ -940,7 +940,7 @@ const styles = StyleSheet.create({
 
   section: { marginBottom: SPACING.lg },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.lg, marginBottom: SPACING.sm },
-  sectionTitle: { fontSize: 17, color: COLORS.textMain, ...FONTS.bold },
+  sectionTitle: { ...TYPE.title3, color: COLORS.textMain },
   sectionCount: { fontSize: 13, color: COLORS.textMuted, ...FONTS.bold },
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingHorizontal: SPACING.lg },

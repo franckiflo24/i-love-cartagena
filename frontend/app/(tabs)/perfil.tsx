@@ -4,7 +4,7 @@ import { Alert } from '../../src/lib/alert';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, TYPE, EVENT_TYPE_LABELS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
   avatar: { width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: COLORS.primary },
   avatarPlaceholder: { width: 80, height: 80, borderRadius: 40, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 32, color: COLORS.white, ...FONTS.bold },
-  userName: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.md },
+  userName: { ...TYPE.title2, color: COLORS.textMain, marginTop: SPACING.md },
   userEmail: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 4 },
 
   // AI Profile Card
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary + '15',
     alignItems: 'center', justifyContent: 'center',
   },
-  aiPersona: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, marginTop: 4 },
+  aiPersona: { ...TYPE.title3, color: COLORS.textMain, marginTop: 4 },
   aiSummary: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 19, marginTop: 2 },
   aiTagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: SPACING.xs },
   aiTag: {
@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
   tabText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold },
   tabTextActive: { color: COLORS.white },
   emptyState: { alignItems: 'center', paddingVertical: SPACING.xxl, gap: SPACING.sm },
-  emptyTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.semibold },
+  emptyTitle: { ...TYPE.title3, color: COLORS.textMain },
   emptyDesc: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center' },
   exploreBtn: { backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 10, paddingHorizontal: SPACING.xl, marginTop: SPACING.sm },
   exploreBtnText: { fontSize: 14, color: COLORS.white, ...FONTS.semibold },
@@ -742,7 +742,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  guestTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
+  guestTitle: { ...TYPE.title2, color: COLORS.textMain, textAlign: 'center' },
   guestSubtitle: {
     fontSize: 13,
     color: COLORS.textMuted,

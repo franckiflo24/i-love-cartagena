@@ -4,7 +4,7 @@ import { Alert } from '../../src/lib/alert';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, TYPE, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { eventPriceLabel } from '../../src/utils/price';
 import { PartnerEventCard, PartnerEvent } from '../../src/components/PartnerEventCard';
@@ -544,7 +544,7 @@ export default function AgendaScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, paddingBottom: SPACING.xs },
-  title: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold },
+  title: { ...TYPE.title1, color: COLORS.textMain },
   subtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
 
   segmentedControl: {
@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
   resultsCount: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium, letterSpacing: 0.5 },
 
   empty: { alignItems: 'center', marginTop: 60, gap: SPACING.sm, paddingHorizontal: SPACING.lg },
-  emptyTitle: { fontSize: 16, color: COLORS.textMain, ...FONTS.semibold, marginTop: SPACING.xs },
+  emptyTitle: { ...TYPE.headline, color: COLORS.textMain, marginTop: SPACING.xs },
   emptyText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 19 },
   exploreBtn: {
     flexDirection: 'row',
