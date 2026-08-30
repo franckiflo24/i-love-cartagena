@@ -126,7 +126,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '.leaflet-control-zoom { border: none !important; }'
     + '.leaflet-control-zoom a { background: ' + COLORS.surface + ' !important; color: ' + COLORS.icon + ' !important; border: 1px solid ' + COLORS.surfaceAlt + ' !important; font-weight: 700; }'
     + '.leaflet-control-zoom a:hover { background: ' + COLORS.surfaceAlt + ' !important; }'
-    + '.leaflet-control-attribution { display: none; }'
+    + '.leaflet-control-attribution { background: rgba(5,8,20,0.55); color: ' + COLORS.textFaint + '; font-size: 9px; padding: 1px 5px; }'
     + '.user-pulse-icon { position: relative; width: 22px; height: 22px; }'
     + '.pulse-dot { position: absolute; top: 4px; left: 4px; width: 14px; height: 14px; border-radius: 50%; background: #2563EB; border: 2px solid #fff; box-shadow: 0 0 6px rgba(37,99,235,0.7); z-index: 2; }'
     + '.pulse-ring { position: absolute; top: 0; left: 0; width: 22px; height: 22px; border-radius: 50%; background: rgba(37,99,235,0.25); animation: pulse 1.6s ease-out infinite; z-index: 1; }'
@@ -137,7 +137,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '<div id="map"></div>'
     + '<script>'
     + 'var map = L.map("map", {zoomControl: true, attributionControl: false}).setView([10.4236, -75.5483], 13);'
-    + 'L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {maxZoom: 19, className:"dark-tiles"}).addTo(map);'
+    + 'L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {maxNativeZoom: 16, maxZoom: 19, attribution: "Esri"}).addTo(map);'
     + markers
     + userMarker
     + '<\/script>'
@@ -208,8 +208,12 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
       const map = L.map(mapRef.current, { zoomControl: true, attributionControl: false })
         .setView([10.4236, -75.5483], 13);
       leafletRef.current = map;
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19, subdomains: 'abcd', className: 'dark-tiles',
+      // Keyless dark basemap. CARTO's rastertiles now require an API key (they
+      // return an "API KEY REQUIRED" watermark tile), so we use Esri's Dark Gray
+      // canvas — natively dark (no invert filter needed), keyless. maxNativeZoom
+      // caps real tile requests at 16 (the canvas's top level) and upscales above.
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+        maxNativeZoom: 16, maxZoom: 19, attribution: 'Esri',
       }).addTo(map);
 
       // Real-time distance injection when a popup opens
@@ -245,7 +249,8 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
           .leaflet-popup-tip { display: none !important; }
           .leaflet-control-zoom { border: none !important; }
           .leaflet-control-zoom a { background: ${COLORS.surface} !important; color: ${COLORS.icon} !important; border: 1px solid ${COLORS.surfaceAlt} !important; font-weight: 700; }
-          .leaflet-control-attribution { display: none !important; }
+          .leaflet-control-attribution { background: rgba(5,8,20,0.55) !important; color: ${COLORS.textFaint} !important; font-size: 9px !important; padding: 1px 5px !important; }
+          .leaflet-control-attribution a { color: ${COLORS.textMuted} !important; }
         `;
         document.head.appendChild(style);
       }
