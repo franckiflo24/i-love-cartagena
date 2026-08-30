@@ -20,6 +20,7 @@ import {
   SPACING,
   RADIUS,
   FONTS,
+  TYPE,
   TIER_COLORS,
   PARTNER_CATEGORY_LABELS,
   Tier,
@@ -1229,9 +1230,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: {
-    fontSize: 28,
+    ...TYPE.title1,
     color: COLORS.textMain,
-    ...FONTS.bold,
   },
   subtitle: {
     fontSize: 13,
@@ -1426,9 +1426,8 @@ const styles = StyleSheet.create({
     marginTop: SPACING.sm,
   },
   sectionTitle: {
-    fontSize: 16,
+    ...TYPE.title3,
     color: COLORS.textMain,
-    ...FONTS.bold,
   },
   seeAll: {
     fontSize: 12,
@@ -1643,9 +1642,8 @@ const styles = StyleSheet.create({
     gap: SPACING.sm,
   },
   emptyTitle: {
-    fontSize: 16,
+    ...TYPE.headline,
     color: COLORS.textMain,
-    ...FONTS.semibold,
     marginTop: SPACING.xs,
   },
   emptyText: {
@@ -1837,7 +1835,7 @@ const styles = StyleSheet.create({
   nbModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' as const },
   nbModalSheet: { backgroundColor: COLORS.background, borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl, maxHeight: '85%' as const, paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, paddingBottom: SPACING.lg },
   nbModalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: COLORS.textMuted, alignSelf: 'center' as const, marginBottom: SPACING.md },
-  nbModalTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, marginBottom: SPACING.xs },
+  nbModalTitle: { ...TYPE.title2, color: COLORS.textMain, marginBottom: SPACING.xs },
   nbModalAka: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, fontStyle: 'italic' as const, marginBottom: SPACING.md },
   nbModalDesc: { fontSize: 14, color: COLORS.textMain, ...FONTS.regular, lineHeight: 21 },
   nbModalSection: { marginTop: SPACING.lg, gap: SPACING.sm },

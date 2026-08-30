@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, ELEVATION, PARTNER_CATEGORY_LABELS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, TYPE, ELEVATION, PARTNER_CATEGORY_LABELS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, paddingBottom: SPACING.sm },
   headerWithBack: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold },
+  title: { ...TYPE.title1, color: COLORS.textMain },
   subtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
 
   // Hero Banner
@@ -695,7 +695,7 @@ const styles = StyleSheet.create({
   heroBannerImage: { width: '100%', height: '100%', position: 'absolute' },
   heroBannerOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(5,8,20,0.65)' },
   heroBannerContent: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: SPACING.xs, paddingHorizontal: SPACING.lg },
-  heroBannerTitle: { fontSize: 22, color: '#FFF', ...FONTS.bold, textAlign: 'center' },
+  heroBannerTitle: { ...TYPE.title2, color: '#FFF', textAlign: 'center' },
   heroBannerDesc: { fontSize: 12, color: 'rgba(255,255,255,0.75)', ...FONTS.regular, textAlign: 'center' },
 
   // Category Grid

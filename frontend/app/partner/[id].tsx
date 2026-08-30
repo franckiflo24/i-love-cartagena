@@ -4,7 +4,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, ELEVATION, PARTNER_CATEGORY_LABELS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, TYPE, ELEVATION, PARTNER_CATEGORY_LABELS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
@@ -633,7 +633,7 @@ const styles = StyleSheet.create({
   heroBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, flexWrap: 'wrap' },
   catBadge: { alignSelf: 'flex-start', backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 4 },
   catText: { fontSize: 10, color: COLORS.white, ...FONTS.bold, letterSpacing: 1, textTransform: 'uppercase' },
-  heroTitle: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.sm },
+  heroTitle: { ...TYPE.title1, color: COLORS.textMain, marginTop: SPACING.sm },
   body: { padding: SPACING.lg },
   sigBox: { backgroundColor: 'rgba(251,191,36,0.05)', borderWidth: 1, borderColor: 'rgba(251,191,36,0.18)', borderRadius: RADIUS.lg, padding: SPACING.md, marginTop: SPACING.md, gap: 4 },
   sigHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
@@ -668,7 +668,7 @@ const styles = StyleSheet.create({
   partnerPriceValue: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold, marginTop: 2 },
   partnerPriceNote: { fontSize: 11, color: COLORS.textFaint, ...FONTS.regular, marginTop: 1 },
   expSection: { marginTop: SPACING.lg },
-  sectionTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, marginBottom: SPACING.sm },
+  sectionTitle: { ...TYPE.title3, color: COLORS.textMain, marginBottom: SPACING.sm },
   expText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 22 },
 
   // Instagram
