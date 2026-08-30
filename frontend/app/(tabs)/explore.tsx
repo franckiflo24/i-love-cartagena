@@ -23,6 +23,7 @@ import {
   PARTNER_CATEGORY_LABELS,
   Tier,
   colorForKey,
+  ELEVATION,
 } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { IMAGES, getCategoryImage } from '../../src/constants/images';
@@ -1443,6 +1444,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     borderWidth: 1,
     borderColor: COLORS.border,
+    ...ELEVATION.md,
   },
   featuredImage: {
     width: '100%',
@@ -1526,6 +1528,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     borderWidth: 1,
+    ...ELEVATION.md,
     borderColor: COLORS.border,
     backgroundColor: COLORS.surface,
   },

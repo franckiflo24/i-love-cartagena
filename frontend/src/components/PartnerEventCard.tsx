@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier, colorForKey } from '../constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, ELEVATION, TIER_COLORS, Tier, colorForKey } from '../constants/theme';
 import { getCategoryImage } from '../constants/images';
 import { TierBadge } from './TierBadge';
 import { SafeImage } from './SafeImage';
@@ -95,6 +95,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     flexDirection: 'row',
+    ...ELEVATION.md,
   },
   flyerWrap: { width: 110, height: 140, position: 'relative' },
   flyer: { width: '100%', height: '100%' },

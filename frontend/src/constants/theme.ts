@@ -1,3 +1,5 @@
+import { Easing } from 'react-native';
+
 // ── COLORS — Caribbean Spectrum (Option A) — calm navy base, multi-accent ──
 // Each surface gets its own Cartagena color instead of one accent driving
 // everything: teal = primary/interactive, coral = live/now, mustard = hero/
@@ -64,18 +66,52 @@ export const FONTS = {
   light: { fontWeight: '300' as const },
 };
 
-// ── ELEVATION — subtle glow on dark, not drop shadow ──
-export const ELEVATION = {
-  card: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 4 },
-  sheet: { shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.5, shadowRadius: 24, elevation: 8 },
-  goldGlow: { shadowColor: '#12B5A5', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 16, elevation: 6 },
+// ── TYPE — a real, tuned type scale (Apple/SF rhythm). One source of truth for
+// size + line-height + weight + tracking, so text stops feeling arbitrary/cramped.
+// Spread a role onto a text style: { ...TYPE.title3, color: COLORS.textMain }.
+// NOTE: injecting lineHeight where none existed changes line-box height — when
+// applying to fixed-height chrome (chips, tab labels, badges) keep the tight role
+// (footnote/caption/overline) or set an explicit height.
+export const TYPE = {
+  display:  { fontSize: 40, lineHeight: 46, fontWeight: '700' as const, letterSpacing: -0.5 },
+  title1:   { fontSize: 28, lineHeight: 34, fontWeight: '700' as const, letterSpacing: -0.4 },
+  title2:   { fontSize: 22, lineHeight: 28, fontWeight: '700' as const, letterSpacing: -0.3 },
+  title3:   { fontSize: 18, lineHeight: 24, fontWeight: '600' as const, letterSpacing: -0.2 },
+  headline: { fontSize: 16, lineHeight: 22, fontWeight: '600' as const, letterSpacing: 0 },
+  body:     { fontSize: 15, lineHeight: 22, fontWeight: '400' as const, letterSpacing: 0 },
+  callout:  { fontSize: 14, lineHeight: 20, fontWeight: '500' as const, letterSpacing: 0 },
+  subhead:  { fontSize: 13, lineHeight: 18, fontWeight: '500' as const, letterSpacing: 0 },
+  footnote: { fontSize: 12, lineHeight: 16, fontWeight: '500' as const, letterSpacing: 0.1 },
+  caption:  { fontSize: 11, lineHeight: 14, fontWeight: '600' as const, letterSpacing: 0.3 },
+  overline: { fontSize: 10, lineHeight: 12, fontWeight: '700' as const, letterSpacing: 1.2 },
 };
 
-// ── MOTION ──
+// ── ELEVATION — graduated, soft, web-aware. RN Web needs `boxShadow` (shadow*
+// props barely render on web), so every level ships both. Softer opacities read
+// premium on the near-black canvas; pair with surface-lift + hairline for depth.
+export const ELEVATION = {
+  none: {},
+  sm:  { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.18, shadowRadius: 3,  elevation: 2,  boxShadow: '0 1px 3px rgba(0,0,0,0.18)' },
+  md:  { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.22, shadowRadius: 12, elevation: 4,  boxShadow: '0 4px 12px rgba(0,0,0,0.22)' },
+  lg:  { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.28, shadowRadius: 24, elevation: 8,  boxShadow: '0 8px 24px rgba(0,0,0,0.28)' },
+  sheet: { shadowColor: '#000', shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.35, shadowRadius: 32, elevation: 12, boxShadow: '0 -6px 32px rgba(0,0,0,0.35)' },
+  glow: { shadowColor: '#12B5A5', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.30, shadowRadius: 20, elevation: 8, boxShadow: '0 6px 20px rgba(18,181,165,0.30)' },
+  // Back-compat alias — existing consumers of ELEVATION.card keep working.
+  card: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.22, shadowRadius: 12, elevation: 4, boxShadow: '0 4px 12px rgba(0,0,0,0.22)' },
+};
+
+// ── MOTION — named durations + reusable easing for a consistent, Apple-grade feel.
+// Built on RN core Animated (Reanimated is installed but unconfigured — do not use).
 export const MOTION = {
-  fast: 150,
-  base: 250,
-  spring: { tension: 180, friction: 22 },
+  fast: 150,   // kept for back-compat
+  base: 250,   // kept for back-compat
+  duration: { instant: 100, fast: 180, base: 240, slow: 360, slower: 520 },
+  easing: {
+    standard: Easing.bezier(0.4, 0.0, 0.2, 1),
+    decelerate: Easing.out(Easing.cubic),  // entrances
+    accelerate: Easing.in(Easing.cubic),   // exits
+  },
+  spring: { tension: 180, friction: 22 },  // RN Animated.spring config
   pressScale: 0.97,
 };
 

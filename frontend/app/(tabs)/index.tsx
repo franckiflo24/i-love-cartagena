@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, D
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, TYPE, ELEVATION, EVENT_TYPE_LABELS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
 import { IMAGES, getCategoryImage } from '../../src/constants/images';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
@@ -21,6 +21,7 @@ import { COLLECTION_DEFS } from '../../src/constants/collections';
 import { captureRef, claimPendingRef } from '../../src/lib/referral';
 import { PassportGlance } from '../../src/components/PassportGlance';
 import { SeasonBanner } from '../../src/components/SeasonBanner';
+import { PressableScale } from '../../src/components/PressableScale';
 import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
 import { NowStrip } from '../../src/components/NowStrip';
 import { FxStrip } from '../../src/components/FxStrip';
@@ -426,11 +427,12 @@ export default function HomeScreen() {
 
         {/* Primary tool — a big AI-powered search HERO (Franck Aug 2026: "search is
             the main tool", make it bigger + AI, above the fold). Tap → /search (Luna). */}
-        <TouchableOpacity
+        <PressableScale
           style={styles.searchHero}
           onPress={() => router.push('/search')}
-          activeOpacity={0.9}
+          haptic
           testID="home-search-hero"
+          accessibilityLabel={tr('Buscar en Cartagena con IA…')}
         >
           <View style={styles.searchHeroIcon}>
             <Ionicons name="sparkles" size={20} color={COLORS.white} />
@@ -440,7 +442,7 @@ export default function HomeScreen() {
             <Text style={styles.searchHeroSub} numberOfLines={1}>{tr('Preguntá lo que sea — Luna te guía')}</Text>
           </View>
           <Ionicons name="mic-outline" size={20} color={COLORS.textMuted} />
-        </TouchableOpacity>
+        </PressableScale>
 
         {/* Taste profile mini-card — shown when personalized */}
         {userProfile.isPersonalized && userProfile.interests.length > 0 && (
@@ -580,7 +582,7 @@ export default function HomeScreen() {
               <TouchableOpacity
                 key={item.label}
                 testID={`quick-${item.label.toLowerCase()}`}
-                style={[styles.quickItemHero, { backgroundColor: item.color + '1A', borderColor: item.color + '4D' }]}
+                style={[styles.quickItemHero, { backgroundColor: COLORS.surface, borderColor: COLORS.hairline }]}
                 onPress={() => {
                   trackEvent('quick_access', item.label, 'navigation');
                   if (item.route === '#base') { setBaseSheet(true); return; }
@@ -591,7 +593,7 @@ export default function HomeScreen() {
                 <View style={[styles.quickIconHero, { backgroundColor: item.color }]}>
                   <Ionicons name={item.icon as any} size={22} color={COLORS.white} />
                 </View>
-                <Text style={[styles.quickLabelHero, { color: item.color }]}>{item.label}</Text>
+                <Text style={[styles.quickLabelHero, { color: COLORS.textMain }]}>{item.label}</Text>
                 <Text style={styles.quickSubtitleHero}>{item.subtitle}</Text>
               </TouchableOpacity>
             ))}
@@ -659,7 +661,7 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View style={styles.sectionTitleRow}>
-              <Ionicons name="albums" size={18} color="#FBBF24" />
+              <Ionicons name="albums" size={18} color={COLORS.icon} />
               <Text style={styles.sectionTitle}>{tr('Colecciones')}</Text>
             </View>
           </View>
@@ -781,7 +783,7 @@ export default function HomeScreen() {
               <View style={styles.sectionTitleRow}>
                 {/* Drop FOMO: honest label — these are generic popular picks, not
                     the AI-personalized 'Para ti' (that's the locked tease below). */}
-                <Ionicons name="flame" size={18} color={COLORS.coral} />
+                <Ionicons name="flame" size={18} color={COLORS.icon} />
                 <Text style={styles.sectionTitle}>{tr('Populares en Cartagena')}</Text>
               </View>
             </View>
@@ -898,7 +900,7 @@ export default function HomeScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
-                <Ionicons name="star" size={18} color={COLORS.mustard} />
+                <Ionicons name="star" size={18} color={COLORS.icon} />
                 <Text style={styles.sectionTitle}>
                   {userProfile.userType === 'visitor' && userProfile.travelDates ? s('home_during_visit') : tr('Próximos eventos')}
                 </Text>
@@ -1327,14 +1329,14 @@ const styles = StyleSheet.create({
   sponsorTierText: { fontSize: 11, ...FONTS.bold, letterSpacing: 0.5 },
   sponsorDots: { flexDirection: 'row', justifyContent: 'center', gap: 5, marginTop: SPACING.sm },
   sponsorDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.border },
-  heroBanner: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, borderRadius: RADIUS.xl, overflow: 'hidden', height: 180, position: 'relative' },
+  heroBanner: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, borderRadius: RADIUS.xl, overflow: 'hidden', height: 180, position: 'relative', ...ELEVATION.lg },
   heroBannerImage: { width: '100%', height: '100%', position: 'absolute' },
   heroBannerOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(10,10,15,0.5)' },
   heroBannerContent: { flex: 1, justifyContent: 'flex-end', padding: SPACING.lg },
   heroBannerLabel: { fontSize: 10, color: COLORS.mustard, ...FONTS.bold, letterSpacing: 3 },
   heroBannerTitle: { fontSize: 22, color: COLORS.textMain, ...FONTS.bold, marginTop: 4 },
   heroBannerSub: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium, marginTop: 4 },
-  heroCard: { borderRadius: RADIUS.xl, overflow: 'hidden', height: 220 },
+  heroCard: { borderRadius: RADIUS.xl, overflow: 'hidden', height: 220, ...ELEVATION.md },
   heroImage: { width: '100%', height: '100%', position: 'absolute' },
   heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5,8,20,0.5)' },
   heroContent: { flex: 1, justifyContent: 'flex-end', padding: SPACING.lg },
@@ -1356,14 +1358,14 @@ const styles = StyleSheet.create({
   quickIconHero: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   quickLabelHero: { fontSize: 12, ...FONTS.bold, letterSpacing: 0.3 },
   quickSubtitleHero: { fontSize: 9, color: COLORS.textMuted, ...FONTS.medium, textTransform: 'uppercase', letterSpacing: 0.8 },
-  section: { marginBottom: SPACING.lg },
+  section: { marginBottom: SPACING.xl },
   collCard: { width: 150, padding: SPACING.md, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(251,191,36,0.18)', backgroundColor: 'rgba(251,191,36,0.05)', gap: 6 },
   collIcon: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(251,191,36,0.12)', alignItems: 'center', justifyContent: 'center' },
   collTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
   collDesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 15 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACING.lg, marginBottom: SPACING.md },
-  sectionTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold },
-  seeAll: { fontSize: 13, color: COLORS.primary, ...FONTS.semibold },
+  sectionTitle: { ...TYPE.title3, color: COLORS.textMain },
+  seeAll: { ...TYPE.subhead, color: COLORS.primary, ...FONTS.semibold },
   horizontalList: { paddingLeft: SPACING.lg, gap: SPACING.md, paddingRight: SPACING.lg },
 
   // Favorites carousel
@@ -1487,7 +1489,7 @@ const styles = StyleSheet.create({
   // AI Recommendations
   aiBadge: { backgroundColor: 'rgba(168,85,247,0.15)', borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 2 },
   aiBadgeText: { fontSize: 9, color: '#A855F7', ...FONTS.bold, letterSpacing: 1 },
-  recCard: { width: 232, height: 244, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border },
+  recCard: { width: 232, height: 244, borderRadius: RADIUS.xl, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.border, ...ELEVATION.md },
   recImage: { width: '100%', height: '100%' },
   recOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: SPACING.sm, backgroundColor: 'rgba(0,0,0,0.55)', gap: 3 },
   recTierBadge: { alignSelf: 'flex-start', borderRadius: RADIUS.full, paddingHorizontal: 6, paddingVertical: 1 },
