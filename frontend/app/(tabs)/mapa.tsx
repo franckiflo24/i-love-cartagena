@@ -20,7 +20,7 @@ import { getVenues } from '../../src/lib/venueCache';
 import { venueBarrio, NBH_LABELS, NbhCentroid } from '../../src/utils/neighborhood';
 import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
 import { getHomeBase, syncHomeBase } from '../../src/lib/homeBase';
-import { ATLAS_VERIFIED, ATLAS_VENUE_FIXES, ATLAS_ADD_VENUES, ATLAS_ROUTE, ATLAS_WALK } from '../../src/data/atlas';
+import { ATLAS_VERIFIED, ATLAS_VENUE_FIXES, ATLAS_ADD_VENUES, ATLAS_ROUTE, ATLAS_WALK, ATLAS_RUTAS } from '../../src/data/atlas';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -95,7 +95,94 @@ const WALK_ROUTER_ORIGIN = 'https://www.amocartagena.co';
 const WALK_ROUTER_JS = '/walk-router.js';
 const WALK_GRAPH_JSON = '/data/walkgraph.json';
 
-function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null, satellite: boolean, autoTour: boolean, autoWalk: boolean) {
+// ── CAMINAR: real walking routes through the catalog ──
+const WALK_M_PER_MIN = 76.7; // 4.6 km/h — same constant the router uses
+const RUTA_ARRIVE_M = 40; // within this of the next stop = arrived, advance
+const MAX_RUTA_STOPS = 8;
+
+type RutaStop = { name: string; lat: number; lng: number; id?: string };
+type ActiveRuta = {
+  title: string;
+  stops: RutaStop[];
+  // null origin = route starts at the first stop; set = route starts at the
+  // user (in Cartagena) or a labeled fallback anchor for remote planning.
+  origin: { lat: number; lng: number; label: string } | null;
+};
+type RutaSummary = { meters: number; minutes: number };
+
+function fmtRutaDist(m: number): string {
+  return m < 1000 ? `${m}m` : `${(m / 1000).toFixed(1)}km`;
+}
+
+// Shared loader for the web render path: one script tag, one graph fetch,
+// concurrent callers coalesce. Resolves the router or null (blocked CDN /
+// offline) — callers treat null as "fall back to straight lines".
+let walkRouterPromise: Promise<any> | null = null;
+function ensureWalkRouter(): Promise<any> {
+  if (typeof document === 'undefined') return Promise.resolve(null);
+  if (!walkRouterPromise) {
+    walkRouterPromise = new Promise<any>((resolve) => {
+      const w = window as any;
+      const loadGraph = () =>
+        w.AmoWalkRouter.load(WALK_GRAPH_JSON).then(() => resolve(w.AmoWalkRouter)).catch(() => resolve(null));
+      if (w.AmoWalkRouter) { loadGraph(); return; }
+      // A previous attempt may have left a dead tag (error already fired,
+      // listeners would never re-fire) — always start from a fresh element.
+      document.querySelector('#amo-walk-router')?.remove();
+      const s = document.createElement('script');
+      s.id = 'amo-walk-router';
+      s.src = WALK_ROUTER_JS;
+      s.onload = () => { w.AmoWalkRouter ? loadGraph() : resolve(null); };
+      s.onerror = () => resolve(null);
+      document.head.appendChild(s);
+    }).then((r) => {
+      if (!r) walkRouterPromise = null; // failed — let a later tap retry
+      return r;
+    });
+  }
+  return walkRouterPromise;
+}
+
+// Stop ordering for custom rutas: nearest-neighbor from the origin, then
+// 2-opt until stable. Pure geometry (no graph), duplicated from the router's
+// orderStops so the NATIVE side — which has no window.AmoWalkRouter — orders
+// stops identically to what the map document draws.
+function orderRutaStops(origin: { lat: number; lng: number }, stops: RutaStop[]): RutaStop[] {
+  if (stops.length < 3) return stops.slice();
+  const rest = stops.slice();
+  const out: RutaStop[] = [];
+  let cur = { lat: origin.lat, lng: origin.lng };
+  while (rest.length) {
+    let bi = 0, bd = Infinity;
+    for (let i = 0; i < rest.length; i++) {
+      const d = haversineM(cur.lat, cur.lng, rest[i].lat, rest[i].lng);
+      if (d < bd) { bd = d; bi = i; }
+    }
+    const nx = rest.splice(bi, 1)[0];
+    out.push(nx);
+    cur = { lat: nx.lat, lng: nx.lng };
+  }
+  const pt = (i: number) => (i < 0 ? origin : out[i]);
+  const segd = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => haversineM(a.lat, a.lng, b.lat, b.lng);
+  let improved = true;
+  while (improved) {
+    improved = false;
+    for (let i = -1; i < out.length - 2; i++) {
+      for (let j = i + 1; j < out.length - 1; j++) {
+        const before = segd(pt(i), pt(i + 1)) + segd(pt(j), pt(j + 1));
+        const after = segd(pt(i), pt(j)) + segd(pt(i + 1), pt(j + 1));
+        if (after + 1 < before) {
+          const seg = out.slice(i + 1, j + 1).reverse();
+          out.splice(i + 1, seg.length, ...seg);
+          improved = true;
+        }
+      }
+    }
+  }
+  return out;
+}
+
+function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null, satellite: boolean, autoTour: boolean, autoWalk: boolean, route: { origin: { lat: number; lng: number } | null; stops: RutaStop[] } | null) {
   const filtered = filter === 'all' ? places
     : filter === 'esenciales' ? places.filter(p => p.type === 'service' || p.type === 'essential')
     : places.filter(p => p.category === filter);
@@ -112,6 +199,10 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     const priceHtml = safePrice ? '<span style="font-size:12px;color:' + COLORS.mustard + ';font-weight:700;">' + safePrice + '</span><br>' : '';
     const verifiedHtml = isVerified ? '<span style="font-size:10px;color:#12B5A5;font-weight:800;">✓ UBICACIÓN VERIFICADA</span><br>' : '';
 
+    // Caminar action: id + coords only (name resolved RN-side from places —
+    // names contain spaces, which break unquoted inline onclick attributes).
+    const caminarBtn = '<a href=# style=display:inline-block;padding:6px_12px;background:rgba(201,168,76,0.15);color:#C9A84C;text-decoration:none;border-radius:20px;font-size:12px;font-weight:700;border:1px_solid_rgba(201,168,76,0.35) onclick=window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:\"caminar\",id:\"' + p.id + '\",lat:' + p.lat + ',lng:' + p.lng + '}));return_false;>🚶 Caminar</a>';
+
     const detailUrl = '/partner/' + p.id;
     const popupContent = '<div style=font-family:sans-serif;min-width:180px>'
       + '<div style=display:flex;align-items:center;gap:6px;margin-bottom:6px>'
@@ -123,8 +214,9 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
       + '<span style=font-size:11px;color:' + COLORS.textMuted + '>' + safeDesc + '</span><br>'
       + '<span style=font-size:11px;color:' + COLORS.textMuted + '>📍 ' + safeAddr + '</span><br>'
       + priceHtml
-      + '<div style=display:flex;gap:6px;margin-top:6px>'
+      + '<div style=display:flex;gap:6px;margin-top:6px;flex-wrap:wrap>'
       + '<a href=' + detailUrl + ' style=display:inline-block;padding:6px_14px;background:#12B5A5;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600 onclick=window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:\"navigate\",path:\"' + detailUrl + '\"}));return_false;>Ver detalle →</a>'
+      + caminarBtn
       + '<a href=' + mapsUrl + ' target=_blank style=display:inline-block;padding:6px_14px;background:rgba(255,255,255,0.08);color:' + COLORS.textMain + ';text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px_solid_rgba(255,255,255,0.08)>📍 Mapa</a>'
       + '</div>'
       + '</div>';
@@ -251,6 +343,36 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '  walkTimers.push(setTimeout(nextLeg, 2200));'
     + '};'
     + (autoWalk ? 'setTimeout(function() { window.__amoWalk(); }, 600);' : '')
+    // CAMINAR route: street polyline + numbered stops over the committed OSM
+    // graph; straight segments if the router/graph can't load. Draw fires on
+    // document boot when a route payload is present (the RN layer owns all
+    // route state and rebuilds the document via the WebView key).
+    + 'var ROUTE = ' + JSON.stringify(route) + ';'
+    + 'var routeLayer = null;'
+    + 'window.__amoRouteStop = function() { if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; } };'
+    + 'window.__amoRouteDraw = function() {'
+    + '  window.__amoRouteStop();'
+    + '  if (!ROUTE || !ROUTE.stops || !ROUTE.stops.length) return;'
+    + '  var pts = [];'
+    + '  if (ROUTE.origin) pts.push([ROUTE.origin.lat, ROUTE.origin.lng]);'
+    + '  ROUTE.stops.forEach(function(s) { pts.push([s.lat, s.lng]); });'
+    + '  var line = pts, meters = 0, minutes = 0, R = window.AmoWalkRouter;'
+    + '  if (R && R.ready() && pts.length > 1) { var rr = R.route(pts); if (rr && rr.line && rr.line.length > 1) { line = rr.line; meters = rr.meters; minutes = rr.minutes; } }'
+    + '  if (!meters && pts.length > 1) { var sm = 0; for (var i = 0; i + 1 < pts.length; i++) sm += _wd(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]); meters = Math.round(sm); minutes = Math.max(1, Math.round(meters / ' + WALK_M_PER_MIN + ')); }'
+    + '  routeLayer = L.layerGroup();'
+    + '  if (line.length > 1) { L.polyline(line, { color: "#ffffff", weight: 7, opacity: 0.8, interactive: false }).addTo(routeLayer); L.polyline(line, { color: "#C9A84C", weight: 4, opacity: 0.95, interactive: false }).addTo(routeLayer); }'
+    + '  ROUTE.stops.forEach(function(s, i) {'
+    + '    var ic = L.divIcon({ className: "", html: \'<div style="width:26px;height:26px;border-radius:50%;background:#C9A84C;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;font:800 12px sans-serif;color:#241a04">\' + (i + 1) + \'</div>\', iconSize: [26, 26], iconAnchor: [13, 13] });'
+    + '    L.marker([s.lat, s.lng], { icon: ic, zIndexOffset: 1100 }).addTo(routeLayer).bindPopup("<b style=\\"color:' + COLORS.textMain + '\\">" + (i + 1) + ". " + s.name + "</b>");'
+    + '  });'
+    + '  routeLayer.addTo(map);'
+    + '  if (line.length > 1) map.fitBounds(L.latLngBounds(line), { padding: [40, 40] });'
+    + '  else map.setView(pts[0], 17);'
+    + '  window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: "routeSummary", meters: meters, minutes: minutes }));'
+    + '};'
+    + (route
+      ? 'if (window.AmoWalkRouter) { AmoWalkRouter.load("' + WALK_ROUTER_ORIGIN + WALK_GRAPH_JSON + '").then(function() { window.__amoRouteDraw(); }).catch(function() { window.__amoRouteDraw(); }); } else { setTimeout(window.__amoRouteDraw, 300); }'
+      : '')
     + '<\/script>'
     + '</body></html>';
 }
@@ -285,12 +407,15 @@ function detectZone(lat: number, lng: number): string {
  * are cheap and the map never flickers. Popups show real-time "a Xm de ti"
  * computed at open time from the latest position.
  */
-function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite, tourActive, onTourEnd, walkActive, onWalkEnd, onNavigate }: {
+function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite, tourActive, onTourEnd, walkActive, onWalkEnd, onNavigate, ruta, onRutaSummary, onCaminarTap }: {
   places: Place[]; filter: string; passportIds: Set<string>;
   userLoc: { lat: number; lng: number } | null; follow: boolean; satellite: boolean;
   tourActive: boolean; onTourEnd: () => void;
   walkActive: boolean; onWalkEnd: () => void;
   onNavigate: (path: string) => void;
+  ruta: ActiveRuta | null;
+  onRutaSummary: (s: RutaSummary) => void;
+  onCaminarTap: (stop: RutaStop) => void;
 }) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const leafletRef = useRef<any>(null);
@@ -310,8 +435,15 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
   const walkTimersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
   const walkMarkerRef = useRef<any>(null);
   const walkTrailRef = useRef<any[]>([]);
+  const rutaLayerRef = useRef<any>(null);
   const placesRef = useRef(places);
   placesRef.current = places;
+  // The map click listener binds ONCE in init — route callbacks live in refs
+  // so a re-render can't leave the listener holding stale closures.
+  const onCaminarTapRef = useRef(onCaminarTap);
+  onCaminarTapRef.current = onCaminarTap;
+  const onRutaSummaryRef = useRef(onRutaSummary);
+  onRutaSummaryRef.current = onRutaSummary;
 
   // Swap the basemap in place (dark canvas ↔ satellite imagery) without
   // touching markers or view state.
@@ -366,13 +498,25 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
           if (el && pos) {
             const ll = e.popup.getLatLng();
             const d = haversineM(pos.lat, pos.lng, ll.lat, ll.lng);
-            el.textContent = '🚶 ' + fmtLiveDist(d);
+            el.textContent = '🚶 ' + fmtLiveDist(d) + ' · ~' + Math.max(1, Math.round(d / WALK_M_PER_MIN)) + ' min';
             (el as HTMLElement).style.display = 'block';
           }
         } catch {}
       });
 
       mapRef.current.addEventListener('click', (e: MouseEvent) => {
+        const cam = (e.target as HTMLElement).closest('[data-caminar]') as HTMLElement | null;
+        if (cam) {
+          e.preventDefault();
+          const lat = Number(cam.getAttribute('data-lat'));
+          const lng = Number(cam.getAttribute('data-lng'));
+          const name = cam.getAttribute('data-name') || '';
+          if (Number.isFinite(lat) && Number.isFinite(lng)) {
+            map.closePopup();
+            onCaminarTapRef.current({ id: cam.getAttribute('data-caminar') || undefined, name, lat, lng });
+          }
+          return;
+        }
         const link = (e.target as HTMLElement).closest('[data-partner]') as HTMLElement | null;
         if (link) {
           e.preventDefault();
@@ -534,16 +678,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
     // Lazy-load router + 400KB graph only when a walk actually starts; the
     // 2.2s opening flyTo usually covers it. Legs that begin before the graph
     // is ready glide straight; later legs pick up the streets mid-walk.
-    const w = window as any;
-    if (w.AmoWalkRouter) {
-      w.AmoWalkRouter.load(WALK_GRAPH_JSON).catch(() => {});
-    } else if (!document.querySelector('#amo-walk-router')) {
-      const s = document.createElement('script');
-      s.id = 'amo-walk-router';
-      s.src = WALK_ROUTER_JS;
-      s.onload = () => { try { w.AmoWalkRouter.load(WALK_GRAPH_JSON).catch(() => {}); } catch {} };
-      document.head.appendChild(s);
-    }
+    ensureWalkRouter();
     const gi = L.divIcon({
       className: '',
       html: '<div style="position:relative;width:22px;height:22px"><div style="position:absolute;top:0;left:0;width:22px;height:22px;border-radius:50%;background:rgba(201,168,76,0.3);animation:pulse 1.6s ease-out infinite"></div><div style="position:absolute;top:4px;left:4px;width:14px;height:14px;border-radius:50%;background:#C9A84C;border:2px solid #fff;box-shadow:0 0 6px rgba(201,168,76,0.8)"></div></div>',
@@ -616,6 +751,68 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walkActive, mapReady]);
 
+  // ── CAMINAR route: street polyline + numbered stops over the committed OSM
+  // graph. The RN layer owns route state (stops already ordered); this effect
+  // only draws. Router unavailable => straight segments between stops — the
+  // route still renders, the numbers stay honest (haversine sum).
+  useEffect(() => {
+    const L = (window as any).L;
+    const map = leafletRef.current;
+    const clear = () => {
+      if (rutaLayerRef.current && leafletRef.current) {
+        leafletRef.current.removeLayer(rutaLayerRef.current);
+        rutaLayerRef.current = null;
+      }
+    };
+    if (!ruta || !L || !map) {
+      clear();
+      return;
+    }
+    let cancelled = false;
+    const draw = (R: any) => {
+      if (cancelled || !leafletRef.current) return;
+      clear();
+      const pts: Array<[number, number]> = [
+        ...(ruta.origin ? [[ruta.origin.lat, ruta.origin.lng] as [number, number]] : []),
+        ...ruta.stops.map(s => [s.lat, s.lng] as [number, number]),
+      ];
+      let line = pts, meters = 0, minutes = 0;
+      if (R && R.ready() && pts.length > 1) {
+        const r = R.route(pts);
+        if (r && r.line && r.line.length > 1) { line = r.line; meters = r.meters; minutes = r.minutes; }
+      }
+      if (!meters && pts.length > 1) {
+        let sm = 0;
+        for (let i = 0; i + 1 < pts.length; i++) sm += haversineM(pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
+        meters = Math.round(sm);
+        minutes = Math.max(1, Math.round(meters / WALK_M_PER_MIN));
+      }
+      const layer = L.layerGroup();
+      if (line.length > 1) {
+        // White casing under the gold line — readable over satellite imagery.
+        L.polyline(line, { color: '#ffffff', weight: 7, opacity: 0.8, interactive: false }).addTo(layer);
+        L.polyline(line, { color: '#C9A84C', weight: 4, opacity: 0.95, interactive: false }).addTo(layer);
+      }
+      ruta.stops.forEach((s, i) => {
+        const ic = L.divIcon({
+          className: '',
+          html: `<div style="width:26px;height:26px;border-radius:50%;background:#C9A84C;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;font:800 12px sans-serif;color:#241a04">${i + 1}</div>`,
+          iconSize: [26, 26], iconAnchor: [13, 13],
+        });
+        L.marker([s.lat, s.lng], { icon: ic, zIndexOffset: 1100 }).addTo(layer)
+          .bindPopup(`<b style="color:${COLORS.textMain}">${i + 1}. ${s.name.replace(/[<>]/g, '')}</b>`);
+      });
+      layer.addTo(map);
+      rutaLayerRef.current = layer;
+      if (line.length > 1) map.fitBounds(L.latLngBounds(line), { padding: [40, 40] });
+      else map.setView(pts[0], 17);
+      onRutaSummaryRef.current({ meters, minutes });
+    };
+    ensureWalkRouter().then(draw);
+    return () => { cancelled = true; clear(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ruta, mapReady]);
+
   // ── Place markers: rebuild only when data/filter changes ──
   const renderMarkers = () => {
     const L = (window as any).L;
@@ -657,8 +854,9 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
         <span style="font-size:11px;color:${COLORS.textMuted}">${safeDesc}</span><br>
         <span style="font-size:11px;color:${COLORS.textMuted}">📍 ${safeAddr}</span><br>
         ${priceHtml}
-        <div style="display:flex;gap:6px;margin-top:6px">
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
           <a href="#" data-partner="${p.id}" style="display:inline-block;padding:6px 14px;background:#12B5A5;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">Ver detalle →</a>
+          <a href="#" data-caminar="${p.id}" data-lat="${p.lat}" data-lng="${p.lng}" data-name="${safeName}" style="display:inline-block;padding:6px 12px;background:rgba(201,168,76,0.15);color:#C9A84C;text-decoration:none;border-radius:20px;font-size:12px;font-weight:700;border:1px solid rgba(201,168,76,0.35);cursor:pointer">🚶 Caminar</a>
           <a href="${mapsUrl}" target="_blank" style="display:inline-block;padding:6px 14px;background:rgba(255,255,255,0.08);color:${COLORS.textMain};text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,0.08)">📍 Mapa</a>
         </div>
       </div>`;
@@ -769,6 +967,13 @@ export default function MapaScreen() {
   const [nbhFilter, setNbhFilter] = useState<string | null>(null); // null = all barrios
   const [baseSheet, setBaseSheet] = useState(false);
   const [hasBase, setHasBase] = useState(false);
+  // ── CAMINAR: curated + custom walking routes over real streets ──
+  const [caminarOpen, setCaminarOpen] = useState(false);
+  const [building, setBuilding] = useState(false); // custom-ruta stop picking
+  const [buildStops, setBuildStops] = useState<RutaStop[]>([]);
+  const [ruta, setRuta] = useState<ActiveRuta | null>(null);
+  const [rutaSummary, setRutaSummary] = useState<RutaSummary | null>(null);
+  const [nextStopIdx, setNextStopIdx] = useState(0);
   const webViewRef = useRef<any>(null);
 
   // Reflect whether a home base is set (re-check when the sheet closes).
@@ -1034,10 +1239,85 @@ export default function MapaScreen() {
       if (Platform.OS !== 'web') webViewRef.current?.injectJavaScript('window.__amoTourStop && window.__amoTourStop(); true;');
       return;
     }
-    setWalk(false); // tour and virtual walk are mutually exclusive
+    setWalk(false); // tour, virtual walk and caminar rutas are mutually exclusive
+    stopRuta();
     setSatellite(true);
     setTour(true);
   };
+
+  // ── CAMINAR handlers ──
+  const inCity = !!userLoc && isInCartagena(userLoc.lat, userLoc.lng);
+
+  const stopRuta = () => {
+    setRuta(null);
+    setRutaSummary(null);
+    setNextStopIdx(0);
+    setBuilding(false);
+    setBuildStops([]);
+    if (Platform.OS !== 'web') webViewRef.current?.injectJavaScript('window.__amoRouteStop && window.__amoRouteStop(); true;');
+  };
+
+  const startRuta = (title: string, stops: RutaStop[], keepOrder: boolean) => {
+    if (!stops.length) return;
+    setTour(false);
+    setWalk(false);
+    // Origin: the user when they're really in Cartagena; for remote planning a
+    // single-stop walk anchors at Torre del Reloj (labeled — never pretend the
+    // user is there), multi-stop rutas simply start at their first stop.
+    let origin: ActiveRuta['origin'] = null;
+    if (inCity && userLoc) origin = { lat: userLoc.lat, lng: userLoc.lng, label: tr('tu ubicación') };
+    else if (stops.length === 1) origin = { lat: 10.423036, lng: -75.549219, label: 'Torre del Reloj' };
+    // Curated rutas keep their authored sequence; custom rutas get the
+    // shortest-walk ordering (nearest-neighbor + 2-opt).
+    let ordered = stops;
+    if (!keepOrder && stops.length >= 3) {
+      ordered = origin ? orderRutaStops(origin, stops) : [stops[0], ...orderRutaStops(stops[0], stops.slice(1))];
+    }
+    setBuilding(false);
+    setBuildStops([]);
+    setCaminarOpen(false);
+    setRutaSummary(null);
+    setNextStopIdx(0);
+    setRuta({ title, stops: ordered, origin });
+  };
+
+  const onCaminarTap = (stop: RutaStop) => {
+    // Native popups pass only id+coords (names break unquoted onclick attrs) —
+    // resolve the display name from the catalog, sanitized for popup HTML.
+    const known = stop.id ? places.find(p => p.id === stop.id) : null;
+    const name = (stop.name || known?.name || tr('Lugar')).replace(/["'<>]/g, '');
+    const s: RutaStop = { ...stop, name };
+    if (building) {
+      setBuildStops(prev => {
+        if (prev.length >= MAX_RUTA_STOPS) return prev;
+        if (prev.some(x => (s.id && x.id === s.id) || (x.lat === s.lat && x.lng === s.lng))) return prev;
+        return [...prev, s];
+      });
+      return;
+    }
+    startRuta(`${tr('Caminar a')} ${name}`, [s], true);
+  };
+
+  const startCustomRuta = () => {
+    setCaminarOpen(false);
+    setRuta(null);
+    setRutaSummary(null);
+    setNextStopIdx(0);
+    setBuildStops([]);
+    setBuilding(true);
+  };
+
+  // Arrival watcher — runs on BOTH platforms off the shared geo stream. Only
+  // real in-city GPS advances progress; remote viewers just see the plan.
+  useEffect(() => {
+    if (!ruta || !userLoc || !isInCartagena(userLoc.lat, userLoc.lng)) return;
+    if (nextStopIdx >= ruta.stops.length) return;
+    const s = ruta.stops[nextStopIdx];
+    if (haversineM(userLoc.lat, userLoc.lng, s.lat, s.lng) <= RUTA_ARRIVE_M) {
+      setNextStopIdx(i => i + 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLoc, ruta, nextStopIdx]);
 
   // 🚶 button: in Cartagena = real follow-me; outside (or without location) the
   // real walking layer is honestly gated — offer the virtual stroll instead of
@@ -1066,6 +1346,7 @@ export default function MapaScreen() {
           text: tr('Iniciar paseo'),
           onPress: () => {
             setTour(false);
+            stopRuta();
             setSatellite(true);
             setWalk(true);
           },
@@ -1074,9 +1355,13 @@ export default function MapaScreen() {
     );
   };
 
-  // Native: the WebView document auto-runs the tour/walk when rebuilt with the
-  // flag on (the key below includes all flags, so toggling rebuilds the document).
-  const html = buildMapHTML(visiblePlaces, filter, userLoc, satellite, tour, walk);
+  // Native: the WebView document auto-runs the tour/walk/ruta when rebuilt with
+  // the flag on (the key below includes all flags, so toggling rebuilds the
+  // document). Ruta stop names are already sanitized in onCaminarTap.
+  const rutaPayload = ruta
+    ? { origin: ruta.origin ? { lat: ruta.origin.lat, lng: ruta.origin.lng } : null, stops: ruta.stops }
+    : null;
+  const html = buildMapHTML(visiblePlaces, filter, userLoc, satellite, tour, walk, rutaPayload);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -1136,11 +1421,11 @@ export default function MapaScreen() {
       {/* Map */}
       <View style={styles.mapWrap}>
         {Platform.OS === 'web' ? (
-          <WebMapDirect places={visiblePlaces} filter={filter} passportIds={passportIds} userLoc={userLoc} follow={follow} satellite={satellite} tourActive={tour} onTourEnd={() => setTour(false)} walkActive={walk} onWalkEnd={() => setWalk(false)} onNavigate={(path) => router.push(path as any)} />
+          <WebMapDirect places={visiblePlaces} filter={filter} passportIds={passportIds} userLoc={userLoc} follow={follow} satellite={satellite} tourActive={tour} onTourEnd={() => setTour(false)} walkActive={walk} onWalkEnd={() => setWalk(false)} onNavigate={(path) => router.push(path as any)} ruta={ruta} onRutaSummary={setRutaSummary} onCaminarTap={onCaminarTap} />
         ) : (
           <WebView
             ref={webViewRef}
-            key={filter + (nbhFilter || 'allnbh') + (tour || walk ? '' : (userLoc ? `_u${userLoc.lat}` : '')) + (satellite ? '_sat' : '_dark') + (tour ? '_tour' : '') + (walk ? '_walk' : '')}
+            key={filter + (nbhFilter || 'allnbh') + (tour || walk || ruta ? '' : (userLoc ? `_u${userLoc.lat}` : '')) + (satellite ? '_sat' : '_dark') + (tour ? '_tour' : '') + (walk ? '_walk' : '') + (ruta ? `_ruta${ruta.title}_${ruta.stops.length}` : '')}
             source={{ html }}
             style={styles.webview}
             javaScriptEnabled={true}
@@ -1161,11 +1446,24 @@ export default function MapaScreen() {
                   setTour(false);
                 } else if (msg.type === 'walkEnd') {
                   setWalk(false);
+                } else if (msg.type === 'routeSummary' && Number.isFinite(msg.meters)) {
+                  setRutaSummary({ meters: msg.meters, minutes: msg.minutes });
+                } else if (msg.type === 'caminar' && Number.isFinite(msg.lat) && Number.isFinite(msg.lng)) {
+                  onCaminarTap({ id: msg.id, name: '', lat: msg.lat, lng: msg.lng });
                 }
               } catch { /* non-JSON message — ignore */ }
             }}
           />
         )}
+
+        {/* CAMINAR — curated + custom walking rutas over real streets */}
+        <TouchableOpacity
+          style={[styles.locateBtn, styles.caminarBtn, { bottom: 312 }, (ruta || building) && styles.caminarBtnActive]}
+          onPress={() => ((ruta || building) ? stopRuta() : setCaminarOpen(o => !o))}
+          activeOpacity={0.85}
+        >
+          <Ionicons name={ruta || building ? 'close' : 'footsteps'} size={19} color={ruta || building ? '#241a04' : '#C9A84C'} />
+        </TouchableOpacity>
 
         {/* Floating atlas fly-through — the exported camera route over satellite */}
         <TouchableOpacity
@@ -1219,6 +1517,87 @@ export default function MapaScreen() {
             />
           )}
         </TouchableOpacity>
+
+        {/* CAMINAR sheet — curated rutas + custom builder entry */}
+        {caminarOpen && !ruta && !building && (
+          <View style={styles.caminarSheet}>
+            <View style={styles.caminarHeader}>
+              <Text style={styles.caminarTitle}>🚶 {tr('Caminar Cartagena')}</Text>
+              <TouchableOpacity onPress={() => setCaminarOpen(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Ionicons name="close" size={20} color={COLORS.textMuted} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.caminarSub}>{tr('Rutas a pie por calles reales del Centro y Getsemaní.')}</Text>
+            {ATLAS_RUTAS.map(r => (
+              <TouchableOpacity key={r.id} style={styles.rutaCard} onPress={() => startRuta(r.title, r.stops, true)} activeOpacity={0.8}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.rutaCardTitle}>{r.title}</Text>
+                  <Text style={styles.rutaCardSub} numberOfLines={2}>{tr(r.subtitle)}</Text>
+                </View>
+                <View style={styles.rutaCardMeta}>
+                  <Text style={styles.rutaCardMetaMain}>{fmtRutaDist(r.meters)} · {r.minutes} min</Text>
+                  <Text style={styles.rutaCardMetaSub}>{r.stops.length} {tr('paradas')}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity style={styles.rutaCustomBtn} onPress={startCustomRuta} activeOpacity={0.85}>
+              <Ionicons name="create-outline" size={16} color="#241a04" />
+              <Text style={styles.rutaCustomBtnText}>{tr('Crear mi propia ruta')}</Text>
+            </TouchableOpacity>
+            <Text style={styles.caminarHint}>{tr('También puedes tocar cualquier lugar del mapa y elegir «Caminar».')}</Text>
+          </View>
+        )}
+
+        {/* Custom-ruta builder bar — tap pins to collect stops */}
+        {building && (
+          <View style={styles.rutaBar}>
+            <Text style={styles.rutaBarTitle}>🚶 {tr('Ruta personalizada')} · {buildStops.length}/{MAX_RUTA_STOPS}</Text>
+            <Text style={styles.rutaBarSub} numberOfLines={2}>
+              {buildStops.length
+                ? buildStops.map(s => s.name).join(' · ')
+                : tr('Toca los lugares del mapa y elige «Caminar» para añadirlos')}
+            </Text>
+            <View style={styles.rutaBarActions}>
+              <TouchableOpacity
+                style={[styles.rutaBtn, !buildStops.length && { opacity: 0.4 }]}
+                disabled={!buildStops.length}
+                onPress={() => startRuta(tr('Ruta personalizada'), buildStops, false)}
+              >
+                <Text style={styles.rutaBtnText}>{tr('Trazar ruta')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.rutaBtnGhost} onPress={stopRuta}>
+                <Text style={styles.rutaBtnGhostText}>{tr('Cancelar')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* Active ruta bar — totals, origin, live next-stop progress in city */}
+        {ruta && (
+          <View style={styles.rutaBar}>
+            <Text style={styles.rutaBarTitle}>🚶 {ruta.title}</Text>
+            <Text style={styles.rutaBarSub}>
+              {rutaSummary
+                ? `${fmtRutaDist(rutaSummary.meters)} · ${rutaSummary.minutes} min ${tr('caminando')}`
+                : tr('Trazando ruta…')}
+              {ruta.origin ? ` · ${tr('desde')} ${ruta.origin.label}` : ''}
+            </Text>
+            {inCity && nextStopIdx < ruta.stops.length && userLoc && (
+              <Text style={styles.rutaBarNext}>
+                {tr('Próxima parada')} {nextStopIdx + 1}/{ruta.stops.length}: {ruta.stops[nextStopIdx].name}
+                {` — ${fmtRutaDist(Math.round(haversineM(userLoc.lat, userLoc.lng, ruta.stops[nextStopIdx].lat, ruta.stops[nextStopIdx].lng)))}`}
+              </Text>
+            )}
+            {inCity && nextStopIdx >= ruta.stops.length && (
+              <Text style={styles.rutaBarNext}>🎉 {tr('¡Ruta completada!')}</Text>
+            )}
+            <View style={styles.rutaBarActions}>
+              <TouchableOpacity style={styles.rutaBtnGhost} onPress={stopRuta}>
+                <Text style={styles.rutaBtnGhostText}>{tr('Finalizar')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         {/* Permission denied banner */}
         {locStatus === 'denied' && (
@@ -1279,6 +1658,81 @@ const styles = StyleSheet.create({
   },
   tourBtn: { borderColor: COLORS.primary },
   locateBtnActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+
+  // ── CAMINAR: gold spectrum — walking is the passport/atlas accent, never teal ──
+  caminarBtn: { borderColor: '#C9A84C' },
+  caminarBtnActive: { backgroundColor: '#C9A84C', borderColor: '#C9A84C' },
+  caminarSheet: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    bottom: 16,
+    backgroundColor: 'rgba(5,8,20,0.96)',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(201,168,76,0.35)',
+    padding: SPACING.md,
+    gap: 8,
+    zIndex: 1200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
+    elevation: 12,
+  },
+  caminarHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  caminarTitle: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold },
+  caminarSub: { fontSize: 11.5, color: COLORS.textMuted, ...FONTS.regular, marginBottom: 2 },
+  caminarHint: { fontSize: 10.5, color: COLORS.textFaint, ...FONTS.regular, textAlign: 'center', marginTop: 2 },
+  rutaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  rutaCardTitle: { fontSize: 13.5, color: COLORS.textMain, ...FONTS.bold },
+  rutaCardSub: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 1 },
+  rutaCardMeta: { alignItems: 'flex-end' },
+  rutaCardMetaMain: { fontSize: 12, color: '#C9A84C', ...FONTS.bold },
+  rutaCardMetaSub: { fontSize: 10, color: COLORS.textFaint, ...FONTS.medium, marginTop: 1 },
+  rutaCustomBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#C9A84C',
+    borderRadius: RADIUS.full,
+    paddingVertical: 10,
+    marginTop: 2,
+  },
+  rutaCustomBtnText: { fontSize: 13, color: '#241a04', ...FONTS.bold },
+  rutaBar: {
+    position: 'absolute',
+    left: 12,
+    right: 76,
+    bottom: 16,
+    backgroundColor: 'rgba(5,8,20,0.94)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(201,168,76,0.4)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    gap: 3,
+    zIndex: 1100,
+  },
+  rutaBarTitle: { fontSize: 13, color: '#F5D47A', ...FONTS.bold },
+  rutaBarSub: { fontSize: 11.5, color: COLORS.textMain, ...FONTS.medium },
+  rutaBarNext: { fontSize: 11, color: '#8FE3C0', ...FONTS.semibold },
+  rutaBarActions: { flexDirection: 'row', gap: 8, marginTop: 5 },
+  rutaBtn: { backgroundColor: '#C9A84C', borderRadius: RADIUS.full, paddingHorizontal: 16, paddingVertical: 7 },
+  rutaBtnText: { fontSize: 12, color: '#241a04', ...FONTS.bold },
+  rutaBtnGhost: { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: RADIUS.full, paddingHorizontal: 16, paddingVertical: 7, borderWidth: 1, borderColor: COLORS.border },
+  rutaBtnGhostText: { fontSize: 12, color: COLORS.textMain, ...FONTS.semibold },
   locDeniedBanner: {
     position: 'absolute',
     bottom: 24,

@@ -78,6 +78,69 @@ export const ATLAS_ROUTE: AtlasViewpoint[] = [
   { title: 'Amo Cartagena ❤️', lat: 10.4234, lng: -75.5489, zoom: 14.8 },
 ];
 
+// Curated walking rutas for the CAMINAR feature — authored sequences over
+// atlas-verified coordinates (order is editorial, never reshuffled). meters /
+// minutes are PRECOMPUTED against the committed walkgraph (scratch:
+// compute-rutas.mjs pattern — route() over each stop list) so the sheet can
+// show honest numbers before the 400KB graph ever loads. Recompute them if
+// walkgraph.json or the stop lists change.
+export type AtlasRutaStop = { name: string; lat: number; lng: number };
+export type AtlasRuta = {
+  id: string;
+  title: string;
+  subtitle: string; // Spanish base string — UI wraps in tr()
+  meters: number;
+  minutes: number;
+  stops: AtlasRutaStop[];
+};
+
+export const ATLAS_RUTAS: AtlasRuta[] = [
+  {
+    id: 'ruta_centro',
+    title: 'Esencia del Centro',
+    subtitle: 'Torre del Reloj a Plaza Santo Domingo — el corazón amurallado',
+    meters: 573,
+    minutes: 7,
+    stops: [
+      { name: 'Torre del Reloj', lat: 10.423036, lng: -75.549219 },
+      { name: 'El Pasquín de Joaco', lat: 10.4234706, lng: -75.5495415 },
+      { name: 'Casa Carolina', lat: 10.4236246, lng: -75.5502602 },
+      { name: 'Catedral de Santa Catalina', lat: 10.4236446, lng: -75.5506735 },
+      { name: 'Plaza Santo Domingo — Casa Bohème', lat: 10.4241036, lng: -75.5518067 },
+    ],
+  },
+  {
+    id: 'ruta_getsemani',
+    title: 'Del Centro a Getsemaní',
+    subtitle: 'De Plaza Santo Domingo al barrio del arte, por la bahía',
+    meters: 1423,
+    minutes: 19,
+    stops: [
+      { name: 'Plaza Santo Domingo — Casa Bohème', lat: 10.4241036, lng: -75.5518067 },
+      { name: 'San Pedro Claver', lat: 10.4217511, lng: -75.5510213 },
+      { name: 'Centro de Convenciones', lat: 10.420559, lng: -75.549046 },
+      { name: 'El Beso — Getsemaní', lat: 10.4195719, lng: -75.5464839 },
+    ],
+  },
+  {
+    id: 'ruta_completa',
+    title: 'Paseo Completo',
+    subtitle: 'La vuelta entera: Centro Histórico y Getsemaní en una caminata',
+    meters: 1996,
+    minutes: 26,
+    stops: [
+      { name: 'Torre del Reloj', lat: 10.423036, lng: -75.549219 },
+      { name: 'El Pasquín de Joaco', lat: 10.4234706, lng: -75.5495415 },
+      { name: 'Casa Carolina', lat: 10.4236246, lng: -75.5502602 },
+      { name: 'Catedral de Santa Catalina', lat: 10.4236446, lng: -75.5506735 },
+      { name: 'Plaza Santo Domingo — Casa Bohème', lat: 10.4241036, lng: -75.5518067 },
+      { name: 'San Pedro Claver', lat: 10.4217511, lng: -75.5510213 },
+      { name: 'Centro de Convenciones', lat: 10.420559, lng: -75.549046 },
+      { name: 'El Beso — Getsemaní', lat: 10.4195719, lng: -75.5464839 },
+    ],
+  },
+];
+
 // Atlas places missing from the catalog entirely. Appended at merge time when
 // absent from the incoming venues array (guards against a future backend add).
 // Coordinate verified INSIDE the OSM building footprint (way 93829748, 7.9m
