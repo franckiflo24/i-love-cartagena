@@ -1027,6 +1027,20 @@ export default function MapaScreen() {
     }).catch(() => {});
   }, []);
 
+  // CAMINAR arrival watcher — runs on BOTH platforms off the shared geo
+  // stream. Only real in-city GPS advances progress; remote viewers just see
+  // the plan. MUST live above the loading early-return with every other hook
+  // (a hook after a conditional return = React #310, hooks-order crash).
+  useEffect(() => {
+    if (!ruta || !userLoc || !isInCartagena(userLoc.lat, userLoc.lng)) return;
+    if (nextStopIdx >= ruta.stops.length) return;
+    const s = ruta.stops[nextStopIdx];
+    if (haversineM(userLoc.lat, userLoc.lng, s.lat, s.lng) <= RUTA_ARRIVE_M) {
+      setNextStopIdx(i => i + 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLoc, ruta, nextStopIdx]);
+
   // Request location permission and track ping → backend analytics
   const requestLocation = async () => {
     setLocStatus('requesting');
@@ -1306,18 +1320,6 @@ export default function MapaScreen() {
     setBuildStops([]);
     setBuilding(true);
   };
-
-  // Arrival watcher — runs on BOTH platforms off the shared geo stream. Only
-  // real in-city GPS advances progress; remote viewers just see the plan.
-  useEffect(() => {
-    if (!ruta || !userLoc || !isInCartagena(userLoc.lat, userLoc.lng)) return;
-    if (nextStopIdx >= ruta.stops.length) return;
-    const s = ruta.stops[nextStopIdx];
-    if (haversineM(userLoc.lat, userLoc.lng, s.lat, s.lng) <= RUTA_ARRIVE_M) {
-      setNextStopIdx(i => i + 1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userLoc, ruta, nextStopIdx]);
 
   // 🚶 button: in Cartagena = real follow-me; outside (or without location) the
   // real walking layer is honestly gated — offer the virtual stroll instead of
