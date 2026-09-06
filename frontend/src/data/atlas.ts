@@ -53,6 +53,21 @@ export const ATLAS_VENUE_FIXES: Readonly<Record<string, AtlasVenueFix>> = {
 // and the closing overview moved to the end so the tour lands wide.
 export type AtlasViewpoint = { title: string; lat: number; lng: number; zoom: number };
 
+// Virtual stroll for users OUTSIDE Cartagena (the real walking layer is
+// distance-gated and honest — it never activates remotely). Every waypoint is
+// an atlas-verified venue coordinate, ordered as a walkable Centro→Getsemaní
+// loop. Display-only: passport stamps stay behind the server's 75m real-GPS gate.
+export const ATLAS_WALK: AtlasViewpoint[] = [
+  { title: 'Torre del Reloj', lat: 10.423036, lng: -75.549219, zoom: 18 },
+  { title: 'El Pasquín de Joaco', lat: 10.4234706, lng: -75.5495415, zoom: 18 },
+  { title: 'Casa Carolina', lat: 10.4236246, lng: -75.5502602, zoom: 18 },
+  { title: 'Catedral de Santa Catalina', lat: 10.4236446, lng: -75.5506735, zoom: 18 },
+  { title: 'Plaza Santo Domingo — Casa Bohème', lat: 10.4241036, lng: -75.5518067, zoom: 18 },
+  { title: 'San Pedro Claver', lat: 10.4217511, lng: -75.5510213, zoom: 18 },
+  { title: 'Centro de Convenciones', lat: 10.420559, lng: -75.549046, zoom: 18 },
+  { title: 'El Beso — Getsemaní', lat: 10.4195719, lng: -75.5464839, zoom: 18 },
+];
+
 export const ATLAS_ROUTE: AtlasViewpoint[] = [
   { title: 'Cartagena desde arriba', lat: 10.4234, lng: -75.5489, zoom: 14.8 },
   { title: 'Torre del Reloj', lat: 10.423036, lng: -75.549219, zoom: 18.2 },

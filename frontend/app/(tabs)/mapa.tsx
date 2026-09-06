@@ -20,7 +20,7 @@ import { getVenues } from '../../src/lib/venueCache';
 import { venueBarrio, NBH_LABELS, NbhCentroid } from '../../src/utils/neighborhood';
 import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
 import { getHomeBase, syncHomeBase } from '../../src/lib/homeBase';
-import { ATLAS_VERIFIED, ATLAS_VENUE_FIXES, ATLAS_ADD_VENUES, ATLAS_ROUTE } from '../../src/data/atlas';
+import { ATLAS_VERIFIED, ATLAS_VENUE_FIXES, ATLAS_ADD_VENUES, ATLAS_ROUTE, ATLAS_WALK } from '../../src/data/atlas';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -82,7 +82,13 @@ function markerColor(p: Place): string {
 const TOUR_FLIGHT_S = 2.2;
 const TOUR_STEP_MS = 4200;
 
-function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null, satellite: boolean, autoTour: boolean) {
+// Virtual-walk timing: one leg glides over WALK_LEG_MS in WALK_TICKS steps,
+// with a short dwell at each arrival for the venue tease popup.
+const WALK_LEG_MS = 4000;
+const WALK_TICKS = 20;
+const WALK_DWELL_MS = 1100;
+
+function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null, satellite: boolean, autoTour: boolean, autoWalk: boolean) {
   const filtered = filter === 'all' ? places
     : filter === 'esenciales' ? places.filter(p => p.type === 'service' || p.type === 'essential')
     : places.filter(p => p.category === filter);
@@ -186,6 +192,44 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '};'
     + 'window.__amoTourStop = function() { if (tourTimer) { clearTimeout(tourTimer); tourTimer = null; } map.closePopup(); };'
     + (autoTour ? 'setTimeout(function() { window.__amoTour(); }, 600);' : '')
+    // Virtual walk: gold "virtual you" dot glides between verified waypoints;
+    // at each arrival, tease the nearest catalog venue within 150m.
+    + 'var WALK = ' + JSON.stringify(ATLAS_WALK) + ';'
+    + 'var PTS = ' + JSON.stringify(filtered.filter(p => p.lat && p.lng).map(p => [p.lat, p.lng, (p.name || '').replace(/["'<>]/g, '')])) + ';'
+    + 'var walkTimers = []; var walkMarker = null;'
+    + 'function _wd(a, b, c, d) { var R = 6371000, dl = (c - a) * Math.PI / 180, dg = (d - b) * Math.PI / 180; var x = Math.sin(dl / 2) * Math.sin(dl / 2) + Math.cos(a * Math.PI / 180) * Math.cos(c * Math.PI / 180) * Math.sin(dg / 2) * Math.sin(dg / 2); return 2 * R * Math.asin(Math.sqrt(x)); }'
+    + 'function _nearest(lat, lng) { var best = null, bd = 151; for (var i = 0; i < PTS.length; i++) { var d = _wd(lat, lng, PTS[i][0], PTS[i][1]); if (d < bd) { bd = d; best = [PTS[i][0], PTS[i][1], PTS[i][2], Math.round(d)]; } } return best; }'
+    + 'window.__amoWalkStop = function() { walkTimers.forEach(function(t) { clearTimeout(t); clearInterval(t); }); walkTimers = []; if (walkMarker) { map.removeLayer(walkMarker); walkMarker = null; } map.closePopup(); };'
+    + 'window.__amoWalk = function() {'
+    + '  window.__amoWalkStop();'
+    + '  var gi = L.divIcon({ className: "", html: \'<div style="position:relative;width:22px;height:22px"><div style="position:absolute;top:0;left:0;width:22px;height:22px;border-radius:50%;background:rgba(201,168,76,0.3);animation:pulse 1.6s ease-out infinite"></div><div style="position:absolute;top:4px;left:4px;width:14px;height:14px;border-radius:50%;background:#C9A84C;border:2px solid #fff;box-shadow:0 0 6px rgba(201,168,76,0.8)"></div></div>\', iconSize: [22, 22], iconAnchor: [11, 11] });'
+    + '  walkMarker = L.marker([WALK[0].lat, WALK[0].lng], { icon: gi, zIndexOffset: 1200 }).addTo(map);'
+    + '  map.flyTo([WALK[0].lat, WALK[0].lng], 18, { duration: 1.5 });'
+    + '  walkTimers.push(setTimeout(function() { L.popup({closeButton: false, autoClose: true}).setLatLng([WALK[0].lat, WALK[0].lng]).setContent("🚶 <b style=\\"color:' + COLORS.textMain + '\\">Paseo virtual — Centro Histórico</b>").openOn(map); }, 1500));'
+    + '  var leg = 0;'
+    + '  var nextLeg = function() {'
+    + '    if (leg >= WALK.length - 1) { window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({type: "walkEnd"})); return; }'
+    + '    var a = WALK[leg], b = WALK[leg + 1], t = 0;'
+    + '    var iv = setInterval(function() {'
+    + '      t++;'
+    + '      var f = t / ' + WALK_TICKS + ';'
+    + '      var la = a.lat + (b.lat - a.lat) * f, lo = a.lng + (b.lng - a.lng) * f;'
+    + '      if (walkMarker) walkMarker.setLatLng([la, lo]);'
+    + '      if (t === ' + Math.floor(WALK_TICKS / 2) + ') map.panTo([la, lo]);'
+    + '      if (t >= ' + WALK_TICKS + ') {'
+    + '        clearInterval(iv);'
+    + '        map.panTo([b.lat, b.lng]);'
+    + '        var n = _nearest(b.lat, b.lng);'
+    + '        if (n) L.popup({closeButton: false, autoClose: true}).setLatLng([n[0], n[1]]).setContent("🚶 <b style=\\"color:' + COLORS.textMain + '\\">" + n[2] + "</b> — a " + n[3] + "m").openOn(map);'
+    + '        leg++;'
+    + '        walkTimers.push(setTimeout(nextLeg, ' + WALK_DWELL_MS + '));'
+    + '      }'
+    + '    }, ' + Math.round(WALK_LEG_MS / WALK_TICKS) + ');'
+    + '    walkTimers.push(iv);'
+    + '  };'
+    + '  walkTimers.push(setTimeout(nextLeg, 2200));'
+    + '};'
+    + (autoWalk ? 'setTimeout(function() { window.__amoWalk(); }, 600);' : '')
     + '<\/script>'
     + '</body></html>';
 }
@@ -220,10 +264,11 @@ function detectZone(lat: number, lng: number): string {
  * are cheap and the map never flickers. Popups show real-time "a Xm de ti"
  * computed at open time from the latest position.
  */
-function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite, tourActive, onTourEnd, onNavigate }: {
+function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite, tourActive, onTourEnd, walkActive, onWalkEnd, onNavigate }: {
   places: Place[]; filter: string; passportIds: Set<string>;
   userLoc: { lat: number; lng: number } | null; follow: boolean; satellite: boolean;
   tourActive: boolean; onTourEnd: () => void;
+  walkActive: boolean; onWalkEnd: () => void;
   onNavigate: (path: string) => void;
 }) {
   const mapRef = useRef<HTMLDivElement | null>(null);
@@ -239,6 +284,12 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
   const tourActiveRef = useRef(tourActive);
   tourActiveRef.current = tourActive;
   const tourTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const walkActiveRef = useRef(walkActive);
+  walkActiveRef.current = walkActive;
+  const walkTimersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
+  const walkMarkerRef = useRef<any>(null);
+  const placesRef = useRef(places);
+  placesRef.current = places;
 
   // Swap the basemap in place (dark canvas ↔ satellite imagery) without
   // touching markers or view state.
@@ -434,6 +485,86 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tourActive, mapReady]);
 
+  // ── Virtual walk: gold "virtual you" glides between verified waypoints,
+  // teasing the nearest catalog venue at each arrival. Display-only — real
+  // passport stamps stay behind the server's 75m real-GPS gate.
+  useEffect(() => {
+    const L = (window as any).L;
+    const map = leafletRef.current;
+    const clearAll = () => {
+      walkTimersRef.current.forEach(t => { clearTimeout(t); clearInterval(t as any); });
+      walkTimersRef.current = [];
+      if (walkMarkerRef.current && leafletRef.current) {
+        leafletRef.current.removeLayer(walkMarkerRef.current);
+        walkMarkerRef.current = null;
+      }
+    };
+    if (!walkActive || !L || !map) {
+      clearAll();
+      if (map) map.closePopup();
+      return;
+    }
+    const gi = L.divIcon({
+      className: '',
+      html: '<div style="position:relative;width:22px;height:22px"><div style="position:absolute;top:0;left:0;width:22px;height:22px;border-radius:50%;background:rgba(201,168,76,0.3);animation:pulse 1.6s ease-out infinite"></div><div style="position:absolute;top:4px;left:4px;width:14px;height:14px;border-radius:50%;background:#C9A84C;border:2px solid #fff;box-shadow:0 0 6px rgba(201,168,76,0.8)"></div></div>',
+      iconSize: [22, 22], iconAnchor: [11, 11],
+    });
+    walkMarkerRef.current = L.marker([ATLAS_WALK[0].lat, ATLAS_WALK[0].lng], { icon: gi, zIndexOffset: 1200 }).addTo(map);
+    map.flyTo([ATLAS_WALK[0].lat, ATLAS_WALK[0].lng], 18, { duration: 1.5 });
+    walkTimersRef.current.push(setTimeout(() => {
+      if (!walkActiveRef.current || !leafletRef.current) return;
+      L.popup({ closeButton: false, autoClose: true })
+        .setLatLng([ATLAS_WALK[0].lat, ATLAS_WALK[0].lng])
+        .setContent(`🚶 <b style="color:${COLORS.textMain}">Paseo virtual — Centro Histórico</b>`)
+        .openOn(map);
+    }, 1500));
+    const nearest = (lat: number, lng: number) => {
+      let best: { lat: number; lng: number; name: string; d: number } | null = null;
+      for (const p of placesRef.current) {
+        if (!p.lat || !p.lng) continue;
+        const d = haversineM(lat, lng, p.lat, p.lng);
+        if (d <= 150 && (!best || d < best.d)) {
+          best = { lat: p.lat, lng: p.lng, name: (p.name || '').replace(/["'<>]/g, ''), d: Math.round(d) };
+        }
+      }
+      return best;
+    };
+    let leg = 0;
+    const nextLeg = () => {
+      if (leg >= ATLAS_WALK.length - 1) {
+        onWalkEnd();
+        return;
+      }
+      const a = ATLAS_WALK[leg], b = ATLAS_WALK[leg + 1];
+      let t = 0;
+      const iv = setInterval(() => {
+        t++;
+        const f = t / WALK_TICKS;
+        const la = a.lat + (b.lat - a.lat) * f;
+        const lo = a.lng + (b.lng - a.lng) * f;
+        if (walkMarkerRef.current) walkMarkerRef.current.setLatLng([la, lo]);
+        if (t === Math.floor(WALK_TICKS / 2)) map.panTo([la, lo]);
+        if (t >= WALK_TICKS) {
+          clearInterval(iv);
+          map.panTo([b.lat, b.lng]);
+          const n = nearest(b.lat, b.lng);
+          if (n) {
+            L.popup({ closeButton: false, autoClose: true })
+              .setLatLng([n.lat, n.lng])
+              .setContent(`🚶 <b style="color:${COLORS.textMain}">${n.name}</b> — a ${n.d}m`)
+              .openOn(map);
+          }
+          leg++;
+          walkTimersRef.current.push(setTimeout(nextLeg, WALK_DWELL_MS));
+        }
+      }, Math.round(WALK_LEG_MS / WALK_TICKS));
+      walkTimersRef.current.push(iv as any);
+    };
+    walkTimersRef.current.push(setTimeout(nextLeg, 2200));
+    return clearAll;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [walkActive, mapReady]);
+
   // ── Place markers: rebuild only when data/filter changes ──
   const renderMarkers = () => {
     const L = (window as any).L;
@@ -527,8 +658,8 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
       if (isInCartagena(userLoc.lat, userLoc.lng)) map.setView([userLoc.lat, userLoc.lng], 15);
     } else {
       userMarkerRef.current.setLatLng([userLoc.lat, userLoc.lng]);
-      // Follow never fights the fly-through: tour owns the camera while active.
-      if (followRef.current && !tourActiveRef.current && isInCartagena(userLoc.lat, userLoc.lng)) {
+      // Follow never fights the fly-through or virtual walk: they own the camera.
+      if (followRef.current && !tourActiveRef.current && !walkActiveRef.current && isInCartagena(userLoc.lat, userLoc.lng)) {
         map.panTo([userLoc.lat, userLoc.lng], { animate: true });
       }
     }
@@ -581,6 +712,7 @@ export default function MapaScreen() {
   // the whole point of the atlas layer; the dark canvas stays one tap away.
   const [satellite, setSatellite] = useState(true);
   const [tour, setTour] = useState(false);
+  const [walk, setWalk] = useState(false); // virtual walk (out-of-city demo)
   const [passportIds, setPassportIds] = useState<Set<string>>(new Set());
   const [neighborhoods, setNeighborhoods] = useState<NbhCentroid[]>([]);
   const [nbhFilter, setNbhFilter] = useState<string | null>(null); // null = all barrios
@@ -851,13 +983,49 @@ export default function MapaScreen() {
       if (Platform.OS !== 'web') webViewRef.current?.injectJavaScript('window.__amoTourStop && window.__amoTourStop(); true;');
       return;
     }
+    setWalk(false); // tour and virtual walk are mutually exclusive
     setSatellite(true);
     setTour(true);
   };
 
-  // Native: the WebView document auto-runs the tour when rebuilt with tour on
-  // (the key below includes both flags, so toggling rebuilds the document).
-  const html = buildMapHTML(visiblePlaces, filter, userLoc, satellite, tour);
+  // 🚶 button: in Cartagena = real follow-me; outside (or without location) the
+  // real walking layer is honestly gated — offer the virtual stroll instead of
+  // failing silently (the recurring "walking doesn't work" report from afar).
+  const onWalkPress = () => {
+    const canRealWalk = !!userLoc && isInCartagena(userLoc.lat, userLoc.lng);
+    if (canRealWalk) {
+      setFollow(f => !f);
+      return;
+    }
+    if (walk) {
+      setWalk(false);
+      if (Platform.OS !== 'web') webViewRef.current?.injectJavaScript('window.__amoWalkStop && window.__amoWalkStop(); true;');
+      return;
+    }
+    const kmAway = userLoc ? Math.round(haversineM(userLoc.lat, userLoc.lng, CTG_CENTER.lat, CTG_CENTER.lng) / 1000) : null;
+    Alert.alert(
+      tr('Modo paseo'),
+      (kmAway
+        ? `${tr('Estás a')} ${kmAway.toLocaleString()} km ${tr('de Cartagena — el seguimiento en vivo se activa al llegar a la ciudad.')}`
+        : tr('Sin tu ubicación, el seguimiento en vivo no puede activarse.'))
+        + ' ' + tr('¿Quieres un paseo virtual por el Centro Histórico?'),
+      [
+        { text: tr('Ahora no'), style: 'cancel' },
+        {
+          text: tr('Iniciar paseo'),
+          onPress: () => {
+            setTour(false);
+            setSatellite(true);
+            setWalk(true);
+          },
+        },
+      ],
+    );
+  };
+
+  // Native: the WebView document auto-runs the tour/walk when rebuilt with the
+  // flag on (the key below includes all flags, so toggling rebuilds the document).
+  const html = buildMapHTML(visiblePlaces, filter, userLoc, satellite, tour, walk);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -917,11 +1085,11 @@ export default function MapaScreen() {
       {/* Map */}
       <View style={styles.mapWrap}>
         {Platform.OS === 'web' ? (
-          <WebMapDirect places={visiblePlaces} filter={filter} passportIds={passportIds} userLoc={userLoc} follow={follow} satellite={satellite} tourActive={tour} onTourEnd={() => setTour(false)} onNavigate={(path) => router.push(path as any)} />
+          <WebMapDirect places={visiblePlaces} filter={filter} passportIds={passportIds} userLoc={userLoc} follow={follow} satellite={satellite} tourActive={tour} onTourEnd={() => setTour(false)} walkActive={walk} onWalkEnd={() => setWalk(false)} onNavigate={(path) => router.push(path as any)} />
         ) : (
           <WebView
             ref={webViewRef}
-            key={filter + (nbhFilter || 'allnbh') + (tour ? '' : (userLoc ? `_u${userLoc.lat}` : '')) + (satellite ? '_sat' : '_dark') + (tour ? '_tour' : '')}
+            key={filter + (nbhFilter || 'allnbh') + (tour || walk ? '' : (userLoc ? `_u${userLoc.lat}` : '')) + (satellite ? '_sat' : '_dark') + (tour ? '_tour' : '') + (walk ? '_walk' : '')}
             source={{ html }}
             style={styles.webview}
             javaScriptEnabled={true}
@@ -940,6 +1108,8 @@ export default function MapaScreen() {
                   // React state so the button resets and later key-driven
                   // rebuilds don't re-run autoTour.
                   setTour(false);
+                } else if (msg.type === 'walkEnd') {
+                  setWalk(false);
                 }
               } catch { /* non-JSON message — ignore */ }
             }}
@@ -973,13 +1143,13 @@ export default function MapaScreen() {
           <Ionicons name="home" size={19} color={hasBase ? COLORS.white : COLORS.icon} />
         </TouchableOpacity>
 
-        {/* Floating "Recentrar en Cartagena" button */}
+        {/* Walking mode: follow-me in Cartagena; virtual stroll from anywhere else */}
         <TouchableOpacity
-          style={[styles.locateBtn, { bottom: 80 }, follow && styles.locateBtnActive]}
-          onPress={() => setFollow(f => !f)}
+          style={[styles.locateBtn, { bottom: 80 }, (walk || (follow && !!userLoc && isInCartagena(userLoc.lat, userLoc.lng))) && styles.locateBtnActive]}
+          onPress={onWalkPress}
           activeOpacity={0.85}
         >
-          <Ionicons name="walk" size={20} color={follow ? COLORS.white : COLORS.icon} />
+          <Ionicons name={walk ? 'stop' : 'walk'} size={20} color={walk || (follow && !!userLoc && isInCartagena(userLoc.lat, userLoc.lng)) ? COLORS.white : COLORS.icon} />
         </TouchableOpacity>
 
         {/* Floating "Locate me" button */}
