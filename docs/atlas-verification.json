@@ -1,0 +1,98 @@
+{
+  "title": "AMO Cartagena Atlas — pin verification verdicts",
+  "verified_at": "2026-09-05",
+  "method": "One adversarial agent per place: OSM authority fetch (node/way/full), polygon centroid, street-geometry + house-number interpolation cross-checks, neighbor-venue consistency.",
+  "atlas_source": "https://amo-cartagena-atlas.higgsfield.app/",
+  "verdicts": [
+    {
+      "place_id": "pasquin",
+      "verdict": "both_agree",
+      "canonical_lat": 10.4234706,
+      "canonical_lng": -75.5495415,
+      "osm_authority_lat": 10.4235694,
+      "osm_authority_lng": -75.5494741,
+      "confidence": "high",
+      "reasoning": "OSM node 14123990962 (fetched live, v1, 2026-08-26) returns lat 10.4235694, lon -75.5494741 — identical to the atlas record (0.00 m apart) — with tags name=\"El Pasquín de Joaco\", amenity=restaurant, addr:street=\"130001, Calle Portocarrero #34-09, Cartagena de Indias, Bolívar\", website=elpasquindejoaco.com, matching both records' name and address exactly. Haversine distance partner (Google Places) vs atlas/OSM = 13.23 m, well within the 25 m agreement threshold — a normal Google-vs-OSM building-footprint offset, not a conflict. Addresses are string-identical (Calle Portocarrero #34-09). Per rule, both_agree ships the already-live partner coordinate (10.4234706, -75.5495415)."
+    },
+    {
+      "place_id": "buenavida",
+      "verdict": "both_agree",
+      "canonical_lat": 10.4251115,
+      "canonical_lng": -75.54960899999999,
+      "osm_authority_lat": 10.4251628,
+      "osm_authority_lng": -75.5496562,
+      "confidence": "high",
+      "reasoning": "OSM node 7074068385 (fetched live) returns lat 10.4251628, lon -75.5496562 — identical to the atlas coords (0.00 m delta), with tags amenity=restaurant, cuisine=seafood, name=\"Buena Vida\", check_date=2025-10-23 (recently surveyed, v4). The cuisine=seafood tag positively matches the partner name \"Buena Vida Marisquería\", ruling out a same-name venue collision. Partner (Google Places) coord is 7.69 m from the OSM/atlas point — same building, well within the 25 m both_agree threshold. Addresses are consistent (atlas \"Historic center\" vs partner generic \"Cartagena de Indias\"; no conflicting street numbers). Canonical = partner coord (already live in production)."
+    },
+    {
+      "place_id": "cathedral",
+      "verdict": "both_agree",
+      "canonical_lat": 10.4236446,
+      "canonical_lng": -75.5506735,
+      "osm_authority_lat": 10.4236628,
+      "osm_authority_lng": -75.5507142,
+      "confidence": "high",
+      "reasoning": "OSM way 49666923 (v7, 2025-10-24) is tagged name=\"Catedral de Santa Catalina de Alejandría\", amenity=place_of_worship, denomination=roman_catholic, basilica=minor, wikidata=Q5047033 — exact name match to both atlas and partner records, confirming all sources point at the same building. Polygon centroid of the way = 10.4236628, -75.5507142. Distances: atlas↔OSM 0.55 m, atlas↔partner 4.34 m, partner↔OSM 4.89 m — all within the 25 m both_agree threshold; the partner/Google pin sits a few meters inside the same footprint. Partner address \"Centro Histórico, Cartagena\" matches atlas area with no street-number conflict. Canonical = partner coord (already live in production)."
+    },
+    {
+      "place_id": "clock",
+      "verdict": "both_agree",
+      "canonical_lat": 10.4229787,
+      "canonical_lng": -75.54921829999999,
+      "osm_authority_lat": 10.4230343,
+      "osm_authority_lng": -75.54918,
+      "confidence": "high",
+      "reasoning": "OSM way 955128419 confirmed as the monument (tags: name=Puerta del Reloj, tourism=attraction, building=yes, wikipedia=es:Torre del Reloj (Cartagena de Indias), wikidata=Q30594363). Polygon centroid of its 15 nodes = 10.4230343, -75.5491800. Haversine distances: atlas vs partner 6.4 m, atlas vs OSM centroid 4.3 m, partner vs OSM centroid 7.5 m — all within the 25 m agreement threshold, and both candidate coords lie inside the OSM building footprint. Addresses agree (\"Plaza de los Coches gateway\" vs \"Plaza de los Coches, Centro Histórico\"; the tower IS the plaza's gateway). Per rule, both_agree ships the already-live partner coordinate as canonical."
+    },
+    {
+      "place_id": "claver",
+      "verdict": "both_agree",
+      "canonical_lat": 10.4217511,
+      "canonical_lng": -75.5510213,
+      "osm_authority_lat": 10.4217758,
+      "osm_authority_lng": -75.5512125,
+      "confidence": "high",
+      "reasoning": "OSM way 955128421 fetched live: 19-node closed building tagged name='Iglesia de San Pedro Claver', amenity=place_of_worship, denomination=catholic, wikidata=Q9007271 — confirms the atlas source is the correct church. Polygon centroid = 10.4217758, -75.5512125. Distances: atlas↔OSM centroid 0.8 m (atlas IS the building centroid), partner↔OSM centroid 21.1 m, atlas↔partner 21.8 m. Both the atlas and partner coords pass a point-in-polygon test against the church footprint (building spans lng -75.55147 to -75.55095, ~57 m wide); the partner/Google pin sits at the eastern edge of the footprint facing Plaza San Pedro Claver, matching its address 'Plaza San Pedro Claver, Centro Histórico' — a typical Google Places entrance-side placement, not an error. All deltas are within the ~25 m both_agree threshold, so ship the live partner coordinate as canonical."
+    },
+    {
+      "place_id": "conventions",
+      "verdict": "new_record_needed",
+      "canonical_lat": 10.420559,
+      "canonical_lng": -75.549046,
+      "osm_authority_lat": 10.420624,
+      "osm_authority_lng": -75.549017,
+      "confidence": "high",
+      "reasoning": "Partner record is null, so this needs a new record. Verified atlas coord against OSM way 93829748: the way is the correct feature (tags name=\"Centro de Convenciones Cartagena de Indias Julio César Turbay Ayala\" — exact match to atlas address; addr:street=\"Calle del Arsenal\", addr:city=\"Cartagena de Indias\", amenity=arts_centre, building=yes; Calle del Arsenal is the Getsemaní waterfront, matching atlas area). The way is an 18-node closed building polygon; its area centroid is 10.420624, -75.549017, only 7.9 m from the atlas coord, and the atlas coord lies INSIDE the building footprint (point-in-polygon confirmed; footprint spans ~170 m, bbox lat 10.419826..10.421383, lng -75.549598..-75.548566). Atlas coord is authoritative-consistent; ship it as canonical."
+    },
+    {
+      "place_id": "boheme",
+      "verdict": "both_agree",
+      "canonical_lat": 10.4241036,
+      "canonical_lng": -75.5518067,
+      "osm_authority_lat": null,
+      "osm_authority_lng": null,
+      "confidence": "high",
+      "reasoning": "Atlas and partner coords are 3.80 m apart (haversine), far inside the 25 m tolerance — same building. The atlas sourceUrl is a Google short link, not an OSM element, and an Overpass search for name~\"Boh[eè]me\" in Centro Histórico (bbox 10.418,-75.560,10.430,-75.544) returned no elements, so no OSM authority coord exists (null). Independent sanity checks: Nominatim reverse-geocode of the partner coord resolves to Calle Nuestra Señora de la Candelaria, Centro (colonial-name segment of Calle 35, matching address Cl. 35 #3-30); the coord is 32.33 m from OSM Plaza de Santo Domingo centroid (way 110342708, place=square, atlas coord 35.21 m) and 61.03 m from Iglesia de Santo Domingo (node 838199148) — consistent with a venue on the plaza-adjacent block per the atlas address \"Plaza Santo Domingo\". Canonical = partner coord (already live, shared by sub-venues ptr_CB_003, ptr_CB_005, ptr_R051)."
+    },
+    {
+      "place_id": "beso",
+      "verdict": "partner_correct",
+      "canonical_lat": 10.4195719,
+      "canonical_lng": -75.5464839,
+      "osm_authority_lat": 10.4187591,
+      "osm_authority_lng": -75.545118,
+      "confidence": "high",
+      "reasoning": "OSM node 9977376517 (name=El Beso, amenity=restaurant, addr Carrera 10c #25-2, v2 2025-04-07) matches the atlas coords exactly (0.0 m), but sits 174.6 m from the partner coord — a genuine conflict. Street-geometry check settles it: OSM way 49458260 'Carrera 10' has alt_name 'Calle de San Antonio', the street named in BOTH the atlas and partner addresses (Cra. 10 #25-37, Calle San Antonio). The partner point lies 5.4 m from that way; the atlas/OSM point lies 162.8 m from it, instead sitting 1.5 m off 'Calle de las Palmas' (Nominatim resolves it to Calle Lomba) — its own tags (Carrera 10c #25-2) contradict the atlas record's stated address. Neighbor cross-check: Cafe San Antonio at Cra. 10 #25-99 (10.4199671,-75.5460989) is 60.9 m from the partner point on the same street, consistent with sequential numbering #25-37 -> #25-99; the atlas point is 171.9 m from it and not on that street. The atlas record is internally inconsistent (address vs coordinate); the OSM node appears misplaced or refers to a stale location. Ship the partner/Google coordinate."
+    },
+    {
+      "place_id": "carolina",
+      "verdict": "both_agree",
+      "canonical_lat": 10.4236246,
+      "canonical_lng": -75.5502602,
+      "osm_authority_lat": null,
+      "osm_authority_lng": null,
+      "confidence": "high",
+      "reasoning": "Atlas and partner coords are bit-identical (0.00 m apart). sourceUrl is the hotel website, not an OSM element, and Overpass finds no 'Casa Carolina' mapped in Centro Histórico, so no OSM authority coord exists (null). Adversarial cross-check via OSM: Nominatim reverse-geocode of the pin returns 'Calle del Arzobispado, Centro, Cartagena de Indias' — the exact street in both records. House-number geometry on the same street confirms the building: OSM has Barbier at #34-74 (10.4240696,-75.5503704, 50.9 m from pin) and Época café at #34-52 (10.4238015,-75.5503310, 21.1 m from pin); Colombian plates are meters from the cross-street, and calibrating the corner from Barbier (corner ≈ lat 10.42340, matching the '5-08/5-10' addressed corner nodes on Calle de Manuel Román y Picón) predicts #34-14 at lat ≈ 10.42353, ~10 m from the pin — well within same-building tolerance. Neighboring OSM hotel node 'Casa Pombo' sits 11.0 m away on the same block, consistent with adjacent colonial properties. Partner address matches atlas address modulo casing. Caveat: the identical 7-decimal coords suggest both sources derive from the same Google Places record, but the independent OSM street/plate evidence corroborates it, so confidence is high. Canonical = live partner coord (10.4236246, -75.5502602)."
+    }
+  ]
+}

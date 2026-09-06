@@ -20,6 +20,7 @@ import { getVenues } from '../../src/lib/venueCache';
 import { venueBarrio, NBH_LABELS, NbhCentroid } from '../../src/utils/neighborhood';
 import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
 import { getHomeBase, syncHomeBase } from '../../src/lib/homeBase';
+import { ATLAS_VERIFIED, ATLAS_VENUE_FIXES, ATLAS_ADD_VENUES, ATLAS_ROUTE } from '../../src/data/atlas';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -37,6 +38,20 @@ type Place = {
   link: string;
   extra: string;
   neighborhood?: string | null;
+  verified?: boolean; // atlas-verified position (src/data/atlas.ts)
+};
+
+// Keyless Esri basemaps. Dark Gray canvas is the default; World Imagery powers
+// the satellite view (same imagery family as the AMO Atlas — real overhead
+// visuals of every venue). maxNativeZoom caps real tile requests at each
+// service's reliable top level and upscales above.
+const TILE_DARK = {
+  url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+  maxNativeZoom: 16,
+};
+const TILE_SAT = {
+  url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  maxNativeZoom: 18,
 };
 
 const FILTERS = [
@@ -63,13 +78,18 @@ function markerColor(p: Place): string {
   return colorForKey(p.type || p.category);
 }
 
-function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null) {
+// Tour timing: flyTo flight time + dwell at each stop (seconds / ms).
+const TOUR_FLIGHT_S = 2.2;
+const TOUR_STEP_MS = 4200;
+
+function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null, satellite: boolean, autoTour: boolean) {
   const filtered = filter === 'all' ? places
     : filter === 'esenciales' ? places.filter(p => p.type === 'service' || p.type === 'essential')
     : places.filter(p => p.category === filter);
 
   const markers = filtered.map(p => {
     const color = markerColor(p);
+    const isVerified = !!p.verified;
     const safeName = (p.name || '').replace(/'/g, "").replace(/"/g, "");
     const safeDesc = (p.extra || p.description || '').replace(/'/g, "").replace(/"/g, "").substring(0, 80);
     const safeAddr = (p.address || '').replace(/'/g, "").replace(/"/g, "");
@@ -77,6 +97,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng;
 
     const priceHtml = safePrice ? '<span style="font-size:12px;color:' + COLORS.mustard + ';font-weight:700;">' + safePrice + '</span><br>' : '';
+    const verifiedHtml = isVerified ? '<span style="font-size:10px;color:#12B5A5;font-weight:800;">✓ UBICACIÓN VERIFICADA</span><br>' : '';
 
     const detailUrl = '/partner/' + p.id;
     const popupContent = '<div style=font-family:sans-serif;min-width:180px>'
@@ -85,6 +106,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
       + '<span style=font-size:10px;color:' + color + ';text-transform:uppercase;font-weight:700>' + p.type + '</span>'
       + '</div>'
       + '<b style=font-size:15px;color:' + COLORS.textMain + '>' + safeName + '</b><br>'
+      + verifiedHtml
       + '<span style=font-size:11px;color:' + COLORS.textMuted + '>' + safeDesc + '</span><br>'
       + '<span style=font-size:11px;color:' + COLORS.textMuted + '>📍 ' + safeAddr + '</span><br>'
       + priceHtml
@@ -94,8 +116,12 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
       + '</div>'
       + '</div>';
 
-    return "L.circleMarker([" + p.lat + ", " + p.lng + "], {"
-      + "radius: 10, fillColor: '" + color + "', color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9"
+    // Verified pins: precision halo ring underneath + slightly heavier marker.
+    const halo = isVerified
+      ? "L.circleMarker([" + p.lat + ", " + p.lng + "], {radius: 16, fill: false, color: '#12B5A5', weight: 1.5, dashArray: '2 4', opacity: 0.9, interactive: false}).addTo(map);\n"
+      : '';
+    return halo + "L.circleMarker([" + p.lat + ", " + p.lng + "], {"
+      + "radius: " + (isVerified ? 11 : 10) + ", fillColor: '" + color + "', color: '#fff', weight: " + (isVerified ? 3 : 2) + ", opacity: 1, fillOpacity: 0.9"
       + "}).addTo(map).bindPopup('" + popupContent.replace(/'/g, "\\'") + "', {maxWidth: 260});";
   }).join('\n');
 
@@ -136,10 +162,30 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '</head><body>'
     + '<div id="map"></div>'
     + '<script>'
-    + 'var map = L.map("map", {zoomControl: true, attributionControl: false}).setView([10.4236, -75.5483], 13);'
-    + 'L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {maxNativeZoom: 16, maxZoom: 19, attribution: "Esri"}).addTo(map);'
+    + 'var map = L.map("map", {zoomControl: true, attributionControl: false, zoomSnap: ' + (autoTour ? 0 : 1) + '}).setView([10.4236, -75.5483], 13);'
+    + 'L.tileLayer("' + (satellite ? TILE_SAT.url : TILE_DARK.url) + '", {maxNativeZoom: ' + (satellite ? TILE_SAT.maxNativeZoom : TILE_DARK.maxNativeZoom) + ', maxZoom: 19, attribution: "Esri"}).addTo(map);'
     + markers
     + userMarker
+    // Atlas fly-through: chained flyTo over the exported camera route.
+    + 'var TOUR = ' + JSON.stringify(ATLAS_ROUTE) + ';'
+    + 'var tourTimer = null;'
+    + 'window.__amoTour = function() {'
+    + '  var i = 0;'
+    + '  var fly = function() {'
+    + '    if (i >= TOUR.length) { tourTimer = null; window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({type: "tourEnd"})); return; }'
+    + '    var v = TOUR[i];'
+    + '    map.flyTo([v.lat, v.lng], v.zoom, {duration: ' + TOUR_FLIGHT_S + '});'
+    + '    setTimeout(function() {'
+    + '      L.popup({closeButton: false, autoClose: true})'
+    + '        .setLatLng([v.lat, v.lng]).setContent("<b style=\\"color:' + COLORS.textMain + '\\">" + v.title + "</b>").openOn(map);'
+    + '    }, ' + Math.round(TOUR_FLIGHT_S * 1000) + ');'
+    + '    i += 1;'
+    + '    tourTimer = setTimeout(fly, ' + TOUR_STEP_MS + ');'
+    + '  };'
+    + '  fly();'
+    + '};'
+    + 'window.__amoTourStop = function() { if (tourTimer) { clearTimeout(tourTimer); tourTimer = null; } map.closePopup(); };'
+    + (autoTour ? 'setTimeout(function() { window.__amoTour(); }, 600);' : '')
     + '<\/script>'
     + '</body></html>';
 }
@@ -174,22 +220,48 @@ function detectZone(lat: number, lng: number): string {
  * are cheap and the map never flickers. Popups show real-time "a Xm de ti"
  * computed at open time from the latest position.
  */
-function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate }: {
+function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite, tourActive, onTourEnd, onNavigate }: {
   places: Place[]; filter: string; passportIds: Set<string>;
-  userLoc: { lat: number; lng: number } | null; follow: boolean;
+  userLoc: { lat: number; lng: number } | null; follow: boolean; satellite: boolean;
+  tourActive: boolean; onTourEnd: () => void;
   onNavigate: (path: string) => void;
 }) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const leafletRef = useRef<any>(null);
   const markerLayerRef = useRef<any>(null);
+  const baseLayerRef = useRef<any>(null);
   const userMarkerRef = useRef<any>(null);
   const userPosRef = useRef<{ lat: number; lng: number } | null>(null);
   const followRef = useRef(follow);
   followRef.current = follow;
+  const satelliteRef = useRef(satellite);
+  satelliteRef.current = satellite;
+  const tourActiveRef = useRef(tourActive);
+  tourActiveRef.current = tourActive;
+  const tourTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Swap the basemap in place (dark canvas ↔ satellite imagery) without
+  // touching markers or view state.
+  const applyBaseLayer = () => {
+    const L = (window as any).L;
+    const map = leafletRef.current;
+    if (!L || !map) return;
+    if (baseLayerRef.current) {
+      map.removeLayer(baseLayerRef.current);
+      baseLayerRef.current = null;
+    }
+    const t = satelliteRef.current ? TILE_SAT : TILE_DARK;
+    baseLayerRef.current = L.tileLayer(t.url, {
+      maxNativeZoom: t.maxNativeZoom, maxZoom: 19, attribution: 'Esri',
+    }).addTo(map);
+  };
   // Blocked CDN (hotel/VPN/ad-block networks — our tourists) means the script
   // never loads → permanently blank map with no signal. Surface a retry.
   const [loadFailed, setLoadFailed] = useState(false);
   const [retryTick, setRetryTick] = useState(0);
+  // Lets the tour effect re-fire once Leaflet finishes booting — a Play tap
+  // during the CDN load window would otherwise be silently swallowed.
+  const [mapReady, setMapReady] = useState(false);
   const tr = useTr();
 
   // ── Map bootstrap: once (re-run on manual retry) ──
@@ -205,16 +277,13 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
     const init = () => {
       const L = (window as any).L;
       if (!L || !mapRef.current || leafletRef.current) return;
-      const map = L.map(mapRef.current, { zoomControl: true, attributionControl: false })
+      const map = L.map(mapRef.current, { zoomControl: true, attributionControl: false, zoomSnap: 0 })
         .setView([10.4236, -75.5483], 13);
       leafletRef.current = map;
-      // Keyless dark basemap. CARTO's rastertiles now require an API key (they
-      // return an "API KEY REQUIRED" watermark tile), so we use Esri's Dark Gray
-      // canvas — natively dark (no invert filter needed), keyless. maxNativeZoom
-      // caps real tile requests at 16 (the canvas's top level) and upscales above.
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-        maxNativeZoom: 16, maxZoom: 19, attribution: 'Esri',
-      }).addTo(map);
+      // Keyless Esri basemaps (CARTO's rastertiles now require an API key and
+      // return an "API KEY REQUIRED" watermark tile). Dark Gray canvas default,
+      // World Imagery satellite on toggle — see TILE_DARK / TILE_SAT.
+      applyBaseLayer();
 
       // Real-time distance injection when a popup opens
       map.on('popupopen', (e: any) => {
@@ -276,6 +345,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
 
       renderMarkers();
       renderUser();
+      setMapReady(true);
     };
     if ((window as any).L) init();
     else {
@@ -290,11 +360,79 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
         leafletRef.current.remove();
         leafletRef.current = null;
         markerLayerRef.current = null;
+        baseLayerRef.current = null;
         userMarkerRef.current = null;
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retryTick]);
+
+  // ── Basemap: swap in place on satellite toggle ──
+  // Skips its first run per mount: init() already lays the base layer, and a
+  // double call would waste a full round of tile requests + visible flicker.
+  const satEffectMounted = useRef(false);
+  useEffect(() => {
+    if (!satEffectMounted.current) {
+      satEffectMounted.current = true;
+      return;
+    }
+    applyBaseLayer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [satellite]);
+
+  // ── Atlas fly-through: chained flyTo over the exported camera route ──
+  // zoomSnap is loosened to 0 ONLY while touring (the route uses fractional
+  // zooms like 14.8/18.7); normal browsing keeps whole-number zoom so raster
+  // tiles always render at native sharpness.
+  useEffect(() => {
+    const L = (window as any).L;
+    const map = leafletRef.current;
+    let popupTimer: ReturnType<typeof setTimeout> | null = null;
+    const clear = () => {
+      if (tourTimerRef.current) {
+        clearTimeout(tourTimerRef.current);
+        tourTimerRef.current = null;
+      }
+      if (popupTimer) {
+        clearTimeout(popupTimer);
+        popupTimer = null;
+      }
+    };
+    if (!tourActive || !L || !map) {
+      clear();
+      if (map) {
+        map.closePopup();
+        map.options.zoomSnap = 1;
+      }
+      return;
+    }
+    map.options.zoomSnap = 0;
+    let step = 0;
+    const fly = () => {
+      if (step >= ATLAS_ROUTE.length) {
+        tourTimerRef.current = null;
+        onTourEnd();
+        return;
+      }
+      const v = ATLAS_ROUTE[step];
+      map.flyTo([v.lat, v.lng], v.zoom, { duration: TOUR_FLIGHT_S });
+      popupTimer = setTimeout(() => {
+        if (!tourActiveRef.current || !leafletRef.current) return;
+        L.popup({ closeButton: false, autoClose: true })
+          .setLatLng([v.lat, v.lng])
+          .setContent(`<b style="color:${COLORS.textMain}">${v.title}</b>`)
+          .openOn(map);
+      }, Math.round(TOUR_FLIGHT_S * 1000));
+      step += 1;
+      tourTimerRef.current = setTimeout(fly, TOUR_STEP_MS);
+    };
+    fly();
+    return () => {
+      clear();
+      map.options.zoomSnap = 1;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tourActive, mapReady]);
 
   // ── Place markers: rebuild only when data/filter changes ──
   const renderMarkers = () => {
@@ -313,6 +451,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
     filtered.forEach(p => {
       if (!p.lat || !p.lng) return;
       const isPassport = passportIds.has(p.id);
+      const isVerified = !!p.verified;
       const color = isPassport ? GOLD : markerColor(p);
       const safeName = (p.name || '').replace(/'/g, '').replace(/"/g, '');
       const safeDesc = (p.extra || p.description || '').replace(/'/g, '').replace(/"/g, '').substring(0, 80);
@@ -322,6 +461,9 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
       const passportHtml = isPassport
         ? `<span style="font-size:10px;color:#8a6d1f;font-weight:800">🛂 SELLO DEL PASAPORTE</span><br>`
         : '';
+      const verifiedHtml = isVerified
+        ? `<span style="font-size:10px;color:#12B5A5;font-weight:800">✓ UBICACIÓN VERIFICADA</span><br>`
+        : '';
       const popup = `<div style="font-family:sans-serif;min-width:180px">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
           <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></div>
@@ -329,7 +471,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
         </div>
         <b style="font-size:15px;color:${COLORS.textMain}">${safeName}</b><br>
         <span data-dist style="display:none;font-size:12px;color:#1a7f37;font-weight:700"></span>
-        ${passportHtml}
+        ${passportHtml}${verifiedHtml}
         <span style="font-size:11px;color:${COLORS.textMuted}">${safeDesc}</span><br>
         <span style="font-size:11px;color:${COLORS.textMuted}">📍 ${safeAddr}</span><br>
         ${priceHtml}
@@ -338,11 +480,18 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
           <a href="${mapsUrl}" target="_blank" style="display:inline-block;padding:6px 14px;background:rgba(255,255,255,0.08);color:${COLORS.textMain};text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,0.08)">📍 Mapa</a>
         </div>
       </div>`;
+      if (isVerified) {
+        // Precision halo under atlas-verified pins.
+        L.circleMarker([p.lat, p.lng], {
+          radius: 16, fill: false, color: '#12B5A5', weight: 1.5,
+          dashArray: '2 4', opacity: 0.9, interactive: false,
+        }).addTo(layer);
+      }
       L.circleMarker([p.lat, p.lng], {
-        radius: isPassport ? 11 : 10,
+        radius: isPassport || isVerified ? 11 : 10,
         fillColor: color,
         color: isPassport ? '#7a5c00' : '#fff',
-        weight: 2, opacity: 1, fillOpacity: 0.92,
+        weight: isVerified ? 3 : 2, opacity: 1, fillOpacity: 0.92,
       }).addTo(layer).bindPopup(popup, { maxWidth: 260 });
     });
     layer.addTo(map);
@@ -378,7 +527,8 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, onNavigate
       if (isInCartagena(userLoc.lat, userLoc.lng)) map.setView([userLoc.lat, userLoc.lng], 15);
     } else {
       userMarkerRef.current.setLatLng([userLoc.lat, userLoc.lng]);
-      if (followRef.current && isInCartagena(userLoc.lat, userLoc.lng)) {
+      // Follow never fights the fly-through: tour owns the camera while active.
+      if (followRef.current && !tourActiveRef.current && isInCartagena(userLoc.lat, userLoc.lng)) {
         map.panTo([userLoc.lat, userLoc.lng], { animate: true });
       }
     }
@@ -427,6 +577,8 @@ export default function MapaScreen() {
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [locStatus, setLocStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle');
   const [follow, setFollow] = useState(true);
+  const [satellite, setSatellite] = useState(false);
+  const [tour, setTour] = useState(false);
   const [passportIds, setPassportIds] = useState<Set<string>>(new Set());
   const [neighborhoods, setNeighborhoods] = useState<NbhCentroid[]>([]);
   const [nbhFilter, setNbhFilter] = useState<string | null>(null); // null = all barrios
@@ -540,9 +692,26 @@ export default function MapaScreen() {
       category: 'partner', type: 'essential', address: e.note || '',
       lat: e.lat, lng: e.lng, image_url: '', price: '', link: '', extra: e.note || '',
     }));
-    const buildPlaces = (venues: any[], partners: any[], concerts: any[]): Place[] => {
+    const buildPlaces = (rawVenues: any[], partners: any[], concerts: any[]): Place[] => {
       const allPlaces: Place[] = [];
       const seenNames = new Set<string>();
+
+      // Atlas layer: verified coordinate fixes + missing atlas venues, applied
+      // to EVERY merge (static + hydrate) so stale backend coords can't regress
+      // pins. Fixing the venues array here also corrects concert inheritance.
+      const venues = [
+        ...rawVenues.map((v: any) => {
+          const fix = ATLAS_VENUE_FIXES[v.venue_id];
+          return fix
+            ? {
+                ...v,
+                location: { ...(v.location || {}), lat: fix.lat, lng: fix.lng },
+                ...(fix.address ? { address: fix.address } : {}),
+              }
+            : v;
+        }),
+        ...ATLAS_ADD_VENUES.filter(av => !rawVenues.some((v: any) => v.venue_id === av.venue_id)),
+      ];
 
       venues.forEach((v: any) => {
         seenNames.add((v.name || '').toLowerCase());
@@ -586,6 +755,9 @@ export default function MapaScreen() {
       });
 
       allPlaces.push(...essToPlaces());
+      // Atlas-verified badge — ids whose position survived adversarial
+      // OSM verification (docs/atlas-verification.json).
+      for (const p of allPlaces) if (ATLAS_VERIFIED.has(p.id)) p.verified = true;
       return allPlaces.filter(p => p.lat !== 0);
     };
 
@@ -669,7 +841,21 @@ export default function MapaScreen() {
     );
   }
 
-  const html = buildMapHTML(visiblePlaces, filter, userLoc);
+  // The tour is designed over satellite imagery — flying the dark canvas at
+  // zoom 18-19 shows upscaled blur, so starting the tour turns satellite on.
+  const startTour = () => {
+    if (tour) {
+      setTour(false);
+      if (Platform.OS !== 'web') webViewRef.current?.injectJavaScript('window.__amoTourStop && window.__amoTourStop(); true;');
+      return;
+    }
+    setSatellite(true);
+    setTour(true);
+  };
+
+  // Native: the WebView document auto-runs the tour when rebuilt with tour on
+  // (the key below includes both flags, so toggling rebuilds the document).
+  const html = buildMapHTML(visiblePlaces, filter, userLoc, satellite, tour);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -729,11 +915,11 @@ export default function MapaScreen() {
       {/* Map */}
       <View style={styles.mapWrap}>
         {Platform.OS === 'web' ? (
-          <WebMapDirect places={visiblePlaces} filter={filter} passportIds={passportIds} userLoc={userLoc} follow={follow} onNavigate={(path) => router.push(path as any)} />
+          <WebMapDirect places={visiblePlaces} filter={filter} passportIds={passportIds} userLoc={userLoc} follow={follow} satellite={satellite} tourActive={tour} onTourEnd={() => setTour(false)} onNavigate={(path) => router.push(path as any)} />
         ) : (
           <WebView
             ref={webViewRef}
-            key={filter + (nbhFilter || 'allnbh') + (userLoc ? `_u${userLoc.lat}` : '')}
+            key={filter + (nbhFilter || 'allnbh') + (tour ? '' : (userLoc ? `_u${userLoc.lat}` : '')) + (satellite ? '_sat' : '_dark') + (tour ? '_tour' : '')}
             source={{ html }}
             style={styles.webview}
             javaScriptEnabled={true}
@@ -747,11 +933,34 @@ export default function MapaScreen() {
                 const msg = JSON.parse(e.nativeEvent.data);
                 if (msg.type === 'navigate' && msg.path) {
                   router.push(msg.path as any);
+                } else if (msg.type === 'tourEnd') {
+                  // Native tour ran to completion inside the document — sync
+                  // React state so the button resets and later key-driven
+                  // rebuilds don't re-run autoTour.
+                  setTour(false);
                 }
               } catch { /* non-JSON message — ignore */ }
             }}
           />
         )}
+
+        {/* Floating atlas fly-through — the exported camera route over satellite */}
+        <TouchableOpacity
+          style={[styles.locateBtn, { bottom: 254 }, tour && styles.locateBtnActive]}
+          onPress={startTour}
+          activeOpacity={0.85}
+        >
+          <Ionicons name={tour ? 'stop' : 'play'} size={19} color={tour ? COLORS.white : COLORS.icon} />
+        </TouchableOpacity>
+
+        {/* Floating satellite toggle — real overhead imagery of every venue */}
+        <TouchableOpacity
+          style={[styles.locateBtn, { bottom: 196 }, satellite && styles.locateBtnActive]}
+          onPress={() => setSatellite(s => !s)}
+          activeOpacity={0.85}
+        >
+          <Ionicons name={satellite ? 'earth' : 'earth-outline'} size={19} color={satellite ? COLORS.white : COLORS.icon} />
+        </TouchableOpacity>
 
         {/* Floating "Mi Base" — set your hotel, get back from anywhere */}
         <TouchableOpacity

@@ -1,0 +1,66 @@
+{
+  "format": "amo-cartagena-camera-route",
+  "version": 1,
+  "title": "AMO Cartagena route",
+  "duration_seconds": 15,
+  "viewpoints": [
+    {
+      "lng": -75.5489,
+      "lat": 10.4234,
+      "zoom": 14.8,
+      "bearing": 0,
+      "pitch": 0,
+      "title": "Cartagena from above"
+    },
+    {
+      "lng": -75.549219,
+      "lat": 10.423036,
+      "zoom": 18.2,
+      "bearing": 12,
+      "pitch": 0,
+      "title": "Torre del Reloj"
+    },
+    {
+      "lng": -75.5502602,
+      "lat": 10.4236246,
+      "zoom": 18.7,
+      "bearing": -18,
+      "pitch": 0,
+      "title": "Casa Carolina"
+    },
+    {
+      "lng": -75.5518061,
+      "lat": 10.4240694,
+      "zoom": 18.7,
+      "bearing": 0,
+      "pitch": 0,
+      "title": "Casa Bohème"
+    },
+    {
+      "lng": -75.545118,
+      "lat": 10.4187591,
+      "zoom": 18.5,
+      "bearing": 10,
+      "pitch": 0,
+      "title": "El Beso, Getsemaní"
+    },
+    {
+      "lng": -75.5489,
+      "lat": 10.4234,
+      "zoom": 14.8,
+      "bearing": 0,
+      "pitch": 0,
+      "title": "Cartagena, handled."
+    },
+    {
+      "lng": -75.5494741,
+      "lat": 10.423569400000005,
+      "zoom": 19,
+      "bearing": 0,
+      "pitch": 0,
+      "title": "El Pasquín de Joaco"
+    }
+  ],
+  "coordinate_system": "WGS84 longitude / latitude",
+  "note": "Camera coordinates only. No imagery or imagery rights are included."
+}
