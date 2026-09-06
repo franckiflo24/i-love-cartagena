@@ -83,10 +83,17 @@ const TOUR_FLIGHT_S = 2.2;
 const TOUR_STEP_MS = 4200;
 
 // Virtual-walk timing: one leg glides over WALK_LEG_MS in WALK_TICKS steps,
-// with a short dwell at each arrival for the venue tease popup.
+// with a short dwell at each arrival for the venue tease popup. 50 ticks
+// (80ms) because the dot now follows real street polylines — at 20 ticks it
+// visibly cut corners between frames.
 const WALK_LEG_MS = 4000;
-const WALK_TICKS = 20;
+const WALK_TICKS = 50;
 const WALK_DWELL_MS = 1100;
+// Walk router assets. Relative on the web build (same origin); the WebView
+// document is generated inline, so it must load them from production.
+const WALK_ROUTER_ORIGIN = 'https://www.amocartagena.co';
+const WALK_ROUTER_JS = '/walk-router.js';
+const WALK_GRAPH_JSON = '/data/walkgraph.json';
 
 function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null, satellite: boolean, autoTour: boolean, autoWalk: boolean) {
   const filtered = filter === 'all' ? places
@@ -149,6 +156,11 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'
     + '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />'
     + '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>'
+    // Street router for the virtual walk — the WebView document is generated
+    // inline, so it loads the shared router from the production origin. If it
+    // fails (offline), window.AmoWalkRouter stays undefined and every leg
+    // falls back to the v1 straight glide.
+    + '<script src="' + WALK_ROUTER_ORIGIN + WALK_ROUTER_JS + '"><\/script>'
     + '<style>'
     + '* { margin: 0; padding: 0; box-sizing: border-box; }'
     + 'body { background: ' + COLORS.background + '; }'
@@ -196,12 +208,15 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     // at each arrival, tease the nearest catalog venue within 150m.
     + 'var WALK = ' + JSON.stringify(ATLAS_WALK) + ';'
     + 'var PTS = ' + JSON.stringify(filtered.filter(p => p.lat && p.lng).map(p => [p.lat, p.lng, (p.name || '').replace(/["'<>]/g, '')])) + ';'
-    + 'var walkTimers = []; var walkMarker = null;'
+    + 'var walkTimers = []; var walkMarker = null; var walkTrail = [];'
     + 'function _wd(a, b, c, d) { var R = 6371000, dl = (c - a) * Math.PI / 180, dg = (d - b) * Math.PI / 180; var x = Math.sin(dl / 2) * Math.sin(dl / 2) + Math.cos(a * Math.PI / 180) * Math.cos(c * Math.PI / 180) * Math.sin(dg / 2) * Math.sin(dg / 2); return 2 * R * Math.asin(Math.sqrt(x)); }'
     + 'function _nearest(lat, lng) { var best = null, bd = 151; for (var i = 0; i < PTS.length; i++) { var d = _wd(lat, lng, PTS[i][0], PTS[i][1]); if (d < bd) { bd = d; best = [PTS[i][0], PTS[i][1], PTS[i][2], Math.round(d)]; } } return best; }'
-    + 'window.__amoWalkStop = function() { walkTimers.forEach(function(t) { clearTimeout(t); clearInterval(t); }); walkTimers = []; if (walkMarker) { map.removeLayer(walkMarker); walkMarker = null; } map.closePopup(); };'
+    + 'window.__amoWalkStop = function() { walkTimers.forEach(function(t) { clearTimeout(t); clearInterval(t); }); walkTimers = []; if (walkMarker) { map.removeLayer(walkMarker); walkMarker = null; } walkTrail.forEach(function(p) { map.removeLayer(p); }); walkTrail = []; map.closePopup(); };'
     + 'window.__amoWalk = function() {'
     + '  window.__amoWalkStop();'
+    // 400KB graph loads only when a walk starts (idempotent); early legs
+    // glide straight until it's ready, later legs pick up the streets.
+    + '  if (window.AmoWalkRouter) AmoWalkRouter.load("' + WALK_ROUTER_ORIGIN + WALK_GRAPH_JSON + '").catch(function() {});'
     + '  var gi = L.divIcon({ className: "", html: \'<div style="position:relative;width:22px;height:22px"><div style="position:absolute;top:0;left:0;width:22px;height:22px;border-radius:50%;background:rgba(201,168,76,0.3);animation:pulse 1.6s ease-out infinite"></div><div style="position:absolute;top:4px;left:4px;width:14px;height:14px;border-radius:50%;background:#C9A84C;border:2px solid #fff;box-shadow:0 0 6px rgba(201,168,76,0.8)"></div></div>\', iconSize: [22, 22], iconAnchor: [11, 11] });'
     + '  walkMarker = L.marker([WALK[0].lat, WALK[0].lng], { icon: gi, zIndexOffset: 1200 }).addTo(map);'
     + '  map.flyTo([WALK[0].lat, WALK[0].lng], 18, { duration: 1.5 });'
@@ -210,10 +225,16 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '  var nextLeg = function() {'
     + '    if (leg >= WALK.length - 1) { window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({type: "walkEnd"})); return; }'
     + '    var a = WALK[leg], b = WALK[leg + 1], t = 0;'
+    + '    var R = window.AmoWalkRouter;'
+    + '    var line = [[a.lat, a.lng], [b.lat, b.lng]];'
+    + '    if (R && R.ready()) { var rr = R.route(line); if (rr && rr.line && rr.line.length > 1) line = rr.line; }'
+    + '    var cum = R ? R.measure(line) : null;'
+    + '    walkTrail.push(L.polyline(line, { color: "#C9A84C", weight: 3, opacity: 0.5, dashArray: "1 7", interactive: false }).addTo(map));'
     + '    var iv = setInterval(function() {'
     + '      t++;'
     + '      var f = t / ' + WALK_TICKS + ';'
-    + '      var la = a.lat + (b.lat - a.lat) * f, lo = a.lng + (b.lng - a.lng) * f;'
+    + '      var pt = cum ? R.pointAt(line, cum, f) : [a.lat + (b.lat - a.lat) * f, a.lng + (b.lng - a.lng) * f];'
+    + '      var la = pt[0], lo = pt[1];'
     + '      if (walkMarker) walkMarker.setLatLng([la, lo]);'
     + '      if (t === ' + Math.floor(WALK_TICKS / 2) + ') map.panTo([la, lo]);'
     + '      if (t >= ' + WALK_TICKS + ') {'
@@ -288,6 +309,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
   walkActiveRef.current = walkActive;
   const walkTimersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
   const walkMarkerRef = useRef<any>(null);
+  const walkTrailRef = useRef<any[]>([]);
   const placesRef = useRef(places);
   placesRef.current = places;
 
@@ -485,9 +507,12 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tourActive, mapReady]);
 
-  // ── Virtual walk: gold "virtual you" glides between verified waypoints,
-  // teasing the nearest catalog venue at each arrival. Display-only — real
-  // passport stamps stay behind the server's 75m real-GPS gate.
+  // ── Virtual walk: gold "virtual you" walks the real streets between
+  // verified waypoints (client-side A* over our committed OSM graph — keyless,
+  // zero Google), teasing the nearest catalog venue at each arrival. If the
+  // router/graph can't load, each leg silently falls back to the v1 straight
+  // glide. Display-only — real passport stamps stay behind the server's 75m
+  // real-GPS gate.
   useEffect(() => {
     const L = (window as any).L;
     const map = leafletRef.current;
@@ -498,11 +523,26 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
         leafletRef.current.removeLayer(walkMarkerRef.current);
         walkMarkerRef.current = null;
       }
+      walkTrailRef.current.forEach(p => { try { leafletRef.current?.removeLayer(p); } catch {} });
+      walkTrailRef.current = [];
     };
     if (!walkActive || !L || !map) {
       clearAll();
       if (map) map.closePopup();
       return;
+    }
+    // Lazy-load router + 400KB graph only when a walk actually starts; the
+    // 2.2s opening flyTo usually covers it. Legs that begin before the graph
+    // is ready glide straight; later legs pick up the streets mid-walk.
+    const w = window as any;
+    if (w.AmoWalkRouter) {
+      w.AmoWalkRouter.load(WALK_GRAPH_JSON).catch(() => {});
+    } else if (!document.querySelector('#amo-walk-router')) {
+      const s = document.createElement('script');
+      s.id = 'amo-walk-router';
+      s.src = WALK_ROUTER_JS;
+      s.onload = () => { try { w.AmoWalkRouter.load(WALK_GRAPH_JSON).catch(() => {}); } catch {} };
+      document.head.appendChild(s);
     }
     const gi = L.divIcon({
       className: '',
@@ -536,12 +576,23 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
         return;
       }
       const a = ATLAS_WALK[leg], b = ATLAS_WALK[leg + 1];
+      const R = (window as any).AmoWalkRouter;
+      let line: Array<[number, number]> = [[a.lat, a.lng], [b.lat, b.lng]];
+      if (R && R.ready()) {
+        const routed = R.route(line);
+        if (routed && routed.line && routed.line.length > 1) line = routed.line;
+      }
+      const cum: number[] | null = R ? R.measure(line) : null;
+      const pos = (f: number): [number, number] => (R && cum)
+        ? R.pointAt(line, cum, f)
+        : [a.lat + (b.lat - a.lat) * f, a.lng + (b.lng - a.lng) * f];
+      const trail = L.polyline(line, { color: '#C9A84C', weight: 3, opacity: 0.5, dashArray: '1 7', interactive: false }).addTo(map);
+      walkTrailRef.current.push(trail);
       let t = 0;
       const iv = setInterval(() => {
         t++;
         const f = t / WALK_TICKS;
-        const la = a.lat + (b.lat - a.lat) * f;
-        const lo = a.lng + (b.lng - a.lng) * f;
+        const [la, lo] = pos(f);
         if (walkMarkerRef.current) walkMarkerRef.current.setLatLng([la, lo]);
         if (t === Math.floor(WALK_TICKS / 2)) map.panTo([la, lo]);
         if (t >= WALK_TICKS) {
