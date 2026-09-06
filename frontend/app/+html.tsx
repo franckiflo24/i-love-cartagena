@@ -6,7 +6,7 @@ import type { PropsWithChildren } from 'react';
 // once (the '3.1.0' era required a MANUAL bump on every deploy — five Walking
 // Layer deploys shipped without one, leaving returning devices on the old
 // bundle. Never again: the stamp is automatic.)
-const BUILD_VERSION = `3.2.0-${Date.now()}`;
+const BUILD_VERSION = `3.3.0-${Date.now()}`;
 
 export default function Root({ children }: PropsWithChildren) {
   return (

@@ -577,7 +577,9 @@ export default function MapaScreen() {
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [locStatus, setLocStatus] = useState<'idle' | 'requesting' | 'granted' | 'denied'>('idle');
   const [follow, setFollow] = useState(true);
-  const [satellite, setSatellite] = useState(false);
+  // Satellite is the DEFAULT view — real overhead imagery of every venue is
+  // the whole point of the atlas layer; the dark canvas stays one tap away.
+  const [satellite, setSatellite] = useState(true);
   const [tour, setTour] = useState(false);
   const [passportIds, setPassportIds] = useState<Set<string>>(new Set());
   const [neighborhoods, setNeighborhoods] = useState<NbhCentroid[]>([]);
@@ -946,11 +948,11 @@ export default function MapaScreen() {
 
         {/* Floating atlas fly-through — the exported camera route over satellite */}
         <TouchableOpacity
-          style={[styles.locateBtn, { bottom: 254 }, tour && styles.locateBtnActive]}
+          style={[styles.locateBtn, styles.tourBtn, { bottom: 254 }, tour && styles.locateBtnActive]}
           onPress={startTour}
           activeOpacity={0.85}
         >
-          <Ionicons name={tour ? 'stop' : 'play'} size={19} color={tour ? COLORS.white : COLORS.icon} />
+          <Ionicons name={tour ? 'stop' : 'play'} size={19} color={tour ? COLORS.white : COLORS.primary} />
         </TouchableOpacity>
 
         {/* Floating satellite toggle — real overhead imagery of every venue */}
@@ -1050,7 +1052,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 8,
+    // Above Leaflet's panes (markers sit at z 400-600 in the SAME stacking
+    // context) — without this, dense pin clusters paint OVER the controls.
+    zIndex: 1000,
   },
+  tourBtn: { borderColor: COLORS.primary },
   locateBtnActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   locDeniedBanner: {
     position: 'absolute',
