@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { COLORS, SPACING, RADIUS, FONTS, colorForKey } from '../../src/constants/theme';
-import { api } from '../../src/constants/api';
+import { api , ASSET_ORIGIN} from '../../src/constants/api';
 import { eventPriceLabel } from '../../src/utils/price';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
@@ -1007,7 +1007,7 @@ export default function MapaScreen() {
 
   // Neighborhood centroids for the barrio filter (same source as Explore).
   useEffect(() => {
-    fetch('/data/neighborhoods.json')
+    fetch(ASSET_ORIGIN + '/data/neighborhoods.json')
       .then(r => (r.ok ? r.json() : []))
       .then((n) => Array.isArray(n) && setNeighborhoods(n))
       .catch(() => {});
@@ -1187,7 +1187,7 @@ export default function MapaScreen() {
     };
 
     const staticFetch = (file: string) =>
-      fetch(`/data/${file}.json`).then(r => r.ok ? r.json() : []).catch(() => []);
+      fetch(`${ASSET_ORIGIN}/data/${file}.json`).then(r => r.ok ? r.json() : []).catch(() => []);
 
     // Static-first: paint partner markers immediately (fastest file),
     // then add venues + concerts as they arrive

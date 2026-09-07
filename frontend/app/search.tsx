@@ -8,7 +8,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
-import { api } from '../src/constants/api';
+import { api , ASSET_ORIGIN} from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
 import { useLang } from '../src/context/LanguageContext';
 import { SafeImage } from '../src/components/SafeImage';
@@ -516,9 +516,9 @@ export default function SearchScreen() {
         };
 
         const [allPartners, allEvents, allConcerts] = await Promise.all([
-          fetch('/data/partners.json').then(r => r.json()).catch(() => []),
-          fetch('/data/events.json').then(r => r.json()).then((d) => filterLiveEvents(Array.isArray(d) ? d : (d?.events || []))).catch(() => []),
-          fetch('/data/concerts.json').then(r => r.json()).then((d) => filterLiveEvents(Array.isArray(d) ? d : (d?.concerts || []))).catch(() => []),
+          fetch(ASSET_ORIGIN + '/data/partners.json').then(r => r.json()).catch(() => []),
+          fetch(ASSET_ORIGIN + '/data/events.json').then(r => r.json()).then((d) => filterLiveEvents(Array.isArray(d) ? d : (d?.events || []))).catch(() => []),
+          fetch(ASSET_ORIGIN + '/data/concerts.json').then(r => r.json()).then((d) => filterLiveEvents(Array.isArray(d) ? d : (d?.concerts || []))).catch(() => []),
         ]);
 
         const minScore = distinctiveTerms.length > 0 ? 3 : 1.5;

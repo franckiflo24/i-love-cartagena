@@ -12,6 +12,7 @@ import { nearestNeighborhood, NBH_LABELS, NbhCentroid } from '../utils/neighborh
 import {
   getHomeBase, setHomeBase, clearHomeBase, syncHomeBase, directionsUrl, uberUrl, shareText, HomeBase,
 } from '../lib/homeBase';
+import { ASSET_ORIGIN } from '../constants/api';
 
 export function HomeBaseSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const tr = useTr();
@@ -28,7 +29,7 @@ export function HomeBaseSheet({ visible, onClose }: { visible: boolean; onClose:
     setBase(b);
     setEditing(!b);
     setLabel(b?.label || '');
-    fetch('/data/neighborhoods.json').then(r => (r.ok ? r.json() : [])).then(setNeighborhoods).catch(() => {});
+    fetch(ASSET_ORIGIN + '/data/neighborhoods.json').then(r => (r.ok ? r.json() : [])).then(setNeighborhoods).catch(() => {});
     // Pull the base saved to the account so it shows on ANY device the user signs into.
     syncHomeBase().then(sb => {
       if (sb) { setBase(sb); setEditing(false); setLabel(sb.label); }

@@ -4,7 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
-import { api } from '../../src/constants/api';
+import { api , ASSET_ORIGIN} from '../../src/constants/api';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
@@ -37,7 +37,7 @@ export default function CollectionScreen() {
         if (alive && Array.isArray(d?.partners)) { setPartners(d.partners); setLoading(false); return; }
       } catch { /* fall through to static */ }
       try {
-        const all = await fetch('/data/partners.json').then(r => r.json());
+        const all = await fetch(ASSET_ORIGIN + '/data/partners.json').then(r => r.json());
         const list = Array.isArray(all) ? all : [];
         let rows: any[];
         if (def.mode === 'category') {

@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TYPE, ELEVATION, PARTNER_CATEGORY_LABELS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
-import { api } from '../../src/constants/api';
+import { api , ASSET_ORIGIN} from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
 import { PressableScale } from '../../src/components/PressableScale';
@@ -164,7 +164,7 @@ export default function PartnersScreen() {
       try {
         // Static-first: this tab must never be empty on a backend cold-start
         // (a slow/errored /api/partners was showing every tier as "0 · Próximamente").
-        const staticData = await fetch('/data/partners.json')
+        const staticData = await fetch(ASSET_ORIGIN + '/data/partners.json')
           .then(r => (r.ok ? r.json() : null)).catch(() => null);
         if (Array.isArray(staticData) && staticData.length) setPartners(staticData);
         // Hydrate from backend (live tiers/pulses) only if it returns real data.

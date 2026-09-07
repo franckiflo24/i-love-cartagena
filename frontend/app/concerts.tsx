@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
-import { api } from '../src/constants/api';
+import { api , ASSET_ORIGIN} from '../src/constants/api';
 import { eventPriceLabel } from '../src/utils/price';
 import { useFavorites } from '../src/context/FavoritesContext';
 import { useTr } from '../src/i18n/autoTr';
@@ -90,7 +90,7 @@ export default function ConcertsScreen() {
   useEffect(() => {
     // Static-first: paint from /data/*.json, then hydrate from backend in background
     const staticFetch = (file: string) =>
-      fetch(`/data/${file}.json`).then(r => r.ok ? r.json() : []).catch(() => []);
+      fetch(`${ASSET_ORIGIN}/data/${file}.json`).then(r => r.ok ? r.json() : []).catch(() => []);
 
     // 1. Instant paint from static data
     Promise.all([

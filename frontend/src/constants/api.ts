@@ -2,7 +2,17 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+// Native builds have NO origin: a relative '/api' or '/data/...' fetch dies,
+// and a binary built without EXPO_PUBLIC_* env (EAS builds don't see the
+// gitignored .env) shipped as a spinner that never resolves — caught on the
+// first simulator run of buildNumber 5. Production endpoints are hardcoded
+// fallbacks on native; env vars still override everywhere.
+const PROD_BACKEND_URL = 'https://backend-mu-one-74.vercel.app';
+const PROD_APP_URL = 'https://www.amocartagena.co';
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL
+  || (Platform.OS !== 'web' ? PROD_BACKEND_URL : undefined);
+// Origin for static /data assets: same-origin on web, production site on native.
+export const ASSET_ORIGIN = Platform.OS === 'web' ? '' : (process.env.EXPO_PUBLIC_APP_URL || PROD_APP_URL);
 const STATIC_MODE = process.env.EXPO_PUBLIC_STATIC_MODE === '1' || !BACKEND_URL;
 // Base for callers that need raw fetch with custom headers (e.g. /intel)
 export const API_BASE = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
@@ -23,7 +33,7 @@ const AI_PROXY_URL = process.env.EXPO_PUBLIC_AI_PROXY_URL || (BACKEND_URL ? `${B
 const staticUrl = (path: string): string => {
   // Strip leading slash, strip query string
   const clean = path.replace(/^\/+/, '').split('?')[0];
-  return `/data/${clean}.json`;
+  return `${ASSET_ORIGIN}/data/${clean}.json`;
 };
 
 const tryStatic = async (path: string): Promise<any> => {

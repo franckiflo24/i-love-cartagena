@@ -27,7 +27,7 @@ import {
   colorForKey,
   ELEVATION,
 } from '../../src/constants/theme';
-import { api } from '../../src/constants/api';
+import { api , ASSET_ORIGIN} from '../../src/constants/api';
 import { IMAGES, getCategoryImage } from '../../src/constants/images';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
@@ -633,7 +633,7 @@ export default function ExploreScreen() {
 
   const loadFeatured = useCallback(async () => {
     // Static-first (non-blocking)
-    fetch('/data/experiences/featured.json').then(r => r.ok ? r.json() : [])
+    fetch(ASSET_ORIGIN + '/data/experiences/featured.json').then(r => r.ok ? r.json() : [])
       .then(sf => { if (Array.isArray(sf) && sf.length > 0) { setFeatured(sf); setLoadingFeatured(false); } })
       .catch(() => {});
     // Hydrate from backend (non-blocking)
@@ -650,7 +650,7 @@ export default function ExploreScreen() {
       return userProfile.isPersonalized ? getPersonalizedPartners(sorted) : sorted;
     };
     // Static-first (non-blocking)
-    fetch('/data/partners.json').then(r => r.ok ? r.json() : [])
+    fetch(ASSET_ORIGIN + '/data/partners.json').then(r => r.ok ? r.json() : [])
       .then(sf => {
         if (Array.isArray(sf) && sf.length > 0) {
           setAllCategoryPartners(applyPersonalization(sf));
@@ -669,7 +669,7 @@ export default function ExploreScreen() {
 
   const loadNeighborhoods = useCallback(async () => {
     // Static-first (backend has no /neighborhoods endpoint — data is static-only)
-    fetch('/data/neighborhoods.json').then(r => r.ok ? r.json() : [])
+    fetch(ASSET_ORIGIN + '/data/neighborhoods.json').then(r => r.ok ? r.json() : [])
       .then(data => { if (Array.isArray(data)) setNeighborhoods(data); })
       .catch(() => {})
       .finally(() => setLoadingNeighborhoods(false));

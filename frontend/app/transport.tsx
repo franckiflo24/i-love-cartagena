@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
-import { api } from '../src/constants/api';
+import { api , ASSET_ORIGIN} from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
 
 const TRANSPORT_ICONS: Record<string, string> = {
@@ -47,7 +47,7 @@ export default function TransportScreen() {
     };
     const loadFares = async () => {
       try {
-        const res = await fetch('/data/transport-official.json');
+        const res = await fetch(ASSET_ORIGIN + '/data/transport-official.json');
         const data = res.ok ? await res.json() : [];
         setOfficialFares(Array.isArray(data) ? data : []);
       } catch (e) { console.error('[TransportScreen] fares', e); }

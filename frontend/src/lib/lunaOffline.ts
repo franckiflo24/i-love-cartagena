@@ -1,3 +1,4 @@
+import { ASSET_ORIGIN } from '../constants/api';
 // Luna offline — when the concierge backend/LLM is slow, unreachable, or errors,
 // answer from the bundled catalog snapshot (public/data/catalog.json) so the guest
 // STILL gets real venue recommendations (names, area, contact) instead of a dead
@@ -20,7 +21,7 @@ let _loading: Promise<CatalogVenue[]> | null = null;
 export async function loadCatalog(): Promise<CatalogVenue[]> {
   if (_catalog) return _catalog;
   if (_loading) return _loading;
-  _loading = fetch('/data/catalog.json')
+  _loading = fetch(ASSET_ORIGIN + '/data/catalog.json')
     .then((r) => (r.ok ? r.json() : []))
     .then((data: CatalogVenue[]) => { _catalog = Array.isArray(data) ? data : []; return _catalog; })
     .catch(() => { _catalog = []; return _catalog; });

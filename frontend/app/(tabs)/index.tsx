@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TYPE, ELEVATION, EVENT_TYPE_LABELS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
 import { IMAGES, getCategoryImage } from '../../src/constants/images';
-import { api } from '../../src/constants/api';
+import { api , ASSET_ORIGIN} from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useLang } from '../../src/context/LanguageContext';
@@ -173,7 +173,7 @@ export default function HomeScreen() {
     }
     (async () => {
       try {
-        const res = await fetch('/data/partners.json');
+        const res = await fetch(ASSET_ORIGIN + '/data/partners.json');
         if (!res.ok) return;
         const allPartners = await res.json();
         if (!Array.isArray(allPartners)) return;
@@ -205,7 +205,7 @@ export default function HomeScreen() {
       const today = todayIso();
       // Static-first: paint from /data/*.json instantly, then hydrate from backend
       const staticFetch = (file: string) =>
-        fetch(`/data/${file}.json`).then(r => r.ok ? r.json() : []).catch(() => []);
+        fetch(`${ASSET_ORIGIN}/data/${file}.json`).then(r => r.ok ? r.json() : []).catch(() => []);
 
       // Partner-events must reflect TODAY, never a stale bundled date. An event
       // counts as "today" if today falls in its date window (defensive: static

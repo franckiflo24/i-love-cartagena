@@ -1,3 +1,4 @@
+import { ASSET_ORIGIN } from '../constants/api';
 // Walking Layer — client-side venue coordinate cache.
 //
 // All ~870 venue coords + tags are cached in IndexedDB on first load so
@@ -185,7 +186,7 @@ export async function kvSet(key: string, value: unknown): Promise<void> {
 
 async function fetchNetwork(): Promise<CachedVenue[] | null> {
   try {
-    const res = await fetch('/data/partners.json');
+    const res = await fetch(ASSET_ORIGIN + '/data/partners.json');
     if (!res.ok) return null;
     const raw = await res.json();
     if (!Array.isArray(raw) || raw.length === 0) return null;
