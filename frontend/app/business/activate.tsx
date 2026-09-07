@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
+import { setSecureToken } from '../../src/lib/secureToken';
 
 export default function ActivatePartner() {
   const router = useRouter();
@@ -42,11 +43,11 @@ export default function ActivatePartner() {
     try {
       const data = await api.post('/business/activate', { token, password: pw, accept_terms: true });
       if (!data?.token) {
-        Alert.alert('No disponible', 'La activación de cuentas requiere conexión al servidor. Contacta soporte@amocartagena.app');
+        Alert.alert('No disponible', 'La activación de cuentas requiere conexión al servidor. Contacta soporte@amocartagena.co');
         setSubmitting(false);
         return;
       }
-      await AsyncStorage.setItem('amocartagena_business_token', data.token);
+      await setSecureToken('amocartagena_business_token', data.token);
       Alert.alert(
         '¡Cuenta activada!',
         'Tu perfil ya está creado. Completa tus fotos, horarios y descripción para empezar a recibir reservas.',

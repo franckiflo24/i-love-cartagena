@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
+import { setSecureToken } from '../../src/lib/secureToken';
 
 export default function OperatorLogin() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function OperatorLogin() {
     try {
       const data = await api.post('/admin/operator/login', { password });
       if (!data?.token) throw new Error('Sin token');
-      await AsyncStorage.setItem('admin_operator_token', data.token);
+      await setSecureToken('admin_operator_token', data.token);
       router.replace('/admin' as any);
     } catch (e: any) {
       Alert.alert('Acceso denegado', 'Contraseña incorrecta');

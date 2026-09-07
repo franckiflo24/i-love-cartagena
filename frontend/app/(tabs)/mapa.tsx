@@ -78,6 +78,24 @@ function markerColor(p: Place): string {
   return colorForKey(p.type || p.category);
 }
 
+// HTML-entity escape for text interpolated into popup HTML (both the web DOM
+// popups and the native WebView document). Partner-submitted fields — name,
+// description, address — are free text from business signup; stripping quotes
+// alone leaves <img onerror=...> stored-XSS open in every user's map.
+function escHtml(v: string): string {
+  return String(v || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// WebView→native messages come from a javaScriptEnabled document that renders
+// partner-controlled text — never trust a path or id out of it blindly.
+const SAFE_NAV_PATH = /^\/[A-Za-z0-9_\-/]*$/;
+const SAFE_ID = /^[A-Za-z0-9_-]+$/;
+
 // Tour timing: flyTo flight time + dwell at each stop (seconds / ms).
 const TOUR_FLIGHT_S = 2.2;
 const TOUR_STEP_MS = 4200;
@@ -190,10 +208,10 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
   const markers = filtered.map(p => {
     const color = markerColor(p);
     const isVerified = !!p.verified;
-    const safeName = (p.name || '').replace(/'/g, "").replace(/"/g, "");
-    const safeDesc = (p.extra || p.description || '').replace(/'/g, "").replace(/"/g, "").substring(0, 80);
-    const safeAddr = (p.address || '').replace(/'/g, "").replace(/"/g, "");
-    const safePrice = (p.price || '').replace(/'/g, "").replace(/"/g, "");
+    const safeName = escHtml(p.name || '');
+    const safeDesc = escHtml((p.extra || p.description || '').substring(0, 80));
+    const safeAddr = escHtml(p.address || '');
+    const safePrice = escHtml(p.price || '');
     const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng;
 
     const priceHtml = safePrice ? '<span style="font-size:12px;color:' + COLORS.mustard + ';font-weight:700;">' + safePrice + '</span><br>' : '';
@@ -201,9 +219,11 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
 
     // Caminar action: id + coords only (name resolved RN-side from places —
     // names contain spaces, which break unquoted inline onclick attributes).
-    const caminarBtn = '<a href=# style=display:inline-block;padding:6px_12px;background:rgba(201,168,76,0.15);color:#C9A84C;text-decoration:none;border-radius:20px;font-size:12px;font-weight:700;border:1px_solid_rgba(201,168,76,0.35) onclick=window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:\"caminar\",id:\"' + p.id + '\",lat:' + p.lat + ',lng:' + p.lng + '}));return_false;>🚶 Caminar</a>';
+    // id is charset-clamped: it rides inside an inline onclick JS string.
+    const safeId = (p.id || '').replace(/[^A-Za-z0-9_-]/g, '');
+    const caminarBtn = '<a href=# style=display:inline-block;padding:6px_12px;background:rgba(201,168,76,0.15);color:#C9A84C;text-decoration:none;border-radius:20px;font-size:12px;font-weight:700;border:1px_solid_rgba(201,168,76,0.35) onclick=window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:\"caminar\",id:\"' + safeId + '\",lat:' + p.lat + ',lng:' + p.lng + '}));return_false;>🚶 Caminar</a>';
 
-    const detailUrl = '/partner/' + p.id;
+    const detailUrl = '/partner/' + safeId;
     const popupContent = '<div style=font-family:sans-serif;min-width:180px>'
       + '<div style=display:flex;align-items:center;gap:6px;margin-bottom:6px>'
       + '<div style=width:10px;height:10px;border-radius:50%;background:' + color + ';flex-shrink:0></div>'
@@ -521,7 +541,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
         if (link) {
           e.preventDefault();
           const pid = link.getAttribute('data-partner');
-          if (pid) onNavigate(`/partner/${pid}`);
+          if (pid && SAFE_ID.test(pid)) onNavigate(`/partner/${pid}`);
         }
       });
 
@@ -832,9 +852,10 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
       const isPassport = passportIds.has(p.id);
       const isVerified = !!p.verified;
       const color = isPassport ? GOLD : markerColor(p);
-      const safeName = (p.name || '').replace(/'/g, '').replace(/"/g, '');
-      const safeDesc = (p.extra || p.description || '').replace(/'/g, '').replace(/"/g, '').substring(0, 80);
-      const safeAddr = (p.address || '').replace(/'/g, '').replace(/"/g, '');
+      const safeName = escHtml(p.name || '');
+      const safeDesc = escHtml((p.extra || p.description || '').substring(0, 80));
+      const safeAddr = escHtml(p.address || '');
+      const safeId = (p.id || '').replace(/[^A-Za-z0-9_-]/g, '');
       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
       const priceHtml = p.price ? `<span style="font-size:12px;color:${COLORS.mustard};font-weight:700">${p.price}</span><br>` : '';
       const passportHtml = isPassport
@@ -855,8 +876,8 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
         <span style="font-size:11px;color:${COLORS.textMuted}">📍 ${safeAddr}</span><br>
         ${priceHtml}
         <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
-          <a href="#" data-partner="${p.id}" style="display:inline-block;padding:6px 14px;background:#12B5A5;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">Ver detalle →</a>
-          <a href="#" data-caminar="${p.id}" data-lat="${p.lat}" data-lng="${p.lng}" data-name="${safeName}" style="display:inline-block;padding:6px 12px;background:rgba(201,168,76,0.15);color:#C9A84C;text-decoration:none;border-radius:20px;font-size:12px;font-weight:700;border:1px solid rgba(201,168,76,0.35);cursor:pointer">🚶 Caminar</a>
+          <a href="#" data-partner="${safeId}" style="display:inline-block;padding:6px 14px;background:#12B5A5;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">Ver detalle →</a>
+          <a href="#" data-caminar="${safeId}" data-lat="${p.lat}" data-lng="${p.lng}" data-name="${safeName}" style="display:inline-block;padding:6px 12px;background:rgba(201,168,76,0.15);color:#C9A84C;text-decoration:none;border-radius:20px;font-size:12px;font-weight:700;border:1px solid rgba(201,168,76,0.35);cursor:pointer">🚶 Caminar</a>
           <a href="${mapsUrl}" target="_blank" style="display:inline-block;padding:6px 14px;background:rgba(255,255,255,0.08);color:${COLORS.textMain};text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,0.08)">📍 Mapa</a>
         </div>
       </div>`;
@@ -1439,7 +1460,7 @@ export default function MapaScreen() {
             onMessage={(e) => {
               try {
                 const msg = JSON.parse(e.nativeEvent.data);
-                if (msg.type === 'navigate' && msg.path) {
+                if (msg.type === 'navigate' && typeof msg.path === 'string' && SAFE_NAV_PATH.test(msg.path)) {
                   router.push(msg.path as any);
                 } else if (msg.type === 'tourEnd') {
                   // Native tour ran to completion inside the document — sync
@@ -1451,7 +1472,7 @@ export default function MapaScreen() {
                 } else if (msg.type === 'routeSummary' && Number.isFinite(msg.meters)) {
                   setRutaSummary({ meters: msg.meters, minutes: msg.minutes });
                 } else if (msg.type === 'caminar' && Number.isFinite(msg.lat) && Number.isFinite(msg.lng)) {
-                  onCaminarTap({ id: msg.id, name: '', lat: msg.lat, lng: msg.lng });
+                  onCaminarTap({ id: typeof msg.id === 'string' && SAFE_ID.test(msg.id) ? msg.id : undefined, name: '', lat: msg.lat, lng: msg.lng });
                 }
               } catch { /* non-JSON message — ignore */ }
             }}

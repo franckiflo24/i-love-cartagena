@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../../src/constants/theme';
 import { api } from '../../../src/constants/api';
+import { getSecureToken } from '../../../src/lib/secureToken';
 
 const CATEGORIES = [
   { id: 'restaurant', label: 'Restaurante' },
@@ -44,7 +45,7 @@ export default function OperatorNewPartner() {
     }
     setLoading(true);
     try {
-      const tok = await AsyncStorage.getItem('admin_operator_token');
+      const tok = await getSecureToken('admin_operator_token');
       const data = await api.post('/admin/operator/partners', {
         name, category, tier, owner_email: email, address, phone,
       }, { headers: { Authorization: `Bearer ${tok}` } });

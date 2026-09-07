@@ -26,7 +26,7 @@ export default function BusinessLogin() {
 
   useEffect(() => {
     if (isAlcaldia) {
-      setEmail('alcaldia@amocartagena.app');
+      setEmail('alcaldia@amocartagena.co');
     }
   }, [isAlcaldia]);
 
@@ -69,7 +69,7 @@ export default function BusinessLogin() {
   const fillDemo = () => {
     // Sandbox demo account — a throwaway venue, not a real partner. Safe to ship
     // in the bundle: it only reaches the demo dashboard, never real data.
-    setEmail('demo@amocartagena.app');
+    setEmail('demo@amocartagena.co');
     setPassword('AmoDemoSandbox2026');
   };
 

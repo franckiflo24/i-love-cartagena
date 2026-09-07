@@ -34,6 +34,16 @@ export default function CityPassTab() {
   const [activatingId, setActivatingId] = useState<string | null>(null);
   const [portTax, setPortTax] = useState<{ price_per_person: number; season_label: string } | null>(null);
   const [activeTickets, setActiveTickets] = useState<number>(0);
+  // Guideline 2.1: while payments are disabled in prod, the plan cards must be
+  // honest UP FRONT — a visible "Próximamente" state, not a priced Activar
+  // button that dead-ends after the tap. null = config check still in flight
+  // (buttons stay disabled); flips live automatically when Wompi is enabled.
+  const [paymentsLive, setPaymentsLive] = useState<boolean | null>(null);
+  useEffect(() => {
+    checkWompiEnabled()
+      .then(w => setPaymentsLive(!!w.enabled))
+      .catch(() => setPaymentsLive(false));
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -308,23 +318,32 @@ export default function CityPassTab() {
                   )}
                 </View>
 
-                <TouchableOpacity
-                  style={[styles.ctaBtn, { backgroundColor: plan.color }]}
-                  onPress={() => activatePass(plan.plan_id)}
-                  disabled={!!activatingId}
-                  activeOpacity={0.8}
-                >
-                  {activatingId === plan.plan_id ? (
-                    <ActivityIndicator size="small" color="#FFF" />
-                  ) : (
-                    <>
-                      <Ionicons name="cart-outline" size={18} color="#FFF" />
-                      <Text style={styles.ctaBtnText}>
-                        {tr('Activar')} · {formatPrice(plan.price)}
-                      </Text>
-                    </>
-                  )}
-                </TouchableOpacity>
+                {paymentsLive ? (
+                  <TouchableOpacity
+                    style={[styles.ctaBtn, { backgroundColor: plan.color }]}
+                    onPress={() => activatePass(plan.plan_id)}
+                    disabled={!!activatingId}
+                    activeOpacity={0.8}
+                  >
+                    {activatingId === plan.plan_id ? (
+                      <ActivityIndicator size="small" color="#FFF" />
+                    ) : (
+                      <>
+                        <Ionicons name="cart-outline" size={18} color="#FFF" />
+                        <Text style={styles.ctaBtnText}>
+                          {tr('Activar')} · {formatPrice(plan.price)}
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                ) : (
+                  <View style={[styles.ctaBtn, styles.ctaBtnSoon]}>
+                    <Ionicons name="time-outline" size={17} color={plan.color} />
+                    <Text style={[styles.ctaBtnSoonText, { color: plan.color }]}>
+                      {paymentsLive === null ? tr('Verificando disponibilidad…') : `${tr('Próximamente')} · ${formatPrice(plan.price)}`}
+                    </Text>
+                  </View>
+                )}
               </View>
             ))}
 
@@ -388,6 +407,8 @@ const styles = StyleSheet.create({
 
   ctaBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, marginHorizontal: SPACING.md, marginBottom: SPACING.md, borderRadius: RADIUS.full, paddingVertical: 14 },
   ctaBtnText: { fontSize: 15, color: '#FFF', ...FONTS.bold },
+  ctaBtnSoon: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: COLORS.border },
+  ctaBtnSoonText: { fontSize: 14, ...FONTS.bold },
 
   // Active pass with QR
   activeSection: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.md },

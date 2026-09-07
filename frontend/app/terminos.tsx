@@ -24,7 +24,7 @@ export default function TermsScreen() {
         <Text style={styles.p}>{tr('Amo Cartagena es una aplicación móvil que conecta visitantes con la oferta cultural, gastronómica y de hospitalidad de Cartagena de Indias, Colombia. Al usar la app aceptas estos Términos. Si no estás de acuerdo, no uses el servicio.')}</Text>
 
         <Text style={styles.h1}>{tr('2. Quiénes somos')}</Text>
-        <Text style={styles.p}>{tr('La plataforma es propiedad de Amo Cartagena S.A.S. (NIT en trámite), con domicilio en Cartagena de Indias, Colombia. La tecnología es operada por MachineMind LLC (Wyoming, EE.UU.) como proveedor tecnológico. Tu contrato por el Servicio es con Amo Cartagena S.A.S. Contacto: soporte@amocartagena.app')}</Text>
+        <Text style={styles.p}>{tr('La plataforma es propiedad de Amo Cartagena S.A.S. (NIT en trámite), con domicilio en Cartagena de Indias, Colombia. La tecnología es operada por MachineMind LLC (Wyoming, EE.UU.) como proveedor tecnológico. Tu contrato por el Servicio es con Amo Cartagena S.A.S. Contacto: soporte@amocartagena.co')}</Text>
 
         <Text style={styles.h1}>{tr('3. Cuenta de usuario')}</Text>
         <Text style={styles.p}>{tr('Puedes registrarte con Google, Apple, WhatsApp o correo electrónico. Eres responsable de la veracidad de tus datos y de la seguridad de tu cuenta. Debes tener al menos 13 años de edad.')}</Text>
@@ -36,7 +36,7 @@ export default function TermsScreen() {
         <Text style={styles.p}>{tr('Las cancelaciones realizadas con menos de 24 horas de antelación pueden estar sujetas a cargos según la política del partner.')}</Text>
 
         <Text style={styles.h1}>{tr('5. City Pass y Tasa Portuaria')}</Text>
-        <Text style={styles.p}>{tr('Las compras de City Pass (acceso a experiencias curadas) y Tasa Portuaria (impuesto oficial para visitar Islas) se procesan a través de Wompi, pasarela de pago licenciada por la Superintendencia Financiera de Colombia. Los montos pagados se rigen por la regulación local. Las devoluciones se gestionan caso a caso enviando un correo a soporte@amocartagena.app.')}</Text>
+        <Text style={styles.p}>{tr('Las compras de City Pass (acceso a experiencias curadas) y Tasa Portuaria (impuesto oficial para visitar Islas) se procesan a través de Wompi, pasarela de pago licenciada por la Superintendencia Financiera de Colombia. Los montos pagados se rigen por la regulación local. Las devoluciones se gestionan caso a caso enviando un correo a soporte@amocartagena.co.')}</Text>
 
         <Text style={styles.h1}>{tr('6. Conducta del usuario')}</Text>
         <Text style={styles.p}>{tr('Te comprometes a NO: (a) usar la app con fines ilícitos; (b) suplantar a otra persona; (c) interferir con la seguridad o desempeño de la plataforma; (d) publicar contenido ofensivo, discriminatorio o falso; (e) revender el servicio sin autorización.')}</Text>
@@ -66,7 +66,7 @@ export default function TermsScreen() {
         <Text style={styles.p}>{tr('Aceptas indemnizar y mantener indemne a Amo Cartagena S.A.S. y MachineMind LLC de reclamaciones, daños y gastos derivados de tu uso indebido de la app o tu violación de estos Términos o la ley aplicable, en la medida permitida por la ley.')}</Text>
 
         <Text style={styles.h1}>{tr('13. Contacto')}</Text>
-        <Text style={styles.p}>{tr('Proveedor: Amo Cartagena S.A.S., Cartagena de Indias, Colombia. soporte@amocartagena.app')}</Text>
+        <Text style={styles.p}>{tr('Proveedor: Amo Cartagena S.A.S., Cartagena de Indias, Colombia. soporte@amocartagena.co')}</Text>
         <Text style={styles.p}>{tr('Operador tecnológico: MachineMind LLC, 30 N Gould St Ste R, Sheridan, WY 82801, USA.')}</Text>
 
         <View style={{ height: SPACING.xxl }} />

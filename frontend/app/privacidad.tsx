@@ -22,7 +22,7 @@ export default function PrivacyScreen() {
 
         <Text style={styles.h1}>{tr('1. Responsable del tratamiento')}</Text>
         <Text style={styles.p}>{tr('Amo Cartagena S.A.S., NIT en trámite, con domicilio en Cartagena de Indias, Colombia, es responsable del tratamiento de tus datos personales conforme a la Ley 1581 de 2012 (Colombia) y el Reglamento General de Protección de Datos (RGPD/GDPR) cuando aplique.')}</Text>
-        <Text style={styles.p}>{tr('Contacto del responsable: privacidad@amocartagena.app')}</Text>
+        <Text style={styles.p}>{tr('Contacto del responsable: privacidad@amocartagena.co')}</Text>
 
         <Text style={styles.h1}>{tr('2. Qué datos recopilamos')}</Text>
         <Text style={styles.p}>{tr('a) Datos de cuenta: nombre, email, foto de perfil (cuando inicias sesión con Google/Apple), número de WhatsApp si lo usas para autenticarte.')}</Text>
@@ -54,7 +54,7 @@ export default function PrivacyScreen() {
         <Text style={styles.p}>{tr('Conservamos tus datos mientras tengas cuenta activa. Si eliminas tu cuenta, borramos tus datos personales en un plazo máximo de 30 días, salvo datos que debamos conservar por obligación legal o fiscal (hasta 5 años para registros de transacciones).')}</Text>
 
         <Text style={styles.h1}>{tr('7. Tus derechos')}</Text>
-        <Text style={styles.p}>{tr('Tienes derecho a: acceder a tus datos, rectificarlos, suprimirlos, oponerte a su tratamiento, solicitar la portabilidad y revocar tu consentimiento. Ejerce estos derechos escribiendo a privacidad@amocartagena.app desde el correo asociado a tu cuenta. Responderemos en máximo 15 días hábiles.')}</Text>
+        <Text style={styles.p}>{tr('Tienes derecho a: acceder a tus datos, rectificarlos, suprimirlos, oponerte a su tratamiento, solicitar la portabilidad y revocar tu consentimiento. Ejerce estos derechos escribiendo a privacidad@amocartagena.co desde el correo asociado a tu cuenta. Responderemos en máximo 15 días hábiles.')}</Text>
         <Text style={styles.p}>{tr('También puedes presentar quejas ante la Superintendencia de Industria y Comercio de Colombia.')}</Text>
 
         <Text style={styles.h1}>{tr('8. Seguridad')}</Text>

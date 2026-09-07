@@ -13,6 +13,7 @@ import { COLORS, SPACING, RADIUS, FONTS, colorForKey } from '../src/constants/th
 import { api } from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
 import { useAuth } from '../src/context/AuthContext';
+import { getSecureToken, setSecureToken, deleteSecureToken } from '../src/lib/secureToken';
 
 const screenWidth = Dimensions.get('window').width;
 const chartWidth = screenWidth - 48;
@@ -598,7 +599,7 @@ export default function AdminPortal() {
   const [operatorChecked, setOperatorChecked] = useState(false);
 
   const checkOperatorToken = useCallback(async () => {
-    const tok = await AsyncStorage.getItem('admin_operator_token');
+    const tok = await getSecureToken('admin_operator_token');
     setIsOperator(!!tok);
     setOperatorChecked(true);
   }, []);
@@ -619,7 +620,7 @@ export default function AdminPortal() {
     try {
       const res = await api.post('/admin/operator/login', { password });
       if (!res?.token) throw new Error('Sin token');
-      await AsyncStorage.setItem('admin_operator_token', res.token);
+      await setSecureToken('admin_operator_token', res.token);
       setIsOperator(true);
       setPassword('');
     } catch {
@@ -629,7 +630,7 @@ export default function AdminPortal() {
   }, [password, tr]);
 
   const onOperatorLogout = useCallback(async () => {
-    await AsyncStorage.removeItem('admin_operator_token');
+    await deleteSecureToken('admin_operator_token');
     setIsOperator(false);
   }, []);
 

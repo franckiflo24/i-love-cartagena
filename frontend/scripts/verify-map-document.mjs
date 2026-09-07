@@ -39,6 +39,10 @@ const WALK_ROUTER_JS = '/walk-router.js';
 const WALK_GRAPH_JSON = '/data/walkgraph.json';
 const markerColor = () => '#3B82F6';
 const isInCartagena = (lat, lng) => lat >= 10.30 && lat <= 10.50 && lng >= -75.62 && lng <= -75.45;
+// Mirror of mapa.tsx escHtml — buildMapHTML closes over it for popup fields.
+const escHtml = (v) => String(v || '')
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
 const buildMapHTML = eval('(' + fnSrc + ')');
 

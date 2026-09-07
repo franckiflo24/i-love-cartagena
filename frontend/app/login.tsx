@@ -31,6 +31,14 @@ const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT
 // /auth/apple endpoint. Full steps in APP_STORE_HANDOFF.md.
 const APPLE_SIGNIN_ENABLED = false;
 
+// Google OAuth is a WEB-ONLY flow (AuthContext.login() redirects via
+// window.location — on native it's a silent no-op). Rendering the button on
+// iOS means the primary CTA does nothing: a Guideline 2.1 completeness
+// rejection, plus 4.8 exposure (third-party login visible without SIWA).
+// On native the email OTP flow is the primary — and being first-party, it is
+// exempt from 4.8. Flip only alongside a real native Google implementation.
+const GOOGLE_LOGIN_AVAILABLE = Platform.OS === 'web';
+
 export default function LoginScreen() {
   const { user, isLoading, login, loginWithToken, authError, clearAuthError } = useAuth();
   const router = useRouter();
@@ -263,35 +271,43 @@ export default function LoginScreen() {
             <Text style={styles.termsHint}>{s('login_accept_hint') || 'Acepta los términos para continuar'}</Text>
           )}
 
-          {/* PRIMARY: Continue with Google */}
-          <TouchableOpacity
-            testID="login-google-btn"
-            style={[styles.googleButton, !termsAccepted && styles.btnDisabled]}
-            onPress={termsAccepted ? () => { clearAuthError(); login(); } : undefined}
-            disabled={!termsAccepted}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="logo-google" size={20} color={COLORS.white} />
-            <Text style={styles.googleButtonText}>{s('login_google')}</Text>
-          </TouchableOpacity>
+          {/* PRIMARY: Continue with Google — web only (see GOOGLE_LOGIN_AVAILABLE) */}
+          {GOOGLE_LOGIN_AVAILABLE && (
+            <TouchableOpacity
+              testID="login-google-btn"
+              style={[styles.googleButton, !termsAccepted && styles.btnDisabled]}
+              onPress={termsAccepted ? () => { clearAuthError(); login(); } : undefined}
+              disabled={!termsAccepted}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="logo-google" size={20} color={COLORS.white} />
+              <Text style={styles.googleButtonText}>{s('login_google')}</Text>
+            </TouchableOpacity>
+          )}
 
-          {/* OR divider */}
-          <View style={styles.orRow}>
-            <View style={styles.orLine} />
-            <Text style={styles.orText}>{s('login_other_methods')}</Text>
-            <View style={styles.orLine} />
-          </View>
+          {/* OR divider — only when there's a primary above to divide from */}
+          {GOOGLE_LOGIN_AVAILABLE && (
+            <View style={styles.orRow}>
+              <View style={styles.orLine} />
+              <Text style={styles.orText}>{s('login_other_methods')}</Text>
+              <View style={styles.orLine} />
+            </View>
+          )}
 
-          {/* SECONDARY: Other methods - stacked for clarity */}
+          {/* SECONDARY on web; PRIMARY on native (email OTP is the native login) */}
           <View style={styles.otherMethodsCol}>
             <TouchableOpacity
-              style={[styles.methodBtn, styles.outlineMethodBtn, !termsAccepted && styles.btnDisabled]}
+              testID="login-email-btn"
+              style={[
+                GOOGLE_LOGIN_AVAILABLE ? [styles.methodBtn, styles.outlineMethodBtn] : styles.googleButton,
+                !termsAccepted && styles.btnDisabled,
+              ]}
               onPress={termsAccepted ? () => setShowSignup(true) : undefined}
               disabled={!termsAccepted}
               activeOpacity={0.85}
             >
               <Ionicons name="mail-outline" size={18} color={COLORS.white} />
-              <Text style={styles.methodBtnText}>{s('login_email_signup')}</Text>
+              <Text style={GOOGLE_LOGIN_AVAILABLE ? styles.methodBtnText : styles.googleButtonText}>{s('login_email_signup')}</Text>
             </TouchableOpacity>
 
             {/* Hidden until real Sign in with Apple ships — see APPLE_SIGNIN_ENABLED above. */}
@@ -307,10 +323,11 @@ export default function LoginScreen() {
             )}
           </View>
 
-          {/* TERTIARY: Already have account? Sign in */}
+          {/* TERTIARY: Already have account? Sign in — Google on web, the same
+              email OTP sheet on native (login() is a native no-op). */}
           <View style={styles.haveAccountRow}>
             <Text style={styles.haveAccountText}>{s('login_have_account')}</Text>
-            <TouchableOpacity onPress={login} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8 }}>
+            <TouchableOpacity onPress={GOOGLE_LOGIN_AVAILABLE ? login : () => setShowSignup(true)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8 }}>
               <Text style={styles.signInLink}>{s('login_sign_in')}</Text>
             </TouchableOpacity>
           </View>

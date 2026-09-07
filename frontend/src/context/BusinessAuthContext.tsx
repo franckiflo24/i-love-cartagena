@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getSecureToken, setSecureToken, deleteSecureToken } from '../lib/secureToken';
 import { api } from '../constants/api';
 
 const BIZ_KEY = 'amocartagena_business_token';
@@ -44,7 +45,7 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
-        const stored = await AsyncStorage.getItem(BIZ_KEY);
+        const stored = await getSecureToken(BIZ_KEY); // Keychain on native; BIZ_DATA cache blob stays in AsyncStorage (non-secret)
         if (stored) {
           setToken(stored);
           // Paint the dashboard from cache first so a slow/failed /business/me
@@ -63,7 +64,8 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
         // partner → main-page navigation must keep the session (Franck: "losing
         // my profile → need to reconnect again").
         if (isAuthRejection(e)) {
-          await AsyncStorage.multiRemove([BIZ_KEY, BIZ_DATA_KEY]);
+          await deleteSecureToken(BIZ_KEY);
+          await AsyncStorage.removeItem(BIZ_DATA_KEY);
           setToken(null); setBusiness(null); setPartner(null);
         } else {
           console.error('[BusinessAuth] /business/me transient failure — keeping session', e);
@@ -79,7 +81,7 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
       setToken(data.token);
       setBusiness(data.business);
       setPartner(data.partner);
-      await AsyncStorage.setItem(BIZ_KEY, data.token);
+      await setSecureToken(BIZ_KEY, data.token);
       try { await AsyncStorage.setItem(BIZ_DATA_KEY, JSON.stringify({ business: data.business, partner: data.partner ?? null })); } catch {}
     } catch (e: any) {
       // Surface the REAL reason (wrong password, too many attempts, etc.) so a
@@ -101,7 +103,7 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
       setToken(data.token);
       setBusiness(data.business);
       setPartner(data.partner ?? null);
-      await AsyncStorage.setItem(BIZ_KEY, data.token);
+      await setSecureToken(BIZ_KEY, data.token);
       try { await AsyncStorage.setItem(BIZ_DATA_KEY, JSON.stringify({ business: data.business, partner: data.partner ?? null })); } catch {}
     } catch (e: any) {
       const msg = (e && e.message) || '';
@@ -119,7 +121,7 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
     setToken(data.token);
     setBusiness(data.business);
     setPartner(data.partner ?? null);
-    await AsyncStorage.setItem(BIZ_KEY, data.token);
+    await setSecureToken(BIZ_KEY, data.token);
   };
 
   const logout = async () => {
@@ -130,7 +132,8 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
         console.error('[BusinessAuth] Logout call failed — clearing local session', e);
       }
     }
-    await AsyncStorage.multiRemove([BIZ_KEY, BIZ_DATA_KEY]);
+    await deleteSecureToken(BIZ_KEY);
+    await AsyncStorage.removeItem(BIZ_DATA_KEY);
     setToken(null);
     setBusiness(null);
     setPartner(null);

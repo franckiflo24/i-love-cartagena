@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../../src/constants/theme';
 import { api } from '../../../src/constants/api';
+import { getSecureToken, deleteSecureToken } from '../../../src/lib/secureToken';
 
 type PartnerRow = {
   partner_id: string;
@@ -53,7 +54,7 @@ export default function OperatorIndex() {
       setSummary(data?.summary || null);
     } catch (e: any) {
       if (String(e?.message || '').includes('401')) {
-        await AsyncStorage.removeItem('admin_operator_token');
+        await deleteSecureToken('admin_operator_token');
         router.replace('/admin/operator-login' as any);
       }
     }
@@ -63,7 +64,7 @@ export default function OperatorIndex() {
 
   useFocusEffect(useCallback(() => {
     (async () => {
-      const tok = await AsyncStorage.getItem('admin_operator_token');
+      const tok = await getSecureToken('admin_operator_token');
       if (!tok) {
         router.replace('/admin/operator-login' as any);
         return;
@@ -112,7 +113,7 @@ export default function OperatorIndex() {
   };
 
   const logout = async () => {
-    await AsyncStorage.removeItem('admin_operator_token');
+    await deleteSecureToken('admin_operator_token');
     router.replace('/admin/operator-login' as any);
   };
 

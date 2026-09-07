@@ -67,7 +67,7 @@ export default function HelpScreen() {
       Alert.alert(tr('Gracias'), tr('Recibimos tu mensaje.'));
       setMessage('');
       router.back();
-    } catch { Alert.alert(tr('Error'), tr('No pudimos enviar. Escríbenos a soporte@amocartagena.app')); }
+    } catch { Alert.alert(tr('Error'), tr('No pudimos enviar. Escríbenos a soporte@amocartagena.co')); }
     setSending(false);
   };
 
@@ -154,12 +154,12 @@ export default function HelpScreen() {
 
           {/* ── CONTACT AMO ── */}
           <Text style={[styles.sectionLabel, { marginTop: SPACING.xl }]}>{tr('Contactar AMO Cartagena')}</Text>
-          <TouchableOpacity style={styles.amoContact} onPress={() => Linking.openURL('mailto:soporte@amocartagena.app').catch(() => {})}>
+          <TouchableOpacity style={styles.amoContact} onPress={() => Linking.openURL('mailto:soporte@amocartagena.co').catch(() => {})}>
             <View style={[styles.contactIcon, { backgroundColor: COLORS.primary + '18' }]}>
               <Ionicons name="mail" size={16} color={COLORS.primary} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.contactName}>soporte@amocartagena.app</Text>
+              <Text style={styles.contactName}>soporte@amocartagena.co</Text>
             </View>
             <Ionicons name="open-outline" size={14} color={COLORS.textMuted} />
           </TouchableOpacity>
