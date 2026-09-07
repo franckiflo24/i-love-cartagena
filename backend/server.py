@@ -2,7 +2,7 @@ from fastapi import FastAPI, APIRouter, HTTPException, Request, Response, Backgr
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-import os, json, logging, uuid, httpx, hmac
+import os, json, logging, uuid, httpx, hmac, re
 import blob_storage as _blob
 from pathlib import Path
 from pydantic import BaseModel, Field
@@ -7613,6 +7613,111 @@ async def agent_taste(request: Request):
     }, "taste": True}
 
 
+# ── Luna QR-stats intercept ────────────────────────────────────────
+# "¿Cuántos registros del QR de Bohème esta semana?" answered with REAL
+# numbers straight from gate_events — deterministic, pre-LLM (metrics must
+# never be hallucinated, and it costs no tokens). Authorized askers only:
+# consumer accounts with is_admin, plus any email in QR_STATS_EMAILS
+# (comma-separated env — how Phil grants a partner like Franck without a
+# code change). Everyone else falls through to normal Luna.
+#
+# Data model (see /registro on the frontend): scan → gate_shown/action
+# "qr_<venue>"; completed signup arrival → activation/action "qr_<venue>"
+# (the venue tag rides sessionStorage through signup). Conversion is a
+# direct count per action — no session joins.
+_QR_STATS_WORD_RX = re.compile(
+    r"\b(qr|escaneos?|scans?|sign\s?-?ups?|registros?|conversi[oó]n(?:es)?)\b", re.IGNORECASE
+)
+
+
+def _qr_stats_authorized(user: dict) -> bool:
+    if user.get("is_admin"):
+        return True
+    allowed = {
+        e.strip().lower()
+        for e in os.environ.get("QR_STATS_EMAILS", "").split(",")
+        if e.strip()
+    }
+    return (user.get("email") or "").strip().lower() in allowed
+
+
+async def _maybe_qr_stats_reply(user: dict, text: str, forced_lang: Optional[str]) -> Optional[dict]:
+    if not _qr_stats_authorized(user):
+        return None
+    if not _QR_STATS_WORD_RX.search(text or ""):
+        return None
+    lowered = (text or "").lower()
+
+    # Known venue tags = distinct qr_* actions ever recorded.
+    try:
+        actions = await db.gate_events.distinct("action", {"action": {"$regex": "^qr_"}})
+    except Exception:
+        return None
+    tags = sorted({a[3:] for a in actions if isinstance(a, str) and len(a) > 3})
+
+    # Fire only on clear intent: the word "qr" itself, or a known tag by name.
+    mentioned = [t for t in tags if re.search(r"\b" + re.escape(t) + r"\b", lowered)]
+    if not mentioned and not re.search(r"\bqr\b", lowered):
+        return None
+
+    # Window: hoy/today → 1d, mes/month → 30d, "N días/days" → N, default 7d.
+    days = 7
+    m = re.search(r"\b(\d{1,3})\s*(?:d[ií]as?|days?)\b", lowered)
+    if m:
+        days = max(1, min(int(m.group(1)), 365))
+    elif re.search(r"\bhoy\b|\btoday\b", lowered):
+        days = 1
+    elif re.search(r"\bmes\b|\bmonth\b", lowered):
+        days = 30
+
+    is_en = (forced_lang or "").startswith("en")
+    since_iso = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    targets = mentioned or tags
+
+    if not targets:
+        msg = (
+            f"📊 No QR scans recorded yet in the last {days} days. Links look like "
+            "amocartagena.co/registro?src=<venue> — stats appear here as soon as the first scan lands."
+            if is_en else
+            f"📊 Aún no hay escaneos de QR registrados en los últimos {days} días. Los links son "
+            "amocartagena.co/registro?src=<lugar> — apenas llegue el primer escaneo verás las cifras aquí."
+        )
+        return {"message": msg, "language": "en" if is_en else "es", "actions": [], "recommendations": [], "suggestions": []}
+
+    lines = []
+    for tag in targets:
+        scans = await db.gate_events.count_documents(
+            {"event": "gate_shown", "action": f"qr_{tag}", "ts": {"$gte": since_iso}}
+        )
+        signups = await db.gate_events.count_documents(
+            {"event": "activation", "action": f"qr_{tag}", "ts": {"$gte": since_iso}}
+        )
+        rate = f" ({round(signups * 100 / scans)}%)" if scans else ""
+        label = tag.replace("_", " ").title()
+        if is_en:
+            lines.append(f"• {label}: {scans} scans → {signups} completed signups{rate}")
+        else:
+            lines.append(f"• {label}: {scans} escaneos → {signups} registros completados{rate}")
+
+    window_label = (
+        ("today" if days == 1 else f"last {days} days") if is_en
+        else ("hoy" if days == 1 else f"últimos {days} días")
+    )
+    header = f"📊 QR → {'signups' if is_en else 'registros'} — {window_label}"
+    hint = (
+        "Ask me 'qr today', 'qr 30 days' or name a venue."
+        if is_en else
+        "Pídeme 'qr hoy', 'qr 30 días' o nombra un lugar."
+    )
+    return {
+        "message": header + "\n\n" + "\n".join(lines) + "\n\n" + hint,
+        "language": "en" if is_en else "es",
+        "actions": [],
+        "recommendations": [],
+        "suggestions": ["qr today", "qr 30 days"] if is_en else ["qr hoy", "qr 30 días"],
+    }
+
+
 @api_router.post("/agent/chat")
 async def agent_chat(request: Request):
     """Send a message to the AI concierge. Authentication required —
@@ -7657,13 +7762,17 @@ async def agent_chat(request: Request):
     # "restore Sonnet for chat" here — that reintroduces the timeout regression.
     # Chat keeps the larger max_tokens (2048) for the card-heavy response; perceived speed
     # + offline resilience come from the client showing instant local catalog results.
-    assistant_payload = await _ai_agent.run_agent_turn(
-        db,
-        user=user,
-        user_text=user_text,
-        history=short_history,
-        forced_language=forced_lang or None,
-    )
+    # Deterministic pre-LLM route: authorized QR-stats questions get real
+    # gate_events numbers (see _maybe_qr_stats_reply above) — never the LLM.
+    assistant_payload = await _maybe_qr_stats_reply(user, user_text, forced_lang or None)
+    if assistant_payload is None:
+        assistant_payload = await _ai_agent.run_agent_turn(
+            db,
+            user=user,
+            user_text=user_text,
+            history=short_history,
+            forced_language=forced_lang or None,
+        )
 
     now_iso = datetime.now(timezone.utc).isoformat()
     user_msg = {"role": "user", "content": user_text, "created_at": now_iso}

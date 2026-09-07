@@ -25,6 +25,7 @@ import { useTr } from '../src/i18n/autoTr';
 import { useLang } from '../src/context/LanguageContext';
 import { geoService, haversineM } from '../src/lib/geo';
 import { safeNext } from '../src/lib/safeNext';
+import { trackGate, getArchetype } from '../src/lib/gateAnalytics';
 
 const GOLD = '#12B5A5';
 const GOLD_BRIGHT = '#FF6B75';
@@ -121,6 +122,18 @@ export default function OnboardingArrival() {
   const markDone = useCallback(async (profile?: { user_type: string; party_type?: string }) => {
     // Local caches FIRST (unconditional) so the answer survives a failed PATCH.
     try { await AsyncStorage.setItem('@onboarding_done', 'true'); } catch {}
+    // Funnel CONVERSION beat — fires the enum's 'activation' event (it was
+    // never wired anywhere). Signed-in arrivals only: an anonymous explainer
+    // viewer is not a conversion. Carries the /registro venue tag when this
+    // browser session started from a field QR, so scan→signup conversion is
+    // countable per venue directly off gate_events.
+    if (user) {
+      try {
+        const qrSrc = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('amo_src') : null;
+        trackGate('activation', { action: qrSrc ? `qr_${qrSrc}` : 'arrival', archetype: getArchetype() });
+        if (qrSrc) sessionStorage.removeItem('amo_src');
+      } catch { /* analytics never block entry */ }
+    }
     if (profile) {
       try { await AsyncStorage.setItem('@onboarding_profile', JSON.stringify(profile)); } catch {}
     }
@@ -132,7 +145,7 @@ export default function OnboardingArrival() {
       });
     } catch { /* fail-soft — never block entry on the personalization write */ }
     router.replace((dest as any) || ('/(tabs)' as any));
-  }, [router, dest]);
+  }, [router, dest, user]);
 
   const enterApp = useCallback(() => { markDone(); }, [markDone]);
 
