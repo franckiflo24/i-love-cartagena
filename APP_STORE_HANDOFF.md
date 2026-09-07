@@ -13,13 +13,24 @@ Repo: `/Users/showowt/i-love-cartagena` · Expo project root: `frontend/`
 
 | # | Item | State | Blocks |
 |---|------|-------|--------|
-| 1 | Apple button lying about SIWA | **FIXED today** — see §1 below | — |
+| 1 | Apple button lying about SIWA | **FIXED** (flag off, renders nowhere) | — |
 | 2 | `app.json` EAS project ID | Placeholder (`REPLACE_WITH_EAS_PROJECT_ID`) | Any `eas build` |
 | 3 | `eas.json` Apple Team ID | Placeholder | `eas submit` |
 | 4 | `eas.json` App Store Connect App ID | Placeholder | `eas submit` |
-| 5 | Real Sign in with Apple | Not implemented (intentionally, see §1) | Guideline 4.8 |
-| 6 | City Pass "Activar" → dead end | **Confirmed live in prod right now** (see §5) | Guideline 2.1 |
-| 7 | Screenshots, privacy questionnaire, demo account | Not started | Submission checklist |
+| 5 | Real Sign in with Apple | Not implemented (intentionally, see §1). **Sep 7: Google button now hidden on native** (`GOOGLE_LOGIN_AVAILABLE`, login.tsx) so email OTP is the only visible native login — first-party, exempt from 4.8. SIWA only becomes mandatory again if Google ships natively. | — (defused) |
+| 6 | City Pass "Activar" → dead end | **FIXED Sep 7 (Option B)** — plan cards check `/payments/config` on mount and show a disabled "Próximamente · precio" until Wompi is enabled; verified live (4× Próximamente, 0 tappable Activar). Flips live automatically when Wompi env vars are set. | — |
+| 7 | Screenshots, privacy questionnaire, demo account | Not started (privacy DATA INVENTORY now ready — see §7) | Submission checklist |
+| 8 | **Support/privacy email is undeliverable** | **NEW Sep 7**: neither amocartagena.co nor .app has MX records; all in-app contacts (soporte@/privacidad@) bounce. Copy unified to @amocartagena.co — set up mail forwarding (e.g. ImprovMX/Cloudflare Email Routing on the .co DNS) before submission; Apple contacts the support address. | Review risk + legal |
+
+### Sep 7 2026 full-audit remediation (commit f16ea240, deployed)
+- Native login fixed (2.1): Google CTA hidden on native, email OTP primary; "Sign in" link routes to email sheet on native.
+- Stored-XSS in map popups closed (entity-escaping both render paths) + WebView postMessage nav/id payloads regex-validated.
+- Business + admin-operator tokens moved to Keychain/Keystore (`src/lib/secureToken.ts`, legacy migration included).
+- iOS purpose strings exact: location/photos/notifications only; expo-image-picker pinned `cameraPermission:false`; prebuild plist verified.
+- Mock PaymentSheet/provider deleted; unused react-native-maps removed; expo-doctor 18/18; 75-route headless sweep 68 OK (4 recoverable web-only #418 hydration pages: /perfil /citypass /agenda /experience/booking — date-at-render mismatches, invisible on native, post-launch polish; /admin/eagle + /admin/moderation render blank pre-auth — admin-only).
+
+### §7-supplement: App Privacy questionnaire inventory (audited Sep 7)
+Declare: email, name, phone, profile photo (account); precise location (analytics+personalization, linked to user, retained until account deletion); push token; usage analytics (first-party only); payment metadata (no card data — Wompi hosted); AI chat text (sent to Anthropic). NO cross-app tracking → "Data Not Used to Track You", no ATT prompt.
 
 ---
 
