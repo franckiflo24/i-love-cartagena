@@ -34,12 +34,12 @@
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE",
-        "POST_NOTIFICATIONS",
-        "INTERNET"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.INTERNET"
       ]
     },
     "notification": {
@@ -70,7 +70,8 @@
         "expo-image-picker",
         {
           "photosPermission": "Adjunta imágenes para tus eventos",
-          "cameraPermission": false
+          "cameraPermission": false,
+          "microphonePermission": false
         }
       ],
       [
@@ -85,14 +86,16 @@
       "expo-secure-store"
     ],
     "extra": {
-      "eas": {
-        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
-      },
       "privacyPolicyUrl": "https://amocartagena.co/privacidad",
-      "supportUrl": "https://amocartagena.co/ayuda"
+      "supportUrl": "https://amocartagena.co/ayuda",
+      "router": {},
+      "eas": {
+        "projectId": "8c0b790c-2d94-44f2-9ec6-d50d0c9ed8ad"
+      }
     },
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "owner": "machinemind"
   }
 }
