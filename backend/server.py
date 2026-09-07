@@ -96,6 +96,7 @@ class SessionExchange(BaseModel):
 
 class GoogleAuthBody(BaseModel):
     id_token: str
+    archetype: Optional[str] = Field(default=None, max_length=12)  # 'invited' | 'cold' funnel attribution
 
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 
@@ -162,6 +163,7 @@ async def google_auth(body: GoogleAuthBody, response: Response):
             "provider": "google",
             "favorites": [],
             "my_week": [],
+            "entry_archetype": "invited" if body.archetype == "invited" else "cold",
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         await db.users.insert_one(user)
@@ -194,7 +196,7 @@ async def google_auth(body: GoogleAuthBody, response: Response):
         httponly=True, secure=True, samesite="none",
         path="/", max_age=30 * 24 * 3600
     )
-    return {"user": {k: user.get(k, "") for k in ("user_id", "email", "name", "picture", "provider")}, "session_token": session_token}
+    return {"user": {k: user.get(k, "") for k in ("user_id", "email", "name", "picture", "provider", "onboarding_completed")}, "session_token": session_token}
 
 
 # DELETED: POST /auth/session — a leftover Emergent-platform scaffold that minted a
@@ -346,7 +348,7 @@ async def email_signup(body: SignupBody, request: Request):
 
 
 @api_router.post("/auth/verify")
-async def verify_email(body: VerifyBody, request: Request, response: Response):
+async def verify_email(body: VerifyBody, request: Request, response: Response, background_tasks: BackgroundTasks):
     """Step 2: Verify the code and create (or login to) the user account.
     Sends a welcome email on first verification."""
     email = body.email.strip().lower()
@@ -441,15 +443,16 @@ async def verify_email(body: VerifyBody, request: Request, response: Response):
         path="/", max_age=30 * 24 * 3600,
     )
 
-    # Send welcome email (fire-and-forget for new users)
+    # Welcome email deferred so the final "Verificar" tap returns immediately
+    # instead of blocking the spinner up to 10s on SMTP (send_welcome_email
+    # swallows its own exceptions).
     if is_new_user:
-        try:
-            await _emails.send_welcome_email(to=email, name=user.get("name", ""))
-        except Exception as e:
-            logger.error(f"[verify] Welcome email failed: {e}")
+        background_tasks.add_task(_emails.send_welcome_email, to=email, name=user.get("name", ""))
 
     return {
-        "user": {k: user.get(k, "") for k in ("user_id", "email", "name", "picture", "phone", "provider")},
+        # onboarding_completed included so returning users skip first-run and the
+        # 'activation' funnel event doesn't double-fire on every re-login.
+        "user": {k: user.get(k, "") for k in ("user_id", "email", "name", "picture", "phone", "provider", "onboarding_completed")},
         "session_token": session_token,
         "is_new_user": is_new_user,
     }
@@ -3942,6 +3945,21 @@ async def delete_account(request: Request):
 
 
 # ── Events ──────────────────────────────────────────────────
+def _normalize_event_media(events, id_keys=("event_id", "id", "concert_id")):
+    """Force self-hosted image paths on event/concert responses. MongoDB still
+    carries stale external Google-place / Unsplash URLs (403 on load, and a
+    live external dependency the architecture forbids). Mirrors the frontend
+    normaliseImageUrl convention (/images/events/<id>.jpg) so the static-first
+    paint and the backend hydrate agree — no image flip. SafeImage degrades any
+    genuinely-missing file to its category fallback."""
+    for e in events or []:
+        url = e.get("image_url") or ""
+        if not url.startswith("/images/"):
+            eid = next((e[k] for k in id_keys if e.get(k)), None)
+            e["image_url"] = f"/images/events/{eid}.jpg" if eid else ""
+    return events
+
+
 @api_router.get("/events")
 async def list_events(
     date: Optional[str] = None,
@@ -3960,7 +3978,7 @@ async def list_events(
         query["venue_id"] = venue_id
     # Past events fall out automatically; "today" is Bogota, not UTC.
     events = await db.events.find(upcoming_query(query), PUBLIC_EVENT_PROJECTION).to_list(200)
-    return filter_live(events)
+    return _normalize_event_media(filter_live(events))
 
 
 @api_router.get("/events/featured")
@@ -3970,7 +3988,7 @@ async def featured_events():
     if not events:
         fb = await db.events.find(upcoming_query(dict(PUBLIC_CITY_EVENT_FILTER)), PUBLIC_EVENT_PROJECTION).to_list(40)
         events = filter_live(fb)[:6]
-    return events
+    return _normalize_event_media(events)
 
 
 @api_router.get("/events/{event_id}")
@@ -3980,6 +3998,7 @@ async def get_event(event_id: str):
         event = await db.events.find_one({"slug": event_id, **PUBLIC_CITY_EVENT_FILTER}, PUBLIC_EVENT_PROJECTION)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
+    _normalize_event_media([event])
     return event
 
 
@@ -4146,7 +4165,7 @@ async def list_partner_events(
         e["partner_tier"] = p.get("tier", "popular")
         e["partner_category"] = p.get("category", "")
         e["partner_image"] = p.get("image_url", "")
-    return filter_live(events)
+    return _normalize_event_media(filter_live(events))
 
 
 @api_router.get("/partner-events/{event_id}")
@@ -4200,7 +4219,9 @@ async def list_today_promotions(category: Optional[str] = None):
 
 
 @api_router.post("/promotions/{promo_id}/track-click")
-async def track_promotion_click(promo_id: str):
+async def track_promotion_click(promo_id: str, request: Request):
+    # Public counter visible to partners — IP-rate-limit so it can't be inflated.
+    await _check_rate_limit(f"promoclick:{_client_ip(request)}", max_calls=30, window_sec=60)
     promo = await db.partner_promotions.find_one({"promo_id": promo_id}, {"_id": 0})
     if not promo:
         raise HTTPException(status_code=404, detail="Promotion not found")
@@ -4736,7 +4757,7 @@ async def list_my_week(request: Request):
     if not week:
         return []
     events = await db.events.find({**PUBLIC_CITY_EVENT_FILTER, "event_id": {"$in": week}}, PUBLIC_EVENT_PROJECTION).to_list(100)
-    return filter_live(events)
+    return _normalize_event_media(filter_live(events))
 
 
 # ── Event Types & Categories ────────────────────────────────
@@ -4769,7 +4790,7 @@ async def season_events(season_id: str, date: Optional[str] = None):
     if date:
         query["date"] = date
     events = await db.events.find(upcoming_query(query), PUBLIC_EVENT_PROJECTION).to_list(200)
-    return filter_live(events)
+    return _normalize_event_media(filter_live(events))
 
 
 # ── FX (tasa de cambio del día) ──────────────────────────────
@@ -4892,7 +4913,7 @@ async def list_concerts(date: Optional[str] = None, genre: Optional[str] = None)
                 vn = (c.get("venue_name") or "").lower()
                 if vn in venue_to_pid:
                     c["partner_id"] = venue_to_pid[vn]
-    return concerts
+    return _normalize_event_media(concerts)
 
 
 @api_router.get("/concerts/dates")
@@ -6009,6 +6030,10 @@ class AnalyticsEvent(BaseModel):
 
 @api_router.post("/analytics/track")
 async def track_analytics(body: AnalyticsEvent, request: Request):
+    # Public + unauthenticated: IP-rate-limit so it can't be flooded, and bound
+    # the free-form metadata blob (drop rather than 400 — telemetry stays
+    # non-blocking).
+    await _check_rate_limit(f"track:{_client_ip(request)}", max_calls=120, window_sec=60)
     user_id = None
     try:
         user = await get_current_user(request)
@@ -6016,15 +6041,19 @@ async def track_analytics(body: AnalyticsEvent, request: Request):
     except Exception:
         pass  # Anonymous tracking OK
 
+    meta = body.metadata or {}
+    if isinstance(meta, dict) and len(meta) > 30:
+        meta = dict(list(meta.items())[:30])
+
     doc = {
         "analytics_id": f"an_{uuid.uuid4().hex[:12]}",
         "user_id": user_id,
-        "event_type": body.event_type,
-        "target_id": body.target_id,
-        "target_type": body.target_type,
-        "metadata": body.metadata or {},
+        "event_type": (body.event_type or "")[:64],
+        "target_id": (body.target_id or "")[:128] if body.target_id else None,
+        "target_type": (body.target_type or "")[:64] if body.target_type else None,
+        "metadata": meta,
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "user_agent": request.headers.get("user-agent", ""),
+        "user_agent": request.headers.get("user-agent", "")[:256],
     }
     await db.analytics.insert_one(doc)
     return {"ok": True}

@@ -1,7 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Image, ImageProps, ImageStyle, StyleProp, StyleSheet, View } from 'react-native';
 import { getCategoryImage, FALLBACK_SVGS, IMAGES } from '../constants/images';
+import { ASSET_ORIGIN } from '../constants/api';
 import { COLORS } from '../constants/theme';
+
+// Root-relative asset paths ('/images/...') have no origin on native — a bare
+// '/images/x.jpg' fetch dies in a binary, so every self-hosted partner/event/
+// hero photo rendered as the gray placeholder on iOS. Prepend ASSET_ORIGIN
+// ('' on web = no-op; production site on native). http/https/data: pass through.
+const absUri = (u: string): string => (u && u.startsWith('/') ? ASSET_ORIGIN + u : (u || ''));
 
 type Props = Omit<ImageProps, 'source' | 'style'> & {
   uri?: string | null;
@@ -116,7 +123,7 @@ export function SafeImage({ uri, category, fallbackUri, style, onLoad, ...rest }
         pointerEvents="none"
       />
       <Image
-        source={{ uri: currentUri }}
+        source={{ uri: absUri(currentUri) }}
         style={shimmerStyles.image}
         onError={onError}
         onLoad={handleLoad}

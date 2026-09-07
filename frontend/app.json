@@ -9,13 +9,12 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.amocartagena.app",
       "buildNumber": "1",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Te mostramos eventos y partners cerca de ti",
         "NSPhotoLibraryUsageDescription": "Adjunta imágenes para tus eventos",
-        "NSUserNotificationsUsageDescription": "Recibe confirmación de reservas y recordatorios",
         "ITSAppUsesNonExemptEncryption": false,
         "LSApplicationQueriesSchemes": [
           "whatsapp",

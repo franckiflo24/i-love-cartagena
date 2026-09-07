@@ -46,10 +46,14 @@ export default function RegistroScreen() {
       try { await AsyncStorage.setItem('@onboarding_done', 'true'); } catch {}
       const tag = typeof src === 'string' && /^[a-z0-9_-]{1,24}$/i.test(src) ? src.toLowerCase() : null;
       if (tag) {
-        // Carry the venue tag through this browser session so the post-signup
-        // activation event (onboarding markDone) reports action "qr_<tag>" —
-        // scan→signup conversion then counts directly, no session joins.
-        try { sessionStorage.setItem('amo_src', tag); } catch {}
+        // Carry the venue tag + 'invited' archetype through this browser session
+        // so the post-signup activation event (onboarding markDone) reports
+        // action "qr_<tag>" AND the signup is attributed 'invited' (mirrors
+        // referral.ts) — scan→signup conversion counts directly, no session joins.
+        try {
+          sessionStorage.setItem('amo_src', tag);
+          sessionStorage.setItem('amo_archetype', 'invited');
+        } catch {}
         trackGate('gate_shown', { action: `qr_${tag}`, archetype: 'invited' });
       }
       const dest = typeof next === 'string' && next.startsWith('/') ? next : '/';

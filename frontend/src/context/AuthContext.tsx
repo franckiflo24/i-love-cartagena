@@ -160,10 +160,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const exchangeGoogleToken = useCallback(async (idToken: string) => {
     try {
+      // Forward the funnel archetype (invited vs cold) so web Google signups —
+      // the primary web path — are attributed like email OTP already is.
+      let archetype: string | undefined;
+      try { archetype = (sessionStorage.getItem('amo_archetype') as any) || undefined; } catch {}
       const res = await fetch(`${AUTH_BASE}/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_token: idToken }),
+        body: JSON.stringify({ id_token: idToken, archetype }),
         credentials: 'include',
         keepalive: true, // survive an SW-update reload landing mid-exchange
       });

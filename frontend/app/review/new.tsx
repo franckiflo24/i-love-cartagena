@@ -92,7 +92,7 @@ export default function NewReviewScreen() {
           <Ionicons name="person-circle-outline" size={56} color={COLORS.primary} />
           <Text style={{ color: COLORS.textMain, fontSize: 18, ...FONTS.bold, textAlign: 'center' }}>{tr('Inicia sesión para dejar una reseña')}</Text>
           <TouchableOpacity
-            onPress={() => router.push({ pathname: '/login', params: { next: `/review/new?partner_id=${partner_id}&partner_name=${partner_name || ''}` } } as any)}
+            onPress={() => router.push({ pathname: '/login', params: { next: `/review/new?partner_id=${partner_id}` } } as any)}
             style={{ paddingVertical: 12, paddingHorizontal: 28, borderRadius: 24, backgroundColor: COLORS.primary }}
           >
             <Text style={{ color: COLORS.white, fontSize: 15, ...FONTS.bold }}>{tr('Iniciar sesión')}</Text>

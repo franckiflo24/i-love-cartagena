@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking as RNLinking } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Linking as RNLinking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -159,22 +159,22 @@ export default function PartnersScreen() {
   const [tierFilter, setTierFilter] = useState<Tier | null>(null);
   const [tierShowcase, setTierShowcase] = useState<Tier | null>(null);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        // Static-first: this tab must never be empty on a backend cold-start
-        // (a slow/errored /api/partners was showing every tier as "0 · Próximamente").
-        const staticData = await fetch(ASSET_ORIGIN + '/data/partners.json')
-          .then(r => (r.ok ? r.json() : null)).catch(() => null);
-        if (Array.isArray(staticData) && staticData.length) setPartners(staticData);
-        // Hydrate from backend (live tiers/pulses) only if it returns real data.
-        const live = await api.get('/partners').catch(() => null);
-        if (Array.isArray(live) && live.length) setPartners(live);
-      } catch (e) { console.error(e); }
-      setLoading(false);
-    };
-    load();
+  const [refreshing, setRefreshing] = useState(false);
+  const load = useCallback(async () => {
+    try {
+      // Static-first: this tab must never be empty on a backend cold-start
+      // (a slow/errored /api/partners was showing every tier as "0 · Próximamente").
+      const staticData = await fetch(ASSET_ORIGIN + '/data/partners.json')
+        .then(r => (r.ok ? r.json() : null)).catch(() => null);
+      if (Array.isArray(staticData) && staticData.length) setPartners(staticData);
+      // Hydrate from backend (live tiers/pulses) only if it returns real data.
+      const live = await api.get('/partners').catch(() => null);
+      if (Array.isArray(live) && live.length) setPartners(live);
+    } catch (e) { console.error(e); }
+    setLoading(false);
   }, []);
+  useEffect(() => { load(); }, [load]);
+  const onRefresh = useCallback(async () => { setRefreshing(true); await load(); setRefreshing(false); }, [load]);
 
   // Reset subcategory when category changes
   useEffect(() => {
@@ -322,7 +322,11 @@ export default function PartnersScreen() {
         )}
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+      >
         {loading ? (
           <BrandLoader />
         ) : tierShowcase ? (

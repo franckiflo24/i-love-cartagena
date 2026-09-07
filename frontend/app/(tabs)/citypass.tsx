@@ -77,7 +77,8 @@ export default function CityPassTab() {
         return;
       }
       if (!user) {
-        router.push('/login?next=/(tabs)/citypass' as any);
+        // group-stripped path passes safeNext; /citypass resolves to the same tab
+        router.push('/login?next=/citypass' as any);
         return;
       }
       const res = await api.post('/payments/wompi/city-pass', { plan_id: planId });

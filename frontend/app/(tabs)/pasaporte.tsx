@@ -10,7 +10,7 @@
 //   - Streak invites, never nags: current + best, no loss-aversion copy.
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSignupGate } from '../../src/context/SignupGateContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -68,6 +68,7 @@ export default function PasaporteScreen() {
   const { user } = useAuth();
 
   const [cols, setCols] = useState<CollectionsDef | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [passport, setPassport] = useState<Passport | null>(null);
   const [fromCache, setFromCache] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -95,6 +96,8 @@ export default function PasaporteScreen() {
     }
     setLoading(false);
   }, [user?.user_id]);
+
+  const onRefresh = useCallback(async () => { setRefreshing(true); await load(); setRefreshing(false); }, [load]);
 
   useEffect(() => {
     const unsub = geoService.subscribe(setGeo);
@@ -330,7 +333,10 @@ export default function PasaporteScreen() {
   // ── Render ─────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 48 }}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 48 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+      >
         {/* Header */}
         <View style={styles.headerRow}>
           {mounted && router.canGoBack() && (

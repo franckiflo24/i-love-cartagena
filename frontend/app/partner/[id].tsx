@@ -23,6 +23,7 @@ import { LiveDistance } from '../../src/components/LiveDistance';
 import { TrustBadges } from '../../src/components/TrustBadges';
 import AddToTrip from '../../src/components/AddToTrip';
 import { loadCatalog, brandFamily, CatalogVenue } from '../../src/lib/lunaOffline';
+import { hapticLight } from '../../src/lib/haptics';
 
 const TAG_LABELS: Record<string, string> = {
   romantic: 'Romántico', first_date: 'Primera cita', family: 'Familiar',
@@ -293,7 +294,7 @@ export default function PartnerDetail() {
             <TouchableOpacity
               testID="partner-fav-btn"
               style={[styles.heartBtn, isFavorite(partner.partner_id) && styles.heartBtnActive]}
-              onPress={() => toggleFavorite(partner.partner_id, 'partner')}
+              onPress={() => { hapticLight(); toggleFavorite(partner.partner_id, 'partner'); }}
               activeOpacity={0.7}
               hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}
             >

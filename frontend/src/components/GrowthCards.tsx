@@ -24,6 +24,7 @@ export function GrowthCards({ signedIn }: { signedIn: boolean }) {
   const [push, setPush] = useState<PushState>('unsupported');
   const [ref, setRef] = useState<{ code: string; referred_count: number; points_each: number; share_url: string } | null>(null);
   const [canInstall, setCanInstall] = useState(!!deferredInstall);
+  const [copied, setCopied] = useState(false);
   const [iosInstall, setIosInstall] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -60,6 +61,9 @@ export function GrowthCards({ signedIn }: { signedIn: boolean }) {
         await (navigator as any).share({ text: msg, url: ref.share_url });
       } else if (Platform.OS === 'web') {
         await (navigator as any)?.clipboard?.writeText?.(msg);
+        // Desktop web has no share sheet — a silent copy reads as broken.
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2200);
       } else {
         await Share.share({ message: msg });
       }
@@ -86,7 +90,7 @@ export function GrowthCards({ signedIn }: { signedIn: boolean }) {
         <TouchableOpacity style={styles.row} onPress={shareRef} activeOpacity={0.85}>
           <Ionicons name="gift" size={20} color={COLORS.icon} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.rowTitle}>{tr('Invita a un amigo — ambos ganan')} {ref.points_each} pts</Text>
+            <Text style={styles.rowTitle}>{copied ? tr('¡Código copiado! Pégalo donde quieras') : `${tr('Invita a un amigo — ambos ganan')} ${ref.points_each} pts`}</Text>
             <Text style={styles.rowSub}>
               {tr('Tu código')}: <Text style={styles.code}>{ref.code}</Text>
               {ref.referred_count > 0 ? ` · ${ref.referred_count} ${tr('amigos unidos')}` : ''}

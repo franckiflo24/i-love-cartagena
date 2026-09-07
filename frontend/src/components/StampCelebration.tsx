@@ -9,6 +9,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Animated, Platform, Modal } f
 import { COLORS, RADIUS, FONTS } from '../constants/theme';
 import { useTr } from '../i18n/autoTr';
 import { achievementDef } from '../lib/achievements';
+import { hapticSuccess, hapticHeavy } from '../lib/haptics';
 import type { Rank } from '../lib/passport';
 
 export interface CelebrationData {
@@ -48,9 +49,13 @@ export function StampCelebration({ data, onClose, onShare }: Props) {
     stampScale.setValue(2.4);
     stampOpacity.setValue(0);
     detailsOpacity.setValue(0);
-    // Haptic thunk where the platform allows it (fail-soft everywhere)
+    // Haptic thunk where the platform allows it (fail-soft everywhere): the
+    // real iOS buzz at the app's peak beat, web falls back to navigator.vibrate.
     if (Platform.OS === 'web') {
       try { (navigator as any)?.vibrate?.([28, 40, 28]); } catch {}
+    } else {
+      hapticSuccess();
+      if (data.rankUp) hapticHeavy();
     }
     Animated.sequence([
       Animated.timing(backdrop, { toValue: 1, duration: 160, useNativeDriver: true }),

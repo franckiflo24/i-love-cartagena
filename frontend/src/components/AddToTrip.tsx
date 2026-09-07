@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { api } from '../constants/api';
 import { useTr } from '../i18n/autoTr';
+import { hapticSuccess } from '../lib/haptics';
 
 type RefType = 'venue' | 'experience' | 'stamp';
 
@@ -65,6 +66,7 @@ export default function AddToTrip({ refType, refId, name, compact, style }: Prop
     try {
       const res = await api.post(`/trips/${trip.trip_id}/items`, { ref_type: refType, ref_id: refId });
       if (res?.item_id) {
+        hapticSuccess();
         setDone(trip.name);
         setTimeout(() => { setDone(null); setOpen(false); }, 1400);
       }

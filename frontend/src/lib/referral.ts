@@ -27,8 +27,14 @@ export async function claimPendingRef(): Promise<{ points: number; referrer: str
     localStorage.removeItem(PENDING_KEY);
     return { points: r?.points_awarded || 0, referrer: r?.referrer_name || null };
   } catch (e: any) {
-    // invalid / already-claimed → clear so we never retry-nag
-    try { localStorage.removeItem(PENDING_KEY); } catch {}
+    // Only burn the code on a PERMANENT rejection (invalid / already-claimed /
+    // conflict). A network blip, 5xx or cold-start must RETAIN so index.tsx can
+    // retry — otherwise one transient error loses the referral (and both-sides
+    // points) forever. The server enforces once-per-life, so retry is idempotent.
+    const status = e?.status;
+    if (status === 400 || status === 404 || status === 409) {
+      try { localStorage.removeItem(PENDING_KEY); } catch {}
+    }
     return null;
   }
 }

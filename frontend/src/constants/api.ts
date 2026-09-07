@@ -805,7 +805,11 @@ export const api = {
         const err = await res.json();
         if (err?.detail) msg = err.detail;
       } catch { /* response body not JSON — use status code message */ }
-      throw new Error(msg);
+      // Attach the real HTTP status so callers can distinguish a permanent
+      // 4xx (drop) from a transient 5xx/network blip (retain + retry).
+      const e: any = new Error(msg);
+      e.status = res.status;
+      throw e;
     }
     return res.json();
   },

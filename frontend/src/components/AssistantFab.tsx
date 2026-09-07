@@ -27,6 +27,7 @@ import {
   Easing,
   Pressable,
   AccessibilityInfo,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -717,7 +718,7 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
         case 'external_link': {
           if (!a.url) return;
           if (Platform.OS === 'web') window.open(a.url, '_blank');
-          // For native, we'd use Linking.openURL — skipping to keep dep light
+          else Linking.openURL(a.url).catch(() => {});
           return;
         }
       }

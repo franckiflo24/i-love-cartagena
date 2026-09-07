@@ -18,6 +18,7 @@ import type {
   Practical,
 } from './schema';
 import { filterLiveEvents } from './eventTime';
+import { ASSET_ORIGIN } from '../constants/api';
 
 // ---------------------------------------------------------------------------
 // Cache
@@ -33,8 +34,16 @@ async function load<T>(file: string): Promise<T[]> {
   const key = file;
   if (cache.has(key)) return cache.get(key) as T[];
 
-  const url = `/data/${file}.json`;
-  const res = await fetch(url);
+  // ASSET_ORIGIN: '' on web (same-origin), production site on native — a bare
+  // '/data/...' fetch has no origin in a binary and blanked all city-events.
+  const url = `${ASSET_ORIGIN}/data/${file}.json`;
+  let res: Response;
+  try {
+    res = await fetch(url);
+  } catch (e) {
+    console.error(`[data] fetch ${url} failed`, e);
+    return [];
+  }
   if (!res.ok) {
     console.error(`[data] fetch ${url} → ${res.status}`);
     return [];

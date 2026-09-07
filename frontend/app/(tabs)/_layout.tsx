@@ -3,15 +3,18 @@ import { Tabs, usePathname } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../src/constants/theme';
 import { Platform, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AssistantFab from '../../src/components/AssistantFab';
 import { useLang } from '../../src/context/LanguageContext';
 import { TutorialOverlay, useTutorial } from '../../src/components/TutorialOverlay';
 import { usePartnerCount } from '../../src/context/PartnerCountContext';
+import { hapticSelection } from '../../src/lib/haptics';
 
 export default function TabLayout() {
   const { s } = useLang();
   const partnerCount = usePartnerCount();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
   const { showTutorial, checkAndShow, completeTutorial } = useTutorial();
 
   const hideFab = pathname === '/' || pathname === '/index' || pathname.endsWith('/(tabs)') || pathname === '';
@@ -29,17 +32,21 @@ export default function TabLayout() {
   return (
     <View style={{ flex: 1 }}>
       <Tabs
+        screenListeners={{ tabPress: () => hapticSelection() }}
         screenOptions={{
           headerShown: false,
           tabBarActiveTintColor: COLORS.primary,
           tabBarInactiveTintColor: COLORS.textMuted,
+          // Drive height/padding from the REAL safe-area inset (not a hardcoded
+          // 85/20) so labels sit right on Face-ID phones and the bar isn't too
+          // tall on SE-class devices.
           tabBarStyle: {
             backgroundColor: COLORS.background,
             borderTopColor: COLORS.border,
             borderTopWidth: 1,
-            paddingBottom: Platform.OS === 'ios' ? 20 : 8,
+            paddingBottom: Math.max(insets.bottom, 8),
             paddingTop: 8,
-            height: Platform.OS === 'ios' ? 85 : 65,
+            height: 56 + insets.bottom,
           },
           tabBarLabelStyle: {
             fontSize: 10,

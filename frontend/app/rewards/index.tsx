@@ -18,6 +18,8 @@ import { useRouter } from 'expo-router';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/src/constants/theme';
 import { api } from '@/src/constants/api';
 import { useLang } from '@/src/context/LanguageContext';
+import { myReferral } from '@/src/lib/referral';
+import { hapticLight } from '@/src/lib/haptics';
 import { useTr } from '@/src/i18n/autoTr';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -408,9 +410,16 @@ export default function RewardsHub() {
               style={[styles.inviteBtn, { backgroundColor: tierCfg.accent }]}
               activeOpacity={0.85}
               onPress={async () => {
+                // Share the REAL referral link (?ref=CODE) so both sides can
+                // actually earn — the old static /download link carried no code,
+                // making the 500-pt reward structurally unfulfillable.
                 try {
+                  hapticLight();
+                  const r = await myReferral();
+                  const link = r?.share_url || 'https://www.amocartagena.co';
+                  const pts = r?.points_each || 500;
                   await Share.share({
-                    message: `Descubre Cartagena como nunca con AMO Cartagena. Restaurantes, nightlife, experiencias y más. Descárgala aquí: https://amocartagena.co/download`,
+                    message: `Únete a AMO Cartagena con mi código y ambos ganamos ${pts} puntos 🎁 Descubre lo mejor de Cartagena: ${link}`,
                   });
                 } catch { /* user cancelled share dialog */ }
               }}

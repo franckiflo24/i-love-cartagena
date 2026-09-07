@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator,
+  View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
   Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,6 +8,9 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
+import { SafeImage } from '../src/components/SafeImage';
+import { IMAGES } from '../src/constants/images';
+import { hapticSuccess } from '../src/lib/haptics';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -149,6 +152,7 @@ export default function LoginScreen() {
       try { archetype = (sessionStorage.getItem('amo_archetype') as any) || undefined; } catch {}
       const res = await api.post('/auth/verify', { email, code, name, archetype });
       if (res.session_token && res.user) {
+        hapticSuccess(); // native buzz at the signup finish line
         await loginWithToken(res.session_token, res.user);
         setSavingSignup(false);
         setShowSignup(false);
@@ -209,9 +213,10 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <Image
-        source={{ uri: 'https://website-five-sigma-29.vercel.app/images/login-cathedral.jpg' }}
-        style={styles.heroImage}
+      <SafeImage
+        uri={IMAGES.login}
+        fallbackUri={IMAGES.hero}
+        style={styles.heroImage as any}
       />
       <View style={styles.overlay} />
 
@@ -332,6 +337,13 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Guest escape — rendered UNCONDITIONALLY (a stuck/hesitant tourist is
+              exactly who needs it), never gated behind the terms checkbox.
+              registro.tsx already stamps @onboarding_done so tabs won't loop. */}
+          <TouchableOpacity onPress={() => router.replace('/(tabs)' as any)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8 }}>
+            <Text style={styles.guestLink}>{s('login_guest')}</Text>
+          </TouchableOpacity>
+
 
           {/* Login error display */}
           {(loginError || authError) ? (
@@ -361,17 +373,8 @@ export default function LoginScreen() {
                 <Text style={styles.modalTitle}>{s('login_signup_title')}</Text>
                 <Text style={styles.modalSubtitle}>{s('login_signup_subtitle')}</Text>
 
-                <View style={styles.inputWrap}>
-                  <Ionicons name="person-outline" size={18} color={COLORS.textMuted} />
-                  <TextInput
-                    style={styles.input}
-                    placeholder={s('login_name_placeholder')}
-                    placeholderTextColor={COLORS.textMuted}
-                    value={signupName}
-                    onChangeText={setSignupName}
-                    autoCapitalize="words"
-                  />
-                </View>
+                {/* Email FIRST + autofocus — the only required field; keyboard
+                    opens straight onto it. Name is optional and secondary. */}
                 <View style={styles.inputWrap}>
                   <Ionicons name="mail-outline" size={18} color={COLORS.textMuted} />
                   <TextInput
@@ -382,6 +385,22 @@ export default function LoginScreen() {
                     onChangeText={setSignupEmail}
                     autoCapitalize="none"
                     keyboardType="email-address"
+                    textContentType="emailAddress"
+                    autoComplete="email"
+                    autoFocus
+                    returnKeyType="next"
+                  />
+                </View>
+                <View style={styles.inputWrap}>
+                  <Ionicons name="person-outline" size={18} color={COLORS.textMuted} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder={`${s('login_name_placeholder')} (${tr('opcional')})`}
+                    placeholderTextColor={COLORS.textMuted}
+                    value={signupName}
+                    onChangeText={setSignupName}
+                    autoCapitalize="words"
+                    textContentType="name"
                   />
                 </View>
 
@@ -419,6 +438,8 @@ export default function LoginScreen() {
                     keyboardType="number-pad"
                     maxLength={6}
                     autoFocus
+                    textContentType="oneTimeCode"
+                    autoComplete="one-time-code"
                   />
                 </View>
 
