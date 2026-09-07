@@ -7,14 +7,12 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "channel": "development",
       "android": {
         "buildType": "apk"
       }
     },
     "preview": {
       "distribution": "internal",
-      "channel": "preview",
       "android": {
         "buildType": "apk"
       },
@@ -23,7 +21,6 @@
       }
     },
     "production": {
-      "channel": "production",
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
@@ -40,7 +37,8 @@
         "releaseStatus": "draft"
       },
       "ios": {
-        "appleTeamId": "4C39DXRG9L"
+        "appleTeamId": "4C39DXRG9L",
+        "ascAppId": "6809565354"
       }
     }
   }
