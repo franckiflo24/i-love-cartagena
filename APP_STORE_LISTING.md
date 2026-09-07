@@ -114,9 +114,26 @@ Set **"Data Not Used to Track You"** (no cross-app tracking, no ad SDKs, no IDFA
 ## Encryption / Export compliance
 - `ITSAppUsesNonExemptEncryption = false` (set in app.json infoPlist) → auto-answered "no", no annual documentation, no export upload.
 
-## Remaining account/content steps (not code)
-1. Paste this listing (ES as primary language, add EN localization).
-2. Upload screenshots (6.9" required — 1320×2868 or 1290×2796; see the generated set).
-3. Answer the App Privacy questionnaire per the table above.
-4. **Support email**: phil@machinemindconsulting.com is a real, deliverable inbox (machinemindconsulting.com has working mail) — use it for App Review + support so nothing bounces. (The in-app soporte@amocartagena.co still needs DNS mail-forwarding set up, or swap in-app copy to phil@ too.)
-5. Submit build 7 for review.
+---
+
+## ✅ ALREADY DONE FOR YOU (via App Store Connect API)
+- **Metadata** pushed: name, subtitle (ES + EN), full description (ES + EN), keywords, promo text, support/marketing URLs.
+- **Categories**: Travel (primary), Food & Drink (secondary).
+- **Build 7 attached** to version 1.0.
+- **6 screenshots uploaded + processed** (6.9" / 1320×2868, state COMPLETE), in conversion order: Home (853 lugares) → Explore → Map (869 pins) → Partner detail → Concierge → Onboarding.
+
+## ⏳ YOUR 4 STEPS (App Store Connect UI — ~5 min total, these are your attestations)
+1. **Age rating** (Rating tab → Edit, ~90 sec): answer every content question **None**; "Made for Kids" **No** → yields **4+**. One judgment call: the app lists bars/nightlife venues — Apple's "Alcohol/Tobacco/Drug references" question. A directory listing = "None" (4+) is defensible; if you prefer conservative, "Infrequent/Mild" → 12+. Your call.
+2. **App Privacy** (App Privacy → Get Started, ~2 min): answer from the table above. Set **"Data Not Used to Track You."** Accurate — the audit confirmed no tracking SDKs.
+3. **App Review Information**: contact name = Phil McGill, email = **phil@machinemindconsulting.com**, **+ your phone number** (required — I don't have it). Add the demo note from the "App Review Information" section above.
+4. **Submit for Review** — click it. (You can cancel anytime before Apple starts review.)
+
+## 🔧 SUPPORT EMAIL — do this before or right after submit (Thing 1)
+The in-app privacy/terms pages show `soporte@amocartagena.co` and `privacidad@amocartagena.co`. These **bounce today** (no MX). For a trust app, fix before real users arrive:
+- **Domain is on GoDaddy** (nameservers `domaincontrol.com`). Fastest path:
+  - GoDaddy → **My Products** → `amocartagena.co` → **Email** → **Email Forwarding** → forward `soporte@` and `privacidad@` → your real inbox (e.g. phil@machinemindconsulting.com). GoDaddy adds the MX automatically. ~5 min.
+  - Or move DNS to **Cloudflare** and use **Email Routing** (free, more robust) — ~20 min.
+- Until then: the **App Review contact** (step 3) uses phil@machinemindconsulting.com so nothing bounces for the reviewer. Just don't leave the public `.co` support line dead once tourists are in.
+
+## 🚫 KEEP PAYMENTS OFF (Thing 2)
+City Pass stays in the honest **"Próximamente"** state through review AND after approval. Getting into the store ≠ green light to take money. The pentest, passcode rotation, and Franck ownership answer remain the gate before Wompi flips on. The coming-soon state is already built — let it do its job.
