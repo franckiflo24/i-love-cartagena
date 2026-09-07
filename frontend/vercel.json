@@ -7,6 +7,36 @@
       "source": "/_sitemap",
       "destination": "/",
       "statusCode": 308
+    },
+    {
+      "source": "/r",
+      "destination": "/registro",
+      "statusCode": 308
+    },
+    {
+      "source": "/R",
+      "destination": "/registro",
+      "statusCode": 308
+    },
+    {
+      "source": "/Registro",
+      "destination": "/registro",
+      "statusCode": 308
+    },
+    {
+      "source": "/REGISTRO",
+      "destination": "/registro",
+      "statusCode": 308
+    },
+    {
+      "source": "/Join",
+      "destination": "/join",
+      "statusCode": 308
+    },
+    {
+      "source": "/JOIN",
+      "destination": "/join",
+      "statusCode": 308
     }
   ],
   "rewrites": [
