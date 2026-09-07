@@ -46,7 +46,7 @@ export default function LoginScreen() {
   const { user, isLoading, login, loginWithToken, authError, clearAuthError } = useAuth();
   const router = useRouter();
   const { s, lang, setLang } = useLang();
-  const { next } = useLocalSearchParams<{ next?: string }>();
+  const { next, signup } = useLocalSearchParams<{ next?: string; signup?: string }>();
 
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
@@ -59,6 +59,20 @@ export default function LoginScreen() {
   const [verifyCode, setVerifyCode] = useState('');
   const [resendCountdown, setResendCountdown] = useState(0);
   const tr = useTr();
+
+  // Arriving via a direct-signup link (/registro?...&signup=1, or the /r QR):
+  // open the email sign-up FORM immediately instead of leaving it one tap
+  // behind the "Continuar con email" button. Franck's field finding — people
+  // he sent landed on the login screen and didn't realize signup was a tap
+  // away, so they bounced to home without registering. Terms auto-accepted
+  // for this intent (they came from a "register me" link).
+  useEffect(() => {
+    if (signup && !user) {
+      setTermsAccepted(true);
+      setShowSignup(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [signup]);
 
   // Same-app return-url guard is the shared canonical helper (src/lib/safeNext).
   useEffect(() => {

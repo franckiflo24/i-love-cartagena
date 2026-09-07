@@ -57,7 +57,10 @@ export default function RegistroScreen() {
         trackGate('gate_shown', { action: `qr_${tag}`, archetype: 'invited' });
       }
       const dest = typeof next === 'string' && next.startsWith('/') ? next : '/';
-      router.replace((`/login?next=${encodeURIComponent(dest)}`) as any);
+      // signup=1 → login opens the email sign-up FORM on arrival, so a QR scan
+      // lands the visitor directly on the field to type their email (Franck:
+      // people landed on the login screen and didn't sign up).
+      router.replace((`/login?next=${encodeURIComponent(dest)}&signup=1`) as any);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, user]);
