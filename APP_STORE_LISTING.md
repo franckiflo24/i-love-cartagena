@@ -116,17 +116,21 @@ Set **"Data Not Used to Track You"** (no cross-app tracking, no ad SDKs, no IDFA
 
 ---
 
-## ✅ ALREADY DONE FOR YOU (via App Store Connect API)
+## ✅ ALREADY DONE FOR YOU (via App Store Connect API + deploy)
 - **Metadata** pushed: name, subtitle (ES + EN), full description (ES + EN), keywords, promo text, support/marketing URLs.
 - **Categories**: Travel (primary), Food & Drink (secondary).
 - **Build 7 attached** to version 1.0.
-- **6 screenshots uploaded + processed** (6.9" / 1320×2868, state COMPLETE), in conversion order: Home (853 lugares) → Explore → Map (869 pins) → Partner detail → Concierge → Onboarding.
+- **6 screenshots uploaded + processed** (6.9" / 1320×2868, COMPLETE): Home (853 lugares) → Explore → Map (869 pins) → Partner detail → Concierge → Onboarding.
+- **Copyright**: `2026 MachineMind LLC`.
+- **Content Rights**: "Uses third-party content" + rights held (partner-submitted listings).
+- **App Review contact**: Philip McGill · +1 954-445-1638 · phil@machinemindconsulting.com · demo notes filled.
+- **Privacy Policy LIVE**: https://www.amocartagena.co/privacy (bilingual, Ley 1581, MachineMind LLC).
 
-## ⏳ YOUR 4 STEPS (App Store Connect UI — ~5 min total, these are your attestations)
-1. **Age rating** (Rating tab → Edit, ~90 sec): answer every content question **None**; "Made for Kids" **No** → yields **4+**. One judgment call: the app lists bars/nightlife venues — Apple's "Alcohol/Tobacco/Drug references" question. A directory listing = "None" (4+) is defensible; if you prefer conservative, "Infrequent/Mild" → 12+. Your call.
-2. **App Privacy** (App Privacy → Get Started, ~2 min): answer from the table above. Set **"Data Not Used to Track You."** Accurate — the audit confirmed no tracking SDKs.
-3. **App Review Information**: contact name = Phil McGill, email = **phil@machinemindconsulting.com**, **+ your phone number** (required — I don't have it). Add the demo note from the "App Review Information" section above.
-4. **Submit for Review** — click it. (You can cancel anytime before Apple starts review.)
+## ⏳ YOUR STEPS (App Store Connect UI — ~4 min total; attestations + one toggle)
+1. **Price** (Pricing tab, 30 sec): select **Free (Tier 0)**.
+2. **Age rating** (~90 sec): every content question **None**; "Made for Kids" **No** → **4+**. Answer the new **Age Assurance** question (say you're not using Apple's age-assurance API). Judgment call: bars/nightlife listings vs the alcohol-reference question — "None" (4+) is defensible for a directory; "Infrequent/Mild" → 12+ if you want conservative. Your attestation.
+3. **App Privacy** (~2 min): answer from the table above, set **"Data Not Used to Track You,"** and paste the **Privacy Policy URL: https://www.amocartagena.co/privacy** (now live).
+4. **Submit for Review** — click it. (Cancelable anytime before Apple starts review.)
 
 ## 🔧 SUPPORT EMAIL — do this before or right after submit (Thing 1)
 The in-app privacy/terms pages show `soporte@amocartagena.co` and `privacidad@amocartagena.co`. These **bounce today** (no MX). For a trust app, fix before real users arrive:
