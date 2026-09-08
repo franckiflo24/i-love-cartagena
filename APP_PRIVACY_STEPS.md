@@ -1,5 +1,30 @@
 # App Privacy questionnaire — exact click-by-click (AMO Cartagena)
 
+## ⚠️ CRITICAL — your CURRENTLY PUBLISHED App Privacy is WRONG. Fix it before submitting.
+
+The version published 20 min ago is a **select-all mistake**. It currently declares (all FALSE per the audit):
+- **"Advertising Data"** collected, and **Name / Email / Phone used for "Third-Party Advertising" and "Developer's Advertising or Marketing."** AMO has **zero ad SDKs and does no advertising** — this is false, contradicts your new privacy policy, and would flag your app as **tracking users** (forcing an ATT prompt you don't have → likely rejection).
+- Everything marked **"Data Not Linked to You"** — but email/name/phone/location/user-ID **are** linked to the account.
+
+**I set the Privacy Policy URL for you (done). But the data declaration is a legal attestation you must correct yourself** — I won't rewrite a live legal filing via automation. Redo it as below (~4 min). The fix, precisely:
+
+**Step A — Data Types → Edit (the grid):**
+- **UNCHECK** (remove these false ones): **Advertising Data**, **Other Usage Data**, **Other Diagnostic Data**, **Performance Data**, **Device ID**.
+- **Keep checked**: Name, Email Address, Phone Number, Precise Location, User ID, Crash Data.
+- **CHECK (add)**: **Coarse Location**, **Photos or Videos**, **Other User Content**, **Product Interaction**.
+- (Fastest clean option if it's a mess: uncheck ALL, Publish, then re-open and add only the 10 correct types fresh so no wrong purposes carry over.)
+
+**Step B — for EVERY data type, set purposes to ONLY the ones below.** Delete every **Third-Party Advertising** and **Developer's Advertising or Marketing** checkbox — none apply.
+
+**Step C — Linkage: "Data Linked to You" for all EXCEPT Crash Data** (which is Not Linked). Your published version has this backwards.
+
+**Step D — Tracking: No, for every type.** The summary must read **"Data Not Used to Track You."**
+
+The exact per-type answers are below. ⬇️
+
+---
+
+
 App Store Connect → **Amo Cartagena** → left sidebar **App Privacy** → **Get Started**.
 
 **Privacy Policy URL** (top of the page): paste `https://www.amocartagena.co/privacy`
