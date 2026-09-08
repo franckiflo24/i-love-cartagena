@@ -19,6 +19,26 @@
       "statusCode": 308
     },
     {
+      "source": "/r/:tag",
+      "destination": "/registro?src=:tag",
+      "statusCode": 308
+    },
+    {
+      "source": "/R/:tag",
+      "destination": "/registro?src=:tag",
+      "statusCode": 308
+    },
+    {
+      "source": "/registro/:tag",
+      "destination": "/registro?src=:tag",
+      "statusCode": 308
+    },
+    {
+      "source": "/join/:tag",
+      "destination": "/registro?src=:tag",
+      "statusCode": 308
+    },
+    {
       "source": "/Registro",
       "destination": "/registro",
       "statusCode": 308
