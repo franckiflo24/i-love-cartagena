@@ -20,6 +20,12 @@ import { GrowthCards } from '../../src/components/GrowthCards';
 
 const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
 
+// Google OAuth is a WEB-ONLY flow (AuthContext.login() redirects via
+// window.location — a no-op on native). Apple sign-in is not implemented.
+// So on the native app both buttons are dead — an App Store 2.1 completeness
+// rejection. Show them ONLY on web; on native, email OTP is the primary login.
+const GOOGLE_LOGIN_AVAILABLE = Platform.OS === 'web';
+
 type Event = {
   event_id: string; title: string; date: string; start_time: string;
   end_time: string; venue_name: string; type: string; is_free: boolean;
@@ -236,47 +242,41 @@ export default function PerfilScreen() {
             </View>
           ) : null}
 
-          {/* PRIMARY: Continue with Google */}
-          <TouchableOpacity
-            testID="profile-login-google"
-            style={styles.googleButton}
-            onPress={() => { clearAuthError(); login(); }}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="logo-google" size={20} color="#4285F4" />
-            <Text style={styles.googleButtonText}>{s('login_google')}</Text>
-          </TouchableOpacity>
+          {/* PRIMARY: Continue with Google — WEB ONLY (native no-op → hidden) */}
+          {GOOGLE_LOGIN_AVAILABLE && (
+            <TouchableOpacity
+              testID="profile-login-google"
+              style={styles.googleButton}
+              onPress={() => { clearAuthError(); login(); }}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="logo-google" size={20} color="#4285F4" />
+              <Text style={styles.googleButtonText}>{s('login_google')}</Text>
+            </TouchableOpacity>
+          )}
 
-          {/* OR divider */}
-          <View style={styles.orRow}>
-            <View style={styles.orLine} />
-            <Text style={styles.orText}>{s('login_other_methods')}</Text>
-            <View style={styles.orLine} />
-          </View>
+          {/* OR divider — only when there's a Google button above it */}
+          {GOOGLE_LOGIN_AVAILABLE && (
+            <View style={styles.orRow}>
+              <View style={styles.orLine} />
+              <Text style={styles.orText}>{s('login_other_methods')}</Text>
+              <View style={styles.orLine} />
+            </View>
+          )}
 
-          {/* SECONDARY: Other login methods */}
+          {/* Email — SECONDARY on web, PRIMARY on native */}
           <View style={styles.otherMethodsCol}>
             <TouchableOpacity
               testID="profile-login-email"
-              style={[styles.methodBtn, styles.outlineMethodBtn]}
+              style={GOOGLE_LOGIN_AVAILABLE ? [styles.methodBtn, styles.outlineMethodBtn] : styles.googleButton}
               onPress={() => router.push('/login')}
               activeOpacity={0.85}
             >
-              <Ionicons name="mail-outline" size={18} color={COLORS.white} />
-              <Text style={styles.methodBtnText}>{s('login_email_signup')}</Text>
+              <Ionicons name="mail-outline" size={18} color={GOOGLE_LOGIN_AVAILABLE ? COLORS.white : COLORS.background} />
+              <Text style={GOOGLE_LOGIN_AVAILABLE ? styles.methodBtnText : styles.googleButtonText}>{s('login_email_signup')}</Text>
             </TouchableOpacity>
-
-            {Platform.OS === 'ios' && (
-              <TouchableOpacity
-                testID="profile-login-apple"
-                style={[styles.methodBtn, styles.appleBtn]}
-                onPress={login}
-                activeOpacity={0.85}
-              >
-                <Ionicons name="logo-apple" size={20} color={COLORS.white} />
-                <Text style={styles.methodBtnText}>{s('login_apple')}</Text>
-              </TouchableOpacity>
-            )}
+            {/* Apple sign-in intentionally not shown — not implemented (would be a
+                dead button). Ship real Sign in with Apple before re-enabling. */}
           </View>
 
           {/* Section separator */}
