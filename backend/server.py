@@ -322,7 +322,15 @@ async def email_signup(body: SignupBody, request: Request):
     # Then the per-email code cap: 3 codes per email per 15 min.
     await _check_rate_limit(f"verify:{email}", max_calls=3, window_sec=900)
 
-    code = _emails.generate_verification_code()
+    # App Review demo account: a single env-gated email whose code is FIXED and
+    # whose email send is skipped, so an App Store reviewer can sign in without
+    # any email-delivery dependency (Guideline 2.1 demo-credentials ask). Scoped
+    # to exactly one address; dormant unless REVIEW_DEMO_EMAIL/CODE are set.
+    review_email = os.environ.get("REVIEW_DEMO_EMAIL", "").strip().lower()
+    review_code = os.environ.get("REVIEW_DEMO_CODE", "").strip()
+    is_review_demo = bool(review_email) and email == review_email and bool(review_code)
+
+    code = review_code if is_review_demo else _emails.generate_verification_code()
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=_emails.VERIFY_CODE_TTL_MINUTES)
 
     # Upsert pending verification (replace any existing code for this email)
@@ -338,6 +346,9 @@ async def email_signup(body: SignupBody, request: Request):
         }},
         upsert=True,
     )
+
+    if is_review_demo:
+        return {"ok": True, "message": "Código enviado a tu email"}
 
     sent = await _emails.send_verification_email(to=email, code=code, name=body.name.strip())
     if not sent:
