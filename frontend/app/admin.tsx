@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, RefreshControl, Dimensions, Platform,
@@ -187,6 +187,22 @@ const PortalCard = ({ card }: { card: HubCardDef }) => (
 function DashboardBody({ data, usersData }: { data: DashboardData; usersData: any }) {
   const tr = useTr();
   const [activeTab, setActiveTab] = useState(0);
+  const [userQuery, setUserQuery] = useState('');
+
+  // Full roster, filtered live by the search box. Kept at top level (not inside
+  // renderCRM) so the hook runs unconditionally regardless of the active tab.
+  const filteredUsers = useMemo(() => {
+    const all: any[] = usersData?.users || [];
+    const q = userQuery.trim().toLowerCase();
+    if (!q) return all;
+    return all.filter((u: any) =>
+      (u.name || u.full_name || '').toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q) ||
+      (u.nationality || '').toLowerCase().includes(q) ||
+      (u.instagram || '').toLowerCase().includes(q) ||
+      (u.age_group || '').toLowerCase().includes(q)
+    );
+  }, [usersData, userQuery]);
 
   // Prepare chart data
   const dailyLabels = data.daily_activity.map(d => d.date.slice(8));
@@ -338,39 +354,64 @@ function DashboardBody({ data, usersData }: { data: DashboardData; usersData: an
 
         {/* User List - CRM Table */}
         <View style={styles.section}>
-          <SectionHeader title={`Usuarios registrados (${users.length})`} icon="list-outline" />
+          <SectionHeader title={`Usuarios registrados (${usersData?.total ?? users.length})`} icon="list-outline" />
           <Card>
             {users.length === 0 ? (
               <Text style={styles.emptyText}>Cuando los usuarios se registren, sus datos aparecerán aquí.</Text>
             ) : (
-              users.slice(0, 20).map((u: any, i: number) => (
-                <View key={u.user_id || i} style={styles.userRow}>
-                  <View style={styles.userAvatar}>
-                    <Text style={styles.userAvatarText}>{(u.full_name || u.email || '?')[0].toUpperCase()}</Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.userName} numberOfLines={1}>{u.full_name || 'Sin nombre'}</Text>
-                    <Text style={styles.userEmail} numberOfLines={1}>{u.email}</Text>
-                    <View style={styles.userTags}>
-                      {u.nationality && (
-                        <View style={styles.userTag}>
-                          <Text style={styles.userTagText}>{COUNTRY_FLAGS[u.nationality] || '🏳️'} {u.nationality}</Text>
-                        </View>
-                      )}
-                      {u.age_group && (
-                        <View style={styles.userTag}>
-                          <Text style={styles.userTagText}>{u.age_group}</Text>
-                        </View>
-                      )}
-                      {u.instagram && (
-                        <View style={[styles.userTag, { borderColor: '#EC489940' }]}>
-                          <Text style={[styles.userTagText, { color: '#EC4899' }]}>@{u.instagram}</Text>
-                        </View>
-                      )}
+              <>
+                <View style={styles.userSearchRow}>
+                  <Ionicons name="search" size={16} color={COLORS.textMuted} />
+                  <TextInput
+                    style={styles.userSearchInput}
+                    value={userQuery}
+                    onChangeText={setUserQuery}
+                    placeholder={tr('Buscar por nombre, email o país…')}
+                    placeholderTextColor={COLORS.textMuted}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    returnKeyType="search"
+                  />
+                  {userQuery.length > 0 && (
+                    <TouchableOpacity onPress={() => setUserQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                      <Ionicons name="close-circle" size={16} color={COLORS.textMuted} />
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <Text style={styles.userCountNote}>
+                  {tr('Mostrando')} {filteredUsers.length} {tr('de')} {usersData?.total ?? users.length}
+                </Text>
+                {filteredUsers.length === 0 ? (
+                  <Text style={styles.emptyText}>{tr('Sin resultados')}.</Text>
+                ) : filteredUsers.map((u: any, i: number) => (
+                  <View key={u.user_id || i} style={styles.userRow}>
+                    <View style={styles.userAvatar}>
+                      <Text style={styles.userAvatarText}>{(u.name || u.full_name || u.email || '?')[0].toUpperCase()}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.userName} numberOfLines={1}>{u.name || u.full_name || 'Sin nombre'}</Text>
+                      <Text style={styles.userEmail} numberOfLines={1}>{u.email}</Text>
+                      <View style={styles.userTags}>
+                        {u.nationality && (
+                          <View style={styles.userTag}>
+                            <Text style={styles.userTagText}>{COUNTRY_FLAGS[u.nationality] || '🏳️'} {u.nationality}</Text>
+                          </View>
+                        )}
+                        {u.age_group && (
+                          <View style={styles.userTag}>
+                            <Text style={styles.userTagText}>{u.age_group}</Text>
+                          </View>
+                        )}
+                        {u.instagram && (
+                          <View style={[styles.userTag, { borderColor: '#EC489940' }]}>
+                            <Text style={[styles.userTagText, { color: '#EC4899' }]}>@{u.instagram}</Text>
+                          </View>
+                        )}
+                      </View>
                     </View>
                   </View>
-                </View>
-              ))
+                ))}
+              </>
             )}
           </Card>
         </View>
@@ -1063,6 +1104,9 @@ const styles = StyleSheet.create({
   govDesc: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
 
   // User CRM rows
+  userSearchRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: SPACING.md, height: 44, marginBottom: SPACING.sm },
+  userSearchInput: { flex: 1, fontSize: 14, color: COLORS.textMain, ...FONTS.regular, padding: 0 },
+  userCountNote: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginBottom: SPACING.sm },
   userRow: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.sm, paddingVertical: SPACING.sm, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   userAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
   userAvatarText: { fontSize: 15, color: '#FFF', ...FONTS.bold },

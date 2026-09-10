@@ -3854,14 +3854,21 @@ async def update_user_type(body: UserTypeUpdate, request: Request):
 
 # ── Admin: Users Management ──────────────────────────────────
 @api_router.get("/admin/users")
-async def admin_list_users(request: Request):
-    """List all registered users with full profile data - admin only."""
+async def admin_list_users(request: Request, limit: int = 2000, skip: int = 0):
+    """List all registered users with full profile data - admin only.
+
+    Returns the full roster (not just recent signups). `total` is the true
+    document count so the UI can show the real number even past the page cap;
+    `limit`/`skip` allow paging if the base ever exceeds `limit`.
+    """
     await require_admin(request)
+    limit = max(1, min(limit, 5000))
+    skip = max(0, skip)
     users = await db.users.find({}, {
-        "_id": 0, "user_id": 1, "email": 1, "name": 1, "provider": 1,
+        "_id": 0, "user_id": 1, "email": 1, "name": 1, "provider": 1, "instagram": 1,
         "nationality": 1, "age_group": 1, "created_at": 1, "profile_completed": 1,
-    }).sort("created_at", -1).to_list(500)
-    total = len(users)
+    }).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+    total = await db.users.count_documents({})
     countries = {}
     age_groups = {}
     with_instagram = 0
@@ -3880,6 +3887,7 @@ async def admin_list_users(request: Request):
 
     return {
         "total": total,
+        "returned": len(users),
         "users": users,
         "stats": {
             "with_profile": with_profile,
