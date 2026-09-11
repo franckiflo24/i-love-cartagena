@@ -3867,6 +3867,7 @@ async def admin_list_users(request: Request, limit: int = 2000, skip: int = 0):
     users = await db.users.find({}, {
         "_id": 0, "user_id": 1, "email": 1, "name": 1, "provider": 1, "instagram": 1,
         "nationality": 1, "age_group": 1, "created_at": 1, "profile_completed": 1,
+        "email_verified": 1, "confirmed_by_admin": 1,
     }).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
     total = await db.users.count_documents({})
     countries = {}
@@ -3896,6 +3897,81 @@ async def admin_list_users(request: Request, limit: int = 2000, skip: int = 0):
             "age_groups": [{"group": k, "count": v} for k, v in sorted(age_groups.items())],
         }
     }
+
+
+@api_router.get("/admin/businesses")
+async def admin_list_businesses(request: Request):
+    """Every business/partner account with the venue(s) it signed up for and its
+    confirmation status — is_admin gated so the MAIN admin dashboard (Phil/Franck)
+    can see businesses. The /business/admin/* endpoints require the `government`
+    role, which the consumer-admin principal does not carry; this mirrors the data
+    on the is_admin principal without granting institutional (payments) access."""
+    await require_admin(request)
+    accts = await db.business_users.find(
+        {}, {"_id": 0, "password_hash": 0}
+    ).sort("created_at", -1).to_list(2000)
+    # Batch-resolve venue names for every account's primary + claimed venues.
+    pid_set = set()
+    for a in accts:
+        for p in [a.get("partner_id")] + list(a.get("claimed_partner_ids") or []):
+            if p:
+                pid_set.add(p)
+    venues = {p["partner_id"]: p.get("name", "") for p in await db.partners.find(
+        {"partner_id": {"$in": list(pid_set)}}, {"_id": 0, "partner_id": 1, "name": 1},
+    ).to_list(len(pid_set) or 1)}
+    out = []
+    for a in accts:
+        pids = [p for p in ([a.get("partner_id")] + list(a.get("claimed_partner_ids") or [])) if p]
+        out.append({
+            "business_id": a.get("business_id"),
+            "email": a.get("email", ""),
+            "full_name": a.get("full_name", ""),
+            "role": a.get("role", "business"),
+            "status": a.get("status", "active"),
+            "created_at": a.get("created_at"),
+            "confirmed_by_admin": bool(a.get("confirmed_by_admin")),
+            "venue_names": [venues.get(p, "") for p in pids if venues.get(p)],
+        })
+    total = len(out)
+    pending = sum(1 for a in out if a["status"] != "active")
+    real = sum(1 for a in out if a["role"] == "business")
+    return {"businesses": out, "total": total, "pending": pending, "real_businesses": real}
+
+
+@api_router.post("/admin/businesses/{business_id}/confirm")
+async def admin_confirm_business(business_id: str, request: Request):
+    """Confirm/activate a business account (pending → active). is_admin gated.
+    Reversible: sets status=active + an audit stamp of who confirmed it."""
+    admin = await require_admin(request)
+    biz = await db.business_users.find_one({"business_id": business_id}, {"_id": 0, "business_id": 1})
+    if not biz:
+        raise HTTPException(status_code=404, detail="Business not found")
+    await db.business_users.update_one(
+        {"business_id": business_id},
+        {"$set": {"status": "active", "confirmed_by_admin": True,
+                  "confirmed_at": _now_iso(), "confirmed_by": admin.get("user_id", "")}},
+    )
+    await _log_activity("business_confirmed", scope="admin",
+                        user_id=admin.get("user_id", ""), detail=business_id)
+    return {"ok": True, "business_id": business_id, "status": "active"}
+
+
+@api_router.post("/admin/users/{user_id}/confirm")
+async def admin_confirm_user(user_id: str, request: Request):
+    """Manually mark a consumer account as confirmed/verified by an admin.
+    is_admin gated. Reversible: sets email_verified + an audit stamp."""
+    admin = await require_admin(request)
+    u = await db.users.find_one({"user_id": user_id}, {"_id": 0, "user_id": 1})
+    if not u:
+        raise HTTPException(status_code=404, detail="User not found")
+    await db.users.update_one(
+        {"user_id": user_id},
+        {"$set": {"email_verified": True, "confirmed_by_admin": True,
+                  "confirmed_at": _now_iso(), "confirmed_by": admin.get("user_id", "")}},
+    )
+    await _log_activity("user_confirmed", scope="admin",
+                        user_id=admin.get("user_id", ""), detail=user_id)
+    return {"ok": True, "user_id": user_id, "email_verified": True}
 
 
 @api_router.post("/auth/logout")

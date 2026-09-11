@@ -44,8 +44,8 @@ type DashboardData = {
 
 type ModStats = { pending: number; unread_notifications: number; auto_corrected_categories: number };
 
-const TABS = ['General', 'CRM', 'Engagement', 'Revenue'];
-const TAB_ICONS: Record<string, string> = { General: 'grid', CRM: 'people', Engagement: 'pulse', Revenue: 'card' };
+const TABS = ['General', 'CRM', 'Negocios', 'Engagement', 'Revenue'];
+const TAB_ICONS: Record<string, string> = { General: 'grid', CRM: 'people', Negocios: 'business', Engagement: 'pulse', Revenue: 'card' };
 
 const TYPE_LABELS: Record<string, string> = {
   event_click: 'Eventos', season_click: 'Temporadas', partner_click: 'Partners',
@@ -184,10 +184,25 @@ const PortalCard = ({ card }: { card: HubCardDef }) => (
 // ── Dashboard body (the original analytics dashboard — unchanged content,
 // only relocated behind the "Usuarios & Analytics" hub card). Only ever
 // mounted when isAdmin, and only once `data` has resolved. ──
-function DashboardBody({ data, usersData }: { data: DashboardData; usersData: any }) {
+function DashboardBody({ data, usersData, businessesData, onChanged }: { data: DashboardData; usersData: any; businessesData: any; onChanged: () => void }) {
   const tr = useTr();
   const [activeTab, setActiveTab] = useState(0);
   const [userQuery, setUserQuery] = useState('');
+  const [confirming, setConfirming] = useState<string | null>(null);
+
+  const confirmBusiness = useCallback(async (id: string) => {
+    setConfirming('biz:' + id);
+    try { await api.post(`/admin/businesses/${id}/confirm`, {}); onChanged?.(); }
+    catch (e) { console.error('[admin] confirm business', e); }
+    setConfirming(null);
+  }, [onChanged]);
+
+  const confirmUser = useCallback(async (id: string) => {
+    setConfirming('user:' + id);
+    try { await api.post(`/admin/users/${id}/confirm`, {}); onChanged?.(); }
+    catch (e) { console.error('[admin] confirm user', e); }
+    setConfirming(null);
+  }, [onChanged]);
 
   // Full roster, filtered live by the search box. Kept at top level (not inside
   // renderCRM) so the hook runs unconditionally regardless of the active tab.
@@ -383,14 +398,19 @@ function DashboardBody({ data, usersData }: { data: DashboardData; usersData: an
                 </Text>
                 {filteredUsers.length === 0 ? (
                   <Text style={styles.emptyText}>{tr('Sin resultados')}.</Text>
-                ) : filteredUsers.map((u: any, i: number) => (
+                ) : filteredUsers.map((u: any, i: number) => {
+                  const verified = !!(u.email_verified || u.confirmed_by_admin);
+                  return (
                   <View key={u.user_id || i} style={styles.userRow}>
                     <View style={styles.userAvatar}>
                       <Text style={styles.userAvatarText}>{(u.name || u.full_name || u.email || '?')[0].toUpperCase()}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.userName} numberOfLines={1}>{u.name || u.full_name || 'Sin nombre'}</Text>
-                      <Text style={styles.userEmail} numberOfLines={1}>{u.email}</Text>
+                      <View style={styles.userNameRow}>
+                        <Text style={styles.userName} numberOfLines={1}>{u.name || u.full_name || 'Sin nombre'}</Text>
+                        {verified && <Ionicons name="checkmark-circle" size={14} color="#22C55E" />}
+                      </View>
+                      <Text style={styles.userEmail} numberOfLines={1} selectable>{u.email}</Text>
                       <View style={styles.userTags}>
                         {u.nationality && (
                           <View style={styles.userTag}>
@@ -402,6 +422,11 @@ function DashboardBody({ data, usersData }: { data: DashboardData; usersData: an
                             <Text style={styles.userTagText}>{u.age_group}</Text>
                           </View>
                         )}
+                        {!!u.provider && (
+                          <View style={styles.userTag}>
+                            <Text style={styles.userTagText}>{u.provider}</Text>
+                          </View>
+                        )}
                         {u.instagram && (
                           <View style={[styles.userTag, { borderColor: '#EC489940' }]}>
                             <Text style={[styles.userTagText, { color: '#EC4899' }]}>@{u.instagram}</Text>
@@ -409,8 +434,21 @@ function DashboardBody({ data, usersData }: { data: DashboardData; usersData: an
                         )}
                       </View>
                     </View>
+                    {!verified && (
+                      <TouchableOpacity
+                        style={styles.confirmBtn}
+                        disabled={confirming === 'user:' + u.user_id}
+                        onPress={() => confirmUser(u.user_id)}
+                        activeOpacity={0.8}
+                      >
+                        {confirming === 'user:' + u.user_id
+                          ? <ActivityIndicator size="small" color="#22C55E" />
+                          : <Text style={styles.confirmBtnText}>{tr('Confirmar')}</Text>}
+                      </TouchableOpacity>
+                    )}
                   </View>
-                ))}
+                  );
+                })}
               </>
             )}
           </Card>
@@ -425,6 +463,66 @@ function DashboardBody({ data, usersData }: { data: DashboardData; usersData: an
               {usersData?.total || 0} usuarios registrados, {stats.with_profile || 0} perfiles completos, {stats.countries?.length || 0} países representados, {stats.with_instagram || 0} con Instagram.
             </Text>
           </View>
+        </View>
+      </>
+    );
+  };
+
+  const renderBusinesses = () => {
+    const list = businessesData?.businesses || [];
+    return (
+      <>
+        <View style={styles.kpiGrid}>
+          <KPICard icon="business" label="Negocios" value={businessesData?.total || 0} color="#8B5CF6" />
+          <KPICard icon="briefcase" label="Reales" value={businessesData?.real_businesses || 0} color="#3B82F6" />
+          <KPICard icon="time" label="Pendientes" value={businessesData?.pending || 0} color="#F59E0B" />
+          <KPICard icon="storefront" label="Con local" value={list.filter((b: any) => b.venue_names?.length).length} color="#22C55E" />
+        </View>
+
+        <View style={styles.section}>
+          <SectionHeader title={`Negocios registrados (${businessesData?.total || 0})`} icon="business-outline" />
+          <Card>
+            {list.length === 0 ? (
+              <Text style={styles.emptyText}>Cuando un negocio cree su cuenta, aparecerá aquí.</Text>
+            ) : list.map((b: any, i: number) => {
+              const active = b.status === 'active';
+              return (
+                <View key={b.business_id || i} style={styles.userRow}>
+                  <View style={[styles.userAvatar, { backgroundColor: '#8B5CF6' }]}>
+                    <Text style={styles.userAvatarText}>{(b.full_name || b.email || '?')[0].toUpperCase()}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <View style={styles.userNameRow}>
+                      <Text style={styles.userName} numberOfLines={1}>{b.full_name || 'Sin nombre'}</Text>
+                      {b.confirmed_by_admin && <Ionicons name="checkmark-circle" size={14} color="#22C55E" />}
+                    </View>
+                    <Text style={styles.userEmail} numberOfLines={1} selectable>{b.email}</Text>
+                    <View style={styles.userTags}>
+                      <View style={[styles.userTag, { borderColor: active ? '#22C55E40' : '#F59E0B40' }]}>
+                        <Text style={[styles.userTagText, { color: active ? '#22C55E' : '#F59E0B' }]}>{active ? tr('activo') : tr('pendiente')}</Text>
+                      </View>
+                      <View style={styles.userTag}><Text style={styles.userTagText}>{b.role}</Text></View>
+                      {(b.venue_names || []).map((v: string, j: number) => (
+                        <View key={j} style={styles.userTag}><Text style={styles.userTagText}>🏷️ {v}</Text></View>
+                      ))}
+                    </View>
+                  </View>
+                  {!active && (
+                    <TouchableOpacity
+                      style={styles.confirmBtn}
+                      disabled={confirming === 'biz:' + b.business_id}
+                      onPress={() => confirmBusiness(b.business_id)}
+                      activeOpacity={0.8}
+                    >
+                      {confirming === 'biz:' + b.business_id
+                        ? <ActivityIndicator size="small" color="#22C55E" />
+                        : <Text style={styles.confirmBtnText}>{tr('Confirmar')}</Text>}
+                    </TouchableOpacity>
+                  )}
+                </View>
+              );
+            })}
+          </Card>
         </View>
       </>
     );
@@ -602,7 +700,7 @@ function DashboardBody({ data, usersData }: { data: DashboardData; usersData: an
     </>
   );
 
-  const tabContent = [renderGeneral, renderCRM, renderEngagement, renderRevenue];
+  const tabContent = [renderGeneral, renderCRM, renderBusinesses, renderEngagement, renderRevenue];
 
   return (
     <>
@@ -680,20 +778,23 @@ export default function AdminPortal() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [modStats, setModStats] = useState<ModStats | null>(null);
   const [usersData, setUsersData] = useState<any>(null);
+  const [businessesData, setBusinessesData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showDashboard, setShowDashboard] = useState(true);
 
   const fetchData = useCallback(async () => {
     try {
-      const [d, u, ms] = await Promise.all([
+      const [d, u, ms, biz] = await Promise.all([
         api.get('/analytics/dashboard').catch(() => null),
         api.get('/admin/users').catch(() => null),
         api.get('/admin/moderation/stats').catch(() => null),
+        api.get('/admin/businesses').catch(() => null),
       ]);
       setData(d);
       if (u) setUsersData(u);
       if (ms) setModStats(ms);
+      if (biz) setBusinessesData(biz);
     } catch (e) { console.error('Dashboard fetch error:', e); }
     setLoading(false);
     setRefreshing(false);
@@ -920,7 +1021,7 @@ export default function AdminPortal() {
                   </TouchableOpacity>
                 </View>
               ) : (
-                <DashboardBody data={data} usersData={usersData} />
+                <DashboardBody data={data} usersData={usersData} businessesData={businessesData} onChanged={fetchData} />
               )
             )}
 
@@ -1111,7 +1212,10 @@ const styles = StyleSheet.create({
   userAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
   userAvatarText: { fontSize: 15, color: '#FFF', ...FONTS.bold },
   userName: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
+  userNameRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   userEmail: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
+  confirmBtn: { alignSelf: 'center', paddingHorizontal: 12, paddingVertical: 7, borderRadius: RADIUS.md, borderWidth: 1, borderColor: '#22C55E55', backgroundColor: 'rgba(34,197,94,0.10)', minWidth: 84, alignItems: 'center', justifyContent: 'center' },
+  confirmBtnText: { fontSize: 12, color: '#22C55E', ...FONTS.semibold },
   userTags: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
   userTag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border },
   userTagText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
