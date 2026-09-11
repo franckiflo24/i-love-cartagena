@@ -3922,6 +3922,11 @@ async def admin_list_businesses(request: Request):
     out = []
     for a in accts:
         pids = [p for p in ([a.get("partner_id")] + list(a.get("claimed_partner_ids") or [])) if p]
+        names = []  # de-duped, order-preserving (partner_id often repeats in claimed_partner_ids)
+        for p in pids:
+            nm = venues.get(p, "")
+            if nm and nm not in names:
+                names.append(nm)
         out.append({
             "business_id": a.get("business_id"),
             "email": a.get("email", ""),
@@ -3930,7 +3935,7 @@ async def admin_list_businesses(request: Request):
             "status": a.get("status", "active"),
             "created_at": a.get("created_at"),
             "confirmed_by_admin": bool(a.get("confirmed_by_admin")),
-            "venue_names": [venues.get(p, "") for p in pids if venues.get(p)],
+            "venue_names": names,
         })
     total = len(out)
     pending = sum(1 for a in out if a["status"] != "active")
