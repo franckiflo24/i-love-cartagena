@@ -12,7 +12,7 @@
 // stamp is real; Luna's line is grounded; skipping still lands in the app.
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Platform, ActivityIndicator,
+  View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Platform, ActivityIndicator, ScrollView,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -178,7 +178,12 @@ export default function OnboardingArrival() {
       </TouchableOpacity>
 
       {beat === 'arrival' ? (
-        <View style={styles.stage}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.stage}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
           {/* Wordmark */}
           <Animated.View style={[styles.wordmarkWrap, R(0)]}>
             <Text style={styles.amoMark}>A  M  O</Text>
@@ -248,9 +253,15 @@ export default function OnboardingArrival() {
               </Text>
             </TouchableOpacity>
           </Animated.View>
-        </View>
+        </ScrollView>
       ) : (
-        <View style={styles.stage}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.stage}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.wordmarkWrap}>
             <Text style={styles.amoMark}>A  M  O</Text>
             <View style={styles.rule} />
@@ -278,7 +289,7 @@ export default function OnboardingArrival() {
               <Text style={styles.qSkipText}>{tr('Prefiero explorar solo →')}</Text>
             </TouchableOpacity>
           )}
-        </View>
+        </ScrollView>
       )}
     </SafeAreaView>
   );
@@ -293,7 +304,14 @@ const styles = StyleSheet.create({
   },
   skip: { position: 'absolute', top: 14, right: 18, zIndex: 10, paddingHorizontal: 12, paddingVertical: 6 },
   skipText: { color: COLORS.textMuted, fontSize: 14, ...FONTS.medium },
-  stage: { flex: 1, justifyContent: 'center', paddingHorizontal: SPACING.xl, gap: SPACING.lg },
+  scroll: { flex: 1 },
+  // flexGrow (not flex) so the beat centers when it fits the viewport but scrolls
+  // when it doesn't — the fix for iPad/short-height clipping that hid the CTA
+  // (Apple 4.0 rejection: "continue button was not visible when we logged in").
+  stage: {
+    flexGrow: 1, justifyContent: 'center', paddingHorizontal: SPACING.xl, gap: SPACING.lg,
+    paddingTop: SPACING.xl * 1.5, paddingBottom: SPACING.xl,
+  },
   wordmarkWrap: { alignItems: 'center', marginBottom: SPACING.sm },
   amoMark: { color: GOLD, fontSize: 14, letterSpacing: 6, ...FONTS.semibold },
   cartagenaMark: { color: '#FFFFFF', fontSize: 40, fontFamily: SERIF, marginTop: 2 },

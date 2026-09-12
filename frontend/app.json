@@ -8,13 +8,19 @@
     "scheme": "amocartagena",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "locales": {
+      "en": "./locales/en.json",
+      "es": "./locales/es.json",
+      "fr": "./locales/fr.json",
+      "pt": "./locales/pt.json"
+    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.amocartagena.app",
       "buildNumber": "1",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Te mostramos eventos y partners cerca de ti",
-        "NSPhotoLibraryUsageDescription": "Adjunta imágenes para tus eventos",
+        "NSLocationWhenInUseUsageDescription": "We use your location to show you events and partners near you.",
+        "NSPhotoLibraryUsageDescription": "Allow access to your photos to attach images to your events.",
         "ITSAppUsesNonExemptEncryption": false,
         "LSApplicationQueriesSchemes": [
           "whatsapp",
@@ -68,7 +74,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Adjunta imágenes para tus eventos",
+          "photosPermission": "Allow access to your photos to attach images to your events.",
           "cameraPermission": false,
           "microphonePermission": false
         }
@@ -82,7 +88,8 @@
         }
       ],
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-localization"
     ],
     "extra": {
       "privacyPolicyUrl": "https://amocartagena.co/privacidad",
