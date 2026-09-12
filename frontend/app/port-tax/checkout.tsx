@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator,
-  TextInput, Platform,
+  TextInput, Platform, KeyboardAvoidingView,
 } from 'react-native';
 import { Alert } from '../../src/lib/alert';
 import { useRouter } from 'expo-router';
@@ -55,17 +55,22 @@ export default function PortTaxCheckoutScreen() {
   const { user, login } = useAuth();
   const [cfg, setCfg] = useState<Cfg | null>(null);
   const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState(false);
   const [qty, setQty] = useState<number>(1);
   const [travelDate, setTravelDate] = useState<string>(ymdToday());
   const [submitting, setSubmitting] = useState(false);
   const [passengers, setPassengers] = useState<string[]>(['']);
 
-  useEffect(() => {
+  const loadCfg = useCallback(() => {
+    setLoading(true);
+    setErr(false);
     api.get('/port-tax/config')
-      .then(setCfg)
-      .catch(e => console.error(e))
+      .then((c) => setCfg(c))
+      .catch((e) => { console.error(e); setErr(true); })
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => { loadCfg(); }, [loadCfg]);
 
   useEffect(() => {
     // Keep passenger array length matching qty
@@ -140,16 +145,48 @@ export default function PortTaxCheckoutScreen() {
     setSubmitting(false);
   };
 
-  if (loading || !cfg) {
+  if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={20} color={COLORS.textMain} />
+          </TouchableOpacity>
+          <Text style={styles.title}>{tr('Tasa Portuaria')}</Text>
+        </View>
         <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 80 }} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!cfg) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="arrow-back" size={20} color={COLORS.textMain} />
+          </TouchableOpacity>
+          <Text style={styles.title}>{tr('Tasa Portuaria')}</Text>
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, paddingHorizontal: 32 }}>
+          <Ionicons name="cloud-offline-outline" size={48} color={COLORS.textMuted} />
+          <Text style={{ color: COLORS.textMain, fontSize: 16, ...FONTS.semibold, textAlign: 'center' }}>
+            {tr('No pudimos cargar la tasa portuaria')}
+          </Text>
+          <Text style={{ color: COLORS.textMuted, fontSize: 13, textAlign: 'center' }}>
+            {tr('Revisa tu conexión e inténtalo de nuevo.')}
+          </Text>
+          <TouchableOpacity onPress={loadCfg} style={{ paddingVertical: 12, paddingHorizontal: 28, borderRadius: RADIUS.full, backgroundColor: COLORS.primary }}>
+            <Text style={{ color: '#0A0A0A', fontSize: 15, ...FONTS.bold }}>{tr('Reintentar')}</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.headerRow}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={20} color={COLORS.textMain} />
@@ -160,7 +197,7 @@ export default function PortTaxCheckoutScreen() {
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 120 }}>
         <View style={styles.heroCard}>
           <View style={styles.heroIconWrap}>
             <Ionicons name="boat" size={28} color={COLORS.primary} />
@@ -293,15 +330,16 @@ export default function PortTaxCheckoutScreen() {
           activeOpacity={0.85}
         >
           {submitting ? (
-            <ActivityIndicator size="small" color="#FFF" />
+            <ActivityIndicator size="small" color="#0A0A0A" />
           ) : (
             <>
-              <Ionicons name="qr-code" size={18} color="#FFF" />
-              <Text style={styles.payBtnText}>{user ? 'Pagar y generar QR' : 'Inicia sesión'}</Text>
+              <Ionicons name="qr-code" size={18} color="#0A0A0A" />
+              <Text style={styles.payBtnText}>{user ? tr('Pagar y generar QR') : tr('Inicia sesión')}</Text>
             </>
           )}
         </TouchableOpacity>
       </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -409,5 +447,5 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary, paddingHorizontal: SPACING.lg, paddingVertical: 14,
     borderRadius: RADIUS.full,
   },
-  payBtnText: { fontSize: 14, color: '#FFF', ...FONTS.bold },
+  payBtnText: { fontSize: 14, color: '#0A0A0A', ...FONTS.bold },
 });

@@ -169,7 +169,7 @@ export default function ConciergeScreen() {
               <Ionicons name="sparkles" size={28} color={COLORS.primary} />
             </View>
             <Text style={styles.pickerTitle}>Amo IA</Text>
-            <Text style={styles.pickerSubtitle}>Tu concierge personal de Cartagena.{'\n'}Elige un agente para empezar.</Text>
+            <Text style={styles.pickerSubtitle}>{tr('Tu concierge personal de Cartagena.\nElige un agente para empezar.')}</Text>
           </View>
 
           <View style={styles.pickerGrid}>
@@ -179,7 +179,7 @@ export default function ConciergeScreen() {
           </View>
 
           <Text style={styles.pickerFooter}>
-            Cada agente conoce Cartagena y recomienda{'\n'}solo lugares verificados de AMO.
+            {tr('Cada agente conoce Cartagena y recomienda\nsolo lugares verificados de AMO.')}
           </Text>
         </ScrollView>
       </SafeAreaView>

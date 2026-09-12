@@ -17,6 +17,28 @@ import type { Lang } from './translations';
 type Dict = Record<string, Partial<Record<Lang, string>>>;
 
 export const AUTO_TR: Dict = {
+  // Elite-audit i18n pass (Sep 12) — strings tr()'d but missing, or newly wrapped,
+  // on reviewer-path screens (onboarding, complete-profile, port-tax, search, login,
+  // admin confirms). Keys that already existed (Continuar/Reintentar/Cancelar/
+  // Quitar/Editar) are intentionally NOT re-added here.
+  'Aprobar': { en: 'Approve', fr: 'Approuver', pt: 'Aprovar' },
+  'Tu concierge personal de Cartagena.\nElige un agente para empezar.': { en: 'Your personal Cartagena concierge.\nChoose an agent to begin.', fr: 'Votre concierge personnel de Carthagène.\nChoisissez un agent pour commencer.', pt: 'Seu concierge pessoal de Cartagena.\nEscolha um agente para começar.' },
+  'Cada agente conoce Cartagena y recomienda\nsolo lugares verificados de AMO.': { en: 'Every agent knows Cartagena and recommends\nonly AMO-verified places.', fr: 'Chaque agent connaît Carthagène et ne recommande\nque des lieux vérifiés par AMO.', pt: 'Cada agente conhece Cartagena e recomenda\napenas lugares verificados pela AMO.' },
+  'Guardando...': { en: 'Saving…', fr: 'Enregistrement…', pt: 'Salvando…' },
+  'Rango de edad': { en: 'Age range', fr: "Tranche d'âge", pt: 'Faixa etária' },
+  'Instagram (opcional)': { en: 'Instagram (optional)', fr: 'Instagram (facultatif)', pt: 'Instagram (opcional)' },
+  '¿Tienes un negocio en Cartagena?': { en: 'Own a business in Cartagena?', fr: 'Vous avez un commerce à Carthagène ?', pt: 'Tem um negócio em Cartagena?' },
+  'Regístralo': { en: 'List it', fr: 'Inscrivez-le', pt: 'Cadastre-o' },
+  'Pagar y generar QR': { en: 'Pay & generate QR', fr: 'Payer et générer le QR', pt: 'Pagar e gerar QR' },
+  'opcional': { en: 'optional', fr: 'facultatif', pt: 'opcional' },
+  'Email verificado': { en: 'Email verified', fr: 'Email vérifié', pt: 'Email verificado' },
+  'No pudimos cargar la tasa portuaria': { en: "We couldn't load the port tax", fr: 'Impossible de charger la taxe portuaire', pt: 'Não foi possível carregar a taxa portuária' },
+  'Revisa tu conexión e inténtalo de nuevo.': { en: 'Check your connection and try again.', fr: 'Vérifiez votre connexion et réessayez.', pt: 'Verifique sua conexão e tente novamente.' },
+  'Aprobar propiedad': { en: 'Approve ownership', fr: 'Approuver la propriété', pt: 'Aprovar propriedade' },
+  'Esto le da al solicitante control total sobre este negocio. ¿Continuar?': { en: 'This gives the requester full control over this business. Continue?', fr: 'Cela donne au demandeur le contrôle total de ce commerce. Continuer ?', pt: 'Isto dá ao solicitante controle total sobre este negócio. Continuar?' },
+  'Quitar foto publicada': { en: 'Remove published photo', fr: 'Supprimer la photo publiée', pt: 'Remover foto publicada' },
+  'Se eliminará una foto que ya está publicada. ¿Continuar?': { en: 'This will delete an already-published photo. Continue?', fr: 'Cela supprimera une photo déjà publiée. Continuer ?', pt: 'Isto excluirá uma foto já publicada. Continuar?' },
+
   'Cambio del día': { en: "Today's exchange rate", fr: 'Taux de change du jour', pt: 'Câmbio do dia' },
   'Iniciá sesión con tu cuenta admin (Google) para Eagle, Moderación y Analytics.': { en: 'Sign in with your admin (Google) account to unlock Eagle, Moderation and Analytics.', fr: "Connectez-vous avec votre compte admin (Google) pour Eagle, Modération et Analytics.", pt: 'Entre com sua conta admin (Google) para Eagle, Moderação e Analytics.' },
   'Desbloqueá el portal completo': { en: 'Unlock the full portal', fr: "Débloquez le portail complet", pt: 'Desbloqueie o portal completo' },

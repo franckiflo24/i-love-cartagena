@@ -31,7 +31,9 @@ const SUGGESTED_FLYERS = [
 export default function EventForm() {
   const router = useRouter();
   const params = useLocalSearchParams<{ eventId?: string }>();
-  const { token, partner } = useBusinessAuth();
+  const { token, partner, loading: authLoading } = useBusinessAuth();
+  // Bounce unauthenticated visitors to login instead of rendering a dead form.
+  useEffect(() => { if (!authLoading && !token) router.replace('/business/login' as any); }, [authLoading, token]);
   const isEdit = !!params.eventId;
 
   const [title, setTitle] = useState('');

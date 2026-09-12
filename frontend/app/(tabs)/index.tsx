@@ -466,7 +466,7 @@ export default function HomeScreen() {
               })}
             </View>
             <TouchableOpacity onPress={() => router.push('/onboarding' as any)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Text style={{ fontSize: 11, color: COLORS.primary, ...FONTS.bold }}>Editar</Text>
+              <Text style={{ fontSize: 11, color: COLORS.primary, ...FONTS.bold }}>{tr('Editar')}</Text>
             </TouchableOpacity>
           </View>
         )}

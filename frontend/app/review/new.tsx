@@ -75,6 +75,18 @@ export default function NewReviewScreen() {
     partner_name?: string;
   }>();
 
+  // Hooks MUST be declared before any conditional return so the hook count is
+  // stable when a guest returns from /login authenticated (else React #310).
+  const [overallRating, setOverallRating] = useState(0);
+  const [subcategoryRatings, setSubcategoryRatings] = useState<Record<SubcategoryKey, number>>({
+    experience: 0,
+    service: 0,
+    location: 0,
+    value: 0,
+  });
+  const [reviewText, setReviewText] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
   // Login gate — reviews require authentication
   if (!user) {
     return (
@@ -101,16 +113,6 @@ export default function NewReviewScreen() {
       </SafeAreaView>
     );
   }
-
-  const [overallRating, setOverallRating] = useState(0);
-  const [subcategoryRatings, setSubcategoryRatings] = useState<Record<SubcategoryKey, number>>({
-    experience: 0,
-    service: 0,
-    location: 0,
-    value: 0,
-  });
-  const [reviewText, setReviewText] = useState('');
-  const [submitting, setSubmitting] = useState(false);
 
   const setSubRating = (key: SubcategoryKey, val: number) => {
     setSubcategoryRatings((prev) => ({ ...prev, [key]: val }));

@@ -104,7 +104,7 @@ export default function CompleteProfileScreen() {
 
         {/* Age */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Rango de edad</Text>
+          <Text style={styles.sectionTitle}>{tr('Rango de edad')}</Text>
           <View style={styles.ageRow}>
             {AGE_GROUPS.map(a => (
               <TouchableOpacity
@@ -120,7 +120,7 @@ export default function CompleteProfileScreen() {
 
         {/* Instagram */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Instagram (opcional)</Text>
+          <Text style={styles.sectionTitle}>{tr('Instagram (opcional)')}</Text>
           <View style={styles.inputRow}>
             <Ionicons name="logo-instagram" size={20} color={COLORS.primary} />
             <TextInput
@@ -155,8 +155,8 @@ export default function CompleteProfileScreen() {
       {/* Bottom Actions */}
       <View style={styles.bottom}>
         <TouchableOpacity style={styles.saveBtn} onPress={saveProfile} disabled={saving}>
-          <Text style={styles.saveBtnText}>{saving ? 'Guardando...' : 'Continuar'}</Text>
-          <Ionicons name="arrow-forward" size={20} color="#FFF" />
+          <Text style={styles.saveBtnText}>{saving ? tr('Guardando...') : tr('Continuar')}</Text>
+          <Ionicons name="arrow-forward" size={20} color="#0A0A0A" />
         </TouchableOpacity>
         <TouchableOpacity onPress={skip}>
           <Text style={styles.skipText}>{tr('Saltar por ahora')}</Text>
@@ -200,6 +200,6 @@ const styles = StyleSheet.create({
 
   bottom: { paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md, gap: SPACING.sm, alignItems: 'center' },
   saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: SPACING.sm, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 16, width: '100%' },
-  saveBtnText: { fontSize: 17, color: '#FFF', ...FONTS.bold },
+  saveBtnText: { fontSize: 17, color: '#0A0A0A', ...FONTS.bold },
   skipText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.medium },
 });

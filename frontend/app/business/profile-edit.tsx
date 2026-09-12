@@ -14,7 +14,9 @@ import { useTr } from '../../src/i18n/autoTr';
 export default function ProfileEdit() {
   const tr = useTr();
   const router = useRouter();
-  const { token, partner, refresh } = useBusinessAuth();
+  const { token, partner, refresh, loading: authLoading } = useBusinessAuth();
+  // Bounce unauthenticated visitors to login instead of rendering a dead form.
+  useEffect(() => { if (!authLoading && !token) router.replace('/business/login' as any); }, [authLoading, token]);
 
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');

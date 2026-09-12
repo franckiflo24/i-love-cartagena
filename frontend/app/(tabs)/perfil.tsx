@@ -345,7 +345,7 @@ export default function PerfilScreen() {
 
   const events = activeTab === 'week' ? myWeek : favorites;
 
-  const providerLabel = user.provider === 'google' ? 'Google' : user.provider === 'email_verified' ? 'Email verificado' : user.provider === 'whatsapp_local' ? 'WhatsApp' : user.provider === 'email_local' ? 'Email' : '';
+  const providerLabel = user.provider === 'google' ? 'Google' : user.provider === 'email_verified' ? tr('Email verificado') : user.provider === 'whatsapp_local' ? 'WhatsApp' : user.provider === 'email_local' ? 'Email' : '';
 
   // Settings row helper
   const SettingsRow = ({ icon, iconColor, label, onPress, right, destructive }: { icon: string; iconColor?: string; label: string; onPress: () => void; right?: React.ReactNode; destructive?: boolean }) => (

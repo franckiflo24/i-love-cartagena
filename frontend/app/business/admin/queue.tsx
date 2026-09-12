@@ -52,7 +52,11 @@ export default function AdminQueue() {
   // `_require_moderator` accepts either identity.
   const auth = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
   const load = useCallback(async () => {
-    if (!token) return;
+    // Gate on canModerate, NOT token: an is_admin user logs in via Google and has
+    // NO business token — `auth` is then undefined so the API client attaches the
+    // user session token, which the backend `_require_moderator` accepts. Gating on
+    // token left the whole queue empty for the primary admin.
+    if (!canModerate) return;
     try {
       const [d, c, s] = await Promise.all([
         api.get('/business/admin/venue-drafts', auth).catch(() => ({ drafts: [] })),
@@ -69,7 +73,7 @@ export default function AdminQueue() {
         counts: s.counts || { events: 0, media: 0, prices: 0, auto: 0 },
       });
     } catch { /* fail soft */ }
-  }, [token]);
+  }, [token, canModerate]);
 
   useFocusEffect(useCallback(() => {
     if (authLoading || userLoading) return;
@@ -86,11 +90,35 @@ export default function AdminQueue() {
 
   const approveDraft = (id: string) => act(() => api.post(`/business/admin/venue-drafts/${id}/approve`, {}, auth), 'ok');
   const rejectDraft = (id: string) => act(() => api.post(`/business/admin/venue-drafts/${id}/reject`, { reason: 'rejected' }, auth), 'ok');
-  const resolveClaim = (cid: string, action: string) => act(() => api.post(`/business/admin/claims/${cid}/resolve`, { action }, auth), 'ok');
+  const resolveClaim = (cid: string, action: string) => {
+    if (action === 'approve') {
+      // Granting business ownership is the highest-stakes, hard-to-reverse action
+      // in the system — confirm before handing a claimant edit rights.
+      Alert.alert(
+        tr('Aprobar propiedad'),
+        tr('Esto le da al solicitante control total sobre este negocio. ¿Continuar?'),
+        [
+          { text: tr('Cancelar'), style: 'cancel' },
+          { text: tr('Aprobar'), style: 'destructive', onPress: () => act(() => api.post(`/business/admin/claims/${cid}/resolve`, { action }, auth), 'ok') },
+        ],
+      );
+      return;
+    }
+    act(() => api.post(`/business/admin/claims/${cid}/resolve`, { action }, auth), 'ok');
+  };
 
   const approveMedia = (id: string) => act(() => api.post(`/business/admin/media/${id}/approve`, {}, auth), 'ok');
   const rejectMedia = (id: string) => act(() => api.post(`/business/admin/media/${id}/reject`, { reason: 'No aprobada' }, auth), 'ok');
-  const removeMedia = (id: string) => act(() => api.post(`/business/admin/media/${id}/remove`, {}, auth), 'ok');
+  const removeMedia = (id: string) => {
+    Alert.alert(
+      tr('Quitar foto publicada'),
+      tr('Se eliminará una foto que ya está publicada. ¿Continuar?'),
+      [
+        { text: tr('Cancelar'), style: 'cancel' },
+        { text: tr('Quitar'), style: 'destructive', onPress: () => act(() => api.post(`/business/admin/media/${id}/remove`, {}, auth), 'ok') },
+      ],
+    );
+  };
   const trustPartner = (pid: string, trusted: boolean) => act(() => api.post(`/business/admin/partners/${pid}/photo-trust`, { trusted }, auth), 'ok');
   const approvePrice = (id: string) => act(() => api.post(`/business/admin/price/${id}/approve`, {}, auth), 'ok');
   const rejectPrice = (id: string) => act(() => api.post(`/business/admin/price/${id}/reject`, { reason: 'No aprobado' }, auth), 'ok');

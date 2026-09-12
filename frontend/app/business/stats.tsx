@@ -43,7 +43,9 @@ export default function StatsDetail() {
   const tr = useTr();
   const router = useRouter();
   const { type } = useLocalSearchParams<{ type?: StatType }>();
-  const { token, business } = useBusinessAuth();
+  const { token, business, loading: authLoading } = useBusinessAuth();
+  // Bounce unauthenticated visitors to login instead of rendering a dead screen.
+  useEffect(() => { if (!authLoading && !token) router.replace('/business/login' as any); }, [authLoading, token]);
   const statType = (type as StatType) || 'upcoming';
   const meta = META[statType] || META.upcoming;
 
