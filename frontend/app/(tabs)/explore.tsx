@@ -37,6 +37,7 @@ import { SkeletonFeaturedRow, SkeletonGrid } from '../../src/components/Skeleton
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { getUpcomingEvents } from '../../src/lib/data';
+import { monthShort } from '../../src/lib/formatDate';
 import { usePersonalization } from '../../src/context/PersonalizationContext';
 import { useLocalPicks, behavioralPick } from '../../src/services/localPicks';
 import { nearestNeighborhood } from '../../src/utils/neighborhood';
@@ -558,7 +559,7 @@ export default function ExploreScreen() {
   const router = useRouter();
   const { category: routeCategory, subcategory: routeSubcategory } =
     useLocalSearchParams<{ category?: string; subcategory?: string }>();
-  const { s } = useLang();
+  const { s, lang } = useLang();
   const tr = useTr();
   const { getPersonalizedPartners, userProfile, isLoading: profileLoading } = usePersonalization();
 
@@ -975,16 +976,15 @@ export default function ExploreScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.featuredList}
             renderItem={({ item: ev }) => {
-              const MONTHS = ['', 'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
               const evDate = ev.date_start || ev.date || '';
               let dateLabel = '';
               if (evDate) {
                 try {
                   const d = new Date(evDate + 'T00:00:00');
-                  dateLabel = `${d.getDate()} ${MONTHS[d.getMonth() + 1]}`;
+                  dateLabel = `${d.getDate()} ${monthShort(d.getMonth(), lang, true)}`;
                 } catch { /* invalid event date — skip label */ dateLabel = ''; }
               }
-              const catLabel = ev.category === 'festival' ? 'Festival' : ev.category === 'cultural' ? 'Cultural' : ev.category === 'music' ? 'Música' : ev.category === 'religious' ? 'Religioso' : ev.category === 'sports' ? 'Deportes' : ev.category || ev.type || '';
+              const catLabel = tr(ev.category === 'festival' ? 'Festival' : ev.category === 'cultural' ? 'Cultural' : ev.category === 'music' ? 'Música' : ev.category === 'religious' ? 'Religioso' : ev.category === 'sports' ? 'Deportes' : ev.category || ev.type || '');
               return (
                 <TouchableOpacity
                   style={styles.eventCard}

@@ -9,10 +9,13 @@ import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
+import { useLang } from '../../src/context/LanguageContext';
+import { monthShort } from '../../src/lib/formatDate';
 import { eventPriceLabel } from '../../src/utils/price';
 
 export default function EventDetail() {
   const tr = useTr();
+  const { lang } = useLang();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuth();
@@ -120,11 +123,10 @@ export default function EventDetail() {
                 const today = new Date().toISOString().slice(0, 10);
                 const start = event.date_start || event.date || '';
                 const end = event.date_end || start;
-                if (start <= today && end >= today) return 'Hoy — Activo ahora';
+                if (start <= today && end >= today) return tr('Hoy — Activo ahora');
                 if (start > today) {
-                  const months = ['','ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
                   const d = new Date(start + 'T00:00:00');
-                  return `${d.getDate()} ${months[d.getMonth()+1]} ${d.getFullYear()}`;
+                  return `${d.getDate()} ${monthShort(d.getMonth(), lang, true)} ${d.getFullYear()}`;
                 }
                 return event.date;
               })()}</Text>

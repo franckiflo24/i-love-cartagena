@@ -30,6 +30,9 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { useTr } from '../../src/i18n/autoTr';
+import { useLang } from '../../src/context/LanguageContext';
+import { formatShortDate } from '../../src/lib/formatDate';
+import type { Lang } from '../../src/i18n/translations';
 
 type Reservation = {
   reservation_id: string;
@@ -75,15 +78,8 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string }> 
   expired: { label: 'Expirada', color: '#94A3B8', bg: 'rgba(148,163,184,0.15)' },
 };
 
-function fmtDate(iso: string): string {
-  try {
-    const d = new Date(iso + 'T12:00:00');
-    const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
-  } catch {
-    return iso;
-  }
+function fmtDate(iso: string, lang: Lang): string {
+  return formatShortDate(iso, lang) || iso;
 }
 
 function fmtRelative(iso: string): string {
@@ -103,6 +99,7 @@ function fmtRelative(iso: string): string {
 
 export default function BusinessReservations() {
   const tr = useTr();
+  const { lang } = useLang();
   const router = useRouter();
   const { token, loading: authLoading } = useBusinessAuth() as any;
 
@@ -398,7 +395,7 @@ export default function BusinessReservations() {
                       {r.user_name || r.user_email || tr('Cliente')}
                     </Text>
                     <Text style={styles.cardSub}>
-                      {fmtDate(r.date)}{r.time ? ` · ${r.time}` : ''} · {r.party_size} {tr('pers.')}
+                      {fmtDate(r.date, lang)}{r.time ? ` · ${r.time}` : ''} · {r.party_size} {tr('pers.')}
                     </Text>
                     <Text style={styles.cardSubFaint}>
                       {tr('Solicitada')} {fmtRelative(r.created_at)}
@@ -613,7 +610,7 @@ export default function BusinessReservations() {
               </TouchableOpacity>
             </View>
             <Text style={styles.modalSub}>
-              {modalRes?.user_name || tr('Cliente')} · {modalRes && fmtDate(modalRes.date)}{modalRes?.time ? ` ${modalRes.time}` : ''} · {modalRes?.party_size} {tr('pers.')}
+              {modalRes?.user_name || tr('Cliente')} · {modalRes && fmtDate(modalRes.date, lang)}{modalRes?.time ? ` ${modalRes.time}` : ''} · {modalRes?.party_size} {tr('pers.')}
             </Text>
             <Text style={styles.modalLabel}>
               {modalAction === 'confirm' ? tr('Mensaje opcional al cliente') : tr('Motivo del rechazo (opcional)')}

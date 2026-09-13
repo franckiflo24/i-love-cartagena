@@ -9,6 +9,8 @@ import { api , ASSET_ORIGIN} from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useLang } from '../../src/context/LanguageContext';
+import { monthShort } from '../../src/lib/formatDate';
+import type { Lang } from '../../src/i18n/translations';
 import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
 import { SkeletonList } from '../../src/components/Skeleton';
@@ -87,12 +89,11 @@ const isNightTime = (t: string) => {
   return hh >= 17 || hh < 5; // 5am es transición (after-party)
 };
 
-const formatDateRange = (start: string, end: string) => {
-  const months = ['', 'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+const formatDateRange = (start: string, end: string, lang: Lang) => {
   const s = new Date(start + 'T00:00:00');
   const e = new Date(end + 'T00:00:00');
-  const sMonth = months[s.getMonth() + 1];
-  const eMonth = months[e.getMonth() + 1];
+  const sMonth = monthShort(s.getMonth(), lang, true);
+  const eMonth = monthShort(e.getMonth(), lang, true);
   if (sMonth === eMonth) {
     return `${s.getDate()} - ${e.getDate()} ${sMonth} ${s.getFullYear()}`;
   }
@@ -395,7 +396,7 @@ export default function HomeScreen() {
         pointerEvents="none"
       />
       <View style={styles.heroContent}>
-        <Text style={[styles.heroLabel, { color: item.color }]}>{formatDateRange(item.start_date, item.end_date)}</Text>
+        <Text style={[styles.heroLabel, { color: item.color }]}>{formatDateRange(item.start_date, item.end_date, lang)}</Text>
         <Text style={styles.heroTitle}>{item.name}</Text>
         <Text style={styles.heroSub}>{(item.tags || []).join(' · ')}</Text>
         {item.event_count === 0 && (
@@ -517,7 +518,7 @@ export default function HomeScreen() {
           />
           <View style={styles.heroBannerContent}>
             <Text style={styles.heroBannerLabel}>CARTAGENA DE INDIAS</Text>
-            <Text style={styles.heroBannerTitle}>{partnerCount || '...'} lugares para descubrir</Text>
+            <Text style={styles.heroBannerTitle}>{partnerCount || '...'} {tr('lugares para descubrir')}</Text>
             <Text style={styles.heroBannerSub}>
               {userProfile.isPersonalized && userProfile.interests.length > 0
                 ? userProfile.interests.map((i: string) => s(`onboard_interest_${i}`)).join(' \u00B7 ')
@@ -663,8 +664,8 @@ export default function HomeScreen() {
                   <View style={[styles.photoCatIcon, { backgroundColor: colorForKey(item.cat) + '4D' }]}>
                     <Ionicons name={item.icon as any} size={16} color={COLORS.white} />
                   </View>
-                  <Text style={styles.photoLabel}>{item.label}</Text>
-                  <Text style={styles.photoSub}>{item.sub}</Text>
+                  <Text style={styles.photoLabel}>{tr(item.label)}</Text>
+                  <Text style={styles.photoSub}>{tr(item.sub)}</Text>
                 </View>
               </TouchableOpacity>
             ))}
@@ -947,14 +948,13 @@ export default function HomeScreen() {
                 const dateStart = (event as any).date_start || event.date || '';
                 const dateEnd = (event as any).date_end || dateStart;
                 const todayStr = todayIso();
-                const months = ['', 'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
                 let dateLabel = '';
                 if (dateStart <= todayStr && dateEnd >= todayStr) {
                   dateLabel = tr('HOY');
                 } else if (dateStart) {
                   try {
                     const d = new Date(dateStart + 'T00:00:00');
-                    dateLabel = `${d.getDate()} ${months[d.getMonth() + 1]}`;
+                    dateLabel = `${d.getDate()} ${monthShort(d.getMonth(), lang, true)}`;
                   } catch { dateLabel = dateStart; }
                 }
                 return (
@@ -975,10 +975,10 @@ export default function HomeScreen() {
                     <View style={styles.featuredInfo}>
                       <View style={styles.eventTags}>
                         <View style={[styles.tag, { backgroundColor: cat.bg, borderWidth: 1, borderColor: cat.main }]}>
-                          <Text style={[styles.tagText, { color: cat.main }]}>{cat.label || event.type || (event as any).category}</Text>
+                          <Text style={[styles.tagText, { color: cat.main }]}>{tr(cat.label || event.type || (event as any).category)}</Text>
                         </View>
                         <View style={[styles.tag, { backgroundColor: budget.bg, borderWidth: 1, borderColor: budget.main }]}>
-                          <Text style={[styles.tagText, { color: budget.main }]}>{budget.label}</Text>
+                          <Text style={[styles.tagText, { color: budget.main }]}>{tr(budget.label)}</Text>
                         </View>
                       </View>
                       <Text style={styles.featuredTitle} numberOfLines={2}>{event.title || (event as any).name_es}</Text>
@@ -1153,10 +1153,10 @@ export default function HomeScreen() {
                   <View style={styles.peTagsRow}>
                     <View style={[styles.peCatBadge, { backgroundColor: cat.bg, borderColor: cat.main }]}>
                       <View style={[styles.peCatDot, { backgroundColor: cat.main }]} />
-                      <Text style={[styles.peCatText, { color: cat.main }]}>{cat.label}</Text>
+                      <Text style={[styles.peCatText, { color: cat.main }]}>{tr(cat.label)}</Text>
                     </View>
                     <View style={[styles.peBudgetBadge, { backgroundColor: budget.bg, borderColor: budget.main }]}>
-                      <Text style={[styles.peBudgetText, { color: budget.main }]}>{budget.label}</Text>
+                      <Text style={[styles.peBudgetText, { color: budget.main }]}>{tr(budget.label)}</Text>
                     </View>
                   </View>
                 </View>
@@ -1256,7 +1256,7 @@ export default function HomeScreen() {
                       {/* Category badge - ALWAYS visible per requirement */}
                       <View style={[styles.promoCatBadge, { backgroundColor: cat.bg, borderColor: cat.main }]}>
                         <View style={[styles.peCatDot, { backgroundColor: cat.main }]} />
-                        <Text style={[styles.peCatText, { color: cat.main }]}>{cat.label}</Text>
+                        <Text style={[styles.peCatText, { color: cat.main }]}>{tr(cat.label)}</Text>
                       </View>
                       <Text style={styles.promoTitle} numberOfLines={2}>{promo.title}</Text>
                       <View style={styles.promoPartnerRow}>

@@ -55,7 +55,6 @@ export default function PortTaxCheckoutScreen() {
   const { user, login } = useAuth();
   const [cfg, setCfg] = useState<Cfg | null>(null);
   const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState(false);
   const [qty, setQty] = useState<number>(1);
   const [travelDate, setTravelDate] = useState<string>(ymdToday());
   const [submitting, setSubmitting] = useState(false);
@@ -63,10 +62,9 @@ export default function PortTaxCheckoutScreen() {
 
   const loadCfg = useCallback(() => {
     setLoading(true);
-    setErr(false);
     api.get('/port-tax/config')
       .then((c) => setCfg(c))
-      .catch((e) => { console.error(e); setErr(true); })
+      .catch((e) => console.error(e))
       .finally(() => setLoading(false));
   }, []);
 

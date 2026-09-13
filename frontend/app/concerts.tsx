@@ -11,6 +11,9 @@ import { api , ASSET_ORIGIN} from '../src/constants/api';
 import { eventPriceLabel } from '../src/utils/price';
 import { useFavorites } from '../src/context/FavoritesContext';
 import { useTr } from '../src/i18n/autoTr';
+import { useLang } from '../src/context/LanguageContext';
+import { monthShort, weekdayShort } from '../src/lib/formatDate';
+import type { Lang } from '../src/i18n/translations';
 import { SafeImage } from '../src/components/SafeImage';
 import { bogotaToday } from '../src/lib/eventTime';
 
@@ -62,12 +65,10 @@ const getGenreColor = (genre: string) => {
   return COLORS.primary;
 };
 
-const formatDateLabel = (dateStr: string) => {
+const formatDateLabel = (dateStr: string, lang: Lang) => {
   const d = new Date(dateStr + 'T00:00:00');
-  const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-  const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
   const year = String(d.getFullYear()).slice(2);
-  return { day: days[d.getDay()], date: d.getDate(), month: `${months[d.getMonth()]} '${year}` };
+  return { day: weekdayShort(d.getDay(), lang), date: d.getDate(), month: `${monthShort(d.getMonth(), lang)} '${year}` };
 };
 
 const formatPrice = (price: number) => {
@@ -77,6 +78,7 @@ const formatPrice = (price: number) => {
 
 export default function ConcertsScreen() {
   const tr = useTr();
+  const { lang } = useLang();
   const router = useRouter();
   const { isFavorite, toggleFavorite } = useFavorites();
   const [concerts, setConcerts] = useState<Concert[]>([]);
@@ -167,7 +169,7 @@ export default function ConcertsScreen() {
           <Text style={[styles.dateChipText, !selectedDate && styles.dateChipTextActive]}>{tr('Todos')}</Text>
         </TouchableOpacity>
         {upcomingDates.map(d => {
-          const { day, date, month } = formatDateLabel(d);
+          const { day, date, month } = formatDateLabel(d, lang);
           const isActive = selectedDate === d;
           return (
             <TouchableOpacity
@@ -308,7 +310,7 @@ export default function ConcertsScreen() {
                     <View style={styles.infoRow}>
                       <View style={styles.infoItem}>
                         <Ionicons name="calendar-outline" size={16} color={COLORS.textMuted} />
-                        <Text style={styles.infoText}>{formatDateLabel(concert.date).date} {formatDateLabel(concert.date).month}</Text>
+                        <Text style={styles.infoText}>{formatDateLabel(concert.date, lang).date} {formatDateLabel(concert.date, lang).month}</Text>
                       </View>
                       <View style={styles.infoItem}>
                         <Ionicons name="people-outline" size={16} color={COLORS.textMuted} />

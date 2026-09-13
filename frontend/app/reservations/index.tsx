@@ -20,6 +20,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useTr } from '../../src/i18n/autoTr';
+import { useLang } from '../../src/context/LanguageContext';
+import { formatShortDate } from '../../src/lib/formatDate';
+import type { Lang } from '../../src/i18n/translations';
 
 type Reservation = {
   reservation_id: string;
@@ -58,19 +61,13 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string }> 
   expired: { label: 'Expirada', color: '#94A3B8', bg: 'rgba(148,163,184,0.12)' },
 };
 
-function fmtDate(iso: string): string {
-  try {
-    const d = new Date(iso + 'T12:00:00');
-    const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
-  } catch {
-    return iso;
-  }
+function fmtDate(iso: string, lang: Lang): string {
+  return formatShortDate(iso, lang) || iso;
 }
 
 export default function MyReservations() {
   const tr = useTr();
+  const { lang } = useLang();
   const router = useRouter();
   const params = useLocalSearchParams<{ highlight?: string }>();
 
@@ -226,7 +223,7 @@ export default function MyReservations() {
                       {r.partner_name || r.partner?.name}
                     </Text>
                     <Text style={styles.cardSub}>
-                      {fmtDate(r.date)}{r.time ? ` · ${r.time}` : ''} · {r.party_size} {tr('pers.')}
+                      {fmtDate(r.date, lang)}{r.time ? ` · ${r.time}` : ''} · {r.party_size} {tr('pers.')}
                     </Text>
                     {r.event?.title ? (
                       <Text style={styles.eventTitle} numberOfLines={1}>🎟️ {r.event.title}</Text>

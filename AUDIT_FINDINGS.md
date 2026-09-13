@@ -19,13 +19,17 @@ Six parallel audits (frontend flow, backend/API, admin/partner, security, i18n, 
 
 ---
 
-## ⬜ PENDING — i18n (P0/P1, next focused pass)
+## ✅ FIXED — PASS 2 (i18n, deployed to web + rides next app build)
 
-- ⬜ **Systemic date bug** — build one `formatShortDate/Range(iso, lang)` helper and replace the hardcoded Spanish day/month arrays in: (tabs)/index, reservations/index, concerts, event/[id], explore, business/reservations. **(P0 — highest remaining leverage)**
-- ⬜ **(tabs)/index.tsx** — Home hero "lugares para descubrir", category grid labels, and event/price badges (CAT_COLORS / budget labels) still render raw Spanish. **(P0)**
-- ⬜ **reservations/index.tsx:50-58** — 4 STATUS_META strings tr()'d but missing from the dictionary. **(P0)**
-- ⬜ **event/[id], explore, concerts** — category labels + "Hoy — Activo ahora" unwrapped. **(P0/P1)**
-- ⬜ complete-profile COUNTRIES chips; concierge "al instante"; agenda category labels. **(P2)**
+- ✅ **Systemic date bug** — created `src/lib/formatDate.ts` (`formatShortDate`, `formatDateRange`, `monthShort`, `weekdayShort`; TZ-safe, EN/ES/FR/PT) and wired it into **all 6 offenders**: reservations/index, (tabs)/index, concerts, event/[id], explore, business/reservations. Runtime-tested. **(P0 closed)**
+- ✅ **(tabs)/index.tsx** — Home hero "lugares para descubrir", category grid labels/subs, and event category + price badges (CAT_COLORS / budget) now localize. **(P0)**
+- ✅ **reservations/index.tsx** — 4 missing STATUS_META keys added (Solicitud enviada / Esperando confirmación / No asistió / Expirada). **(P0)**
+- ✅ **event/[id], explore** — "Hoy — Activo ahora" + category labels + dates localized. **(P0/P1)**
+- ✅ **Pass-1 review cleanup** — removed the dead `err` state in port-tax/checkout (independent code-review of pass 1 returned SAFE TO SHIP).
+
+## ⬜ PENDING — i18n (P2)
+
+- ⬜ complete-profile COUNTRIES chips; concierge "al instante"; agenda category labels; dedupe `Guardando...` (ASCII) vs `Guardando…` (Unicode) dict entries.
 
 ## ⬜ PENDING — frontend flow (P1/P2)
 
