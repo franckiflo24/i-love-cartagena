@@ -11,6 +11,7 @@ import { api , ASSET_ORIGIN} from '../src/constants/api';
 import { eventPriceLabel } from '../src/utils/price';
 import { useFavorites } from '../src/context/FavoritesContext';
 import { useTr } from '../src/i18n/autoTr';
+import { openDirections } from '../src/lib/maps';
 import { useLang } from '../src/context/LanguageContext';
 import { monthShort, weekdayShort } from '../src/lib/formatDate';
 import type { Lang } from '../src/i18n/translations';
@@ -332,7 +333,8 @@ export default function ConcertsScreen() {
                         if (pid) {
                           router.push(`/partner/${pid}` as any);
                         } else {
-                          Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(concert.venue_name + ' Cartagena Colombia')}`);
+                          // iOS users choose Apple Maps or Google Maps (App Store Guideline 4)
+                          openDirections({ query: `${concert.venue_name}, Cartagena, Colombia` }, tr);
                         }
                       }}
                     >

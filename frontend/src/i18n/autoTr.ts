@@ -403,6 +403,7 @@ export const AUTO_TR: Dict = {
 
   // Common actions
   'Cancelar': { en: 'Cancel', fr: 'Annuler', pt: 'Cancelar' },
+  '¿Cómo quieres llegar?': { en: 'How do you want to get there?', fr: 'Comment voulez-vous y aller ?', pt: 'Como você quer chegar?' },
   'Confirmar': { en: 'Confirm', fr: 'Confirmer', pt: 'Confirmar' },
   'Guardar': { en: 'Save', fr: 'Enregistrer', pt: 'Salvar' },
   'Eliminar': { en: 'Delete', fr: 'Supprimer', pt: 'Excluir' },

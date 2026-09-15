@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api , ASSET_ORIGIN} from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
+import { openDirections } from '../src/lib/maps';
 
 const TRANSPORT_ICONS: Record<string, string> = {
   boat: 'boat',
@@ -57,8 +58,9 @@ export default function TransportScreen() {
   }, []);
 
   const openMaps = (loc: any) => {
-    if (!loc) return;
-    RNLinking.openURL(`https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}`).catch(() => {});
+    if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') return;
+    // iOS users choose Apple Maps or Google Maps (App Store Guideline 4)
+    openDirections({ lat: loc.lat, lng: loc.lng }, tr);
   };
 
   const openWhatsAppBooking = (route: any) => {

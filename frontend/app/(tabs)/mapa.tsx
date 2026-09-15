@@ -20,6 +20,7 @@ import { getVenues } from '../../src/lib/venueCache';
 import { venueBarrio, NBH_LABELS, NbhCentroid } from '../../src/utils/neighborhood';
 import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
 import { getHomeBase, syncHomeBase } from '../../src/lib/homeBase';
+import { openDirections } from '../../src/lib/maps';
 import { ATLAS_VERIFIED, ATLAS_VENUE_FIXES, ATLAS_ADD_VENUES, ATLAS_ROUTE, ATLAS_WALK, ATLAS_RUTAS } from '../../src/data/atlas';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -212,7 +213,6 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     const safeDesc = escHtml((p.extra || p.description || '').substring(0, 80));
     const safeAddr = escHtml(p.address || '');
     const safePrice = escHtml(p.price || '');
-    const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + p.lat + ',' + p.lng;
 
     const priceHtml = safePrice ? '<span style="font-size:12px;color:' + COLORS.mustard + ';font-weight:700;">' + safePrice + '</span><br>' : '';
     const verifiedHtml = isVerified ? '<span style="font-size:10px;color:#12B5A5;font-weight:800;">✓ UBICACIÓN VERIFICADA</span><br>' : '';
@@ -237,7 +237,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
       + '<div style=display:flex;gap:6px;margin-top:6px;flex-wrap:wrap>'
       + '<a href=' + detailUrl + ' style=display:inline-block;padding:6px_14px;background:#12B5A5;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600 onclick=window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:\"navigate\",path:\"' + detailUrl + '\"}));return_false;>Ver detalle →</a>'
       + caminarBtn
-      + '<a href=' + mapsUrl + ' target=_blank style=display:inline-block;padding:6px_14px;background:rgba(255,255,255,0.08);color:' + COLORS.textMain + ';text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px_solid_rgba(255,255,255,0.08)>📍 Mapa</a>'
+      + '<a href=# style=display:inline-block;padding:6px_14px;background:rgba(255,255,255,0.08);color:' + COLORS.textMain + ';text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px_solid_rgba(255,255,255,0.08) onclick=window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:\"openMaps\",lat:' + p.lat + ',lng:' + p.lng + '}));return_false;>📍 Mapa</a>'
       + '</div>'
       + '</div>';
 
@@ -1473,6 +1473,9 @@ export default function MapaScreen() {
                   setRutaSummary({ meters: msg.meters, minutes: msg.minutes });
                 } else if (msg.type === 'caminar' && Number.isFinite(msg.lat) && Number.isFinite(msg.lng)) {
                   onCaminarTap({ id: typeof msg.id === 'string' && SAFE_ID.test(msg.id) ? msg.id : undefined, name: '', lat: msg.lat, lng: msg.lng });
+                } else if (msg.type === 'openMaps' && Number.isFinite(msg.lat) && Number.isFinite(msg.lng)) {
+                  // Popup "📍 Mapa" tap → let iOS users pick Apple Maps or Google Maps (Guideline 4)
+                  openDirections({ lat: msg.lat, lng: msg.lng }, tr);
                 }
               } catch { /* non-JSON message — ignore */ }
             }}

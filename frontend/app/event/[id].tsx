@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking as RNLinking, Share } from 'react-native';
 import { SafeImage } from '../../src/components/SafeImage';
+import { openDirections } from '../../src/lib/maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -49,15 +50,12 @@ export default function EventDetail() {
 
   const openMaps = () => {
     if (!event) return;
-    let query: string;
+    // openDirections lets iOS users pick Apple Maps or Google Maps (Guideline 4).
     if (event.location?.lat && event.location?.lng) {
-      query = `${event.location.lat},${event.location.lng}`;
+      openDirections({ lat: event.location.lat, lng: event.location.lng, label: event.venue_name }, tr);
     } else if (event.venue_name) {
-      query = encodeURIComponent(`${event.venue_name}, Cartagena, Colombia`);
-    } else {
-      return;
+      openDirections({ query: `${event.venue_name}, Cartagena, Colombia` }, tr);
     }
-    RNLinking.openURL(`https://www.google.com/maps/search/?api=1&query=${query}`).catch(() => {});
   };
 
   if (loading) {

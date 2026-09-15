@@ -10,8 +10,9 @@ import { useTr } from '../i18n/autoTr';
 import { geoService } from '../lib/geo';
 import { nearestNeighborhood, NBH_LABELS, NbhCentroid } from '../utils/neighborhood';
 import {
-  getHomeBase, setHomeBase, clearHomeBase, syncHomeBase, directionsUrl, uberUrl, shareText, HomeBase,
+  getHomeBase, setHomeBase, clearHomeBase, syncHomeBase, uberUrl, shareText, HomeBase,
 } from '../lib/homeBase';
+import { openDirections } from '../lib/maps';
 import { ASSET_ORIGIN } from '../constants/api';
 
 export function HomeBaseSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
@@ -134,7 +135,7 @@ export function HomeBaseSheet({ visible, onClose }: { visible: boolean; onClose:
                 <Text style={styles.baseLabel} numberOfLines={2}>{base.label}</Text>
               </View>
               <Text style={styles.sub}>{tr('¿Cómo quieres volver?')}</Text>
-              <TouchableOpacity style={styles.primaryBtn} onPress={() => open(directionsUrl(base))} activeOpacity={0.85}>
+              <TouchableOpacity style={styles.primaryBtn} onPress={() => openDirections({ lat: base.lat, lng: base.lng, label: base.label }, tr)} activeOpacity={0.85}>
                 <Ionicons name="navigate" size={18} color="#000" />
                 <Text style={styles.primaryBtnText}>{tr('Cómo llegar')}</Text>
               </TouchableOpacity>

@@ -8,6 +8,7 @@ import { COLORS, SPACING, RADIUS, FONTS, TYPE, ELEVATION, PARTNER_CATEGORY_LABEL
 import { api } from '../../src/constants/api';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
+import { openDirections, MapTarget } from '../../src/lib/maps';
 import { PressableScale } from '../../src/components/PressableScale';
 import { FadeInUp } from '../../src/components/FadeInUp';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -180,17 +181,18 @@ export default function PartnerDetail() {
   const openMaps = () => {
     if (!partner) return;
     const addrText = (partner.address || '').trim();
-    let query: string;
+    // Address-first (more reliable than possibly-imprecise imported coords),
+    // then real coords, then name-only. openDirections lets iOS users pick
+    // Apple Maps or Google Maps (App Store Guideline 4).
+    let target: MapTarget;
     if (addrText) {
-      query = encodeURIComponent(`${partner.name}, ${addrText}, Cartagena`);
+      target = { query: `${partner.name}, ${addrText}, Cartagena` };
     } else if (hasRealCoords) {
-      query = `${partner.location.lat},${partner.location.lng}`;
+      target = { lat: partner.location.lat, lng: partner.location.lng, label: partner.name };
     } else {
-      query = encodeURIComponent(`${partner.name}, Cartagena, Colombia`);
+      target = { query: `${partner.name}, Cartagena, Colombia` };
     }
-    const webUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
-    const iosDeep = `comgooglemaps://?q=${query}`;
-    openExternal(iosDeep, webUrl);
+    openDirections(target, tr);
   };
 
   const cleanInstagramHandle = (raw: string): string => {
