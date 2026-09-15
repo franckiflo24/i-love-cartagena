@@ -1,57 +1,61 @@
-# App Review Reply v2 — Amo Cartagena
+# App Review — Amo Cartagena · Resubmission for build 11
 
-**Rejection date:** Sep 15, 2026 · **Submission ID:** 4206de67-09ac-4f1e-a0da-454b7d45eb92 · **Reviewed on:** iPad Air 11" (M3) · **Version:** 1.0 (10)
+**Rejection:** Sep 15, 2026 · **Submission ID:** 4206de67-09ac-4f1e-a0da-454b7d45eb92 · **Reviewed on:** iPad Air 11" (M3) · **Version:** 1.0 (build 10)
 
-Three issues this round: **Guideline 4 (Apple Maps)**, **2.1(a) (partner demo account)**, **2.1(b) (business model)**.
+Three issues: **Guideline 4** (native maps), **2.1(a)** (partner account access), **2.1(b)** (business model).
 
-> Business-model facts confirmed by Phil (Sep 15): partner listings billed off-app; Wompi port-tax checkout is live (real-world government fee, correctly outside IAP). Only remaining blank: the demo **partner** credentials in 2.1(a).
+## Status
+- ✅ **Guideline 4 (code):** fixed & committed (`9758a269`), web deployed, iOS **build 11** compiling on EAS (build `97c39dd5`). Every directions action now offers **Apple Maps** (first) or Google Maps on iOS.
+- ⏳ **2.1(a):** need the **demo PARTNER credentials** — fill the two `⟨…⟩` blanks in Block 1.
+- ✅ **2.1(b):** confirmed by Phil (Sep 15) — **NO payments are active in this build.** No IAP, no functional external payments. City Pass shows "Próximamente"; the port-tax checkout is gated (shows a "pay at the pier" notice, no transaction completes). Business listings are sold off-app.
+
+## ⚠️ One thing to check on the listing
+The App Store **description** currently says *"Pay the official Rosario Islands port tax… all from the app."* Since payments aren't live yet, a reviewer who taps that flow only sees a notice — which can read as "incomplete" and is inconsistent with the "no payments" answer. **Recommend softening that line** (see the checklist) so the metadata matches the app.
 
 ---
 
-## Reply to paste into App Store Connect ("Reply to Apple")
+## BLOCK 1 — paste into “App Review Information → Notes” (REPLACES the current text)
+
+DEMO TOURIST ACCOUNT (no email delivery needed): email applereview@amocartagena.co, code 246810. Sign in: tap "Continuar con email" > enter that email > tap "Enviar codigo" > enter 246810 > signed in. Account deletion: Perfil tab > "Eliminar mi cuenta" > confirm. Guest browsing works without an account ("Explorar como invitado").
+
+DEMO PARTNER / BUSINESS ACCOUNT (for Guideline 2.1a — the business dashboard): from the signed-in app, open the Perfil tab > "Partners" section > tap "Dashboard de negocio". This opens the business login (email + password). Email: ⟨PARTNER_EMAIL⟩  Password: ⟨PARTNER_PASSWORD⟩. This account has a published venue with photos, plus the stats dashboard, promotions and reservations, so all business features can be verified.
+
+PURPOSE: Free city guide + AI concierge for Cartagena, Colombia. Curated directory of 850+ verified venues (restaurants, hotels, bars, beach clubs, experiences) with real reference prices and verified map locations; AI concierge (Luna); a map with walking routes; local events; and a landmark "passport". For tourists and residents.
+
+MAPS (Guideline 4): every directions action (map pin popups, venue and event "Cómo llegar/Get directions" buttons, transport, and the "Mi base" get-me-home feature) presents a chooser on iOS between Apple Maps and Google Maps, with Apple Maps first. No location action forces a third-party maps app.
+
+BUSINESS MODEL / PAYMENTS (Guideline 2.1b): the app is FREE and contains NO In-App Purchases and NO functional payments of any kind in this version. The "City Pass" feature displays "Próximamente" (Coming Soon) and cannot complete a purchase. The Rosario Islands port-tax screen is informational: payments are disabled, so it shows a "pay at the pier" notice and no transaction is processed in-app. There is no paid digital content. If payments are enabled in a future version, they would cover only REAL-WORLD services — the official government port tax and physical restaurant/experience reservations — through Wompi (a Colombian gateway licensed by the Superintendencia Financiera de Colombia). Per Guidelines 3.1.3(e)/3.1.5(a) those real-world services must NOT use In-App Purchase. Business listings/memberships are sold OUTSIDE the app by our team via invoicing; there is no consumer purchase of a listing inside the app.
+
+EXTERNAL SERVICES: Vercel + MongoDB Atlas (hosting/database); first-party email one-time-code auth (no third-party social login on iOS); Anthropic Claude API (AI concierge); Resend (login codes); Apple Push Notifications via Expo.
+
+REGIONAL: Functions consistently across all regions; content focused on Cartagena; UI in Spanish/English/French/Portuguese, user-selectable; no region-locked features.
+
+THIRD-PARTY CONTENT: Venue names, descriptions and photos are submitted by the businesses themselves via partner onboarding, granting display rights. No public inter-user content. Operated by MachineMind LLC. Not a regulated industry.
+
+---
+
+## BLOCK 2 — paste into the “Reply to App Review” message
 
 Thank you for the detailed review. We have addressed all three items.
 
-### Guideline 4 — Design (native maps)
+GUIDELINE 4 (native maps): Fixed in this build. Everywhere the app offers directions — the map pin popups, the venue and event "Cómo llegar / Get directions" buttons, a concert's location, the transport screen, and the "Mi base" get-me-home feature — the app now presents a chooser on iOS between Apple Maps and Google Maps, with Apple Maps listed first. No location action forces a third-party maps app.
 
-Fixed in the next build. Everywhere the app offers directions to a location — the map pin popups, a venue's "Cómo llegar / Get directions" button, an event's directions button, a concert's location, the transport screen, and the "Mi base / get me home" feature — the app now presents the user a choice between **Apple Maps** and **Google Maps** on iOS. Apple Maps is the first option in every chooser. No location action forces a third-party maps app anymore.
+GUIDELINE 2.1(a) (partner accounts): Our apologies — the earlier demo account was a regular tourist account. Partner/business accounts use a separate email + password login. A demo partner account is now provided in the App Review Information → Notes, with the exact navigation path (Perfil tab → Partners → "Dashboard de negocio"). It has a published venue, photos, stats, promotions and reservations so the full business dashboard can be verified.
 
-### Guideline 2.1(a) — Partner / business account access
+GUIDELINE 2.1(b) (business model): The app is free. It contains NO In-App Purchases and NO functional payments in this version. The "City Pass" shows "Próximamente" (Coming Soon) and cannot complete a purchase, and the Rosario Islands port-tax screen is informational (payments disabled — it displays a "pay at the pier" notice). There is no paid digital content. If payments are enabled in a future version they would cover only real-world services (the official government port tax and physical reservations), which under Guidelines 3.1.3(e)/3.1.5(a) must use a method other than In-App Purchase. Business listings are sold outside the app via direct invoicing — there is no in-app purchase of a listing.
 
-We apologize — the previous demo account was a regular tourist account. Partner/business accounts use a separate email + password login. A dedicated demo **partner** account with pre-populated content (a published venue, photos, stats, promotions, and reservations) is provided below. It exercises the full business dashboard.
-
-**Demo PARTNER account:**
-- Where to sign in: open the app → **Perfil** tab → **"Soy un negocio / For businesses"** → **business login**, OR navigate to the **/business/login** screen.
-- Email: `[CONFIRM — demo partner email]`
-- Password: `[CONFIRM — demo partner password]`
-- What it shows: a live published venue with photos, the stats dashboard, promotions, reservations, and profile editing.
-
-**Demo TOURIST account** (unchanged, for the consumer side):
-- Tap **"Continuar con email"** → email `applereview@amocartagena.co` → **Enviar código** → code `246810`. Passwordless one-time code; fixed for this account, no email needed.
-- Guest access: core browsing (places, map, events, AI concierge) works with **"Explorar como invitado."**
-- Account deletion: **Perfil** → **"Eliminar mi cuenta"** → confirm.
-
-### Guideline 2.1(b) — Business model
-
-Amo Cartagena is a **free** city guide and AI concierge for Cartagena de Indias, Colombia. It contains **no In-App Purchases and no paid digital content.** The only paid items are **real-world services**, which per App Review Guidelines 3.1.3(e) and 3.1.5(a) do not use — and are not permitted to use — In-App Purchase:
-
-1. **Who uses the paid features?** (a) Cruise/ferry passengers who pay the **official island Port Tax (Tasa Portuaria)** — a government fee for entering the Islas del Rosario / Barú protected area; and (b) local **businesses** who pay for a partner listing/membership to appear in the directory. Regular tourist users pay nothing.
-
-2. **Where are they purchased?** The Port Tax is a real-world government fee, collected through **Wompi** — a Colombian payment gateway licensed by the Superintendencia Financiera de Colombia. Partner listings/memberships are sold **outside the app**, directly by our team via invoicing — there is no consumer-facing purchase of a listing inside the app.
-
-3. **What previously-purchased features can a user access in the app?** A business that has paid for a listing can log into the **business dashboard** (the demo partner account above) to manage its published venue, photos, promotions, reservations, and stats.
-
-4. **What paid content is unlocked without IAP?** None is digital content. All paid items are real-world services: (a) the **official island Port Tax**, a government fee for physically entering the Islas del Rosario / Barú protected area, and (b) real restaurant/experience reservations that are fulfilled physically at the venue. Under App Review Guidelines 3.1.3(e) and 3.1.5(a), real-world services and government fees must use a payment method **other than** In-App Purchase — which is why the Port Tax uses Wompi and no IAP is present.
-
-5. **Physical + digital bundle?** No. There is no bundling of physical and digital goods. Purchases are for real-world services only.
-
-Please let us know if any further detail would help. Thank you.
+We updated the App Review Information notes to reflect the above. Please let us know if any further detail would help. Thank you.
 
 ---
 
-## Pre-send checklist for Phil
+## Sign-In Information (ASC fields)
+Leave the consumer account in the Sign-In Information username/password fields (applereview@amocartagena.co / 246810). Apple accepts the additional PARTNER account described in the Notes (Block 1) — one Sign-In field pair, extra accounts in Notes is standard.
 
-- [ ] **Guideline 4:** commit the maps fix, run `eas build -p ios --profile production` (autoIncrements build number), then attach the new build to version 1.0 in ASC and resubmit. The reply above is only accurate once that build is the one under review.
-- [ ] **2.1(a):** create/confirm a demo **partner** account and fill its email + password into the reply. It must have pre-populated content (published venue + photos + a promotion + a reservation).
-- [x] **2.1(b):** facts confirmed — partner membership billed off-app; Wompi port-tax checkout is live (real-world govt fee, correctly outside IAP).
-- [ ] Paste the reply into **both** the "Reply to Apple" message **and** the App Review Information → Notes field. Put the partner + tourist credentials in the App Review Information username/password fields too.
+## Pre-submit checklist for Phil
+- [ ] Wait for EAS build 11 (`97c39dd5`) to finish → in ASC, remove build 10 from the version, **Add Build → 11**, Save.
+- [ ] Fill ⟨PARTNER_EMAIL⟩ / ⟨PARTNER_PASSWORD⟩ into Block 1, and confirm that account has a published venue + photo + a promotion + a reservation.
+- [ ] **Replace** the current App Review Notes with Block 1 (adds the partner account + Guideline-4 note; keeps the accurate "no payments" statement).
+- [ ] Paste Block 2 into the "Reply to App Review" message.
+- [ ] **Soften the description's port-tax line** so it doesn't promise active payment. Suggested: replace "Pay the official Rosario Islands port tax and coordinate reservations with the best spots — all from the app." with **"Find official Rosario Islands port-tax info and coordinate reservations with the best spots — all from the app."**
+- [ ] (Optional) upload the remaining 4 screenshots (currently 6 of 10).
+- [ ] **Add for Review → Submit.** Release: your call (Manual vs Automatic).
