@@ -404,6 +404,8 @@ export const AUTO_TR: Dict = {
   // Common actions
   'Cancelar': { en: 'Cancel', fr: 'Annuler', pt: 'Cancelar' },
   '¿Cómo quieres llegar?': { en: 'How do you want to get there?', fr: 'Comment voulez-vous y aller ?', pt: 'Como você quer chegar?' },
+  'App para iPhone': { en: 'iPhone App', fr: 'App iPhone', pt: 'App para iPhone' },
+  'Descargar en el App Store': { en: 'Download on the App Store', fr: 'Télécharger sur l’App Store', pt: 'Baixar na App Store' },
   'Confirmar': { en: 'Confirm', fr: 'Confirmer', pt: 'Confirmar' },
   'Guardar': { en: 'Save', fr: 'Enregistrer', pt: 'Salvar' },
   'Eliminar': { en: 'Delete', fr: 'Supprimer', pt: 'Excluir' },

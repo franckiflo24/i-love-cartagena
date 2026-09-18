@@ -498,6 +498,19 @@ export default function PerfilScreen() {
           </View>
         </View>
 
+        {/* ── Get the native app (web visitors only) ── */}
+        {Platform.OS === 'web' && (
+          <View style={sty.sectionCard}>
+            <Text style={sty.sectionTitle}>{tr('App para iPhone')}</Text>
+            <SettingsRow
+              icon="logo-apple"
+              iconColor={COLORS.icon}
+              label={tr('Descargar en el App Store')}
+              onPress={() => { if (typeof window !== 'undefined') window.open('https://apps.apple.com/app/id6809565354', '_blank', 'noopener'); }}
+            />
+          </View>
+        )}
+
         {/* ── Partner Access ── */}
         <View style={sty.sectionCard}>
           <Text style={sty.sectionTitle}>{tr('Partners')}</Text>

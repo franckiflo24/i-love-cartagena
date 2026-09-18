@@ -53,6 +53,33 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="AMO Cartagena" />
         <meta name="twitter:description" content="Descubre 800+ lugares en Cartagena de Indias" />
+        {/* SEO: canonical + keywords + international alternates */}
+        <link rel="canonical" href="https://www.amocartagena.co" />
+        <meta name="keywords" content="Cartagena, guía Cartagena, turismo Cartagena, qué hacer en Cartagena, restaurantes Cartagena, hoteles Cartagena, Islas del Rosario, Barú, Getsemaní, tours Cartagena, playas, eventos Cartagena, concierge, Cartagena Colombia travel guide" />
+        <link rel="alternate" hrefLang="es" href="https://www.amocartagena.co" />
+        <link rel="alternate" hrefLang="en" href="https://www.amocartagena.co" />
+        <link rel="alternate" hrefLang="x-default" href="https://www.amocartagena.co" />
+        {/* Structured data: helps Google surface the app + an install link */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "MobileApplication",
+          "name": "Amo Cartagena",
+          "operatingSystem": "iOS",
+          "applicationCategory": "TravelApplication",
+          "url": "https://www.amocartagena.co",
+          "downloadUrl": "https://apps.apple.com/app/id6809565354",
+          "inLanguage": ["es", "en"],
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+          "description": "Guía y concierge IA de Cartagena de Indias: 800+ restaurantes, hoteles, bares, playas y experiencias verificadas, eventos, mapas con rutas a pie, City Pass y planes a las Islas del Rosario.",
+          "publisher": { "@type": "Organization", "name": "MachineMind LLC" }
+        }) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "AMO Cartagena",
+          "url": "https://www.amocartagena.co",
+          "inLanguage": "es"
+        }) }} />
         <link rel="icon" type="image/png" sizes="512x512" href="/brand/amo-heart-512.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/brand/amo-heart-32.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
