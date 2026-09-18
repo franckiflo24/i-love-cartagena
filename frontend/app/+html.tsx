@@ -20,6 +20,10 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="AMO Cartagena" />
+        {/* Smart App Banner — iOS Safari shows a native "Amo Cartagena · GET" bar
+            linking straight to the App Store (id 6809565354), so web visitors can
+            install the native app in one tap without searching the store. */}
+        <meta name="apple-itunes-app" content="app-id=6809565354" />
         {/* PWA manifest + installed-app icon (red brand, matches the preloader) */}
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/splash/amo-icon-192.png" />
