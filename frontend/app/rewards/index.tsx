@@ -419,7 +419,7 @@ export default function RewardsHub() {
                   const link = r?.share_url || 'https://www.amocartagena.co';
                   const pts = r?.points_each || 500;
                   await Share.share({
-                    message: `Únete a AMO Cartagena con mi código y ambos ganamos ${pts} puntos 🎁 Descubre lo mejor de Cartagena: ${link}`,
+                    message: `Únete a AMO Travel con mi código y ambos ganamos ${pts} puntos 🎁 Descubre lo mejor de Cartagena: ${link}`,
                   });
                 } catch { /* user cancelled share dialog */ }
               }}

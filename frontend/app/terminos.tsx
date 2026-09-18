@@ -20,8 +20,8 @@ export default function TermsScreen() {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.versionTag}>{tr('Versión')} 2.0 · {tr('Vigente desde')} junio 2026</Text>
 
-        <Text style={styles.h1}>{tr('1. Bienvenido a Amo Cartagena')}</Text>
-        <Text style={styles.p}>{tr('Amo Cartagena es una aplicación móvil que conecta visitantes con la oferta cultural, gastronómica y de hospitalidad de Cartagena de Indias, Colombia. Al usar la app aceptas estos Términos. Si no estás de acuerdo, no uses el servicio.')}</Text>
+        <Text style={styles.h1}>{tr('1. Bienvenido a AMO Travel')}</Text>
+        <Text style={styles.p}>{tr('AMO Travel es una aplicación móvil que conecta visitantes con la oferta cultural, gastronómica y de hospitalidad de Cartagena de Indias, Colombia. Al usar la app aceptas estos Términos. Si no estás de acuerdo, no uses el servicio.')}</Text>
 
         <Text style={styles.h1}>{tr('2. Quiénes somos')}</Text>
         <Text style={styles.p}>{tr('La plataforma es propiedad de Amo Cartagena S.A.S. (NIT en trámite), con domicilio en Cartagena de Indias, Colombia. La tecnología es operada por MachineMind LLC (Wyoming, EE.UU.) como proveedor tecnológico. Tu contrato por el Servicio es con Amo Cartagena S.A.S. Contacto: soporte@amocartagena.co')}</Text>
@@ -31,8 +31,8 @@ export default function TermsScreen() {
         <Text style={styles.p}>{tr('Notifícanos inmediatamente si sospechas uso no autorizado de tu cuenta. Podemos suspender o terminar cuentas que violen estos Términos o la ley aplicable. Puedes eliminar tu cuenta en cualquier momento desde Perfil → Eliminar mi cuenta.')}</Text>
 
         <Text style={styles.h1}>{tr('4. Reservas con partners')}</Text>
-        <Text style={styles.p}>{tr('Amo Cartagena actúa como intermediario entre tú y los partners (restaurantes, hoteles, clubs, beach clubs, etc.). Las reservas son solicitudes que el partner confirma o rechaza manualmente. La aplicación NO procesa pagos directos por reservas — esos pagos se realizan directamente con el partner mediante el link de pago que ellos proporcionan o en su sitio físico.')}</Text>
-        <Text style={styles.p}>{tr('La calidad del servicio, productos y experiencia final son responsabilidad exclusiva del partner. Amo Cartagena no garantiza disponibilidad, precios ni horarios mostrados, los cuales pueden cambiar sin previo aviso.')}</Text>
+        <Text style={styles.p}>{tr('AMO Travel actúa como intermediario entre tú y los partners (restaurantes, hoteles, clubs, beach clubs, etc.). Las reservas son solicitudes que el partner confirma o rechaza manualmente. La aplicación NO procesa pagos directos por reservas — esos pagos se realizan directamente con el partner mediante el link de pago que ellos proporcionan o en su sitio físico.')}</Text>
+        <Text style={styles.p}>{tr('La calidad del servicio, productos y experiencia final son responsabilidad exclusiva del partner. AMO Travel no garantiza disponibilidad, precios ni horarios mostrados, los cuales pueden cambiar sin previo aviso.')}</Text>
         <Text style={styles.p}>{tr('Las cancelaciones realizadas con menos de 24 horas de antelación pueden estar sujetas a cargos según la política del partner.')}</Text>
 
         <Text style={styles.h1}>{tr('5. City Pass y Tasa Portuaria')}</Text>
@@ -45,7 +45,7 @@ export default function TermsScreen() {
         <Text style={styles.p}>{tr('La app incluye un agente conversacional ("Amo IA") y recomendaciones generadas con modelos de lenguaje. Las sugerencias son orientativas y pueden contener errores. Verifica siempre la información crítica (horarios, precios, disponibilidad) directamente con el partner antes de tomar decisiones.')}</Text>
 
         <Text style={styles.h1}>{tr('8. Propiedad intelectual')}</Text>
-        <Text style={styles.p}>{tr('Todo el contenido propio de la app (código, diseño, marca "Amo Cartagena", textos, ilustraciones) es propiedad de Amo Cartagena S.A.S. La tecnología subyacente de la plataforma es propiedad de MachineMind LLC y se licencia al Proveedor. Las fotografías y marcas de partners pertenecen a sus respectivos titulares y se muestran bajo licencia o autorización. Se te otorga una licencia limitada, no exclusiva y revocable para usar la app con fines personales y no comerciales.')}</Text>
+        <Text style={styles.p}>{tr('Todo el contenido propio de la app (código, diseño, marca "AMO Travel", textos, ilustraciones) es propiedad de Amo Cartagena S.A.S. La tecnología subyacente de la plataforma es propiedad de MachineMind LLC y se licencia al Proveedor. Las fotografías y marcas de partners pertenecen a sus respectivos titulares y se muestran bajo licencia o autorización. Se te otorga una licencia limitada, no exclusiva y revocable para usar la app con fines personales y no comerciales.')}</Text>
 
         <Text style={styles.h1}>{tr('8b. Servicios de terceros')}</Text>
         <Text style={styles.p}>{tr('La app integra y enlaza servicios de terceros (mapas, pagos, mensajería, reservas). Tu uso de esos servicios se rige por sus propios términos y políticas de privacidad. No somos responsables por servicios de terceros.')}</Text>

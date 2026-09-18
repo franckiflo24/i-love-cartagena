@@ -19,7 +19,7 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="AMO Cartagena" />
+        <meta name="apple-mobile-web-app-title" content="AMO Travel" />
         {/* Smart App Banner — iOS Safari shows a native "Amo Cartagena · GET" bar
             linking straight to the App Store (id 6809565354), so web visitors can
             install the native app in one tap without searching the store. */}
@@ -41,18 +41,18 @@ export default function Root({ children }: PropsWithChildren) {
         <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="/splash/apple-splash-1125x2436.png" />
         <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/splash/apple-splash-750x1334.png" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <title>AMO Cartagena — Tu guía definitiva de Cartagena de Indias</title>
-        <meta name="description" content="Descubre 800+ restaurantes, bares, hoteles, playas y experiencias en Cartagena de Indias. Reservas, City Pass, recompensas y concierge IA." />
-        <meta property="og:title" content="AMO Cartagena" />
-        <meta property="og:description" content="Descubre 800+ lugares, eventos y experiencias en Cartagena de Indias. Tu guía definitiva." />
+        <title>AMO Travel — El mundo en tu mano | Guía de viajes con IA</title>
+        <meta name="description" content="AMO Travel: tu guía de viajes y concierge con IA. Empezamos en Cartagena de Indias — 800+ lugares verificados, eventos, mapas y experiencias. Próximamente, más destinos." />
+        <meta property="og:title" content="AMO Travel — El mundo en tu mano" />
+        <meta property="og:description" content="Tu guía de viajes y concierge con IA. Empezamos en Cartagena de Indias. Próximamente, más destinos." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.amocartagena.co" />
         <meta property="og:image" content="https://www.amocartagena.co/data/og-image.jpg" />
         <meta property="og:locale" content="es_CO" />
         <meta property="og:locale:alternate" content="en_US" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="AMO Cartagena" />
-        <meta name="twitter:description" content="Descubre 800+ lugares en Cartagena de Indias" />
+        <meta name="twitter:title" content="AMO Travel — El mundo en tu mano" />
+        <meta name="twitter:description" content="Guía de viajes y concierge con IA. Empezamos en Cartagena." />
         {/* SEO: canonical + keywords + international alternates */}
         <link rel="canonical" href="https://www.amocartagena.co" />
         <meta name="keywords" content="Cartagena, guía Cartagena, turismo Cartagena, qué hacer en Cartagena, restaurantes Cartagena, hoteles Cartagena, Islas del Rosario, Barú, Getsemaní, tours Cartagena, playas, eventos Cartagena, concierge, Cartagena Colombia travel guide" />
@@ -63,20 +63,20 @@ export default function Root({ children }: PropsWithChildren) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "MobileApplication",
-          "name": "Amo Cartagena",
+          "name": "AMO Travel",
           "operatingSystem": "iOS",
           "applicationCategory": "TravelApplication",
           "url": "https://www.amocartagena.co",
           "downloadUrl": "https://apps.apple.com/app/id6809565354",
           "inLanguage": ["es", "en"],
           "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-          "description": "Guía y concierge IA de Cartagena de Indias: 800+ restaurantes, hoteles, bares, playas y experiencias verificadas, eventos, mapas con rutas a pie, City Pass y planes a las Islas del Rosario.",
+          "description": "AMO Travel: tu guía de viajes y concierge con IA. Empezamos en Cartagena de Indias con 800+ lugares verificados, eventos, mapas con rutas a pie y planes a las Islas del Rosario. Próximamente, más destinos.",
           "publisher": { "@type": "Organization", "name": "MachineMind LLC" }
         }) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebSite",
-          "name": "AMO Cartagena",
+          "name": "AMO Travel",
           "url": "https://www.amocartagena.co",
           "inLanguage": "es"
         }) }} />
@@ -272,14 +272,9 @@ export default function Root({ children }: PropsWithChildren) {
       </head>
       <body>
         <div id="amo-preloader">
-          {/* New brand logo (AMO ❤ world · Cityguide & Lifestyle). The <video> plays
-              the animated reveal; the poster is the final logo frame so the full brand
-              paints instantly and remains if the video can't play (Safari-only HEVC is
-              transcoded to H.264 mp4 + VP9 webm, muted+playsinline for autoplay). */}
-          <video className="amo-logo-video" autoPlay muted playsInline poster="/brand/amo-logo-poster.jpg" aria-label="AMO — Cityguide & Lifestyle">
-            <source src="/brand/amo-logo.webm" type="video/webm" />
-            <source src="/brand/amo-logo.mp4" type="video/mp4" />
-          </video>
+          {/* AMO Travel brand logo — "el mundo en tu mano" (heart-world lockup on black,
+              so the radial mask feathers cleanly into the preloader background). */}
+          <img className="amo-logo-video" src="/brand/amo-travel-logo.jpg" alt="AMO Travel — El mundo en tu mano" />
           <div className="amo-progress"><i></i></div>
         </div>
         {children}

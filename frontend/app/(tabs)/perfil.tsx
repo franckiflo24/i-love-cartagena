@@ -295,7 +295,7 @@ export default function PerfilScreen() {
               <Ionicons name="business" size={22} color={COLORS.icon} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.specialTitle}>{tr('¿Eres partner de Amo Cartagena?')}</Text>
+              <Text style={styles.specialTitle}>{tr('¿Eres partner de AMO Travel?')}</Text>
               <Text style={styles.specialDesc}>{tr('Accede a tu dashboard y publica eventos')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
@@ -564,7 +564,7 @@ export default function PerfilScreen() {
           <Text style={sty.logoutText}>{tr('Cerrar sesión')}</Text>
         </TouchableOpacity>
 
-        <Text style={sty.versionText}>AMO Cartagena v2.0</Text>
+        <Text style={sty.versionText}>AMO Travel v2.0</Text>
       </ScrollView>
     </SafeAreaView>
   );

@@ -190,7 +190,7 @@ export default function PasaporteScreen() {
 
   const onGroupShare = useCallback(async (g: GroupStanding) => {
     const label = g.name ? `"${g.name}"` : tr('mi grupo');
-    const msg = `${tr('Únete a')} ${label} ${tr('en Amo Cartagena')} 🛂 — ${tr('comparemos pasaportes')}.\n${tr('Código')}: ${g.code}\n${g.share_url}`;
+    const msg = `${tr('Únete a')} ${label} ${tr('en AMO Travel')} 🛂 — ${tr('comparemos pasaportes')}.\n${tr('Código')}: ${g.code}\n${g.share_url}`;
     try {
       const nav: any = typeof navigator !== 'undefined' ? navigator : null;
       if (nav?.share) { await nav.share({ text: msg, url: g.share_url }); return; }

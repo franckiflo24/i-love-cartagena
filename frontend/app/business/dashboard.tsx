@@ -299,11 +299,11 @@ export default function BusinessDashboard() {
           if (isSuspended) {
             bgColor = 'rgba(239,68,68,0.10)'; borderColor = '#EF4444'; iconColor = '#EF4444'; iconName = 'pause-circle';
             title = tr('Tu perfil está suspendido');
-            subtitle = tr('Contacta al equipo Amo Cartagena para reactivarlo.');
+            subtitle = tr('Contacta al equipo AMO Travel para reactivarlo.');
           } else if (pct >= 100 && !isApproved) {
             bgColor = 'rgba(59,130,246,0.10)'; borderColor = '#3B82F6'; iconColor = '#3B82F6'; iconName = 'shield-checkmark';
             title = tr('Perfil completo — en revisión');
-            subtitle = tr('El equipo Amo Cartagena revisará tu perfil antes de hacerlo público (suele tomar <24h).');
+            subtitle = tr('El equipo AMO Travel revisará tu perfil antes de hacerlo público (suele tomar <24h).');
           }
           return (
             <TouchableOpacity

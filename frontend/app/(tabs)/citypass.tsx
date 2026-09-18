@@ -134,7 +134,7 @@ export default function CityPassTab() {
                 </View>
                 <TouchableOpacity onPress={() => {
                   const planName = plans.find(p => p.plan_id === myPass.plan_id)?.name || '';
-                  Share.share({ message: `🎫 Mi City Pass ${planName} de Amo Cartagena está activo! Descarga la app 🎧` }).catch(() => {});
+                  Share.share({ message: `🎫 Mi City Pass ${planName} de AMO Travel está activo! Descarga la app 🎧` }).catch(() => {});
                 }}>
                   <Ionicons name="share-social-outline" size={20} color={COLORS.textMuted} />
                 </TouchableOpacity>

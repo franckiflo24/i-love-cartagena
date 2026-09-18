@@ -211,7 +211,7 @@ function CardBack({
 
         <View style={backStyles.footer}>
           <Text style={backStyles.support}>Soporte: support@amo.com.co</Text>
-          <Text style={backStyles.amoText}>AMO Cartagena</Text>
+          <Text style={backStyles.amoText}>AMO Travel</Text>
         </View>
       </View>
     </View>

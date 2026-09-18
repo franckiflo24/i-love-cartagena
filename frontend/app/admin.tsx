@@ -962,7 +962,7 @@ export default function AdminPortal() {
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
             <Text style={styles.title}>Portal AMO</Text>
-            <Text style={styles.subtitle}>Amo Cartagena</Text>
+            <Text style={styles.subtitle}>AMO Travel</Text>
             <View style={[styles.roleChip, isAdmin ? styles.roleChipAdmin : styles.roleChipOperator]}>
               <Ionicons name={isAdmin ? 'shield-checkmark' : 'key'} size={11} color={isAdmin ? COLORS.mustard : COLORS.official} />
               <Text style={[styles.roleChipText, { color: isAdmin ? COLORS.mustard : COLORS.official }]}>

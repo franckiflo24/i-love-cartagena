@@ -75,7 +75,7 @@ export function StampCelebration({ data, onClose, onShare }: Props) {
     <Modal visible transparent animationType="none" onRequestClose={onClose}>
     <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, { opacity: backdrop }]}>
       <Animated.View style={[styles.stamp, { opacity: stampOpacity, transform: [{ scale: stampScale }, { rotate: '-7deg' }] }]}>
-        <Text style={styles.stampArc}>AMO CARTAGENA</Text>
+        <Text style={styles.stampArc}>AMO TRAVEL</Text>
         <Text style={styles.stampVenue} numberOfLines={2}>{data.venueName}</Text>
         <Text style={styles.stampDate}>{today}</Text>
         <Text style={styles.stampVerified}>{tr('VERIFICADO EN EL LUGAR')}</Text>

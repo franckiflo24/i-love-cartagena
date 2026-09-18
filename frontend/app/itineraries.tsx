@@ -1,5 +1,5 @@
 // ============================================================================
-// AMO CARTAGENA — ITINERARY BUILDER  (Build 3 / Blocks 2 + 3 / AUD-024 / AUD-011)
+// AMO TRAVEL — ITINERARY BUILDER  (Build 3 / Blocks 2 + 3 / AUD-024 / AUD-011)
 // Pure RN Views for route map — zero extra packages.
 // ============================================================================
 
@@ -366,7 +366,7 @@ export default function ItineraryScreen() {
               <Text style={s.btnGoldTxt}>{tr('Armar mi propio plan')}</Text>
             </Pressable>
           )}
-          <Text style={s.madeWith}>{tr('hecho con AMO Cartagena')}</Text>
+          <Text style={s.madeWith}>{tr('hecho con AMO Travel')}</Text>
           <View style={{ height: 40 }} />
         </ScrollView>
       )}

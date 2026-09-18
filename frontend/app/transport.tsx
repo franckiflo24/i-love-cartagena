@@ -68,12 +68,12 @@ export default function TransportScreen() {
     const p = parsePrice(route.price || '');
     const priceText = p.roundTrip > 0 ? `$${p.roundTrip.toLocaleString()} COP ida/vuelta` : 'consultar precio';
     const msg = encodeURIComponent(
-      `Hola! Quiero reservar transporte via *AMO Cartagena* 🌴\n\n`
+      `Hola! Quiero reservar transporte via *AMO Travel* 🌴\n\n`
       + `Ruta: *${routeName}*\n`
       + `Precio referencia: ${priceText}\n`
       + `Pasajeros: 1\n\n`
       + `¿Disponibilidad?\n\n---\n\n`
-      + `Hi! I'd like to book transport via *AMO Cartagena* 🌴\n\n`
+      + `Hi! I'd like to book transport via *AMO Travel* 🌴\n\n`
       + `Route: *${routeName}*\n`
       + `Ref. price: ${priceText}\n`
       + `Passengers: 1\n\n`

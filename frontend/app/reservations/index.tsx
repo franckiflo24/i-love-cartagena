@@ -283,7 +283,7 @@ export default function MyReservations() {
                           style={styles.contactBtn}
                           onPress={() => {
                             const phone = (r.payment_info!.whatsapp || '').replace(/[^\d+]/g, '');
-                            const msg = encodeURIComponent(`Hola, soy ${r.partner_name ? '' : ''}cliente de Amo Cartagena. Reserva ${r.reservation_id} para ${r.date} ${r.time || ''}. ¿Cómo coordinamos el pago?`);
+                            const msg = encodeURIComponent(`Hola, soy ${r.partner_name ? '' : ''}cliente de AMO Travel. Reserva ${r.reservation_id} para ${r.date} ${r.time || ''}. ¿Cómo coordinamos el pago?`);
                             import('react-native').then((m) => m.Linking.openURL(`https://wa.me/${phone}?text=${msg}`).catch(() => {}));
                           }}
                         >

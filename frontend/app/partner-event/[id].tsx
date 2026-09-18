@@ -106,13 +106,13 @@ export default function PartnerEventDetail() {
     // never treats it as a popup triggered outside a user gesture.
     if (partnerContact) {
       const msg = encodeURIComponent(
-        `¡Hola! Reserva via *AMO Cartagena* 🌴\n\n`
+        `¡Hola! Reserva via *AMO Travel* 🌴\n\n`
         + `Evento: *${event.title}*\n`
         + `Lugar: *${event.partner_name || partnerContact.name || ''}*\n`
         + `Fecha: ${event.date}\n`
         + `Hora: ${event.start_time}\n\n`
         + `¿Disponibilidad?\n\n---\n\n`
-        + `Hi! Booking via *AMO Cartagena* 🌴\n\n`
+        + `Hi! Booking via *AMO Travel* 🌴\n\n`
         + `Event: *${event.title}*\n`
         + `Venue: *${event.partner_name || partnerContact.name || ''}*\n`
         + `Date: ${event.date}\n`
@@ -127,13 +127,13 @@ export default function PartnerEventDetail() {
       const partnerData = await api.get(`/partners/${event.partner_id}`);
       const { number: waPhone } = venueWhatsApp(partnerData); // validated mobile or AMO concierge — never a wrong number
       const msg = encodeURIComponent(
-        `¡Hola! Reserva via *AMO Cartagena* 🌴\n\n`
+        `¡Hola! Reserva via *AMO Travel* 🌴\n\n`
         + `Evento: *${event.title}*\n`
         + `Lugar: *${event.partner_name || partnerData?.name || ''}*\n`
         + `Fecha: ${event.date}\n`
         + `Hora: ${event.start_time}\n\n`
         + `¿Disponibilidad?\n\n---\n\n`
-        + `Hi! Booking via *AMO Cartagena* 🌴\n\n`
+        + `Hi! Booking via *AMO Travel* 🌴\n\n`
         + `Event: *${event.title}*\n`
         + `Venue: *${event.partner_name || partnerData?.name || ''}*\n`
         + `Date: ${event.date}\n`
@@ -143,7 +143,7 @@ export default function PartnerEventDetail() {
       RNLinking.openURL(`https://wa.me/${waPhone}?text=${msg}`).catch(() => {});
     } catch {
       // Fallback to AMO concierge
-      const msg = encodeURIComponent(`¡Hola! Quiero reservar para *${event.title}* via AMO Cartagena 🌴`);
+      const msg = encodeURIComponent(`¡Hola! Quiero reservar para *${event.title}* via AMO Travel 🌴`);
       RNLinking.openURL(`https://wa.me/573176481183?text=${msg}`);
     }
   };

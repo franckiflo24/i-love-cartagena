@@ -1,4 +1,4 @@
-// Central image catalog for AMO Cartagena
+// Central image catalog for AMO Travel
 // All images self-hosted in public/images/. ZERO external dependencies.
 // Using resizeMode="cover" on every Image component that consumes these.
 
@@ -118,7 +118,7 @@ export const FALLBACK_SVGS: Record<string, string> = {
   transport:    makeSVG('◌', 'TRANSPORTE'),
   yacht:        makeSVG('◇', 'YATE'),
   daypass:      makeSVG('☀', 'DAY PASS'),
-  placeholder:  makeSVG('◆', 'AMO CARTAGENA'),
+  placeholder:  makeSVG('◆', 'AMO TRAVEL'),
 };
 
 export const getCategoryImage = (category?: string | null): string => {
