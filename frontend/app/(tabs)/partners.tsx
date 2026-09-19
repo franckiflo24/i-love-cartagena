@@ -317,7 +317,7 @@ export default function PartnersScreen() {
         ) : (
           <>
             <Text style={styles.title}>{tr('Partners')}</Text>
-            <Text style={styles.subtitle}>{tr('Lugares certificados por AMO Travel')}</Text>
+            <Text style={styles.subtitle}>{tr('Lugares certificados por AMO Life')}</Text>
           </>
         )}
       </View>
@@ -410,7 +410,7 @@ export default function PartnersScreen() {
               <View style={styles.heroBannerContent}>
                 <Ionicons name="diamond" size={32} color={COLORS.official} />
                 <Text style={styles.heroBannerTitle}>{tr('Lugares certificados')}</Text>
-                <Text style={styles.heroBannerDesc}>{tr('Restaurantes, clubs, hoteles y más validados por AMO Travel')}</Text>
+                <Text style={styles.heroBannerDesc}>{tr('Restaurantes, clubs, hoteles y más validados por AMO Life')}</Text>
               </View>
             </View>
 

@@ -43,7 +43,7 @@ export default function EventDetail() {
     const priceText = eventPriceLabel(event.price, event.is_free, { cop: true });
     try {
       await Share.share({
-        message: `🎉 ${event.title}\n📍 ${event.venue_name}\n🗓 ${event.date} · ${event.start_time}\n💰 ${priceText}\n\nDescarga AMO Travel para ver todo el programa 🎧`,
+        message: `🎉 ${event.title}\n📍 ${event.venue_name}\n🗓 ${event.date} · ${event.start_time}\n💰 ${priceText}\n\nDescarga AMO Life para ver todo el programa 🎧`,
       });
     } catch (e) { console.error(e); }
   };

@@ -206,12 +206,12 @@ export default function ReservationNew() {
     const notesLineEn = notes.trim() ? `\nNotes: ${notes.trim()}` : '';
 
     const msgEs = isAmo
-      ? `Hola AMO Travel! Quiero reservar en *${partner.name}*.${eventLine}\n\nNombre: ${nameClean}\nEmail: ${emailClean}\nFecha: ${date}\nHora: ${time}\nPersonas: ${partySize}${notesLine}\n\nVia AMO Travel`
-      : `Hola! Reserva via *AMO Travel* 🌴\n\nLugar: *${partner.name}*${eventLine}\nNombre: ${nameClean}\nEmail: ${emailClean}\nFecha: ${date}\nHora: ${time}\nPersonas: ${partySize}${notesLine}\n\nGracias!`;
+      ? `Hola AMO Life! Quiero reservar en *${partner.name}*.${eventLine}\n\nNombre: ${nameClean}\nEmail: ${emailClean}\nFecha: ${date}\nHora: ${time}\nPersonas: ${partySize}${notesLine}\n\nVia AMO Life`
+      : `Hola! Reserva via *AMO Life* 🌴\n\nLugar: *${partner.name}*${eventLine}\nNombre: ${nameClean}\nEmail: ${emailClean}\nFecha: ${date}\nHora: ${time}\nPersonas: ${partySize}${notesLine}\n\nGracias!`;
 
     const msgEn = isAmo
-      ? `Hi AMO Travel! I'd like to book at *${partner.name}*.${eventLineEn}\n\nName: ${nameClean}\nEmail: ${emailClean}\nDate: ${date}\nTime: ${time}\nParty: ${partySize}${notesLineEn}\n\nVia AMO Travel`
-      : `Hi! Booking via *AMO Travel* 🌴\n\nPlace: *${partner.name}*${eventLineEn}\nName: ${nameClean}\nEmail: ${emailClean}\nDate: ${date}\nTime: ${time}\nParty: ${partySize}${notesLineEn}\n\nThank you!`;
+      ? `Hi AMO Life! I'd like to book at *${partner.name}*.${eventLineEn}\n\nName: ${nameClean}\nEmail: ${emailClean}\nDate: ${date}\nTime: ${time}\nParty: ${partySize}${notesLineEn}\n\nVia AMO Life`
+      : `Hi! Booking via *AMO Life* 🌴\n\nPlace: *${partner.name}*${eventLineEn}\nName: ${nameClean}\nEmail: ${emailClean}\nDate: ${date}\nTime: ${time}\nParty: ${partySize}${notesLineEn}\n\nThank you!`;
 
     const msg = encodeURIComponent(`${msgEs}\n\n---\n\n${msgEn}`);
     const waUrl = `https://wa.me/${waPhone}?text=${msg}`;
@@ -221,7 +221,7 @@ export default function ReservationNew() {
       setSuccessLocked(false);
       setSuccessMessage(
         isAmo
-          ? tr('Te conectamos con AMO Travel por WhatsApp para gestionar tu reserva.')
+          ? tr('Te conectamos con AMO Life por WhatsApp para gestionar tu reserva.')
           : tr('Te conectamos con el partner por WhatsApp. Confirma tu reserva directamente.'),
       );
       setShowSuccess(true);

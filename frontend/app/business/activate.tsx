@@ -22,14 +22,14 @@ export default function ActivatePartner() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!token) { setError('Link inválido. Pide uno nuevo al equipo AMO Travel.'); setLoading(false); return; }
+    if (!token) { setError('Link inválido. Pide uno nuevo al equipo AMO Life.'); setLoading(false); return; }
     (async () => {
       try {
         const data = await api.get(`/business/activation/${token}`);
         setPartner(data);
       } catch (e: any) {
         const msg = String(e?.message || '');
-        setError(msg.includes('410') ? 'Este link expiró. Pide uno nuevo al equipo AMO Travel.' : 'Link inválido o ya usado.');
+        setError(msg.includes('410') ? 'Este link expiró. Pide uno nuevo al equipo AMO Life.' : 'Link inválido o ya usado.');
       }
       setLoading(false);
     })();
@@ -96,7 +96,7 @@ export default function ActivatePartner() {
           </View>
 
           <Text style={styles.intro}>
-            Te damos la bienvenida a <Text style={{ ...FONTS.bold }}>AMO Travel</Text>, la plataforma oficial de la ciudad.
+            Te damos la bienvenida a <Text style={{ ...FONTS.bold }}>AMO Life</Text>, la plataforma oficial de la ciudad.
             Crea tu contraseña para activar tu cuenta y empezar a gestionar reservas.
           </Text>
 
@@ -139,7 +139,7 @@ export default function ActivatePartner() {
           </TouchableOpacity>
 
           <Text style={styles.note}>
-            🔒 Tu cuenta será revisada por el equipo AMO Travel antes de aparecer públicamente en la app. Esto suele tomar menos de 24h.
+            🔒 Tu cuenta será revisada por el equipo AMO Life antes de aparecer públicamente en la app. Esto suele tomar menos de 24h.
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>

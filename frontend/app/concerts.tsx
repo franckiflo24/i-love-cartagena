@@ -142,7 +142,7 @@ export default function ConcertsScreen() {
     const priceText = eventPriceLabel(concert.price, concert.is_free, { cop: true });
     try {
       await Share.share({
-        message: `🎵 ${concert.artist} - ${concert.title}\n📍 ${concert.venue_name}\n🗓 ${concert.date} · ${concert.start_time}-${concert.end_time}\n🎶 ${concert.genre}\n💰 ${priceText}\n\nDescarga AMO Travel para ver todo el programa 🎧`,
+        message: `🎵 ${concert.artist} - ${concert.title}\n📍 ${concert.venue_name}\n🗓 ${concert.date} · ${concert.start_time}-${concert.end_time}\n🎶 ${concert.genre}\n💰 ${priceText}\n\nDescarga AMO Life para ver todo el programa 🎧`,
       });
     } catch (e) { console.error(e); }
   };

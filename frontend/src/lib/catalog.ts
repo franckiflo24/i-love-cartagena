@@ -1,5 +1,5 @@
 /**
- * Shared catalog loader for AMO Travel serverless functions.
+ * Shared catalog loader for AMO Life serverless functions.
  * Used by /api/concierge and /api/itinerary for grounding.
  *
  * Fetches partners.json once per warm instance and caches it.

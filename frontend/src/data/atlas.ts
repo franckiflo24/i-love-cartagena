@@ -1,4 +1,4 @@
-// Atlas layer — source-verified venue positions from the AMO Travel Atlas.
+// Atlas layer — source-verified venue positions from the AMO Life Atlas.
 //
 // Every entry below was adversarially verified against OSM authority data
 // (building footprints, street geometry, house-number interpolation, neighbor
@@ -46,7 +46,7 @@ export const ATLAS_VENUE_FIXES: Readonly<Record<string, AtlasVenueFix>> = {
   ven_006: { lat: 10.4217511, lng: -75.5510213 }, // San Pedro Claver — was 10.4228,-75.5498 (~170m off)
 };
 
-// Camera route exported from the AMO Travel Atlas (docs/amo-cartagena-route.json).
+// Camera route exported from the AMO Life Atlas (docs/amo-cartagena-route.json).
 // Drives the map's cinematic fly-through (auto-satellite). Two edits vs the raw
 // export: the "El Beso" stop is corrected to the VERIFIED venue coordinate (the
 // export still carried the misplaced OSM node — docs/atlas-verification.json),
@@ -75,7 +75,7 @@ export const ATLAS_ROUTE: AtlasViewpoint[] = [
   { title: 'Casa Bohème', lat: 10.4240694, lng: -75.5518061, zoom: 18.7 },
   { title: 'El Beso, Getsemaní', lat: 10.4195719, lng: -75.5464839, zoom: 18.5 }, // verified coord, not the export's
   { title: 'El Pasquín de Joaco', lat: 10.4235694, lng: -75.5494741, zoom: 19 },
-  { title: 'AMO Travel ❤️', lat: 10.4234, lng: -75.5489, zoom: 14.8 },
+  { title: 'AMO Life ❤️', lat: 10.4234, lng: -75.5489, zoom: 14.8 },
 ];
 
 // Curated walking rutas for the CAMINAR feature — authored sequences over

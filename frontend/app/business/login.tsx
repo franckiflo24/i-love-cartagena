@@ -90,7 +90,7 @@ export default function BusinessLogin() {
           <Text style={styles.subtitle}>
             {isAlcaldia
               ? tr('Acceso institucional al dashboard oficial de la ciudad.')
-              : tr('Gestiona tu agenda, publica eventos y monitorea reservas en AMO Travel.')}
+              : tr('Gestiona tu agenda, publica eventos y monitorea reservas en AMO Life.')}
           </Text>
 
           <View style={styles.form}>

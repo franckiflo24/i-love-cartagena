@@ -103,7 +103,7 @@ export default function OperatorIndex() {
       const data = await api.post(`/admin/operator/partners/${p.partner_id}/invite`, {}, { headers: { Authorization: `Bearer ${token}` } });
       // In static mode data has no activation_url. Build a reasonable fallback.
       const msg = data?.whatsapp_message || data?.activation_url
-        || `Hola ${p.name}! Te invitamos a activar tu perfil de partner en AMO Travel. Contacta al admin para tu link de activación.`;
+        || `Hola ${p.name}! Te invitamos a activar tu perfil de partner en AMO Life. Contacta al admin para tu link de activación.`;
       try {
         await Share.share({ message: msg });
       } catch { /* user cancelled */ }

@@ -55,7 +55,7 @@ export function GrowthCards({ signedIn }: { signedIn: boolean }) {
 
   const shareRef = useCallback(async () => {
     if (!ref) return;
-    const msg = `Únete a AMO Travel con mi código y ambos ganamos ${ref.points_each} puntos 🎁 ${ref.share_url}`;
+    const msg = `Únete a AMO Life con mi código y ambos ganamos ${ref.points_each} puntos 🎁 ${ref.share_url}`;
     try {
       if (Platform.OS === 'web' && (navigator as any)?.share) {
         await (navigator as any).share({ text: msg, url: ref.share_url });

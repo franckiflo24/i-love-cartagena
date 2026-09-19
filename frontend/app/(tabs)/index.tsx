@@ -418,7 +418,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>{user ? `${s('greeting_hi')}, ${(user.name || '').split(' ')[0] || ''}` : (userProfile.isPersonalized ? getGreeting() : s('greeting_welcome'))}</Text>
-            <Text style={styles.headerTitle}>AMO Travel ❤️</Text>
+            <Text style={styles.headerTitle}>AMO Life ❤️</Text>
           </View>
           <TouchableOpacity testID="notifications-btn" onPress={() => router.push('/notifications')} style={styles.notifBtn}>
             <Ionicons name="notifications-outline" size={24} color={COLORS.textMain} />

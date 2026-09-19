@@ -221,7 +221,7 @@ export default function AlcaldiaDashboard({
             <Text style={styles.govBadgeText}>{demo ? 'VISTA DE DEMOSTRACIÓN' : 'CUENTA OFICIAL · GOBIERNO'}</Text>
           </View>
           <Text style={styles.govName}>{partner?.name || 'Alcaldía de Cartagena'}</Text>
-          <Text style={styles.govSubtitle}>{demo ? 'Propuesta · métricas agregadas de la ciudad' : 'Panel de datos de la ciudad · AMO Travel'}</Text>
+          <Text style={styles.govSubtitle}>{demo ? 'Propuesta · métricas agregadas de la ciudad' : 'Panel de datos de la ciudad · AMO Life'}</Text>
         </View>
       </View>
 

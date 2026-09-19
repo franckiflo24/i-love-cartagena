@@ -1,5 +1,5 @@
 /**
- * Push Notifications utility for AMO Travel.
+ * Push Notifications utility for AMO Life.
  *
  * Handles:
  *  - Permission request (auto on first login per user choice 3a)
@@ -55,7 +55,7 @@ export async function getExpoPushToken(): Promise<string | null> {
     // Configure Android channel (no-op on iOS)
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('default', {
-        name: 'AMO Travel',
+        name: 'AMO Life',
         importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#12B5A5',
