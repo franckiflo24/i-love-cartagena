@@ -8,7 +8,7 @@
 import React, { useEffect, useState } from 'react';
 import { Text, StyleSheet } from 'react-native';
 import { COLORS, FONTS } from '../constants/theme';
-import { geoService, GeoState, haversineM } from '../lib/geo';
+import { geoService, GeoState, haversineM, fmtDistance } from '../lib/geo';
 
 export function LiveDistance({ lat, lng }: { lat?: number | null; lng?: number | null }) {
   const [geo, setGeo] = useState<GeoState>(geoService.getState());
@@ -28,7 +28,7 @@ export function LiveDistance({ lat, lng }: { lat?: number | null; lng?: number |
   if (!pos) return null;
   const d = haversineM(pos.lat, pos.lng, lat, lng);
   if (!Number.isFinite(d) || d > 50000) return null;
-  const label = d < 1000 ? `a ${Math.round(d / 10) * 10}m de ti` : `a ${(d / 1000).toFixed(1)}km de ti`;
+  const label = fmtDistance(d);
   return <Text style={styles.dist}>🚶 {label}</Text>;
 }
 

@@ -11,7 +11,12 @@ export default function BusinessLogin() {
   const tr = useTr();
   const router = useRouter();
   const { role } = useLocalSearchParams<{ role?: string }>();
-  const { login, passcodeLogin } = useBusinessAuth();
+  const { login, passcodeLogin, token, loading: authLoading } = useBusinessAuth();
+  // An already-signed-in partner who lands here (bookmark, back button, the
+  // Perfil → "Dashboard de negocio" row) goes straight to the dashboard.
+  useEffect(() => {
+    if (!authLoading && token) router.replace('/business/dashboard' as any);
+  }, [authLoading, token, router]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passcode, setPasscode] = useState('');

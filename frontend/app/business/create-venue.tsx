@@ -14,6 +14,11 @@ import { useTr } from '../../src/i18n/autoTr';
 // partner to CLAIM the existing record instead. New venues enter as a
 // pending_review DRAFT — never live until an admin approves.
 const CATEGORIES = ['restaurant', 'bar', 'beach_club', 'club', 'hotel', 'cafe', 'spa', 'activity', 'service', 'beauty', 'yacht', 'attraction'];
+// Chips showed raw keys ("beach_club") — tr() only translates Spanish source text.
+const CATEGORY_LABELS: Record<string, string> = {
+  restaurant: 'Restaurante', bar: 'Bar', beach_club: 'Beach club', club: 'Discoteca', hotel: 'Hotel', cafe: 'Café',
+  spa: 'Spa', activity: 'Actividad', service: 'Servicio', beauty: 'Belleza', yacht: 'Yate', attraction: 'Atracción',
+};
 
 // Subcategory keys MUST match SUBCATEGORIES in explore.tsx + the essentials
 // need_states.json, so an approved venue slots under the right browse/gate.
@@ -109,7 +114,7 @@ export default function CreateVenue() {
           <View style={styles.chips}>
             {CATEGORIES.map(c => (
               <TouchableOpacity key={c} style={[styles.chip, category === c && styles.chipActive]} onPress={() => { setCategory(c); setSubcategory(''); }}>
-                <Text style={[styles.chipText, category === c && styles.chipTextActive]}>{tr(c)}</Text>
+                <Text style={[styles.chipText, category === c && styles.chipTextActive]}>{tr(CATEGORY_LABELS[c] || c)}</Text>
               </TouchableOpacity>
             ))}
           </View>

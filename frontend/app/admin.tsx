@@ -881,7 +881,7 @@ export default function AdminPortal() {
               activeOpacity={0.7}
               hitSlop={{ top: 8, bottom: 8 }}
             >
-              <Text style={styles.gateAdminLinkText}>{tr('¿Sos admin? Iniciá sesión')}</Text>
+              <Text style={styles.gateAdminLinkText}>{tr('¿Sos admin? Inicia sesión')}</Text>
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -896,7 +896,7 @@ export default function AdminPortal() {
       key: 'eagle',
       title: 'Eagle — KPIs',
       subtitle: tr('Vista total del sistema en vivo'),
-      lockReason: tr('Requiere sesión admin · tocá para entrar'),
+      lockReason: tr('Requiere sesión admin · toca para entrar'),
       icon: 'eye',
       accent: colorForKey('eagle'),
       available: isAdmin,
@@ -920,7 +920,7 @@ export default function AdminPortal() {
       key: 'moderation',
       title: tr('Moderación'),
       subtitle: tr('Eventos pendientes de revisión'),
-      lockReason: tr('Requiere sesión admin · tocá para entrar'),
+      lockReason: tr('Requiere sesión admin · toca para entrar'),
       icon: 'shield-checkmark',
       accent: colorForKey('moderation'),
       available: isAdmin,
@@ -932,7 +932,7 @@ export default function AdminPortal() {
       key: 'claims',
       title: tr('Cola de negocios (claims)'),
       subtitle: tr('Negocios y reclamos por aprobar'),
-      lockReason: tr('Requiere sesión admin · tocá para entrar'),
+      lockReason: tr('Requiere sesión admin · toca para entrar'),
       icon: 'albums',
       accent: colorForKey('claims'),
       available: isAdmin,
@@ -943,7 +943,7 @@ export default function AdminPortal() {
       key: 'analytics',
       title: tr('Usuarios & Analytics'),
       subtitle: tr('Métricas, CRM y revenue'),
-      lockReason: tr('Requiere sesión admin · tocá para entrar'),
+      lockReason: tr('Requiere sesión admin · toca para entrar'),
       icon: 'stats-chart',
       accent: colorForKey('analytics'),
       available: isAdmin,
@@ -985,8 +985,8 @@ export default function AdminPortal() {
           <TouchableOpacity style={styles.adminUpgradeBanner} onPress={goAdminLogin} activeOpacity={0.85}>
             <Ionicons name="shield-checkmark" size={20} color={COLORS.mustard} />
             <View style={{ flex: 1 }}>
-              <Text style={styles.adminUpgradeTitle}>{tr('Desbloqueá el portal completo')}</Text>
-              <Text style={styles.adminUpgradeText}>{tr('Iniciá sesión con tu cuenta admin (Google) para Eagle, Moderación y Analytics.')}</Text>
+              <Text style={styles.adminUpgradeTitle}>{tr('Desbloquea el portal completo')}</Text>
+              <Text style={styles.adminUpgradeText}>{tr('Inicia sesión con tu cuenta admin (Google) para Eagle, Moderación y Analytics.')}</Text>
             </View>
             <View style={styles.adminUpgradeBtn}>
               <Text style={styles.adminUpgradeBtnText}>{tr('Iniciar sesión')}</Text>

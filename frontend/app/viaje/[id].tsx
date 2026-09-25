@@ -204,7 +204,7 @@ export default function ViajeDetailScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.emptyBox}>
           <Ionicons name="lock-closed-outline" size={40} color={COLORS.textMuted} />
-          <Text style={styles.emptyTitle}>{tr('No tenés acceso a este viaje')}</Text>
+          <Text style={styles.emptyTitle}>{tr('No tienes acceso a este viaje')}</Text>
           <TouchableOpacity style={styles.cta} onPress={() => router.replace('/viaje' as any)}>
             <Text style={styles.ctaText}>{tr('Mis viajes')}</Text>
           </TouchableOpacity>
@@ -336,7 +336,7 @@ export default function ViajeDetailScreen() {
           <View style={styles.emptyBox}>
             <Ionicons name="compass-outline" size={40} color={COLORS.primary} />
             <Text style={styles.emptyTitle}>{tr('Todavía no hay planes')}</Text>
-            <Text style={styles.emptyText}>{tr('Agregá lugares con el botón "Agregar a mi viaje" en cualquier venue, colección o recomendación de Luna.')}</Text>
+            <Text style={styles.emptyText}>{tr('Agrega lugares con el botón "Agregar a mi viaje" en cualquier venue, colección o recomendación de Luna.')}</Text>
             <TouchableOpacity style={styles.cta} onPress={() => router.push('/(tabs)/explore' as any)}>
               <Text style={styles.ctaText}>{tr('Explorar Cartagena')}</Text>
             </TouchableOpacity>

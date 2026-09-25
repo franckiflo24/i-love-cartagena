@@ -158,7 +158,7 @@ def _admin_rows(title: str, lines: list) -> str:
       <p style="margin:0 0 12px;font-family:{_SERIF};font-size:21px;color:{_GOLD_BRIGHT};">{_safe(title)}</p>
       {body}
       <p style="margin:20px 0 0;font-family:{_SANS};font-size:12px;color:{_MUTED};">
-        Revisá y gestioná en el panel:
+        Revisa y gestiona en el panel:
         <a href="{SITE}/admin" style="color:{_GOLD};text-decoration:none;">{SITE}/admin</a>
       </p>
     </td></tr>"""
@@ -199,13 +199,13 @@ async def send_verification_email(*, to: str, code: str, name: str = "") -> bool
       Este código expira en {VERIFY_CODE_TTL_MINUTES} minutos.
     </p>
     <p style="margin:0;font-family:{_SANS};font-size:13px;line-height:1.5;color:{_FAINT};">
-      Si no lo solicitaste, podés ignorar este mensaje — nadie entra sin el código.
+      Si no lo solicitaste, puedes ignorar este mensaje — nadie entra sin el código.
     </p>
   </td></tr>"""
     gt = f"Hola {_plain(name)}" if name else "Hola"
     text = (f"{gt},\n\nTu código de verificación para AMO Life es: {code}\n"
             f"Expira en {VERIFY_CODE_TTL_MINUTES} minutos.\n\n"
-            f"Si no lo solicitaste, ignoralo.\n\n— AMO Life · {SITE}")
+            f"Si no lo solicitaste, ignóralo.\n\n— AMO Life · {SITE}")
     return await _send_email(to=to, subject=f"Tu código AMO: {code}",
                              html=_shell(preheader=preheader, inner=inner), text=text,
                              log_label="Código de verificación")
@@ -223,7 +223,7 @@ async def send_password_reset_email(*, to: str, code: str, name: str = "") -> bo
     <p style="margin:0 0 6px;font-family:{_SANS};font-size:16px;color:{_TEXT};">{greeting},</p>
     <p style="margin:0 0 20px;font-family:{_SANS};font-size:14px;line-height:1.6;color:{_MUTED};">
       Recibimos una solicitud para restablecer la contraseña de tu cuenta de negocio.
-      Ingresá este código en la app para elegir una nueva contraseña:
+      Ingresa este código en la app para elegir una nueva contraseña:
     </p>
   </td></tr>
   <tr><td style="padding:0 34px;">{_code_box(code)}</td></tr>
@@ -239,8 +239,8 @@ async def send_password_reset_email(*, to: str, code: str, name: str = "") -> bo
     gt = f"Hola {_plain(name)}" if name else "Hola"
     text = (f"{gt},\n\nCódigo para restablecer tu contraseña de negocio AMO: {code}\n"
             f"Válido {VERIFY_CODE_TTL_MINUTES} minutos, un solo uso. Pedir uno nuevo anula el anterior.\n\n"
-            f"Si no lo pediste, ignoralo — tu contraseña sigue igual.\n\n— AMO Life · {SITE}")
-    return await _send_email(to=to, subject="Restablecé tu contraseña — AMO Life",
+            f"Si no lo pediste, ignóralo — tu contraseña sigue igual.\n\n— AMO Life · {SITE}")
+    return await _send_email(to=to, subject="Restablece tu contraseña — AMO Life",
                              html=_shell(preheader=preheader, inner=inner), text=text)
 
 
@@ -248,7 +248,7 @@ _WELCOME_FEATURES = [
     ("🗺️", "Mapa interactivo", "890+ lugares, restaurantes y experiencias reales"),
     ("🧭", "Pasaporte de Cartagena", "Sellá los lugares que descubrís caminando la ciudad"),
     ("💬", "Luna, tu concierge", "Recomendaciones personales, a cualquier hora"),
-    ("🧳", "Mi Viaje", "Armá el itinerario y planealo con tu grupo"),
+    ("🧳", "Mi Viaje", "Arma el itinerario y planealo con tu grupo"),
 ]
 
 
@@ -304,7 +304,7 @@ def _button(label: str, url: str) -> str:
 async def send_partner_invite_email(*, to: str, name: str, activation_url: str, category: str = "") -> bool:
     """Invite a business to activate its AMO Life listing (magic activation link)."""
     cat = f" · {_safe(category)}" if category else ""
-    preheader = f"Activá el perfil de {_plain(name)} en AMO Life."
+    preheader = f"Activa el perfil de {_plain(name)} en AMO Life."
     inner = f"""
   <tr><td align="center" style="padding:22px 34px 2px;">
     <div style="font-family:{_SERIF};font-size:25px;color:{_TEXT};">Te invitamos a AMO Life</div>
@@ -313,7 +313,7 @@ async def send_partner_invite_email(*, to: str, name: str, activation_url: str, 
     <p style="margin:0 0 8px;font-family:{_SANS};font-size:16px;color:{_TEXT};">Hola {_safe(name)},</p>
     <p style="margin:0 0 22px;font-family:{_SANS};font-size:14px;line-height:1.6;color:{_MUTED};">
       Tu negocio <b style="color:{_GOLD_BRIGHT};">{_safe(name)}{cat}</b> fue seleccionado para estar en
-      AMO Life — la guía y concierge de la ciudad. Activá tu perfil para gestionar tus fotos,
+      AMO Life — la guía y concierge de la ciudad. Activa tu perfil para gestionar tus fotos,
       horarios y reservas por WhatsApp, y aparecer ante miles de viajeros y locales.
     </p>
   </td></tr>
@@ -325,8 +325,8 @@ async def send_partner_invite_email(*, to: str, name: str, activation_url: str, 
     </p>
   </td></tr>"""
     text = (f"Hola {_plain(name)},\n\nTu negocio {_plain(name)}{(' - '+_plain(category)) if category else ''} "
-            f"fue invitado a AMO Life. Activá tu perfil aquí:\n{activation_url}\n\n— AMO Life · {SITE}")
-    return await _send_email(to=to, subject="Activá tu negocio en AMO Life 🌴",
+            f"fue invitado a AMO Life. Activa tu perfil aquí:\n{activation_url}\n\n— AMO Life · {SITE}")
+    return await _send_email(to=to, subject="Activa tu negocio en AMO Life 🌴",
                              html=_shell(preheader=preheader, inner=inner), text=text,
                              log_label="Invitación de negocio")
 
@@ -346,7 +346,7 @@ async def send_venue_approved_email(*, to: str, name: str) -> bool:
   </td></tr>
   {_button("Gestionar mi negocio →", f"{SITE}/business/login")}"""
     text = (f"¡{_plain(name)} ya está en vivo en AMO Life!\n"
-            f"Gestioná tu perfil: {SITE}/business/login\n\n— AMO Life")
+            f"Gestiona tu perfil: {SITE}/business/login\n\n— AMO Life")
     return await _send_email(to=to, subject=f"¡{_plain(name)} ya está en AMO Life! 🌴",
                              html=_shell(preheader=preheader, inner=inner), text=text,
                              log_label="Negocio aprobado")
@@ -379,7 +379,7 @@ async def send_itinerary_email(*, to: str, title: str, stops: list, subtitle: st
     {f'<div style="font-family:{_SANS};font-size:13px;color:{_MUTED};margin-top:6px;">{sub}</div>' if sub else ''}
   </td></tr>
   <tr><td style="padding:24px 34px 8px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">{rows or '<tr><td style="color:'+_MUTED+';font-family:'+_SANS+';font-size:14px;">Tu plan está vacío — agregá lugares en la app.</td></tr>'}</table>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">{rows or '<tr><td style="color:'+_MUTED+';font-family:'+_SANS+';font-size:14px;">Tu plan está vacío — agrega lugares en la app.</td></tr>'}</table>
   </td></tr>
   {_button("Abrir en AMO Life →", SITE)}"""
     tlines = []

@@ -580,7 +580,7 @@ export default function HomeScreen() {
                 { icon: 'calendar',       label: s('home_agenda'),     subtitle: s('home_today'),       color: '#F97316', route: '/(tabs)/agenda', cat: '' },
                 { icon: 'compass',        label: tr('Explorar'),       subtitle: tr('Lugares'),         color: '#3B82F6', route: '/(tabs)/explore', cat: '' },
                 { icon: 'ribbon',         label: tr('Pasaporte'),      subtitle: tr('Sellos'),          color: '#12B5A5', route: '/(tabs)/pasaporte', cat: '' },
-                { icon: 'briefcase',      label: tr('Mi Viaje'),       subtitle: tr('Planeá con tu grupo'), color: '#8B5CF6', route: '/viaje', cat: '' },
+                { icon: 'briefcase',      label: tr('Mi Viaje'),       subtitle: tr('Planea con tu grupo'), color: '#8B5CF6', route: '/viaje', cat: '' },
                 { icon: 'medkit',         label: tr('Esenciales'),     subtitle: tr('Todo lo básico'),  color: '#14B8A6', route: '/esenciales', cat: '' },
                 { icon: 'shield-checkmark', label: tr('Sin sustos'),   subtitle: tr('Precios+Tips'),    color: '#22C55E', route: '/seguridad', cat: '' },
                 { icon: 'musical-notes',  label: s('home_concerts'),   subtitle: s('home_live'),        color: '#A855F7', route: '/concerts', cat: 'club' },

@@ -20,7 +20,7 @@ export const t: Translations = {
   es: {
     // Assistant (AI Concierge "Amo")
     assistant_subtitle: 'Concierge IA · Cartagena',
-    assistant_placeholder: 'Escribe lo que necesitás…',
+    assistant_placeholder: 'Escribe lo que necesitas…',
     assistant_new_chat: 'Nuevo chat',
     assistant_close: 'Cerrar',
 

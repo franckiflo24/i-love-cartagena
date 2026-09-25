@@ -163,7 +163,7 @@ const FAB_STR: Record<Lang, { preview: string; slow: string; nohit: string }> = 
   es: {
     preview: 'Ideas al instante mientras Luna arma la respuesta completa:',
     slow: 'Luna le sigue dando vueltas a tu respuesta — mientras, esto es real y está cerca:',
-    nohit: 'La señal está lenta por acá. Probá de nuevo en un momento y seguimos 🙏',
+    nohit: 'La señal está lenta por acá. Prueba de nuevo en un momento y seguimos 🙏',
   },
   en: {
     preview: 'Instant ideas while Luna puts together the full answer:',
@@ -187,7 +187,7 @@ const FAB_STR: Record<Lang, { preview: string; slow: string; nohit: string }> = 
 // this they've already tasted Luna for real, so the copy reinforces what they'd
 // KEEP (not what they're missing), and routes through the same login/signup CTA.
 const GUEST_LIMIT: Record<Lang, { msg: string; cta: string }> = {
-  es: { msg: 'Creá tu cuenta gratis y sigo siendo tu concierge, sin límites 🌙', cta: 'Crear cuenta gratis' },
+  es: { msg: 'Crea tu cuenta gratis y sigo siendo tu concierge, sin límites 🌙', cta: 'Crear cuenta gratis' },
   en: { msg: "Create a free account and I'll keep being your concierge — no limits 🌙", cta: 'Create free account' },
   fr: { msg: 'Créez un compte gratuit et je reste votre concierge — sans limites 🌙', cta: 'Créer un compte gratuit' },
   pt: { msg: 'Crie uma conta grátis e eu continuo sendo sua concierge — sem limites 🌙', cta: 'Criar conta grátis' },

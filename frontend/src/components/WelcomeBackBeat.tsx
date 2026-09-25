@@ -77,7 +77,7 @@ export default function WelcomeBackBeat() {
           <Text style={styles.heading} numberOfLines={1}>{heading}</Text>
           <Text style={styles.sub} numberOfLines={2}>
             {streakLabel ? `${streakLabel} · ` : ''}
-            {nowLine || 'Cartagena te espera — ¿qué querés hacer hoy?'}
+            {nowLine || 'Cartagena te espera — ¿qué quieres hacer hoy?'}
           </Text>
         </View>
         <TouchableOpacity onPress={dismiss} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>

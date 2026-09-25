@@ -21,7 +21,6 @@ const CATEGORIES = [
 
 const SUGGESTED_FLYERS = [
   'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=1000&fit=crop',
-  'https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=800&h=1000&fit=crop',
   'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=1000&fit=crop',
   'https://images.unsplash.com/photo-1495567720989-cebdbdd97913?w=800&h=1000&fit=crop',
   'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&h=1000&fit=crop',

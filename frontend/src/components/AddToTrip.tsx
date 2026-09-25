@@ -71,7 +71,7 @@ export default function AddToTrip({ refType, refId, name, compact, style }: Prop
         setTimeout(() => { setDone(null); setOpen(false); }, 1400);
       }
     } catch {
-      setError(tr('No se pudo agregar. Intentá de nuevo.'));
+      setError(tr('No se pudo agregar. Intenta de nuevo.'));
     } finally {
       setLoading(false);
     }
@@ -90,7 +90,7 @@ export default function AddToTrip({ refType, refId, name, compact, style }: Prop
         await addTo({ trip_id: t.trip_id, name: t.name, items_count: 0, my_role: 'owner' });
       }
     } catch {
-      setError(tr('No se pudo agregar. Intentá de nuevo.'));
+      setError(tr('No se pudo agregar. Intenta de nuevo.'));
     } finally {
       setLoading(false);
     }
@@ -151,7 +151,7 @@ export default function AddToTrip({ refType, refId, name, compact, style }: Prop
                     </TouchableOpacity>
                   ))}
                   {!trips.length && !creating ? (
-                    <Text style={styles.empty}>{tr('Todavía no tenés viajes — creá el primero.')}</Text>
+                    <Text style={styles.empty}>{tr('Todavía no tienes viajes — crea el primero.')}</Text>
                   ) : null}
                 </ScrollView>
                 {creating ? (

@@ -63,7 +63,7 @@ export default function EsencialesScreen() {
           )}
           <View style={{ flex: 1 }}>
             <Text style={styles.title}>{tr('Esenciales')}</Text>
-            <Text style={styles.subtitle}>{tr('Todo lo que necesitás en Cartagena — verificado')}</Text>
+            <Text style={styles.subtitle}>{tr('Todo lo que necesitas en Cartagena — verificado')}</Text>
           </View>
         </View>
 
@@ -113,7 +113,7 @@ export default function EsencialesScreen() {
                                 <Text style={styles.entryValue}>
                                   {e.value_cop !== undefined ? fmtCop(e.value_cop) : pick(e, ['value_text', 'line', 'character'])}
                                 </Text>
-                                {e.confidence === 'VERIFY' ? <Text style={styles.verify}>{tr('confirmá')}</Text> : null}
+                                {e.confidence === 'VERIFY' ? <Text style={styles.verify}>{tr('confirma')}</Text> : null}
                               </View>
                             ))}
                             {!!d.resolve_via && (

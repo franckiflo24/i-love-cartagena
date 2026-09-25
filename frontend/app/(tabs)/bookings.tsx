@@ -21,6 +21,7 @@ import {
 } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useTr } from '../../src/i18n/autoTr';
+import { useAuth } from '../../src/context/AuthContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -353,6 +354,26 @@ function ErrorBookings({ onRetry }: { onRetry: () => void }) {
   );
 }
 
+// Guests have no bookings to load — every source is auth-only. Since the static
+// `[]` fallback no longer masks 401s, a guest used to land on "couldn't load the
+// information / check your connection". Invite them to sign in instead.
+function GuestBookings({ onSignIn }: { onSignIn: () => void }) {
+  const tr = useTr();
+  return (
+    <View style={styles.emptyWrap}>
+      <View style={styles.emptyIconCircle}>
+        <Ionicons name="bookmark-outline" size={40} color={COLORS.textMuted} />
+      </View>
+      <Text style={styles.emptyTitle}>{tr('Tus reservas y tiquetes, en un solo lugar')}</Text>
+      <Text style={styles.emptyText}>{tr('Inicia sesión para ver tus reservas, City Pass y tiquetes de la tasa portuaria.')}</Text>
+      <TouchableOpacity style={styles.emptyBtn} onPress={onSignIn} activeOpacity={0.85}>
+        <Ionicons name="person-circle-outline" size={15} color={COLORS.white} />
+        <Text style={styles.emptyBtnText}>{tr('Iniciar sesión')}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 // ── Main screen ───────────────────────────────────────────────────────────────
 
 const TABS: { key: TabKey; label: string }[] = [
@@ -364,6 +385,7 @@ const TABS: { key: TabKey; label: string }[] = [
 export default function BookingsScreen() {
   const router = useRouter();
   const tr = useTr();
+  const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState<TabKey>('upcoming');
   const [allBookings, setAllBookings] = useState<UnifiedBooking[]>([]);
@@ -374,6 +396,7 @@ export default function BookingsScreen() {
   const [error, setError] = useState(false);
 
   const fetchAll = useCallback(async () => {
+    if (!user) { setAllBookings([]); setError(false); return; } // guests: nothing to fetch (all 401)
     const results = await Promise.allSettled([
       api.get('/reservations/my'),
       api.get('/experience-bookings'),
@@ -426,7 +449,7 @@ export default function BookingsScreen() {
     // Only a total wipe-out (all 4 sources rejected) is a real error; any success
     // means the list is trustworthy and an empty result is genuinely empty.
     setError(results.every((r) => r.status === 'rejected'));
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     setLoading(true);
@@ -591,7 +614,9 @@ export default function BookingsScreen() {
           />
         }
         ListEmptyComponent={
-          error ? (
+          !user ? (
+            <GuestBookings onSignIn={() => router.push({ pathname: '/login' as any, params: { next: '/bookings' } })} />
+          ) : error ? (
             <ErrorBookings onRetry={onRefresh} />
           ) : (
             <EmptyBookings

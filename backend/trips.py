@@ -89,7 +89,7 @@ async def _trip_for(user_id: str, trip_id: str, min_role: str) -> Dict[str, Any]
         raise HTTPException(status_code=404, detail="Viaje no encontrado / Trip not found")
     me = next((m for m in trip.get("members", []) if m.get("user_id") == user_id), None)
     if not me or ROLE_RANK.get(me.get("role"), 0) < ROLE_RANK[min_role]:
-        raise HTTPException(status_code=403, detail="No tenés acceso a este viaje / You don't have access to this trip")
+        raise HTTPException(status_code=403, detail="No tienes acceso a este viaje / You don't have access to this trip")
     trip["_my_role"] = me.get("role")
     return trip
 

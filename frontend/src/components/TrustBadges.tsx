@@ -57,7 +57,7 @@ export function TrustBadges({ partner }: { partner: any }) {
       {open === 'p' && !!pr && (
         <Text style={styles.detail}>
           {pr.label || priceLabel} · {pr.confidence === 'HIGH' ? `${tr('oficial')} ${pr.source_year}` : `${pr.source} · ${pr.source_year}`}
-          {'\n'}{tr('Los precios cambian — confirmá en el lugar.')}
+          {'\n'}{tr('Los precios cambian — confirma en el lugar.')}
         </Text>
       )}
     </View>

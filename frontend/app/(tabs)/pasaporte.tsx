@@ -19,7 +19,7 @@ import { COLORS, SPACING, RADIUS, FONTS, TYPE, colorForKey } from '../../src/con
 import { SafeImage } from '../../src/components/SafeImage';
 import { useTr } from '../../src/i18n/autoTr';
 import { useAuth } from '../../src/context/AuthContext';
-import { geoService, GeoState, haversineM } from '../../src/lib/geo';
+import { geoService, GeoState, haversineM, fmtDistance } from '../../src/lib/geo';
 import {
   getCollections, getPassport, discover, mintShareLink, CollectionsDef, Passport, CollectionVenue,
   groupsMine, groupCreate, groupJoin, groupLeave, GroupStanding,
@@ -44,10 +44,7 @@ const PLATE_ICONS: Record<string, string> = {
   cafe_origen: '☕', coctel_autor: '🍸', mojito: '🌿', ron: '🥃', postre_autor: '🍮',
 };
 
-function fmtDist(m: number): string {
-  if (m < 1000) return `a ${Math.round(m / 10) * 10}m`;
-  return `a ${(m / 1000).toFixed(1)}km`;
-}
+const fmtDist = fmtDistance;
 
 function nearestVenueDist(venues: CollectionVenue[], geo: GeoState): number | null {
   const pos = geo.status === 'granted' ? geo.position : null;
@@ -499,7 +496,7 @@ export default function PasaporteScreen() {
                 </View>
                 {!!saboresPull && (saboresPull.almostLabel ? (
                   <View style={styles.almostCard}>
-                    <Text style={styles.almostTitle}>✨ {tr('¡Casi lo tenés!')}</Text>
+                    <Text style={styles.almostTitle}>✨ {tr('¡Casi lo tienes!')}</Text>
                     <Text style={styles.almostText}>
                       {tr('Solo falta')}: {saboresPull.almostLabel}
                       {saboresPull.nearest ? ` — ${fmtDist(saboresPull.nearest.d)}` : ''}
@@ -552,7 +549,7 @@ export default function PasaporteScreen() {
                 </View>
                 {!!plazasPull && (plazasPull.almostLabel ? (
                   <View style={styles.almostCard}>
-                    <Text style={styles.almostTitle}>✨ {tr('¡Casi lo tenés!')}</Text>
+                    <Text style={styles.almostTitle}>✨ {tr('¡Casi lo tienes!')}</Text>
                     <Text style={styles.almostText}>
                       {tr('Solo falta')}: {plazasPull.almostLabel}
                       {plazasPull.nearest ? ` — ${fmtDist(plazasPull.nearest.d)}` : ''}

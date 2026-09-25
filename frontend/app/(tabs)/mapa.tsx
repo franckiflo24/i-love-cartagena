@@ -14,7 +14,7 @@ import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTr } from '../../src/i18n/autoTr';
-import { geoService, haversineM } from '../../src/lib/geo';
+import { geoService, haversineM, fmtDistance } from '../../src/lib/geo';
 import { getCollections } from '../../src/lib/passport';
 import { getVenues } from '../../src/lib/venueCache';
 import { venueBarrio, NBH_LABELS, NbhCentroid } from '../../src/utils/neighborhood';
@@ -72,9 +72,7 @@ const FILTERS = [
 
 const GOLD = COLORS.mustard; // passport pins — distinct gold accent, never teal
 
-function fmtLiveDist(m: number): string {
-  return m < 1000 ? `a ${Math.round(m / 10) * 10}m de ti` : `a ${(m / 1000).toFixed(1)}km de ti`;
-}
+const fmtLiveDist = fmtDistance;
 
 // Marker color per place: delegates to the app's shared colorForKey() spectrum
 // (src/constants/theme.ts) instead of a parallel hardcoded table — that old table

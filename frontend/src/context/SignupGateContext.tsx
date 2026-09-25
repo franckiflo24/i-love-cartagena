@@ -109,7 +109,7 @@ export const SignupGateProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               {[
                 ['sparkles', 'Luna, tu concierge — sin límites'],
                 ['ribbon', 'Tu pasaporte, sellos y títulos'],
-                ['briefcase', 'Viajes que planeás con tu grupo'],
+                ['briefcase', 'Viajes que planeas con tu grupo'],
               ].map(([icon, label]) => (
                 <View key={label} style={styles.perkRow}>
                   <Ionicons name={icon as any} size={15} color={GOLD} />

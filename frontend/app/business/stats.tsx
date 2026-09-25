@@ -80,7 +80,8 @@ export default function StatsDetail() {
     setRefreshing(false);
   };
 
-  useEffect(() => { load(); }, [statType, token]);
+  // No token yet (cold refresh) → don't fire "Bearer null" requests that 401.
+  useEffect(() => { if (token) load(); }, [statType, token]);
 
   // ── Derived data per stat type ──
   const filteredEvents = useMemo(() => {

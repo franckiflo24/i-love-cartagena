@@ -1,6 +1,6 @@
 // "Cartagena sin sustos" — the trust & safety sheet (Drop 7C).
 // Content served verbatim from the tiered trust knowledge base: HIGH facts
-// carry their year; VERIFY facts are ranges with the confirmá hedge. The
+// carry their year; VERIFY facts are ranges with the confirma hedge. The
 // zones are "zonas turísticas principales" — never a safety guarantee, and
 // no area is ever labeled dangerous.
 
@@ -60,7 +60,7 @@ export default function SeguridadScreen() {
               <Ionicons name="call" size={22} color="#EF4444" />
               <View style={{ flex: 1 }}>
                 <Text style={styles.emergencyNum}>123</Text>
-                <Text style={styles.emergencySub}>{tr('Emergencias nacionales — gratis, 24/7. Marcá directo, sin +57.')}</Text>
+                <Text style={styles.emergencySub}>{tr('Emergencias nacionales — gratis, 24/7. Marca directo, sin +57.')}</Text>
               </View>
             </View>
 
@@ -85,7 +85,7 @@ export default function SeguridadScreen() {
                   <Text style={styles.priceValue}>{fmtCop(e.value_cop)}</Text>
                 </View>
               ))}
-              <Text style={styles.priceNote}>{tr('Fuente: Decreto 0051 y entes oficiales, 2026. Los taxis no tienen taxímetro: acordá el precio antes de subir.')}</Text>
+              <Text style={styles.priceNote}>{tr('Fuente: Decreto 0051 y entes oficiales, 2026. Los taxis no tienen taxímetro: acuerda el precio antes de subir.')}</Text>
             </View>
 
             {/* Zones */}
@@ -108,12 +108,12 @@ export default function SeguridadScreen() {
             </View>
 
             {/* RNT */}
-            <Text style={styles.sectionTitle}>{tr('Exigí el RNT')}</Text>
+            <Text style={styles.sectionTitle}>{tr('Exige el RNT')}</Text>
             <View style={styles.tipCard}>
               <Ionicons name="shield-checkmark" size={18} color={COLORS.primary} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.tipText}>
-                  {tr('Todo operador turístico legal en Colombia debe tener Registro Nacional de Turismo (RNT). Pedilo antes de comprar un tour — verificalo gratis:')}
+                  {tr('Todo operador turístico legal en Colombia debe tener Registro Nacional de Turismo (RNT). Pedilo antes de comprar un tour — verifícalo gratis:')}
                 </Text>
                 <TouchableOpacity onPress={() => Linking.openURL('https://www.rues.org.co')}>
                   <Text style={styles.link}>rues.org.co →</Text>

@@ -194,7 +194,7 @@ Respondé SOLO con JSON válido: {"<partner_id>": ["item 1", "item 2", ...], ...
 
 Reglas ESTRICTAS:
 - Extraé ÚNICAMENTE platos, bebidas o experiencias específicas MENCIONADAS EXPLÍCITAMENTE en los textos del negocio. Esto es EXTRACCIÓN, no invención.
-- JAMÁS inventes un plato que el texto no menciona. Si el texto solo dice "restaurante de comida italiana" sin platos concretos, devolvé [].
+- JAMÁS inventes un plato que el texto no menciona. Si el texto solo dice "restaurante de comida italiana" sin platos concretos, devuelve [].
 - Normalizá a nombre de plato corto (2-6 palabras): "paella valenciana", "ceviche de camarón", "gin & tonic de botánicos".
 - 0 a 6 items por negocio. Genéricos como "comida", "cocteles", "buena atención" NO cuentan.
 - Incluí TODOS los partner_id recibidos."""

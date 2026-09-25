@@ -157,7 +157,7 @@ Reglas:
 - Ignorá ruido: typos sueltos, pruebas ("test", "asdf"), nombres propios sin señal de demanda, queries de una sola letra.
 - est_requests = suma de counts de la evidencia (sé honesto, no infles).
 - leads ordenados por potencial comercial (demanda × plausibilidad de firmar ese negocio en Cartagena). Máx 8 leads, 10 gaps, 8 fixes.
-- Si los datos son pocos, decilo en summary y devolvé listas cortas — jamás inventes demanda."""
+- Si los datos son pocos, dilo en summary y devuelve listas cortas — jamás inventes demanda."""
 
 
 async def _mine(days: int) -> Dict[str, Any]:

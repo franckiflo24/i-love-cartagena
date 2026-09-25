@@ -141,7 +141,7 @@ export function StampCelebration({ data, onClose, onShare }: Props) {
             onPress={onShare}
             activeOpacity={0.85}
           >
-            <Text style={[styles.ctaText, { color: '#0A0A0A' }]}>{tr('¡Lo lograste! Compartí tu sello')}</Text>
+            <Text style={[styles.ctaText, { color: '#0A0A0A' }]}>{tr('¡Lo lograste! Comparte tu sello')}</Text>
           </TouchableOpacity>
         ) : null}
         <TouchableOpacity style={styles.cta} onPress={onClose} activeOpacity={0.85}>

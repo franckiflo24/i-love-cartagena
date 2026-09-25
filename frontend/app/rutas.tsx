@@ -19,7 +19,7 @@ import { api } from '../src/constants/api';
 import { SafeImage } from '../src/components/SafeImage';
 import { useTr } from '../src/i18n/autoTr';
 import { useAuth } from '../src/context/AuthContext';
-import { geoService, GeoState, haversineM } from '../src/lib/geo';
+import { geoService, GeoState, haversineM, fmtDistance } from '../src/lib/geo';
 
 const SEAL_RADIUS_M = 75;
 
@@ -36,9 +36,7 @@ interface Trail {
   partner_reward?: { title?: string } | null;
 }
 
-function fmtDist(m: number): string {
-  return m < 1000 ? `a ${Math.round(m / 10) * 10}m` : `a ${(m / 1000).toFixed(1)}km`;
-}
+const fmtDist = fmtDistance;
 
 export default function RutasScreen() {
   const router = useRouter();

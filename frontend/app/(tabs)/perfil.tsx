@@ -216,7 +216,7 @@ export default function PerfilScreen() {
               <Ionicons name="person-circle-outline" size={56} color={COLORS.icon} />
             </View>
             <Text style={styles.guestTitle}>{s('profile_login')}</Text>
-            <Text style={styles.guestSubtitle}>{tr('Tu pasaporte de Cartagena te espera. Creá tu cuenta gratis y desbloqueá todo.')}</Text>
+            <Text style={styles.guestSubtitle}>{tr('Tu pasaporte de Cartagena te espera. Crea tu cuenta gratis y desbloquea todo.')}</Text>
           </View>
 
           {/* Drop FOMO: name the magic they unlock — desire, not a bare prompt. */}
@@ -224,7 +224,7 @@ export default function PerfilScreen() {
             {[
               ['ribbon', tr('Tu pasaporte: sellos y títulos de Cartagena')],
               ['sparkles', tr('Luna, tu concierge personal — sin límites')],
-              ['card', tr('City Pass y viajes que planeás con tu grupo')],
+              ['card', tr('City Pass y viajes que planeas con tu grupo')],
             ].map(([icon, label]) => (
               <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 11 }}>
                 <Ionicons name={icon as any} size={16} color={COLORS.icon} />

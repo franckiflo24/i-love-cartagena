@@ -100,12 +100,12 @@ Respondé SOLO con JSON válido, sin markdown, con esta forma exacta:
 {"clear": false, "pulses": [{"type": "live_music|happy_hour|special|event|availability|closure|other", "title": "titulo corto (max 60 chars, idioma del negocio)", "details": "detalle breve opcional", "start_time": "HH:MM o null", "end_time": "HH:MM o null"}], "reply": "confirmación breve y cálida en el idioma del mensaje, con 1 emoji"}
 
 Reglas:
-- Máximo 3 pulses por mensaje. Si el mensaje no describe nada de hoy (saludo, pregunta), devolvé pulses=[] y en reply explicá amablemente qué pueden enviar (ej: "hoy: música en vivo 8pm").
-- Si el mensaje pide borrar/cancelar lo publicado, devolvé {"clear": true, "pulses": [], "reply": "confirmación de borrado"}.
+- Máximo 3 pulses por mensaje. Si el mensaje no describe nada de hoy (saludo, pregunta), devuelve pulses=[] y en reply explicá amablemente qué pueden enviar (ej: "hoy: música en vivo 8pm").
+- Si el mensaje pide borrar/cancelar lo publicado, devuelve {"clear": true, "pulses": [], "reply": "confirmación de borrado"}.
 - Horas en formato 24h HH:MM. No inventes horas ni datos que no estén en el mensaje.
 - title SIEMPRE presente y autocontenido (ej: "Música en vivo 20:00", "2x1 mojitos hasta 21:00").
 - Solo describí lo que pasa en ESTE negocio. Nunca menciones, compares ni nombres a otro negocio, y no generes afirmaciones no verificables tipo "el mejor de Cartagena" o "el único autorizado".
-- Si el mensaje incluye una lista "candidatos" (varios negocios comparten este número), agregá "target_partner_id" al nivel superior con el partner_id del negocio que MEJOR corresponde al contenido del mensaje (ej: promo de cócteles → el bar; plato/cena → el restaurante). Si no es claro, usá el primero."""
+- Si el mensaje incluye una lista "candidatos" (varios negocios comparten este número), agrega "target_partner_id" al nivel superior con el partner_id del negocio que MEJOR corresponde al contenido del mensaje (ej: promo de cócteles → el bar; plato/cena → el restaurante). Si no es claro, usa el primero."""
 
 
 async def _parse_pulse(raw_text: str, candidates: Optional[List[Dict[str, Any]]] = None) -> Optional[Dict[str, Any]]:
@@ -114,7 +114,7 @@ async def _parse_pulse(raw_text: str, candidates: Optional[List[Dict[str, Any]]]
     prompt = f"Ahora en Cartagena: {now_bog}\n"
     if candidates and len(candidates) > 1:
         cand = [{"partner_id": c["partner_id"], "name": c.get("name"), "category": c.get("category")} for c in candidates]
-        prompt += f"candidatos (elegí target_partner_id): {json.dumps(cand, ensure_ascii=False)}\n"
+        prompt += f"candidatos (elige target_partner_id): {json.dumps(cand, ensure_ascii=False)}\n"
     prompt += f"Mensaje del negocio:\n{raw_text[:500]}"
     out = await llm_complete(
         PARSE_SYSTEM,

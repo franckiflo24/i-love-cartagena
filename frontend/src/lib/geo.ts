@@ -66,6 +66,18 @@ export function haversineM(lat1: number, lng1: number, lat2: number, lng2: numbe
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+/**
+ * Language-neutral distance label ("120 m", "1.2 km", "5563 km"). The old
+ * per-screen helpers baked Spanish in ("a 120m de ti"), which showed on
+ * English/French/Portuguese UIs.
+ */
+export function fmtDistance(m: number): string {
+  if (!Number.isFinite(m)) return '';
+  if (m < 1000) return `${Math.round(m / 10) * 10} m`;
+  const km = m / 1000;
+  return km < 100 ? `${km.toFixed(1)} km` : `${Math.round(km)} km`;
+}
+
 /** Initial bearing (degrees, 0 = North, clockwise) from point 1 to point 2. */
 export function bearingDeg(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const p1 = (lat1 * Math.PI) / 180;

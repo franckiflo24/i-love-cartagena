@@ -129,7 +129,7 @@ def _gem_reveal_line(r: Dict[str, Any]) -> Optional[str]:
     if exp and len(exp.split()) <= 12:
         return exp[:90]
     if dishes:
-        return f"Probá: {str(dishes[0])[:70]}"
+        return f"Prueba: {str(dishes[0])[:70]}"
     for t in (r.get("tags") or []):
         if t in _TAG_LINES:
             return _TAG_LINES[t]
@@ -1531,7 +1531,7 @@ _trust_pub_cache: Dict[str, Any] = {}
 async def trust_reference(request: Request):
     """PUBLIC tiered trust knowledge — powers the 'Cartagena sin sustos'
     sheet and price answers. HIGH entries carry a year; VERIFY entries carry
-    ranges + the confirmá hedge. Served verbatim from the seeded file."""
+    ranges + the confirma hedge. Served verbatim from the seeded file."""
     await _check_rate_limit(f"trustref:{_client_ip(request)}", max_calls=60, window_sec=60)
     if not _trust_pub_cache:
         try:

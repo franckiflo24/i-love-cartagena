@@ -78,8 +78,8 @@ export default function MisViajesScreen() {
         ) : needsLogin ? (
           <View style={styles.emptyBox}>
             <Ionicons name="briefcase-outline" size={44} color={COLORS.primary} />
-            <Text style={styles.emptyTitle}>{tr('Planeá tu viaje a Cartagena')}</Text>
-            <Text style={styles.emptyText}>{tr('Guardá lugares, armá tus días y planeá en grupo. Iniciá sesión para empezar.')}</Text>
+            <Text style={styles.emptyTitle}>{tr('Planea tu viaje a Cartagena')}</Text>
+            <Text style={styles.emptyText}>{tr('Guarda lugares, arma tus días y planea en grupo. Inicia sesión para empezar.')}</Text>
             <TouchableOpacity style={styles.cta} onPress={() => router.push({ pathname: '/login' as any, params: { next: '/viaje' } })}>
               <Text style={styles.ctaText}>{tr('Iniciar sesión')}</Text>
             </TouchableOpacity>
@@ -110,7 +110,7 @@ export default function MisViajesScreen() {
               <View style={styles.emptyBox}>
                 <Ionicons name="map-outline" size={44} color={COLORS.primary} />
                 <Text style={styles.emptyTitle}>{tr('Tu primer viaje empieza acá')}</Text>
-                <Text style={styles.emptyText}>{tr('Creá un viaje, agregá lugares desde cualquier parte de la app y compartilo con tu grupo.')}</Text>
+                <Text style={styles.emptyText}>{tr('Crea un viaje, agrega lugares desde cualquier parte de la app y compartilo con tu grupo.')}</Text>
               </View>
             ) : null}
 

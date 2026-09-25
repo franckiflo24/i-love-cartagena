@@ -224,7 +224,7 @@ export default function OnboardingArrival() {
                 <Text style={styles.stampHookText}>
                   {firstStamp.distance != null
                     ? `${tr('Tu primer sello')} · ${firstStamp.name} · ${firstStamp.distance} m`
-                    : `${tr('Empezá por')} ${firstStamp.name}${firstStamp.hint ? ` — ${tr(firstStamp.hint)}` : ''}`}
+                    : `${tr('Empieza por')} ${firstStamp.name}${firstStamp.hint ? ` — ${tr(firstStamp.hint)}` : ''}`}
                 </Text>
               ) : (
                 <Text style={styles.stampHookText}>{tr('Buscando tu primer sello…')}</Text>
