@@ -28,6 +28,13 @@
       "ios": {
         "resourceClass": "m-medium"
       }
+    },
+    "simulator": {
+      "distribution": "internal",
+      "environment": "production",
+      "ios": {
+        "simulator": true
+      }
     }
   },
   "submit": {
