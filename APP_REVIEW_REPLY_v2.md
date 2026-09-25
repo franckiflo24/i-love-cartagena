@@ -6,7 +6,7 @@ Three issues: **Guideline 4** (native maps), **2.1(a)** (partner account access)
 
 ## Status
 - ✅ **Guideline 4 (code):** fixed & committed (`9758a269`), web deployed, iOS **build 11** compiling on EAS (build `97c39dd5`). Every directions action now offers **Apple Maps** (first) or Google Maps on iOS.
-- ✅ **2.1(a):** demo PARTNER account live & verified — `elarsenal@amocartagena.app` / `AmoReview2026!` (El Arsenal Wellness, published venue + cover image + active promotion, verified_owner). Backup: `demo@amocartagena.app` / `AmoReview2026!` (Demo Sandbox, isolated). Login tested → HTTP 200.
+- ✅ **2.1(a):** demo PARTNER account live & verified — `elarsenal@amocartagena.app` / `[in App Store Connect review notes]` (El Arsenal Wellness, published venue + cover image + active promotion, verified_owner). Backup: `demo@amocartagena.app` / `[in App Store Connect review notes]` (Demo Sandbox, isolated). Login tested → HTTP 200.
 - ✅ **2.1(b):** confirmed by Phil (Sep 15) — **NO payments are active in this build.** No IAP, no functional external payments. City Pass shows "Próximamente"; the port-tax checkout is gated (shows a "pay at the pier" notice, no transaction completes). Business listings are sold off-app.
 
 ## ⚠️ One thing to check on the listing
@@ -16,9 +16,9 @@ The App Store **description** currently says *"Pay the official Rosario Islands 
 
 ## BLOCK 1 — paste into “App Review Information → Notes” (REPLACES the current text)
 
-DEMO TOURIST ACCOUNT (no email delivery needed): email applereview@amocartagena.co, code 246810. Sign in: tap "Continuar con email" > enter that email > tap "Enviar codigo" > enter 246810 > signed in. Account deletion: Perfil tab > "Eliminar mi cuenta" > confirm. Guest browsing works without an account ("Explorar como invitado").
+DEMO TOURIST ACCOUNT (no email delivery needed): email applereview@amocartagena.co, code [code in App Store Connect review notes]. Sign in: tap "Continuar con email" > enter that email > tap "Enviar codigo" > enter [code in App Store Connect review notes] > signed in. Account deletion: Perfil tab > "Eliminar mi cuenta" > confirm. Guest browsing works without an account ("Explorar como invitado").
 
-DEMO PARTNER / BUSINESS ACCOUNT (for Guideline 2.1a — the business dashboard): from the signed-in app, open the Perfil tab > "Partners" section > tap "Dashboard de negocio". This opens the business login (email + password). Email: elarsenal@amocartagena.app  Password: AmoReview2026!  This account owns a published venue (El Arsenal Wellness) with a cover image, an active promotion, and the stats / promotions / reservations dashboard, so all business features can be verified.
+DEMO PARTNER / BUSINESS ACCOUNT (for Guideline 2.1a — the business dashboard): from the signed-in app, open the Perfil tab > "Partners" section > tap "Dashboard de negocio". This opens the business login (email + password). Email: elarsenal@amocartagena.app  Password: [in App Store Connect review notes]  This account owns a published venue (El Arsenal Wellness) with a cover image, an active promotion, and the stats / promotions / reservations dashboard, so all business features can be verified.
 
 PURPOSE: Free city guide + AI concierge for Cartagena, Colombia. Curated directory of 850+ verified venues (restaurants, hotels, bars, beach clubs, experiences) with real reference prices and verified map locations; AI concierge (Luna); a map with walking routes; local events; and a landmark "passport". For tourists and residents.
 
@@ -49,11 +49,11 @@ We updated the App Review Information notes to reflect the above. Please let us 
 ---
 
 ## Sign-In Information (ASC fields)
-Leave the consumer account in the Sign-In Information username/password fields (applereview@amocartagena.co / 246810). Apple accepts the additional PARTNER account described in the Notes (Block 1) — one Sign-In field pair, extra accounts in Notes is standard.
+Leave the consumer account in the Sign-In Information username/password fields (applereview@amocartagena.co / [code in App Store Connect review notes]). Apple accepts the additional PARTNER account described in the Notes (Block 1) — one Sign-In field pair, extra accounts in Notes is standard.
 
 ## Pre-submit checklist for Phil
 - [ ] Wait for EAS build 11 (`97c39dd5`) to finish → in ASC, remove build 10 from the version, **Add Build → 11**, Save.
-- [x] Demo PARTNER account ready: elarsenal@amocartagena.app / AmoReview2026! (published venue + cover image + active promotion; login verified HTTP 200). A demo happy-hour promo was added to El Arsenal for review — clear it after approval if you like.
+- [x] Demo PARTNER account ready: elarsenal@amocartagena.app / [in App Store Connect review notes] (published venue + cover image + active promotion; login verified HTTP 200). A demo happy-hour promo was added to El Arsenal for review — clear it after approval if you like.
 - [ ] **Replace** the current App Review Notes with Block 1 (adds the partner account + Guideline-4 note; keeps the accurate "no payments" statement).
 - [ ] Paste Block 2 into the "Reply to App Review" message.
 - [ ] **Soften the description's port-tax line** so it doesn't promise active payment. Suggested: replace "Pay the official Rosario Islands port tax and coordinate reservations with the best spots — all from the app." with **"Find official Rosario Islands port-tax info and coordinate reservations with the best spots — all from the app."**

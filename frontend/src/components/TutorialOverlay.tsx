@@ -82,9 +82,26 @@ export function TutorialOverlay({ visible, onComplete, stops }: TutorialOverlayP
   );
 }
 
+// Profile's "Ver tutorial" lives on another screen than the (tabs) layout that
+// owns the overlay; clearing @tutorial_seen alone did nothing because the layout
+// only checks once on mount. The mounted hook registers here so the row can
+// replay it directly.
+let replayHandler: (() => void) | null = null;
+export function requestTutorialReplay(): boolean {
+  if (!replayHandler) return false;
+  replayHandler();
+  return true;
+}
+
 // Hook: manages tutorial state (shown once, replayable)
 export function useTutorial() {
   const [showTutorial, setShowTutorial] = useState(false);
+
+  useEffect(() => {
+    const h = () => setShowTutorial(true);
+    replayHandler = h;
+    return () => { if (replayHandler === h) replayHandler = null; };
+  }, []);
 
   const checkAndShow = async () => {
     if (Platform.OS !== 'web') return;

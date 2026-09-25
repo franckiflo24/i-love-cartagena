@@ -145,7 +145,7 @@ export default function ConciergeScreen() {
       }).catch(() => {});
     }
 
-    const reply = await askAgent(activeAgent, updated);
+    const reply = await askAgent(activeAgent, updated, lang);
     answered = true;
     setMessages([...updated, { role: 'assistant', content: reply }]);
     setLoading(false);

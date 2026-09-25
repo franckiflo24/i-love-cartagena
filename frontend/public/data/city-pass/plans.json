@@ -1,35 +1,59 @@
 [
   {
-    "plan_id": "day_pass",
-    "name": "Day Pass",
-    "price_cop": 75000,
-    "duration_days": 1,
-    "perks": [
-      "Transporte ilimitado",
-      "Descuentos en restaurantes",
-      "Acceso prioritario"
-    ]
-  },
-  {
-    "plan_id": "weekend",
-    "name": "Weekend Pass",
-    "price_cop": 180000,
-    "duration_days": 3,
-    "perks": [
-      "Day Pass beneficios",
-      "Acceso a beach clubs",
-      "Yacht discount"
-    ]
-  },
-  {
-    "plan_id": "week",
-    "name": "Week Pass",
-    "price_cop": 380000,
+    "plan_id": "pass_basic",
+    "name": "Explorer Pass",
+    "price": 99000,
+    "currency": "COP",
     "duration_days": 7,
-    "perks": [
-      "Weekend Pass beneficios",
-      "Spa session gratis",
-      "Cena de bienvenida"
+    "color": "#22C55E",
+    "benefits": [
+      "5% descuentos en restaurantes",
+      "Mapa interactivo premium",
+      "Soporte prioritario"
+    ]
+  },
+  {
+    "plan_id": "pass_classic",
+    "name": "Classic Pass",
+    "price": 200000,
+    "currency": "COP",
+    "duration_days": 12,
+    "color": "#3B82F6",
+    "benefits": [
+      "10% descuentos en restaurantes y bares",
+      "Entrada a eventos exclusivos",
+      "Transporte acuático incluido",
+      "Soporte VIP"
+    ]
+  },
+  {
+    "plan_id": "pass_premium",
+    "name": "Premium Pass",
+    "price": 350000,
+    "currency": "COP",
+    "duration_days": 12,
+    "color": "#D97706",
+    "benefits": [
+      "15% descuentos en restaurantes y bares",
+      "Acceso VIP a eventos y fiestas",
+      "Transporte acuático ilimitado",
+      "Tour privado por la ciudad amurallada",
+      "Concierge personal 24/7"
+    ]
+  },
+  {
+    "plan_id": "pass_ultimate",
+    "name": "Ultimate Pass",
+    "price": 599000,
+    "currency": "COP",
+    "duration_days": 30,
+    "color": "#A855F7",
+    "benefits": [
+      "20% descuentos universales",
+      "Acceso ilimitado a todo",
+      "Transporte privado incluido",
+      "Chef privado una noche",
+      "Concierge AI personalizado"
     ]
   }
 ]

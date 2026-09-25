@@ -147,7 +147,7 @@ async def push_test(request: Request):
     if not uid:
         raise HTTPException(status_code=400, detail="user_id required")
     result = await notify_user(db, uid,
-                               body.get("title") or "AMO Cartagena",
+                               body.get("title") or "AMO Life",
                                body.get("body") or "Prueba de notificación ✓",
                                body.get("url") or "/pasaporte")
     return result

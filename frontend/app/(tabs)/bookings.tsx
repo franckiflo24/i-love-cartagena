@@ -385,7 +385,9 @@ export default function BookingsScreen() {
 
     // Reservations
     if (results[0].status === 'fulfilled') {
-      const data = Array.isArray(results[0].value) ? results[0].value : [];
+      // /reservations/my returns { upcoming, past, total } — not an array.
+      const v = results[0].value;
+      const data = Array.isArray(v) ? v : [...(v?.upcoming || []), ...(v?.past || [])];
       data.forEach((r: Record<string, unknown>) => merged.push(normalizeReservation(r)));
     } else {
       console.error('[BookingsScreen] reservations', results[0].reason);

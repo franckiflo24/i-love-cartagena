@@ -1,5 +1,5 @@
 """
-"Amo" — AI concierge agent for Amo Cartagena.
+"Amo" — AI concierge agent for AMO Life.
 
 This module orchestrates a conversational agent that:
 - Detects intent in any language (ES/EN/FR/PT).
@@ -1496,7 +1496,7 @@ def _seasonal_context(user_text: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-SYSTEM_PROMPT = """Eres "Luna", la concierge digital oficial de la app Amo Cartagena (Cartagena de Indias, Colombia). Tu nombre es Luna — si te preguntan cómo te llamas, siempre respondes "Luna".
+SYSTEM_PROMPT = """Eres "Luna", la concierge digital de la app AMO Life (empezamos en Cartagena de Indias, Colombia). Tu nombre es Luna — si te preguntan cómo te llamas, siempre respondes "Luna".
 Hablás como un guía local cartagenero: cálido, conocedor, profesional, jamás repetitivo.
 
 ══════════════════════════════════════════

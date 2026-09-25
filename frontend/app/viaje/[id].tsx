@@ -8,7 +8,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput,
-  ActivityIndicator, RefreshControl, Modal, Platform, Alert,
+  ActivityIndicator, RefreshControl, Modal, Platform, Alert, Share,
 } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -113,11 +113,21 @@ export default function ViajeDetailScreen() {
       const res = await api.post(`/trips/${trip.trip_id}/share`, {});
       if (res?.url) {
         setShareUrl(res.url);
-        try {
-          await (navigator as any)?.clipboard?.writeText?.(res.url);
-          setCopied(true);
-          setTimeout(() => setCopied(false), 2000);
-        } catch { /* clipboard unavailable — the url is shown */ }
+        if (Platform.OS !== 'web') {
+          // No navigator.clipboard on native — the old optional-chained call
+          // resolved to undefined and still flashed "¡Link copiado!". Use the
+          // system share sheet (it includes Copy).
+          try { await Share.share({ message: `${trip.name} — ${res.url}`, url: res.url }); } catch { /* dismissed */ }
+        } else {
+          try {
+            const clip = (navigator as any)?.clipboard;
+            if (clip?.writeText) {
+              await clip.writeText(res.url);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }
+          } catch { /* clipboard unavailable — the url is shown */ }
+        }
         load();
       }
     } catch { /* owner-only — non-owners use the card below */ }
@@ -216,6 +226,8 @@ export default function ViajeDetailScreen() {
       </View>
 
       <ScrollView
+        automaticallyAdjustKeyboardInsets /* iOS: inputs near the bottom stay above the keyboard */
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ padding: SPACING.lg, paddingBottom: 140 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={COLORS.primary} />}
       >

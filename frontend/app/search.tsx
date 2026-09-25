@@ -701,7 +701,7 @@ export default function SearchScreen() {
           <Ionicons name="search" size={20} color={COLORS.primary} style={{ marginTop: 14 }} />
           <TextInput
             style={styles.searchInput}
-            placeholder={tr('Pregunta a Amo: cena romántica, paseo a Barú, mariscos…')}
+            placeholder={tr('Pregunta a Luna: cena romántica, paseo a Barú, mariscos…')}
             placeholderTextColor={COLORS.textMuted}
             value={query}
             onChangeText={setQuery}
@@ -812,7 +812,7 @@ export default function SearchScreen() {
                       {tr(INTENT_META[results!.ai!.intent]?.label || 'AI')}
                     </Text>
                   </View>
-                  <Text style={styles.aiBadge}>AMO IA</Text>
+                  <Text style={styles.aiBadge}>LUNA IA</Text>
                 </View>
 
                 {!!results!.ai!.answer && (
@@ -883,7 +883,7 @@ export default function SearchScreen() {
                   next="/search"
                   icon="sparkles"
                   title={tr('Luna tiene tu respuesta')}
-                  subtitle={tr('Preguntá lo que sea y Luna arma tu plan. Creá tu cuenta gratis para ver su respuesta completa.')}
+                  subtitle={tr('Pregunta lo que sea y Luna arma tu plan. Crea tu cuenta gratis para ver su respuesta completa.')}
                   cta={tr('Desbloquear Luna gratis')}
                   minHeight={150}
                 >

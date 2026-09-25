@@ -246,6 +246,29 @@ _LIST_FIELD_MAX: dict[str, tuple[int, int]] = {  # field -> (max items, max item
 # review → appended to photos). The primary image_url is admin-controlled.
 EDITABLE_FIELDS: set[str] = set(_TEXT_FIELD_MAX) | set(_LIST_FIELD_MAX)
 
+# Text fields the app opens as links for customers.
+_URL_FIELDS: tuple[str, ...] = ("website", "booking_link", "menu_link", "default_payment_link")
+
+
+_SCHEME_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+\-]*:")
+
+
+def _normalize_http_url(val: str, field: str) -> str:
+    # Reject only an explicit NON-http scheme (javascript:, data:, vbscript:,
+    # mailto:, file:…) — the dangerous case. Legacy free-text values without a
+    # scheme are normalized, not rejected: the edit form re-sends every field, so
+    # a strict check would lock a partner out of saving ANY change over one old
+    # junk value (the app never opens non-http links anyway — isHttpUrl guard).
+    v = val.strip()
+    if not v:
+        return v
+    low = v.lower()
+    if low.startswith(("http://", "https://")):
+        return v
+    if _SCHEME_RE.match(v) and not low.startswith("//"):
+        raise FirewallError(400, f"{field} debe ser un enlace http(s) válido / must be a valid http(s) link")
+    return "https://" + v.lstrip("/")  # "www.site.com" / "site.com/menu" → https
+
 # Fields a partner can NEVER write — editorial / trust / structural.
 # A request carrying ANY of these is hard-rejected (403) so the block is
 # observable, not silently dropped.
@@ -359,6 +382,14 @@ def sanitize_edit(body: dict) -> dict:
             if not isinstance(val, list) or not all(isinstance(x, str) for x in val):
                 raise FirewallError(400, f"{f} debe ser una lista de textos / must be a list of strings")
             update[f] = [x.strip()[:max_len] for x in val if x.strip()][:max_items]
+
+    # 3c) Link fields are opened by the app (Linking.openURL / window.open) for
+    #     customers — only http(s) may be stored. A bare "www.x.com" is normalized;
+    #     javascript:/data:/any other scheme is rejected (was: any string → a
+    #     partner could point a paying customer at a hostile URL).
+    for f in _URL_FIELDS:
+        if f in update and update[f]:
+            update[f] = _normalize_http_url(update[f], f)
 
     # Images are not in EDITABLE_FIELDS (they hard-403 as PROTECTED above); they
     # flow only through the moderated /business/media pipeline.

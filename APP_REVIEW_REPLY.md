@@ -8,8 +8,8 @@ Thank you for reviewing Amo Cartagena. Here is the requested information.
 
 **DEMO ACCOUNT (no email delivery needed):**
 - Email: `applereview@amocartagena.co`
-- Verification code: `246810`
-- How to sign in: Open the app → tap **"Continuar con email"** → enter the email above → tap **Enviar código** → enter code **246810** → you are signed in. The app uses passwordless email one-time codes; for this demo account the code is fixed, so no email is required.
+- Verification code: `[code in App Store Connect review notes]`
+- How to sign in: Open the app → tap **"Continuar con email"** → enter the email above → tap **Enviar código** → enter code **[code in App Store Connect review notes]** → you are signed in. The app uses passwordless email one-time codes; for this demo account the code is fixed, so no email is required.
 - Account deletion (required feature): **Perfil** tab → scroll down → **"Eliminar mi cuenta"** → confirm. This permanently deletes the account.
 - Guest access: Core browsing (places, map, events, AI concierge) works without an account — tap **"Explorar como invitado."**
 
@@ -47,7 +47,7 @@ Build 7 is on your iPhone via TestFlight. Record on the **physical device** (App
    - **Explorar / Partners** — scroll the venue cards (shows the real catalog + photos).
    - **Mapa** — show the pins.
    - **Concierge (Luna)** — open it, type a question, show a reply.
-   - **Sign up / log in**: tap "Continuar con email" → enter `applereview@amocartagena.co` → send code → enter `246810` → signed in.
+   - **Sign up / log in**: tap "Continuar con email" → enter `applereview@amocartagena.co` → send code → enter `[code in App Store Connect review notes]` → signed in.
    - **Perfil → Eliminar mi cuenta** → confirm (shows account deletion).
 4. Stop recording (tap the red bar → Stop). The video saves to Photos.
 5. In App Store Connect, reply to Apple and **attach the video**, and paste the text above into both the reply and the App Review Notes field.

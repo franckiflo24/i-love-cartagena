@@ -832,7 +832,7 @@ export default function ExploreScreen() {
           <Text style={styles.personalizationText}>
             {'\u2728'} {tr('Ordenado seg\u00fan tus preferencias')}
           </Text>
-          <Text style={styles.personalizationEdit}>Editar</Text>
+          <Text style={styles.personalizationEdit}>{tr('Editar')}</Text>
         </TouchableOpacity>
       )}
 
@@ -935,7 +935,8 @@ export default function ExploreScreen() {
           ) : (
             <FlatList
               data={featured}
-              keyExtractor={(item) => item.experience_id || item.partner_id || item.name || ''}
+              // Several featured experiences can share a partner_id — index keeps keys unique.
+              keyExtractor={(item, index) => `${item.experience_id || item.partner_id || item.name || 'f'}-${index}`}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.featuredList}

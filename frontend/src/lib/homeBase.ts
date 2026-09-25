@@ -3,13 +3,17 @@
 // driver. No more remembering a Spanish address in a foreign city.
 //
 // STORAGE: the base is saved to the signed-in user's ACCOUNT (server-side) so it
-// follows them across devices, AND cached in localStorage for instant, offline
+// follows them across devices, AND cached locally (localStorage on web, memory +
+// AsyncStorage on native) for instant, offline
 // reads. If the user isn't signed in, it stays device-local until they are, then
 // migrates up on the next sync. Only the owner can read it (auth-scoped endpoint).
 
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '../constants/api';
 
 const KEY = '@amo_home_base';
+const IS_WEB = Platform.OS === 'web';
 
 export interface HomeBase {
   lat: number;
@@ -18,9 +22,8 @@ export interface HomeBase {
   savedAt: number;
 }
 
-export function getHomeBase(): HomeBase | null {
+function parseBase(raw: string | null): HomeBase | null {
   try {
-    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(KEY) : null;
     if (!raw) return null;
     const b = JSON.parse(raw);
     if (typeof b?.lat === 'number' && typeof b?.lng === 'number') return b as HomeBase;
@@ -28,7 +31,32 @@ export function getHomeBase(): HomeBase | null {
   return null;
 }
 
+// Native has no localStorage (the base silently never persisted on iOS). There
+// the cache is in memory — getHomeBase() must stay synchronous — backed by
+// AsyncStorage and hydrated once at startup; syncHomeBase() awaits it.
+let nativeBase: HomeBase | null = null;
+let nativeTouched = false; // a write before hydration finishes must win
+const nativeHydrated: Promise<void> = IS_WEB
+  ? Promise.resolve()
+  : AsyncStorage.getItem(KEY)
+      .then((raw) => { if (!nativeTouched) nativeBase = parseBase(raw); })
+      .catch(() => { /* storage unavailable → no cached base */ });
+
+export function getHomeBase(): HomeBase | null {
+  if (!IS_WEB) return nativeBase;
+  try {
+    return parseBase(typeof localStorage !== 'undefined' ? localStorage.getItem(KEY) : null);
+  } catch { /* storage blocked */ }
+  return null;
+}
+
 function setHomeBaseLocal(b: HomeBase | null): void {
+  if (!IS_WEB) {
+    nativeBase = b;
+    nativeTouched = true;
+    (b ? AsyncStorage.setItem(KEY, JSON.stringify(b)) : AsyncStorage.removeItem(KEY)).catch(() => { /* storage blocked */ });
+    return;
+  }
   try {
     if (b) localStorage.setItem(KEY, JSON.stringify(b));
     else localStorage.removeItem(KEY);
@@ -65,6 +93,7 @@ async function pushHomeBaseToServer(b: HomeBase): Promise<void> {
 //  - signed-in + server empty + local exists → migrate local up, keep it
 //  - not signed in / offline → keep whatever is local
 export async function syncHomeBase(): Promise<HomeBase | null> {
+  await nativeHydrated;
   const local = getHomeBase();
   try {
     const res = await api.get('/profile/home-base');   // 401 if anonymous → throws

@@ -3,7 +3,7 @@
 // show a taxi driver. Device-only storage (see lib/homeBase).
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, Linking, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, Linking, Platform, KeyboardAvoidingView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { useTr } from '../i18n/autoTr';
@@ -85,6 +85,8 @@ export function HomeBaseSheet({ visible, onClose }: { visible: boolean; onClose:
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      {/* Label input sits in a bottom sheet — keep it above the iOS keyboard. */}
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.backdrop}>
         <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose} />
         <View style={styles.sheet}>
@@ -159,6 +161,7 @@ export function HomeBaseSheet({ visible, onClose }: { visible: boolean; onClose:
           )}
         </View>
       </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

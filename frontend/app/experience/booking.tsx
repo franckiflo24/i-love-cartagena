@@ -12,6 +12,7 @@ import { api } from '@/src/constants/api';
 import { useLang } from '@/src/context/LanguageContext';
 import { openWompiCheckout, checkWompiEnabled } from '@/src/lib/wompi';
 import { useTr } from '@/src/i18n/autoTr';
+import { bogotaDatePlus } from '@/src/lib/eventTime';
 
 export default function ExperienceBookingScreen() {
   const params = useLocalSearchParams<{ id: string; title: string; price: string; currency: string }>();
@@ -27,11 +28,8 @@ export default function ExperienceBookingScreen() {
   const totalPrice = pricePerPerson * guests;
   const currency = params.currency || 'COP';
 
-  const dates = Array.from({ length: 14 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() + i + 1);
-    return d.toISOString().split('T')[0];
-  });
+  // Cartagena's calendar (UTC skipped tomorrow after 19:00 Bogotá).
+  const dates = Array.from({ length: 14 }, (_, i) => bogotaDatePlus(i + 1));
 
   const formatDate = (iso: string) => {
     const d = new Date(iso + 'T12:00:00');

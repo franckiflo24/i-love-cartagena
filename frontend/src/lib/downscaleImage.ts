@@ -6,9 +6,10 @@
 //
 // On web we re-encode via <canvas>: cap the longest edge, then step quality (and,
 // if still too big, dimensions) down until the resulting data: URL is safely under
-// the cap. On native (no document/canvas) we return the input unchanged — the
-// picker `quality` is the only lever there; a resize lib (expo-image-manipulator)
-// would be the native follow-up.
+// the cap. On native there is no canvas — callers use downscaleUriNative()
+// (expo-image-manipulator) on the picked file URI instead.
+
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 
 // Measured against the FULL `data:image/jpeg;base64,...` string, exactly like the
 // server (`len(image_b64)`). Photos now go to Vercel Blob (URL, not inline base64),
@@ -78,4 +79,33 @@ function drawToJpeg(img: HTMLImageElement, maxDim: number, quality: number): str
   } catch {
     return null;
   }
+}
+
+/**
+ * Native counterpart of downscaleForUpload: resize a picked file URI (longest edge
+ * capped) and re-encode to JPEG until the data: URL fits the upload cap. Without
+ * it the iOS picker handed over full-resolution base64 (12–48MP) that blew past
+ * the ~4.5MB request limit → partner photo/flyer uploads 413'd.
+ */
+export async function downscaleUriNative(
+  uri: string,
+  size: { width?: number; height?: number } = {},
+  opts: { maxDim?: number; targetLen?: number } = {},
+): Promise<string> {
+  const targetLen = opts.targetLen ?? TARGET_LEN;
+  const landscape = (size.width ?? 0) >= (size.height ?? 0);
+  const longest = Math.max(size.width ?? 0, size.height ?? 0) || Infinity;
+  let dim = Math.min(opts.maxDim ?? 2048, longest);
+  let compress = 0.8;
+  for (let i = 0; i < 5; i++) {
+    const ctx = ImageManipulator.manipulate(uri);
+    if (Number.isFinite(dim)) ctx.resize(landscape ? { width: dim } : { height: dim });
+    const ref = await ctx.renderAsync();
+    const out = await ref.saveAsync({ compress, format: SaveFormat.JPEG, base64: true });
+    const dataUrl = `data:image/jpeg;base64,${out.base64 ?? ''}`;
+    if (out.base64 && dataUrl.length <= targetLen) return dataUrl;
+    dim = Math.round((Number.isFinite(dim) ? dim : 2048) * 0.75);
+    compress = Math.max(0.5, compress - 0.1);
+  }
+  throw new Error('La imagen es demasiado grande. Prueba con otra foto. / Image too large — try another photo.');
 }

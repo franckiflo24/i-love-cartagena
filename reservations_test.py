@@ -1,3 +1,4 @@
+import os
 """Backend tests for the new Reservations module (/app/backend/reservations.py).
 
 Hits the external preview URL (EXPO_PUBLIC_BACKEND_URL) per system rules.
@@ -26,12 +27,12 @@ DB_NAME = "test_database"
 TEST_PREFIX = "restest_"
 
 ALCALDIA_EMAIL = "alcaldia@amocartagena.app"
-ALCALDIA_PWD = "AlcaldiaCTG2026!"
+ALCALDIA_PWD = os.environ.get("ALCALDIA_PASSWORD", "")
 PARTNER_EMAIL = "bellini@amocartagena.app"   # owns ptr_002
-PARTNER_PWD = "amocartagena2026"
+PARTNER_PWD = os.environ.get("DEMO_PARTNER_PASSWORD", "")
 PARTNER_PARTNER_ID = "ptr_002"
 OTHER_PARTNER_EMAIL = "cafedelmar@amocartagena.app"  # owns ptr_005
-OTHER_PARTNER_PWD = "amocartagena2026"
+OTHER_PARTNER_PWD = os.environ.get("DEMO_PARTNER_PASSWORD", "")
 
 passed = 0
 failed = 0

@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { offlineReply } from '../lib/lunaOffline';
+import { API_BASE } from '../constants/api';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -10,8 +11,11 @@ export interface ChatMessage {
   provisional?: boolean;   // instant local "quick picks" shown while the LLM answers
 }
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
-const AGENT_URL = `${BACKEND_URL}/api/agent/chat`;
+// API_BASE carries the native production fallback (no env on EAS preview builds).
+const AGENT_URL = `${API_BASE}/agent/chat`;
+// One server-side session per app run so follow-ups keep their context (the old
+// client sent only the last message with no session_id → every turn started cold).
+let sessionId: string | null = null;
 
 async function getToken(): Promise<string | null> {
   if (Platform.OS === 'web') {
@@ -23,6 +27,7 @@ async function getToken(): Promise<string | null> {
 export async function askAgent(
   agent: AgentId,
   messages: ChatMessage[],
+  lang: string = 'es',
 ): Promise<string> {
   const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
   const query = lastUserMsg?.content || '';
@@ -32,15 +37,16 @@ export async function askAgent(
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     // Timeout so a slow LLM/backend never hangs the user — fall back to the local
-    // catalog after 12s instead of an endless spinner.
+    // catalog instead of an endless spinner. Real Sonnet turns take ~11–13s, so the
+    // old 12s cut answered "sin conexión" to online users most of the time.
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 12000);
+    const timer = setTimeout(() => ctrl.abort(), 40000);
     let res: Response;
     try {
       res = await fetch(AGENT_URL, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ message: query, language: 'es' }),
+        body: JSON.stringify({ message: query, language: lang, ...(sessionId ? { session_id: sessionId } : {}) }),
         signal: ctrl.signal,
       });
     } finally { clearTimeout(timer); }
@@ -50,6 +56,7 @@ export async function askAgent(
       return offlineReply(query);   // backend errored → still answer from the guide
     }
     const data = await res.json();
+    if (typeof data?.session_id === 'string') sessionId = data.session_id;
     const reply = data?.assistant?.content || data?.reply || '';
     return reply || offlineReply(query);
   } catch (e) {

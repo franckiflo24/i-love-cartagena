@@ -892,15 +892,20 @@ async def business_remove_photo(request: Request):
     url = (body.get("url") or "").strip()
     if not url:
         raise HTTPException(status_code=400, detail="url required")
-    partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "photos": 1, "images": 1, "hero_photo": 1})
-    photos = partner.get("photos") or partner.get("images") or []
-    photos = [p for p in photos if p != url]
+    partner = await db.partners.find_one({"partner_id": biz["partner_id"]}, {"_id": 0, "photos": 1, "images": 1, "hero_photo": 1}) or {}
+    current = partner.get("photos") or partner.get("images") or []
+    owned = url in current
+    photos = [p for p in current if p != url]
     upd: dict = {"$set": {"photos": photos}}
     # If the removed photo was the chosen hero, revert to the editorial hero.
     if partner.get("hero_photo") == url:
         upd["$unset"] = {"hero_photo": ""}
     await db.partners.update_one({"partner_id": biz["partner_id"]}, upd)
-    await _blob.delete_url(url)  # best-effort Blob cleanup; no-op for base64/self-hosted
+    # Delete the Blob object ONLY if it belonged to this partner's gallery. The old
+    # code deleted whatever URL the caller sent — any verified partner could wipe
+    # another venue's photo file from the shared Blob store (URLs are public).
+    if owned:
+        await _blob.delete_url(url)  # best-effort Blob cleanup; no-op for base64/self-hosted
     return {"photos": photos}
 
 
@@ -3799,8 +3804,8 @@ async def update_onboarding(body: OnboardingUpdate, request: Request):
                 "notification_id": f"notif_{uuid.uuid4().hex[:12]}",
                 "user_id": uid,
                 "type": "welcome",
-                "title": "Bienvenido a AMO Cartagena",
-                "body": "Tu guía personalizada está lista. Explora 721+ lugares, eventos y experiencias.",
+                "title": "Bienvenido a AMO Life",
+                "body": "Tu guía personalizada está lista. Explora 850+ lugares, eventos y experiencias en Cartagena.",
                 "icon": "heart",
                 "is_read": False,
                 "audience": "user",
@@ -4293,7 +4298,8 @@ async def list_today_promotions(category: Optional[str] = None):
     discount_pct (or 0 if not %-based), original_price, promo_price, valid_until,
     image_url, is_active, partner_name, partner_tier, partner_image, partner_address.
     """
-    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    # Bogotá date, not UTC — "valid until today" offers vanished at 19:00 local.
+    today_str = _today_bogota()
     query: dict = {"is_active": True, "valid_until": {"$gte": today_str}}
     if category and category != "all":
         query["category"] = category
@@ -4657,10 +4663,17 @@ async def submit_feedback(request: Request):
         body = await request.json()
     except Exception:
         body = {}
-    kind = (body.get("kind") or "other").strip().lower()
+    if not isinstance(body, dict):
+        body = {}
+    _s = lambda v: v if isinstance(v, str) else ""  # non-string fields used to 500 on .strip()
+    kind = (_s(body.get("kind")) or "other").strip().lower()
     if kind not in {"bug", "idea", "partner", "other", "crash"}:
         kind = "other"
-    message = (body.get("message") or "").strip()[:5000]
+    message = _s(body.get("message")).strip()[:5000]
+    # An empty/malformed body used to insert a blank row — a free junk/spam vector.
+    if len(message) < 3 and not (kind == "crash" and _s(body.get("stack")).strip()):
+        raise HTTPException(status_code=400, detail="message required / mensaje requerido")
+    await _check_rate_limit(f"feedback:{_client_ip(request)}", max_calls=20, window_sec=3600)
     user_id = None
     try:
         u = await get_current_user(request)
@@ -4671,10 +4684,10 @@ async def submit_feedback(request: Request):
         "feedback_id": f"fb_{uuid.uuid4().hex[:10]}",
         "kind": kind,
         "message": message,
-        "stack": (body.get("stack") or "")[:5000] or None,
-        "component_stack": (body.get("component_stack") or "")[:3000] or None,
-        "platform": (body.get("platform") or "unknown")[:30],
-        "app_version": (body.get("app_version") or "unknown")[:30],
+        "stack": _s(body.get("stack"))[:5000] or None,
+        "component_stack": _s(body.get("component_stack"))[:3000] or None,
+        "platform": (_s(body.get("platform")) or "unknown")[:30],
+        "app_version": (_s(body.get("app_version")) or "unknown")[:30],
         "user_id": user_id,
         "user_agent": request.headers.get("user-agent", "")[:300],
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -6278,19 +6291,20 @@ async def build_or_refresh_user_profile(request: Request):
         body = await request.json()
     except Exception:
         body = {}
-    # Rate-limit the paid LLM profile build (per user_id if provided, else per IP) —
-    # was unthrottled, so any account/IP could loop it for unbounded Anthropic spend.
-    _pb_key = (body.get("user_id") or _client_ip(request))
-    await _check_rate_limit(f"profilebuild:{_pb_key}", max_calls=10, window_sec=3600)
-
+    # Authenticate FIRST and key the paid-LLM rate limit on the SESSION user.
+    # The old key came from body.user_id and was checked before auth, so a fresh
+    # value per call meant a fresh bucket → unbounded Sonnet spend from any account.
     user = await get_current_user(request)
     user_id = user["user_id"]
+    await _check_rate_limit(f"profilebuild:{user_id}", max_calls=10, window_sec=3600)
+    await _check_rate_limit(f"profilebuild-day:{user_id}", max_calls=30, window_sec=86400)
 
-    # Pull favorites: prefer DB, fallback to inline payload (for guest users)
-    favs_data: list = body.get("favorites") or []
-    if not favs_data:
-        async for f in db.favorites.find({"user_id": user_id}, {"_id": 0}):
-            favs_data.append(f)
+    # Favorites come from the DB only (the endpoint requires auth, so the account's
+    # own saved items are the source of truth) — client-supplied lists went straight
+    # into the prompt uncapped.
+    favs_data: list = []
+    async for f in db.favorites.find({"user_id": user_id}, {"_id": 0, "item_id": 1, "item_type": 1}).limit(50):
+        favs_data.append(f)
 
     # Hydrate favorite items with full metadata so the LLM has signal
     enriched: list = []
@@ -6315,7 +6329,11 @@ async def build_or_refresh_user_profile(request: Request):
             pass
         enriched.append(meta)
 
-    calendar_data: list = body.get("calendar") or []
+    # Saved agenda from the DB (same reason as favorites), trimmed to the fields the
+    # profile prompt needs so no caller-controlled blob reaches the LLM.
+    calendar_data: list = []
+    async for c in db.user_calendar.find({"user_id": user_id}, {"_id": 0}).sort("date", 1).limit(30):
+        calendar_data.append({k: str(c.get(k))[:120] for k in ("item_type", "title", "category", "date", "venue_name") if c.get(k) is not None})
 
     # Recent zones from location pings
     locations_seen: list = []
@@ -8140,7 +8158,7 @@ async def seed_database():
     ]
 
     notifications = [
-        {"notification_id":"ntf_001","user_id":None,"title":"Bienvenido a Amo Cartagena","message":"Amo Cartagena te da la bienvenida. Explora la agenda y planifica tu semana perfecta.","type":"general","event_id":"","is_read":False,"created_at":datetime.now(timezone.utc).isoformat()},
+        {"notification_id":"ntf_001","user_id":None,"title":"Bienvenido a AMO Life","message":"AMO Life te da la bienvenida. Explora la agenda y planifica tu semana perfecta.","type":"general","event_id":"","is_read":False,"created_at":datetime.now(timezone.utc).isoformat()},
         {"notification_id":"ntf_002","user_id":None,"title":"Sunset en 30 min","message":"El Sunset Session en La Muralla comienza en 30 minutos. No te lo pierdas.","type":"event_reminder","event_id":"evt_001","is_read":False,"created_at":datetime.now(timezone.utc).isoformat()},
         {"notification_id":"ntf_003","user_id":None,"title":"Última lancha 16:00","message":"Recuerda: la última lancha de regreso de Islas del Rosario sale a las 16:00.","type":"transport","event_id":"","is_read":False,"created_at":datetime.now(timezone.utc).isoformat()},
         {"notification_id":"ntf_004","user_id":None,"title":"Templo Night I - Sold Out","message":"Templo Night I está sold out. Quedan pocas mesas VIP disponibles.","type":"event_reminder","event_id":"evt_003","is_read":False,"created_at":datetime.now(timezone.utc).isoformat()},
@@ -9912,7 +9930,7 @@ async def startup():
             {"contact_id": "ec_009", "name": "Clínica Medihelp", "number": "+576046935999", "description": "Clínica privada 24h", "description_en": "Private clinic 24h", "icon": "medical", "category": "medical", "order": 9},
             {"contact_id": "ec_010", "name": "Consulado de EE.UU.", "number": "+576046648100", "description": "Emergencias ciudadanos estadounidenses", "description_en": "US citizen emergencies", "icon": "flag", "category": "consulate", "order": 10},
             {"contact_id": "ec_011", "name": "Migración Colombia", "number": "+576013810101", "description": "Temas migratorios", "description_en": "Immigration services", "icon": "document-text", "category": "services", "order": 11},
-            {"contact_id": "ec_012", "name": "Amo Cartagena Soporte", "number": "+573176481183", "description": "Soporte de la app", "description_en": "App support via WhatsApp", "icon": "chatbubbles", "category": "app", "order": 12},
+            {"contact_id": "ec_012", "name": "AMO Life Soporte", "number": "+573176481183", "description": "Soporte de la app", "description_en": "App support via WhatsApp", "icon": "chatbubbles", "category": "app", "order": 12},
         ]
         await db.emergency_contacts.insert_many(emergency_contacts)
         logger.info(f"Seeded {len(emergency_contacts)} emergency contacts!")

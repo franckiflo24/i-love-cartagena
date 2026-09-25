@@ -36,6 +36,15 @@ const staticUrl = (path: string): string => {
   return `${ASSET_ORIGIN}/data/${clean}.json`;
 };
 
+// The live-backend fallback to /data is for the PUBLIC catalog only. Per-user
+// paths, filtered queries and auth rejections must surface: those placeholder
+// files are `[]`, so a backend blip told signed-in users they had no
+// reservations/tickets/favorites, and a stripped ?date=/?partner_id= served
+// unrelated rows as if they matched.
+const PRIVATE_PATH = /^\/(auth|business|admin|reservations|rewards\/me|favorites|notifications|my-week|city-pass\/mine|experience-bookings|port-tax\/my-tickets|calendar|profile|passport|for-you|intel)(\/|\?|$)/;
+const canFallback = (path: string, status?: number): boolean =>
+  status !== 401 && status !== 403 && !path.includes('?') && !PRIVATE_PATH.test(path);
+
 const tryStatic = async (path: string): Promise<any> => {
   try {
     const res = await fetch(staticUrl(path));
@@ -716,7 +725,7 @@ const tryAIEnrich = async (q: string, lang: string, base: any): Promise<any> => 
   return base;
 };
 
-const getToken = async (): Promise<string | null> => {
+export const getToken = async (): Promise<string | null> => {
   if (Platform.OS === 'web') {
     return AsyncStorage.getItem('session_token');
   }
@@ -770,22 +779,27 @@ export const api = {
       // Unknown endpoint in static mode — return safe empty
       return [];
     }
+    let res: Response;
     try {
       const headers = await buildHeaders(opts?.headers);
-      const res = await fetch(`${_apiUrl(path)}`, { headers, credentials: _creds(path) });
-      if (!res.ok) {
-        // Network OK but backend errored → try static fallback before throwing
+      res = await fetch(`${_apiUrl(path)}`, { headers, credentials: _creds(path) });
+    } catch (err) {
+      // Network failure / timeout (backend down) → public catalog falls back to static
+      if (canFallback(path)) {
         const fallback = await tryStatic(path);
         if (fallback !== null) return fallback;
-        throw new Error(`GET ${path} failed: ${res.status}`);
       }
-      return res.json();
-    } catch (err) {
-      // Network failure / timeout (backend down) → try static fallback
-      const fallback = await tryStatic(path);
-      if (fallback !== null) return fallback;
       throw err;
     }
+    if (!res.ok) {
+      // Network OK but backend errored → public catalog falls back to static
+      if (canFallback(path, res.status)) {
+        const fallback = await tryStatic(path);
+        if (fallback !== null) return fallback;
+      }
+      throw new Error(`GET ${path} failed: ${res.status}`);
+    }
+    return res.json();
   },
   post: async (path: string, body?: any, opts?: Opts) => {
     if (STATIC_MODE) {

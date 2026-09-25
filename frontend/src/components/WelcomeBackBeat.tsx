@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { api, API_BASE } from '../constants/api';
 import { useAuth } from '../context/AuthContext';
+import { bogotaToday, bogotaDatePlus } from '../lib/eventTime';
 
 const GOLD = '#12B5A5';
 const GOLD_BRIGHT = '#FF6B75';
@@ -37,8 +38,8 @@ export default function WelcomeBackBeat() {
         // yesterday. Otherwise the best-ever is shown as "mejor racha", never
         // as a live "racha de N días" the user isn't actually on.
         const st = p?.streak || {};
-        const today = new Date().toISOString().slice(0, 10);
-        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        const today = bogotaToday();
+        const yesterday = bogotaDatePlus(-1);
         if ((st.current || 0) > 1 && (st.last_day === today || st.last_day === yesterday)) {
           label = `🔥 racha de ${st.current} días`;
         } else if ((st.best || 0) > 1) {

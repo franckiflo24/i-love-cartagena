@@ -12,7 +12,9 @@ import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { useLang } from '../../src/context/LanguageContext';
 import { monthShort } from '../../src/lib/formatDate';
+import { bogotaToday } from '../../src/lib/eventTime';
 import { eventPriceLabel } from '../../src/utils/price';
+import { isHttpUrl } from '../../src/lib/safeUrl';
 
 export default function EventDetail() {
   const tr = useTr();
@@ -118,7 +120,7 @@ export default function EventDetail() {
             <View>
               <Text style={styles.infoLabel}>{tr('Fecha')}</Text>
               <Text style={styles.infoValue}>{(() => {
-                const today = new Date().toISOString().slice(0, 10);
+                const today = bogotaToday();
                 const start = event.date_start || event.date || '';
                 const end = event.date_end || start;
                 if (start <= today && end >= today) return tr('Hoy — Activo ahora');
@@ -207,7 +209,7 @@ export default function EventDetail() {
           <Ionicons name="navigate" size={18} color={COLORS.primary} />
           <Text style={styles.dirText}>{tr('Cómo llegar')}</Text>
         </TouchableOpacity>
-        {event.booking_link ? (
+        {isHttpUrl(event.booking_link) ? (
           <TouchableOpacity
             testID="event-book-btn"
             style={styles.bookBtn}

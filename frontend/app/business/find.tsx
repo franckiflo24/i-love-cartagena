@@ -22,6 +22,9 @@ export default function FindBusiness() {
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<Hit[]>([]);
   const [searched, setSearched] = useState(false);
+  // A failed search must not read as "not in the catalog" + "create a new one" —
+  // that invites duplicate venues of businesses that already exist.
+  const [searchError, setSearchError] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const search = useCallback(async () => {
@@ -30,7 +33,8 @@ export default function FindBusiness() {
     try {
       const data = await api.get(`/business/catalog/search?q=${encodeURIComponent(q.trim())}`, { headers: { Authorization: `Bearer ${token}` } });
       setHits(data.results || []);
-    } catch { setHits([]); }
+      setSearchError(false);
+    } catch (e) { console.error('[business/find] search', e); setHits([]); setSearchError(true); }
     setSearched(true);
     setLoading(false);
   }, [q, token]);
@@ -96,7 +100,17 @@ export default function FindBusiness() {
           );
         })}
 
-        {searched && !loading && (
+        {searched && !loading && searchError && (
+          <View style={styles.noneBox}>
+            <Text style={styles.noneText}>{tr('No pudimos buscar en el catálogo. Revisa tu conexión e inténtalo de nuevo.')}</Text>
+            <TouchableOpacity style={styles.createBtn} onPress={search}>
+              <Ionicons name="refresh" size={18} color={COLORS.primary} />
+              <Text style={styles.createBtnText}>{tr('Reintentar')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {searched && !loading && !searchError && (
           <View style={styles.noneBox}>
             <Text style={styles.noneText}>
               {hits.length === 0 ? tr('No encontramos tu negocio en el catálogo.') : tr('¿No es ninguno de estos?')}

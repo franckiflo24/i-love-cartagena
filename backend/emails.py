@@ -1,5 +1,5 @@
 """
-Email service for AMO Cartagena — powered by Resend.
+Email service for AMO Life — powered by Resend.
 Handles: verification codes, welcome, password reset.
 
 Drop FD — the transactional emails, rebuilt to the AMO trophy brand
@@ -40,7 +40,7 @@ def _safe(s: str) -> str:
     return html.escape(_plain(s))
 
 FROM_EMAIL = "hola@amocartagena.co"
-FROM_NAME = "AMO Cartagena"
+FROM_NAME = "AMO Life"
 VERIFY_CODE_TTL_MINUTES = 15
 SITE = "https://www.amocartagena.co"
 
@@ -118,7 +118,7 @@ def _shell(*, preheader: str, inner: str) -> str:
 <tr><td align="center" style="padding:32px 16px;">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:{_CARD};border:1px solid rgba(212,175,55,0.30);border-radius:20px;overflow:hidden;">
   <tr><td align="center" style="padding:36px 32px 6px;">
-    <img src="{SITE}/splash/amo-icon-512.png" width="66" height="66" alt="AMO Cartagena"
+    <img src="{SITE}/splash/amo-icon-512.png" width="66" height="66" alt="AMO Life"
          style="display:block;margin:0 auto;border-radius:16px;border:1px solid rgba(212,175,55,0.30);">
     <div style="font-family:{_SERIF};font-size:29px;color:{_TEXT};margin-top:13px;">Cartagena</div>
     <div style="width:58px;height:2px;background:{_GOLD};margin:15px auto 0;line-height:2px;font-size:0;">&nbsp;</div>
@@ -126,7 +126,7 @@ def _shell(*, preheader: str, inner: str) -> str:
   {inner}
   <tr><td style="padding:24px 32px 34px;border-top:1px solid rgba(255,255,255,0.06);">
     <p style="margin:0 0 5px;font-family:{_SANS};font-size:11px;color:{_FAINT};text-align:center;">
-      © 2026 AMO Cartagena · Cartagena de Indias, Colombia
+      © 2026 AMO Life · Amo Cartagena S.A.S. · Cartagena de Indias, Colombia
     </p>
     <p style="margin:0;font-family:{_SANS};font-size:11px;color:{_FAINT};text-align:center;">
       <a href="{SITE}" style="color:{_GOLD};text-decoration:none;">amocartagena.co</a>
@@ -190,7 +190,7 @@ async def send_verification_email(*, to: str, code: str, name: str = "") -> bool
   <tr><td style="padding:26px 34px 0;">
     <p style="margin:0 0 6px;font-family:{_SANS};font-size:16px;color:{_TEXT};">{greeting},</p>
     <p style="margin:0 0 20px;font-family:{_SANS};font-size:14px;line-height:1.6;color:{_MUTED};">
-      Tu código de verificación para entrar a AMO Cartagena:
+      Tu código de verificación para entrar a AMO Life:
     </p>
   </td></tr>
   <tr><td style="padding:0 34px;">{_code_box(code)}</td></tr>
@@ -203,9 +203,9 @@ async def send_verification_email(*, to: str, code: str, name: str = "") -> bool
     </p>
   </td></tr>"""
     gt = f"Hola {_plain(name)}" if name else "Hola"
-    text = (f"{gt},\n\nTu código de verificación para AMO Cartagena es: {code}\n"
+    text = (f"{gt},\n\nTu código de verificación para AMO Life es: {code}\n"
             f"Expira en {VERIFY_CODE_TTL_MINUTES} minutos.\n\n"
-            f"Si no lo solicitaste, ignoralo.\n\n— AMO Cartagena · {SITE}")
+            f"Si no lo solicitaste, ignoralo.\n\n— AMO Life · {SITE}")
     return await _send_email(to=to, subject=f"Tu código AMO: {code}",
                              html=_shell(preheader=preheader, inner=inner), text=text,
                              log_label="Código de verificación")
@@ -239,8 +239,8 @@ async def send_password_reset_email(*, to: str, code: str, name: str = "") -> bo
     gt = f"Hola {_plain(name)}" if name else "Hola"
     text = (f"{gt},\n\nCódigo para restablecer tu contraseña de negocio AMO: {code}\n"
             f"Válido {VERIFY_CODE_TTL_MINUTES} minutos, un solo uso. Pedir uno nuevo anula el anterior.\n\n"
-            f"Si no lo pediste, ignoralo — tu contraseña sigue igual.\n\n— AMO Cartagena · {SITE}")
-    return await _send_email(to=to, subject="Restablecé tu contraseña — AMO Cartagena",
+            f"Si no lo pediste, ignoralo — tu contraseña sigue igual.\n\n— AMO Life · {SITE}")
+    return await _send_email(to=to, subject="Restablecé tu contraseña — AMO Life",
                              html=_shell(preheader=preheader, inner=inner), text=text)
 
 
@@ -284,10 +284,10 @@ async def send_welcome_email(*, to: str, name: str = "") -> bool:
       </td>
     </tr></table>
   </td></tr>"""
-    text = (f"¡Bienvenido, {greeting_text}!\n\nTu cuenta AMO Cartagena está lista. Esto te espera:\n"
+    text = (f"¡Bienvenido, {greeting_text}!\n\nTu cuenta AMO Life está lista. Esto te espera:\n"
             + "\n".join(f"· {t}: {d}" for _, t, d in _WELCOME_FEATURES)
-            + f"\n\nExplorar Cartagena: {SITE}\n\n— AMO Cartagena")
-    return await _send_email(to=to, subject=f"¡Bienvenido a AMO Cartagena, {greeting_text}! 🌴",
+            + f"\n\nExplorar Cartagena: {SITE}\n\n— AMO Life")
+    return await _send_email(to=to, subject=f"¡Bienvenido a AMO Life, {greeting_text}! 🌴",
                              html=_shell(preheader=preheader, inner=inner), text=text)
 
 
@@ -302,18 +302,18 @@ def _button(label: str, url: str) -> str:
 
 
 async def send_partner_invite_email(*, to: str, name: str, activation_url: str, category: str = "") -> bool:
-    """Invite a business to activate its AMO Cartagena listing (magic activation link)."""
+    """Invite a business to activate its AMO Life listing (magic activation link)."""
     cat = f" · {_safe(category)}" if category else ""
-    preheader = f"Activá el perfil de {_plain(name)} en AMO Cartagena."
+    preheader = f"Activá el perfil de {_plain(name)} en AMO Life."
     inner = f"""
   <tr><td align="center" style="padding:22px 34px 2px;">
-    <div style="font-family:{_SERIF};font-size:25px;color:{_TEXT};">Te invitamos a AMO Cartagena</div>
+    <div style="font-family:{_SERIF};font-size:25px;color:{_TEXT};">Te invitamos a AMO Life</div>
   </td></tr>
   <tr><td style="padding:14px 34px 0;">
     <p style="margin:0 0 8px;font-family:{_SANS};font-size:16px;color:{_TEXT};">Hola {_safe(name)},</p>
     <p style="margin:0 0 22px;font-family:{_SANS};font-size:14px;line-height:1.6;color:{_MUTED};">
       Tu negocio <b style="color:{_GOLD_BRIGHT};">{_safe(name)}{cat}</b> fue seleccionado para estar en
-      AMO Cartagena — la guía y concierge de la ciudad. Activá tu perfil para gestionar tus fotos,
+      AMO Life — la guía y concierge de la ciudad. Activá tu perfil para gestionar tus fotos,
       horarios y reservas por WhatsApp, y aparecer ante miles de viajeros y locales.
     </p>
   </td></tr>
@@ -325,29 +325,29 @@ async def send_partner_invite_email(*, to: str, name: str, activation_url: str, 
     </p>
   </td></tr>"""
     text = (f"Hola {_plain(name)},\n\nTu negocio {_plain(name)}{(' - '+_plain(category)) if category else ''} "
-            f"fue invitado a AMO Cartagena. Activá tu perfil aquí:\n{activation_url}\n\n— AMO Cartagena · {SITE}")
-    return await _send_email(to=to, subject="Activá tu negocio en AMO Cartagena 🌴",
+            f"fue invitado a AMO Life. Activá tu perfil aquí:\n{activation_url}\n\n— AMO Life · {SITE}")
+    return await _send_email(to=to, subject="Activá tu negocio en AMO Life 🌴",
                              html=_shell(preheader=preheader, inner=inner), text=text,
                              log_label="Invitación de negocio")
 
 
 async def send_venue_approved_email(*, to: str, name: str) -> bool:
     """Tell a partner their venue is approved and now live in the catalog."""
-    preheader = f"{_plain(name)} ya está en vivo en AMO Cartagena."
+    preheader = f"{_plain(name)} ya está en vivo en AMO Life."
     inner = f"""
   <tr><td align="center" style="padding:22px 34px 2px;">
     <div style="font-family:{_SERIF};font-size:25px;color:{_TEXT};">¡{_safe(name)} está en vivo! 🎉</div>
   </td></tr>
   <tr><td style="padding:14px 34px 4px;">
     <p style="margin:0 0 20px;font-family:{_SANS};font-size:14px;line-height:1.6;color:{_MUTED};text-align:center;">
-      Tu negocio ya aparece en AMO Cartagena ante miles de viajeros y locales.
+      Tu negocio ya aparece en AMO Life ante miles de viajeros y locales.
       Entrá cuando quieras para mantener tus fotos, horarios y ofertas al día.
     </p>
   </td></tr>
   {_button("Gestionar mi negocio →", f"{SITE}/business/login")}"""
-    text = (f"¡{_plain(name)} ya está en vivo en AMO Cartagena!\n"
-            f"Gestioná tu perfil: {SITE}/business/login\n\n— AMO Cartagena")
-    return await _send_email(to=to, subject=f"¡{_plain(name)} ya está en AMO Cartagena! 🌴",
+    text = (f"¡{_plain(name)} ya está en vivo en AMO Life!\n"
+            f"Gestioná tu perfil: {SITE}/business/login\n\n— AMO Life")
+    return await _send_email(to=to, subject=f"¡{_plain(name)} ya está en AMO Life! 🌴",
                              html=_shell(preheader=preheader, inner=inner), text=text,
                              log_label="Negocio aprobado")
 
@@ -381,13 +381,13 @@ async def send_itinerary_email(*, to: str, title: str, stops: list, subtitle: st
   <tr><td style="padding:24px 34px 8px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">{rows or '<tr><td style="color:'+_MUTED+';font-family:'+_SANS+';font-size:14px;">Tu plan está vacío — agregá lugares en la app.</td></tr>'}</table>
   </td></tr>
-  {_button("Abrir en AMO Cartagena →", SITE)}"""
+  {_button("Abrir en AMO Life →", SITE)}"""
     tlines = []
     for s in (stops or []):
         nm = s.get("title") or s.get("venue") or s.get("name") or ""
         v = s.get("venue") or ""
         tlines.append(f"{s.get('time','•')}  {_plain(nm)}" + (f" — {_plain(v)}" if v and v != nm else ""))
-    text = f"{_plain(title)}\n\n" + "\n".join(tlines) + f"\n\nAbrir en AMO Cartagena: {SITE}\n\n— AMO Cartagena"
+    text = f"{_plain(title)}\n\n" + "\n".join(tlines) + f"\n\nAbrir en AMO Life: {SITE}\n\n— AMO Life"
     return await _send_email(to=to, subject=f"Tu plan para Cartagena: {_plain(title)} 🌴",
                              html=_shell(preheader=preheader, inner=inner), text=text,
                              log_label="Itinerario")

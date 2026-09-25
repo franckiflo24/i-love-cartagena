@@ -78,7 +78,7 @@ function CardFront({
       <View style={frontStyles.topRow}>
         <View>
           <Text style={frontStyles.amoLogo}>AMO</Text>
-          <Text style={frontStyles.amoSub}>Cartagena</Text>
+          <Text style={frontStyles.amoSub}>Life</Text>
         </View>
         <View style={[frontStyles.tierBadge, { backgroundColor: 'rgba(0,0,0,0.3)' }]}>
           <Ionicons name={cfg.icon} size={13} color={COLORS.white} />
@@ -210,7 +210,7 @@ function CardBack({
         </View>
 
         <View style={backStyles.footer}>
-          <Text style={backStyles.support}>Soporte: support@amo.com.co</Text>
+          <Text style={backStyles.support}>Soporte: soporte@amocartagena.co</Text>
           <Text style={backStyles.amoText}>AMO Life</Text>
         </View>
       </View>

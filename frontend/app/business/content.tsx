@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { api } from '../../src/constants/api';
-import { downscaleForUpload } from '../../src/lib/downscaleImage';
+import { downscaleForUpload, downscaleUriNative } from '../../src/lib/downscaleImage';
 import { perceptualHash } from '../../src/lib/imageHash';
 import { SafeImage } from '../../src/components/SafeImage';
 import { useTr } from '../../src/i18n/autoTr';
@@ -104,19 +104,23 @@ export default function MyContent() {
       }
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        base64: true,
+        base64: Platform.OS === 'web', // native resizes from the file URI instead
         quality: 0.6,
       });
       if (result.canceled || !result.assets?.[0]) return;
       const asset = result.assets[0];
       // Web often returns no base64 (only a blob uri) — fall back to it so the
       // upload doesn't silently no-op.
-      const source = asset.base64
-        ? `data:image/jpeg;base64,${asset.base64}`
-        : (Platform.OS === 'web' ? asset.uri : '');
-      if (!source) { Alert.alert('Error', tr('No se pudo leer la foto')); return; }
-      // Shrink to fit the backend's ~500KB cap (picker quality doesn't resize).
-      const dataUrl = await downscaleForUpload(source);
+      let dataUrl: string;
+      if (Platform.OS !== 'web') {
+        if (!asset.uri) { Alert.alert('Error', tr('No se pudo leer la foto')); return; }
+        dataUrl = await downscaleUriNative(asset.uri, { width: asset.width, height: asset.height });
+      } else {
+        const source = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri;
+        if (!source) { Alert.alert('Error', tr('No se pudo leer la foto')); return; }
+        // Shrink to fit the backend's upload cap (picker quality doesn't resize).
+        dataUrl = await downscaleForUpload(source);
+      }
       const image_hash = await perceptualHash(dataUrl); // for server-side duplicate detection
       setUploading(true);
       setPhotoResult(null);

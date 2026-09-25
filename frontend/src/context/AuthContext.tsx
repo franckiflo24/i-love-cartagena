@@ -3,6 +3,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { forgetLocalHomeBase } from '../lib/homeBase';
+import { API_BASE } from '../constants/api';
+import { router } from 'expo-router';
+import { safeNext } from '../lib/safeNext';
 
 const saveToken = async (token: string) => {
   if (Platform.OS === 'web') {
@@ -38,14 +41,15 @@ const removeToken = async () => {
   }
 };
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 // Auth calls go SAME-ORIGIN on web (/api/auth/* → backend via the vercel.json
 // rewrite) so the session cookie is FIRST-PARTY and survives iOS Safari's ITP
 // (which wipes localStorage + blocks third-party cookies). Native keeps the
 // absolute backend URL. This is what makes "open the app → already logged in" work.
-const AUTH_BASE = (Platform.OS === 'web' ? '' : (BACKEND_URL || '')) + '/api/auth';
+// API_BASE carries the native production fallback (a build without
+// EXPO_PUBLIC_BACKEND_URL — e.g. an EAS preview — used to hit a relative '/api/auth').
+const AUTH_BASE = Platform.OS === 'web' ? '/api/auth' : `${API_BASE}/auth`;
 
 type User = {
   user_id: string;
@@ -261,9 +265,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (pendingIdToken) {
         // Consume it — only the first AuthProvider instance to reach here will exchange
         try { sessionStorage.removeItem(SS_TOKEN_KEY); } catch {}
-        await exchangeGoogleToken(pendingIdToken);
+        const exchanged = await exchangeGoogleToken(pendingIdToken);
         await AsyncStorage.removeItem('google_auth_pending');
         setIsLoading(false);
+        // Google lands on the site root, so the login screen's routing (onboarding
+        // for new users, else the return-url) never ran and `next` was lost.
+        // Hand back to /login?next= and let that logic decide.
+        if (exchanged) {
+          try {
+            const nx = safeNext(sessionStorage.getItem('amo_auth_next'));
+            sessionStorage.removeItem('amo_auth_next');
+            if (nx) router.replace({ pathname: '/login' as any, params: { next: nx } });
+          } catch (e) { console.error('[AuthContext] post-Google return-url', e); }
+        }
         return;
       }
 

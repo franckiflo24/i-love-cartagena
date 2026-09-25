@@ -117,7 +117,8 @@ export default function FavoritesScreen() {
     setResLoading(true);
     try {
       const data = await api.get('/reservations/my').catch(() => []);
-      setReservations(Array.isArray(data) ? data : []);
+      // /reservations/my returns { upcoming, past, total } — not an array.
+      setReservations(Array.isArray(data) ? data : [...(data?.upcoming || []), ...(data?.past || [])]);
     } catch (e) { console.error(e); }
     setResLoading(false);
   };

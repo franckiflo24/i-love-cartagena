@@ -43,16 +43,17 @@ import AddToTrip from './AddToTrip';
 import { SafeImage } from './SafeImage';
 import { loadCatalog, matchCatalog, type CatalogVenue } from '../lib/lunaOffline';
 import { safeNext } from '../lib/safeNext';
+import { API_BASE } from '../constants/api';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
-const CONCIERGE_URL = process.env.EXPO_PUBLIC_CONCIERGE_URL || `${BACKEND_URL}/api/agent/chat`;
+// API_BASE has the native production fallback (no EXPO_PUBLIC_BACKEND_URL → concierge was dead).
+const CONCIERGE_URL = process.env.EXPO_PUBLIC_CONCIERGE_URL || `${API_BASE}/agent/chat`;
 // Guest-facing "taste" endpoint — POST /api/agent/taste (backend/server.py ~7268).
 // Unauthenticated by design: no Authorization header, no session_id/history, cheap
 // Haiku tier server-side (`fast: true`). Hard-capped 1 call/IP/day + a global daily
 // ceiling — a guest's 2nd free exchange in THIS sheet often still 429s there, which
 // is fine: the guest branch below treats that exactly like any other failure
 // (instant local cards + the existing warm fallback copy), never a hard error.
-const TASTE_URL = `${BACKEND_URL}/api/agent/taste`;
+const TASTE_URL = `${API_BASE}/agent/taste`;
 
 // ── Luna's identity accent — sourced from theme.ts's own "elite" tier token so
 // this stays in lockstep with the rest of the app instead of inventing a new
@@ -344,6 +345,7 @@ function LunaAvatar({ size = 32 }: { size?: number }) {
 export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } = {}) {
   const router = useRouter();
   const pathname = usePathname();
+  const onMap = pathname === '/mapa' || pathname === '/(tabs)/mapa';
   const { lang, s } = useLang();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -412,12 +414,14 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
     })();
   }, [user]);
 
-  // Welcome message when opening with no messages
+  // Welcome message when opening with no messages. Returning users have a
+  // restored sessionId but no local transcript — gating on !sessionId opened
+  // them onto a blank sheet. The welcome is display-only (history is server-side).
   useEffect(() => {
-    if (open && messages.length === 0 && !sessionId) {
+    if (open && messages.length === 0) {
       setMessages([{ role: 'assistant', content: WELCOME[lang] || WELCOME.es, isWelcome: true }]);
     }
-  }, [open, messages.length, sessionId, lang]);
+  }, [open, messages.length, lang]);
 
   // Keep the sheet scrolled to the latest turn whenever it's (re)opened.
   useEffect(() => {
@@ -737,7 +741,12 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
     <>
       {/* Floating Action Button — hidden when hideFab=true (e.g. on home tab where the search bar handles it) */}
       {!hideFab ? (
-        <View style={styles.fab} pointerEvents="box-none">
+        <View
+          // On the map the right edge is the map's own control column (locate, walk,
+          // base, satellite, tour, caminar) — the FAB sat on top of "locate".
+          style={[styles.fab, onMap && { right: undefined, left: 16 }]}
+          pointerEvents="box-none"
+        >
           <Animated.View
             pointerEvents="none"
             style={[styles.fabHalo, { opacity: reducedMotion ? 0 : halo.opacity, transform: [{ scale: halo.scale }] }]}

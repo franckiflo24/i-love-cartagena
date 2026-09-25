@@ -1,4 +1,5 @@
 import { Redirect } from 'expo-router';
 export default function MyWeekRedirect() {
-  return <Redirect href="/(tabs)/agenda" />;
+  // "Mi semana" is the personal agenda view, not the city "salir" default.
+  return <Redirect href={{ pathname: '/(tabs)/agenda', params: { mode: 'mi_agenda' } } as any} />;
 }

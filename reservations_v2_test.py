@@ -1,3 +1,4 @@
+import os
 """Focused tests for the REWRITTEN reservations module (lead-only / no Wompi).
 
 Covers:
@@ -27,9 +28,9 @@ DB_NAME = "test_database"
 TEST_PREFIX = "resv2_"
 
 CASABOHEME_EMAIL = "casaboheme@amocartagena.app"
-CASABOHEME_PASSWORD = "amocartagena2026"
+CASABOHEME_PASSWORD = os.environ.get("DEMO_PARTNER_PASSWORD", "")
 ALCALDIA_EMAIL = "alcaldia@amocartagena.app"
-ALCALDIA_PASSWORD = "AlcaldiaCTG2026!"
+ALCALDIA_PASSWORD = os.environ.get("ALCALDIA_PASSWORD", "")
 
 passed = 0
 failed = 0

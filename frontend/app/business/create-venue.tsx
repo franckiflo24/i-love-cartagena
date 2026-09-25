@@ -77,7 +77,16 @@ export default function CreateVenue() {
       Alert.alert(tr('Enviado a revisión'), tr('Tu negocio pasó a revisión del equipo. No aparece en el catálogo hasta ser aprobado.'));
       void r;
     } catch (e: any) {
-      Alert.alert(tr('No se pudo crear'), tr('Ya existe un negocio muy similar. Recláchalo en vez de crear uno nuevo.').replace('Recláchalo', 'Reclámalo'));
+      // Only a 409 is a duplicate; a 400 carries the backend's bilingual reason
+      // (missing NIT, etc.) and anything else is transient — every failure used
+      // to be reported as "a very similar business already exists".
+      if (e?.status === 409) {
+        Alert.alert(tr('No se pudo crear'), tr('Ya existe un negocio muy similar. Recláchalo en vez de crear uno nuevo.').replace('Recláchalo', 'Reclámalo'));
+      } else if (e?.status === 400 && typeof e?.message === 'string' && e.message) {
+        Alert.alert(tr('No se pudo crear'), e.message);
+      } else {
+        Alert.alert(tr('No se pudo crear'), tr('Hubo un problema de conexión. Inténtalo de nuevo en un momento.'));
+      }
     }
     setBusy(false);
   };

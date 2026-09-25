@@ -104,7 +104,8 @@ export default function CityPassTab() {
     }
   };
 
-  const formatPrice = (p: number) => `$${(p / 1000).toFixed(0)}K`;
+  // NaN-safe: the stale static plans file (price_cop, not price) rendered "$NaNK COP".
+  const formatPrice = (p?: number) => (Number.isFinite(p) ? `$${((p as number) / 1000).toFixed(0)}K` : '');
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

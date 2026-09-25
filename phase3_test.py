@@ -1,3 +1,4 @@
+import os
 """Phase 3 backend tests — Membership endpoints + In-app Notifications via reservation lifecycle.
 
 Hits the external preview URL (EXPO_PUBLIC_BACKEND_URL) per system rules.
@@ -26,9 +27,9 @@ DB_NAME = "test_database"
 TEST_PREFIX = "p3test_"
 
 ALCALDIA_EMAIL = "alcaldia@amocartagena.app"
-ALCALDIA_PWD = "AlcaldiaCTG2026!"
+ALCALDIA_PWD = os.environ.get("ALCALDIA_PASSWORD", "")
 PARTNER_EMAIL = "casaboheme@amocartagena.app"
-PARTNER_PWD = "amocartagena2026"
+PARTNER_PWD = os.environ.get("DEMO_PARTNER_PASSWORD", "")
 PARTNER_PARTNER_ID = "ptr_nc_007"  # Casa Bohème — premium
 
 passed = 0

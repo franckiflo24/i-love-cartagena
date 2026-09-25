@@ -262,10 +262,10 @@ export default function LoginScreen() {
         {/* Logo / hero area */}
         <View style={styles.logoArea}>
           <Text style={styles.logoMain}>AMO</Text>
-          <Text style={styles.logoMain}>CARTAGENA</Text>
+          <Text style={styles.logoMain}>LIFE</Text>
           <Text style={styles.logoHeart}>❤️</Text>
           <View style={styles.divider} />
-          <Text style={styles.tagline}>{s('login_tagline')}</Text>
+          <Text style={styles.tagline}>{s('login_welcome')}</Text>
         </View>
 
         {/* Auth area - well organized */}
@@ -295,7 +295,13 @@ export default function LoginScreen() {
             <TouchableOpacity
               testID="login-google-btn"
               style={[styles.googleButton, !termsAccepted && styles.btnDisabled]}
-              onPress={termsAccepted ? () => { clearAuthError(); login(); } : undefined}
+              onPress={termsAccepted ? () => {
+                clearAuthError();
+                // Google returns to the site ROOT (registered redirect_uri) — park the
+                // return-url so AuthContext can hand back to /login?next= afterwards.
+                try { const d = safeNext(next); if (d) sessionStorage.setItem('amo_auth_next', d); } catch { /* storage blocked */ }
+                login();
+              } : undefined}
               disabled={!termsAccepted}
               activeOpacity={0.85}
             >

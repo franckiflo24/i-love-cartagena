@@ -19,7 +19,7 @@ CATEGORY_LABELS = {
     "musical":   "Musical (conciertos, DJ sets, fiestas, bares con música en vivo)",
 }
 
-SYSTEM_PROMPT = """Eres el curador oficial de rutas diarias de Amo Cartagena.
+SYSTEM_PROMPT = """Eres el curador oficial de rutas diarias de AMO Life.
 
 Tu trabajo: dado el perfil del usuario, sus favoritos y la lista de partners disponibles
 para una categoría específica, devuelves UNA ruta del día con 4 a 6 paradas perfectamente

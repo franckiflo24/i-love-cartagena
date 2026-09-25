@@ -206,16 +206,17 @@ export default function PartnerEventDetail() {
           <View style={styles.dateTimeBox}>
             <View style={styles.dateTimeItem}>
               <Ionicons name="calendar" size={18} color={COLORS.icon} />
-              <View>
-                <Text style={styles.dateTimeLabel}>Fecha</Text>
+              {/* flexShrink: the long date ran into the clock icon at 390px */}
+              <View style={{ flexShrink: 1 }}>
+                <Text style={styles.dateTimeLabel}>{tr('Fecha')}</Text>
                 <Text style={styles.dateTimeValue}>{formatDate(event.date)}</Text>
               </View>
             </View>
             <View style={styles.dateTimeDivider} />
             <View style={styles.dateTimeItem}>
               <Ionicons name="time" size={18} color={COLORS.icon} />
-              <View>
-                <Text style={styles.dateTimeLabel}>Hora</Text>
+              <View style={{ flexShrink: 1 }}>
+                <Text style={styles.dateTimeLabel}>{tr('Hora')}</Text>
                 <Text style={styles.dateTimeValue}>{event.start_time} – {event.end_time}</Text>
               </View>
             </View>

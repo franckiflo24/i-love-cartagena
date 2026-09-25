@@ -1,7 +1,7 @@
 {
-  "name": "AMO Cartagena",
-  "short_name": "AMO Cartagena",
-  "description": "Tu guía definitiva de Cartagena de Indias — eventos, restaurantes, experiencias y tu concierge Luna.",
+  "name": "AMO Life",
+  "short_name": "AMO Life",
+  "description": "AMO Life — tu guía de viajes con IA. Empezamos en Cartagena de Indias: eventos, restaurantes, experiencias y tu concierge Luna.",
   "lang": "es",
   "start_url": "/",
   "scope": "/",

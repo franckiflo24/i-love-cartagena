@@ -36,7 +36,7 @@ DB_NAME = os.environ["DB_NAME"]
 
 CASA_BOHEME_PARTNER_ID = "ptr_nc_007"  # NC version that has business login
 CASA_BOHEME_EMAIL = "casaboheme@amocartagena.app"
-CASA_BOHEME_PWD = "amocartagena2026"
+CASA_BOHEME_PWD = os.environ.get("DEMO_PARTNER_PASSWORD", "")
 
 PASSES = 0
 FAILS = 0

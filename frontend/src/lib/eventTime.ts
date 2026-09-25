@@ -9,6 +9,17 @@ export function bogotaToday(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
 }
 
+/**
+ * Cartagena calendar date `days` after today, "YYYY-MM-DD". Anchored at noon UTC
+ * of Bogotá's today and stepped with UTC methods, so no device timezone (and no
+ * 19:00–24:00 Bogotá = next-day-UTC window) can shift it by a day.
+ */
+export function bogotaDatePlus(days: number): string {
+  const d = new Date(bogotaToday() + 'T12:00:00Z');
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 /** Current Cartagena wall clock, "HH:MM" (24h). */
 export function bogotaTime(): string {
   return new Date().toLocaleTimeString('en-GB', {

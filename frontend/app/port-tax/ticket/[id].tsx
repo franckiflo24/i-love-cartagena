@@ -63,17 +63,31 @@ export default function PortTaxTicketScreen() {
       .then((t: any) => setTicket(t && typeof t === 'object' && !Array.isArray(t) && (t.ticket_id || t.id || t.status) ? t : null))
       .catch(e => {
         console.error(e);
-        Alert.alert('Error', 'No se pudo cargar el tiquete.');
+        Alert.alert(tr('Error'), tr('No se pudo cargar el tiquete.'));
       })
       .finally(() => setLoading(false));
   }, [id]);
 
   const formatPrice = (p?: number) => p == null ? '' : `$${p.toLocaleString('es-CO')} COP`;
 
-  if (loading || !ticket) {
+  if (loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 80 }} />
+      </SafeAreaView>
+    );
+  }
+  if (!ticket) {
+    // Not found / failed load used to keep the spinner forever with no way back.
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={{ alignItems: 'center', marginTop: 80, paddingHorizontal: 32, gap: 16 }}>
+          <Ionicons name="alert-circle-outline" size={48} color={COLORS.textMuted} />
+          <Text style={{ color: COLORS.textMain, fontSize: 16, textAlign: 'center' }}>{tr('No se pudo cargar el tiquete.')}</Text>
+          <TouchableOpacity onPress={() => router.replace('/port-tax/tickets' as any)} activeOpacity={0.85}>
+            <Text style={{ color: COLORS.primary, fontSize: 15, fontWeight: '700' }}>{tr('Ver mis tiquetes')}</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }

@@ -1,5 +1,5 @@
 """
-AI-powered global search assistant for "Amo Cartagena".
+AI-powered global search assistant for "AMO Life".
 
 - Receives a free-text query (in any language).
 - Uses the Emergent LLM Key (gpt-4o-mini) to:
@@ -116,7 +116,7 @@ async def ai_search_answer(query: str, matches: Dict[str, List[Dict[str, Any]]])
     from llm import llm_complete
 
     system_prompt = (
-        "Eres el asistente conversacional de la app 'Amo Cartagena'. "
+        "Eres el asistente conversacional de la app 'AMO Life'. "
         "Recibes una consulta libre del usuario y una lista de elementos disponibles. "
         "Tu trabajo es: "
         "1) detectar la intención principal (partner | event | concert | transport | "

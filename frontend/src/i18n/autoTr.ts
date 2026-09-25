@@ -11,6 +11,7 @@
  *
  * IMPORTANT: keys are the Spanish source text exactly as it appears in the UI.
  */
+import { useCallback } from 'react';
 import { useLang } from '../context/LanguageContext';
 import type { Lang } from './translations';
 
@@ -422,7 +423,7 @@ export const AUTO_TR: Dict = {
   'Explorar agenda': { en: 'Explore agenda', fr: 'Explorer l\'agenda', pt: 'Explorar agenda' },
 
   // Search screen
-  'Pregunta a Amo: cena romántica, paseo a Barú, mariscos…': { en: 'Ask Amo: romantic dinner, trip to Barú, seafood…', fr: 'Demandez à Amo: dîner romantique, excursion à Barú…', pt: 'Pergunte ao Amo: jantar romântico, passeio a Barú…' },
+  'Pregunta a Luna: cena romántica, paseo a Barú, mariscos…': { en: 'Ask Luna: romantic dinner, trip to Barú, seafood…', fr: 'Demandez à Luna : dîner romantique, excursion à Barú…', pt: 'Pergunte à Luna: jantar romântico, passeio a Barú…' },
   'Buscando y pensando…': { en: 'Searching and thinking…', fr: 'Recherche en cours…', pt: 'Buscando e pensando…' },
   '¿Qué buscas?': { en: 'What are you looking for?', fr: 'Que cherchez-vous?', pt: 'O que você procura?' },
   'Puedes preguntar: «cena romántica», «cómo llegar a Barú», «conciertos este viernes», «pase cultural», «tasa portuaria»…': { en: 'Try: "romantic dinner", "how to get to Barú", "concerts this Friday", "cultural pass", "port tax"…', fr: 'Essayez: «dîner romantique», «comment aller à Barú», «concerts ce vendredi»…', pt: 'Tente: "jantar romântico", "como chegar a Barú", "shows nesta sexta"…' },
@@ -1349,7 +1350,7 @@ export const AUTO_TR: Dict = {
   'Tu Cartagena, según Luna': { en: 'Your Cartagena, curated by Luna', fr: 'Votre Carthagène, selon Luna', pt: 'Sua Cartagena, segundo a Luna' },
   'Crear cuenta gratis': { en: 'Create free account', fr: 'Créer un compte gratuit', pt: 'Criar conta grátis' },
   'Luna tiene tu respuesta': { en: 'Luna has your answer', fr: 'Luna a votre réponse', pt: 'A Luna tem sua resposta' },
-  'Preguntá lo que sea y Luna arma tu plan. Creá tu cuenta gratis para ver su respuesta completa.': { en: 'Ask anything and Luna builds your plan. Create your free account to see the full answer.', fr: 'Demandez ce que vous voulez et Luna crée votre plan. Créez votre compte gratuit pour voir la réponse complète.', pt: 'Pergunte o que quiser e a Luna monta seu plano. Crie sua conta grátis para ver a resposta completa.' },
+  'Pregunta lo que sea y Luna arma tu plan. Crea tu cuenta gratis para ver su respuesta completa.': { en: 'Ask anything and Luna builds your plan. Create your free account to see the full answer.', fr: 'Demandez ce que vous voulez et Luna crée votre plan. Créez votre compte gratuit pour voir la réponse complète.', pt: 'Pergunte o que quiser e a Luna monta seu plano. Crie sua conta grátis para ver a resposta completa.' },
   'Desbloquear Luna gratis': { en: 'Unlock Luna free', fr: 'Débloquer Luna gratuitement', pt: 'Desbloquear a Luna grátis' },
   'Permiso de ubicación': { en: 'Location permission', fr: 'Autorisation de localisation', pt: 'Permissão de localização' },
   'Activa el permiso para ver lugares cerca de ti y mejorar tus recomendaciones.': { en: 'Enable permission to see places near you and improve your recommendations.', fr: 'Activez l\'autorisation pour voir les lieux près de vous et améliorer vos recommandations.', pt: 'Ative a permissão para ver lugares perto de você e melhorar suas recomendações.' },
@@ -1467,6 +1468,116 @@ export const AUTO_TR: Dict = {
   'Saludable': { en: 'Healthy', fr: 'Sain', pt: 'Saudável' },
   'Más de': { en: 'More from', fr: 'Plus de', pt: 'Mais de' },
   'Habla inglés': { en: 'English spoken', fr: 'Parle anglais', pt: 'Fala inglês' },
+
+  // ── Account deletion (App Review path) + partner flows ──
+  '¿Estás seguro? Esta acción eliminará tu cuenta y todos tus datos permanentemente. No se puede deshacer.': { en: 'Are you sure? This will permanently delete your account and all your data. This cannot be undone.', fr: 'Êtes-vous sûr ? Cette action supprimera définitivement votre compte et toutes vos données. Elle est irréversible.', pt: 'Tem certeza? Esta ação excluirá permanentemente sua conta e todos os seus dados. Não pode ser desfeita.' },
+  '¡Cuenta activada!': { en: 'Account activated!', fr: 'Compte activé !', pt: 'Conta ativada!' },
+  'Tu perfil ya está creado. Completa tus fotos, horarios y descripción para empezar a recibir reservas.': { en: 'Your profile is ready. Add your photos, hours and description to start receiving bookings.', fr: 'Votre profil est créé. Ajoutez vos photos, horaires et description pour commencer à recevoir des réservations.', pt: 'Seu perfil está pronto. Complete suas fotos, horários e descrição para começar a receber reservas.' },
+  'No se pudo crear': { en: 'Could not create', fr: 'Création impossible', pt: 'Não foi possível criar' },
+  'No se pudo cargar. Toca para reintentar.': { en: 'Couldn’t load. Tap to retry.', fr: 'Chargement impossible. Touchez pour réessayer.', pt: 'Não foi possível carregar. Toque para tentar novamente.' },
+  'No pudimos buscar en el catálogo. Revisa tu conexión e inténtalo de nuevo.': { en: 'We couldn’t search the catalog. Check your connection and try again.', fr: 'Impossible de rechercher dans le catalogue. Vérifiez votre connexion et réessayez.', pt: 'Não conseguimos pesquisar no catálogo. Verifique sua conexão e tente novamente.' },
+  'Hubo un problema de conexión. Inténtalo de nuevo en un momento.': { en: 'There was a connection problem. Please try again in a moment.', fr: 'Un problème de connexion est survenu. Réessayez dans un instant.', pt: 'Houve um problema de conexão. Tente novamente em instantes.' },
+  'Ya existe un negocio muy similar. Recláchalo en vez de crear uno nuevo.': { en: 'A very similar business already exists. Claim it instead of creating a new one.', fr: 'Un établissement très similaire existe déjà. Revendiquez-le plutôt que d’en créer un nouveau.', pt: 'Já existe um negócio muito parecido. Reivindique-o em vez de criar um novo.' },
+  // ── Home personalized greeting (PersonalizationContext.getGreeting) ──
+  'Escapada romantica en Cartagena 💑': { en: 'Romantic getaway in Cartagena 💑', fr: 'Escapade romantique à Cartagena 💑', pt: 'Escapada romântica em Cartagena 💑' },
+  'Cartagena con amigos! 🎉': { en: 'Cartagena with friends! 🎉', fr: 'Cartagena entre amis ! 🎉', pt: 'Cartagena com amigos! 🎉' },
+  'Cartagena en familia 👨‍👩‍👧‍👦': { en: 'Cartagena with the family 👨‍👩‍👧‍👦', fr: 'Cartagena en famille 👨‍👩‍👧‍👦', pt: 'Cartagena em família 👨‍👩‍👧‍👦' },
+  'Hola, cartagenero! ❤️': { en: 'Hi, Cartagena local! ❤️', fr: 'Salut, Cartagenero ! ❤️', pt: 'Olá, cartagenero! ❤️' },
+  'Bienvenido a Cartagena! 🌴': { en: 'Welcome to Cartagena! 🌴', fr: 'Bienvenue à Cartagena ! 🌴', pt: 'Bem-vindo a Cartagena! 🌴' },
+  'No se pudo cargar el tiquete.': { en: 'Couldn’t load the ticket.', fr: 'Impossible de charger le billet.', pt: 'Não foi possível carregar o bilhete.' },
+  // ── Tourist + partner-dashboard coverage pass (runtime sweep, Sep 25) ──
+  'Ahora no': { en: 'Not now', fr: 'Pas maintenant', pt: 'Agora não' },
+  'Caminar Cartagena': { en: 'Walk Cartagena', fr: 'Marcher dans Cartagena', pt: 'Caminhar por Cartagena' },
+  'Caminar a': { en: 'Walk to', fr: 'Marcher jusqu’à', pt: 'Caminhar até' },
+  'Crear mi propia ruta': { en: 'Create my own route', fr: 'Créer mon propre itinéraire', pt: 'Criar minha própria rota' },
+  'Estás a': { en: 'You are', fr: 'Vous êtes à', pt: 'Você está a' },
+  'Finalizar': { en: 'Finish', fr: 'Terminer', pt: 'Finalizar' },
+  'Iniciar paseo': { en: 'Start walk', fr: 'Commencer la balade', pt: 'Iniciar passeio' },
+  'Modo paseo': { en: 'Walk mode', fr: 'Mode balade', pt: 'Modo passeio' },
+  'Próxima parada': { en: 'Next stop', fr: 'Prochain arrêt', pt: 'Próxima parada' },
+  'Ruta personalizada': { en: 'Custom route', fr: 'Itinéraire personnalisé', pt: 'Rota personalizada' },
+  'Rutas a pie por calles reales del Centro y Getsemaní.': { en: 'Walking routes along real streets of the Centro and Getsemaní.', fr: 'Itinéraires à pied dans les vraies rues du Centro et de Getsemaní.', pt: 'Rotas a pé pelas ruas reais do Centro e de Getsemaní.' },
+  'Sin tu ubicación, el seguimiento en vivo no puede activarse.': { en: 'Without your location, live tracking can’t be turned on.', fr: 'Sans votre position, le suivi en direct ne peut pas être activé.', pt: 'Sem sua localização, o acompanhamento ao vivo não pode ser ativado.' },
+  'También puedes tocar cualquier lugar del mapa y elegir «Caminar».': { en: 'You can also tap any place on the map and choose “Walk”.', fr: 'Vous pouvez aussi toucher n’importe quel lieu sur la carte et choisir « Marcher ».', pt: 'Você também pode tocar em qualquer lugar do mapa e escolher “Caminhar”.' },
+  'Toca los lugares del mapa y elige «Caminar» para añadirlos': { en: 'Tap places on the map and choose “Walk” to add them', fr: 'Touchez des lieux sur la carte et choisissez « Marcher » pour les ajouter', pt: 'Toque nos lugares do mapa e escolha “Caminhar” para adicioná-los' },
+  'Trazando ruta…': { en: 'Plotting route…', fr: 'Tracé de l’itinéraire…', pt: 'Traçando rota…' },
+  'Trazar ruta': { en: 'Plot route', fr: 'Tracer l’itinéraire', pt: 'Traçar rota' },
+  'caminando': { en: 'walking', fr: 'à pied', pt: 'caminhando' },
+  'de Cartagena — el seguimiento en vivo se activa al llegar a la ciudad.': { en: 'from Cartagena — live tracking turns on when you arrive in the city.', fr: 'de Cartagena — le suivi en direct s’active à votre arrivée en ville.', pt: 'de Cartagena — o acompanhamento ao vivo é ativado quando você chegar à cidade.' },
+  'desde': { en: 'from', fr: 'depuis', pt: 'de' },
+  'tu ubicación': { en: 'your location', fr: 'votre position', pt: 'sua localização' },
+  '¿Quieres un paseo virtual por el Centro Histórico?': { en: 'Would you like a virtual walk through the Old City?', fr: 'Voulez-vous une balade virtuelle dans le Centre historique ?', pt: 'Quer um passeio virtual pelo Centro Histórico?' },
+  'Enviando…': { en: 'Sending…', fr: 'Envoi…', pt: 'Enviando…' },
+  'Enviar': { en: 'Send', fr: 'Envoyer', pt: 'Enviar' },
+  'Enviar itinerario por email': { en: 'Email the itinerary', fr: 'Envoyer l’itinéraire par e-mail', pt: 'Enviar roteiro por e-mail' },
+  'tu@email.com': { en: 'you@email.com', fr: 'vous@email.com', pt: 'voce@email.com' },
+  '¡Enviado! ✓': { en: 'Sent! ✓', fr: 'Envoyé ! ✓', pt: 'Enviado! ✓' },
+  'Buscar en Cartagena con IA…': { en: 'Search Cartagena with AI…', fr: 'Rechercher à Cartagena avec l’IA…', pt: 'Pesquisar em Cartagena com IA…' },
+  'Luna elige lugares para ti según tu vibra. Crea tu cuenta gratis y desbloquea los tuyos.': { en: 'Luna picks places for you based on your vibe. Create your free account to unlock yours.', fr: 'Luna choisit des lieux selon votre style. Créez votre compte gratuit pour débloquer les vôtres.', pt: 'Luna escolhe lugares para você conforme seu estilo. Crie sua conta grátis e desbloqueie os seus.' },
+  'Pregunta lo que sea — Luna te guía': { en: 'Ask anything — Luna guides you', fr: 'Demandez ce que vous voulez — Luna vous guide', pt: 'Pergunte o que quiser — Luna te guia' },
+  'al instante': { en: 'instantly', fr: 'instantanément', pt: 'na hora' },
+  'Tu cuenta ya está activa. Este enlace registra a usuarios NUEVOS — muéstralo con el QR, o pruébalo en una ventana de incógnito para ver lo que verán tus clientes.': { en: 'Your account is already active. This link signs up NEW users — show it with the QR, or try it in a private window to see what your customers will see.', fr: 'Votre compte est déjà actif. Ce lien inscrit de NOUVEAUX utilisateurs — montrez-le avec le QR, ou essayez-le en navigation privée pour voir ce que verront vos clients.', pt: 'Sua conta já está ativa. Este link cadastra NOVOS usuários — mostre-o com o QR ou teste em uma janela anônima para ver o que seus clientes verão.' },
+  'ya estás registrado': { en: 'you’re already signed up', fr: 'vous êtes déjà inscrit', pt: 'você já está cadastrado' },
+  'Cuando reserves una mesa o experiencia con un partner, aparecerá aquí con su estado en tiempo real.': { en: 'When you book a table or experience with a partner, it will appear here with its live status.', fr: 'Quand vous réservez une table ou une expérience auprès d’un partenaire, elle apparaîtra ici avec son statut en temps réel.', pt: 'Quando você reservar uma mesa ou experiência com um parceiro, ela aparecerá aqui com o status em tempo real.' },
+  'Music Week': { en: 'Music Week', fr: 'Music Week', pt: 'Music Week' },
+  'Solo mostramos categorías con información verificada. Lo que aún no está, lo decimos honestamente — nunca inventamos un dato.': { en: 'We only show categories with verified information. If something isn’t here yet, we say so — we never make up data.', fr: 'Nous n’affichons que les catégories vérifiées. Ce qui manque encore, nous le disons honnêtement — nous n’inventons jamais une donnée.', pt: 'Só mostramos categorias com informações verificadas. O que ainda não temos, dizemos com honestidade — nunca inventamos um dado.' },
+  'Ver lugares': { en: 'See places', fr: 'Voir les lieux', pt: 'Ver lugares' },
+  'Verificando disponibilidad…': { en: 'Checking availability…', fr: 'Vérification de la disponibilité…', pt: 'Verificando disponibilidade…' },
+  'Completa tu perfil': { en: 'Complete your profile', fr: 'Complétez votre profil', pt: 'Complete seu perfil' },
+  'Recomendaciones personalizadas según tus gustos': { en: 'Personalized recommendations based on your taste', fr: 'Recommandations personnalisées selon vos goûts', pt: 'Recomendações personalizadas de acordo com seus gostos' },
+  'Inicia sesión para ver y canjear ofertas': { en: 'Sign in to see and redeem offers', fr: 'Connectez-vous pour voir et utiliser les offres', pt: 'Entre para ver e resgatar ofertas' },
+  'No hay ofertas disponibles por ahora': { en: 'No offers available right now', fr: 'Aucune offre disponible pour le moment', pt: 'Nenhuma oferta disponível no momento' },
+  'Reclámalo y gestiona tu perfil, eventos y promociones': { en: 'Claim it and manage your profile, events and promotions', fr: 'Revendiquez-le et gérez votre profil, vos événements et promotions', pt: 'Reivindique e gerencie seu perfil, eventos e promoções' },
+  '¿Es tu negocio?': { en: 'Is this your business?', fr: 'C’est votre établissement ?', pt: 'Este negócio é seu?' },
+  'Lo que hay que saber': { en: 'What you need to know', fr: 'Ce qu’il faut savoir', pt: 'O que você precisa saber' },
+  'Se guarda en tu cuenta para que puedas volver desde cualquier dispositivo.': { en: 'It’s saved to your account so you can get back from any device.', fr: 'Enregistré dans votre compte pour revenir depuis n’importe quel appareil.', pt: 'Fica salvo na sua conta para você voltar de qualquer dispositivo.' },
+  'Zonas más visitadas': { en: 'Most visited areas', fr: 'Zones les plus visitées', pt: 'Áreas mais visitadas' },
+  '¡Código copiado! Pégalo donde quieras': { en: 'Code copied! Paste it anywhere', fr: 'Code copié ! Collez-le où vous voulez', pt: 'Código copiado! Cole onde quiser' },
+  'Acceso solo con código. Solicítalo al equipo AMO.': { en: 'Access by code only. Request it from the AMO team.', fr: 'Accès uniquement par code. Demandez-le à l’équipe AMO.', pt: 'Acesso somente com código. Solicite à equipe AMO.' },
+  'Crea tu cuenta gratis, busca tu negocio en el catálogo y verifica que eres el dueño para gestionarlo.': { en: 'Create your free account, find your business in the catalog and verify you’re the owner to manage it.', fr: 'Créez votre compte gratuit, trouvez votre établissement dans le catalogue et prouvez que vous en êtes le propriétaire pour le gérer.', pt: 'Crie sua conta grátis, encontre seu negócio no catálogo e verifique que você é o dono para gerenciá-lo.' },
+  'Código de acceso': { en: 'Access code', fr: 'Code d’accès', pt: 'Código de acesso' },
+  'Código incorrecto': { en: 'Incorrect code', fr: 'Code incorrect', pt: 'Código incorreto' },
+  'Ingresa el código de acceso': { en: 'Enter the access code', fr: 'Saisissez le code d’accès', pt: 'Digite o código de acesso' },
+  'Registra tu negocio': { en: 'Register your business', fr: 'Inscrivez votre établissement', pt: 'Cadastre seu negócio' },
+  'Busca tu negocio en el catálogo y verifica que eres el dueño para empezar a gestionarlo.': { en: 'Find your business in the catalog and verify you’re the owner to start managing it.', fr: 'Trouvez votre établissement dans le catalogue et prouvez que vous en êtes le propriétaire pour commencer à le gérer.', pt: 'Encontre seu negócio no catálogo e verifique que você é o dono para começar a gerenciá-lo.' },
+  'Buscar mi negocio': { en: 'Find my business', fr: 'Trouver mon établissement', pt: 'Buscar meu negócio' },
+  'DUEÑO VERIFICADO': { en: 'VERIFIED OWNER', fr: 'PROPRIÉTAIRE VÉRIFIÉ', pt: 'DONO VERIFICADO' },
+  'EN REVISIÓN': { en: 'UNDER REVIEW', fr: 'EN COURS D’EXAMEN', pt: 'EM ANÁLISE' },
+  'Encuentra tu negocio': { en: 'Find your business', fr: 'Trouvez votre établissement', pt: 'Encontre seu negócio' },
+  'Estamos revisando tu solicitud de propiedad. Podrás editar tu negocio cuando sea verificada.': { en: 'We’re reviewing your ownership request. You’ll be able to edit your business once it’s verified.', fr: 'Nous examinons votre demande de propriété. Vous pourrez modifier votre établissement une fois vérifiée.', pt: 'Estamos analisando sua solicitação de propriedade. Você poderá editar seu negócio quando for verificada.' },
+  'Sube fotos, envía tu precio y revisa el estado': { en: 'Upload photos, submit your price and check the status', fr: 'Ajoutez des photos, envoyez votre prix et suivez le statut', pt: 'Envie fotos, informe seu preço e acompanhe o status' },
+  'Ver guía': { en: 'View guide', fr: 'Voir le guide', pt: 'Ver guia' },
+  'Verificación en proceso': { en: 'Verification in progress', fr: 'Vérification en cours', pt: 'Verificação em andamento' },
+  'Publicado': { en: 'Published', fr: 'Publié', pt: 'Publicado' },
+  'Cuando llegue una solicitud aparecerá aquí. Mantén tu perfil completo para recibir más reservas.': { en: 'New requests will appear here. Keep your profile complete to get more bookings.', fr: 'Les nouvelles demandes apparaîtront ici. Gardez votre profil complet pour recevoir plus de réservations.', pt: 'Novas solicitações aparecerão aqui. Mantenha seu perfil completo para receber mais reservas.' },
+  'Enviar precio (pasa por revisión)': { en: 'Submit price (goes to review)', fr: 'Envoyer le prix (soumis à validation)', pt: 'Enviar preço (passa por análise)' },
+  'Fotos': { en: 'Photos', fr: 'Photos', pt: 'Fotos' },
+  'Gestiona tus fotos en Mi contenido': { en: 'Manage your photos in My content', fr: 'Gérez vos photos dans Mon contenu', pt: 'Gerencie suas fotos em Meu conteúdo' },
+  'Las fotos pasan por revisión (IA + equipo) antes de publicarse. La imagen principal la gestiona el equipo.': { en: 'Photos are reviewed (AI + team) before publishing. The main image is managed by the team.', fr: 'Les photos sont vérifiées (IA + équipe) avant publication. L’image principale est gérée par l’équipe.', pt: 'As fotos passam por análise (IA + equipe) antes de serem publicadas. A imagem principal é gerenciada pela equipe.' },
+  'Tasa portuaria oficial': { en: 'Official port tax', fr: 'Taxe portuaire officielle', pt: 'Taxa portuária oficial' },
+  'Paga antes de embarcar': { en: 'Pay before boarding', fr: 'Payez avant d’embarquer', pt: 'Pague antes de embarcar' },
+  'Tasa portuaria oficial para salir hacia Islas del Rosario, Barú o Tierra Bomba. Aparte del precio del tour o la lancha.': { en: 'Official port tax to depart for the Rosario Islands, Barú or Tierra Bomba. Separate from the tour or boat price.', fr: 'Taxe portuaire officielle pour partir vers les îles du Rosaire, Barú ou Tierra Bomba. En plus du prix du tour ou du bateau.', pt: 'Taxa portuária oficial para sair rumo às Ilhas do Rosário, Barú ou Tierra Bomba. À parte do preço do passeio ou da lancha.' },
+  'shows próximos': { en: 'upcoming shows', fr: 'concerts à venir', pt: 'shows próximos' },
+  'Sin shows programados': { en: 'No shows scheduled', fr: 'Aucun concert programmé', pt: 'Nenhum show programado' },
+  // ── Map popups (native + web) ──
+  'UBICACIÓN VERIFICADA': { en: 'VERIFIED LOCATION', fr: 'EMPLACEMENT VÉRIFIÉ', pt: 'LOCALIZAÇÃO VERIFICADA' },
+  'Caminar': { en: 'Walk', fr: 'Marcher', pt: 'Caminhar' },
+  'SELLO DEL PASAPORTE': { en: 'PASSPORT STAMP', fr: 'TAMPON DU PASSEPORT', pt: 'CARIMBO DO PASSAPORTE' },
+  // ── AMO Life rename ──
+  'Este partner aún no gestiona reservas en AMO Life. Le hemos enviado tu solicitud — te avisaremos si activa su cuenta.': { en: 'This partner doesn’t manage bookings on AMO Life yet. We’ve sent them your request — we’ll let you know if they activate their account.', fr: 'Ce partenaire ne gère pas encore ses réservations sur AMO Life. Nous lui avons transmis votre demande — nous vous préviendrons s’il active son compte.', pt: 'Este parceiro ainda não gerencia reservas no AMO Life. Enviamos sua solicitação — avisaremos se ele ativar a conta.' },
+  // ── Port tax info-only mode + tickets sign-in ──
+  'El pago en línea de la tasa portuaria estará disponible pronto. Por ahora, paga directamente en el Muelle La Bodeguita.': { en: 'Online payment of the port tax is coming soon. For now, pay directly at Muelle La Bodeguita.', fr: 'Le paiement en ligne de la taxe portuaire arrive bientôt. Pour l’instant, payez directement au Muelle La Bodeguita.', pt: 'O pagamento online da taxa portuária estará disponível em breve. Por enquanto, pague diretamente no Muelle La Bodeguita.' },
+  'Total a pagar': { en: 'Total to pay', fr: 'Total à payer', pt: 'Total a pagar' },
+  'Total a pagar en el muelle': { en: 'Total payable at the pier', fr: 'Total à payer au quai', pt: 'Total a pagar no píer' },
+  'Por ahora la tasa se paga directamente en el Muelle La Bodeguita antes de embarcar. El pago en línea estará disponible pronto.': { en: 'For now the tax is paid directly at Muelle La Bodeguita before boarding. Online payment is coming soon.', fr: 'Pour l’instant, la taxe se paie directement au Muelle La Bodeguita avant l’embarquement. Le paiement en ligne arrive bientôt.', pt: 'Por enquanto a taxa é paga diretamente no Muelle La Bodeguita antes do embarque. O pagamento online estará disponível em breve.' },
+  'Tras el pago se generará un QR único por tiquete. Muéstralo en el muelle antes de embarcar. Cada QR solo se puede usar una vez.': { en: 'After payment a unique QR is generated per ticket. Show it at the pier before boarding. Each QR can only be used once.', fr: 'Après le paiement, un QR unique est généré par billet. Montrez-le au quai avant d’embarquer. Chaque QR n’est utilisable qu’une fois.', pt: 'Após o pagamento, um QR único é gerado por bilhete. Mostre-o no píer antes de embarcar. Cada QR só pode ser usado uma vez.' },
+  'Cómo llegar al muelle': { en: 'Directions to the pier', fr: 'Itinéraire vers le quai', pt: 'Como chegar ao píer' },
+  'Para ver tus tiquetes guardados y volver a abrir tu QR cuando lo necesites.': { en: 'To see your saved tickets and reopen your QR whenever you need it.', fr: 'Pour voir vos billets enregistrés et rouvrir votre QR quand vous en avez besoin.', pt: 'Para ver seus bilhetes salvos e reabrir seu QR quando precisar.' },
+
+  // ── Reservation how-it-works (WhatsApp flow) ──
+  '1) Abrimos WhatsApp con tu solicitud lista: fecha, hora y personas.': { en: '1) We open WhatsApp with your request ready: date, time and party size.', fr: '1) Nous ouvrons WhatsApp avec votre demande prête : date, heure et nombre de personnes.', pt: '1) Abrimos o WhatsApp com sua solicitação pronta: data, horário e pessoas.' },
+  '2) El lugar te confirma la disponibilidad directamente por WhatsApp.': { en: '2) The venue confirms availability with you directly on WhatsApp.', fr: '2) L’établissement vous confirme la disponibilité directement sur WhatsApp.', pt: '2) O local confirma a disponibilidade diretamente com você pelo WhatsApp.' },
+  '3) Pagos y cambios se acuerdan directamente con el lugar.': { en: '3) Payments and changes are arranged directly with the venue.', fr: '3) Paiements et modifications se règlent directement avec l’établissement.', pt: '3) Pagamentos e alterações são combinados diretamente com o local.' },
 };
 
 /**
@@ -1475,11 +1586,13 @@ export const AUTO_TR: Dict = {
  */
 export function useTr() {
   const { lang } = useLang();
-  return (esText: string | null | undefined): string => {
+  // Stable identity per language: screens put `tr` in useCallback/useEffect deps,
+  // so a fresh function every render re-ran their loaders in an endless refetch loop.
+  return useCallback((esText: string | null | undefined): string => {
     if (!esText) return '';
     if (lang === 'es') return esText;
     const entry = AUTO_TR[esText];
     if (!entry) return esText; // fallback: original Spanish
     return entry[lang] || esText;
-  };
+  }, [lang]);
 }

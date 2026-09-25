@@ -40,7 +40,10 @@ INTERNAL_PARTNER_FIELDS = (
     "submitted_email", "submitted_by", "claimed_by", "claim_method",
     "claim_verified_at", "approved_by", "rejected_by", "reject_reason",
     # ── contact PII (not read by any public client) ──
-    "email", "nit",
+    # nit_digits was missed next to nit → 9-digit tax IDs leaked on /api/partners.
+    "email", "nit", "nit_digits",
+    # ── internal data-ops bookkeeping ──
+    "email_backfill_source", "email_backfilled_at", "dup_review", "relocation_note",
     # ── raw growth/ranking analytics (internal signal) ──
     "bookings_30d", "searches_30d", "views_30d", "tier_score", "claimed_boost",
 )

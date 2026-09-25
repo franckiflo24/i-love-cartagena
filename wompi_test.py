@@ -490,7 +490,7 @@ def test_payouts():
     # 2. Regular partner token → 403
     biz_r = requests.post(API + "/business/login",
                           json={"email": "casaboheme@amocartagena.app",
-                                "password": "amocartagena2026"},
+                                "password": os.environ.get("DEMO_PARTNER_PASSWORD", "")},
                           timeout=15)
     record("regular partner login → 200", biz_r.status_code == 200, f"got {biz_r.status_code}")
     biz_tok = (biz_r.json() or {}).get("token", "") if biz_r.status_code == 200 else ""
@@ -501,7 +501,7 @@ def test_payouts():
     # 3. Alcaldía token → 200
     alc_r = requests.post(API + "/business/login",
                           json={"email": "alcaldia@amocartagena.app",
-                                "password": "AlcaldiaCTG2026!"},
+                                "password": os.environ.get("ALCALDIA_PASSWORD", "")},
                           timeout=15)
     record("alcaldia login → 200", alc_r.status_code == 200, f"got {alc_r.status_code}")
     alc_tok = (alc_r.json() or {}).get("token", "") if alc_r.status_code == 200 else ""

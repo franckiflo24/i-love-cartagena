@@ -17,6 +17,12 @@ import * as Sharing from 'expo-sharing';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { api } from '../constants/api';
 import { useTr } from '../i18n/autoTr';
+import { NBH_LABELS } from '../utils/neighborhood';
+
+// Analytics zones are slugs ("centro_historico", "fuera_cartagena") — never show raw codes.
+const ZONE_EXTRA: Record<string, string> = { centro_historico: 'Centro Histórico', fuera_cartagena: 'Fuera de Cartagena' };
+const zoneLabel = (z: string) =>
+  ZONE_EXTRA[z] || NBH_LABELS[z] || String(z || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 type Tab = 'overview' | 'users' | 'payments' | 'demographics' | 'payouts';
 
@@ -356,12 +362,12 @@ export default function AlcaldiaDashboard({
               ping endpoint; never seeded). No sample marker. */}
           {!!analytics?.top_zones?.length && (
             <>
-              <Text style={styles.sectionTitle}>Zonas más visitadas</Text>
+              <Text style={styles.sectionTitle}>{tr('Zonas más visitadas')}</Text>
               <View style={styles.chipsWrap}>
                 {analytics.top_zones.slice(0, 10).map((z: any) => (
                   <View key={z.zone} style={styles.zoneChip}>
                     <Ionicons name="location" size={11} color={COLORS.primary} />
-                    <Text style={styles.zoneChipText}>{z.zone}</Text>
+                    <Text style={styles.zoneChipText}>{zoneLabel(z.zone)}</Text>
                     <Text style={styles.zoneChipCount}>{fmtNum(z.count)}</Text>
                   </View>
                 ))}

@@ -371,7 +371,7 @@ async def create_reservation(request: Request):
     if is_pro:
         message = "Tu solicitud fue enviada al partner. Te avisaremos cuando confirme y verás su link de pago en la app."
     else:
-        message = "Solicitud enviada. Este partner aún no gestiona reservas vía Amo Cartagena — le hemos notificado tu pedido y te avisaremos si activa su cuenta."
+        message = "Solicitud enviada. Este partner aún no gestiona reservas vía AMO Life — le hemos notificado tu pedido y te avisaremos si activa su cuenta."
     return {
         "reservation": hydrated,
         "locked": not is_pro,

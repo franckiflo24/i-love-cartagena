@@ -74,7 +74,7 @@ function card(snap: any) {
     h('div', { display: 'flex', alignItems: 'center', gap: 12, marginTop: 30 },
       h('div', { display: 'flex', fontSize: 26, fontWeight: 800, color: GOLD, letterSpacing: 2 }, 'AMO'),
       { type: 'img', props: { src: HEART_DATA_URI, width: 30, height: 30, style: {} } },
-      h('div', { display: 'flex', fontSize: 26, fontWeight: 800, color: GOLD, letterSpacing: 2 }, 'CARTAGENA'),
+      h('div', { display: 'flex', fontSize: 26, fontWeight: 800, color: GOLD, letterSpacing: 2 }, 'LIFE'),
       h('div', { display: 'flex', fontSize: 20, fontWeight: 700, color: 'rgba(255,255,255,0.5)', marginLeft: 6 }, 'amocartagena.co'),
     ),
   );

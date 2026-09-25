@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { Alert } from '../../src/lib/alert';
@@ -17,6 +18,7 @@ import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GrowthCards } from '../../src/components/GrowthCards';
+import { requestTutorialReplay } from '../../src/components/TutorialOverlay';
 
 const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
 
@@ -477,9 +479,12 @@ export default function PerfilScreen() {
           <SettingsRow icon="trophy-outline" label={s('profile_rewards') || 'Rewards'} onPress={() => router.push('/rewards' as any)} />
           <SettingsRow icon="card-outline" label="City Pass" onPress={() => router.push('/(tabs)/citypass' as any)} />
           <SettingsRow icon="notifications-outline" label={s('profile_notifications') || tr('Notificaciones')} onPress={() => router.push('/notifications' as any)} />
-          <SettingsRow icon="star-outline" label={tr('Mis reseñas')} onPress={() => router.push('/review/new' as any)} />
           <SettingsRow icon="trail-sign-outline" label={tr('Itinerarios IA')} onPress={() => router.push('/itineraries' as any)} />
-          <SettingsRow icon="help-circle-outline" label={s('tutorial_replay')} onPress={async () => { await AsyncStorage.removeItem('@tutorial_seen'); router.push('/(tabs)' as any); }} />
+          {/* "Mis reseñas" opened the review FORM with no partner (errored on submit) —
+              removed until a my-reviews list exists. The tutorial overlay is web-only. */}
+          {Platform.OS === 'web' && (
+            <SettingsRow icon="help-circle-outline" label={s('tutorial_replay')} onPress={() => { router.push('/(tabs)' as any); requestTutorialReplay(); }} />
+          )}
         </View>
 
         {/* ── Language ── */}
@@ -564,7 +569,7 @@ export default function PerfilScreen() {
           <Text style={sty.logoutText}>{tr('Cerrar sesión')}</Text>
         </TouchableOpacity>
 
-        <Text style={sty.versionText}>AMO Life v2.0</Text>
+        <Text style={sty.versionText}>AMO Life v{(Constants?.expoConfig as any)?.version || '1.0.0'}</Text>
       </ScrollView>
     </SafeAreaView>
   );

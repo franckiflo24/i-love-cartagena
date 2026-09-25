@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
   Dimensions, Platform, ScrollView, Linking,
@@ -22,6 +22,12 @@ import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
 import { getHomeBase, syncHomeBase } from '../../src/lib/homeBase';
 import { openDirections } from '../../src/lib/maps';
 import { ATLAS_VERIFIED, ATLAS_VENUE_FIXES, ATLAS_ADD_VENUES, ATLAS_ROUTE, ATLAS_WALK, ATLAS_RUTAS } from '../../src/data/atlas';
+
+// Embeds arbitrary text as a JS string literal inside the WebView's inline <script>.
+// Only escaping ' let a newline / backslash in a partner description throw a
+// SyntaxError and blank the whole native map; `<` is escaped so "</script>" can't close the tag.
+const jsString = (v: string) =>
+  JSON.stringify(v).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -95,6 +101,17 @@ function escHtml(v: string): string {
 // WebView→native messages come from a javaScriptEnabled document that renders
 // partner-controlled text — never trust a path or id out of it blindly.
 const SAFE_NAV_PATH = /^\/[A-Za-z0-9_\-/]*$/;
+
+// "Ver detalle" target by place kind. Only partners have a detail page and
+// concerts have the concerts screen; venues / essentials (hospitals, ess_*) have
+// none — linking them to /partner/<id> was a "No encontrado" dead end.
+function detailPath(p: { id: string; category: string; type: string }): string | null {
+  const id = (p.id || '').replace(/[^A-Za-z0-9_-]/g, '');
+  if (!id) return null;
+  if (p.category === 'concert') return '/concerts';
+  if (p.category === 'partner' && p.type !== 'essential' && !id.startsWith('ess_')) return `/partner/${id}`;
+  return null;
+}
 const SAFE_ID = /^[A-Za-z0-9_-]+$/;
 
 // Tour timing: flyTo flight time + dwell at each stop (seconds / ms).
@@ -201,7 +218,7 @@ function orderRutaStops(origin: { lat: number; lng: number }, stops: RutaStop[])
   return out;
 }
 
-function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null, satellite: boolean, autoTour: boolean, autoWalk: boolean, route: { origin: { lat: number; lng: number } | null; stops: RutaStop[] } | null) {
+function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null, satellite: boolean, autoTour: boolean, autoWalk: boolean, route: { origin: { lat: number; lng: number } | null; stops: RutaStop[] } | null, tr: (es: string) => string) {
   const filtered = filter === 'all' ? places
     : filter === 'esenciales' ? places.filter(p => p.type === 'service' || p.type === 'essential')
     : places.filter(p => p.category === filter);
@@ -215,15 +232,22 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     const safePrice = escHtml(p.price || '');
 
     const priceHtml = safePrice ? '<span style="font-size:12px;color:' + COLORS.mustard + ';font-weight:700;">' + safePrice + '</span><br>' : '';
-    const verifiedHtml = isVerified ? '<span style="font-size:10px;color:#12B5A5;font-weight:800;">✓ UBICACIÓN VERIFICADA</span><br>' : '';
+    const verifiedHtml = isVerified ? '<span style="font-size:10px;color:#12B5A5;font-weight:800;">✓ ' + escHtml(tr('UBICACIÓN VERIFICADA')) + '</span><br>' : '';
 
     // Caminar action: id + coords only (name resolved RN-side from places —
     // names contain spaces, which break unquoted inline onclick attributes).
     // id is charset-clamped: it rides inside an inline onclick JS string.
     const safeId = (p.id || '').replace(/[^A-Za-z0-9_-]/g, '');
-    const caminarBtn = '<a href=# style=display:inline-block;padding:6px_12px;background:rgba(201,168,76,0.15);color:#C9A84C;text-decoration:none;border-radius:20px;font-size:12px;font-weight:700;border:1px_solid_rgba(201,168,76,0.35) onclick=window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:\"caminar\",id:\"' + safeId + '\",lat:' + p.lat + ',lng:' + p.lng + '}));return_false;>🚶 Caminar</a>';
+    // Quoted attributes: the popup is JSON-encoded (jsString) now, so the old
+    // unquoted/underscore form (padding:6px_12px, return_false) isn't needed —
+    // it dropped the button padding and threw in every onclick.
+    const post = (msg: string) => 'window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify(' + msg + '));return false;';
+    const caminarBtn = '<a href="#" style="display:inline-block;padding:6px 12px;background:rgba(201,168,76,0.15);color:#C9A84C;text-decoration:none;border-radius:20px;font-size:12px;font-weight:700;border:1px solid rgba(201,168,76,0.35)" onclick="' + post("{type:'caminar',id:'" + safeId + "',lat:" + p.lat + ",lng:" + p.lng + "}") + '">🚶 ' + escHtml(tr('Caminar')) + '</a>';
 
-    const detailUrl = '/partner/' + safeId;
+    const detailUrl = detailPath(p);
+    const detailBtn = detailUrl
+      ? '<a href="#" style="display:inline-block;padding:6px 14px;background:#12B5A5;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600" onclick="' + post("{type:'navigate',path:'" + detailUrl + "'}") + '">' + escHtml(tr('Ver detalle')) + ' →</a>'
+      : '';
     const popupContent = '<div style=font-family:sans-serif;min-width:180px>'
       + '<div style=display:flex;align-items:center;gap:6px;margin-bottom:6px>'
       + '<div style=width:10px;height:10px;border-radius:50%;background:' + color + ';flex-shrink:0></div>'
@@ -235,9 +259,9 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
       + '<span style=font-size:11px;color:' + COLORS.textMuted + '>📍 ' + safeAddr + '</span><br>'
       + priceHtml
       + '<div style=display:flex;gap:6px;margin-top:6px;flex-wrap:wrap>'
-      + '<a href=' + detailUrl + ' style=display:inline-block;padding:6px_14px;background:#12B5A5;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600 onclick=window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:\"navigate\",path:\"' + detailUrl + '\"}));return_false;>Ver detalle →</a>'
+      + detailBtn
       + caminarBtn
-      + '<a href=# style=display:inline-block;padding:6px_14px;background:rgba(255,255,255,0.08);color:' + COLORS.textMain + ';text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px_solid_rgba(255,255,255,0.08) onclick=window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify({type:\"openMaps\",lat:' + p.lat + ',lng:' + p.lng + '}));return_false;>📍 Mapa</a>'
+      + '<a href="#" style="display:inline-block;padding:6px 14px;background:rgba(255,255,255,0.08);color:' + COLORS.textMain + ';text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,0.08)" onclick="' + post("{type:'openMaps',lat:" + p.lat + ",lng:" + p.lng + "}") + '">📍 ' + escHtml(tr('Mapa')) + '</a>'
       + '</div>'
       + '</div>';
 
@@ -247,7 +271,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
       : '';
     return halo + "L.circleMarker([" + p.lat + ", " + p.lng + "], {"
       + "radius: " + (isVerified ? 11 : 10) + ", fillColor: '" + color + "', color: '#fff', weight: " + (isVerified ? 3 : 2) + ", opacity: 1, fillOpacity: 0.9"
-      + "}).addTo(map).bindPopup('" + popupContent.replace(/'/g, "\\'") + "', {maxWidth: 260});";
+      + "}).addTo(map).bindPopup(" + jsString(popupContent) + ", {maxWidth: 260});";
   }).join('\n');
 
   // User location: pulsing blue dot — only recenter if INSIDE Cartagena
@@ -258,9 +282,10 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
       iconSize: [22, 22],
       iconAnchor: [11, 11],
     });
-    L.marker([${userLoc.lat}, ${userLoc.lng}], {icon: userIcon, zIndexOffset: 1000})
+    var __amoUser = L.marker([${userLoc.lat}, ${userLoc.lng}], {icon: userIcon, zIndexOffset: 1000})
       .addTo(map)
-      .bindPopup('<b style="color:${COLORS.textMain}">📍 Tu ubicación</b>');
+      .bindPopup('<b style="color:${COLORS.textMain}">📍 ${escHtml(tr('Tu ubicación')).replace(/'/g, '&#39;')}</b>');
+    window.__amoMoveUser = function (lat, lng, pan) { __amoUser.setLatLng([lat, lng]); if (pan) map.panTo([lat, lng]); };
     ${isInCartagena(userLoc.lat, userLoc.lng) ? `map.setView([${userLoc.lat}, ${userLoc.lng}], 14);` : '/* User outside Cartagena — keep default center */'}
   ` : '';
 
@@ -537,11 +562,11 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
           }
           return;
         }
-        const link = (e.target as HTMLElement).closest('[data-partner]') as HTMLElement | null;
+        const link = (e.target as HTMLElement).closest('[data-nav]') as HTMLElement | null;
         if (link) {
           e.preventDefault();
-          const pid = link.getAttribute('data-partner');
-          if (pid && SAFE_ID.test(pid)) onNavigate(`/partner/${pid}`);
+          const path = link.getAttribute('data-nav');
+          if (path && SAFE_NAV_PATH.test(path)) onNavigate(path);
         }
       });
 
@@ -859,10 +884,10 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
       const priceHtml = p.price ? `<span style="font-size:12px;color:${COLORS.mustard};font-weight:700">${p.price}</span><br>` : '';
       const passportHtml = isPassport
-        ? `<span style="font-size:10px;color:#8a6d1f;font-weight:800">🛂 SELLO DEL PASAPORTE</span><br>`
+        ? `<span style="font-size:10px;color:#8a6d1f;font-weight:800">🛂 ${escHtml(tr('SELLO DEL PASAPORTE'))}</span><br>`
         : '';
       const verifiedHtml = isVerified
-        ? `<span style="font-size:10px;color:#12B5A5;font-weight:800">✓ UBICACIÓN VERIFICADA</span><br>`
+        ? `<span style="font-size:10px;color:#12B5A5;font-weight:800">✓ ${escHtml(tr('UBICACIÓN VERIFICADA'))}</span><br>`
         : '';
       const popup = `<div style="font-family:sans-serif;min-width:180px">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
@@ -876,9 +901,9 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
         <span style="font-size:11px;color:${COLORS.textMuted}">📍 ${safeAddr}</span><br>
         ${priceHtml}
         <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
-          <a href="#" data-partner="${safeId}" style="display:inline-block;padding:6px 14px;background:#12B5A5;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">Ver detalle →</a>
-          <a href="#" data-caminar="${safeId}" data-lat="${p.lat}" data-lng="${p.lng}" data-name="${safeName}" style="display:inline-block;padding:6px 12px;background:rgba(201,168,76,0.15);color:#C9A84C;text-decoration:none;border-radius:20px;font-size:12px;font-weight:700;border:1px solid rgba(201,168,76,0.35);cursor:pointer">🚶 Caminar</a>
-          <a href="${mapsUrl}" target="_blank" style="display:inline-block;padding:6px 14px;background:rgba(255,255,255,0.08);color:${COLORS.textMain};text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,0.08)">📍 Mapa</a>
+          ${detailPath(p) ? `<a href="#" data-nav="${detailPath(p)}" style="display:inline-block;padding:6px 14px;background:#12B5A5;color:#fff;text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer">${escHtml(tr('Ver detalle'))} →</a>` : ''}
+          <a href="#" data-caminar="${safeId}" data-lat="${p.lat}" data-lng="${p.lng}" data-name="${safeName}" style="display:inline-block;padding:6px 12px;background:rgba(201,168,76,0.15);color:#C9A84C;text-decoration:none;border-radius:20px;font-size:12px;font-weight:700;border:1px solid rgba(201,168,76,0.35);cursor:pointer">🚶 ${escHtml(tr('Caminar'))}</a>
+          <a href="${mapsUrl}" target="_blank" style="display:inline-block;padding:6px 14px;background:rgba(255,255,255,0.08);color:${COLORS.textMain};text-decoration:none;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,0.08)">📍 ${escHtml(tr('Mapa'))}</a>
         </div>
       </div>`;
       if (isVerified) {
@@ -924,7 +949,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
       });
       userMarkerRef.current = L.marker([userLoc.lat, userLoc.lng], { icon: userIcon, zIndexOffset: 1000 })
         .addTo(map)
-        .bindPopup('<b style="color:' + COLORS.textMain + '">📍 Tu ubicación</b>');
+        .bindPopup('<b style="color:' + COLORS.textMain + '">📍 ' + escHtml(tr('Tu ubicación')) + '</b>');
       if (isInCartagena(userLoc.lat, userLoc.lng)) map.setView([userLoc.lat, userLoc.lng], 15);
     } else {
       userMarkerRef.current.setLatLng([userLoc.lat, userLoc.lng]);
@@ -996,6 +1021,24 @@ export default function MapaScreen() {
   const [rutaSummary, setRutaSummary] = useState<RutaSummary | null>(null);
   const [nextStopIdx, setNextStopIdx] = useState(0);
   const webViewRef = useRef<any>(null);
+  // Native map: the user's position is baked into the WebView document ONCE
+  // (first fix) and then moved in place via injected JS. Rebuilding the HTML per
+  // GPS tick reloaded Leaflet + every pin every 5s while walking (and re-ran the
+  // tour/walk autoplay).
+  const [bakedLoc, setBakedLoc] = useState<{ lat: number; lng: number } | null>(null);
+  const userLocRef = useRef<{ lat: number; lng: number } | null>(null);
+  const moveNativeUser = useCallback((loc: { lat: number; lng: number }, pan = false) => {
+    if (Platform.OS === 'web' || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lng)) return;
+    webViewRef.current?.injectJavaScript(`window.__amoMoveUser && window.__amoMoveUser(${loc.lat}, ${loc.lng}, ${pan ? 'true' : 'false'}); true;`);
+  }, []);
+  useEffect(() => {
+    userLocRef.current = userLoc;
+    if (!userLoc) return;
+    if (!bakedLoc) { setBakedLoc(userLoc); return; } // first fix → one document build
+    // Follow-me parity with the web map: pan only in-city and never mid tour/walk.
+    moveNativeUser(userLoc, follow && !tour && !walk && isInCartagena(userLoc.lat, userLoc.lng));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLoc]);
 
   // Reflect whether a home base is set (re-check when the sheet closes).
   useEffect(() => {
@@ -1384,7 +1427,7 @@ export default function MapaScreen() {
   const rutaPayload = ruta
     ? { origin: ruta.origin ? { lat: ruta.origin.lat, lng: ruta.origin.lng } : null, stops: ruta.stops }
     : null;
-  const html = buildMapHTML(visiblePlaces, filter, userLoc, satellite, tour, walk, rutaPayload);
+  const html = buildMapHTML(visiblePlaces, filter, bakedLoc, satellite, tour, walk, rutaPayload, tr);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -1448,8 +1491,9 @@ export default function MapaScreen() {
         ) : (
           <WebView
             ref={webViewRef}
-            key={filter + (nbhFilter || 'allnbh') + (tour || walk || ruta ? '' : (userLoc ? `_u${userLoc.lat}` : '')) + (satellite ? '_sat' : '_dark') + (tour ? '_tour' : '') + (walk ? '_walk' : '') + (ruta ? `_ruta${ruta.title}_${ruta.stops.length}` : '')}
+            key={filter + (nbhFilter || 'allnbh') + (bakedLoc ? '_u' : '') + (satellite ? '_sat' : '_dark') + (tour ? '_tour' : '') + (walk ? '_walk' : '') + (ruta ? `_ruta${ruta.title}_${ruta.stops.length}` : '')}
             source={{ html }}
+            onLoadEnd={() => { if (userLocRef.current) moveNativeUser(userLocRef.current); }}
             style={styles.webview}
             javaScriptEnabled={true}
             originWhitelist={['*']}

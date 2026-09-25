@@ -61,7 +61,7 @@ Root cause: typo. `frontend/src/constants/images.ts` exports `cartagena_aerial`,
   ADMIN_PASSWORD     = os.getenv("ADMIN_OPERATOR_PASSWORD", "amocartagena-admin-2026")
   ADMIN_TOKEN_SECRET = os.getenv("ADMIN_TOKEN_SECRET",      "change-me-in-prod-please")
   ```
-  Plus `backend/server.py:5365`: `DEMO_PARTNER_PASSWORD` default `"amocartagena2026"`, `:5382` `ALCALDIA_PASSWORD` default `"AlcaldiaCTG2026!"`.
+  Plus `backend/server.py:5365`: `DEMO_PARTNER_PASSWORD` default `"[redacted]"`, `:5382` `ALCALDIA_PASSWORD` default `"[redacted]"`.
 - These same literals appear in 9+ test files (`alcaldia_test.py`, `wompi_test.py`, `phase3_test.py`, etc.) — meaning the test suite *only* works when prod still uses the defaults. So if you rotate the env vars, tests break loudly. (That's actually fine; it forces you to rotate.)
 
 **Verdict:** WARN. No real API keys in git. But the JWT-signing secret `ADMIN_TOKEN_SECRET` has a known default — anyone who has read this repo can forge admin tokens against any instance that didn't override the env var. Same for the admin login password.

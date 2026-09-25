@@ -26,7 +26,9 @@
           "whatsapp",
           "instagram",
           "tel",
-          "mailto"
+          "mailto",
+          "comgooglemaps",
+          "uber"
         ]
       }
     },
@@ -51,7 +53,7 @@
       "icon": "./assets/images/icon.png",
       "color": "#D97706",
       "androidMode": "default",
-      "androidCollapsedTitle": "Amo Cartagena",
+      "androidCollapsedTitle": "AMO Life",
       "iosDisplayInForeground": true
     },
     "web": {
@@ -88,8 +90,21 @@
         }
       ],
       "expo-font",
-      "expo-secure-store",
-      "expo-localization"
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
+      "expo-localization",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "We use your location to show you events and partners near you.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false
+        }
+      ]
     ],
     "extra": {
       "privacyPolicyUrl": "https://amocartagena.co/privacidad",

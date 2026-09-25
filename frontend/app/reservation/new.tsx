@@ -37,6 +37,7 @@ import { api } from '../../src/constants/api';
 import { useTr } from '../../src/i18n/autoTr';
 import { useAuth } from '../../src/context/AuthContext';
 import { venueWhatsApp } from '../../src/lib/whatsapp';
+import { bogotaDatePlus } from '../../src/lib/eventTime';
 
 type Partner = {
   partner_id: string;
@@ -57,11 +58,8 @@ type PEvent = {
   flyer_url?: string;
 };
 
-function todayPlus(days: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-}
+// Cartagena's calendar — toISOString() (UTC) pushed every chip a day ahead after 19:00 Bogotá.
+const todayPlus = bogotaDatePlus;
 
 // Date formatting moved inside component to access tr() hook
 
@@ -407,17 +405,17 @@ export default function ReservationNew() {
             <Ionicons name="information-circle" size={18} color={COLORS.primary} />
             <View style={{ flex: 1 }}>
               <Text style={styles.infoBoxTitle}>{tr('¿Cómo funciona?')}</Text>
+              {/* Reservations go through WhatsApp (not the in-app queue) — the copy
+                  must not promise a partner panel, in-app payment link or a
+                  cancellation policy this flow doesn't have. */}
               <Text style={styles.infoBoxText}>
-                {tr('1) Enviamos tu solicitud al partner.')}
+                {tr('1) Abrimos WhatsApp con tu solicitud lista: fecha, hora y personas.')}
               </Text>
               <Text style={styles.infoBoxText}>
-                {tr('2) El partner confirma o rechaza en su panel.')}
+                {tr('2) El lugar te confirma la disponibilidad directamente por WhatsApp.')}
               </Text>
               <Text style={styles.infoBoxText}>
-                {tr('3) Si confirma, recibes su link de pago directamente en la app.')}
-              </Text>
-              <Text style={styles.infoBoxText}>
-                {tr('Cancelación gratuita hasta 2h antes de la reserva.')}
+                {tr('3) Pagos y cambios se acuerdan directamente con el lugar.')}
               </Text>
             </View>
           </View>

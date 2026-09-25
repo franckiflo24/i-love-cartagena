@@ -190,7 +190,7 @@ async def create_partner(request: Request):
     activation_url = f"{public_base}/business/activate?token={activation_token}"
     # WhatsApp template (URL-encoded done client-side)
     wa_message = (
-        f"Hola {name} 🌟 Te invitamos a Amo Cartagena, la plataforma oficial de la ciudad. "
+        f"Hola {name} 🌟 Te invitamos a AMO Life, la guía de viajes con IA que empieza en Cartagena. "
         f"Activa tu cuenta aquí y empieza a recibir reservas: {activation_url}"
     )
     # Send the branded invite email (fail-soft — the admin still gets the URL/WA back).
@@ -226,7 +226,7 @@ async def regenerate_invite(partner_id: str, request: Request):
     public_base = os.getenv("PUBLIC_APP_URL", "https://amocartagena.co")
     activation_url = f"{public_base}/business/activate?token={activation_token}"
     wa_message = (
-        f"Hola {partner.get('name')} 🌟 Tu link de activación de Amo Cartagena fue actualizado. "
+        f"Hola {partner.get('name')} 🌟 Tu link de activación de AMO Life fue actualizado. "
         f"Activa aquí: {activation_url}"
     )
     try:
@@ -284,7 +284,7 @@ async def get_activation(token: str, request: Request):
     if expires:
         try:
             if datetime.fromisoformat(expires) < datetime.now(timezone.utc):
-                raise HTTPException(status_code=410, detail="Este link expiró. Pide uno nuevo a Amo Cartagena.")
+                raise HTTPException(status_code=410, detail="Este link expiró. Pide uno nuevo a AMO Life.")
         except HTTPException:
             raise
         except Exception:

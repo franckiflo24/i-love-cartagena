@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Localization from 'expo-localization';
 import { Lang, t, LANG_LABELS, LANG_FLAGS } from '../i18n/translations';
@@ -61,15 +62,27 @@ function detectDeviceLang(): Lang {
   return 'es';
 }
 
+const IS_WEB = Platform.OS === 'web';
+
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>(detectDeviceLang);
+  // Web is a static export: the HTML is rendered at BUILD time (Node, where
+  // expo-localization reports the build machine — English), so detecting in
+  // render baked English into every page under <html lang="es"> and the client's
+  // own detection then mismatched → React #418 + a full re-render + an English
+  // flash for Spanish visitors. Web therefore starts from the build language
+  // ('es') and switches to the stored/device language after hydration. Native
+  // has no pre-render, so it detects synchronously (keeps the iOS permission-
+  // prompt language in sync from the first frame).
+  const [lang, setLangState] = useState<Lang>(() => (IS_WEB ? 'es' : detectDeviceLang()));
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then(val => {
       if (val && (val === 'es' || val === 'en' || val === 'fr' || val === 'pt')) {
         setLangState(val as Lang);
+      } else if (IS_WEB) {
+        setLangState(detectDeviceLang());
       }
-    }).catch(() => {});
+    }).catch(() => { if (IS_WEB) setLangState(detectDeviceLang()); });
   }, []);
 
   const setLang = useCallback((l: Lang) => {
@@ -87,8 +100,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     return str;
   }, [lang]);
 
+  const value = useMemo(() => ({ lang, setLang, s }), [lang, setLang, s]);
+
   return (
-    <LangContext.Provider value={{ lang, setLang, s }}>
+    <LangContext.Provider value={value}>
       {children}
     </LangContext.Provider>
   );

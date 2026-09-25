@@ -12,6 +12,7 @@ import { api } from '@/src/constants/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLang } from '@/src/context/LanguageContext';
 import { useTr } from '@/src/i18n/autoTr';
+import { useAuth } from '@/src/context/AuthContext';
 
 type Offer = {
   offer_id: string;
@@ -35,6 +36,7 @@ const TIER_COLORS_MAP: Record<string, string> = {
 export default function OffersScreen() {
   const router = useRouter();
   const tr = useTr();
+  const { user } = useAuth();
   const { s } = useLang();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +53,7 @@ export default function OffersScreen() {
     }
   }, []);
 
-  useEffect(() => { loadOffers(); }, [loadOffers]);
+  useEffect(() => { if (user) loadOffers(); }, [loadOffers, user]); // guests: no 401 call
 
   const handleRedeem = async (offer: Offer) => {
     if (!offer.eligible) {
@@ -138,7 +140,17 @@ export default function OffersScreen() {
         <Text style={styles.headerTitle}>{s('rewards_offers') || 'Exclusive Offers'}</Text>
         <View style={{ width: 24 }} />
       </View>
-      {loading ? (
+      {!user ? (
+        // Offers are per-account (points) — guests got a 401 rendered as an
+        // English "No offers available". Invite them to sign in instead.
+        <View style={styles.emptyContainer}>
+          <Ionicons name="lock-closed-outline" size={48} color={COLORS.textMuted} />
+          <Text style={styles.emptyText}>{tr('Inicia sesión para ver y canjear ofertas')}</Text>
+          <TouchableOpacity onPress={() => router.push({ pathname: '/login' as any, params: { next: '/rewards/offers' } })} activeOpacity={0.85}>
+            <Text style={{ color: COLORS.primary, fontSize: 15, fontWeight: '700' }}>{tr('Iniciar sesión')}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
@@ -153,7 +165,7 @@ export default function OffersScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons name="gift-outline" size={48} color={COLORS.textMuted} />
-              <Text style={styles.emptyText}>No offers available</Text>
+              <Text style={styles.emptyText}>{tr('No hay ofertas disponibles por ahora')}</Text>
             </View>
           }
         />

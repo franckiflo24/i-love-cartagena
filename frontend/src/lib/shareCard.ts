@@ -263,7 +263,7 @@ export async function renderShareCard(stats: ShareCardStats): Promise<Blob | nul
     // ── Footer brand ──
     ctx.fillStyle = GOLD;
     ctx.font = `800 36px ${SANS}`;
-    ctx.fillText('AMO ❤ CARTAGENA', W / 2, 1238);
+    ctx.fillText('AMO ❤ LIFE', W / 2, 1238);
     ctx.fillStyle = 'rgba(255,255,255,0.48)';
     ctx.font = `600 26px ${SANS}`;
     ctx.fillText('amocartagena.co', W / 2, 1280);

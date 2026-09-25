@@ -23,6 +23,7 @@ import { useTr } from '../../src/i18n/autoTr';
 import { useLang } from '../../src/context/LanguageContext';
 import { formatShortDate } from '../../src/lib/formatDate';
 import type { Lang } from '../../src/i18n/translations';
+import { isHttpUrl } from '../../src/lib/safeUrl';
 
 type Reservation = {
   reservation_id: string;
@@ -245,7 +246,7 @@ export default function MyReservations() {
                   <View style={styles.lockedNotice}>
                     <Ionicons name="time-outline" size={16} color="#F59E0B" />
                     <Text style={styles.lockedNoticeText}>
-                      {tr('Este partner aún no gestiona reservas en Amo. Le hemos enviado tu solicitud — te avisaremos si activa su cuenta.')}
+                      {tr('Este partner aún no gestiona reservas en AMO Life. Le hemos enviado tu solicitud — te avisaremos si activa su cuenta.')}
                     </Text>
                   </View>
                 ) : null}
@@ -260,11 +261,11 @@ export default function MyReservations() {
                     {r.payment_info.note ? (
                       <Text style={styles.payInfoNote}>"{r.payment_info.note}"</Text>
                     ) : null}
-                    {r.payment_info.payment_link ? (
+                    {isHttpUrl(r.payment_info.payment_link) ? (
                       <TouchableOpacity
                         style={styles.payBtn}
                         onPress={() => {
-                          if (r.payment_info?.payment_link) {
+                          if (isHttpUrl(r.payment_info?.payment_link)) {
                             import('react-native').then((m) => m.Linking.openURL(r.payment_info!.payment_link!).catch(() => {}));
                           }
                         }}

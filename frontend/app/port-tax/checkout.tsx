@@ -12,6 +12,8 @@ import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { openWompiCheckout, checkWompiEnabled, notConfiguredAlert } from '../../src/lib/wompi';
 import { useTr } from '../../src/i18n/autoTr';
+import { bogotaToday } from '../../src/lib/eventTime';
+import { openDirections } from '../../src/lib/maps';
 
 type Cfg = {
   price_per_person: number;
@@ -26,9 +28,9 @@ type Cfg = {
 // window, so fall back to the canonical production frontend host.
 const RETURN_URL_FALLBACK = 'https://www.amocartagena.co/payments/return';
 
+// The travel date is a Cartagena date, whatever timezone the phone is set to.
 function ymdToday(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return bogotaToday();
 }
 
 function addDays(ymd: string, n: number): string {
@@ -70,6 +72,16 @@ export default function PortTaxCheckoutScreen() {
 
   useEffect(() => { loadCfg(); }, [loadCfg]);
 
+  // Payments off (always on the iOS build) → this screen is information only:
+  // no "Total a pagar" / "Pagar y generar QR" dressing for a checkout that
+  // doesn't exist, just the fee and the way to the pier where it's paid.
+  const [payLive, setPayLive] = useState<boolean | null>(null);
+  useEffect(() => {
+    let alive = true;
+    checkWompiEnabled().then((c) => { if (alive) setPayLive(c.enabled); });
+    return () => { alive = false; };
+  }, []);
+
   useEffect(() => {
     // Keep passenger array length matching qty
     setPassengers(prev => {
@@ -99,8 +111,8 @@ export default function PortTaxCheckoutScreen() {
       const wompiCfg = await checkWompiEnabled();
       if (!wompiCfg.enabled) {
         Alert.alert(
-          'Próximamente',
-          'El pago en línea de la tasa portuaria estará disponible pronto. Por ahora, paga directamente en el Muelle La Bodeguita.',
+          tr('Próximamente'),
+          tr('El pago en línea de la tasa portuaria estará disponible pronto. Por ahora, paga directamente en el Muelle La Bodeguita.'),
         );
         setSubmitting(false);
         return;
@@ -200,10 +212,9 @@ export default function PortTaxCheckoutScreen() {
           <View style={styles.heroIconWrap}>
             <Ionicons name="boat" size={28} color={COLORS.primary} />
           </View>
-          <Text style={styles.heroTitle}>Paga antes de embarcar</Text>
+          <Text style={styles.heroTitle}>{payLive === false ? tr('Tasa portuaria oficial') : tr('Paga antes de embarcar')}</Text>
           <Text style={styles.heroDesc}>
-            Tasa portuaria oficial para salir hacia Islas del Rosario, Barú o Tierra Bomba.
-            Aparte del precio del tour o la lancha.
+            {tr('Tasa portuaria oficial para salir hacia Islas del Rosario, Barú o Tierra Bomba. Aparte del precio del tour o la lancha.')}
           </Text>
           <View style={styles.seasonChip}>
             <Ionicons name="pricetag" size={12} color={COLORS.primary} />
@@ -297,12 +308,12 @@ export default function PortTaxCheckoutScreen() {
             <Text style={styles.summaryVal}>{formatPrice(cfg.price_per_person)}</Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>× {qty} {qty === 1 ? 'persona' : 'personas'}</Text>
+            <Text style={styles.summaryLabel}>× {qty} {qty === 1 ? tr('persona') : tr('personas')}</Text>
             <Text style={styles.summaryVal}>{formatPrice(total)}</Text>
           </View>
           <View style={styles.summaryDivider} />
           <View style={styles.summaryRow}>
-            <Text style={styles.totalLabel}>Total a pagar</Text>
+            <Text style={styles.totalLabel}>{payLive === false ? tr('Total a pagar en el muelle') : tr('Total a pagar')}</Text>
             <Text style={styles.totalVal}>{formatPrice(total)}</Text>
           </View>
         </View>
@@ -310,8 +321,9 @@ export default function PortTaxCheckoutScreen() {
         <View style={styles.infoCard}>
           <Ionicons name="information-circle" size={18} color={COLORS.textMuted} />
           <Text style={styles.infoText}>
-            Tras el pago se generará un QR único por tiquete. Muéstralo en el muelle antes de embarcar.
-            Cada QR solo se puede usar una vez.
+            {payLive === false
+              ? tr('Por ahora la tasa se paga directamente en el Muelle La Bodeguita antes de embarcar. El pago en línea estará disponible pronto.')
+              : tr('Tras el pago se generará un QR único por tiquete. Muéstralo en el muelle antes de embarcar. Cada QR solo se puede usar una vez.')}
           </Text>
         </View>
       </ScrollView>
@@ -321,6 +333,16 @@ export default function PortTaxCheckoutScreen() {
           <Text style={styles.bottomLabel}>{tr('Total')}</Text>
           <Text style={styles.bottomTotal}>{formatPrice(total)}</Text>
         </View>
+        {payLive === false ? (
+          <TouchableOpacity
+            style={styles.payBtn}
+            onPress={() => openDirections({ query: 'Muelle La Bodeguita, Cartagena', label: 'Muelle La Bodeguita' }, tr)}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="navigate" size={18} color="#0A0A0A" />
+            <Text style={styles.payBtnText}>{tr('Cómo llegar al muelle')}</Text>
+          </TouchableOpacity>
+        ) : (
         <TouchableOpacity
           style={[styles.payBtn, submitting && { opacity: 0.6 }]}
           onPress={onConfirm}
@@ -336,6 +358,7 @@ export default function PortTaxCheckoutScreen() {
             </>
           )}
         </TouchableOpacity>
+        )}
       </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

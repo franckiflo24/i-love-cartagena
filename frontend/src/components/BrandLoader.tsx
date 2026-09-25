@@ -6,6 +6,7 @@
  */
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, Easing, StyleSheet, Platform } from 'react-native';
+import { ASSET_ORIGIN } from '../constants/api';
 
 type Props = {
   /** Fill the screen on a dark ground (initial screen loads). */
@@ -16,9 +17,10 @@ type Props = {
   size?: number;
 };
 
-// On web the static export serves these from /brand; RN Image accepts a uri source.
-const HEART = { uri: '/brand/amo-heart-512.png' } as const;
-const LOCKUP = { uri: '/brand/amo-logo-lockup.png' } as const;
+// Served from /brand by the static export. Native has no origin — a relative uri
+// rendered a blank loader in the iOS app — so prefix the production asset origin.
+const HEART = { uri: `${ASSET_ORIGIN}/brand/amo-heart-512.png` } as const;
+const LOCKUP = { uri: `${ASSET_ORIGIN}/brand/amo-logo-lockup.png` } as const;
 
 export function BrandLoader({ fullscreen = false, lockup = false, size = 96 }: Props) {
   const scale = useRef(new Animated.Value(1)).current;

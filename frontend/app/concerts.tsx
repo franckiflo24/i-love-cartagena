@@ -156,7 +156,7 @@ export default function ConcertsScreen() {
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>{tr('Conciertos')}</Text>
-          <Text style={styles.subtitle}>{upcomingConcerts.length > 0 ? `${upcomingConcerts.length} shows próximos` : 'Sin shows programados'}</Text>
+          <Text style={styles.subtitle}>{upcomingConcerts.length > 0 ? `${upcomingConcerts.length} ${tr('shows próximos')}` : tr('Sin shows programados')}</Text>
         </View>
         <Ionicons name="musical-notes" size={24} color={COLORS.primary} />
       </View>

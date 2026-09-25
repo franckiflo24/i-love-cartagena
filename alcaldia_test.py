@@ -10,9 +10,9 @@ import requests
 BASE_URL = "https://cartagena-live.preview.emergentagent.com/api"
 
 ALCALDIA_EMAIL = "alcaldia@amocartagena.app"
-ALCALDIA_PWD = "AlcaldiaCTG2026!"
+ALCALDIA_PWD = os.environ.get("ALCALDIA_PASSWORD", "")
 PARTNER_EMAIL = "casaboheme@amocartagena.app"
-PARTNER_PWD = "amocartagena2026"
+PARTNER_PWD = os.environ.get("DEMO_PARTNER_PASSWORD", "")
 
 passed = 0
 failed = 0

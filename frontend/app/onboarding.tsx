@@ -187,7 +187,7 @@ export default function OnboardingArrival() {
           {/* Wordmark */}
           <Animated.View style={[styles.wordmarkWrap, R(0)]}>
             <Text style={styles.amoMark}>A  M  O</Text>
-            <Text style={styles.cartagenaMark}>Cartagena</Text>
+            <Text style={styles.cartagenaMark}>Life</Text>
             <View style={styles.rule} />
           </Animated.View>
 

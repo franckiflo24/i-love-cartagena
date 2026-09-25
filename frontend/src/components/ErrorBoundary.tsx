@@ -5,7 +5,7 @@
  * a friendly fallback with a "Try again" button.
  */
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
@@ -29,7 +29,9 @@ function ErrorFallback({ onReset }: { onReset: () => void }) {
         {tr('Tuvimos un problema mostrando esta pantalla. Ya enviamos un reporte automático al equipo.')}
       </Text>
       <TouchableOpacity style={styles.homeBtn} onPress={() => {
-        if (typeof window !== 'undefined') {
+        // Native defines `window` but not `window.location` — the old typeof
+        // check threw inside the handler (fatal in release): error screen → crash.
+        if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location) {
           window.location.href = '/';
         } else {
           onReset();

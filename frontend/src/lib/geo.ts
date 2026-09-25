@@ -17,11 +17,19 @@
 // Privacy: positions live in memory only — never persisted, never sent to the
 // server except as the transient proximity proof in POST /passport/discover.
 //
-// Web-only by design: the live product is the RN-web static export. On native
-// (no navigator.geolocation) the service reports 'unavailable' and the whole
-// walking layer stays dormant — today's app, pixel-identical.
+// Two backends, one contract: web uses navigator.geolocation; native (iOS app)
+// uses expo-location with the same throttle/jitter rules, AppState in place of
+// visibilitychange, and the OS permission as the sticky "denied" source. (Native
+// used to report 'unavailable', so Mi base / Lo probé / passport stamps told
+// users with location ON to "activate your location".)
 
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
+import * as Location from 'expo-location';
+
+const IS_NATIVE = Platform.OS !== 'web';
+
+/** The shape both backends deliver (GeolocationPosition and expo LocationObject). */
+type Fix = { coords: { latitude: number; longitude: number; accuracy?: number | null } };
 
 export type GeoStatus = 'not-asked' | 'granted' | 'denied' | 'unavailable';
 
@@ -82,6 +90,7 @@ function dlog(msg: string) {
 }
 
 function hasGeolocation(): boolean {
+  if (IS_NATIVE) return true; // expo-location; permission is resolved per request
   return (
     Platform.OS === 'web' &&
     typeof navigator !== 'undefined' &&
@@ -115,12 +124,22 @@ class GeoService {
   private set lastEmit(v: number) {
     (globalThis as any).__amoGeoLastEmit = v;
   }
+  // Native: watchPositionAsync resolves asynchronously, so a stop() can land
+  // before the subscription exists — track "arming" and drop a late arrival.
+  private get nativeSub(): Location.LocationSubscription | null {
+    return (globalThis as any).__amoGeoNativeSub || null;
+  }
+  private set nativeSub(v: Location.LocationSubscription | null) {
+    (globalThis as any).__amoGeoNativeSub = v;
+  }
+  private nativeArming = false;
 
   constructor() {
     if (!hasGeolocation()) {
       this.state = { ...this.state, status: 'unavailable' };
       return;
     }
+    if (IS_NATIVE) return; // the OS remembers a denial; syncPermission() reads it
     try {
       if (typeof localStorage !== 'undefined' && localStorage.getItem(DENIED_KEY) === '1') {
         this.state = { ...this.state, status: 'denied' };
@@ -150,6 +169,16 @@ class GeoService {
   async syncPermission(): Promise<GeoStatus> {
     if (this.state.status === 'unavailable' || this.state.status === 'denied') return this.state.status;
     if (this.permissionQueried && this.state.status === 'granted') return 'granted';
+    if (IS_NATIVE) {
+      try {
+        const res = await Location.getForegroundPermissionsAsync();
+        this.permissionQueried = true;
+        if (res.status === 'granted') this.becomeGranted();
+        else if (res.status === 'denied') this.markDenied();
+        // 'undetermined' → stays 'not-asked'
+      } catch {}
+      return this.state.status;
+    }
     try {
       const perms = (navigator as any).permissions;
       if (perms?.query) {
@@ -179,6 +208,7 @@ class GeoService {
   private markDenied() {
     this.setState({ status: 'denied', position: null, heading: null });
     this.clearWatch();
+    if (IS_NATIVE) { dlog('denied — going silent'); return; } // OS holds the sticky denial
     try {
       if (typeof localStorage !== 'undefined') localStorage.setItem(DENIED_KEY, '1');
     } catch {}
@@ -191,6 +221,7 @@ class GeoService {
    */
   async request(): Promise<GeoStatus> {
     if (this.state.status === 'unavailable' || this.state.status === 'denied') return this.state.status;
+    if (IS_NATIVE) return this.requestNative();
     return new Promise((resolve) => {
       try {
         navigator.geolocation.getCurrentPosition(
@@ -222,6 +253,37 @@ class GeoService {
     });
   }
 
+  private async requestNative(): Promise<GeoStatus> {
+    try {
+      const perm = await Location.requestForegroundPermissionsAsync();
+      if (perm.status !== 'granted') {
+        if (perm.status === 'denied') this.markDenied();
+        return this.state.status;
+      }
+      this.permissionQueried = true;
+      // A cold GPS fix can take a while indoors; cap it and fall back to the
+      // last known fix so a tap never hangs (web uses the same 15s budget).
+      const fix = await Promise.race([
+        Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+        new Promise<null>((r) => setTimeout(() => r(null), 15000)),
+      ]).catch(() => null) || await Location.getLastKnownPositionAsync().catch(() => null);
+      if (fix) {
+        this.setState({
+          status: 'granted',
+          position: { lat: fix.coords.latitude, lng: fix.coords.longitude, accuracy: fix.coords.accuracy ?? 9999, ts: Date.now() },
+        });
+        this.lastEmit = Date.now();
+        dlog('granted (first fix, native)');
+      } else {
+        this.setState({ status: 'granted' }); // permission yes, no fix yet — the watch will deliver
+      }
+      if (this.wantWatching) this.armWatch();
+      return 'granted';
+    } catch {
+      return this.state.status;
+    }
+  }
+
   /** The owning screen is focused & wants updates. Idempotent. */
   start() {
     this.wantWatching = true;
@@ -236,7 +298,23 @@ class GeoService {
   }
 
   private hookVisibility() {
-    if (this.visibilityHooked || typeof document === 'undefined') return;
+    if (this.visibilityHooked) return;
+    if (IS_NATIVE) {
+      this.visibilityHooked = true;
+      try {
+        AppState.addEventListener('change', (st) => {
+          if (st !== 'active') {
+            this.clearWatch();
+            dlog('app backgrounded — watch cleared');
+          } else if (this.wantWatching && this.state.status === 'granted') {
+            this.armWatch();
+            dlog('app active — watch re-armed');
+          }
+        });
+      } catch {}
+      return;
+    }
+    if (typeof document === 'undefined') return;
     this.visibilityHooked = true;
     try {
       document.addEventListener('visibilitychange', () => {
@@ -252,6 +330,22 @@ class GeoService {
   }
 
   private armWatch() {
+    if (IS_NATIVE) {
+      if (this.nativeSub || this.nativeArming) return;
+      if (AppState.currentState !== 'active') return;
+      this.nativeArming = true;
+      Location.watchPositionAsync(
+        { accuracy: Location.Accuracy.Balanced, timeInterval: MIN_INTERVAL_MS, distanceInterval: MIN_MOVE_M },
+        (loc) => this.onFix(loc),
+      ).then((sub) => {
+        this.nativeArming = false;
+        // stop()/background landed while arming → drop this subscription
+        if (!this.wantWatching || AppState.currentState !== 'active' || this.nativeSub) { sub.remove(); return; }
+        this.nativeSub = sub;
+        dlog('watch armed (native)');
+      }).catch(() => { this.nativeArming = false; });
+      return;
+    }
     if (this.watchId !== null) return;
     if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
     try {
@@ -269,6 +363,12 @@ class GeoService {
   }
 
   private clearWatch() {
+    if (IS_NATIVE) {
+      const sub = this.nativeSub;
+      this.nativeSub = null;
+      if (sub) { try { sub.remove(); } catch {} }
+      return;
+    }
     if (this.watchId !== null) {
       try {
         navigator.geolocation.clearWatch(this.watchId);
@@ -277,7 +377,7 @@ class GeoService {
     }
   }
 
-  private onFix(pos: GeolocationPosition) {
+  private onFix(pos: Fix) {
     const now = Date.now();
     const prev = this.state.position;
     if (now - this.lastEmit < MIN_INTERVAL_MS) return; // ≤1 per 5s
@@ -299,7 +399,26 @@ class GeoService {
 
   /** Call from a user gesture. Resolves true if heading events will flow. */
   async requestCompass(): Promise<boolean> {
-    if (Platform.OS !== 'web' || typeof window === 'undefined') return false;
+    if (IS_NATIVE) {
+      if (this.state.status !== 'granted') return false; // heading rides the location permission
+      if (this.headingHooked) return true;
+      try {
+        this.headingHooked = true;
+        await Location.watchHeadingAsync((h) => {
+          const now = Date.now();
+          if (now - this.lastHeadingEmit < HEADING_THROTTLE_MS) return;
+          const heading = h.trueHeading >= 0 ? h.trueHeading : h.magHeading;
+          if (typeof heading !== 'number' || Number.isNaN(heading) || heading < 0) return;
+          this.lastHeadingEmit = now;
+          this.setState({ heading });
+        });
+        return true;
+      } catch {
+        this.headingHooked = false;
+        return false;
+      }
+    }
+    if (typeof window === 'undefined') return false;
     try {
       const DOE: any = (window as any).DeviceOrientationEvent;
       if (!DOE) return false;

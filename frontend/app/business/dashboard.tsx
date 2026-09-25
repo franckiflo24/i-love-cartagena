@@ -12,6 +12,7 @@ import { TierBadge } from '../../src/components/TierBadge';
 import AlcaldiaDashboard from '../../src/components/AlcaldiaDashboard';
 import BusinessOnboardingTour from '../../src/components/BusinessOnboardingTour';
 import { useTr } from '../../src/i18n/autoTr';
+import { bogotaToday } from '../../src/lib/eventTime';
 
 type Stats = { total_events: number; upcoming_events: number; total_views: number; total_reserves: number; };
 type Onboarding = { percent: number; is_public: boolean; status: string; missing: string[] };
@@ -110,8 +111,8 @@ export default function BusinessDashboard() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([refresh(), load()]);
-    setRefreshing(false);
+    // allSettled + finally: a rejected /business/me left the pull-to-refresh spinner stuck.
+    try { await Promise.allSettled([refresh(), load()]); } finally { setRefreshing(false); }
   }, [refresh, load]);
 
   if (authLoading || loading) {
@@ -511,7 +512,7 @@ export default function BusinessDashboard() {
             </View>
           ) : (
             events.map((ev: any) => {
-              const today = new Date().toISOString().slice(0, 10);
+              const today = bogotaToday();
               const isPast = ev.date < today;
               return (
                 <View key={ev.event_id} style={[styles.eventCard, isPast && { opacity: 0.55 }]}>

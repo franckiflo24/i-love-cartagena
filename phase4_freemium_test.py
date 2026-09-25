@@ -39,7 +39,7 @@ DB_NAME = os.environ.get("DB_NAME", "test_database")
 
 PRO_PARTNER = "ptr_nc_007"   # Casa Bohème (PRO)
 PRO_EMAIL = "casaboheme@amocartagena.app"
-PRO_PASSWORD = "amocartagena2026"
+PRO_PASSWORD = os.environ.get("DEMO_PARTNER_PASSWORD", "")
 
 FREE_PARTNER = "ptr_006"     # El Arsenal Wellness (FREE) — has business user
 

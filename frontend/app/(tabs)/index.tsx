@@ -228,7 +228,10 @@ export default function HomeScreen() {
 
       // Apply static data immediately — exits skeleton state
       const applyData = (s: any[], f: any[], sp: any[], pe: any[], promos: any[]) => {
-        setSeasons(Array.isArray(s) ? s : []);
+        // Same rules as the backend (/seasons: is_active + end_date >= today;
+        // /promotions/today: valid_until >= today) so the bundled snapshot can
+        // never paint an ended season or an expired offer as current.
+        setSeasons((Array.isArray(s) ? s : []).filter((x: any) => x && x.is_active !== false && (x.end_date || '9999-12-31') >= today));
         const evts = (Array.isArray(f) ? f : []).map((e: any) => ({
           ...e,
           event_id: e.slug || e.id || e.event_id,
@@ -242,7 +245,7 @@ export default function HomeScreen() {
         setFeatured(evts);
         setSponsors(Array.isArray(sp) ? sp : []);
         setTodayPEvents(filterPeToday(pe));
-        setPromotions(Array.isArray(promos) ? promos : []);
+        setPromotions((Array.isArray(promos) ? promos : []).filter((x: any) => x && (x.valid_until || '9999-12-31') >= today));
         const todayFiltered = evts.filter((e: any) => {
           const start = e.date_start || e.date || '';
           const end = e.date_end || start;
@@ -257,20 +260,22 @@ export default function HomeScreen() {
 
       // 2. Hydrate from backend in background (non-blocking — does NOT hold up first paint)
       Promise.all([
-        api.get('/seasons?active=true').catch(() => []),
-        getUpcomingEvents().catch(() => []),
-        api.get('/sponsors').catch(() => []),
-        api.get(`/partner-events?date=${today}`).catch(() => []),
-        api.get('/promotions/today').catch(() => []),
+        api.get('/seasons?active=true').catch(() => null),
+        getUpcomingEvents().catch(() => null),
+        api.get('/sponsors').catch(() => null),
+        api.get(`/partner-events?date=${today}`).catch(() => null),
+        api.get('/promotions/today').catch(() => null),
       ]).then(([s, f, sp, pe, promos]) => {
-        // Partner-events hydration must NEVER wait on an active season — live
-        // data always wins over the bundled static snapshot, even when
-        // /seasons returns empty (no active season right now).
-        setTodayPEvents(filterPeToday(pe));
-        if (Array.isArray(s) && s.length > 0) {
-          applyData(s, f, sp, pe, promos);
-        }
-      }).catch(() => {});
+        // Each live dataset wins on its own. An EMPTY live answer (no active
+        // season / no promos today) must replace the bundled June snapshot —
+        // gating everything on a non-empty /seasons kept expired June promos and
+        // ended seasons on Home forever. null = that call failed → keep static.
+        const live = (v: any, fallback: any[]) => (Array.isArray(v) ? v : fallback);
+        applyData(
+          live(s, staticSeasons), live(f, staticEvents), live(sp, staticSponsors),
+          live(pe, staticPE), live(promos, staticPromos),
+        );
+      }).catch((e) => console.error('[Home] hydrate', e));
       // Personalized recommendations: use AI profile to filter partners
       if (user) {
         try {
@@ -417,7 +422,7 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>{user ? `${s('greeting_hi')}, ${(user.name || '').split(' ')[0] || ''}` : (userProfile.isPersonalized ? getGreeting() : s('greeting_welcome'))}</Text>
+            <Text style={styles.greeting}>{user ? `${s('greeting_hi')}, ${(user.name || '').split(' ')[0] || ''}` : (userProfile.isPersonalized ? tr(getGreeting()) : s('greeting_welcome'))}</Text>
             <Text style={styles.headerTitle}>AMO Life ❤️</Text>
           </View>
           <TouchableOpacity testID="notifications-btn" onPress={() => router.push('/notifications')} style={styles.notifBtn}>
@@ -447,7 +452,7 @@ export default function HomeScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.searchHeroText} numberOfLines={1}>{tr('Buscar en Cartagena con IA…')}</Text>
-            <Text style={styles.searchHeroSub} numberOfLines={1}>{tr('Preguntá lo que sea — Luna te guía')}</Text>
+            <Text style={styles.searchHeroSub} numberOfLines={1}>{tr('Pregunta lo que sea — Luna te guía')}</Text>
           </View>
           <Ionicons name="mic-outline" size={20} color={COLORS.textMuted} />
         </PressableScale>
@@ -844,7 +849,7 @@ export default function HomeScreen() {
               next="/"
               icon="sparkles"
               title={tr('Tu Cartagena, según Luna')}
-              subtitle={tr('Luna elige lugares para vos según tu vibra. Creá tu cuenta gratis y desbloqueá los tuyos.')}
+              subtitle={tr('Luna elige lugares para ti según tu vibra. Crea tu cuenta gratis y desbloquea los tuyos.')}
               cta={tr('Crear cuenta gratis')}
               minHeight={188}
             >

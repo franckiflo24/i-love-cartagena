@@ -564,7 +564,7 @@ export default function PartnerDetail() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.claimTitle}>{tr('¿Es tu negocio?')}</Text>
-              <Text style={styles.claimSub}>{tr('Reclamalo y gestioná tu perfil, eventos y promociones')}</Text>
+              <Text style={styles.claimSub}>{tr('Reclámalo y gestiona tu perfil, eventos y promociones')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
           </TouchableOpacity>

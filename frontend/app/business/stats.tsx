@@ -7,6 +7,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { useTr } from '../../src/i18n/autoTr';
+import { bogotaToday } from '../../src/lib/eventTime';
 
 type StatType = 'upcoming' | 'views' | 'reservations' | 'total';
 
@@ -83,7 +84,7 @@ export default function StatsDetail() {
 
   // ── Derived data per stat type ──
   const filteredEvents = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = bogotaToday();
     if (statType === 'upcoming') {
       return events.filter(e => (e.date || '') >= today).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     }

@@ -21,7 +21,7 @@ self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request)));
 self.addEventListener('push', (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch {}
-  e.waitUntil(self.registration.showNotification(d.title || 'AMO Cartagena', {
+  e.waitUntil(self.registration.showNotification(d.title || 'AMO Life', {
     body: d.body || '',
     icon: '/favicon.ico',
     badge: '/favicon.ico',

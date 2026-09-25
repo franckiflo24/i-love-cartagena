@@ -224,8 +224,9 @@ function DashboardBody({ data, usersData, businessesData, onChanged }: { data: D
   const dailyUsers = data.daily_activity.map(d => d.users);
   const dailyInteractions = data.daily_activity.map(d => d.interactions);
   const dailyBookings = data.daily_activity.map(d => d.bookings);
-  const hourlyLabels = data.hourly_activity.filter((_, i) => i % 3 === 0).map(h => h.label);
-  const hourlyValues = data.hourly_activity.map(h => h.avg_interactions);
+  const hourly = Array.isArray(data.hourly_activity) ? data.hourly_activity : [];
+  const hourlyLabels = hourly.filter((_, i) => i % 3 === 0).map(h => h.label);
+  const hourlyValues = hourly.map(h => h.avg_interactions);
 
   const maxFunnel = Math.max(...data.funnel.map(f => f.count), 1);
 
@@ -560,7 +561,8 @@ function DashboardBody({ data, usersData, businessesData, onChanged }: { data: D
           <View style={styles.peakHourBox}>
             <Ionicons name="flame" size={16} color="#F59E0B" />
             <Text style={styles.peakHourText}>
-              Hora pico: {data.hourly_activity.reduce((a, b) => a.avg_interactions > b.avg_interactions ? a : b).label}
+              {/* reduce() with no initial value throws on an empty series (quiet day / fresh DB) */}
+              Hora pico: {hourly.length ? hourly.reduce((a, b) => a.avg_interactions > b.avg_interactions ? a : b).label : '—'}
             </Text>
           </View>
         </Card>
@@ -824,7 +826,7 @@ export default function AdminPortal() {
           <ScrollView contentContainerStyle={styles.gateScroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
             <View style={styles.gateWordmark}>
               <Text style={styles.gateLogo}>AMO</Text>
-              <Text style={styles.gateLogoSub}>CARTAGENA</Text>
+              <Text style={styles.gateLogoSub}>LIFE</Text>
               <View style={styles.gateDivider} />
               <Text style={styles.gateTitle}>{tr('Portal de administración')}</Text>
             </View>

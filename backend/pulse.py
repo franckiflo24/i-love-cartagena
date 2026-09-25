@@ -94,7 +94,7 @@ def _strip_fences(text: str) -> str:
     return t.strip()
 
 
-PARSE_SYSTEM = """Eres el parser de "pulsos" de AMO Cartagena. Un negocio local te escribe por WhatsApp qué está pasando HOY en su local (música en vivo, happy hour, promo, plato especial, evento, cupos, cierre).
+PARSE_SYSTEM = """Eres el parser de "pulsos" de AMO Life. Un negocio local te escribe por WhatsApp qué está pasando HOY en su local (música en vivo, happy hour, promo, plato especial, evento, cupos, cierre).
 
 Respondé SOLO con JSON válido, sin markdown, con esta forma exacta:
 {"clear": false, "pulses": [{"type": "live_music|happy_hour|special|event|availability|closure|other", "title": "titulo corto (max 60 chars, idioma del negocio)", "details": "detalle breve opcional", "start_time": "HH:MM o null", "end_time": "HH:MM o null"}], "reply": "confirmación breve y cálida en el idioma del mensaje, con 1 emoji"}
@@ -292,7 +292,7 @@ async def _handle_pulse_message(wa_id: str, text: str):
         logger.info(f"[pulse] unknown sender …{_digits(wa_id)[-4:]}")
         await _send_whatsapp_reply(
             wa_id,
-            "Hola 👋 Este es el canal de novedades para negocios aliados de AMO Cartagena. "
+            "Hola 👋 Este es el canal de novedades para negocios aliados de AMO Life. "
             "Tu número no está registrado como partner. Escríbenos en amocartagena.co para unirte.",
         )
         return
@@ -336,7 +336,7 @@ async def _handle_pulse_message(wa_id: str, text: str):
     titles = " · ".join(p["title"] for p in parsed["pulses"])
     await _send_whatsapp_reply(
         wa_id,
-        parsed.get("reply") or f"✅ Publicado en AMO Cartagena ({n}): {titles}. Vence esta medianoche — escribe de nuevo mañana.",
+        parsed.get("reply") or f"✅ Publicado en AMO Life ({n}): {titles}. Vence esta medianoche — escribe de nuevo mañana.",
     )
     logger.info(f"[pulse] {partner['partner_id']} published {n} pulse(s) via whatsapp")
 

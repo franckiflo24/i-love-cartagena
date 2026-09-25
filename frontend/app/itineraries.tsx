@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { useTr } from '@/src/i18n/autoTr';
+import { getToken } from '@/src/constants/api';
+import { useLang } from '@/src/context/LanguageContext';
 
 const PROD_HOST = process.env.EXPO_PUBLIC_APP_URL || 'https://amocartagena.co';
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
@@ -138,6 +140,7 @@ function ItemCard({ item, index, onOpen, onRemove }: { item: Item; index: number
 export default function ItineraryScreen() {
   const router = useRouter();
   const tr = useTr();
+  const { lang } = useLang();
   const { plan } = useLocalSearchParams<{ plan?: string }>();
 
   const [mode, setMode] = useState<'form' | 'loading' | 'result' | 'error'>('form');
@@ -196,10 +199,9 @@ export default function ItineraryScreen() {
   const generate = async () => {
     setMode('loading');
     try {
-      // Get auth token for the API call
-      const token = Platform.OS === 'web'
-        ? await (await import('@react-native-async-storage/async-storage')).default.getItem('session_token')
-        : null;
+      // Same token source as api.ts (SecureStore on native) — native used to send
+      // no token, get a 401 and silently fall back to a generic 1-day plan.
+      const token = await getToken();
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -210,7 +212,7 @@ export default function ItineraryScreen() {
         body: JSON.stringify({
           category: interests[0]?.toLowerCase() || 'general',
           days, interests, budget: budget.toLowerCase(), party: `${party} personas`,
-          pace: pace.toLowerCase(), zones, language: 'es',
+          pace: pace.toLowerCase(), zones, language: lang,
         }),
       });
       if (!r.ok) {

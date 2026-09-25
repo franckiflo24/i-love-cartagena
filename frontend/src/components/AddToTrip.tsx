@@ -7,7 +7,7 @@
 import React, { useCallback, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal, TextInput,
-  ActivityIndicator, ScrollView, Platform,
+  ActivityIndicator, ScrollView, Platform, KeyboardAvoidingView,
 } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { useSignupGate } from '../context/SignupGateContext';
@@ -123,6 +123,10 @@ export default function AddToTrip({ refType, refId, name, compact, style }: Prop
       )}
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+        {/* The autoFocus "Nuevo viaje" input + Crear sit at the bottom of this
+            flex-end sheet — without this the iOS keyboard covers them
+            (the Guideline 4 "button not visible" rejection pattern). */}
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={() => setOpen(false)}>
           <TouchableOpacity activeOpacity={1} style={styles.sheet} onPress={() => {}}>
             {done ? (
@@ -176,6 +180,7 @@ export default function AddToTrip({ refType, refId, name, compact, style }: Prop
             )}
           </TouchableOpacity>
         </TouchableOpacity>
+        </KeyboardAvoidingView>
       </Modal>
     </>
   );

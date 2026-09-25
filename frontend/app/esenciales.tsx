@@ -43,8 +43,12 @@ export default function EsencialesScreen() {
 
   const toggle = useCallback((key: string) => {
     setOpen((cur) => (cur === key ? null : key));
-    if (!detail[key]) {
-      api.get(`/essentials/category/${key}`).then((d) => setDetail((m) => ({ ...m, [key]: d }))).catch(() => {});
+    if (!detail[key] || detail[key].__error) {
+      if (detail[key]?.__error) setDetail((m) => { const n = { ...m }; delete n[key]; return n; });
+      api.get(`/essentials/category/${key}`)
+        .then((d) => setDetail((m) => ({ ...m, [key]: d })))
+        // A failed fetch used to leave the section spinning forever.
+        .catch((e) => { console.error('[esenciales] category', key, e); setDetail((m) => ({ ...m, [key]: { __error: true } })); });
     }
   }, [detail]);
 
@@ -94,7 +98,11 @@ export default function EsencialesScreen() {
 
                     {isOpen && (
                       <View style={styles.catBody}>
-                        {!d ? <ActivityIndicator color={COLORS.primary} size="small" /> : (
+                        {!d ? <ActivityIndicator color={COLORS.primary} size="small" /> : d.__error ? (
+                          <TouchableOpacity onPress={() => { setOpen(null); setTimeout(() => toggle(c.key), 0); }} activeOpacity={0.8}>
+                            <Text style={styles.guidance}>{tr('No se pudo cargar. Toca para reintentar.')}</Text>
+                          </TouchableOpacity>
+                        ) : (
                           <>
                             {!!L(d, 'guidance') && (
                               <Text style={styles.guidance}>{L(d, 'guidance')}</Text>

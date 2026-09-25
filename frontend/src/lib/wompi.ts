@@ -97,7 +97,16 @@ export function describeStatus(status: string): { title: string; tone: 'success'
   }
 }
 
+// The App Store build must never switch on in-app checkout from a server flag:
+// enabling Wompi for the web would silently put live City Pass / port-tax payments
+// into an already-reviewed iOS binary (contradicts the 2.1(b) answer to Apple and
+// exposes 3.1.1). Native payments ship only via a new binary + review.
+const NATIVE_PAYMENTS_ENABLED = false;
+
 export async function checkWompiEnabled(): Promise<{ enabled: boolean; env: string; commission_pct: number }> {
+  if (Platform.OS !== 'web' && !NATIVE_PAYMENTS_ENABLED) {
+    return { enabled: false, env: 'sandbox', commission_pct: 3 };
+  }
   try {
     const cfg = await api.get('/payments/config');
     return { enabled: !!cfg.enabled, env: cfg.env || 'sandbox', commission_pct: cfg.commission_pct || 3 };

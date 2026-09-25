@@ -144,8 +144,11 @@ export default function Root({ children }: PropsWithChildren) {
               position: relative;
             }
 
-            /* iPhone dynamic island notch */
+            /* iPhone dynamic island notch — disabled: RN-web has no safe-area inset,
+               so this decoration sat ON TOP of real UI (hid the /mapa "Pasaporte"
+               chip, clipped "Dashboard" and the Agenda title at desktop widths). */
             #root::before {
+              display: none;
               content: '';
               position: absolute;
               top: 10px;

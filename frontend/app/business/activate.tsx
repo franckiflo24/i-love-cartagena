@@ -7,10 +7,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
-import { setSecureToken } from '../../src/lib/secureToken';
+import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
+import { useTr } from '../../src/i18n/autoTr';
 
 export default function ActivatePartner() {
   const router = useRouter();
+  const { adoptSession } = useBusinessAuth();
+  const tr = useTr();
   const { token } = useLocalSearchParams<{ token?: string }>();
   const [partner, setPartner] = useState<{ partner_id: string; name: string; category?: string; owner_email?: string } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,11 +50,14 @@ export default function ActivatePartner() {
         setSubmitting(false);
         return;
       }
-      await setSecureToken('amocartagena_business_token', data.token);
+      // Adopt the session in the auth context (writing only the secure store left
+      // the dashboard seeing token=null → bounced the new partner to login), and
+      // navigate directly — an Alert button's onPress is a no-op on web.
+      await adoptSession(data.token);
+      router.replace('/business/dashboard' as any);
       Alert.alert(
-        '¡Cuenta activada!',
-        'Tu perfil ya está creado. Completa tus fotos, horarios y descripción para empezar a recibir reservas.',
-        [{ text: 'Ir al dashboard', onPress: () => router.replace('/business/dashboard' as any) }]
+        tr('¡Cuenta activada!'),
+        tr('Tu perfil ya está creado. Completa tus fotos, horarios y descripción para empezar a recibir reservas.'),
       );
     } catch (e: any) {
       Alert.alert('Error', 'No pudimos activar tu cuenta. Reintenta o contacta soporte.');

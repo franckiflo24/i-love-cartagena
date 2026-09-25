@@ -8,6 +8,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { api } from '../../src/constants/api';
 import { useTr } from '../../src/i18n/autoTr';
+import { bogotaToday, bogotaDatePlus } from '../../src/lib/eventTime';
 
 // B3 — Partner promotion management. The deals a partner publishes here surface
 // in "Ofertas del día" on the consumer home (GET /promotions/today). That
@@ -32,12 +33,9 @@ const DURATIONS: { label: string; days: number }[] = [
   { label: '1 mes', days: 30 },
 ];
 
-const todayISO = () => new Date().toISOString().slice(0, 10);
-const isoPlusDays = (days: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-};
+// Cartagena's calendar, not UTC (promos read as expired / a day short after 19:00 Bogotá).
+const todayISO = () => bogotaToday();
+const isoPlusDays = (days: number) => bogotaDatePlus(days);
 const onlyDigits = (s: string) => s.replace(/\D/g, '');
 
 export default function BusinessPromotions() {

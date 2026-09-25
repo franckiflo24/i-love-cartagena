@@ -41,7 +41,7 @@ function formatHumanDate(ymd: string): string {
 export default function PortTaxTicketsScreen() {
   const tr = useTr();
   const router = useRouter();
-  const { user, login } = useAuth();
+  const { user } = useAuth();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -146,9 +146,11 @@ export default function PortTaxTicketsScreen() {
           <Ionicons name="lock-closed-outline" size={48} color={COLORS.textMuted} />
           <Text style={styles.emptyTitle}>{tr('Inicia sesión')}</Text>
           <Text style={styles.emptyText}>
-            Para ver tus tiquetes guardados y volver a abrir tu QR cuando lo necesites.
+            {tr('Para ver tus tiquetes guardados y volver a abrir tu QR cuando lo necesites.')}
           </Text>
-          <TouchableOpacity style={styles.ctaBtn} onPress={() => login()}>
+          {/* The app's own login screen (email code) — AuthContext.login() is the
+              web-only Google redirect and was a silent no-op on iOS. */}
+          <TouchableOpacity style={styles.ctaBtn} onPress={() => router.push({ pathname: '/login' as any, params: { next: '/port-tax/tickets' } })}>
             <Text style={styles.ctaBtnText}>{tr('Iniciar sesión')}</Text>
           </TouchableOpacity>
         </View>

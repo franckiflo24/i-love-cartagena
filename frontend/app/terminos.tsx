@@ -42,7 +42,7 @@ export default function TermsScreen() {
         <Text style={styles.p}>{tr('Te comprometes a NO: (a) usar la app con fines ilícitos; (b) suplantar a otra persona; (c) interferir con la seguridad o desempeño de la plataforma; (d) publicar contenido ofensivo, discriminatorio o falso; (e) revender el servicio sin autorización.')}</Text>
 
         <Text style={styles.h1}>{tr('7. Inteligencia Artificial')}</Text>
-        <Text style={styles.p}>{tr('La app incluye un agente conversacional ("Amo IA") y recomendaciones generadas con modelos de lenguaje. Las sugerencias son orientativas y pueden contener errores. Verifica siempre la información crítica (horarios, precios, disponibilidad) directamente con el partner antes de tomar decisiones.')}</Text>
+        <Text style={styles.p}>{tr('La app incluye una concierge conversacional ("Luna") y recomendaciones generadas con modelos de lenguaje. Las sugerencias son orientativas y pueden contener errores. Verifica siempre la información crítica (horarios, precios, disponibilidad) directamente con el partner antes de tomar decisiones.')}</Text>
 
         <Text style={styles.h1}>{tr('8. Propiedad intelectual')}</Text>
         <Text style={styles.p}>{tr('Todo el contenido propio de la app (código, diseño, marca "AMO Life", textos, ilustraciones) es propiedad de Amo Cartagena S.A.S. La tecnología subyacente de la plataforma es propiedad de MachineMind LLC y se licencia al Proveedor. Las fotografías y marcas de partners pertenecen a sus respectivos titulares y se muestran bajo licencia o autorización. Se te otorga una licencia limitada, no exclusiva y revocable para usar la app con fines personales y no comerciales.')}</Text>

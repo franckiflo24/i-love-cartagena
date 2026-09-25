@@ -66,8 +66,8 @@ export default function RootLayout() {
         <Stack.Screen name="rewards/offers" options={{ presentation: 'modal' }} />
         <Stack.Screen name="rewards/card" options={{ presentation: 'modal' }} />
         <Stack.Screen name="concierge" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="port-tax/tickets" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="port-tax/ticket/[id]" options={{ presentation: 'modal' }} />
+        {/* port-tax/tickets + port-tax/ticket/[id] are owned by port-tax/_layout — declaring
+            them here too raised a runtime warning and their options were ignored. */}
         <Stack.Screen name="payments/return" options={{ presentation: 'card' }} />
         <Stack.Screen name="business/activate" options={{ presentation: 'card' }} />
         <Stack.Screen name="business/reservations" options={{ presentation: 'modal' }} />

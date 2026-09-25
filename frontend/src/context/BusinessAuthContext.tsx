@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getSecureToken, setSecureToken, deleteSecureToken } from '../lib/secureToken';
 import { api } from '../constants/api';
@@ -31,6 +31,8 @@ interface BusinessAuthContextType {
   signup: (email: string, password: string, name: string, phone: string, nit: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
+  /** Adopt a token minted elsewhere (invite activation) as the live session. */
+  adoptSession: (token: string) => Promise<void>;
   setPartner: (p: Partner) => void;
 }
 
@@ -75,7 +77,7 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     try {
       const data = await api.post('/business/login', { email, password });
       setToken(data.token);
@@ -94,10 +96,10 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
       }
       throw e instanceof Error ? e : new Error(msg || 'Credenciales inválidas');
     }
-  };
+  }, []);
 
   // Alcaldía (mayor's office) DEMO — passcode-only entry, no email/password.
-  const passcodeLogin = async (passcode: string) => {
+  const passcodeLogin = useCallback(async (passcode: string) => {
     try {
       const data = await api.post('/business/alcaldia/access', { passcode: passcode.trim() });
       setToken(data.token);
@@ -112,9 +114,9 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
       }
       throw e instanceof Error ? e : new Error(msg || 'Código incorrecto');
     }
-  };
+  }, []);
 
-  const signup = async (email: string, password: string, name: string, phone: string, nit: string) => {
+  const signup = useCallback(async (email: string, password: string, name: string, phone: string, nit: string) => {
     // Errors bubble up with the backend's bilingual detail (e.g. "email already
     // has an account") so the signup screen can surface them verbatim.
     const data = await api.post('/business/signup', { email, password, name, phone, nit });
@@ -122,9 +124,9 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
     setBusiness(data.business);
     setPartner(data.partner ?? null);
     await setSecureToken(BIZ_KEY, data.token);
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     if (token) {
       try {
         await api.post('/business/logout', {}, { headers: { Authorization: `Bearer ${token}` } });
@@ -137,17 +139,37 @@ export function BusinessAuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     setBusiness(null);
     setPartner(null);
-  };
+  }, [token]);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     if (!token) return;
     const data = await api.get('/business/me', { headers: { Authorization: `Bearer ${token}` } });
     setBusiness(data.business);
     setPartner(data.partner);
-  };
+  }, [token]);
+
+  const adoptSession = useCallback(async (newToken: string) => {
+    await setSecureToken(BIZ_KEY, newToken);
+    setToken(newToken);
+    try {
+      const data = await api.get('/business/me', { headers: { Authorization: `Bearer ${newToken}` } });
+      setBusiness(data.business);
+      setPartner(data.partner);
+      try { await AsyncStorage.setItem(BIZ_DATA_KEY, JSON.stringify({ business: data.business, partner: data.partner ?? null })); } catch {}
+    } catch (e) {
+      console.error('[BusinessAuth] adoptSession /business/me failed — token kept, dashboard will retry', e);
+    }
+  }, []);
+
+  // Memoized so consumers that list `refresh`/`logout` in effect deps don't re-run
+  // on every provider render (business/pulse refetched /business/me in a loop).
+  const value = useMemo(
+    () => ({ token, business, partner, loading, login, passcodeLogin, signup, logout, refresh, adoptSession, setPartner }),
+    [token, business, partner, loading, login, passcodeLogin, signup, logout, refresh, adoptSession],
+  );
 
   return (
-    <BusinessAuthContext.Provider value={{ token, business, partner, loading, login, passcodeLogin, signup, logout, refresh, setPartner }}>
+    <BusinessAuthContext.Provider value={value}>
       {children}
     </BusinessAuthContext.Provider>
   );

@@ -334,6 +334,8 @@ export default function PasaporteScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
+        automaticallyAdjustKeyboardInsets /* iOS: inputs near the bottom stay above the keyboard */
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingBottom: 48 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
       >

@@ -13,6 +13,7 @@ import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
 import { useTr } from '../../src/i18n/autoTr';
 import { getUpcomingEvents } from '../../src/lib/data';
+import { bogotaToday } from '../../src/lib/eventTime';
 
 type Mode = 'salir' | 'mi_agenda';
 
@@ -32,12 +33,14 @@ const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep'
 const DAYS_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 const generateUpcomingDates = (tr: (s: string) => string) => {
-  const today = new Date();
+  // Cartagena's calendar, not UTC: anchor at noon UTC of Bogotá's today and step
+  // with UTC methods (toISOString made every chip a day ahead after 19:00 Bogotá).
+  const today = new Date(bogotaToday() + 'T12:00:00Z');
   // End at December 31 of the current year. If we're in the last 2 months
   // of the year, extend through December 31 of NEXT year so the user
   // always has at least ~2 months of horizon to scroll through.
-  const endYear = today.getMonth() >= 10 ? today.getFullYear() + 1 : today.getFullYear();
-  const end = new Date(endYear, 11, 31, 23, 59, 59);
+  const endYear = today.getUTCMonth() >= 10 ? today.getUTCFullYear() + 1 : today.getUTCFullYear();
+  const end = new Date(Date.UTC(endYear, 11, 31, 23, 59, 59));
   const dates: Array<{
     key: string; day: string; date: string; month: string; isToday: boolean;
     isFirstOfMonth: boolean;
@@ -45,14 +48,14 @@ const generateUpcomingDates = (tr: (s: string) => string) => {
   let lastMonth = -1;
   for (let i = 0; ; i++) {
     const dt = new Date(today);
-    dt.setDate(today.getDate() + i);
+    dt.setUTCDate(today.getUTCDate() + i);
     if (dt > end) break;
     const iso = dt.toISOString().slice(0, 10);
-    const m = dt.getMonth();
+    const m = dt.getUTCMonth();
     dates.push({
       key: iso,
-      day: i === 0 ? tr('Hoy') : i === 1 ? tr('Mañ') : tr(DAYS_ES[dt.getDay()]),
-      date: String(dt.getDate()),
+      day: i === 0 ? tr('Hoy') : i === 1 ? tr('Mañ') : tr(DAYS_ES[dt.getUTCDay()]),
+      date: String(dt.getUTCDate()),
       month: tr(MONTHS_ES[m]),
       isToday: i === 0,
       isFirstOfMonth: m !== lastMonth,
@@ -71,7 +74,7 @@ const formatLongDate = (iso: string) => {
   } catch { /* invalid date string — return raw */ return iso; }
 };
 
-const todayIso = () => new Date().toISOString().slice(0, 10);
+const todayIso = () => bogotaToday();
 
 export default function AgendaScreen() {
   const tr = useTr();

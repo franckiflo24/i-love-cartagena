@@ -1,3 +1,4 @@
+import os
 """Push Notifications backend tests for Amo Cartagena.
 
 Covers:
@@ -29,7 +30,7 @@ DB_NAME = "test_database"
 TEST_PREFIX = "pushtest_"
 
 CASABOHEME_EMAIL = "casaboheme@amocartagena.app"
-CASABOHEME_PASSWORD = "amocartagena2026"
+CASABOHEME_PASSWORD = os.environ.get("DEMO_PARTNER_PASSWORD", "")
 
 USER_FAKE_TOKEN = "ExponentPushToken[FAKE_TEST_TOKEN_123]"
 PARTNER_FAKE_TOKEN = "ExponentPushToken[PARTNER_TOKEN_456]"

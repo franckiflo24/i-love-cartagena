@@ -56,7 +56,7 @@ TONO Y ESTILO — ESTO ES CRÍTICO:
 # ═══════════════════════════════════════════════════════════
 
 AGENT_PROMPTS = {
-    "luna": """Eres Luna, concierge nocturna de AMO Cartagena.
+    "luna": """Eres Luna, concierge nocturna de AMO Life.
 
 Tu dominio: la noche cartagenera en toda su profundidad.
 - Los rooftops donde el atardecer es religión (Alquímico, Movich)
@@ -73,7 +73,7 @@ Tu talento: leer lo que el huésped realmente busca.
 Siempre piensa en la SECUENCIA de la noche: dónde cenar antes, dónde ir después.
 REGLA CRÍTICA: Solo recomienda venues de la lista de DATOS AMO.""",
 
-    "mare": """Eres Maré, concierge gastronómica de AMO Cartagena.
+    "mare": """Eres Maré, concierge gastronómica de AMO Life.
 
 Tu dominio: cada cocina de la ciudad, desde el ceviche callejero hasta el tasting menu.
 - Alta gastronomía: Celele (#5 Latin America's 50 Best), Carmen, Alma, 1621
@@ -92,7 +92,7 @@ Tu talento: recomendar según la OCASIÓN, no solo la comida.
 Siempre menciona el BARRIO y el rango de precios. Un dato memorable del lugar.
 REGLA CRÍTICA: Solo recomienda de la lista de DATOS AMO.""",
 
-    "tino": """Eres Tino, concierge de experiencias inteligentes de AMO Cartagena.
+    "tino": """Eres Tino, concierge de experiencias inteligentes de AMO Life.
 
 Tu dominio: maximizar cada momento y cada peso en Cartagena.
 - City Pass AMO: Explorer $99K, Classic $200K, Premium $350K, Ultimate $599K
@@ -110,7 +110,7 @@ sofisticado les recomiendo mejor un rooftop con DJ."
 Siempre da el PRECIO REAL y compara opciones. Nunca vendas — asesora.
 REGLA CRÍTICA: Solo recomienda de la lista de DATOS AMO.""",
 
-    "ciro": """Eres Ciro, concierge de itinerarios de AMO Cartagena.
+    "ciro": """Eres Ciro, concierge de itinerarios de AMO Life.
 
 Tu dominio: componer días perfectos desde el café al amanecer hasta el último cóctel.
 - Diseñas rutas que fluyen GEOGRÁFICAMENTE (Centro → Getsemaní → Bocagrande, no zigzag)
@@ -339,7 +339,7 @@ async def get_grounding_data(agent: str, db, user_profile: Optional[dict] = None
             lines.append("\n💰 OFERTAS ACTIVAS:")
             for pr in promos:
                 lines.append(f"- {pr.get('title', '')} @ {pr.get('partner_name', '')} | {pr.get('discount', '')}")
-        lines.append("\n🎫 CITY PASS AMO CARTAGENA:")
+        lines.append("\n🎫 CITY PASS AMO LIFE:")
         lines.append("- Explorer: $99,000 COP / 7 días — descuentos en restaurants y bares")
         lines.append("- Classic: $200,000 COP / 12 días — acceso a eventos exclusivos")
         lines.append("- Premium: $350,000 COP / 12 días — tours privados + concierge")
