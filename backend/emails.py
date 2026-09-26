@@ -118,9 +118,8 @@ def _shell(*, preheader: str, inner: str) -> str:
 <tr><td align="center" style="padding:32px 16px;">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:{_CARD};border:1px solid rgba(212,175,55,0.30);border-radius:20px;overflow:hidden;">
   <tr><td align="center" style="padding:36px 32px 6px;">
-    <img src="{SITE}/splash/amo-icon-512.png" width="66" height="66" alt="AMO Life"
-         style="display:block;margin:0 auto;border-radius:16px;border:1px solid rgba(212,175,55,0.30);">
-    <div style="font-family:{_SERIF};font-size:29px;color:{_TEXT};margin-top:13px;">Cartagena</div>
+    <img src="{SITE}/brand/amo-life-logo-email.png" width="260" height="100" alt="AMO Life — El mundo en tu mano"
+         style="display:block;margin:0 auto;width:260px;max-width:78%;height:auto;border:0;">
     <div style="width:58px;height:2px;background:{_GOLD};margin:15px auto 0;line-height:2px;font-size:0;">&nbsp;</div>
   </td></tr>
   {inner}

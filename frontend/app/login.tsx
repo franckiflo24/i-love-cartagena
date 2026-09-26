@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
-  Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView,
-} from 'react-native';
+  Modal, TextInput, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../src/context/AuthContext';
@@ -261,11 +260,14 @@ export default function LoginScreen() {
 
         {/* Logo / hero area */}
         <View style={styles.logoArea}>
-          <Text style={styles.logoMain}>AMO</Text>
-          <Text style={styles.logoMain}>LIFE</Text>
-          <Text style={styles.logoHeart}>❤️</Text>
-          <View style={styles.divider} />
-          <Text style={styles.tagline}>{s('login_welcome')}</Text>
+          {/* Official AMO Life lockup (incl. "El mundo en tu mano"). Bundled asset —
+              plain Image is right here: SafeImage's fallback chain is for remote URIs. */}
+          <Image
+            source={require('../assets/images/amo-life-logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+            accessibilityLabel={`AMO Life — ${s('login_welcome')}`}
+          />
         </View>
 
         {/* Auth area - well organized */}
@@ -544,6 +546,7 @@ const styles = StyleSheet.create({
   langCodeActive: { color: COLORS.white },
 
   logoArea: { alignItems: 'center', marginTop: SPACING.lg },
+  logoImage: { width: '86%', maxWidth: 380, aspectRatio: 900 / 345 },
   logoHeart: { fontSize: 40, marginVertical: SPACING.xs },
   logoMain: { fontSize: 38, letterSpacing: 2, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.xs },
   divider: { width: 60, height: 2, backgroundColor: COLORS.primary, marginTop: SPACING.md, borderRadius: 1 },

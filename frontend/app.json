@@ -2,7 +2,7 @@
   "expo": {
     "name": "AMO Life",
     "slug": "amo-cartagena",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "amocartagena",
@@ -66,10 +66,16 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-amo.png",
-          "imageWidth": 220,
+          "backgroundColor": "#000000",
+          "image": "./assets/images/amo-life-logo.png",
+          "imageWidth": 280,
           "resizeMode": "contain",
-          "backgroundColor": "#020408"
+          "ios": {
+            "image": "./assets/images/splash-amo-life.png",
+            "resizeMode": "cover",
+            "enableFullScreenImage_legacy": true,
+            "backgroundColor": "#000000"
+          }
         }
       ],
       "expo-web-browser",

@@ -20,7 +20,9 @@ type Props = {
 // Served from /brand by the static export. Native has no origin — a relative uri
 // rendered a blank loader in the iOS app — so prefix the production asset origin.
 const HEART = { uri: `${ASSET_ORIGIN}/brand/amo-heart-512.png` } as const;
-const LOCKUP = { uri: `${ASSET_ORIGIN}/brand/amo-logo-lockup.png` } as const;
+// Official AMO Life lockup, transparent (un-screened from the black-bg master) so it
+// sits cleanly on any dark ground. Bundled → loads instantly and offline on native.
+const LOCKUP = require('../../assets/images/amo-life-logo.png');
 
 export function BrandLoader({ fullscreen = false, lockup = false, size = 96 }: Props) {
   const scale = useRef(new Animated.Value(1)).current;
@@ -44,7 +46,7 @@ export function BrandLoader({ fullscreen = false, lockup = false, size = 96 }: P
 
   const src = lockup ? LOCKUP : HEART;
   const dims = lockup
-    ? { width: Math.min(size * 3.2, 280), height: Math.min(size * 3.2, 280) * (267 / 760) }
+    ? { width: Math.min(size * 3.2, 300), height: Math.min(size * 3.2, 300) * (345 / 900) }
     : { width: size, height: size };
 
   return (
@@ -52,7 +54,7 @@ export function BrandLoader({ fullscreen = false, lockup = false, size = 96 }: P
       <Animated.Image
         source={src}
         resizeMode="contain"
-        accessibilityLabel="AMO"
+        accessibilityLabel="AMO Life"
         style={[dims, { opacity: fade, transform: [{ scale }] }] as any}
       />
     </View>

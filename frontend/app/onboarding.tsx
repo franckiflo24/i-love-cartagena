@@ -12,8 +12,7 @@
 // stamp is real; Luna's line is grounded; skipping still lands in the app.
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Platform, ActivityIndicator, ScrollView,
-} from 'react-native';
+  View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Platform, ActivityIndicator, ScrollView, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -186,9 +185,13 @@ export default function OnboardingArrival() {
         >
           {/* Wordmark */}
           <Animated.View style={[styles.wordmarkWrap, R(0)]}>
-            <Text style={styles.amoMark}>A  M  O</Text>
-            <Text style={styles.cartagenaMark}>Life</Text>
-            <View style={styles.rule} />
+            {/* Official AMO Life lockup (bundled asset → plain Image, not SafeImage). */}
+            <Image
+              source={require('../assets/images/amo-life-logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+              accessibilityLabel="AMO Life"
+            />
           </Animated.View>
 
           {/* Welcome beat */}
@@ -263,8 +266,12 @@ export default function OnboardingArrival() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.wordmarkWrap}>
-            <Text style={styles.amoMark}>A  M  O</Text>
-            <View style={styles.rule} />
+            <Image
+              source={require('../assets/images/amo-life-logo.png')}
+              style={styles.logoImageSmall}
+              resizeMode="contain"
+              accessibilityLabel="AMO Life"
+            />
           </View>
           <Text style={styles.qTitle}>{tr('¿Cuánto tiempo en Cartagena?')}</Text>
           <Text style={styles.qSub}>{tr('Una pregunta — así Luna te muestra lo que de verdad te sirve.')}</Text>
@@ -313,6 +320,8 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.xl * 1.5, paddingBottom: SPACING.xl,
   },
   wordmarkWrap: { alignItems: 'center', marginBottom: SPACING.sm },
+  logoImage: { width: '84%', maxWidth: 340, aspectRatio: 900 / 345 },
+  logoImageSmall: { width: 170, aspectRatio: 900 / 345 },
   amoMark: { color: GOLD, fontSize: 14, letterSpacing: 6, ...FONTS.semibold },
   cartagenaMark: { color: '#FFFFFF', fontSize: 40, fontFamily: SERIF, marginTop: 2 },
   rule: { width: 60, height: 2, backgroundColor: GOLD, marginTop: 14, borderRadius: 1 },

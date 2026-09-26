@@ -26,7 +26,9 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="apple-itunes-app" content="app-id=6809565354" />
         {/* PWA manifest + installed-app icon (red brand, matches the preloader) */}
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/splash/amo-icon-192.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/splash/amo-icon-180.png" />
+        {/* Paint the loading-screen logo immediately (it is the first thing users see). */}
+        <link rel="preload" as="image" href="/brand/amo-life-logo-1200.webp" type="image/webp" />
         {/* iOS home-screen LAUNCH images — the red AMO·Cartagena splash, so the
             installed app opens with the same brand moment as the web preloader
             (instead of a blank screen). Per-device. */}
@@ -228,59 +230,74 @@ export default function Root({ children }: PropsWithChildren) {
             pointer-events: none;
           }
 
-          /* Brand logo video (animated AMO ❤ world · Cityguide & Lifestyle lockup) */
-          .amo-logo-video {
-            width: min(76vw, 400px);
+          /* ── AMO Life loading screen (official art, Sep 2026) ──
+             Layered from Phil's loading-screen design so it fits every viewport:
+             logo (official lockup) · animated dots · Earth bleeding off the bottom.
+             All three sit on pure black, matching the art's own background. */
+          .amo-pl-logo {
+            width: min(86vw, 560px);
             height: auto;
-            object-fit: contain;
-            /* Feather the video edges into the black bg so the compression-gray border
-               and the reveal glow never read as a rectangle. The center stays fully
-               opaque, so the AMO ❤ lockup + tagline are never clipped. */
-            -webkit-mask-image: radial-gradient(ellipse 72% 82% at 50% 50%, #000 62%, transparent 96%);
-            mask-image: radial-gradient(ellipse 72% 82% at 50% 50%, #000 62%, transparent 96%);
-            animation: amo-fadein 0.5s ease forwards;
+            margin-top: -12vh;
+            opacity: 0;
+            animation: amo-fadein 0.6s ease 0.05s forwards;
+          }
+          .amo-pl-dots {
+            display: flex;
+            gap: 14px;
+            margin-top: 6vh;
+            opacity: 0;
+            animation: amo-fadein 0.5s ease 0.35s forwards;
+          }
+          .amo-pl-dots i {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ff2d3f;
+            box-shadow: 0 0 10px 2px rgba(255,45,63,0.65), 0 0 22px 6px rgba(255,45,63,0.25);
+            animation: amo-dot 1.2s ease-in-out infinite;
+          }
+          .amo-pl-dots i:nth-child(2) { animation-delay: 0.2s; }
+          .amo-pl-dots i:nth-child(3) { animation-delay: 0.4s; }
+          @keyframes amo-dot {
+            0%, 100% { opacity: 0.28; transform: scale(0.82); }
+            40% { opacity: 1; transform: scale(1); background: #ffd6da; }
+          }
+          .amo-pl-earth {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            /* full width on phones; capped by height so it never climbs into the
+               logo on short/landscape screens */
+            width: min(100vw, 1000px, 66vh);
+            height: auto;
+            pointer-events: none;
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+            opacity: 0;
+            animation: amo-fadein 0.9s ease 0.15s forwards;
           }
           @keyframes amo-fadein {
             from { opacity: 0; }
             to { opacity: 1; }
           }
-
-          /* Progress bar */
-          .amo-progress {
-            position: absolute;
-            bottom: max(40px, env(safe-area-inset-bottom, 20px));
-            left: 50%;
-            transform: translateX(-50%);
-            width: 120px;
-            height: 2px;
-            background: rgba(255,255,255,0.06);
-            border-radius: 2px;
-            overflow: hidden;
-            opacity: 0;
-            animation: amo-fadein 0.6s ease 0.8s forwards;
-          }
-          .amo-progress i {
-            display: block;
-            height: 100%;
-            width: 40%;
-            border-radius: 2px;
-            background: linear-gradient(90deg, transparent, #12B5A5, transparent);
-            animation: amo-slide 1.4s ease-in-out infinite;
-          }
-          @keyframes amo-slide {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(350%); }
+          @media (prefers-reduced-motion: reduce) {
+            .amo-pl-dots i { animation: none; opacity: 0.8; }
           }
         `}} />
       </head>
       <body>
         <div id="amo-preloader">
-          {/* AMO Life — heart-world mark + wordmark. Text-neutral heart is used here
-              as a placeholder until the final AMO Life logo lockup is provided. */}
-          <img className="amo-logo-video" src="/brand/amo-heart-512.png" alt="AMO Life" style={{ width: 'min(46vw, 220px)' }} />
-          <div style={{ marginTop: 16, color: '#fff', fontFamily: "'Outfit', system-ui, sans-serif", fontSize: 34, fontWeight: 700, letterSpacing: 1 }}>AMO <span style={{ color: '#E11D2E' }}>Life</span></div>
-          <div style={{ marginTop: 6, color: 'rgba(255,255,255,0.55)', fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 12, letterSpacing: 3, textTransform: 'uppercase' }}>El mundo en tu mano</div>
-          <div className="amo-progress"><i></i></div>
+          {/* Official AMO Life loading screen (logo + dots + Earth), layered. */}
+          <picture>
+            <source srcSet="/brand/amo-life-earth.webp" type="image/webp" />
+            <img className="amo-pl-earth" src="/brand/amo-life-earth.jpg" alt="" aria-hidden="true" />
+          </picture>
+          <picture>
+            <source srcSet="/brand/amo-life-logo-1200.webp" type="image/webp" />
+            <img className="amo-pl-logo" src="/brand/amo-life-logo-1200.jpg" alt="AMO Life — El mundo en tu mano" width={1200} height={460} />
+          </picture>
+          <div className="amo-pl-dots" aria-hidden="true"><i></i><i></i><i></i></div>
         </div>
         {children}
         <script dangerouslySetInnerHTML={{ __html: `

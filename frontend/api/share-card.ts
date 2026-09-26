@@ -5,7 +5,7 @@
 
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
-import { MANROPE_700_B64, MANROPE_800_B64, HEART_SVG } from '../og-assets/fonts';
+import { MANROPE_700_B64, MANROPE_800_B64, HEART_PNG_B64 } from '../og-assets/fonts';
 
 const BACKEND = 'https://backend-mu-one-74.vercel.app';
 const GOLD = '#E9B949';
@@ -19,7 +19,7 @@ const NBH_NAMES: Record<string, string> = {
 
 const FONT_700 = Buffer.from(MANROPE_700_B64, 'base64');
 const FONT_800 = Buffer.from(MANROPE_800_B64, 'base64');
-const HEART_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(HEART_SVG).toString('base64')}`;
+const HEART_DATA_URI = `data:image/png;base64,${HEART_PNG_B64}`;
 
 // satori element helper (no React dependency)
 function h(type: string, style: Record<string, unknown>, ...children: unknown[]) {
@@ -73,7 +73,7 @@ function card(snap: any) {
   inner.push(
     h('div', { display: 'flex', alignItems: 'center', gap: 12, marginTop: 30 },
       h('div', { display: 'flex', fontSize: 26, fontWeight: 800, color: GOLD, letterSpacing: 2 }, 'AMO'),
-      { type: 'img', props: { src: HEART_DATA_URI, width: 30, height: 30, style: {} } },
+      { type: 'img', props: { src: HEART_DATA_URI, width: 36, height: 36, style: {} } },
       h('div', { display: 'flex', fontSize: 26, fontWeight: 800, color: GOLD, letterSpacing: 2 }, 'LIFE'),
       h('div', { display: 'flex', fontSize: 20, fontWeight: 700, color: 'rgba(255,255,255,0.5)', marginLeft: 6 }, 'amocartagena.co'),
     ),
