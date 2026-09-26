@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
-import Head from 'expo-router/head';
+import Head from '../src/components/WebHead';
 import { StatusBar } from 'expo-status-bar';
 import { Platform } from 'react-native';
 import { AuthProvider } from '../src/context/AuthContext';
