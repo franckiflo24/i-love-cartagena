@@ -43,7 +43,7 @@ export default function PrivacyScreen() {
         <Text style={styles.p}>{tr('Tu consentimiento al aceptar estos términos, la ejecución del contrato (procesar tus reservas y pagos), y nuestro interés legítimo en mejorar el servicio mediante analítica agregada.')}</Text>
 
         <Text style={styles.h1}>{tr('5. Terceros con los que compartimos datos')}</Text>
-        <Text style={styles.p}>{tr('• Wompi (Colombia) — procesamiento de pagos City Pass y Tasa Portuaria.')}</Text>
+        <Text style={styles.p}>{tr('• Wompi (Colombia) — procesamiento de pagos City Pass (cuando esté disponible).')}</Text>
         <Text style={styles.p}>{tr('• Expo Push Service (USA) — entrega de notificaciones push.')}</Text>
         <Text style={styles.p}>{tr('• Anthropic (Claude) / Google — procesamiento de consultas al agente IA (sin tus datos personales identificables: solo el texto de tu pregunta).')}</Text>
         <Text style={styles.p}>{tr('• Google Sign-In / Apple Sign-In — solo si eliges esos métodos de login.')}</Text>

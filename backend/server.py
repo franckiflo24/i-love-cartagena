@@ -2960,13 +2960,17 @@ async def _require_moderator(request: Request) -> dict:
 CITY_PASS_PLANS = {
     "pass_basic": {"name": "Explorer Pass", "price": 99000, "duration_days": 7, "color": "#22C55E",
                    "perks": ["5% descuentos en restaurantes", "Mapa interactivo premium", "Soporte prioritario"]},
+    # No transport promise in any tier: AMO does not sell or operate the pier fee, the
+    # park entry, the insurance or the boats (city hub muelle-bodeguita is the truth).
     "pass_classic": {"name": "Classic Pass", "price": 200000, "duration_days": 12, "color": "#3B82F6",
-                     "perks": ["10% descuentos en restaurantes y bares", "Entrada a eventos exclusivos", "Transporte acuático incluido", "Soporte VIP"]},
+                     "perks": ["10% descuentos en restaurantes y bares", "Entrada a eventos exclusivos", "Itinerarios personalizados con Luna", "Soporte VIP"]},
     "pass_premium": {"name": "Premium Pass", "price": 350000, "duration_days": 12, "color": "#D97706",
-                     "perks": ["15% descuentos en restaurantes y bares", "Acceso VIP a eventos y fiestas", "Transporte acuático ilimitado", "Tour privado por la ciudad amurallada", "Concierge personal 24/7"]},
+                     "perks": ["15% descuentos en restaurantes y bares", "Acceso VIP a eventos y fiestas", "Picks curados por expertos locales", "Tour privado por la ciudad amurallada", "Concierge personal 24/7"]},
     "pass_ultimate": {"name": "Ultimate Pass", "price": 599000, "duration_days": 30, "color": "#A855F7",
-                      "perks": ["20% descuentos universales", "Acceso ilimitado a todo", "Transporte privado incluido", "Chef privado una noche", "Concierge AI personalizado"]},
+                      "perks": ["20% descuentos universales", "Acceso ilimitado a todo", "Itinerarios ilimitados con Luna", "Chef privado una noche", "Concierge AI personalizado"]},
 }
+# frontend/public/data/city-pass/plans.json (the static fallback) mirrors this dict verbatim and
+# every perk string has an AUTO_TR en/fr/pt entry — backend/tests/test_port_tax_retired.py guards both.
 CITY_PASS_PLAN_PRICES = {k: v["price"] for k, v in CITY_PASS_PLANS.items()}
 
 
@@ -2974,7 +2978,7 @@ CITY_PASS_PLAN_PRICES = {k: v["price"] for k, v in CITY_PASS_PLANS.items()}
 async def admin_alcaldia_analytics(request: Request, days: int = 30):
     """Aggregate analytics for the Alcaldía dashboard.
     Focused on tourists / app users (NOT individual partners).
-    Returns: KPIs, demographics, payments (City Pass + Port Tax), user growth.
+    Returns: KPIs, demographics, payments (City Pass + Port Tax — retired product, history only), user growth.
     AGGREGATE ONLY — no individual PII/records — so the demo passcode view may read
     it (real government login gets it too). Every individual-record endpoint keeps
     _require_government_role.
@@ -3015,7 +3019,7 @@ async def admin_alcaldia_analytics(request: Request, days: int = 30):
             "total_revenue": rev,
         })
 
-    # ── Port Tax (Tasa Portuaria) ──
+    # ── Port Tax (Tasa Portuaria — retirado 2026-09-26; solo histórico, read-only) ──
     pt_total = await db.port_tax_tickets.count_documents({})
     pt_paid = await db.port_tax_tickets.count_documents({"status": {"$in": ["paid", "used"]}})
     pt_used = await db.port_tax_tickets.count_documents({"status": "used"})
@@ -3141,6 +3145,8 @@ async def admin_alcaldia_analytics(request: Request, days: int = 30):
             "total_revenue": citypass_revenue,
         },
         "port_tax": {
+            "retired": True,
+            "label": "Tasa Portuaria (retirado)",
             "total_tickets": pt_total,
             "total_passengers": pt_passengers,
             "total_revenue": pt_revenue,
@@ -3200,7 +3206,7 @@ async def admin_alcaldia_users(request: Request, limit: int = 100, skip: int = 0
 
 @api_router.get("/business/admin/payments")
 async def admin_alcaldia_payments(request: Request, limit: int = 200):
-    """Combined payment history (City Pass purchases + Port Tax tickets)."""
+    """Combined payment history (City Pass purchases + historical Port Tax tickets — product retired)."""
     await _require_government_role(request)
     limit = max(1, min(limit, 1000))
 
@@ -3240,7 +3246,7 @@ async def admin_alcaldia_payments(request: Request, limit: int = 200):
         payments.append({
             "id": t.get("ticket_id"),
             "type": "port_tax",
-            "label": f"Tasa Portuaria ({t.get('qty', 1)} pax)",
+            "label": f"Tasa Portuaria (retirado) · {t.get('qty', 1)} pax",
             "user_id": t.get("user_id"),
             "user_name": user.get("name", "—"),
             "user_email": user.get("email", "—"),
@@ -3323,7 +3329,7 @@ async def admin_export_payments_csv(request: Request):
         all_rows.append({
             "id": t.get("ticket_id"),
             "type": "port_tax",
-            "label": f"Tasa Portuaria x{t.get('qty', 1)}",
+            "label": f"Tasa Portuaria (retirado) x{t.get('qty', 1)}",
             "user_email": user.get("email", ""),
             "user_name": user.get("name", ""),
             "amount": t.get("total_amount", 0),
@@ -6436,7 +6442,10 @@ async def get_user_profile(request: Request):
     return profile
 
 
-# ── Transport tickets (online payment + QR for port entry) ──────────
+# ── Transport tickets (online payment + boarding QR) ──────────
+# No port-tax line item anywhere in this flow: the pier fee, the PNN entry and the
+# insurance are paid at the Muelle La Bodeguita taquillas (city hub muelle-bodeguita)
+# and AMO sells none of them. An old client's port-tax opt-in body flag is ignored.
 class TransportTicketBody(BaseModel):
     user_id: Optional[str] = None
     user_name: Optional[str] = None
@@ -6445,7 +6454,6 @@ class TransportTicketBody(BaseModel):
     passengers: int = 1
     departure_time: Optional[str] = None
     departure_date: Optional[str] = None  # YYYY-MM-DD
-    port_tax_included: bool = True
 
 
 def _parse_price(price_str: str) -> tuple[int, int]:
@@ -6458,9 +6466,6 @@ def _parse_price(price_str: str) -> tuple[int, int]:
     if len(nums) == 1:
         return (nums[0], nums[0])
     return (nums[0], nums[1] if len(nums) > 1 else nums[0] * 2)
-
-
-PORT_TAX_PER_PERSON = 25000  # COP — impuesto portuario aproximado
 
 
 @api_router.post("/transport/{transport_id}/buy")
@@ -6480,8 +6485,7 @@ async def buy_transport_ticket(transport_id: str, body: TransportTicketBody, req
         raise HTTPException(status_code=400, detail="This transport is not paid online (free service)")
 
     subtotal = base_price * max(1, body.passengers)
-    port_tax = (PORT_TAX_PER_PERSON * max(1, body.passengers)) if body.port_tax_included else 0
-    total = subtotal + port_tax
+    total = subtotal
 
     ticket_id = f"TKT-{uuid.uuid4().hex[:10].upper()}"
     qr_payload = {
@@ -6493,7 +6497,6 @@ async def buy_transport_ticket(transport_id: str, body: TransportTicketBody, req
         "trip_type": body.trip_type,
         "departure_date": body.departure_date,
         "departure_time": body.departure_time,
-        "port_tax_paid": body.port_tax_included,
         "valid_until": body.departure_date or datetime.now(timezone.utc).date().isoformat(),
         "issued_at": datetime.now(timezone.utc).isoformat(),
     }
@@ -6524,7 +6527,6 @@ async def buy_transport_ticket(transport_id: str, body: TransportTicketBody, req
         "departure_date": body.departure_date,
         "departure_time": body.departure_time,
         "subtotal": subtotal,
-        "port_tax": port_tax,
         "total": total,
         "currency": "COP",
         "payment_status": _payment_status,
@@ -6936,152 +6938,58 @@ async def my_city_pass(request: Request):
 
 
 # ─────────────────────────────────────────────────────────────
-# Port Tax (Tasa Portuaria — La Bodeguita → Islas)
+# Port Tax (Tasa Portuaria) — RETIRED 2026-09-26
 # ─────────────────────────────────────────────────────────────
-# COP = muelle 18.000 (Corpoturismo) + ingreso PNN 13.500 (oficiales 2026), sin el seguro
-# obligatorio (aprox. 8.800, se paga a la aseguradora). No existe una "tasa portuaria" única
-# y AMO no la vende: sin acuerdo firmado con Corpoturismo/PNN este producto es solo informativo
-# (city_modules.json muelle-bodeguita manda; ver frontend port-tax/checkout PORT_TAX_SALES_ENABLED).
-DEFAULT_PORT_TAX_PRICE = 31500
+# There is NO single "tasa portuaria". Leaving the Muelle La Bodeguita costs, per person and
+# apart from the tour: muelle COP 18.000 (Corpoturismo) + ingreso PNN COP 13.500 (2026) +
+# seguro obligatorio — all paid at the taquillas. AMO sells none of it: the city hub
+# (data/city_modules.json → muelle-bodeguita, GET /api/city/modules/muelle-bodeguita) is the
+# single source of truth. Payments were never live (Wompi disabled), so nobody is migrated:
+# every sale/config route answers 410 Gone and no price is ever seeded again.
+# db.port_tax_tickets stays READ-ONLY for the government dashboard's history.
+#
+# Back-compat: iOS build 14 (App Review) still calls GET /port-tax/config from the City Pass
+# tab and renders the legacy card ONLY when the call resolves — 410 hides it.
+PORT_TAX_RETIRED_DETAIL = {
+    "error": "retired",
+    "message": "La tasa del muelle no se vende en AMO; consulta el costo real en /api/city/modules/muelle-bodeguita",
+    "see": "/api/city/modules/muelle-bodeguita",
+}
 
-async def _get_active_port_tax_config():
-    """Return the currently active port-tax config, seeding a default if missing."""
-    cfg = await db.port_tax_config.find_one({"active": True}, {"_id": 0})
-    if not cfg:
-        cfg = {
-            "config_id": f"ptc_{uuid.uuid4().hex[:8]}",
-            "price_per_person": DEFAULT_PORT_TAX_PRICE,
-            "currency": "COP",
-            "season_label": "Tarifas oficiales 2026 (muelle + parque)",
-            "note": "Muelle $18.000 (Corpoturismo) + ingreso PNN $13.500 (oficiales 2026), pagados en las taquillas del Muelle La Bodeguita; seguro obligatorio aprox. $8.800 aparte. AMO informa, no vende.",
-            "active": True,
-            "updated_at": datetime.now(timezone.utc).isoformat(),
-        }
-        await db.port_tax_config.insert_one(dict(cfg))
-    cfg.pop("_id", None)
-    return cfg
+
+def _port_tax_retired() -> HTTPException:
+    return HTTPException(status_code=410, detail=dict(PORT_TAX_RETIRED_DETAIL))
 
 
 @api_router.get("/port-tax/config")
 async def port_tax_config():
-    """Public endpoint returning current price + season metadata."""
-    cfg = await _get_active_port_tax_config()
-    return cfg
+    """RETIRED — no price exists to return; old clients hide the card on any error."""
+    raise _port_tax_retired()
 
 
 @api_router.put("/admin/port-tax/config")
-async def admin_update_port_tax_config(request: Request):
-    """Admin can adjust the price per person and season label."""
-    user = await get_current_user(request)
-    if not user.get("is_admin"):
-        raise HTTPException(status_code=403, detail="Admin only")
-    body = await request.json()
-    price = int(body.get("price_per_person") or DEFAULT_PORT_TAX_PRICE)
-    if price <= 0 or price > 200000:
-        raise HTTPException(status_code=400, detail="Invalid price")
-    # Deactivate any previous configs
-    await db.port_tax_config.update_many({"active": True}, {"$set": {"active": False}})
-    new_cfg = {
-        "config_id": f"ptc_{uuid.uuid4().hex[:8]}",
-        "price_per_person": price,
-        "currency": "COP",
-        "season_label": body.get("season_label") or "Temporada actual",
-        "note": body.get("note") or "Tasa portuaria oficial Muelle La Bodeguita.",
-        "active": True,
-        "updated_at": datetime.now(timezone.utc).isoformat(),
-    }
-    await db.port_tax_config.insert_one(dict(new_cfg))
-    return new_cfg
+async def admin_update_port_tax_config():
+    """RETIRED — the product has no price to configure."""
+    raise _port_tax_retired()
 
 
 @api_router.post("/port-tax/checkout")
-async def port_tax_checkout(request: Request):
-    """
-    Create a port-tax ticket purchase.
-    Body: { qty: int, travel_date: 'YYYY-MM-DD', passengers?: [name,...] }
-
-    Tickets are created in 'pending_payment' status. A separate Wompi webhook
-    must mark them as 'paid' before they're valid for boarding. To preserve the
-    legacy demo behaviour of auto-paying (for staging/demo only), set
-    PORT_TAX_AUTO_PAY=1 — never enable this in production.
-    """
-    user = await get_current_user(request)
-    body = await request.json()
-    qty_raw = body.get("qty")
-    qty = int(qty_raw if qty_raw is not None else 1)
-    travel_date = (body.get("travel_date") or "").strip()
-    passengers = body.get("passengers") or []
-    if qty < 1 or qty > 20:
-        raise HTTPException(status_code=400, detail="qty must be between 1 and 20")
-    if not travel_date:
-        raise HTTPException(status_code=400, detail="travel_date required (YYYY-MM-DD)")
-    try:
-        datetime.strptime(travel_date, "%Y-%m-%d")
-    except ValueError:
-        raise HTTPException(status_code=400, detail="travel_date must be YYYY-MM-DD")
-
-    cfg = await _get_active_port_tax_config()
-    price_per_person = int(cfg["price_per_person"])
-    total = price_per_person * qty
-    ticket_id = f"pt_{uuid.uuid4().hex[:14]}"
-    qr_payload = {
-        "type": "port_tax",
-        "ticket_id": ticket_id,
-        "user_id": user["user_id"],
-        "qty": qty,
-        "travel_date": travel_date,
-        "issued_at": datetime.now(timezone.utc).isoformat(),
-        "app": "amo_cartagena",
-    }
-    # Default to pending_payment. Auto-pay is demo-only and HARD-disabled in prod
-    # regardless of the flag (sibling of the MOCK_PAY hole — same VERCEL_ENV guard).
-    auto_pay = os.environ.get("PORT_TAX_AUTO_PAY") == "1" and os.environ.get("VERCEL_ENV") != "production"
-    initial_status = "paid" if auto_pay else "pending_payment"
-    now_iso = datetime.now(timezone.utc).isoformat()
-    ticket = {
-        "ticket_id": ticket_id,
-        "user_id": user["user_id"],
-        "qty": qty,
-        "passengers": passengers[:qty] if isinstance(passengers, list) else [],
-        "price_per_person": price_per_person,
-        "total_amount": total,
-        "currency": cfg["currency"],
-        "travel_date": travel_date,
-        "status": initial_status,
-        "qr_payload": qr_payload,
-        "paid_at": now_iso if auto_pay else None,
-        "used_at": None,
-        "created_at": now_iso,
-    }
-    await db.port_tax_tickets.insert_one(dict(ticket))
-    ticket.pop("_id", None)
-    return ticket
+async def port_tax_checkout():
+    """RETIRED — no ticket is ever created."""
+    raise _port_tax_retired()
 
 
 @api_router.get("/port-tax/my-tickets")
 async def port_tax_my_tickets(request: Request):
+    """Historical tickets only (read-only: nothing is minted, expired or mutated anymore)."""
     user = await get_current_user(request)
     cursor = db.port_tax_tickets.find({"user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1)
-    tickets = await cursor.to_list(length=200)
-    # Auto-expire tickets whose travel_date has passed by more than 1 day and never used
-    today = datetime.now(timezone.utc).date()
-    for t in tickets:
-        if t.get("status") == "paid":
-            try:
-                td = datetime.strptime(t["travel_date"], "%Y-%m-%d").date()
-                if (today - td).days > 1:
-                    t["status"] = "expired"
-                    await db.port_tax_tickets.update_one(
-                        {"ticket_id": t["ticket_id"]},
-                        {"$set": {"status": "expired"}},
-                    )
-            except Exception:
-                pass
-    return tickets
+    return await cursor.to_list(length=200)
 
 
 @api_router.get("/port-tax/tickets/{ticket_id}")
 async def port_tax_ticket_detail(ticket_id: str, request: Request):
+    """Historical ticket detail (read-only)."""
     user = await get_current_user(request)
     t = await db.port_tax_tickets.find_one(
         {"ticket_id": ticket_id, "user_id": user["user_id"]}, {"_id": 0}
@@ -7092,35 +7000,9 @@ async def port_tax_ticket_detail(ticket_id: str, request: Request):
 
 
 @api_router.post("/port-tax/tickets/{ticket_id}/redeem")
-async def port_tax_redeem(ticket_id: str, request: Request):
-    """Mark a ticket as USED (one-time redemption).
-    Returns 409 if already used or expired. Future-proof for a partner scanner app:
-    accepts an optional 'operator_id' in body for analytics.
-    """
-    user = await get_current_user(request)
-    try:
-        body = await request.json()
-    except Exception:
-        body = {}
-    operator_id = (body or {}).get("operator_id")
-    t = await db.port_tax_tickets.find_one(
-        {"ticket_id": ticket_id, "user_id": user["user_id"]}, {"_id": 0}
-    )
-    if not t:
-        raise HTTPException(status_code=404, detail="Ticket not found")
-    if t.get("status") == "used":
-        raise HTTPException(status_code=409, detail="Ticket already used")
-    if t.get("status") == "expired":
-        raise HTTPException(status_code=409, detail="Ticket expired")
-    if t.get("status") != "paid":
-        raise HTTPException(status_code=409, detail=f"Ticket not redeemable (status={t.get('status')})")
-    now = datetime.now(timezone.utc).isoformat()
-    update = {"status": "used", "used_at": now}
-    if operator_id:
-        update["redeemed_by"] = operator_id
-    await db.port_tax_tickets.update_one({"ticket_id": ticket_id}, {"$set": update})
-    t.update(update)
-    return t
+async def port_tax_redeem(ticket_id: str):
+    """RETIRED — nothing is redeemable: the taquillas never honoured an AMO QR."""
+    raise _port_tax_retired()
 
 
 
@@ -7238,41 +7120,9 @@ async def wompi_city_pass_checkout(request: Request):
 
 
 @api_router.post("/payments/wompi/port-tax")
-async def wompi_port_tax_checkout(request: Request):
-    """Initiate a Wompi checkout for the Tasa Portuaria."""
-    user = await get_current_user(request)
-    # Drop RL audit (HIGH): cap payment-record creation per user (fail-closed
-    # prefix `paycreate`) — a payment-precursor surface before B3 billing.
-    await _check_rate_limit(f"paycreate:{user['user_id']}", max_calls=12, window_sec=3600)
-    body = await request.json()
-    qty_raw = body.get("qty")
-    qty = int(qty_raw if qty_raw is not None else 1)
-    travel_date = (body.get("travel_date") or "").strip()
-    passengers = body.get("passengers") or []
-    _app_url = os.environ.get('PUBLIC_APP_URL')
-    if not _app_url:
-        raise HTTPException(status_code=503, detail="PUBLIC_APP_URL not configured")
-    redirect_url = (body.get("redirect_url") or "").strip() or f"{_app_url}/payments/return"
-    if qty < 1 or qty > 20:
-        raise HTTPException(status_code=400, detail="qty must be between 1 and 20")
-    if not travel_date:
-        raise HTTPException(status_code=400, detail="travel_date required (YYYY-MM-DD)")
-    try:
-        datetime.strptime(travel_date, "%Y-%m-%d")
-    except ValueError:
-        raise HTTPException(status_code=400, detail="travel_date must be YYYY-MM-DD")
-    cfg = await _get_active_port_tax_config()
-    price = int(cfg["price_per_person"]) * qty
-    return await _create_payment_record(
-        user=user,
-        kind="port_tax",
-        partner_id=None,
-        amount_cop=price,
-        currency="COP",
-        description=f"Tasa Portuaria · {qty} pax · {travel_date}",
-        metadata={"qty": qty, "travel_date": travel_date, "passengers": passengers[:qty] if isinstance(passengers, list) else []},
-        redirect_url=redirect_url,
-    )
+async def wompi_port_tax_checkout():
+    """RETIRED — AMO does not sell the pier fee; no payment record is created."""
+    raise _port_tax_retired()
 
 
 @api_router.post("/payments/wompi/partner-event")
@@ -7444,7 +7294,6 @@ async def wompi_transport_checkout(request: Request):
     trip_type = body.get("trip_type", "one_way")
     departure_date = (body.get("departure_date") or "").strip()
     departure_time = (body.get("departure_time") or "").strip()
-    port_tax_included = bool(body.get("port_tax_included", False))
     _app_url = os.environ.get('PUBLIC_APP_URL')
     if not _app_url:
         raise HTTPException(status_code=503, detail="PUBLIC_APP_URL not configured")
@@ -7471,8 +7320,7 @@ async def wompi_transport_checkout(request: Request):
         raise HTTPException(status_code=400, detail="This transport is not paid online")
 
     subtotal = base_price * passengers
-    port_tax = (PORT_TAX_PER_PERSON * passengers) if port_tax_included else 0
-    total = subtotal + port_tax
+    total = subtotal  # no port-tax line item (see /transport/{id}/buy)
 
     return await _create_payment_record(
         user=user,
@@ -7488,8 +7336,6 @@ async def wompi_transport_checkout(request: Request):
             "trip_type": trip_type,
             "departure_date": departure_date,
             "departure_time": departure_time,
-            "port_tax_included": port_tax_included,
-            "port_tax_amount": port_tax,
         },
         redirect_url=redirect_url,
     )
@@ -7589,38 +7435,12 @@ async def _fulfill_payment(payment: dict, tx: dict):
                 await db.city_passes.insert_one(pass_doc)
                 await db.payments.update_one({"payment_id": payment["payment_id"]}, {"$set": {"fulfillment.pass_id": pass_doc["pass_id"]}})
         elif kind == "port_tax":
-            cfg = await _get_active_port_tax_config()
-            ticket_id = f"pt_{uuid.uuid4().hex[:14]}"
-            qty = int(metadata.get("qty") or 1)
-            travel_date = metadata.get("travel_date") or ""
-            qr_payload = {
-                "type": "port_tax",
-                "ticket_id": ticket_id,
-                "user_id": user_id,
-                "qty": qty,
-                "travel_date": travel_date,
-                "issued_at": datetime.now(timezone.utc).isoformat(),
-                "app": "amo_cartagena",
-            }
-            ticket = {
-                "ticket_id": ticket_id,
-                "user_id": user_id,
-                "qty": qty,
-                "passengers": metadata.get("passengers", [])[:qty] if isinstance(metadata.get("passengers"), list) else [],
-                "price_per_person": int(cfg["price_per_person"]),
-                "total_amount": payment["amount_cop"],
-                "currency": payment["currency"],
-                "travel_date": travel_date,
-                "status": "paid",
-                "qr_payload": qr_payload,
-                "paid_at": datetime.now(timezone.utc).isoformat(),
-                "used_at": None,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "payment_id": payment.get("payment_id"),
-                "wompi_transaction_id": tx.get("id"),
-            }
-            await db.port_tax_tickets.insert_one(dict(ticket))
-            await db.payments.update_one({"payment_id": payment["payment_id"]}, {"$set": {"fulfillment.ticket_id": ticket_id}})
+            # RETIRED product (2026-09-26): no ticket is minted — a QR the taquillas never
+            # honoured is the lie that was removed. Checkout answers 410, so only a
+            # pre-retirement pending record could ever land here; flag it for a human.
+            logger.error(f"[PortTax] retired product reached fulfillment for payment {payment.get('payment_id')} — not provisioned")
+            await db.payments.update_one({"payment_id": payment["payment_id"]}, {"$set": {"fulfillment.retired": True}})
+            return
         elif kind == "partner_event":
             booking_id = f"bk_{uuid.uuid4().hex[:12]}"
             booking = {
@@ -7670,7 +7490,6 @@ async def _fulfill_payment(payment: dict, tx: dict):
                 "trip_type": metadata.get("trip_type", "one_way"),
                 "departure_date": metadata.get("departure_date", ""),
                 "departure_time": metadata.get("departure_time", ""),
-                "port_tax_paid": metadata.get("port_tax_included", False),
                 "issued_at": datetime.now(timezone.utc).isoformat(),
             }
             qr_data = _json.dumps(qr_payload)
@@ -7683,8 +7502,7 @@ async def _fulfill_payment(payment: dict, tx: dict):
                 "passengers": int(metadata.get("passengers") or 1),
                 "departure_date": metadata.get("departure_date", ""),
                 "departure_time": metadata.get("departure_time", ""),
-                "subtotal": payment["amount_cop"] - int(metadata.get("port_tax_amount") or 0),
-                "port_tax": int(metadata.get("port_tax_amount") or 0),
+                "subtotal": payment["amount_cop"],
                 "total": payment["amount_cop"],
                 "currency": "COP",
                 "payment_status": "paid",

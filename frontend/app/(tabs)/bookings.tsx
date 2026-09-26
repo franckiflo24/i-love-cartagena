@@ -27,7 +27,9 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type BookingType = 'reservation' | 'experience' | 'citypass' | 'porttax';
+// 'porttax' was retired 2026-09-26: the product was never sold (Wompi disabled) and
+// AMO does not sell the pier fee, so there are no tickets to list.
+type BookingType = 'reservation' | 'experience' | 'citypass';
 
 type TabKey = 'upcoming' | 'past' | 'cancelled';
 
@@ -106,15 +108,6 @@ const normalizeCityPass = (c: Record<string, unknown>): UnifiedBooking => ({
   raw: c,
 });
 
-const normalizePortTax = (p: Record<string, unknown>): UnifiedBooking => ({
-  id: String(p.ticket_id || p.id || Math.random()),
-  type: 'porttax',
-  title: 'Tasa Portuaria',
-  date: p.travel_date ? String(p.travel_date) : undefined,
-  status: String(p.status || 'paid'),
-  raw: p,
-});
-
 // ── Status presentation ───────────────────────────────────────────────────────
 
 type StatusStyle = { label: string; color: string; bg: string };
@@ -150,7 +143,6 @@ const TYPE_META: Record<BookingType, { icon: string; label: string; color: strin
   reservation: { icon: 'restaurant-outline',   label: 'Reserva',       color: '#F97316' },
   experience:  { icon: 'compass-outline',       label: 'Experiencia',   color: '#A855F7' },
   citypass:    { icon: 'ticket-outline',        label: 'City Pass',     color: COLORS.primary },
-  porttax:     { icon: 'boat-outline',          label: 'Tasa Portuaria',color: '#06B6D4' },
 };
 
 // ── Date formatting ───────────────────────────────────────────────────────────
@@ -364,8 +356,8 @@ function GuestBookings({ onSignIn }: { onSignIn: () => void }) {
       <View style={styles.emptyIconCircle}>
         <Ionicons name="bookmark-outline" size={40} color={COLORS.textMuted} />
       </View>
-      <Text style={styles.emptyTitle}>{tr('Tus reservas y tiquetes, en un solo lugar')}</Text>
-      <Text style={styles.emptyText}>{tr('Inicia sesión para ver tus reservas, City Pass y tiquetes de la tasa portuaria.')}</Text>
+      <Text style={styles.emptyTitle}>{tr('Tus reservas y tu City Pass, en un solo lugar')}</Text>
+      <Text style={styles.emptyText}>{tr('Inicia sesión para ver tus reservas y tu City Pass.')}</Text>
       <TouchableOpacity style={styles.emptyBtn} onPress={onSignIn} activeOpacity={0.85}>
         <Ionicons name="person-circle-outline" size={15} color={COLORS.white} />
         <Text style={styles.emptyBtnText}>{tr('Iniciar sesión')}</Text>
@@ -401,7 +393,6 @@ export default function BookingsScreen() {
       api.get('/reservations/my'),
       api.get('/experience-bookings'),
       api.get('/city-pass/mine'),
-      api.get('/port-tax/my-tickets'),
     ]);
 
     const merged: UnifiedBooking[] = [];
@@ -436,17 +427,9 @@ export default function BookingsScreen() {
       console.error('[BookingsScreen] city-pass', results[2].reason);
     }
 
-    // Port tax tickets
-    if (results[3].status === 'fulfilled') {
-      const data = Array.isArray(results[3].value) ? results[3].value : [];
-      data.forEach((p: Record<string, unknown>) => merged.push(normalizePortTax(p)));
-    } else {
-      console.error('[BookingsScreen] port-tax', results[3].reason);
-    }
-
     merged.sort(sortByDate);
     setAllBookings(merged);
-    // Only a total wipe-out (all 4 sources rejected) is a real error; any success
+    // Only a total wipe-out (all 3 sources rejected) is a real error; any success
     // means the list is trustworthy and an empty result is genuinely empty.
     setError(results.every((r) => r.status === 'rejected'));
   }, [user]);
@@ -510,11 +493,6 @@ export default function BookingsScreen() {
         break;
       case 'citypass':
         router.push('/(tabs)/citypass' as any);
-        break;
-      case 'porttax':
-        // /port-tax has no index route → pushing it fell through to +not-found and
-        // bounced the user to Home. The real ticket screen is /port-tax/tickets.
-        router.push('/port-tax/tickets' as any);
         break;
       default:
         router.push('/reservations' as any);

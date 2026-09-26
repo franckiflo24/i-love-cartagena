@@ -40,7 +40,6 @@ CATALOG_COLLECTIONS = {
     "emergency_contacts": "contact_id",
     "transport": "transport_id",
     "rewards_offers": "offer_id",
-    "port_tax_config": None,        # singleton — full replace
     "partner_promotions": "promo_id",
 }
 
@@ -52,7 +51,9 @@ SKIP = {
     "location_pings", "search_history", "ai_itineraries", "itineraries",
     "chat_sessions", "notifications", "review_reports", "reviews",
     "rewards_accounts", "rewards_history", "rewards_redemptions",
-    "port_tax_tickets", "transport_tickets",
+    # port-tax product retired 2026-09-26: tickets stay read-only history, the price config
+    # is never re-seeded into Atlas (GET /port-tax/config answers 410 for good).
+    "port_tax_tickets", "port_tax_config", "transport_tickets",
 }
 
 

@@ -32,10 +32,16 @@ export default function CityPassTab() {
   const [myPass, setMyPass] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activatingId, setActivatingId] = useState<string | null>(null);
-  // The "Tasa Portuaria · PAGA Y EMBARCA · $31.500" card is retired: no authority
-  // recognizes a single port tax (it is pier 18.000 + park 13.500 + insurance, paid at
-  // the pier), and AMO has no agreement to sell any of it. The honest replacement is
-  // the muelle-bodeguita module of the city hub (official prices, where to pay).
+  // Hydration guard (React #418): the static export prerenders this route with no
+  // nav history, so a render-time router.canGoBack() painted no back button on the
+  // server and one on the client. Hold a deterministic first paint until mounted
+  // (same pattern as pasaporte.tsx).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  // The port-tax product is retired (2026-09-26): no authority recognizes a single
+  // port tax (it is pier 18.000 + park 13.500 + insurance, paid at the pier) and AMO
+  // has no agreement to sell any of it, so this tab makes no port-tax API calls. The
+  // honest replacement is the muelle-bodeguita module of the city hub.
   // Guideline 2.1: while payments are disabled in prod, the plan cards must be
   // honest UP FRONT — a visible "Próximamente" state, not a priced Activar
   // button that dead-ends after the tap. null = config check still in flight
@@ -109,9 +115,10 @@ export default function CityPassTab() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Canonical City Pass screen. Reached almost always via router.push (hidden
           tab, href:null) — from perfil, bookings, search, Luna, payment return —
-          so it needs its own back affordance. Gated on canGoBack() so it never
-          shows a broken control if ever surfaced as a root. */}
-      {router.canGoBack() && (
+          so it needs its own back affordance. Gated on mounted + canGoBack() so it
+          never shows a broken control if ever surfaced as a root and never
+          mismatches the prerendered HTML on hydration. */}
+      {mounted && router.canGoBack() && (
         <View style={styles.backHeader}>
           <TouchableOpacity testID="citypass-back-btn" onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
@@ -173,7 +180,7 @@ export default function CityPassTab() {
               {(plans.find(p => p.plan_id === myPass.plan_id)?.benefits || []).map((b, i) => (
                 <View key={i} style={styles.benefitRow}>
                   <Ionicons name="checkmark-circle" size={16} color={COLORS.mustard} />
-                  <Text style={styles.benefitText}>{b}</Text>
+                  <Text style={styles.benefitText}>{tr(b)}</Text>
                 </View>
               ))}
             </View>
@@ -242,7 +249,7 @@ export default function CityPassTab() {
                   {(plan.benefits || []).slice(0, 4).map((b, i) => (
                     <View key={i} style={styles.benefitRow}>
                       <Ionicons name="checkmark-circle" size={15} color={plan.color} />
-                      <Text style={styles.benefitText}>{b}</Text>
+                      <Text style={styles.benefitText}>{tr(b)}</Text>
                     </View>
                   ))}
                   {(plan.benefits || []).length > 4 && (
@@ -295,18 +302,27 @@ export default function CityPassTab() {
               <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
             </TouchableOpacity>
 
-            {/* Islands: official pier / park / insurance prices, paid at the pier —
-                replaces the retired "Tasa Portuaria" checkout card. */}
+            {/* Islands: what is really paid before boarding (pier + park + insurance,
+                at the pier, off-app) — the honest card that replaced the retired
+                port-tax checkout. Informational only; AMO sells none of it. */}
             <TouchableOpacity
               testID="citypass-ciudad-muelle"
-              style={styles.officialLink}
+              style={styles.muelleCard}
               onPress={() => router.push('/ciudad/muelle-bodeguita' as any)}
               activeOpacity={0.8}
               accessibilityRole="link"
               accessibilityLabel={tr('Ver precios oficiales del muelle (islas)')}
             >
-              <Ionicons name="boat-outline" size={16} color={COLORS.official} />
-              <Text style={styles.officialLinkText}>{tr('Ver precios oficiales del muelle (islas)')}</Text>
+              <View style={styles.muelleIconWrap}>
+                <Ionicons name="boat" size={20} color={COLORS.official} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.muelleTitle}>{tr('Lo que pagas antes de zarpar')}</Text>
+                <Text style={styles.muelleDesc}>
+                  {tr('Muelle $18.000 + parque $13.500 + seguro obligatorio, en las taquillas del Muelle La Bodeguita. AMO te informa; no lo vende.')}
+                </Text>
+                <Text style={styles.muelleCta}>{tr('Ver precios oficiales del muelle (islas)')}</Text>
+              </View>
               <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
             </TouchableOpacity>
 
@@ -374,6 +390,11 @@ const styles = StyleSheet.create({
   ctaBtnSoonText: { fontSize: 14, ...FONTS.bold },
   officialLink: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, minHeight: 48, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, paddingHorizontal: SPACING.md, paddingVertical: 10, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(57,184,255,0.25)' },
   officialLinkText: { flex: 1, fontSize: 13, lineHeight: 17, color: COLORS.textMain, ...FONTS.semibold },
+  muelleCard: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: 'rgba(57,184,255,0.25)' },
+  muelleIconWrap: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(57,184,255,0.12)', alignItems: 'center', justifyContent: 'center' },
+  muelleTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
+  muelleDesc: { fontSize: 12, lineHeight: 17, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+  muelleCta: { fontSize: 12, color: COLORS.official, ...FONTS.semibold, marginTop: 6 },
 
   // Active pass with QR
   activeSection: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.md },

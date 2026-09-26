@@ -37,6 +37,7 @@ import { COLORS, SPACING, RADIUS, FONTS, ELEVATION, TIER_COLORS, colorForKey } f
 import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import type { Lang } from '../i18n/translations';
+import { cityModuleRoute } from '../lib/cityModules';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import AddToTrip from './AddToTrip';
@@ -78,6 +79,7 @@ type Action = {
   plan_id?: string;
   category?: string;
   url?: string;
+  module_id?: string; // open_city_module → /ciudad/<id>
 };
 
 type Recommendation = {
@@ -243,11 +245,13 @@ const QUICK_PROMPTS: Record<Lang, QuickPrompt[]> = {
 // Fallback labels for backend actions that omit `label` (the system prompt
 // asks Sonnet for one in the detected language, so this mostly covers the
 // client-constructed login-wall action and any edge-case gap).
+// open_port_tax_checkout is retired (AMO does not sell the pier fee) — an old
+// output still routes to the muelle module, so its label says what it opens.
 const ACTION_LABELS: Record<Lang, Record<string, string>> = {
-  es: { navigate: 'Ir a', show_partners: 'Ver partners', show_events: 'Ver eventos', open_partner: 'Ver partner', open_event: 'Ver evento', open_port_tax_checkout: 'Comprar Tasa Portuaria', open_city_pass: 'Comprar City Pass', reservation_link: 'Reservar', show_itinerary: 'Ver itinerario', external_link: 'Abrir', default: 'Acción' },
-  en: { navigate: 'Go to', show_partners: 'View partners', show_events: 'View events', open_partner: 'View partner', open_event: 'View event', open_port_tax_checkout: 'Buy Port Tax', open_city_pass: 'Buy City Pass', reservation_link: 'Book', show_itinerary: 'View itinerary', external_link: 'Open', default: 'Action' },
-  fr: { navigate: 'Aller à', show_partners: 'Voir les partenaires', show_events: 'Voir les événements', open_partner: 'Voir le partenaire', open_event: "Voir l'événement", open_port_tax_checkout: 'Acheter la taxe portuaire', open_city_pass: 'Acheter le City Pass', reservation_link: 'Réserver', show_itinerary: "Voir l'itinéraire", external_link: 'Ouvrir', default: 'Action' },
-  pt: { navigate: 'Ir para', show_partners: 'Ver parceiros', show_events: 'Ver eventos', open_partner: 'Ver parceiro', open_event: 'Ver evento', open_port_tax_checkout: 'Comprar Taxa Portuária', open_city_pass: 'Comprar City Pass', reservation_link: 'Reservar', show_itinerary: 'Ver roteiro', external_link: 'Abrir', default: 'Ação' },
+  es: { navigate: 'Ir a', show_partners: 'Ver partners', show_events: 'Ver eventos', open_partner: 'Ver partner', open_event: 'Ver evento', open_port_tax_checkout: 'Ver precios del muelle', open_city_module: 'Ver guía', open_city_pass: 'Comprar City Pass', reservation_link: 'Reservar', show_itinerary: 'Ver itinerario', external_link: 'Abrir', default: 'Acción' },
+  en: { navigate: 'Go to', show_partners: 'View partners', show_events: 'View events', open_partner: 'View partner', open_event: 'View event', open_port_tax_checkout: 'See pier prices', open_city_module: 'See guide', open_city_pass: 'Buy City Pass', reservation_link: 'Book', show_itinerary: 'View itinerary', external_link: 'Open', default: 'Action' },
+  fr: { navigate: 'Aller à', show_partners: 'Voir les partenaires', show_events: 'Voir les événements', open_partner: 'Voir le partenaire', open_event: "Voir l'événement", open_port_tax_checkout: 'Voir les tarifs du quai', open_city_module: 'Voir le guide', open_city_pass: 'Acheter le City Pass', reservation_link: 'Réserver', show_itinerary: "Voir l'itinéraire", external_link: 'Ouvrir', default: 'Action' },
+  pt: { navigate: 'Ir para', show_partners: 'Ver parceiros', show_events: 'Ver eventos', open_partner: 'Ver parceiro', open_event: 'Ver evento', open_port_tax_checkout: 'Ver preços do píer', open_city_module: 'Ver guia', open_city_pass: 'Comprar City Pass', reservation_link: 'Reservar', show_itinerary: 'Ver roteiro', external_link: 'Abrir', default: 'Ação' },
 };
 
 function defaultLabel(a: Action, lang: Lang): string {
@@ -658,6 +662,7 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
             transport: '/transport',
             itineraries: '/itineraries',
             search: '/search',
+            ciudad: '/ciudad',
           };
           const p = map[a.screen];
           if (p) {
@@ -692,11 +697,15 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
           return;
         }
         case 'open_port_tax_checkout': {
+          // Retired action (AMO does not sell the pier fee): land on the official prices.
           setOpen(false);
-          const params: Record<string, string> = {};
-          if (a.qty) params.qty = String(a.qty);
-          if (a.travel_date) params.travel_date = a.travel_date;
-          router.push({ pathname: '/port-tax/checkout' as any, params });
+          router.push('/ciudad/muelle-bodeguita' as any);
+          return;
+        }
+        case 'open_city_module': {
+          // Unknown / missing module_id → the hub, never a not-found screen.
+          setOpen(false);
+          router.push(cityModuleRoute(a.module_id) as any);
           return;
         }
         case 'open_city_pass': {
@@ -1165,6 +1174,8 @@ function iconForAction(type: string): keyof typeof Ionicons.glyphMap {
       return 'business';
     case 'open_port_tax_checkout':
       return 'boat';
+    case 'open_city_module':
+      return 'bus';
     case 'open_city_pass':
       return 'key';
     case 'show_itinerary':

@@ -35,8 +35,9 @@ export default function TermsScreen() {
         <Text style={styles.p}>{tr('La calidad del servicio, productos y experiencia final son responsabilidad exclusiva del partner. AMO Life no garantiza disponibilidad, precios ni horarios mostrados, los cuales pueden cambiar sin previo aviso.')}</Text>
         <Text style={styles.p}>{tr('Las cancelaciones realizadas con menos de 24 horas de antelación pueden estar sujetas a cargos según la política del partner.')}</Text>
 
-        <Text style={styles.h1}>{tr('5. City Pass y Tasa Portuaria')}</Text>
-        <Text style={styles.p}>{tr('Las compras de City Pass (acceso a experiencias curadas) y Tasa Portuaria (impuesto oficial para visitar Islas) se procesan a través de Wompi, pasarela de pago licenciada por la Superintendencia Financiera de Colombia. Los montos pagados se rigen por la regulación local. Las devoluciones se gestionan caso a caso enviando un correo a soporte@amocartagena.co.')}</Text>
+        <Text style={styles.h1}>{tr('5. City Pass')}</Text>
+        <Text style={styles.p}>{tr('Las compras de City Pass (acceso a experiencias curadas), cuando estén disponibles, se procesan a través de Wompi, pasarela de pago licenciada por la Superintendencia Financiera de Colombia. Los montos pagados se rigen por la regulación local. Las devoluciones se gestionan caso a caso enviando un correo a soporte@amocartagena.co.')}</Text>
+        <Text style={styles.p}>{tr('Las tarifas de muelle, de ingreso al parque y el seguro obligatorio para visitar las islas se pagan directamente a Corpoturismo, a Parques Nacionales y a la aseguradora en el Muelle La Bodeguita. AMO Life no los vende ni los recauda; solo te informa los precios oficiales.')}</Text>
 
         <Text style={styles.h1}>{tr('6. Conducta del usuario')}</Text>
         <Text style={styles.p}>{tr('Te comprometes a NO: (a) usar la app con fines ilícitos; (b) suplantar a otra persona; (c) interferir con la seguridad o desempeño de la plataforma; (d) publicar contenido ofensivo, discriminatorio o falso; (e) revender el servicio sin autorización.')}</Text>

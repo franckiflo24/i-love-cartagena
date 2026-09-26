@@ -110,6 +110,19 @@ const MODULE_GRADIENTS: Record<string, readonly [string, string]> = {
 export const gradientFor = (id: string): readonly [string, string] =>
   MODULE_GRADIENTS[id] || DEFAULT_GRADIENT;
 
+// ── Published module ids (mirror of /data/city/modules.json) ─────────────────
+// Luna's `open_city_module` action carries a module_id chosen by the model; an
+// unknown or missing id must land on the hub, never on the detail's not-found
+// state or a 404.
+export const CITY_MODULE_IDS = [
+  'transcaribe', 'muelle-bodeguita', 'monumentos', 'coches-electricos', 'transcaribe-acuatico', 'taxis',
+] as const;
+export type CityModuleId = typeof CITY_MODULE_IDS[number];
+export const isCityModuleId = (id: unknown): id is CityModuleId =>
+  typeof id === 'string' && (CITY_MODULE_IDS as readonly string[]).includes(id);
+export const cityModuleRoute = (id: unknown): string =>
+  isCityModuleId(id) ? `/ciudad/${id}` : '/ciudad';
+
 // ── Official-link icons by kind ─────────────────────────────────────────────
 export const LINK_ICONS: Record<CityLinkKind, string> = {
   official: 'globe-outline',

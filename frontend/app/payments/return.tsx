@@ -88,13 +88,12 @@ export default function PaymentReturn() {
       return;
     }
     const kind = payment.kind;
-    const fulfillment = payment.fulfillment || {};
     if (kind === 'city_pass') {
       router.replace('/(tabs)/citypass' as any);
-    } else if (kind === 'port_tax' && fulfillment.ticket_id) {
-      router.replace({ pathname: '/port-tax/ticket/[id]' as any, params: { id: fulfillment.ticket_id } });
     } else if (kind === 'port_tax') {
-      router.replace('/port-tax/tickets' as any);
+      // Retired product (2026-09-26): the ticket / QR screens are gone. A dormant
+      // port_tax payment lands on the official pier / park / insurance prices.
+      router.replace('/ciudad/muelle-bodeguita' as any);
     } else {
       router.replace('/(tabs)' as any);
     }
@@ -150,7 +149,7 @@ export default function PaymentReturn() {
         {status === 'approved' && (
           <TouchableOpacity style={[styles.primaryBtn, { backgroundColor: toneColor }]} onPress={goNext}>
             <Text style={styles.primaryBtnText}>
-              {payment?.kind === 'port_tax' ? tr('Ver mi tiquete') : payment?.kind === 'city_pass' ? tr('Ver mi City Pass') : tr('Continuar')}
+              {payment?.kind === 'port_tax' ? tr('Ver precios oficiales del muelle (islas)') : payment?.kind === 'city_pass' ? tr('Ver mi City Pass') : tr('Continuar')}
             </Text>
           </TouchableOpacity>
         )}

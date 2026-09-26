@@ -4,7 +4,9 @@ AI-powered global search assistant for "AMO Life".
 - Receives a free-text query (in any language).
 - Uses the Emergent LLM Key (gpt-4o-mini) to:
     • Detect the user's intent and the relevant entity types
-      (partner / event / concert / transport / itinerary / city_pass / port_tax).
+      (partner / event / concert / transport / itinerary / city_pass / city).
+      'city' routes to the /ciudad hub (transporte, muelle, monumentos, coches, taxis —
+      official prices, AMO informs only). The old 'port_tax' type is retired and mapped to it.
     • Generate a friendly 1-2 sentence answer in the user's language.
     • Pick the top 3 result IDs from the items we pass.
 
@@ -22,7 +24,15 @@ from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
-KNOWN_TYPES = {"partner", "event", "concert", "transport", "itinerary", "city_pass", "port_tax", "general"}
+KNOWN_TYPES = {"partner", "event", "concert", "transport", "itinerary", "city_pass", "city", "general"}
+# Retired intents an older prompt/model may still emit → the hub that replaced them.
+LEGACY_INTENTS = {"port_tax": "city"}
+
+
+def _normalize_intent(raw: Any) -> str:
+    intent = str(raw or "general").lower().strip()
+    intent = LEGACY_INTENTS.get(intent, intent)
+    return intent if intent in KNOWN_TYPES else "general"
 
 
 def _slim_partner(p: Dict[str, Any]) -> Dict[str, Any]:
@@ -120,17 +130,17 @@ async def ai_search_answer(query: str, matches: Dict[str, List[Dict[str, Any]]])
         "Recibes una consulta libre del usuario y una lista de elementos disponibles. "
         "Tu trabajo es: "
         "1) detectar la intención principal (partner | event | concert | transport | "
-        "itinerary | city_pass | port_tax | general), "
+        "itinerary | city_pass | city | general), "
         "2) responder en máximo 2 frases breves y útiles, en el mismo idioma que la consulta, "
         "y 3) elegir hasta 3 ítems del pool que mejor respondan, devolviendo su id/type y una "
         "razón corta (<=10 palabras). "
-        "Si la consulta menciona islas, lanchas, Bodeguita, Barú, Rosario → considera el módulo "
-        "'port_tax' (información del muelle: aparte del tour se pagan muelle $18.000 + parque "
-        "$13.500 (oficiales 2026) + seguro aprox. $8.800 por persona en las taquillas del Muelle "
-        "La Bodeguita; no existe una 'tasa portuaria' única y AMO informa, no vende). "
-        "Si menciona pase, pass, museos, descuentos → 'city_pass'. "
+        "Si la consulta menciona Transcaribe, bus, muelle, islas, lanchas, Bodeguita, Barú, Rosario, "
+        "monumentos, castillo, coches eléctricos o taxis → 'city' (transporte, muelle, monumentos, "
+        "coches, taxis — guía con precios oficiales; AMO informa, no vende: la tarifa del muelle, "
+        "el ingreso al parque y el seguro se pagan en las taquillas del Muelle La Bodeguita). "
+        "Si menciona pase, pass, descuentos → 'city_pass'. "
         "Si nada calza, intención='general' y sugiere una pestaña que ayude (Agenda / Conciertos / "
-        "Partners / City Pass / Transporte). "
+        "Partners / City Pass / Transporte / Ciudad). "
         "Devuelve SOLO JSON estricto con: "
         "{ intent, answer, suggested_tab (opcional), highlights: [{type, id, reason}] }."
     )
@@ -153,9 +163,7 @@ async def ai_search_answer(query: str, matches: Dict[str, List[Dict[str, Any]]])
     except Exception:
         return {**fallback, "answer": text[:300]}
 
-    intent = (data.get("intent") or "general").lower()
-    if intent not in KNOWN_TYPES:
-        intent = "general"
+    intent = _normalize_intent(data.get("intent"))
     highlights = []
     for h in (data.get("highlights") or [])[:3]:
         if isinstance(h, dict) and h.get("id") and h.get("type"):

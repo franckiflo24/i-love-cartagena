@@ -16,6 +16,7 @@ import AddToTrip from '../src/components/AddToTrip';
 import { useAuth } from '../src/context/AuthContext';
 import LockedTease from '../src/components/LockedTease';
 import { filterLiveEvents } from '../src/lib/eventTime';
+import { cityModuleRoute } from '../src/lib/cityModules';
 
 type AIHighlight = { type: string; id: string; reason: string };
 type AIRecommendation = {
@@ -41,6 +42,7 @@ type AIAction = {
   plan_id?: string;
   category?: string;
   url?: string;
+  module_id?: string; // open_city_module → /ciudad/<id>
 };
 type AIPayload = {
   query: string;
@@ -72,8 +74,12 @@ const INTENT_META: Record<string, { color: string; icon: string; label: string }
   transport:  { color: '#3B82F6', icon: 'boat',              label: 'Transporte' },
   itinerary:  { color: '#FBBF24', icon: 'map',               label: 'Itinerario' },
   city_pass:  { color: '#12B5A5', icon: 'sparkles',          label: 'City Pass' },
-  // 'port_tax' is the backend's intent name for pier / islands questions; it opens the
-  // city-hub module (official pier + park + insurance prices), never a checkout.
+  // 'city' is the backend's intent for the city hub (Transcaribe, pier / islands, monuments,
+  // electric cars, taxis): official prices, AMO informs and sells none of it.
+  city:       { color: '#06B6D4', icon: 'bus',               label: 'Ciudad' },
+  // Legacy alias: an older backend still deployed may emit 'port_tax' for pier / islands
+  // questions; it opens the city-hub module (official pier + park + insurance prices),
+  // never a checkout. Drop once every backend maps port_tax → city.
   port_tax:   { color: '#06B6D4', icon: 'boat',              label: 'Muelle e islas' },
   general:    { color: COLORS.primary, icon: 'compass',      label: 'Sugerencia' },
 };
@@ -84,6 +90,7 @@ const TAB_TO_ROUTE: Record<string, string> = {
   'Partners':   '/(tabs)/partners',
   'City Pass':  '/(tabs)/citypass',
   'Transporte': '/transport',
+  'Ciudad':     '/ciudad',
 };
 
 // Voice transcription via Web Speech API
@@ -642,6 +649,10 @@ export default function SearchScreen() {
         // Retired action (AMO does not sell the pier fee): land on the official prices.
         router.push('/ciudad/muelle-bodeguita' as any);
         break;
+      case 'open_city_module':
+        // Unknown / missing module_id → the hub, never a not-found screen.
+        router.push(cityModuleRoute(a.module_id) as any);
+        break;
       case 'open_city_pass':
         router.push('/(tabs)/citypass' as any);
         break;
@@ -663,6 +674,7 @@ export default function SearchScreen() {
           transport: '/transport',
           itineraries: '/itineraries',
           search: '/search',
+          ciudad: '/ciudad',
         };
         const route = screenMap[a.screen || ''];
         if (route) router.push(route as any);
@@ -680,6 +692,7 @@ export default function SearchScreen() {
       show_partners: 'grid',
       show_events: 'calendar-outline',
       open_port_tax_checkout: 'boat',
+      open_city_module: 'bus',
       open_city_pass: 'ticket',
       show_itinerary: 'map',
       reservation_link: 'restaurant',

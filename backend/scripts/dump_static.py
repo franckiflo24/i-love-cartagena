@@ -104,8 +104,9 @@ write("promotions/today", active_promos or promos[:10])
 rewards = clean(list(db.rewards_offers.find({})))
 write("rewards/offers", rewards)
 
-port_tax_config = db.port_tax_config.find_one({}, {"_id": 0}) or {}
-write("port-tax/config", port_tax_config)
+# The port-tax product is retired (2026-09-26): nothing under port-tax/ is ever written again.
+# iOS build 14 renders the legacy 31.500 card whenever /data/port-tax/config.json resolves,
+# so recreating that file (even as {}) would resurrect the retired product on old devices.
 
 # Static config / constants
 write("payments/config", {"public_key": "", "mock": True, "wompi_configured": False})
@@ -262,7 +263,7 @@ write("calendar", dict(sorted(cal.items())))
 # User-scoped endpoints — empty for static demo
 for empty_path in [
     "my-week", "favorites", "favorites/ids", "notifications",
-    "city-pass/mine", "port-tax/my-tickets", "experience-bookings",
+    "city-pass/mine", "experience-bookings",
     "reservations/my", "rewards/me",
 ]:
     write(empty_path, [])
@@ -276,6 +277,9 @@ for null_path in ["auth/me", "profile", "business/me", "business/membership",
 # Experiences featured (uses partners with category=activity)
 activities = [p for p in partners if p.get("category") in ("activity", "yacht")][:8]
 write("experiences/featured", activities)
+
+# Guard: the retired port-tax static files must never come back (see comment above).
+assert not (OUT / "port-tax").exists(), f"retired port-tax static files present under {OUT / 'port-tax'} — delete them"
 
 print(f"\n✅ dumped to {OUT}")
 print(f"   total files: {sum(1 for _ in OUT.rglob('*.json'))}")

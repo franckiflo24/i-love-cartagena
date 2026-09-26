@@ -290,7 +290,9 @@ export default function AlcaldiaDashboard({
           {/* Revenue KPIs */}
           <Text style={styles.sectionTitle}>Ingresos generados</Text>
           <View style={styles.bigKpiCard}>
-            <Text style={styles.bigKpiLabel}>Ingresos totales (City Pass + Tasa Portuaria)</Text>
+            {/* Port-tax figures are history only: the product was retired 2026-09-26
+                (never sold — Wompi disabled); the collections stay read-only. */}
+            <Text style={styles.bigKpiLabel}>{tr('Ingresos totales (City Pass + Tasa Portuaria retirada)')}</Text>
             <Text style={styles.bigKpiValue}>{fmtCOP(k.total_revenue_cop)}</Text>
             <View style={styles.kpiSplit}>
               <View style={styles.kpiSplitItem}>
@@ -304,7 +306,7 @@ export default function AlcaldiaDashboard({
               <View style={styles.kpiSplitItem}>
                 <Ionicons name="boat" size={14} color="#3B82F6" />
                 <View>
-                  <Text style={styles.kpiSplitLabel}>{tr('Tasa Portuaria')}</Text>
+                  <Text style={styles.kpiSplitLabel}>{tr('Tasa Portuaria (retirada)')}</Text>
                   <Text style={styles.kpiSplitValue}>{fmtCOP(k.port_tax_revenue_cop)}</Text>
                 </View>
               </View>
@@ -328,12 +330,12 @@ export default function AlcaldiaDashboard({
             <KpiTile color="#EF4444" icon="lock-closed" value={fmtNum(act.failed_logins_today)} label="Logins fallidos hoy" />
           </View>
 
-          <Text style={styles.sectionTitle}>City Pass & Tasa Portuaria</Text>
+          <Text style={styles.sectionTitle}>{tr('City Pass & Tasa Portuaria (retirada)')}</Text>
           <View style={styles.kpiGrid}>
             <KpiTile color="#22C55E" icon="key" value={fmtNum(k.total_passes_sold)} label="City Pass vendidos" />
             <KpiTile color="#10B981" icon="checkmark-circle" value={fmtNum(k.active_passes)} label="Pases activos" />
-            <KpiTile color="#3B82F6" icon="boat" value={fmtNum(k.port_tax_tickets)} label="Tickets Tasa Port." />
-            <KpiTile color="#0EA5E9" icon="people-circle" value={fmtNum(k.port_tax_passengers)} label="Pasajeros tasa" />
+            <KpiTile color="#3B82F6" icon="boat" value={fmtNum(k.port_tax_tickets)} label={tr('Tickets tasa (retirada)')} />
+            <KpiTile color="#0EA5E9" icon="people-circle" value={fmtNum(k.port_tax_passengers)} label={tr('Pasajeros tasa (retirada)')} />
           </View>
 
           {/* Top Events */}
@@ -399,7 +401,7 @@ export default function AlcaldiaDashboard({
 
           <View style={styles.summaryRow}>
             <SummaryItem label={tr('City Pass')} value={fmtNum(k.total_passes_sold)} />
-            <SummaryItem label="Tasa Port." value={fmtNum(k.port_tax_tickets)} />
+            <SummaryItem label={tr('Tasa Port. (retirada)')} value={fmtNum(k.port_tax_tickets)} />
             <SummaryItem label="Ingresos" value={fmtCOP(k.total_revenue_cop)} />
           </View>
 
@@ -526,7 +528,7 @@ export default function AlcaldiaDashboard({
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Liquidaciones a partners</Text>
           <Text style={styles.sectionSub}>
-            Comisión 3% retenida por la app · Alcaldía y Tasa Portuaria sin comisión
+            {tr('Comisión 3% retenida por la app · Alcaldía y Tasa Portuaria (retirada) sin comisión')}
           </Text>
 
           {payouts?.totals && (
@@ -621,9 +623,12 @@ export default function AlcaldiaDashboard({
                       </View>
                     )}
                     {u.port_tax_tickets > 0 && (
-                      <View style={[styles.tag, { backgroundColor: 'rgba(59,130,246,0.18)' }]}>
+                      <View
+                        style={[styles.tag, { backgroundColor: 'rgba(59,130,246,0.18)' }]}
+                        accessibilityLabel={`${tr('Tasa Portuaria (retirada)')}: ${u.port_tax_tickets}`}
+                      >
                         <Text style={[styles.tagText, { color: '#3B82F6' }]}>
-                          🛥 {u.port_tax_tickets}
+                          🛥 {u.port_tax_tickets} · {tr('retirada')}
                         </Text>
                       </View>
                     )}

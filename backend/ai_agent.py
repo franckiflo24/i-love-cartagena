@@ -14,8 +14,12 @@ Tools available:
   - get_partner(partner_id)
   - open_partner(partner_id)              ← frontend deep link
   - open_event(event_id)                  ← frontend deep link
-  - open_port_tax_checkout(qty, travel_date) ← RETIRED from the prompt (AMO does not sell the pier
-                                            fee; kept in ALLOWED_ACTIONS only to sanitize old outputs)
+  - open_city_module(module_id)          ← frontend deep link to the /ciudad hub module (official
+                                            prices, AMO informs only). Replaces the retired
+                                            open_port_tax_checkout: AMO does not sell the pier fee.
+                                            module_id ∈ data/city_modules.json ids, else dropped.
+                                            es: {"type":"open_city_module","module_id":"muelle-bodeguita",
+                                                 "label":"Ver costo real de las islas"}
   - open_city_pass(plan_id)               ← frontend deep link → Wompi (only when payments_live)
   - open_transport(transport_id)
   - get_daily_itinerary(category)         ← reuses ai_itinerary
@@ -1053,7 +1057,7 @@ CARTAGENA_KNOWLEDGE: Dict[str, Any] = {
         # Reconciled 2026-09-25 with data/city_modules.json (the /ciudad hub). These three are
         # background only: when `city_reference` is in the context it RULES over this block.
         "taxis": "Safe if official (yellow). No meter: zone fares fixed by Decreto 0051 de 2026 (DATT) — minimum COP 12,250; night surcharge COP 1,100 (7pm–5am); airport→Centro Histórico COP 20,200; airport→Bocagrande COP 34,400. Agree the price BEFORE getting in; the driver must show the Tarjeta de Control. Cash direct to the driver. Airport: use the two official taxi booths. Apps (DiDi, Cabify, inDrive, Uber) work but are legally grey. AMO does not book or charge taxis — exact per-zone fares, report lines (Catalina DATT, Titán Chat) and hedges live in city_reference (taxis module), which rules over this note.",
-        "water_taxis": "Boats to Islas del Rosario, Barú, Playa Blanca and San Bernardo leave from Muelle La Bodeguita (Av. Blas de Lezo, opposite Parque de La Marina, Centro) — the DIMAR-authorized public pier; never from beaches, Manga, Bocagrande or Castillogrande. On top of the tour, 2026 charges per person: pier-use fee COP 18,000 (Corpoturismo, official, HIGH) + PNN Corales del Rosario entry COP 13,500 (Parques Nacionales, official, HIGH; San Bernardo sector 11,000) + mandatory accident insurance approx. COP 8,800 (press figure, VERIFY — confirm at point of sale) ≈ COP 40,300 (approx.). Park entry + insurance apply only inside the national park; Tierra Bomba and bay rides pay the pier fee only. There is NO single official 'tasa portuaria' of 31,500 (that was pier + park without the insurance). Bring cash for the pier booths; PNN entry can also be paid online (linkdepago.parquesnacionales.gov.co). AMO informs only — it does not sell the pier fee, the park entry or the insurance; city_reference (muelle-bodeguita module) rules over this note.",
+        "water_taxis": "Boats to Islas del Rosario, Barú, Playa Blanca and San Bernardo leave from Muelle La Bodeguita (Av. Blas de Lezo, opposite Parque de La Marina, Centro) — the DIMAR-authorized public pier; never from beaches, Manga, Bocagrande or Castillogrande. On top of the tour, 2026 charges per person: pier-use fee COP 18,000 (Corpoturismo, official, HIGH) + PNN Corales del Rosario entry COP 13,500 (Parques Nacionales, official, HIGH; San Bernardo sector 11,000) + mandatory accident insurance approx. COP 8,800 (press figure, VERIFY — confirm at point of sale) ≈ COP 40,300 (approx.). Park entry + insurance apply only inside the national park; Tierra Bomba and bay rides pay the pier fee only. There is NO single official 'tasa portuaria' (the old single figure was pier + park without the insurance). Bring cash for the pier booths; PNN entry can also be paid online (linkdepago.parquesnacionales.gov.co). AMO informs only — it does not sell the pier fee, the park entry or the insurance; city_reference (muelle-bodeguita module) rules over this note.",
         "transcaribe": "Transcaribe BRT bus: COP 3,900 flat fare (Decreto 017 del 15 de enero de 2026, in force since 23 Jan 2026; official, HIGH). Pay at the validator with the account-based Transcaribe card (card approx. COP 6,000 at station booths — VERIFY, confirm at the booth; top-ups at station booths, Punto de Pago/Megared, 2,000+ SuperGiros outlets or the SuperGiros app, or PSE online from transcaribe.gov.co with a COP 10,000 minimum — PSE needs a Colombian bank account) or, per Visa and the city (late Aug 2026, VERIFY), by tapping a contactless Visa card or NFC phone/watch issued in Colombia or abroad; Visa-only until approx. Nov 2026 — confirm the validator accepts it before boarding. Useful routes: T101 Portal–Centro (daily) to Estación Centro / La Bodeguita; T100E express weekdays + Saturdays until 1 pm; T103 to Bocagrande; C001 via Manga. Free transfers in the same direction (official manual: up to 4 in 30 min; operator publishes 3 in 90 min — confirm). Hours approx. 5 am–9 pm weekdays (published 2021–22; check the MiBus Transcaribe app). Cheap but crowded. AMO does not sell fares or top-ups (fare collection is SONDA S.A. under contract with Transcaribe S.A.); city_reference (transcaribe module) rules over this note.",
         "cruise_terminal": "SPRC terminal in Manga, ~10-15 min to Centro Historico by taxi.",
     },
@@ -1170,11 +1174,6 @@ async def _curated_expert_picks(db, user_text: str) -> Optional[Dict[str, Any]]:
     }
 
 
-async def _port_tax_price(db) -> int:
-    cfg = await db.port_tax_config.find_one({"active": True}, {"_id": 0, "price_per_person": 1})
-    return int((cfg or {}).get("price_per_person", 31500))
-
-
 async def _trip_context(db, user_id: str) -> Optional[Dict[str, Any]]:
     """Drop 10 (10D): the user's most-recently-touched trip, compact, for
     gap-aware planning. Item names come from the stored snapshot (ref_name /
@@ -1230,7 +1229,6 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
         _smart_partner_query(db, user_text, max_results=15),
         _slim_upcoming_events(db, days=7, limit=20),
         _slim_partner_events(db, limit=15),
-        _port_tax_price(db),
         get_active_pulse_map(db, None, limit=30),
         _curated_expert_picks(db, user_text),
         return_exceptions=True,
@@ -1242,9 +1240,8 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
     intent_type = routed_intent.get("intent_type", "general")
     upcoming_events = results[2] if not isinstance(results[2], Exception) else []
     partner_events = results[3] if not isinstance(results[3], Exception) else []
-    port_tax_price = results[4] if not isinstance(results[4], Exception) else 31500
-    pulse_map = results[5] if not isinstance(results[5], Exception) else {}
-    curated = results[6] if not isinstance(results[6], Exception) else None
+    pulse_map = results[4] if not isinstance(results[4], Exception) else {}
+    curated = results[5] if not isinstance(results[5], Exception) else None
     live_tonight = [
         {"partner_id": pid, "partner_name": pu.get("partner_name"), "type": pu.get("type"),
          "title": pu.get("title"), "details": pu.get("details"),
@@ -1319,13 +1316,9 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
             }} if (t := (user or {}).get("_taste")) and (t.get("tags") or t.get("liked_partners")) else {}),
         } if user else {},
         # Wompi unconfigured in prod → the app shows "Próximamente"; Luna must not emit
-        # open_city_pass / open_port_tax_checkout for a checkout that cannot open.
+        # open_city_pass for a checkout that cannot open. (The port-tax product is retired:
+        # no price is injected — the muelle-bodeguita module carries the real charges.)
         "payments_live": payments_live,
-        # The old single "tasa portuaria" figure: only when payments are live AND the muelle
-        # module is not in context (it carries the real three charges and rules over this).
-        **({"port_tax_cop": port_tax_price}
-           if payments_live and not any(m.get("id") == "muelle-bodeguita" for m in (cc or {}).get("modules", []))
-           else {}),
         **({"curated_recommendations": curated} if curated else {}),
         **({"live_tonight": live_tonight} if live_tonight else {}),
         **({"trust_reference": tc} if (tc := _trust_context(user_text)) else {}),
@@ -1738,7 +1731,7 @@ ISLAS:
 TRANSPORTE:
 - Uber/InDriver/DiDi funcionan pero son legalmente grises. Recomendados sobre taxis callejeros de noche.
 - Taxis amarillos: SIN taxímetro — acordar precio ANTES.
-- Lanchas a islas: Muelle de la Bodeguita (principal) y Muelle de los Pegasos.
+- Lanchas a islas: SOLO desde el Muelle La Bodeguita (muelle público autorizado por DIMAR, Av. Blas de Lezo, Centro); nunca desde playas, Manga, Bocagrande ni Castillogrande.
 - Muelle e islas: ver city_reference (muelle-bodeguita). Aparte del tour: muelle $18.000 + parque $13.500 (oficiales 2026) + seguro aprox. $8.800. NO existe una 'tasa portuaria' única.
 DATOS CLAVE:
 - Moneda: Peso colombiano (COP). ATMs de Bancolombia dan mejor tasa.
@@ -1779,8 +1772,8 @@ TU TRABAJO
 ## ESENCIALES DE LA CIUDAD (la capa invisible — SOLO lo verificado, sin estantes vacíos)
 - Si `essentials_layer` está en el contexto, responde las necesidades básicas (traslado del aeropuerto, taxi, cajeros/cambio, SIM, farmacias, supermercados, agua, emergencias, hospitales, salud del viajero) DESDE `essentials_layer.live_essentials` — cada categoría trae `guidance` y `entries` verificadas (cadenas reales, tarifas oficiales, números). Da el dato con su fuente/año cuando es HIGH.
 - AUTORIDAD: para ATM/hospital/tarifa/policía de turismo/agua, `essentials_layer` y `trust_reference` MANDAN sobre `cartagena_knowledge` (que es solo contexto de fondo, sin verificar). Si difieren, sigue SIEMPRE a essentials_layer/trust_reference.
-- AUTORIDAD CIUDAD: si `city_reference` está en el contexto, MANDA sobre `cartagena_knowledge` y `trust_reference` para transporte (Transcaribe), muelle e islas, monumentos, coches eléctricos y taxis — responde DESDE `city_reference.modules[].facts` y `luna.facts_es`, nunca de memoria. AMO NO vende ni opera estos servicios: NUNCA digas que el pasaje, la tarjeta, la tasa del muelle, el ingreso al parque, el seguro, la boleta de un monumento, el paseo en coche o el taxi se compra o se reserva en AMO, ni ofrezcas una acción de compra para ellos (mientras `city_reference` esté presente, esta regla gana sobre "Inicias compras" y sobre `port_tax_cop`). Si el usuario quiere comprar, reservar o pagar, responde con `luna.decline_line_es` (en su idioma) y dirígelo a `luna.redirect_to` / `official_links`. Cita cada precio con su confianza: HIGH → cifra + fuente/año ("COP 3.900, Decreto 017 de 2026"); VERIFY → "aprox., confirma en taquilla / en la estación / con el cochero". `status=proximamente` = todavía NO opera y no hay pasajes: jamás lo presentes como disponible. NUNCA inventes tarifas, horarios, rutas ni pases que no estén en `city_reference`. value_cop=0 → di "gratis" (nunca "COP 0"); puedes cerrar con "verificado el {city_reference.last_verified}" cuando el usuario pida certeza. Si el usuario escribe en inglés/francés/portugués usa `luna.decline_line_en/fr/pt` tal cual (no traduzcas la española). Esta regla gana también sobre el bloque CONOCIMIENTO LOCAL DE CARTAGENA y sobre los EJEMPLOS OBLIGATORIOS de este prompt.
-- CITY PASS — son DOS cosas distintas: (1) el City Pass de AMO (Explorer/Classic/Premium/Ultimate) es un pase de beneficios de la app (descuentos, eventos, concierge); NO incluye entradas a monumentos ni museos. Ofrécelo con open_city_pass / navigate citypass SOLO si `context.payments_live=true`; si es false di "los pagos en la app llegan próximamente" y no emitas open_city_pass ni open_port_tax_checkout. (2) NO existe un pase oficial de monumentos de Cartagena: cada sitio vende su boleta (Castillo → ETCAR en línea o taquilla; Inquisición → taquilla MUHCA; murallas y Bóvedas gratis). Si preguntan "¿puedo comprar el city pass en AMO?" responde ambas cosas en una frase: qué es el pase de AMO y que la boleta del Castillo se compra a ETCAR.
+- AUTORIDAD CIUDAD: si `city_reference` está en el contexto, MANDA sobre `cartagena_knowledge` y `trust_reference` para transporte (Transcaribe), muelle e islas, monumentos, coches eléctricos y taxis — responde DESDE `city_reference.modules[].facts` y `luna.facts_es`, nunca de memoria. AMO NO vende ni opera estos servicios: NUNCA digas que el pasaje, la tarjeta, la tasa del muelle, el ingreso al parque, el seguro, la boleta de un monumento, el paseo en coche o el taxi se compra o se reserva en AMO, ni ofrezcas una acción de compra para ellos (mientras `city_reference` esté presente, esta regla gana sobre "Inicias compras"). Si el usuario quiere comprar, reservar o pagar, responde con `luna.decline_line_es` (en su idioma) y dirígelo a `luna.redirect_to` / `official_links`, con UNA acción `open_city_module` cuyo `module_id` sea el del módulo en contexto (ej. islas → "muelle-bodeguita") para que vea el costo real en la app. Cita cada precio con su confianza: HIGH → cifra + fuente/año ("COP 3.900, Decreto 017 de 2026"); VERIFY → "aprox., confirma en taquilla / en la estación / con el cochero". `status=proximamente` = todavía NO opera y no hay pasajes: jamás lo presentes como disponible. NUNCA inventes tarifas, horarios, rutas ni pases que no estén en `city_reference`. value_cop=0 → di "gratis" (nunca "COP 0"); puedes cerrar con "verificado el {city_reference.last_verified}" cuando el usuario pida certeza. Si el usuario escribe en inglés/francés/portugués usa `luna.decline_line_en/fr/pt` tal cual (no traduzcas la española). Esta regla gana también sobre el bloque CONOCIMIENTO LOCAL DE CARTAGENA y sobre los EJEMPLOS OBLIGATORIOS de este prompt.
+- CITY PASS — son DOS cosas distintas: (1) el City Pass de AMO (Explorer/Classic/Premium/Ultimate) es un pase de beneficios de la app (descuentos, eventos, concierge); NO incluye entradas a monumentos ni museos. Ofrécelo con open_city_pass / navigate citypass SOLO si `context.payments_live=true`; si es false di "los pagos en la app llegan próximamente" y no emitas open_city_pass. (2) NO existe un pase oficial de monumentos de Cartagena: cada sitio vende su boleta (Castillo → ETCAR en línea o taquilla; Inquisición → taquilla MUHCA; murallas y Bóvedas gratis). Si preguntan "¿puedo comprar el city pass en AMO?" responde ambas cosas en una frase: qué es el pase de AMO y que la boleta del Castillo se compra a ETCAR.
 - Datos clave verificados que SÍ puedes afirmar (HIGH): emergencias **123**, aeropuerto→Centro **$20.200** (oficial 2026), mínima taxi **$12.250**, farmacias = cadenas (Cruz Verde/Farmatodo/La Rebaja/Olímpica), hospital de referencia = **Serena del Mar** (JCI). Nunca inventes otro número, cadena, clínica o tarifa.
 - Entradas confidence=VERIFY en `essentials_layer` → dilas SIEMPRE con la salvedad exacta de su value_text/source ("no oficial", "confirma vigencia"); ante urgencia remite al 123. NUNCA las afirmes con el mismo peso que una HIGH (ej: el teléfono de la Policía de Turismo es VERIFY — dalo con el hedge, no como dato firme).
 - `essentials_layer.live_directory` = categorías que SÍ están cubiertas con lugares reales (lavanderías, coworking, etc.). RESPONDELAS desde `relevant_partners`/el mapa — NUNCA digas que no están cubiertas.
@@ -1870,8 +1863,8 @@ FORMATO DE RESPUESTA (JSON estricto, sin markdown, sin código de bloque)
     // {"type": "show_partners", "filters": {"category": "restaurant", "subcategory": "italiana", "tier": "premium"}, "label": "Ver todos los italianos"}
     // {"type": "show_events", "filters": {"category": "music", "date": "2026-05-15"}, "label": "Ver agenda"}
     // {"type": "open_city_pass", "plan_id": "pass_premium", "label": "Comprar Premium Pass"}   ← SOLO si context.payments_live=true
-    // (open_port_tax_checkout está RETIRADO: AMO no vende la tarifa del muelle; para islas usa navigate "transport")
-    // {"type": "navigate", "screen": "agenda" | "concerts" | "partners" | "citypass" | "transport" | "itineraries", "label": "..."}
+    // {"type": "open_city_module", "module_id": "transcaribe" | "muelle-bodeguita" | "monumentos" | "coches-electricos" | "transcaribe-acuatico" | "taxis", "label": "..."}   ← guía /ciudad con precios oficiales (AMO informa, no vende). Ej. islas: {"type":"open_city_module","module_id":"muelle-bodeguita","label":"Ver costo real de las islas"}
+    // {"type": "navigate", "screen": "agenda" | "concerts" | "partners" | "citypass" | "transport" | "itineraries" | "ciudad", "label": "..."}
     // {"type": "show_itinerary", "category": "cultura" | "lifestyle" | "musical", "label": "..."}
   ],
   "suggestions": ["<3 quick-replies EN EL IDIOMA DETECTADO>"]
@@ -1909,11 +1902,11 @@ EN: User: "What's on tonight?"
   "suggestions": ["See full agenda", "Find a restaurant", "Book a tour"]
 }
 
-FR: User: "Je veux aller à Barú demain avec 3 amis"
+FR: User: "Je veux payer la taxe du quai pour aller à Barú demain avec 3 amis"
 {
-  "message": "Bien sûr ! Les lanchas partent du Muelle La Bodeguita. En plus du tour, comptez ≈ 40 300 COP par personne (quai 18 000 + parc 13 500, tarifs officiels 2026, + assurance ≈ 8 800 à confirmer) — AMO ne les vend pas, vous payez aux guichets du quai. Pour 4 personnes, prévoyez des espèces et arrivez 45 minutes avant le départ.",
+  "message": "Aujourd'hui AMO ne vend ni la taxe de quai, ni l'entrée du parc, ni l'assurance : tu les paies aux guichets du quai La Bodeguita (Corpoturismo) (ou l'entrée PNN en ligne auprès de Parques Nacionales) et l'assurance via ton agence ou l'assureur. En plus du tour, compte ≈ 40 300 COP par personne (quai 18 000 + parc 13 500, tarifs officiels 2026, + assurance ≈ 8 800 à confirmer) — pour 4, prévois des espèces et arrive 45 minutes avant le départ.",
   "language": "fr",
-  "actions": [{"type":"navigate","screen":"transport","label":"Voir le quai"}],
+  "actions": [{"type":"open_city_module","module_id":"muelle-bodeguita","label":"Voir le coût réel des îles"}],
   "suggestions": ["Voir tours aux îles", "Comment payer au quai", "Autre date"]
 }
 
@@ -2030,20 +2023,26 @@ def _fallback_response(
     }
 
 
-# Allowed action types — we sanitize the LLM output
+# Allowed action types — we sanitize the LLM output.
+# open_port_tax_checkout is GONE (product retired 2026-09-26): an old model output that
+# still emits it is dropped here, so no client ever receives a checkout for the pier fee.
 ALLOWED_ACTIONS = {
     "show_partners",
     "show_events",
     "open_partner",
     "open_event",
-    "open_port_tax_checkout",
+    "open_city_module",
     "open_city_pass",
     "navigate",
     "reservation_link",
     "show_itinerary",
     "external_link",
 }
-ALLOWED_TABS = {"agenda", "concerts", "partners", "citypass", "transport", "itineraries", "search"}
+ALLOWED_TABS = {"agenda", "concerts", "partners", "citypass", "transport", "itineraries", "search", "ciudad"}
+# open_city_module.module_id must be a real hub module (the same ids /ciudad/[id] renders).
+CITY_MODULE_IDS = frozenset(
+    str(m.get("id")) for m in ((_CITY or {}).get("modules") or []) if isinstance(m, dict) and m.get("id")
+)
 
 
 def _sanitize_recommendations(recs: List[Dict[str, Any]], valid_partner_ids: set, valid_event_ids: set) -> List[Dict[str, Any]]:
@@ -2093,6 +2092,10 @@ def _sanitize_actions(actions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         if t == "navigate":
             screen = a.get("screen")
             if screen not in ALLOWED_TABS:
+                continue
+        if t == "open_city_module":
+            module_id = a.get("module_id")
+            if not isinstance(module_id, str) or module_id not in CITY_MODULE_IDS:
                 continue
         out.append(a)
         if len(out) >= 4:
