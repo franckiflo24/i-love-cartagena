@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
+import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import { Platform } from 'react-native';
 import { AuthProvider } from '../src/context/AuthContext';
@@ -37,6 +38,11 @@ export default function RootLayout() {
       <PartnerCountProvider>
       <SignupGateProvider>
       <PushBootstrap />
+      {/* Default document title. expo-router's web Head provider (react-helmet-async)
+          injects an EMPTY <title data-rh> ahead of the +html.tsx one, and document.title
+          reads the first — every route showed the raw URL in the tab, history and share
+          sheet. Screens that set their own <Head><title> override this one. */}
+      <Head><title>AMO Life</title></Head>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
         <Stack.Screen name="onboarding" />
@@ -44,6 +50,8 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="event/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="partner/[id]" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="ciudad/index" options={{ presentation: 'card' }} />
+        <Stack.Screen name="ciudad/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="partner-event/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="experience/[id]" options={{ presentation: 'card' }} />
         <Stack.Screen name="experience/booking" options={{ presentation: 'card' }} />

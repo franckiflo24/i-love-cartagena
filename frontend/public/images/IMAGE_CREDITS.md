@@ -108,3 +108,15 @@ Replaced Aug 24 2026 (topical-accuracy pass). Format: `file — creator — lice
 - ironman-5150-cartagena-2026.jpg — Vater_fotografo — CC BY-SA 2.0 — https://commons.wikimedia.org/wiki/File:D7C3714_bis_Triathlon_San_Vito_Lo_Capo_2014.jpg
 - media-maraton-del-mar-2027.jpg — Richard Humphrey — CC BY-SA 2.0 — https://commons.wikimedia.org/wiki/File:Cambridge_Half_Marathon_runners_on_Sidney_Street_-_geograph.org.uk_-_6414112.jpg
 - morning-spinning.jpg — www.localfitness.com.au — CC BY-SA 3.0 — https://commons.wikimedia.org/wiki/File:Spin_Cycle_Indoor_Cycling_Class_at_a_Gym.JPG
+
+## city/
+
+City-hub module heroes (interim CC photos; replace with owned photos per `store-assets/city/SHOT_LIST.md`). Added Sep 25 2026, provenance verified on each file page.
+
+- monumentos.jpg — Bernard Gagnon — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Castillo_San_Felipe_de_Barajas,_Cartagena_07.jpg
+- muelle-bodeguita.jpg — Felipe Ortega Grijalba — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Bah%C3%ADa_de_Cartagena_Colombia.jpg
+- transcaribe-acuatico.jpg — Dr. Thomas Liptak — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Colombia,_Cartagena,_Castillogrande_Lighthouse_and_Bocagrande%27s_Skyline.jpg
+- taxis.jpg — Cynthinee — CC BY 2.0 — https://commons.wikimedia.org/wiki/File:Taxis_de_Cartagena,_Colombia.jpg
+- coches-electricos.jpg — Dr. Thomas Liptak — CC BY-SA 4.0 — https://commons.wikimedia.org/wiki/File:Colombia,_Cartagena,_Sector_Antiguo,_Plaza_de_Santo_Domingo.jpg
+  - Caption required wherever shown: "Plaza de Santo Domingo, carriage stop in the walled city" — this is a street scene, NOT an electric carriage. No CC photo of Cartagena's electric carriages exists yet.
+- transcaribe — no image (UI renders icon art). All Commons Transcaribe uploads are <1000 px with no EXIF and press-style captions; provenance too doubtful to ship.

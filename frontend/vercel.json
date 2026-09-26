@@ -85,6 +85,10 @@
       "destination": "/partner/%5Bid%5D"
     },
     {
+      "source": "/ciudad/:id",
+      "destination": "/ciudad/%5Bid%5D"
+    },
+    {
       "source": "/business/claim/:id",
       "destination": "/business/claim/%5Bid%5D"
     },

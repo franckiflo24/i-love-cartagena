@@ -14,8 +14,9 @@ Tools available:
   - get_partner(partner_id)
   - open_partner(partner_id)              ← frontend deep link
   - open_event(event_id)                  ← frontend deep link
-  - open_port_tax_checkout(qty, travel_date) ← frontend deep link → Wompi
-  - open_city_pass(plan_id)               ← frontend deep link → Wompi
+  - open_port_tax_checkout(qty, travel_date) ← RETIRED from the prompt (AMO does not sell the pier
+                                            fee; kept in ALLOWED_ACTIONS only to sanitize old outputs)
+  - open_city_pass(plan_id)               ← frontend deep link → Wompi (only when payments_live)
   - open_transport(transport_id)
   - get_daily_itinerary(category)         ← reuses ai_itinerary
   - navigate(screen)                      ← deep link to a tab
@@ -42,6 +43,7 @@ import re
 from datetime import datetime, timezone
 from partner_visibility import PUBLIC_PARTNER_FILTER, PUBLIC_CITY_EVENT_FILTER  # U4: Luna never recommends unapproved venues/events
 from events_time import upcoming_query, filter_live, now_bogota  # Luna's "now" is Bogota; passed events fall out
+import wompi as _wompi  # payments_live: Luna must not offer a checkout the app cannot open (env-only, no DB)
 from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -51,7 +53,7 @@ AGENT_NAME = "Luna"
 AGENT_BIO = (
     "Soy Luna, la concierge digital de Cartagena. Hablo español, inglés, francés y portugués. "
     "Conozco cada rincón de la ciudad: agenda cultural, restaurantes, hoteles, beach clubs, "
-    "transporte a las islas (Tasa Portuaria), City Pass y eventos del día."
+    "cómo moverse (muelle e islas, bus, taxis, monumentos), el City Pass de AMO y eventos del día."
 )
 
 # ────────────────────────────────────────────────
@@ -1048,9 +1050,11 @@ CARTAGENA_KNOWLEDGE: Dict[str, Any] = {
     },
     "transport": {
         "airport": "Rafael Nunez International (CTG), ~15 min to Centro Historico by taxi",
-        "taxis": "Safe if official (yellow). No meter — agree on price BEFORE. Official 2026 minimum ~$12,250 COP; use essentials_layer/trust_reference for exact per-zone fares. Uber/InDriver/DiDi work but legally grey.",
-        "water_taxis": "To islands from Muelle de la Bodeguita (main dock, Centro) and Muelle de Manga. Tasa Portuaria required (~$31,500 COP/person).",
-        "transcaribe": "TransCaribe bus system, prepaid card, covers Bocagrande-Centro-Manga corridor. Cheap but crowded.",
+        # Reconciled 2026-09-25 with data/city_modules.json (the /ciudad hub). These three are
+        # background only: when `city_reference` is in the context it RULES over this block.
+        "taxis": "Safe if official (yellow). No meter: zone fares fixed by Decreto 0051 de 2026 (DATT) — minimum COP 12,250; night surcharge COP 1,100 (7pm–5am); airport→Centro Histórico COP 20,200; airport→Bocagrande COP 34,400. Agree the price BEFORE getting in; the driver must show the Tarjeta de Control. Cash direct to the driver. Airport: use the two official taxi booths. Apps (DiDi, Cabify, inDrive, Uber) work but are legally grey. AMO does not book or charge taxis — exact per-zone fares, report lines (Catalina DATT, Titán Chat) and hedges live in city_reference (taxis module), which rules over this note.",
+        "water_taxis": "Boats to Islas del Rosario, Barú, Playa Blanca and San Bernardo leave from Muelle La Bodeguita (Av. Blas de Lezo, opposite Parque de La Marina, Centro) — the DIMAR-authorized public pier; never from beaches, Manga, Bocagrande or Castillogrande. On top of the tour, 2026 charges per person: pier-use fee COP 18,000 (Corpoturismo, official, HIGH) + PNN Corales del Rosario entry COP 13,500 (Parques Nacionales, official, HIGH; San Bernardo sector 11,000) + mandatory accident insurance approx. COP 8,800 (press figure, VERIFY — confirm at point of sale) ≈ COP 40,300 (approx.). Park entry + insurance apply only inside the national park; Tierra Bomba and bay rides pay the pier fee only. There is NO single official 'tasa portuaria' of 31,500 (that was pier + park without the insurance). Bring cash for the pier booths; PNN entry can also be paid online (linkdepago.parquesnacionales.gov.co). AMO informs only — it does not sell the pier fee, the park entry or the insurance; city_reference (muelle-bodeguita module) rules over this note.",
+        "transcaribe": "Transcaribe BRT bus: COP 3,900 flat fare (Decreto 017 del 15 de enero de 2026, in force since 23 Jan 2026; official, HIGH). Pay at the validator with the account-based Transcaribe card (card approx. COP 6,000 at station booths — VERIFY, confirm at the booth; top-ups at station booths, Punto de Pago/Megared, 2,000+ SuperGiros outlets or the SuperGiros app, or PSE online from transcaribe.gov.co with a COP 10,000 minimum — PSE needs a Colombian bank account) or, per Visa and the city (late Aug 2026, VERIFY), by tapping a contactless Visa card or NFC phone/watch issued in Colombia or abroad; Visa-only until approx. Nov 2026 — confirm the validator accepts it before boarding. Useful routes: T101 Portal–Centro (daily) to Estación Centro / La Bodeguita; T100E express weekdays + Saturdays until 1 pm; T103 to Bocagrande; C001 via Manga. Free transfers in the same direction (official manual: up to 4 in 30 min; operator publishes 3 in 90 min — confirm). Hours approx. 5 am–9 pm weekdays (published 2021–22; check the MiBus Transcaribe app). Cheap but crowded. AMO does not sell fares or top-ups (fare collection is SONDA S.A. under contract with Transcaribe S.A.); city_reference (transcaribe module) rules over this note.",
         "cruise_terminal": "SPRC terminal in Manga, ~10-15 min to Centro Historico by taxi.",
     },
     "money": {
@@ -1280,6 +1284,12 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
     _nb = now_bogota()
     _part = ("madrugada" if _nb.hour < 6 else "mañana" if _nb.hour < 12
              else "tarde" if _nb.hour < 18 else "noche")
+    # City hub reference + payments gate are needed by several keys below: resolve once.
+    cc = _city_context(user_text)
+    try:
+        payments_live = bool(_wompi.is_configured())
+    except Exception:
+        payments_live = False
     ctx: Dict[str, Any] = {
         "today": _nb.strftime("%A %Y-%m-%d"),
         "now": {
@@ -1308,10 +1318,20 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
                 "liked_partners": (t.get("liked_partners") or [])[:5],
             }} if (t := (user or {}).get("_taste")) and (t.get("tags") or t.get("liked_partners")) else {}),
         } if user else {},
-        "port_tax_cop": port_tax_price,
+        # Wompi unconfigured in prod → the app shows "Próximamente"; Luna must not emit
+        # open_city_pass / open_port_tax_checkout for a checkout that cannot open.
+        "payments_live": payments_live,
+        # The old single "tasa portuaria" figure: only when payments are live AND the muelle
+        # module is not in context (it carries the real three charges and rules over this).
+        **({"port_tax_cop": port_tax_price}
+           if payments_live and not any(m.get("id") == "muelle-bodeguita" for m in (cc or {}).get("modules", []))
+           else {}),
         **({"curated_recommendations": curated} if curated else {}),
         **({"live_tonight": live_tonight} if live_tonight else {}),
         **({"trust_reference": tc} if (tc := _trust_context(user_text)) else {}),
+        # City hub (transporte / muelle / monumentos / coches / taxis): ANY intent — the
+        # trigger decides, not the router. Rules over trust_reference + cartagena_knowledge.
+        **({"city_reference": cc} if cc else {}),
         **({"seasonal": sc} if (sc := _seasonal_context(user_text)) else {}),
         **({"occasions": oc} if (oc := _occasion_context(user_text)) else {}),
         "relevant_partners": relevant_partners,
@@ -1402,6 +1422,143 @@ def _trust_context(user_text: str) -> Optional[Dict[str, Any]]:
         return None
     return {"config": _TRUST.get("config"), "entries": _TRUST.get("entries"),
             "safety": _TRUST.get("safety")}
+
+
+# ── City hub reference (ciudad): transporte / muelle / monumentos / coches / taxis ──
+# The SAME file the app's /ciudad hub renders (GET /api/city/modules). Luna answers
+# these topics FROM HERE — AMO informs, it does not sell or operate any of them, so
+# every module carries its decline line + where the user really pays. Never en_vivo.
+_CITY_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "city_modules.json")
+try:
+    with open(_CITY_PATH, "r", encoding="utf-8") as _f:
+        _CITY = json.load(_f)
+except Exception:
+    _CITY = None
+
+# Title words too generic to fire a module on their own: function words in the four
+# UI languages + English glosses ("city walls", "Water Bus") that would hit every
+# "best rooftop in the city" / "is the tap water safe" message, plus adjectives shared
+# with everyday intents ("electric bike rental", "alquiler de coches", FR "bateau" for
+# any boat). NOT "acuático": skipping it ties the water-bus title set with Transcaribe's
+# and both would then own "bus" — a plain "cuánto vale el bus" would pull in the
+# proximamente module.
+_CITY_TITLE_SKIP = frozenset({
+    "de", "del", "la", "el", "los", "las", "y", "e", "o", "and", "the", "of", "et",
+    "le", "les", "du", "des", "da", "do", "das", "dos", "city", "water",
+    "electric", "eléctricos", "elétricas", "électriques", "coches", "walls", "bateau",
+})
+
+
+def _city_trigger_re(k: str) -> "re.Pattern[str]":
+    """Bounded match for one luna trigger: the same (?<!\\w)…(?!\\w) guard the intent router
+    uses (_kw_hit), so 'ile' no longer fires inside 'mobile', 'bote' inside 'botella',
+    'pier' inside 'pierna', 'didi' inside 'candidiasis'. Triggers that carry their own
+    spacing ("bus to ", "en bus a ") keep an open edge on the side that is a space."""
+    pat = re.escape(k)
+    if k[:1] and (k[:1].isalnum() or k[:1] == "_"):
+        pat = r"(?<!\w)" + pat
+    if k[-1:] and (k[-1:].isalnum() or k[-1:] == "_"):
+        pat = pat + r"(?!\w)"
+    return re.compile(pat)
+
+
+def _city_index() -> List[Dict[str, Any]]:
+    """Per-module matchers, built once at import.
+    - luna.triggers → word/phrase-bounded regex (see _city_trigger_re), never a bare substring.
+    - title words (es/en/fr/pt) → whole-word regex, so "bus" fires on "cuánto cuesta
+      el bus" but never on "busco un restaurante". A word shared by several titles
+      ("Transcaribe (bus)" vs "Transcaribe Acuático (Water Bus)") belongs to the module
+      with the shortest title — the generic one — so a plain bus question never drags
+      in the proximamente water bus; its own triggers still fire it explicitly. An exact
+      tie goes to the module with the lower `order` (the one listed first in the hub)."""
+    mods = (_CITY or {}).get("modules") or []
+    words_by_mod: List[set] = []
+    for m in mods:
+        words: set = set()
+        for txt in (m.get("title") or {}).values():
+            for w in re.findall(r"[^\W\d_]+", str(txt).lower()):
+                if len(w) >= 3 and w not in _CITY_TITLE_SKIP:
+                    words.add(w)
+        words_by_mod.append(words)
+
+    def _rank(j: int) -> Tuple[int, int]:
+        return (len(words_by_mod[j]), int(mods[j].get("order") or 99))
+
+    out: List[Dict[str, Any]] = []
+    for i, m in enumerate(mods):
+        own = set()
+        for w in words_by_mod[i]:
+            owners = [j for j, ws in enumerate(words_by_mod) if w in ws]
+            if _rank(i) <= min(_rank(j) for j in owners):
+                own.add(w)
+        word_re = re.compile(r"\b(" + "|".join(re.escape(w) for w in sorted(own)) + r")\b") if own else None
+        trig = tuple(str(k).lower() for k in ((m.get("luna") or {}).get("triggers") or []) if k)
+        trig_re = tuple((k, _city_trigger_re(k)) for k in trig)
+        out.append({"module": m, "triggers": trig, "trig_re": trig_re, "word_re": word_re})
+    return out
+
+
+_CITY_INDEX = _city_index()
+
+
+def _city_compact(m: Dict[str, Any]) -> Dict[str, Any]:
+    """Lean shape for the LLM context: es/en copy only, no research notes/images/fr/pt."""
+    def _es_en(v: Any) -> Any:
+        return {k: v[k] for k in ("es", "en") if k in v} if isinstance(v, dict) else v
+    luna = m.get("luna") or {}
+    return {
+        "id": m.get("id"),
+        "status": m.get("status"),
+        "title": _es_en(m.get("title")),
+        "honest_note": _es_en(m.get("honest_note")),
+        "facts": [{
+            "label": _es_en(f.get("label")),
+            "value_cop": f.get("value_cop"),
+            "value_text": _es_en(f.get("value_text")),
+            "confidence": f.get("confidence"),
+            "source_name": f.get("source_name"),
+        } for f in (m.get("facts") or []) if isinstance(f, dict)],
+        "official_links": [{
+            "label": _es_en(l.get("label")), "url": l.get("url"), "kind": l.get("kind"),
+        } for l in (m.get("official_links") or []) if isinstance(l, dict)],
+        "luna": {k: luna.get(k) for k in (
+            "facts_es", "amo_sells", "redirect_to",
+            "decline_line_es", "decline_line_en", "decline_line_fr", "decline_line_pt",
+        ) if luna.get(k) is not None},
+    }
+
+
+def _city_context(user_text: str) -> Optional[Dict[str, Any]]:
+    """Modules whose luna.triggers or title words appear in the lower-cased user text
+    (same guard shape as _trust_context). Specific beats generic: a module whose every
+    match is contained in a longer match of another module ("taxi" inside "water taxi",
+    "transcaribe" inside "transcaribe acuático") is noise and is dropped. Capped at 3
+    modules (~3K tokens each) to keep the context lean."""
+    if not _CITY_INDEX:
+        return None
+    t = (user_text or "").lower()
+    if not t.strip():
+        return None
+    hits: List[Tuple[Dict[str, Any], set]] = []
+    for ent in _CITY_INDEX:
+        matched = {k for k, rx in ent["trig_re"] if rx.search(t)}
+        if ent["word_re"] is not None:
+            matched.update(ent["word_re"].findall(t))
+        if matched:
+            hits.append((ent["module"], matched))
+    if not hits:
+        return None
+    keep: List[Tuple[Dict[str, Any], set]] = []
+    for m, ms in hits:
+        others = [ok for om, oms in hits if om is not m for ok in oms]
+        shadowed = all(any(k != ok and k in ok for ok in others) for k in ms)
+        if not shadowed:
+            keep.append((m, ms))
+    keep.sort(key=lambda h: -len(h[1]))
+    return {
+        "last_verified": (_CITY or {}).get("last_verified"),
+        "modules": [_city_compact(m) for m, _ in keep[:3]],
+    }
 
 
 _SEASONAL_TRIGGERS = ("sello", "sellos", "temporada", "festival", "fiesta", "fiestas",
@@ -1518,7 +1675,7 @@ Detecta el idioma por palabras clave universales:
 
 EJEMPLOS OBLIGATORIOS:
 - User: "What can I do tonight in Cartagena?" → responde en INGLÉS: "Tonight you can enjoy 'Jazz & Wine Night' at Bellini or a free 'Sunset Session' at La Muralla. Want me to show you more details?"
-- User: "Bonjour, je veux aller aux îles demain" → responde en FRANCÉS: "Bien sûr ! Le ticket Tasa Portuaria coûte 31.500 COP par personne. Pour combien de passagers ?"
+- User: "Bonjour, je veux aller aux îles demain" → responde en FRANCÉS: "Bien sûr ! Les lanchas partent du Muelle La Bodeguita. En plus du tour, comptez ≈ 40 300 COP par personne (quai 18 000 + parc 13 500, tarifs officiels 2026, + assurance ≈ 8 800 à confirmer) — AMO ne les vend pas, vous payez aux guichets du quai. Pour combien de personnes ?"
 - User: "Olá, quero comer frutos do mar" → responde en PORTUGUÊS: "Ótimo! Te recomendo La Cevicheria ou Marea Restaurant. Quer ver mais detalhes?"
 
 JAMÁS mezcles idiomas. JAMÁS respondas en español cuando el usuario habla otro idioma. Esto es CRÍTICO para turistas internacionales.
@@ -1582,7 +1739,7 @@ TRANSPORTE:
 - Uber/InDriver/DiDi funcionan pero son legalmente grises. Recomendados sobre taxis callejeros de noche.
 - Taxis amarillos: SIN taxímetro — acordar precio ANTES.
 - Lanchas a islas: Muelle de la Bodeguita (principal) y Muelle de los Pegasos.
-- Tasa Portuaria: ~$31,500 COP/persona para ir a las islas.
+- Muelle e islas: ver city_reference (muelle-bodeguita). Aparte del tour: muelle $18.000 + parque $13.500 (oficiales 2026) + seguro aprox. $8.800. NO existe una 'tasa portuaria' única.
 DATOS CLAVE:
 - Moneda: Peso colombiano (COP). ATMs de Bancolombia dan mejor tasa.
 - Propina: ~10% "servicio voluntario" en restaurantes.
@@ -1600,7 +1757,7 @@ HIGHLIGHTS:
 TU TRABAJO
 ══════════════════════════════════════════
 - Recomiendas eventos, restaurantes, hoteles, beach clubs, paseos a las islas.
-- Inicias compras (Tasa Portuaria, City Pass) cuando el usuario lo pide claramente.
+- Inicias compras de productos AMO (City Pass de AMO) SOLO si context.payments_live=true y el usuario lo pide claramente; nunca vendas servicios de la ciudad (ver AUTORIDAD CIUDAD).
 - Si el usuario pregunta algo general de Cartagena (historia, clima, seguridad) respondes con conocimiento local.
 - ⚠️ **PERSONALIZACIÓN**: Si `user.profile` existe en el contexto, úsalo para adaptar recomendaciones:
   • `party_type=cruise` → prioriza lugares CENTRALES cerca del puerto, eficientes en tiempo (6-8 horas max), no nightlife.
@@ -1614,14 +1771,16 @@ TU TRABAJO
 ## CONFIANZA Y PRECIOS (un precio equivocado es una promesa rota)
 - Si `trust_reference` está en el contexto, responde precios/seguridad DESDE AHÍ, nunca de memoria.
 - Entradas confidence=HIGH → afirma con el año: "COP $20.200 (tarifa oficial 2026)".
-- Entradas confidence=VERIFY (traen range_cop) → da el RANGO COMPLETO + "confirma en el lugar". JAMÁS un número único para estas — ni promedio, ni "~aproximado", ni el punto medio. Si el rango es [16000, 41000] di "$16–41 mil según el tour", nunca "~31.500". Si low==high (una sola cifra NO oficial), preséntala como aproximada: "alrededor de $14.000, confirma en taquilla".
+- Solo para trust_reference (para city_reference aplica AUTORIDAD CIUDAD): entradas confidence=VERIFY (traen range_cop) → da el RANGO COMPLETO + "confirma en el lugar". JAMÁS un número único para estas — ni promedio, ni "~aproximado", ni el punto medio. Si el rango es [150000, 330000] di "$150–330 mil según la lancha", nunca "~240.000". Si low==high (una sola cifra NO oficial), preséntala como aproximada: "alrededor de $14.000, confirma en taquilla".
 - Si el dato no está en trust_reference ni en el catálogo → "confírmalo en el lugar", nunca una cifra inventada.
-- Una línea proactiva de seguridad cuando el intent lo amerita (UNA, no un sermón): lancha/islas → "la tasa del muelle/parque se paga en efectivo ($16–41 mil según el tour), confirma qué incluye"; vida nocturna → "nunca dejes tu trago solo"; taxi → "acuerda el precio antes de subir".
+- Una línea proactiva de seguridad cuando el intent lo amerita (UNA, no un sermón): lancha/islas → "aparte del tour pagas muelle $18.000 + parque $13.500 (oficiales 2026) + seguro aprox. $8.800 — lleva efectivo y confirma qué incluye tu tour"; vida nocturna → "nunca dejes tu trago solo"; taxi → "acuerda el precio antes de subir".
 - Zonas: habla de "zonas turísticas principales" — nunca declares una zona "peligrosa".
 
 ## ESENCIALES DE LA CIUDAD (la capa invisible — SOLO lo verificado, sin estantes vacíos)
 - Si `essentials_layer` está en el contexto, responde las necesidades básicas (traslado del aeropuerto, taxi, cajeros/cambio, SIM, farmacias, supermercados, agua, emergencias, hospitales, salud del viajero) DESDE `essentials_layer.live_essentials` — cada categoría trae `guidance` y `entries` verificadas (cadenas reales, tarifas oficiales, números). Da el dato con su fuente/año cuando es HIGH.
 - AUTORIDAD: para ATM/hospital/tarifa/policía de turismo/agua, `essentials_layer` y `trust_reference` MANDAN sobre `cartagena_knowledge` (que es solo contexto de fondo, sin verificar). Si difieren, sigue SIEMPRE a essentials_layer/trust_reference.
+- AUTORIDAD CIUDAD: si `city_reference` está en el contexto, MANDA sobre `cartagena_knowledge` y `trust_reference` para transporte (Transcaribe), muelle e islas, monumentos, coches eléctricos y taxis — responde DESDE `city_reference.modules[].facts` y `luna.facts_es`, nunca de memoria. AMO NO vende ni opera estos servicios: NUNCA digas que el pasaje, la tarjeta, la tasa del muelle, el ingreso al parque, el seguro, la boleta de un monumento, el paseo en coche o el taxi se compra o se reserva en AMO, ni ofrezcas una acción de compra para ellos (mientras `city_reference` esté presente, esta regla gana sobre "Inicias compras" y sobre `port_tax_cop`). Si el usuario quiere comprar, reservar o pagar, responde con `luna.decline_line_es` (en su idioma) y dirígelo a `luna.redirect_to` / `official_links`. Cita cada precio con su confianza: HIGH → cifra + fuente/año ("COP 3.900, Decreto 017 de 2026"); VERIFY → "aprox., confirma en taquilla / en la estación / con el cochero". `status=proximamente` = todavía NO opera y no hay pasajes: jamás lo presentes como disponible. NUNCA inventes tarifas, horarios, rutas ni pases que no estén en `city_reference`. value_cop=0 → di "gratis" (nunca "COP 0"); puedes cerrar con "verificado el {city_reference.last_verified}" cuando el usuario pida certeza. Si el usuario escribe en inglés/francés/portugués usa `luna.decline_line_en/fr/pt` tal cual (no traduzcas la española). Esta regla gana también sobre el bloque CONOCIMIENTO LOCAL DE CARTAGENA y sobre los EJEMPLOS OBLIGATORIOS de este prompt.
+- CITY PASS — son DOS cosas distintas: (1) el City Pass de AMO (Explorer/Classic/Premium/Ultimate) es un pase de beneficios de la app (descuentos, eventos, concierge); NO incluye entradas a monumentos ni museos. Ofrécelo con open_city_pass / navigate citypass SOLO si `context.payments_live=true`; si es false di "los pagos en la app llegan próximamente" y no emitas open_city_pass ni open_port_tax_checkout. (2) NO existe un pase oficial de monumentos de Cartagena: cada sitio vende su boleta (Castillo → ETCAR en línea o taquilla; Inquisición → taquilla MUHCA; murallas y Bóvedas gratis). Si preguntan "¿puedo comprar el city pass en AMO?" responde ambas cosas en una frase: qué es el pase de AMO y que la boleta del Castillo se compra a ETCAR.
 - Datos clave verificados que SÍ puedes afirmar (HIGH): emergencias **123**, aeropuerto→Centro **$20.200** (oficial 2026), mínima taxi **$12.250**, farmacias = cadenas (Cruz Verde/Farmatodo/La Rebaja/Olímpica), hospital de referencia = **Serena del Mar** (JCI). Nunca inventes otro número, cadena, clínica o tarifa.
 - Entradas confidence=VERIFY en `essentials_layer` → dilas SIEMPRE con la salvedad exacta de su value_text/source ("no oficial", "confirma vigencia"); ante urgencia remite al 123. NUNCA las afirmes con el mismo peso que una HIGH (ej: el teléfono de la Policía de Turismo es VERIFY — dalo con el hedge, no como dato firme).
 - `essentials_layer.live_directory` = categorías que SÍ están cubiertas con lugares reales (lavanderías, coworking, etc.). RESPONDELAS desde `relevant_partners`/el mapa — NUNCA digas que no están cubiertas.
@@ -1710,8 +1869,8 @@ FORMATO DE RESPUESTA (JSON estricto, sin markdown, sin código de bloque)
     // Tipos disponibles:
     // {"type": "show_partners", "filters": {"category": "restaurant", "subcategory": "italiana", "tier": "premium"}, "label": "Ver todos los italianos"}
     // {"type": "show_events", "filters": {"category": "music", "date": "2026-05-15"}, "label": "Ver agenda"}
-    // {"type": "open_port_tax_checkout", "qty": 2, "travel_date": "2026-05-15", "label": "Comprar Tasa Portuaria"}
-    // {"type": "open_city_pass", "plan_id": "pass_premium", "label": "Comprar Premium Pass"}
+    // {"type": "open_city_pass", "plan_id": "pass_premium", "label": "Comprar Premium Pass"}   ← SOLO si context.payments_live=true
+    // (open_port_tax_checkout está RETIRADO: AMO no vende la tarifa del muelle; para islas usa navigate "transport")
     // {"type": "navigate", "screen": "agenda" | "concerts" | "partners" | "citypass" | "transport" | "itineraries", "label": "..."}
     // {"type": "show_itinerary", "category": "cultura" | "lifestyle" | "musical", "label": "..."}
   ],
@@ -1752,10 +1911,10 @@ EN: User: "What's on tonight?"
 
 FR: User: "Je veux aller à Barú demain avec 3 amis"
 {
-  "message": "Parfait ! Pour aller à Barú vous devez payer la Tasa Portuaria : 31.500 COP par personne. Je peux lancer l'achat pour 4 personnes ?",
+  "message": "Bien sûr ! Les lanchas partent du Muelle La Bodeguita. En plus du tour, comptez ≈ 40 300 COP par personne (quai 18 000 + parc 13 500, tarifs officiels 2026, + assurance ≈ 8 800 à confirmer) — AMO ne les vend pas, vous payez aux guichets du quai. Pour 4 personnes, prévoyez des espèces et arrivez 45 minutes avant le départ.",
   "language": "fr",
-  "actions": [{"type":"open_port_tax_checkout","qty":4,"travel_date":"2026-05-15","label":"Acheter Tasa Portuaria"}],
-  "suggestions": ["Oui, acheter", "Voir tours organices", "Autre date"]
+  "actions": [{"type":"navigate","screen":"transport","label":"Voir le quai"}],
+  "suggestions": ["Voir tours aux îles", "Comment payer au quai", "Autre date"]
 }
 
 PT: User: "Olá, o que tem hoje à noite?"

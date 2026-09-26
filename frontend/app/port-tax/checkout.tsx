@@ -22,6 +22,14 @@ type Cfg = {
   note?: string;
 };
 
+// HONESTY GATE — no authority recognizes a single "tasa portuaria": what is paid
+// before boarding is pier 18.000 (Corpoturismo) + park 13.500 (PNN) + insurance
+// (~8.800, insurer), all off-app. Selling it in AMO needs a signed Corpoturismo/PNN
+// agreement, which does not exist, so this screen is information-only regardless
+// of Wompi: flip this constant ONLY when that agreement is signed (same rule as the
+// city hub's en_vivo badge).
+const PORT_TAX_SALES_ENABLED = false;
+
 // Wompi's redirect_url must land on a FRONTEND route that actually exists.
 // On web, the live origin (amocartagena.co, a preview URL, localhost, etc.) is
 // known at runtime — window.location.origin is always correct. Non-web has no
@@ -78,7 +86,10 @@ export default function PortTaxCheckoutScreen() {
   const [payLive, setPayLive] = useState<boolean | null>(null);
   useEffect(() => {
     let alive = true;
-    checkWompiEnabled().then((c) => { if (alive) setPayLive(c.enabled); });
+    if (!PORT_TAX_SALES_ENABLED) { setPayLive(false); return; }
+    checkWompiEnabled()
+      .then((c) => { if (alive) setPayLive(!!c.enabled); })
+      .catch((e) => { console.error('[PortTaxCheckout] payments config', e); if (alive) setPayLive(false); });
     return () => { alive = false; };
   }, []);
 
@@ -101,6 +112,7 @@ export default function PortTaxCheckoutScreen() {
   }, []);
 
   const onConfirm = async () => {
+    if (!PORT_TAX_SALES_ENABLED) return;
     setSubmitting(true);
     try {
       // Check payments-enabled FIRST, before the login gate. Previously a
@@ -202,7 +214,7 @@ export default function PortTaxCheckoutScreen() {
           <Ionicons name="arrow-back" size={20} color={COLORS.textMain} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title}>{tr('Tasa Portuaria')}</Text>
+          <Text style={styles.title}>{tr('Muelle e islas')}</Text>
           <Text style={styles.subtitle}>{tr('Muelle La Bodeguita → Islas')}</Text>
         </View>
       </View>
@@ -212,14 +224,26 @@ export default function PortTaxCheckoutScreen() {
           <View style={styles.heroIconWrap}>
             <Ionicons name="boat" size={28} color={COLORS.primary} />
           </View>
-          <Text style={styles.heroTitle}>{payLive === false ? tr('Tasa portuaria oficial') : tr('Paga antes de embarcar')}</Text>
+          <Text style={styles.heroTitle}>{payLive === false ? tr('Lo que pagas antes de embarcar') : tr('Paga antes de embarcar')}</Text>
           <Text style={styles.heroDesc}>
-            {tr('Tasa portuaria oficial para salir hacia Islas del Rosario, Barú o Tierra Bomba. Aparte del precio del tour o la lancha.')}
+            {tr('No existe una "tasa portuaria" única. Antes de embarcar hacia Islas del Rosario, Barú o San Bernardo pagas en las taquillas del Muelle La Bodeguita el uso del muelle ($18.000, Corpoturismo) y el ingreso al parque ($13.500, Parques Nacionales); el seguro obligatorio (aprox. $8.800) se paga aparte, con tu agencia o la aseguradora. Todo aparte del precio del tour o la lancha. AMO te informa; no lo vende.')}
           </Text>
           <View style={styles.seasonChip}>
             <Ionicons name="pricetag" size={12} color={COLORS.primary} />
             <Text style={styles.seasonText}>{cfg.season_label}</Text>
           </View>
+          <TouchableOpacity
+            testID="port-tax-ciudad-muelle"
+            style={styles.officialLink}
+            onPress={() => router.push('/ciudad/muelle-bodeguita' as any)}
+            activeOpacity={0.8}
+            accessibilityRole="link"
+            accessibilityLabel={tr('Ver precios oficiales del muelle (islas)')}
+          >
+            <Ionicons name="shield-outline" size={15} color={COLORS.official} />
+            <Text style={styles.officialLinkText}>{tr('Ver precios oficiales del muelle (islas)')}</Text>
+            <Ionicons name="chevron-forward" size={15} color={COLORS.textMuted} />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
@@ -304,7 +328,7 @@ export default function PortTaxCheckoutScreen() {
 
         <View style={[styles.section, styles.summary]}>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>{tr('Tasa por persona')}</Text>
+            <Text style={styles.summaryLabel}>{tr('Muelle + parque por persona')}</Text>
             <Text style={styles.summaryVal}>{formatPrice(cfg.price_per_person)}</Text>
           </View>
           <View style={styles.summaryRow}>
@@ -322,7 +346,7 @@ export default function PortTaxCheckoutScreen() {
           <Ionicons name="information-circle" size={18} color={COLORS.textMuted} />
           <Text style={styles.infoText}>
             {payLive === false
-              ? tr('Por ahora la tasa se paga directamente en el Muelle La Bodeguita antes de embarcar. El pago en línea estará disponible pronto.')
+              ? tr('Muelle y parque se pagan directamente en las taquillas del Muelle La Bodeguita antes de embarcar (el ingreso al parque también en línea con Parques Nacionales); el seguro, con tu agencia o la aseguradora. AMO no vende ninguno de los tres. Lleva efectivo.')
               : tr('Tras el pago se generará un QR único por tiquete. Muéstralo en el muelle antes de embarcar. Cada QR solo se puede usar una vez.')}
           </Text>
         </View>
@@ -395,6 +419,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.full,
   },
   seasonText: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },
+  officialLink: {
+    flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, alignSelf: 'stretch', minHeight: 44,
+    marginTop: SPACING.xs, paddingHorizontal: SPACING.md, paddingVertical: 8,
+    borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(57,184,255,0.25)',
+  },
+  officialLinkText: { flex: 1, fontSize: 12.5, lineHeight: 16, color: COLORS.textMain, ...FONTS.semibold },
 
   section: { paddingHorizontal: SPACING.lg, marginTop: SPACING.lg },
   sectionTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold, marginBottom: SPACING.sm, letterSpacing: 0.3 },

@@ -85,6 +85,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }).catch(() => { if (IS_WEB) setLangState(detectDeviceLang()); });
   }, []);
 
+  // Keep <html lang> in step with the UI language: the shell ships lang="es" and
+  // never changed it, so screen readers read French/Portuguese copy with Spanish
+  // rules and crawlers saw the wrong language on every non-Spanish session.
+  useEffect(() => {
+    if (IS_WEB && typeof document !== 'undefined' && document.documentElement) {
+      document.documentElement.lang = lang;
+    }
+  }, [lang]);
+
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
     AsyncStorage.setItem(STORAGE_KEY, l);

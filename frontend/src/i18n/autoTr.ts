@@ -1703,6 +1703,51 @@ export const AUTO_TR: Dict = {
   '1) Abrimos WhatsApp con tu solicitud lista: fecha, hora y personas.': { en: '1) We open WhatsApp with your request ready: date, time and party size.', fr: '1) Nous ouvrons WhatsApp avec votre demande prête : date, heure et nombre de personnes.', pt: '1) Abrimos o WhatsApp com sua solicitação pronta: data, horário e pessoas.' },
   '2) El lugar te confirma la disponibilidad directamente por WhatsApp.': { en: '2) The venue confirms availability with you directly on WhatsApp.', fr: '2) L’établissement vous confirme la disponibilité directement sur WhatsApp.', pt: '2) O local confirma a disponibilidade diretamente com você pelo WhatsApp.' },
   '3) Pagos y cambios se acuerdan directamente con el lugar.': { en: '3) Payments and changes are arranged directly with the venue.', fr: '3) Paiements et modifications se règlent directement avec l’établissement.', pt: '3) Pagamentos e alterações são combinados diretamente com o local.' },
+
+  // City hub (Moverse) — 2026-09-25
+  // Chrome for /ciudad + /ciudad/[id], the home tile, the transport banner and the
+  // City Pass pointer. Module copy (titles, facts, notes) ships in the JSON as
+  // {es,en,fr,pt}. Badge labels live in STATUS_META (src/lib/cityModules.ts) and
+  // are tr()'d at render — 'Próximamente' already exists above. TÚ voice; FR uses
+  // tu to match the module copy on the same screen.
+  'Moverse': { en: 'Getting around', fr: 'Se déplacer', pt: 'Como se mover' },
+  'Bus, muelle, taxis': { en: 'Bus, pier, taxis', fr: 'Bus, quai, taxis', pt: 'Ônibus, píer, táxis' },
+  'Moverse en Cartagena': { en: 'Getting around Cartagena', fr: 'Se déplacer à Carthagène', pt: 'Como se mover em Cartagena' },
+  'Precios reales, fuentes oficiales, sin sorpresas': { en: 'Real prices, official sources, no surprises', fr: 'Vrais prix, sources officielles, zéro surprise', pt: 'Preços reais, fontes oficiais, sem surpresas' },
+  'Info': { en: 'Info', fr: 'Info', pt: 'Info' },
+  'En vivo': { en: 'Live', fr: 'En direct', pt: 'Ao vivo' },
+  'Ver detalles': { en: 'See details', fr: 'Voir les détails', pt: 'Ver detalhes' },
+  'Aún no hay módulos publicados': { en: 'No modules published yet', fr: 'Aucun module publié pour le moment', pt: 'Ainda não há módulos publicados' },
+  'Estamos verificando fuentes oficiales. Vuelve pronto.': { en: 'We are verifying official sources. Check back soon.', fr: 'Nous vérifions les sources officielles. Reviens bientôt.', pt: 'Estamos verificando fontes oficiais. Volte em breve.' },
+  'Última verificación': { en: 'Last verified', fr: 'Dernière vérification', pt: 'Última verificação' },
+  'AMO te informa; pagas directamente con cada entidad.': { en: 'AMO informs you; you pay each entity directly.', fr: "AMO t'informe ; tu paies directement auprès de chaque entité.", pt: 'A AMO te informa; você paga diretamente a cada entidade.' },
+  'No encontramos este módulo': { en: "We couldn't find this module", fr: 'Module introuvable', pt: 'Não encontramos este módulo' },
+  'Puede que el enlace haya cambiado. Mira todos los módulos de Moverse.': { en: 'The link may have changed. Browse all the Getting around modules.', fr: 'Le lien a peut-être changé. Consulte tous les modules Se déplacer.', pt: 'O link pode ter mudado. Veja todos os módulos de Como se mover.' },
+  'Volver a Moverse': { en: 'Back to Getting around', fr: 'Retour à Se déplacer', pt: 'Voltar a Como se mover' },
+  'abre enlace externo': { en: 'opens an external link', fr: 'ouvre un lien externe', pt: 'abre um link externo' },
+  'Confirma': { en: 'Confirm', fr: 'À confirmer', pt: 'Confirme' },
+  'aprox.': { en: 'approx.', fr: 'env.', pt: 'aprox.' },
+  'Fuente': { en: 'Source', fr: 'Source', pt: 'Fonte' },
+  'Nota honesta': { en: 'Honest note', fr: 'Note honnête', pt: 'Nota honesta' },
+  'Datos y precios': { en: 'Facts & prices', fr: 'Infos et tarifs', pt: 'Dados e preços' },
+  '"Confirma" = dato que puede variar: verifica en taquilla o con la entidad.': { en: '"Confirm" = a figure that can change: check at the ticket office or with the entity.', fr: "« À confirmer » = donnée qui peut varier : vérifie au guichet ou auprès de l'entité.", pt: '"Confirme" = dado que pode variar: verifique na bilheteria ou com a entidade.' },
+  'Enlaces oficiales': { en: 'Official links', fr: 'Liens officiels', pt: 'Links oficiais' },
+  'A futuro': { en: 'Looking ahead', fr: 'À venir', pt: 'No futuro' },
+  'Precios oficiales de bus, muelle, monumentos y taxis →': { en: 'Official prices for bus, pier, monuments and taxis →', fr: 'Tarifs officiels bus, quai, monuments et taxis →', pt: 'Preços oficiais de ônibus, píer, monumentos e táxis →' },
+  'Ver precios oficiales de los monumentos': { en: 'See official monument prices', fr: 'Voir les tarifs officiels des monuments', pt: 'Ver preços oficiais dos monumentos' },
+  // City hub round-1 review (2026-09-26): the "Tasa portuaria oficial" product is retired
+  // (no single port tax exists; AMO has no agreement to sell the pier fee). City Pass copy
+  // stops promising monuments; the checkout, search and transport screens point to the
+  // muelle-bodeguita module instead.
+  'Tu pase de beneficios para vivir Cartagena al máximo: descuentos, eventos y experiencias curadas. Monumentos: solo información oficial por ahora.': { en: 'Your benefits pass to experience Cartagena to the fullest: discounts, events and curated experiences. Monuments: official information only for now.', fr: "Ton pass avantages pour profiter de Carthagène à fond : réductions, événements et expériences sélectionnées. Monuments : uniquement de l'information officielle pour l'instant.", pt: 'Seu passe de benefícios para viver Cartagena ao máximo: descontos, eventos e experiências selecionadas. Monumentos: só informação oficial por enquanto.' },
+  'Ver precios oficiales del muelle (islas)': { en: 'See official pier prices (islands)', fr: 'Voir les tarifs officiels du quai (îles)', pt: 'Ver preços oficiais do píer (ilhas)' },
+  'Muelle e islas': { en: 'Pier & islands', fr: 'Quai et îles', pt: 'Píer e ilhas' },
+  'Lo que pagas antes de embarcar': { en: 'What you pay before boarding', fr: "Ce que tu paies avant d'embarquer", pt: 'O que você paga antes de embarcar' },
+  'No existe una "tasa portuaria" única. Antes de embarcar hacia Islas del Rosario, Barú o San Bernardo pagas en las taquillas del Muelle La Bodeguita el uso del muelle ($18.000, Corpoturismo) y el ingreso al parque ($13.500, Parques Nacionales); el seguro obligatorio (aprox. $8.800) se paga aparte, con tu agencia o la aseguradora. Todo aparte del precio del tour o la lancha. AMO te informa; no lo vende.': { en: 'There is no single "port tax". Before boarding for the Rosario Islands, Barú or San Bernardo you pay the pier fee ($18,000, Corpoturismo) and the park entry ($13,500, Parques Nacionales) at the Muelle La Bodeguita ticket booths; the mandatory insurance (approx. $8,800) is paid separately, through your agency or the insurer. All on top of the tour or boat price. AMO informs you; it does not sell any of it.', fr: "Il n'existe pas de « taxe portuaire » unique. Avant d'embarquer pour les îles du Rosario, Barú ou San Bernardo, tu paies aux guichets du Muelle La Bodeguita la taxe de quai (18 000 COP, Corpoturismo) et l'entrée du parc (13 500 COP, Parques Nacionales) ; l'assurance obligatoire (env. 8 800 COP) se paie à part, via ton agence ou l'assureur. Le tout en plus du prix du tour ou du bateau. AMO t'informe ; elle ne vend rien de tout cela.", pt: 'Não existe uma "taxa portuária" única. Antes de embarcar para as Ilhas do Rosário, Barú ou San Bernardo você paga nas bilheterias do Muelle La Bodeguita o uso do píer (COP 18.000, Corpoturismo) e a entrada do parque (COP 13.500, Parques Nacionales); o seguro obrigatório (aprox. COP 8.800) é pago à parte, com sua agência ou a seguradora. Tudo à parte do preço do passeio ou da lancha. A AMO te informa; não vende nada disso.' },
+  'Muelle + parque por persona': { en: 'Pier + park per person', fr: 'Quai + parc par personne', pt: 'Píer + parque por pessoa' },
+  'Muelle y parque se pagan directamente en las taquillas del Muelle La Bodeguita antes de embarcar (el ingreso al parque también en línea con Parques Nacionales); el seguro, con tu agencia o la aseguradora. AMO no vende ninguno de los tres. Lleva efectivo.': { en: 'Pier and park are paid directly at the Muelle La Bodeguita ticket booths before boarding (the park entry also online with Parques Nacionales); the insurance, through your agency or the insurer. AMO sells none of the three. Bring cash.', fr: "Quai et parc se paient directement aux guichets du Muelle La Bodeguita avant d'embarquer (l'entrée du parc aussi en ligne auprès de Parques Nacionales) ; l'assurance, via ton agence ou l'assureur. AMO ne vend aucun des trois. Prévois des espèces.", pt: 'Píer e parque são pagos diretamente nas bilheterias do Muelle La Bodeguita antes de embarcar (a entrada do parque também on-line com Parques Nacionales); o seguro, com sua agência ou a seguradora. A AMO não vende nenhum dos três. Leve dinheiro em espécie.' },
+  'Tarifa de lancha según operador · muelle, parque y seguro aparte': { en: 'Boat fare varies by operator · pier, park and insurance separate', fr: "Tarif du bateau selon l'opérateur · quai, parc et assurance à part", pt: 'Tarifa da lancha varia por operador · píer, parque e seguro à parte' },
+  'Puedes preguntar: «cena romántica», «cómo llegar a Barú», «conciertos este viernes», «pase cultural», «precios del muelle»…': { en: 'Try: "romantic dinner", "how to get to Barú", "concerts this Friday", "cultural pass", "pier prices"…', fr: 'Essaie : « dîner romantique », « comment aller à Barú », « concerts ce vendredi », « pass culturel », « tarifs du quai »…', pt: 'Tente: "jantar romântico", "como chegar a Barú", "shows nesta sexta", "passe cultural", "preços do píer"…' },
 };
 
 /**

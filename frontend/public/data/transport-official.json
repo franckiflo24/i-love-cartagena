@@ -118,12 +118,13 @@
     "id": "trf-transcaribe",
     "slug": "transcaribe",
     "mode": "transcaribe",
-    "official_fare_cop": 3600,
+    "official_fare_cop": 3900,
     "legality_note_es": "Sistema BRT oficial. Útil para trayectos largos, no para el Centro turístico. No hay ruta directa aeropuerto–puerto.",
     "legality_note_en": "Official BRT system. Useful for long trips, not the tourist core. No direct airport–port route.",
-    "source": ["https://www.transcaribe.gov.co"],
-    "confidence": "medium",
-    "last_verified_date": "2026-06-16"
+    "decree_ref": "Decreto 017 del 15 de enero de 2026 (vigente desde el 23 de enero de 2026)",
+    "source": ["https://transcaribe.gov.co/index.php/noticia/alcaldia-de-cartagena-expide-decreto-que-fija-nueva-tarifa-de-transcaribe/"],
+    "confidence": "high",
+    "last_verified_date": "2026-09-25"
   },
   {
     "id": "trf-mototaxi",

@@ -4618,6 +4618,77 @@ async def list_transport():
     return await db.transport.find({}, {"_id": 0}).to_list(50)
 
 
+# ── City hub (ciudad): Transcaribe / muelle / monumentos / coches / taxis ──
+# PUBLIC, static-first: the SAME JSON ships at frontend/public/data/city/modules.json
+# (api.get('/city/modules') falls back to it), and Luna reads it as `city_reference`.
+# Badges are info | proximamente only — never en_vivo without a signed agreement.
+# Loaded once at import; re-read only if the file's mtime changes (no per-request IO).
+_CITY_PATH = Path(__file__).resolve().parent / "data" / "city_modules.json"
+_city_cache: Dict[str, Any] = {"mtime": None, "data": None, "public": None}
+# Editorial material that never leaves the server: `research_notes` (audit trail, local paths,
+# source vetting) and `luna` (trigger lists + decline lines the LLM reads via ai_agent).
+# scripts/sync-city-data.py strips the same keys from frontend/public/data/city/modules.json.
+_CITY_INTERNAL_KEYS = ("research_notes", "luna")
+
+
+def _city_modules() -> Optional[Dict[str, Any]]:
+    try:
+        mtime = os.path.getmtime(_CITY_PATH)
+        if _city_cache["data"] is None or _city_cache["mtime"] != mtime:
+            with open(_CITY_PATH, "r", encoding="utf-8") as f:
+                _city_cache["data"] = json.load(f)
+            _city_cache["mtime"] = mtime
+            _city_cache["public"] = None
+    except Exception as exc:
+        # Keep serving the last good copy (or None on a cold failure) — never a 500.
+        logger.error(f"[city] modules load failed: {exc}")
+    return _city_cache["data"]
+
+
+def _city_public() -> Optional[Dict[str, Any]]:
+    """The public view: the same file minus the internal per-module keys (built once per mtime)."""
+    data = _city_modules()
+    if not data:
+        return None
+    if _city_cache["public"] is None:
+        public = dict(data)
+        public["modules"] = [
+            {k: v for k, v in m.items() if k not in _CITY_INTERNAL_KEYS} if isinstance(m, dict) else m
+            for m in (data.get("modules") or [])
+        ]
+        _city_cache["public"] = public
+    return _city_cache["public"]
+
+
+_city_modules()  # warm at import
+
+
+@api_router.get("/city/modules")
+async def city_modules(request: Request, response: Response):
+    await _check_rate_limit(f"city:{_client_ip(request)}", max_calls=60, window_sec=60)
+    data = _city_public()
+    if not data:
+        raise HTTPException(status_code=503, detail="Módulos de ciudad no disponibles / City modules unavailable")
+    response.headers["Cache-Control"] = "public, max-age=300"
+    return data
+
+
+@api_router.get("/city/modules/{module_id}")
+async def city_module(module_id: str, request: Request, response: Response):
+    await _check_rate_limit(f"city:{_client_ip(request)}", max_calls=60, window_sec=60)
+    data = _city_public()
+    if not data:
+        raise HTTPException(status_code=503, detail="Módulos de ciudad no disponibles / City modules unavailable")
+    for m in data.get("modules") or []:
+        if isinstance(m, dict) and m.get("id") == module_id:
+            response.headers["Cache-Control"] = "public, max-age=300"
+            return m
+    raise HTTPException(status_code=404, detail={
+        "error": "not_found",
+        "message": "Módulo no encontrado / City module not found",
+    })
+
+
 # ── Emergency Contacts ──────────────────────────────────────
 @api_router.get("/emergency-contacts")
 async def list_emergency_contacts():
@@ -6867,7 +6938,11 @@ async def my_city_pass(request: Request):
 # ─────────────────────────────────────────────────────────────
 # Port Tax (Tasa Portuaria — La Bodeguita → Islas)
 # ─────────────────────────────────────────────────────────────
-DEFAULT_PORT_TAX_PRICE = 31500  # COP (referencia 2026, Corpoturismo)
+# COP = muelle 18.000 (Corpoturismo) + ingreso PNN 13.500 (oficiales 2026), sin el seguro
+# obligatorio (aprox. 8.800, se paga a la aseguradora). No existe una "tasa portuaria" única
+# y AMO no la vende: sin acuerdo firmado con Corpoturismo/PNN este producto es solo informativo
+# (city_modules.json muelle-bodeguita manda; ver frontend port-tax/checkout PORT_TAX_SALES_ENABLED).
+DEFAULT_PORT_TAX_PRICE = 31500
 
 async def _get_active_port_tax_config():
     """Return the currently active port-tax config, seeding a default if missing."""
@@ -6877,8 +6952,8 @@ async def _get_active_port_tax_config():
             "config_id": f"ptc_{uuid.uuid4().hex[:8]}",
             "price_per_person": DEFAULT_PORT_TAX_PRICE,
             "currency": "COP",
-            "season_label": "Temporada actual 2026",
-            "note": "Tasa portuaria oficial Muelle La Bodeguita — Islas del Rosario / Barú / Tierra Bomba.",
+            "season_label": "Tarifas oficiales 2026 (muelle + parque)",
+            "note": "Muelle $18.000 (Corpoturismo) + ingreso PNN $13.500 (oficiales 2026), pagados en las taquillas del Muelle La Bodeguita; seguro obligatorio aprox. $8.800 aparte. AMO informa, no vende.",
             "active": True,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }

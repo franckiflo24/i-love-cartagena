@@ -32,8 +32,10 @@ export default function CityPassTab() {
   const [myPass, setMyPass] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activatingId, setActivatingId] = useState<string | null>(null);
-  const [portTax, setPortTax] = useState<{ price_per_person: number; season_label: string } | null>(null);
-  const [activeTickets, setActiveTickets] = useState<number>(0);
+  // The "Tasa Portuaria · PAGA Y EMBARCA · $31.500" card is retired: no authority
+  // recognizes a single port tax (it is pier 18.000 + park 13.500 + insurance, paid at
+  // the pier), and AMO has no agreement to sell any of it. The honest replacement is
+  // the muelle-bodeguita module of the city hub (official prices, where to pay).
   // Guideline 2.1: while payments are disabled in prod, the plan cards must be
   // honest UP FRONT — a visible "Próximamente" state, not a priced Activar
   // button that dead-ends after the tap. null = config check still in flight
@@ -50,16 +52,12 @@ export default function CityPassTab() {
       try {
         const p = await api.get('/city-pass/plans');
         setPlans(Array.isArray(p) ? p : []);
-        const pt = await api.get('/port-tax/config').catch(() => null);
-        if (pt) setPortTax(pt);
         if (user) {
           const mp = await api.get('/city-pass/mine').catch(() => null);
           // STATIC_MODE returns [] (truthy) → without this guard the tab rendered a
           // fake "PASS ACTIVO" QR with plan_id undefined / "Invalid Date" (P2 audit).
           // Match the sibling screen: only a real object with a plan_id is an active pass.
           setMyPass(mp && !Array.isArray(mp) && typeof mp === 'object' && mp.plan_id ? mp : null);
-          const tickets = await api.get('/port-tax/my-tickets').catch(() => []);
-          setActiveTickets((Array.isArray(tickets) ? tickets : []).filter((t: any) => t.status === 'paid').length);
         }
       } catch (e) { console.error(e); }
       setLoading(false);
@@ -190,44 +188,19 @@ export default function CityPassTab() {
               <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
             </TouchableOpacity>
 
-            {/* Port Tax module also shown to active-pass users */}
-            {portTax && (
-              <TouchableOpacity
-                style={styles.portTaxCard}
-                activeOpacity={0.85}
-                onPress={() => router.push('/port-tax/checkout' as any)}
-              >
-                <View style={styles.portTaxLeft}>
-                  <View style={styles.portTaxIconWrap}>
-                    <Ionicons name="boat" size={22} color={COLORS.primary} />
-                  </View>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <View style={styles.portTaxTitleRow}>
-                    <Text style={styles.portTaxTitle}>{tr('Tasa Portuaria')}</Text>
-                    <View style={styles.portTaxBadge}>
-                      <Ionicons name="qr-code" size={10} color="#22C55E" />
-                      <Text style={styles.portTaxBadgeText}>{tr('PAGA Y EMBARCA')}</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.portTaxSub}>
-                    ${(portTax.price_per_person ?? 0).toLocaleString('es-CO')} {tr('COP / persona')} · Muelle La Bodeguita
-                  </Text>
-                  {activeTickets > 0 && (
-                    <TouchableOpacity
-                      style={styles.myTicketsBtn}
-                      onPress={() => router.push('/port-tax/tickets' as any)}
-                    >
-                      <Ionicons name="ticket" size={12} color={COLORS.icon} />
-                      <Text style={styles.myTicketsText}>
-                        {activeTickets} tiquete{activeTickets !== 1 ? 's' : ''} activo{activeTickets !== 1 ? 's' : ''}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-                <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
-              </TouchableOpacity>
-            )}
+            {/* Islands: official pier / park / insurance prices — informational, paid at the pier */}
+            <TouchableOpacity
+              testID="citypass-ciudad-muelle-active"
+              style={[styles.officialLink, { marginHorizontal: 0, marginTop: SPACING.md }]}
+              onPress={() => router.push('/ciudad/muelle-bodeguita' as any)}
+              activeOpacity={0.8}
+              accessibilityRole="link"
+              accessibilityLabel={tr('Ver precios oficiales del muelle (islas)')}
+            >
+              <Ionicons name="boat-outline" size={16} color={COLORS.official} />
+              <Text style={styles.officialLinkText}>{tr('Ver precios oficiales del muelle (islas)')}</Text>
+              <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+            </TouchableOpacity>
           </View>
         ) : (
           /* ── Plans View ── */
@@ -240,55 +213,12 @@ export default function CityPassTab() {
               </View>
               <Text style={styles.heroTitle}>{tr('City Pass')}</Text>
               <Text style={styles.heroSubtitle}>{tr('Vive la cultura sin límite')}</Text>
+              {/* Honest scope: the AMO pass is a benefits pass — it does not include
+                  monuments or museums until an ETCAR/MUHCA agreement is signed. */}
               <Text style={styles.heroDesc}>
-                {tr('Tu pase cultural para vivir Cartagena al máximo. Acceso a museos, monumentos y eventos culturales.')}
+                {tr('Tu pase de beneficios para vivir Cartagena al máximo: descuentos, eventos y experiencias curadas. Monumentos: solo información oficial por ahora.')}
               </Text>
             </View>
-
-            {/* ── Tasa Portuaria module ── */}
-            {portTax && (
-              <TouchableOpacity
-                style={styles.portTaxCard}
-                activeOpacity={0.85}
-                onPress={() => router.push('/port-tax/checkout' as any)}
-              >
-                <View style={styles.portTaxLeft}>
-                  <View style={styles.portTaxIconWrap}>
-                    <Ionicons name="boat" size={22} color={COLORS.primary} />
-                  </View>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <View style={styles.portTaxTitleRow}>
-                    <Text style={styles.portTaxTitle}>{tr('Tasa Portuaria')}</Text>
-                    <View style={styles.portTaxBadge}>
-                      <Ionicons name="qr-code" size={10} color="#22C55E" />
-                      <Text style={styles.portTaxBadgeText}>{tr('PAGA Y EMBARCA')}</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.portTaxSub}>
-                    {tr('Pago oficial Muelle La Bodeguita → Islas')}
-                  </Text>
-                  <View style={styles.portTaxMeta}>
-                    <Text style={styles.portTaxPrice}>
-                      ${(portTax.price_per_person ?? 0).toLocaleString('es-CO')}
-                    </Text>
-                    <Text style={styles.portTaxUnit}>{tr('COP / persona')}</Text>
-                  </View>
-                  {activeTickets > 0 && (
-                    <TouchableOpacity
-                      style={styles.myTicketsBtn}
-                      onPress={() => router.push('/port-tax/tickets' as any)}
-                    >
-                      <Ionicons name="ticket" size={12} color={COLORS.icon} />
-                      <Text style={styles.myTicketsText}>
-                        {activeTickets} tiquete{activeTickets !== 1 ? 's' : ''} activo{activeTickets !== 1 ? 's' : ''}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-                <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
-              </TouchableOpacity>
-            )}
 
             {/* Plans */}
             {plans.map((plan, idx) => (
@@ -348,6 +278,37 @@ export default function CityPassTab() {
                 )}
               </View>
             ))}
+
+            {/* Honest pointer: monument prices are informational today — the City
+                Pass does not include monuments until an agreement is signed. Does
+                not touch the payment gating above. */}
+            <TouchableOpacity
+              testID="citypass-ciudad-monumentos"
+              style={styles.officialLink}
+              onPress={() => router.push('/ciudad/monumentos' as any)}
+              activeOpacity={0.8}
+              accessibilityRole="link"
+              accessibilityLabel={tr('Ver precios oficiales de los monumentos')}
+            >
+              <Ionicons name="shield-outline" size={16} color={COLORS.official} />
+              <Text style={styles.officialLinkText}>{tr('Ver precios oficiales de los monumentos')}</Text>
+              <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+            </TouchableOpacity>
+
+            {/* Islands: official pier / park / insurance prices, paid at the pier —
+                replaces the retired "Tasa Portuaria" checkout card. */}
+            <TouchableOpacity
+              testID="citypass-ciudad-muelle"
+              style={styles.officialLink}
+              onPress={() => router.push('/ciudad/muelle-bodeguita' as any)}
+              activeOpacity={0.8}
+              accessibilityRole="link"
+              accessibilityLabel={tr('Ver precios oficiales del muelle (islas)')}
+            >
+              <Ionicons name="boat-outline" size={16} color={COLORS.official} />
+              <Text style={styles.officialLinkText}>{tr('Ver precios oficiales del muelle (islas)')}</Text>
+              <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+            </TouchableOpacity>
 
             {/* Trust badges */}
             <View style={styles.trustRow}>
@@ -411,6 +372,8 @@ const styles = StyleSheet.create({
   ctaBtnText: { fontSize: 15, color: '#FFF', ...FONTS.bold },
   ctaBtnSoon: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: COLORS.border },
   ctaBtnSoonText: { fontSize: 14, ...FONTS.bold },
+  officialLink: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, minHeight: 48, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, paddingHorizontal: SPACING.md, paddingVertical: 10, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(57,184,255,0.25)' },
+  officialLinkText: { flex: 1, fontSize: 13, lineHeight: 17, color: COLORS.textMain, ...FONTS.semibold },
 
   // Active pass with QR
   activeSection: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.md },
@@ -437,38 +400,4 @@ const styles = StyleSheet.create({
   trustRow: { flexDirection: 'row', justifyContent: 'center', gap: SPACING.lg, paddingVertical: SPACING.lg, paddingHorizontal: SPACING.lg },
   trustItem: { alignItems: 'center', gap: 4 },
   trustText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
-
-  // Port Tax module
-  portTaxCard: {
-    flexDirection: 'row', alignItems: 'center', gap: SPACING.md,
-    marginHorizontal: SPACING.lg, marginBottom: SPACING.md, marginTop: SPACING.sm,
-    paddingHorizontal: SPACING.md, paddingVertical: SPACING.md,
-    backgroundColor: COLORS.surface, borderRadius: RADIUS.xl,
-    borderWidth: 1.5, borderColor: 'rgba(18,181,165,0.35)',
-  },
-  portTaxLeft: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
-  portTaxIconWrap: {
-    width: 48, height: 48, borderRadius: 24,
-    backgroundColor: 'rgba(18,181,165,0.15)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  portTaxTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-  portTaxTitle: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold },
-  portTaxBadge: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: 'rgba(34,197,94,0.15)',
-    paddingHorizontal: 8, paddingVertical: 3, borderRadius: RADIUS.full,
-  },
-  portTaxBadgeText: { fontSize: 9, color: '#22C55E', ...FONTS.bold, letterSpacing: 0.5 },
-  portTaxSub: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
-  portTaxMeta: { flexDirection: 'row', alignItems: 'baseline', gap: 4, marginTop: 4 },
-  portTaxPrice: { fontSize: 18, color: COLORS.primary, ...FONTS.bold },
-  portTaxUnit: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium },
-
-  myTicketsBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start',
-    backgroundColor: 'rgba(18,181,165,0.10)', borderRadius: RADIUS.full,
-    paddingHorizontal: 8, paddingVertical: 3, marginTop: 6,
-  },
-  myTicketsText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold },
 });

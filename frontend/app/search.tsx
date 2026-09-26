@@ -72,7 +72,9 @@ const INTENT_META: Record<string, { color: string; icon: string; label: string }
   transport:  { color: '#3B82F6', icon: 'boat',              label: 'Transporte' },
   itinerary:  { color: '#FBBF24', icon: 'map',               label: 'Itinerario' },
   city_pass:  { color: '#12B5A5', icon: 'sparkles',          label: 'City Pass' },
-  port_tax:   { color: '#06B6D4', icon: 'qr-code',           label: 'Tasa Portuaria' },
+  // 'port_tax' is the backend's intent name for pier / islands questions; it opens the
+  // city-hub module (official pier + park + insurance prices), never a checkout.
+  port_tax:   { color: '#06B6D4', icon: 'boat',              label: 'Muelle e islas' },
   general:    { color: COLORS.primary, icon: 'compass',      label: 'Sugerencia' },
 };
 
@@ -588,7 +590,7 @@ export default function SearchScreen() {
       case 'event':         router.push(`/event/${h.id}` as any); break;
       case 'concert':       router.push('/concerts' as any); break;
       case 'transport':     router.push('/transport' as any); break;
-      case 'port_tax':      router.push('/port-tax/checkout' as any); break;
+      case 'port_tax':      router.push('/ciudad/muelle-bodeguita' as any); break;
       case 'city_pass':     router.push('/(tabs)/citypass' as any); break;
       case 'itinerary':     router.push('/itineraries' as any); break;
       default: break;
@@ -637,7 +639,8 @@ export default function SearchScreen() {
         break;
       }
       case 'open_port_tax_checkout':
-        router.push('/port-tax/checkout' as any);
+        // Retired action (AMO does not sell the pier fee): land on the official prices.
+        router.push('/ciudad/muelle-bodeguita' as any);
         break;
       case 'open_city_pass':
         router.push('/(tabs)/citypass' as any);
@@ -763,7 +766,7 @@ export default function SearchScreen() {
             )}
             <Text style={styles.suggestTitle}>{tr('¿Qué buscas?')}</Text>
             <Text style={styles.suggestSubtitle}>
-              {tr('Puedes preguntar: «cena romántica», «cómo llegar a Barú», «conciertos este viernes», «pase cultural», «tasa portuaria»…')}
+              {tr('Puedes preguntar: «cena romántica», «cómo llegar a Barú», «conciertos este viernes», «pase cultural», «precios del muelle»…')}
             </Text>
             <View style={styles.suggestRow}>
               {([
@@ -771,7 +774,7 @@ export default function SearchScreen() {
                 { label: 'Conciertos' },
                 { label: 'Lancha a Rosario' },
                 { label: 'City Pass', route: '/(tabs)/citypass' },
-                { label: 'Tasa portuaria', route: '/port-tax/checkout' },
+                { label: 'Muelle e islas', route: '/ciudad/muelle-bodeguita' },
                 { label: 'Brunch' },
                 { label: 'Salsa' },
               ] as { label: string; route?: string }[]).map(c => (

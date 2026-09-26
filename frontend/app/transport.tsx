@@ -92,12 +92,29 @@ export default function TransportScreen() {
           <Text style={styles.title}>{tr('Transporte')}</Text>
           <Text style={styles.subtitle}>{tr('Lanchas, shuttles y transfers en Cartagena')}</Text>
         </View>
-        <TouchableOpacity onPress={() => router.push('/port-tax/tickets' as any)} style={styles.ticketsBtn}>
-          <Ionicons name="ticket" size={18} color={COLORS.primary} />
-        </TouchableOpacity>
+        {/* The port-tax tickets shortcut is retired: AMO does not sell the pier fee
+            (see the Moverse banner below for the official pier / park / insurance prices). */}
       </View>
 
       <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+        {/* ── City hub (Moverse): official bus / pier / monument / taxi prices ── */}
+        <TouchableOpacity
+          testID="transport-ciudad-banner"
+          style={styles.ciudadBanner}
+          onPress={() => router.push('/ciudad' as any)}
+          activeOpacity={0.85}
+          accessibilityRole="link"
+          accessibilityLabel={tr('Precios oficiales de bus, muelle, monumentos y taxis →')}
+        >
+          <View style={styles.ciudadBannerIcon}>
+            <Ionicons name="bus" size={16} color={COLORS.mustard} />
+          </View>
+          <Text style={styles.ciudadBannerText} numberOfLines={2}>
+            {tr('Precios oficiales de bus, muelle, monumentos y taxis →')}
+          </Text>
+          <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+        </TouchableOpacity>
+
         {/* ── Official Taxi Fares ── */}
         {officialFares.length > 0 && (
           <View style={styles.faresSection}>
@@ -288,7 +305,7 @@ export default function TransportScreen() {
                 <View style={styles.details}>
                   <View style={styles.detailRow}>
                     <Ionicons name="information-circle-outline" size={14} color={COLORS.textMuted} />
-                    <Text style={styles.detailTextMuted}>{tr('Tarifa de lancha según operador · tasa portuaria aparte')}</Text>
+                    <Text style={styles.detailTextMuted}>{tr('Tarifa de lancha según operador · muelle, parque y seguro aparte')}</Text>
                   </View>
                   {route.duration && (
                     <View style={styles.detailRow}>
@@ -336,7 +353,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   header: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.md },
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center' },
-  ticketsBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.primary, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 24, color: COLORS.textMain, ...FONTS.bold },
   subtitle: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
   list: { flex: 1, paddingHorizontal: SPACING.lg },
@@ -417,4 +433,9 @@ const styles = StyleSheet.create({
   fareNote: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 16 },
   faresFooter: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: SPACING.md, paddingTop: SPACING.sm, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' },
   faresFooterText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, flex: 1, lineHeight: 16 },
+
+  // ── City hub (Moverse) banner ──
+  ciudadBanner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, minHeight: 48, paddingHorizontal: SPACING.md, paddingVertical: 10, marginBottom: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(233,185,73,0.32)' },
+  ciudadBannerIcon: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(233,185,73,0.14)', alignItems: 'center', justifyContent: 'center' },
+  ciudadBannerText: { flex: 1, fontSize: 13, lineHeight: 17, color: COLORS.textMain, ...FONTS.semibold },
 });

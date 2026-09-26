@@ -577,6 +577,7 @@ export default function HomeScreen() {
             {(() => {
               const allItems = [
                 { icon: 'home',           label: tr('Mi base'),        subtitle: tr('Cómo volver'),     color: '#12B5A5', route: '#base', cat: '' },
+                { icon: 'bus',            label: tr('Moverse'),        subtitle: tr('Bus, muelle, taxis'), color: '#F59E0B', route: '/ciudad', cat: '' },
                 { icon: 'calendar',       label: s('home_agenda'),     subtitle: s('home_today'),       color: '#F97316', route: '/(tabs)/agenda', cat: '' },
                 { icon: 'compass',        label: tr('Explorar'),       subtitle: tr('Lugares'),         color: '#3B82F6', route: '/(tabs)/explore', cat: '' },
                 { icon: 'ribbon',         label: tr('Pasaporte'),      subtitle: tr('Sellos'),          color: '#12B5A5', route: '/(tabs)/pasaporte', cat: '' },
@@ -592,7 +593,7 @@ export default function HomeScreen() {
               ];
               // Cruise users: pin transport + itineraries (day-plan tools) to front
               if (userProfile.partyType === 'cruise') {
-                const cruisePriority = ['/transport', '/itineraries', '/(tabs)/agenda'];
+                const cruisePriority = ['/ciudad', '/transport', '/itineraries', '/(tabs)/agenda'];
                 const pinned = allItems.filter(i => cruisePriority.includes(i.route));
                 const rest = allItems.filter(i => !cruisePriority.includes(i.route));
                 return [...pinned, ...rest];
