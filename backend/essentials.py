@@ -23,7 +23,7 @@ import os
 import re
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 
 logger = logging.getLogger("essentials")
 
@@ -120,10 +120,13 @@ def _is_live(source_type: str, count: int, gate: int) -> bool:
 
 
 @router.get("/essentials/taxonomy")
-async def essentials_taxonomy(request: Request, include_hidden: int = 0):
+async def essentials_taxonomy(request: Request, response: Response, include_hidden: int = 0):
     """The 8 need-states with each category's LIVE/HIDDEN status computed from
     real verified counts. Users render only `categories` (live); `hidden` is the
     honesty-proof evidence (and what Luna must decline). No empty shelves."""
+    # Anonymous + identity-free → CDN-cacheable (same policy as server._cache(response, 60);
+    # inlined because this module must not import server).
+    response.headers["Cache-Control"] = "public, max-age=60, s-maxage=60, stale-while-revalidate=300"
     if _check_rate_limit:
         ip = request.headers.get("x-real-ip") or (request.client.host if request.client else "unknown")
         await _check_rate_limit(f"essentials:{ip}", max_calls=60, window_sec=60)

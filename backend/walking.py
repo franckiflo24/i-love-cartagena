@@ -28,7 +28,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Literal, Optional
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger("walking")
@@ -1528,11 +1528,14 @@ _trust_pub_cache: Dict[str, Any] = {}
 
 
 @router.get("/trust/reference")
-async def trust_reference(request: Request):
+async def trust_reference(request: Request, response: Response):
     """PUBLIC tiered trust knowledge — powers the 'Cartagena sin sustos'
     sheet and price answers. HIGH entries carry a year; VERIFY entries carry
     ranges + the confirma hedge. Served verbatim from the seeded file."""
     await _check_rate_limit(f"trustref:{_client_ip(request)}", max_calls=60, window_sec=60)
+    # Anonymous + identity-free → CDN-cacheable (same policy as server._cache(response, 60);
+    # inlined because this module must not import server).
+    response.headers["Cache-Control"] = "public, max-age=60, s-maxage=60, stale-while-revalidate=300"
     if not _trust_pub_cache:
         try:
             with open(_TRUST_PUB_PATH, "r", encoding="utf-8") as f:

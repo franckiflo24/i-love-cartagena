@@ -546,6 +546,23 @@ def _client_ip(request: Request) -> str:
     return _ratelimit.client_ip(request)
 
 
+def _cache(response: Response, seconds: int, swr: int = 300) -> None:
+    """Public cache hint for an ANONYMOUS, identity-independent GET.
+
+    Vercel's CDN stores a function response that carries a public max-age /
+    s-maxage (verified live: /city/modules answers x-vercel-cache: HIT) and strips
+    s-maxage / stale-while-revalidate before the browser sees it, so the client
+    keeps a plain `public, max-age=N`. A warm edge answers the app's launch
+    fan-out (partners / events / seasons / sponsors …) without waking another
+    ~10 s cold instance. Requests carrying an Authorization header bypass the CDN,
+    and Cookie is NOT part of its key — so never call this from a handler that
+    reads cookies / Authorization / get_current_user: one user's body would be
+    served to everyone. HTTPException responses never carry the header."""
+    response.headers["Cache-Control"] = (
+        f"public, max-age={seconds}, s-maxage={seconds}, stale-while-revalidate={swr}"
+    )
+
+
 async def _login_throttle_guard(ip: str):
     rec = await db.login_throttle.find_one({"_id": ip}, {"_id": 0, "locked_until": 1})
     if rec and rec.get("locked_until"):
@@ -4056,28 +4073,102 @@ async def delete_account(request: Request):
 
 
 # ── Events ──────────────────────────────────────────────────
+# Self-hosted image manifest. _normalize_event_media may only emit an /images/… path
+# that really ships in the frontend's public folder: the static host answers a missing
+# image path with the SPA shell (200, text/html), so an unverifiable
+# "/images/events/<id>.jpg" decodes to a BLACK card instead of falling back — exactly
+# what the partner-events rail was doing. The backend deploys from backend/ alone
+# (Vercel), so at runtime it normally cannot see frontend/public: the committed
+# manifest backend/data/public_images.json (regenerate with
+# scripts/sync_public_images.py) is the production source; the live folder walk is
+# the local-dev source. Loaded ONCE per process — no per-request filesystem IO.
+_FRONTEND_PUBLIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend", "public")
+_PUBLIC_IMAGES_MANIFEST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "public_images.json")
+_public_image_paths: Optional[set] = None
+
+
+def _load_public_image_paths() -> set:
+    images_dir = os.path.join(_FRONTEND_PUBLIC_DIR, "images")
+    if os.path.isdir(images_dir):
+        found: set = set()
+        for dirpath, _dirs, files in os.walk(images_dir):
+            rel = os.path.relpath(dirpath, _FRONTEND_PUBLIC_DIR).replace(os.sep, "/")
+            found.update(f"/{rel}/{name}" for name in files if not name.startswith("."))
+        return found
+    try:
+        with open(_PUBLIC_IMAGES_MANIFEST, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        paths = data.get("paths") if isinstance(data, dict) else data
+        return {p for p in (paths or []) if isinstance(p, str) and p.startswith("/images/")}
+    except Exception as exc:
+        # Loud, once per process: with no manifest nothing is ever synthesized, so
+        # every city event shows its category fallback — visible, never black, and
+        # diagnosable from this line in the runtime logs.
+        logger.error(f"[event-media] public-image manifest unavailable ({exc}); synthesized paths disabled")
+        return set()
+
+
+def _public_image_exists(path: str) -> bool:
+    """True only for a path known to ship in frontend/public (manifest note above)."""
+    global _public_image_paths
+    if _public_image_paths is None:
+        _public_image_paths = _load_public_image_paths()
+    return bool(path) and path in _public_image_paths
+
+
+def _is_external_url(url) -> bool:
+    return isinstance(url, str) and url.lstrip().lower().startswith(("http://", "https://", "//"))
+
+
 def _normalize_event_media(events, id_keys=("event_id", "id", "concert_id")):
     """Force self-hosted image paths on event/concert responses. MongoDB still
     carries stale external Google-place / Unsplash URLs (403 on load, and a
     live external dependency the architecture forbids). Mirrors the frontend
     normaliseImageUrl convention (/images/events/<id>.jpg) so the static-first
     paint and the backend hydrate agree — no image flip. SafeImage degrades any
-    genuinely-missing file to its category fallback."""
+    genuinely-missing file to its category fallback.
+
+    Preference order — the first self-hosted (/images/…) candidate wins:
+      1. the record's own image_url
+      2. flyer_url      (partner-published events carry their flyer here)
+      3. partner_image  (the venue card image the list handlers enrich)
+      4. /images/events/<id>.jpg           — only when KNOWN to ship
+      5. /images/partners/<partner_id>.jpg — only when KNOWN to ship (the
+         frontend's own partner-card convention, so both layers agree)
+    Otherwise partner_image when it is not an external URL, else "". Never an
+    http(s) URL, never a path that does not exist."""
     for e in events or []:
-        url = e.get("image_url") or ""
-        if not url.startswith("/images/"):
+        chosen = next(
+            (c for c in (e.get("image_url"), e.get("flyer_url"), e.get("partner_image"))
+             if isinstance(c, str) and c.startswith("/images/")),
+            None,
+        )
+        if chosen is None:
             eid = next((e[k] for k in id_keys if e.get(k)), None)
-            e["image_url"] = f"/images/events/{eid}.jpg" if eid else ""
+            pid = e.get("partner_id")
+            for candidate in (
+                f"/images/events/{eid}.jpg" if eid else "",
+                f"/images/partners/{pid}.jpg" if pid else "",
+            ):
+                if candidate and _public_image_exists(candidate):
+                    chosen = candidate
+                    break
+        if chosen is None:
+            pi = e.get("partner_image")
+            chosen = pi if (isinstance(pi, str) and not _is_external_url(pi)) else ""
+        e["image_url"] = chosen
     return events
 
 
 @api_router.get("/events")
 async def list_events(
+    response: Response,
     date: Optional[str] = None,
     event_type: Optional[str] = None,
     is_free: Optional[bool] = None,
     venue_id: Optional[str] = None,
 ):
+    _cache(response, 60)
     query = dict(PUBLIC_CITY_EVENT_FILTER)
     if date:
         query["date"] = date
@@ -4093,7 +4184,8 @@ async def list_events(
 
 
 @api_router.get("/events/featured")
-async def featured_events():
+async def featured_events(response: Response):
+    _cache(response, 60)
     events = await db.events.find(upcoming_query({**PUBLIC_CITY_EVENT_FILTER, "featured": True}), PUBLIC_EVENT_PROJECTION).to_list(40)
     events = filter_live(events)[:10]
     if not events:
@@ -4103,7 +4195,8 @@ async def featured_events():
 
 
 @api_router.get("/events/{event_id}")
-async def get_event(event_id: str):
+async def get_event(event_id: str, response: Response):
+    _cache(response, 60)
     event = await db.events.find_one({"event_id": event_id, **PUBLIC_CITY_EVENT_FILTER}, PUBLIC_EVENT_PROJECTION)
     if not event:
         event = await db.events.find_one({"slug": event_id, **PUBLIC_CITY_EVENT_FILTER}, PUBLIC_EVENT_PROJECTION)
@@ -4114,7 +4207,8 @@ async def get_event(event_id: str):
 
 
 @api_router.get("/events/dates/available")
-async def available_dates():
+async def available_dates(response: Response):
+    _cache(response, 60)
     today = _today_bogota()
     dates = await db.events.distinct("date", PUBLIC_CITY_EVENT_FILTER)
     return sorted(d for d in dates if d and d >= today)
@@ -4138,7 +4232,8 @@ async def get_venue(venue_id: str):
 
 # ── Partners ────────────────────────────────────────────────
 @api_router.get("/partners")
-async def list_partners(category: Optional[str] = None, subcategory: Optional[str] = None):
+async def list_partners(response: Response, category: Optional[str] = None, subcategory: Optional[str] = None):
+    _cache(response, 60)
     # Drop B1: partner-submitted / rejected drafts never enter the public catalog.
     query: dict = dict(PUBLIC_PARTNER_FILTER)
     if category:
@@ -4201,7 +4296,9 @@ async def nearby_partners(request: Request):
 
 
 @api_router.get("/partners/{partner_id}")
-async def get_partner(partner_id: str):
+async def get_partner(partner_id: str, response: Response):
+    # Short TTL: the attached live_pulse has a start/end time (minutes matter).
+    _cache(response, 30, swr=60)
     # Draft / rejected / SANDBOX venues are not publicly viewable — the owner sees
     # their own draft via the authenticated /business/me path. The visibility filter
     # is pushed into the QUERY (the old manual catalog_status check omitted "sandbox",
@@ -4245,12 +4342,14 @@ async def _migrate_stuck_pending_events():
 
 @api_router.get("/partner-events")
 async def list_partner_events(
+    response: Response,
     date: Optional[str] = None,
     category: Optional[str] = None,
     partner_id: Optional[str] = None,
     upcoming: Optional[bool] = None,
 ):
     """List partner-published events. Filter by date (YYYY-MM-DD), category, partner_id, or upcoming=true."""
+    _cache(response, 60)
     await _migrate_stuck_pending_events()
     query: dict = {"is_published": True}
     if date:
@@ -4297,13 +4396,14 @@ async def get_partner_event(event_id: str):
 
 # ── Promotions (ofertas del día publicadas por partners) ────────────
 @api_router.get("/promotions/today")
-async def list_today_promotions(category: Optional[str] = None):
+async def list_today_promotions(response: Response, category: Optional[str] = None):
     """Return active promotions valid today, sorted by partner tier + recency.
 
     Each promotion includes: promo_id, partner_id, title, description, category,
     discount_pct (or 0 if not %-based), original_price, promo_price, valid_until,
     image_url, is_active, partner_name, partner_tier, partner_image, partner_address.
     """
+    _cache(response, 30)  # date-sensitive (valid_until is a Bogotá day)
     # Bogotá date, not UTC — "valid until today" offers vanished at 19:00 local.
     today_str = _today_bogota()
     query: dict = {"is_active": True, "valid_until": {"$gte": today_str}}
@@ -4620,7 +4720,8 @@ async def get_itinerary(itinerary_id: str):
 
 # ── Transport ───────────────────────────────────────────────
 @api_router.get("/transport")
-async def list_transport():
+async def list_transport(response: Response):
+    _cache(response, 60)
     return await db.transport.find({}, {"_id": 0}).to_list(50)
 
 
@@ -4955,7 +5056,8 @@ async def list_my_week(request: Request):
 
 # ── Seasons (Multi-event platform) ──────────────────────────
 @api_router.get("/seasons")
-async def list_seasons(active: Optional[bool] = None):
+async def list_seasons(response: Response, active: Optional[bool] = None):
+    _cache(response, 60)
     query: dict = {}
     if active is not None:
         query["is_active"] = active
@@ -4967,7 +5069,8 @@ async def list_seasons(active: Optional[bool] = None):
 
 
 @api_router.get("/seasons/{season_id}")
-async def get_season(season_id: str):
+async def get_season(season_id: str, response: Response):
+    _cache(response, 60)
     season = await db.seasons.find_one({"season_id": season_id}, {"_id": 0})
     if not season:
         raise HTTPException(status_code=404, detail="Season not found")
@@ -4975,7 +5078,8 @@ async def get_season(season_id: str):
 
 
 @api_router.get("/seasons/{season_id}/events")
-async def season_events(season_id: str, date: Optional[str] = None):
+async def season_events(season_id: str, response: Response, date: Optional[str] = None):
+    _cache(response, 60)
     query = {**PUBLIC_CITY_EVENT_FILTER, "season_id": season_id}
     if date:
         query["date"] = date
@@ -5076,14 +5180,16 @@ async def fx_rates(request: Request):
 
 # ── Sponsors ─────────────────────────────────────────────────
 @api_router.get("/sponsors")
-async def list_sponsors():
+async def list_sponsors(response: Response):
+    _cache(response, 60)
     sponsors = await db.sponsors.find({"is_active": True}, {"_id": 0}).sort("order", 1).to_list(20)
     return sponsors
 
 
 # ── Concerts ─────────────────────────────────────────────────
 @api_router.get("/concerts")
-async def list_concerts(date: Optional[str] = None, genre: Optional[str] = None):
+async def list_concerts(response: Response, date: Optional[str] = None, genre: Optional[str] = None):
+    _cache(response, 60)
     query = {}
     if date:
         query["date"] = date
@@ -5107,19 +5213,22 @@ async def list_concerts(date: Optional[str] = None, genre: Optional[str] = None)
 
 
 @api_router.get("/concerts/dates")
-async def concert_dates():
+async def concert_dates(response: Response):
+    _cache(response, 60)
     dates = await db.concerts.distinct("date")
     return sorted(dates)
 
 
 @api_router.get("/concerts/genres")
-async def concert_genres():
+async def concert_genres(response: Response):
+    _cache(response, 60)
     genres = await db.concerts.distinct("genre")
     return sorted(genres)
 
 
 @api_router.get("/concerts/{concert_id}")
-async def get_concert(concert_id: str):
+async def get_concert(concert_id: str, response: Response):
+    _cache(response, 60)
     concert = await db.concerts.find_one({"concert_id": concert_id}, {"_id": 0})
     if not concert:
         raise HTTPException(status_code=404, detail="Concert not found")
@@ -6875,7 +6984,8 @@ async def analytics_heatmap(request: Request):
 
 # ── City Pass ───────────────────────────────────────────────
 @api_router.get("/city-pass/plans")
-async def city_pass_plans():
+async def city_pass_plans(response: Response):
+    _cache(response, 60)
     return [
         {
             "plan_id": pid,
@@ -7167,8 +7277,9 @@ async def wompi_partner_event_checkout(request: Request):
 
 # ── Experience Commerce ────────────────────────────────────────
 @api_router.get("/experiences")
-async def list_experiences(request: Request):
+async def list_experiences(request: Request, response: Response):
     """List experiences with optional category filter."""
+    _cache(response, 60)
     try:
         category = request.query_params.get("category")
         # T1: only PUBLISHED events (no is_active bypass) whose venue is approved.
@@ -7184,8 +7295,9 @@ async def list_experiences(request: Request):
 
 
 @api_router.get("/experiences/featured")
-async def featured_experiences():
+async def featured_experiences(response: Response):
     """Return featured experiences (highest rated active events)."""
+    _cache(response, 60)
     try:
         featured = await db.partner_events.find(
             upcoming_query({"is_published": True}),
