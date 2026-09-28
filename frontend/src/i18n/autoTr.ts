@@ -14,8 +14,10 @@
 import { useCallback } from 'react';
 import { useLang } from '../context/LanguageContext';
 import type { Lang } from './translations';
+import { EVENTS_TR } from './autoTrEvents';
+import { NEARBY_TR } from './autoTrNearby';
 
-type Dict = Record<string, Partial<Record<Lang, string>>>;
+export type Dict = Record<string, Partial<Record<Lang, string>>>;
 
 export const AUTO_TR: Dict = {
   // Elite-audit i18n pass (Sep 12) — strings tr()'d but missing, or newly wrapped,
@@ -1905,7 +1907,7 @@ export function useTr() {
   return useCallback((esText: string | null | undefined): string => {
     if (!esText) return '';
     if (lang === 'es') return esText;
-    const entry = AUTO_TR[esText];
+    const entry = AUTO_TR[esText] ?? EVENTS_TR[esText] ?? NEARBY_TR[esText];
     if (!entry) return esText; // fallback: original Spanish
     return entry[lang] || esText;
   }, [lang]);
