@@ -225,9 +225,10 @@ export default function ReviewsList({ partnerId }: ReviewsListProps) {
 
   const { aggregate, reviews } = payload;
 
-  // No reviews yet → ONE 44 px row that is the write CTA (same pattern as the
-  // partner page's events empty state). No aggregate, no write button above it,
-  // no 122 px "be the first" box — an empty section must not read as content.
+  // No reviews yet → ONE compact 44 px single-line CTA and nothing else (same
+  // pattern as the partner page's events empty state). No aggregate, no write
+  // button above it, no 122 px "Sé el primero" box — an empty section must not
+  // read as content.
   if (reviews.length === 0) {
     return (
       <TouchableOpacity
@@ -235,13 +236,11 @@ export default function ReviewsList({ partnerId }: ReviewsListProps) {
         onPress={handleWriteReview}
         activeOpacity={0.8}
         accessibilityRole="button"
-        accessibilityLabel={`${tr('Sin reseñas todavía')} · ${tr('Escribe la primera')}`}
+        accessibilityLabel={tr('Escribe la primera reseña')}
         testID="reviews-empty-cta"
       >
-        <Ionicons name="chatbubble-outline" size={14} color={COLORS.textMuted} />
-        <Text style={styles.inlineCtaText} numberOfLines={1}>
-          {tr('Sin reseñas todavía')} · <Text style={styles.inlineCtaLink}>{tr('Escribe la primera')}</Text>
-        </Text>
+        <Ionicons name="create-outline" size={15} color={COLORS.primary} />
+        <Text style={styles.inlineCtaLink} numberOfLines={1}>{tr('Escribe la primera reseña')}</Text>
         <Ionicons name="chevron-forward" size={14} color={COLORS.textMuted} />
       </TouchableOpacity>
     );
@@ -319,19 +318,19 @@ const styles = StyleSheet.create({
   },
   retryText: { fontSize: 13, color: COLORS.textMain, ...FONTS.medium },
 
-  // Compact single-line CTA row (empty state) — 44 px, one line.
+  // Compact single-line CTA row (empty state) — exactly 44 px, one line.
   inlineCta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    minHeight: 44,
+    height: 44,
     paddingHorizontal: 12,
     borderRadius: RADIUS.md,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: `${COLORS.primary}60`,
+    backgroundColor: `${COLORS.primary}10`,
   },
-  inlineCtaText: { flex: 1, fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
-  inlineCtaLink: { color: COLORS.primary, ...FONTS.semibold },
+  inlineCtaLink: { flex: 1, fontSize: 13, color: COLORS.primary, ...FONTS.semibold },
 
   showMoreBtn: {
     flexDirection: 'row',

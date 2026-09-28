@@ -28,6 +28,7 @@ import { hapticLight } from '../../src/lib/haptics';
 import { geoService, GeoState, haversineM, fmtDistance, cityMode } from '../../src/lib/geo';
 import { getCollections, platesForVenue, PlateDef } from '../../src/lib/passport';
 import { bogotaToday } from '../../src/lib/eventTime';
+import { goHome, goBackOr } from '../../src/lib/nav';
 
 // Client pre-check for the passport stamp. The server gate is 75 m; we only
 // lock the UI when the fix is unambiguously far (GPS noise never locks out
@@ -230,7 +231,7 @@ export default function PartnerDetail() {
           <Text style={{ color: COLORS.textMuted, fontSize: 14, textAlign: 'center' }}>
             {tr('Este lugar no está disponible')}
           </Text>
-          <TouchableOpacity onPress={() => router.back()} style={{ backgroundColor: COLORS.primary, paddingHorizontal: SPACING.xl, paddingVertical: SPACING.md, borderRadius: RADIUS.full, marginTop: SPACING.md }}>
+          <TouchableOpacity onPress={() => goBackOr(router)} style={{ backgroundColor: COLORS.primary, paddingHorizontal: SPACING.xl, paddingVertical: SPACING.md, borderRadius: RADIUS.full, marginTop: SPACING.md }}>
             <Text style={{ color: COLORS.black, ...FONTS.bold }}>{tr('Volver')}</Text>
           </TouchableOpacity>
         </View>
@@ -444,10 +445,12 @@ export default function PartnerDetail() {
             pointerEvents="none"
           />
           <View style={{ flexDirection: 'row', position: 'absolute', top: SPACING.md, left: SPACING.md, gap: 8, zIndex: 5 }}>
-            <TouchableOpacity testID="partner-back-btn" style={styles.navBtn} onPress={() => router.back()}>
+            <TouchableOpacity testID="partner-back-btn" style={styles.navBtn} onPress={() => goBackOr(router)}>
               <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.navBtn} onPress={() => router.replace('/(tabs)')}>
+            {/* goHome reveals the live tab navigator (dismiss modals + navigate);
+                replace('/(tabs)') rebuilt it and Home came back as a skeleton. */}
+            <TouchableOpacity style={styles.navBtn} onPress={() => goHome(router)}>
               <Ionicons name="home-outline" size={20} color={COLORS.textMain} />
             </TouchableOpacity>
           </View>
@@ -588,7 +591,11 @@ export default function PartnerDetail() {
               distM={venueDistM}
             />
           ) : (
-            <LoProbe partnerId={String(id)} />
+            <LoProbe
+              partnerId={String(id)}
+              venueLat={hasRealCoords ? partner.location.lat : null}
+              venueLng={hasRealCoords ? partner.location.lng : null}
+            />
           )}
 
           <View style={styles.infoGrid}>
@@ -718,7 +725,10 @@ export default function PartnerDetail() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: SPACING.sm, paddingRight: SPACING.md }}>
               {brandSiblings.map((v) => (
                 <TouchableOpacity key={v.partner_id} style={styles.brandCard} onPress={() => router.push(`/partner/${v.partner_id}` as any)} activeOpacity={0.85}>
-                  <SafeImage uri={v.image || `/images/partners/${v.partner_id}.jpg`} fallbackUri={`/images/partners/${v.partner_id}.jpg`} category={v.category} style={styles.brandImg} />
+                  {/* A blank `image` means the catalog has NO photo for this outlet
+                      (scripts/prune-missing-images.mjs): go straight to the category
+                      placeholder instead of 404-ing on /images/partners/<id>.jpg. */}
+                  <SafeImage uri={v.image || null} category={v.category} style={styles.brandImg} />
                   <Text style={styles.brandName} numberOfLines={1}>{v.name.replace(` — ${brandName}`, '').replace(`${brandName} — `, '')}</Text>
                   <Text style={styles.brandKind} numberOfLines={1}>{v.display_es || PARTNER_CATEGORY_LABELS[v.category] || v.category}</Text>
                 </TouchableOpacity>

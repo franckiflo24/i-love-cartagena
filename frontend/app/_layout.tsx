@@ -15,16 +15,19 @@ import { SignupGateProvider } from '../src/context/SignupGateContext';
 import PushBootstrap from '../src/components/PushBootstrap';
 import ErrorBoundary from '../src/components/ErrorBoundary';
 import { AlertHost } from '../src/lib/alert';
-
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import { API_BASE, fetchT } from '../src/constants/api';
 
 export default function RootLayout() {
-  // Keep-warm: ping backend on app open so serverless cold-start
-  // happens while splash/onboarding shows, not when data is needed
+  // Keep-warm: ping the backend once per app open so the serverless cold start
+  // happens while splash/onboarding shows, not when data is needed. Runs on
+  // native too (it was web-only, so the iOS binary paid the cold start on its
+  // first real request). Fire-and-forget, bounded by the 8 s GET timeout.
+  // API_BASE is absolute on native (prod fallback) and whenever
+  // EXPO_PUBLIC_BACKEND_URL is set; a relative '/api' (web without a backend
+  // URL) has nothing to warm.
   useEffect(() => {
-    if (Platform.OS === 'web' && BACKEND_URL) {
-      fetch(`${BACKEND_URL}/api/health`).catch(() => {});
-    }
+    if (!/^https?:\/\//i.test(API_BASE)) return;
+    fetchT(`${API_BASE}/health`).catch(() => {});
   }, []);
   // Web preloader handshake: +html.tsx keeps #amo-preloader up until the root
   // layout has mounted (this attribute), with a 4 s safety fallback. Every

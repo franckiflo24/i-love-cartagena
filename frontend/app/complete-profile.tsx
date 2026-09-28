@@ -8,6 +8,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { usePersonalization } from '../src/context/PersonalizationContext';
 import { useTr } from '@/src/i18n/autoTr';
+import { goBackOr } from '../src/lib/nav';
 
 const COUNTRIES = [
   { flag: '🇨🇴', name: 'Colombia' }, { flag: '🇺🇸', name: 'USA' },
@@ -63,13 +64,13 @@ export default function CompleteProfileScreen() {
       await updateProfile({ nationality, ageGroup, musicPreferences: selectedInterests, isPersonalized: true });
     } catch (e) { console.error('[CompleteProfile]', e); }
     setSaving(false);
-    if (router.canGoBack()) router.back(); else router.replace('/(tabs)');
+    goBackOr(router); // pop, or reveal the live tabs (never replace → no tab remount)
   };
 
   const skip = () => {
     // "Saltar por ahora" = later. Don't mark completed, so the soft prompt in
     // the Profile tab stays available until the user actually fills it in.
-    if (router.canGoBack()) router.back(); else router.replace('/(tabs)');
+    goBackOr(router); // pop, or reveal the live tabs (never replace → no tab remount)
   };
 
   return (

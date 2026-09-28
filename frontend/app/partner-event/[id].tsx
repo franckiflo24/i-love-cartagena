@@ -15,6 +15,7 @@ import { useMyCalendar } from '../../src/context/MyCalendarContext';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '@/src/i18n/autoTr';
 import AddToTrip from '../../src/components/AddToTrip';
+import { goHome, goBackOr } from '../../src/lib/nav';
 
 const CAT_ICONS: Record<string, string> = {
   gastronomy: 'restaurant',
@@ -159,7 +160,7 @@ export default function PartnerEventDetail() {
           <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
           <Text style={{ color: COLORS.textMuted, fontSize: 16, textAlign: 'center' }}>{tr('Evento no encontrado')}</Text>
           <TouchableOpacity
-            onPress={() => { if (router.canGoBack()) router.back(); else router.navigate('/(tabs)' as any); }}
+            onPress={() => goBackOr(router)}
             style={{ marginTop: 8, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 20, backgroundColor: COLORS.primary }}
           >
             <Text style={{ color: COLORS.white, fontWeight: '600' }}>{tr('Volver')}</Text>
@@ -194,13 +195,13 @@ export default function PartnerEventDetail() {
             pointerEvents="none"
           />
           <View style={{ flexDirection: 'row', position: 'absolute', top: SPACING.md, left: SPACING.md, gap: 8, zIndex: 5 }}>
-            <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} accessibilityLabel={tr('Volver')}>
+            <TouchableOpacity style={styles.backBtn} onPress={() => goBackOr(router)} accessibilityLabel={tr('Volver')}>
               <Ionicons name="arrow-back" size={22} color={COLORS.white} />
             </TouchableOpacity>
-            {/* navigate, NOT replace: replace('/(tabs)') recreated the whole tab
-                navigator, so every tab remounted into its loading state and
-                re-downloaded every image (Explore skeleton at t=180 of the recording). */}
-            <TouchableOpacity style={styles.backBtn} onPress={() => router.navigate('/(tabs)' as any)}>
+            {/* goHome (dismiss + navigate), NOT replace: replace('/(tabs)') recreated
+                the whole tab navigator, so every tab remounted into its loading state
+                and re-downloaded every image (Explore skeleton at t=180 of the recording). */}
+            <TouchableOpacity style={styles.backBtn} onPress={() => goHome(router)}>
               <Ionicons name="home-outline" size={20} color={COLORS.white} />
             </TouchableOpacity>
           </View>

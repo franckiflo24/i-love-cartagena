@@ -7,7 +7,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS } from '../../src/constants/theme';
-import { api, ASSET_ORIGIN, fetchT } from '../../src/constants/api';
+import { api } from '../../src/constants/api';
+import { goBackOr } from '../../src/lib/nav';
 import { useAuth } from '../../src/context/AuthContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
@@ -16,6 +17,11 @@ import { monthShort } from '../../src/lib/formatDate';
 import { bogotaToday } from '../../src/lib/eventTime';
 import { eventPriceLabel } from '../../src/utils/price';
 import { isHttpUrl } from '../../src/lib/safeUrl';
+
+// Partner-event ids: `pe_<hex>` (backend create), `pe_bethel_dj_<date>` and the
+// seeded `evt_NNN`. City events use slugs (some legacy `evt_` too — those cost one
+// probe that 404s, and then render as the city event they are).
+const PARTNER_EVENT_ID = /^(evt_|pe_)/i;
 
 export default function EventDetail() {
   const tr = useTr();
@@ -29,18 +35,21 @@ export default function EventDetail() {
 
   useEffect(() => {
     let cancelled = false;
-    // One event, one canonical screen. A partner-event id (bundled under
-    // /data/partner-events/<id>.json) belongs to /partner-event/[id]; before
-    // this, /event/evt_010 painted a stale city-event snapshot of the same id
-    // from the static fallback and drifted from the live partner event.
+    // One event, one canonical screen. A partner-event id belongs to
+    // /partner-event/[id]; before this, /event/evt_010 painted a stale city-event
+    // snapshot of the same id from the static fallback and drifted from the live
+    // partner event. Resolution goes through the partner-events DATA (live
+    // GET /partner-events/<id>, which api.get falls back to the bundled
+    // /data/partner-events/<id>.json when offline), never only /data/events.
+    // Only partner-event id shapes are probed (backend mints `pe_…`, seeds use
+    // `evt_…`); a slug like `festival-x` skips the round trip.
     const isPartnerEvent = async (): Promise<boolean> => {
+      if (!PARTNER_EVENT_ID.test(String(id))) return false;
       try {
-        const res = await fetchT(`${ASSET_ORIGIN}/data/partner-events/${encodeURIComponent(String(id))}.json`);
-        if (!res.ok) return false;
-        const row: unknown = await res.json();
+        const row: unknown = await api.get(`/partner-events/${encodeURIComponent(String(id))}`);
         return !!row && typeof row === 'object' && !Array.isArray(row) && !!(row as { partner_id?: string }).partner_id;
       } catch {
-        return false; // not a partner event (404, SPA rewrite HTML, offline) → city event
+        return false; // 404 live + no bundled row (or offline) → city event
       }
     };
     const load = async () => {
@@ -97,9 +106,9 @@ export default function EventDetail() {
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, paddingHorizontal: 32 }}>
           <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
           <Text style={{ color: COLORS.textMuted, fontSize: 16, textAlign: 'center' }}>{tr('Evento no encontrado')}</Text>
-          {/* navigate (not replace) keeps the tab navigator mounted — replace tore
-              it down and every tab re-entered its loading state. */}
-          <TouchableOpacity onPress={() => { if (router.canGoBack()) router.back(); else router.navigate('/(tabs)' as any); }} style={{ marginTop: 8, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 20, backgroundColor: COLORS.primary }}>
+          {/* goBackOr pops, or reveals the live tabs (never replace — replace tore
+              the tab navigator down and every tab re-entered its loading state). */}
+          <TouchableOpacity onPress={() => goBackOr(router)} style={{ marginTop: 8, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 20, backgroundColor: COLORS.primary }}>
             <Text style={{ color: COLORS.white, fontWeight: '600' }}>{tr('Volver')}</Text>
           </TouchableOpacity>
         </View>
@@ -129,7 +138,7 @@ export default function EventDetail() {
             pointerEvents="none"
           />
           <View style={styles.heroNav}>
-            <TouchableOpacity testID="event-back-btn" style={styles.navBtn} onPress={() => router.back()}>
+            <TouchableOpacity testID="event-back-btn" style={styles.navBtn} onPress={() => goBackOr(router)}>
               <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
             </TouchableOpacity>
             <View style={styles.heroNavRight}>

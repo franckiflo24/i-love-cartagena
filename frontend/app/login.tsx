@@ -18,6 +18,10 @@ import { Lang, LANG_FLAGS } from '../src/i18n/translations';
 import { useTr } from '@/src/i18n/autoTr';
 import { safeNext } from '../src/lib/safeNext';
 
+// Bundled lockup geometry (assets/images/amo-life-logo.png is 900×345). Shared
+// value with onboarding.tsx — keep the two in lockstep.
+const LOGO_AR = 900 / 345;
+
 const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
 
 // Sign in with Apple is NOT implemented — no `expo-apple-authentication`, no
@@ -261,13 +265,19 @@ export default function LoginScreen() {
         {/* Logo / hero area */}
         <View style={styles.logoArea}>
           {/* Official AMO Life lockup (incl. "El mundo en tu mano"). Bundled asset —
-              plain Image is right here: SafeImage's fallback chain is for remote URIs. */}
-          <Image
-            source={require('../assets/images/amo-life-logo.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
-            accessibilityLabel={`AMO Life — ${s('login_welcome')}`}
-          />
+              plain Image is right here: SafeImage's fallback chain is for remote URIs.
+              Sized through a WRAPPER (percent width + aspectRatio) with the Image at
+              100%/100%, exactly like onboarding.tsx: the 900×345 asset has no @2x, so
+              `aspectRatio` alone on the Image never overrides its intrinsic 345 dp
+              height and Yoga recomputes the width to 900 dp (the cropped lockup). */}
+          <View style={styles.logoBox} testID="login-logo">
+            <Image
+              source={require('../assets/images/amo-life-logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+              accessibilityLabel={`AMO Life — ${s('login_welcome')}`}
+            />
+          </View>
         </View>
 
         {/* Auth area - well organized */}
@@ -545,8 +555,11 @@ const styles = StyleSheet.create({
   langCode: { fontSize: 11, color: 'rgba(255,255,255,0.7)', ...FONTS.bold, letterSpacing: 0.4 },
   langCodeActive: { color: COLORS.white },
 
-  logoArea: { alignItems: 'center', marginTop: SPACING.lg },
-  logoImage: { width: '86%', maxWidth: 380, aspectRatio: 900 / 345 },
+  logoArea: { alignItems: 'center', alignSelf: 'stretch', marginTop: SPACING.lg },
+  // Same geometry as onboarding.tsx step 1 (60% of the stage, ≤234 px, height from
+  // aspectRatio) so the lockup reads identically on both arrival screens.
+  logoBox: { width: '60%', maxWidth: 234, aspectRatio: LOGO_AR, alignSelf: 'center' },
+  logoImage: { width: '100%', height: '100%' },
   logoHeart: { fontSize: 40, marginVertical: SPACING.xs },
   logoMain: { fontSize: 38, letterSpacing: 2, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.xs },
   divider: { width: 60, height: 2, backgroundColor: COLORS.primary, marginTop: SPACING.md, borderRadius: 1 },

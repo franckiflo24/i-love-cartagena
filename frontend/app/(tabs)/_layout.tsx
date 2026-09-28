@@ -44,9 +44,20 @@ export default function TabLayout() {
             backgroundColor: COLORS.background,
             borderTopColor: COLORS.border,
             borderTopWidth: 1,
-            paddingBottom: Math.max(insets.bottom, 8),
-            paddingTop: 8,
+            // 4/4 (was 8/8): the bar keeps its 56 + inset height, but the item
+            // area inside it grows from 40 px to 48 px so every tab is a ≥ 44 px
+            // target (items measured 65×39 before). The inset side keeps the
+            // real home-indicator inset.
+            paddingBottom: Math.max(insets.bottom, 4),
+            paddingTop: 4,
             height: 56 + insets.bottom,
+          },
+          // Each tab item is at least 44 px tall and centres its icon + label
+          // in that area (bottom-tabs' default is flex-start with 5 px padding).
+          tabBarItemStyle: {
+            minHeight: 44,
+            justifyContent: 'center',
+            paddingVertical: 0,
           },
           tabBarLabelStyle: {
             fontSize: 10,

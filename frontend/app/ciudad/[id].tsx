@@ -18,6 +18,7 @@ import {
 } from '../../src/components/CityModuleUI';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
+import { goHome as navHome, goBackOr } from '../../src/lib/nav';
 import {
   CityModulesPayload, CityLink, LINK_ICONS, getCachedCityModules, loadCityModules,
   openExternal, pickL, sortLinksByPriority,
@@ -98,11 +99,10 @@ export default function CiudadDetailScreen() {
   const toggleSafety = useCallback(() => setAllSafety((v) => !v), []);
   const toggleFuture = useCallback(() => setFutureOpen((v) => !v), []);
 
-  const goBack = useCallback(() => {
-    if (router.canGoBack()) router.back();
-    else router.replace('/ciudad' as any);
-  }, [router]);
-  const goHome = useCallback(() => router.replace('/(tabs)' as any), [router]);
+  const goBack = useCallback(() => goBackOr(router, '/ciudad'), [router]);
+  // navHome (dismiss + navigate) reveals the live tab navigator; replace('/(tabs)')
+  // rebuilt it and Home came back as a skeleton.
+  const goHome = useCallback(() => navHome(router), [router]);
   const goHub = useCallback(() => router.replace('/ciudad' as any), [router]);
 
   // ── All hooks are above this line. ──────────────────────────────────────

@@ -38,6 +38,7 @@ import { useTr } from '../../src/i18n/autoTr';
 import { useAuth } from '../../src/context/AuthContext';
 import { venueWhatsApp } from '../../src/lib/whatsapp';
 import { bogotaDatePlus } from '../../src/lib/eventTime';
+import { goHome, goBackOr } from '../../src/lib/nav';
 
 type Partner = {
   partner_id: string;
@@ -473,15 +474,17 @@ export default function ReservationNew() {
             ) : null}
             <TouchableOpacity
               style={styles.successDismissBtn}
-              onPress={() => router.back()}
+              onPress={() => goBackOr(router, partnerId ? `/partner/${partnerId}` : '/(tabs)')}
               activeOpacity={0.85}
             >
               <Ionicons name="arrow-back" size={16} color={COLORS.black} />
               <Text style={styles.successDismissBtnText}>{tr('Volver al lugar')}</Text>
             </TouchableOpacity>
+            {/* goHome (dismiss + navigate) reveals the live tabs; replace('/(tabs)')
+                rebuilt the tab navigator and Home came back as a skeleton. */}
             <TouchableOpacity
               style={styles.successHomeBtn}
-              onPress={() => router.replace('/(tabs)')}
+              onPress={() => goHome(router)}
               activeOpacity={0.85}
             >
               <Text style={styles.successHomeBtnText}>{tr('Ir al inicio')}</Text>

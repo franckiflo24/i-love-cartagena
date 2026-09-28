@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
-  Dimensions, Platform, ScrollView, Linking,
+  Dimensions, Platform, ScrollView, Linking, Pressable,
 } from 'react-native';
 import { Alert } from '../../src/lib/alert';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { COLORS, SPACING, RADIUS, FONTS, colorForKey } from '../../src/constants/theme';
 import { api , ASSET_ORIGIN} from '../../src/constants/api';
 import { eventPriceLabel } from '../../src/utils/price';
@@ -60,6 +60,83 @@ const TILE_SAT = {
   url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
   maxNativeZoom: 18,
 };
+
+// Leaflet + Leaflet.markercluster, pinned. Both render paths (inline WebView
+// document on native, DOM on web) load the SAME URLs so a CDN block behaves
+// identically everywhere: no cluster plugin ⇒ plain layerGroup, never a blank map.
+const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+const MC_CSS = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css';
+const MC_JS = 'https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
+
+// Clustering: 869 pins at city zoom painted as one solid blob over Centro /
+// Getsemaní / Bocagrande. Clusters collapse them into teal count discs that
+// zoom-to-bounds on tap and spiderfy at street level. Precision halos (verified
+// pins) only draw from HALO_MIN_ZOOM — a bare dashed ring under a cluster disc
+// reads as noise.
+const CLUSTER_RADIUS = 52;
+const CLUSTER_OFF_ZOOM = 17;
+const HALO_MIN_ZOOM = 16;
+type ClusterTier = { max: number; size: number; cls: string };
+const CLUSTER_TIERS: ClusterTier[] = [
+  { max: 10, size: 34, cls: 'sm' },
+  { max: 100, size: 40, cls: 'md' },
+  { max: Infinity, size: 48, cls: 'lg' },
+];
+function clusterTier(n: number): ClusterTier {
+  return CLUSTER_TIERS.find(t => n < t.max) || CLUSTER_TIERS[CLUSTER_TIERS.length - 1];
+}
+// Cluster disc: theme teal, white hairline, soft teal glow ring. `marker-cluster`
+// is kept on the class list so the plugin's own selectors (and QA counts) match.
+const CLUSTER_CSS = ''
+  + '.amo-cluster { display: flex; align-items: center; justify-content: center; border-radius: 50%; '
+  + 'background: rgba(18,181,165,0.94); color: #fff; border: 2px solid rgba(255,255,255,0.92); '
+  + 'box-shadow: 0 0 0 6px rgba(18,181,165,0.22), 0 6px 16px rgba(0,0,0,0.45); '
+  + 'font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-weight: 800; letter-spacing: -0.2px; }'
+  + '.amo-cluster span { line-height: 1; }'
+  + '.amo-cluster-sm { font-size: 12px; }'
+  + '.amo-cluster-md { font-size: 13px; }'
+  + '.amo-cluster-lg { font-size: 14px; box-shadow: 0 0 0 8px rgba(18,181,165,0.18), 0 6px 18px rgba(0,0,0,0.5); }'
+  + '.leaflet-cluster-spider-leg { stroke: #12B5A5; }';
+// Options as source text for the inline WebView document (CLUSTER_TIERS is
+// serialized so the native icon sizing matches the web path exactly).
+const CLUSTER_OPTS_JS = '{'
+  + 'maxClusterRadius: ' + CLUSTER_RADIUS + ', spiderfyOnMaxZoom: true, showCoverageOnHover: false, '
+  + 'disableClusteringAtZoom: ' + CLUSTER_OFF_ZOOM + ', zoomToBoundsOnClick: true, removeOutsideVisibleBounds: true, '
+  + 'spiderLegPolylineOptions: { weight: 1.5, color: "#12B5A5", opacity: 0.6 }, '
+  + 'iconCreateFunction: function (c) { var n = c.getChildCount(); var T = ' + JSON.stringify(CLUSTER_TIERS.map(t => ({ max: t.max === Infinity ? null : t.max, size: t.size, cls: t.cls }))) + '; '
+  + 'var t = T[T.length - 1]; for (var i = 0; i < T.length; i++) { if (T[i].max === null || n < T[i].max) { t = T[i]; break; } } '
+  + 'return L.divIcon({ html: "<span>" + n + "</span>", className: "marker-cluster amo-cluster amo-cluster-" + t.cls, iconSize: [t.size, t.size] }); }'
+  + '}';
+// Same options for the DOM path.
+function clusterOptions(L: any) {
+  return {
+    maxClusterRadius: CLUSTER_RADIUS,
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    disableClusteringAtZoom: CLUSTER_OFF_ZOOM,
+    zoomToBoundsOnClick: true,
+    removeOutsideVisibleBounds: true,
+    spiderLegPolylineOptions: { weight: 1.5, color: '#12B5A5', opacity: 0.6 },
+    iconCreateFunction: (c: any) => {
+      const n: number = c.getChildCount();
+      const t = clusterTier(n);
+      return L.divIcon({ html: `<span>${n}</span>`, className: `marker-cluster amo-cluster amo-cluster-${t.cls}`, iconSize: [t.size, t.size] });
+    },
+  };
+}
+
+// Tourist-zone shading (soft, labeled, never a safety claim). Off by default —
+// exposed as a toggle in the ⋯ sheet on both platforms.
+const ZONES: Array<[string, [number, number], [number, number]]> = [
+  ['Centro Histórico', [10.418, -75.555], [10.435, -75.535]],
+  ['Bocagrande', [10.395, -75.560], [10.415, -75.545]],
+  ['Getsemaní', [10.410, -75.545], [10.420, -75.530]],
+  ['Castillogrande', [10.390, -75.560], [10.405, -75.555]],
+  ['Manga', [10.405, -75.535], [10.420, -75.525]],
+];
+const ZONE_RECT_OPTS = { color: COLORS.icon, weight: 1, opacity: 0.35, fillColor: COLORS.icon, fillOpacity: 0.05, interactive: false };
+const ZONE_LEGEND_CSS = 'background:rgba(5,8,20,0.85);color:' + COLORS.icon + ';font:600 10px sans-serif;padding:4px 8px;border-radius:10px;border:1px solid rgba(174,182,196,0.4)';
 
 const FILTERS = [
   { key: 'all', label: 'Todos', icon: 'grid', color: '#12B5A5' },
@@ -216,7 +293,7 @@ function orderRutaStops(origin: { lat: number; lng: number }, stops: RutaStop[])
   return out;
 }
 
-function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null, satellite: boolean, autoTour: boolean, autoWalk: boolean, route: { origin: { lat: number; lng: number } | null; stops: RutaStop[] } | null, tr: (es: string) => string) {
+function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null, satellite: boolean, autoTour: boolean, autoWalk: boolean, route: { origin: { lat: number; lng: number } | null; stops: RutaStop[] } | null, zones: boolean, tr: (es: string) => string) {
   const filtered = filter === 'all' ? places
     : filter === 'esenciales' ? places.filter(p => p.type === 'service' || p.type === 'essential')
     : places.filter(p => p.category === filter);
@@ -263,14 +340,34 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
       + '</div>'
       + '</div>';
 
-    // Verified pins: precision halo ring underneath + slightly heavier marker.
+    // Verified pins: precision halo ring (zoom-gated layer) + slightly heavier marker.
     const halo = isVerified
-      ? "L.circleMarker([" + p.lat + ", " + p.lng + "], {radius: 16, fill: false, color: '#12B5A5', weight: 1.5, dashArray: '2 4', opacity: 0.9, interactive: false}).addTo(map);\n"
+      ? "L.circleMarker([" + p.lat + ", " + p.lng + "], {radius: 16, fill: false, color: '#12B5A5', weight: 1.5, dashArray: '2 4', opacity: 0.9, interactive: false}).addTo(haloLayer);\n"
       : '';
     return halo + "L.circleMarker([" + p.lat + ", " + p.lng + "], {"
       + "radius: " + (isVerified ? 11 : 10) + ", fillColor: '" + color + "', color: '#fff', weight: " + (isVerified ? 3 : 2) + ", opacity: 1, fillOpacity: 0.9"
-      + "}).addTo(map).bindPopup(" + jsString(popupContent) + ", {maxWidth: 260});";
+      + "}).addTo(venueLayer).bindPopup(" + jsString(popupContent) + ", {maxWidth: 260});";
   }).join('\n');
+
+  // Venue pins go into a cluster group when the plugin loaded (script tag
+  // failed/blocked ⇒ plain layerGroup: the unclustered map of before, never a
+  // blank one). Pins are added BEFORE the group joins the map so 869 adds are
+  // one clustering pass. User dot, tour/walk/ruta layers stay outside.
+  const layersDecl = 'var venueLayer = (typeof L.markerClusterGroup === "function") ? L.markerClusterGroup(' + CLUSTER_OPTS_JS + ') : L.layerGroup();\n'
+    + 'var haloLayer = L.layerGroup();\n';
+  const layersMount = '\nvenueLayer.addTo(map);\n'
+    + 'function __amoSyncHalos() { var on = map.getZoom() >= ' + HALO_MIN_ZOOM + '; if (on && !map.hasLayer(haloLayer)) haloLayer.addTo(map); else if (!on && map.hasLayer(haloLayer)) map.removeLayer(haloLayer); }\n'
+    + 'map.on("zoomend", __amoSyncHalos); __amoSyncHalos();\n';
+
+  // Tourist-zone shading + legend (⋯ sheet toggle). Legend sits under the zoom
+  // control (top-left) — bottom-left is Luna's FAB on this screen.
+  const zonesJs = zones
+    ? 'var ZONES = ' + JSON.stringify(ZONES) + ';'
+      + 'ZONES.forEach(function (z) { L.rectangle([z[1], z[2]], ' + JSON.stringify(ZONE_RECT_OPTS) + ').addTo(map); });'
+      + 'var __amoLegend = L.control({ position: "topleft" });'
+      + '__amoLegend.onAdd = function () { var d = document.createElement("div"); d.style.cssText = ' + jsString(ZONE_LEGEND_CSS) + '; d.textContent = ' + jsString(tr('Zonas turísticas principales')) + '; return d; };'
+      + '__amoLegend.addTo(map);'
+    : '';
 
   // User location: pulsing blue dot — only recenter if INSIDE Cartagena
   const userMarker = userLoc ? `
@@ -289,8 +386,12 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
 
   return '<!DOCTYPE html><html><head>'
     + '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">'
-    + '<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />'
-    + '<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>'
+    + '<link rel="stylesheet" href="' + LEAFLET_CSS + '" />'
+    + '<script src="' + LEAFLET_JS + '"><\/script>'
+    // Marker clustering — loaded exactly like Leaflet itself; a failed tag
+    // leaves L.markerClusterGroup undefined and the pins render unclustered.
+    + '<link rel="stylesheet" href="' + MC_CSS + '" />'
+    + '<script src="' + MC_JS + '"><\/script>'
     // Street router for the virtual walk — the WebView document is generated
     // inline, so it loads the shared router from the production origin. If it
     // fails (offline), window.AmoWalkRouter stays undefined and every leg
@@ -311,13 +412,17 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '.pulse-ring { position: absolute; top: 0; left: 0; width: 22px; height: 22px; border-radius: 50%; background: rgba(37,99,235,0.25); animation: pulse 1.6s ease-out infinite; z-index: 1; }'
     + '@keyframes pulse { 0% { transform: scale(0.6); opacity: 1; } 100% { transform: scale(2.4); opacity: 0; } }'
     + '.dark-tiles { filter: invert(1) hue-rotate(180deg) brightness(0.7) saturate(1.5) contrast(1.1); }'
+    + CLUSTER_CSS
     + '</style>'
     + '</head><body>'
     + '<div id="map"></div>'
     + '<script>'
     + 'var map = L.map("map", {zoomControl: true, attributionControl: false, zoomSnap: ' + (autoTour ? 0 : 1) + '}).setView([10.4236, -75.5483], 13);'
     + 'L.tileLayer("' + (satellite ? TILE_SAT.url : TILE_DARK.url) + '", {maxNativeZoom: ' + (satellite ? TILE_SAT.maxNativeZoom : TILE_DARK.maxNativeZoom) + ', maxZoom: 19, attribution: "Esri"}).addTo(map);'
+    + layersDecl
     + markers
+    + layersMount
+    + zonesJs
     + userMarker
     // Atlas fly-through: chained flyTo over the exported camera route.
     + 'var TOUR = ' + JSON.stringify(ATLAS_ROUTE) + ';'
@@ -450,9 +555,9 @@ function detectZone(lat: number, lng: number): string {
  * are cheap and the map never flickers. Popups show real-time "a Xm de ti"
  * computed at open time from the latest position.
  */
-function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite, tourActive, onTourEnd, walkActive, onWalkEnd, onNavigate, ruta, onRutaSummary, onCaminarTap }: {
+function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite, zones, tourActive, onTourEnd, walkActive, onWalkEnd, onNavigate, ruta, onRutaSummary, onCaminarTap }: {
   places: Place[]; filter: string; passportIds: Set<string>;
-  userLoc: { lat: number; lng: number } | null; follow: boolean; satellite: boolean;
+  userLoc: { lat: number; lng: number } | null; follow: boolean; satellite: boolean; zones: boolean;
   tourActive: boolean; onTourEnd: () => void;
   walkActive: boolean; onWalkEnd: () => void;
   onNavigate: (path: string) => void;
@@ -463,6 +568,9 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
   const mapRef = useRef<HTMLDivElement | null>(null);
   const leafletRef = useRef<any>(null);
   const markerLayerRef = useRef<any>(null);
+  const haloLayerRef = useRef<any>(null);
+  const zonesLayerRef = useRef<any>(null);
+  const zonesLegendRef = useRef<any>(null);
   const baseLayerRef = useRef<any>(null);
   const userMarkerRef = useRef<any>(null);
   const userPosRef = useRef<{ lat: number; lng: number } | null>(null);
@@ -512,16 +620,37 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
   const [mapReady, setMapReady] = useState(false);
   const tr = useTr();
 
+  // Verified-pin halos only from street zoom (see HALO_MIN_ZOOM).
+  const syncHalos = () => {
+    const map = leafletRef.current;
+    const halos = haloLayerRef.current;
+    if (!map || !halos) return;
+    const on = map.getZoom() >= HALO_MIN_ZOOM;
+    if (on && !map.hasLayer(halos)) halos.addTo(map);
+    else if (!on && map.hasLayer(halos)) map.removeLayer(halos);
+  };
+
   // ── Map bootstrap: once (re-run on manual retry) ──
   useEffect(() => {
     if (typeof window === 'undefined' || !mapRef.current) return;
     setLoadFailed(false);
-    if (!document.querySelector('link[href*="leaflet"]')) {
+    const addCss = (href: string) => {
+      if (document.querySelector(`link[href="${href}"]`)) return;
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      link.href = href;
       document.head.appendChild(link);
-    }
+    };
+    // Always a fresh tag: a dead one from an earlier failed attempt never
+    // re-fires its listeners.
+    const loadScript = (src: string, done: (ok: boolean) => void) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = () => done(true);
+      script.onerror = () => done(false);
+      document.head.appendChild(script);
+    };
+    addCss(LEAFLET_CSS);
     const init = () => {
       const L = (window as any).L;
       if (!L || !mapRef.current || leafletRef.current) return;
@@ -580,52 +709,83 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
           .leaflet-control-zoom a { background: ${COLORS.surface} !important; color: ${COLORS.icon} !important; border: 1px solid ${COLORS.surfaceAlt} !important; font-weight: 700; }
           .leaflet-control-attribution { background: rgba(5,8,20,0.55) !important; color: ${COLORS.textFaint} !important; font-size: 9px !important; padding: 1px 5px !important; }
           .leaflet-control-attribution a { color: ${COLORS.textMuted} !important; }
+          ${CLUSTER_CSS}
         `;
         document.head.appendChild(style);
       }
-      // Drop 7E: tourist-zone shading — soft, labeled, never a safety claim.
-      const ZONES: Array<[string, [number, number], [number, number]]> = [
-        ['Centro Histórico', [10.418, -75.555], [10.435, -75.535]],
-        ['Bocagrande', [10.395, -75.560], [10.415, -75.545]],
-        ['Getsemaní', [10.410, -75.545], [10.420, -75.530]],
-        ['Castillogrande', [10.390, -75.560], [10.405, -75.555]],
-        ['Manga', [10.405, -75.535], [10.420, -75.525]],
-      ];
-      ZONES.forEach(([name, sw, ne]) => {
-        L.rectangle([sw, ne] as any, { color: COLORS.icon, weight: 1, opacity: 0.35, fillColor: COLORS.icon, fillOpacity: 0.05, interactive: false }).addTo(map);
-      });
-      const legend = (L as any).control({ position: 'bottomleft' });
-      legend.onAdd = () => {
-        const div = document.createElement('div');
-        div.style.cssText = 'background:rgba(5,8,20,0.85);color:' + COLORS.icon + ';font:600 10px sans-serif;padding:4px 8px;border-radius:10px;border:1px solid rgba(174,182,196,0.4)';
-        div.textContent = 'Zonas turísticas principales';
-        return div;
-      };
-      legend.addTo(map);
+      map.on('zoomend', syncHalos);
 
       renderMarkers();
       renderUser();
       setMapReady(true);
     };
-    if ((window as any).L) init();
-    else {
-      const script = document.createElement('script');
-      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-      script.onload = init;
-      script.onerror = () => setLoadFailed(true);
-      document.head.appendChild(script);
-    }
+    // Leaflet, then the cluster plugin (needs window.L). The plugin failing
+    // is NOT fatal: init runs anyway and renderMarkers falls back to a plain
+    // layerGroup. Only Leaflet itself failing shows the retry overlay.
+    const withCluster = () => {
+      const L = (window as any).L;
+      if (L && typeof L.markerClusterGroup === 'function') { init(); return; }
+      addCss(MC_CSS);
+      loadScript(MC_JS, () => init());
+    };
+    if ((window as any).L) withCluster();
+    else loadScript(LEAFLET_JS, (ok) => { if (ok) withCluster(); else setLoadFailed(true); });
     return () => {
       if (leafletRef.current) {
         leafletRef.current.remove();
         leafletRef.current = null;
         markerLayerRef.current = null;
+        haloLayerRef.current = null;
+        zonesLayerRef.current = null;
+        zonesLegendRef.current = null;
         baseLayerRef.current = null;
         userMarkerRef.current = null;
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retryTick]);
+
+  // ── Tourist zones: soft shading + legend, toggled from the ⋯ sheet ──
+  useEffect(() => {
+    const L = (window as any).L;
+    const map = leafletRef.current;
+    if (!L || !map) return;
+    if (zonesLayerRef.current) {
+      map.removeLayer(zonesLayerRef.current);
+      zonesLayerRef.current = null;
+    }
+    if (zonesLegendRef.current) {
+      zonesLegendRef.current.remove();
+      zonesLegendRef.current = null;
+    }
+    if (!zones) return;
+    const layer = L.layerGroup();
+    ZONES.forEach(([, sw, ne]) => {
+      L.rectangle([sw, ne] as any, ZONE_RECT_OPTS).addTo(layer);
+    });
+    layer.addTo(map);
+    zonesLayerRef.current = layer;
+    // Legend stacks under the zoom control — bottom-left is Luna's FAB here.
+    const legend = (L as any).control({ position: 'topleft' });
+    legend.onAdd = () => {
+      const div = document.createElement('div');
+      div.style.cssText = ZONE_LEGEND_CSS;
+      div.textContent = tr('Zonas turísticas principales');
+      return div;
+    };
+    legend.addTo(map);
+    zonesLegendRef.current = legend;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zones, mapReady]);
+
+  // ── Follow-me turned on: snap to the user now (ticks keep panning after) ──
+  useEffect(() => {
+    const map = leafletRef.current;
+    const pos = userPosRef.current;
+    if (!follow || !map || !pos || tourActiveRef.current || walkActiveRef.current) return;
+    if (isInCartagena(pos.lat, pos.lng)) map.panTo([pos.lat, pos.lng], { animate: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [follow]);
 
   // ── Basemap: swap in place on satellite toggle ──
   // Skips its first run per mount: init() already lays the base layer, and a
@@ -865,7 +1025,17 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
       map.removeLayer(markerLayerRef.current);
       markerLayerRef.current = null;
     }
-    const layer = L.layerGroup();
+    if (haloLayerRef.current) {
+      if (map.hasLayer(haloLayerRef.current)) map.removeLayer(haloLayerRef.current);
+      haloLayerRef.current = null;
+    }
+    // Cluster group when the plugin is present, plain group otherwise (same
+    // unclustered map as before — never blank). Markers are collected and
+    // added in one batch so the group clusters once, not 869 times.
+    const clustered = typeof L.markerClusterGroup === 'function';
+    const layer = clustered ? L.markerClusterGroup(clusterOptions(L)) : L.layerGroup();
+    const halos = L.layerGroup();
+    const pins: any[] = [];
     const filtered = filter === 'all' ? places
       : filter === 'pasaporte' ? places.filter(p => passportIds.has(p.id))
       : filter === 'esenciales' ? places.filter(p => p.type === 'service' || p.type === 'essential')
@@ -905,21 +1075,26 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
         </div>
       </div>`;
       if (isVerified) {
-        // Precision halo under atlas-verified pins.
+        // Precision halo under atlas-verified pins (zoom-gated layer — a
+        // clustered halo would count as a pin and paint as a stray ring).
         L.circleMarker([p.lat, p.lng], {
           radius: 16, fill: false, color: '#12B5A5', weight: 1.5,
           dashArray: '2 4', opacity: 0.9, interactive: false,
-        }).addTo(layer);
+        }).addTo(halos);
       }
-      L.circleMarker([p.lat, p.lng], {
+      pins.push(L.circleMarker([p.lat, p.lng], {
         radius: isPassport || isVerified ? 11 : 10,
         fillColor: color,
         color: isPassport ? '#7a5c00' : '#fff',
         weight: isVerified ? 3 : 2, opacity: 1, fillOpacity: 0.92,
-      }).addTo(layer).bindPopup(popup, { maxWidth: 260 });
+      }).bindPopup(popup, { maxWidth: 260 }));
     });
+    if (clustered) layer.addLayers(pins);
+    else pins.forEach(m => m.addTo(layer));
     layer.addTo(map);
     markerLayerRef.current = layer;
+    haloLayerRef.current = halos;
+    syncHalos();
   };
   useEffect(() => {
     renderMarkers();
@@ -1011,6 +1186,10 @@ export default function MapaScreen() {
   const [nbhFilter, setNbhFilter] = useState<string | null>(null); // null = all barrios
   const [baseSheet, setBaseSheet] = useState(false);
   const [hasBase, setHasBase] = useState(false);
+  // ⋯ sheet (filters, barrios, Mi Base, zones) — the right column keeps only
+  // three primary FABs. Zone shading is opt-in from that sheet.
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [zones, setZones] = useState(false);
   // ── CAMINAR: curated + custom walking routes over real streets ──
   const [caminarOpen, setCaminarOpen] = useState(false);
   const [building, setBuilding] = useState(false); // custom-ruta stop picking
@@ -1102,6 +1281,35 @@ export default function MapaScreen() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userLoc, ruta, nextStopIdx]);
+
+  // ── `?walk=1` / `?walk=virtual` (Pasaporte's "Paseo virtual" CTA) ──
+  // Auto-starts the virtual walk ONCE per arrival. The map itself waits: on web
+  // the walk effect re-fires on mapReady, on native the document boots with
+  // autoWalk — so setting state here is safe even while places still load.
+  // The param is cleared right after so a tab re-focus does not restart it.
+  const { walk: walkParam } = useLocalSearchParams<{ walk?: string }>();
+  const walkParamRef = useRef<string | null>(null);
+  useEffect(() => {
+    const wanted = walkParam === '1' || walkParam === 'virtual';
+    if (!wanted) { walkParamRef.current = null; return; }
+    if (walkParamRef.current === walkParam) return;
+    walkParamRef.current = walkParam;
+    // Mutual exclusion with tour / ruta — inline (stopRuta lives below the
+    // loading early-return and is not initialized on a loading render).
+    setTour(false);
+    setRuta(null);
+    setRutaSummary(null);
+    setNextStopIdx(0);
+    setBuilding(false);
+    setBuildStops([]);
+    setCaminarOpen(false);
+    setMoreOpen(false);
+    if (Platform.OS !== 'web') webViewRef.current?.injectJavaScript('window.__amoRouteStop && window.__amoRouteStop(); true;');
+    setSatellite(true);
+    setWalk(true);
+    router.setParams({ walk: undefined as any });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [walkParam]);
 
   // Request location permission and track ping → backend analytics
   const requestLocation = async () => {
@@ -1317,8 +1525,44 @@ export default function MapaScreen() {
     }
     setWalk(false); // tour, virtual walk and caminar rutas are mutually exclusive
     stopRuta();
+    setCaminarOpen(false);
     setSatellite(true);
     setTour(true);
+  };
+
+  // Virtual walk from the Caminar sheet — a camera demo, available from
+  // anywhere (real passport stamps stay behind the server's GPS gate).
+  const startVirtualWalk = () => {
+    setTour(false);
+    stopRuta();
+    setCaminarOpen(false);
+    setSatellite(true);
+    setWalk(true);
+  };
+
+  // One stop for whatever experience owns the camera (tour / walk / ruta).
+  const experienceActive = tour || walk || !!ruta || building;
+  const stopExperience = () => {
+    if (tour) {
+      setTour(false);
+      if (Platform.OS !== 'web') webViewRef.current?.injectJavaScript('window.__amoTourStop && window.__amoTourStop(); true;');
+    }
+    if (walk) {
+      setWalk(false);
+      if (Platform.OS !== 'web') webViewRef.current?.injectJavaScript('window.__amoWalkStop && window.__amoWalkStop(); true;');
+    }
+    if (ruta || building) stopRuta();
+  };
+
+  // Locate FAB: no permission yet → ask; granted → toggle follow-me (in-city
+  // only pans; the toggle itself is honest either way — the dot is what it is).
+  const canFollow = !!userLoc && isInCartagena(userLoc.lat, userLoc.lng);
+  const following = follow && canFollow;
+  const onLocatePress = () => {
+    if (locStatus !== 'granted') { requestLocation(); return; }
+    const next = !follow;
+    setFollow(next);
+    if (next && userLoc && Platform.OS !== 'web') moveNativeUser(userLoc, canFollow);
   };
 
   // ── CAMINAR handlers ──
@@ -1383,41 +1627,23 @@ export default function MapaScreen() {
     setBuilding(true);
   };
 
-  // 🚶 button: in Cartagena = real follow-me; outside (or without location) the
-  // real walking layer is honestly gated — offer the virtual stroll instead of
-  // failing silently (the recurring "walking doesn't work" report from afar).
-  const onWalkPress = () => {
-    const canRealWalk = !!userLoc && isInCartagena(userLoc.lat, userLoc.lng);
-    if (canRealWalk) {
-      setFollow(f => !f);
-      return;
-    }
-    if (walk) {
-      setWalk(false);
-      if (Platform.OS !== 'web') webViewRef.current?.injectJavaScript('window.__amoWalkStop && window.__amoWalkStop(); true;');
-      return;
-    }
-    const kmAway = userLoc ? Math.round(haversineM(userLoc.lat, userLoc.lng, CTG_CENTER.lat, CTG_CENTER.lng) / 1000) : null;
-    Alert.alert(
-      tr('Modo paseo'),
-      (kmAway
-        ? `${tr('Estás a')} ${kmAway.toLocaleString()} km ${tr('de Cartagena — el seguimiento en vivo se activa al llegar a la ciudad.')}`
-        : tr('Sin tu ubicación, el seguimiento en vivo no puede activarse.'))
-        + ' ' + tr('¿Quieres un paseo virtual por el Centro Histórico?'),
-      [
-        { text: tr('Ahora no'), style: 'cancel' },
-        {
-          text: tr('Iniciar paseo'),
-          onPress: () => {
-            setTour(false);
-            stopRuta();
-            setSatellite(true);
-            setWalk(true);
-          },
-        },
-      ],
-    );
-  };
+  // Honest remote context on the virtual-walk card: from afar, the walk is a
+  // camera demo — say how far, never pretend the user is in the Centro.
+  const kmAway = userLoc && !canFollow ? Math.round(haversineM(userLoc.lat, userLoc.lng, CTG_CENTER.lat, CTG_CENTER.lng) / 1000) : null;
+  const walkCardSub = kmAway
+    ? `${tr('Estás a')} ${kmAway.toLocaleString()} km · ${tr('recorre el Centro desde aquí')}`
+    : tr('Un paseo guiado por calles reales del Centro Histórico');
+
+  // Active filters → one dismissible pill over the map (top-right, clear of
+  // Leaflet's zoom control); the full chip sets live in the ⋯ sheet.
+  const activeFilter = FILTERS.find(f => f.key === filter && f.key !== 'all') || null;
+  const filterPillLabel = [activeFilter ? tr(activeFilter.label) : '', nbhFilter ? (NBH_LABELS[nbhFilter] || nbhFilter) : ''].filter(Boolean).join(' · ');
+  // Pins actually on the map = category count within the barrio-filtered set.
+  const filterPillCount = counts[filter as keyof typeof counts] ?? counts.all;
+  const filtersActive = !!activeFilter || !!nbhFilter;
+  const clearFilters = () => { setFilter('all'); setNbhFilter(null); };
+  const openMore = () => { setCaminarOpen(false); setMoreOpen(o => !o); };
+  const openCaminar = () => { setMoreOpen(false); setCaminarOpen(o => !o); };
 
   // Native: the WebView document auto-runs the tour/walk/ruta when rebuilt with
   // the flag on (the key below includes all flags, so toggling rebuilds the
@@ -1425,71 +1651,18 @@ export default function MapaScreen() {
   const rutaPayload = ruta
     ? { origin: ruta.origin ? { lat: ruta.origin.lat, lng: ruta.origin.lng } : null, stops: ruta.stops }
     : null;
-  const html = buildMapHTML(visiblePlaces, filter, bakedLoc, satellite, tour, walk, rutaPayload, tr);
+  const html = buildMapHTML(visiblePlaces, filter, bakedLoc, satellite, tour, walk, rutaPayload, zones, tr);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Filter Bar */}
-      <View style={styles.filterBar}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-          {FILTERS.map(f => {
-            const isActive = filter === f.key;
-            const count = counts[f.key as keyof typeof counts] || 0;
-            return (
-              <TouchableOpacity
-                key={f.key}
-                style={[styles.chip, isActive && { backgroundColor: `${f.color}20`, borderColor: f.color }]}
-                onPress={() => setFilter(f.key)}
-              >
-                <Ionicons name={f.icon as any} size={14} color={isActive ? f.color : COLORS.textMuted} />
-                <Text style={[styles.chipText, isActive && { color: f.color }]}>{tr(f.label)}</Text>
-                <View style={[styles.chipCount, isActive && { backgroundColor: `${f.color}30` }]}>
-                  <Text style={[styles.chipCountText, isActive && { color: f.color }]}>{count}</Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </View>
-
-      {/* Barrio filter — find everything in Manga, Bocagrande, Centro… */}
-      {nbhChips.length > 0 && (
-        <View style={styles.nbhBar}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
-            <TouchableOpacity
-              style={styles.nbhChip}
-              onPress={() => setNbhFilter(null)}
-            >
-              <Ionicons name="map-outline" size={13} color={COLORS.icon} />
-              <Text style={styles.nbhChipText}>{tr('Todos los barrios')}</Text>
-            </TouchableOpacity>
-            {nbhChips.map(({ slug, n }) => {
-              const active = nbhFilter === slug;
-              return (
-                <TouchableOpacity
-                  key={slug}
-                  style={[styles.nbhChip, active && styles.nbhChipActive]}
-                  onPress={() => setNbhFilter(active ? null : slug)}
-                >
-                  <Text style={[styles.nbhChipText, active && styles.nbhChipTextActive]}>{NBH_LABELS[slug] || slug}</Text>
-                  <View style={[styles.chipCount, active && { backgroundColor: 'rgba(18,181,165,0.3)' }]}>
-                    <Text style={[styles.chipCountText, active && { color: COLORS.primary }]}>{n}</Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
-      )}
-
-      {/* Map */}
+      {/* Map — the chip bars moved into the ⋯ sheet; the map gets the full height */}
       <View style={styles.mapWrap}>
         {Platform.OS === 'web' ? (
-          <WebMapDirect places={visiblePlaces} filter={filter} passportIds={passportIds} userLoc={userLoc} follow={follow} satellite={satellite} tourActive={tour} onTourEnd={() => setTour(false)} walkActive={walk} onWalkEnd={() => setWalk(false)} onNavigate={(path) => router.push(path as any)} ruta={ruta} onRutaSummary={setRutaSummary} onCaminarTap={onCaminarTap} />
+          <WebMapDirect places={visiblePlaces} filter={filter} passportIds={passportIds} userLoc={userLoc} follow={follow} satellite={satellite} zones={zones} tourActive={tour} onTourEnd={() => setTour(false)} walkActive={walk} onWalkEnd={() => setWalk(false)} onNavigate={(path) => router.push(path as any)} ruta={ruta} onRutaSummary={setRutaSummary} onCaminarTap={onCaminarTap} />
         ) : (
           <WebView
             ref={webViewRef}
-            key={filter + (nbhFilter || 'allnbh') + (bakedLoc ? '_u' : '') + (satellite ? '_sat' : '_dark') + (tour ? '_tour' : '') + (walk ? '_walk' : '') + (ruta ? `_ruta${ruta.title}_${ruta.stops.length}` : '')}
+            key={filter + (nbhFilter || 'allnbh') + (bakedLoc ? '_u' : '') + (satellite ? '_sat' : '_dark') + (zones ? '_zones' : '') + (tour ? '_tour' : '') + (walk ? '_walk' : '') + (ruta ? `_ruta${ruta.title}_${ruta.stops.length}` : '')}
             source={{ html }}
             onLoadEnd={() => { if (userLocRef.current) moveNativeUser(userLocRef.current); }}
             style={styles.webview}
@@ -1524,75 +1697,207 @@ export default function MapaScreen() {
           />
         )}
 
-        {/* CAMINAR — curated + custom walking rutas over real streets */}
+        {/* Active-filter pill — the only filter chrome in the default state */}
+        {filtersActive && (
+          <View style={styles.filterPill} testID="map-filter-pill">
+            <Ionicons name={(activeFilter?.icon || 'map-outline') as any} size={13} color={activeFilter?.color || COLORS.primary} />
+            <Text style={styles.filterPillText} numberOfLines={1}>{filterPillLabel} · {filterPillCount} {tr('lugares')}</Text>
+            <TouchableOpacity
+              onPress={clearFilters}
+              style={styles.filterPillClear}
+              accessibilityRole="button"
+              accessibilityLabel={tr('Limpiar filtros')}
+            >
+              <Ionicons name="close" size={16} color={COLORS.textMain} />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Tap-outside closes whichever sheet is open */}
+        {(moreOpen || (caminarOpen && !experienceActive)) && (
+          <Pressable style={styles.sheetBackdrop} onPress={() => { setMoreOpen(false); setCaminarOpen(false); }} accessibilityLabel={tr('Cerrar')} />
+        )}
+
+        {/* ── Right column: three primary FABs + ⋯ ── */}
+        {/* ⋯ — filters, barrios, Mi Base, zones */}
         <TouchableOpacity
-          style={[styles.locateBtn, styles.caminarBtn, { bottom: 312 }, (ruta || building) && styles.caminarBtnActive]}
-          onPress={() => ((ruta || building) ? stopRuta() : setCaminarOpen(o => !o))}
+          style={[styles.locateBtn, { bottom: 192 }, moreOpen && styles.locateBtnActive]}
+          onPress={openMore}
           activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel={tr('Más opciones')}
+          testID="map-fab-more"
         >
-          <Ionicons name={ruta || building ? 'close' : 'footsteps'} size={19} color={ruta || building ? '#241a04' : '#C9A84C'} />
+          <Ionicons name="ellipsis-horizontal" size={22} color={moreOpen ? COLORS.white : COLORS.icon} />
+          {filtersActive && !moreOpen && <View style={styles.fabDot} />}
         </TouchableOpacity>
 
-        {/* Floating atlas fly-through — the exported camera route over satellite */}
+        {/* Caminar — rutas, sobrevuelo, paseo virtual; becomes STOP while one runs */}
         <TouchableOpacity
-          style={[styles.locateBtn, styles.tourBtn, { bottom: 254 }, tour && styles.locateBtnActive]}
-          onPress={startTour}
+          style={[styles.locateBtn, styles.caminarBtn, { bottom: 136 }, experienceActive && styles.caminarBtnActive]}
+          onPress={() => (experienceActive ? stopExperience() : openCaminar())}
           activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel={experienceActive ? tr('Detener') : tr('Caminar Cartagena')}
+          testID="map-fab-caminar"
         >
-          <Ionicons name={tour ? 'stop' : 'play'} size={19} color={tour ? COLORS.white : COLORS.primary} />
+          <Ionicons name={experienceActive ? 'close' : 'footsteps'} size={19} color={experienceActive ? '#241a04' : '#C9A84C'} />
         </TouchableOpacity>
 
-        {/* Floating satellite toggle — real overhead imagery of every venue */}
+        {/* Satellite ⇄ dark canvas */}
         <TouchableOpacity
-          style={[styles.locateBtn, { bottom: 196 }, satellite && styles.locateBtnActive]}
+          style={[styles.locateBtn, { bottom: 80 }, satellite && styles.locateBtnActive]}
           onPress={() => setSatellite(s => !s)}
           activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel={satellite ? tr('Mapa oscuro') : tr('Mapa satelital')}
+          testID="map-fab-basemap"
         >
           <Ionicons name={satellite ? 'earth' : 'earth-outline'} size={19} color={satellite ? COLORS.white : COLORS.icon} />
         </TouchableOpacity>
 
-        {/* Floating "Mi Base" — set your hotel, get back from anywhere */}
+        {/* Locate me / follow-me */}
         <TouchableOpacity
-          style={[styles.locateBtn, { bottom: 138 }, hasBase && styles.locateBtnActive]}
-          onPress={() => setBaseSheet(true)}
+          style={[styles.locateBtn, following && styles.locateBtnActive]}
+          onPress={onLocatePress}
           activeOpacity={0.85}
-        >
-          <Ionicons name="home" size={19} color={hasBase ? COLORS.white : COLORS.icon} />
-        </TouchableOpacity>
-
-        {/* Walking mode: follow-me in Cartagena; virtual stroll from anywhere else */}
-        <TouchableOpacity
-          style={[styles.locateBtn, { bottom: 80 }, (walk || (follow && !!userLoc && isInCartagena(userLoc.lat, userLoc.lng))) && styles.locateBtnActive]}
-          onPress={onWalkPress}
-          activeOpacity={0.85}
-        >
-          <Ionicons name={walk ? 'stop' : 'walk'} size={20} color={walk || (follow && !!userLoc && isInCartagena(userLoc.lat, userLoc.lng)) ? COLORS.white : COLORS.icon} />
-        </TouchableOpacity>
-
-        {/* Floating "Locate me" button */}
-        <TouchableOpacity
-          style={[styles.locateBtn, locStatus === 'granted' && styles.locateBtnActive]}
-          onPress={requestLocation}
-          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel={locStatus === 'granted' ? (follow ? tr('Dejar de seguir') : tr('Seguir mi ubicación')) : tr('Mi ubicación')}
+          testID="map-fab-locate"
         >
           {locStatus === 'requesting' ? (
-            <ActivityIndicator size="small" color={COLORS.white} />
+            <ActivityIndicator size="small" color={COLORS.icon} />
           ) : (
             <Ionicons
-              name={locStatus === 'granted' ? 'navigate' : 'locate'}
+              name={locStatus === 'granted' ? (follow ? 'navigate' : 'navigate-outline') : 'locate'}
               size={20}
-              color={locStatus === 'granted' ? COLORS.white : COLORS.icon}
+              color={following ? COLORS.white : locStatus === 'granted' ? COLORS.primary : COLORS.icon}
             />
           )}
         </TouchableOpacity>
 
-        {/* CAMINAR sheet — curated rutas + custom builder entry */}
-        {caminarOpen && !ruta && !building && (
+        {/* ⋯ sheet — everything that is not a primary map action */}
+        {moreOpen && (
+          <View style={styles.moreSheet} testID="map-more-sheet">
+            <View style={styles.caminarHeader}>
+              <Text style={styles.caminarTitle}>{tr('Opciones del mapa')}</Text>
+              <View style={styles.sheetHeaderActions}>
+                {filtersActive && (
+                  <TouchableOpacity onPress={clearFilters} style={styles.sheetTextBtn} accessibilityRole="button">
+                    <Text style={styles.sheetTextBtnLabel}>{tr('Limpiar filtros')}</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={() => setMoreOpen(false)} style={styles.sheetClose} accessibilityRole="button" accessibilityLabel={tr('Cerrar')}>
+                  <Ionicons name="close" size={20} color={COLORS.textMuted} />
+                </TouchableOpacity>
+              </View>
+            </View>
+            <ScrollView style={styles.moreScroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <Text style={styles.sheetLabel}>{tr('Filtrar')}</Text>
+              <View style={styles.chipWrap}>
+                {FILTERS.map(f => {
+                  const isActive = filter === f.key;
+                  const count = counts[f.key as keyof typeof counts] || 0;
+                  return (
+                    <TouchableOpacity
+                      key={f.key}
+                      style={[styles.chip, isActive && { backgroundColor: `${f.color}20`, borderColor: f.color }]}
+                      onPress={() => setFilter(f.key)}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: isActive }}
+                    >
+                      <Ionicons name={f.icon as any} size={14} color={isActive ? f.color : COLORS.textMuted} />
+                      <Text style={[styles.chipText, isActive && { color: f.color }]}>{tr(f.label)}</Text>
+                      <View style={[styles.chipCount, isActive && { backgroundColor: `${f.color}30` }]}>
+                        <Text style={[styles.chipCountText, isActive && { color: f.color }]}>{count}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {nbhChips.length > 0 && (
+                <>
+                  <Text style={styles.sheetLabel}>{tr('Barrio')}</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll} style={styles.nbhScroll}>
+                    <TouchableOpacity
+                      style={[styles.nbhChip, !nbhFilter && styles.nbhChipActive]}
+                      onPress={() => setNbhFilter(null)}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: !nbhFilter }}
+                    >
+                      <Ionicons name="map-outline" size={13} color={!nbhFilter ? COLORS.primary : COLORS.icon} />
+                      <Text style={[styles.nbhChipText, !nbhFilter && styles.nbhChipTextActive]}>{tr('Todos los barrios')}</Text>
+                    </TouchableOpacity>
+                    {nbhChips.map(({ slug, n }) => {
+                      const active = nbhFilter === slug;
+                      return (
+                        <TouchableOpacity
+                          key={slug}
+                          style={[styles.nbhChip, active && styles.nbhChipActive]}
+                          onPress={() => setNbhFilter(active ? null : slug)}
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: active }}
+                        >
+                          <Text style={[styles.nbhChipText, active && styles.nbhChipTextActive]}>{NBH_LABELS[slug] || slug}</Text>
+                          <View style={[styles.chipCount, active && { backgroundColor: 'rgba(18,181,165,0.3)' }]}>
+                            <Text style={[styles.chipCountText, active && { color: COLORS.primary }]}>{n}</Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </>
+              )}
+
+              {/* Mi Base — set your hotel, get back from anywhere */}
+              <TouchableOpacity style={styles.sheetRow} onPress={() => { setMoreOpen(false); setBaseSheet(true); }} activeOpacity={0.8} accessibilityRole="button">
+                <View style={[styles.sheetRowIcon, hasBase && styles.sheetRowIconOn]}>
+                  <Ionicons name="home" size={17} color={hasBase ? COLORS.white : COLORS.icon} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.sheetRowTitle}>{tr('Mi Base')}</Text>
+                  <Text style={styles.sheetRowSub} numberOfLines={2}>{hasBase ? tr('Base guardada · toca para cambiarla') : tr('Guarda tu hotel y vuelve desde cualquier lugar')}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={COLORS.iconMuted} />
+              </TouchableOpacity>
+
+              {/* Tourist zones — soft shading + legend */}
+              <TouchableOpacity style={styles.sheetRow} onPress={() => setZones(z => !z)} activeOpacity={0.8} accessibilityRole="switch" accessibilityState={{ checked: zones }}>
+                <View style={[styles.sheetRowIcon, zones && styles.sheetRowIconOn]}>
+                  <Ionicons name="layers" size={17} color={zones ? COLORS.white : COLORS.icon} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.sheetRowTitle}>{tr('Mostrar zonas turísticas')}</Text>
+                  <Text style={styles.sheetRowSub} numberOfLines={2}>{tr('Centro, Getsemaní, Bocagrande, Castillogrande y Manga')}</Text>
+                </View>
+                <View style={[styles.toggle, zones && styles.toggleOn]}>
+                  <View style={[styles.toggleKnob, zones && styles.toggleKnobOn]} />
+                </View>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        )}
+
+        {/* CAMINAR sheet — experiences (sobrevuelo, paseo virtual) + curated rutas + custom builder */}
+        {caminarOpen && !experienceActive && (
           <View style={styles.caminarSheet}>
             <View style={styles.caminarHeader}>
               <Text style={styles.caminarTitle}>🚶 {tr('Caminar Cartagena')}</Text>
-              <TouchableOpacity onPress={() => setCaminarOpen(false)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <TouchableOpacity onPress={() => setCaminarOpen(false)} style={styles.sheetClose} accessibilityRole="button" accessibilityLabel={tr('Cerrar')}>
                 <Ionicons name="close" size={20} color={COLORS.textMuted} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.expRow}>
+              <TouchableOpacity style={styles.expCard} onPress={startTour} activeOpacity={0.8} accessibilityRole="button">
+                <Ionicons name="play" size={16} color={COLORS.primary} />
+                <Text style={styles.expCardTitle}>{tr('Sobrevuelo de Cartagena')}</Text>
+                <Text style={styles.expCardSub} numberOfLines={2}>{tr('Vuelo aéreo por los lugares verificados')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.expCard} onPress={startVirtualWalk} activeOpacity={0.8} accessibilityRole="button">
+                <Ionicons name="walk" size={16} color="#C9A84C" />
+                <Text style={styles.expCardTitle}>{tr('Paseo virtual por el Centro')}</Text>
+                <Text style={styles.expCardSub} numberOfLines={2}>{walkCardSub}</Text>
               </TouchableOpacity>
             </View>
             <Text style={styles.caminarSub}>{tr('Rutas a pie por calles reales del Centro y Getsemaní.')}</Text>
@@ -1688,20 +1993,87 @@ const styles = StyleSheet.create({
   loadingBox: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: SPACING.md },
   loadingText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular },
 
-  filterBar: { paddingVertical: SPACING.xs, backgroundColor: COLORS.background },
-  filterScroll: { paddingHorizontal: SPACING.md, gap: SPACING.xs },
-  nbhBar: { paddingBottom: SPACING.xs, backgroundColor: COLORS.background, borderBottomWidth: 1, borderBottomColor: COLORS.border },
-  nbhChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 11, paddingVertical: 6, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
+  // Chips (now inside the ⋯ sheet) — 44 px minimum touch height throughout.
+  filterScroll: { gap: SPACING.xs, paddingRight: SPACING.md },
+  nbhScroll: { marginHorizontal: -SPACING.md, paddingHorizontal: SPACING.md },
+  nbhChip: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, minHeight: 44, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border, backgroundColor: 'rgba(255,255,255,0.04)' },
   nbhChipActive: { borderColor: COLORS.primary, backgroundColor: 'rgba(18,181,165,0.12)' },
   nbhChipText: { fontSize: 11.5, color: COLORS.textMuted, ...FONTS.semibold },
   nbhChipTextActive: { color: COLORS.primary },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
+  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.xs },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, minHeight: 44, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border, backgroundColor: 'rgba(255,255,255,0.04)' },
   chipText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold },
   chipCount: { backgroundColor: COLORS.border, borderRadius: 10, paddingHorizontal: 6, paddingVertical: 1 },
   chipCountText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.bold },
 
   mapWrap: { flex: 1, overflow: 'hidden', borderTopWidth: 1, borderTopColor: COLORS.border },
   webview: { flex: 1, backgroundColor: COLORS.background },
+
+  // Active-filter pill: top-right, clear of Leaflet's zoom control (top-left).
+  filterPill: {
+    position: 'absolute',
+    top: 10,
+    right: 12,
+    maxWidth: '72%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingLeft: 12,
+    paddingRight: 2,
+    minHeight: 40,
+    backgroundColor: 'rgba(5,8,20,0.92)',
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    zIndex: 1000,
+  },
+  filterPillText: { flexShrink: 1, fontSize: 11.5, color: COLORS.textMain, ...FONTS.semibold },
+  filterPillClear: { width: 44, height: 40, alignItems: 'center', justifyContent: 'center' },
+  fabDot: { position: 'absolute', top: 6, right: 6, width: 9, height: 9, borderRadius: 5, backgroundColor: COLORS.primary, borderWidth: 1.5, borderColor: COLORS.surface },
+  sheetBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1150 },
+
+  // ⋯ sheet — compact, scrolls when the barrio list is long.
+  moreSheet: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    bottom: 16,
+    maxHeight: '78%',
+    backgroundColor: 'rgba(5,8,20,0.96)',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: SPACING.md,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.sm,
+    zIndex: 1200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
+    elevation: 12,
+  },
+  moreScroll: { flexGrow: 0 },
+  sheetHeaderActions: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  sheetTextBtn: { minHeight: 44, paddingHorizontal: 10, justifyContent: 'center' },
+  sheetTextBtnLabel: { fontSize: 12, color: COLORS.primary, ...FONTS.bold },
+  sheetClose: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: -10 },
+  sheetLabel: { fontSize: 10.5, color: COLORS.textFaint, letterSpacing: 1, textTransform: 'uppercase', ...FONTS.bold, marginTop: SPACING.sm, marginBottom: 6 },
+  sheetRow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingVertical: 8, borderTopWidth: 1, borderTopColor: COLORS.hairline, marginTop: SPACING.sm },
+  sheetRowIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: COLORS.border },
+  sheetRowIconOn: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  sheetRowTitle: { fontSize: 13.5, color: COLORS.textMain, ...FONTS.bold },
+  sheetRowSub: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 1 },
+  toggle: { width: 42, height: 24, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.12)', padding: 2, justifyContent: 'center' },
+  toggleOn: { backgroundColor: COLORS.primary },
+  toggleKnob: { width: 20, height: 20, borderRadius: 10, backgroundColor: COLORS.white },
+  toggleKnobOn: { alignSelf: 'flex-end' },
+
+  // Experience cards at the top of the Caminar sheet (sobrevuelo / paseo virtual).
+  expRow: { flexDirection: 'row', gap: 8 },
+  expCard: { flex: 1, minHeight: 44, gap: 3, backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 14, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: 12, paddingVertical: 10 },
+  expCardTitle: { fontSize: 12.5, color: COLORS.textMain, ...FONTS.bold, marginTop: 2 },
+  expCardSub: { fontSize: 10.5, color: COLORS.textMuted, ...FONTS.regular },
 
   locateBtn: {
     position: 'absolute',

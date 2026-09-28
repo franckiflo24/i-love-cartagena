@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, ELEVATION, TIER_COLORS, Tier, colorForKey } from '../constants/theme';
-import { getCategoryImage } from '../constants/images';
 import { TierBadge } from './TierBadge';
 import { SafeImage } from './SafeImage';
 
@@ -16,11 +15,25 @@ export type PartnerEvent = {
   start_time: string;
   end_time: string;
   flyer_url: string;
+  /** Backend-normalized self-hosted image (/images/…) — preferred over flyer_url. */
+  image_url?: string;
   is_free: boolean;
   price: number;
   partner_name?: string;
   partner_tier?: string;
   partner_category?: string;
+};
+
+// Never hand an external (http/https) flyer to the image pipeline: those were
+// Unsplash/CDN hotlinks that expire, 403 and hurt LCP. image_url is the
+// backend-normalized self-hosted copy; a flyer_url is only used when it is one
+// of ours ('/images/…'). Anything else falls through to SafeImage's bundled
+// category placeholder.
+const isExternal = (u?: string | null): boolean => !!u && /^https?:\/\//i.test(u);
+export const partnerEventImage = (ev: Pick<PartnerEvent, 'image_url' | 'flyer_url'>): string | null => {
+  if (ev.image_url && !isExternal(ev.image_url)) return ev.image_url;
+  if (ev.flyer_url && !isExternal(ev.flyer_url)) return ev.flyer_url;
+  return null;
 };
 
 const CAT_ICONS: Record<string, string> = {
@@ -56,7 +69,7 @@ export const PartnerEventCard: React.FC<Props> = ({ event, onPress }) => {
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
       {/* Flyer */}
       <View style={styles.flyerWrap}>
-        <SafeImage uri={event.flyer_url} category={event.category} style={styles.flyer} resizeMode="cover" />
+        <SafeImage uri={partnerEventImage(event)} category={event.category} style={styles.flyer} resizeMode="cover" />
         <View style={styles.flyerOverlay} />
         {tierColors && <View style={[styles.tierStripe, { backgroundColor: tierColors.main }]} />}
         <View style={[styles.priceTag, event.is_free ? styles.priceFree : styles.pricePaid]}>

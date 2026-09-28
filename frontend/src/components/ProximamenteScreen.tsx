@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { useTr } from '../i18n/autoTr';
+import { goHome, goBackOr } from '../lib/nav';
 
 interface Props {
   title: string;
@@ -23,7 +24,7 @@ export default function ProximamenteScreen({
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => goBackOr(router)} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{title}</Text>
@@ -40,7 +41,7 @@ export default function ProximamenteScreen({
         </Text>
         <TouchableOpacity
           style={styles.btn}
-          onPress={() => router.replace('/(tabs)')}
+          onPress={() => goHome(router)}
           activeOpacity={0.85}
         >
           <Ionicons name="home" size={16} color={COLORS.black} />

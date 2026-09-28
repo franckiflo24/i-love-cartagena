@@ -17,7 +17,7 @@
 //     slim strip BELOW the app's own tools, and the secondary rails (Para ti,
 //     Colecciones, Favoritos, cambio del día) folded under "Más".
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Dimensions, Linking, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Linking, Platform, useWindowDimensions } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,7 +27,7 @@ import { api, ASSET_ORIGIN } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useLang } from '../../src/context/LanguageContext';
-import { monthShort } from '../../src/lib/formatDate';
+import { monthShort, weekdayShort } from '../../src/lib/formatDate';
 import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
 import { SkeletonEventRows, SkeletonFeaturedRow, SkeletonTileRow } from '../../src/components/Skeleton';
@@ -49,12 +49,27 @@ import { FxStrip } from '../../src/components/FxStrip';
 import LockedTease from '../../src/components/LockedTease';
 import { geoService, GeoState, cityMode } from '../../src/lib/geo';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
 // ── Quick-access grid geometry — fixed 2×3, no horizontal scroll, no subtitles ──
+// Tile WIDTH is computed inside the component from useWindowDimensions: a
+// module-scope Dimensions.get('window') saw width 0 during `expo export`, so the
+// SSR HTML shipped `width:-22px` tiles (and never re-laid out on rotation).
 const GRID_GAP = SPACING.sm;
-const GRID_TILE_W = Math.floor((SCREEN_WIDTH - SPACING.lg * 2 - GRID_GAP * 2) / 3);
 const GRID_TILE_H = 96;
+const GRID_FALLBACK_W = 390; // SSR / first frame before the window reports a width
+const gridTileWidth = (windowWidth: number): number =>
+  Math.max(64, Math.floor(((windowWidth > 0 ? windowWidth : GRID_FALLBACK_W) - SPACING.lg * 2 - GRID_GAP * 2) / 3));
+
+// Next occurrence (today included) of a WEEKLY recurring event anchored on the
+// weekday of `startIso`, as "YYYY-MM-DD". Noon-UTC arithmetic so the device
+// timezone can never shift the weekday (same trick as bogotaDatePlus).
+const nextWeeklyOccurrence = (startIso: string, todayIso: string): string => {
+  const start = new Date(startIso + 'T12:00:00Z');
+  const today = new Date(todayIso + 'T12:00:00Z');
+  if (Number.isNaN(start.getTime()) || Number.isNaN(today.getTime())) return startIso;
+  if (start > today) return startIso;
+  today.setUTCDate(today.getUTCDate() + ((start.getUTCDay() - today.getUTCDay() + 7) % 7));
+  return today.toISOString().slice(0, 10);
+};
 
 // ── Far-from-Cartagena mode ──────────────────────────────────────────────────
 // Phil reviewed build 18 from El Salvador (~1,500 km away): every module assumed
@@ -78,6 +93,8 @@ type Event = {
   start_time: string; end_time: string; venue_name: string; type: string;
   is_free: boolean; price: number; image_url: string; featured?: boolean;
   date_start?: string; date_end?: string; category?: string; name_es?: string; venue?: string;
+  /** City calendar: `recurring` + `recurrence_rule` ('weekly' | 'daily'); date_start is the FIRST occurrence. */
+  recurring?: boolean; recurrence_rule?: string | null;
 };
 
 type PEvent = {
@@ -85,6 +102,7 @@ type PEvent = {
   date: string; start_time: string; end_time: string; flyer_url: string;
   is_free: boolean; price: number; partner_name?: string; partner_tier?: string;
   partner_image?: string; date_start?: string; date_end?: string;
+  recurring?: boolean; recurrence_rule?: string | null;
 };
 
 type Sponsor = {
@@ -190,6 +208,9 @@ export default function HomeScreen() {
   const tr = useTr();
   const { userProfile, getPersonalizedPartners, getGreeting, hasCompletedOnboarding, isLoading: profileLoading } = usePersonalization();
   const partnerCount = usePartnerCount();
+  // Window-driven tile width (SSR-safe, rotation-safe) — see gridTileWidth.
+  const { width: windowWidth } = useWindowDimensions();
+  const gridTileW = gridTileWidth(windowWidth);
 
   // ── Data sections — seeded from the last instance's snapshot (fallback-first) ──
   const [featured, setFeatured] = useState<Event[]>(() => HOME_CACHE?.featured ?? []);
@@ -491,10 +512,14 @@ export default function HomeScreen() {
   const todayStr = todayIso();
 
   // ── Hoy / Esta noche — partner events merged with city events ──
+  // date_start/date_end/recurrence ride along: without them a recurring city
+  // event (date_start 18 Jun, date_end next April) collapsed to a one-day
+  // window on its ORIGINAL start date and the Hoy/Noche chip read "18 JUN".
   const toPE = (e: Event): PEvent => ({
     event_id: e.event_id, partner_id: '', title: e.title, category: e.type, date: e.date,
     start_time: e.start_time, end_time: e.end_time, flyer_url: e.image_url, is_free: e.is_free,
     price: e.price, partner_name: e.venue_name, partner_tier: '', partner_image: e.image_url,
+    date_start: e.date_start, date_end: e.date_end, recurring: e.recurring, recurrence_rule: e.recurrence_rule,
   });
   const dayPE: PEvent[] = [
     ...todayPEvents.filter((e) => !isNightTime(e.start_time)),
@@ -509,13 +534,26 @@ export default function HomeScreen() {
     const cat = catStyle(event.category);
     const budget = getBudgetStyle(event.is_free, event.price);
     const isPartnerEvent = !!event.partner_id;
-    // Quiet-day fallback rows are FUTURE events: the chip says the day, not a
-    // time that would read as "tonight".
+    // Chip = when this plan actually happens (mirrors the Próximos rail: HOY
+    // while today sits in the event's window, else the date):
+    //   • recurring, occurs today (daily, or weekly on today's weekday) → "HOY 20:00"
+    //   • weekly, another weekday                                      → "JUE" (next occurrence)
+    //   • one-off today                                                → "20:00"
+    //   • quiet-day fallback rows (FUTURE one-offs)                    → "3 OCT"
+    // Never the ORIGINAL start date of a recurring series ("18 JUN").
     const dStart = event.date_start || event.date || '';
     const dEnd = event.date_end || dStart;
-    const isToday = !dStart || (dStart <= todayStr && dEnd >= todayStr);
+    const inWindow = !dStart || (dStart <= todayStr && dEnd >= todayStr);
+    const rule = event.recurring ? (event.recurrence_rule || 'daily') : null;
     let chip = event.start_time || '';
-    if (!isToday) {
+    if (inWindow && rule) {
+      const next = rule === 'weekly' && dStart ? nextWeeklyOccurrence(dStart, todayStr) : todayStr;
+      if (next === todayStr) {
+        chip = `${tr('HOY')}${event.start_time ? ` ${event.start_time}` : ''}`;
+      } else {
+        chip = weekdayShort(new Date(next + 'T12:00:00Z').getUTCDay(), lang, true);
+      }
+    } else if (!inWindow) {
       const d = new Date(dStart + 'T00:00:00');
       chip = Number.isNaN(d.getTime()) ? dStart : `${d.getDate()} ${monthShort(d.getMonth(), lang, true)}`;
     }
@@ -715,7 +753,7 @@ export default function HomeScreen() {
             <PressableScale
               key={item.key}
               testID={`quick-${item.key}`}
-              style={styles.quickTile}
+              style={[styles.quickTile, { width: gridTileW }]}
               accessibilityLabel={item.label}
               onPress={() => {
                 trackEvent('quick_access', item.key, 'navigation');
@@ -1207,7 +1245,7 @@ const styles = StyleSheet.create({
   // Quick access — fixed 2×3 grid
   quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: GRID_GAP, paddingHorizontal: SPACING.lg, marginBottom: SPACING.xl },
   quickTile: {
-    width: GRID_TILE_W, height: GRID_TILE_H, borderRadius: RADIUS.lg,
+    height: GRID_TILE_H, borderRadius: RADIUS.lg, // width: gridTileW (inline, window-driven)
     backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.hairline,
     alignItems: 'center', justifyContent: 'center', gap: 8,
   },

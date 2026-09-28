@@ -45,6 +45,46 @@ const staticUrl = (path: string): string => {
 const canFallback = (path: string, status?: number): boolean =>
   status !== 401 && status !== 403 && !path.includes('?') && !PRIVATE_PATH.test(path);
 
+// ── CDN-friendly public GETs ─────────────────────────────────────
+// A Bearer header on a public catalog GET makes every response per-user and
+// uncacheable at the edge (and costs a keychain read before the request). The
+// paths below never read the session — verified handler-by-handler on
+// 2026-09-28: server.py /partners (+nearby, +{id}), /events (+featured, +{id},
+// +dates/available), /partner-events (+{id}), /concerts (+dates, +genres, +{id}),
+// /seasons (+{id}, +{id}/events), /sponsors, /experiences (+featured, +{id}),
+// /transport (NOT /transport/tickets — auth), /city-pass/plans, /city/modules
+// (+{id}), /promotions/today, /venues (+{id}), /emergency-contacts, /fx, /health;
+// essentials.py /essentials/taxonomy (+category/{key}); walking.py
+// /trust/reference; reviews.py /reviews/partner/{id}; occasions.py /collections
+// (+{key}); /neighborhoods has no live handler (static only). Public GETs that
+// DO personalize on an optional token keep the header by staying OFF this list:
+// /itineraries and /agent/session/{id} (server.py `_get_optional_user`), plus
+// everything in PRIVATE_PATH. Writes (POST/PUT/PATCH/DELETE) always carry it.
+export const PUBLIC_GET_NO_AUTH = new RegExp(
+  '^/(' + [
+    'partners(/[^/?]+)?',
+    'events(/[^?]+)?',
+    'partner-events(/[^/?]+)?',
+    'concerts(/[^/?]+)?',
+    'seasons(/[^?]+)?',
+    'sponsors',
+    'experiences(/[^/?]+)?',
+    'transport',
+    'city-pass/plans',
+    'city/modules(/[^/?]+)?',
+    'promotions/today',
+    'venues(/[^/?]+)?',
+    'emergency-contacts',
+    'fx',
+    'health',
+    'neighborhoods',
+    'trust/reference',
+    'essentials/(taxonomy|category/[^/?]+)',
+    'reviews/partner/[^/?]+',
+    'collections(/[^/?]+)?',
+  ].join('|') + ')(\\?|$)',
+);
+
 // ── Bounded fetch ────────────────────────────────────────────────
 // A plain fetch has no deadline: a request routed to a cold/scale-out Vercel
 // instance sat ~10 s and a bad cellular link sat forever, so every screen's
@@ -807,13 +847,15 @@ export const getToken = async (): Promise<string | null> => {
   return TOKEN_INFLIGHT;
 };
 
-const buildHeaders = async (override?: Record<string, string>): Promise<Record<string, string>> => {
+const buildHeaders = async (override?: Record<string, string>, withAuth: boolean = true): Promise<Record<string, string>> => {
   // X-Requested-With is a CSRF defense: a cross-site page cannot set a custom header
   // without triggering a CORS preflight, which the backend's origin allowlist blocks.
   // Sent on every app request so the backend can (in a follow-up) require it on
   // mutating cookie-auth routes (session cookie is SameSite=None for cross-origin auth).
   const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
-  if (!override?.Authorization) {
+  // withAuth=false (PUBLIC_GET_NO_AUTH): identity-free request → CDN-shareable,
+  // and no keychain read on the hot path.
+  if (withAuth && !override?.Authorization) {
     const token = await getToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
   }
@@ -836,6 +878,53 @@ const _creds = (p: string): RequestCredentials => (Platform.OS === 'web' && _aut
 
 type Opts = { headers?: Record<string, string> };
 
+// ── GET single-flight ────────────────────────────────────────────
+// Concurrent identical GETs (same path, same auth scope, no custom headers)
+// share ONE request and ONE promise. Explore, the map, the partners tab and the
+// count provider all asked for /partners (1.33 MB) inside the same second on a
+// cold start; now the second caller joins the first request instead of
+// opening another socket. Entries clear on settle, so the next NAVIGATION still
+// revalidates (this is not a response cache — swrCache is).
+const GET_INFLIGHT = new Map<string, Promise<any>>();
+
+const liveGet = async (path: string, opts?: Opts): Promise<any> => {
+  // Scope at REQUEST time: a private GET that resolves after a logout/login
+  // switch must never be filed under the next account.
+  const reqScope = swr.getScope();
+  const remember = (data: unknown) => { if (swr.getScope() === reqScope) swr.put(path, data); };
+  let res: Response;
+  try {
+    const headers = await buildHeaders(opts?.headers, !PUBLIC_GET_NO_AUTH.test(path));
+    res = await fetchT(`${_apiUrl(path)}`, { headers, credentials: _creds(path) });
+  } catch (err) {
+    // Network failure / 8 s timeout → last good payload (fresher than the
+    // static snapshot, and covers ?query paths), then the public static catalog.
+    const cached = await recoverFromCache(path);
+    if (cached !== null) return cached;
+    if (canFallback(path)) {
+      const fallback = await tryStatic(path);
+      if (fallback !== null) { remember(fallback); return fallback; }
+    }
+    throw err;
+  }
+  if (!res.ok) {
+    // Backend reachable but broken (5xx/429) → same recovery order. A 401/403/404
+    // is an answer, not an outage: never masked by cache or static.
+    if (isTransientStatus(res.status)) {
+      const cached = await recoverFromCache(path);
+      if (cached !== null) return cached;
+    }
+    if (canFallback(path, res.status)) {
+      const fallback = await tryStatic(path);
+      if (fallback !== null) { remember(fallback); return fallback; }
+    }
+    throw new Error(`GET ${path} failed: ${res.status}`);
+  }
+  const json = await res.json();
+  remember(json); // no-op for NO_CACHE_PATH and for private paths while anonymous
+  return json;
+};
+
 export const api = {
   get: async (path: string, opts?: Opts) => {
     // Static mode → read from bundled /data/*.json
@@ -854,41 +943,13 @@ export const api = {
       // Unknown endpoint in static mode — return safe empty
       return [];
     }
-    // Scope at REQUEST time: a private GET that resolves after a logout/login
-    // switch must never be filed under the next account.
-    const reqScope = swr.getScope();
-    const remember = (data: unknown) => { if (swr.getScope() === reqScope) swr.put(path, data); };
-    let res: Response;
-    try {
-      const headers = await buildHeaders(opts?.headers);
-      res = await fetchT(`${_apiUrl(path)}`, { headers, credentials: _creds(path) });
-    } catch (err) {
-      // Network failure / 8 s timeout → last good payload (fresher than the
-      // static snapshot, and covers ?query paths), then the public static catalog.
-      const cached = await recoverFromCache(path);
-      if (cached !== null) return cached;
-      if (canFallback(path)) {
-        const fallback = await tryStatic(path);
-        if (fallback !== null) { remember(fallback); return fallback; }
-      }
-      throw err;
-    }
-    if (!res.ok) {
-      // Backend reachable but broken (5xx/429) → same recovery order. A 401/403/404
-      // is an answer, not an outage: never masked by cache or static.
-      if (isTransientStatus(res.status)) {
-        const cached = await recoverFromCache(path);
-        if (cached !== null) return cached;
-      }
-      if (canFallback(path, res.status)) {
-        const fallback = await tryStatic(path);
-        if (fallback !== null) { remember(fallback); return fallback; }
-      }
-      throw new Error(`GET ${path} failed: ${res.status}`);
-    }
-    const json = await res.json();
-    remember(json); // no-op for NO_CACHE_PATH and for private paths while anonymous
-    return json;
+    if (opts?.headers) return liveGet(path, opts); // custom headers → never shared
+    const key = `${swr.getScope()}|${path}`;
+    const inflight = GET_INFLIGHT.get(key);
+    if (inflight) return inflight;
+    const p = liveGet(path, opts).finally(() => { GET_INFLIGHT.delete(key); });
+    GET_INFLIGHT.set(key, p);
+    return p;
   },
   post: async (path: string, body?: any, opts?: Opts) => {
     if (STATIC_MODE) {
@@ -959,4 +1020,28 @@ export const api = {
     if (!res.ok) throw new Error(`DELETE ${path} failed: ${res.status}`);
     return res.json();
   },
+};
+
+// ── Live catalog, once ───────────────────────────────────────────
+// The full /partners list (1.33 MB) for callers that need the LIVE catalog
+// (Explore/map hydrate, search): single-flight while loading and a module cache
+// once it has resolved, so any number of callers cost ONE download per app
+// session. The static-first paint (Home, PartnerCountContext) still goes through
+// lib/data getPartners(), which is module-cached the same way — that is the
+// one catalog download a cold start pays before first paint.
+let PARTNERS_CACHE: any[] | null = null;
+let PARTNERS_INFLIGHT: Promise<any[]> | null = null;
+export const getPartnersOnce = (): Promise<any[]> => {
+  if (PARTNERS_CACHE) return Promise.resolve(PARTNERS_CACHE);
+  if (!PARTNERS_INFLIGHT) {
+    PARTNERS_INFLIGHT = api.get('/partners')
+      .then((p: unknown) => {
+        const arr = Array.isArray(p) ? p : [];
+        if (arr.length > 0) PARTNERS_CACHE = arr;
+        return arr;
+      })
+      .catch((err: unknown) => { console.error('[api] getPartnersOnce', err); return [] as any[]; })
+      .finally(() => { PARTNERS_INFLIGHT = null; });
+  }
+  return PARTNERS_INFLIGHT;
 };

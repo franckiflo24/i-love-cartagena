@@ -9,7 +9,7 @@
     "tier": "gold",
     "is_active": true,
     "order": 1,
-    "verified": false
+    "verified": true
   },
   {
     "sponsor_id": "sp_002",
@@ -21,7 +21,7 @@
     "tier": "gold",
     "is_active": true,
     "order": 2,
-    "verified": false
+    "verified": true
   },
   {
     "sponsor_id": "sp_003",
@@ -33,7 +33,7 @@
     "tier": "institutional",
     "is_active": true,
     "order": 3,
-    "verified": false
+    "verified": true
   },
   {
     "sponsor_id": "sp_004",

@@ -15,6 +15,7 @@ import { Skeleton } from '../../src/components/Skeleton';
 import { CityStatusBadge, CityMedia } from '../../src/components/CityModuleUI';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
+import { goHome, goBackOr } from '../../src/lib/nav';
 import {
   CityModulesPayload, STATUS_META, getCachedCityModules, loadCityModules, pickL,
 } from '../../src/lib/cityModules';
@@ -60,7 +61,7 @@ export default function CiudadHubScreen() {
           {canGoBack ? (
             <TouchableOpacity
               testID="ciudad-back-btn"
-              onPress={() => router.back()}
+              onPress={() => goBackOr(router)}
               style={styles.navBtn}
               accessibilityRole="button"
               accessibilityLabel={tr('Volver')}
@@ -70,7 +71,7 @@ export default function CiudadHubScreen() {
           ) : (
             <TouchableOpacity
               testID="ciudad-home-btn"
-              onPress={() => router.replace('/(tabs)' as any)}
+              onPress={() => goHome(router)}
               style={styles.navBtn}
               accessibilityRole="button"
               accessibilityLabel={tr('Inicio')}

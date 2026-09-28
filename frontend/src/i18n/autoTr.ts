@@ -1861,6 +1861,33 @@ export const AUTO_TR: Dict = {
   'Próximas noches': { en: 'Upcoming nights', fr: 'Prochaines soirées', pt: 'Próximas noites' },
   'Ver el mapa': { en: 'See the map', fr: 'Voir la carte', pt: 'Ver o mapa' },
   'Abrir el mapa': { en: 'Open the map', fr: 'Ouvrir la carte', pt: 'Abrir o mapa' },
+
+  // Launch sweep 2026-09-28 — map
+  // Marker clustering + control diet: three primary FABs (locate/follow,
+  // satellite⇄dark, Caminar) and a ⋯ sheet holding filters, barrios, Mi Base
+  // and the tourist-zone toggle; sobrevuelo + paseo virtual moved into the
+  // Caminar sheet. TÚ voice; PT você. Existing keys are reused, not re-added.
+  'Más opciones': { en: 'More options', fr: "Plus d'options", pt: 'Mais opções' },
+  'Opciones del mapa': { en: 'Map options', fr: 'Options de la carte', pt: 'Opções do mapa' },
+  'Detener': { en: 'Stop', fr: 'Arrêter', pt: 'Parar' },
+  'Mapa satelital': { en: 'Satellite map', fr: 'Carte satellite', pt: 'Mapa de satélite' },
+  'Mapa oscuro': { en: 'Dark map', fr: 'Carte sombre', pt: 'Mapa escuro' },
+  'Mi ubicación': { en: 'My location', fr: 'Ma position', pt: 'Minha localização' },
+  'Seguir mi ubicación': { en: 'Follow my location', fr: 'Suivre ma position', pt: 'Seguir minha localização' },
+  'Dejar de seguir': { en: 'Stop following', fr: 'Ne plus suivre', pt: 'Parar de seguir' },
+  'Base guardada · toca para cambiarla': { en: 'Base saved · tap to change it', fr: 'Base enregistrée · touche pour la changer', pt: 'Base salva · toque para mudar' },
+  'Guarda tu hotel y vuelve desde cualquier lugar': { en: 'Save your hotel and get back from anywhere', fr: "Enregistre ton hôtel et rentre de n'importe où", pt: 'Salve seu hotel e volte de qualquer lugar' },
+  'Mostrar zonas turísticas': { en: 'Show tourist zones', fr: 'Afficher les zones touristiques', pt: 'Mostrar zonas turísticas' },
+  'Centro, Getsemaní, Bocagrande, Castillogrande y Manga': { en: 'Centro, Getsemaní, Bocagrande, Castillogrande and Manga', fr: 'Centro, Getsemaní, Bocagrande, Castillogrande et Manga', pt: 'Centro, Getsemaní, Bocagrande, Castillogrande e Manga' },
+  'Sobrevuelo de Cartagena': { en: 'Cartagena flyover', fr: 'Survol de Carthagène', pt: 'Sobrevoo de Cartagena' },
+  'Vuelo aéreo por los lugares verificados': { en: 'Aerial flight over the verified places', fr: 'Vol aérien au-dessus des lieux vérifiés', pt: 'Voo aéreo pelos lugares verificados' },
+  'recorre el Centro desde aquí': { en: 'walk the Old City from here', fr: "parcours le Centre d'ici", pt: 'percorra o Centro daqui' },
+  'Un paseo guiado por calles reales del Centro Histórico': { en: 'A guided stroll through the real streets of the Old City', fr: 'Une balade guidée dans les vraies rues du Centre historique', pt: 'Um passeio guiado pelas ruas reais do Centro Histórico' },
+  'Venues': { en: 'Venues', fr: 'Lieux', pt: 'Locais' },
+
+  // Launch sweep 2026-09-28 — cross-cutting
+  // ReviewsList empty state is now ONE 44 px CTA row with this label (TÚ voice).
+  'Escribe la primera reseña': { en: 'Write the first review', fr: 'Écris le premier avis', pt: 'Escreva a primeira avaliação' },
 };
 
 /**
