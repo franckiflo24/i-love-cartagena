@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView,
-  KeyboardAvoidingView, Platform, Animated, Dimensions,
+  KeyboardAvoidingView, Platform, Animated,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,9 +17,6 @@ import { API_BASE } from '../src/constants/api';
 import { useSignupGate } from '../src/context/SignupGateContext';
 import { trackGate, getArchetype } from '../src/lib/gateAnalytics';
 
-const { width: SCREEN } = Dimensions.get('window');
-const CARD_SIZE = (SCREEN - SPACING.lg * 2 - SPACING.md) / 2;
-
 // ── Agent Card ──
 function AgentCard({ agent, onPress }: { agent: ConciergeAgent; onPress: () => void }) {
   const scale = useRef(new Animated.Value(1)).current;
@@ -28,8 +25,8 @@ function AgentCard({ agent, onPress }: { agent: ConciergeAgent; onPress: () => v
   const pressOut = () => Animated.spring(scale, { toValue: 1, useNativeDriver: true, tension: 180, friction: 22 }).start();
 
   return (
-    <TouchableOpacity activeOpacity={1} onPressIn={pressIn} onPressOut={pressOut} onPress={onPress}>
-      <Animated.View style={[styles.agentCard, { transform: [{ scale }], borderColor: agent.accent + '30', width: CARD_SIZE }]}>
+    <TouchableOpacity style={styles.agentCell} activeOpacity={1} onPressIn={pressIn} onPressOut={pressOut} onPress={onPress}>
+      <Animated.View style={[styles.agentCard, { transform: [{ scale }], borderColor: agent.accent + '30' }]}>
         <View style={[styles.agentEmojiWrap, { backgroundColor: agent.accent + '18' }]}>
           <Text style={styles.agentEmoji}>{agent.emoji}</Text>
         </View>
@@ -292,6 +289,12 @@ const styles = StyleSheet.create({
   pickerTitle: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold },
   pickerSubtitle: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', marginTop: SPACING.sm, lineHeight: 20 },
   pickerGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: SPACING.md, paddingHorizontal: SPACING.lg, paddingTop: SPACING.md },
+  // Two per row from CSS alone: a 40% basis lets exactly two cells share a row
+  // and flexGrow splits it evenly — (row − gap) / 2 at any width. The old
+  // module-scope Dimensions.get() width was 0 during the web static render (the
+  // card width went missing from the HTML → hydration mismatch) and the full
+  // browser width on desktop (cards wider than the phone shell).
+  agentCell: { flexBasis: '40%', flexGrow: 1 },
   agentCard: {
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.xl,
