@@ -1888,6 +1888,10 @@ export const AUTO_TR: Dict = {
   // Launch sweep 2026-09-28 — cross-cutting
   // ReviewsList empty state is now ONE 44 px CTA row with this label (TÚ voice).
   'Escribe la primera reseña': { en: 'Write the first review', fr: 'Écris le premier avis', pt: 'Escreva a primeira avaliação' },
+  // 1.1.1 native walk 2026-09-28 — agenda
+  'evento': { en: 'event', fr: 'événement', pt: 'evento' },
+  'eventos': { en: 'events', fr: 'événements', pt: 'eventos' },
+  'Añade eventos tocando "Añadir a mi agenda" en cualquier evento de partner': { en: 'Add events by tapping "Add to my agenda" on any partner event', fr: 'Ajoute des événements en touchant « Ajouter à mon agenda » sur n\'importe quel événement partenaire', pt: 'Adicione eventos tocando em "Adicionar à minha agenda" em qualquer evento de parceiro' },
 };
 
 /**

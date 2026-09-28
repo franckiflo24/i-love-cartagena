@@ -331,7 +331,7 @@ export default function AgendaScreen() {
               <>
                 <View style={styles.resultsHeader}>
                   <Text style={styles.resultsCount}>
-                    {partnerEvents.length + cityEvents.length} evento{(partnerEvents.length + cityEvents.length) !== 1 ? 's' : ''}
+                    {partnerEvents.length + cityEvents.length} {tr((partnerEvents.length + cityEvents.length) === 1 ? 'evento' : 'eventos')}
                   </Text>
                 </View>
 
@@ -410,7 +410,7 @@ export default function AgendaScreen() {
               <Ionicons name="calendar-outline" size={56} color={COLORS.textMuted} />
               <Text style={styles.emptyTitle}>{tr('Tu agenda está vacía')}</Text>
               <Text style={styles.emptyText}>
-                Añade eventos pulsando "Añadir a mi agenda" en cualquier evento de partner
+                {tr('Añade eventos tocando "Añadir a mi agenda" en cualquier evento de partner')}
               </Text>
               <TouchableOpacity
                 style={styles.exploreBtn}

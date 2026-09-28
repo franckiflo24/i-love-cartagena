@@ -14,7 +14,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated, Easing, Platform, ActivityIndicator, ScrollView, Image } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
@@ -62,6 +62,9 @@ export default function OnboardingArrival() {
   const { user } = useAuth();
   const tr = useTr();
   const { lang } = useLang();
+  // Skip is absolutely positioned, and absolute children ignore SafeAreaView's
+  // padding — on native `top: 14` sat under the status bar (battery icon).
+  const insets = useSafeAreaInsets();
   const firstName = (user?.name || '').trim().split(' ')[0];
   // Drop GATE (B3): after the arrival activates a gated signup, return to the
   // exact action they were headed for. Same canonical guard as login (safeNext).
@@ -196,7 +199,7 @@ export default function OnboardingArrival() {
       <Animated.View pointerEvents="none" style={[styles.glow, glowStyle]} />
 
       {/* Skip — always available, never a wall */}
-      <TouchableOpacity style={styles.skip} onPress={enterApp} disabled={saving} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+      <TouchableOpacity style={[styles.skip, { top: insets.top + 14 }]} onPress={enterApp} disabled={saving} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
         <Text style={[styles.skipText, saving && { opacity: 0.4 }]}>{tr('Saltar')}</Text>
       </TouchableOpacity>
 
