@@ -16,8 +16,12 @@ import PushBootstrap from '../src/components/PushBootstrap';
 import ErrorBoundary from '../src/components/ErrorBoundary';
 import { AlertHost } from '../src/lib/alert';
 import { API_BASE, fetchT } from '../src/constants/api';
+import { useWebIconFonts } from '../src/lib/useWebIconFonts';
 
 export default function RootLayout() {
+  // Web: icon font registered here so static HTML and hydration render the same
+  // icons (React #418 on /agenda + /perfil). Native: no-op. See the .web.ts file.
+  useWebIconFonts();
   // Keep-warm: ping the backend once per app open so the serverless cold start
   // happens while splash/onboarding shows, not when data is needed. Runs on
   // native too (it was web-only, so the iOS binary paid the cold start on its
