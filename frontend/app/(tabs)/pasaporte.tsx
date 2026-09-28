@@ -111,13 +111,11 @@ export default function PasaporteScreen() {
     }
   }, [user?.user_id]);
 
-  // Remote-mode CTA → the map tab. Labelled as exactly that: mapa.tsx does not
-  // read route params yet, so a "Paseo virtual" promise landed on the plain map
-  // (the dead tap TestFlight 18 flagged). Follow-up for mapa.tsx: consume
-  // `walk=1` via useLocalSearchParams and auto-start its virtual-walk mode; then
-  // this can push { pathname: '/(tabs)/mapa', params: { walk: '1' } } again.
+  // Remote-mode CTA → the map's virtual walk of the Centro Histórico. mapa.tsx
+  // reads `walk=1` (useLocalSearchParams), auto-starts the walk once per
+  // arrival and clears the param, so a later tab re-focus shows the plain map.
   const openMap = useCallback(() => {
-    router.push('/(tabs)/mapa' as any);
+    router.push({ pathname: '/(tabs)/mapa', params: { walk: '1' } } as any);
   }, [router]);
 
   const onRefresh = useCallback(async () => { setRefreshing(true); await load(); setRefreshing(false); }, [load]);
@@ -400,8 +398,8 @@ export default function PasaporteScreen() {
                 {geoOff ? tr('Activa tu ubicación para sellar tu pasaporte') : tr('Explora los sellos; se activan cuando estés en Cartagena')}
               </Text>
             </View>
-            <TouchableOpacity style={styles.previewBtn} onPress={openMap} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={tr('Ver el mapa')}>
-              <Text style={styles.previewBtnText}>{tr('Ver el mapa')}</Text>
+            <TouchableOpacity style={styles.previewBtn} onPress={openMap} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={tr('Paseo virtual')}>
+              <Text style={styles.previewBtnText}>{tr('Paseo virtual')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -433,7 +431,7 @@ export default function PasaporteScreen() {
                 </Text>
                 {remote ? (
                   <TouchableOpacity style={styles.inviteBtn} onPress={openMap} activeOpacity={0.85} accessibilityRole="button">
-                    <Text style={styles.inviteBtnText}>{tr('Abrir el mapa')}</Text>
+                    <Text style={styles.inviteBtnText}>{tr('Paseo virtual')}</Text>
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity style={styles.inviteBtn} onPress={() => router.push('/(tabs)/explore' as any)} activeOpacity={0.85}>

@@ -17,8 +17,13 @@
 // the fallback with the same navigate semantics (a deep-linked modal with no
 // history used to leave `router.back()` a no-op).
 //
-// login.tsx and the sign-out / delete-account path in perfil.tsx keep their
-// `replace('/(tabs)')` on purpose: those legitimately reset the whole stack.
+// goTab: the same reveal-don't-rebuild semantics for a specific tab (e.g. a
+// payment result landing on /(tabs)/bookings).
+//
+// `replace('/(tabs)')` allowlist — the ONLY survivors, each resets the whole
+// stack on purpose (grep `replace('/(tabs)` must match exactly these):
+//   app/login.tsx — post-auth redirects (email OTP success, session restore)
+//   app/(tabs)/perfil.tsx — delete-account
 import type { Router } from 'expo-router';
 
 type NavHref = Parameters<Router['navigate']>[0];
@@ -34,6 +39,16 @@ export function goHome(router: Router): void {
     console.error('[nav] dismissAll failed', err);
   }
   router.navigate(TABS_HREF);
+}
+
+/** Reveal a specific tab of the existing navigator (dismiss modals, then navigate). */
+export function goTab(router: Router, tabHref: string): void {
+  try {
+    if (typeof router.canDismiss === 'function' && router.canDismiss()) router.dismissAll();
+  } catch (err) {
+    console.error('[nav] dismissAll failed', err);
+  }
+  router.navigate(tabHref as NavHref);
 }
 
 /** Pop when there is history; otherwise navigate to `fallbackHref` (default: the tabs). */

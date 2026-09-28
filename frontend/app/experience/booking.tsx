@@ -13,6 +13,7 @@ import { useLang } from '@/src/context/LanguageContext';
 import { openWompiCheckout, checkWompiEnabled } from '@/src/lib/wompi';
 import { useTr } from '@/src/i18n/autoTr';
 import { bogotaDatePlus } from '@/src/lib/eventTime';
+import { goTab } from '@/src/lib/nav';
 
 export default function ExperienceBookingScreen() {
   const params = useLocalSearchParams<{ id: string; title: string; price: string; currency: string }>();
@@ -66,7 +67,7 @@ export default function ExperienceBookingScreen() {
       if (result.checkout_url && result.reference) {
         const wompiResult = await openWompiCheckout(result.checkout_url, result.reference);
         if (wompiResult.status === 'approved') {
-          router.replace('/(tabs)/bookings' as any);
+          goTab(router, '/(tabs)/bookings');
         } else {
           Alert.alert(tr('Pago'), `Estado: ${wompiResult.status}`);
         }

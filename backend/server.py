@@ -8501,6 +8501,19 @@ async def startup():
             {"name": {"$in": ["Ron Cartagena", "Templo"]}},
             {"$set": {"is_active": False}},
         )
+        # Signed sponsor relationships (Phil, 2026-09-25: Avianca, Aguila and the
+        # Alcaldía are real deals — "They're real, keep"). Home's "Con el apoyo de"
+        # strip only shows rows with verified: true; the seed above never runs on
+        # the already-seeded prod DB, so stamp the flag here (idempotent).
+        SIGNED_SPONSORS = ["sp_001", "sp_002", "sp_003"]
+        await db.sponsors.update_many(
+            {"sponsor_id": {"$in": SIGNED_SPONSORS}, "verified": {"$ne": True}},
+            {"$set": {"verified": True}},
+        )
+        await db.sponsors.update_many(
+            {"sponsor_id": {"$nin": SIGNED_SPONSORS}, "verified": {"$exists": False}},
+            {"$set": {"verified": False}},
+        )
         # Seed demo business accounts if not yet created
         import bcrypt as _bcrypt
         biz_count = await db.business_users.count_documents({})

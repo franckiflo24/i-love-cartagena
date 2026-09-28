@@ -9,9 +9,9 @@ export const usePartnerCount = () => useContext(PartnerCountContext);
 // its OWN `api.get('/partners')` (1.33 MB) on every app open, in parallel with
 // Home's static catalog load — two full catalog downloads before first paint.
 // It now joins the module-cached `getPartners()` from lib/data (the same
-// promise/array Home reads), so a cold start downloads the catalog ONCE; any
-// screen that later needs the LIVE list goes through `getPartnersOnce()` in
-// constants/api, which is single-flight + cached too.
+// promise/array Home reads), so a cold start downloads the catalog ONCE.
+// Concurrent live `api.get('/partners')` calls are de-duplicated by api.get's
+// own GET single-flight.
 export function PartnerCountProvider({ children }: { children: React.ReactNode }) {
   const [count, setCount] = useState(0);
 

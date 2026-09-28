@@ -14,6 +14,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { describeStatus } from '../../src/lib/wompi';
 import { useTr } from '../../src/i18n/autoTr';
+import { goHome, goTab } from '../../src/lib/nav';
 
 const fmtCOP = (n: number) =>
   '$ ' + (Number(n) || 0).toLocaleString('es-CO', { maximumFractionDigits: 0 });
@@ -84,25 +85,25 @@ export default function PaymentReturn() {
 
   const goNext = () => {
     if (!payment) {
-      router.replace('/(tabs)' as any);
+      goHome(router);
       return;
     }
     const kind = payment.kind;
     if (kind === 'city_pass') {
-      router.replace('/(tabs)/citypass' as any);
+      goTab(router, '/(tabs)/citypass');
     } else if (kind === 'port_tax') {
       // Retired product (2026-09-26): the ticket / QR screens are gone. A dormant
       // port_tax payment lands on the official pier / park / insurance prices.
       router.replace('/ciudad/muelle-bodeguita' as any);
     } else {
-      router.replace('/(tabs)' as any);
+      goHome(router);
     }
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.replace('/(tabs)' as any)} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => goHome(router)} style={styles.backBtn}>
           <Ionicons name="close" size={22} color={COLORS.textMain} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{tr('Resultado de pago')}</Text>
@@ -163,7 +164,7 @@ export default function PaymentReturn() {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity style={styles.secondaryBtn} onPress={() => router.replace('/(tabs)' as any)}>
+        <TouchableOpacity style={styles.secondaryBtn} onPress={() => goHome(router)}>
           <Text style={styles.secondaryBtnText}>{tr('Volver al inicio')}</Text>
         </TouchableOpacity>
       </ScrollView>

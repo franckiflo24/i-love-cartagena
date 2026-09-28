@@ -7,6 +7,7 @@ import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { useAuth } from '../src/context/AuthContext';
 import { useTr } from '../src/i18n/autoTr';
 import { trackGate } from '../src/lib/gateAnalytics';
+import { goHome } from '../src/lib/nav';
 
 // Direct-to-registration entry for QRs and field links.
 //
@@ -77,7 +78,7 @@ export default function RegistroScreen() {
           <Text style={styles.sub}>
             {tr('Tu cuenta ya está activa. Este enlace registra a usuarios NUEVOS — muéstralo con el QR, o pruébalo en una ventana de incógnito para ver lo que verán tus clientes.')}
           </Text>
-          <TouchableOpacity style={styles.homeBtn} onPress={() => router.replace('/(tabs)' as any)} activeOpacity={0.85}>
+          <TouchableOpacity style={styles.homeBtn} onPress={() => goHome(router)} activeOpacity={0.85}>
             <Text style={styles.homeBtnText}>{tr('Ir al inicio')}</Text>
           </TouchableOpacity>
         </View>

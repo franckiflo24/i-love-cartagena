@@ -17,6 +17,7 @@ import { useLang } from '../src/context/LanguageContext';
 import { Lang, LANG_FLAGS } from '../src/i18n/translations';
 import { useTr } from '@/src/i18n/autoTr';
 import { safeNext } from '../src/lib/safeNext';
+import { goHome } from '../src/lib/nav';
 
 // Bundled lockup geometry (assets/images/amo-life-logo.png is 900×345). Shared
 // value with onboarding.tsx — keep the two in lockstep.
@@ -372,7 +373,7 @@ export default function LoginScreen() {
           {/* Guest escape — rendered UNCONDITIONALLY (a stuck/hesitant tourist is
               exactly who needs it), never gated behind the terms checkbox.
               registro.tsx already stamps @onboarding_done so tabs won't loop. */}
-          <TouchableOpacity onPress={() => router.replace('/(tabs)' as any)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8 }}>
+          <TouchableOpacity onPress={() => goHome(router)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8 }}>
             <Text style={styles.guestLink}>{s('login_guest')}</Text>
           </TouchableOpacity>
 

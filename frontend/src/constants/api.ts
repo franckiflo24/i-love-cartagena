@@ -1021,27 +1021,3 @@ export const api = {
     return res.json();
   },
 };
-
-// ── Live catalog, once ───────────────────────────────────────────
-// The full /partners list (1.33 MB) for callers that need the LIVE catalog
-// (Explore/map hydrate, search): single-flight while loading and a module cache
-// once it has resolved, so any number of callers cost ONE download per app
-// session. The static-first paint (Home, PartnerCountContext) still goes through
-// lib/data getPartners(), which is module-cached the same way — that is the
-// one catalog download a cold start pays before first paint.
-let PARTNERS_CACHE: any[] | null = null;
-let PARTNERS_INFLIGHT: Promise<any[]> | null = null;
-export const getPartnersOnce = (): Promise<any[]> => {
-  if (PARTNERS_CACHE) return Promise.resolve(PARTNERS_CACHE);
-  if (!PARTNERS_INFLIGHT) {
-    PARTNERS_INFLIGHT = api.get('/partners')
-      .then((p: unknown) => {
-        const arr = Array.isArray(p) ? p : [];
-        if (arr.length > 0) PARTNERS_CACHE = arr;
-        return arr;
-      })
-      .catch((err: unknown) => { console.error('[api] getPartnersOnce', err); return [] as any[]; })
-      .finally(() => { PARTNERS_INFLIGHT = null; });
-  }
-  return PARTNERS_INFLIGHT;
-};

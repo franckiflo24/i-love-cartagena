@@ -30,6 +30,7 @@ import { useLang } from '../../src/context/LanguageContext';
 import { monthShort, weekdayShort } from '../../src/lib/formatDate';
 import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
+import { partnerEventImage } from '../../src/components/PartnerEventCard';
 import { SkeletonEventRows, SkeletonFeaturedRow, SkeletonTileRow } from '../../src/components/Skeleton';
 import { getUpcomingEvents, getPartners } from '../../src/lib/data';
 import type { Partner } from '../../src/lib/schema';
@@ -81,9 +82,11 @@ const nextWeeklyOccurrence = (startIso: string, todayIso: string): string => {
 
 // Sponsor rows must carry a signed relationship before Home shows "Con el apoyo
 // de": `verified: true`, or a `contract_until` date that has not passed. The
-// demo rows (Avianca, Aguila, Alcaldía de Cartagena…) carry neither, so the
-// strip self-hides — a municipal seal without a contract is exactly the
-// government-sponsorship framing the honesty doctrine forbids.
+// signed relationships (Phil, 2026-09-25) are sp_001 Avianca, sp_002 Aguila and
+// sp_003 Alcaldía de Cartagena — backend startup stamps `verified` on the live
+// rows and public/data/sponsors.json mirrors it, so static and live agree. Any
+// other row self-hides: a logo or municipal seal without a contract is exactly
+// the sponsorship framing the honesty doctrine forbids.
 const isVerifiedSponsor = (s: Sponsor, today: string): boolean =>
   s.verified === true || (typeof s.contract_until === 'string' && s.contract_until >= today);
 
@@ -99,7 +102,7 @@ type Event = {
 
 type PEvent = {
   event_id: string; partner_id: string; title: string; category: string;
-  date: string; start_time: string; end_time: string; flyer_url: string;
+  date: string; start_time: string; end_time: string; flyer_url: string; image_url?: string;
   is_free: boolean; price: number; partner_name?: string; partner_tier?: string;
   partner_image?: string; date_start?: string; date_end?: string;
   recurring?: boolean; recurrence_rule?: string | null;
@@ -469,7 +472,7 @@ export default function HomeScreen() {
       for (const id of peIds) {
         try {
           const ev = await api.get(`/partner-events/${id}`);
-          results.push({ kind: 'partner_event', id, title: ev.title, image: ev.flyer_url, subtitle: `${ev.date} · ${ev.start_time}`, tier: ev.partner?.tier || ev.partner_tier });
+          results.push({ kind: 'partner_event', id, title: ev.title, image: partnerEventImage(ev) ?? undefined, subtitle: `${ev.date} · ${ev.start_time}`, tier: ev.partner?.tier || ev.partner_tier });
         } catch { /* one missing favorite never blanks the rail */ }
       }
       if (alive) setFavItems(results);
@@ -517,7 +520,7 @@ export default function HomeScreen() {
   // window on its ORIGINAL start date and the Hoy/Noche chip read "18 JUN".
   const toPE = (e: Event): PEvent => ({
     event_id: e.event_id, partner_id: '', title: e.title, category: e.type, date: e.date,
-    start_time: e.start_time, end_time: e.end_time, flyer_url: e.image_url, is_free: e.is_free,
+    start_time: e.start_time, end_time: e.end_time, flyer_url: e.image_url, image_url: e.image_url, is_free: e.is_free,
     price: e.price, partner_name: e.venue_name, partner_tier: '', partner_image: e.image_url,
     date_start: e.date_start, date_end: e.date_end, recurring: e.recurring, recurrence_rule: e.recurrence_rule,
   });
@@ -568,7 +571,7 @@ export default function HomeScreen() {
         activeOpacity={0.85}
       >
         <View style={styles.peThumbWrap}>
-          <SafeImage uri={event.flyer_url || event.partner_image} category={event.category} style={styles.peThumb} resizeMode="cover" />
+          <SafeImage uri={partnerEventImage(event) || event.partner_image} category={event.category} style={styles.peThumb} resizeMode="cover" />
           {!!chip && (
             <View style={styles.peTimeChip}>
               <Text style={styles.peTimeChipText}>{chip}</Text>

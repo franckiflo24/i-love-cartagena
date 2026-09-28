@@ -460,7 +460,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     + '  var gi = L.divIcon({ className: "", html: \'<div style="position:relative;width:22px;height:22px"><div style="position:absolute;top:0;left:0;width:22px;height:22px;border-radius:50%;background:rgba(201,168,76,0.3);animation:pulse 1.6s ease-out infinite"></div><div style="position:absolute;top:4px;left:4px;width:14px;height:14px;border-radius:50%;background:#C9A84C;border:2px solid #fff;box-shadow:0 0 6px rgba(201,168,76,0.8)"></div></div>\', iconSize: [22, 22], iconAnchor: [11, 11] });'
     + '  walkMarker = L.marker([WALK[0].lat, WALK[0].lng], { icon: gi, zIndexOffset: 1200 }).addTo(map);'
     + '  map.flyTo([WALK[0].lat, WALK[0].lng], 18, { duration: 1.5 });'
-    + '  walkTimers.push(setTimeout(function() { L.popup({closeButton: false, autoClose: true}).setLatLng([WALK[0].lat, WALK[0].lng]).setContent("🚶 <b style=\\"color:' + COLORS.textMain + '\\">Paseo virtual — Centro Histórico</b>").openOn(map); }, 1500));'
+    + '  walkTimers.push(setTimeout(function() { L.popup({closeButton: false, autoClose: true}).setLatLng([WALK[0].lat, WALK[0].lng]).setContent("🚶 <b style=\\"color:' + COLORS.textMain + '\\">' + escHtml(tr('Paseo virtual')) + ' — Centro Histórico</b>").openOn(map); }, 1500));'
     + '  var leg = 0;'
     + '  var nextLeg = function() {'
     + '    if (leg >= WALK.length - 1) { window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({type: "walkEnd"})); return; }'
@@ -784,7 +784,6 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
     const pos = userPosRef.current;
     if (!follow || !map || !pos || tourActiveRef.current || walkActiveRef.current) return;
     if (isInCartagena(pos.lat, pos.lng)) map.panTo([pos.lat, pos.lng], { animate: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [follow]);
 
   // ── Basemap: swap in place on satellite toggle ──
@@ -797,7 +796,6 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
       return;
     }
     applyBaseLayer();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [satellite]);
 
   // ── Atlas fly-through: chained flyTo over the exported camera route ──
@@ -893,7 +891,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
       if (!walkActiveRef.current || !leafletRef.current) return;
       L.popup({ closeButton: false, autoClose: true })
         .setLatLng([ATLAS_WALK[0].lat, ATLAS_WALK[0].lng])
-        .setContent(`🚶 <b style="color:${COLORS.textMain}">Paseo virtual — Centro Histórico</b>`)
+        .setContent(`🚶 <b style="color:${COLORS.textMain}">${escHtml(tr('Paseo virtual'))} — Centro Histórico</b>`)
         .openOn(map);
     }, 1500));
     const nearest = (lat: number, lng: number) => {
@@ -1013,7 +1011,6 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
     };
     ensureWalkRouter().then(draw);
     return () => { cancelled = true; clear(); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ruta, mapReady]);
 
   // ── Place markers: rebuild only when data/filter changes ──
@@ -1279,7 +1276,6 @@ export default function MapaScreen() {
     if (haversineM(userLoc.lat, userLoc.lng, s.lat, s.lng) <= RUTA_ARRIVE_M) {
       setNextStopIdx(i => i + 1);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userLoc, ruta, nextStopIdx]);
 
   // ── `?walk=1` / `?walk=virtual` (Pasaporte's "Paseo virtual" CTA) ──
@@ -2020,7 +2016,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingLeft: 12,
     paddingRight: 2,
-    minHeight: 40,
+    minHeight: 44,
     backgroundColor: 'rgba(5,8,20,0.92)',
     borderRadius: RADIUS.full,
     borderWidth: 1,
@@ -2028,7 +2024,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   filterPillText: { flexShrink: 1, fontSize: 11.5, color: COLORS.textMain, ...FONTS.semibold },
-  filterPillClear: { width: 44, height: 40, alignItems: 'center', justifyContent: 'center' },
+  filterPillClear: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   fabDot: { position: 'absolute', top: 6, right: 6, width: 9, height: 9, borderRadius: 5, backgroundColor: COLORS.primary, borderWidth: 1.5, borderColor: COLORS.surface },
   sheetBackdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1150 },
 

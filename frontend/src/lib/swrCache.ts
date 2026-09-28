@@ -29,7 +29,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // files are `[]`, so a backend blip told signed-in users they had no
 // reservations/tickets/favorites, and a stripped ?date=/?partner_id= served
 // unrelated rows as if they matched. (Owned here so api.ts and the cache agree.)
-export const PRIVATE_PATH = /^\/(auth|business|admin|reservations|rewards\/me|favorites|notifications|my-week|city-pass\/mine|experience-bookings|port-tax\/my-tickets|calendar|profile|passport|for-you|intel)(\/|\?|$)/;
+export const PRIVATE_PATH = /^\/(auth|business|admin|reservations|rewards\/me|favorites|notifications|my-week|city-pass\/mine|experience-bookings|port-tax\/my-tickets|calendar|profile|passport|for-you|intel|itineraries|agent)(\/|\?|$)/;
 
 // Never worth caching: per-query computations, auth handshakes, health pings,
 // admin intel. A 'no' here means api.get neither writes nor recovers from cache.
