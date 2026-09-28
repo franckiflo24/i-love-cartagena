@@ -1,0 +1,7 @@
+{
+  "version": "1.1.1",
+  "whatsNew": {
+    "en-US": "• Smoother navigation: coming back to Home no longer reloads the screen\n• Cleaner map: nearby places group together and the controls are simpler\n• Planning from far away? Take a virtual walk through the Centro Histórico from your Passport\n• Faster loading, lighter photos and a steadier app when your connection drops\n• Fixes and polish throughout",
+    "es-MX": "• Navegación más fluida: volver al Inicio ya no recarga la pantalla\n• Mapa más limpio: los lugares cercanos se agrupan y los controles son más simples\n• ¿Planeas desde lejos? Haz un paseo virtual por el Centro Histórico desde tu Pasaporte\n• Carga más rápida, fotos más livianas y una app más estable cuando falla tu conexión\n• Correcciones y mejoras en toda la app"
+  }
+}
