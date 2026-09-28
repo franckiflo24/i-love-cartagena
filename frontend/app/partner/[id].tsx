@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking as RNLinking, Platform, Share } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator, Linking as RNLinking, Platform, Share, Alert, ActionSheetIOS } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TYPE, ELEVATION, PARTNER_CATEGORY_LABELS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
@@ -25,6 +25,87 @@ import { TrustBadges } from '../../src/components/TrustBadges';
 import AddToTrip from '../../src/components/AddToTrip';
 import { loadCatalog, brandFamily, CatalogVenue } from '../../src/lib/lunaOffline';
 import { hapticLight } from '../../src/lib/haptics';
+import { geoService, GeoState, haversineM, fmtDistance, cityMode } from '../../src/lib/geo';
+import { getCollections, platesForVenue, PlateDef } from '../../src/lib/passport';
+import { bogotaToday } from '../../src/lib/eventTime';
+
+// Client pre-check for the passport stamp. The server gate is 75 m; we only
+// lock the UI when the fix is unambiguously far (GPS noise never locks out
+// someone standing at the venue — inside this band the server still decides).
+const STAMP_LOCK_M = 250;
+
+// Addresses that carry no information beyond "it is in Cartagena" (85/853
+// partners store exactly this) — the tile shows the zone instead.
+const GENERIC_ADDR = /^cartagena(\s+de\s+indias)?(,\s*(bol[ií]var,?\s*)?colombia)?\.?$/i;
+
+const DAYS_EN = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+/**
+ * 119 partners store Google's 7-day string ("Monday: 8:00 AM – 6:00 PM;
+ * Tuesday: …") which a one-third-width tile cannot hold. Collapse it to
+ * today's line; curated one-liners ("Lun-Sáb 09:00 - 19:00") pass through.
+ */
+function todayHoursLine(h: string, todayLabel: string): string {
+  if (!/(monday|lunes)\s*:/i.test(h)) return h;
+  const parts = h.split(';').map((s) => s.trim()).filter(Boolean);
+  // Cartagena's weekday, not the device's: a reader in another timezone near
+  // midnight used to get the wrong day's line. Noon local of Bogotá's date
+  // cannot cross a date boundary in any timezone.
+  const today = DAYS_EN[new Date(bogotaToday() + 'T12:00:00').getDay()];
+  const line = parts.find((p) => p.toLowerCase().startsWith(today));
+  return line ? line.replace(/^[^:]+:\s*/, `${todayLabel}: `) : parts[0] || h;
+}
+
+// Zone values are editorial and occasionally carry a stray ")" ("Puerta 5)").
+function cleanZone(z: unknown): string | null {
+  const s = String(z || '').trim();
+  if (!s) return null;
+  return s.includes('(') ? s : s.replace(/\)+$/, '').trim() || null;
+}
+
+type StampLockReason = 'denied' | 'remote' | 'near';
+
+/**
+ * Remote-mode replacement for <LoProbe>: rendered when the user is far from
+ * Cartagena, far from this venue, or has location off. No GPS request, no POST,
+ * no spinner, no rate-limit burn — one honest line plus a save-for-later action.
+ * Module-level component (never defined inside render — focus/remount rule).
+ */
+function StampLockedCard({ plates, partnerId, name, reason, km, distM }: {
+  plates: PlateDef[]; partnerId: string; name: string; reason: StampLockReason; km: number | null; distM: number | null;
+}) {
+  const tr = useTr();
+  const router = useRouter();
+  const icon = reason === 'denied' ? 'locate-outline' : reason === 'remote' ? 'airplane-outline' : 'walk-outline';
+  const line = reason === 'denied'
+    ? tr('Activa tu ubicación para sellar tu pasaporte')
+    : reason === 'remote'
+      ? `${(km ?? 0).toLocaleString()} km ${tr('desde Cartagena — sella cuando estés allí')}`
+      : `${fmtDistance(distM ?? 0)} — ${tr('Acércate al lugar para sellarlo')}`;
+  return (
+    <View style={styles.stampBox}>
+      <View style={styles.stampHeader}>
+        <Ionicons name="ribbon" size={14} color={COLORS.primary} />
+        <Text style={styles.stampTitle}>{tr('Sella tu pasaporte')}</Text>
+        {/* 11 px link → hitSlop 16 all sides ≈ 45 px target */}
+        <TouchableOpacity onPress={() => router.push('/pasaporte' as any)} hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }} accessibilityRole="link">
+          <Text style={styles.stampLink}>{tr('Mi Pasaporte')}</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.stampPlates}>
+        {plates.map((p) => (
+          <View key={p.key} style={styles.stampPlate}>
+            <Text style={styles.stampPlateText} numberOfLines={1}>{p.name}</Text>
+          </View>
+        ))}
+      </View>
+      <View style={styles.stampLockRow}>
+        <Ionicons name={icon} size={14} color={COLORS.textMuted} />
+        <Text style={styles.stampLockText}>{line}</Text>
+      </View>
+      <AddToTrip refType="venue" refId={partnerId} name={name} style={styles.stampSave} />
+    </View>
+  );
+}
 
 const TAG_LABELS: Record<string, string> = {
   romantic: 'Romántico', first_date: 'Primera cita', family: 'Familiar',
@@ -96,6 +177,39 @@ export default function PartnerDetail() {
       .catch(() => { if (alive) setBrandSiblings([]); });
     return () => { alive = false; };
   }, [pid]);
+
+  // Remote mode + stamp pre-check: one geo subscription for the whole screen.
+  const [geo, setGeo] = useState<GeoState>(geoService.getState());
+  useEffect(() => {
+    const unsub = geoService.subscribe(setGeo);
+    geoService.syncPermission().then(() => setGeo(geoService.getState())).catch(() => {});
+    return unsub;
+  }, []);
+  // The SCREEN arms the focus-scoped watch. It used to rely on <LiveDistance>
+  // inside the Location tile, which only mounts when the partner has a zone, a
+  // real street address or real coords — 85/853 carry the generic city line and
+  // default centre coords, so no fix ever arrived there and a user 1,500 km
+  // away got the live "Lo probé" gate instead of the remote card (measured on
+  // ptr_R102 from the static fallback). start()/stop() are idempotent on the
+  // singleton, so LiveDistance calling them too never double-arms the GPS.
+  useFocusEffect(
+    useCallback(() => {
+      geoService.start();
+      return () => geoService.stop();
+    }, []),
+  );
+
+  // Sabores plates anchored at this venue — drives the locked stamp card when
+  // the user cannot be here. getCollections() is memoised in-module, so this
+  // costs nothing extra next to LoProbe's own lookup.
+  const [plates, setPlates] = useState<PlateDef[]>([]);
+  useEffect(() => {
+    let alive = true;
+    getCollections()
+      .then((cols) => { if (alive) setPlates(platesForVenue(cols, String(id))); })
+      .catch(() => { if (alive) setPlates([]); });
+    return () => { alive = false; };
+  }, [id]);
 
   if (loading) {
     return (
@@ -178,15 +292,28 @@ export default function PartnerDetail() {
 
   const hasRealCoords = !isDefaultCoords(partner?.location?.lat, partner?.location?.lng);
 
+  // Location facts: a real street address (never the generic city line), the
+  // editorial zone, and where the user is relative to the city + this venue.
+  const addrRaw = String(partner.address || '').trim();
+  const addrLine = addrRaw && !GENERIC_ADDR.test(addrRaw) ? addrRaw : null;
+  const zone = cleanZone(partner.zone);
+  const city = cityMode(geo);
+  const remote = city.mode === 'remote' && city.km !== null;
+  const geoDenied = geo.status === 'denied' || geo.status === 'unavailable';
+  const pos = geo.status === 'granted' ? geo.position : null;
+  const venueDistM = pos && hasRealCoords ? haversineM(pos.lat, pos.lng, partner.location.lat, partner.location.lng) : null;
+  const tooFarForStamp = venueDistM !== null && venueDistM > STAMP_LOCK_M;
+  const stampLock: StampLockReason | null = geoDenied ? 'denied' : remote ? 'remote' : tooFarForStamp ? 'near' : null;
+  const hoursRaw = typeof partner.hours === 'string' ? partner.hours.trim() : '';
+
   const openMaps = () => {
     if (!partner) return;
-    const addrText = (partner.address || '').trim();
-    // Address-first (more reliable than possibly-imprecise imported coords),
-    // then real coords, then name-only. openDirections lets iOS users pick
-    // Apple Maps or Google Maps (App Store Guideline 4).
+    // Real address first (more reliable than possibly-imprecise imported
+    // coords), then real coords, then name-only. openDirections lets iOS users
+    // pick Apple Maps or Google Maps (App Store Guideline 4).
     let target: MapTarget;
-    if (addrText) {
-      target = { query: `${partner.name}, ${addrText}, Cartagena` };
+    if (addrLine) {
+      target = { query: `${partner.name}, ${addrLine}, Cartagena` };
     } else if (hasRealCoords) {
       target = { lat: partner.location.lat, lng: partner.location.lng, label: partner.name };
     } else {
@@ -234,7 +361,43 @@ export default function PartnerDetail() {
       uberUrl = `uber://?action=setPickup&pickup=my_location&dropoff[nickname]=${name}&dropoff[formatted_address]=${addr}`;
       uberWeb = `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[nickname]=${name}&dropoff[formatted_address]=${addr}`;
     }
-    openExternal(uberUrl, uberWeb);
+
+    // Far from the city: Uber discards a dropoff outside the pickup region, so
+    // the app switch is a dead end. Say so, offer directions instead.
+    const now = cityMode(geoService.getState());
+    if (now.mode === 'remote' && now.km !== null) {
+      const title = tr('Pedir Uber');
+      const body = `${now.km.toLocaleString()} km ${tr('desde Cartagena — Uber se activa cuando estés en la ciudad.')}`;
+      if (Platform.OS === 'web') {
+        try { if (typeof window !== 'undefined') window.alert(`${title}\n\n${body}`); } catch {}
+        return;
+      }
+      Alert.alert(title, body, [
+        { text: tr('Ahora no'), style: 'cancel' },
+        { text: tr('Cómo llegar'), onPress: openMaps },
+      ]);
+      return;
+    }
+
+    // Never jump straight out of the app: one line of context + a choice.
+    const go = () => { openExternal(uberUrl, uberWeb); };
+    const message = tr('Se abrirá Uber con este lugar como destino');
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { title: partner.name, message, options: [tr('Abrir Uber'), tr('Cómo llegar'), tr('Cancelar')], cancelButtonIndex: 2 },
+        (i) => { if (i === 0) go(); else if (i === 1) openMaps(); },
+      );
+      return;
+    }
+    if (Platform.OS === 'android') {
+      Alert.alert(partner.name, message, [
+        { text: tr('Cancelar'), style: 'cancel' },
+        { text: tr('Cómo llegar'), onPress: openMaps },
+        { text: tr('Abrir Uber'), onPress: go },
+      ]);
+      return;
+    }
+    go(); // web: m.uber.com opens in a new tab, the browser is the confirmation
   };
 
   const handleShare = async () => {
@@ -412,16 +575,34 @@ export default function PartnerDetail() {
             </View>
           ) : null}
 
-          {/* Walking Layer: plate check-in — renders only for Sabores venues */}
-          <LoProbe partnerId={String(id)} />
+          {/* Walking Layer: plate check-in — renders only for Sabores venues.
+              Far from the venue / city, or location off → the locked card
+              (no GPS request, no POST, no spinner). In range → the live gate. */}
+          {plates.length > 0 && stampLock ? (
+            <StampLockedCard
+              plates={plates}
+              partnerId={String(id)}
+              name={partner.name}
+              reason={stampLock}
+              km={city.km}
+              distM={venueDistM}
+            />
+          ) : (
+            <LoProbe partnerId={String(id)} />
+          )}
 
           <View style={styles.infoGrid}>
-            {partner.address ? (
-              <TouchableOpacity style={styles.infoCard} onPress={openMaps} activeOpacity={0.7}>
+            {zone || addrLine || hasRealCoords ? (
+              <TouchableOpacity style={styles.infoCard} onPress={openMaps} activeOpacity={0.7} accessibilityLabel={tr('Cómo llegar')}>
                 <Ionicons name="location-outline" size={20} color={COLORS.icon} />
                 <Text style={styles.infoLabel}>{tr('Ubicación')}</Text>
-                <Text style={[styles.infoValue, { textDecorationLine: 'underline' }]}>{partner.address}</Text>
-                <LiveDistance lat={partner.location?.lat} lng={partner.location?.lng} />
+                <Text style={styles.infoValue} numberOfLines={1}>{zone || tr('Cartagena')}</Text>
+                {addrLine ? <Text style={styles.infoSub} numberOfLines={2}>{addrLine}</Text> : null}
+                {remote ? (
+                  <Text style={styles.infoFar}>✈ {(city.km ?? 0).toLocaleString()} km</Text>
+                ) : (
+                  <LiveDistance lat={partner.location?.lat} lng={partner.location?.lng} />
+                )}
                 <Ionicons name="navigate-outline" size={14} color={COLORS.textMuted} style={{ marginTop: 4 }} />
               </TouchableOpacity>
             ) : null}
@@ -432,13 +613,13 @@ export default function PartnerDetail() {
                 <Text style={styles.infoValue}>{partner.price_range}</Text>
               </View>
             ) : null}
-            <View style={styles.infoCard}>
-              <Ionicons name="time-outline" size={20} color={COLORS.icon} />
-              <Text style={styles.infoLabel}>{tr('Horario')}</Text>
-              <Text style={styles.infoValue}>
-                {(partner as any).hours || tr('Contactar para horarios')}
-              </Text>
-            </View>
+            {hoursRaw ? (
+              <View style={styles.infoCard}>
+                <Ionicons name="time-outline" size={20} color={COLORS.icon} />
+                <Text style={styles.infoLabel}>{tr('Horario')}</Text>
+                <Text style={styles.infoValue} numberOfLines={3}>{todayHoursLine(hoursRaw, tr('Hoy'))}</Text>
+              </View>
+            ) : null}
           </View>
 
           {/* Partner-submitted price — DROP B2. Untrusted, unverified, and
@@ -488,23 +669,24 @@ export default function PartnerDetail() {
             </TouchableOpacity>
           ) : null}
 
-          {/* Calendar of upcoming events */}
+          {/* Calendar of upcoming events — no events → one 44 px row that
+              points at the agenda instead of an empty box with a title. */}
+          {partnerEvents.length === 0 ? (
+            <TouchableOpacity style={styles.inlineCta} onPress={() => router.push('/(tabs)/agenda' as any)} activeOpacity={0.8}>
+              <Ionicons name="calendar-outline" size={14} color={COLORS.textMuted} />
+              <Text style={styles.inlineCtaText} numberOfLines={1}>{tr('Sin eventos publicados próximamente')} · {tr('Ver agenda')}</Text>
+              <Ionicons name="chevron-forward" size={14} color={COLORS.textMuted} />
+            </TouchableOpacity>
+          ) : (
           <View style={styles.calendarSection}>
             <View style={styles.calendarHeader}>
               <Ionicons name="calendar" size={16} color={COLORS.icon} />
               <Text style={styles.sectionTitle}>{tr('Próximos eventos')}</Text>
-              {partnerEvents.length > 0 && (
-                <View style={styles.calendarCount}>
-                  <Text style={styles.calendarCountText}>{partnerEvents.length}</Text>
-                </View>
-              )}
-            </View>
-            {partnerEvents.length === 0 ? (
-              <View style={styles.calendarEmpty}>
-                <Ionicons name="calendar-outline" size={28} color={COLORS.textMuted} />
-                <Text style={styles.calendarEmptyText}>{tr('Sin eventos publicados próximamente')}</Text>
+              <View style={styles.calendarCount}>
+                <Text style={styles.calendarCountText}>{partnerEvents.length}</Text>
               </View>
-            ) : (
+            </View>
+            {(
               partnerEvents.slice(0, 6).map((ev: any) => (
                 <TouchableOpacity
                   key={ev.event_id}
@@ -527,6 +709,7 @@ export default function PartnerDetail() {
               ))
             )}
           </View>
+          )}
         </View>
         {/* Brand family — other outlets of this brand (e.g. Casa Bohème → its venues) */}
         {brandSiblings.length > 0 && (
@@ -574,16 +757,26 @@ export default function PartnerDetail() {
       </ScrollView>
 
       <View style={styles.bottomBar}>
-        <PressableScale style={styles.actionCircle} onPress={handleUber} accessibilityLabel={tr('Pedir Uber')}>
-          <Ionicons name="car" size={20} color={COLORS.textMain} />
-        </PressableScale>
-        <PressableScale style={styles.actionCircle} onPress={openMaps} accessibilityLabel={tr('Cómo llegar')}>
-          <Ionicons name="navigate" size={20} color={COLORS.textMain} />
-        </PressableScale>
-        {partner.phone ? (
-          <PressableScale style={styles.actionCircle} onPress={handleCall} accessibilityLabel={tr('Llamar')}>
-            <Ionicons name="call" size={20} color={COLORS.textMain} />
+        {/* Icon circles carry a caption so every tap target is obvious. */}
+        <View style={styles.actionWrap}>
+          <PressableScale style={styles.actionCircle} onPress={handleUber} accessibilityLabel={tr('Pedir Uber')}>
+            <Ionicons name="car" size={20} color={COLORS.textMain} />
           </PressableScale>
+          <Text style={styles.actionCaption}>Uber</Text>
+        </View>
+        <View style={styles.actionWrap}>
+          <PressableScale style={styles.actionCircle} onPress={openMaps} accessibilityLabel={tr('Cómo llegar')}>
+            <Ionicons name="navigate" size={20} color={COLORS.textMain} />
+          </PressableScale>
+          <Text style={styles.actionCaption}>{tr('Mapa')}</Text>
+        </View>
+        {partner.phone ? (
+          <View style={styles.actionWrap}>
+            <PressableScale style={styles.actionCircle} onPress={handleCall} accessibilityLabel={tr('Llamar')}>
+              <Ionicons name="call" size={20} color={COLORS.textMain} />
+            </PressableScale>
+            <Text style={styles.actionCaption}>{tr('Llamar')}</Text>
+          </View>
         ) : null}
         <PressableScale
           containerStyle={{ flex: 1 }}
@@ -672,6 +865,24 @@ const styles = StyleSheet.create({
   infoCard: { flex: 1, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.md, gap: SPACING.xs, borderWidth: 1, borderColor: COLORS.border },
   infoLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
   infoValue: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold },
+  infoSub: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 15 },
+  infoFar: { fontSize: 12, color: COLORS.textMuted, ...FONTS.bold, marginTop: 2 },
+  // Compact single-line CTA rows (events empty state) — 44 px, one line.
+  inlineCta: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 12, borderRadius: RADIUS.md, borderWidth: 1, borderColor: COLORS.border, marginTop: SPACING.lg },
+  inlineCtaText: { flex: 1, fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
+  // Remote-mode stamp card (mirrors LoProbe's box so in/out of range look related)
+  stampBox: { marginTop: SPACING.md, backgroundColor: 'rgba(18,181,165,0.06)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(18,181,165,0.3)', padding: SPACING.md, gap: 10 },
+  stampHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  stampTitle: { flex: 1, fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
+  stampLink: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },
+  stampPlates: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  stampPlate: { maxWidth: '100%', borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
+  stampPlateText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold },
+  stampLockRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  stampLockText: { flex: 1, fontSize: 12, color: COLORS.textMuted, ...FONTS.medium, lineHeight: 16 },
+  stampSave: { alignSelf: 'stretch', minHeight: 44 },
+  actionWrap: { alignItems: 'center', gap: 2 },
+  actionCaption: { fontSize: 9, color: COLORS.textMuted, ...FONTS.medium, letterSpacing: 0.2 },
   // Partner-submitted price — deliberately muted/dashed, opposite of the
   // gold-filled TrustBadges pill, so it never reads as an official badge.
   partnerPriceBox: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACING.xs, marginTop: SPACING.sm, padding: SPACING.sm, borderRadius: RADIUS.md, borderWidth: 1, borderStyle: 'dashed', borderColor: COLORS.border, backgroundColor: 'transparent' },
@@ -703,8 +914,6 @@ const styles = StyleSheet.create({
   calendarHeader: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs, marginBottom: SPACING.sm },
   calendarCount: { backgroundColor: COLORS.iconMuted, borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 2 },
   calendarCountText: { fontSize: 11, color: COLORS.white, ...FONTS.bold },
-  calendarEmpty: { alignItems: 'center', paddingVertical: SPACING.lg, gap: SPACING.xs, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border },
-  calendarEmptyText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular },
   calendarItem: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, marginBottom: SPACING.xs },
   calendarFlyer: { width: 56, height: 56, borderRadius: RADIUS.md },
   calendarItemBody: { flex: 1, gap: 2 },

@@ -78,6 +78,45 @@ export function fmtDistance(m: number): string {
   return km < 100 ? `${km.toFixed(1)} km` : `${Math.round(km)} km`;
 }
 
+// ── City gate ──────────────────────────────────────────────────────
+// Shared by the passport tab, the partner page and the map (single source of
+// truth — mapa.tsx carries a private copy of the bounds that should import
+// these instead). Pure functions, no hooks, no side effects.
+export const CTG_CENTER = { lat: 10.4236, lng: -75.5483 };
+export const CTG_BOUNDS = { latMin: 10.30, latMax: 10.50, lngMin: -75.62, lngMax: -75.45 };
+/** Beyond this distance from the centre the app is in REMOTE mode. */
+export const REMOTE_KM = 20;
+
+export function isInCartagena(lat: number, lng: number): boolean {
+  return lat >= CTG_BOUNDS.latMin && lat <= CTG_BOUNDS.latMax
+      && lng >= CTG_BOUNDS.lngMin && lng <= CTG_BOUNDS.lngMax;
+}
+
+/** Straight-line distance from a point to the city centre, in km (unrounded). */
+export function distanceToCartagenaKm(lat: number, lng: number): number {
+  return haversineM(lat, lng, CTG_CENTER.lat, CTG_CENTER.lng) / 1000;
+}
+
+export type CityMode = 'unknown' | 'in_city' | 'remote';
+
+/**
+ * unknown = permission not asked / no fix yet → keep today's UI untouched.
+ * in_city = a fix within REMOTE_KM of the centre.
+ * remote  = a fix beyond REMOTE_KM, OR location denied/unavailable (no fix will
+ *           ever arrive, so proximity features must not pretend otherwise).
+ * `km` is rounded and null whenever there is no fix.
+ */
+export function cityMode(geo: GeoState): { mode: CityMode; km: number | null } {
+  const pos = geo.status === 'granted' ? geo.position : null;
+  if (!pos) {
+    const noFixEver = geo.status === 'denied' || geo.status === 'unavailable';
+    return { mode: noFixEver ? 'remote' : 'unknown', km: null };
+  }
+  const km = distanceToCartagenaKm(pos.lat, pos.lng);
+  if (!Number.isFinite(km)) return { mode: 'unknown', km: null };
+  return { mode: km > REMOTE_KM ? 'remote' : 'in_city', km: Math.round(km) };
+}
+
 /** Initial bearing (degrees, 0 = North, clockwise) from point 1 to point 2. */
 export function bearingDeg(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const p1 = (lat1 * Math.PI) / 180;

@@ -36,6 +36,24 @@ const SERIF = Platform.select({ web: "Georgia, 'Times New Roman', serif", defaul
 // several anchors along the wall). A real def, honest hint, no fake distance.
 const FALLBACK_STAMP = { name: 'Las Murallas de Cartagena', hint: 'un sello que se gana a cualquier hora, en cualquier punto de la muralla' };
 
+// Bundled lockup geometry — assets/images/amo-life-logo.png is 900×345 px with
+// no @2x, so RN reports an intrinsic 900×345 dp. A require() <Image> composes
+// its style as [{width:900,height:345}, ...props.style]; `aspectRatio` alone
+// never overrides that height, and Yoga then recomputes the cross axis from
+// the main axis whenever aspectRatio is set (345 × 2.6 = 900 dp wide on a
+// 390 dp phone — the cropped "O ❤ L / MUNDO EN TU M" in TestFlight 18).
+//
+// Step 1 sizes the lockup through a WRAPPER (60% of the stage, ≤234 px, height
+// from aspectRatio) and the Image fills it at 100%/100% — no Dimensions. The
+// previous `Dimensions.get('window').width * 0.84` was 70% of a 390 px phone
+// (spec ≤60%) and, during `expo export`, the static render saw window width 0,
+// so the SSR HTML carried `width:-54px;height:-21px` and a direct load of
+// /onboarding hydrated to a 0×0 logo. Percent + aspectRatio is identical on
+// SSR, web and native Yoga. Step 2 keeps a fixed 170 px (constant → SSR-safe).
+const LOGO_AR = 900 / 345;
+const LOGO_SMALL_W = 170;
+const LOGO_SMALL_H = Math.round(LOGO_SMALL_W / LOGO_AR);
+
 type Beat = 'arrival' | 'question';
 
 export default function OnboardingArrival() {
@@ -118,14 +136,22 @@ export default function OnboardingArrival() {
   // profile locally under the key PersonalizationContext actually reads. Runs
   // for BOTH the answer path and the skip path (skipping is a deliberate
   // choice — don't re-ask every login). Fully fail-soft: entry is never blocked.
+  //
+  // ORDER MATTERS (TestFlight 18: 2–4 s spinner, or forever on a stalled
+  // link): the local flag is what app/index.tsx reads to pick tabs vs
+  // onboarding, so it is written BEFORE the replace (milliseconds). The two
+  // backend PATCHes are fail-soft and nothing downstream reads their result,
+  // so they run AFTER navigation, in the background, never gating arrival.
   const markDone = useCallback(async (profile?: { user_type: string; party_type?: string }) => {
-    // Local caches FIRST (unconditional) so the answer survives a failed PATCH.
     try { await AsyncStorage.setItem('@onboarding_done', 'true'); } catch {}
-    // Funnel CONVERSION beat — fires the enum's 'activation' event (it was
-    // never wired anywhere). Signed-in arrivals only: an anonymous explainer
-    // viewer is not a conversion. Carries the /registro venue tag when this
-    // browser session started from a field QR, so scan→signup conversion is
-    // countable per venue directly off gate_events.
+    if (profile) {
+      try { await AsyncStorage.setItem('@onboarding_profile', JSON.stringify(profile)); } catch {}
+    }
+    router.replace((dest as any) || ('/(tabs)' as any));           // leave NOW
+    // Funnel CONVERSION beat — fires the enum's 'activation' event. Signed-in
+    // arrivals only: an anonymous explainer viewer is not a conversion. Carries
+    // the /registro venue tag when this browser session started from a field
+    // QR, so scan→signup conversion is countable per venue off gate_events.
     if (user) {
       try {
         const qrSrc = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('amo_src') : null;
@@ -133,29 +159,27 @@ export default function OnboardingArrival() {
         if (qrSrc) sessionStorage.removeItem('amo_src');
       } catch { /* analytics never block entry */ }
     }
-    if (profile) {
-      try { await AsyncStorage.setItem('@onboarding_profile', JSON.stringify(profile)); } catch {}
-    }
-    try {
-      await api.patch('/users/me/onboarding', {
-        ...(profile || {}),
-        onboarding_version: 2,
-        profile_complete: true,   // sets onboarding_completed=true → no re-onboard
-      });
-    } catch { /* fail-soft — never block entry on the personalization write */ }
-    router.replace((dest as any) || ('/(tabs)' as any));
+    api.patch('/users/me/onboarding', {
+      ...(profile || {}),
+      onboarding_version: 2,
+      profile_complete: true,   // sets onboarding_completed=true → no re-onboard
+    }).catch(() => { /* fail-soft — the local flag already keeps the user in */ });
   }, [router, dest, user]);
 
-  const enterApp = useCallback(() => { markDone(); }, [markDone]);
+  const enterApp = useCallback(() => {
+    if (saving) return;           // double-tap = duplicate PATCH + double replace
+    setSaving(true);
+    void markDone();
+  }, [saving, markDone]);
 
   // The one question → user_type (already wired into Luna, Drop 4). "de paso"
   // and "unos días" are both visitors; the party_type distinguishes cruise.
-  const pickType = useCallback(async (choice: 'cruise' | 'traveler' | 'local') => {
+  const pickType = useCallback((choice: 'cruise' | 'traveler' | 'local') => {
     if (saving) return;
     setSaving(true);
     const user_type = choice === 'local' ? 'local' : 'visitor';
-    try { await api.patch('/users/me/type', { user_type }); } catch { /* fail-soft */ }
-    await markDone({ user_type, ...(choice === 'cruise' ? { party_type: 'cruise' } : {}) });
+    api.patch('/users/me/type', { user_type }).catch(() => { /* fail-soft */ }); // parallel, not awaited
+    void markDone({ user_type, ...(choice === 'cruise' ? { party_type: 'cruise' } : {}) });
   }, [saving, markDone]);
 
   const R = (i: number) => ({
@@ -172,8 +196,8 @@ export default function OnboardingArrival() {
       <Animated.View pointerEvents="none" style={[styles.glow, glowStyle]} />
 
       {/* Skip — always available, never a wall */}
-      <TouchableOpacity style={styles.skip} onPress={enterApp} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-        <Text style={styles.skipText}>{tr('Saltar')}</Text>
+      <TouchableOpacity style={styles.skip} onPress={enterApp} disabled={saving} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <Text style={[styles.skipText, saving && { opacity: 0.4 }]}>{tr('Saltar')}</Text>
       </TouchableOpacity>
 
       {beat === 'arrival' ? (
@@ -186,12 +210,14 @@ export default function OnboardingArrival() {
           {/* Wordmark */}
           <Animated.View style={[styles.wordmarkWrap, R(0)]}>
             {/* Official AMO Life lockup (bundled asset → plain Image, not SafeImage). */}
-            <Image
-              source={require('../assets/images/amo-life-logo.png')}
-              style={styles.logoImage}
-              resizeMode="contain"
-              accessibilityLabel="AMO Life"
-            />
+            <View style={styles.logoBox} testID="onboarding-logo">
+              <Image
+                source={require('../assets/images/amo-life-logo.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+                accessibilityLabel="AMO Life"
+              />
+            </View>
           </Animated.View>
 
           {/* Welcome beat */}
@@ -291,8 +317,10 @@ export default function OnboardingArrival() {
             </TouchableOpacity>
           ))}
 
+          {/* The replace fires within milliseconds now; the indicator only covers
+              the AsyncStorage tick and blocks a second tap. */}
           {saving ? <ActivityIndicator color={GOLD} style={{ marginTop: SPACING.md }} /> : (
-            <TouchableOpacity style={styles.qSkip} onPress={enterApp}>
+            <TouchableOpacity style={styles.qSkip} onPress={enterApp} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
               <Text style={styles.qSkipText}>{tr('Prefiero explorar solo →')}</Text>
             </TouchableOpacity>
           )}
@@ -319,9 +347,10 @@ const styles = StyleSheet.create({
     flexGrow: 1, justifyContent: 'center', paddingHorizontal: SPACING.xl, gap: SPACING.lg,
     paddingTop: SPACING.xl * 1.5, paddingBottom: SPACING.xl,
   },
-  wordmarkWrap: { alignItems: 'center', marginBottom: SPACING.sm },
-  logoImage: { width: '84%', maxWidth: 340, aspectRatio: 900 / 345 },
-  logoImageSmall: { width: 170, aspectRatio: 900 / 345 },
+  wordmarkWrap: { alignItems: 'center', alignSelf: 'stretch', marginBottom: SPACING.sm },
+  logoBox: { width: '60%', maxWidth: 234, aspectRatio: LOGO_AR, alignSelf: 'center' },
+  logoImage: { width: '100%', height: '100%' },
+  logoImageSmall: { width: LOGO_SMALL_W, height: LOGO_SMALL_H },
   amoMark: { color: GOLD, fontSize: 14, letterSpacing: 6, ...FONTS.semibold },
   cartagenaMark: { color: '#FFFFFF', fontSize: 40, fontFamily: SERIF, marginTop: 2 },
   rule: { width: 60, height: 2, backgroundColor: GOLD, marginTop: 14, borderRadius: 1 },

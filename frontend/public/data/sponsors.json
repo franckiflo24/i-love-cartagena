@@ -8,7 +8,8 @@
     "url": "https://avianca.com",
     "tier": "gold",
     "is_active": true,
-    "order": 1
+    "order": 1,
+    "verified": false
   },
   {
     "sponsor_id": "sp_002",
@@ -19,7 +20,8 @@
     "url": "https://cervezaaguila.com",
     "tier": "gold",
     "is_active": true,
-    "order": 2
+    "order": 2,
+    "verified": false
   },
   {
     "sponsor_id": "sp_003",
@@ -30,7 +32,8 @@
     "url": "https://cartagena.gov.co",
     "tier": "institutional",
     "is_active": true,
-    "order": 3
+    "order": 3,
+    "verified": false
   },
   {
     "sponsor_id": "sp_004",
@@ -41,7 +44,8 @@
     "url": "",
     "tier": "silver",
     "is_active": true,
-    "order": 4
+    "order": 4,
+    "verified": false
   },
   {
     "sponsor_id": "sp_006",
@@ -52,6 +56,7 @@
     "url": "https://templo.co",
     "tier": "silver",
     "is_active": true,
-    "order": 6
+    "order": 6,
+    "verified": false
   }
 ]

@@ -177,6 +177,48 @@ export function SkeletonFeaturedRow() {
   );
 }
 
+// ── SkeletonEventRows — Home "Qué pasa hoy" rows (84×92 thumb + 2 lines) ─────
+// Section-level placeholder: mirrors the peCard geometry in (tabs)/index.tsx so
+// a loading section looks like the section, never like a different screen.
+
+export function SkeletonEventRows({ count = 3 }: { count?: number }) {
+  return (
+    <View>
+      {Array.from({ length: count }).map((_, i) => (
+        <View key={i} style={skeletonStyles.eventCard}>
+          <Skeleton width={84} height={92} borderRadius={0} />
+          <View style={{ flex: 1, padding: 10, gap: 8, justifyContent: 'center' }}>
+            <Skeleton height={13} width="80%" borderRadius={RADIUS.sm} />
+            <Skeleton height={11} width="50%" borderRadius={RADIUS.sm} />
+            <View style={{ flexDirection: 'row', gap: 6 }}>
+              <Skeleton width={58} height={16} borderRadius={RADIUS.full} />
+              <Skeleton width={44} height={16} borderRadius={RADIUS.full} />
+            </View>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+// ── SkeletonTileRow — horizontal strip of same-size tiles (category / rec cards)
+
+export function SkeletonTileRow({ width = 140, height = 180, count = 3 }: { width?: number; height?: number; count?: number }) {
+  return (
+    <View style={skeletonStyles.featuredRow}>
+      {Array.from({ length: count }).map((_, i) => (
+        <Skeleton
+          key={i}
+          width={width}
+          height={height}
+          borderRadius={RADIUS.xl}
+          style={{ marginRight: SPACING.md }}
+        />
+      ))}
+    </View>
+  );
+}
+
 // ── SkeletonGridRow — 2-column partner grid ───────────────────────────────────
 
 export function SkeletonGrid({ rows = 3 }: { rows?: number }) {
@@ -243,6 +285,16 @@ const skeletonStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     marginTop: SPACING.xs,
+  },
+  eventCard: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.lg,
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.sm,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    overflow: 'hidden',
   },
   featuredRow: {
     flexDirection: 'row',

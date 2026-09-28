@@ -1,11 +1,18 @@
 // Walking Layer Drop 3 — passport data service.
 //
-// Network-first with IndexedDB fallback: the passport must render offline
-// from the last-known copy (with a sync banner), never crash. Progress comes
-// ONLY from the server's computed real discoveries — this module never
-// fabricates counts.
+// The user's passport is network-first with an IndexedDB fallback: it must
+// render offline from the last-known copy (with a sync banner), never crash.
+// Progress comes ONLY from the server's computed real discoveries — this
+// module never fabricates counts.
+//
+// The public collection DEFINITIONS (sabores / plazas / barrios) are
+// local-first: last synced copy → bundled snapshot → live revalidate in the
+// background. /passport/* is a PRIVATE_PATH for the api layer (per-user cache
+// scope), so api.get never falls back to /data for it; before this, a cold
+// backend (8–10 s, over GET_TIMEOUT_MS) on a fresh install left plates=[] and
+// the partner page rendered no stamp block at all.
 
-import { api } from '../constants/api';
+import { api, fetchT, ASSET_ORIGIN } from '../constants/api';
 import { kvGet, kvSet } from './venueCache';
 
 export interface CollectionVenue {
@@ -136,22 +143,78 @@ const KV_COLLECTIONS = 'passport:collections';
 // never see someone else's cached passport.
 const kvPassportKey = (userId: string) => `passport:mine:${userId}`;
 
-let _collections: CollectionsDef | null = null;
+// Bundled snapshot of the live payload (refresh: scripts/snapshot-passport-collections.mjs).
+// ASSET_ORIGIN: same-origin on web, the production site on native (no origin there).
+const STATIC_COLLECTIONS_URL = `${ASSET_ORIGIN}/data/passport/collections.json`;
 
-/** Public definitions (guest teaser + grids). Network → IDB fallback. */
+let _collections: CollectionsDef | null = null;
+let _inflight: Promise<CollectionsDef | null> | null = null;
+let _revalidated = false;
+
+const isCollectionsDef = (v: unknown): v is CollectionsDef => {
+  const d = v as CollectionsDef | null;
+  return !!d && Array.isArray(d.sabores) && d.sabores.length > 0 && Array.isArray(d.plazas);
+};
+
+async function fetchLiveCollections(): Promise<CollectionsDef | null> {
+  try {
+    const fresh: unknown = await api.get('/passport/collections');
+    return isCollectionsDef(fresh) ? fresh : null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchBundledCollections(): Promise<CollectionsDef | null> {
+  try {
+    const res = await fetchT(STATIC_COLLECTIONS_URL);
+    if (!res.ok) return null;
+    const json: unknown = await res.json();
+    return isCollectionsDef(json) ? json : null;
+  } catch {
+    return null;
+  }
+}
+
+/** One live refresh per session, in the background; a newer copy replaces the
+ *  seed for every later caller and lands in IDB for the next launch. */
+function revalidateCollections(): void {
+  if (_revalidated) return;
+  _revalidated = true;
+  fetchLiveCollections().then((fresh) => {
+    if (!fresh) return;
+    _collections = fresh;
+    kvSet(KV_COLLECTIONS, fresh);
+  }).catch(() => { /* the seed keeps serving; next launch retries */ });
+}
+
+/** Public definitions (guest teaser + grids). Single-flight, local-first:
+ *  IDB (last synced) → bundled snapshot → live. Never waits on a cold lambda
+ *  when a local copy exists. */
 export async function getCollections(): Promise<CollectionsDef | null> {
   if (_collections) return _collections;
-  try {
-    const fresh = (await api.get('/passport/collections')) as CollectionsDef;
-    if (fresh && Array.isArray(fresh.sabores) && fresh.sabores.length > 0) {
-      _collections = fresh;
-      kvSet(KV_COLLECTIONS, fresh);
+  if (!_inflight) {
+    _inflight = (async () => {
+      let cached: CollectionsDef | null = null;
+      try { cached = await kvGet<CollectionsDef>(KV_COLLECTIONS); } catch { cached = null; }
+      const seed = isCollectionsDef(cached) ? cached : await fetchBundledCollections();
+      if (seed) {
+        _collections = seed;
+        revalidateCollections();
+        return seed;
+      }
+      // No local copy at all (the snapshot ships in the bundle, so this is the
+      // exception) → the live answer is the only option.
+      _revalidated = true;
+      const fresh = await fetchLiveCollections();
+      if (fresh) {
+        _collections = fresh;
+        kvSet(KV_COLLECTIONS, fresh);
+      }
       return fresh;
-    }
-  } catch {}
-  const cached = await kvGet<CollectionsDef>(KV_COLLECTIONS);
-  if (cached) _collections = cached;
-  return cached;
+    })().finally(() => { _inflight = null; });
+  }
+  return _inflight;
 }
 
 /** The signed-in user's passport. { data, fromCache } — fromCache=true means

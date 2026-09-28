@@ -9,12 +9,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SPACING, RADIUS, FONTS, TYPE, ELEVATION } from '../../src/constants/theme';
-import { ASSET_ORIGIN } from '../../src/constants/api';
-import { SafeImage } from '../../src/components/SafeImage';
 import { PressableScale } from '../../src/components/PressableScale';
 import { FadeInUp } from '../../src/components/FadeInUp';
 import { Skeleton } from '../../src/components/Skeleton';
-import { CityStatusBadge, CityIconArt } from '../../src/components/CityModuleUI';
+import { CityStatusBadge, CityMedia } from '../../src/components/CityModuleUI';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import {
@@ -33,7 +31,9 @@ export default function CiudadHubScreen() {
 
   const load = useCallback(async (force = false) => {
     setFailed(false);
-    setLoading(true);
+    // Fallback-first: a hub that already holds the cached payload never drops
+    // back into the skeleton, even on a forced refresh.
+    setLoading(!getCachedCityModules());
     try {
       setPayload(await loadCityModules(force));
     } catch (e) {
@@ -152,17 +152,15 @@ export default function CiudadHubScreen() {
                     testID={`ciudad-card-${m.id}`}
                   >
                     <View style={styles.media}>
-                      {m.image?.file ? (
-                        <SafeImage
-                          uri={ASSET_ORIGIN + m.image.file}
-                          category="attraction"
-                          style={styles.mediaFill}
-                          resizeMode="cover"
-                          accessibilityLabel={pickL(m.image.caption, lang) || title}
-                        />
-                      ) : (
-                        <CityIconArt id={m.id} icon={m.icon} style={styles.mediaFill} />
-                      )}
+                      {/* Brand art paints first; the photo fades in over it once
+                          loaded — a 200 KB JPEG on a slow link is never a black box. */}
+                      <CityMedia
+                        id={m.id}
+                        icon={m.icon}
+                        file={m.image?.file}
+                        height={MEDIA_HEIGHT}
+                        accessibilityLabel={pickL(m.image?.caption, lang) || title}
+                      />
                       <LinearGradient
                         colors={['transparent', 'rgba(15,21,36,0.85)']}
                         locations={[0.45, 1]}
@@ -177,10 +175,11 @@ export default function CiudadHubScreen() {
                         <Ionicons name="chevron-forward" size={18} color={COLORS.icon} />
                       </View>
                       {!!tagline && <Text style={styles.cardTagline} numberOfLines={2}>{tagline}</Text>}
+                      {/* One line only: the full reason lives in the detail's honest card. */}
                       {!!reason && (
                         <View style={styles.reasonRow}>
                           <Ionicons name="information-circle-outline" size={12} color={COLORS.textFaint} style={{ marginTop: 2 }} />
-                          <Text style={styles.reasonText} numberOfLines={2}>{reason}</Text>
+                          <Text style={styles.reasonText} numberOfLines={1}>{reason}</Text>
                         </View>
                       )}
                     </View>
@@ -221,14 +220,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden', ...ELEVATION.md,
   },
   media: { height: MEDIA_HEIGHT, backgroundColor: COLORS.surfaceAlt, position: 'relative' },
-  mediaFill: { width: '100%', height: MEDIA_HEIGHT },
   mediaFade: { ...StyleSheet.absoluteFillObject },
   badgeOnMedia: { position: 'absolute', top: SPACING.sm + 2, left: SPACING.sm + 2 },
-  cardBody: { padding: SPACING.md, paddingTop: SPACING.md - 2 },
+  cardBody: { padding: SPACING.md, paddingTop: SPACING.sm + 2 },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   cardTitle: { ...TYPE.title3, color: COLORS.textMain, flex: 1 },
   cardTagline: { ...TYPE.subhead, color: COLORS.textMuted, marginTop: 4, lineHeight: 19 },
-  reasonRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 5, marginTop: 8 },
+  reasonRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 8 },
   reasonText: { flex: 1, fontSize: 11.5, lineHeight: 16, color: COLORS.textFaint, ...FONTS.medium },
   stateCard: {
     marginHorizontal: SPACING.lg, marginTop: SPACING.lg, padding: SPACING.xl, alignItems: 'center', gap: SPACING.sm,

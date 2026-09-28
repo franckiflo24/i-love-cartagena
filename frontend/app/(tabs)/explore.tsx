@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useFocusEffect } from 'expo-router';
 import {
   View,
@@ -12,7 +12,7 @@ import {
   Modal,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -28,9 +28,10 @@ import {
   ELEVATION,
 } from '../../src/constants/theme';
 import { api , ASSET_ORIGIN} from '../../src/constants/api';
-import { IMAGES, getCategoryImage } from '../../src/constants/images';
+import { IMAGES } from '../../src/constants/images';
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
+import { FAB_CLEARANCE } from '../../src/components/AssistantFab';
 import { PressableScale } from '../../src/components/PressableScale';
 import { FadeInUp } from '../../src/components/FadeInUp';
 import { SkeletonFeaturedRow, SkeletonGrid } from '../../src/components/Skeleton';
@@ -38,6 +39,8 @@ import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { getUpcomingEvents } from '../../src/lib/data';
 import { monthShort } from '../../src/lib/formatDate';
+import { bogotaToday } from '../../src/lib/eventTime';
+import type { Lang } from '../../src/i18n/translations';
 import { usePersonalization } from '../../src/context/PersonalizationContext';
 import { useLocalPicks, behavioralPick } from '../../src/services/localPicks';
 import { nearestNeighborhood } from '../../src/utils/neighborhood';
@@ -53,11 +56,20 @@ const FEATURED_CARD_WIDTH = SCREEN_WIDTH * 0.72;
 
 type Experience = {
   experience_id?: string;
+  // /experiences/featured returns partner_events (one row per date) — these
+  // carry event_id/date/flyer_url; static featured.json rows are partners.
+  event_id?: string;
   partner_id?: string;
   name?: string;
   title?: string;
   description: string;
   image_url: string;
+  flyer_url?: string;
+  partner_image?: string;
+  cover_image?: string;
+  date?: string;
+  date_start?: string;
+  date_end?: string;
   price?: number;
   price_range?: string;
   is_free?: boolean;
@@ -221,6 +233,54 @@ const formatPrice = (price: number, isFree: boolean): string | null => {
   return `$${(price / 1000).toFixed(0)}K`;
 };
 
+// Date chip for an event card. An ONGOING event (date_start ≤ today ≤ date_end,
+// e.g. Chiva Rumbera Jun→Apr) reads "Hoy", not its months-old start date —
+// otherwise the whole row looks like stale content.
+const eventDateLabel = (
+  start: string | undefined,
+  end: string | undefined,
+  lang: Lang,
+  tr: (s: string) => string,
+): string => {
+  const s = (start || '').slice(0, 10);
+  if (!s) return '';
+  const e = (end || s).slice(0, 10);
+  const today = bogotaToday();
+  if (s <= today && e >= today) return tr('Hoy');
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return '';
+  return `${Number(m[3])} ${monthShort(Number(m[2]) - 1, lang, true)}`;
+};
+
+// Stable identity for a featured card across the static→API hydrate, so
+// SafeImage tiles are NOT remounted (index keys restarted every download).
+const featuredKey = (e: Experience): string =>
+  e.event_id || e.experience_id || `${e.partner_id || ''}|${(e.title || e.name || '').trim().toLowerCase()}`;
+
+const featuredDedupeKey = (e: Experience): string =>
+  `${e.partner_id || ''}|${(e.title || e.name || '').trim().toLowerCase()}`;
+
+// Static featured.json (partners) paints first; the API (partner_events, one
+// row per DATE of the same event) is merged IN FRONT, deduped to one card per
+// partner+title keeping the soonest date. Static rows the API already covers
+// drop out. Content grows instead of swapping, and nothing is shown twice.
+function mergeFeatured(apiRows: Experience[], staticRows: Experience[]): Experience[] {
+  const seen = new Set<string>();
+  const out: Experience[] = [];
+  const soonestFirst = [...apiRows].sort((a, b) =>
+    String(a.date || a.date_start || '').localeCompare(String(b.date || b.date_start || '')));
+  for (const e of [...soonestFirst, ...staticRows]) {
+    const k = featuredDedupeKey(e);
+    if (!k || seen.has(k)) continue;
+    seen.add(k);
+    out.push(e);
+  }
+  return out.slice(0, 12);
+}
+
+const sameFeatured = (a: Experience[], b: Experience[]): boolean =>
+  a.length === b.length && a.every((e, i) => featuredKey(e) === featuredKey(b[i]) && (e.image_url || '') === (b[i].image_url || ''));
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function SearchBarButton({ onPress }: { onPress: () => void }) {
@@ -243,10 +303,14 @@ function SearchBarButton({ onPress }: { onPress: () => void }) {
 function FeaturedCard({
   item,
   onPress,
+  priority,
 }: {
   item: Experience;
   onPress: () => void;
+  priority: 'low' | 'normal' | 'high';
 }) {
+  const tr = useTr();
+  const { lang } = useLang();
   // NEVER infer free from a missing price — an unpriced experience is "a consultar",
   // not free (audit Aug 2026: 13/13 featured items had price=null,is_free=null and
   // rendered "Gratis" on paid yacht charters). formatPrice returns null for an
@@ -254,6 +318,8 @@ function FeaturedCard({
   const price = formatPrice(item.price ?? 0, !!item.is_free);
   const tierStr = item.partner_tier || item.tier || '';
   const tierColor = tierStr ? TIER_COLORS[tierStr as Tier] : null;
+  // Partner-event rows carry a date — surface it so a dated card reads as an event.
+  const dateLabel = item.event_id ? eventDateLabel(item.date || item.date_start, item.date_end, lang, tr) : '';
   return (
     <TouchableOpacity
       style={styles.featuredCard}
@@ -261,8 +327,11 @@ function FeaturedCard({
       activeOpacity={0.85}
     >
       <SafeImage
-        uri={item.image_url || (item as any).flyer_url || (item as any).cover_image}
+        uri={item.image_url || item.flyer_url || item.partner_image || item.cover_image}
+        // A missing flyer falls to the partner's own photo, never a generic stock shot.
+        fallbackUri={item.partner_image || item.flyer_url}
         category={item.category}
+        priority={priority}
         style={styles.featuredImage}
       />
       <LinearGradient
@@ -274,6 +343,11 @@ function FeaturedCard({
       {tierColor && (
         <View style={[styles.featuredTierStripe, { backgroundColor: tierColor.main }]} />
       )}
+      {dateLabel ? (
+        <View style={styles.eventCardDateBadge}>
+          <Text style={styles.eventCardDateText}>{dateLabel}</Text>
+        </View>
+      ) : null}
       <View style={styles.featuredContent}>
         <View style={styles.featuredTopRow}>
           {tierStr && (
@@ -286,7 +360,7 @@ function FeaturedCard({
                 item.is_free ? styles.pricePillFree : styles.pricePillPaid,
               ]}
             >
-              <Text style={styles.pricePillText}>{price}</Text>
+              <Text style={styles.pricePillText}>{price === 'Gratis' ? tr('Gratis') : price}</Text>
             </View>
           )}
         </View>
@@ -328,6 +402,8 @@ function PartnerGridCard({
       <SafeImage
         uri={partner.image_url}
         category={partner.category}
+        // Grid tiles yield the download queue to the hero and featured cards.
+        priority="low"
         style={styles.gridImage}
       />
       <LinearGradient
@@ -391,6 +467,11 @@ const BEST_FOR_LABELS: Record<string, string> = {
 };
 
 // ── Neighborhood card (horizontal scroll) ────────────────────────────────────
+// Neighborhood copy ships in ES + EN. Show ONE language (the user's; FR/PT read
+// EN) instead of stacking both — half the text, none of the noise.
+const pickNbLang = (lang: Lang, es?: string, en?: string): string =>
+  (lang === 'es' ? (es || en) : (en || es)) || '';
+
 function NeighborhoodCard({
   item,
   onPress,
@@ -398,11 +479,16 @@ function NeighborhoodCard({
   item: Neighborhood;
   onPress: () => void;
 }) {
+  const { lang } = useLang();
+  const tr = useTr();
   return (
     <TouchableOpacity style={styles.nbCard} onPress={onPress} activeOpacity={0.85}>
       <View style={styles.nbCardInner}>
-        <Text style={styles.nbName} numberOfLines={1}>{item.name}</Text>
-        <Text style={styles.nbCharacter} numberOfLines={2}>{item.character_es}</Text>
+        <View style={styles.nbCardTitleRow}>
+          <Text style={[styles.nbName, { flex: 1 }]} numberOfLines={1}>{item.name}</Text>
+          <Ionicons name="chevron-forward" size={14} color={COLORS.iconMuted} />
+        </View>
+        <Text style={styles.nbCharacter} numberOfLines={2}>{pickNbLang(lang, item.character_es, item.character_en)}</Text>
         <View style={styles.nbRatingsRow}>
           <View style={styles.nbRatingGroup}>
             <Ionicons name="shield-checkmark" size={12} color={COLORS.icon} />
@@ -423,7 +509,7 @@ function NeighborhoodCard({
         <View style={styles.nbTagsRow}>
           {item.best_for.slice(0, 3).map((tag) => (
             <View key={tag} style={styles.nbTag}>
-              <Text style={styles.nbTagText}>{BEST_FOR_LABELS[tag] || tag}</Text>
+              <Text style={styles.nbTagText}>{tr(BEST_FOR_LABELS[tag] || tag)}</Text>
             </View>
           ))}
         </View>
@@ -443,105 +529,159 @@ function NeighborhoodDetailModal({
   onClose: () => void;
 }) {
   const tr = useTr();
+  const { lang } = useLang();
+  // Hooks stay above the early return (React #310 crashed prod before).
+  const insets = useSafeAreaInsets();
   if (!item) return null;
+
+  const character = pickNbLang(lang, item.character_es, item.character_en);
+  const dayNote = pickNbLang(lang, item.safety_notes_day_es, item.safety_notes_day_en);
+  const nightNote = pickNbLang(lang, item.safety_notes_night_es, item.safety_notes_night_en);
+  const howTo = pickNbLang(lang, item.how_to_get_there_es, item.how_to_get_there_en);
+  const mistake = pickNbLang(lang, item.tourist_mistakes_es, item.tourist_mistakes_en);
+
+  // LAYOUT BUG THIS FIXES (TestFlight 18, t=30–38 of Phil's recording): the
+  // sheet had only `maxHeight` (content-derived height) and the ScrollView had
+  // `flex: 1` → flexBasis 0 → Yoga gave it 0 px on iOS. The user saw a dim
+  // overlay with a handle and "Close" for ~10 s and read it as a freeze. Web
+  // masked it (CSS `flex: 1 1 0%` resolves to content). The ScrollView now
+  // measures its content (basis auto) and only IT shrinks when the sheet hits
+  // its cap; the header and Close button keep RN's default flexShrink 0.
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      presentationStyle="overFullScreen"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
       <View style={styles.nbModalOverlay}>
-        <View style={styles.nbModalSheet}>
+        <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} accessibilityLabel={tr('Cerrar')} />
+        <View style={[styles.nbModalSheet, { paddingBottom: Math.max(insets.bottom, SPACING.md) }]}>
           <View style={styles.nbModalHandle} />
-          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
-            <Text style={styles.nbModalTitle}>{item.name}</Text>
-            {item.aka.length > 0 && (
-              <Text style={styles.nbModalAka}>a.k.a. {item.aka.join(', ')}</Text>
-            )}
-
-            <Text style={styles.nbModalDesc}>{item.character_es}</Text>
-            <Text style={[styles.nbModalDesc, { marginTop: SPACING.xs, color: COLORS.textMuted }]}>
-              {item.character_en}
-            </Text>
-
-            {/* Safety */}
-            <View style={styles.nbModalSection}>
-              <View style={styles.nbModalSectionHeader}>
-                <Ionicons name="shield-checkmark" size={16} color={COLORS.icon} />
-                <Text style={styles.nbModalSectionTitle}>{tr('Seguridad')}</Text>
-              </View>
-              <View style={styles.nbModalStarsRow}>
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Ionicons
-                    key={`ms${i}`}
-                    name={i < item.safety_rating ? 'star' : 'star-outline'}
-                    size={16}
-                    color={i < item.safety_rating ? COLORS.mustard : COLORS.textMuted}
-                  />
-                ))}
-                <Text style={styles.nbModalRatingText}>{item.safety_rating}/5</Text>
-              </View>
-              {item.safety_notes_day_es && (
-                <Text style={styles.nbModalNote}>
-                  <Ionicons name="sunny-outline" size={12} color={COLORS.textMuted} /> {item.safety_notes_day_es}
-                </Text>
-              )}
-              {item.safety_notes_night_es && (
-                <Text style={styles.nbModalNote}>
-                  <Ionicons name="moon-outline" size={12} color={COLORS.textMuted} /> {item.safety_notes_night_es}
-                </Text>
+          <View style={styles.nbModalHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.nbModalTitle} numberOfLines={2}>{item.name}</Text>
+              {item.aka.length > 0 && (
+                <Text style={styles.nbModalAka} numberOfLines={1}>a.k.a. {item.aka.join(', ')}</Text>
               )}
             </View>
+            <TouchableOpacity
+              style={styles.nbModalX}
+              onPress={onClose}
+              activeOpacity={0.8}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityLabel={tr('Cerrar')}
+            >
+              <Ionicons name="close" size={20} color={COLORS.textMain} />
+            </TouchableOpacity>
+          </View>
 
-            {/* Price Level */}
-            <View style={styles.nbModalSection}>
-              <View style={styles.nbModalSectionHeader}>
-                <Ionicons name="cash-outline" size={16} color={COLORS.icon} />
-                <Text style={styles.nbModalSectionTitle}>{tr('Nivel de precios')}</Text>
-              </View>
-              <Text style={styles.nbModalPriceLevel}>
-                {'$'.repeat(item.price_index)}
-                <Text style={{ color: COLORS.textMuted }}>{'$'.repeat(5 - item.price_index)}</Text>
-              </Text>
-            </View>
-
-            {/* Airport taxi fare — absent for boat-access-only neighborhoods
-                (e.g. Tierrabomba); hide the row rather than show a broken/misleading
-                fare, matching the guarded-block style used in Safety above. */}
-            {item.taxi_fare_from_airport_cop != null && (
-              <View style={styles.nbModalSection}>
-                <View style={styles.nbModalSectionHeader}>
-                  <Ionicons name="car-outline" size={16} color={COLORS.icon} />
-                  <Text style={styles.nbModalSectionTitle}>{tr('Taxi desde el aeropuerto')}</Text>
+          <ScrollView
+            style={styles.nbModalScroll}
+            contentContainerStyle={styles.nbModalScrollContent}
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+          >
+            {/* At-a-glance row: safety + price, the two things people tap in for */}
+            <View style={styles.nbModalGlance}>
+              <View style={styles.nbModalGlanceCell}>
+                <Text style={styles.nbModalGlanceLabel}>{tr('Seguridad')}</Text>
+                <View style={styles.nbModalStarsRow}>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Ionicons
+                      key={`ms${i}`}
+                      name={i < item.safety_rating ? 'star' : 'star-outline'}
+                      size={14}
+                      color={i < item.safety_rating ? COLORS.mustard : COLORS.textFaint}
+                    />
+                  ))}
+                  <Text style={styles.nbModalRatingText}>{item.safety_rating}/5</Text>
                 </View>
-                <Text style={styles.nbModalFare}>
-                  ${item.taxi_fare_from_airport_cop.toLocaleString()} COP
+              </View>
+              <View style={styles.nbModalGlanceDivider} />
+              <View style={styles.nbModalGlanceCell}>
+                <Text style={styles.nbModalGlanceLabel}>{tr('Nivel de precios')}</Text>
+                <Text style={styles.nbModalPriceLevel}>
+                  {'$'.repeat(item.price_index)}
+                  <Text style={{ color: COLORS.textFaint }}>{'$'.repeat(5 - item.price_index)}</Text>
                 </Text>
               </View>
-            )}
+            </View>
+
+            {!!character && <Text style={styles.nbModalDesc}>{character}</Text>}
 
             {/* Best for */}
-            <View style={styles.nbModalSection}>
-              <View style={styles.nbModalSectionHeader}>
-                <Ionicons name="heart-outline" size={16} color={COLORS.icon} />
-                <Text style={styles.nbModalSectionTitle}>{tr('Ideal para')}</Text>
+            {item.best_for.length > 0 && (
+              <View style={styles.nbModalSection}>
+                <View style={styles.nbModalSectionHeader}>
+                  <Ionicons name="heart-outline" size={15} color={COLORS.icon} />
+                  <Text style={styles.nbModalSectionTitle}>{tr('Ideal para')}</Text>
+                </View>
+                <View style={styles.nbModalTags}>
+                  {item.best_for.map((tag) => (
+                    <View key={tag} style={styles.nbModalTag}>
+                      <Text style={styles.nbModalTagText}>{tr(BEST_FOR_LABELS[tag] || tag)}</Text>
+                    </View>
+                  ))}
+                </View>
               </View>
-              <View style={styles.nbModalTags}>
-                {item.best_for.map((tag) => (
-                  <View key={tag} style={styles.nbModalTag}>
-                    <Text style={styles.nbModalTagText}>{BEST_FOR_LABELS[tag] || tag}</Text>
+            )}
+
+            {/* Safety notes — one line each, day / night */}
+            {(!!dayNote || !!nightNote) && (
+              <View style={styles.nbModalSection}>
+                <View style={styles.nbModalSectionHeader}>
+                  <Ionicons name="shield-checkmark" size={15} color={COLORS.icon} />
+                  <Text style={styles.nbModalSectionTitle}>{tr('Seguridad')}</Text>
+                </View>
+                {!!dayNote && (
+                  <View style={styles.nbModalNoteRow}>
+                    <Ionicons name="sunny-outline" size={14} color={COLORS.mustard} style={styles.nbModalNoteIcon} />
+                    <Text style={styles.nbModalNote}>{dayNote}</Text>
                   </View>
-                ))}
+                )}
+                {!!nightNote && (
+                  <View style={styles.nbModalNoteRow}>
+                    <Ionicons name="moon-outline" size={14} color={COLORS.official} style={styles.nbModalNoteIcon} />
+                    <Text style={styles.nbModalNote}>{nightNote}</Text>
+                  </View>
+                )}
               </View>
-            </View>
+            )}
+
+            {/* Getting there + airport taxi fare. The fare is absent for
+                boat-access-only neighborhoods (e.g. Tierrabomba) — hide it
+                rather than show a misleading number. */}
+            {(!!howTo || item.taxi_fare_from_airport_cop != null) && (
+              <View style={styles.nbModalSection}>
+                <View style={styles.nbModalSectionHeader}>
+                  <Ionicons name="navigate-outline" size={15} color={COLORS.icon} />
+                  <Text style={styles.nbModalSectionTitle}>{tr('Cómo llegar')}</Text>
+                </View>
+                {!!howTo && <Text style={styles.nbModalNote}>{howTo}</Text>}
+                {item.taxi_fare_from_airport_cop != null && (
+                  <View style={styles.nbModalNoteRow}>
+                    <Ionicons name="car-outline" size={14} color={COLORS.icon} style={styles.nbModalNoteIcon} />
+                    <Text style={styles.nbModalNote}>
+                      {tr('Taxi desde el aeropuerto')}: <Text style={styles.nbModalFare}>${item.taxi_fare_from_airport_cop.toLocaleString()} COP</Text>
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
 
             {/* Tourist mistake */}
-            <View style={styles.nbModalSection}>
-              <View style={styles.nbModalSectionHeader}>
-                <Ionicons name="warning-outline" size={16} color="#F59E0B" />
-                <Text style={styles.nbModalSectionTitle}>{tr('Error de turista')}</Text>
+            {!!mistake && (
+              <View style={[styles.nbModalSection, styles.nbModalCallout]}>
+                <View style={styles.nbModalSectionHeader}>
+                  <Ionicons name="warning-outline" size={15} color={COLORS.mustard} />
+                  <Text style={styles.nbModalSectionTitle}>{tr('Error de turista')}</Text>
+                </View>
+                <Text style={styles.nbModalNote}>{mistake}</Text>
               </View>
-              <Text style={styles.nbModalNote}>{item.tourist_mistakes_es}</Text>
-              <Text style={[styles.nbModalNote, { color: COLORS.textMuted, marginTop: 4 }]}>{item.tourist_mistakes_en}</Text>
-            </View>
-
-            <View style={{ height: SPACING.xl }} />
+            )}
           </ScrollView>
 
           <TouchableOpacity style={styles.nbModalCloseBtn} onPress={onClose} activeOpacity={0.85}>
@@ -632,17 +772,37 @@ export default function ExploreScreen() {
     return filtered;
   }, []);
 
+  // Both featured sources are kept; whichever lands (in any order) re-merges.
+  // Fallback-first: once the row holds data it never re-enters the skeleton.
+  const staticFeaturedRef = useRef<Experience[]>([]);
+  const apiFeaturedRef = useRef<Experience[]>([]);
+  const applyFeatured = useCallback(() => {
+    const merged = mergeFeatured(apiFeaturedRef.current, staticFeaturedRef.current);
+    if (merged.length > 0) setFeatured(prev => (sameFeatured(prev, merged) ? prev : merged));
+  }, []);
+
   const loadFeatured = useCallback(async () => {
-    // Static-first (non-blocking)
-    fetch(ASSET_ORIGIN + '/data/experiences/featured.json').then(r => r.ok ? r.json() : [])
-      .then(sf => { if (Array.isArray(sf) && sf.length > 0) { setFeatured(sf); setLoadingFeatured(false); } })
+    const staticP = fetch(ASSET_ORIGIN + '/data/experiences/featured.json')
+      .then(r => (r.ok ? r.json() : []))
+      .then(sf => {
+        if (Array.isArray(sf) && sf.length > 0) {
+          staticFeaturedRef.current = sf;
+          applyFeatured();
+          setLoadingFeatured(false);
+        }
+      })
       .catch(() => {});
-    // Hydrate from backend (non-blocking)
-    api.get('/experiences/featured')
-      .then(data => { if (Array.isArray(data) && data.length > 0) setFeatured(data); })
+    const apiP = api.get('/experiences/featured')
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          apiFeaturedRef.current = data;
+          applyFeatured();
+        }
+      })
       .catch(() => {})
       .finally(() => setLoadingFeatured(false));
-  }, []);
+    await Promise.allSettled([staticP, apiP]);
+  }, [applyFeatured]);
 
   const loadPartners = useCallback(async (category: CategoryItem) => {
     setLoadingPartners(true);
@@ -793,7 +953,9 @@ export default function ExploreScreen() {
     <View>
       {/* ── Hero Banner ── */}
       <View style={styles.exploreHero}>
-        <SafeImage uri={IMAGES.cartagena_aerial} style={styles.exploreHeroImg} />
+        {/* Decorative 540 KB banner under a 60% overlay: LOW priority so the
+            content cards below win the download queue. */}
+        <SafeImage uri={IMAGES.cartagena_aerial} priority="low" style={styles.exploreHeroImg} />
         <View style={styles.exploreHeroOverlay} />
         <View style={styles.exploreHeroContent}>
           <Text style={styles.title}>{tr('Explorar')}</Text>
@@ -935,17 +1097,23 @@ export default function ExploreScreen() {
           ) : (
             <FlatList
               data={featured}
-              // Several featured experiences can share a partner_id — index keeps keys unique.
-              keyExtractor={(item, index) => `${item.experience_id || item.partner_id || item.name || 'f'}-${index}`}
+              // Stable per-card identity across the static→API merge (mergeFeatured
+              // already guarantees one card per partner+title).
+              keyExtractor={featuredKey}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.featuredList}
-              renderItem={({ item }) => (
+              renderItem={({ item, index }) => (
                 <FeaturedCard
                   item={item}
+                  priority={index < 2 ? 'high' : 'normal'}
                   onPress={() => {
-                    const id = item.partner_id || item.experience_id;
-                    const route = item.partner_id ? `/partner/${id}` : `/experience/${id}`;
+                    // Partner-event rows open the event, not just the venue.
+                    const route = item.event_id
+                      ? `/partner-event/${item.event_id}`
+                      : item.partner_id
+                        ? `/partner/${item.partner_id}`
+                        : `/experience/${item.experience_id}`;
                     router.push(route as any);
                   }}
                 />
@@ -976,15 +1144,8 @@ export default function ExploreScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.featuredList}
-            renderItem={({ item: ev }) => {
-              const evDate = ev.date_start || ev.date || '';
-              let dateLabel = '';
-              if (evDate) {
-                try {
-                  const d = new Date(evDate + 'T00:00:00');
-                  dateLabel = `${d.getDate()} ${monthShort(d.getMonth(), lang, true)}`;
-                } catch { /* invalid event date — skip label */ dateLabel = ''; }
-              }
+            renderItem={({ item: ev, index }) => {
+              const dateLabel = eventDateLabel(ev.date_start || ev.date, ev.date_end, lang, tr);
               const catLabel = tr(ev.category === 'festival' ? 'Festival' : ev.category === 'cultural' ? 'Cultural' : ev.category === 'music' ? 'Música' : ev.category === 'religious' ? 'Religioso' : ev.category === 'sports' ? 'Deportes' : ev.category || ev.type || '');
               return (
                 <TouchableOpacity
@@ -992,8 +1153,19 @@ export default function ExploreScreen() {
                   activeOpacity={0.85}
                   onPress={() => router.push(`/event/${ev.event_id || ev.slug}` as any)}
                 >
-                  <SafeImage uri={ev.image_url} style={styles.eventCardImage} resizeMode="cover" />
-                  <View style={styles.eventCardOverlay} />
+                  <SafeImage
+                    uri={ev.image_url}
+                    fallbackUri={ev.flyer_url || ev.partner_image}
+                    category={ev.category || ev.type || 'event'}
+                    priority={index < 2 ? 'high' : 'normal'}
+                    style={styles.eventCardImage}
+                  />
+                  <LinearGradient
+                    colors={['transparent', 'rgba(8,12,22,0.5)', COLORS.background]}
+                    locations={[0, 0.55, 1]}
+                    style={styles.eventCardOverlay}
+                    pointerEvents="none"
+                  />
                   {dateLabel ? (
                     <View style={styles.eventCardDateBadge}>
                       <Text style={styles.eventCardDateText}>{dateLabel}</Text>
@@ -1463,9 +1635,10 @@ const styles = StyleSheet.create({
     height: '100%',
     position: 'absolute',
   },
+  // Gradient-only: expo-linear-gradient paints ON TOP of the view's own
+  // background, so a flat 45% fill here muddied every loaded photo.
   featuredOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(5,8,20,0.45)',
   },
   featuredTierStripe: {
     position: 'absolute',
@@ -1524,7 +1697,7 @@ const styles = StyleSheet.create({
 
   // Grid layout
   listContent: {
-    paddingBottom: SPACING.xl,
+    paddingBottom: FAB_CLEARANCE, // the last card scrolls clear of the assistant FAB
   },
   columnWrapper: {
     paddingHorizontal: SPACING.lg,
@@ -1551,7 +1724,6 @@ const styles = StyleSheet.create({
   },
   gridOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(5,8,20,0.45)',
   },
   gridTierStripe: {
     position: 'absolute',
@@ -1768,7 +1940,6 @@ const styles = StyleSheet.create({
   },
   eventCardOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(5,8,20,0.45)',
   },
   eventCardDateBadge: {
     position: 'absolute',
@@ -1826,6 +1997,7 @@ const styles = StyleSheet.create({
   },
   nbCard: { width: FEATURED_CARD_WIDTH * 0.85, borderRadius: RADIUS.xl, overflow: 'hidden' as const, borderWidth: 1, borderColor: COLORS.border, backgroundColor: COLORS.surface },
   nbCardInner: { padding: SPACING.md, gap: SPACING.sm },
+  nbCardTitleRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: SPACING.xs },
   nbName: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold },
   nbCharacter: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 17 },
   nbRatingsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'space-between' as const },
@@ -1834,23 +2006,49 @@ const styles = StyleSheet.create({
   nbTagsRow: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 4 },
   nbTag: { backgroundColor: `${COLORS.icon}1F`, borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: `${COLORS.icon}40` },
   nbTagText: { fontSize: 10, color: COLORS.icon, ...FONTS.semibold },
+  // ── Neighborhood sheet ──
   nbModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' as const },
-  nbModalSheet: { backgroundColor: COLORS.background, borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl, maxHeight: '85%' as const, paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, paddingBottom: SPACING.lg },
-  nbModalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: COLORS.textMuted, alignSelf: 'center' as const, marginBottom: SPACING.md },
-  nbModalTitle: { ...TYPE.title2, color: COLORS.textMain, marginBottom: SPACING.xs },
-  nbModalAka: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, fontStyle: 'italic' as const, marginBottom: SPACING.md },
-  nbModalDesc: { fontSize: 14, color: COLORS.textMain, ...FONTS.regular, lineHeight: 21 },
+  // maxHeight caps the sheet; the ScrollView (flexGrow 0 / flexShrink 1, basis
+  // auto) is the ONLY child that shrinks. No `flex: 1` anywhere inside — that
+  // is what zeroed the content on iOS.
+  nbModalSheet: {
+    backgroundColor: COLORS.surface,
+    borderTopLeftRadius: RADIUS.xl,
+    borderTopRightRadius: RADIUS.xl,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: COLORS.border,
+    maxHeight: '88%' as const,
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.sm,
+    ...ELEVATION.sheet,
+  },
+  nbModalHandle: { width: 40, height: 4, borderRadius: 2, backgroundColor: COLORS.textFaint, alignSelf: 'center' as const, marginBottom: SPACING.md },
+  nbModalHeader: { flexDirection: 'row' as const, alignItems: 'flex-start' as const, gap: SPACING.sm, paddingBottom: SPACING.sm },
+  nbModalTitle: { ...TYPE.title2, color: COLORS.textMain },
+  nbModalAka: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, fontStyle: 'italic' as const, marginTop: 2 },
+  nbModalX: { width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.surfaceAlt, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center' as const, justifyContent: 'center' as const },
+  nbModalScroll: { flexGrow: 0, flexShrink: 1 },
+  nbModalScrollContent: { paddingBottom: SPACING.md },
+  nbModalGlance: { flexDirection: 'row' as const, alignItems: 'center' as const, backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, paddingVertical: SPACING.sm, paddingHorizontal: SPACING.md, marginBottom: SPACING.md },
+  nbModalGlanceCell: { flex: 1, gap: 4 },
+  nbModalGlanceDivider: { width: 1, alignSelf: 'stretch' as const, backgroundColor: COLORS.border, marginHorizontal: SPACING.md },
+  nbModalGlanceLabel: { ...TYPE.overline, color: COLORS.textMuted, textTransform: 'uppercase' as const },
+  nbModalDesc: { ...TYPE.body, color: COLORS.textMain },
   nbModalSection: { marginTop: SPACING.lg, gap: SPACING.sm },
+  nbModalCallout: { backgroundColor: 'rgba(233,185,73,0.08)', borderWidth: 1, borderColor: 'rgba(233,185,73,0.25)', borderRadius: RADIUS.lg, padding: SPACING.md },
   nbModalSectionHeader: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: SPACING.sm },
-  nbModalSectionTitle: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold },
-  nbModalStarsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 4 },
-  nbModalRatingText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium, marginLeft: SPACING.xs },
-  nbModalNote: { fontSize: 13, color: COLORS.textMain, ...FONTS.regular, lineHeight: 19 },
-  nbModalPriceLevel: { fontSize: 18, color: COLORS.icon, ...FONTS.bold, letterSpacing: 2 },
-  nbModalFare: { fontSize: 18, color: COLORS.icon, ...FONTS.bold },
+  nbModalSectionTitle: { ...TYPE.headline, color: COLORS.textMain },
+  nbModalStarsRow: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 3 },
+  nbModalRatingText: { ...TYPE.footnote, color: COLORS.textMuted, marginLeft: SPACING.xs },
+  nbModalNoteRow: { flexDirection: 'row' as const, alignItems: 'flex-start' as const, gap: SPACING.sm },
+  nbModalNoteIcon: { marginTop: 3 },
+  nbModalNote: { ...TYPE.subhead, fontWeight: '400' as const, color: COLORS.textMain, flex: 1 },
+  nbModalPriceLevel: { fontSize: 16, color: COLORS.icon, ...FONTS.bold, letterSpacing: 2 },
+  nbModalFare: { color: COLORS.textMain, ...FONTS.bold },
   nbModalTags: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 6 },
   nbModalTag: { backgroundColor: `${COLORS.icon}1F`, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: `${COLORS.icon}40` },
   nbModalTagText: { fontSize: 12, color: COLORS.icon, ...FONTS.semibold },
-  nbModalCloseBtn: { backgroundColor: COLORS.surface, borderRadius: RADIUS.full, paddingVertical: 14, alignItems: 'center' as const, borderWidth: 1, borderColor: COLORS.border, marginTop: SPACING.sm },
+  nbModalCloseBtn: { backgroundColor: COLORS.surfaceAlt, borderRadius: RADIUS.full, minHeight: 48, paddingVertical: 14, alignItems: 'center' as const, justifyContent: 'center' as const, borderWidth: 1, borderColor: COLORS.border, marginTop: SPACING.sm },
   nbModalCloseBtnText: { fontSize: 15, color: COLORS.textMain, ...FONTS.bold },
 });

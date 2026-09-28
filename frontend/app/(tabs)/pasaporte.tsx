@@ -19,7 +19,7 @@ import { COLORS, SPACING, RADIUS, FONTS, TYPE, colorForKey } from '../../src/con
 import { SafeImage } from '../../src/components/SafeImage';
 import { useTr } from '../../src/i18n/autoTr';
 import { useAuth } from '../../src/context/AuthContext';
-import { geoService, GeoState, haversineM, fmtDistance } from '../../src/lib/geo';
+import { geoService, GeoState, haversineM, fmtDistance, cityMode } from '../../src/lib/geo';
 import {
   getCollections, getPassport, discover, mintShareLink, CollectionsDef, Passport, CollectionVenue,
   groupsMine, groupCreate, groupJoin, groupLeave, GroupStanding,
@@ -28,6 +28,7 @@ import { TextInput } from 'react-native';
 import { shareCard, canShareCard } from '../../src/lib/shareCard';
 import { ACHIEVEMENTS, achievementDef } from '../../src/lib/achievements';
 import { StampCelebration, CelebrationData } from '../../src/components/StampCelebration';
+import { FAB_CLEARANCE } from '../../src/components/AssistantFab';
 
 const SEAL_RADIUS_M = 75; // mirrors the server's honesty gate
 
@@ -76,23 +77,48 @@ export default function PasaporteScreen() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
   const [geo, setGeo] = useState<GeoState>(geoService.getState());
+  // Remote mode: >20 km from the centre or location off. Distances to venues
+  // are meaningless from afar ("1532 km" on every tile read as broken), so the
+  // grids drop per-tile km and the header explains what works from here.
+  const city = useMemo(() => cityMode(geo), [geo]);
+  const remote = city.mode === 'remote';
+  const geoOff = geo.status === 'denied' || geo.status === 'unavailable';
   const [sealing, setSealing] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [celebration, setCelebration] = useState<CelebrationData | null>(null);
 
   const load = useCallback(async () => {
-    const c = await getCollections();
-    setCols(c);
-    if (user?.user_id) {
-      const { data, fromCache: fc } = await getPassport(user.user_id);
-      setPassport(data);
-      setFromCache(fc && !!data);
-    } else {
-      setPassport(null);
-      setFromCache(false);
+    // Collections + passport in parallel (they were sequential: two cold
+    // lambdas back-to-back = the multi-second spinner on first open).
+    try {
+      const [c, pp] = await Promise.all([
+        getCollections(),
+        user?.user_id ? getPassport(user.user_id) : Promise.resolve(null),
+      ]);
+      // Fallback-first: never replace data we already hold with null.
+      if (c) setCols(c);
+      if (pp) {
+        if (pp.data) setPassport(pp.data);
+        setFromCache(pp.fromCache && !!pp.data);
+      } else {
+        setPassport(null);
+        setFromCache(false);
+      }
+    } catch (e) {
+      console.error('[Pasaporte] load', e);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [user?.user_id]);
+
+  // Remote-mode CTA → the map tab. Labelled as exactly that: mapa.tsx does not
+  // read route params yet, so a "Paseo virtual" promise landed on the plain map
+  // (the dead tap TestFlight 18 flagged). Follow-up for mapa.tsx: consume
+  // `walk=1` via useLocalSearchParams and auto-start its virtual-walk mode; then
+  // this can push { pathname: '/(tabs)/mapa', params: { walk: '1' } } again.
+  const openMap = useCallback(() => {
+    router.push('/(tabs)/mapa' as any);
+  }, [router]);
 
   const onRefresh = useCallback(async () => { setRefreshing(true); await load(); setRefreshing(false); }, [load]);
 
@@ -217,14 +243,14 @@ export default function PasaporteScreen() {
       : cols.plazas.filter((p) => !progress.plazas.venues[p.id]).map((p) => ({ label: p.name, venues: [p] }));
     if (missing.length === 0) return null;
     let nearest: { label: string; d: number } | null = null;
-    if (geo.status === 'granted' && geo.position) {
+    if (!remote && geo.status === 'granted' && geo.position) {
       for (const m of missing) {
         const d = nearestVenueDist(m.venues, geo);
         if (d !== null && (!nearest || d < nearest.d)) nearest = { label: m.label, d };
       }
     }
     return { left: missing.length, nearest, almostLabel: missing.length === 1 ? missing[0].label : null };
-  }, [cols, progress, geo]);
+  }, [cols, progress, geo, remote]);
   const saboresPull = useMemo(() => collectionPull('sabores'), [collectionPull]);
   const plazasPull = useMemo(() => collectionPull('plazas'), [collectionPull]);
 
@@ -333,7 +359,7 @@ export default function PasaporteScreen() {
       <ScrollView
         automaticallyAdjustKeyboardInsets /* iOS: inputs near the bottom stay above the keyboard */
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingBottom: 48 }}
+        contentContainerStyle={{ paddingBottom: FAB_CLEARANCE }} /* the last Sabores tile scrolls clear of the assistant FAB */
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
       >
         {/* Header */}
@@ -362,6 +388,24 @@ export default function PasaporteScreen() {
           <View style={styles.notice}><Text style={styles.noticeText}>{notice}</Text></View>
         )}
 
+        {/* Remote mode header — shows in every state (guest / empty / active) */}
+        {mounted && remote && (
+          <View style={styles.previewBanner}>
+            <Ionicons name={geoOff ? 'locate-outline' : 'airplane-outline'} size={16} color={COLORS.official} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.previewTitle}>
+                {tr('Modo previo')}{city.km !== null ? ` · ${city.km.toLocaleString()} km` : ''}
+              </Text>
+              <Text style={styles.previewSub}>
+                {geoOff ? tr('Activa tu ubicación para sellar tu pasaporte') : tr('Explora los sellos; se activan cuando estés en Cartagena')}
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.previewBtn} onPress={openMap} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={tr('Ver el mapa')}>
+              <Text style={styles.previewBtnText}>{tr('Ver el mapa')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {(!mounted || loading) ? (
           <ActivityIndicator color={COLORS.icon} style={{ marginTop: 60 }} />
         ) : (
@@ -383,11 +427,19 @@ export default function PasaporteScreen() {
                 <Text style={styles.inviteEmoji}>✨</Text>
                 <Text style={styles.inviteTitle}>{tr('Tu pasaporte empieza con tu primer sello')}</Text>
                 <Text style={styles.inviteBody}>
-                  {tr('Camina la ciudad: prueba un plato icónico, visita una plaza o deja que una joya local te encuentre.')}
+                  {remote
+                    ? tr('Explora los sellos; se activan cuando estés en Cartagena')
+                    : tr('Camina la ciudad: prueba un plato icónico, visita una plaza o deja que una joya local te encuentre.')}
                 </Text>
-                <TouchableOpacity style={styles.inviteBtn} onPress={() => router.push('/(tabs)/explore' as any)} activeOpacity={0.85}>
-                  <Text style={styles.inviteBtnText}>{tr('Abrir Explorar')}</Text>
-                </TouchableOpacity>
+                {remote ? (
+                  <TouchableOpacity style={styles.inviteBtn} onPress={openMap} activeOpacity={0.85} accessibilityRole="button">
+                    <Text style={styles.inviteBtnText}>{tr('Abrir el mapa')}</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity style={styles.inviteBtn} onPress={() => router.push('/(tabs)/explore' as any)} activeOpacity={0.85}>
+                    <Text style={styles.inviteBtnText}>{tr('Abrir Explorar')}</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             ) : (
               <>
@@ -473,7 +525,7 @@ export default function PasaporteScreen() {
 
             {/* ── Rutas entry (Drop 5) ── */}
             <TouchableOpacity
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: 'rgba(57,184,255,0.08)', borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(57,184,255,0.35)' }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.md, backgroundColor: `${COLORS.official}14`, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: `${COLORS.official}59` }}
               onPress={() => router.push('/rutas' as any)}
               activeOpacity={0.85}
             >
@@ -502,15 +554,17 @@ export default function PasaporteScreen() {
                       {saboresPull.nearest ? ` — ${fmtDist(saboresPull.nearest.d)}` : ''}
                     </Text>
                   </View>
-                ) : saboresPull.nearest ? (
+                ) : (
                   <Text style={styles.pullLine}>
-                    {tr('Faltan')} {saboresPull.left} · {tr('más cerca')}: {saboresPull.nearest.label} {fmtDist(saboresPull.nearest.d)}
+                    {tr('Faltan')} {saboresPull.left}
+                    {saboresPull.nearest ? ` · ${tr('más cerca')}: ${saboresPull.nearest.label} ${fmtDist(saboresPull.nearest.d)}` : ''}
                   </Text>
-                ) : null)}
+                ))}
                 <View style={styles.grid}>
                   {cols.sabores.map((s) => {
                     const done = !!progress?.sabores.plates[s.key];
-                    const dist = !done ? nearestVenueDist(s.venues, geo) : null;
+                    // Remote: no km on tiles — they fall through to the venue name.
+                    const dist = !done && !remote ? nearestVenueDist(s.venues, geo) : null;
                     const accent = colorForKey(s.key);
                     return (
                       <TouchableOpacity
@@ -555,16 +609,18 @@ export default function PasaporteScreen() {
                       {plazasPull.nearest ? ` — ${fmtDist(plazasPull.nearest.d)}` : ''}
                     </Text>
                   </View>
-                ) : plazasPull.nearest ? (
+                ) : (
                   <Text style={styles.pullLine}>
-                    {tr('Faltan')} {plazasPull.left} · {tr('más cerca')}: {plazasPull.nearest.label} {fmtDist(plazasPull.nearest.d)}
+                    {tr('Faltan')} {plazasPull.left}
+                    {plazasPull.nearest ? ` · ${tr('más cerca')}: ${plazasPull.nearest.label} ${fmtDist(plazasPull.nearest.d)}` : ''}
                   </Text>
-                ) : null)}
+                ))}
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: SPACING.lg, gap: SPACING.sm }}>
                   {cols.plazas.map((p) => {
                     const done = !!progress?.plazas.venues[p.id];
                     const pos = geo.status === 'granted' ? geo.position : null;
-                    const d = pos && typeof p.lat === 'number' ? haversineM(pos.lat, pos.lng, p.lat, p.lng) : null;
+                    // Remote: d stays null → no km label and canSeal stays false.
+                    const d = pos && !remote && typeof p.lat === 'number' ? haversineM(pos.lat, pos.lng, p.lat, p.lng) : null;
                     const canSeal = !!user && !done && d !== null && d <= SEAL_RADIUS_M;
                     const accent = colorForKey(p.id);
                     return (
@@ -856,11 +912,19 @@ const styles = StyleSheet.create({
   notice: { marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, padding: 10, backgroundColor: 'rgba(18,181,165,0.12)', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(18,181,165,0.4)' },
   noticeText: { fontSize: 12, color: COLORS.textMain, ...FONTS.semibold, textAlign: 'center' },
 
+  // Remote mode header (official blue = informational, never a sales pitch).
+  // 8-digit hex alphas of COLORS.official: 14 = 8 %, 59 = 35 %.
+  previewBanner: { flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: 12, backgroundColor: `${COLORS.official}14`, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: `${COLORS.official}59` },
+  previewTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
+  previewSub: { fontSize: 11, color: COLORS.textMuted, ...FONTS.medium, marginTop: 1, lineHeight: 15 },
+  previewBtn: { backgroundColor: COLORS.official, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 8, minHeight: 44, justifyContent: 'center' },
+  previewBtnText: { fontSize: 11, color: '#000', ...FONTS.bold },
+
   inviteCard: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md, padding: SPACING.lg, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: COLORS.border, alignItems: 'center', gap: 8 },
   inviteEmoji: { fontSize: 40 },
   inviteTitle: { fontSize: 17, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
   inviteBody: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'center', lineHeight: 19 },
-  inviteBtn: { marginTop: 6, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 22, paddingVertical: 10 },
+  inviteBtn: { marginTop: 6, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 22, paddingVertical: 10, minHeight: 44, justifyContent: 'center' },
   inviteBtnText: { fontSize: 13, color: '#000', ...FONTS.bold },
 
   // Drop 8 — passport cover

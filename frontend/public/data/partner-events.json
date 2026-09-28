@@ -7,12 +7,13 @@
     "date": "2026-06-16",
     "start_time": "07:00",
     "end_time": "08:00",
-    "flyer_url": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800",
+    "flyer_url": "/images/partners/ptr_W142.jpg",
     "is_free": false,
     "price": 80000,
     "partner_name": "Blue Apple Beach",
     "partner_tier": "premium",
-    "partner_image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80"
+    "partner_image": "/images/partners/ptr_W142.jpg",
+    "image_url": "/images/partners/ptr_W142.jpg"
   },
   {
     "event_id": "evt_010",
@@ -22,12 +23,13 @@
     "date": "2026-06-16",
     "start_time": "20:00",
     "end_time": "00:00",
-    "flyer_url": "https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800",
+    "flyer_url": "/images/partners/ptr_V008.jpg",
     "is_free": false,
     "price": 220000,
     "partner_name": "Café Havana",
     "partner_tier": "elite",
-    "partner_image": "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=800&h=600&fit=crop"
+    "partner_image": "/images/partners/ptr_V008.jpg",
+    "image_url": "/images/partners/ptr_V008.jpg"
   },
   {
     "event_id": "evt_013",
@@ -37,12 +39,13 @@
     "date": "2026-06-17",
     "start_time": "01:00",
     "end_time": "07:00",
-    "flyer_url": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
+    "flyer_url": "/images/partners/ptr_W130.jpg",
     "is_free": false,
     "price": 120000,
     "partner_name": "Bazurto Social Club",
     "partner_tier": "elite",
-    "partner_image": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop"
+    "partner_image": "/images/partners/ptr_W130.jpg",
+    "image_url": "/images/partners/ptr_W130.jpg"
   },
   {
     "event_id": "evt_012",
@@ -52,12 +55,13 @@
     "date": "2026-06-17",
     "start_time": "18:00",
     "end_time": "20:00",
-    "flyer_url": "https://images.unsplash.com/photo-1583037189850-1921ae7c6c22?w=800",
+    "flyer_url": "/images/partners/ptr_V001.jpg",
     "is_free": true,
     "price": 0,
     "partner_name": "Alquimico",
     "partner_tier": "elite",
-    "partner_image": "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=800&h=600&fit=crop"
+    "partner_image": "/images/partners/ptr_V001.jpg",
+    "image_url": "/images/partners/ptr_V001.jpg"
   },
   {
     "event_id": "evt_015",
@@ -67,12 +71,13 @@
     "date": "2026-06-18",
     "start_time": "14:00",
     "end_time": "20:00",
-    "flyer_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
+    "flyer_url": "/images/partners/ptr_W142.jpg",
     "is_free": false,
     "price": 400000,
     "partner_name": "Blue Apple Beach",
     "partner_tier": "premium",
-    "partner_image": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&q=80"
+    "partner_image": "/images/partners/ptr_W142.jpg",
+    "image_url": "/images/partners/ptr_W142.jpg"
   },
   {
     "event_id": "evt_014",
@@ -82,11 +87,12 @@
     "date": "2026-06-18",
     "start_time": "17:00",
     "end_time": "21:00",
-    "flyer_url": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800",
+    "flyer_url": "/images/partners/ptr_W140.jpg",
     "is_free": true,
     "price": 0,
     "partner_name": "Bora Bora Beach Club",
     "partner_tier": "elite",
-    "partner_image": "https://images.unsplash.com/photo-1540541338287-41700207dee6?w=800&h=600&fit=crop"
+    "partner_image": "/images/partners/ptr_W140.jpg",
+    "image_url": "/images/partners/ptr_W140.jpg"
   }
 ]

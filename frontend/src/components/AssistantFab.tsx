@@ -1187,6 +1187,14 @@ function iconForAction(type: string): keyof typeof Ionicons.glyphMap {
   }
 }
 
+/**
+ * Bottom padding a tab screen's scroll content needs so its last row can scroll
+ * clear of the FAB: the button sits ~5 px above the tab bar and is 56 px tall,
+ * plus a 16 px breath. Without it the FAB covered the last Sabores tile on
+ * /pasaporte and the last card on /explore at 390 px.
+ */
+export const FAB_CLEARANCE = 80;
+
 const styles = StyleSheet.create({
   fab: {
     position: 'absolute',

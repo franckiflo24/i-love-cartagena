@@ -34,11 +34,15 @@ export function PassportGlance() {
 
   // The glance needs a live position on app-open — same focus-scoped watch
   // pattern as Explore/Pasaporte (denied stays silent; watch stops on blur).
+  // Armed for GUESTS too: Home's far-from-Cartagena line reads this position,
+  // and a guest 1,500 km away used to see "dinnertime" until some other screen
+  // happened to start the watch. start() never prompts — with permission
+  // 'not-asked' it only waits; 'denied' stays silent forever.
   useFocusEffect(
     useCallback(() => {
-      if (user?.user_id) geoService.start();
+      geoService.start();
       return () => geoService.stop();
-    }, [user?.user_id]),
+    }, []),
   );
 
   useEffect(() => {

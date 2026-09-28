@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { forgetLocalHomeBase } from '../lib/homeBase';
-import { API_BASE } from '../constants/api';
+import { API_BASE, fetchT, primeToken, setSwrScope, swr } from '../constants/api';
 import { router } from 'expo-router';
 import { safeNext } from '../lib/safeNext';
 
@@ -14,6 +14,7 @@ const saveToken = async (token: string) => {
   } else {
     await SecureStore.setItemAsync('session_token', token);
   }
+  primeToken(token); // api.ts skips its keychain read for the next requests
 };
 
 const getToken = async (): Promise<string | null> => {
@@ -39,7 +40,15 @@ const removeToken = async () => {
   } else {
     await SecureStore.deleteItemAsync('session_token');
   }
+  primeToken(null);
 };
+
+// /auth/me answers on every launch; when nothing changed, keep the SAME user
+// object so every `[user]` effect (Bookings, Favorites, Rewards, Calendar,
+// Push) does not refire and drop its screen back into a loading state.
+const USER_FIELDS = ['user_id', 'email', 'name', 'picture', 'provider', 'phone', 'is_admin', 'onboarding_completed'] as const;
+const sameUser = (a: User, b: User): boolean =>
+  USER_FIELDS.every((k) => (a[k] ?? null) === (b[k] ?? null));
 
 const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '';
 
@@ -157,6 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithToken = useCallback(async (sessionToken: string, userData: User) => {
     await saveToken(sessionToken);
     await AsyncStorage.setItem('user_data', JSON.stringify(userData));
+    setSwrScope(userData.user_id); // before setUser: the first per-user GET must land in this scope
     setUser(userData);
     setAuthError(null);
     setIsLoading(false);
@@ -206,13 +216,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // survives even after ITP wiped localStorage, so the user stays logged in and
       // the app opens "already ready". A 200 also returns a fresh session_token we
       // re-save locally so the cross-origin data calls keep working.
-      const res = await fetch(`${AUTH_BASE}/me`, {
+      // 8 s cap: a cold/scale-out backend instance costs ~10 s and this call used to
+      // hold every per-user screen in guest mode for that long. On timeout we fall
+      // through to the cached session below exactly like a network blip.
+      const res = await fetchT(`${AUTH_BASE}/me`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         credentials: 'include',
-      });
+      }, 8000);
       if (res.ok) {
-        const userData = await res.json();
-        setUser(userData);
+        const userData: User & { session_token?: string } = await res.json();
+        setSwrScope(userData.user_id);
+        setUser((prev) => (prev && sameUser(prev, userData) ? prev : userData));
         await AsyncStorage.setItem('user_data', JSON.stringify(userData));
         if (userData.session_token) { try { await saveToken(userData.session_token); } catch { /* noop */ } }
         setIsLoading(false);
@@ -222,19 +236,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Session genuinely gone (no valid token AND no valid cookie) → clear.
         await removeToken();
         await AsyncStorage.removeItem('user_data');
+        setSwrScope(null);
         setUser(null);
         setIsLoading(false);
         return;
       }
       throw new Error(`auth/me ${res.status}`); // 5xx / transient → fall through to cache
-    } catch (e) {
-      // Network / transient error → keep the user optimistically from cache; never
-      // log someone out over a blip.
+    } catch {
+      // Network / transient error / timeout → keep the user optimistically from
+      // cache; never log someone out over a blip.
       try {
         const cached = await AsyncStorage.getItem('user_data');
         const parsed = cached ? JSON.parse(cached) : null;
-        setUser(parsed?.user_id || parsed?.email ? parsed : null);
-      } catch { setUser(null); }
+        const keep = parsed?.user_id || parsed?.email ? (parsed as User) : null;
+        setSwrScope(keep?.user_id || null);
+        setUser((prev) => (prev && keep && sameUser(prev, keep) ? prev : keep));
+      } catch { setSwrScope(null); setUser(null); }
     } finally {
       setIsLoading(false);
     }
@@ -242,6 +259,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const init = async () => {
+      // LAUNCH: paint the last session immediately. Until /auth/me answered the app
+      // was a GUEST ("Welcome" instead of "Hi, Phil", Bookings in guest mode, every
+      // per-user provider idle) for 0.3 s warm / ~10 s on a cold backend instance.
+      // `user` + the swr scope come from the cached session now; `isLoading` stays
+      // TRUE until the server confirms (or the 8 s cap fires) so login/registro/admin
+      // gates, which wait on !isLoading, still act on the server's verdict.
+      try {
+        const cached = await AsyncStorage.getItem('user_data');
+        const parsed = cached ? JSON.parse(cached) : null;
+        if (parsed?.user_id) {
+          setSwrScope(parsed.user_id);
+          setUser(parsed as User);
+        }
+      } catch { /* no cached session — guest until /auth/me answers */ }
+
       // Read from sessionStorage — survives React remounts from Expo Router redirects
       let pendingIdToken: string | null = null;
       let pendingError: string | null = null;
@@ -321,6 +353,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Drop the local Mi Base cache so the next account on this device doesn't
     // inherit it (their own base still lives on their account).
     try { forgetLocalHomeBase(); } catch { /* noop */ }
+    // Wipe this user's cached bookings/favorites/notifications (swr scope == user_id)
+    // so the next account on the device never paints them.
+    try {
+      const scope = swr.getScope();
+      if (scope !== 'anon') await swr.clearScope(scope);
+    } catch (e) { console.error('[AuthContext] swr clearScope failed', e); }
+    setSwrScope(null);
     setUser(null);
   }, []);
 

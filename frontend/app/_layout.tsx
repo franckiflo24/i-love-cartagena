@@ -26,6 +26,15 @@ export default function RootLayout() {
       fetch(`${BACKEND_URL}/api/health`).catch(() => {});
     }
   }, []);
+  // Web preloader handshake: +html.tsx keeps #amo-preloader up until the root
+  // layout has mounted (this attribute), with a 4 s safety fallback. Every
+  // screen's chrome paints on first mount (fallback-first), so "mounted" is the
+  // honest "ready" — the old testid/tablist heuristic never fired on
+  // onboarding/event/partner-event and held the logo for 4.7 s.
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    try { document.documentElement.dataset.appReady = '1'; } catch { /* no DOM (SSR) */ }
+  }, []);
   return (
     <ErrorBoundary>
     <AuthProvider>

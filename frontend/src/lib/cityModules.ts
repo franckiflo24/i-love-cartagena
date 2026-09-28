@@ -132,6 +132,17 @@ export const LINK_ICONS: Record<CityLinkKind, string> = {
   recharge: 'card-outline',
 };
 
+// ── Official-link display order ─────────────────────────────────────────────
+// The JSON lists decrees and PDFs first, so the two links a visitor actually
+// acts on (buy / find) sat at positions 5 and 8 under a full screen of buttons.
+// Actionable kinds come first; the sort is stable, so JSON order holds within a
+// kind. The detail shows the top 3 and expands to the rest on demand.
+export const LINK_PRIORITY: Record<CityLinkKind, number> = {
+  tickets: 0, map: 1, recharge: 2, official: 3, report: 4,
+};
+export const sortLinksByPriority = (links: CityLink[]): CityLink[] =>
+  [...links].sort((a, b) => (LINK_PRIORITY[a.kind] ?? 9) - (LINK_PRIORITY[b.kind] ?? 9));
+
 // ── Loader with cache ───────────────────────────────────────────────────────
 let CACHE: CityModulesPayload | null = null;
 

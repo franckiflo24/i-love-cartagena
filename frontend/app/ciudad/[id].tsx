@@ -1,6 +1,7 @@
-// City module detail — /ciudad/<id>. Hero + honesty badge, summary, honest note,
-// dated facts with their official source, official links (open off-app),
-// safety checklist, fallback and the "what would change the badge" note.
+// City module detail — /ciudad/<id>. Hero + honesty badge, a clamped summary,
+// the honest note (with the badge's reason), collapsed dated facts that open to
+// their note and official source, the top official links, the first safety tips
+// and the "what would change the badge" note — each longer list one tap away.
 // AMO informs; every fare/ticket/pass here is paid with the entity that runs it.
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
@@ -10,20 +11,29 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SPACING, RADIUS, FONTS, TYPE } from '../../src/constants/theme';
-import { ASSET_ORIGIN } from '../../src/constants/api';
-import { SafeImage } from '../../src/components/SafeImage';
 import { FadeInUp } from '../../src/components/FadeInUp';
 import { Skeleton } from '../../src/components/Skeleton';
-import { CityStatusBadge, CityIconArt } from '../../src/components/CityModuleUI';
+import {
+  CityStatusBadge, CityMedia, CityFactRow, CityExpander,
+} from '../../src/components/CityModuleUI';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import {
-  CityModulesPayload, CityFact, CityLink, LINK_ICONS, formatCop, getCachedCityModules,
-  loadCityModules, openExternal, pickL,
+  CityModulesPayload, CityLink, LINK_ICONS, getCachedCityModules, loadCityModules,
+  openExternal, pickL, sortLinksByPriority,
 } from '../../src/lib/cityModules';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 const HERO_HEIGHT = 272;
+
+// Progressive-disclosure budget. Every item stays reachable behind one tap; the
+// caps only decide what paints before the user asks for more.
+const SUMMARY_LINES = 3;
+const SUMMARY_CLAMP_CH = 160;   // ~3 lines of TYPE.body at 342 pt content width
+const LINKS_PREVIEW = 3;
+const SAFETY_PREVIEW = 2;
+const FUTURE_LINES = 2;
+const FUTURE_CLAMP_CH = 110;    // ~2 lines at 12 px
 
 export default function CiudadDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -34,9 +44,20 @@ export default function CiudadDetailScreen() {
   const [loading, setLoading] = useState<boolean>(!getCachedCityModules());
   const [failed, setFailed] = useState(false);
 
+  // Disclosure state — one Set for facts (keys are unique per module), one flag
+  // per capped section. All reset when `id` changes: Luna's open_city_module and
+  // the hub's replace() reuse this screen for another module.
+  const [openFacts, setOpenFacts] = useState<Set<string>>(() => new Set());
+  const [summaryOpen, setSummaryOpen] = useState(false);
+  const [allLinks, setAllLinks] = useState(false);
+  const [allSafety, setAllSafety] = useState(false);
+  const [futureOpen, setFutureOpen] = useState(false);
+
   const load = useCallback(async (force = false) => {
     setFailed(false);
-    setLoading(true);
+    // Fallback-first: a screen that already holds the cached payload never drops
+    // back into the skeleton, even on a forced refresh.
+    setLoading(!getCachedCityModules());
     try {
       setPayload(await loadCityModules(force));
     } catch (e) {
@@ -51,10 +72,31 @@ export default function CiudadDetailScreen() {
     if (!getCachedCityModules()) load();
   }, [load]);
 
+  useEffect(() => {
+    setOpenFacts(new Set());
+    setSummaryOpen(false);
+    setAllLinks(false);
+    setAllSafety(false);
+    setFutureOpen(false);
+  }, [id]);
+
   const mod = useMemo(
     () => payload?.modules.find((m) => m.id === String(id || '')) || null,
     [payload, id],
   );
+
+  const toggleFact = useCallback((key: string) => {
+    setOpenFacts((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
+  const toggleSummary = useCallback(() => setSummaryOpen((v) => !v), []);
+  const toggleLinks = useCallback(() => setAllLinks((v) => !v), []);
+  const toggleSafety = useCallback(() => setAllSafety((v) => !v), []);
+  const toggleFuture = useCallback(() => setFutureOpen((v) => !v), []);
 
   const goBack = useCallback(() => {
     if (router.canGoBack()) router.back();
@@ -159,60 +201,20 @@ export default function CiudadDetailScreen() {
   const fallback = pickL(mod.fallback, lang);
   const future = pickL(mod.future, lang);
   const safety = (mod.safety || []).map((s) => pickL(s, lang)).filter(Boolean);
-  const links = (mod.official_links || []).filter((l) => !!l?.url);
+  const links = sortLinksByPriority((mod.official_links || []).filter((l) => !!l?.url));
   const facts = mod.facts || [];
   const externalHint = tr('abre enlace externo');
   // A caption means the photo is context, not the subject (see IMAGE_CREDITS.md):
   // it is shown under the hero and doubles as the image's accessibility label.
   const caption = pickL(mod.image?.caption, lang);
 
-  const renderFact = (f: CityFact, i: number) => {
-    const label = pickL(f.label, lang);
-    const text = pickL(f.value_text, lang);
-    const note = pickL(f.note, lang);
-    const hasCop = typeof f.value_cop === 'number';
-    const verify = f.confidence === 'VERIFY';
-    // A VERIFY "free" (e.g. a 2019 news post as the only source) is hedged like any
-    // other VERIFY value: no bold green, and the chip's word repeated next to it.
-    const copText = f.value_cop === 0
-      ? (verify ? `${tr('GRATIS')} · ${tr('Confirma')}` : tr('GRATIS'))
-      : `${verify ? `${tr('aprox.')} ` : ''}${formatCop(f.value_cop as number, lang)}`;
-    return (
-      <View key={f.key || i} style={[styles.factRow, i > 0 && styles.factRowDivider]} testID={`ciudad-fact-${f.key}`}>
-        <View style={styles.factHead}>
-          <Text style={styles.factLabel}>{label}</Text>
-          {verify ? (
-            <View style={styles.verifyChip} accessibilityRole="text" accessibilityLabel={tr('Confirma')}>
-              <Ionicons name="alert-circle-outline" size={11} color={COLORS.coral} />
-              <Text style={styles.verifyChipText}>{tr('Confirma')}</Text>
-            </View>
-          ) : null}
-        </View>
-        {hasCop ? (
-          <Text style={[styles.factCop, f.value_cop === 0 && !verify && styles.factFree, verify && styles.factCopVerify]}>
-            {copText}
-          </Text>
-        ) : null}
-        {!!text && <Text style={styles.factText}>{text}</Text>}
-        {!!note && <Text style={styles.factNote}>{note}</Text>}
-        {!!f.source_name && (
-          <TouchableOpacity
-            style={styles.sourceRow}
-            onPress={() => openExternal(f.source_url)}
-            disabled={!f.source_url}
-            activeOpacity={0.7}
-            accessibilityRole="link"
-            accessibilityLabel={`${tr('Fuente')}: ${f.source_name} · ${externalHint}`}
-          >
-            <Ionicons name="link-outline" size={11} color={COLORS.textFaint} style={{ marginTop: 2 }} />
-            <Text style={styles.sourceText} numberOfLines={2}>
-              {f.source_name}{f.last_verified ? ` · ${f.last_verified}` : ''}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
-  };
+  // What paints before the user asks for more (plain derivations, no hooks).
+  const summaryLong = summary.length > SUMMARY_CLAMP_CH;
+  const futureLong = future.length > FUTURE_CLAMP_CH;
+  const hasVerify = facts.some((f) => f.confidence === 'VERIFY');
+  const visibleLinks = allLinks ? links : links.slice(0, LINKS_PREVIEW);
+  const visibleSafety = allSafety ? safety : safety.slice(0, SAFETY_PREVIEW);
+  const hiddenSafety = safety.length - SAFETY_PREVIEW;
 
   const renderLink = (l: CityLink, i: number) => {
     const label = pickL(l.label, lang);
@@ -241,17 +243,14 @@ export default function CiudadDetailScreen() {
       {head}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: SPACING.xxl }}>
         <View style={styles.hero}>
-          {mod.image?.file ? (
-            <SafeImage
-              uri={ASSET_ORIGIN + mod.image.file}
-              category="attraction"
-              style={styles.heroFill}
-              resizeMode="cover"
-              accessibilityLabel={caption || title}
-            />
-          ) : (
-            <CityIconArt id={mod.id} icon={mod.icon} style={styles.heroFill} iconSize={56} />
-          )}
+          <CityMedia
+            id={mod.id}
+            icon={mod.icon}
+            file={mod.image?.file}
+            height={HERO_HEIGHT}
+            iconSize={56}
+            accessibilityLabel={caption || title}
+          />
           <LinearGradient
             colors={['rgba(8,12,22,0.25)', 'rgba(8,12,22,0.15)', 'rgba(8,12,22,0.72)', COLORS.background]}
             locations={[0, 0.35, 0.75, 1]}
@@ -270,22 +269,44 @@ export default function CiudadDetailScreen() {
           {!!caption && (
             <Text style={styles.captionText} testID="ciudad-image-caption">{caption}</Text>
           )}
-          {!!reason && (
-            <View style={styles.reasonRow}>
-              <Ionicons name="information-circle-outline" size={13} color={COLORS.textFaint} style={{ marginTop: 2 }} />
-              <Text style={styles.reasonText}>{reason}</Text>
+
+          {!!summary && (
+            <View testID="ciudad-summary">
+              <Text style={styles.summary} numberOfLines={summaryOpen ? undefined : SUMMARY_LINES}>
+                {summary}
+              </Text>
+              {summaryLong && (
+                <TouchableOpacity
+                  onPress={toggleSummary}
+                  style={styles.readMore}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: summaryOpen }}
+                  aria-expanded={summaryOpen}
+                  testID="ciudad-summary-toggle"
+                >
+                  <Text style={styles.readMoreText}>{tr(summaryOpen ? 'Leer menos' : 'Leer más')}</Text>
+                  <Ionicons name={summaryOpen ? 'chevron-up' : 'chevron-down'} size={14} color={COLORS.official} />
+                </TouchableOpacity>
+              )}
             </View>
           )}
 
-          {!!summary && <Text style={styles.summary}>{summary}</Text>}
-
-          {!!honest && (
+          {(!!honest || !!reason) && (
             <View style={styles.honestCard} testID="ciudad-honest-note">
               <View style={styles.honestHead}>
                 <Ionicons name="hand-left-outline" size={15} color={COLORS.mustard} />
                 <Text style={styles.honestTitle}>{tr('Nota honesta')}</Text>
               </View>
-              <Text style={styles.honestText}>{honest}</Text>
+              {!!honest && <Text style={styles.honestText}>{honest}</Text>}
+              {/* The badge's justification lives here in full — the hub card shows
+                  only its first line, so this is the one place the sentence is whole. */}
+              {!!reason && (
+                <View style={styles.honestReasonRow}>
+                  <Ionicons name="information-circle-outline" size={12} color={COLORS.textFaint} style={{ marginTop: 2 }} />
+                  <Text style={styles.honestReason} testID="ciudad-status-reason">{reason}</Text>
+                </View>
+              )}
             </View>
           )}
 
@@ -296,8 +317,23 @@ export default function CiudadDetailScreen() {
                 <Text style={styles.sectionTitle}>{tr('Datos y precios')}</Text>
                 <View style={styles.countPill}><Text style={styles.countText}>{facts.length}</Text></View>
               </View>
-              <View style={styles.factsCard}>{facts.map(renderFact)}</View>
-              <Text style={styles.sectionHint}>{tr('"Confirma" = dato que puede variar: verifica en taquilla o con la entidad.')}</Text>
+              <View style={styles.factsCard}>
+                {facts.map((f, i) => (
+                  <CityFactRow
+                    key={f.key || String(i)}
+                    fact={f}
+                    lang={lang}
+                    tr={tr}
+                    open={openFacts.has(f.key)}
+                    onToggle={toggleFact}
+                    first={i === 0}
+                  />
+                ))}
+              </View>
+              <Text style={styles.sectionHint}>
+                {tr('Toca un dato para ver la nota y la fuente oficial.')}
+                {hasVerify ? ` ${tr('"Confirma" = dato que puede variar: verifica en taquilla o con la entidad.')}` : ''}
+              </Text>
             </View>
           )}
 
@@ -307,7 +343,15 @@ export default function CiudadDetailScreen() {
                 <Ionicons name="globe-outline" size={16} color={COLORS.icon} />
                 <Text style={styles.sectionTitle}>{tr('Enlaces oficiales')}</Text>
               </View>
-              <View style={{ gap: SPACING.sm }}>{links.map(renderLink)}</View>
+              <View style={{ gap: SPACING.sm }}>{visibleLinks.map(renderLink)}</View>
+              {links.length > LINKS_PREVIEW && (
+                <CityExpander
+                  expanded={allLinks}
+                  onPress={toggleLinks}
+                  label={allLinks ? tr('Ver menos enlaces') : `${tr('Ver todos los enlaces')} (${links.length})`}
+                  testID="ciudad-links-toggle"
+                />
+              )}
             </View>
           )}
 
@@ -318,17 +362,27 @@ export default function CiudadDetailScreen() {
                 <Text style={styles.sectionTitle}>{tr('Seguridad')}</Text>
               </View>
               <View style={styles.safetyCard}>
-                {safety.map((line, i) => (
+                {visibleSafety.map((line, i) => (
                   <View key={`${mod.id}-safety-${i}`} style={styles.safetyRow}>
                     <Ionicons name="checkmark-circle" size={16} color="#22C55E" style={{ marginTop: 1 }} />
                     <Text style={styles.safetyText}>{line}</Text>
                   </View>
                 ))}
               </View>
+              {hiddenSafety > 0 && (
+                <CityExpander
+                  expanded={allSafety}
+                  onPress={toggleSafety}
+                  label={allSafety ? tr('Ver menos consejos') : `${tr('Ver más consejos')} (${hiddenSafety})`}
+                  testID="ciudad-safety-toggle"
+                />
+              )}
             </View>
           )}
 
-          {!!fallback && (
+          {/* The fallback ("for the latest, check <entity>") is the links section in
+              prose — only worth a line when a module ships without links. */}
+          {!!fallback && links.length === 0 && (
             <View style={styles.fallbackRow}>
               <Ionicons name="refresh-circle-outline" size={16} color={COLORS.textMuted} style={{ marginTop: 1 }} />
               <Text style={styles.fallbackText}>{fallback}</Text>
@@ -336,10 +390,26 @@ export default function CiudadDetailScreen() {
           )}
 
           {!!future && (
-            <View style={styles.futureBox}>
-              <Text style={styles.futureLabel}>{tr('A futuro')}</Text>
-              <Text style={styles.futureText}>{future}</Text>
-            </View>
+            <TouchableOpacity
+              style={styles.futureBox}
+              onPress={toggleFuture}
+              disabled={!futureLong}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: futureOpen }}
+              aria-expanded={futureOpen}
+              testID="ciudad-future-toggle"
+            >
+              <View style={styles.futureHead}>
+                <Text style={styles.futureLabel}>{tr('A futuro')}</Text>
+                {futureLong && (
+                  <Ionicons name={futureOpen ? 'chevron-up' : 'chevron-down'} size={14} color={COLORS.textFaint} />
+                )}
+              </View>
+              <Text style={styles.futureText} numberOfLines={futureOpen || !futureLong ? undefined : FUTURE_LINES}>
+                {future}
+              </Text>
+            </TouchableOpacity>
           )}
 
           <View style={styles.footer}>
@@ -372,7 +442,6 @@ export default function CiudadDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   hero: { height: HERO_HEIGHT, position: 'relative', backgroundColor: COLORS.surfaceAlt },
-  heroFill: { width: '100%', height: HERO_HEIGHT },
   heroOverlay: { ...StyleSheet.absoluteFillObject },
   navRow: { flexDirection: 'row', position: 'absolute', top: SPACING.md, left: SPACING.md, gap: 8, zIndex: 5 },
   navBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(5,8,20,0.62)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', alignItems: 'center', justifyContent: 'center' },
@@ -381,16 +450,18 @@ const styles = StyleSheet.create({
   heroTagline: { ...TYPE.subhead, color: 'rgba(245,247,250,0.82)', lineHeight: 19 },
   body: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.sm },
   captionText: { fontSize: 11, lineHeight: 15, color: COLORS.textFaint, ...FONTS.regular, fontStyle: 'italic', marginBottom: SPACING.sm },
-  reasonRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginBottom: SPACING.md },
-  reasonText: { flex: 1, fontSize: 12, lineHeight: 17, color: COLORS.textFaint, ...FONTS.medium },
   summary: { ...TYPE.body, color: COLORS.textMuted, lineHeight: 23 },
+  readMore: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 44, alignSelf: 'flex-start', paddingVertical: 8 },
+  readMoreText: { fontSize: 13.5, color: COLORS.official, ...FONTS.semibold },
   honestCard: {
-    marginTop: SPACING.lg, padding: SPACING.md, borderRadius: RADIUS.lg, gap: 6,
+    marginTop: SPACING.md, padding: SPACING.md, borderRadius: RADIUS.lg, gap: 6,
     backgroundColor: 'rgba(233,185,73,0.07)', borderWidth: 1, borderColor: 'rgba(233,185,73,0.32)',
   },
   honestHead: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   honestTitle: { ...TYPE.caption, color: COLORS.mustard, letterSpacing: 1, textTransform: 'uppercase' },
   honestText: { fontSize: 13.5, lineHeight: 20, color: COLORS.textMain, ...FONTS.medium },
+  honestReasonRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 5, marginTop: 2 },
+  honestReason: { flex: 1, fontSize: 12, lineHeight: 16, color: COLORS.textMuted, ...FONTS.medium },
   section: { marginTop: SPACING.lg },
   sectionHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: SPACING.sm },
   sectionTitle: { ...TYPE.title3, color: COLORS.textMain },
@@ -398,19 +469,6 @@ const styles = StyleSheet.create({
   countText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.bold },
   sectionHint: { fontSize: 11, lineHeight: 15, color: COLORS.textFaint, ...FONTS.medium, marginTop: SPACING.sm },
   factsCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.hairline, paddingHorizontal: SPACING.md },
-  factRow: { paddingVertical: SPACING.md - 2, gap: 4 },
-  factRowDivider: { borderTopWidth: 1, borderTopColor: COLORS.hairline },
-  factHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  factLabel: { flex: 1, fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold, letterSpacing: 0.2 },
-  verifyChip: { flexDirection: 'row', alignItems: 'center', gap: 3, borderWidth: 1, borderColor: 'rgba(255,107,74,0.55)', backgroundColor: 'rgba(255,107,74,0.10)', borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2 },
-  verifyChipText: { fontSize: 9.5, color: COLORS.coral, ...FONTS.bold, letterSpacing: 0.5, textTransform: 'uppercase' },
-  factCop: { fontSize: 18, lineHeight: 24, color: COLORS.textMain, ...FONTS.bold, letterSpacing: -0.2 },
-  factCopVerify: { color: 'rgba(245,247,250,0.88)' },
-  factFree: { color: '#22C55E' },
-  factText: { fontSize: 13.5, lineHeight: 19, color: COLORS.textMain, ...FONTS.regular },
-  factNote: { fontSize: 12, lineHeight: 17, color: COLORS.textMuted, ...FONTS.regular, fontStyle: 'italic' },
-  sourceRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 4, marginTop: 2, minHeight: 20 },
-  sourceText: { flex: 1, fontSize: 10.5, lineHeight: 14, color: COLORS.textFaint, ...FONTS.medium },
   linkBtn: {
     flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, minHeight: 52,
     paddingHorizontal: SPACING.md, paddingVertical: 10,
@@ -423,7 +481,8 @@ const styles = StyleSheet.create({
   safetyText: { flex: 1, fontSize: 13, lineHeight: 19, color: COLORS.textMain, ...FONTS.regular },
   fallbackRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: SPACING.lg, paddingHorizontal: 2 },
   fallbackText: { flex: 1, fontSize: 12.5, lineHeight: 18, color: COLORS.textMuted, ...FONTS.medium },
-  futureBox: { marginTop: SPACING.md, padding: SPACING.md, borderRadius: RADIUS.md, borderWidth: 1, borderStyle: 'dashed', borderColor: COLORS.border, gap: 4 },
+  futureBox: { marginTop: SPACING.lg, padding: SPACING.md, borderRadius: RADIUS.md, borderWidth: 1, borderStyle: 'dashed', borderColor: COLORS.border, gap: 4 },
+  futureHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   futureLabel: { ...TYPE.overline, color: COLORS.textFaint },
   futureText: { fontSize: 12, lineHeight: 17, color: COLORS.textFaint, ...FONTS.regular },
   footer: { alignItems: 'center', gap: 4, marginTop: SPACING.xl, paddingHorizontal: SPACING.sm },

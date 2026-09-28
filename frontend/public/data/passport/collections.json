@@ -1,0 +1,925 @@
+{
+  "version": "2026-08-03-drop4",
+  "sabores": [
+    {
+      "key": "ceviche",
+      "name": "Ceviche cartagenero",
+      "venues": [
+        {
+          "id": "ptr_R102",
+          "name": "Carmen",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R102.jpg",
+          "lat": 10.4268664,
+          "lng": -75.54781609999999
+        },
+        {
+          "id": "ptr_W100",
+          "name": "La Vitrola",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_W100.jpg",
+          "lat": 10.4234973,
+          "lng": -75.5532849
+        },
+        {
+          "id": "ptr_R104",
+          "name": "Alma",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R104.jpg",
+          "lat": 10.4253081,
+          "lng": -75.5494088
+        },
+        {
+          "id": "ptr_R057",
+          "name": "1811",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R057.jpg",
+          "lat": 10.4249228,
+          "lng": -75.54885829999999
+        },
+        {
+          "id": "ptr_R031",
+          "name": "La Cevichería",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R031.jpg",
+          "lat": 10.4279932,
+          "lng": -75.54818639999999
+        },
+        {
+          "id": "ptr_R052",
+          "name": "Carta Ajena",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R052.jpg",
+          "lat": 10.4232607,
+          "lng": -75.5451482
+        },
+        {
+          "id": "ptr_R013",
+          "name": "San Pasqual",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R013.jpg",
+          "lat": 10.4238965,
+          "lng": -75.5522107
+        },
+        {
+          "id": "ptr_R015",
+          "name": "Kazabe",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R015.jpg",
+          "lat": 10.4019787,
+          "lng": -75.5564526
+        },
+        {
+          "id": "ptr_R026",
+          "name": "Marea",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R026.jpg",
+          "lat": 10.4213395,
+          "lng": -75.5490566
+        }
+      ]
+    },
+    {
+      "key": "tiradito",
+      "name": "Tiradito con leche de tigre",
+      "venues": [
+        {
+          "id": "ptr_R105",
+          "name": "Restaurante 1621",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R105.jpg",
+          "lat": 10.4282439,
+          "lng": -75.5477904
+        },
+        {
+          "id": "ptr_R031",
+          "name": "La Cevichería",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R031.jpg",
+          "lat": 10.4279932,
+          "lng": -75.54818639999999
+        },
+        {
+          "id": "ptr_R015",
+          "name": "Kazabe",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R015.jpg",
+          "lat": 10.4019787,
+          "lng": -75.5564526
+        },
+        {
+          "id": "ptr_R103",
+          "name": "Donjuán",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R103.jpg",
+          "lat": 10.4235053,
+          "lng": -75.54884980000001
+        },
+        {
+          "id": "ptr_cu_002",
+          "name": "Nikkei Cartagena",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_cu_002.jpg",
+          "lat": 10.3892829,
+          "lng": -75.47796
+        }
+      ]
+    },
+    {
+      "key": "arroz_mariscos",
+      "name": "Arroz de mariscos",
+      "venues": [
+        {
+          "id": "ptr_W100",
+          "name": "La Vitrola",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_W100.jpg",
+          "lat": 10.4234973,
+          "lng": -75.5532849
+        },
+        {
+          "id": "ptr_R103",
+          "name": "Donjuán",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R103.jpg",
+          "lat": 10.4235053,
+          "lng": -75.54884980000001
+        },
+        {
+          "id": "ptr_R104",
+          "name": "Alma",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R104.jpg",
+          "lat": 10.4253081,
+          "lng": -75.5494088
+        },
+        {
+          "id": "ptr_R033",
+          "name": "Clero Restaurant",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R033.jpg",
+          "lat": 10.4219535,
+          "lng": -75.5463571
+        },
+        {
+          "id": "ptr_R021",
+          "name": "Juan del Mar",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R021.jpg",
+          "lat": 10.4279266,
+          "lng": -75.5476335
+        },
+        {
+          "id": "ptr_R022",
+          "name": "Buena Vida Marisquería",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R022.jpg",
+          "lat": 10.4251115,
+          "lng": -75.54960899999999
+        },
+        {
+          "id": "ptr_R054",
+          "name": "Palosanto",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R054.jpg",
+          "lat": 10.4255857,
+          "lng": -75.5528928
+        },
+        {
+          "id": "ptr_R106",
+          "name": "Inkanto",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R106.jpg",
+          "lat": 10.4231266,
+          "lng": -75.549722
+        }
+      ]
+    },
+    {
+      "key": "arroz_coco",
+      "name": "Arroz con coco",
+      "venues": [
+        {
+          "id": "ptr_R013",
+          "name": "San Pasqual",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R013.jpg",
+          "lat": 10.4238965,
+          "lng": -75.5522107
+        },
+        {
+          "id": "ptr_W101",
+          "name": "La Cocina de Pepina",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_W101.jpg",
+          "lat": 10.4195491,
+          "lng": -75.5470988
+        },
+        {
+          "id": "ptr_R018",
+          "name": "Doña Lola",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R018.jpg",
+          "lat": 10.4217407,
+          "lng": -75.54533289999999
+        }
+      ]
+    },
+    {
+      "key": "cazuela",
+      "name": "Cazuela de mariscos",
+      "venues": [
+        {
+          "id": "ptr_R013",
+          "name": "San Pasqual",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R013.jpg",
+          "lat": 10.4238965,
+          "lng": -75.5522107
+        },
+        {
+          "id": "ptr_R052",
+          "name": "Carta Ajena",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R052.jpg",
+          "lat": 10.4232607,
+          "lng": -75.5451482
+        },
+        {
+          "id": "ptr_dv_008",
+          "name": "Club de Pesca",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_dv_008.jpg",
+          "lat": 10.411,
+          "lng": -75.5385
+        }
+      ]
+    },
+    {
+      "key": "langosta",
+      "name": "Langosta caribeña",
+      "venues": [
+        {
+          "id": "ptr_R105",
+          "name": "Restaurante 1621",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R105.jpg",
+          "lat": 10.4282439,
+          "lng": -75.5477904
+        },
+        {
+          "id": "ptr_R102",
+          "name": "Carmen",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R102.jpg",
+          "lat": 10.4268664,
+          "lng": -75.54781609999999
+        },
+        {
+          "id": "ptr_R104",
+          "name": "Alma",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R104.jpg",
+          "lat": 10.4253081,
+          "lng": -75.5494088
+        },
+        {
+          "id": "ptr_R026",
+          "name": "Marea",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R026.jpg",
+          "lat": 10.4213395,
+          "lng": -75.5490566
+        },
+        {
+          "id": "ptr_R103",
+          "name": "Donjuán",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R103.jpg",
+          "lat": 10.4235053,
+          "lng": -75.54884980000001
+        },
+        {
+          "id": "ptr_R107",
+          "name": "Erre de Ramón Freixa",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R107.jpg",
+          "lat": 10.4596472,
+          "lng": -75.5068156
+        },
+        {
+          "id": "ptr_R022",
+          "name": "Buena Vida Marisquería",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R022.jpg",
+          "lat": 10.4251115,
+          "lng": -75.54960899999999
+        },
+        {
+          "id": "ptr_R021",
+          "name": "Juan del Mar",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R021.jpg",
+          "lat": 10.4279266,
+          "lng": -75.5476335
+        }
+      ]
+    },
+    {
+      "key": "pulpo",
+      "name": "Pulpo a la parrilla",
+      "venues": [
+        {
+          "id": "ptr_R023",
+          "name": "Rabo de Pez",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R023.jpg",
+          "lat": 10.4227583,
+          "lng": -75.55002689999999
+        },
+        {
+          "id": "ptr_R057",
+          "name": "1811",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R057.jpg",
+          "lat": 10.4249228,
+          "lng": -75.54885829999999
+        },
+        {
+          "id": "ptr_R107",
+          "name": "Erre de Ramón Freixa",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R107.jpg",
+          "lat": 10.4596472,
+          "lng": -75.5068156
+        },
+        {
+          "id": "ptr_R033",
+          "name": "Clero Restaurant",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R033.jpg",
+          "lat": 10.4219535,
+          "lng": -75.5463571
+        },
+        {
+          "id": "ptr_R054",
+          "name": "Palosanto",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R054.jpg",
+          "lat": 10.4255857,
+          "lng": -75.5528928
+        },
+        {
+          "id": "ptr_R021",
+          "name": "Juan del Mar",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R021.jpg",
+          "lat": 10.4279266,
+          "lng": -75.5476335
+        },
+        {
+          "id": "ptr_R004",
+          "name": "Hamachi",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R004.jpg",
+          "lat": 10.4032505,
+          "lng": -75.5546487
+        },
+        {
+          "id": "ptr_R065",
+          "name": "Quebracho",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R065.jpg",
+          "lat": 10.4233803,
+          "lng": -75.5527934
+        }
+      ]
+    },
+    {
+      "key": "pargo",
+      "name": "Pargo del Caribe",
+      "venues": [
+        {
+          "id": "ptr_R102",
+          "name": "Carmen",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R102.jpg",
+          "lat": 10.4268664,
+          "lng": -75.54781609999999
+        },
+        {
+          "id": "ptr_R013",
+          "name": "San Pasqual",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R013.jpg",
+          "lat": 10.4238965,
+          "lng": -75.5522107
+        },
+        {
+          "id": "ptr_R033",
+          "name": "Clero Restaurant",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R033.jpg",
+          "lat": 10.4219535,
+          "lng": -75.5463571
+        }
+      ]
+    },
+    {
+      "key": "carimanola",
+      "name": "Carimañola",
+      "venues": [
+        {
+          "id": "ptr_R015",
+          "name": "Kazabe",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R015.jpg",
+          "lat": 10.4019787,
+          "lng": -75.5564526
+        }
+      ]
+    },
+    {
+      "key": "pie_coco",
+      "name": "Pie de coco",
+      "venues": [
+        {
+          "id": "ptr_W100",
+          "name": "La Vitrola",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_W100.jpg",
+          "lat": 10.4234973,
+          "lng": -75.5532849
+        },
+        {
+          "id": "ptr_R104",
+          "name": "Alma",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R104.jpg",
+          "lat": 10.4253081,
+          "lng": -75.5494088
+        },
+        {
+          "id": "ptr_V013",
+          "name": "Mila Pastelería",
+          "category": "cafe",
+          "image_url": "/images/partners/ptr_V013.jpg",
+          "lat": 10.4268887,
+          "lng": -75.5485223
+        }
+      ]
+    },
+    {
+      "key": "paleta",
+      "name": "Paleta artesanal",
+      "venues": [
+        {
+          "id": "ptr_W104",
+          "name": "La Palettería",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_W104.jpg",
+          "lat": 10.4241623,
+          "lng": -75.55118139999999
+        }
+      ]
+    },
+    {
+      "key": "limonada_coco",
+      "name": "Limonada de coco",
+      "venues": [
+        {
+          "id": "ptr_R104",
+          "name": "Alma",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R104.jpg",
+          "lat": 10.4253081,
+          "lng": -75.5494088
+        }
+      ]
+    },
+    {
+      "key": "cafe_origen",
+      "name": "Café de origen",
+      "venues": [
+        {
+          "id": "ptr_V010",
+          "name": "Café San Alberto",
+          "category": "cafe",
+          "image_url": "/images/partners/ptr_V010.jpg",
+          "lat": 10.4241975,
+          "lng": -75.5518453
+        },
+        {
+          "id": "ptr_W120",
+          "name": "Época Café",
+          "category": "cafe",
+          "image_url": "/images/partners/ptr_W120.jpg",
+          "lat": 10.4240157,
+          "lng": -75.55027009999999
+        },
+        {
+          "id": "ptr_W122",
+          "name": "Café La Manchuria",
+          "category": "cafe",
+          "image_url": "/images/partners/ptr_W122.jpg",
+          "lat": 10.4249906,
+          "lng": -75.5505569
+        },
+        {
+          "id": "ptr_V011",
+          "name": "Libertario Coffee Roasters",
+          "category": "cafe",
+          "image_url": "/images/partners/ptr_V011.jpg",
+          "lat": 10.4222923,
+          "lng": -75.5453651
+        },
+        {
+          "id": "ptr_V012",
+          "name": "Ábaco Libros y Café",
+          "category": "cafe",
+          "image_url": "/images/partners/ptr_V012.jpg",
+          "lat": 10.4249306,
+          "lng": -75.5512267
+        },
+        {
+          "id": "ptr_W121",
+          "name": "Café del Mural",
+          "category": "cafe",
+          "image_url": "/images/partners/ptr_W121.jpg",
+          "lat": 10.4200094,
+          "lng": -75.5465815
+        }
+      ]
+    },
+    {
+      "key": "coctel_autor",
+      "name": "Cóctel de autor",
+      "venues": [
+        {
+          "id": "ptr_V001",
+          "name": "Alquimico",
+          "category": "bar",
+          "image_url": "/images/partners/ptr_V001.jpg",
+          "lat": 10.4236789,
+          "lng": -75.5496402
+        },
+        {
+          "id": "ptr_V002",
+          "name": "El Barón",
+          "category": "bar",
+          "image_url": "/images/partners/ptr_V002.jpg",
+          "lat": 10.4219048,
+          "lng": -75.55083809999999
+        },
+        {
+          "id": "ptr_X1004",
+          "name": "Barra Xperimental",
+          "category": "bar",
+          "image_url": "/images/partners/ptr_X1004.jpg",
+          "lat": 10.4201632,
+          "lng": -75.54808419999999
+        },
+        {
+          "id": "ptr_CB_003",
+          "name": "El Jardín — Casa Bohème",
+          "category": "bar",
+          "image_url": "/images/partners/ptr_CB_003.jpg",
+          "lat": 10.4241036,
+          "lng": -75.5518067
+        },
+        {
+          "id": "ptr_W111",
+          "name": "The Townhouse",
+          "category": "bar",
+          "image_url": "/images/partners/ptr_W111.jpg",
+          "lat": 10.4260277,
+          "lng": -75.5484006
+        },
+        {
+          "id": "ptr_X1099",
+          "name": "RedRuf - Rooftop Lounge",
+          "category": "bar",
+          "image_url": "/images/partners/ptr_X1099.jpg",
+          "lat": 10.4348499,
+          "lng": -75.5385892
+        }
+      ]
+    },
+    {
+      "key": "mojito",
+      "name": "Mojito",
+      "venues": [
+        {
+          "id": "ptr_V008",
+          "name": "Café Havana",
+          "category": "bar",
+          "image_url": "/images/partners/ptr_V008.jpg",
+          "lat": 10.4221914,
+          "lng": -75.54533119999999
+        },
+        {
+          "id": "ptr_V002",
+          "name": "El Barón",
+          "category": "bar",
+          "image_url": "/images/partners/ptr_V002.jpg",
+          "lat": 10.4219048,
+          "lng": -75.55083809999999
+        },
+        {
+          "id": "ptr_X1099",
+          "name": "RedRuf - Rooftop Lounge",
+          "category": "bar",
+          "image_url": "/images/partners/ptr_X1099.jpg",
+          "lat": 10.4348499,
+          "lng": -75.5385892
+        }
+      ]
+    },
+    {
+      "key": "ron",
+      "name": "Ron colombiano",
+      "venues": [
+        {
+          "id": "ptr_X1082",
+          "name": "El Arsenal: The Rum Box",
+          "category": "bar",
+          "image_url": "/images/partners/ptr_X1082.jpg",
+          "lat": 10.4203825,
+          "lng": -75.5484448
+        },
+        {
+          "id": "ptr_V001",
+          "name": "Alquimico",
+          "category": "bar",
+          "image_url": "/images/partners/ptr_V001.jpg",
+          "lat": 10.4236789,
+          "lng": -75.5496402
+        },
+        {
+          "id": "ptr_X1004",
+          "name": "Barra Xperimental",
+          "category": "bar",
+          "image_url": "/images/partners/ptr_X1004.jpg",
+          "lat": 10.4201632,
+          "lng": -75.54808419999999
+        },
+        {
+          "id": "ptr_V008",
+          "name": "Café Havana",
+          "category": "bar",
+          "image_url": "/images/partners/ptr_V008.jpg",
+          "lat": 10.4221914,
+          "lng": -75.54533119999999
+        },
+        {
+          "id": "ptr_W111",
+          "name": "The Townhouse",
+          "category": "bar",
+          "image_url": "/images/partners/ptr_W111.jpg",
+          "lat": 10.4260277,
+          "lng": -75.5484006
+        }
+      ]
+    },
+    {
+      "key": "postre_autor",
+      "name": "Postre de autor caribeño",
+      "venues": [
+        {
+          "id": "ptr_R101",
+          "name": "Celele",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R101.jpg",
+          "lat": 10.4222703,
+          "lng": -75.5445051
+        },
+        {
+          "id": "ptr_R023",
+          "name": "Rabo de Pez",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R023.jpg",
+          "lat": 10.4227583,
+          "lng": -75.55002689999999
+        },
+        {
+          "id": "ptr_R022",
+          "name": "Buena Vida Marisquería",
+          "category": "restaurant",
+          "image_url": "/images/partners/ptr_R022.jpg",
+          "lat": 10.4251115,
+          "lng": -75.54960899999999
+        },
+        {
+          "id": "ptr_W121",
+          "name": "Café del Mural",
+          "category": "cafe",
+          "image_url": "/images/partners/ptr_W121.jpg",
+          "lat": 10.4200094,
+          "lng": -75.5465815
+        },
+        {
+          "id": "ptr_V013",
+          "name": "Mila Pastelería",
+          "category": "cafe",
+          "image_url": "/images/partners/ptr_V013.jpg",
+          "lat": 10.4268887,
+          "lng": -75.5485223
+        }
+      ]
+    }
+  ],
+  "plazas": [
+    {
+      "id": "attr_003",
+      "name": "Torre del Reloj",
+      "category": "attraction",
+      "image_url": "/images/partners/attr_003.jpg",
+      "lat": 10.4229787,
+      "lng": -75.54921829999999
+    },
+    {
+      "id": "attr_004",
+      "name": "Plaza Santo Domingo",
+      "category": "attraction",
+      "image_url": "/images/partners/attr_004.jpg",
+      "lat": 10.4241,
+      "lng": -75.5516
+    },
+    {
+      "id": "attr_005",
+      "name": "Plaza de Bolívar",
+      "category": "attraction",
+      "image_url": "/images/partners/attr_005.jpg",
+      "lat": 10.4232347,
+      "lng": -75.55119049999999
+    },
+    {
+      "id": "attr_002",
+      "name": "Las Murallas de Cartagena",
+      "category": "attraction",
+      "image_url": "/images/partners/attr_002.jpg",
+      "lat": 10.4296098,
+      "lng": -75.54486500000002
+    },
+    {
+      "id": "attr_008",
+      "name": "Iglesia San Pedro Claver",
+      "category": "attraction",
+      "image_url": "/images/partners/attr_008.jpg",
+      "lat": 10.4217511,
+      "lng": -75.5510213
+    },
+    {
+      "id": "attr_009",
+      "name": "Catedral de Santa Catalina de Alejandría",
+      "category": "attraction",
+      "image_url": "/images/partners/attr_009.jpg",
+      "lat": 10.4236446,
+      "lng": -75.5506735
+    },
+    {
+      "id": "attr_010",
+      "name": "Las Bóvedas",
+      "category": "attraction",
+      "image_url": "/images/partners/attr_010.jpg",
+      "lat": 10.4301532,
+      "lng": -75.5464571
+    },
+    {
+      "id": "attr_011",
+      "name": "Street Art de Getsemaní",
+      "category": "attraction",
+      "image_url": "/images/partners/attr_011.jpg",
+      "lat": 10.4208127,
+      "lng": -75.5455971
+    },
+    {
+      "id": "attr_001",
+      "name": "Castillo San Felipe de Barajas",
+      "category": "attraction",
+      "image_url": "/images/partners/attr_001.jpg",
+      "lat": 10.4225232,
+      "lng": -75.5392887
+    },
+    {
+      "id": "ptr_dv_018",
+      "name": "Portal de los Dulces",
+      "category": "attraction",
+      "image_url": "/images/partners/ptr_dv_018.jpg",
+      "lat": 10.4238,
+      "lng": -75.5505
+    },
+    {
+      "id": "ptr_dv_015",
+      "name": "La Serrezuela",
+      "category": "attraction",
+      "image_url": "/images/partners/ptr_dv_015.jpg",
+      "lat": 10.427,
+      "lng": -75.548
+    },
+    {
+      "id": "attr_015",
+      "name": "Teatro Adolfo Mejía (Heredia)",
+      "category": "attraction",
+      "image_url": "/images/partners/attr_015.jpg",
+      "lat": 10.4266111,
+      "lng": -75.5511837
+    }
+  ],
+  "neighborhoods": [
+    {
+      "slug": "centro",
+      "venue_ids": [
+        "attr_003",
+        "attr_004",
+        "attr_005",
+        "attr_008",
+        "attr_009",
+        "ptr_CB_003",
+        "ptr_R013",
+        "ptr_R023",
+        "ptr_R026",
+        "ptr_R054",
+        "ptr_R065",
+        "ptr_R103",
+        "ptr_R106",
+        "ptr_V001",
+        "ptr_V002",
+        "ptr_V010",
+        "ptr_V012",
+        "ptr_W100",
+        "ptr_W104",
+        "ptr_W120",
+        "ptr_W122",
+        "ptr_dv_018"
+      ],
+      "total": 22
+    },
+    {
+      "slug": "san_diego",
+      "venue_ids": [
+        "attr_002",
+        "attr_010",
+        "attr_015",
+        "ptr_R021",
+        "ptr_R022",
+        "ptr_R031",
+        "ptr_R057",
+        "ptr_R102",
+        "ptr_R104",
+        "ptr_R105",
+        "ptr_V013",
+        "ptr_W111",
+        "ptr_dv_015"
+      ],
+      "total": 13
+    },
+    {
+      "slug": "getsemani",
+      "venue_ids": [
+        "attr_001",
+        "attr_011",
+        "ptr_R018",
+        "ptr_R033",
+        "ptr_R052",
+        "ptr_R101",
+        "ptr_V008",
+        "ptr_V011",
+        "ptr_W101",
+        "ptr_W121",
+        "ptr_X1004",
+        "ptr_X1082"
+      ],
+      "total": 12
+    },
+    {
+      "slug": "bocagrande",
+      "venue_ids": [
+        "ptr_R004",
+        "ptr_R015"
+      ],
+      "total": 2
+    },
+    {
+      "slug": "manga",
+      "venue_ids": [
+        "ptr_dv_008"
+      ],
+      "total": 1
+    },
+    {
+      "slug": "la_boquilla",
+      "venue_ids": [
+        "ptr_R107"
+      ],
+      "total": 1
+    },
+    {
+      "slug": "marbella",
+      "venue_ids": [
+        "ptr_X1099"
+      ],
+      "total": 1
+    }
+  ]
+}

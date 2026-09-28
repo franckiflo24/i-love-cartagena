@@ -89,38 +89,58 @@ const CATEGORY_MAP: Record<string, keyof typeof IMAGES> = {
 };
 
 // ---------------------------------------------------------------------------
-// Inline SVG fallbacks — zero-network, bundled with JS.
-// Used as the absolute last resort in SafeImage when every remote URL fails.
-// Each SVG: 400x300, void-dark background, muted gold radial glow, icon + label.
+// Bundled placeholders — compiled INTO the binary by Metro `require()`, so they
+// paint on the first frame with zero network and no origin (native has none).
+// SafeImage shows one as the expo-image `placeholder` while a remote photo
+// loads and uses it as the final fallback when every remote stage fails.
+// Branded, no text, no stock photo of a different venue — honest by
+// construction (the previous SVG data-URI fallback never decoded on iOS).
+// 480x320 JPEG ~5 KB each; generated from assets/images/amo-life-logo.png.
 // ---------------------------------------------------------------------------
 
-const makeSVG = (icon: string, label: string): string => {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="#141A2A"/><defs><radialGradient id="g" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#12B5A5" stop-opacity=".12"/><stop offset="100%" stop-color="#141A2A" stop-opacity="0"/></radialGradient></defs><rect width="400" height="300" fill="url(#g)"/><text x="200" y="148" text-anchor="middle" font-size="52" fill="#12B5A5" opacity=".35">${icon}</text><text x="200" y="182" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="#9CA3AF" opacity=".5" letter-spacing="3">${label}</text></svg>`;
-  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+export const BUNDLED_PLACEHOLDERS = {
+  card:       require('../../assets/images/placeholder-card.jpg') as number,
+  restaurant: require('../../assets/images/placeholder-restaurant.jpg') as number,
+  bar:        require('../../assets/images/placeholder-bar.jpg') as number,
+  cafe:       require('../../assets/images/placeholder-cafe.jpg') as number,
+  nightlife:  require('../../assets/images/placeholder-nightlife.jpg') as number,
+  beach:      require('../../assets/images/placeholder-beach.jpg') as number,
+  wellness:   require('../../assets/images/placeholder-wellness.jpg') as number,
+  hotel:      require('../../assets/images/placeholder-hotel.jpg') as number,
+  yacht:      require('../../assets/images/placeholder-yacht.jpg') as number,
+  activity:   require('../../assets/images/placeholder-activity.jpg') as number,
+  cultural:   require('../../assets/images/placeholder-cultural.jpg') as number,
+  concert:    require('../../assets/images/placeholder-concert.jpg') as number,
+  event:      require('../../assets/images/placeholder-event.jpg') as number,
+} as const;
+
+export type BundledPlaceholderKey = keyof typeof BUNDLED_PLACEHOLDERS;
+
+// Category strings from partners, events and partner-events (both API and the
+// static /data files) → bundled placeholder. Unknown → generic card.
+const BUNDLED_MAP: Record<string, BundledPlaceholderKey> = {
+  restaurant: 'restaurant', restaurants: 'restaurant', gastronomy: 'restaurant', fine_dining: 'restaurant',
+  bar: 'bar', cocktail_bar: 'bar', rooftop: 'bar', lounge: 'bar',
+  cafe: 'cafe', coffee: 'cafe', bakery: 'cafe', brunch: 'cafe',
+  nightlife: 'nightlife', club: 'nightlife', nightclub: 'nightlife', party: 'nightlife', after_party: 'nightlife',
+  beach_club: 'beach', beachclub: 'beach', beach: 'beach', daypass: 'beach', day_pass: 'beach', sunset: 'beach',
+  wellness: 'wellness', spa: 'wellness', beauty: 'wellness', massage: 'wellness',
+  hotel: 'hotel', hotels: 'hotel',
+  yacht: 'yacht', yachts: 'yacht',
+  activity: 'activity', activities: 'activity', tour: 'activity', sport: 'activity', sports: 'activity', attraction: 'activity',
+  cultural: 'cultural', culture: 'cultural', art: 'cultural', religious: 'cultural', museum: 'cultural',
+  concert: 'concert', music: 'concert', festival: 'concert', live_music: 'concert',
+  event: 'event', events: 'event', popup: 'event', pop_up: 'event',
 };
 
-export const FALLBACK_SVGS: Record<string, string> = {
-  restaurant:   makeSVG('🍽', 'RESTAURANTE'),
-  bar:          makeSVG('🍸', 'BAR'),
-  hotel:        makeSVG('🏨', 'HOTEL'),
-  cafe:         makeSVG('☕', 'CAFÉ'),
-  beach_club:   makeSVG('🏖', 'BEACH CLUB'),
-  wellness:     makeSVG('✦', 'WELLNESS · SPA'),
-  spa:          makeSVG('✦', 'SPA'),
-  beauty:       makeSVG('✧', 'BEAUTY'),
-  nightclub:    makeSVG('◈', 'NIGHTLIFE'),
-  nightlife:    makeSVG('◈', 'NIGHTLIFE'),
-  shopping:     makeSVG('◻', 'SHOPPING'),
-  tour:         makeSVG('◉', 'TOUR · EXPERIENCIA'),
-  activity:     makeSVG('◉', 'ACTIVIDAD'),
-  cultural:     makeSVG('◎', 'CULTURA'),
-  concert:      makeSVG('♪', 'CONCIERTO'),
-  transport:    makeSVG('◌', 'TRANSPORTE'),
-  yacht:        makeSVG('◇', 'YATE'),
-  daypass:      makeSVG('☀', 'DAY PASS'),
-  placeholder:  makeSVG('◆', 'AMO LIFE'),
+/** Bundled (offline, in-binary) placeholder for a category. Always resolves. */
+export const getBundledPlaceholder = (category?: string | null): number => {
+  if (!category) return BUNDLED_PLACEHOLDERS.card;
+  const key = BUNDLED_MAP[String(category).toLowerCase()];
+  return key ? BUNDLED_PLACEHOLDERS[key] : BUNDLED_PLACEHOLDERS.card;
 };
 
+/** Self-hosted category photo (/images/categories/*.jpg) — a network asset. */
 export const getCategoryImage = (category?: string | null): string => {
   if (!category) return IMAGES.placeholder;
   const key = CATEGORY_MAP[category.toLowerCase()];

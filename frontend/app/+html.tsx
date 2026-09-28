@@ -305,9 +305,12 @@ export default function Root({ children }: PropsWithChildren) {
             var p=document.getElementById('amo-preloader');
             if(!p)return;
             // Hold the brand moment at least MIN ms so the logo reveal (AMO → heart →
-            // tagline) always completes even when the app hydrates in <1s. Fast loads
-            // wait up to MIN; slow loads dismiss as soon as they're ready past it.
-            var START=Date.now(), MIN=2000, done=false;
+            // tagline) completes even when the app hydrates in <1s. Fast loads wait
+            // up to MIN; slow loads dismiss as soon as they're ready past it.
+            // MIN was 2000: the DOM was interactive at 0.4–0.7 s on every screen and
+            // the preloader hid a ready app for 2.2 s (4.0–4.7 s on screens the old
+            // testid heuristic never matched). 900 ms is the reveal's own length.
+            var START=Date.now(), MIN=900, done=false;
             var dismiss=function(){
               if(done)return; done=true;
               setTimeout(function(){
@@ -315,18 +318,14 @@ export default function Root({ children }: PropsWithChildren) {
                 setTimeout(function(){if(p.parentNode)p.parentNode.removeChild(p)},600);
               }, Math.max(0, MIN-(Date.now()-START)));
             };
-            // Watch for React hydration: Expo sets __EXPO_ROUTER_HYDRATE__ then
-            // the real UI replaces the static shell. Use MutationObserver on #root
-            // to detect when the ActivityIndicator is gone and real content appears.
-            var mo=new MutationObserver(function(){
-              // Once the tab bar or any nav element renders, the app is ready
-              var ready=document.querySelector('[role="tablist"]')||
-                        document.querySelector('[data-testid]')||
-                        document.querySelector('img[src*="googleapis"]');
-              if(ready){mo.disconnect();dismiss();}
-            });
-            var root=document.getElementById('root');
-            if(root)mo.observe(root,{childList:true,subtree:true});
+            // Readiness = the root layout mounted: app/_layout.tsx sets
+            // <html data-app-ready="1"> in its first effect (every route, every
+            // screen — no per-screen testid/tablist guessing).
+            var html=document.documentElement;
+            var isReady=function(){return html.getAttribute('data-app-ready')==='1';};
+            var mo=new MutationObserver(function(){ if(isReady()){mo.disconnect();dismiss();} });
+            if(isReady()){dismiss();}
+            else mo.observe(html,{attributes:true,attributeFilter:['data-app-ready']});
             // Fallback: dismiss after 4s no matter what (never block the user)
             setTimeout(function(){mo.disconnect();dismiss()},4000);
           })();

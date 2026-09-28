@@ -1,6 +1,10 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import { PRIVATE_PATH, NO_CACHE_PATH, swr } from '../lib/swrCache';
+
+// Re-exported so screens can `import { api, swr } from '../constants/api'`.
+export { swr, setSwrScope, readCache, writeCache } from '../lib/swrCache';
 
 // Native builds have NO origin: a relative '/api' or '/data/...' fetch dies,
 // and a binary built without EXPO_PUBLIC_* env (EAS builds don't see the
@@ -36,18 +40,60 @@ const staticUrl = (path: string): string => {
   return `${ASSET_ORIGIN}/data/${clean}.json`;
 };
 
-// The live-backend fallback to /data is for the PUBLIC catalog only. Per-user
-// paths, filtered queries and auth rejections must surface: those placeholder
-// files are `[]`, so a backend blip told signed-in users they had no
-// reservations/tickets/favorites, and a stripped ?date=/?partner_id= served
-// unrelated rows as if they matched.
-const PRIVATE_PATH = /^\/(auth|business|admin|reservations|rewards\/me|favorites|notifications|my-week|city-pass\/mine|experience-bookings|port-tax\/my-tickets|calendar|profile|passport|for-you|intel)(\/|\?|$)/;
+// The live-backend fallback to /data is for the PUBLIC catalog only (see
+// PRIVATE_PATH in src/lib/swrCache.ts for why per-user paths never fall back).
 const canFallback = (path: string, status?: number): boolean =>
   status !== 401 && status !== 403 && !path.includes('?') && !PRIVATE_PATH.test(path);
 
+// ── Bounded fetch ────────────────────────────────────────────────
+// A plain fetch has no deadline: a request routed to a cold/scale-out Vercel
+// instance sat ~10 s and a bad cellular link sat forever, so every screen's
+// first paint was bounded by the slowest call. Warm p95 for the largest GET is
+// < 2 s, so 8 s cleanly separates "slow instance" from "answering". Writes get
+// a wider margin (cold import + Mongo write) so a slow-but-successful POST is
+// not reported as failed and retried into a duplicate.
+export const GET_TIMEOUT_MS = 8000;
+export const WRITE_TIMEOUT_MS = 20000;
+/** Thrown by fetchT when the deadline passes; `code` mirrors Node's ETIMEDOUT
+ *  so callers can `err.code === 'ETIMEDOUT'` without a string match. */
+export class TimeoutError extends Error {
+  readonly code = 'ETIMEDOUT';
+  constructor(ms: number, url: string) {
+    super(`Timeout after ${ms}ms: ${url}`);
+    this.name = 'TimeoutError';
+  }
+}
+export const fetchT = async (url: string, init: RequestInit = {}, ms: number = GET_TIMEOUT_MS): Promise<Response> => {
+  const ctrl = new AbortController();
+  let timedOut = false;
+  const timer = setTimeout(() => { timedOut = true; ctrl.abort(); }, ms);
+  try {
+    return await fetch(url, { ...init, signal: ctrl.signal });
+  } catch (err) {
+    if (timedOut) throw new TimeoutError(ms, url);
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+// Recoverable = the backend is unreachable/slow/broken, NOT "you are not allowed"
+// (401/403) and NOT "this thing no longer exists" (404).
+const isTransientStatus = (status: number): boolean =>
+  status >= 500 || status === 429 || status === 408;
+
+// Last-good payload for PUBLIC paths only (query strings included — the cache
+// key is the full path, so a `?date=` never serves another day's rows). Private
+// paths keep throwing so the owning screen decides what a failure means; those
+// screens peek the scoped cache themselves (see bookings.tsx).
+const recoverFromCache = async (path: string): Promise<any> => {
+  if (PRIVATE_PATH.test(path) || NO_CACHE_PATH.test(path)) return null;
+  return swr.peek(path);
+};
+
 const tryStatic = async (path: string): Promise<any> => {
   try {
-    const res = await fetch(staticUrl(path));
+    const res = await fetchT(staticUrl(path));
     if (!res.ok) return null;
     return await res.json();
   } catch { /* static file not available — expected for missing endpoints */ }
@@ -725,11 +771,40 @@ const tryAIEnrich = async (q: string, lang: string, base: any): Promise<any> => 
   return base;
 };
 
-export const getToken = async (): Promise<string | null> => {
-  if (Platform.OS === 'web') {
-    return AsyncStorage.getItem('session_token');
+// ── Session token reads, coalesced ──────────────────────────────
+// Every request awaited its own keychain read; Home's launch burst did ~12
+// serial SecureStore reads before a byte left the device. Concurrent callers
+// now share one in-flight read, and a value is reused for TOKEN_MEM_TTL_MS.
+// The memo is deliberately SHORT because login.tsx writes 'session_token'
+// directly (not through AuthContext), so a long-lived memo could go stale.
+// AuthContext primes it on save/remove so the common paths never re-read.
+const TOKEN_MEM_TTL_MS = 2000;
+let TOKEN_MEM: { v: string | null; t: number } | null = null;
+let TOKEN_INFLIGHT: Promise<string | null> | null = null;
+
+export const primeToken = (token: string | null): void => {
+  TOKEN_MEM = { v: token, t: Date.now() };
+  TOKEN_INFLIGHT = null;
+};
+
+const readTokenFromStore = async (): Promise<string | null> => {
+  try {
+    if (Platform.OS === 'web') return await AsyncStorage.getItem('session_token');
+    return await SecureStore.getItemAsync('session_token');
+  } catch (err) {
+    console.error('[api] session token read failed', err);
+    return null;
   }
-  return SecureStore.getItemAsync('session_token');
+};
+
+export const getToken = async (): Promise<string | null> => {
+  if (TOKEN_MEM && Date.now() - TOKEN_MEM.t < TOKEN_MEM_TTL_MS) return TOKEN_MEM.v;
+  if (!TOKEN_INFLIGHT) {
+    TOKEN_INFLIGHT = readTokenFromStore()
+      .then((v) => { TOKEN_MEM = { v, t: Date.now() }; return v; })
+      .finally(() => { TOKEN_INFLIGHT = null; });
+  }
+  return TOKEN_INFLIGHT;
 };
 
 const buildHeaders = async (override?: Record<string, string>): Promise<Record<string, string>> => {
@@ -779,27 +854,41 @@ export const api = {
       // Unknown endpoint in static mode — return safe empty
       return [];
     }
+    // Scope at REQUEST time: a private GET that resolves after a logout/login
+    // switch must never be filed under the next account.
+    const reqScope = swr.getScope();
+    const remember = (data: unknown) => { if (swr.getScope() === reqScope) swr.put(path, data); };
     let res: Response;
     try {
       const headers = await buildHeaders(opts?.headers);
-      res = await fetch(`${_apiUrl(path)}`, { headers, credentials: _creds(path) });
+      res = await fetchT(`${_apiUrl(path)}`, { headers, credentials: _creds(path) });
     } catch (err) {
-      // Network failure / timeout (backend down) → public catalog falls back to static
+      // Network failure / 8 s timeout → last good payload (fresher than the
+      // static snapshot, and covers ?query paths), then the public static catalog.
+      const cached = await recoverFromCache(path);
+      if (cached !== null) return cached;
       if (canFallback(path)) {
         const fallback = await tryStatic(path);
-        if (fallback !== null) return fallback;
+        if (fallback !== null) { remember(fallback); return fallback; }
       }
       throw err;
     }
     if (!res.ok) {
-      // Network OK but backend errored → public catalog falls back to static
+      // Backend reachable but broken (5xx/429) → same recovery order. A 401/403/404
+      // is an answer, not an outage: never masked by cache or static.
+      if (isTransientStatus(res.status)) {
+        const cached = await recoverFromCache(path);
+        if (cached !== null) return cached;
+      }
       if (canFallback(path, res.status)) {
         const fallback = await tryStatic(path);
-        if (fallback !== null) return fallback;
+        if (fallback !== null) { remember(fallback); return fallback; }
       }
       throw new Error(`GET ${path} failed: ${res.status}`);
     }
-    return res.json();
+    const json = await res.json();
+    remember(json); // no-op for NO_CACHE_PATH and for private paths while anonymous
+    return json;
   },
   post: async (path: string, body?: any, opts?: Opts) => {
     if (STATIC_MODE) {
@@ -807,12 +896,12 @@ export const api = {
       return body ?? {};
     }
     const headers = await buildHeaders(opts?.headers);
-    const res = await fetch(`${_apiUrl(path)}`, {
+    const res = await fetchT(`${_apiUrl(path)}`, {
       method: 'POST',
       headers,
       credentials: _creds(path),
       body: body ? JSON.stringify(body) : undefined,
-    });
+    }, WRITE_TIMEOUT_MS);
     if (!res.ok) {
       let msg = `POST ${path} failed: ${res.status}`;
       try {
@@ -830,24 +919,24 @@ export const api = {
   put: async (path: string, body?: any, opts?: Opts) => {
     if (STATIC_MODE) return body ?? {};
     const headers = await buildHeaders(opts?.headers);
-    const res = await fetch(`${_apiUrl(path)}`, {
+    const res = await fetchT(`${_apiUrl(path)}`, {
       method: 'PUT',
       headers,
       credentials: _creds(path),
       body: body ? JSON.stringify(body) : undefined,
-    });
+    }, WRITE_TIMEOUT_MS);
     if (!res.ok) throw new Error(`PUT ${path} failed: ${res.status}`);
     return res.json();
   },
   patch: async (path: string, body?: any, opts?: Opts) => {
     if (STATIC_MODE) return body ?? {};
     const headers = await buildHeaders(opts?.headers);
-    const res = await fetch(`${_apiUrl(path)}`, {
+    const res = await fetchT(`${_apiUrl(path)}`, {
       method: 'PATCH',
       headers,
       credentials: _creds(path),
       body: body ? JSON.stringify(body) : undefined,
-    });
+    }, WRITE_TIMEOUT_MS);
     if (!res.ok) {
       let msg = `PATCH ${path} failed: ${res.status}`;
       try {
@@ -861,12 +950,12 @@ export const api = {
   delete: async (path: string, body?: any, opts?: Opts) => {
     if (STATIC_MODE) return {};
     const headers = await buildHeaders(opts?.headers);
-    const res = await fetch(`${_apiUrl(path)}`, {
+    const res = await fetchT(`${_apiUrl(path)}`, {
       method: 'DELETE',
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
       credentials: _creds(path),
-    });
+    }, WRITE_TIMEOUT_MS);
     if (!res.ok) throw new Error(`DELETE ${path} failed: ${res.status}`);
     return res.json();
   },

@@ -19,7 +19,7 @@ import {
   RADIUS,
   FONTS,
 } from '../../src/constants/theme';
-import { api } from '../../src/constants/api';
+import { api, swr } from '../../src/constants/api';
 import { useTr } from '../../src/i18n/autoTr';
 import { useAuth } from '../../src/context/AuthContext';
 
@@ -374,70 +374,100 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'cancelled', label: 'Canceladas' },
 ];
 
+// The three per-user sources. api.get stores each answer in the swr cache under
+// the signed-in user's scope, so the next visit paints from it instantly.
+const BOOKING_PATHS = ['/reservations/my', '/experience-bookings', '/city-pass/mine'] as const;
+
+type ReservationsPayload = { upcoming?: unknown[]; past?: unknown[] } | unknown[];
+
+// Pure merge of the three payloads (any of them may be null = unknown/unavailable).
+const mergeBookings = (r: unknown, e: unknown, c: unknown): UnifiedBooking[] => {
+  const merged: UnifiedBooking[] = [];
+
+  // /reservations/my returns { upcoming, past, total } — not an array.
+  if (r && typeof r === 'object') {
+    const v = r as ReservationsPayload;
+    const data = Array.isArray(v) ? v : [...(v.upcoming || []), ...(v.past || [])];
+    data.forEach((row) => merged.push(normalizeReservation(row as Record<string, unknown>)));
+  }
+
+  if (Array.isArray(e)) {
+    e.forEach((row) => merged.push(normalizeExperience(row as Record<string, unknown>)));
+  }
+
+  if (c && typeof c === 'object' && !Array.isArray(c)) {
+    merged.push(normalizeCityPass(c as Record<string, unknown>));
+  } else if (Array.isArray(c)) {
+    c.forEach((row) => merged.push(normalizeCityPass(row as Record<string, unknown>)));
+  }
+
+  merged.sort(sortByDate);
+  return merged;
+};
+
 export default function BookingsScreen() {
   const router = useRouter();
   const tr = useTr();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
 
   const [activeTab, setActiveTab] = useState<TabKey>('upcoming');
   const [allBookings, setAllBookings] = useState<UnifiedBooking[]>([]);
-  const [loading, setLoading] = useState(true);
+  // A network refresh is in flight. It NEVER blanks the list: the screen paints the
+  // last-known bookings (swr cache) or the empty state immediately and this only
+  // drives a small inline row. (The old full-screen spinner waited for the slowest
+  // of three authenticated calls — 6–8 s on a cold backend — before showing
+  // "No upcoming bookings" to an account that needed no data at all.)
+  const [hydrating, setHydrating] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  // True only when EVERY source failed → the empty list is a load failure, not a
-  // genuinely-empty account. Partial failures still show what did load.
+  // True only when EVERY source failed AND nothing was ever cached → the empty list
+  // is a load failure, not a genuinely-empty account.
   const [error, setError] = useState(false);
+  // Every source failed but the last-good copy is on screen → say so, don't hide it.
+  const [stale, setStale] = useState(false);
 
   const fetchAll = useCallback(async () => {
-    if (!user) { setAllBookings([]); setError(false); return; } // guests: nothing to fetch (all 401)
-    const results = await Promise.allSettled([
-      api.get('/reservations/my'),
-      api.get('/experience-bookings'),
-      api.get('/city-pass/mine'),
-    ]);
+    if (!user) { setAllBookings([]); setError(false); setStale(false); return; } // guests: nothing to fetch (all 401)
+    const results = await Promise.allSettled(BOOKING_PATHS.map((p) => api.get(p)));
+    const rejectedAll = results.every((r) => r.status === 'rejected');
 
-    const merged: UnifiedBooking[] = [];
+    // A rejected source keeps its last-good payload instead of vanishing from the
+    // list (a reservations timeout used to silently drop every reservation while
+    // experiences still showed — the list looked trustworthy and was wrong).
+    const payloads = await Promise.all(results.map(async (r, i) => {
+      if (r.status === 'fulfilled') return r.value as unknown;
+      console.error(`[BookingsScreen] ${BOOKING_PATHS[i]}`, r.reason);
+      return swr.peek(BOOKING_PATHS[i]);
+    }));
+    const hasAny = payloads.some((p) => p !== null && p !== undefined);
 
-    // Reservations
-    if (results[0].status === 'fulfilled') {
-      // /reservations/my returns { upcoming, past, total } — not an array.
-      const v = results[0].value;
-      const data = Array.isArray(v) ? v : [...(v?.upcoming || []), ...(v?.past || [])];
-      data.forEach((r: Record<string, unknown>) => merged.push(normalizeReservation(r)));
-    } else {
-      console.error('[BookingsScreen] reservations', results[0].reason);
+    if (!rejectedAll || hasAny) {
+      setAllBookings(mergeBookings(payloads[0], payloads[1], payloads[2]));
     }
-
-    // Experience bookings
-    if (results[1].status === 'fulfilled') {
-      const data = Array.isArray(results[1].value) ? results[1].value : [];
-      data.forEach((e: Record<string, unknown>) => merged.push(normalizeExperience(e)));
-    } else {
-      console.error('[BookingsScreen] experience-bookings', results[1].reason);
-    }
-
-    // City pass
-    if (results[2].status === 'fulfilled') {
-      const raw = results[2].value;
-      if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
-        merged.push(normalizeCityPass(raw as Record<string, unknown>));
-      } else if (Array.isArray(raw)) {
-        raw.forEach((c: Record<string, unknown>) => merged.push(normalizeCityPass(c)));
-      }
-    } else {
-      console.error('[BookingsScreen] city-pass', results[2].reason);
-    }
-
-    merged.sort(sortByDate);
-    setAllBookings(merged);
-    // Only a total wipe-out (all 3 sources rejected) is a real error; any success
-    // means the list is trustworthy and an empty result is genuinely empty.
-    setError(results.every((r) => r.status === 'rejected'));
+    // Total wipe-out with nothing cached → error state; with a cached copy → stale
+    // banner over real rows. Any success → the list is trustworthy.
+    setStale(rejectedAll && hasAny);
+    setError(rejectedAll && !hasAny);
   }, [user]);
 
   useEffect(() => {
-    setLoading(true);
-    fetchAll().finally(() => setLoading(false));
-  }, [fetchAll]);
+    if (!user) {
+      setAllBookings([]); setError(false); setStale(false); setHydrating(false);
+      return;
+    }
+    let alive = true;
+    let gotFresh = false;
+    // 1. Paint the last-known bookings for THIS user instantly (null on first visit).
+    Promise.all(BOOKING_PATHS.map((p) => swr.peek(p))).then(([r, e, c]) => {
+      if (alive && !gotFresh && (r || e || c)) setAllBookings(mergeBookings(r, e, c));
+    });
+    // 2. Refresh silently — api.get caps each call at 8 s, so this cannot spin forever.
+    setHydrating(true);
+    fetchAll().finally(() => {
+      gotFresh = true;
+      if (alive) setHydrating(false);
+    });
+    return () => { alive = false; };
+  }, [fetchAll, user]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -502,6 +532,11 @@ export default function BookingsScreen() {
 
   // ── Header component for FlatList ─────────────────────────────────────────
 
+  // Offline copy shows whenever rows are on screen but the last refresh failed
+  // entirely — stale cache, or a pull-to-refresh that lost the network.
+  const showOffline = !!user && (stale || (error && allBookings.length > 0));
+  const showSearching = !!user && hydrating && allBookings.length === 0 && !showOffline;
+
   const ListHeader = (
     <View>
       {/* Screen title */}
@@ -558,24 +593,30 @@ export default function BookingsScreen() {
         </View>
       </View>
 
+      {/* Quiet status rows — never a full-screen spinner */}
+      {showSearching ? (
+        <View style={styles.noteRow}>
+          <ActivityIndicator size="small" color={COLORS.textMuted} />
+          <Text style={styles.noteText}>{tr('Buscando tus reservas…')}</Text>
+        </View>
+      ) : null}
+      {showOffline ? (
+        <View style={styles.noteRow}>
+          <Ionicons name="cloud-offline-outline" size={13} color={COLORS.textMuted} />
+          <Text style={styles.noteText}>{tr('Sin conexión — mostrando tus últimas reservas')}</Text>
+        </View>
+      ) : null}
+
       {/* Divider */}
       <View style={styles.divider} />
     </View>
   );
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        {ListHeader}
-        <ActivityIndicator
-          size="large"
-          color={COLORS.icon}
-          style={{ marginTop: SPACING.xl }}
-        />
-      </SafeAreaView>
-    );
-  }
-
+  // The list ALWAYS renders. Guest → sign-in invite; signed-in → the empty state
+  // paints at once (a zero-booking account needs no network) while the cache/
+  // network fill rows underneath. While the session itself is still being read
+  // from disk (first ~50 ms of a cold launch) show nothing rather than flash the
+  // guest invite at a signed-in user.
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <FlatList
@@ -593,8 +634,10 @@ export default function BookingsScreen() {
         }
         ListEmptyComponent={
           !user ? (
-            <GuestBookings onSignIn={() => router.push({ pathname: '/login' as any, params: { next: '/bookings' } })} />
-          ) : error ? (
+            authLoading ? null : (
+              <GuestBookings onSignIn={() => router.push({ pathname: '/login' as any, params: { next: '/bookings' } })} />
+            )
+          ) : error && !hydrating ? (
             <ErrorBookings onRetry={onRefresh} />
           ) : (
             <EmptyBookings
@@ -700,6 +743,22 @@ const styles = StyleSheet.create({
   },
   segmentBadgeTextActive: {
     color: COLORS.white,
+  },
+
+  // Quiet note rows (hydrating / offline)
+  noteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: 6,
+    minHeight: 28,
+  },
+  noteText: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    ...FONTS.medium,
+    flexShrink: 1,
   },
 
   // Divider

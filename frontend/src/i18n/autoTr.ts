@@ -1783,6 +1783,84 @@ export const AUTO_TR: Dict = {
   'Concierge AI personalizado': { en: 'Personalized AI concierge', fr: 'Concierge IA personnalisé', pt: 'Concierge de IA personalizado' },
   // search.tsx INTENT_META label for the backend 'city' intent (city hub)
   'Ciudad': { en: 'City', fr: 'Ville', pt: 'Cidade' },
+
+  // Launch-ready pass 2026-09-26 — partner-passport
+  // Remote mode (>20 km from Cartagena or location denied): partner stamp block,
+  // passport "Modo previo" header, Uber chooser + far-away notice. Number-first
+  // phrasing ("1,532 km desde Cartagena — …") so the sentence reads naturally in
+  // every language without string interpolation.
+  'desde Cartagena — sella cuando estés allí': { en: 'from Cartagena — stamp it when you are there', fr: 'de Carthagène — tamponnez-le une fois sur place', pt: 'de Cartagena — carimbe quando estiver lá' },
+  'desde Cartagena — Uber se activa cuando estés en la ciudad.': { en: 'from Cartagena — Uber turns on once you are in the city.', fr: 'de Carthagène — Uber s\'active une fois en ville.', pt: 'de Cartagena — o Uber é ativado quando você estiver na cidade.' },
+  'Se abrirá Uber con este lugar como destino': { en: 'Uber will open with this place as the destination', fr: 'Uber s\'ouvrira avec ce lieu comme destination', pt: 'O Uber abrirá com este lugar como destino' },
+  'Abrir Uber': { en: 'Open Uber', fr: 'Ouvrir Uber', pt: 'Abrir Uber' },
+  'Ver agenda': { en: 'See agenda', fr: 'Voir l\'agenda', pt: 'Ver agenda' },
+  'Cartagena': { en: 'Cartagena', fr: 'Carthagène', pt: 'Cartagena' },
+  'Modo previo': { en: 'Preview mode', fr: 'Mode aperçu', pt: 'Modo prévia' },
+  'Explora los sellos; se activan cuando estés en Cartagena': { en: 'Browse the stamps — they unlock when you are in Cartagena', fr: 'Explorez les tampons — ils s\'activent une fois à Carthagène', pt: 'Explore os selos — eles são ativados quando você estiver em Cartagena' },
+  'Paseo virtual': { en: 'Virtual walk', fr: 'Balade virtuelle', pt: 'Passeio virtual' },
+  'Paseo virtual por el Centro': { en: 'Virtual walk through the Old City', fr: 'Balade virtuelle dans le Centre', pt: 'Passeio virtual pelo Centro' },
+
+  // Launch-ready pass 2026-09-26 — city-hub-density
+  // Progressive disclosure on /ciudad/[id]: clamped summary, collapsed fact rows
+  // (note + official source one tap away), top-3 official links and first-2
+  // safety tips behind expanders. 'Oficial', 'Ver más', 'Confirma', 'Fuente' and
+  // 'Última verificación' already exist above and are reused, not duplicated.
+  'Leer más': { en: 'Read more', fr: 'Lire la suite', pt: 'Ler mais' },
+  'Leer menos': { en: 'Read less', fr: 'Réduire', pt: 'Ler menos' },
+  'Ver menos': { en: 'Show less', fr: 'Voir moins', pt: 'Ver menos' },
+  'Toca para ver nota y fuente': { en: 'Tap to see the note and source', fr: 'Touche pour voir la note et la source', pt: 'Toque para ver a nota e a fonte' },
+  'Toca un dato para ver la nota y la fuente oficial.': { en: 'Tap a fact to see its note and official source.', fr: 'Touche une info pour voir la note et la source officielle.', pt: 'Toque em um dado para ver a nota e a fonte oficial.' },
+  'Ver todos los enlaces': { en: 'See all links', fr: 'Voir tous les liens', pt: 'Ver todos os links' },
+  'Ver menos enlaces': { en: 'Show fewer links', fr: 'Voir moins de liens', pt: 'Ver menos links' },
+  'Ver más consejos': { en: 'More safety tips', fr: 'Plus de conseils', pt: 'Mais dicas' },
+  'Ver menos consejos': { en: 'Fewer safety tips', fr: 'Moins de conseils', pt: 'Menos dicas' },
+
+  // Launch-ready pass 2026-09-26 — loading-perf
+  // bookings.tsx: quiet inline rows that replaced the full-screen spinner.
+  // PT register is você throughout the launch-ready entries (Brazilian visitors).
+  'Buscando tus reservas…': { en: 'Looking for your bookings…', fr: 'Recherche de tes réservations…', pt: 'Procurando as suas reservas…' },
+  'Sin conexión — mostrando tus últimas reservas': { en: 'Offline — showing your last bookings', fr: 'Hors ligne — tes dernières réservations', pt: 'Sem conexão — mostrando as suas últimas reservas' },
+
+  // Launch-ready pass 2026-09-26 — onboarding-home
+  // Home IA rebuild: far-from-Cartagena context line, sponsors demoted to one
+  // strip, secondary rails folded under "Más", "Todo" category card; Profile
+  // absorbs the demoted quick-access items. TÚ voice.
+  'Lejos de Cartagena': { en: 'Far from Cartagena', fr: 'Loin de Carthagène', pt: 'Longe de Cartagena' },
+  'Estás a {d} de Cartagena · planea tu viaje desde aquí': { en: 'You are {d} from Cartagena · plan your trip from here', fr: "Tu es à {d} de Carthagène · prépare ton voyage d'ici", pt: 'Você está a {d} de Cartagena · planeje sua viagem daqui' },
+  'Con el apoyo de': { en: 'With the support of', fr: 'Avec le soutien de', pt: 'Com o apoio de' },
+  'Abre el sitio del patrocinador': { en: "Opens the sponsor's website", fr: 'Ouvre le site du sponsor', pt: 'Abre o site do patrocinador' },
+  'Más de Cartagena': { en: 'More of Cartagena', fr: 'Plus de Carthagène', pt: 'Mais de Cartagena' },
+  'Datos útiles': { en: 'Useful info', fr: 'Infos utiles', pt: 'Dados úteis' },
+  'Recompensas': { en: 'Rewards', fr: 'Récompenses', pt: 'Recompensas' },
+  'Todo': { en: 'All', fr: 'Tout', pt: 'Tudo' },
+  // Launch-ready pass 2026-09-26 — explore-images
+  // Neighborhood sheet "Ideal para" tags (BEST_FOR_LABELS now routed through tr()),
+  // event/partner-event detail gaps. Keys that already existed are NOT re-added.
+  'Romance': { en: 'Romance', fr: 'Romance', pt: 'Romance' },
+  'Primera vez': { en: 'First-timers', fr: 'Première visite', pt: 'Primeira vez' },
+  'Familias': { en: 'Families', fr: 'Familles', pt: 'Famílias' },
+  'Shopping': { en: 'Shopping', fr: 'Shopping', pt: 'Compras' },
+  'Parejas': { en: 'Couples', fr: 'Couples', pt: 'Casais' },
+  'Solo': { en: 'Solo travelers', fr: 'Voyageurs solo', pt: 'Viajantes solo' },
+  'Estancias largas': { en: 'Longer stays', fr: 'Longs séjours', pt: 'Estadias longas' },
+  'Repetidores': { en: 'Returning visitors', fr: 'Visiteurs fidèles', pt: 'Quem já voltou' },
+  'Auténtico': { en: 'Authentic', fr: 'Authentique', pt: 'Autêntico' },
+  'Plan de día': { en: 'Day trip', fr: 'Excursion à la journée', pt: 'Passeio de um dia' },
+  'Evento no encontrado': { en: 'Event not found', fr: 'Événement introuvable', pt: 'Evento não encontrado' },
+  'Capacidad': { en: 'Capacity', fr: 'Capacité', pt: 'Capacidade' },
+  'Acceso libre': { en: 'Free entry', fr: 'Entrée libre', pt: 'Entrada livre' },
+
+  // Launch-ready pass 2026-09-26 — verified-findings round 2
+  // ReviewsList empty row (one 44 px CTA instead of a "be the first" box), Home
+  // quiet-day rows (upcoming events retitled so the Próximos rail can hide),
+  // Pasaporte remote CTAs relabelled to what they do (the map is not wired to a
+  // virtual-walk route param yet). TÚ voice; PT você.
+  'Sin reseñas todavía': { en: 'No reviews yet', fr: "Pas encore d'avis", pt: 'Ainda sem avaliações' },
+  'Escribe la primera': { en: 'Write the first one', fr: 'Écris le premier', pt: 'Escreva a primeira' },
+  'Próximos planes': { en: 'Upcoming plans', fr: 'Prochains plans', pt: 'Próximos planos' },
+  'Próximas noches': { en: 'Upcoming nights', fr: 'Prochaines soirées', pt: 'Próximas noites' },
+  'Ver el mapa': { en: 'See the map', fr: 'Voir la carte', pt: 'Ver o mapa' },
+  'Abrir el mapa': { en: 'Open the map', fr: 'Ouvrir la carte', pt: 'Abrir o mapa' },
 };
 
 /**

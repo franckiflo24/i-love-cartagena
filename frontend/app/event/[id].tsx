@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking as RNLinking, Share } from 'react-native';
 import { SafeImage } from '../../src/components/SafeImage';
+import { LinearGradient } from 'expo-linear-gradient';
 import { openDirections } from '../../src/lib/maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS } from '../../src/constants/theme';
-import { api } from '../../src/constants/api';
+import { api, ASSET_ORIGIN, fetchT } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
@@ -27,18 +28,40 @@ export default function EventDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
+    let cancelled = false;
+    // One event, one canonical screen. A partner-event id (bundled under
+    // /data/partner-events/<id>.json) belongs to /partner-event/[id]; before
+    // this, /event/evt_010 painted a stale city-event snapshot of the same id
+    // from the static fallback and drifted from the live partner event.
+    const isPartnerEvent = async (): Promise<boolean> => {
       try {
-        const data = await api.get(`/events/${id}`);
-        // [] (STATIC_MODE unknown id) and {} are truthy → they slipped past the
-        // `if (!event)` not-found guard and rendered a blank event page. Only accept
-        // a real event object; else fall through to "Evento no encontrado".
-        setEvent(data && typeof data === 'object' && !Array.isArray(data) && (data.event_id || data.id || data.title) ? data : null);
-      } catch (e) { console.error(e); }
+        const res = await fetchT(`${ASSET_ORIGIN}/data/partner-events/${encodeURIComponent(String(id))}.json`);
+        if (!res.ok) return false;
+        const row: unknown = await res.json();
+        return !!row && typeof row === 'object' && !Array.isArray(row) && !!(row as { partner_id?: string }).partner_id;
+      } catch {
+        return false; // not a partner event (404, SPA rewrite HTML, offline) → city event
+      }
+    };
+    const load = async () => {
+      const [partnerEvent, data] = await Promise.all([
+        isPartnerEvent(),
+        api.get(`/events/${id}`).catch((e: unknown) => { console.error('[EventDetail]', e); return null; }),
+      ]);
+      if (cancelled) return;
+      if (partnerEvent) {
+        router.replace(`/partner-event/${id}` as any);
+        return;
+      }
+      // [] (STATIC_MODE unknown id) and {} are truthy → they slipped past the
+      // `if (!event)` not-found guard and rendered a blank event page. Only accept
+      // a real event object; else fall through to "Evento no encontrado".
+      setEvent(data && typeof data === 'object' && !Array.isArray(data) && (data.event_id || data.id || data.title) ? data : null);
       setLoading(false);
     };
     load();
-  }, [id]);
+    return () => { cancelled = true; };
+  }, [id, router]);
 
   const shareEvent = async () => {
     if (!event) return;
@@ -73,8 +96,10 @@ export default function EventDetail() {
       <SafeAreaView style={styles.container}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, paddingHorizontal: 32 }}>
           <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
-          <Text style={{ color: COLORS.textMuted, fontSize: 16, textAlign: 'center' }}>Evento no encontrado</Text>
-          <TouchableOpacity onPress={() => { if (router.canGoBack()) router.back(); else router.replace('/' as any); }} style={{ marginTop: 8, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 20, backgroundColor: COLORS.primary }}>
+          <Text style={{ color: COLORS.textMuted, fontSize: 16, textAlign: 'center' }}>{tr('Evento no encontrado')}</Text>
+          {/* navigate (not replace) keeps the tab navigator mounted — replace tore
+              it down and every tab re-entered its loading state. */}
+          <TouchableOpacity onPress={() => { if (router.canGoBack()) router.back(); else router.navigate('/(tabs)' as any); }} style={{ marginTop: 8, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 20, backgroundColor: COLORS.primary }}>
             <Text style={{ color: COLORS.white, fontWeight: '600' }}>{tr('Volver')}</Text>
           </TouchableOpacity>
         </View>
@@ -88,8 +113,21 @@ export default function EventDetail() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Hero Image */}
         <View style={styles.hero}>
-          <SafeImage uri={event.image_url} category={event.type} style={styles.heroImage} />
-          <View style={styles.heroOverlay} />
+          {/* Hero is the LCP: high priority, partner photo as fallback, bundled
+              branded placeholder from frame 0 (SafeImage) — never a black block. */}
+          <SafeImage
+            uri={event.image_url}
+            fallbackUri={event.flyer_url || event.partner_image}
+            category={event.type || event.category || 'event'}
+            priority="high"
+            style={styles.heroImage}
+          />
+          <LinearGradient
+            colors={['rgba(8,12,22,0.10)', 'rgba(8,12,22,0.35)', COLORS.background]}
+            locations={[0, 0.5, 1]}
+            style={styles.heroOverlay}
+            pointerEvents="none"
+          />
           <View style={styles.heroNav}>
             <TouchableOpacity testID="event-back-btn" style={styles.navBtn} onPress={() => router.back()}>
               <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
@@ -142,7 +180,7 @@ export default function EventDetail() {
               <Ionicons name="time-outline" size={20} color={COLORS.primary} />
             </View>
             <View>
-              <Text style={styles.infoLabel}>Horario</Text>
+              <Text style={styles.infoLabel}>{tr('Horario')}</Text>
               <Text style={styles.infoValue}>{event.start_time} - {event.end_time}</Text>
             </View>
           </View>
@@ -176,8 +214,8 @@ export default function EventDetail() {
                 <Ionicons name="people-outline" size={20} color={COLORS.primary} />
               </View>
               <View>
-                <Text style={styles.infoLabel}>Capacidad</Text>
-                <Text style={styles.infoValue}>{event.capacity} personas</Text>
+                <Text style={styles.infoLabel}>{tr('Capacidad')}</Text>
+                <Text style={styles.infoValue}>{event.capacity} {tr('personas')}</Text>
               </View>
             </View>
           )}
@@ -225,7 +263,7 @@ export default function EventDetail() {
         ) : (
           <View style={styles.freeLabel}>
             <Ionicons name="checkmark-circle" size={18} color={COLORS.success} />
-            <Text style={styles.freeText}>Acceso libre</Text>
+            <Text style={styles.freeText}>{tr('Acceso libre')}</Text>
           </View>
         )}
       </View>
@@ -235,9 +273,11 @@ export default function EventDetail() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  hero: { height: 300, position: 'relative' },
+  hero: { height: 280, position: 'relative', backgroundColor: COLORS.surfaceAlt },
   heroImage: { width: '100%', height: '100%' },
-  heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(5,8,20,0.4)' },
+  // Gradient-only (no flat fill): the photo stays visible up top, the title
+  // sits on the solid-background end at the bottom.
+  heroOverlay: { ...StyleSheet.absoluteFillObject },
   heroNav: { position: 'absolute', top: SPACING.md, left: SPACING.md, right: SPACING.md, flexDirection: 'row', justifyContent: 'space-between' },
   heroNavRight: { flexDirection: 'row', gap: SPACING.sm },
   navBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(5,8,20,0.6)', alignItems: 'center', justifyContent: 'center' },

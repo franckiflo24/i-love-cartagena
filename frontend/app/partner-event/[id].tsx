@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking as RNLinking } from 'react-native';
 import { Alert } from '../../src/lib/alert';
 import { SafeImage } from '../../src/components/SafeImage';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -152,7 +153,20 @@ export default function PartnerEventDetail() {
     return <SafeAreaView style={styles.container}><ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} /></SafeAreaView>;
   }
   if (!event) {
-    return <SafeAreaView style={styles.container}><View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: COLORS.textMuted }}>Evento no encontrado</Text></View></SafeAreaView>;
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, paddingHorizontal: 32 }}>
+          <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
+          <Text style={{ color: COLORS.textMuted, fontSize: 16, textAlign: 'center' }}>{tr('Evento no encontrado')}</Text>
+          <TouchableOpacity
+            onPress={() => { if (router.canGoBack()) router.back(); else router.navigate('/(tabs)' as any); }}
+            style={{ marginTop: 8, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 20, backgroundColor: COLORS.primary }}
+          >
+            <Text style={{ color: COLORS.white, fontWeight: '600' }}>{tr('Volver')}</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   const tierColors = event.partner?.tier ? TIER_COLORS[event.partner.tier as Tier] : null;
@@ -161,15 +175,32 @@ export default function PartnerEventDetail() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
-        {/* Flyer */}
+        {/* Flyer — 3:2 hero (was a 433 px-tall 0.9-ratio block, 60% of it under an
+            85% flat overlay: even a loaded flyer read as black). High priority so
+            it wins the queue; the partner photo is the fallback; SafeImage paints
+            the bundled branded placeholder from frame 0. */}
         <View style={styles.flyerWrap}>
-          <SafeImage uri={event.flyer_url} category={event.category} style={styles.flyer} resizeMode="cover" />
-          <View style={styles.flyerOverlay} />
+          <SafeImage
+            uri={event.flyer_url || event.image_url || event.partner_image || partner.image_url}
+            fallbackUri={event.partner_image || partner.image_url}
+            category={event.category}
+            priority="high"
+            style={styles.flyer}
+          />
+          <LinearGradient
+            colors={['transparent', 'rgba(8,12,22,0.55)', COLORS.background]}
+            locations={[0, 0.5, 1]}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
           <View style={{ flexDirection: 'row', position: 'absolute', top: SPACING.md, left: SPACING.md, gap: 8, zIndex: 5 }}>
-            <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} accessibilityLabel={tr('Volver')}>
               <Ionicons name="arrow-back" size={22} color={COLORS.white} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.backBtn} onPress={() => router.replace('/(tabs)')}>
+            {/* navigate, NOT replace: replace('/(tabs)') recreated the whole tab
+                navigator, so every tab remounted into its loading state and
+                re-downloaded every image (Explore skeleton at t=180 of the recording). */}
+            <TouchableOpacity style={styles.backBtn} onPress={() => router.navigate('/(tabs)' as any)}>
               <Ionicons name="home-outline" size={20} color={COLORS.white} />
             </TouchableOpacity>
           </View>
@@ -187,13 +218,13 @@ export default function PartnerEventDetail() {
             <AddToTrip refType="experience" refId={event.event_id} name={event.title} compact />
           </View>
           <View style={[styles.priceBadgeBig, event.is_free ? styles.priceFree : styles.pricePaid]}>
-            <Text style={styles.priceBigText}>{event.is_free ? 'GRATIS' : formatPrice(event.price)}</Text>
+            <Text style={styles.priceBigText}>{event.is_free ? tr('Gratis').toUpperCase() : (event.price ? formatPrice(event.price) : tr('Consultar'))}</Text>
           </View>
           <View style={styles.flyerBottom}>
             <View style={styles.catRow}>
               <View style={[styles.catBadge, { backgroundColor: colorForKey(event.category) }]}>
                 <Ionicons name={(CAT_ICONS[event.category] || 'pricetag') as any} size={12} color={COLORS.white} />
-                <Text style={styles.catText}>{CAT_LABELS[event.category] || event.category}</Text>
+                <Text style={styles.catText}>{tr(CAT_LABELS[event.category] || event.category)}</Text>
               </View>
               {tierColors && <TierBadge tier={event.partner?.tier} size="sm" />}
             </View>
@@ -268,7 +299,7 @@ export default function PartnerEventDetail() {
             onPress={() => router.push(`/partner/${event.partner_id}`)}
             activeOpacity={0.85}
           >
-            <SafeImage uri={partner.image_url} style={styles.partnerImage} />
+            <SafeImage uri={partner.image_url || event.partner_image} category={partner.category} priority="low" style={styles.partnerImage} />
             <View style={styles.partnerOverlay} />
             <View style={styles.partnerInfo}>
               <View style={styles.partnerTopRow}>
@@ -325,9 +356,8 @@ export default function PartnerEventDetail() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  flyerWrap: { width: '100%', aspectRatio: 0.9, position: 'relative' },
+  flyerWrap: { width: '100%', height: 260, position: 'relative', backgroundColor: COLORS.surfaceAlt },
   flyer: { width: '100%', height: '100%' },
-  flyerOverlay: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '60%', backgroundColor: 'rgba(5,8,20,0.85)' },
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
   heartBtn: { position: 'absolute', top: SPACING.md, left: 104, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
   priceBadgeBig: { position: 'absolute', top: SPACING.md, right: SPACING.md, borderRadius: RADIUS.full, paddingHorizontal: 14, paddingVertical: 7 },

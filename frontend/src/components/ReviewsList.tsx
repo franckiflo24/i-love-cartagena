@@ -201,7 +201,9 @@ export default function ReviewsList({ partnerId }: ReviewsListProps) {
     router.push(`/review/new?partner_id=${partnerId}&partner_name=${payload?.partner_name ?? ''}`);
   };
 
-  if (loading) {
+  // Fallback-first: the spinner only covers the FIRST load. A refocus re-runs
+  // load(), and a list that already holds reviews must never blink back to it.
+  if (loading && !payload) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={COLORS.icon} />
@@ -223,6 +225,28 @@ export default function ReviewsList({ partnerId }: ReviewsListProps) {
 
   const { aggregate, reviews } = payload;
 
+  // No reviews yet → ONE 44 px row that is the write CTA (same pattern as the
+  // partner page's events empty state). No aggregate, no write button above it,
+  // no 122 px "be the first" box — an empty section must not read as content.
+  if (reviews.length === 0) {
+    return (
+      <TouchableOpacity
+        style={styles.inlineCta}
+        onPress={handleWriteReview}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel={`${tr('Sin reseñas todavía')} · ${tr('Escribe la primera')}`}
+        testID="reviews-empty-cta"
+      >
+        <Ionicons name="chatbubble-outline" size={14} color={COLORS.textMuted} />
+        <Text style={styles.inlineCtaText} numberOfLines={1}>
+          {tr('Sin reseñas todavía')} · <Text style={styles.inlineCtaLink}>{tr('Escribe la primera')}</Text>
+        </Text>
+        <Ionicons name="chevron-forward" size={14} color={COLORS.textMuted} />
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Write review button */}
@@ -239,13 +263,7 @@ export default function ReviewsList({ partnerId }: ReviewsListProps) {
       />
 
       {/* Reviews */}
-      {reviews.length === 0 ? (
-        <View style={styles.emptyBox}>
-          <Ionicons name="chatbubble-outline" size={28} color={COLORS.textMuted} />
-          <Text style={styles.emptyText}>{tr('Sé el primero en dejar una reseña')}</Text>
-        </View>
-      ) : (
-        <View style={styles.list}>
+      <View style={styles.list}>
           {(showAll ? reviews : reviews.slice(0, 3)).map((item, idx) => (
             <View key={item.review_id}>
               {idx > 0 && <View style={{ height: SPACING.md }} />}
@@ -266,8 +284,7 @@ export default function ReviewsList({ partnerId }: ReviewsListProps) {
               <Ionicons name="chevron-down" size={14} color={COLORS.iconMuted} />
             </TouchableOpacity>
           )}
-        </View>
-      )}
+      </View>
     </View>
   );
 }
@@ -302,16 +319,19 @@ const styles = StyleSheet.create({
   },
   retryText: { fontSize: 13, color: COLORS.textMain, ...FONTS.medium },
 
-  emptyBox: {
+  // Compact single-line CTA row (empty state) — 44 px, one line.
+  inlineCta: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: SPACING.xl,
-    gap: SPACING.sm,
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
+    gap: 8,
+    minHeight: 44,
+    paddingHorizontal: 12,
+    borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  emptyText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular },
+  inlineCtaText: { flex: 1, fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
+  inlineCtaLink: { color: COLORS.primary, ...FONTS.semibold },
 
   showMoreBtn: {
     flexDirection: 'row',

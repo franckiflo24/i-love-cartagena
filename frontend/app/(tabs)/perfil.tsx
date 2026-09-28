@@ -470,16 +470,24 @@ export default function PerfilScreen() {
 
         <GrowthCards signedIn={!!user} />
 
-        {/* ── Quick Access ── */}
+        {/* ── Quick Access ── Home keeps six tools in its 2×3 grid (Moverse, Agenda,
+            Explorar, Pasaporte, Mapa, Mi base); everything demoted from the old
+            14-tile row lives here so nothing shipped becomes unreachable. */}
         <View style={sty.sectionCard}>
           <Text style={sty.sectionTitle}>{tr('Acceso rápido')}</Text>
           <SettingsRow icon="book-outline" label={tr('Mi Pasaporte')} onPress={() => router.push('/pasaporte' as any)} />
           <SettingsRow icon="briefcase-outline" label={tr('Mi Viaje')} onPress={() => router.push('/viaje' as any)} />
+          <SettingsRow icon="heart-outline" iconColor={COLORS.bougainvillea} label={s('home_favorites')} onPress={() => router.push('/favorites' as any)} />
+          <SettingsRow icon="medkit-outline" iconColor="#14B8A6" label={tr('Esenciales')} onPress={() => router.push('/esenciales' as any)} />
+          <SettingsRow icon="shield-checkmark-outline" iconColor="#22C55E" label={tr('Sin sustos')} onPress={() => router.push('/seguridad' as any)} />
+          <SettingsRow icon="musical-notes-outline" iconColor="#A855F7" label={s('home_concerts')} onPress={() => router.push('/concerts' as any)} />
+          <SettingsRow icon="boat-outline" iconColor="#06B6D4" label={s('home_transport')} onPress={() => router.push('/transport' as any)} />
           <SettingsRow icon="trail-sign-outline" label={tr('Rutas de Cartagena')} onPress={() => router.push('/rutas' as any)} />
-          <SettingsRow icon="trophy-outline" label={s('profile_rewards') || 'Rewards'} onPress={() => router.push('/rewards' as any)} />
+          <SettingsRow icon="sparkles-outline" iconColor="#10B981" label={tr('Itinerarios IA')} onPress={() => router.push('/itineraries' as any)} />
+          <SettingsRow icon="trophy-outline" iconColor={COLORS.mustard} label={s('profile_rewards') || tr('Recompensas')} onPress={() => router.push('/rewards' as any)} />
           <SettingsRow icon="card-outline" label="City Pass" onPress={() => router.push('/(tabs)/citypass' as any)} />
           <SettingsRow icon="notifications-outline" label={s('profile_notifications') || tr('Notificaciones')} onPress={() => router.push('/notifications' as any)} />
-          <SettingsRow icon="trail-sign-outline" label={tr('Itinerarios IA')} onPress={() => router.push('/itineraries' as any)} />
+          <SettingsRow icon="shield-outline" iconColor="#DC2626" label={tr('Emergencias')} onPress={() => router.push('/ayuda' as any)} />
           {/* "Mis reseñas" opened the review FORM with no partner (errored on submit) —
               removed until a my-reviews list exists. The tutorial overlay is web-only. */}
           {Platform.OS === 'web' && (
