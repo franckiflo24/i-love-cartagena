@@ -8,6 +8,18 @@
     {
       "path": "/api/admin/local-picks/refresh",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/admin/events/pull",
+      "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/admin/events/sentinel",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/admin/events/reminders",
+      "schedule": "*/15 * * * *"
     }
   ],
   "builds": [

@@ -763,3 +763,74 @@ Prerequisites, which ship in the same change:
 ## Y. Open items for Phil
 - Rotate the bot token: it was pasted into chat. Send `/revoke` to BotFather, and I will set the new one.
 - Confirm that CRON_SECRET runs the existing crons; the first pull and sentinel runs will prove it through `city_events_runs`.
+
+---
+
+# §16 PROMINENCE, CLEAN CALENDAR, AUTONOMOUS OPS (Phil, 2026-09-29): SUPERSEDES earlier UI/ops text where it conflicts
+
+Phil's direction: *"all the top events are always showing first, not just the recurring. We need to push and promote events, so make this clean. We want to push people to events and to what's happening in real time. The date and calendar must be clean and organized, not cluttered, easy to look at and easy to find what you're looking for."*
+
+## 16.1 Prominence (backend, deterministic, in `events_gate`)
+- New anchor/doc field `flagship: bool`. It marks the city's headline events. The flagship anchors are:
+  - Cartagena Festival de Música 2027;
+  - Hay Festival Cartagena 2027;
+  - FICCI 66;
+  - IRONMAN 70.3 Cartagena;
+  - the Fiestas de Independencia 2026 umbrella;
+  - the Gran Desfile/Bando;
+  - the Festival Náutico.
+
+  Juan Luis Guerra is NOT flagship while VERIFY. The pipeline may set flagship ONLY from a registry allowlist of organizer domains and series; it never comes from an LLM.
+- `prominence(doc) -> int`, computed from these components:
+
+  | Component | Points |
+  |---|---|
+  | Category: festival | 40 |
+  | Category: concert | 35 |
+  | Category: sports | 25 |
+  | Category: cultural | 20 |
+  | Category: gastronomic or family | 15 |
+  | Category: nightlife or civic | 10 |
+  | `flagship` | +50 |
+  | `is_umbrella` | +10 |
+  | Tier-1 source | +10 |
+  | Confidence HIGH | +10 |
+  | Sub-event (`parent_id` set) | −10 |
+  | `origin == partner` | −5 |
+
+  The function is pure, and the score is exposed on PublicEvent as `prominence` together with `flagship`.
+- Every list sorts **within a day** by prominence (desc), then start_time (nulls last). `/api/events/featured`, the legacy feed for old binaries, sorts by prominence desc, then date, so top events come first there too. Luna's `get_confirmed_events` sorts by prominence desc, then date, within the requested range.
+- **Recurring or evergreen rows are never promoted.** `long_span` rows stay in review, and anything flagged `series` gets prominence 0.
+
+## 16.2 "Destacados": top events always first
+- `eventsFeed.destacados(events, now, max=6)` selects published, dated rows that start within the next 90 days or are ongoing, and sorts them by prominence desc, then start_date asc.
+  - An umbrella hides its own sub-events from Destacados, except a flagship sub-event starting within 7 days (e.g. the Bando in its week).
+  - date_tbc rows are never included.
+  - HIGH rows outrank VERIFY rows.
+- **/que-pasa** opens with a **Destacados** hero rail: large cards with image or category art, title, date range ("9–17 ene"), venue, and the trust line. The Hoy / Esta semana / Próximos control and the lists come below it.
+- **Home**, in this order:
+  1. **"Ahora en Cartagena"**, only when something is ongoing today or starts within 3 h. It gets an "En curso" or "Empieza a las 20:00" chip.
+  2. **"Destacados"**: a rail of the top 6, which never disappears while the feed has rows.
+  3. "Hoy" or the "Nada confirmado hoy · Ver todo" line.
+
+  Never two empty slots. The 2×3 grid is unchanged.
+
+## 16.3 Clean calendar
+- **Esta semana**: a 7-day date strip. Each chip shows the weekday and day number, plus a dot/count when that day has events; tapping a chip filters to that day. The list shows day headers ("Hoy · mar 29 sep", "Mañana", "Sáb 3 oct").
+- **Próximos** is grouped by month under sticky headers ("Octubre 2026 · 9 eventos"). Each row has a date-badge column on the left (the day number, plus a weekday abbreviation) and a compact card on the right: title in 2 lines max, venue, time, and category tint.
+- **Umbrella festivals** (Fiestas de Independencia) appear as ONE group card: the name, the date range, "16 eventos del programa" and "Ver programa". The card expands in place into a day-grouped sub-list. On their own day (Hoy/Semana), sub-events also appear individually, with a small "Parte de: Fiestas de Independencia" tag.
+- One scroll row of category chips ("Todos" by default). No duplicate filters and no nested tabs.
+- Visual rules: 16 px gutters, 12 px between cards, max 2 lines per title, one accent colour per category, no more than 3 badges per card, and no boxed empty states (one line plus a link).
+- **Agenda tab ("Salir hoy")** uses the same 14-day date strip with count dots and the same row component, ordered flagship first within each day.
+- All bucket and date math runs after mount, in Bogotá time (no SSR date text).
+
+## 16.4 Autonomous operations (no Phil credentials needed)
+- **`EVENTS_ADMIN_TOKEN`** is a new random 48-byte token in the backend Vercel env, stored locally only in `~/.claude/scripts/amo-events-admin.json` and never in git. Events admin routes accept `Authorization: Bearer <EVENTS_ADMIN_TOKEN>`, as do the cron routes, in addition to CRON_SECRET. It never comes from a cookie, so there is no CSRF risk. It amends §15 X1/X2.
+- **Anchors as a source.** `pull` runs `seed_anchors` first (idempotent, §15 W2 rules) whenever the stored `anchors_version` differs from the file's. No manual seed is needed.
+- **Self-healing crons** (UTC):
+  - pull `*/10 * * * *`: runs one full pass per Bogotá day, and is a cheap no-op once `done`;
+  - sentinel `*/15 * * * *`: runs a slot when no done sentinel run exists within 12 h, or when the 'today' slot for events starting today has not run since 16:00 UTC; otherwise a no-op;
+  - reminders `*/15 * * * *`.
+
+  The cron count stays within the limits.
+- **Enabled default.** Env `EVENTS_ELITE_ENABLED=1` makes a MISSING flags doc read as enabled. A flags doc with `enabled: false` always wins as the kill switch, and a read error still means disabled (fail-closed).

@@ -1,0 +1,296 @@
+[
+ {
+  "id": "centro-de-convenciones-cartagena-de-indias",
+  "name": "Centro de Convenciones Cartagena de Indias",
+  "aliases": [
+   "Centro de Convenciones Cartagena de Indias Julio César Turbay Ayala",
+   "Centro de Convenciones Julio César Turbay Ayala",
+   "Centro de Convenciones de Cartagena",
+   "Centro de Convenciones"
+  ],
+  "lat": 10.4205529,
+  "lng": -75.5491747,
+  "source": "osm",
+  "citation_url": "https://www.openstreetmap.org/way/93829748",
+  "kind": "venue",
+  "ambiguous": true
+ },
+ {
+  "id": "teatro-adolfo-mejia",
+  "name": "Teatro Adolfo Mejía",
+  "aliases": [
+   "Teatro Adolfo Mejía (Heredia)",
+   "Teatro Heredia",
+   "Teatro Adolfo Mejia"
+  ],
+  "lat": 10.4266111,
+  "lng": -75.5511837,
+  "source": "catalog",
+  "citation_url": "https://www.amocartagena.co/data/partners.json",
+  "kind": "venue",
+  "ambiguous": false,
+  "catalog_id": "attr_015",
+  "crosscheck": {
+   "osm_url": "https://www.openstreetmap.org/way/95018532",
+   "distance_m": 20
+  }
+ },
+ {
+  "id": "plaza-de-la-aduana",
+  "name": "Plaza de la Aduana",
+  "aliases": [],
+  "lat": 10.4221448,
+  "lng": -75.5502829,
+  "source": "osm",
+  "citation_url": "https://www.openstreetmap.org/way/25447592",
+  "kind": "square",
+  "ambiguous": true
+ },
+ {
+  "id": "plaza-de-toros-cartagena",
+  "name": "La Monumental Plaza de Toros Cartagena de Indias",
+  "aliases": [
+   "Plaza de Toros Cartagena de Indias",
+   "Plaza de Toros de Cartagena",
+   "Plaza de Toros"
+  ],
+  "lat": 10.4045758,
+  "lng": -75.497301,
+  "source": "osm",
+  "citation_url": "https://www.openstreetmap.org/relation/2516179",
+  "kind": "venue",
+  "ambiguous": true
+ },
+ {
+  "id": "estadio-jaime-moron",
+  "name": "Estadio Olímpico Jaime Morón León",
+  "aliases": [
+   "Estadio Jaime Morón",
+   "Estadio Jaime Morón León",
+   "Estadio Jaime Moron"
+  ],
+  "lat": 10.4055966,
+  "lng": -75.4982473,
+  "source": "osm",
+  "citation_url": "https://www.openstreetmap.org/way/76150412",
+  "kind": "venue",
+  "ambiguous": false
+ },
+ {
+  "id": "coliseo-bernardo-caraballo",
+  "name": "Coliseo Bernardo Caraballo",
+  "aliases": [
+   "Coliseo de Combate Bernardo Caraballo"
+  ],
+  "lat": 10.4252358,
+  "lng": -75.5366822,
+  "source": "osm",
+  "citation_url": "https://www.openstreetmap.org/way/95178848",
+  "kind": "venue",
+  "ambiguous": false
+ },
+ {
+  "id": "plaza-de-la-trinidad",
+  "name": "Plaza de la Trinidad",
+  "aliases": [
+   "Plaza de la Trinidad (Getsemaní)"
+  ],
+  "lat": 10.420614,
+  "lng": -75.5453984,
+  "source": "osm",
+  "citation_url": "https://www.openstreetmap.org/way/49458304",
+  "kind": "square",
+  "ambiguous": true
+ },
+ {
+  "id": "camellon-de-los-martires",
+  "name": "Camellón de los Mártires",
+  "aliases": [
+   "Camellon de los Martires"
+  ],
+  "lat": 10.4223267,
+  "lng": -75.5483775,
+  "source": "osm",
+  "citation_url": "https://www.openstreetmap.org/way/25757086",
+  "kind": "square",
+  "ambiguous": false
+ },
+ {
+  "id": "muelle-de-la-bodeguita",
+  "name": "Muelle de la Bodeguita",
+  "aliases": [
+   "Muelle La Bodeguita",
+   "Muelle Turístico La Bodeguita"
+  ],
+  "lat": 10.4193269,
+  "lng": -75.551514,
+  "source": "osm",
+  "citation_url": "https://www.openstreetmap.org/node/5774147197",
+  "kind": "pier",
+  "ambiguous": false
+ },
+ {
+  "id": "castillo-san-felipe-de-barajas",
+  "name": "Castillo San Felipe de Barajas",
+  "aliases": [
+   "Castillo de San Felipe de Barajas",
+   "Castillo San Felipe"
+  ],
+  "lat": 10.4225232,
+  "lng": -75.5392887,
+  "source": "catalog",
+  "citation_url": "https://www.amocartagena.co/data/partners.json",
+  "kind": "venue",
+  "ambiguous": false,
+  "catalog_id": "attr_001",
+  "crosscheck": {
+   "osm_url": "https://www.openstreetmap.org/way/49551791",
+   "distance_m": 23
+  }
+ },
+ {
+  "id": "plaza-de-san-pedro-claver",
+  "name": "Plaza de San Pedro Claver",
+  "aliases": [
+   "Plaza San Pedro Claver"
+  ],
+  "lat": 10.4216324,
+  "lng": -75.5506889,
+  "source": "osm",
+  "citation_url": "https://www.openstreetmap.org/way/25447596",
+  "kind": "square",
+  "ambiguous": true
+ },
+ {
+  "id": "parque-de-la-marina",
+  "name": "Parque de la Marina",
+  "aliases": [],
+  "lat": 10.4204804,
+  "lng": -75.5521032,
+  "source": "osm",
+  "citation_url": "https://www.openstreetmap.org/way/25814582",
+  "kind": "park",
+  "ambiguous": true
+ },
+ {
+  "id": "calle-del-arsenal",
+  "name": "Calle del Arsenal",
+  "aliases": [
+   "Calle del Arsenal (Getsemaní)"
+  ],
+  "lat": 10.4207327,
+  "lng": -75.548785,
+  "source": "osm",
+  "citation_url": "https://www.openstreetmap.org/way/93829757",
+  "kind": "street",
+  "ambiguous": true
+ },
+ {
+  "id": "plaza-de-los-coches",
+  "name": "Plaza de los Coches",
+  "aliases": [
+   "Plaza de los Coches (Torre del Reloj)"
+  ],
+  "lat": 10.423104,
+  "lng": -75.549353,
+  "source": "osm",
+  "citation_url": "https://www.openstreetmap.org/way/25447589",
+  "kind": "square",
+  "ambiguous": false
+ },
+ {
+  "id": "plaza-de-bolivar-cartagena",
+  "name": "Plaza de Bolívar",
+  "aliases": [
+   "Parque de Bolívar",
+   "Plaza de Bolivar"
+  ],
+  "lat": 10.4232347,
+  "lng": -75.5511905,
+  "source": "catalog",
+  "citation_url": "https://www.amocartagena.co/data/partners.json",
+  "kind": "square",
+  "ambiguous": true,
+  "catalog_id": "attr_005",
+  "crosscheck": {
+   "osm_url": "https://www.openstreetmap.org/way/25447599",
+   "distance_m": 9
+  }
+ },
+ {
+  "id": "plaza-de-santo-domingo",
+  "name": "Plaza de Santo Domingo",
+  "aliases": [
+   "Plaza Santo Domingo"
+  ],
+  "lat": 10.4241,
+  "lng": -75.5516,
+  "source": "catalog",
+  "citation_url": "https://www.amocartagena.co/data/partners.json",
+  "kind": "square",
+  "ambiguous": true,
+  "catalog_id": "attr_004",
+  "crosscheck": {
+   "osm_url": "https://www.openstreetmap.org/way/110342708",
+   "distance_m": 50
+  }
+ },
+ {
+  "id": "avenida-santander",
+  "name": "Avenida Santander",
+  "aliases": [
+   "Av. Santander"
+  ],
+  "lat": null,
+  "lng": null,
+  "source": null,
+  "citation_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+  "kind": "route",
+  "ambiguous": true,
+  "note": "Sin punto único (ruta/agua): sin coordenadas para que nunca sea elegible por proximidad."
+ },
+ {
+  "id": "bahia-interna-de-cartagena",
+  "name": "Bahía interna de Cartagena",
+  "aliases": [
+   "Bahía interna",
+   "Bahía de Cartagena"
+  ],
+  "lat": null,
+  "lng": null,
+  "source": null,
+  "citation_url": "https://cartagena.gov.co/noticias/sector-turistico-cartagena-abraza-fiestas-independencia-11-noviembre-como-principal-evento-turismo-cultural",
+  "kind": "water",
+  "ambiguous": true,
+  "note": "Sin punto único (ruta/agua): sin coordenadas para que nunca sea elegible por proximidad."
+ },
+ {
+  "id": "bahia-de-las-animas",
+  "name": "Bahía de las Ánimas",
+  "aliases": [
+   "Las Ánimas Bay",
+   "Bahia de las Animas"
+  ],
+  "lat": null,
+  "lng": null,
+  "source": null,
+  "citation_url": "https://www.ironman.com/races/im703-cartagena",
+  "kind": "water",
+  "ambiguous": false,
+  "note": "Sin punto único (ruta/agua): sin coordenadas para que nunca sea elegible por proximidad."
+ },
+ {
+  "id": "baluarte-san-miguel",
+  "name": "Baluarte San Miguel",
+  "aliases": [
+   "Baluarte de San Miguel"
+  ],
+  "lat": null,
+  "lng": null,
+  "source": null,
+  "citation_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+  "kind": "unresolved",
+  "ambiguous": false,
+  "note": "No encontrado en el catálogo AMO ni en OpenStreetMap (2026-09-28): sin coordenadas; nunca se inventan. La cita es la página oficial que nombra el lugar."
+ }
+]

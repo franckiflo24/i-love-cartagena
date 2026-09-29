@@ -48,7 +48,7 @@ Devuelve JSON ESTRICTO sin markdown:
 Reglas estrictas:
 1. SOLO usa partners que estén en la lista provista. No inventes nombres.
 2. Si la categoría es 'cultura', prioriza venues de tipo museum/heritage/cultural; añade alguna comida ligera entre paradas.
-3. Si la categoría es 'musical', termina la ruta con un evento o club nocturno; intercala cena.
+3. Si la categoría es 'musical', termina la ruta en un bar o club de la lista; intercala cena. Nombra un evento, concierto, show o artista SOLO si aparece en "Eventos de partners de HOY" (con su hora exacta); si esa lista está vacía, no menciones ningún evento ni artista. Nunca inventes conciertos, artistas ni horarios de eventos.
 4. Si la categoría es 'lifestyle', mezcla wellness AM, gastronomía/playa día, sunset y cena.
 5. Personaliza según los favoritos y el persona_label si existen. Si NO hay datos, haz una ruta trending para un turista promedio.
 6. Las paradas deben tener horarios coherentes (no 2 paradas a la misma hora, mínimo 60 min entre stops).

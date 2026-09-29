@@ -1,0 +1,287 @@
+{
+ "_provenance": "Real pages fetched 2026-09-28 by the events research agents (AMOLifeEventsBot UA), stored byte-for-byte gzip -9. event_text values are verbatim visible text of the specific card/row/node; the test asserts each one occurs in the page. Source files: scratchpad/events-research/sources/.",
+ "pages": {
+  "es_cartagena_agenda_ciudad.html.gz": "t45_es_agenda_ciudad.bot",
+  "es_cartagena_jazz_detalle.html.gz": "t45_es_det_jazz.bot",
+  "fever_es_cartagena_city.html.gz": "t45_fever_cartagena.bot",
+  "fever_es_plan_129221_giftcard.html.gz": "fever_spain_plan_129221.html",
+  "atrapalo_murcia_cartagena_challenge.html.gz": "t45_atrapalo_murcia_cartagena.bot",
+  "hay_winter_weekend_2026.html.gz": "hay_m245_winter.html",
+  "hay_segovia_home.html.gz": "hay_segovia.html",
+  "cmf_concierto_lanzamiento.html.gz": "cmf_ev_lanzamiento.html",
+  "tuboleta_categorias_teatro.html.gz": "tuboleta_cat_teatro.html",
+  "tuboleta_caribe_aventura.html.gz": "tuboleta_ev_caribeaventura.html",
+  "cmf_programacion.html.gz": "cmf_programacion.html",
+  "hay_cartagena_inicio.html.gz": "hay_inicio.html",
+  "ficci_home.html.gz": "ficci_home.html",
+  "latiquetera_andres_cepeda_cartagena.html.gz": "latiquetera_ev_cepeda_ctg.html",
+  "tuboleta_de_la_risa_al_llanto.html.gz": "tuboleta_ev_risa.html",
+  "fever_co_plan_642707.html.gz": "fever_plan_642707.html"
+ },
+ "cases": [
+  {
+   "id": "es_cartagena_agenda_listing",
+   "page": "es_cartagena_agenda_ciudad.html.gz",
+   "encoding": "latin-1",
+   "source_url": "https://www.cartagena.es/agenda_ciudad.asp?idPaginaOriginal=1166",
+   "event_text": "CARTAGENA JAZZ FESTIVAL - 45.ª edición 29/10/2026 - 15/11/2026",
+   "expect": "fail",
+   "must_signals": [
+    "fail:page:es_domain",
+    "fail:page:phone_34",
+    "fail:page:espana"
+   ],
+   "note": "Ayuntamiento de Cartagena (Murcia) agenda; Jazz Festival overlaps the Fiestas window."
+  },
+  {
+   "id": "es_cartagena_jazz_detail_bodyonly",
+   "page": "es_cartagena_jazz_detalle.html.gz",
+   "encoding": "latin-1",
+   "source_url": "https://www.cartagena.es/agenda_ciudad_detalle.asp?id=6541",
+   "event_text": "El Cartagena Jazz Festival celebra su 45.ª edición, reafirmando una identidad construida durante más de cuatro décadas",
+   "expect": "fail",
+   "must_signals": [
+    "fail:page:es_domain",
+    "fail:page:postcode_30x"
+   ],
+   "note": "Body text alone has ZERO country signals; the gate must use the raw page + URL."
+  },
+  {
+   "id": "fever_es_cartagena_city",
+   "page": "fever_es_cartagena_city.html.gz",
+   "source_url": "https://feverup.com/es/cartagena/",
+   "fever_city_state": true,
+   "event_text": "Candlelight: Las Cuatro Estaciones de Vivaldi",
+   "expect": "fail",
+   "must_signals": [
+    "fail:page:fever_spain_city",
+    "fail:page:europe_madrid"
+   ],
+   "note": "Fever 'Cartagena' is Cartagena, Spain (Murcia region bundle)."
+  },
+  {
+   "id": "fever_es_giftcard_same_title_as_colombia",
+   "page": "fever_es_plan_129221_giftcard.html.gz",
+   "source_url": "https://feverup.com/m/129221/en",
+   "fever_plan_state": "129221",
+   "event_text": "Candlelight gift card - Cartagena",
+   "expect": "fail",
+   "must_signals": [
+    "fail:event:country_iso_es",
+    "fail:event:currency_eur"
+   ],
+   "note": "Same title as the Colombian plan 380670; geo is null island (0,0), ignored."
+  },
+  {
+   "id": "atrapalo_murcia_listing",
+   "page": "atrapalo_murcia_cartagena_challenge.html.gz",
+   "source_url": "https://www.atrapalo.com/entradas/murcia/cartagena/",
+   "event_text_from": "atrapalo:listing_card_text",
+   "expect": "fail",
+   "must_signals": [
+    "fail:page:atrapalo_murcia",
+    "fail:event:euro"
+   ],
+   "note": "curl gets a 3 KB 'Client Challenge' body; card text captured in a real browser."
+  },
+  {
+   "id": "atrapalo_murcia_detail_jsonld",
+   "page": null,
+   "source_url": "https://www.atrapalo.com/entradas/princess-story-cartagena_e4951790/",
+   "page_text_from": "atrapalo:footer",
+   "event_text_from": "atrapalo:detail_title",
+   "ld_from": "atrapalo",
+   "expect": "fail",
+   "must_signals": [
+    "fail:event:murcia",
+    "fail:event:address_country_es",
+    "fail:event:tz_offset_foreign",
+    "fail:event:currency_eur",
+    "fail:event:geo_outside_distrito"
+   ],
+   "note": "Extracted JSON-LD (addressRegion Murcia, addressCountry España, +01:00, EUR)."
+  },
+  {
+   "id": "hay_on_wye_winter_weekend",
+   "page": "hay_winter_weekend_2026.html.gz",
+   "source_url": "https://www.hayfestival.com/m-245-winter-weekend-2026.aspx",
+   "event_text": "David Gray and Mary Colwell Music and Conversation Connecting us to Nature Thursday 26 November 2026, 7.30pm – 9pm – Castle Marquee",
+   "expect": "fail",
+   "must_signals": [
+    "fail:event:hay_non_cartagena_path",
+    "fail:event:hay_edition:castle_marquee"
+   ],
+   "note": "Hay-on-Wye edition: Castle Marquee marker + non-Cartagena path."
+  },
+  {
+   "id": "hay_segovia",
+   "page": "hay_segovia_home.html.gz",
+   "source_url": "https://www.hayfestival.com/segovia/home",
+   "event_text": "Hay Festival Segovia 2027 Hay Festival Segovia 2027 will take place 9–12 September",
+   "expect": "fail",
+   "must_signals": [
+    "fail:event:hay_non_cartagena_path",
+    "fail:event:hay_edition:segovia"
+   ]
+  },
+  {
+   "id": "cmf_bogota_launch_event_page",
+   "page": "cmf_concierto_lanzamiento.html.gz",
+   "source_url": "https://cartagenamusicfestival.com/show-item/concierto-de-lanzamiento/",
+   "event_text": "Concierto de Lanzamiento 17 October octubre 17, 2026 4:00 pm Auditorio León de Greiff (Bogotá)",
+   "expect": "fail",
+   "must_signals": [
+    "fail:event:other_city:bogota"
+   ],
+   "note": "Tier-1 CMF domain, but the event itself is in Bogotá."
+  },
+  {
+   "id": "cmf_bogota_launch_programacion_row",
+   "page": "cmf_programacion.html.gz",
+   "source_url": "https://cartagenamusicfestival.com/programacion/",
+   "event_text": "Concierto de Lanzamiento 4:00 p.m. | Auditorio León de Greiff (Bogotá)",
+   "expect": "fail",
+   "must_signals": [
+    "fail:event:other_city:bogota"
+   ]
+  },
+  {
+   "id": "tuboleta_multicity_barranquilla_card",
+   "page": "tuboleta_categorias_teatro.html.gz",
+   "source_url": "https://tuboleta.com/es/categorias/teatro",
+   "event_text": "FRAGMENTADO - BARRANQUILLA Teatro La Sala Barranquilla 17 Oct Sáb 17 Oct",
+   "venue_name": "Teatro La Sala",
+   "geocode_catalog": true,
+   "expect": "fail",
+   "must_signals": [
+    "fail:event:other_city:barranquilla"
+   ],
+   "note": "Same tour, multi-city listing page: the Barranquilla card must never pass."
+  },
+  {
+   "id": "tuboleta_multicity_clock_pub_card_missed_by_design",
+   "page": "tuboleta_categorias_teatro.html.gz",
+   "source_url": "https://tuboleta.com/es/categorias/teatro",
+   "event_text": "FRAGMENTADO - CARTAGENA The Clock Pub Cartagena 15 Oct Jue 15 Oct",
+   "venue_name": "The Clock Pub",
+   "geocode_catalog": true,
+   "expect": "fail",
+   "must_signals": [
+    "fail:no_positive"
+   ],
+   "note": "Real Cartagena show, but no positive signal: bare 'Cartagena', and the catalog venue sits within 1e-3 of the Centro placeholder, so it is not geocoded. Missed by design."
+  },
+  {
+   "id": "tuboleta_caribe_aventura_via_al_mar",
+   "page": "tuboleta_caribe_aventura.html.gz",
+   "source_url": "https://tuboleta.com/es/eventos/parque-tematico-caribe-aventura",
+   "event_text": "PARQUE TEMATICO CARIBE AVENTURA Desde 28 Sep / 2026 Lunes Hasta 28 Sep / 2026 Lunes Desde $40.000 Cartagena Via al Mar. Km 51. Sentido Barranquilla - Cartagena",
+   "expect": "fail",
+   "must_signals": [
+    "fail:event:via_al_mar",
+    "fail:event:other_city:barranquilla"
+   ],
+   "note": "TuBoleta tags it 'Cartagena' but it is Km 51 Vía al Mar, outside the Distrito."
+  },
+  {
+   "id": "cmf_programacion_espana_en_la_balanza",
+   "page": "cmf_programacion.html.gz",
+   "source_url": "https://cartagenamusicfestival.com/programacion/",
+   "event_text": "11 enero España en la balanza 11:00 a.m. | Capilla Hotel Santa Clara",
+   "expect": "pass",
+   "must_signals": [
+    "pass:tier1_scoped:cartagenamusicfestival.com"
+   ],
+   "note": "Concert title contains 'España'; organizer footer says 'Bogotá, Colombia'. Must still pass."
+  },
+  {
+   "id": "cmf_programacion_fuego_y_geometria",
+   "page": "cmf_programacion.html.gz",
+   "source_url": "https://cartagenamusicfestival.com/programacion/",
+   "event_text": "9 enero Fuego y Geometría 7:00 p.m. | Teatro Adolfo Mejía",
+   "venue_name": "Teatro Adolfo Mejía",
+   "geocode_catalog": true,
+   "expect": "pass",
+   "must_signals": [
+    "pass:tier1_scoped:cartagenamusicfestival.com",
+    "pass:venue_match:catalog"
+   ]
+  },
+  {
+   "id": "hay_cartagena_inicio",
+   "page": "hay_cartagena_inicio.html.gz",
+   "source_url": "https://www.hayfestival.com/cartagena/inicio",
+   "event_text": "Hay Festival Cartagena de Indias 2027 La próxima edición del Hay Festival Cartagena de Indias se celebrará del 28 al 31 de enero del 2027.",
+   "expect": "pass",
+   "must_signals": [
+    "pass:cartagena_de_indias",
+    "pass:tier1_scoped:hayfestival.com"
+   ],
+   "note": "Nav carousel says 'Medellín39' (page chrome): must not fail."
+  },
+  {
+   "id": "ficci_home",
+   "page": "ficci_home.html.gz",
+   "source_url": "https://www.ficcifestival.com/",
+   "event_text": "Festival Internacional de Cine de Cartagena de Indias 6 – 11 ABRIL 2027",
+   "expect": "pass",
+   "must_signals": [
+    "pass:cartagena_de_indias",
+    "pass:tier1_scoped:ficcifestival.com"
+   ],
+   "note": "Guest list shows 'España' (a guest's country): page chrome, must not fail."
+  },
+  {
+   "id": "latiquetera_andres_cepeda_cartagena",
+   "page": "latiquetera_andres_cepeda_cartagena.html.gz",
+   "source_url": "https://latiquetera.com/event/andres-cepeda-en-cartagena",
+   "ld": "auto",
+   "event_text": "Andrés Cepeda en Cartagena",
+   "expect": "pass",
+   "must_signals": [
+    "pass:cartagena_de_indias"
+   ],
+   "note": "JSON-LD Place 'PLAZA DE TOROS DE CARTAGENA', streetAddress '... Cartagena de Indias', -05:00."
+  },
+  {
+   "id": "tuboleta_de_la_risa_al_llanto_tam",
+   "page": "tuboleta_de_la_risa_al_llanto.html.gz",
+   "source_url": "https://tuboleta.com/es/eventos/de-la-risa-al-llanto",
+   "ld": "auto",
+   "event_text": "DE LA RISA AL LLANTO 29 Oct / 2026 Jue / 7:00 PM Cartagena Teatro Adolfo Mejía",
+   "venue_name": "Teatro Adolfo Mejía",
+   "geocode_catalog": true,
+   "expect": "pass",
+   "must_signals": [
+    "pass:venue_match:catalog"
+   ],
+   "note": "City nav lists Barranquilla/Bogotá/Medellín (page chrome): must not fail."
+  },
+  {
+   "id": "tuboleta_multicity_tam_card",
+   "page": "tuboleta_categorias_teatro.html.gz",
+   "source_url": "https://tuboleta.com/es/categorias/teatro",
+   "event_text": "DE LA RISA AL LLANTO Teatro Adolfo Mejía Cartagena 29 Oct Jue 29 Oct",
+   "venue_name": "Teatro Adolfo Mejía",
+   "geocode_catalog": true,
+   "expect": "pass",
+   "must_signals": [
+    "pass:venue_match:catalog"
+   ],
+   "note": "Cartagena card on the same multi-city page as the Barranquilla card."
+  },
+  {
+   "id": "fever_co_plan_642707",
+   "page": "fever_co_plan_642707.html.gz",
+   "source_url": "https://feverup.com/m/642707/en",
+   "fever_plan_state": "642707",
+   "event_text": "Cartagena Mystery Game: The Stolen Emerald",
+   "expect": "pass",
+   "must_signals": [
+    "pass:cartagena_de_indias",
+    "pass:geo_in_distrito"
+   ],
+   "note": "Page config lists currencies ['EUR'] (multi-currency switch): must not fail."
+  }
+ ]
+}

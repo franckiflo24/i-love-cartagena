@@ -9,7 +9,10 @@ import { api } from '../src/constants/api';
 import { eventPriceLabel } from '../src/utils/price';
 import { TierBadge } from '../src/components/TierBadge';
 import { SafeImage } from '../src/components/SafeImage';
+import { EventRow } from '../src/components/EventFeedUI';
 import { useTr } from '../src/i18n/autoTr';
+import { useLang } from '../src/context/LanguageContext';
+import { PublicEvent, loadFeed, loadFeedItem, sortEvents } from '../src/lib/eventsFeed';
 
 type Tab = 'agenda' | 'partners' | 'reservations';
 
@@ -37,6 +40,18 @@ const RES_STATUS_META: Record<string, { label: string; color: string; bg: string
   expired: { label: 'Expirada', color: '#94A3B8', bg: 'rgba(148,163,184,0.12)' },
 };
 
+// A saved city event, resolved through the verified feed (or feed/item for rows
+// that left it — hidden / expired / review — so the status is told honestly).
+type SavedEvent = { ev: PublicEvent; itemType: 'event' | 'concert' };
+
+// Status line for a saved row that is no longer live (never a status code).
+const SAVED_STATUS: Partial<Record<PublicEvent['status'], string>> = {
+  hidden: 'Este evento ya no está confirmado',
+  review: 'Este evento ya no está confirmado',
+  expired: 'Este evento ya pasó',
+};
+const STATUS_ORDER: Record<PublicEvent['status'], number> = { published: 0, date_tbc: 1, review: 2, hidden: 2, expired: 3 };
+
 const CAT_LABELS: Record<string, string> = {
   gastronomy: 'Gastronomía',
   music: 'Música',
@@ -48,40 +63,58 @@ const CAT_LABELS: Record<string, string> = {
 
 export default function FavoritesScreen() {
   const tr = useTr();
+  const { lang } = useLang();
   const router = useRouter();
   const { favorites, toggleFavorite } = useFavorites();
   const [tab, setTab] = useState<Tab>('agenda');
 
   // Hydrated lists
-  const [events, setEvents] = useState<any[]>([]);
-  const [concerts, setConcerts] = useState<any[]>([]);
+  const [savedEvents, setSavedEvents] = useState<SavedEvent[]>([]);
+  const [eventsOffline, setEventsOffline] = useState(false);
   const [partnerEvents, setPartnerEvents] = useState<any[]>([]);
   const [partners, setPartners] = useState<any[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [resLoading, setResLoading] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Group favorite IDs by type
-  const ids = useMemo(() => ({
-    event: new Set(favorites.filter(f => f.item_type === 'event').map(f => f.item_id)),
-    partner_event: favorites.filter(f => f.item_type === 'partner_event').map(f => f.item_id),
-    concert: new Set(favorites.filter(f => f.item_type === 'concert').map(f => f.item_id)),
-    partner: favorites.filter(f => f.item_type === 'partner').map(f => f.item_id),
-  }), [favorites]);
+  // Group favorite IDs by type. City events/concerts: only verified-feed ids
+  // (`ce-…`). Legacy event/concert ids — and rows the backend marks
+  // status 'removed' — show nothing (EVENTS-ELITE §15 T3).
+  const ids = useMemo(() => {
+    const live = favorites.filter((f) => (f as { status?: string }).status !== 'removed');
+    return {
+      cityEvents: live
+        .filter((f) => (f.item_type === 'event' || f.item_type === 'concert') && String(f.item_id).startsWith('ce-'))
+        .map((f) => ({ id: f.item_id, type: (f.item_type === 'concert' ? 'concert' : 'event') as SavedEvent['itemType'] })),
+      partner_event: live.filter(f => f.item_type === 'partner_event').map(f => f.item_id),
+      partner: live.filter(f => f.item_type === 'partner').map(f => f.item_id),
+    };
+  }, [favorites]);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       setLoading(true);
       try {
-        const tasks: Promise<any>[] = [];
-        if (ids.event.size > 0 || ids.concert.size > 0) {
-          tasks.push(api.get('/events').catch(() => []));
-          tasks.push(api.get('/concerts').catch(() => []));
-        } else {
-          tasks.push(Promise.resolve([]));
-          tasks.push(Promise.resolve([]));
-        }
+        // City events: the verified feed first, feed/item for saved ids that left
+        // it (hidden / expired / review → honest status line, never a live date).
+        const cityTask = (async (): Promise<{ rows: SavedEvent[]; offline: boolean }> => {
+          if (ids.cityEvents.length === 0) return { rows: [], offline: false };
+          const feedState = await loadFeed().catch((e: unknown) => { console.error('[Favorites] events feed', e); return null; });
+          const byId = new Map<string, PublicEvent>();
+          if (feedState) for (const e of [...feedState.data.events, ...feedState.data.date_tbc]) byId.set(e.event_id, e);
+          const rows = await Promise.all(ids.cityEvents.map(async ({ id, type }): Promise<SavedEvent | null> => {
+            const hit = byId.get(id);
+            if (hit) return { ev: hit, itemType: type };
+            const r = await loadFeedItem(id);
+            return r.kind === 'ok' ? { ev: r.event, itemType: type } : null;
+          }));
+          const found = rows.filter((r): r is SavedEvent => !!r);
+          const ordered = sortEvents(found.map((r) => r.ev))
+            .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status])
+            .map((ev) => found.find((r) => r.ev.event_id === ev.event_id) as SavedEvent);
+          return { rows: ordered, offline: !!feedState?.offline };
+        })();
         // Partner events: fetch by id
         const peTask = Promise.all(
           ids.partner_event.map(id => api.get(`/partner-events/${id}`).catch(() => null))
@@ -91,15 +124,11 @@ export default function FavoritesScreen() {
           ids.partner.map(id => api.get(`/partners/${id}`).catch(() => null))
         );
 
-        const [allEvents, allConcerts, peList, pList] = await Promise.all([
-          ...tasks,
-          peTask,
-          pTask,
-        ]);
+        const [city, peList, pList] = await Promise.all([cityTask, peTask, pTask]);
 
         if (cancelled) return;
-        setEvents((allEvents || []).filter((e: any) => ids.event.has(e.event_id)));
-        setConcerts((allConcerts || []).filter((c: any) => ids.concert.has(c.concert_id)));
+        setSavedEvents(city.rows);
+        setEventsOffline(city.offline);
         // .filter(Boolean) drops null (caught fetch errors) but NOT a resolved []
         // ([] is truthy) → a stale favorite whose detail 404s would push a blank
         // card. Require a real object with an id.
@@ -132,7 +161,10 @@ export default function FavoritesScreen() {
     }, [])
   );
 
-  const agendaCount = ids.event.size + ids.concert.size + ids.partner_event.length;
+  // Before load: what is saved; after load: what we can actually show.
+  const agendaCount = loading
+    ? ids.cityEvents.length + ids.partner_event.length
+    : savedEvents.length + partnerEvents.length;
   const partnersCount = ids.partner.length;
   const reservationsCount = reservations.length;
   const total = agendaCount + partnersCount;
@@ -206,7 +238,7 @@ export default function FavoritesScreen() {
               <Ionicons name="calendar-outline" size={56} color={COLORS.textMuted} />
               <Text style={styles.emptyTitle}>{tr('Sin eventos guardados')}</Text>
               <Text style={styles.emptyDesc}>{tr('Toca el corazón ❤️ en eventos, conciertos y eventos de partners para guardarlos aquí.')}</Text>
-              <TouchableOpacity style={styles.exploreCta} onPress={() => router.push('/(tabs)/agenda' as any)}>
+              <TouchableOpacity style={styles.exploreCta} onPress={() => router.push('/que-pasa' as any)}>
                 <Ionicons name="sparkles" size={16} color={COLORS.primary} />
                 <Text style={styles.exploreText}>{tr('Explorar agenda')}</Text>
               </TouchableOpacity>
@@ -216,7 +248,7 @@ export default function FavoritesScreen() {
               {/* Partner Events */}
               {partnerEvents.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>📅 {tr('Eventos de partners')} ({partnerEvents.length})</Text>
+                  <Text style={styles.sectionTitle}>📅 {tr('Publicado por los locales')} ({partnerEvents.length})</Text>
                   {partnerEvents.map(e => {
                     const tierColors = e.partner?.tier ? TIER_COLORS[e.partner.tier as Tier] : null;
                     return (
@@ -260,54 +292,36 @@ export default function FavoritesScreen() {
                 </View>
               )}
 
-              {/* Concerts */}
-              {concerts.length > 0 && (
+              {/* Saved city events — verified feed, honest status for rows that left it */}
+              {savedEvents.length > 0 && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>🎵 {tr('Conciertos')} ({concerts.length})</Text>
-                  {concerts.map(c => (
-                    <TouchableOpacity key={c.concert_id} style={styles.card} onPress={() => router.push('/concerts' as any)} activeOpacity={0.85}>
-                      <SafeImage uri={c.image_url} category="concert" style={styles.cardImage} />
-                      <View style={styles.cardOverlay} />
-                      <TouchableOpacity
-                        style={styles.heartBtn}
-                        onPress={() => toggleFavorite(c.concert_id, 'concert')}
-                      >
-                        <Ionicons name="heart" size={18} color={COLORS.bougainvillea} />
-                      </TouchableOpacity>
-                      <View style={styles.cardContent}>
-                        <Text style={styles.cardGenre}>{c.genre}</Text>
-                        <Text style={styles.cardTitle}>{c.artist}</Text>
-                        <View style={styles.cardMeta}>
-                          <Ionicons name="location-outline" size={12} color="rgba(255,255,255,0.7)" />
-                          <Text style={styles.cardMetaText}>{c.venue_name}</Text>
-                          <Ionicons name="time-outline" size={12} color="rgba(255,255,255,0.7)" />
-                          <Text style={styles.cardMetaText}>{c.start_time}</Text>
-                        </View>
-                        <Text style={styles.cardPrice}>{eventPriceLabel(c.price, c.is_free, { cop: true })}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-
-              {/* Festival Events */}
-              {events.length > 0 && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>🎶 {tr('Music Week')} ({events.length})</Text>
-                  {events.map(e => (
-                    <TouchableOpacity key={e.event_id} style={styles.eventRow} onPress={() => router.push(`/event/${e.event_id}` as any)}>
-                      <View style={styles.eventTime}>
-                        <Text style={styles.eventHour}>{e.start_time}</Text>
-                      </View>
-                      <View style={styles.eventInfo}>
-                        <Text style={styles.eventTitle} numberOfLines={1}>{e.title}</Text>
-                        <Text style={styles.eventVenue} numberOfLines={1}>{e.venue_name} · {e.type}</Text>
-                      </View>
-                      <TouchableOpacity onPress={() => toggleFavorite(e.event_id, 'event')} hitSlop={{ top: 10, left: 10, right: 10, bottom: 10 }}>
-                        <Ionicons name="heart" size={20} color={COLORS.bougainvillea} />
-                      </TouchableOpacity>
-                    </TouchableOpacity>
-                  ))}
+                  <Text style={styles.sectionTitle}>📅 {tr('Eventos guardados')} ({savedEvents.length})</Text>
+                  {savedEvents.map(({ ev, itemType }) => {
+                    const status = SAVED_STATUS[ev.status];
+                    return (
+                      <EventRow
+                        key={ev.event_id}
+                        ev={ev}
+                        lang={lang}
+                        tr={tr}
+                        offline={eventsOffline}
+                        statusLine={status ? tr(status) : null}
+                        onPress={() => router.push(`/event/${ev.event_id}` as any)}
+                        testID={`fav-event-${ev.event_id}`}
+                        right={(
+                          <TouchableOpacity
+                            onPress={() => toggleFavorite(ev.event_id, itemType)}
+                            hitSlop={{ top: 10, left: 10, right: 10, bottom: 10 }}
+                            style={{ alignSelf: 'center', padding: 4 }}
+                            accessibilityRole="button"
+                            accessibilityLabel={tr('Quitar de favoritos')}
+                          >
+                            <Ionicons name="heart" size={20} color={COLORS.bougainvillea} />
+                          </TouchableOpacity>
+                        )}
+                      />
+                    );
+                  })}
                 </View>
               )}
             </>

@@ -1,10 +1,16 @@
-import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+// Agenda tab. "Salir hoy" (EVENTS-ELITE §10, §16.3) = the verified city feed for
+// one Bogotá day — a 14-day date strip with count dots, the same calendar row as
+// /que-pasa (EventDayRow), flagship first within the day — plus that day's
+// partner-published events ("Publicado por los locales", never "verified").
+// "Mi agenda" is the user's saved calendar (unchanged). Every date on this
+// screen is computed after mount in Bogotá time (no SSR date text, #418).
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Alert } from '../../src/lib/alert';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, TYPE, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
+import { COLORS, SPACING, RADIUS, FONTS, TYPE, TIER_COLORS, Tier } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { eventPriceLabel } from '../../src/utils/price';
 import { PartnerEventCard, PartnerEvent } from '../../src/components/PartnerEventCard';
@@ -12,8 +18,12 @@ import { useMyCalendar, CalendarItem } from '../../src/context/MyCalendarContext
 import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
 import { useTr } from '../../src/i18n/autoTr';
-import { getUpcomingEvents } from '../../src/lib/data';
+import { useLang } from '../../src/context/LanguageContext';
 import { bogotaToday } from '../../src/lib/eventTime';
+import { EventCategory, PublicEvent, dayCounts, dayRange, onDay, useEventsFeed } from '../../src/lib/eventsFeed';
+import {
+  DateStrip, DateStripSkeleton, EventDayRow, FeedDayHeader, FeedEmptyLine, FeedOfflineBanner, dayHeaderText, umbrellaShortName,
+} from '../../src/components/EventFeedUI';
 
 type Mode = 'salir' | 'mi_agenda';
 
@@ -29,43 +39,18 @@ const PARTNER_CATEGORIES = [
   { key: 'sunset', label: 'Sunset Experience', icon: 'partly-sunny' },
 ];
 
-const MONTHS_ES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-const DAYS_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-
-const generateUpcomingDates = (tr: (s: string) => string) => {
-  // Cartagena's calendar, not UTC: anchor at noon UTC of Bogotá's today and step
-  // with UTC methods (toISOString made every chip a day ahead after 19:00 Bogotá).
-  const today = new Date(bogotaToday() + 'T12:00:00Z');
-  // End at December 31 of the current year. If we're in the last 2 months
-  // of the year, extend through December 31 of NEXT year so the user
-  // always has at least ~2 months of horizon to scroll through.
-  const endYear = today.getUTCMonth() >= 10 ? today.getUTCFullYear() + 1 : today.getUTCFullYear();
-  const end = new Date(Date.UTC(endYear, 11, 31, 23, 59, 59));
-  const dates: Array<{
-    key: string; day: string; date: string; month: string; isToday: boolean;
-    isFirstOfMonth: boolean;
-  }> = [];
-  let lastMonth = -1;
-  for (let i = 0; ; i++) {
-    const dt = new Date(today);
-    dt.setUTCDate(today.getUTCDate() + i);
-    if (dt > end) break;
-    const iso = dt.toISOString().slice(0, 10);
-    const m = dt.getUTCMonth();
-    dates.push({
-      key: iso,
-      day: i === 0 ? tr('Hoy') : i === 1 ? tr('Mañ') : tr(DAYS_ES[dt.getUTCDay()]),
-      date: String(dt.getUTCDate()),
-      month: tr(MONTHS_ES[m]),
-      isToday: i === 0,
-      isFirstOfMonth: m !== lastMonth,
-    });
-    lastMonth = m;
-    // Safety break: hard cap at 400 days just in case.
-    if (i > 400) break;
-  }
-  return dates;
+// "Salir hoy" chips → verified-feed categories (EVENTS-ELITE §2). A chip with no
+// city-event equivalent filters city events out (partner events still match).
+const SALIR_TO_FEED: Record<string, EventCategory[]> = {
+  gastronomy: ['gastronomic'],
+  music: ['concert', 'festival'],
+  party: ['nightlife'],
+  art: ['cultural'],
 };
+
+// §16.3: the Agenda strip covers two weeks; later dates live in /que-pasa (Próximos).
+const STRIP_DAYS = 14;
+const GUTTER = 16;
 
 const formatLongDate = (iso: string) => {
   try {
@@ -78,6 +63,7 @@ const todayIso = () => bogotaToday();
 
 export default function AgendaScreen() {
   const tr = useTr();
+  const { lang } = useLang();
   const router = useRouter();
   const params = useLocalSearchParams<{ mode?: string }>();
   const [mode, setMode] = useState<Mode>('salir');
@@ -89,67 +75,62 @@ export default function AgendaScreen() {
     }
   }, [params.mode]);
 
-  // Salir (Partner) state
-  const upcomingDates = useMemo(() => generateUpcomingDates(tr), [tr]);
-  const dateScrollRef = useRef<ScrollView | null>(null);
-  // Unique months derived from upcomingDates — used as a quick "jump" bar
-  const availableMonths = useMemo(() => {
-    const seen = new Set<string>();
-    const out: Array<{ key: string; label: string; firstDateKey: string }> = [];
-    for (const d of upcomingDates) {
-      const [yyyy, mm] = d.key.split('-');
-      const key = `${yyyy}-${mm}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      out.push({ key, label: `${d.month} ${yyyy}`, firstDateKey: d.key });
-    }
-    return out;
-  }, [upcomingDates]);
-  const [selectedSalirDate, setSelectedSalirDate] = useState(upcomingDates[0].key);
-  const selectedMonthKey = useMemo(() => selectedSalirDate.slice(0, 7), [selectedSalirDate]);
+  // Salir state. Every date here is computed after mount (Bogotá time).
+  const [todayKey, setTodayKey] = useState<string | null>(null);
+  useEffect(() => { setTodayKey(bogotaToday()); }, []);
+  const [selectedSalirDate, setSelectedSalirDate] = useState<string | null>(null);
+  useEffect(() => {
+    // First mount, and a Bogotá day rollover that leaves the old pick behind.
+    if (todayKey && (selectedSalirDate === null || selectedSalirDate < todayKey)) setSelectedSalirDate(todayKey);
+  }, [todayKey, selectedSalirDate]);
   const [selectedSalirCat, setSelectedSalirCat] = useState('all');
   const [partnerEvents, setPartnerEvents] = useState<PartnerEvent[]>([]);
-  const [cityEvents, setCityEvents] = useState<any[]>([]);
   const [loadingSalir, setLoadingSalir] = useState(false);
+
+  // City events come ONLY from the verified feed (EVENTS-ELITE), shared with
+  // /que-pasa and Home. A feed the loader cannot vouch for (404, or offline with
+  // no copy ≤ 36 h) shows "No pudimos cargar la agenda" + Reintentar (§13 J1) —
+  // never "no hay eventos para este día".
+  const { feed, today: feedToday, error: feedError, reload: reloadFeed } = useEventsFeed();
+  useEffect(() => { if (feedToday && feedToday !== todayKey) setTodayKey(feedToday); }, [feedToday, todayKey]);
+  const feedFailed = !feed && !!feedError;
+  const feedStamp = feed?.offline ? feed.data.generated_at : null; // set only for an offline copy
+  const feedCat = useCallback((list: PublicEvent[]): PublicEvent[] => {
+    if (selectedSalirCat === 'all') return list;
+    const wanted = SALIR_TO_FEED[selectedSalirCat] || [];
+    return list.filter((ev) => wanted.includes(ev.category));
+  }, [selectedSalirCat]);
+  const stripDays = useMemo(() => (todayKey ? dayRange(todayKey, STRIP_DAYS) : []), [todayKey]);
+  const stripCounts = useMemo(
+    () => (feed && todayKey ? dayCounts(feedCat(feed.data.events), stripDays, todayKey) : {}),
+    [feed, todayKey, stripDays, feedCat],
+  );
+  // onDay: published, not finished, umbrellas excluded, flagship first (§16.3).
+  const cityEvents = useMemo(
+    () => (feed && selectedSalirDate ? feedCat(onDay(feed.data.events, selectedSalirDate)) : []),
+    [feed, selectedSalirDate, feedCat],
+  );
+  const partOf = useCallback((ev: PublicEvent): string | null => {
+    if (!ev.parent_id || !feed) return null;
+    const u = feed.data.events.find((e) => e.event_id === ev.parent_id && e.is_umbrella);
+    return u ? umbrellaShortName(u, lang) : null;
+  }, [feed, lang]);
+  const cityLoading = !feed && !feedError;
 
   // Mi Agenda state
   const { items: calendarItems, removeFromCalendar, refresh } = useMyCalendar();
   const [showPast, setShowPast] = useState(false);
 
   const loadPartnerEvents = useCallback(async () => {
+    if (!selectedSalirDate) return;
     setLoadingSalir(true);
     try {
       const params = new URLSearchParams({ date: selectedSalirDate });
       if (selectedSalirCat !== 'all') params.append('category', selectedSalirCat);
-      const [peData, allEventsRaw] = await Promise.all([
-        api.get(`/partner-events?${params.toString()}`),
-        getUpcomingEvents().catch(() => []),
-      ]);
+      const peData = await api.get(`/partner-events?${params.toString()}`)
+        .catch((e: unknown) => { console.error('[Agenda] partner-events', e); return []; });
       setPartnerEvents(Array.isArray(peData) ? peData : []);
-      // Map EventRecord fields to compat + filter by date
-      const allEvents = (Array.isArray(allEventsRaw) ? allEventsRaw : []).map((e: any) => ({
-        ...e,
-        event_id: e.slug || e.id || e.event_id,
-        title: e.name_es || e.title || '',
-        date: e.date_start || e.date || '',
-        date_start: e.date_start || e.date || '',
-        date_end: e.date_end || e.date_start || e.date || '',
-        type: e.category || e.type || '',
-        start_time: e.time_start || e.start_time || '',
-        venue_name: e.venue || e.venue_name || '',
-        price: e.price_min_cop || e.price || 0,
-      }));
-      const dateFiltered = allEvents.filter((ev: any) => {
-        const start = ev.date_start || ev.date || '';
-        const end = ev.date_end || start;
-        return selectedSalirDate >= start && selectedSalirDate <= end;
-      });
-      // Filter by category if not 'all'
-      const catFiltered = selectedSalirCat === 'all'
-        ? dateFiltered
-        : dateFiltered.filter((ev: any) => (ev.category || ev.type || '') === selectedSalirCat);
-      setCityEvents(catFiltered);
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error('[Agenda] loadPartnerEvents', e); }
     setLoadingSalir(false);
   }, [selectedSalirDate, selectedSalirCat]);
 
@@ -157,6 +138,9 @@ export default function AgendaScreen() {
     if (mode === 'salir') loadPartnerEvents();
     if (mode === 'mi_agenda') refresh();
   }, [loadPartnerEvents, mode, refresh]);
+
+  const retrySalir = useCallback(() => { reloadFeed(); loadPartnerEvents(); }, [reloadFeed, loadPartnerEvents]);
+  const openCityEvent = useCallback((id: string) => { router.push(`/event/${id}` as any); }, [router]);
 
   // Group calendar items by date
   const groupedAgenda = useMemo(() => {
@@ -196,7 +180,10 @@ export default function AgendaScreen() {
   const handleOpenItem = (item: CalendarItem) => {
     if (item.item_type === 'partner_event') router.push(`/partner-event/${item.item_id}` as any);
     else if (item.item_type === 'event') router.push(`/event/${item.item_id}` as any);
-    else if (item.item_type === 'concert') router.push('/concerts' as any);
+    else if (item.item_type === 'concert') {
+      // Concerts are verified-feed events now; a legacy concert id has no page.
+      router.push((String(item.item_id).startsWith('ce-') ? `/event/${item.item_id}` : '/que-pasa?cat=concert') as any);
+    }
   };
 
   return (
@@ -240,60 +227,24 @@ export default function AgendaScreen() {
 
       {mode === 'salir' ? (
         <>
-          {/* Month jump bar — quickly scroll the date strip to a given month */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.monthBar}
-            style={styles.barScroll}
-          >
-            {availableMonths.map((m) => {
-              const isActive = selectedMonthKey === m.key;
-              return (
-                <TouchableOpacity
-                  key={m.key}
-                  style={[styles.monthChip, isActive && styles.monthChipActive]}
-                  onPress={() => {
-                    setSelectedSalirDate(m.firstDateKey);
-                    // Scroll the dates strip to that month
-                    const idx = upcomingDates.findIndex(d => d.key === m.firstDateKey);
-                    if (idx >= 0 && dateScrollRef.current) {
-                      dateScrollRef.current.scrollTo({ x: Math.max(0, idx * 78 - 40), animated: true });
-                    }
-                  }}
-                >
-                  <Text style={[styles.monthChipText, isActive && styles.monthChipTextActive]}>
-                    {tr(m.label)}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-
-          <ScrollView
-            ref={dateScrollRef}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.dateBar}
-            style={styles.barScroll}
-          >
-            {upcomingDates.map(d => {
-              const isActive = selectedSalirDate === d.key;
-              return (
-                <TouchableOpacity
-                  key={d.key}
-                  style={[styles.dateChip, isActive && styles.dateChipActive, d.isToday && styles.dateChipToday]}
-                  onPress={() => setSelectedSalirDate(d.key)}
-                >
-                  <Text style={[styles.dateNum, isActive && styles.dateTextActive]}>{d.date}</Text>
-                  <View style={styles.dateMeta}>
-                    <Text style={[styles.dateDay, isActive && styles.dateTextActive]}>{d.day}</Text>
-                    <Text style={[styles.dateMonth, isActive && styles.dateTextActive]}>{d.month}</Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+          {/* 14-day strip (§16.3): weekday · number · count of verified city events */}
+          <View style={styles.stripWrap}>
+            {todayKey ? (
+              <DateStrip
+                days={stripDays}
+                counts={stripCounts}
+                selected={selectedSalirDate}
+                today={todayKey}
+                lang={lang}
+                tr={tr}
+                onSelect={setSelectedSalirDate}
+                inset={GUTTER}
+                testIDPrefix="agenda-day"
+              />
+            ) : (
+              <DateStripSkeleton n={7} inset={GUTTER} />
+            )}
+          </View>
 
           <ScrollView
             horizontal
@@ -308,6 +259,8 @@ export default function AgendaScreen() {
                   key={c.key}
                   style={[styles.catChip, isActive && styles.catChipActive]}
                   onPress={() => setSelectedSalirCat(c.key)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isActive }}
                 >
                   <Ionicons name={c.icon as any} size={12} color={isActive ? COLORS.white : COLORS.textMuted} />
                   <Text style={[styles.catChipText, isActive && styles.catChipTextActive]}>
@@ -319,85 +272,71 @@ export default function AgendaScreen() {
           </ScrollView>
 
           <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
-            {loadingSalir ? (
-              <ActivityIndicator size="large" color={COLORS.icon} style={{ marginTop: 40 }} />
-            ) : partnerEvents.length === 0 && cityEvents.length === 0 ? (
-              <View style={styles.empty}>
-                <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
-                <Text style={styles.emptyTitle}>{tr('No hay eventos para este día')}</Text>
-                <Text style={styles.emptyText}>{tr('Prueba otra fecha o categoría')}</Text>
+            {!!feedStamp && (
+              <FeedOfflineBanner stamp={feedStamp} lang={lang} tr={tr} style={{ marginTop: SPACING.sm }} />
+            )}
+            {feedFailed && (
+              <View accessibilityRole="alert" testID="agenda-feed-error">
+                <FeedEmptyLine
+                  icon="cloud-offline-outline"
+                  text={`${tr('No pudimos cargar la agenda')} ·`}
+                  cta={tr('Reintentar')}
+                  onPress={retrySalir}
+                  testID="agenda-feed-retry"
+                />
               </View>
+            )}
+            {!selectedSalirDate || !todayKey || cityLoading || (loadingSalir && partnerEvents.length === 0 && cityEvents.length === 0) ? (
+              <ActivityIndicator size="large" color={COLORS.icon} style={{ marginTop: 40 }} />
             ) : (
               <>
-                <View style={styles.resultsHeader}>
-                  <Text style={styles.resultsCount}>
-                    {partnerEvents.length + cityEvents.length} {tr((partnerEvents.length + cityEvents.length) === 1 ? 'evento' : 'eventos')}
-                  </Text>
-                </View>
-
-                {/* City events — major Cartagena events with images */}
-                {cityEvents.length > 0 && (
-                  <View style={{ marginBottom: SPACING.md }}>
-                    <Text style={styles.cityEventsLabel}>{tr('Eventos de la ciudad')}</Text>
-                    {cityEvents.map((ev: any) => {
-                      const catColor = colorForKey(ev.category || ev.type);
-                      return (
-                      <TouchableOpacity
-                        key={ev.event_id || ev.id}
-                        style={styles.cityEventCard}
-                        activeOpacity={0.85}
-                        onPress={() => router.push(`/event/${ev.event_id || ev.slug}` as any)}
-                      >
-                        <View style={styles.cityEventImageWrap}>
-                          <SafeImage uri={ev.image_url} style={styles.cityEventImage} resizeMode="cover" />
-                          <View style={styles.cityEventImageOverlay} />
-                          {ev.is_free && (
-                            <View style={styles.cityEventFreeBadge}>
-                              <Text style={styles.cityEventFreeText}>{tr('GRATIS')}</Text>
-                            </View>
-                          )}
-                        </View>
-                        <View style={styles.cityEventBody}>
-                          <Text style={styles.cityEventTitle} numberOfLines={2}>
-                            {ev.title || ev.name_es}
-                          </Text>
-                          {ev.venue_name && (
-                            <View style={styles.cityEventVenueRow}>
-                              <Ionicons name="location-outline" size={11} color={COLORS.textMuted} />
-                              <Text style={styles.cityEventVenue} numberOfLines={1}>{ev.venue_name}</Text>
-                            </View>
-                          )}
-                          <View style={styles.cityEventTagRow}>
-                            <View style={[styles.cityEventCatBadge, { backgroundColor: `${catColor}26`, borderColor: `${catColor}66` }]}>
-                              <Text style={[styles.cityEventCatText, { color: catColor }]}>
-                                {(ev.category || ev.type || '').toUpperCase()}
-                              </Text>
-                            </View>
-                            {ev.time_start && (
-                              <View style={styles.cityEventTimeBadge}>
-                                <Ionicons name="time-outline" size={10} color={COLORS.icon} />
-                                <Text style={styles.cityEventTimeText}>{ev.time_start}</Text>
-                              </View>
-                            )}
-                          </View>
-                        </View>
-                      </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                )}
-
-                {/* Partner events */}
-                {partnerEvents.length > 0 && cityEvents.length > 0 && (
-                  <Text style={styles.cityEventsLabel}>Eventos de partners</Text>
-                )}
-                {partnerEvents.map(e => (
-                  <PartnerEventCard
-                    key={e.event_id}
-                    event={e}
-                    onPress={() => router.push(`/partner-event/${e.event_id}` as any)}
+                <FeedDayHeader
+                  label={dayHeaderText(selectedSalirDate, todayKey, lang, tr)}
+                  count={partnerEvents.length + cityEvents.length}
+                  tr={tr}
+                  testID="agenda-day-header"
+                />
+                {partnerEvents.length === 0 && cityEvents.length === 0 ? (feedFailed ? null : (
+                  <FeedEmptyLine
+                    text={`${tr('No hay eventos para este día')} ·`}
+                    cta={`${tr('Qué pasa en Cartagena')} →`}
+                    onPress={() => router.push('/que-pasa' as any)}
+                    testID="agenda-empty"
                   />
-                ))}
+                )) : (
+                  <>
+                    {/* City events — the verified feed for this day, headline first (source + VERIFY label) */}
+                    {cityEvents.length > 0 && (
+                      <View style={styles.cityList}>
+                        {cityEvents.map((ev) => (
+                          <EventDayRow
+                            key={ev.event_id}
+                            ev={ev}
+                            lang={lang}
+                            tr={tr}
+                            offline={!!feedStamp}
+                            lead="time"
+                            partOf={partOf(ev)}
+                            onPress={openCityEvent}
+                            testID={`agenda-city-${ev.event_id}`}
+                          />
+                        ))}
+                      </View>
+                    )}
+
+                    {/* Partner events — published by the venue itself, never "verified" */}
+                    {partnerEvents.length > 0 && (
+                      <Text style={styles.cityEventsLabel}>{tr('Publicado por los locales')}</Text>
+                    )}
+                    {partnerEvents.map(e => (
+                      <PartnerEventCard
+                        key={e.event_id}
+                        event={e}
+                        onPress={() => router.push(`/partner-event/${e.event_id}` as any)}
+                      />
+                    ))}
+                  </>
+                )}
               </>
             )}
             <View style={{ height: SPACING.xxl }} />
@@ -434,7 +373,7 @@ export default function AgendaScreen() {
                 >
                   <Ionicons name="time-outline" size={14} color={COLORS.white} />
                   <Text style={styles.exploreBtnText}>
-                    Ver pasados ({pastCount})
+                    {tr('Ver pasados')} ({pastCount})
                   </Text>
                 </TouchableOpacity>
               )}
@@ -450,7 +389,7 @@ export default function AgendaScreen() {
                 >
                   <Ionicons name={showPast ? 'eye-off-outline' : 'time-outline'} size={14} color={COLORS.textMuted} />
                   <Text style={styles.pastToggleText}>
-                    {showPast ? `Ocultar pasados (${pastCount})` : `Mostrar pasados (${pastCount})`}
+                    {`${tr(showPast ? 'Ocultar pasados' : 'Mostrar pasados')} (${pastCount})`}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -470,7 +409,7 @@ export default function AgendaScreen() {
                       )}
                       {isPastDay && (
                         <View style={styles.pastPill}>
-                          <Text style={styles.pastPillText}>PASADO</Text>
+                          <Text style={styles.pastPillText}>{tr('PASADO')}</Text>
                         </View>
                       )}
                     </View>
@@ -507,13 +446,13 @@ export default function AgendaScreen() {
                               {it.is_free !== undefined && (
                                 <View style={[styles.pricePill, it.is_free ? styles.priceFreeBg : styles.pricePaidBg]}>
                                   <Text style={styles.pricePillText}>
-                                    {eventPriceLabel(it.price, it.is_free)}
+                                    {tr(eventPriceLabel(it.price, it.is_free))}
                                   </Text>
                                 </View>
                               )}
                             </View>
                             <Text style={styles.agendaTitle} numberOfLines={2}>
-                              {it.title || 'Evento'}
+                              {it.title || tr('Evento')}
                             </Text>
                             {it.partner_name ? (
                               <View style={styles.partnerRow}>
@@ -546,7 +485,7 @@ export default function AgendaScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
-  header: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, paddingBottom: SPACING.xs },
+  header: { paddingHorizontal: GUTTER, paddingTop: SPACING.md, paddingBottom: SPACING.xs },
   title: { ...TYPE.display, color: COLORS.textMain },
   subtitle: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
 
@@ -584,40 +523,10 @@ const styles = StyleSheet.create({
   badgeText: { fontSize: 10, color: COLORS.white, ...FONTS.bold },
   badgeTextActive: { color: COLORS.white },
 
-  // Date chips
+  // 14-day strip + category chips (§16.3: 16 px gutters)
   barScroll: { flexGrow: 0, flexShrink: 0 },
-  monthBar: { paddingHorizontal: SPACING.lg, gap: 6, paddingVertical: 4 },
-  monthChip: {
-    paddingHorizontal: 12, paddingVertical: 6,
-    borderRadius: RADIUS.full, backgroundColor: COLORS.surface,
-    borderWidth: 1, borderColor: COLORS.border,
-  },
-  monthChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  monthChipText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold, textTransform: 'capitalize', letterSpacing: 0.3 },
-  monthChipTextActive: { color: '#FFF' },
-  dateBar: { paddingHorizontal: SPACING.lg, gap: SPACING.sm, paddingVertical: SPACING.xs },
-  dateChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: RADIUS.full,
-    backgroundColor: COLORS.surface,
-    borderWidth: 1.5,
-    borderColor: COLORS.border,
-    gap: 6,
-    minWidth: 70,
-  },
-  dateChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  dateChipToday: { borderColor: 'rgba(18,181,165,0.5)' },
-  dateMeta: { alignItems: 'flex-start', justifyContent: 'center' },
-  dateDay: { fontSize: 10, color: COLORS.textMuted, ...FONTS.semibold, lineHeight: 12, textTransform: 'uppercase', letterSpacing: 0.4 },
-  dateNum: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, lineHeight: 20 },
-  dateMonth: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium, lineHeight: 12, textTransform: 'uppercase', letterSpacing: 0.4 },
-  dateTextActive: { color: '#FFF' },
-
-  catBar: { paddingHorizontal: SPACING.lg, gap: 6, paddingVertical: SPACING.xs },
+  stripWrap: { marginTop: SPACING.sm },
+  catBar: { paddingHorizontal: GUTTER, gap: 6, paddingTop: SPACING.sm, paddingBottom: SPACING.xs },
   catChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -633,9 +542,8 @@ const styles = StyleSheet.create({
   catChipText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold },
   catChipTextActive: { color: COLORS.white },
 
-  list: { flex: 1, paddingHorizontal: SPACING.lg, marginTop: SPACING.xs },
-  resultsHeader: { paddingVertical: SPACING.sm },
-  resultsCount: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium, letterSpacing: 0.5 },
+  list: { flex: 1, paddingHorizontal: GUTTER, marginTop: SPACING.xs },
+  cityList: { gap: 12, marginBottom: SPACING.md },
 
   empty: { alignItems: 'center', marginTop: 60, gap: SPACING.sm, paddingHorizontal: SPACING.lg },
   emptyTitle: { ...TYPE.headline, color: COLORS.textMain, marginTop: SPACING.xs },
@@ -651,7 +559,6 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
   },
   exploreBtnText: { fontSize: 13, color: COLORS.white, ...FONTS.bold },
-
   // Mi Agenda day grouping
   pastToggle: {
     flexDirection: 'row',
@@ -762,99 +669,5 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: SPACING.sm,
     marginTop: SPACING.xs,
-  },
-  cityEventCard: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
-    marginBottom: SPACING.sm,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    overflow: 'hidden',
-  },
-  cityEventImageWrap: {
-    width: 100,
-    height: 100,
-    position: 'relative',
-  },
-  cityEventImage: {
-    width: '100%',
-    height: '100%',
-  },
-  cityEventImageOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.15)',
-  },
-  cityEventFreeBadge: {
-    position: 'absolute',
-    bottom: 6,
-    left: 6,
-    backgroundColor: COLORS.success,
-    borderRadius: RADIUS.full,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  cityEventFreeText: {
-    fontSize: 8,
-    color: COLORS.white,
-    ...FONTS.bold,
-    letterSpacing: 0.4,
-  },
-  cityEventBody: {
-    flex: 1,
-    padding: SPACING.sm,
-    justifyContent: 'space-between',
-  },
-  cityEventTitle: {
-    fontSize: 13,
-    color: COLORS.textMain,
-    ...FONTS.bold,
-    lineHeight: 17,
-  },
-  cityEventVenueRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 4,
-  },
-  cityEventVenue: {
-    fontSize: 11,
-    color: COLORS.textMuted,
-    ...FONTS.medium,
-    flex: 1,
-  },
-  cityEventTagRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 4,
-  },
-  cityEventCatBadge: {
-    backgroundColor: 'rgba(244,63,94,0.15)',
-    borderRadius: RADIUS.full,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(244,63,94,0.4)',
-  },
-  cityEventCatText: {
-    fontSize: 9,
-    color: '#F43F5E',
-    ...FONTS.bold,
-    letterSpacing: 0.3,
-  },
-  cityEventTimeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: 'rgba(174,182,196,0.15)',
-    borderRadius: RADIUS.full,
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-  },
-  cityEventTimeText: {
-    fontSize: 9,
-    color: COLORS.icon,
-    ...FONTS.bold,
   },
 });

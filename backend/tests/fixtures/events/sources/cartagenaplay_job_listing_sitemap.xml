@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AMO fixture: real sitemap https://cartagenaplay.com/job_listing-sitemap.xml fetched 2026-09-28; first 10 <url> entries kept verbatim. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url>
+		<loc>https://cartagenaplay.com/listados/</loc>
+		<lastmod>2026-09-28T21:42:34+00:00</lastmod>
+	</url>
+<url>
+		<loc>https://cartagenaplay.com/event/costa-clash-en-prestige/</loc>
+		<lastmod>2026-02-24T05:42:45+00:00</lastmod>
+		<image:image>
+			<image:loc>https://cartagenaplay.com/wp-content/uploads/2026/01/619689298_122282908316032640_4890285079146042725_n.jpg</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc>https://cartagenaplay.com/event/gioli-assia-en-ctg/</loc>
+		<lastmod>2026-02-24T05:42:45+00:00</lastmod>
+		<image:image>
+			<image:loc>https://cartagenaplay.com/wp-content/uploads/2026/01/619897775_18039254825740395_1610967104551656709_n-1.jpg</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc>https://cartagenaplay.com/event/saoco-en-cartagena/</loc>
+		<lastmod>2026-02-24T05:42:45+00:00</lastmod>
+		<image:image>
+			<image:loc>https://cartagenaplay.com/wp-content/uploads/2026/01/615589317_17875724946470214_8841318424326049810_n.jpg</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc>https://cartagenaplay.com/event/jean-day-en-el-pasquin/</loc>
+		<lastmod>2026-02-26T03:17:35+00:00</lastmod>
+		<image:image>
+			<image:loc>https://cartagenaplay.com/wp-content/uploads/2026/02/627402493_18080387105356927_4432364381054435853_n.jpg</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc>https://cartagenaplay.com/event/san-valentines-day-party/</loc>
+		<lastmod>2026-02-28T05:42:41+00:00</lastmod>
+		<image:image>
+			<image:loc>https://cartagenaplay.com/wp-content/uploads/2026/01/627408767_10241767153977351_1379749951429043084_n.jpg</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc>https://cartagenaplay.com/planes-en-cartagena/2milcocteles/</loc>
+		<lastmod>2026-03-01T05:42:37+00:00</lastmod>
+		<image:image>
+			<image:loc>https://cartagenaplay.com/wp-content/uploads/2026/01/608741552_18309624577267331_3624838772393511192_n.jpg</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc>https://cartagenaplay.com/event/red-room-en-la-farra-club/</loc>
+		<lastmod>2026-03-02T05:42:46+00:00</lastmod>
+		<image:image>
+			<image:loc>https://cartagenaplay.com/wp-content/uploads/2026/01/623371823_122300889026023929_7047846717735587235_n.jpg</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc>https://cartagenaplay.com/event/sabado-de-alta-gama/</loc>
+		<lastmod>2026-03-06T05:42:53+00:00</lastmod>
+		<image:image>
+			<image:loc>https://cartagenaplay.com/wp-content/uploads/2026/02/WhatsApp-Image-2026-02-03-at-2.38.24-PM.jpeg</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc>https://cartagenaplay.com/event/charanga-joven-en-el-mirador/</loc>
+		<lastmod>2026-03-06T05:42:53+00:00</lastmod>
+		<image:image>
+			<image:loc>https://cartagenaplay.com/wp-content/uploads/2026/02/WhatsApp-Image-2026-02-03-at-12.37.51-AM.jpeg</image:loc>
+		</image:image>
+	</url>
+</urlset>

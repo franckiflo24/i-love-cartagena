@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { forgetLocalHomeBase } from '../lib/homeBase';
+import { releasePushOnSignOut } from '../lib/eventNotif';
 import { API_BASE, fetchT, primeToken, setSwrScope, swr } from '../constants/api';
 import { router } from 'expo-router';
 import { safeNext } from '../lib/safeNext';
@@ -336,6 +337,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const logout = useCallback(async () => {
+    // FIRST, while the session still exists (both release endpoints need auth): stop this
+    // device receiving the signed-out account's pushes — the next person on a shared phone or
+    // browser must never get the previous user's event reminders. Every sign-out path goes
+    // through here. Capped so a slow network never blocks signing out; never throws.
+    try {
+      await Promise.race([releasePushOnSignOut(), new Promise<void>((r) => setTimeout(r, 4000))]);
+    } catch (e) { console.error('[AuthContext] push release failed', e); }
     try {
       const token = await getToken();
       // keepalive: the revocation must survive any navigation/reload that

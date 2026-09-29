@@ -17,7 +17,7 @@ import { usePersonalization } from '../../src/context/PersonalizationContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { GrowthCards } from '../../src/components/GrowthCards';
+import { GrowthCards, EventNotifCard } from '../../src/components/GrowthCards';
 import { requestTutorialReplay } from '../../src/components/TutorialOverlay';
 
 const LANG_CODES: Record<Lang, string> = { es: 'ES', en: 'EN', fr: 'FR', pt: 'PT' };
@@ -159,6 +159,12 @@ export default function PerfilScreen() {
     }
   }, [favIds.length, user]);
 
+  // AuthContext.logout() releases this device's push registration first (a shared
+  // phone/browser must not keep receiving this account's event reminders).
+  const signOut = useCallback(async () => {
+    await logout();
+  }, [logout]);
+
   if (!user) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -280,6 +286,9 @@ export default function PerfilScreen() {
             {/* Apple sign-in intentionally not shown — not implemented (would be a
                 dead button). Ship real Sign in with Apple before re-enabling. */}
           </View>
+
+          {/* Nearby-events opt-in works for guests too (stored on this device). */}
+          <EventNotifCard signedIn={false} userId={null} flush />
 
           {/* Section separator */}
           <View style={styles.sectionSep}>
@@ -470,6 +479,9 @@ export default function PerfilScreen() {
 
         <GrowthCards signedIn={!!user} />
 
+        {/* ── Perfil › Notificaciones (event reminders + nearby opt-in) ── */}
+        <EventNotifCard signedIn userId={user.user_id} />
+
         {/* ── Quick Access ── Home keeps six tools in its 2×3 grid (Moverse, Agenda,
             Explorar, Pasaporte, Mapa, Mi base); everything demoted from the old
             14-tile row lives here so nothing shipped becomes unreachable. */}
@@ -480,7 +492,7 @@ export default function PerfilScreen() {
           <SettingsRow icon="heart-outline" iconColor={COLORS.bougainvillea} label={s('home_favorites')} onPress={() => router.push('/favorites' as any)} />
           <SettingsRow icon="medkit-outline" iconColor="#14B8A6" label={tr('Esenciales')} onPress={() => router.push('/esenciales' as any)} />
           <SettingsRow icon="shield-checkmark-outline" iconColor="#22C55E" label={tr('Sin sustos')} onPress={() => router.push('/seguridad' as any)} />
-          <SettingsRow icon="musical-notes-outline" iconColor="#A855F7" label={s('home_concerts')} onPress={() => router.push('/concerts' as any)} />
+          <SettingsRow icon="musical-notes-outline" iconColor="#A855F7" label={s('home_concerts')} onPress={() => router.push('/que-pasa?cat=concert' as any)} />
           <SettingsRow icon="boat-outline" iconColor="#06B6D4" label={s('home_transport')} onPress={() => router.push('/transport' as any)} />
           <SettingsRow icon="trail-sign-outline" label={tr('Rutas de Cartagena')} onPress={() => router.push('/rutas' as any)} />
           <SettingsRow icon="sparkles-outline" iconColor="#10B981" label={tr('Itinerarios IA')} onPress={() => router.push('/itineraries' as any)} />
@@ -557,6 +569,8 @@ export default function PerfilScreen() {
                     onPress: async () => {
                       try {
                         await api.delete('/auth/delete-account');
+                        // Server purges tokens/subscriptions; logout() also drops this
+                        // browser's subscription locally (its server calls may 401 now — fine).
                         await logout();
                         router.replace('/(tabs)');
                       } catch (e) {
@@ -572,7 +586,7 @@ export default function PerfilScreen() {
         </View>
 
         {/* ── Logout Button ── */}
-        <TouchableOpacity testID="logout-btn" style={sty.logoutBtn} onPress={logout} activeOpacity={0.85}>
+        <TouchableOpacity testID="logout-btn" style={sty.logoutBtn} onPress={signOut} activeOpacity={0.85}>
           <Ionicons name="log-out-outline" size={18} color="#EF4444" />
           <Text style={sty.logoutText}>{tr('Cerrar sesión')}</Text>
         </TouchableOpacity>

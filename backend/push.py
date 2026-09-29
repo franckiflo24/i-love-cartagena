@@ -30,6 +30,12 @@ logger = logging.getLogger("amo.push")
 EXPO_PUSH_URL = os.getenv("EXPO_PUSH_URL", "https://exp.host/--/api/v2/push/send")
 EXPO_PUSH_TIMEOUT = float(os.getenv("EXPO_PUSH_TIMEOUT", "10"))
 
+# Failures that happen BEFORE any byte of the request reaches Expo: the push was certainly not
+# sent. Every other exception during a POST leaves the outcome unknown ("uncertain").
+_NOT_SENT_ERRORS: tuple[type[BaseException], ...] = (
+    httpx.ConnectError, httpx.ConnectTimeout, httpx.PoolTimeout, httpx.UnsupportedProtocol,
+)
+
 
 def is_expo_token(token: str | None) -> bool:
     """Validates the format of an Expo push token."""
@@ -50,13 +56,19 @@ async def send_expo_push(
     """
     Send a push notification to one or more Expo push tokens.
 
-    Returns a summary dict {sent, errors, invalid_tokens}.
+    Returns a summary dict {sent, errors, invalid_tokens, uncertain}.
     Invalid tokens (DeviceNotRegistered) are NOT removed here — the caller
     can choose to dispose of them via deregister_push_token().
+
+    `uncertain` counts messages whose outcome is UNKNOWN: the POST may already
+    have reached Expo (a read/write timeout, a dropped connection mid-response,
+    an unreadable 200 body). Callers that dedupe (event reminders) must treat
+    them as possibly delivered and never re-send them on the next tick. A
+    failure to CONNECT (nothing left this process) is a plain "not sent".
     """
     valid_tokens = [t for t in (tokens or []) if is_expo_token(t)]
     if not valid_tokens:
-        return {"sent": 0, "errors": [], "invalid_tokens": []}
+        return {"sent": 0, "errors": [], "invalid_tokens": [], "uncertain": 0}
 
     messages = [
         {
@@ -72,28 +84,49 @@ async def send_expo_push(
     ]
 
     sent = 0
+    uncertain = 0
     errors: list[str] = []
     invalid: list[str] = []
+    batch: list[dict[str, Any]] = []
     try:
         async with httpx.AsyncClient(timeout=EXPO_PUSH_TIMEOUT) as client:
             # Expo accepts batched arrays; split to chunks of 100 just in case
             for i in range(0, len(messages), 100):
                 batch = messages[i : i + 100]
-                resp = await client.post(
-                    EXPO_PUSH_URL,
-                    json=batch,
-                    headers={
-                        "Accept": "application/json",
-                        "Accept-Encoding": "gzip, deflate",
-                        "Content-Type": "application/json",
-                    },
-                )
+                try:
+                    resp = await client.post(
+                        EXPO_PUSH_URL,
+                        json=batch,
+                        headers={
+                            "Accept": "application/json",
+                            "Accept-Encoding": "gzip, deflate",
+                            "Content-Type": "application/json",
+                        },
+                    )
+                except _NOT_SENT_ERRORS as exc:
+                    # Never reached Expo (DNS / TCP / TLS connect, pool wait): safely not sent.
+                    logger.warning("send_expo_push not sent: %s", type(exc).__name__)
+                    errors.append(f"not_sent:{type(exc).__name__}")
+                    continue
+                except Exception as exc:  # noqa: BLE001
+                    # ReadTimeout / WriteTimeout / RemoteProtocolError / anything after the request
+                    # started: Expo may already have queued these pushes.
+                    logger.warning("send_expo_push outcome unknown: %s", type(exc).__name__)
+                    errors.append(f"uncertain:{type(exc).__name__}")
+                    uncertain += len(batch)
+                    continue
                 if resp.status_code != 200:
                     errors.append(f"HTTP {resp.status_code}: {resp.text[:200]}")
                     continue
-                payload = resp.json()
-                receipts = payload.get("data") or []
-                for tok, receipt in zip([m["to"] for m in batch], receipts):
+                try:
+                    payload = resp.json()
+                except ValueError:
+                    # 200 with an unreadable body: Expo accepted the request, receipts unknown.
+                    errors.append("uncertain:bad_json")
+                    uncertain += len(batch)
+                    continue
+                receipts = (payload.get("data") if isinstance(payload, dict) else None) or []
+                for tok, receipt in zip(valid_tokens[i : i + 100], receipts):
                     status = (receipt or {}).get("status")
                     if status == "ok":
                         sent += 1
@@ -103,11 +136,11 @@ async def send_expo_push(
                         errors.append(f"{tok[:20]}…: {err_msg}")
                         if err_details.get("error") in {"DeviceNotRegistered", "InvalidCredentials"}:
                             invalid.append(tok)
-    except Exception as exc:  # pragma: no cover (network failure)
-        logger.warning(f"send_expo_push failed: {exc}")
-        errors.append(str(exc))
+    except Exception as exc:  # noqa: BLE001 — client setup / teardown; per-batch errors are handled above
+        logger.warning("send_expo_push failed: %s", type(exc).__name__)
+        errors.append(f"failed:{type(exc).__name__}")
 
-    return {"sent": sent, "errors": errors, "invalid_tokens": invalid}
+    return {"sent": sent, "errors": errors, "invalid_tokens": invalid, "uncertain": uncertain}
 
 
 # ─────────────────────────────────────────────────────────────

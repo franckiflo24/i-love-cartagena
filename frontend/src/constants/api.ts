@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import Constants from 'expo-constants';
 import { PRIVATE_PATH, NO_CACHE_PATH, swr } from '../lib/swrCache';
 
 // Re-exported so screens can `import { api, swr } from '../constants/api'`.
@@ -121,6 +122,29 @@ export const fetchT = async (url: string, init: RequestInit = {}, ms: number = G
 // (401/403) and NOT "this thing no longer exists" (404).
 const isTransientStatus = (status: number): boolean =>
   status >= 500 || status === 429 || status === 408;
+
+// EVENTS-ELITE §15 T7: a 404/410 on /events* is FINAL. The server says the
+// event is gone, hidden or no longer verified — the static snapshot or the swr
+// last-good copy must never resurrect it (a hidden event came back from
+// /data/events/<id>.json before this rule).
+const EVENTS_PATH = /^\/events(\/|\?|$)/;
+const isFinalNotFound = (path: string, status: number): boolean =>
+  (status === 404 || status === 410) && EVENTS_PATH.test(path);
+
+// EVENTS-ELITE §13 J8: `X-AMO-Client: <platform>/<app version>` on requests to
+// our backend. NATIVE ONLY. The EVENTS-ELITE backend adds X-AMO-Client to the CORS
+// allow_headers (server.py CORSMiddleware), but a web bundle that sends it against a
+// backend without that entry (an older deploy or a rollback) fails every preflight
+// and takes the whole web app down, and a custom header makes every simple GET
+// preflighted. Web is identified by its Origin; turn it on for web only once the
+// backend change has been live for a while.
+const APP_VERSION = String((Constants?.expoConfig as { version?: unknown } | null)?.version || '0.0.0')
+  .replace(/[^0-9A-Za-z.+-]/g, '')
+  .slice(0, 32) || '0.0.0';
+export const AMO_CLIENT = `${Platform.OS}/${APP_VERSION}`;
+/** Headers every raw fetch to our backend should carry (empty on web — see above). */
+export const AMO_CLIENT_HEADERS: Readonly<Record<string, string>> =
+  Platform.OS === 'web' ? {} : { 'X-AMO-Client': AMO_CLIENT };
 
 // Last-good payload for PUBLIC paths only (query strings included — the cache
 // key is the full path, so a `?date=` never serves another day's rows). Private
@@ -852,7 +876,7 @@ const buildHeaders = async (override?: Record<string, string>, withAuth: boolean
   // without triggering a CORS preflight, which the backend's origin allowlist blocks.
   // Sent on every app request so the backend can (in a follow-up) require it on
   // mutating cookie-auth routes (session cookie is SameSite=None for cross-origin auth).
-  const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', ...AMO_CLIENT_HEADERS };
   // withAuth=false (PUBLIC_GET_NO_AUTH): identity-free request → CDN-shareable,
   // and no keychain read on the hot path.
   if (withAuth && !override?.Authorization) {
@@ -908,6 +932,11 @@ const liveGet = async (path: string, opts?: Opts): Promise<any> => {
     throw err;
   }
   if (!res.ok) {
+    if (isFinalNotFound(path, res.status)) {
+      // Drop any last-good copy too, so a later outage can't serve it either.
+      try { await swr.invalidate(path); } catch (e) { console.error('[api] swr invalidate failed', e); }
+      throw new Error(`GET ${path} failed: ${res.status}`);
+    }
     // Backend reachable but broken (5xx/429) → same recovery order. A 401/403/404
     // is an answer, not an outage: never masked by cache or static.
     if (isTransientStatus(res.status)) {

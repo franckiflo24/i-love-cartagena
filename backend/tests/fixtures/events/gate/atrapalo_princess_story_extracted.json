@@ -1,0 +1,10 @@
+{"source":"chrome-mcp real browser (curl bot+browser UA both got 'Client Challenge' JS page, HTTP 200, 3038 bytes)",
+ "listing_url":"https://www.atrapalo.com/entradas/murcia/cartagena/",
+ "listing_card_text":"Princess Story - Cartagena | Centro Cultural Ramón Alonso Luzzy  (Cartagena)  Teatro para niños | 28 nov | desde 22€ ... 19,95€ +2€ gastos gestión",
+ "detail_url":"https://www.atrapalo.com/entradas/princess-story-cartagena_e4951790/",
+ "detail_title":"Princess Story - Cartagena (Cartagena) - Atrapalo.com",
+ "jsonld":[{"type":"Product","name":"Princess Story - Cartagena","priceCurrency":"EUR","price":"19.95"},
+  {"type":"ChildrensEvent","name":"Princess Story - Cartagena","startDate":"2026-11-28T17:00:00+01:00","endDate":"2026-11-28",
+   "location":{"name":"Centro Cultural Ramón Alonso Luzzy","address":{"streetAddress":"C. Jacinto Benavente, 7","addressLocality":"Cartagena","addressRegion":"Murcia","addressCountry":"España"},"geo":[37.6095,-0.97871]},"eventStatus":"https://schema.org/EventScheduled"}],
+ "footer":"ATRAPALO S.L. - Carrer de Pere IV 105-109 - 08018 Barcelona (España) - GC1018",
+ "second_card":"Noches encendidas - Tributo a la luz de las velas - Cartagena | Centro Cultural Ramón Alonso Luzzy (Cartagena) | 28 nov | 14,95€"}

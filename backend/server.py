@@ -56,11 +56,16 @@ from pymongo.errors import DuplicateKeyError as _DuplicateKeyError
 # module (walking/occasions/ai_agent/reservations/pulse) so no route can drift.
 from partner_visibility import (  # noqa: E402
     PUBLIC_PARTNER_FILTER, INTERNAL_PARTNER_FIELDS, PUBLIC_PARTNER_PROJECTION,
-    PUBLIC_EVENT_PROJECTION, PUBLIC_CITY_EVENT_FILTER, is_publicly_visible,
+    PUBLIC_EVENT_PROJECTION, is_publicly_visible, PARTNER_EVENT_PUBLIC,
 )
 from events_time import (  # noqa: E402  — past events must fall out; "now" is Bogota, not UTC
     upcoming_query, filter_live, today_str as _today_bogota,
 )
+# EVENTS-ELITE (docs/events-elite/DESIGN.md): every public event read goes through the
+# verified city_events set (events_runtime.public_rows → events_gate.public_view). Public
+# paths never read db.events / db.concerts again (§15 T1).
+import events_elite as _events_elite  # noqa: E402
+import luna_events as _luna_events  # noqa: E402
 
 # ── In-memory rate limiter for expensive AI endpoints ──────────
 from collections import defaultdict
@@ -950,7 +955,6 @@ async def business_set_main_photo(request: Request):
 @api_router.get("/business/events")
 async def business_list_events(request: Request):
     biz = await get_current_business(request)
-    await _migrate_stuck_pending_events()
     events = await db.partner_events.find({"partner_id": biz["partner_id"]}, {"_id": 0}).sort("date", -1).to_list(200)
     return events
 
@@ -994,10 +998,11 @@ async def business_create_event(request: Request):
     if verdict == "AUTO_APPROVE" and mod.get("improved_description") and mod["completeness_score"] < 70:
         final_description = mod["improved_description"]
 
-    # Publish-first (Franck, Aug 24 2026): partner events go live unless the AI
-    # REJECTS them outright. NEEDS_REVIEW no longer gates publication — it only
-    # keeps moderation_status="pending" as a flag for an optional admin spot-check.
-    is_published = (verdict != "REJECT")
+    # EVENTS-ELITE §15 T4 / §13 D5: moderation fails CLOSED. Only an AI AUTO_APPROVE
+    # publishes; NEEDS_REVIEW (which is also what moderate_event returns when the LLM
+    # fails) waits for a human, and every public partner surface additionally requires
+    # moderation_status == "approved". The old publish-first-on-LLM-failure branch is gone.
+    is_published = (verdict == "AUTO_APPROVE")
     moderation_status = {
         "AUTO_APPROVE": "approved",
         "NEEDS_REVIEW": "pending",
@@ -1055,15 +1060,14 @@ async def business_create_event(request: Request):
             "is_resolved": False,
             "created_at": datetime.now(timezone.utc).isoformat(),
         })
-        # Ping the team (fail-soft). NEEDS_REVIEW is informational — the event is
-        # already live; only REJECT actually blocked publication.
+        # Ping the team (fail-soft). NEEDS_REVIEW is NOT live: it waits for a moderator.
         try:
             if verdict == "REJECT":
                 subject = f"AMO · Evento RECHAZADO: {(partner or {}).get('name','')}"
                 title_line = f"Evento rechazado (no publicado): {event['title']}"
             else:
-                subject = f"AMO · Evento publicado (revisión opcional): {(partner or {}).get('name','')}"
-                title_line = f"Evento publicado — revisión opcional: {event['title']}"
+                subject = f"AMO · Evento en revisión (no publicado): {(partner or {}).get('name','')}"
+                title_line = f"Evento pendiente de revisión — aún no publicado: {event['title']}"
             await _emails_svc.send_admin_alert(
                 subject=subject,
                 title=title_line,
@@ -2725,7 +2729,7 @@ async def business_update_event(event_id: str, request: Request):
         update["flyer_url"] = fv
     # S1: a partner may PAUSE (true->false) but NEVER self-publish (false->true) — a
     # rejected event can only go public through re-moderation on a content edit.
-    # (Publish-first model: only REJECT unpublishes; server decides is_published.)
+    # (Fail-closed model, §15 T4: only AUTO_APPROVE publishes; server decides is_published.)
     if update.get("is_published") is True:
         update.pop("is_published")
 
@@ -2757,8 +2761,8 @@ async def business_update_event(event_id: str, request: Request):
         update["moderation_issues"] = mod.get("issues", [])
         update["moderation_score"] = mod.get("completeness_score", 0)
         update["moderation_tags"] = mod.get("tags", [])
-        # Publish-first: only REJECT takes the event offline after an edit.
-        update["is_published"] = (verdict != "REJECT")
+        # Fail-closed (§15 T4): only AUTO_APPROVE keeps / puts the event online after an edit.
+        update["is_published"] = (verdict == "AUTO_APPROVE")
         if verdict == "AUTO_APPROVE" and mod.get("category") in ("gastronomy","music","party","wellness","art","popup"):
             update["category"] = mod["category"]
             if mod.get("category") != new_cat:
@@ -4046,6 +4050,14 @@ async def delete_account(request: Request):
     await db.user_profiles.delete_many({"user_id": user_id})
     await db.notifications.delete_many({"user_id": user_id})
     await db.push_tokens.delete_many({"user_id": user_id})
+    # Expo tokens are keyed by owner (push.register_push_token) — the user_id filter above
+    # never matched them, so a deleted account kept receiving pushes (EVENTS-ELITE §15 U).
+    await db.push_tokens.delete_many({"owner_type": "user", "owner_id": user_id})
+    await db.push_subscriptions.delete_many({"user_id": user_id})
+    # EVENTS-ELITE reminder state (§2, §15 U): prefs, the daily cap and the per-event claims.
+    await db.event_notif_prefs.delete_many({"user_id": user_id})
+    await db.event_push_log.delete_many({"user_id": user_id})
+    await db.event_reminders_sent.delete_many({"user_id": user_id})
     await db.rewards_accounts.delete_many({"user_id": user_id})
     await db.rewards_history.delete_many({"user_id": user_id})
     await db.analytics.delete_many({"user_id": user_id})
@@ -4160,6 +4172,31 @@ def _normalize_event_media(events, id_keys=("event_id", "id", "concert_id")):
     return events
 
 
+# ── EVENTS-ELITE public feed (DESIGN.md §8, §13 C1) ──────────
+# Declared ABOVE @api_router.get("/events/{event_id}") so /events/feed never reaches get_event.
+# Every row comes from events_runtime.public_rows → events_gate.public_view, re-evaluated on
+# each read (stored status/confidence are caches). Kill switch off → empty lists.
+@api_router.get("/events/feed")
+async def events_feed(response: Response):
+    _cache(response, 60, swr=120)
+    return await _events_elite.feed_payload(db, image_ok=_public_image_exists)
+
+
+@api_router.get("/events/feed/item/{event_id}")
+async def events_feed_item(event_id: str, response: Response):
+    """ANY status (hidden/expired carry status_reason; hidden/review rows have dates, times and
+    ticket_url nulled server-side), aliases resolve (§8, §13 A4/J2). Unknown / disabled → 404."""
+    _cache(response, 60, swr=120)
+    item = await _events_elite.feed_item(db, event_id, image_ok=_public_image_exists)
+    if item is None:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return item
+
+
+# ── Legacy event endpoints (old binaries 1.1.0/1.1.1, §13 D, §15 T1) ──
+# ONLY published + HIGH + future + non-umbrella city_events, in the exact legacy shape
+# (events_legacy.to_legacy_event). db.events is never read here again; VERIFY never reaches
+# an old client (it cannot show the label).
 @api_router.get("/events")
 async def list_events(
     response: Response,
@@ -4168,50 +4205,36 @@ async def list_events(
     is_free: Optional[bool] = None,
     venue_id: Optional[str] = None,
 ):
-    _cache(response, 60)
-    query = dict(PUBLIC_CITY_EVENT_FILTER)
-    if date:
-        query["date"] = date
-    if event_type:
-        query["type"] = event_type
-    if is_free is not None:
-        query["is_free"] = is_free
-    if venue_id:
-        query["venue_id"] = venue_id
-    # Past events fall out automatically; "today" is Bogota, not UTC.
-    events = await db.events.find(upcoming_query(query), PUBLIC_EVENT_PROJECTION).to_list(200)
-    return _normalize_event_media(filter_live(events))
+    _cache(response, 60, swr=120)   # §8: public event reads (60/120), same as the feed
+    return await _events_elite.legacy_list(db, date_=date, event_type=event_type, is_free=is_free,
+                                           venue_id=venue_id, image_ok=_public_image_exists)
 
 
 @api_router.get("/events/featured")
 async def featured_events(response: Response):
-    _cache(response, 60)
-    events = await db.events.find(upcoming_query({**PUBLIC_CITY_EVENT_FILTER, "featured": True}), PUBLIC_EVENT_PROJECTION).to_list(40)
-    events = filter_live(events)[:10]
-    if not events:
-        fb = await db.events.find(upcoming_query(dict(PUBLIC_CITY_EVENT_FILTER)), PUBLIC_EVENT_PROJECTION).to_list(40)
-        events = filter_live(fb)[:6]
-    return _normalize_event_media(events)
-
-
-@api_router.get("/events/{event_id}")
-async def get_event(event_id: str, response: Response):
-    _cache(response, 60)
-    event = await db.events.find_one({"event_id": event_id, **PUBLIC_CITY_EVENT_FILTER}, PUBLIC_EVENT_PROJECTION)
-    if not event:
-        event = await db.events.find_one({"slug": event_id, **PUBLIC_CITY_EVENT_FILTER}, PUBLIC_EVENT_PROJECTION)
-    if not event:
-        raise HTTPException(status_code=404, detail="Event not found")
-    _normalize_event_media([event])
-    return event
+    _cache(response, 60, swr=120)   # §8: public event reads (60/120), same as the feed
+    return await _events_elite.legacy_featured_rows(db, image_ok=_public_image_exists)
 
 
 @api_router.get("/events/dates/available")
 async def available_dates(response: Response):
-    _cache(response, 60)
-    today = _today_bogota()
-    dates = await db.events.distinct("date", PUBLIC_CITY_EVENT_FILTER)
-    return sorted(d for d in dates if d and d >= today)
+    _cache(response, 60, swr=120)   # §8: public event reads (60/120), same as the feed
+    rows = await _events_elite.legacy_rows(db, image_ok=_public_image_exists)
+    return _events_elite.legacy.legacy_dates(rows)
+
+
+@api_router.get("/events/{event_id}")
+async def get_event(event_id: str, response: Response):
+    """A published + HIGH + future city_events row (aliases resolve), else 404 — so an old
+    binary shows "Evento no encontrado" instead of a dead, hidden or legacy event. The
+    reserved ids feed / featured / dates are always 404 here (§13 C1)."""
+    _cache(response, 60, swr=120)   # §8: public event reads (60/120), same as the feed
+    if event_id in _events_elite.RESERVED_EVENT_IDS:
+        raise HTTPException(status_code=404, detail="Event not found")
+    event = await _events_elite.legacy_event_item(db, event_id, image_ok=_public_image_exists)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return event
 
 
 # ── Venues ──────────────────────────────────────────────────
@@ -4317,27 +4340,11 @@ async def get_partner(partner_id: str, response: Response):
 
 
 # ── Partner Events (publicados por los partners) ────────────
-# Publish-first migration (Aug 24 2026): events stuck in the old pre-approval
-# queue ("pending" + unpublished) go live. Runs once per cold start, scoped so it
-# never touches partner-paused (approved+unpublished) or admin-rejected events.
-_pending_events_migrated = False
-
-
-async def _migrate_stuck_pending_events():
-    global _pending_events_migrated
-    if _pending_events_migrated:
-        return
-    _pending_events_migrated = True
-    try:
-        res = await db.partner_events.update_many(
-            {"source": "partner", "moderation_status": "pending", "is_published": False},
-            {"$set": {"is_published": True, "published_by": "auto:publish-first-migration",
-                      "published_at": datetime.now(timezone.utc).isoformat()}},
-        )
-        if res.modified_count:
-            logger.info(f"[publish-first] auto-published {res.modified_count} stuck pending events")
-    except Exception as exc:
-        logger.warning(f"[publish-first] pending-event migration skipped: {exc}")
+# EVENTS-ELITE §15 T4 / §13 D5: every public partner surface requires an EXPLICIT
+# moderation_status == "approved" (plus is_published, a future date and an approved venue).
+# The publish-first migration that auto-published the pending queue on every cold start is
+# deleted: a pending or LLM-failed event is never public. PARTNER_EVENT_PUBLIC lives in
+# partner_visibility.py (imported above) so trips.py applies the very same filter.
 
 
 @api_router.get("/partner-events")
@@ -4350,8 +4357,7 @@ async def list_partner_events(
 ):
     """List partner-published events. Filter by date (YYYY-MM-DD), category, partner_id, or upcoming=true."""
     _cache(response, 60)
-    await _migrate_stuck_pending_events()
-    query: dict = {"is_published": True}
+    query: dict = dict(PARTNER_EVENT_PUBLIC)
     if date:
         query["date"] = date
     if category and category != "all":
@@ -4380,10 +4386,10 @@ async def list_partner_events(
 
 @api_router.get("/partner-events/{event_id}")
 async def get_partner_event(event_id: str):
-    # C2: only PUBLISHED events are publicly viewable (pending / AI-rejected events
+    # C2: only PUBLISHED + APPROVED events are publicly viewable (pending / AI-rejected events
     # must never render — the owner sees their own via GET /business/submissions).
-    event = await db.partner_events.find_one({"event_id": event_id, "is_published": True}, PUBLIC_EVENT_PROJECTION)
-    if not event:
+    event = await db.partner_events.find_one({"event_id": event_id, **PARTNER_EVENT_PUBLIC}, PUBLIC_EVENT_PROJECTION)
+    if not event or not filter_live([event]):   # §15 T4: approved AND not yet over
         raise HTTPException(status_code=404, detail="Event not found")
     # The venue must be publicly approved AND internal fields are stripped.
     p = await db.partners.find_one({"partner_id": event["partner_id"], **PUBLIC_PARTNER_FILTER}, PUBLIC_PARTNER_PROJECTION)
@@ -4444,8 +4450,8 @@ async def track_promotion_click(promo_id: str, request: Request):
 @api_router.post("/partner-events/{event_id}/track-reserve")
 async def track_partner_event_reserve(event_id: str, request: Request):
     """Track a reservation click and return the booking URL with UTM params so the partner knows it came from Amo Cartagena."""
-    # U6: only a published event on an approved venue exposes a booking URL.
-    event = await db.partner_events.find_one({"event_id": event_id, "is_published": True}, {"_id": 0})
+    # U6: only a published + approved event on an approved venue exposes a booking URL.
+    event = await db.partner_events.find_one({"event_id": event_id, **PARTNER_EVENT_PUBLIC}, {"_id": 0})
     if not event or not await _approved_partner_ids([event.get("partner_id")]):
         raise HTTPException(status_code=404, detail="Event not found")
     await db.partner_events.update_one({"event_id": event_id}, {"$inc": {"reserve_clicks": 1}})
@@ -4584,10 +4590,11 @@ async def _build_user_profile_for_routes(user_id: str) -> tuple[Optional[dict], 
             p = await db.partners.find_one({"partner_id": item_id}, {"_id": 0})
             if p:
                 enriched.append({"item_type": "partner", "name": p.get("name"), "category": p.get("category"), "subcategory": p.get("subcategory"), "tier": p.get("tier")})
-        elif item_type == "event":
-            e = await db.events.find_one({"event_id": item_id}, {"_id": 0}) or await db.partner_events.find_one({"event_id": item_id}, {"_id": 0})
+        elif item_type in ("event", "concert"):
+            # EVENTS-ELITE §13 D4: only a live, verified city_events row feeds the LLM prompt.
+            e = await _events_elite.favorite_meta(db, item_id)
             if e:
-                enriched.append({"item_type": "event", "name": e.get("title") or e.get("name"), "category": e.get("category"), "tier": "event"})
+                enriched.append({"item_type": "event", "name": e.get("name"), "category": e.get("category"), "tier": "event"})
         elif item_type == "venue":
             v = await db.venues.find_one({"venue_id": item_id}, {"_id": 0})
             if v:
@@ -4595,12 +4602,63 @@ async def _build_user_profile_for_routes(user_id: str) -> tuple[Optional[dict], 
     return profile, enriched
 
 
+def _guard_itinerary_text(result: dict, today_events: list, partner_names: Any = (), now: Any = None) -> dict:
+    """EVENTS-ELITE §15 V2 on the itinerary LLM: its prose may name an event with a time/day
+    ('concierto de X esta noche a las 21:00') that no source carries. Grounding = today's
+    APPROVED partner events (their titles and times). A violating description / note is
+    dropped. Each STOP is guarded as ONE claim — its time, title and why together, since the
+    app shows them side by side ('22:00 · Concierto de Silvestre Dangond'): an event word or a
+    proper name that no partner / today's event / Cartagena place carries, next to the stop's
+    time, blanks the claim (title falls back to the venue, why becomes '')."""
+    import logging as _logging  # local: the function is also exec'd standalone by the tests
+    log = _logging.getLogger(__name__)
+    times = [t for e in today_events or [] for t in (e.get("start_time"), e.get("end_time")) if t]
+    anchors = [str(e.get("title")) for e in today_events or [] if e.get("title")]
+    known = [str(n) for n in partner_names or () if isinstance(n, str) and n.strip()]
+    known += [str(e.get(k)) for e in today_events or [] for k in ("title", "venue", "partner_name")
+              if isinstance(e.get(k), str) and e.get(k)]
+    lang = "es"
+
+    def clean(v: Any) -> Any:
+        if not isinstance(v, str) or not v.strip():
+            return v
+        return _luna_events.strip_ungrounded(v, [], lang, extra_times=times, today_anchors=anchors, now=now)
+
+    def stop_violates(stop: dict) -> bool:
+        parts = [str(stop.get(k) or "").strip() for k in ("time", "title", "why")]
+        claim = " ".join(p.rstrip(".") + "." for p in parts[1:] if p)
+        claim = f"{parts[0]} {claim}".strip()
+        if not claim:
+            return False
+        try:
+            return bool(_luna_events.find_violations(
+                claim, [], lang, extra_times=times, now=now, names=True, names_need_event=False,
+                known_names=known, today_anchors=anchors))
+        except Exception as exc:  # noqa: BLE001 — a guard that cannot run fails closed
+            log.error("[itinerary] stop guard failed: %s", type(exc).__name__)
+            return True
+
+    for k in ("description", "personal_note"):
+        if k in result:
+            result[k] = clean(result.get(k))
+    for stop in result.get("stops") or []:
+        if not isinstance(stop, dict):
+            continue
+        if stop_violates(stop):
+            log.warning("[itinerary] stop with an ungrounded event claim blanked")
+            stop["title"] = stop.get("venue") or ""
+            stop["why"] = ""
+    return result
+
+
 async def _generate_daily_itinerary(user: Optional[dict], category: str, force: bool = False) -> dict:
     from ai_itinerary import generate_itinerary
 
     cat = _resolve_itinerary_category(category)
 
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    # Bogotá day, not UTC: after 19:00 local the UTC date is already tomorrow, which fed
+    # TOMORROW's partner events to the LLM as "Eventos de partners de HOY" and rolled the cache.
+    today = _today_bogota()
     user_id = (user or {}).get("user_id") or "guest"
     cache_key = f"v4:{user_id}:{cat}:{today}"
 
@@ -4643,7 +4701,7 @@ async def _generate_daily_itinerary(user: Optional[dict], category: str, force: 
     # Fetch today's partner events for category
     ecats = list(_ecats_for(cat))
     today_events = await db.partner_events.find(
-        {"date": today, "category": {"$in": ecats}, "is_published": True},
+        {"date": today, "category": {"$in": ecats}, **PARTNER_EVENT_PUBLIC},
         {"_id": 0},
     ).to_list(20)
     _te_ok = await _approved_partner_ids(e.get("partner_id") for e in today_events)
@@ -4661,6 +4719,8 @@ async def _generate_daily_itinerary(user: Optional[dict], category: str, force: 
         partners_pool=partners_pool,
         today_events=today_events,
     )
+    result = _guard_itinerary_text(result, today_events,
+                                   partner_names=[p.get("name") for p in partners_pool if isinstance(p, dict)])
 
     record = {
         "cache_key": cache_key,
@@ -5035,7 +5095,14 @@ async def toggle_my_week(request: Request):
         week.remove(event_id)
         action = "removed"
     else:
-        week.append(event_id)
+        # EVENTS-ELITE §15 T3: only a live verified city event (ce- id, published or
+        # date_tbc) can be added; legacy ids are refused (removal above always works).
+        live = await _events_elite.live_favorite(db, event_id)
+        if live is None:
+            raise HTTPException(status_code=404, detail="Event not found")
+        event_id = live["event_id"]
+        if event_id not in week:
+            week.append(event_id)
         action = "added"
     await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"my_week": week}})
     return {"action": action, "my_week": week}
@@ -5043,12 +5110,13 @@ async def toggle_my_week(request: Request):
 
 @api_router.get("/my-week")
 async def list_my_week(request: Request):
+    """Read-time filter (§13 D4): only saved ids that are live verified city events (legacy
+    shape: published + HIGH), nothing deleted."""
     user = await get_current_user(request)
     week = user.get("my_week", [])
     if not week:
         return []
-    events = await db.events.find({**PUBLIC_CITY_EVENT_FILTER, "event_id": {"$in": week}}, PUBLIC_EVENT_PROJECTION).to_list(100)
-    return _normalize_event_media(filter_live(events))
+    return await _events_elite.my_week_rows(db, week, image_ok=_public_image_exists)
 
 
 # ── Event Types & Categories ────────────────────────────────
@@ -5057,34 +5125,25 @@ async def list_my_week(request: Request):
 # ── Seasons (Multi-event platform) ──────────────────────────
 @api_router.get("/seasons")
 async def list_seasons(response: Response, active: Optional[bool] = None):
+    """EVENTS-ELITE §15 T5: db.seasons are the demo "Music Week"-style groupings of the
+    fabricated legacy events (unsourced dates + "event_count" claims). The static copy is
+    scrubbed to [], so the live API must be too, or a client that hydrates after its static
+    paint would bring them back. Nothing is deleted."""
     _cache(response, 60)
-    query: dict = {}
-    if active is not None:
-        query["is_active"] = active
-    seasons = await db.seasons.find(query, {"_id": 0}).sort("start_date", 1).to_list(50)
-    # Filter out seasons whose end_date has passed
-    today = _today_bogota()
-    seasons = [s for s in seasons if (s.get("end_date") or "9999-12-31") >= today]
-    return seasons
+    return []
 
 
 @api_router.get("/seasons/{season_id}")
 async def get_season(season_id: str, response: Response):
     _cache(response, 60)
-    season = await db.seasons.find_one({"season_id": season_id}, {"_id": 0})
-    if not season:
-        raise HTTPException(status_code=404, detail="Season not found")
-    return season
+    raise HTTPException(status_code=404, detail="Season not found")
 
 
 @api_router.get("/seasons/{season_id}/events")
 async def season_events(season_id: str, response: Response, date: Optional[str] = None):
+    """Seasons grouped legacy db.events rows; those are never public again (§13 D4, §15 T1)."""
     _cache(response, 60)
-    query = {**PUBLIC_CITY_EVENT_FILTER, "season_id": season_id}
-    if date:
-        query["date"] = date
-    events = await db.events.find(upcoming_query(query), PUBLIC_EVENT_PROJECTION).to_list(200)
-    return _normalize_event_media(filter_live(events))
+    return []
 
 
 # ── FX (tasa de cambio del día) ──────────────────────────────
@@ -5186,50 +5245,34 @@ async def list_sponsors(response: Response):
     return sponsors
 
 
-# ── Concerts ─────────────────────────────────────────────────
+# ── Concerts (legacy shape, §13 D2/D3, §15 T1) ───────────────
+# Published + HIGH + future city_events with category concert, mapped by
+# events_legacy.to_legacy_concert. The 12 fabricated seed concerts in db.concerts are never
+# read on a public path again.
 @api_router.get("/concerts")
 async def list_concerts(response: Response, date: Optional[str] = None, genre: Optional[str] = None):
-    _cache(response, 60)
-    query = {}
-    if date:
-        query["date"] = date
-    if genre:
-        query["genre"] = genre
-    concerts = await db.concerts.find(query, {"_id": 0}).sort([("date", 1), ("start_time", 1)]).to_list(100)
-    # Hydrate partner_id from venue name → partners catalog
-    if concerts:
-        venue_names = {c.get("venue_name", "").lower() for c in concerts if c.get("venue_name")}
-        if venue_names:
-            partners = await db.partners.find(
-                {**PUBLIC_PARTNER_FILTER, "name": {"$regex": "|".join(venue_names), "$options": "i"}},
-                {"_id": 0, "partner_id": 1, "name": 1},
-            ).to_list(50)
-            venue_to_pid = {p["name"].lower(): p["partner_id"] for p in partners}
-            for c in concerts:
-                vn = (c.get("venue_name") or "").lower()
-                if vn in venue_to_pid:
-                    c["partner_id"] = venue_to_pid[vn]
-    return _normalize_event_media(concerts)
+    _cache(response, 60, swr=120)   # §8: public event reads (60/120), same as the feed
+    return await _events_elite.legacy_concert_rows(db, date_=date, genre=genre, image_ok=_public_image_exists)
 
 
 @api_router.get("/concerts/dates")
 async def concert_dates(response: Response):
-    _cache(response, 60)
-    dates = await db.concerts.distinct("date")
-    return sorted(dates)
+    _cache(response, 60, swr=120)   # §8: public event reads (60/120), same as the feed
+    rows = await _events_elite.legacy_concert_rows(db, image_ok=_public_image_exists)
+    return _events_elite.legacy.legacy_dates(rows)
 
 
 @api_router.get("/concerts/genres")
 async def concert_genres(response: Response):
-    _cache(response, 60)
-    genres = await db.concerts.distinct("genre")
-    return sorted(genres)
+    _cache(response, 60, swr=120)   # §8: public event reads (60/120), same as the feed
+    rows = await _events_elite.legacy_concert_rows(db, image_ok=_public_image_exists)
+    return _events_elite.legacy.legacy_concert_genres(rows)
 
 
 @api_router.get("/concerts/{concert_id}")
 async def get_concert(concert_id: str, response: Response):
-    _cache(response, 60)
-    concert = await db.concerts.find_one({"concert_id": concert_id}, {"_id": 0})
+    _cache(response, 60, swr=120)   # §8: public event reads (60/120), same as the feed
+    concert = await _events_elite.legacy_concert_item(db, concert_id, image_ok=_public_image_exists)
     if not concert:
         raise HTTPException(status_code=404, detail="Concert not found")
     return concert
@@ -5240,36 +5283,68 @@ class FavoriteToggle(BaseModel):
     item_id: str
     item_type: str  # event, concert
 
+async def _favorite_target(user_id: str, item_id: str, item_type: str) -> str:
+    """The item_id to store for a NEW favorite, or HTTPException. A pending / rejected /
+    sandbox venue never enters an agenda; an event/concert must be a live verified city
+    event (ce- id or alias, public_view published or date_tbc) — legacy evt_/con_/slug ids
+    are refused (EVENTS-ELITE §15 T3). Aliases are stored as the canonical event_id so the
+    reminder cron finds the favorite."""
+    if item_type == "partner":
+        if not await db.partners.find_one({"partner_id": item_id, **PUBLIC_PARTNER_FILTER}, {"_id": 0, "partner_id": 1}):
+            raise HTTPException(status_code=404, detail="Venue not found")
+        return item_id
+    if item_type in _events_elite.FAVORITE_EVENT_TYPES:
+        live = await _events_elite.live_favorite(db, item_id)
+        if live is None:
+            raise HTTPException(status_code=404, detail="Event not found")
+        return str(live["event_id"])
+    return item_id
+
+
+async def _insert_favorite(user: dict, item_id: str, item_type: str) -> None:
+    await db.favorites.insert_one({
+        "fav_id": f"fav_{uuid.uuid4().hex[:12]}",
+        "user_id": user["user_id"],
+        "item_id": item_id,
+        "item_type": item_type,
+        # user_type AS OF favorite time — powers the behavioral "Locals
+        # recommend" signal (local_signals.py) and blocks retroactive
+        # gaming via a later profile-badge flip.
+        "user_type": user.get("user_type"),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+
 @api_router.post("/favorites/toggle")
 async def toggle_favorite(body: FavoriteToggle, request: Request):
     user = await get_current_user(request)
     user_id = user["user_id"]
     existing = await db.favorites.find_one({"user_id": user_id, "item_id": body.item_id, "item_type": body.item_type})
     if existing:
+        # Removal always works (a legacy favorite can be cleaned up).
         await db.favorites.delete_one({"_id": existing["_id"]})
         return {"status": "removed", "item_id": body.item_id}
-    else:
-        # Cannot favorite an item that isn't publicly live — a pending/rejected/
-        # sandbox draft (venue OR editorial event) must never enter a user's agenda
-        # (it would then leak its raw doc + moderation trail via GET /favorites).
-        if body.item_type == "partner":
-            if not await db.partners.find_one({"partner_id": body.item_id, **PUBLIC_PARTNER_FILTER}, {"_id": 0, "partner_id": 1}):
-                raise HTTPException(status_code=404, detail="Venue not found")
-        elif body.item_type == "event":
-            if not await db.events.find_one({"$or": [{"event_id": body.item_id}, {"slug": body.item_id}], **PUBLIC_CITY_EVENT_FILTER}, {"_id": 0, "event_id": 1}):
-                raise HTTPException(status_code=404, detail="Event not found")
-        await db.favorites.insert_one({
-            "fav_id": f"fav_{uuid.uuid4().hex[:12]}",
-            "user_id": user_id,
-            "item_id": body.item_id,
-            "item_type": body.item_type,
-            # user_type AS OF favorite time — powers the behavioral "Locals
-            # recommend" signal (local_signals.py) and blocks retroactive
-            # gaming via a later profile-badge flip.
-            "user_type": user.get("user_type"),
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        })
-        return {"status": "added", "item_id": body.item_id}
+    target = await _favorite_target(user_id, body.item_id, body.item_type)
+    if target != body.item_id and await db.favorites.find_one(
+            {"user_id": user_id, "item_id": target, "item_type": body.item_type}):
+        await db.favorites.delete_one({"user_id": user_id, "item_id": target, "item_type": body.item_type})
+        return {"status": "removed", "item_id": target}
+    await _insert_favorite(user, target, body.item_type)
+    return {"status": "added", "item_id": target}
+
+
+@api_router.post("/favorites/add")
+async def add_favorite(body: FavoriteToggle, request: Request):
+    """Idempotent add — never removes (EVENTS-ELITE §13 D4 / J6 "Avísame")."""
+    user = await get_current_user(request)
+    user_id = user["user_id"]
+    await _check_rate_limit(f"favadd:{user_id}", max_calls=60, window_sec=3600)
+    target = await _favorite_target(user_id, body.item_id, body.item_type)
+    if await db.favorites.find_one({"user_id": user_id, "item_id": target, "item_type": body.item_type}, {"_id": 0, "fav_id": 1}):
+        return {"status": "exists", "item_id": target}
+    await _insert_favorite(user, target, body.item_type)
+    return {"status": "added", "item_id": target}
+
 
 @api_router.get("/favorites")
 async def get_favorites(request: Request):
@@ -5287,14 +5362,11 @@ async def get_favorites(request: Request):
             # Filter (a venue may have been demoted since it was favorited) AND
             # project (never return internal moderation fields to the client).
             item = await db.partners.find_one({"partner_id": iid, **PUBLIC_PARTNER_FILTER}, PUBLIC_PARTNER_PROJECTION)
-        elif itype == "event":
-            # Same gate+strip as the partner branch: a demoted editorial event must
-            # not resurface here, and its moderation trail must never ship.
-            item = await db.events.find_one(
-                {"$or": [{"event_id": iid}, {"slug": iid}], **PUBLIC_CITY_EVENT_FILTER}, PUBLIC_EVENT_PROJECTION
-            )
-        elif itype == "concert":
-            item = await db.concerts.find_one({"concert_id": iid}, {"_id": 0})
+        elif itype in _events_elite.FAVORITE_EVENT_TYPES:
+            # EVENTS-ELITE §15 T3: the honest PublicEvent for a ce- id (any status, hidden
+            # rows without dates); legacy evt_/con_ ids → {status: 'removed'}. Never db.events.
+            result.append(await _events_elite.hydrate_favorite(db, f))
+            continue
         elif itype == "venue":
             item = await db.venues.find_one({"venue_id": iid}, {"_id": 0})
         if item:
@@ -5309,7 +5381,42 @@ async def get_favorite_ids(request: Request):
     user = await get_current_user(request)
     user_id = user["user_id"]
     favs = await db.favorites.find({"user_id": user_id}, {"_id": 0, "item_id": 1, "item_type": 1}).to_list(200)
-    return [{"item_id": f["item_id"], "item_type": f["item_type"]} for f in favs]
+    # §13 D4 / §15 T3: event/concert favorites go through city_events. A legacy id (evt_*, con_*,
+    # old slugs) can never resolve again, so it is not an id to count: 1.1.x favorites screens
+    # would show "N guardados" over an empty Agenda tab with no card to un-heart. GET /favorites
+    # still returns them as status 'removed'.
+    return [{"item_id": f["item_id"], "item_type": f["item_type"]} for f in favs
+            if not (f.get("item_type") in _events_elite.FAVORITE_EVENT_TYPES
+                    and not _events_elite.gate.EVENT_ID_RE.match(str(f.get("item_id") or "")))]
+
+
+# ── EVENTS-ELITE reminder preferences (§2 event_notif_prefs, §13 J7) ──
+# Private (auth) and deliberately NOT under /events/ (the client treats /events* as public).
+# No location is ever stored here: proximity is computed on the phone (§1.2).
+@api_router.get("/me/event-notif-prefs")
+async def get_event_notif_prefs(request: Request):
+    user = await get_current_user(request)
+    doc = await db.event_notif_prefs.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    return _events_elite.prefs_view(doc)
+
+
+@api_router.put("/me/event-notif-prefs")
+async def put_event_notif_prefs(request: Request):
+    user = await get_current_user(request)
+    await _check_rate_limit(f"evprefs:{user['user_id']}", max_calls=30, window_sec=3600)
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="JSON object required")
+    upd = _events_elite.prefs_update(body if isinstance(body, dict) else {})
+    now_iso = datetime.now(timezone.utc).isoformat()
+    await db.event_notif_prefs.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {**upd, "updated_at": now_iso}, "$setOnInsert": {"created_at": now_iso}},
+        upsert=True,
+    )
+    doc = await db.event_notif_prefs.find_one({"user_id": user["user_id"]}, {"_id": 0})
+    return _events_elite.prefs_view(doc)
 
 
 # ── My Calendar (personal schedule for users) ────────────────────
@@ -5317,7 +5424,9 @@ async def get_favorite_ids(request: Request):
 async def get_my_calendar(request: Request):
     user = await get_current_user(request)
     items = await db.user_calendar.find({"user_id": user["user_id"]}, {"_id": 0}).sort("date", 1).to_list(500)
-    return items
+    # EVENTS-ELITE §13 D4: read-time filter — event/concert items whose event is not a live
+    # city_events row are omitted (nothing is deleted); live rows carry their current dates.
+    return await _events_elite.calendar_filter(db, items)
 
 
 @api_router.post("/calendar")
@@ -5865,24 +5974,9 @@ async def global_search(q: str = "", request: Request = None):
             score += 8
         return score, has_distinctive
 
-    events = await db.events.find(
-        {**PUBLIC_CITY_EVENT_FILTER, "$or": [
-            {"title": regex}, {"name_es": regex}, {"name_en": regex},
-            {"description": regex}, {"description_es": regex}, {"description_en": regex},
-            {"venue_name": regex}, {"venue": regex},
-            {"type": regex}, {"category": regex}, {"slug": regex},
-        ]},
-        PUBLIC_EVENT_PROJECTION
-    ).limit(100).to_list(100)
-
-    concerts = await db.concerts.find(
-        {"$or": [
-            {"artist": regex}, {"title": regex}, {"name_es": regex},
-            {"genre": regex}, {"venue_name": regex}, {"venue": regex},
-            {"description": regex},
-        ]},
-        {"_id": 0}
-    ).limit(50).to_list(50)
+    # EVENTS-ELITE §8 / §13 D4: event + concert hits come ONLY from verified city_events
+    # (published + HIGH + future, legacy shape). db.events / db.concerts are never searched.
+    events, concerts = await _events_elite.legacy_search_hits(db, regex.get("$regex"), image_ok=_public_image_exists)
 
     partners = await db.partners.find(
         {**PUBLIC_PARTNER_FILTER, "$or": [
@@ -6076,16 +6170,17 @@ async def global_search(q: str = "", request: Request = None):
         {"_id": 0}
     ).limit(20).to_list(20)
 
+    # §15 T4: approved moderation + a future date + an approved venue (never pending / past).
     partner_events = await db.partner_events.find(
-        {"is_published": True, "$or": [
+        upcoming_query({**PARTNER_EVENT_PUBLIC, "$or": [
             {"title": regex}, {"description": regex},
             {"category": regex}, {"partner_name": regex}, {"name_es": regex},
-        ]},
+        ]}),
         PUBLIC_EVENT_PROJECTION
     ).limit(50).to_list(50)
     # drop events whose venue isn't publicly approved (T1 sibling)
     _pe_ok = await _approved_partner_ids(e.get("partner_id") for e in partner_events)
-    partner_events = [e for e in partner_events if e.get("partner_id") in _pe_ok]
+    partner_events = filter_live([e for e in partner_events if e.get("partner_id") in _pe_ok])
 
     matches = {
         "events": events, "concerts": concerts, "partners": partners,
@@ -6178,6 +6273,39 @@ async def global_search(q: str = "", request: Request = None):
     # invokes run_agent_turn on Anthropic and was previously UNCAPPED here, so an
     # authed account could loop GET /search for unbounded Anthropic spend.
     await _check_rate_limit(f"agent:{user_id}", max_calls=15, window_sec=60)
+
+    # ── EVENTS-ELITE §13 D4: an event question never reaches the LLM from the search bar ──
+    # The answer is the deterministic grounded list (verified city_events only, cited) or the
+    # decline (maintenance / nothing confirmed + what IS confirmed); highlights name only the
+    # injected verified ids.
+    try:
+        _ev_intent = _luna_events.detect_event_intent(q, user_lang)
+    except Exception as exc:
+        logger.error(f"[search] event intent failed: {type(exc).__name__}")
+        _ev_intent = {"is_event": False}
+    if _ev_intent.get("is_event"):
+        _gate_res = await _luna_events.event_gate(db, _ev_intent, lang=user_lang, location=None, query=q)
+        _rows = _gate_res.get("rows") or []
+        _payload = _gate_res.get("payload") or _luna_events.grounded_payload(
+            _rows, user_lang, str(_ev_intent.get("range") or "upcoming"))
+        _injected = {str(r.get("event_id")) for r in _rows if r.get("event_id")}
+        _recs = [r for r in (_payload.get("recommendations") or [])
+                 if not r.get("event_id") or str(r.get("event_id")) in _injected]
+        ai_payload = {
+            "query": q, "intent": "event",
+            "answer": _payload.get("message") or "",
+            "language": _payload.get("language") or user_lang,
+            "recommendations": _recs,
+            "actions": _payload.get("actions") or [],
+            "suggestions": _payload.get("suggestions") or [],
+            "highlights": [{"type": "event", "id": r["event_id"], "reason": r.get("reason") or ""}
+                           for r in _recs if r.get("event_id")][:3],
+        }
+        await _track_impressions(partners, user_id, extra={
+            "result_counts": {k: len(v) for k, v in matches.items()},
+            "ai_intent": "event", "ai_used": False,
+        })
+        return {**matches, "search_id": search_id, "ai": ai_payload}
 
     # ── FULL CONCIERGE AGENT ──
     # Run the Amo agent so the search bar feels like a real concierge:
@@ -6438,30 +6566,11 @@ class LocationPing(BaseModel):
 
 
 @api_router.post("/analytics/location")
-async def track_location(body: LocationPing, request: Request):
-    """Store user geolocation pings while they are on the map. Used to:
-    1. Personalize partner suggestions based on proximity.
-    2. Build aggregate heatmaps for the government/sponsor dashboard.
-    """
-    # Security: always use server-verified user_id, never trust client body
-    try:
-        user = await get_current_user(request)
-        user_id = user.get("user_id")
-    except Exception:
-        raise HTTPException(status_code=401, detail="Authentication required for location tracking")
-
-    doc = {
-        "ping_id": f"geo_{uuid.uuid4().hex[:12]}",
-        "user_id": user_id,
-        "lat": body.lat,
-        "lng": body.lng,
-        "accuracy": body.accuracy,
-        "zone": body.zone,
-        "context": body.context or "map_open",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-    }
-    await db.location_pings.insert_one(doc)
-    return {"ok": True, "ping_id": doc["ping_id"]}
+async def track_location(request: Request):
+    """EVENTS-ELITE §1.2 / §15 T6: no location is ever stored server-side. Existing binaries
+    (1.1.0/1.1.1) still POST map pings here; they get 204 and NOTHING is read, stored or
+    logged — the body is not even parsed. 1.1.2 removes the call."""
+    return Response(status_code=204)
 
 
 @api_router.post("/profile/build")
@@ -6505,12 +6614,12 @@ async def build_or_refresh_user_profile(request: Request):
             elif item_type == "partner_event":
                 e = await db.partner_events.find_one({"event_id": item_id}, {"_id": 0, "title": 1, "category": 1, "is_free": 1, "price": 1, "start_time": 1})
                 if e: meta.update(e)
-            elif item_type == "concert":
-                c = await db.concerts.find_one({"concert_id": item_id}, {"_id": 0, "artist": 1, "genre": 1, "price": 1, "is_free": 1, "start_time": 1})
-                if c: meta.update(c)
-            elif item_type == "event":
-                ev = await db.events.find_one({"event_id": item_id}, {"_id": 0, "title": 1, "type": 1, "is_free": 1, "price": 1, "start_time": 1})
-                if ev: meta.update(ev)
+            elif item_type in ("concert", "event"):
+                # EVENTS-ELITE §13 D4: only a live verified city event reaches the prompt
+                # (never db.events / the fabricated db.concerts seeds).
+                ev = await _events_elite.favorite_meta(db, item_id)
+                if ev:
+                    meta.update({k: ev[k] for k in ("title", "type", "is_free", "price", "start_time")})
         except Exception:
             pass
         enriched.append(meta)
@@ -7255,7 +7364,7 @@ async def wompi_partner_event_checkout(request: Request):
         raise HTTPException(status_code=400, detail="qty must be 1..50")
     # U2: never process a real payment for an unpublished event or an event on a
     # venue that isn't catalog-approved (fraud / never-reviewed party).
-    ev = await db.partner_events.find_one({"event_id": event_id, "is_published": True}, {"_id": 0})
+    ev = await db.partner_events.find_one({"event_id": event_id, **PARTNER_EVENT_PUBLIC}, {"_id": 0})
     if not ev or not await _approved_partner_ids([ev.get("partner_id")]):
         raise HTTPException(status_code=404, detail="Event not found")
     if ev.get("is_free"):
@@ -7282,8 +7391,8 @@ async def list_experiences(request: Request, response: Response):
     _cache(response, 60)
     try:
         category = request.query_params.get("category")
-        # T1: only PUBLISHED events (no is_active bypass) whose venue is approved.
-        query = {"is_published": True}
+        # T1: only PUBLISHED + APPROVED events (no is_active bypass) whose venue is approved (§15 T4).
+        query = dict(PARTNER_EVENT_PUBLIC)
         if category:
             query["category"] = category
         experiences = await db.partner_events.find(upcoming_query(query), PUBLIC_EVENT_PROJECTION).sort("created_at", -1).to_list(200)
@@ -7300,7 +7409,7 @@ async def featured_experiences(response: Response):
     _cache(response, 60)
     try:
         featured = await db.partner_events.find(
-            upcoming_query({"is_published": True}),
+            upcoming_query(dict(PARTNER_EVENT_PUBLIC)),
             PUBLIC_EVENT_PROJECTION,
         ).sort([("is_featured", -1), ("created_at", -1)]).limit(40).to_list(40)
         approved = await _approved_partner_ids(e.get("partner_id") for e in featured)
@@ -7315,8 +7424,8 @@ async def get_experience(experience_id: str):
     """Get a single experience by ID."""
     try:
         # T1: published events only, venue must be approved, internal fields stripped.
-        exp = await db.partner_events.find_one({"event_id": experience_id, "is_published": True}, PUBLIC_EVENT_PROJECTION)
-        if not exp:
+        exp = await db.partner_events.find_one({"event_id": experience_id, **PARTNER_EVENT_PUBLIC}, PUBLIC_EVENT_PROJECTION)
+        if not exp or not filter_live([exp]):   # §15 T4: approved AND not yet over
             raise HTTPException(status_code=404, detail="Experience not found")
         partner = await db.partners.find_one(
             {"partner_id": exp.get("partner_id"), **PUBLIC_PARTNER_FILTER},
@@ -7372,7 +7481,7 @@ async def wompi_experience_checkout(request: Request):
         raise HTTPException(status_code=400, detail="qty must be between 1 and 20")
 
     # U2: published + approved-venue only before taking money.
-    exp = await db.partner_events.find_one({"event_id": experience_id, "is_published": True}, {"_id": 0})
+    exp = await db.partner_events.find_one({"event_id": experience_id, **PARTNER_EVENT_PUBLIC}, {"_id": 0})
     if not exp or not await _approved_partner_ids([exp.get("partner_id")]):
         raise HTTPException(status_code=404, detail="Experience not found or inactive")
 
@@ -7756,12 +7865,16 @@ async def agent_taste(request: Request):
         db, user=None, user_text=user_text, history=[],
         forced_language=(body.get("language") or "").strip().lower() or None,
         fast=True,  # GATE-1B: a taste uses the cheap Haiku tier, not paid-chat Sonnet
+        # EVENTS-ELITE §13 I3: {lat, lng} only for "cerca de mí" in this call — never stored or logged.
+        location=body.get("location") if isinstance(body.get("location"), dict) else None,
     )
     return {"assistant": {
         "message": payload["message"],
         "language": payload.get("language", "es"),
         "recommendations": payload.get("recommendations", []),
         "suggestions": payload.get("suggestions", []),
+        # the event decline's navigate→agenda action (§13 I2); old clients ignore the key
+        "actions": payload.get("actions", []),
     }, "taste": True}
 
 
@@ -7893,8 +8006,10 @@ async def agent_chat(request: Request):
 
     session = await _ai_agent.get_or_create_session(db, user_id, session_id)
     history = session.get("messages", [])
+    # created_at rides along so luna_events.filter_history (EVENTS-ELITE §15 V3) can keep
+    # assistant turns written after the cutover and drop older ones (legacy/invented events).
     short_history = [
-        {"role": m.get("role"), "content": m.get("content")}
+        {"role": m.get("role"), "content": m.get("content"), "created_at": m.get("created_at")}
         for m in history[-20:]
         if m.get("role") in ("user", "assistant") and m.get("content")
     ]
@@ -7924,6 +8039,10 @@ async def agent_chat(request: Request):
             user_text=user_text,
             history=short_history,
             forced_language=forced_lang or None,
+            # EVENTS-ELITE §13 I3: body.location {lat, lng} is used ONLY for "cerca de mí" in
+            # this turn. It is never persisted to chat_sessions (user_msg below carries only
+            # the text) and never logged. Old binaries don't send it.
+            location=body.get("location") if isinstance(body.get("location"), dict) else None,
         )
 
     now_iso = datetime.now(timezone.utc).isoformat()
@@ -8328,6 +8447,12 @@ async def seed_analytics_demo_data():
     logger.info("Analytics demo data seeded!")
 
 
+# EVENTS-ELITE service router (cron pull / enrich / sentinel / reminders + admin review), mounted
+# BEFORE api_router (DESIGN.md §13 C2). The public feed routes live on api_router above
+# get_event (§13 C1).
+_events_elite.init(db_=db, require_admin=require_admin)
+app.include_router(_events_elite.router, prefix="/api")
+
 app.include_router(api_router)
 
 # ── Admin Operator & Partner Activation routers ──
@@ -8427,7 +8552,10 @@ app.add_middleware(
     allow_credentials=True,
     allow_origins=_allowed_origins,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Requested-With", "Accept", "Cookie"],
+    # X-AMO-Admin: the §15 X2 cookie-path admin mutation header (events review page);
+    # X-AMO-Client: the 1.1.2 client stamp (§13 J8) should a web build ever send it.
+    allow_headers=["Authorization", "Content-Type", "X-Requested-With", "Accept", "Cookie",
+                   "X-AMO-Admin", "X-AMO-Client"],
 )
 
 
@@ -8477,6 +8605,14 @@ async def startup():
         await db.price_flags.create_index("venue_id")
     except Exception as exc:
         logger.warning(f"[startup] search index creation failed: {exc}")
+
+    # EVENTS-ELITE indexes in their OWN try-block (DESIGN.md §13 K1): city_events unique
+    # event_id / canonical_key / source_keys, geo 2dsphere, log/runs/rejects TTL, the
+    # reminder claim + daily cap uniques. Writers re-check at call time (§13 K2).
+    try:
+        await _events_elite.ensure_events_indexes(db)
+    except Exception as exc:
+        logger.error(f"[startup] events index creation failed: {type(exc).__name__}")
 
     # On Vercel serverless: skip seeding/migrations but still run lightweight cleanup.
     if os.environ.get("VERCEL"):
@@ -8529,7 +8665,11 @@ async def startup():
                 await db.business_users.insert_many(demo_biz)
                 logger.info(f"Seeded {len(demo_biz)} demo business accounts on Vercel")
         return
-    await seed_database()
+    # EVENTS-ELITE §15 T2: the demo seeds (fabricated evt_001.. events, seasons, notifications)
+    # run only behind ALLOW_DEV_SEED=1 and never against the production cluster — a local
+    # uvicorn pointed at prod must not write them.
+    if _events_elite.dev_seed_allowed():
+        await seed_database()
     # Ensure indexes for the reservations module
     await _reservations.ensure_indexes()
     # Rewards indexes and seed data
@@ -8542,21 +8682,17 @@ async def startup():
     await db.reviews.create_index([("partner_id", 1), ("created_at", -1)])
     await db.reviews.create_index([("user_id", 1), ("partner_id", 1)], unique=True)
     await db.review_reports.create_index([("review_id", 1), ("reporter_user_id", 1)], unique=True)
-    # ── Start the favorite-event reminder scheduler (24h push reminders) ──
-    # Skip on Vercel — no persistent process for background tasks
-    if not os.environ.get("VERCEL"):
-        try:
-            from reminders import start_reminder_scheduler  # type: ignore
-            start_reminder_scheduler(db)
-        except Exception as exc:
-            logger.warning(f"Could not start reminder scheduler: {exc}")
+    # (EVENTS-ELITE §13 D4 / §15 T2: the in-process favorite-event reminder scheduler is
+    # retired. Reminders run only through the cron-driven, source-rechecked
+    # /api/admin/events/reminders.)
     # Seed analytics demo data separately if not yet seeded (skip on Vercel)
     if not os.environ.get("VERCEL"):
         analytics_count = await db.analytics_demographics.count_documents({})
         if analytics_count == 0:
             await seed_analytics_demo_data()
-    # Seed Ruta Musical if missing
-    music_itn = await db.itineraries.find_one({"itinerary_id": "itn_004"})
+    # Seed Ruta Musical if missing — its stops are the fabricated legacy evt_0xx demo events,
+    # so it is a dev seed like seed_database (EVENTS-ELITE §15 T2: never against prod).
+    music_itn = await db.itineraries.find_one({"itinerary_id": "itn_004"}) if _events_elite.dev_seed_allowed() else True
     if not music_itn:
         IMG_CONCERT = "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800"
         await db.itineraries.insert_one({
@@ -8595,10 +8731,11 @@ async def startup():
             await db.itineraries.update_one({"_id": itn["_id"]}, {"$set": {"stops": itn["stops"]}})
 
 
-    # Seed concerts if not yet seeded
-    concerts_count = await db.concerts.count_documents({})
-    if concerts_count == 0:
-        await seed_concerts()
+    # Seed concerts if not yet seeded — the 12 fabricated seed concerts, dev only (§15 T2).
+    if _events_elite.dev_seed_allowed():
+        concerts_count = await db.concerts.count_documents({})
+        if concerts_count == 0:
+            await seed_concerts()
 
     # ── Cleanup: remove dead booking links so users don't land on parked domains ──
     DEAD_DOMAINS = ["templo.co", "fenix.co/after", "lago.co", "salontropical.co", "sunsetsailing.co", "casaboheme.co/reservar", "elbeso.co", "thepinkmango.co/reservar", "casacarolina.com/reservar"]
@@ -10265,9 +10402,5 @@ async def seed_concerts():
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
-    try:
-        from reminders import stop_reminder_scheduler  # type: ignore
-        stop_reminder_scheduler()
-    except Exception:
-        pass
+    # (The retired reminders scheduler has nothing to stop — EVENTS-ELITE §15 T2.)
     client.close()

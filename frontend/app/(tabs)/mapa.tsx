@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
-  Dimensions, Platform, ScrollView, Linking, Pressable,
+  Platform, ScrollView, Pressable,
 } from 'react-native';
 import { Alert } from '../../src/lib/alert';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,10 +9,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { COLORS, SPACING, RADIUS, FONTS, colorForKey } from '../../src/constants/theme';
 import { api , ASSET_ORIGIN} from '../../src/constants/api';
-import { eventPriceLabel } from '../../src/utils/price';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTr } from '../../src/i18n/autoTr';
 import { geoService, haversineM, fmtDistance } from '../../src/lib/geo';
 import { getCollections } from '../../src/lib/passport';
@@ -22,14 +20,15 @@ import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
 import { getHomeBase, syncHomeBase } from '../../src/lib/homeBase';
 import { openDirections } from '../../src/lib/maps';
 import { ATLAS_VERIFIED, ATLAS_VENUE_FIXES, ATLAS_ADD_VENUES, ATLAS_ROUTE, ATLAS_WALK, ATLAS_RUTAS } from '../../src/data/atlas';
+import { useLang } from '../../src/context/LanguageContext';
+import { loadFeed } from '../../src/lib/eventsFeed';
+import { bogotaYmd, fmtEventWhen, hasRealCoords, pickTitle, toEventLite } from '../../src/lib/eventNotif';
 
 // Embeds arbitrary text as a JS string literal inside the WebView's inline <script>.
 // Only escaping ' let a newline / backslash in a partner description throw a
 // SyntaxError and blank the whole native map; `<` is escaped so "</script>" can't close the tag.
 const jsString = (v: string) =>
   JSON.stringify(v).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 type Place = {
   id: string;
@@ -46,6 +45,8 @@ type Place = {
   extra: string;
   neighborhood?: string | null;
   verified?: boolean; // atlas-verified position (src/data/atlas.ts)
+  // EVENTS-ELITE eventos layer: pre-rendered, already-translated popup lines.
+  event?: { when: string; trust: string; verified: boolean };
 };
 
 // Keyless Esri basemaps. Dark Gray canvas is the default; World Imagery powers
@@ -144,8 +145,14 @@ const FILTERS = [
   { key: 'venue', label: 'Venues', icon: 'location', color: '#3B82F6' },
   { key: 'partner', label: 'Partners', icon: 'diamond', color: '#8B5CF6' },
   { key: 'esenciales', label: 'Esenciales', icon: 'medkit', color: '#14B8A6' },
-  { key: 'concert', label: 'Conciertos', icon: 'musical-notes', color: '#EC4899' },
+  { key: 'eventos', label: 'Eventos', icon: 'calendar', color: '#FF6B4A' },
 ];
+
+// EVENTS-ELITE eventos layer (§10 Map): pins ONLY from verified-feed rows with
+// real geocoded coordinates. Replaces the legacy concert pins, which sat on a
+// venue's position plus Math.random() jitter — a fake location.
+const EVENT_PIN_COLOR = '#FF6B4A';
+const EVENT_ID_RE = /^ce-[a-z0-9-]{1,100}$/;
 
 const GOLD = COLORS.mustard; // passport pins — distinct gold accent, never teal
 
@@ -157,7 +164,17 @@ const fmtLiveDist = fmtDistance;
 // colorForKey() falls back gracefully (deterministic spectrum hash) for any
 // type/category not explicitly assigned a color.
 function markerColor(p: Place): string {
+  if (p.category === 'eventos') return EVENT_PIN_COLOR;
   return colorForKey(p.type || p.category);
+}
+
+// Event pin popup lines (date/time + source trust line), HTML-escaped. Shared
+// by the native document and the web DOM path.
+function eventPopupHtml(p: Place): string {
+  if (!p.event) return '';
+  const trustColor = p.event.verified ? '#12B5A5' : COLORS.textMuted;
+  return '<span style="font-size:12px;color:' + EVENT_PIN_COLOR + ';font-weight:700">🗓 ' + escHtml(p.event.when) + '</span><br>'
+    + '<span style="font-size:10px;color:' + trustColor + ';font-weight:800">' + (p.event.verified ? '✓ ' : '') + escHtml(p.event.trust) + '</span><br>';
 }
 
 // HTML-entity escape for text interpolated into popup HTML (both the web DOM
@@ -177,13 +194,13 @@ function escHtml(v: string): string {
 // partner-controlled text — never trust a path or id out of it blindly.
 const SAFE_NAV_PATH = /^\/[A-Za-z0-9_\-/]*$/;
 
-// "Ver detalle" target by place kind. Only partners have a detail page and
-// concerts have the concerts screen; venues / essentials (hospitals, ess_*) have
-// none — linking them to /partner/<id> was a "No encontrado" dead end.
+// "Ver detalle" target by place kind. Partners have a detail page and verified
+// events have /event/<id>; venues / essentials (hospitals, ess_*) have none —
+// linking them to /partner/<id> was a "No encontrado" dead end.
 function detailPath(p: { id: string; category: string; type: string }): string | null {
   const id = (p.id || '').replace(/[^A-Za-z0-9_-]/g, '');
   if (!id) return null;
-  if (p.category === 'concert') return '/concerts';
+  if (p.category === 'eventos') return EVENT_ID_RE.test(id) ? `/event/${id}` : null;
   if (p.category === 'partner' && p.type !== 'essential' && !id.startsWith('ess_')) return `/partner/${id}`;
   return null;
 }
@@ -329,6 +346,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
       + '<span style=font-size:10px;color:' + color + ';text-transform:uppercase;font-weight:700>' + p.type + '</span>'
       + '</div>'
       + '<b style=font-size:15px;color:' + COLORS.textMain + '>' + safeName + '</b><br>'
+      + eventPopupHtml(p)
       + verifiedHtml
       + '<span style=font-size:11px;color:' + COLORS.textMuted + '>' + safeDesc + '</span><br>'
       + '<span style=font-size:11px;color:' + COLORS.textMuted + '>📍 ' + safeAddr + '</span><br>'
@@ -532,18 +550,6 @@ const CTG_CENTER = { lat: 10.4236, lng: -75.5483 };
 function isInCartagena(lat: number, lng: number): boolean {
   return lat >= CTG_BOUNDS.latMin && lat <= CTG_BOUNDS.latMax
       && lng >= CTG_BOUNDS.lngMin && lng <= CTG_BOUNDS.lngMax;
-}
-
-// Approximate Cartagena zone classifier (very rough)
-function detectZone(lat: number, lng: number): string {
-  if (lat >= 10.418 && lat <= 10.435 && lng >= -75.555 && lng <= -75.535) return 'centro_historico';
-  if (lat >= 10.395 && lat <= 10.415 && lng >= -75.560 && lng <= -75.545) return 'bocagrande';
-  if (lat >= 10.410 && lat <= 10.420 && lng >= -75.545 && lng <= -75.530) return 'getsemani';
-  if (lat >= 10.390 && lat <= 10.405 && lng >= -75.560 && lng <= -75.555) return 'castillogrande';
-  if (lat >= 10.405 && lat <= 10.420 && lng >= -75.535 && lng <= -75.525) return 'manga';
-  if (lat >= 10.430 && lat <= 10.470 && lng >= -75.520 && lng <= -75.500) return 'aeropuerto_norte';
-  if (lat <= 10.20 || lat >= 11.0) return 'fuera_cartagena';
-  return 'cartagena_general';
 }
 
 /**
@@ -1061,7 +1067,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
         </div>
         <b style="font-size:15px;color:${COLORS.textMain}">${safeName}</b><br>
         <span data-dist style="display:none;font-size:12px;color:#1a7f37;font-weight:700"></span>
-        ${passportHtml}${verifiedHtml}
+        ${eventPopupHtml(p)}${passportHtml}${verifiedHtml}
         <span style="font-size:11px;color:${COLORS.textMuted}">${safeDesc}</span><br>
         <span style="font-size:11px;color:${COLORS.textMuted}">📍 ${safeAddr}</span><br>
         ${priceHtml}
@@ -1093,10 +1099,13 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
     haloLayerRef.current = halos;
     syncHalos();
   };
+  // `mapReady` re-runs this once Leaflet finishes booting: the init-time renderMarkers() is the
+  // closure from the FIRST render (stale places/filter), so data that arrived while the CDN
+  // script was still loading (e.g. the eventos layer's feed) would otherwise never be drawn.
   useEffect(() => {
     renderMarkers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [places, filter, passportIds]);
+  }, [places, filter, passportIds, mapReady]);
 
   // ── User dot: MOVED on every tick, never rebuilt ──
   const renderUser = () => {
@@ -1164,10 +1173,61 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
   );
 }
 
+// Feed state → event pins. Reads eventsFeed's loadFeed() result defensively
+// (FeedState keeps the payload under .data). A feed older than 36 h is not shown
+// at all; an offline copy pins with "sin actualizar" instead of "Verificado"
+// (§13 J1). Past rows, non-published rows and anything without real coordinates
+// (placeholder/centroid/outside the Distrito) never pin.
+const FEED_MAX_AGE_MS = 36 * 3600 * 1000;
+function feedEventPlaces(res: unknown, lang: string, tr: (es: string) => string, nowMs: number): Place[] {
+  const root = res && typeof res === 'object' ? (res as Record<string, unknown>) : null;
+  const inner = root && root.data && typeof root.data === 'object' ? (root.data as Record<string, unknown>) : null;
+  const rows: unknown[] = Array.isArray(res) ? res
+    : Array.isArray(root?.events) ? (root?.events as unknown[])
+    : Array.isArray(inner?.events) ? (inner?.events as unknown[])
+    : [];
+  const generatedAt = typeof root?.generated_at === 'string' ? root.generated_at
+    : typeof inner?.generated_at === 'string' ? inner.generated_at : null;
+  const offline = root?.offline === true;
+  if (generatedAt) {
+    const g = Date.parse(generatedAt);
+    if (Number.isFinite(g) && nowMs - g > FEED_MAX_AGE_MS) return [];
+  }
+  const today = bogotaYmd(nowMs);
+  const out: Place[] = [];
+  for (const row of rows) {
+    const ev = toEventLite(row);
+    if (!ev || ev.status !== 'published' || ev.isUmbrella || !hasRealCoords(ev)) continue;
+    if ((ev.endDate || ev.startDate || '') < today) continue;
+    const verified = !offline && ev.confidence === 'HIGH';
+    const status = offline ? tr('sin actualizar')
+      : verified ? tr('Verificado') : tr('Sin confirmar · verifica con el organizador');
+    const trust = `${tr('Fuente')}: ${ev.sourceName || '—'} · ${status}`;
+    out.push({
+      id: ev.id,
+      name: pickTitle(ev, lang),
+      description: '',
+      category: 'eventos',
+      type: tr('Evento'),
+      address: ev.venue,
+      lat: ev.lat,
+      lng: ev.lng,
+      image_url: '',
+      price: '',
+      link: '',
+      extra: '',
+      event: { when: fmtEventWhen(ev, lang, tr, nowMs), trust, verified },
+    });
+  }
+  return out;
+}
+
 export default function MapaScreen() {
   const tr = useTr();
   const router = useRouter();
+  const { lang } = useLang();
   const [places, setPlaces] = useState<Place[]>([]);
+  const [eventPlaces, setEventPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
@@ -1283,7 +1343,7 @@ export default function MapaScreen() {
   // the walk effect re-fires on mapReady, on native the document boots with
   // autoWalk — so setting state here is safe even while places still load.
   // The param is cleared right after so a tab re-focus does not restart it.
-  const { walk: walkParam } = useLocalSearchParams<{ walk?: string }>();
+  const { walk: walkParam, layer: layerParam } = useLocalSearchParams<{ walk?: string; layer?: string }>();
   const walkParamRef = useRef<string | null>(null);
   useEffect(() => {
     const wanted = walkParam === '1' || walkParam === 'virtual';
@@ -1307,7 +1367,33 @@ export default function MapaScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walkParam]);
 
-  // Request location permission and track ping → backend analytics
+  // ── `?layer=eventos` (Qué pasa's "Ver en el mapa") — preselect the eventos
+  // filter once per arrival, then clear the param so the next tap re-applies it.
+  const layerParamRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (layerParam !== 'eventos') { layerParamRef.current = null; return; }
+    if (layerParamRef.current === layerParam) return;
+    layerParamRef.current = layerParam;
+    setFilter('eventos');
+    setNbhFilter(null);
+    setMoreOpen(false);
+    router.setParams({ layer: undefined } as never);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layerParam]);
+
+  // ── Eventos layer: verified feed rows (eventsFeed), refreshed on focus ──
+  useFocusEffect(
+    useCallback(() => {
+      let alive = true;
+      loadFeed({ force: false })
+        .then((res: unknown) => { if (alive) setEventPlaces(feedEventPlaces(res, lang, tr, Date.now())); })
+        .catch((e: unknown) => { console.error('[mapa] events feed failed', e); if (alive) setEventPlaces([]); });
+      return () => { alive = false; };
+    }, [lang, tr]),
+  );
+
+  // Request location permission for the blue dot. The position stays on the
+  // device — the old POST /analytics/location ping is gone (EVENTS-ELITE §15 T6).
   const requestLocation = async () => {
     setLocStatus('requesting');
     try {
@@ -1327,26 +1413,6 @@ export default function MapaScreen() {
       setLocStatus('granted');
       // hand off to the live watcher — the dot follows from here on
       geoService.syncPermission().then(() => geoService.start());
-      // Send ping to backend for analytics + AI personalization
-      try {
-        const userRaw = await AsyncStorage.getItem('user_data');
-        let user = null;
-        try { if (userRaw) user = JSON.parse(userRaw); } catch { /* malformed stored user_data */ }
-        const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
-        if (!backendUrl) throw new Error('no backend');
-        await fetch(`${backendUrl}/api/analytics/location`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: user?.user_id || null,
-            lat: loc.lat,
-            lng: loc.lng,
-            accuracy: pos.coords.accuracy,
-            zone: detectZone(loc.lat, loc.lng),
-            context: 'map_open',
-          }),
-        });
-      } catch (e) { console.warn('location ping failed', e); }
     } catch (e) {
       console.error(e);
       setLocStatus('denied');
@@ -1362,13 +1428,13 @@ export default function MapaScreen() {
       category: 'partner', type: 'essential', address: e.note || '',
       lat: e.lat, lng: e.lng, image_url: '', price: '', link: '', extra: e.note || '',
     }));
-    const buildPlaces = (rawVenues: any[], partners: any[], concerts: any[]): Place[] => {
+    const buildPlaces = (rawVenues: any[], partners: any[]): Place[] => {
       const allPlaces: Place[] = [];
       const seenNames = new Set<string>();
 
       // Atlas layer: verified coordinate fixes + missing atlas venues, applied
       // to EVERY merge (static + hydrate) so stale backend coords can't regress
-      // pins. Fixing the venues array here also corrects concert inheritance.
+      // pins.
       const venues = [
         ...rawVenues.map((v: any) => {
           const fix = ATLAS_VENUE_FIXES[v.venue_id];
@@ -1394,9 +1460,6 @@ export default function MapaScreen() {
         });
       });
 
-      const venueLocs: Record<string, { lat: number; lng: number }> = {};
-      venues.forEach((v: any) => { venueLocs[v.venue_id] = v.location; });
-
       partners.forEach((p: any) => {
         if (!seenNames.has((p.name || '').toLowerCase()) && p.location) {
           allPlaces.push({
@@ -1405,21 +1468,6 @@ export default function MapaScreen() {
             lat: p.location?.lat || 0, lng: p.location?.lng || 0,
             image_url: p.image_url || '', price: p.price_range || '',
             link: p.booking_link || '', extra: p.experience || '',
-          });
-        }
-      });
-
-      concerts.forEach((c: any) => {
-        const loc = venueLocs[c.venue_id];
-        if (loc) {
-          const offset = (Math.random() - 0.5) * 0.002;
-          allPlaces.push({
-            id: c.concert_id, name: c.artist, description: c.title,
-            category: 'concert', type: 'concert', address: c.venue_name,
-            lat: loc.lat + offset, lng: loc.lng + offset,
-            image_url: c.image_url || '',
-            price: eventPriceLabel(c.price, c.is_free, { cop: true }),
-            link: c.ticket_link || '', extra: `${c.genre} · ${c.start_time}`,
           });
         }
       });
@@ -1435,21 +1483,21 @@ export default function MapaScreen() {
       fetch(`${ASSET_ORIGIN}/data/${file}.json`).then(r => r.ok ? r.json() : []).catch(() => []);
 
     // Static-first: paint partner markers immediately (fastest file),
-    // then add venues + concerts as they arrive
+    // then add venues as they arrive
     staticFetch('partners').then(sp => {
       if (Array.isArray(sp) && sp.length > 0) {
-        setPlaces(buildPlaces([], sp, []));
+        setPlaces(buildPlaces([], sp));
         setLoading(false);
       }
     }).catch((e) => { console.error('[mapa]', e); setLoading(false); });
 
-    // Venues + concerts arrive slightly later — merge in
-    Promise.all([staticFetch('venues'), staticFetch('concerts')])
-      .then(([sv, sc]) => {
+    // Venues arrive slightly later — merge in
+    staticFetch('venues')
+      .then((sv) => {
         // Re-read current partners from the already-set state via a fresh fetch
         staticFetch('partners').then(sp => {
           if (Array.isArray(sp) && sp.length > 0) {
-            setPlaces(buildPlaces(sv, sp, sc));
+            setPlaces(buildPlaces(sv, sp));
           }
           setLoading(false);
         }).catch((e) => { console.error('[mapa]', e); setLoading(false); });
@@ -1459,24 +1507,29 @@ export default function MapaScreen() {
     Promise.all([
       api.get('/venues').catch(() => []),
       api.get('/partners').catch(() => []),
-      api.get('/concerts').catch(() => []),
       api.get('/essentials/pins').catch(() => ({ pins: [] })),
-    ]).then(([venues, partners, concerts, essRes]: any[]) => {
+    ]).then(([venues, partners, essRes]: any[]) => {
       essentialsPins = (essRes && essRes.pins) || [];
       if (Array.isArray(partners) && partners.length > 0) {
-        setPlaces(buildPlaces(venues, partners, concerts));
+        setPlaces(buildPlaces(venues, partners));
       }
     }).catch((e) => { console.error('[mapa]', e); setLoading(false); });
     requestLocation();
   }, []);
 
+  // Catalog pins + verified event pins (eventos layer).
+  const allPlaces = useMemo(
+    () => (eventPlaces.length ? [...places, ...eventPlaces] : places),
+    [places, eventPlaces],
+  );
+
   // Assign each place its nearest barrio once centroids load (memoized).
   const placesWithNbh = useMemo(() => {
-    if (!neighborhoods.length) return places;
+    if (!neighborhoods.length) return allPlaces;
     // Name+address barrio first (reliable — many venues name their barrio),
     // centroid fallback. Corrects ~26% that nearest-centroid misplaces.
-    return places.map(p => ({ ...p, neighborhood: venueBarrio(`${p.name} ${p.address || ''}`, p.lat, p.lng, neighborhoods) }));
-  }, [places, neighborhoods]);
+    return allPlaces.map(p => ({ ...p, neighborhood: venueBarrio(`${p.name} ${p.address || ''}`, p.lat, p.lng, neighborhoods) }));
+  }, [allPlaces, neighborhoods]);
 
   // Barrio filter ANDs with the category filter: pins in the chosen barrio only.
   const visiblePlaces = useMemo(
@@ -1497,7 +1550,7 @@ export default function MapaScreen() {
     venue: visiblePlaces.filter(p => p.category === 'venue').length,
     partner: visiblePlaces.filter(p => p.category === 'partner').length,
     esenciales: visiblePlaces.filter(p => p.type === 'service' || p.type === 'essential').length,
-    concert: visiblePlaces.filter(p => p.category === 'concert').length,
+    eventos: visiblePlaces.filter(p => p.category === 'eventos').length,
   };
 
   if (loading) {
@@ -1600,7 +1653,7 @@ export default function MapaScreen() {
   const onCaminarTap = (stop: RutaStop) => {
     // Native popups pass only id+coords (names break unquoted onclick attrs) —
     // resolve the display name from the catalog, sanitized for popup HTML.
-    const known = stop.id ? places.find(p => p.id === stop.id) : null;
+    const known = stop.id ? allPlaces.find(p => p.id === stop.id) : null;
     const name = (stop.name || known?.name || tr('Lugar')).replace(/["'<>]/g, '');
     const s: RutaStop = { ...stop, name };
     if (building) {

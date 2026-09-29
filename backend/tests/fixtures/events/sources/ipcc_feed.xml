@@ -1,0 +1,217 @@
+<!-- AMO fixture: real RSS https://ipcc.gov.co/feed/ fetched 2026-09-28; 2 of 10 items kept verbatim. -->
+
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>IPCC</title>
+	<atom:link href="https://ipcc.gov.co/feed/" rel="self" type="application/rss+xml" />
+	<link>https://ipcc.gov.co</link>
+	<description>Instituto de Patrimonio y Cultura de Cartagena</description>
+	<lastBuildDate>Mon, 28 Sep 2026 14:54:06 +0000</lastBuildDate>
+	<language>es-CO</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	
+
+<image>
+	<url>https://ipcc.gov.co/wp-content/uploads/2021/11/LOGO-IPCC-BOTON-PSE-63x63.jpg</url>
+	<title>IPCC</title>
+	<link>https://ipcc.gov.co</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Cartagena y Bolívar vivirán una Noche de Museos este viernes 25 de septiembre</title>
+		<link>https://ipcc.gov.co/cartagena-y-bolivar-viviran-una-noche-de-museos-este-viernes-25-de-septiembre/</link>
+					<comments>https://ipcc.gov.co/cartagena-y-bolivar-viviran-una-noche-de-museos-este-viernes-25-de-septiembre/#respond</comments>
+		
+		<dc:creator><![CDATA[Prensa IPCC]]></dc:creator>
+		<pubDate>Thu, 24 Sep 2026 16:07:51 +0000</pubDate>
+				<category><![CDATA[Noticias]]></category>
+		<guid isPermaLink="false">https://ipcc.gov.co/?p=12492</guid>
+
+					<description><![CDATA[15 espacios museales de Cartagena y Bolívar abrirán sus puertas con una programación cultural para acercar a la ciudadanía a la historia, el arte, la memoria y el patrimonio. El viernes 25 de septiembre, de 5:00 de la tarde a 9:00 de la noche, cartageneros y bolivarenses podrán disfrutar de la Noche de Museos, un espacio de puertas abiertas en &#8230;]]></description>
+										<content:encoded><![CDATA[
+<p class="wp-block-paragraph">15 espacios museales de Cartagena y Bolívar abrirán sus puertas con una programación cultural para acercar a la ciudadanía a la historia, el arte, la memoria y el patrimonio.</p>
+
+
+
+<p class="wp-block-paragraph">El viernes 25 de septiembre, de 5:00 de la tarde a 9:00 de la noche, cartageneros y bolivarenses podrán disfrutar de la Noche de Museos, un espacio de puertas abiertas en 15 espacios museales de Cartagena y diferentes municipios de Bolívar.</p>
+
+
+
+<p class="wp-block-paragraph">La jornada, organizada por la Red de Museos de Cartagena y Bolívar, cuenta con el apoyo de la Alcaldía Mayor de Cartagena, a través del Instituto de Patrimonio y Cultura de Cartagena (IPCC), y la Gobernación de Bolívar por medio del Instituto de Cultura y Turismo de Bolívar (ICULTUR); y busca propiciar un encuentro entre la ciudadanía y los espacios que conservan, investigan y divulgan historias relacionadas con la memoria, el arte, las tradiciones y las identidades del territorio.</p>
+
+
+
+<p class="wp-block-paragraph">Durante esta noche, los museos participantes abrirán sus puertas para ofrecer al público una programación cultural que permitirá recorrer sus espacios, conocer sus colecciones, acercarse a diferentes relatos y vivir el patrimonio de una manera diferente. La iniciativa también busca fortalecer la apropiación social del patrimonio y reconocer el papel de los museos como espacios vivos de conocimiento, encuentro y participación.</p>
+
+
+
+<p class="wp-block-paragraph">“La Noche de Museos es una oportunidad para que la ciudadanía se acerque a estos espacios desde otra perspectiva, los recorra, conozca sus historias y descubra todo lo que tienen para aportar a la construcción de nuestra identidad. Desde el IPCC acompañamos estas iniciativas que fortalecen el vínculo entre los museos y las comunidades, y que permiten que el patrimonio sea conocido, valorado y vivido por diferentes públicos”, afirmó Shirley Tuñón Vásquez, directora del IPCC.</p>
+
+
+
+<p class="wp-block-paragraph">Museos participantes<br>En Cartagena las personas podrán asistir a: Casa Museo Rafael Núñez; Casa Museo El Pozón; Museo Histórico de Cartagena; Museo de Arte Moderno de Cartagena Enrique Grau; Museo Naval del Caribe; Museo del Oro Zenú; Museo Masónico Colombiano – Sede Cartagena; y Un Momento de Fantasía: Museo de Muñecas y Carritos.</p>
+
+
+
+<p class="wp-block-paragraph">Mientras que en Bolívar, abrirán sus puertas: Museo de Arte y Memoria de Mampuján; Museo Comunitario de San Jacinto; Yurbaco Museo; Museo Itinerante de la Memoria y la Identidad de los Montes de María – El Mochuelo; Casa Museo Simankongo de Palenque; Museo de la Memoria Viva – Islas del Rosario; y Museo Etnoindustrial de Galerazamba.</p>
+
+
+
+<p class="wp-block-paragraph">Cada museo contará con una programación cultural específica, con actividades y experiencias diseñadas de acuerdo con sus colecciones, historias y procesos. La agenda de cada espacio podrá ser consultada directamente en las redes sociales oficiales de cada museo, donde se publicarán los detalles de las actividades, horarios y demás información de interés para los visitantes.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://ipcc.gov.co/cartagena-y-bolivar-viviran-una-noche-de-museos-este-viernes-25-de-septiembre/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+<item>
+		<title>Alcaldía de Cartagena presentó la programación oficial de las Fiestas de Independencia del 11 de Noviembre 2026</title>
+		<link>https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/</link>
+					<comments>https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/#respond</comments>
+		
+		<dc:creator><![CDATA[Prensa IPCC]]></dc:creator>
+		<pubDate>Thu, 17 Sep 2026 18:32:25 +0000</pubDate>
+				<category><![CDATA[Noticias]]></category>
+		<guid isPermaLink="false">https://ipcc.gov.co/?p=12467</guid>
+
+					<description><![CDATA[La Alcaldía Mayor de Cartagena, a través del Instituto de Patrimonio y Cultura de Cartagena de Indias (IPCC), dio a conocer en acto público la agenda festiva en un escenario cargado de identidad, memoria y salvaguardia patrimonial en el Centro de Convenciones Julio César Turbay Ayala. Con la presencia de autoridades distritales, candidatas, Grandes Lanceros y actores festivos, la Administración &#8230;]]></description>
+										<content:encoded><![CDATA[
+<p class="wp-block-paragraph">La Alcaldía Mayor de Cartagena, a través del Instituto de Patrimonio y Cultura de Cartagena de Indias (IPCC), dio a conocer en acto público la agenda festiva en un escenario cargado de identidad, memoria y salvaguardia patrimonial en el Centro de Convenciones Julio César Turbay Ayala.</p>
+
+
+
+<p class="wp-block-paragraph">Con la presencia de autoridades distritales, candidatas, Grandes Lanceros y actores festivos, la Administración Distrital, de la mano del IPCC, oficializó la hoja de ruta que marcará las festividades conmemorativas de este año. La agenda contempla escenarios en las tres localidades, la zona corregimental e insular y el Centro Histórico, combinando eventos tradicionales, desfiles itinerantes y encuentros comunitarios que buscan garantizar el goce en orden y el acceso de la ciudadanía a su patrimonio inmaterial.</p>
+
+
+
+<p class="wp-block-paragraph">Durante el encuentro se socializó la estrategia de descentralización y salvaguardia que acompañará la programación desde octubre hasta mediados de noviembre. Como parte de esta apuesta por el fortalecimiento de la iconografía festiva y la participación masiva, el IPCC abrió la convocatoria &#8220;Únete a la Fiesta 2026&#8221;, un proceso de acreditación para sumar colectivos a las actividades oficiales. La puesta en marcha de los preludios locales, las Noches de Candela, la toma festiva infantil de Ángeles Somos, las veladas de tradición y los grandes desfiles garantizan la transmisión del legado histórico de la gesta independentista.</p>
+
+
+
+<p class="wp-block-paragraph">&#8220;Cartagena está lista para demostrarle al país de qué estamos hechos. Nos tomaremos las calles con la mejor versión de nuestras Fiestas de Independencia en toda la historia; aquí la fiesta se vive en el barrio, con la gente, con dignidad y con un orgullo patrio que se siente en cada tambor y en cada esquina&#8221;, afirmó el alcalde Mayor de Cartagena, Dumek Turbay Paz.</p>
+
+
+
+<p class="wp-block-paragraph">A su turno, la directora general del IPCC, Shirley Tuñón, resaltó el compromiso técnico con la salvaguardia de las manifestaciones festivas. &#8220;Diseñamos una agenda pensada para reafirmar el compromiso institucional con la transmisión de nuestros saberes. Queremos que la ciudadanía y los visitantes vivan la riqueza de nuestras tradiciones en un ambiente de orden, paz y apropiación colectiva en cada rincón del Distrito&#8221;, concluyó la funcionaria.</p>
+
+
+
+<p class="wp-block-paragraph">En esta versión de la agenda, el Desfile de Independencia desplegará una masiva muestra de talento local a lo largo de la Avenida Santander, este 12 de noviembre. Desde la Convocatoria de Estímulos &#8216;La Fiesta que Nos Une&#8217; participarán de manera fija 45 grupos de danza, 40 comparsas y 48 actores festivos, a los que se sumarán cerca de 40 comparsas invitadas y acreditadas a través de la convocatoria &#8220;Únete a la Fiesta 2026&#8221;. En total, el Gran Bando reunirá a alrededor de 10.000 artistas en escena para poner a brillar la tradición cartagenera.</p>
+
+
+
+<p class="wp-block-paragraph">Agenda oficial de las Fiestas de Independencia 2026</p>
+
+
+
+<p class="wp-block-paragraph">Octubre a noviembre: Reinado Intercorregimental de Cartagena y Reinado Juvenil Insular.</p>
+
+
+
+<p class="wp-block-paragraph">Viernes 2 de octubre: Preludio Localidad 1 (Canapote) con Son Cartagena, Mr Black, Karen Lizarazo y David Pabón.</p>
+
+
+
+<p class="wp-block-paragraph">Viernes 9 de octubre: Preludio Localidad 2 (El Pozón) con Soneros de Gámero, Nelson Velásquez, Farid Ortiz y Criss y Ronny.</p>
+
+
+
+<p class="wp-block-paragraph">Jueves 15 de octubre: Preludio Universitario.</p>
+
+
+
+<p class="wp-block-paragraph">Viernes 16 de octubre: Preludio Localidad 3 (Blas de Lezo) con Son Caribe, GiBlack, Rafa Pérez, Charlie Cardona y Jader Tremendo.</p>
+
+
+
+<p class="wp-block-paragraph">Jueves 22 de octubre: Toma Corregimental con las candidatas al Reinado Popular de la Independencia.</p>
+
+
+
+<p class="wp-block-paragraph">Viernes 23 de octubre: Noche de Candela y Jolgorio de Tambores (Plaza de los Coches) con Isolina, Dj de Folclor y Grupo de Folclor.</p>
+
+
+
+<p class="wp-block-paragraph">Miércoles 28 de octubre: Fiesta de Periodistas*</p>
+
+
+
+<p class="wp-block-paragraph">Viernes 30 de octubre: Noche de Tradición Festiva y Traje Artesanal (Plaza de Variedades) con Danny Daniel y Héctor Nazza.</p>
+
+
+
+<p class="wp-block-paragraph">Domingo 1 de noviembre: Ángeles Somos (Gran toma de la ciudad) y Desfile de Ángeles Somos &#8216;Dioses de la Libertad&#8217; (Centro Histórico).</p>
+
+
+
+<p class="wp-block-paragraph">Martes 3 de noviembre: Prueba de Talento (Teatro Adolfo Mejía).</p>
+
+
+
+<p class="wp-block-paragraph">Jueves 5 y Viernes 6 de noviembre: Festival Jorge García Usta (Coliseo Bernardo Caraballo).</p>
+
+
+
+<p class="wp-block-paragraph">Viernes 6 de noviembre: Desfile en Traje de Baño de las candidatas al Reinado Popular (Plaza de la Aduana) con Jerau y Byordi, Cabildo Vivo de Bocachica Itmina Fanti y Cabildo Escuela Normal Superior de Cartagena (Centro Histórico).</p>
+
+
+
+<p class="wp-block-paragraph">Sábado 7 de noviembre: Fiesta de Actores Festivos.</p>
+
+
+
+<p class="wp-block-paragraph">Domingo 8 de noviembre: Desfile de la Diversidad (Plaza de la Aduana), Segundo Preludio Magisterial (Blas de Lezo) y Fiesta de Grandes Lanceros.<br>Lunes 9 de noviembre: Entrega de llaves a las candidatas del Concurso Nacional de Belleza (Baluarte San Miguel &#8211; por confirmar).</p>
+
+
+
+<p class="wp-block-paragraph">Martes 10 de noviembre: Desfile en Honor a los Héroes (Centro Histórico).</p>
+
+
+
+<p class="wp-block-paragraph">Miércoles 11 de noviembre: Sesión Solemne del Concejo Distrital Acta de Independencia (Centro de Convenciones), Ofrenda Floral (Camellón de los Mártires y Plaza de la Trinidad) y Elección y Coronación del Reinado Juvenil Insular.</p>
+
+
+
+<p class="wp-block-paragraph">Jueves 12 de noviembre: Gran Desfile de Independencia (Avenida Santander &#8211; 10:00 a.m. a 12:00 p.m.).</p>
+
+
+
+<p class="wp-block-paragraph">Viernes 13 y Sábado 14 de noviembre: Festival Náutico de la Independencia y Bololó del Arsenal.<br>Viernes 13 de noviembre: Con Juan Luis Guerra, como gran artista central; además de Dj Dever, Criss y Ronny, Héctor Nazza, Zaider, Rafa Pérez, Grupo Niche, Beéle.</p>
+
+
+
+<p class="wp-block-paragraph">Sábado 14 de noviembre: Jader Tremendo, GiBlack, Mr Black, Koffe el Kafetero, Luister la Voz, Hamilton, Jessi Uribe, Elder Dayán, Ryan Castro, Nicky Jam y Silvestre Dangond.</p>
+
+
+
+<p class="wp-block-paragraph">Sábado 14 de noviembre: Salsa a la Plaza (Plaza de la Aduana).</p>
+
+
+
+<p class="wp-block-paragraph">Domingo 15 de noviembre: Cabildo de Getsemaní y Velada de Elección y Coronación del Reinado Popular (Centro de Convenciones Cartagena de Indias) con Luismy Yanes y Bazurto All Star.</p>
+
+
+
+<p class="wp-block-paragraph">Lunes 16 de noviembre: Elección y Coronación del Reinado Intercorregimental.</p>
+]]></content:encoded>
+					
+					<wfw:commentRss>https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/feed/</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+			</item>
+</channel>
+</rss>

@@ -24,11 +24,20 @@ async function getToken(): Promise<string | null> {
   return SecureStore.getItemAsync('session_token');
 }
 
-export async function askAgent(
+/** The reply text plus Luna's structured actions (e.g. `navigate → agenda` on an event
+ *  question). Offline / error fallbacks carry no actions. */
+export interface AgentReply {
+  reply: string;
+  actions: unknown[];
+}
+
+/** Same call as askAgent, keeping Luna's actions so the chat can show the verified-agenda
+ *  link (EVENTS-ELITE §13 I2/J5). askAgent keeps its string-only shape for other callers. */
+export async function askAgentFull(
   agent: AgentId,
   messages: ChatMessage[],
   lang: string = 'es',
-): Promise<string> {
+): Promise<AgentReply> {
   const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
   const query = lastUserMsg?.content || '';
   try {
@@ -53,15 +62,25 @@ export async function askAgent(
 
     if (!res.ok) {
       console.error('[Concierge] API error:', res.status);
-      return offlineReply(query);   // backend errored → still answer from the guide
+      return { reply: await offlineReply(query), actions: [] };   // backend errored → still answer from the guide
     }
     const data = await res.json();
     if (typeof data?.session_id === 'string') sessionId = data.session_id;
     const reply = data?.assistant?.content || data?.reply || '';
-    return reply || offlineReply(query);
+    if (!reply) return { reply: await offlineReply(query), actions: [] };
+    const actions: unknown[] = Array.isArray(data?.assistant?.actions) ? data.assistant.actions : [];
+    return { reply, actions };
   } catch (e) {
     // Network down / timeout / offline → real venues from the bundled catalog.
     console.error('[Concierge] falling back to offline catalog:', e);
-    return offlineReply(query);
+    return { reply: await offlineReply(query), actions: [] };
   }
+}
+
+export async function askAgent(
+  agent: AgentId,
+  messages: ChatMessage[],
+  lang: string = 'es',
+): Promise<string> {
+  return (await askAgentFull(agent, messages, lang)).reply;
 }

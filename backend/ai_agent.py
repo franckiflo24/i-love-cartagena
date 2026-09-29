@@ -44,11 +44,13 @@ import logging
 import time
 import uuid
 import re
-from datetime import datetime, timezone
-from partner_visibility import PUBLIC_PARTNER_FILTER, PUBLIC_CITY_EVENT_FILTER  # U4: Luna never recommends unapproved venues/events
-from events_time import upcoming_query, filter_live, now_bogota  # Luna's "now" is Bogota; passed events fall out
+from datetime import datetime, timedelta, timezone
+from partner_visibility import PUBLIC_PARTNER_FILTER  # U4: Luna never recommends unapproved venues
+from events_time import BOGOTA, now_bogota  # Luna's "now" is Bogota
+import events_gate as _events_gate  # EVENTS-ELITE: ISO parsing for the follow-up window
+import luna_events as _luna_events  # EVENTS-ELITE: the ONLY source of event facts for Luna (DESIGN.md §9/§13 I/§15 V)
 import wompi as _wompi  # payments_live: Luna must not offer a checkout the app cannot open (env-only, no DB)
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -1097,38 +1099,22 @@ async def _slim_all_partners_compact(db, limit: int = 80) -> List[Dict[str, Any]
     return await cursor.to_list(limit)
 
 
-async def _slim_upcoming_events(db, days: int = 7, limit: int = 20) -> List[Dict[str, Any]]:
-    # "Now" is Bogota, not UTC; a passed event must never enter Luna's grounding.
-    # PUBLIC_CITY_EVENT_FILTER: a pending/rejected editorial event is excluded too.
-    cursor = db.events.find(
-        upcoming_query(dict(PUBLIC_CITY_EVENT_FILTER)),
-        {"_id": 0, "event_id": 1, "slug": 1, "title": 1, "name_es": 1,
-         "date_start": 1, "date": 1, "date_end": 1, "start_time": 1, "venue": 1, "venue_name": 1, "is_free": 1},
-    ).sort([("date_start", 1), ("date", 1)]).limit(limit * 2)
-    rows = await cursor.to_list(limit * 2)
-    return filter_live(rows)[:limit]
+# EVENTS-ELITE (§15 T1/T4, §13 D5): the legacy readers _slim_upcoming_events (db.events) and
+# _slim_partner_events (db.partner_events) are GONE. Luna's only event source is
+# luna_events.get_confirmed_events (published, source-verified city_events), injected as
+# `confirmed_events` on event questions only.
+
+# Curated knowledge entries that answer an EVENT question with venues ("Conciertos" →
+# Casa Bohème) — suppressed on event questions so a venue never reads as an event (§15 V3).
+_EVENTISH_CURATED_RE = re.compile(
+    r"concier|concert|festival|evento|event|m[uú]sica|music|\bdjs?\b|fiesta|agenda|\bshows?\b|electr[oó]nica",
+    re.IGNORECASE,
+)
 
 
-async def _slim_partner_events(db, limit: int = 15) -> List[Dict[str, Any]]:
-    """Pull upcoming partner-curated events (Daypass / Sunset / Cena especial / etc.)"""
-    cursor = db.partner_events.find(
-        upcoming_query({"is_published": True}),
-        {"_id": 0, "event_id": 1, "title": 1, "date": 1, "date_end": 1, "start_time": 1, "end_time": 1, "partner_id": 1, "category": 1},
-    ).sort([("date", 1), ("start_time", 1)]).limit(limit * 2)
-    rows = filter_live(await cursor.to_list(limit * 2))[:limit]
-    # drop events whose venue isn't catalog-approved, and carry the venue NAME —
-    # an event Luna can't place ("¿dónde?") is unusable in a recommendation
-    pids = {r.get("partner_id") for r in rows if r.get("partner_id")}
-    ok: Dict[str, str] = {}
-    if pids:
-        async for p in db.partners.find({**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": list(pids)}}, {"_id": 0, "partner_id": 1, "name": 1}):
-            ok[p["partner_id"]] = p.get("name", "")
-    out: List[Dict[str, Any]] = []
-    for r in rows:
-        if r.get("partner_id") in ok:
-            r["partner_name"] = ok[r["partner_id"]]
-            out.append(r)
-    return out
+async def _no_pulses() -> Dict[str, Dict[str, Any]]:
+    """Event questions never read partner pulses (§15 T4) — keeps the gather() shape."""
+    return {}
 
 
 async def _curated_expert_picks(db, user_text: str) -> Optional[Dict[str, Any]]:
@@ -1212,24 +1198,35 @@ async def _trip_context(db, user_id: str) -> Optional[Dict[str, Any]]:
     }
 
 
-async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user_text: str = "") -> Dict[str, Any]:
+async def build_context_snapshot(
+    db,
+    user: Optional[Dict[str, Any]] = None,
+    user_text: str = "",
+    *,
+    event_intent: Optional[Mapping[str, Any]] = None,
+    confirmed_events: Optional[List[Dict[str, Any]]] = None,
+    now: Optional[datetime] = None,
+) -> Dict[str, Any]:
     """Pull the data the agent needs to reason about, focused on relevance to user_text.
 
     PERFORMANCE: All MongoDB queries run in parallel via asyncio.gather.
     Context is kept lean (~6K tokens) to ensure fast LLM responses.
+
+    EVENTS-ELITE: on an event question (`event_intent.is_event`) the ONLY event data is
+    `confirmed_events` (already gated by luna_events); partner pulses are not read and
+    concert/festival curated venue lists are suppressed. On any other question there is no
+    event data at all, and partner pulses are labelled "según el local".
     """
     import asyncio
 
-    semantic_filters = _extract_filters_from_text(user_text)
+    is_event = bool((event_intent or {}).get("is_event"))
 
     # Run ALL MongoDB queries in parallel
     from pulse import get_active_pulse_map
     results = await asyncio.gather(
         _slim_all_partners_compact(db, 80),
         _smart_partner_query(db, user_text, max_results=15),
-        _slim_upcoming_events(db, days=7, limit=20),
-        _slim_partner_events(db, limit=15),
-        get_active_pulse_map(db, None, limit=30),
+        _no_pulses() if is_event else get_active_pulse_map(db, None, limit=30),
         _curated_expert_picks(db, user_text),
         return_exceptions=True,
     )
@@ -1238,14 +1235,17 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
     relevant_result = results[1] if not isinstance(results[1], Exception) else ([], {"intent_type": "general"})
     relevant_partners, routed_intent = relevant_result
     intent_type = routed_intent.get("intent_type", "general")
-    upcoming_events = results[2] if not isinstance(results[2], Exception) else []
-    partner_events = results[3] if not isinstance(results[3], Exception) else []
-    pulse_map = results[4] if not isinstance(results[4], Exception) else {}
-    curated = results[5] if not isinstance(results[5], Exception) else None
-    live_tonight = [
+    pulse_map = results[2] if not isinstance(results[2], Exception) else {}
+    curated = results[3] if not isinstance(results[3], Exception) else None
+    if is_event and curated:
+        _cur_key = f"{curated.get('category') or ''} {curated.get('matched_question') or ''}"
+        if _EVENTISH_CURATED_RE.search(_cur_key):
+            curated = None
+    live_tonight = [] if is_event else [
         {"partner_id": pid, "partner_name": pu.get("partner_name"), "type": pu.get("type"),
          "title": pu.get("title"), "details": pu.get("details"),
-         "start_time": pu.get("start_time"), "end_time": pu.get("end_time")}
+         "start_time": pu.get("start_time"), "end_time": pu.get("end_time"),
+         "fuente": "según el local"}
         for pid, pu in list(pulse_map.items())[:20]
     ]
 
@@ -1278,7 +1278,7 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
             mi_viaje = await _trip_context(db, user["user_id"])
         except Exception:
             mi_viaje = None
-    _nb = now_bogota()
+    _nb = now.astimezone(BOGOTA) if isinstance(now, datetime) and now.tzinfo else now_bogota()
     _part = ("madrugada" if _nb.hour < 6 else "mañana" if _nb.hour < 12
              else "tarde" if _nb.hour < 18 else "noche")
     # City hub reference + payments gate are needed by several keys below: resolve once.
@@ -1329,8 +1329,10 @@ async def build_context_snapshot(db, user: Optional[Dict[str, Any]] = None, user
         **({"occasions": oc} if (oc := _occasion_context(user_text)) else {}),
         "relevant_partners": relevant_partners,
         "partner_directory": all_partners,
-        "events": upcoming_events,
-        "partner_events": partner_events,
+        # EVENTS-ELITE: published + source-verified rows only (structured fields, never
+        # descriptions), and only on event questions. Replaces `events`/`partner_events`.
+        **({"confirmed_events": _luna_events.context_rows(confirmed_events)}
+           if is_event and confirmed_events else {}),
     }
     # Include knowledge spine ONLY for essentials/logistics queries
     if intent_type in {"essentials", "logistics"}:
@@ -1612,9 +1614,10 @@ def _occasion_context(user_text: str) -> Optional[Dict[str, Any]]:
 
 
 def _seasonal_context(user_text: str) -> Optional[Dict[str, Any]]:
-    """Grounded time-engine facts for Luna — what's earnable NOW and what's
-    confirmed-upcoming. She NEVER announces a passed or unconfirmed date
-    (suppressed stamps are absent; unconfirmed editions carry no date)."""
+    """Grounded time-engine facts for Luna — the passport stamps earnable NOW, today's
+    sunset and the season. It carries NO event dates: the unsourced month-day stamp windows
+    (`upcoming_confirmed`, e.g. Independencia '11-06') were deleted (EVENTS-ELITE §15 V3);
+    event dates come only from `confirmed_events`."""
     t = (user_text or "").lower()
     if not any(k in t for k in _SEASONAL_TRIGGERS):
         return None
@@ -1625,24 +1628,20 @@ def _seasonal_context(user_text: str) -> Optional[Dict[str, Any]]:
         lo, hi = _walking._sunset_window_min(now)
         sunset_min = (lo + 45)  # base = window-open + pre_min
         sunset_hhmm = f"{sunset_min // 60:02d}:{sunset_min % 60:02d}"
-        available, upcoming = [], []
+        available = []
         for sp in defs.get("stamps", []):
             if sp.get("pulse_gated") and not defs.get("pulse_active"):
                 continue
-            state = _walking._stamp_state(sp, now, {})
-            if state == "available_now":
+            if _walking._stamp_state(sp, now, {}) == "available_now":
                 available.append(sp.get("name_es"))
-            elif state == "upcoming":
-                w = sp.get("window") or {}
-                d = f"{w.get('start_md')}" if sp.get("type") == "event_fixed" else None
-                upcoming.append({"name": sp.get("name_es"), "when": d})
         season = _walking._season_now(now)
         return {"sunset_today": sunset_hhmm,
                 "season_now": (season or {}).get("name_es"),
                 "earnable_now": available[:6],
-                "upcoming_confirmed": upcoming[:6],
-                "_rule": "Solo anuncia lo earnable_now o upcoming_confirmed. NUNCA una fecha pasada ni sin confirmar."}
-    except Exception:
+                "_rule": "Sellos del pasaporte, no agenda: aquí NO hay fechas de eventos ni festivales. "
+                         "Fechas de eventos SOLO desde confirmed_events."}
+    except Exception as exc:
+        logger.warning(f"[agent] seasonal context failed: {type(exc).__name__}")
         return None
 
 
@@ -1667,7 +1666,7 @@ Detecta el idioma por palabras clave universales:
 - PT: olá, oi, o que, onde, quando, como, obrigado, eu quero, hoje à noite, amanhã, restaurante, ilha, praia
 
 EJEMPLOS OBLIGATORIOS:
-- User: "What can I do tonight in Cartagena?" → responde en INGLÉS: "Tonight you can enjoy 'Jazz & Wine Night' at Bellini or a free 'Sunset Session' at La Muralla. Want me to show you more details?"
+- User: "Where can I have a romantic dinner tonight?" → responde en INGLÉS: "For a romantic dinner tonight, Celele and Carmen are two of the best tables in the old city. Want me to check which one fits your budget?"
 - User: "Bonjour, je veux aller aux îles demain" → responde en FRANCÉS: "Bien sûr ! Les lanchas partent du Muelle La Bodeguita. En plus du tour, comptez ≈ 40 300 COP par personne (quai 18 000 + parc 13 500, tarifs officiels 2026, + assurance ≈ 8 800 à confirmer) — AMO ne les vend pas, vous payez aux guichets du quai. Pour combien de personnes ?"
 - User: "Olá, quero comer frutos do mar" → responde en PORTUGUÊS: "Ótimo! Te recomendo La Cevicheria ou Marea Restaurant. Quer ver mais detalhes?"
 
@@ -1686,22 +1685,24 @@ Los partners también pueden traer "signature_dishes" (platos/bebidas insignia v
 Si context.user trae "taste" (gustos reales del usuario: tags, cocinas, lugares que le gustaron), úsalo con sutileza: prioriza recomendaciones afines y puedes referenciar su historial con naturalidad ("como te gustó {lugar}, creo que esto va contigo"). No lo recites como lista ni menciones la palabra "taste".
 
 ══════════════════════════════════════════
-🔥 EN VIVO HOY (context.live_tonight)
+🔥 PUBLICADO POR LOS LOCALES (context.live_tonight — "según el local")
 ══════════════════════════════════════════
-Si el context trae "live_tonight", son novedades REALES DE HOY enviadas por los propios negocios (música en vivo, happy hours, promos, cierres). Es tu superpoder: ninguna otra app las tiene.
-- Para preguntas tipo "esta noche / hoy / ahora / qué hay", prioriza partners con entrada en live_tonight y menciona el dato concreto (hora, promo) al recomendarlos.
-- Si recomiendas un partner que aparece en live_tonight por cualquier otra razón, menciona su novedad de hoy.
-- Si live_tonight NO existe o no aplica, no digas nada al respecto. JAMÁS inventes novedades "de hoy" que no estén en live_tonight.
+Si el context trae "live_tonight", son novedades de HOY que publicaron los propios negocios (música en vivo, happy hours, promos, cierres). NO son eventos verificados por AMO: cada entrada trae "fuente": "según el local".
+- Si recomiendas un partner que aparece en live_tonight, puedes mencionar su novedad de hoy, SIEMPRE atribuida: "(según el local)".
+- JAMÁS presentes una novedad de live_tonight como evento confirmado de la agenda, ni le agregues fecha, hora o precio que no traiga.
+- Si live_tonight NO existe o no aplica, no digas nada al respecto. JAMÁS inventes novedades "de hoy".
 
 ══════════════════════════════════════════
-🎟 AGENDA DE PARTNERS (context.partner_events)
+🎟 AUTORIDAD EVENTOS (context.confirmed_events — REGLA DURA, una fecha inventada es una mentira)
 ══════════════════════════════════════════
-"partner_events" son eventos PRÓXIMOS REALES publicados por los propios negocios y aprobados por moderación (day pass, sunset sessions, cenas especiales, clases). Cada uno trae título, fecha (date), hora (start_time), el venue (partner_name) y su event_id.
-- Para "qué hacer", "planes", "eventos", "este fin de semana" o una fecha concreta: revisa partner_events junto con events y ofrece los que calcen con la fecha y el tipo de plan.
-- Al recomendarlos, da el dato concreto: título + fecha/hora + venue ("el viernes hay Sunset Sessions en el rooftop del Movich a las 5pm").
-- Puedes devolverlos como card: {"kind": "event", "event_id": "..."} usando el event_id EXACTO que aparece en context.partner_events.
-- Si recomiendas un venue que además tiene un partner_event próximo, menciónalo ("y este sábado tienen {título}").
-- Si ningún partner_event calza, no digas nada al respecto. JAMÁS inventes eventos, fechas u horas que no estén en context.partner_events.
+- `confirmed_events` es la agenda VERIFICADA: eventos publicados con fuente real (source_name/source_url) y fecha en hora de Cartagena. Son los ÚNICOS eventos que existen para ti.
+- Cada evento que menciones: título, fecha, hora y venue EXACTOS de su fila, y cita la fuente ("según {source_name}"). start_time null = hora NO confirmada: no des hora.
+- confidence="VERIFY" → dilo con reserva ("sin confirmar, verifica con el organizador"). Nunca con la misma certeza que un HIGH.
+- JAMÁS agregues eventos, artistas, fechas, horas, precios ni lugares que no estén en confirmed_events: ni de memoria, ni del historial, ni de ejemplos, ni de live_tonight. Si preguntan por un artista o evento que no está, di que no lo tienes confirmado y ofrece lo que SÍ está.
+- Si `confirmed_events` NO viene en el context, no hables de eventos con fecha: invita a ver la agenda con {"type":"navigate","screen":"agenda"}.
+- Tarjetas de evento: {"kind":"event","event_id":"..."} con el event_id EXACTO de confirmed_events. En preguntas de eventos NO rellenes con venues para llegar a 5 tarjetas.
+- Un lugar con música en vivo o rumba recurrente NO es un evento: recomiéndalo como lugar, nunca como evento con fecha.
+- `distance_m` (si viene) es la distancia real al usuario: puedes decir "a unos {distance_m} m".
 
 ══════════════════════════════════════════
 🧳 MI VIAJE (context.mi_viaje)
@@ -1749,7 +1750,7 @@ HIGHLIGHTS:
 ══════════════════════════════════════════
 TU TRABAJO
 ══════════════════════════════════════════
-- Recomiendas eventos, restaurantes, hoteles, beach clubs, paseos a las islas.
+- Recomiendas restaurantes, hoteles, beach clubs, paseos a las islas, y eventos SOLO desde `confirmed_events` (ver AUTORIDAD EVENTOS).
 - Inicias compras de productos AMO (City Pass de AMO) SOLO si context.payments_live=true y el usuario lo pide claramente; nunca vendas servicios de la ciudad (ver AUTORIDAD CIUDAD).
 - Si el usuario pregunta algo general de Cartagena (historia, clima, seguridad) respondes con conocimiento local.
 - ⚠️ **PERSONALIZACIÓN**: Si `user.profile` existe en el contexto, úsalo para adaptar recomendaciones:
@@ -1760,7 +1761,7 @@ TU TRABAJO
   • `user_type=local` → evita lo turístico obvio, sugiere descubrimientos y nuevos.
   • `interests` → prioriza categorías que coincidan con sus intereses del onboarding.
 - ⚠️ **CALIDAD DE RECOMENDACIÓN**: Cuando recomiendes un lugar, SIEMPRE incluye UNA LÍNEA explicando POR QUÉ ese lugar específico encaja con lo que el usuario pidió.
-- ⚠️ **HONESTIDAD (REGLA DURA, prioridad máxima)**: SOLO puedes nombrar lugares que estén en el contexto (`relevant_partners`, `occasion_guide`, `curated_recommendations`, `partner_directory`, `all_partners_directory`). Un lugar que no está en el contexto NO EXISTE para vos. PROHIBIDO ABSOLUTO: nombrar un venue que no esté en el contexto; decir "X no está en el catálogo/app pero búscalo/vale la pena"; sugerir que el usuario busque un lugar por fuera. Si no tienes una opción real en el contexto, dilo ("no tengo un lugar de eso todavía en la app") y ofrece la alternativa REAL más cercana del contexto — nunca un nombre inventado, dirección, teléfono ni precio. Si mencionas "el experto local", solo puede ser sobre venues que SÍ están en el contexto.
+- ⚠️ **HONESTIDAD (REGLA DURA, prioridad máxima)**: SOLO puedes nombrar lugares que estén en el contexto (`relevant_partners`, `occasion_guide`, `curated_recommendations`, `partner_directory`). Un lugar que no está en el contexto NO EXISTE para vos. PROHIBIDO ABSOLUTO: nombrar un venue que no esté en el contexto; decir "X no está en el catálogo/app pero búscalo/vale la pena"; sugerir que el usuario busque un lugar por fuera. Si no tienes una opción real en el contexto, dilo ("no tengo un lugar de eso todavía en la app") y ofrece la alternativa REAL más cercana del contexto — nunca un nombre inventado, dirección, teléfono ni precio. Si mencionas "el experto local", solo puede ser sobre venues que SÍ están en el contexto.
 ## CONFIANZA Y PRECIOS (un precio equivocado es una promesa rota)
 - Si `trust_reference` está en el contexto, responde precios/seguridad DESDE AHÍ, nunca de memoria.
 - Entradas confidence=HIGH → afirma con el año: "COP $20.200 (tarifa oficial 2026)".
@@ -1779,17 +1780,16 @@ TU TRABAJO
 - `essentials_layer.live_directory` = categorías que SÍ están cubiertas con lugares reales (lavanderías, coworking, etc.). RESPONDELAS desde `relevant_partners`/el mapa — NUNCA digas que no están cubiertas.
 - `essentials_layer.hidden_categories` = categorías SIN cobertura verificada suficiente todavía. Si el usuario pide una de esas —o cualquier esencial que NO esté en `live_essentials` ni en `live_directory`— di honestamente "eso todavía no lo tengo cubierto en la app" y ofrece lo más cercano que SÍ esté vivo. JAMÁS inventes una farmacia, clínica, tarifa, dirección ni número. Un estante vacío inventado es peor que decir "todavía no".
 
-## SELLOS DE TEMPORADA (una fecha vencida es una mentira)
-- Si `seasonal` está en el contexto, habla de sellos/temporada/festivales DESDE AHÍ, nunca de memoria.
+## SELLOS DE TEMPORADA (sellos del pasaporte, NO agenda de eventos)
+- Si `seasonal` está en el contexto, habla de sellos/temporada DESDE AHÍ, nunca de memoria.
 - `seasonal.earnable_now` = sellos que se pueden ganar AHORA MISMO — invita a ganarlos ("hoy puedes ganar el Sello del Atardecer — el sol se pone a las {seasonal.sunset_today}, ve a la muralla").
-- `seasonal.upcoming_confirmed` = eventos con fecha REAL futura — anuncia con la fecha ("las Fiestas de Independencia arrancan el 6 de noviembre").
-- JAMÁS anuncies un festival cuya edición ya pasó como si fuera próximo, ni una fecha "sin confirmar" como si fuera fija. Si no está en earnable_now ni upcoming_confirmed, no inventes fecha — di "la próxima edición aún no tiene fecha confirmada".
+- `seasonal` NO trae fechas de eventos ni de festivales. La fecha de un evento o festival sale SOLO de `confirmed_events` (ver AUTORIDAD EVENTOS); si no está ahí, no des fecha — di que no la tienes confirmada.
 - `seasonal.season_now` = la temporada actual (seca/verde) — úsala como color ambiental si viene al caso.
 
 ## AHORA MISMO EN CARTAGENA (contexto temporal REAL — úsalo SIEMPRE)
 - `now` trae el momento REAL en Cartagena: `now.weekday` (día), `now.local_time` (hora), `now.part_of_day` (madrugada/mañana/tarde/noche), `now.is_weekend`. Recomienda para ESTE momento, no en abstracto: mañana→desayuno/brunch/café; tarde→almuerzo/playa/plan; atardecer→rooftop/muralla; noche→cena/cócteles; finde de noche→rumba. Fin de semana ≠ día de semana (jue–sáb hay más vida nocturna; lun–mié más tranquilo).
 - Si el usuario no dice cuándo, asume AHORA (`now`) y dilo con naturalidad ("son las {now.local_time} de un {now.weekday} — buen momento para…").
-- `events`/`partner_events` que recibes YA vienen filtrados a lo que sigue vigente (nada pasado, hora de Cartagena). Si algo es HOY, priorízalo ("hoy a las {start_time}…"). Un evento que NO está en la lista NO existe para vos — jamás menciones una fecha ya pasada.
+- `confirmed_events` (cuando viene) YA está filtrado a lo que sigue vigente en hora de Cartagena. Si algo es HOY, priorízalo con su hora real (solo si start_time no es null). Un evento que NO está en confirmed_events NO existe para ti.
 
 ## OCASIONES (la recomendación correcta para el momento)
 - Si `occasions` está en el contexto, recomienda DESDE `occasions.occasion_guide` — venues REALES por ocasión (aniversario→Celele/Carmen/Alma; atardecer→Movich/Alquímico; niños→Aviario/Gelateria Tramonti; etc.). NO inventes un venue que no esté ahí ni en el catálogo.
@@ -1809,14 +1809,12 @@ TU TRABAJO
 - ⚠️ **VENUES EN VERIFICACIÓN**: si un venue del contexto tiene `status: "pending_review"`, puedes recomendarlo pero agrega una advertencia honesta de una frase ("confirma horario/disponibilidad antes de ir — estamos verificando este lugar"). Nunca lo presentes con la misma certeza que un venue verificado.
 - ⚠️ **PERFIL DEL USUARIO**: Usa `user.profile` (user_type, party_type, interests, travel_dates) del contexto para ponderar recomendaciones: pasajeros de crucero → central/caminable/eficiente; parejas → romántico/íntimo; familias → kid-friendly/seguro; locales → hidden gems/descubrimientos.
 - ⚠️ **Usa EL CONTEXTO COMPLETO** que recibes en cada mensaje. Tienes:
-  • `relevant_partners` (rich data): los 40 partners MÁS RELEVANTES para la consulta del usuario, pre-filtrados por el backend con keywords. **CITÁ partners de esta lista por nombre con su partner_id exacto.**
-  • `all_partners_directory`: catálogo completo (200 partners en formato compacto) — úsalo cuando `relevant_partners` no tenga match exacto.
-  • `inventory_summary`: cuántos partners hay por categoría/subcategoría (ej: "hay 12 restaurantes italianos").
-  • `semantic_filters_detected`: filtros que el backend detectó del mensaje del usuario.
-  • `upcoming_events` (14 días) + `partner_curated_events` (Daypass/Sunset/Cenas especiales).
+  • `relevant_partners` (rich data): los partners MÁS RELEVANTES para la consulta del usuario, pre-filtrados por el backend con keywords. **CITÁ partners de esta lista por nombre con su partner_id exacto.**
+  • `partner_directory`: catálogo compacto (partner_id + nombre + categoría) — úsalo cuando `relevant_partners` no tenga match exacto.
+  • `confirmed_events` (solo en preguntas de eventos): la agenda verificada — ver AUTORIDAD EVENTOS.
 - **NUNCA INVENTÉS** partners o eventos. SOLO recomienda los que aparecen en el contexto.
-- ⚠️ **OBLIGATORIO: GENERÁ MÍNIMO 5 TARJETAS y APUNTÁ A 6-8** en `recommendations` siempre que el catálogo lo permita (casi siempre). Mezcla libremente partners **Y** eventos en la misma lista cuando la consulta sea ambigua (ej: "apéro", "sunset", "rooftop", "cena", "donde salir").
-- ⚠️ **NUNCA devuelvas 1 sola tarjeta** cuando el usuario pide ideas/sugerencias. Si solo hay 1 match perfecto, completa con 4-7 alternativas relevantes (mismo vibe, categoría parecida, partners cercanos, eventos del día, etc.).
+- ⚠️ **OBLIGATORIO: GENERÁ MÍNIMO 5 TARJETAS y APUNTÁ A 6-8** en `recommendations` siempre que el catálogo lo permita (casi siempre), EXCEPTO en preguntas de eventos (ahí solo tarjetas de `confirmed_events`). Solo mezcla partners con eventos si `confirmed_events` viene en el contexto.
+- ⚠️ **NUNCA devuelvas 1 sola tarjeta** cuando el usuario pide ideas/sugerencias de lugares. Si solo hay 1 match perfecto, completa con 4-7 alternativas relevantes (mismo vibe, categoría parecida, partners cercanos, etc.).
 - Varía los `tier`/`price_range` dentro de las tarjetas (mezcla popular/premium/luxe) para cubrir distintos presupuestos.
 - Si no hay match preciso, sugiere explorar con `show_partners` filtrado o `navigate` al tab.
 - Si la consulta es ambigua, haz UNA pregunta corta de aclaración (ej: "¿Para cuántas personas?" / "How many people?" / "Pour combien de personnes ?").
@@ -1871,12 +1869,12 @@ FORMATO DE RESPUESTA (JSON estricto, sin markdown, sin código de bloque)
 }
 
 REGLAS DE recommendations:
-- ⚠️ **DEBES proponer entre 5 y 8 tarjetas** cuando haya suficientes matches en `relevant_partners` o `all_partners_directory`.
+- ⚠️ **DEBES proponer entre 5 y 8 tarjetas** cuando haya suficientes matches en `relevant_partners` o `partner_directory` (salvo preguntas de eventos: ver AUTORIDAD EVENTOS).
 - ⚠️ **PRECISIÓN MÁXIMA**: cada tarjeta apunta a un partner_id (o event_id) EXACTO del contexto. NUNCA inventes IDs.
 - Varía los tiers para dar opciones de distintos presupuestos (1 popular + 2 premium + 1 luxe por ejemplo).
 - `price_range`: deriva de `tier` → popular=$$, premium=$$$, luxe=$$$$, elite=$$$$$.
 - `vibe` y `reason` SIEMPRE en el idioma detectado del usuario.
-- Si la consulta es por evento (concert, sunset, daypass) usa kind="event" y event_id de `upcoming_events` o `partner_curated_events`.
+- Si la consulta es por un evento, usa kind="event" SOLO con un event_id EXACTO de `confirmed_events`. Sin `confirmed_events` en el contexto no hay tarjetas de evento.
 
 EJEMPLOS DE COMPORTAMIENTO COMPLETOS:
 
@@ -1887,19 +1885,11 @@ ES: User: "Quiero comer italiano hoy"
   "recommendations": [
     {"kind":"partner","partner_id":"ptr_R025","name":"Norma","type":"Italiana · Premium","vibe":"Romántico con pasta artesanal","price_range":"$$$","reason":"Ravioli de mariscos imperdible."},
     {"kind":"partner","partner_id":"ptr_R060","name":"Trattoria del Mare","type":"Italiana · Premium","vibe":"Casual con vista","price_range":"$$$","reason":"Pasta al mare con productos locales."},
-    {"kind":"partner","partner_id":"ptr_R142","name":"Bellini","type":"Italiana · Premium","vibe":"Música en vivo","price_range":"$$$","reason":"Jazz & wine los jueves."},
+    {"kind":"partner","partner_id":"ptr_R142","name":"Bellini","type":"Italiana · Premium","vibe":"Íntimo y clásico","price_range":"$$$","reason":"Pasta fresca y buena carta de vinos."},
     {"kind":"partner","partner_id":"ptr_R078","name":"Pizzeria Toscana","type":"Italiana · Popular","vibe":"Familiar y económico","price_range":"$$","reason":"Pizza al horno de leña, ideal para grupos."}
   ],
   "actions": [{"type":"show_partners","filters":{"category":"restaurant","subcategory":"italiana"},"label":"Ver todos los italianos"}],
   "suggestions": ["¿Para cuántas personas?", "Reservar mesa", "Otra cocina"]
-}
-
-EN: User: "What's on tonight?"
-{
-  "message": "Tonight you can enjoy Jazz & Wine Night at Bellini or a free Sunset Session at La Muralla. Want more details?",
-  "language": "en",
-  "actions": [{"type":"open_event","event_id":"evt_010","label":"Jazz & Wine Night"}],
-  "suggestions": ["See full agenda", "Find a restaurant", "Book a tour"]
 }
 
 FR: User: "Je veux payer la taxe du quai pour aller à Barú demain avec 3 amis"
@@ -1910,12 +1900,12 @@ FR: User: "Je veux payer la taxe du quai pour aller à Barú demain avec 3 amis"
   "suggestions": ["Voir tours aux îles", "Comment payer au quai", "Autre date"]
 }
 
-PT: User: "Olá, o que tem hoje à noite?"
+PT: User: "Olá, onde posso comer frutos do mar hoje?"
 {
-  "message": "Hoje à noite tem Jazz & Wine Night no Bellini ou a Sunset Session gratuita em La Muralla. Quer mais detalhes?",
+  "message": "Para frutos do mar, La Cevichería e Marea são duas ótimas opções. Para quantas pessoas?",
   "language": "pt",
-  "actions": [{"type":"open_event","event_id":"evt_010","label":"Ver Jazz & Wine"}],
-  "suggestions": ["Ver agenda completa", "Encontrar restaurante", "Reservar tour"]
+  "actions": [{"type":"show_partners","filters":{"category":"restaurant","subcategory":"seafood"},"label":"Ver frutos do mar"}],
+  "suggestions": ["Algo com vista para o mar", "Outra cozinha", "Para hoje à noite"]
 }
 
 NUNCA pongas acciones que no estén en la lista de tipos disponibles. NUNCA pongas más de 4 actions. NUNCA respondas con markdown. SIEMPRE JSON válido. SIEMPRE en el idioma del usuario."""
@@ -2103,6 +2093,71 @@ def _sanitize_actions(actions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return out
 
 
+def _city_official_urls(context: Mapping[str, Any]) -> List[str]:
+    """Official links of the city-hub modules in context (verified, curated data): the only
+    non-event URLs an `external_link` action may carry."""
+    out: List[str] = []
+    for m in ((context.get("city_reference") or {}).get("modules") or []):
+        for link in (m.get("official_links") or []) if isinstance(m, dict) else []:
+            u = link.get("url") if isinstance(link, dict) else None
+            if isinstance(u, str) and u.strip():
+                out.append(u.strip())
+    return out
+
+
+def _pulse_anchors(context: Mapping[str, Any]) -> List[str]:
+    """Partner names / titles of the venues' own 'today' posts (live_tonight): a 'hoy' next to
+    one of them is the venue's word ('según el local'), not an invented event."""
+    out: List[str] = []
+    for p in context.get("live_tonight") or []:
+        if isinstance(p, dict):
+            out.extend(str(p.get(k)) for k in ("partner_name", "title") if p.get(k))
+    return out
+
+
+def _partner_names(context: Mapping[str, Any]) -> Dict[str, str]:
+    """partner_id -> catalog name for every partner the LLM was shown."""
+    out: Dict[str, str] = {}
+    pools = [context.get("relevant_partners") or [], context.get("partner_directory") or [],
+             (context.get("curated_recommendations") or {}).get("expert_ranked") or []]
+    for pool in pools:
+        for p in pool:
+            if isinstance(p, dict) and p.get("partner_id") and p.get("name"):
+                out.setdefault(str(p["partner_id"]), str(p["name"]))
+    return out
+
+
+def _followup_intent(history: Any, now_utc: datetime, lang: str) -> Optional[Dict[str, Any]]:
+    """The intent of the previous USER turn when it was an event question (asked ≤ 24 h ago):
+    '¿Y a qué hora empieza?' after '¿Qué eventos hay el 12 de noviembre?' is still an event
+    turn — the rows are injected again and the prose guard + footer apply."""
+    for m in reversed(history if isinstance(history, list) else []):
+        if not isinstance(m, Mapping) or m.get("role") != "user":
+            continue
+        text = m.get("content")
+        if not isinstance(text, str) or not text.strip():
+            return None
+        ts = _events_gate.parse_iso(m.get("created_at"))
+        if ts is not None and now_utc - ts > timedelta(hours=24):
+            return None
+        try:
+            prev = _luna_events.detect_event_intent(text, lang, now=now_utc)
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"[agent] follow-up intent failed: {type(exc).__name__}")
+            return None
+        return {**prev, "_text": text} if prev.get("is_event") else None
+    return None
+
+
+def _pulse_times(context: Mapping[str, Any]) -> List[str]:
+    """Times the venues themselves published today (live_tonight, 'según el local')."""
+    out: List[str] = []
+    for p in context.get("live_tonight") or []:
+        if isinstance(p, dict):
+            out.extend(str(p.get(k)) for k in ("start_time", "end_time") if p.get(k))
+    return out
+
+
 async def run_agent_turn(
     db,
     *,
@@ -2111,12 +2166,27 @@ async def run_agent_turn(
     history: List[Dict[str, Any]],
     forced_language: Optional[str] = None,
     fast: bool = False,
+    location: Optional[Mapping[str, Any]] = None,
+    events_no_llm: bool = False,
+    now: Optional[datetime] = None,
 ) -> Dict[str, Any]:
     """One turn of the conversational agent. Returns the assistant payload.
 
     `forced_language` (es|en|fr|pt) overrides the auto-detection.
     `fast` uses Haiku for speed (~2-3s) instead of Sonnet (~8-15s).
     Use fast=True for search bar, fast=False for chat sessions.
+
+    EVENTS-ELITE gate (DESIGN.md §15 V1, §13 I1). /agent/chat, /agent/taste and the /search
+    AI path all run through here, so all of them inherit it:
+      event question + kill switch off     -> maintenance decline, no LLM call
+      event question + no confirmed rows   -> no-events decline (+ what IS confirmed), no LLM call
+      event question + rows                -> rows injected as `confirmed_events`, LLM, then
+                                              sanitize + prose guard + source footer
+      any other question                   -> no event data at all; the prose guard strips any
+                                              ungrounded event date/time the LLM still writes
+    `location` = {lat, lng} from the request body, used ONLY for "cerca de mí" in this call:
+    never stored, never logged. `events_no_llm` makes an event question with rows answer
+    with the deterministic grounded list (§13 D4 /search). `now` pins the clock (tests).
     """
 
     forced = (forced_language or "").lower().strip()
@@ -2125,10 +2195,57 @@ async def run_agent_turn(
 
     from llm import llm_complete
 
-    context = await build_context_snapshot(db, user=user, user_text=user_text)
+    now_utc = now if isinstance(now, datetime) else datetime.now(timezone.utc)
+    decl_lang = forced or _luna_events.guess_lang(user_text)
 
-    # Compress history to last 10 user/assistant pairs
-    short_history = history[-20:] if isinstance(history, list) else []
+    # ── EVENTS-ELITE gate: deterministic, before any LLM call ──
+    try:
+        intent = _luna_events.detect_event_intent(user_text, decl_lang, now=now_utc)
+    except Exception as exc:  # detector failure = not an event question; the prose guard still runs
+        logger.error(f"[agent] event intent detection failed: {type(exc).__name__}")
+        intent = _luna_events.intent_default()
+    is_event = bool(intent.get("is_event"))
+    confirmed: List[Dict[str, Any]] = []
+    guard_text = user_text
+    if not is_event:
+        # A follow-up inside an event conversation ('¿Y a qué hora empieza?', '¿seguro que es ese
+        # día?'): re-inject the previous question's confirmed rows so the guard + footer apply.
+        # Never a decline here: when that question has no rows (or the kill switch is on), the
+        # turn stays a normal non-event turn with the strict strip guard.
+        prev = _followup_intent(history, now_utc, decl_lang)
+        if prev is not None:
+            try:
+                prev_gate = await _luna_events.event_gate(
+                    db, prev, lang=decl_lang, location=location, query=str(prev.get("_text") or ""), now=now_utc)
+            except Exception as exc:  # noqa: BLE001
+                logger.error(f"[agent] follow-up event gate failed: {type(exc).__name__}")
+                prev_gate = {"payload": {}, "rows": []}
+            if prev_gate.get("payload") is None and prev_gate.get("rows"):
+                intent = {k: v for k, v in prev.items() if k != "_text"}
+                is_event = True
+                confirmed = list(prev_gate.get("rows") or [])
+                guard_text = f"{prev.get('_text')} {user_text}"
+    elif is_event:
+        try:
+            gate_out = await _luna_events.event_gate(
+                db, intent, lang=decl_lang, location=location, query=user_text, now=now_utc)
+        except Exception as exc:  # fail closed: an event question never falls through ungated
+            logger.error(f"[agent] event gate failed: {type(exc).__name__}")
+            return _luna_events.decline_payload(decl_lang, [], [], kind="maintenance", now=now_utc)
+        if gate_out.get("payload") is not None:
+            return gate_out["payload"]
+        confirmed = list(gate_out.get("rows") or [])
+        if events_no_llm:
+            return _luna_events.grounded_payload(confirmed, decl_lang, str(intent.get("range")), now=now_utc)
+
+    context = await build_context_snapshot(
+        db, user=user, user_text=user_text,
+        event_intent=intent, confirmed_events=confirmed, now=now_utc,
+    )
+
+    # Last 10 user/assistant pairs. Assistant turns from before the EVENTS-ELITE cutover (or
+    # without a provable created_at) are dropped: they may carry legacy/invented events (§15 V3).
+    short_history = _luna_events.filter_history(history)[-20:]
 
     # Build the user payload as a single JSON string. We send it all as one
     # UserMessage, since LlmChat manages session state internally.
@@ -2166,21 +2283,25 @@ async def run_agent_turn(
     model = "claude-haiku-4-5"
     max_tok = 1024 if fast else 2048
 
-    response = await llm_complete(
-        system_msg, json.dumps(user_payload, ensure_ascii=False),
-        model=model,
-        max_tokens=max_tok,
-        temperature=0.5 if fast else 0.7,
-    )
+    try:
+        response = await llm_complete(
+            system_msg, json.dumps(user_payload, ensure_ascii=False),
+            model=model,
+            max_tokens=max_tok,
+            temperature=0.5 if fast else 0.7,
+        )
+    except Exception as exc:
+        logger.error(f"[agent] llm_complete raised: {type(exc).__name__}")
+        response = None
 
     parsed = _safe_json_parse(response or "")
-    if not parsed or not isinstance(parsed, dict):
+    message = (parsed.get("message") or "").strip() if isinstance(parsed, dict) else ""
+    if not parsed or not isinstance(parsed, dict) or not message:
+        if is_event:
+            # LLM down on an event question: answer with the grounded list, never venue filler.
+            return _luna_events.grounded_payload(confirmed, decl_lang, str(intent.get("range")), now=now_utc)
         return _fallback_response(user_text, forced or None, context)
 
-    # Validate keys
-    message = (parsed.get("message") or "").strip()
-    if not message:
-        return _fallback_response(user_text, forced or None, context)
     language = parsed.get("language") or "es"
     if language not in {"es", "en", "fr", "pt"}:
         language = "es"
@@ -2194,14 +2315,44 @@ async def run_agent_turn(
     # Curated expert picks are authoritative — never let the sanitizer drop them.
     _cur = context.get("curated_recommendations") or {}
     valid_partner_ids.update(p.get("partner_id") for p in (_cur.get("expert_ranked") or []))
-    valid_event_ids = set()
-    for e in (context.get("events") or []):
-        valid_event_ids.add(e.get("event_id") or e.get("slug"))
-    for e in (context.get("partner_events") or []):
-        valid_event_ids.add(e.get("event_id") or e.get("slug"))
-    valid_event_ids.discard(None)
+    # EVENTS-ELITE: the only valid event ids are the injected confirmed_events.
+    valid_event_ids = {r.get("event_id") for r in confirmed if r.get("event_id")}
     recommendations = _sanitize_recommendations(parsed.get("recommendations") or [], valid_partner_ids, valid_event_ids)
     suggestions = [str(s)[:80] for s in (parsed.get("suggestions") or [])[:4] if s]
+
+    # §9 sanitizer: event cards rebuilt from their row; open_event / external_link only to
+    # injected events (plus the city hub's official links).
+    recommendations, actions = _luna_events.sanitize(
+        recommendations, actions, confirmed,
+        lang=language, allowed_urls=_city_official_urls(context), now=now_utc,
+    )
+    # The prose guard covers EVERY LLM string, not only `message`: partner-card free text,
+    # action labels and quick replies can carry an invented "concierto … el sábado a las 9".
+    partner_names = _partner_names(context)
+    recommendations, actions, suggestions = _luna_events.guard_side_channels(
+        recommendations, actions, suggestions, confirmed, language,
+        extra_times=[] if is_event else _pulse_times(context), now=now_utc,
+        partner_names=partner_names, today_anchors=[] if is_event else _pulse_anchors(context),
+        event_turn=bool(is_event),
+    )
+
+    # §15 V2 prose guard, then the §15 V4 source footer (footer AFTER the guard: its own
+    # "verificado <d MMM>" must never be read as a claim).
+    if is_event:
+        message = _luna_events.prose_guard(
+            message, confirmed, language,
+            user_text=guard_text, range_key=str(intent.get("range")), now=now_utc,
+            known_names=list(partner_names.values()),
+        )
+        message = _luna_events.citation_footer(message, recommendations, actions, confirmed, language)
+    else:
+        stripped = _luna_events.strip_ungrounded(message, [], language, extra_times=_pulse_times(context),
+                                                 now=now_utc, today_anchors=_pulse_anchors(context))
+        if not stripped:
+            stripped = _luna_events.agenda_pointer(language)
+            if len(actions) < 4 and not any(a.get("type") == "navigate" and a.get("screen") == "agenda" for a in actions):
+                actions.append(_luna_events.agenda_action(language))
+        message = stripped
 
     return {
         "message": message,

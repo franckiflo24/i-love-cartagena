@@ -31,7 +31,8 @@ from typing import Any, Dict, List, Literal, Optional
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from partner_visibility import PUBLIC_PARTNER_FILTER
+from events_time import event_is_live
+from partner_visibility import PARTNER_EVENT_PUBLIC, PUBLIC_PARTNER_FILTER
 
 logger = logging.getLogger("trips")
 
@@ -109,7 +110,7 @@ async def _enrich_items(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             venues[p["partner_id"]] = p
     if exp_ids:
         async for e in db.partner_events.find(
-            {"event_id": {"$in": exp_ids}, "is_published": True},
+            {**PARTNER_EVENT_PUBLIC, "event_id": {"$in": exp_ids}},
             {"_id": 0, "event_id": 1, "title": 1, "date": 1, "start_time": 1, "partner_id": 1, "category": 1},
         ):
             exps[e["event_id"]] = e
@@ -354,9 +355,11 @@ async def _ref_snapshot(ref_type: str, ref_id: Optional[str]) -> Optional[str]:
     elif ref_type == "experience":
         # Same guard as the venue branch (audit #3a): the event's HOSTING
         # venue must be catalog-approved right now, not just at publish time.
-        e = await db.partner_events.find_one({"event_id": ref_id, "is_published": True},
-                                             {"_id": 0, "title": 1, "partner_id": 1})
-        if e and await db.partners.find_one(
+        # §15 T4: explicitly approved (moderation fails closed) and not finished (Bogotá).
+        e = await db.partner_events.find_one({**PARTNER_EVENT_PUBLIC, "event_id": ref_id},
+                                             {"_id": 0, "title": 1, "partner_id": 1, "date": 1, "end_date": 1,
+                                              "start_time": 1, "end_time": 1})
+        if e and event_is_live(e) and await db.partners.find_one(
             {**PUBLIC_PARTNER_FILTER, "partner_id": e.get("partner_id")},
             {"_id": 0, "partner_id": 1},
         ):

@@ -18,7 +18,7 @@ export default function PrivacyScreen() {
         <Text style={styles.title}>{tr('Política de Privacidad')}</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.versionTag}>{tr('Versión')} 1.0 · {tr('Vigente desde')} mayo 2026</Text>
+        <Text style={styles.versionTag}>{tr('Versión')} 1.1 · {tr('Vigente desde')} 2026-09-28</Text>
 
         <Text style={styles.h1}>{tr('1. Responsable del tratamiento')}</Text>
         <Text style={styles.p}>{tr('Amo Cartagena S.A.S., NIT en trámite, con domicilio en Cartagena de Indias, Colombia, es responsable del tratamiento de tus datos personales conforme a la Ley 1581 de 2012 (Colombia) y el Reglamento General de Protección de Datos (RGPD/GDPR) cuando aplique.')}</Text>
@@ -27,15 +27,17 @@ export default function PrivacyScreen() {
         <Text style={styles.h1}>{tr('2. Qué datos recopilamos')}</Text>
         <Text style={styles.p}>{tr('a) Datos de cuenta: nombre, email, foto de perfil (cuando inicias sesión con Google/Apple), número de WhatsApp si lo usas para autenticarte.')}</Text>
         <Text style={styles.p}>{tr('b) Datos de uso: idioma seleccionado, favoritos, búsquedas realizadas, eventos visitados, interacciones con el agente IA.')}</Text>
-        <Text style={styles.p}>{tr('c) Datos de dispositivo: token de push notifications, modelo, sistema operativo, ubicación aproximada (solo si concedes permiso, opcional).')}</Text>
+        <Text style={styles.p}>{tr('c) Datos de dispositivo: token de notificaciones push, modelo y sistema operativo.')}</Text>
         <Text style={styles.p}>{tr('d) Datos de reservas: partner solicitado, fecha, hora, número de personas, notas que escribes para el partner.')}</Text>
         <Text style={styles.p}>{tr('e) Datos de pago: NO almacenamos tu tarjeta. Los pagos son procesados directamente por Wompi (PCI-DSS Level 1). Solo guardamos el identificador de la transacción y el monto.')}</Text>
+        <Text style={styles.p}>{tr('f) Ubicación (solo si concedes permiso, opcional): la usamos para mostrarte lugares y eventos cercanos. No guardamos tu ubicación ni tu recorrido en nuestros servidores: cuando buscas lugares cercanos, le preguntas a Luna por algo cerca de ti o validas un sello del pasaporte, la posición se envía solo para responder esa consulta y no se almacena. Si eliges una "Mi base", guardamos ese punto en tu cuenta hasta que lo borres.')}</Text>
 
         <Text style={styles.h1}>{tr('3. Para qué usamos tus datos')}</Text>
         <Text style={styles.p}>{tr('• Autenticarte y mantener tu sesión.')}</Text>
         <Text style={styles.p}>{tr('• Procesar tus reservas y notificarte cuando el partner las confirme.')}</Text>
         <Text style={styles.p}>{tr('• Personalizar recomendaciones del agente IA según tu historial y favoritos.')}</Text>
-        <Text style={styles.p}>{tr('• Enviar notificaciones push relevantes (confirmaciones, recordatorios 24h antes de eventos favoritos).')}</Text>
+        <Text style={styles.p}>{tr('• Enviar notificaciones push relevantes: confirmaciones de tus reservas y recordatorios de los eventos que guardaste (hasta 3 h antes de que empiecen, solo entre las 09:00 y las 21:00, máximo 1 aviso de eventos al día). Puedes desactivarlos en Perfil › Notificaciones.')}</Text>
+        <Text style={styles.p}>{tr('• Eventos verificados cerca de ti (opcional, desactivado por defecto): si lo activas en Perfil › Notificaciones, tu teléfono compara tu ubicación con la agenda de eventos verificados. Ese cálculo se hace en tu teléfono; tu ubicación no se envía a AMO.')}</Text>
         <Text style={styles.p}>{tr('• Analítica agregada anónima para mejorar el producto y compartir datos estadísticos con la Alcaldía de Cartagena y sponsors (nunca datos individuales identificables).')}</Text>
         <Text style={styles.p}>{tr('• Cumplir obligaciones legales y prevenir fraude.')}</Text>
 
@@ -45,6 +47,7 @@ export default function PrivacyScreen() {
         <Text style={styles.h1}>{tr('5. Terceros con los que compartimos datos')}</Text>
         <Text style={styles.p}>{tr('• Wompi (Colombia) — procesamiento de pagos City Pass (cuando esté disponible).')}</Text>
         <Text style={styles.p}>{tr('• Expo Push Service (USA) — entrega de notificaciones push.')}</Text>
+        <Text style={styles.p}>{tr('• Servicios de notificaciones de tu navegador (por ejemplo Apple, Google o Mozilla) — entregan los avisos web solo si los activas.')}</Text>
         <Text style={styles.p}>{tr('• Anthropic (Claude) / Google — procesamiento de consultas al agente IA (sin tus datos personales identificables: solo el texto de tu pregunta).')}</Text>
         <Text style={styles.p}>{tr('• Google Sign-In / Apple Sign-In — solo si eliges esos métodos de login.')}</Text>
         <Text style={styles.p}>{tr('• Partners (restaurantes, hoteles) — reciben tu nombre, contacto y detalles de la reserva SOLO si confirman tu solicitud. Los partners FREE reciben datos enmascarados hasta que activan su cuenta PRO.')}</Text>

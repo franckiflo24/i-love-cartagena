@@ -10,13 +10,22 @@ Rules enforced SERVER-SIDE, not promised:
     (3/7/14/30 days). No proximity spam, no loss-aversion, no guilt copy.
 
 Payloads carry title/body/url only — no coordinates, no tracking beacons.
+
+EVENTS-ELITE §13 H3 / §15 U — consent SCOPES. One browser subscription can carry several
+consents: 'passport' (the streak milestone push above) and 'events' (reminders for events
+the user saved). POST /push/subscribe {subscription, scopes} $sets the FULL scope list for
+that endpoint; a body without `scopes` means ['passport'], and rows stored before scopes
+existed count as ['passport'] too. notify_user() only reaches 'passport' subscriptions;
+send_to_subscriptions(..., scope='events') only reaches 'events' ones and never touches
+push_log (event reminders have their own daily cap, event_push_log, in events_elite).
 """
 
+import asyncio
 import json
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, HTTPException, Request
@@ -25,15 +34,42 @@ logger = logging.getLogger("webpush")
 
 router = APIRouter()
 
-db = None
-_get_current_user = None
-_check_rate_limit = None
+db: Any = None
+_get_current_user: Any = None
+_check_rate_limit: Any = None
 
 BOGOTA = ZoneInfo("America/Bogota")
 
 VAPID_PRIVATE = os.environ.get("VAPID_PRIVATE_KEY", "").strip()
 VAPID_PUBLIC = os.environ.get("VAPID_PUBLIC_KEY", "").strip()
 VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "mailto:hola@amocartagena.co").strip()
+
+SCOPES = ("passport", "events")
+LEGACY_SCOPES = ["passport"]      # a subscribe body without scopes, and every pre-scope row
+SEND_TIMEOUT_S = 5.0              # pywebpush HTTP timeout per subscription
+TOTAL_TIMEOUT_S = 6.0             # send_to_subscriptions' own deadline (all subscriptions, in parallel)
+
+
+def scope_query(user_id: str, scope: str) -> Dict[str, Any]:
+    """Mongo filter for a user's subscriptions that consented to `scope`. Rows stored before
+    scopes existed carry no `scopes` field and count as ['passport']."""
+    if scope == "passport":
+        return {"user_id": user_id, "$or": [{"scopes": "passport"}, {"scopes": {"$exists": False}}]}
+    return {"user_id": user_id, "scopes": scope}
+
+
+def parse_scopes(raw: Any) -> List[str]:
+    """Body `scopes` -> the stored list. Missing -> ['passport']; unknown values dropped;
+    a list is the FULL desired set (an empty list = no consent left on this endpoint)."""
+    if raw is None:
+        return list(LEGACY_SCOPES)
+    if not isinstance(raw, list):
+        raise HTTPException(status_code=400, detail="scopes must be a list")
+    out: List[str] = []
+    for s in raw:
+        if isinstance(s, str) and s in SCOPES and s not in out:
+            out.append(s)
+    return out
 
 
 def init(*, db_, get_current_user, check_rate_limit):
@@ -65,18 +101,20 @@ async def push_subscribe(request: Request):
     keys = sub.get("keys") or {}
     if not endpoint or not keys.get("p256dh") or not keys.get("auth"):
         raise HTTPException(status_code=400, detail="valid subscription required")
+    scopes = parse_scopes(body.get("scopes"))
     await db.push_subscriptions.update_one(
         {"endpoint": endpoint},
         {"$set": {
             "user_id": user["user_id"],
             "endpoint": endpoint,
             "keys": {"p256dh": keys["p256dh"], "auth": keys["auth"]},
+            "scopes": scopes,
             "updated_at": datetime.now(timezone.utc).isoformat(),
         },
          "$setOnInsert": {"created_at": datetime.now(timezone.utc).isoformat()}},
         upsert=True,
     )
-    return {"ok": True}
+    return {"ok": True, "scopes": scopes}
 
 
 @router.post("/push/unsubscribe")
@@ -106,7 +144,8 @@ async def notify_user(db_, user_id: str, title: str, body: str,
     except Exception:
         return {"sent": 0, "capped": True}  # unique index hit → daily cap
 
-    subs = await db_.push_subscriptions.find({"user_id": user_id}).to_list(10)
+    # Only subscriptions that consented to the streak push ('passport'; pre-scope rows count).
+    subs = await db_.push_subscriptions.find(scope_query(user_id, "passport")).to_list(10)
     if not subs:
         return {"sent": 0, "capped": False, "reason": "no subscriptions"}
 
@@ -132,6 +171,80 @@ async def notify_user(db_, user_id: str, title: str, body: str,
         except Exception as exc:
             logger.warning(f"[webpush] send error: {exc}")
     return {"sent": sent, "capped": False}
+
+
+async def send_to_subscriptions(db_, user_id: str, title: str, body: str, url: str,
+                                scope: str = "events") -> Dict[str, Any]:
+    """Send one push to the user's subscriptions that consented to `scope` (EVENTS-ELITE
+    §13 H2/H3). Unlike notify_user this writes NO push_log row: the caller owns its own cap
+    (event reminders use event_push_log). pywebpush is blocking, so every send runs in a
+    worker thread with an HTTP timeout, all subscriptions IN PARALLEL under one total deadline
+    (TOTAL_TIMEOUT_S), so the partial count always comes back to the caller. `uncertain` counts
+    sends whose outcome is unknown (timed out: the worker thread may still deliver) — a caller
+    must never treat those as "not sent" and retry. Never raises; dead endpoints (404/410) are
+    pruned. Web limits: title 80, body 160 characters."""
+    out: Dict[str, Any] = {"sent": 0, "subscriptions": 0, "uncertain": 0}
+    if not enabled():
+        return {**out, "reason": "not configured"}
+    if scope not in SCOPES or not user_id:
+        return {**out, "reason": "bad scope"}
+    try:
+        subs = await db_.push_subscriptions.find(scope_query(user_id, scope)).to_list(10)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[webpush] subscription read failed: %s", type(exc).__name__)
+        return {**out, "reason": "db error"}
+    out["subscriptions"] = len(subs)
+    if not subs:
+        return {**out, "reason": "no subscriptions"}
+    try:
+        from pywebpush import webpush as _wp_send, WebPushException
+    except ImportError:
+        logger.error("[webpush] pywebpush not installed")
+        return {**out, "reason": "not installed"}
+    payload = json.dumps({"title": (title or "")[:80], "body": (body or "")[:160], "url": url})
+    per_sub = min(SEND_TIMEOUT_S + 1.0, TOTAL_TIMEOUT_S)
+
+    async def one(sub: Dict[str, Any]) -> str:
+        try:
+            await asyncio.wait_for(asyncio.to_thread(
+                _wp_send,
+                subscription_info={"endpoint": sub["endpoint"], "keys": sub["keys"]},
+                data=payload,
+                vapid_private_key=VAPID_PRIVATE,
+                vapid_claims={"sub": VAPID_SUBJECT},   # fresh dict per call: pywebpush mutates it
+                ttl=3600,
+                timeout=SEND_TIMEOUT_S,
+            ), timeout=per_sub)
+            return "sent"
+        except WebPushException as exc:
+            status = getattr(getattr(exc, "response", None), "status_code", None)
+            if status in (404, 410):  # dead subscription → prune
+                try:
+                    await db_.push_subscriptions.delete_one({"endpoint": sub["endpoint"]})
+                except Exception as exc2:  # noqa: BLE001
+                    logger.error("[webpush] prune failed: %s", type(exc2).__name__)
+            else:
+                logger.error("[webpush] %s send failed: http %s", scope, status)
+            return "failed"
+        except asyncio.TimeoutError:
+            logger.error("[webpush] %s send timed out", scope)
+            return "uncertain"
+        except Exception as exc:  # noqa: BLE001
+            logger.error("[webpush] %s send error: %s", scope, type(exc).__name__)
+            return "failed"
+
+    tasks = [asyncio.ensure_future(one(sub)) for sub in subs]
+    done, pending = await asyncio.wait(tasks, timeout=TOTAL_TIMEOUT_S)
+    for t in pending:
+        t.cancel()   # the worker thread may still deliver: counted as uncertain, never as failed
+    for t in done:
+        res = t.result() if not t.cancelled() else "uncertain"
+        if res == "sent":
+            out["sent"] += 1
+        elif res == "uncertain":
+            out["uncertain"] += 1
+    out["uncertain"] += len(pending)
+    return out
 
 
 @router.post("/admin/push/test")

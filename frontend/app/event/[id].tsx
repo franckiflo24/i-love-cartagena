@@ -1,136 +1,206 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking as RNLinking, Share } from 'react-native';
-import { SafeImage } from '../../src/components/SafeImage';
+// /event/[id] — one city event, told honestly (EVENTS-ELITE §10, §13 J2).
+//
+// Source of truth: GET /api/events/feed/item/{id}, which returns the row in ANY
+// status so this screen can say what happened to it. Legacy /events/{id} is only
+// a fallback (always rendered "Sin confirmar"). A partner-event id (evt_/pe_)
+// still resolves to /partner-event/[id].
+//   published → dates, time, venue, price, ticket CTA, Avísame, source block
+//   date_tbc  → "Fecha por confirmar" (never a date), venue, source block
+//   hidden / review → "Este evento ya no está confirmado" + a localized reason
+//                     (never a status code, never a date or ticket)
+//   expired   → "Este evento ya pasó"
+// Price honesty: GRATIS only when price.is_free === true, otherwise "Consultar".
+// All hooks sit above the early returns (React #310).
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { openDirections } from '../../src/lib/maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS, FONTS, EVENT_TYPE_LABELS } from '../../src/constants/theme';
+import Head from '../../src/components/WebHead';
+import { Skeleton } from '../../src/components/Skeleton';
+import AvisameButton from '../../src/components/AvisameButton';
+import {
+  EventCategoryBadge, EventMedia, EventSoldOutChip, EventTrustChip, FeedOfflineBanner,
+} from '../../src/components/EventFeedUI';
+import { COLORS, SPACING, RADIUS, FONTS, TYPE } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
+import { openDirections } from '../../src/lib/maps';
+import { openExternal } from '../../src/lib/cityModules';
 import { goBackOr } from '../../src/lib/nav';
-import { useAuth } from '../../src/context/AuthContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { useLang } from '../../src/context/LanguageContext';
-import { monthShort } from '../../src/lib/formatDate';
-import { bogotaToday } from '../../src/lib/eventTime';
-import { eventPriceLabel } from '../../src/utils/price';
-import { isHttpUrl } from '../../src/lib/safeUrl';
+import {
+  FeedItemResult, PublicEvent, formatEventDates, formatEventTime, formatVerifiedDate,
+  hasRealCoords, loadFeedItem, loadLegacyEvent, pickL,
+} from '../../src/lib/eventsFeed';
 
 // Partner-event ids: `pe_<hex>` (backend create), `pe_bethel_dj_<date>` and the
-// seeded `evt_NNN`. City events use slugs (some legacy `evt_` too — those cost one
-// probe that 404s, and then render as the city event they are).
+// seeded `evt_NNN`. City events are `ce-…` and never match.
 const PARTNER_EVENT_ID = /^(evt_|pe_)/i;
+
+// §13 J2: the only reasons a visitor is told. Any other code → no reason line.
+const REASON_COPY: Record<string, string> = {
+  source_gone: 'La página oficial del evento ya no está disponible',
+  cancel_marker: 'La fuente lo anuncia como cancelado o aplazado',
+  date_changed: 'La fecha cambió y la estamos verificando',
+  conflict: 'La fecha cambió y la estamos verificando',
+};
+
+type Loaded = FeedItemResult | { kind: 'loading' };
 
 export default function EventDetail() {
   const tr = useTr();
   const { lang } = useLang();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { user } = useAuth();
-  const { isFavorite: checkFav, toggleFavorite } = useFavorites();
-  const [event, setEvent] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const [state, setState] = useState<Loaded>({ kind: 'loading' });
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
-    // One event, one canonical screen. A partner-event id belongs to
-    // /partner-event/[id]; before this, /event/evt_010 painted a stale city-event
-    // snapshot of the same id from the static fallback and drifted from the live
-    // partner event. Resolution goes through the partner-events DATA (live
-    // GET /partner-events/<id>, which api.get falls back to the bundled
-    // /data/partner-events/<id>.json when offline), never only /data/events.
-    // Only partner-event id shapes are probed (backend mints `pe_…`, seeds use
-    // `evt_…`); a slug like `festival-x` skips the round trip.
+    const eventId = String(id || '');
+    // One event, one canonical screen: partner-published events live on
+    // /partner-event/[id]. Only partner id shapes are probed.
     const isPartnerEvent = async (): Promise<boolean> => {
-      if (!PARTNER_EVENT_ID.test(String(id))) return false;
+      if (!PARTNER_EVENT_ID.test(eventId)) return false;
       try {
-        const row: unknown = await api.get(`/partner-events/${encodeURIComponent(String(id))}`);
+        const row: unknown = await api.get(`/partner-events/${encodeURIComponent(eventId)}`);
         return !!row && typeof row === 'object' && !Array.isArray(row) && !!(row as { partner_id?: string }).partner_id;
       } catch {
-        return false; // 404 live + no bundled row (or offline) → city event
+        return false; // 404 live + no bundled row (or offline) → not a partner event
       }
     };
     const load = async () => {
-      const [partnerEvent, data] = await Promise.all([
-        isPartnerEvent(),
-        api.get(`/events/${id}`).catch((e: unknown) => { console.error('[EventDetail]', e); return null; }),
-      ]);
-      if (cancelled) return;
-      if (partnerEvent) {
-        router.replace(`/partner-event/${id}` as any);
-        return;
+      setState({ kind: 'loading' });
+      try {
+        const [partner, item] = await Promise.all([isPartnerEvent(), loadFeedItem(eventId)]);
+        if (cancelled) return;
+        if (partner) {
+          router.replace(`/partner-event/${eventId}` as never);
+          return;
+        }
+        if (item.kind !== 'not_found') { setState(item); return; }
+        const legacy = await loadLegacyEvent(eventId);
+        if (!cancelled) setState(legacy);
+      } catch (e) {
+        console.error('[EventDetail] load', e);
+        if (!cancelled) setState({ kind: 'error' });
       }
-      // [] (STATIC_MODE unknown id) and {} are truthy → they slipped past the
-      // `if (!event)` not-found guard and rendered a blank event page. Only accept
-      // a real event object; else fall through to "Evento no encontrado".
-      setEvent(data && typeof data === 'object' && !Array.isArray(data) && (data.event_id || data.id || data.title) ? data : null);
-      setLoading(false);
     };
     load();
     return () => { cancelled = true; };
-  }, [id, router]);
+  }, [id, router, attempt]);
 
-  const shareEvent = async () => {
-    if (!event) return;
-    const priceText = eventPriceLabel(event.price, event.is_free, { cop: true });
-    try {
-      await Share.share({
-        message: `🎉 ${event.title}\n📍 ${event.venue_name}\n🗓 ${event.date} · ${event.start_time}\n💰 ${priceText}\n\nDescarga AMO Life para ver todo el programa 🎧`,
-      });
-    } catch (e) { console.error(e); }
-  };
+  const ev: PublicEvent | null = state.kind === 'ok' ? state.event : null;
+  const offline = state.kind === 'ok' ? state.offline : false;
 
-  const openMaps = () => {
-    if (!event) return;
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
+  const openSource = useCallback(() => { if (ev?.source_url) openExternal(ev.source_url); }, [ev]);
+  const openTickets = useCallback(() => { if (ev?.ticket_url) openExternal(ev.ticket_url); }, [ev]);
+  const openQuePasa = useCallback(() => { router.push('/que-pasa' as never); }, [router]);
+
+  const openMaps = useCallback(() => {
+    if (!ev) return;
     // openDirections lets iOS users pick Apple Maps or Google Maps (Guideline 4).
-    if (event.location?.lat && event.location?.lng) {
-      openDirections({ lat: event.location.lat, lng: event.location.lng, label: event.venue_name }, tr);
-    } else if (event.venue_name) {
-      openDirections({ query: `${event.venue_name}, Cartagena, Colombia` }, tr);
+    if (hasRealCoords(ev)) {
+      openDirections({ lat: ev.lat, lng: ev.lng, label: ev.venue_name }, tr);
+    } else if (ev.venue_name && !ev.is_umbrella) {
+      openDirections({ query: `${ev.venue_name}, Cartagena, Colombia` }, tr);
     }
-  };
+  }, [ev, tr]);
 
-  if (loading) {
+  const shareEvent = useCallback(async () => {
+    if (!ev) return;
+    const title = pickL(ev.title, lang);
+    const lines = [title];
+    if (ev.venue_name) lines.push(ev.venue_name);
+    if (ev.status === 'published') {
+      const when = [formatEventDates(ev, lang), formatEventTime(ev)].filter(Boolean).join(' · ');
+      if (when) lines.push(when);
+    } else if (ev.status === 'date_tbc') {
+      lines.push(tr('Fecha por confirmar'));
+    }
+    if (ev.source_name) lines.push(`${tr('Fuente')}: ${ev.source_name}`);
+    try {
+      await Share.share({ message: `${lines.join('\n')}\n\n${tr('Descarga AMO Life para ver todo el programa')}` });
+    } catch (e) {
+      console.error('[EventDetail] share', e);
+    }
+  }, [ev, lang, tr]);
+
+  // ── All hooks are above this line ──────────────────────────────────────────
+
+  if (state.kind === 'loading') {
     return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} />
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View testID="event-skeleton">
+          <Skeleton height={280} borderRadius={0} />
+          <View style={{ padding: SPACING.lg, gap: 12 }}>
+            <Skeleton width="70%" height={24} />
+            <Skeleton width="50%" height={14} />
+            <Skeleton width="60%" height={14} />
+            <Skeleton width="40%" height={14} />
+          </View>
+        </View>
       </SafeAreaView>
     );
   }
 
-  if (!event) {
+  if (state.kind === 'not_found' || state.kind === 'error') {
+    const failed = state.kind === 'error';
     return (
       <SafeAreaView style={styles.container}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, paddingHorizontal: 32 }}>
-          <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
-          <Text style={{ color: COLORS.textMuted, fontSize: 16, textAlign: 'center' }}>{tr('Evento no encontrado')}</Text>
-          {/* goBackOr pops, or reveals the live tabs (never replace — replace tore
-              the tab navigator down and every tab re-entered its loading state). */}
-          <TouchableOpacity onPress={() => goBackOr(router)} style={{ marginTop: 8, paddingVertical: 10, paddingHorizontal: 24, borderRadius: 20, backgroundColor: COLORS.primary }}>
-            <Text style={{ color: COLORS.white, fontWeight: '600' }}>{tr('Volver')}</Text>
+        <View style={styles.centerState}>
+          <Ionicons name={failed ? 'cloud-offline-outline' : 'calendar-outline'} size={48} color={COLORS.textMuted} />
+          <Text style={styles.centerTitle}>{tr(failed ? 'No pudimos cargar el evento' : 'Evento no encontrado')}</Text>
+          {failed && <Text style={styles.centerText}>{tr('Verifica tu conexión e intenta de nuevo')}</Text>}
+          {failed ? (
+            <TouchableOpacity onPress={retry} style={styles.primaryBtn} accessibilityRole="button">
+              <Ionicons name="refresh" size={16} color={COLORS.black} />
+              <Text style={styles.primaryBtnText}>{tr('Reintentar')}</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={openQuePasa} style={styles.primaryBtn} accessibilityRole="button">
+              <Text style={styles.primaryBtnText}>{tr('Qué pasa en Cartagena')}</Text>
+              <Ionicons name="arrow-forward" size={15} color={COLORS.black} />
+            </TouchableOpacity>
+          )}
+          {/* goBackOr pops, or reveals the live tabs (never replace). */}
+          <TouchableOpacity onPress={() => goBackOr(router)} style={styles.ghostBtn} accessibilityRole="button">
+            <Text style={styles.ghostBtnText}>{tr('Volver')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
 
+  const event = state.event;
+  const title = pickL(event.title, lang);
+  const description = pickL(event.description, lang);
+  const published = event.status === 'published';
+  const tbc = event.status === 'date_tbc';
+  const gone = event.status === 'hidden' || event.status === 'review';
+  const expired = event.status === 'expired';
+  const fav = isFavorite(event.event_id);
+  // Saving is for live rows; a saved row that stopped being live can still be removed.
+  const showHeart = published || tbc || fav;
+  const reason = gone && event.status_reason ? REASON_COPY[event.status_reason] : undefined;
+  const dates = published ? formatEventDates(event, lang) : '';
+  const time = published ? formatEventTime(event) : '';
+  const canMap = (published || tbc) && (hasRealCoords(event) || (!!event.venue_name && !event.is_umbrella));
+  const canTicket = published && !!event.ticket_url && !event.sold_out;
+  const verifiedOn = formatVerifiedDate(event.last_verified, lang);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <Head><title>{`${title} · AMO Life`}</title></Head>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Hero Image */}
+        {/* Hero — SafeImage paints the category placeholder from frame 0 */}
         <View style={styles.hero}>
-          {/* Hero is the LCP: high priority, partner photo as fallback, bundled
-              branded placeholder from frame 0 (SafeImage) — never a black block. */}
-          <SafeImage
-            uri={event.image_url}
-            fallbackUri={event.flyer_url || event.partner_image}
-            category={event.type || event.category || 'event'}
-            priority="high"
-            style={styles.heroImage}
-          />
+          <EventMedia ev={event} height={280} iconSize={40} priority="high" accessibilityLabel={title} />
           <LinearGradient
             colors={['rgba(8,12,22,0.10)', 'rgba(8,12,22,0.35)', COLORS.background]}
             locations={[0, 0.5, 1]}
@@ -138,142 +208,190 @@ export default function EventDetail() {
             pointerEvents="none"
           />
           <View style={styles.heroNav}>
-            <TouchableOpacity testID="event-back-btn" style={styles.navBtn} onPress={() => goBackOr(router)}>
+            <TouchableOpacity testID="event-back-btn" style={styles.navBtn} onPress={() => goBackOr(router)} accessibilityRole="button" accessibilityLabel={tr('Volver')}>
               <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
             </TouchableOpacity>
             <View style={styles.heroNavRight}>
-              <TouchableOpacity testID="event-fav-btn" style={styles.navBtn} onPress={() => toggleFavorite(event.event_id, 'event')}>
-                <Ionicons name={checkFav(event.event_id) ? 'heart' : 'heart-outline'} size={22} color={checkFav(event.event_id) ? '#EF4444' : COLORS.textMain} />
-              </TouchableOpacity>
-              <TouchableOpacity testID="event-share-btn" style={styles.navBtn} onPress={shareEvent}>
-                <Ionicons name="share-social-outline" size={22} color={COLORS.textMain} />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.heroContent}>
-            <View style={styles.typeBadge}>
-              <Text style={styles.typeText}>{EVENT_TYPE_LABELS[event.type] || event.type}</Text>
-            </View>
-            <Text style={styles.heroTitle}>{event.title}</Text>
-          </View>
-        </View>
-
-        {/* Info Section */}
-        <View style={styles.infoSection}>
-          <View style={styles.infoRow}>
-            <View style={styles.infoIcon}>
-              <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
-            </View>
-            <View>
-              <Text style={styles.infoLabel}>{tr('Fecha')}</Text>
-              <Text style={styles.infoValue}>{(() => {
-                const today = bogotaToday();
-                const start = event.date_start || event.date || '';
-                const end = event.date_end || start;
-                if (start <= today && end >= today) return tr('Hoy — Activo ahora');
-                if (start > today) {
-                  const d = new Date(start + 'T00:00:00');
-                  return `${d.getDate()} ${monthShort(d.getMonth(), lang, true)} ${d.getFullYear()}`;
-                }
-                return event.date;
-              })()}</Text>
-              {event.date_end && event.date_end !== (event.date_start || event.date) && (
-                <Text style={[styles.infoValue, { fontSize: 12, color: COLORS.textMuted, marginTop: 2 }]}>
-                  {event.date_start} → {event.date_end}
-                </Text>
+              {showHeart && (
+                <TouchableOpacity
+                  testID="event-fav-btn"
+                  style={styles.navBtn}
+                  onPress={() => { toggleFavorite(event.event_id, 'event').catch((e: unknown) => console.error('[EventDetail] favorite', e)); }}
+                  accessibilityRole="button"
+                  accessibilityLabel={tr(fav ? 'Quitar de favoritos' : 'Guardar')}
+                >
+                  <Ionicons name={fav ? 'heart' : 'heart-outline'} size={22} color={fav ? '#EF4444' : COLORS.textMain} />
+                </TouchableOpacity>
+              )}
+              {(published || tbc) && (
+                <TouchableOpacity testID="event-share-btn" style={styles.navBtn} onPress={shareEvent} accessibilityRole="button" accessibilityLabel={tr('Compartir')}>
+                  <Ionicons name="share-social-outline" size={22} color={COLORS.textMain} />
+                </TouchableOpacity>
               )}
             </View>
           </View>
-          <View style={styles.infoRow}>
-            <View style={styles.infoIcon}>
-              <Ionicons name="time-outline" size={20} color={COLORS.primary} />
+          <View style={styles.heroContent}>
+            <View style={styles.heroChips}>
+              <EventCategoryBadge ev={event} tr={tr} style={styles.heroBadge} />
+              {(published || tbc) && <EventTrustChip ev={event} tr={tr} style={styles.heroBadge} />}
+              {published && event.sold_out ? <EventSoldOutChip tr={tr} style={styles.heroBadge} /> : null}
             </View>
-            <View>
-              <Text style={styles.infoLabel}>{tr('Horario')}</Text>
-              <Text style={styles.infoValue}>{event.start_time} - {event.end_time}</Text>
-            </View>
+            <Text style={styles.heroTitle}>{title}</Text>
           </View>
-          <TouchableOpacity style={styles.infoRow} onPress={openMaps} activeOpacity={0.7}>
-            <View style={styles.infoIcon}>
-              <Ionicons name="location-outline" size={20} color={COLORS.primary} />
-            </View>
+        </View>
+
+        {offline && state.stamp && (
+          <FeedOfflineBanner stamp={state.stamp} lang={lang} tr={tr} style={{ marginHorizontal: SPACING.lg, marginTop: SPACING.sm }} />
+        )}
+
+        {/* Status honesty — replaces every date/price/ticket for non-live rows */}
+        {gone && (
+          <View style={[styles.statusCard, styles.statusGone]} testID="event-status-gone">
+            <Ionicons name="alert-circle-outline" size={20} color={COLORS.coral} />
             <View style={{ flex: 1 }}>
-              <Text style={styles.infoLabel}>{tr('Lugar')}</Text>
-              <Text style={styles.infoValue}>{event.venue_name}</Text>
-            </View>
-            <View style={styles.mapCta}>
-              <Ionicons name="map" size={14} color={COLORS.primary} />
-              <Text style={styles.mapCtaText}>{tr('Ver mapa')}</Text>
-            </View>
-          </TouchableOpacity>
-          <View style={styles.infoRow}>
-            <View style={styles.infoIcon}>
-              <Ionicons name="cash-outline" size={20} color={COLORS.primary} />
-            </View>
-            <View>
-              <Text style={styles.infoLabel}>{tr('Precio')}</Text>
-              <Text style={[styles.infoValue, event.is_free && { color: COLORS.success }]}>
-                {eventPriceLabel(event.price, event.is_free, { cop: true })}
-              </Text>
+              <Text style={styles.statusTitle}>{tr('Este evento ya no está confirmado')}</Text>
+              {!!reason && <Text style={styles.statusText}>{tr(reason)}</Text>}
             </View>
           </View>
-          {event.capacity > 0 && (
-            <View style={styles.infoRow}>
-              <View style={styles.infoIcon}>
-                <Ionicons name="people-outline" size={20} color={COLORS.primary} />
-              </View>
-              <View>
-                <Text style={styles.infoLabel}>{tr('Capacidad')}</Text>
-                <Text style={styles.infoValue}>{event.capacity} {tr('personas')}</Text>
-              </View>
-            </View>
-          )}
-        </View>
-
-        {/* Description */}
-        <View style={styles.descSection}>
-          <Text style={styles.descTitle}>{tr('Descripción')}</Text>
-          <Text style={styles.descText}>{event.description}</Text>
-        </View>
-
-        {/* Tags */}
-        {event.tags && event.tags.length > 0 && (
-          <View style={styles.tagsSection}>
-            {event.tags.map((tag: string) => (
-              <View key={tag} style={styles.tagChip}>
-                <Text style={styles.tagText}>#{tag}</Text>
-              </View>
-            ))}
+        )}
+        {expired && (
+          <View style={styles.statusCard} testID="event-status-expired">
+            <Ionicons name="time-outline" size={20} color={COLORS.textMuted} />
+            <Text style={[styles.statusTitle, { flex: 1 }]}>{tr('Este evento ya pasó')}</Text>
           </View>
         )}
 
-        <View style={{ height: 100 }} />
+        {(published || tbc) && (
+          <View style={styles.infoSection}>
+            <View style={styles.infoRow}>
+              <View style={styles.infoIcon}>
+                <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.infoLabel}>{tr('Fecha')}</Text>
+                <Text style={styles.infoValue}>{tbc ? tr('Fecha por confirmar') : dates}</Text>
+                {tbc && !!pickL(event.date_tbc_note, lang) && (
+                  <Text style={styles.infoSub}>{pickL(event.date_tbc_note, lang)}</Text>
+                )}
+              </View>
+            </View>
+            {published && (
+              <View style={styles.infoRow}>
+                <View style={styles.infoIcon}>
+                  <Ionicons name="time-outline" size={20} color={COLORS.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.infoLabel}>{tr('Horario')}</Text>
+                  <Text style={styles.infoValue}>{time || tr('Hora por confirmar')}</Text>
+                </View>
+              </View>
+            )}
+            {!!event.venue_name && (
+              <TouchableOpacity style={styles.infoRow} onPress={openMaps} activeOpacity={0.7} disabled={!canMap} accessibilityRole={canMap ? 'button' : 'text'}>
+                <View style={styles.infoIcon}>
+                  <Ionicons name="location-outline" size={20} color={COLORS.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.infoLabel}>{tr('Lugar')}</Text>
+                  <Text style={styles.infoValue}>{event.venue_name}</Text>
+                  {!!event.address && <Text style={styles.infoSub}>{event.address}</Text>}
+                </View>
+                {canMap && (
+                  <View style={styles.mapCta}>
+                    <Ionicons name="map" size={14} color={COLORS.primary} />
+                    <Text style={styles.mapCtaText}>{tr('Ver mapa')}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
+            {published && (
+              <View style={styles.infoRow}>
+                <View style={styles.infoIcon}>
+                  <Ionicons name="cash-outline" size={20} color={COLORS.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.infoLabel}>{tr('Precio')}</Text>
+                  <Text style={[styles.infoValue, event.price.is_free === true && { color: '#22C55E' }]}>
+                    {tr(event.price.is_free === true ? 'GRATIS' : 'Consultar')}
+                  </Text>
+                </View>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Avísame — published only, never from an offline copy (§13 J1/J2) */}
+        {published && !offline && (
+          <View style={styles.avisameWrap}>
+            <AvisameButton event={event} />
+          </View>
+        )}
+
+        {(published || tbc) && !!description && (
+          <View style={styles.descSection}>
+            <Text style={styles.descTitle}>{tr('Descripción')}</Text>
+            <Text style={styles.descText}>{description}</Text>
+          </View>
+        )}
+
+        {/* Source block — the proof, one tap away */}
+        {!!event.source_url && (
+          <View style={styles.sourceCard} testID="event-source">
+            <View style={styles.sourceHead}>
+              <Ionicons name="shield-checkmark-outline" size={16} color={COLORS.official} />
+              <Text style={styles.sourceTitle}>{tr('Fuente')}</Text>
+              {(published || tbc) && <EventTrustChip ev={event} tr={tr} variant="full" showVerified />}
+            </View>
+            <TouchableOpacity onPress={openSource} activeOpacity={0.7} accessibilityRole="link" style={styles.sourceLink}
+              accessibilityLabel={`${tr('Fuente')}: ${event.source_name} · ${tr('abre enlace externo')}`}>
+              <Ionicons name="link-outline" size={13} color={COLORS.official} />
+              <Text style={styles.sourceLinkText}>{event.source_name || event.source_url}</Text>
+              <Ionicons name="open-outline" size={12} color={COLORS.official} />
+            </TouchableOpacity>
+            {!!event.second_source_name && (published || tbc) && (
+              <Text style={styles.sourceMeta}>{tr('También')}: {event.second_source_name}</Text>
+            )}
+            {(published || tbc) && (
+              <Text style={styles.sourceMeta}>
+                {offline ? tr('sin actualizar') : verifiedOn ? `${tr('verificado')} ${verifiedOn}` : ''}
+              </Text>
+            )}
+            {!!event.image_url && !!event.image_credit && (
+              <Text style={styles.sourceMeta}>{tr('Foto')}: {event.image_credit}</Text>
+            )}
+          </View>
+        )}
+
+        <View style={{ height: 110 }} />
       </ScrollView>
 
-      {/* Bottom Actions */}
+      {/* Bottom actions */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity testID="event-directions-btn" style={styles.dirBtn} onPress={openMaps}>
-          <Ionicons name="navigate" size={18} color={COLORS.primary} />
-          <Text style={styles.dirText}>{tr('Cómo llegar')}</Text>
-        </TouchableOpacity>
-        {isHttpUrl(event.booking_link) ? (
-          <TouchableOpacity
-            testID="event-book-btn"
-            style={styles.bookBtn}
-            onPress={() => {
-              RNLinking.canOpenURL(event.booking_link).then(supported => {
-                if (supported) RNLinking.openURL(event.booking_link).catch(() => {});
-              });
-            }}
-          >
-            <Text style={styles.bookText}>{tr('Reservar')}</Text>
-            <Ionicons name="arrow-forward" size={16} color={COLORS.white} />
-          </TouchableOpacity>
+        {(published || tbc) ? (
+          <>
+            {canMap && (
+              <TouchableOpacity testID="event-directions-btn" style={styles.dirBtn} onPress={openMaps} accessibilityRole="button">
+                <Ionicons name="navigate" size={18} color={COLORS.primary} />
+                <Text style={styles.dirText}>{tr('Cómo llegar')}</Text>
+              </TouchableOpacity>
+            )}
+            {canTicket ? (
+              <TouchableOpacity testID="event-ticket-btn" style={styles.bookBtn} onPress={openTickets} accessibilityRole="link">
+                <Text style={styles.bookText}>{tr('Entradas')}</Text>
+                <Ionicons name="open-outline" size={16} color={COLORS.black} />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity testID="event-source-btn" style={styles.sourceBtn} onPress={openSource} accessibilityRole="link">
+                <Text style={styles.sourceBtnText}>{tr('Ver fuente oficial')}</Text>
+                <Ionicons name="open-outline" size={15} color={COLORS.official} />
+              </TouchableOpacity>
+            )}
+          </>
         ) : (
-          <View style={styles.freeLabel}>
-            <Ionicons name="checkmark-circle" size={18} color={COLORS.success} />
-            <Text style={styles.freeText}>{tr('Acceso libre')}</Text>
-          </View>
+          <TouchableOpacity testID="event-que-pasa-btn" style={styles.bookBtn} onPress={openQuePasa} accessibilityRole="button">
+            <Text style={styles.bookText}>{tr('Ver qué más pasa en Cartagena')}</Text>
+            <Ionicons name="arrow-forward" size={16} color={COLORS.black} />
+          </TouchableOpacity>
         )}
       </View>
     </SafeAreaView>
@@ -282,36 +400,67 @@ export default function EventDetail() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
+  centerState: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12, paddingHorizontal: 32 },
+  centerTitle: { ...TYPE.headline, color: COLORS.textMain, textAlign: 'center' },
+  centerText: { ...TYPE.subhead, color: COLORS.textMuted, textAlign: 'center' },
+  primaryBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8, minHeight: 44,
+    paddingHorizontal: SPACING.lg, borderRadius: RADIUS.full, backgroundColor: COLORS.primary,
+  },
+  primaryBtnText: { fontSize: 14, color: COLORS.black, ...FONTS.bold },
+  ghostBtn: { minHeight: 44, justifyContent: 'center', paddingHorizontal: SPACING.lg },
+  ghostBtnText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.semibold },
+
   hero: { height: 280, position: 'relative', backgroundColor: COLORS.surfaceAlt },
-  heroImage: { width: '100%', height: '100%' },
-  // Gradient-only (no flat fill): the photo stays visible up top, the title
-  // sits on the solid-background end at the bottom.
   heroOverlay: { ...StyleSheet.absoluteFillObject },
   heroNav: { position: 'absolute', top: SPACING.md, left: SPACING.md, right: SPACING.md, flexDirection: 'row', justifyContent: 'space-between' },
   heroNavRight: { flexDirection: 'row', gap: SPACING.sm },
-  navBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(5,8,20,0.6)', alignItems: 'center', justifyContent: 'center' },
+  navBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(5,8,20,0.6)', alignItems: 'center', justifyContent: 'center' },
   heroContent: { position: 'absolute', bottom: SPACING.lg, left: SPACING.lg, right: SPACING.lg },
-  typeBadge: { alignSelf: 'flex-start', backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 4 },
-  typeText: { fontSize: 11, color: COLORS.white, ...FONTS.bold, letterSpacing: 1, textTransform: 'uppercase' },
-  heroTitle: { fontSize: 28, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.sm },
+  heroChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  heroBadge: { backgroundColor: 'rgba(8,12,22,0.78)' },
+  heroTitle: { fontSize: 28, lineHeight: 34, color: COLORS.textMain, ...FONTS.bold, marginTop: SPACING.sm },
+
+  statusCard: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginHorizontal: SPACING.lg, marginTop: SPACING.md,
+    padding: SPACING.md, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border,
+  },
+  statusGone: { borderColor: `${COLORS.coral}8C`, backgroundColor: `${COLORS.coral}14` },
+  statusTitle: { ...TYPE.headline, color: COLORS.textMain },
+  statusText: { ...TYPE.subhead, color: COLORS.textMuted, marginTop: 4 },
+
   infoSection: { padding: SPACING.lg, gap: SPACING.md },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
   infoIcon: { width: 40, height: 40, borderRadius: RADIUS.md, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.border },
   infoLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
   infoValue: { fontSize: 15, color: COLORS.textMain, ...FONTS.semibold },
+  infoSub: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
   mapCta: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: `${COLORS.primary}15`, paddingHorizontal: 10, paddingVertical: 6, borderRadius: RADIUS.full, borderWidth: 1, borderColor: `${COLORS.primary}30` },
   mapCtaText: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold },
+
+  avisameWrap: { paddingHorizontal: SPACING.lg, marginBottom: SPACING.lg },
   descSection: { paddingHorizontal: SPACING.lg, marginBottom: SPACING.lg },
   descTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, marginBottom: SPACING.sm },
   descText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 22 },
-  tagsSection: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: SPACING.lg, gap: SPACING.sm },
-  tagChip: { backgroundColor: COLORS.surface, borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.border },
-  tagText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
+
+  sourceCard: {
+    marginHorizontal: SPACING.lg, padding: SPACING.md, gap: 6, borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.hairline,
+  },
+  sourceHead: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  sourceTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold, marginRight: 4 },
+  sourceLink: { flexDirection: 'row', alignItems: 'center', gap: 5, minHeight: 44 },
+  sourceLinkText: { flexShrink: 1, fontSize: 13, color: COLORS.official, ...FONTS.semibold, textDecorationLine: 'underline' },
+  sourceMeta: { fontSize: 11.5, color: COLORS.textFaint, ...FONTS.medium },
+
   bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', padding: SPACING.lg, gap: SPACING.md, backgroundColor: COLORS.background, borderTopWidth: 1, borderTopColor: COLORS.border },
-  dirBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary, paddingVertical: 14 },
+  dirBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary, minHeight: 48 },
   dirText: { fontSize: 14, color: COLORS.primary, ...FONTS.semibold },
-  bookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingVertical: 14 },
-  bookText: { fontSize: 14, color: COLORS.white, ...FONTS.semibold },
-  freeLabel: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: RADIUS.full, backgroundColor: 'rgba(34,197,94,0.15)', paddingVertical: 14 },
-  freeText: { fontSize: 14, color: COLORS.success, ...FONTS.semibold },
+  bookBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, minHeight: 48, paddingHorizontal: SPACING.md },
+  bookText: { fontSize: 14, color: COLORS.black, ...FONTS.bold },
+  sourceBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 48,
+    borderRadius: RADIUS.full, borderWidth: 1, borderColor: `${COLORS.official}8C`, backgroundColor: `${COLORS.official}14`,
+  },
+  sourceBtnText: { fontSize: 14, color: COLORS.official, ...FONTS.semibold },
 });

@@ -1,0 +1,125 @@
+<!-- AMO fixture: real page fetched 2026-09-28 from https://special.checkout.tuboleta.com/selection/event/date?productId=10230585113835 (answered with the peak51 Waiting Room) (AMOLifeBot UA). Trimmed for size: scripts/styles/comments removed. Kept markup is verbatim. -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta name="viewport" content="width=device-width, maximum-scale=1.0">
+  <title>Waiting Room</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body onload='init();'>
+<div id="page">
+  <div id="logo"></div>
+  <div id="onsalesWaitingRoomWidget"></div>
+  <div class="wrtop"></div>
+  <div id="waitingroom">
+    <h1 id="titre"></h1>
+    <div id="intro"></div>
+    <div id="error"></div>
+    <div id="interface">
+      <div id="message"></div>
+      <div id="action">
+        <div id="actionmsg" class="actionmsg"></div>
+        <span id="actionButtonSpan" class="btnColor1"><a href="" id="actionButton">&#187; <span
+            id="actionButtonText">Button</span></a>
+      </span><span id="actionText"></span>
+      </div>
+      <div id="captcha">
+        <form id="form_captcha" onSubmit="submitCaptcha(); return false;">
+          <div id="img_captcha_container">
+            <img id="img_captcha" width="100" height="67" alt=""/>
+            <div id="newcaptcha_button">
+              <a href="javascript:newCaptcha()">
+                <img id="catpcha_refresh" src="refresh.png" alt="catpcha refresh" heigth="18" width="14"/><span
+                  id="newcaptcha_button_text">New Captcha</span>
+              </a>
+            </div>
+          </div>
+          <div id="form_container">
+            <span id="action_answer">input</span>
+            <div id="form_input_buttons">
+              <input type="text" value="" id="secret" name="secret" maxlength="20"></input>
+              <span id="submit_button" class="btnColor1"><a href="javascript:submitCaptcha()">&#187; <span
+                  id="submit_button_text">Submit</span></a></span>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div id="waitdiv" class="actionmsg">
+        <span id="queuePositionGroup"><span id="message_queue_position"></span><span id="queueposition"></span><br/></span>
+        <span id="message_wait"></span><span id="waittimer"><span id="wait"></span><br/><br/></span>
+        <div id="PBouter">
+          <div id="PBinner"></div>
+          <div id="PBdone"></div>
+        </div>
+        <div id="transfer-session-container">
+          <button id="transfer-session-btn" class="transfer-btn"></button>
+          <div id="transfer-popup" class="popup-overlay">
+            <div class="popup-content">
+              <button id="close-popup" class="pkp-btn close-btn">
+                <div class="pkp-icon pkp-btn-icon-left">
+                </div>
+              </button>
+              <h3 id="transfer-title"></h3>
+              <p id="transfer-options"></p>
+              <div class="copy-link-container">
+                <label id="session-link-label" for="session-link"></label>
+                <div class="session-link-container">
+                  <input id="session-link" class="pkp-input" readonly>
+                  <button id="copy-link-btn" class="copy-btn">
+                    <div class="pkp-icon pkp-btn-icon-left">
+                    </div>
+                    <div class="pkp-btn-label"></div>
+                  </button>
+                </div>
+              </div>
+              <div id="qr-code-scan-message">
+                <span id="qr-code-scan-message-text"></span>
+              </div>
+              <div id="qr-code-wrapper">
+                <div id="qr-code-container"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="outro"></div>
+    <div id="info"></div>
+  </div>
+  <div class="wrbottom"></div>
+  <div id="footer">
+  </div>
+  <div id="languages">
+      <a class="langlink"
+         name="langlink"
+         href="index_de.html">Deutsch</a>
+      <span class="langcurrent">English</span>
+      <a class="langlink"
+         name="langlink"
+         href="index_it.html">Italiano</a>
+      <a class="langlink"
+         name="langlink"
+         href="index_fr.html">Français</a>
+      <a class="langlink"
+         name="langlink"
+         href="index_ca.html">Català</a>
+      <a class="langlink"
+         name="langlink"
+         href="index_nl.html">Nederlands</a>
+      <a class="langlink"
+         name="langlink"
+         href="index_es.html">Español</a>
+  </div>
+  <div id="sponsorZone1">
+  </div>
+  <div id="sponsorZone2">
+  </div>
+  <div id="twitter">
+    <a class="twitter-timeline" data-width="500" data-height="750"
+       href="https://twitter.com/null"></a>
+  </div>
+  <div class="clear"></div>
+</div>
+<div id="menu"></div>
+</body>
+</html>

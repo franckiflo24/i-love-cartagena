@@ -17,6 +17,10 @@ import { useAuth } from '../src/context/AuthContext';
 import LockedTease from '../src/components/LockedTease';
 import { filterLiveEvents } from '../src/lib/eventTime';
 import { cityModuleRoute } from '../src/lib/cityModules';
+import {
+  CATEGORY_META, EVENT_CATEGORIES, EventCategory, PublicEvent, bucket, loadFeed, sortEvents,
+} from '../src/lib/eventsFeed';
+import { EventRow } from '../src/components/EventFeedUI';
 
 type AIHighlight = { type: string; id: string; reason: string };
 type AIRecommendation = {
@@ -57,7 +61,9 @@ type AIPayload = {
 };
 
 type Results = {
-  events: any[];
+  /** Verified-feed rows only (EVENTS-ELITE): backend hits are kept only when the feed vouches for them. */
+  events: PublicEvent[];
+  events_offline?: boolean;
   concerts: any[];
   partners: any[];
   venues: any[];
@@ -85,13 +91,63 @@ const INTENT_META: Record<string, { color: string; icon: string; label: string }
 };
 
 const TAB_TO_ROUTE: Record<string, string> = {
-  'Agenda':     '/(tabs)/agenda',
-  'Conciertos': '/concerts',
+  'Agenda':     '/que-pasa',
+  'Conciertos': '/que-pasa?cat=concert',
   'Partners':   '/(tabs)/partners',
   'City Pass':  '/(tabs)/citypass',
   'Transporte': '/transport',
   'Ciudad':     '/ciudad',
 };
+
+// ── Verified-feed event matching (EVENTS-ELITE) ─────────────────────────────
+// Event hits come ONLY from the verified feed: rows the backend returned (by id)
+// first, then rows whose title / venue / category match the query. A generic
+// "eventos" / "qué pasa" query lists what is confirmed; "hoy"/"today" narrows it
+// to today. Legacy ids the feed does not vouch for never render.
+const fold = (v: unknown): string =>
+  (typeof v === 'string' ? v : '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const EVENT_WORDS = new Set([
+  'evento', 'eventos', 'event', 'events', 'evenement', 'evenements', 'agenda', 'planes', 'plan',
+  'show', 'shows', 'espectaculo', 'espectaculos', 'spectacle', 'espetaculo', 'pasa', 'happening',
+]);
+const TODAY_WORDS = new Set(['hoy', 'today', 'aujourdhui', 'hoje', 'tonight', 'noche']);
+const EVENT_STOP = new Set([
+  'que', 'hay', 'para', 'con', 'los', 'las', 'del', 'the', 'and', 'what', 'whats', 'this', 'esta', 'este',
+  'cartagena', 'indias', 'colombia', 'city', 'ciudad', 'donde', 'where', 'algun', 'algo', 'quoi', 'estou',
+]);
+const CATEGORY_WORDS: Record<string, EventCategory> = {
+  concierto: 'concert', conciertos: 'concert', concert: 'concert', concerts: 'concert', concerto: 'concert',
+  concertos: 'concert', musica: 'concert', music: 'concert', musique: 'concert',
+  festival: 'festival', festivales: 'festival', festivals: 'festival', festivais: 'festival',
+  teatro: 'cultural', theatre: 'cultural', theater: 'cultural', cine: 'cultural', cinema: 'cultural',
+  cultura: 'cultural', cultural: 'cultural', culture: 'cultural', literatura: 'cultural',
+  rumba: 'nightlife', nightlife: 'nightlife', discoteca: 'nightlife',
+  deporte: 'sports', deportes: 'sports', sport: 'sports', sports: 'sports', triatlon: 'sports', maraton: 'sports',
+  desfile: 'civic', parade: 'civic',
+};
+
+function matchFeedEvents(rows: PublicEvent[], q: string, backendIds: Set<string>, today: string): PublicEvent[] {
+  const tokens = fold(q).replace(/[^a-z0-9ñ\s]/g, ' ').split(/\s+/).filter((t) => t.length >= 3 && !EVENT_STOP.has(t));
+  const generic = tokens.some((t) => EVENT_WORDS.has(t));
+  const wantsToday = tokens.some((t) => TODAY_WORDS.has(t));
+  const cats = new Set(tokens.map((t) => CATEGORY_WORDS[t]).filter((c): c is EventCategory => !!c));
+  const content = tokens.filter((t) => !EVENT_WORDS.has(t) && !TODAY_WORDS.has(t) && !CATEGORY_WORDS[t]);
+  const pool = wantsToday && (generic || cats.size > 0) ? bucket(rows, 'hoy', today) : rows;
+  const matches = (e: PublicEvent): boolean => {
+    if (cats.size > 0 && cats.has(e.category)) return true;
+    if (content.length > 0) {
+      const words = fold([e.title.es, e.title.en, e.title.fr, e.title.pt, e.venue_name, e.zone, CATEGORY_META[e.category]?.label]
+        .filter(Boolean).join(' ')).split(/[^a-z0-9ñ]+/);
+      return content.some((t) => words.some((w) => w === t || (t.length >= 4 && w.startsWith(t))));
+    }
+    return generic && cats.size === 0;
+  };
+  const byBackend = rows.filter((e) => backendIds.has(e.event_id));
+  const byQuery = sortEvents(pool.filter((e) => e.status === 'published' && matches(e)));
+  const tbc = pool.filter((e) => e.status === 'date_tbc' && matches(e));
+  const seen = new Set<string>();
+  return [...byBackend, ...byQuery, ...tbc].filter((e) => (seen.has(e.event_id) ? false : (seen.add(e.event_id), true))).slice(0, 10);
+}
 
 // Voice transcription via Web Speech API
 // Supports language switching — user can tap to toggle between ES/EN while listening
@@ -524,11 +580,7 @@ export default function SearchScreen() {
           return { score, hasDistinctive };
         };
 
-        const [allPartners, allEvents, allConcerts] = await Promise.all([
-          fetch(ASSET_ORIGIN + '/data/partners.json').then(r => r.json()).catch(() => []),
-          fetch(ASSET_ORIGIN + '/data/events.json').then(r => r.json()).then((d) => filterLiveEvents(Array.isArray(d) ? d : (d?.events || []))).catch(() => []),
-          fetch(ASSET_ORIGIN + '/data/concerts.json').then(r => r.json()).then((d) => filterLiveEvents(Array.isArray(d) ? d : (d?.concerts || []))).catch(() => []),
-        ]);
+        const allPartners = await fetch(ASSET_ORIGIN + '/data/partners.json').then(r => r.json()).catch(() => []);
 
         const minScore = distinctiveTerms.length > 0 ? 3 : 1.5;
         const scored = (Array.isArray(allPartners) ? allPartners : [])
@@ -537,29 +589,34 @@ export default function SearchScreen() {
           .sort((a: any, b: any) => (b._score - a._score) || ((b.rating || 0) - (a.rating || 0)))
           .slice(0, 20);
 
-        const eventTerms = Array.from(new Set([...terms, ...neighborhoodMatchers]));
-        const matchEvent = (...fields: any[]) => eventTerms.some(t => fields.some(f => norm(f).split(/\s+/).some((w: string) => w === t || (t.length >= 4 && w.includes(t)))));
-        const events = (Array.isArray(allEvents) ? allEvents : [])
-          .filter((e: any) => matchEvent(e.name_es, e.title, e.description_es, e.description_en, e.category, e.venue, e.slug));
-        const concerts = (Array.isArray(allConcerts) ? allConcerts : [])
-          .filter((c: any) => matchEvent(c.title, c.artist, c.genre, c.venue_name, c.description));
-
-        // Merge: if backend returned AI + some partner results, keep AI and add scored partners
+        // Merge: if backend returned AI + some partner results, keep AI and add scored partners.
+        // Event hits are rebuilt from the verified feed below (never /data/events.json).
         if (hasAI && data) {
           data.partners = scored;
-          data.events = events.length > 0 ? events : (data.events || []);
-          data.concerts = concerts.length > 0 ? concerts : (data.concerts || []);
         } else {
-          data = { partners: scored, events, concerts, venues: [], transport: [], partner_events: [] };
+          data = { partners: scored, events: [], concerts: [], venues: [], transport: [], partner_events: [] };
         }
       }
+
+      // City events: ONLY verified-feed rows (EVENTS-ELITE). Backend event/concert
+      // hits count only when the feed vouches for their id; no feed → no events.
+      const backendIds = new Set<string>(
+        [...(Array.isArray(data?.events) ? data.events : []), ...(Array.isArray(data?.concerts) ? data.concerts : [])]
+          .map((e: { event_id?: unknown; slug?: unknown; concert_id?: unknown }) => String(e?.event_id || e?.slug || e?.concert_id || ''))
+          .filter(Boolean),
+      );
+      const feedState = await loadFeed().catch((e: unknown) => { console.error('[Search] events feed', e); return null; });
+      const eventHits = feedState
+        ? matchFeedEvents([...feedState.data.events, ...feedState.data.date_tbc], q, backendIds, feedState.day)
+        : [];
 
       const normalized: Results = {
         // Backend buckets are NOT date-filtered server-side (only the static-fallback
         // path above was) — without this, a live Reserve button could sit on a
         // months-old event. filterLiveEvents no-ops on items missing date fields.
-        events:         filterLiveEvents(Array.isArray(data?.events) ? data.events : []),
-        concerts:       Array.isArray(data?.concerts) ? data.concerts : [],
+        events:         eventHits,
+        events_offline: !!feedState?.offline,
+        concerts:       [],
         partners:       Array.isArray(data?.partners) ? data.partners : [],
         venues:         Array.isArray(data?.venues) ? data.venues : [],
         transport:      Array.isArray(data?.transport) ? data.transport : [],
@@ -595,7 +652,7 @@ export default function SearchScreen() {
     switch (h.type) {
       case 'partner':       trackTap(h.id); router.push(`/partner/${h.id}` as any); break;
       case 'event':         router.push(`/event/${h.id}` as any); break;
-      case 'concert':       router.push('/concerts' as any); break;
+      case 'concert':       router.push('/que-pasa?cat=concert' as any); break;
       case 'transport':     router.push('/transport' as any); break;
       case 'port_tax':      router.push('/ciudad/muelle-bodeguita' as any); break;
       case 'city_pass':     router.push('/(tabs)/citypass' as any); break;
@@ -638,11 +695,10 @@ export default function SearchScreen() {
         break;
       }
       case 'show_events': {
-        const f = a.filters || {};
-        const qs: string[] = [];
-        if (f.category) qs.push(`category=${encodeURIComponent(f.category)}`);
-        if (f.date) qs.push(`date=${encodeURIComponent(f.date)}`);
-        router.push(`/(tabs)/agenda${qs.length ? '?' + qs.join('&') : ''}` as any);
+        // Web / 1.1.2: Luna's event list opens the verified feed (unknown filters are ignored).
+        const cat = typeof a.filters?.category === 'string' && (EVENT_CATEGORIES as readonly string[]).includes(a.filters.category)
+          ? a.filters.category : null;
+        router.push((cat ? `/que-pasa?cat=${cat}` : '/que-pasa') as any);
         break;
       }
       case 'open_port_tax_checkout':
@@ -667,8 +723,8 @@ export default function SearchScreen() {
         break;
       case 'navigate': {
         const screenMap: Record<string, string> = {
-          agenda: '/(tabs)/agenda',
-          concerts: '/concerts',
+          agenda: '/que-pasa',
+          concerts: '/que-pasa?cat=concert',
           partners: '/(tabs)/partners',
           citypass: '/(tabs)/citypass',
           transport: '/transport',
@@ -989,40 +1045,20 @@ export default function SearchScreen() {
                   </View>
                 )}
 
-                {/* Concerts */}
-                {results!.concerts.length > 0 && (
-                  <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>🎵 {tr('Conciertos')} ({results!.concerts.length})</Text>
-                    {results!.concerts.map(c => (
-                      <TouchableOpacity key={c.concert_id} style={styles.resultCard} onPress={() => router.push('/concerts' as any)}>
-                        <SafeImage uri={c.image_url} category="concert" style={styles.resultImage} />
-                        <View style={styles.resultInfo}>
-                          <Text style={styles.resultName} numberOfLines={1}>{c.artist || c.title}</Text>
-                          <Text style={styles.resultMeta}>{c.genre}</Text>
-                          <Text style={styles.resultSub} numberOfLines={1}>{c.venue_name} · {c.start_time || c.date}</Text>
-                        </View>
-                        {c.is_free
-                          ? <Text style={styles.resultPrice}>{tr('GRATIS')}</Text>
-                          : c.price ? <Text style={styles.resultPrice}>${(c.price / 1000).toFixed(0)}K</Text> : null}
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-
-                {/* Events (city events) */}
+                {/* Events — verified feed rows only (source + VERIFY label) */}
                 {results!.events.length > 0 && (
                   <View style={styles.section}>
                     <Text style={styles.sectionTitle}>📅 {tr('Eventos')} ({results!.events.length})</Text>
-                    {results!.events.map((e, i) => (
-                      <TouchableOpacity key={e.slug || e.event_id || i} style={styles.resultCard} onPress={() => router.push(`/event/${e.slug || e.event_id}` as any)}>
-                        <SafeImage uri={e.image_url} category={e.category || e.type} style={styles.resultImage} />
-                        <View style={styles.resultInfo}>
-                          <Text style={styles.resultName} numberOfLines={2}>{e.name_es || e.title || e.name_en || '—'}</Text>
-                          <Text style={styles.resultMeta}>{e.category || e.type}</Text>
-                          <Text style={styles.resultSub} numberOfLines={1}>{e.venue || e.venue_name || ''} · {e.time_start || e.start_time || e.date_start || e.date || ''}</Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
-                      </TouchableOpacity>
+                    {results!.events.map((e) => (
+                      <EventRow
+                        key={e.event_id}
+                        ev={e}
+                        lang={lang}
+                        tr={tr}
+                        offline={!!results!.events_offline}
+                        onPress={() => router.push(`/event/${e.event_id}` as any)}
+                        testID={`search-event-${e.event_id}`}
+                      />
                     ))}
                   </View>
                 )}

@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AMO fixture: real sitemap https://cccartagena.com/ajde_events-sitemap.xml fetched 2026-09-28; first 12 and last 2 of 383 <url> entries kept verbatim. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url>
+		<loc><![CDATA[https://cccartagena.com/events/simposio-de-obesidad/]]></loc>
+		<lastmod><![CDATA[2026-09-01T13:59:30+00:00]]></lastmod>
+		<changefreq><![CDATA[weekly]]></changefreq>
+		<priority><![CDATA[0.7]]></priority>
+		<image:image>
+			<image:loc>
+				<![CDATA[https://cccartagena.com/wp-content/uploads/2026/09/02.png]]>			</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc><![CDATA[https://cccartagena.com/events/feria-automotriz-del-caribe-2/]]></loc>
+		<lastmod><![CDATA[2026-09-01T13:56:25+00:00]]></lastmod>
+		<changefreq><![CDATA[weekly]]></changefreq>
+		<priority><![CDATA[0.7]]></priority>
+		<image:image>
+			<image:loc>
+				<![CDATA[https://cccartagena.com/wp-content/uploads/2026/09/04.png]]>			</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc><![CDATA[https://cccartagena.com/events/34th-international-congress-of-clinical-neurophysiology-iccn/]]></loc>
+		<lastmod><![CDATA[2026-09-01T13:50:32+00:00]]></lastmod>
+		<changefreq><![CDATA[weekly]]></changefreq>
+		<priority><![CDATA[0.7]]></priority>
+		<image:image>
+			<image:loc>
+				<![CDATA[https://cccartagena.com/wp-content/uploads/2026/01/03.png]]>			</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc><![CDATA[https://cccartagena.com/events/weef-ifees-gedc-2026/]]></loc>
+		<lastmod><![CDATA[2026-09-01T13:48:24+00:00]]></lastmod>
+		<changefreq><![CDATA[weekly]]></changefreq>
+		<priority><![CDATA[0.7]]></priority>
+		<image:image>
+			<image:loc>
+				<![CDATA[https://cccartagena.com/wp-content/uploads/2026/01/05.png]]>			</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc><![CDATA[https://cccartagena.com/events/summic-cartagena-2026/]]></loc>
+		<lastmod><![CDATA[2026-09-01T13:42:44+00:00]]></lastmod>
+		<changefreq><![CDATA[weekly]]></changefreq>
+		<priority><![CDATA[0.7]]></priority>
+		<image:image>
+			<image:loc>
+				<![CDATA[https://cccartagena.com/wp-content/uploads/2026/08/08.png]]>			</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc><![CDATA[https://cccartagena.com/events/la-pelota-de-letras-de-andres-lopez/]]></loc>
+		<lastmod><![CDATA[2026-08-14T21:21:20+00:00]]></lastmod>
+		<changefreq><![CDATA[weekly]]></changefreq>
+		<priority><![CDATA[0.7]]></priority>
+	</url>
+<url>
+		<loc><![CDATA[https://cccartagena.com/events/femusica-2026-12-festival-de-musica-catolica-del-caribe/]]></loc>
+		<lastmod><![CDATA[2026-08-01T01:31:23+00:00]]></lastmod>
+		<changefreq><![CDATA[weekly]]></changefreq>
+		<priority><![CDATA[0.7]]></priority>
+		<image:image>
+			<image:loc>
+				<![CDATA[https://cccartagena.com/wp-content/uploads/2026/08/N4.jpg]]>			</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc><![CDATA[https://cccartagena.com/events/tercera-edicion-descaradamente-feliz/]]></loc>
+		<lastmod><![CDATA[2026-08-01T01:25:26+00:00]]></lastmod>
+		<changefreq><![CDATA[weekly]]></changefreq>
+		<priority><![CDATA[0.7]]></priority>
+		<image:image>
+			<image:loc>
+				<![CDATA[https://cccartagena.com/wp-content/uploads/2026/08/N3.jpg]]>			</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc><![CDATA[https://cccartagena.com/events/lxxxviii-congreso-nacional-de-urologia-2026/]]></loc>
+		<lastmod><![CDATA[2026-08-01T01:19:13+00:00]]></lastmod>
+		<changefreq><![CDATA[weekly]]></changefreq>
+		<priority><![CDATA[0.7]]></priority>
+		<image:image>
+			<image:loc>
+				<![CDATA[https://cccartagena.com/wp-content/uploads/2026/01/N6.jpg]]>			</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc><![CDATA[https://cccartagena.com/events/60-convencion-bancaria-2026/]]></loc>
+		<lastmod><![CDATA[2026-08-01T01:18:16+00:00]]></lastmod>
+		<changefreq><![CDATA[weekly]]></changefreq>
+		<priority><![CDATA[0.7]]></priority>
+		<image:image>
+			<image:loc>
+				<![CDATA[https://cccartagena.com/wp-content/uploads/2026/01/N7.jpg]]>			</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc><![CDATA[https://cccartagena.com/events/11-congreso-empresarial-colombiano-cec/]]></loc>
+		<lastmod><![CDATA[2026-08-01T01:17:02+00:00]]></lastmod>
+		<changefreq><![CDATA[weekly]]></changefreq>
+		<priority><![CDATA[0.7]]></priority>
+		<image:image>
+			<image:loc>
+				<![CDATA[https://cccartagena.com/wp-content/uploads/2026/02/N5.jpg]]>			</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc><![CDATA[https://cccartagena.com/events/felipe-pelaez-sinfonico/]]></loc>
+		<lastmod><![CDATA[2026-08-01T01:14:20+00:00]]></lastmod>
+		<changefreq><![CDATA[weekly]]></changefreq>
+		<priority><![CDATA[0.7]]></priority>
+		<image:image>
+			<image:loc>
+				<![CDATA[https://cccartagena.com/wp-content/uploads/2026/05/N8.jpg]]>			</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc><![CDATA[https://cccartagena.com/events/cartagena-2023/]]></loc>
+		<lastmod><![CDATA[2023-06-15T21:45:15+00:00]]></lastmod>
+		<changefreq><![CDATA[weekly]]></changefreq>
+		<priority><![CDATA[0.7]]></priority>
+		<image:image>
+			<image:loc>
+				<![CDATA[https://cccartagena.com/wp-content/uploads/2023/06/CTG.jpeg]]>			</image:loc>
+		</image:image>
+	</url>
+<url>
+		<loc><![CDATA[https://cccartagena.com/events/imcas-americas-2023/]]></loc>
+		<lastmod><![CDATA[2023-06-15T20:27:00+00:00]]></lastmod>
+		<changefreq><![CDATA[weekly]]></changefreq>
+		<priority><![CDATA[0.7]]></priority>
+		<image:image>
+			<image:loc>
+				<![CDATA[https://cccartagena.com/wp-content/uploads/2023/03/IMCAS.jpg]]>			</image:loc>
+		</image:image>
+	</url>
+</urlset>

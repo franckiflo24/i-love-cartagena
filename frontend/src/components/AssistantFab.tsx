@@ -38,6 +38,7 @@ import { useLang } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import type { Lang } from '../i18n/translations';
 import { cityModuleRoute } from '../lib/cityModules';
+import { EVENT_CATEGORIES } from '../lib/eventsFeed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import AddToTrip from './AddToTrip';
@@ -654,9 +655,11 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
             router.push({ pathname: '/login' as any, params: { next: dest } });
             return;
           }
+          // EVENTS-ELITE (web + 1.1.2): Luna's event screens open the verified feed.
+          // Old binaries keep their own mapping (agenda tab); unknown keys stay no-ops.
           const map: Record<string, string> = {
-            agenda: '/(tabs)/agenda',
-            concerts: '/(tabs)/agenda',
+            agenda: '/que-pasa',
+            concerts: '/que-pasa?cat=concert',
             partners: '/(tabs)/partners',
             citypass: '/(tabs)/citypass',
             transport: '/transport',
@@ -677,8 +680,11 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
           return;
         }
         case 'show_events': {
+          // Verified feed; only a known category survives as a filter (§13 J5).
           setOpen(false);
-          router.push({ pathname: '/(tabs)/agenda' as any, params: a.filters || {} });
+          const cat = typeof a.filters?.category === 'string' && (EVENT_CATEGORIES as readonly string[]).includes(a.filters.category)
+            ? a.filters.category : null;
+          router.push((cat ? `/que-pasa?cat=${cat}` : '/que-pasa') as any);
           return;
         }
         case 'open_partner': {

@@ -31,8 +31,8 @@ import { monthShort, weekdayShort } from '../../src/lib/formatDate';
 import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
 import { partnerEventImage } from '../../src/components/PartnerEventCard';
-import { SkeletonEventRows, SkeletonFeaturedRow, SkeletonTileRow } from '../../src/components/Skeleton';
-import { getUpcomingEvents, getPartners } from '../../src/lib/data';
+import { SkeletonTileRow } from '../../src/components/Skeleton';
+import { getPartners } from '../../src/lib/data';
 import type { Partner } from '../../src/lib/schema';
 import { bogotaToday } from '../../src/lib/eventTime';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -48,7 +48,15 @@ import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
 import { NowStrip } from '../../src/components/NowStrip';
 import { FxStrip } from '../../src/components/FxStrip';
 import LockedTease from '../../src/components/LockedTease';
+import NearbyEventsCard from '../../src/components/NearbyEventsCard';
+import {
+  EventDayRow, EventHeroCard, EventNowCard, FeedEmptyLine, FeedOfflineBanner, umbrellaShortName,
+} from '../../src/components/EventFeedUI';
 import { geoService, GeoState, cityMode } from '../../src/lib/geo';
+import {
+  HOME_STATIC_MAX_AGE_H, PublicEvent, bucket, destacados, getCachedFeed, ongoingOrSoon, peekStaticFeed,
+  programCount, useEventsFeed,
+} from '../../src/lib/eventsFeed';
 
 // ── Quick-access grid geometry — fixed 2×3, no horizontal scroll, no subtitles ──
 // Tile WIDTH is computed inside the component from useWindowDimensions: a
@@ -59,6 +67,11 @@ const GRID_TILE_H = 96;
 const GRID_FALLBACK_W = 390; // SSR / first frame before the window reports a width
 const gridTileWidth = (windowWidth: number): number =>
   Math.max(64, Math.floor(((windowWidth > 0 ? windowWidth : GRID_FALLBACK_W) - SPACING.lg * 2 - GRID_GAP * 2) / 3));
+// §16.2 event rails — widths from the window too (never module-scope Dimensions).
+const HERO_H = 220;
+const heroWidth = (w: number): number => Math.round(Math.min(320, Math.max(248, (w > 0 ? w : GRID_FALLBACK_W) - 72)));
+const nowCardWidth = (w: number): number => Math.round(Math.min(280, Math.max(220, (w > 0 ? w : GRID_FALLBACK_W) * 0.72)));
+const HOY_MAX = 4;
 
 // Next occurrence (today included) of a WEEKLY recurring event anchored on the
 // weekday of `startIso`, as "YYYY-MM-DD". Noon-UTC arithmetic so the device
@@ -91,15 +104,9 @@ const isVerifiedSponsor = (s: Sponsor, today: string): boolean =>
   s.verified === true || (typeof s.contract_until === 'string' && s.contract_until >= today);
 
 // ── Types ────────────────────────────────────────────────────────────────────
-type Event = {
-  event_id: string; title: string; description: string; date: string;
-  start_time: string; end_time: string; venue_name: string; type: string;
-  is_free: boolean; price: number; image_url: string; featured?: boolean;
-  date_start?: string; date_end?: string; category?: string; name_es?: string; venue?: string;
-  /** City calendar: `recurring` + `recurrence_rule` ('weekly' | 'daily'); date_start is the FIRST occurrence. */
-  recurring?: boolean; recurrence_rule?: string | null;
-};
-
+// City events are EVENTS-ELITE PublicEvent rows from the verified feed
+// (src/lib/eventsFeed.ts) — never /data/events.json. PEvent = partner-published
+// events (live /partner-events only), always labelled "Publicado por <venue>".
 type PEvent = {
   event_id: string; partner_id: string; title: string; category: string;
   date: string; start_time: string; end_time: string; flyer_url: string; image_url?: string;
@@ -133,12 +140,11 @@ type RecItem = {
 
 type FavItem = { kind: 'partner' | 'partner_event'; id: string; title: string; image?: string; subtitle: string; tier?: string };
 
-// Everything the data sections need to paint. Written on every applyData,
-// read by the state initialisers of the NEXT HomeScreen instance.
-// todayFallback = no city event is dated today, so the Hoy/Noche rows carry the
-// next upcoming events instead (and the "Próximos eventos" rail, which would
-// repeat the same cards, stays hidden).
-type HomeSnapshot = { featured: Event[]; todayEvents: Event[]; todayPEvents: PEvent[]; sponsors: Sponsor[]; promotions: Promo[]; todayFallback: boolean };
+// Everything the data sections need to paint. Written on every applyData and
+// every feed update, read by the state initialisers of the NEXT HomeScreen
+// instance (fallback-first across remounts). feedEvents is the last verified
+// feed this process saw — bucketed at render time against Bogotá "today".
+type HomeSnapshot = { feedEvents: PublicEvent[] | null; todayPEvents: PEvent[]; sponsors: Sponsor[]; promotions: Promo[] };
 let HOME_CACHE: HomeSnapshot | null = null;
 
 const toRec = (p: Partner): RecItem => ({
@@ -183,12 +189,6 @@ const getBudgetStyle = (isFree: boolean, price: number) => {
 };
 
 const todayIso = () => bogotaToday(); // Bogota date, not UTC (events must not roll over at 19:00 local)
-const isNightTime = (t: string) => {
-  // "noche" = events starting from 17:00 (sunset, dinner, party); 5am is the after-party edge
-  if (!t) return false;
-  const hh = parseInt(t.split(':')[0], 10);
-  return hh >= 17 || hh < 5;
-};
 
 // Explore categories — exact `category` values explore.tsx filters on
 // (p.category === apiValue), so the count Home shows is the count Explore opens.
@@ -216,16 +216,38 @@ export default function HomeScreen() {
   const gridTileW = gridTileWidth(windowWidth);
 
   // ── Data sections — seeded from the last instance's snapshot (fallback-first) ──
-  const [featured, setFeatured] = useState<Event[]>(() => HOME_CACHE?.featured ?? []);
-  const [todayEvents, setTodayEvents] = useState<Event[]>(() => HOME_CACHE?.todayEvents ?? []);
   const [todayPEvents, setTodayPEvents] = useState<PEvent[]>(() => HOME_CACHE?.todayPEvents ?? []);
   const [promotions, setPromotions] = useState<Promo[]>(() => HOME_CACHE?.promotions ?? []);
   const [sponsors, setSponsors] = useState<Sponsor[]>(() => HOME_CACHE?.sponsors ?? []);
-  const [todayFallback, setTodayFallback] = useState<boolean>(() => HOME_CACHE?.todayFallback ?? false);
-  // true once ANY data has been applied (static or live). Replaces `loading`:
-  // it never goes back to false, so a section can never re-enter its skeleton.
-  const [hydrated, setHydrated] = useState<boolean>(() => HOME_CACHE !== null);
   const [refreshing, setRefreshing] = useState(false);
+
+  // ── City events: the verified feed (EVENTS-ELITE §13 J3) ──
+  // First paint: HOME_CACHE → getCachedFeed() (inside the hook) → the static
+  // mirror when generated ≤ 24 h ago; the live response replaces it. A feed the
+  // loader can no longer vouch for (404 / nothing ≤ 36 h) paints NO events.
+  const { feed, today: feedToday, error: feedError, reload: reloadFeed } = useEventsFeed();
+  const [firstPaint, setFirstPaint] = useState<PublicEvent[] | null>(() => HOME_CACHE?.feedEvents ?? null);
+  useEffect(() => {
+    if (HOME_CACHE?.feedEvents || getCachedFeed()) return;
+    let alive = true;
+    peekStaticFeed(HOME_STATIC_MAX_AGE_H)
+      .then((p) => { if (alive && p) setFirstPaint((prev) => prev ?? p.events); })
+      .catch((e: unknown) => console.error('[Home] static feed', e));
+    return () => { alive = false; };
+  }, []);
+  const feedEvents: PublicEvent[] = useMemo(
+    () => (feed ? feed.data.events : feedError ? [] : (firstPaint ?? [])),
+    [feed, feedError, firstPaint],
+  );
+  const feedReady = !!feed || !!feedError || firstPaint !== null;
+  const feedOffline = !!feed?.offline;
+  // Bogotá "today" only after mount (null in the static export → skeleton, no
+  // build-day date in the HTML). A remount with a snapshot may bucket at once.
+  const today: string | null = feedToday ?? (HOME_CACHE ? bogotaToday() : null);
+  useEffect(() => {
+    if (!feed && !feedError) return;
+    HOME_CACHE = { feedEvents, todayPEvents, sponsors, promotions };
+  }, [feed, feedError, feedEvents, todayPEvents, sponsors, promotions]);
   const [catalog, setCatalog] = useState<Partner[]>([]);
   const [baseSheet, setBaseSheet] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -381,71 +403,44 @@ export default function HomeScreen() {
       const filterPeToday = (arr: unknown): PEvent[] => (Array.isArray(arr) ? (arr as PEvent[]) : []).filter((e) => {
         const start = e.date_start || e.date || '';
         const end = e.date_end || start;
-        return start <= today && end >= today;
+        return !!e && !!e.event_id && start <= today && end >= today;
       });
 
-      const applyData = (f: unknown, sp: unknown, pe: unknown, promos: unknown) => {
+      const applyData = (sp: unknown, pe: unknown, promos: unknown) => {
         // Same rules as the backend (/promotions/today: valid_until >= today)
         // so the bundled snapshot can never paint an expired offer as current.
-        const evts: Event[] = (Array.isArray(f) ? (f as Record<string, unknown>[]) : []).map((e) => ({
-          ...(e as unknown as Event),
-          event_id: String(e.slug || e.id || e.event_id || ''),
-          title: String(e.name_es || e.title || ''),
-          date: String(e.date_start || e.date || ''),
-          type: String(e.category || e.type || ''),
-          start_time: String(e.time_start || e.start_time || ''),
-          venue_name: String(e.venue || e.venue_name || ''),
-          price: Number(e.price_min_cop || e.price || 0),
-        }));
         const spArr = (Array.isArray(sp) ? (sp as Sponsor[]) : []).filter((x) => x && x.name && isVerifiedSponsor(x, today));
         const todayPE = filterPeToday(pe);
         const promosFiltered = (Array.isArray(promos) ? (promos as Promo[]) : []).filter((x) => x && (x.valid_until || '9999-12-31') >= today);
-        const todayFiltered = evts.filter((e) => {
-          const start = e.date_start || e.date || '';
-          const end = e.date_end || start;
-          return start <= today && end >= today;
-        });
-        // CONTENT RESILIENCE: on a quiet day the "today" rows carry the next
-        // upcoming events so the primary home sections are never a blank gap —
-        // retitled "Próximos planes" and WITHOUT the "Próximos eventos" rail,
-        // which would show the very same cards a second time.
-        const fallback = todayFiltered.length === 0 && evts.length > 0;
-        const todayOrUpcoming = fallback ? evts.slice(0, 8) : todayFiltered;
-        setFeatured(evts);
         setSponsors(spArr);
         setTodayPEvents(todayPE);
         setPromotions(promosFiltered);
-        setTodayEvents(todayOrUpcoming);
-        setTodayFallback(fallback);
-        HOME_CACHE = { featured: evts, todayEvents: todayOrUpcoming, todayPEvents: todayPE, sponsors: spArr, promotions: promosFiltered, todayFallback: fallback };
-        setHydrated(true);
+        HOME_CACHE = { feedEvents: HOME_CACHE?.feedEvents ?? null, todayPEvents: todayPE, sponsors: spArr, promotions: promosFiltered };
       };
 
-      // 1. Instant paint from static data
-      const [staticEvents, staticSponsors, staticPE, staticPromos] = await Promise.all([
-        withTimeout(getUpcomingEvents(), 8000, []),
+      // 1. Instant paint from static data. City events come from the verified
+      //    feed (useEventsFeed) — never /data/events.json; partner events are
+      //    live-only (a bundled partner-events snapshot could be stale).
+      const [staticSponsors, staticPromos] = await Promise.all([
         staticFetch('sponsors'),
-        staticFetch('partner-events'),
         staticFetch('promotions/today'),
       ]);
-      applyData(staticEvents, staticSponsors, staticPE, staticPromos);
+      applyData(staticSponsors, HOME_CACHE?.todayPEvents ?? [], staticPromos);
 
       // 2. Hydrate from backend in the background (never holds up first paint).
       // Each live dataset wins on its own; an EMPTY live answer must replace the
       // bundled snapshot (no promos today ≠ keep June's promos); null = that
       // call failed → keep static.
       Promise.all([
-        getUpcomingEvents().catch(() => null),
         api.get('/sponsors').catch(() => null),
         api.get(`/partner-events?date=${today}`).catch(() => null),
         api.get('/promotions/today').catch(() => null),
-      ]).then(([f, sp, pe, promos]) => {
+      ]).then(([sp, pe, promos]) => {
         const live = (v: unknown, fallback: unknown) => (Array.isArray(v) ? v : fallback);
-        applyData(live(f, staticEvents), live(sp, staticSponsors), live(pe, staticPE), live(promos, staticPromos));
+        applyData(live(sp, staticSponsors), live(pe, HOME_CACHE?.todayPEvents ?? []), live(promos, staticPromos));
       }).catch((e) => console.error('[Home] hydrate', e));
     } catch (e) {
       console.error('[Home] fetchData', e);
-      setHydrated(true); // a failed load still exits the placeholders → honest empty states
     } finally {
       setRefreshing(false);
     }
@@ -489,7 +484,7 @@ export default function HomeScreen() {
   const quickItems = useMemo(() => {
     const items = [
       { key: 'moverse',   icon: 'bus',      label: tr('Moverse'),      color: '#F59E0B',          route: '/ciudad' },
-      { key: 'agenda',    icon: 'calendar', label: s('home_agenda'),   color: '#F97316',          route: '/(tabs)/agenda' },
+      { key: 'agenda',    icon: 'calendar', label: s('home_agenda'),   color: '#F97316',          route: '/que-pasa' },
       { key: 'explorar',  icon: 'compass',  label: tr('Explorar'),     color: '#3B82F6',          route: '/(tabs)/explore' },
       { key: 'pasaporte', icon: 'ribbon',   label: tr('Pasaporte'),    color: COLORS.primary,     route: '/(tabs)/pasaporte' },
       userProfile.partyType === 'cruise'
@@ -514,35 +509,60 @@ export default function HomeScreen() {
 
   const todayStr = todayIso();
 
-  // ── Hoy / Esta noche — partner events merged with city events ──
-  // date_start/date_end/recurrence ride along: without them a recurring city
-  // event (date_start 18 Jun, date_end next April) collapsed to a one-day
-  // window on its ORIGINAL start date and the Hoy/Noche chip read "18 JUN".
-  const toPE = (e: Event): PEvent => ({
-    event_id: e.event_id, partner_id: '', title: e.title, category: e.type, date: e.date,
-    start_time: e.start_time, end_time: e.end_time, flyer_url: e.image_url, image_url: e.image_url, is_free: e.is_free,
-    price: e.price, partner_name: e.venue_name, partner_tier: '', partner_image: e.image_url,
-    date_start: e.date_start, date_end: e.date_end, recurring: e.recurring, recurrence_rule: e.recurrence_rule,
-  });
-  const dayPE: PEvent[] = [
-    ...todayPEvents.filter((e) => !isNightTime(e.start_time)),
-    ...todayEvents.filter((e) => !isNightTime(e.start_time)).map(toPE),
-  ];
-  const nightPE: PEvent[] = [
-    ...todayPEvents.filter((e) => isNightTime(e.start_time)),
-    ...todayEvents.filter((e) => isNightTime(e.start_time)).map(toPE),
-  ];
+  // ── Events on Home (§16.2), in this order, never two empty slots:
+  //    1. "Ahora en Cartagena" — only when something is verifiably ongoing or
+  //       starts within 3 h (and never when far from the city);
+  //    2. "Destacados" — the top 6 by prominence; present while the feed has rows;
+  //    3. "Hoy" — today's rows (headline first; umbrellas never, §15 R5) plus
+  //       today's partner-published events ("Publicado por <venue>"), or the one
+  //       "Nada confirmado hoy · Ver todo →" line.
+  // `nowMs` is set after mount and ticks each minute: no clock in the static
+  // HTML (#418) and "Empieza a las 20:00" never goes stale while Home is open.
+  const [nowMs, setNowMs] = useState<number>(0);
+  useEffect(() => {
+    setNowMs(Date.now());
+    const t = setInterval(() => setNowMs(Date.now()), 60000);
+    return () => clearInterval(t);
+  }, []);
+  const eventsReady = !!today && feedReady;
+  const ahora = useMemo(
+    () => (today && nowMs && !far ? ongoingOrSoon(feedEvents, nowMs, 3).slice(0, 6) : []),
+    [feedEvents, today, nowMs, far],
+  );
+  const topEvents = useMemo(
+    () => (today ? destacados(feedEvents, nowMs || Date.now(), 6) : []),
+    [feedEvents, today, nowMs],
+  );
+  const hoyEvents = useMemo(() => (today ? bucket(feedEvents, 'hoy', today) : []), [feedEvents, today]);
+  const hoyPartner = useMemo(
+    () => [...todayPEvents].sort((a, b) => (a.start_time || '99:99').localeCompare(b.start_time || '99:99')),
+    [todayPEvents],
+  );
+  const hoyCity = hoyEvents.slice(0, HOY_MAX);
+  const hoyPartnerShown = hoyPartner.slice(0, Math.max(0, HOY_MAX - hoyCity.length));
+  const hoyCount = hoyEvents.length + hoyPartner.length;
+  const feedFailed = !feed && !!feedError && feedEvents.length === 0;
+  const umbrellaName = useCallback((ev: PublicEvent): string | null => {
+    if (!ev.parent_id) return null;
+    const u = feedEvents.find((e) => e.event_id === ev.parent_id && e.is_umbrella);
+    return u ? umbrellaShortName(u, lang) : null;
+  }, [feedEvents, lang]);
+  const heroW = heroWidth(windowWidth);
+  const nowW = nowCardWidth(windowWidth);
+  const openQuePasa = useCallback(() => { router.push('/que-pasa' as any); }, [router]);
+  const openFeedEvent = useCallback((id: string) => {
+    trackEvent('event_click', id, 'event');
+    router.push(`/event/${id}` as any);
+  }, [router, trackEvent]);
 
+  // Partner-published event row — always "Publicado por <venue>", never "verified".
   const renderPECard = (event: PEvent) => {
     const cat = catStyle(event.category);
     const budget = getBudgetStyle(event.is_free, event.price);
-    const isPartnerEvent = !!event.partner_id;
-    // Chip = when this plan actually happens (mirrors the Próximos rail: HOY
-    // while today sits in the event's window, else the date):
+    // Chip = when this plan actually happens:
     //   • recurring, occurs today (daily, or weekly on today's weekday) → "HOY 20:00"
     //   • weekly, another weekday                                      → "JUE" (next occurrence)
     //   • one-off today                                                → "20:00"
-    //   • quiet-day fallback rows (FUTURE one-offs)                    → "3 OCT"
     // Never the ORIGINAL start date of a recurring series ("18 JUN").
     const dStart = event.date_start || event.date || '';
     const dEnd = event.date_end || dStart;
@@ -560,13 +580,14 @@ export default function HomeScreen() {
       const d = new Date(dStart + 'T00:00:00');
       chip = Number.isNaN(d.getTime()) ? dStart : `${d.getDate()} ${monthShort(d.getMonth(), lang, true)}`;
     }
+    const venue = event.partner_name || tr('el local');
     return (
       <TouchableOpacity
         key={event.event_id}
         style={styles.peCard}
         onPress={() => {
-          trackEvent('event_click', event.event_id, isPartnerEvent ? 'partner_event' : 'event');
-          router.push((isPartnerEvent ? `/partner-event/${event.event_id}` : `/event/${event.event_id}`) as any);
+          trackEvent('event_click', event.event_id, 'partner_event');
+          router.push(`/partner-event/${event.event_id}` as any);
         }}
         activeOpacity={0.85}
       >
@@ -580,12 +601,10 @@ export default function HomeScreen() {
         </View>
         <View style={styles.peBody}>
           <Text style={styles.peTitle} numberOfLines={2}>{event.title}</Text>
-          {event.partner_name ? (
-            <View style={styles.pePartnerRow}>
-              <Ionicons name="location-outline" size={11} color={COLORS.textMuted} />
-              <Text style={styles.pePartner} numberOfLines={1}>{event.partner_name}</Text>
-            </View>
-          ) : null}
+          <View style={styles.pePartnerRow}>
+            <Ionicons name="storefront-outline" size={11} color={COLORS.icon} />
+            <Text style={styles.pePartner} numberOfLines={1}>{tr('Publicado por {venue}').replace('{venue}', venue)}</Text>
+          </View>
           <View style={styles.peTagsRow}>
             <View style={[styles.peCatBadge, { backgroundColor: cat.bg, borderColor: cat.main }]}>
               <View style={[styles.peCatDot, { backgroundColor: cat.main }]} />
@@ -634,18 +653,6 @@ export default function HomeScreen() {
     </TouchableOpacity>
   );
 
-  // Upcoming events: visitors with dates see their stay first.
-  const upcoming = useMemo(() => {
-    let evts = featured.filter((e) => e.image_url);
-    if (userProfile.userType === 'visitor' && userProfile.travelDates) {
-      const { start, end } = userProfile.travelDates;
-      const during = evts.filter((e) => { const d = e.date_start || e.date || ''; return d >= start && d <= end; });
-      const after = evts.filter((e) => { const d = e.date_start || e.date || ''; return d < start || d > end; });
-      evts = [...during, ...after];
-    }
-    return evts.slice(0, 10);
-  }, [featured, userProfile.userType, userProfile.travelDates]);
-
   const paraTi: RecItem[] = forYou.length > 0 ? forYou : recommendations;
   const firstName = (user?.name || '').trim().split(' ')[0];
   const greeting = user
@@ -656,7 +663,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} tintColor={COLORS.primary} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); reloadFeed(); }} tintColor={COLORS.primary} />}
       >
         {/* 1 · Header — greeting is the headline; the brand is a quiet eyebrow */}
         <View style={styles.header}>
@@ -772,102 +779,159 @@ export default function HomeScreen() {
           ))}
         </View>
 
-        {/* 5 · Qué pasa hoy — the first real plan sits at y≈400 */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleRow}>
-              <Ionicons name={userProfile.partyType === 'cruise' ? 'boat' : 'sunny'} size={18} color="#F97316" />
-              <Text style={styles.sectionTitle}>
-                {todayFallback ? tr('Próximos planes') : userProfile.partyType === 'cruise' ? tr('Tu día en puerto') : tr('Qué pasa hoy')}
-              </Text>
-              {dayPE.length > 0 && <Text style={styles.sectionCount}>{dayPE.length}</Text>}
-            </View>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/agenda' as any)} style={styles.seeAllBtn} accessibilityRole="button">
-              <Text style={styles.seeAll}>{tr('Ver todos')}</Text>
-            </TouchableOpacity>
+        {/* Proximity offer — opt-in, computed on the phone; never from an offline
+            copy and never when far from Cartagena. Returns null unless eligible. */}
+        {!!feed && !feedOffline && !far && (
+          <View style={styles.nearbyWrap}>
+            <NearbyEventsCard events={feed.data.events} />
           </View>
-          {!hydrated && dayPE.length === 0 ? (
-            <SkeletonEventRows count={3} />
-          ) : dayPE.length === 0 ? (
-            <View style={styles.emptySlot}>
-              <Ionicons name="cafe-outline" size={22} color={COLORS.textMuted} />
-              <Text style={styles.emptySlotText}>{tr('Sin planes de día por ahora')}</Text>
-            </View>
-          ) : (
-            dayPE.slice(0, 3).map(renderPECard)
-          )}
-        </View>
+        )}
 
-        {/* 6 · Próximos eventos — hidden on a quiet day: the Hoy/Noche rows above
-            already carry these very events as "Próximos planes" (no duplicate). */}
-        {!todayFallback && (upcoming.length > 0 || !hydrated) && (
+        {/* 5 · Events (EVENTS-ELITE §16.2): Ahora en Cartagena → Destacados → Hoy.
+            Each slot renders only with rows, except Hoy's single honest line, so
+            Home never shows two empty slots. Far from the city (planning mode)
+            the "now" and "today" slots step aside for Destacados. */}
+        {!eventsReady ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <View style={styles.sectionTitleRow}>
-                <Ionicons name="star" size={18} color={COLORS.icon} />
-                <Text style={styles.sectionTitle}>
-                  {userProfile.userType === 'visitor' && userProfile.travelDates ? s('home_during_visit') : tr('Próximos eventos')}
-                </Text>
-                {featured.length > 0 && <Text style={styles.sectionCount}>{featured.length}</Text>}
+                <Ionicons name="star" size={18} color={COLORS.mustard} />
+                <Text style={styles.sectionTitle}>{tr('Destacados')}</Text>
               </View>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/agenda' as any)} style={styles.seeAllBtn} accessibilityRole="button">
-                <Text style={styles.seeAll}>{tr('Ver todos')}</Text>
-              </TouchableOpacity>
             </View>
-            {upcoming.length === 0 ? (
-              <SkeletonFeaturedRow />
-            ) : (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
-                {upcoming.map((event) => {
-                  const cat = catStyle(event.type || event.category || '');
-                  const budget = getBudgetStyle(event.is_free, event.price);
-                  const dateStart = event.date_start || event.date || '';
-                  const dateEnd = event.date_end || dateStart;
-                  let dateLabel = '';
-                  if (dateStart <= todayStr && dateEnd >= todayStr) {
-                    dateLabel = tr('HOY');
-                  } else if (dateStart) {
-                    const d = new Date(dateStart + 'T00:00:00');
-                    dateLabel = Number.isNaN(d.getTime()) ? dateStart : `${d.getDate()} ${monthShort(d.getMonth(), lang, true)}`;
-                  }
-                  return (
-                    <TouchableOpacity
-                      key={event.event_id}
-                      style={styles.featuredCard}
-                      activeOpacity={0.85}
-                      onPress={() => {
-                        trackEvent('event_click', event.event_id, 'event');
-                        router.push(`/event/${event.event_id}` as any);
-                      }}
-                    >
-                      <SafeImage uri={event.image_url} style={styles.featuredImage} resizeMode="cover" />
-                      <View style={styles.featuredOverlay} />
-                      {!!dateLabel && (
-                        <View style={styles.featuredBadge}>
-                          <Text style={styles.badgeText}>{dateLabel}</Text>
-                        </View>
-                      )}
-                      <View style={styles.featuredInfo}>
-                        <View style={styles.eventTags}>
-                          <View style={[styles.tag, { backgroundColor: cat.bg, borderWidth: 1, borderColor: cat.main }]}>
-                            <Text style={[styles.tagText, { color: cat.main }]}>{tr(cat.label)}</Text>
-                          </View>
-                          <View style={[styles.tag, { backgroundColor: budget.bg, borderWidth: 1, borderColor: budget.main }]}>
-                            <Text style={[styles.tagText, { color: budget.main }]}>{tr(budget.label)}</Text>
-                          </View>
-                        </View>
-                        <Text style={styles.featuredTitle} numberOfLines={2}>{event.title || event.name_es}</Text>
-                        <View style={styles.featuredMeta}>
-                          <Ionicons name="location-outline" size={12} color={COLORS.textMuted} />
-                          <Text style={styles.metaText} numberOfLines={1}>{event.venue_name || event.venue || ''}</Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            )}
+            <SkeletonTileRow width={heroW} height={HERO_H} count={2} />
           </View>
+        ) : (
+          <>
+            {ahora.length > 0 && (
+              <View style={styles.section} testID="home-ahora">
+                <View style={styles.sectionHeader}>
+                  <View style={styles.sectionTitleRow}>
+                    <View style={styles.liveDot} />
+                    <Text style={styles.sectionTitle}>{tr('Ahora en Cartagena')}</Text>
+                  </View>
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.eventRail}>
+                  {ahora.map((item) => (
+                    <EventNowCard
+                      key={item.ev.event_id}
+                      item={item}
+                      lang={lang}
+                      tr={tr}
+                      width={nowW}
+                      onPress={openFeedEvent}
+                      testID={`home-now-${item.ev.event_id}`}
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {feedOffline && !!feed && (
+              <FeedOfflineBanner stamp={feed.data.generated_at} lang={lang} tr={tr} style={styles.feedBanner} />
+            )}
+
+            {topEvents.length > 0 && (
+              <View style={styles.section} testID="home-destacados">
+                <View style={styles.sectionHeader}>
+                  <View style={styles.sectionTitleRow}>
+                    <Ionicons name="star" size={18} color={COLORS.mustard} />
+                    <Text style={styles.sectionTitle}>{tr('Destacados')}</Text>
+                  </View>
+                  <TouchableOpacity onPress={openQuePasa} style={styles.seeAllBtn} accessibilityRole="button">
+                    <Text style={styles.seeAll}>{tr('Ver todos')}</Text>
+                  </TouchableOpacity>
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.eventRail}
+                  decelerationRate="fast"
+                  snapToInterval={heroW + 12}
+                  snapToAlignment="start"
+                >
+                  {topEvents.map((ev, i) => (
+                    <EventHeroCard
+                      key={ev.event_id}
+                      ev={ev}
+                      lang={lang}
+                      tr={tr}
+                      offline={feedOffline}
+                      width={heroW}
+                      height={HERO_H}
+                      onPress={openFeedEvent}
+                      programCount={ev.is_umbrella && today ? programCount(ev, feedEvents, today) : undefined}
+                      priority={i < 2 ? 'high' : 'normal'}
+                      testID={`home-hero-${ev.event_id}`}
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {!far ? (
+              <View style={styles.section} testID="home-hoy">
+                <View style={styles.sectionHeader}>
+                  <View style={styles.sectionTitleRow}>
+                    <Ionicons name={userProfile.partyType === 'cruise' ? 'boat' : 'sunny'} size={18} color="#F97316" />
+                    <Text style={styles.sectionTitle}>{userProfile.partyType === 'cruise' ? tr('Tu día en puerto') : tr('Qué pasa hoy')}</Text>
+                    {hoyCount > 0 && <Text style={styles.sectionCount}>{hoyCount}</Text>}
+                  </View>
+                  {hoyCount > 0 && (
+                    <TouchableOpacity onPress={openQuePasa} style={styles.seeAllBtn} accessibilityRole="button">
+                      <Text style={styles.seeAll}>{tr('Ver todos')}</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                {hoyCount > 0 ? (
+                  <View style={styles.hoyList}>
+                    {hoyCity.map((ev) => (
+                      <EventDayRow
+                        key={ev.event_id}
+                        ev={ev}
+                        lang={lang}
+                        tr={tr}
+                        offline={feedOffline}
+                        lead="time"
+                        partOf={umbrellaName(ev)}
+                        onPress={openFeedEvent}
+                        testID={`home-event-${ev.event_id}`}
+                      />
+                    ))}
+                    {hoyPartnerShown.map(renderPECard)}
+                  </View>
+                ) : feedFailed ? (
+                  <FeedEmptyLine
+                    icon="cloud-offline-outline"
+                    text={`${tr('No pudimos cargar la agenda')} ·`}
+                    cta={tr('Reintentar')}
+                    onPress={reloadFeed}
+                    style={styles.emptyLine}
+                    testID="home-nothing-today"
+                  />
+                ) : (
+                  <FeedEmptyLine
+                    text={`${tr('Nada confirmado hoy')} ·`}
+                    cta={tr('Ver todo →')}
+                    onPress={openQuePasa}
+                    style={styles.emptyLine}
+                    testID="home-nothing-today"
+                  />
+                )}
+              </View>
+            ) : topEvents.length === 0 ? (
+              <View style={styles.section}>
+                <FeedEmptyLine
+                  icon={feedFailed ? 'cloud-offline-outline' : 'calendar-clear-outline'}
+                  text={`${tr(feedFailed ? 'No pudimos cargar la agenda' : 'Nada confirmado hoy')} ·`}
+                  cta={tr(feedFailed ? 'Reintentar' : 'Ver todo →')}
+                  onPress={feedFailed ? reloadFeed : openQuePasa}
+                  style={styles.emptyLine}
+                  testID="home-nothing-today"
+                />
+              </View>
+            ) : null}
+          </>
         )}
 
         {/* 7 · Explorar por categoría — "Todo · 853" replaces the old hero banners;
@@ -957,30 +1021,6 @@ export default function HomeScreen() {
             <Ionicons name="chevron-forward" size={18} color="#06B6D4" />
           </TouchableOpacity>
         )}
-
-        {/* 8 · Qué pasa esta noche */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionTitleRow}>
-              <Ionicons name="moon" size={18} color="#A855F7" />
-              <Text style={styles.sectionTitle}>{todayFallback ? tr('Próximas noches') : tr('Qué pasa esta noche')}</Text>
-              {nightPE.length > 0 && <Text style={styles.sectionCount}>{nightPE.length}</Text>}
-            </View>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/agenda' as any)} style={styles.seeAllBtn} accessibilityRole="button">
-              <Text style={styles.seeAll}>{tr('Ver todos')}</Text>
-            </TouchableOpacity>
-          </View>
-          {!hydrated && nightPE.length === 0 ? (
-            <SkeletonEventRows count={2} />
-          ) : nightPE.length === 0 ? (
-            <View style={styles.emptySlot}>
-              <Ionicons name="wine-outline" size={22} color={COLORS.textMuted} />
-              <Text style={styles.emptySlotText}>{tr('Sin planes de noche por ahora')}</Text>
-            </View>
-          ) : (
-            nightPE.slice(0, 3).map(renderPECard)
-          )}
-        </View>
 
         {/* 9 · Ofertas del día — partner promotions (hidden when empty) */}
         {promotions.length > 0 && (
@@ -1266,12 +1306,16 @@ const styles = StyleSheet.create({
   // header's layout height and the text flush with the section edge.
   seeAllBtn: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8, marginRight: -8, marginVertical: -10 },
   horizontalList: { paddingLeft: SPACING.lg, gap: SPACING.md, paddingRight: SPACING.lg },
-  emptySlot: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    marginHorizontal: SPACING.lg, paddingVertical: 14, paddingHorizontal: SPACING.md,
-    backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, borderStyle: 'dashed',
+  // §16 event rails: 12 px between cards; the one-line empty state is never a box.
+  eventRail: { paddingLeft: SPACING.lg, gap: 12, paddingRight: SPACING.lg },
+  hoyList: { paddingHorizontal: SPACING.lg, gap: 12 },
+  emptyLine: { marginHorizontal: SPACING.lg, paddingVertical: 4 },
+  liveDot: {
+    width: 10, height: 10, borderRadius: 5, backgroundColor: COLORS.coral,
+    borderWidth: 2, borderColor: `${COLORS.coral}59`, marginHorizontal: 4,
   },
-  emptySlotText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
+  feedBanner: { marginHorizontal: SPACING.lg, marginBottom: SPACING.md },
+  nearbyWrap: { paddingHorizontal: SPACING.lg }, // vertical spacing lives in NearbyEventsCard (null ⇒ no gap)
 
   // Explore category photo cards
   photoCard: { width: 140, height: 180, borderRadius: RADIUS.xl, overflow: 'hidden', position: 'relative', borderWidth: 1, borderColor: COLORS.border },
@@ -1282,22 +1326,8 @@ const styles = StyleSheet.create({
   photoLabel: { fontSize: 15, color: COLORS.white, ...FONTS.bold },
   photoSub: { fontSize: 11, color: 'rgba(255,255,255,0.6)', ...FONTS.medium },
 
-  // Featured (upcoming) event cards
-  featuredCard: { width: 260, height: 200, borderRadius: RADIUS.xl, overflow: 'hidden' },
-  featuredImage: { width: '100%', height: '100%', position: 'absolute' },
-  featuredOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' },
-  featuredBadge: { position: 'absolute', top: SPACING.md, right: SPACING.md, backgroundColor: COLORS.coral, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
-  badgeText: { fontSize: 11, color: COLORS.white, ...FONTS.bold },
-  featuredInfo: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: SPACING.md },
-  featuredTitle: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold, marginTop: 2 },
-  featuredMeta: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: SPACING.xs },
-  metaText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
-  eventTags: { flexDirection: 'row', marginTop: 4, gap: SPACING.xs },
-  tag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: RADIUS.full },
-  tagText: { fontSize: 10, ...FONTS.bold },
-
-  // Partner-event rows (Hoy / Esta noche)
-  peCard: { flexDirection: 'row', backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden' },
+  // Partner-event rows (inside the Hoy list, which owns the gutter and the 12 px gap)
+  peCard: { flexDirection: 'row', backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, overflow: 'hidden' },
   peThumbWrap: { width: 84, height: 92, position: 'relative' },
   peThumb: { width: '100%', height: '100%' },
   peTimeChip: { position: 'absolute', bottom: 6, left: 6, backgroundColor: 'rgba(5,8,20,0.85)', borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2 },

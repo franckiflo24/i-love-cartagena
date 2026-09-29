@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx expo export --platform web && rm -f dist/_sitemap.html && cp dist/+not-found.html dist/404.html && node scripts/stamp-sw.mjs",
+  "buildCommand": "npx expo export --platform web && node scripts/check-no-legacy-events.mjs && rm -f dist/_sitemap.html && cp dist/+not-found.html dist/404.html && node scripts/stamp-sw.mjs",
   "outputDirectory": "dist",
   "framework": null,
   "redirects": [
@@ -57,12 +57,55 @@
       "source": "/JOIN",
       "destination": "/join",
       "statusCode": 308
+    },
+    {
+      "source": "/Que-pasa",
+      "destination": "/que-pasa",
+      "statusCode": 308
+    },
+    {
+      "source": "/Que-Pasa",
+      "destination": "/que-pasa",
+      "statusCode": 308
+    },
+    {
+      "source": "/QUE-PASA",
+      "destination": "/que-pasa",
+      "statusCode": 308
     }
   ],
   "rewrites": [
     {
       "source": "/api/auth/:path*",
       "destination": "https://backend-mu-one-74.vercel.app/api/auth/:path*"
+    },
+    {
+      "source": "/data/events.json",
+      "destination": "https://backend-mu-one-74.vercel.app/api/events"
+    },
+    {
+      "source": "/data/events/dates/available.json",
+      "destination": "https://backend-mu-one-74.vercel.app/api/events/dates/available"
+    },
+    {
+      "source": "/data/events/:id.json",
+      "destination": "https://backend-mu-one-74.vercel.app/api/events/:id"
+    },
+    {
+      "source": "/data/concerts.json",
+      "destination": "https://backend-mu-one-74.vercel.app/api/concerts"
+    },
+    {
+      "source": "/data/concerts/dates.json",
+      "destination": "https://backend-mu-one-74.vercel.app/api/concerts/dates"
+    },
+    {
+      "source": "/data/concerts/genres.json",
+      "destination": "https://backend-mu-one-74.vercel.app/api/concerts/genres"
+    },
+    {
+      "source": "/data/concerts/:id.json",
+      "destination": "https://backend-mu-one-74.vercel.app/api/concerts/:id"
     },
     {
       "source": "/pasaporte/share/:id",
@@ -243,6 +286,42 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=300, stale-while-revalidate=600"
+        }
+      ]
+    },
+    {
+      "source": "/data/events.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=60, stale-while-revalidate=120"
+        }
+      ]
+    },
+    {
+      "source": "/data/events/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=60, stale-while-revalidate=120"
+        }
+      ]
+    },
+    {
+      "source": "/data/concerts.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=60, stale-while-revalidate=120"
+        }
+      ]
+    },
+    {
+      "source": "/data/concerts/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=60, stale-while-revalidate=120"
         }
       ]
     },

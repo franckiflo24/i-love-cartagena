@@ -1,0 +1,2710 @@
+{
+ "anchors_version": 2,
+ "anchors_version_note": "Bump on ANY change to this file: pull re-seeds anchors (idempotent, §15 W2) when the stored version differs (§16.4). Per-anchor anchor_version gates descriptive-field updates on existing docs.",
+ "anchors": [
+  {
+   "key": "cartagena-festival-musica-2027",
+   "anchor_version": 2,
+   "origin": "anchor",
+   "title": {
+    "es": "Cartagena Festival de Música 2027",
+    "en": "Cartagena Music Festival 2027",
+    "fr": "Cartagena Festival de Música 2027",
+    "pt": "Cartagena Festival de Música 2027"
+   },
+   "description": {
+    "es": "Festival de música académica que convierte la ciudad amurallada en escenario.",
+    "en": "Classical music festival that turns the walled city into a stage.",
+    "fr": "Festival de musique classique qui transforme la ville fortifiée en scène.",
+    "pt": "Festival de música erudita que transforma a cidade amuralhada em palco."
+   },
+   "category": "festival",
+   "flagship": true,
+   "start_date": "2027-01-09",
+   "end_date": "2027-01-17",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2027,
+   "venue_name": "Varios escenarios · Cartagena de Indias",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": null,
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://cartagenamusicfestival.com/",
+   "source_name": "Cartagena Festival de Música (organizador)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://cartagenamusicfestival.com/",
+   "source_keys": [
+    "anchor:cartagena-festival-musica-2027"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": null,
+   "evidence": [
+    {
+     "url": "https://cartagenamusicfestival.com/",
+     "name": "Cartagena Festival de Música (organizador)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:11Z",
+     "http_status": 200,
+     "date_text": "Del 9 al 17 de enero de 2027, el Festival de Cartagena convertirá la ciudad amurallada en el escenario más importante de la música académica.",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "hay-festival-cartagena-2027",
+   "anchor_version": 2,
+   "origin": "anchor",
+   "title": {
+    "es": "Hay Festival Cartagena de Indias 2027",
+    "en": "Hay Festival Cartagena de Indias 2027",
+    "fr": "Hay Festival Cartagena de Indias 2027",
+    "pt": "Hay Festival Cartagena de Indias 2027"
+   },
+   "description": {
+    "es": "Próxima edición del Hay Festival en Cartagena de Indias.",
+    "en": "Next edition of Hay Festival in Cartagena de Indias.",
+    "fr": "Prochaine édition du Hay Festival à Carthagène des Indes.",
+    "pt": "Próxima edição do Hay Festival em Cartagena das Índias."
+   },
+   "category": "festival",
+   "flagship": true,
+   "start_date": "2027-01-28",
+   "end_date": "2027-01-31",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2027,
+   "venue_name": "Varios escenarios · Cartagena de Indias",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": null,
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://www.hayfestival.com/cartagena/inicio",
+   "source_name": "Hay Festival (organizador)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://www.hayfestival.com/cartagena/inicio",
+   "source_keys": [
+    "anchor:hay-festival-cartagena-2027"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": null,
+   "evidence": [
+    {
+     "url": "https://www.hayfestival.com/cartagena/inicio",
+     "name": "Hay Festival (organizador)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:14Z",
+     "http_status": 200,
+     "date_text": "La próxima edición del Hay Festival Cartagena de Indias se celebrará del 28 al 31 de enero del 2027.",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "ficci-66-2027",
+   "anchor_version": 2,
+   "origin": "anchor",
+   "title": {
+    "es": "FICCI 66 · Festival Internacional de Cine de Cartagena de Indias",
+    "en": "FICCI 66 · Cartagena de Indias International Film Festival",
+    "fr": "FICCI 66 · Festival international du film de Carthagène des Indes",
+    "pt": "FICCI 66 · Festival Internacional de Cinema de Cartagena das Índias"
+   },
+   "description": {
+    "es": "Edición 66 del festival de cine de Cartagena de Indias, con cine colombiano, iberoamericano e internacional.",
+    "en": "Edition 66 of the Cartagena de Indias film festival, with Colombian, Ibero-American and international cinema.",
+    "fr": "Édition 66 du festival de cinéma de Carthagène des Indes, avec du cinéma colombien, ibéro-américain et international.",
+    "pt": "Edição 66 do festival de cinema de Cartagena das Índias, com cinema colombiano, ibero-americano e internacional."
+   },
+   "category": "festival",
+   "flagship": true,
+   "start_date": "2027-04-06",
+   "end_date": "2027-04-11",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2027,
+   "venue_name": "Varios escenarios · Cartagena de Indias",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": null,
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://www.ficcifestival.com/",
+   "source_name": "FICCI (organizador)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://www.ficcifestival.com/",
+   "source_keys": [
+    "anchor:ficci-66-2027"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": null,
+   "evidence": [
+    {
+     "url": "https://www.ficcifestival.com/articulos/ficci-66-abre-su-convocatoria-oficial-para-peliculas-de-colombia-iberoamerica-y-el-mundo",
+     "name": "FICCI (organizador)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:22Z",
+     "http_status": 200,
+     "date_text": "la convocatoria oficial para su edición 66, que se celebrará del 6 al 11 de abril de 2027.",
+     "format": "html"
+    },
+    {
+     "url": "https://www.ficcifestival.com/",
+     "name": "FICCI (organizador)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:19Z",
+     "http_status": 200,
+     "date_text": "Festival Internacional de Cine de Cartagena de Indias 6 – 11 ABRIL 2027",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "ironman-70-3-cartagena-2026",
+   "anchor_version": 2,
+   "origin": "anchor",
+   "title": {
+    "es": "IRONMAN 70.3 Cartagena",
+    "en": "IRONMAN 70.3 Cartagena",
+    "fr": "IRONMAN 70.3 Cartagena",
+    "pt": "IRONMAN 70.3 Cartagena"
+   },
+   "description": {
+    "es": "Triatlón con natación en la bahía de las Ánimas, ciclismo junto a la costa y carrera a pie por las calles del Centro Histórico.",
+    "en": "Triathlon with a swim in Las Ánimas Bay, a bike leg along the coast and a run through the streets of the historic centre.",
+    "fr": "Triathlon avec natation dans la baie de las Ánimas, vélo le long de la côte et course à pied dans les rues du centre historique.",
+    "pt": "Triatlo com natação na baía de las Ánimas, ciclismo junto à costa e corrida pelas ruas do Centro Histórico."
+   },
+   "category": "sports",
+   "flagship": true,
+   "start_date": "2026-11-29",
+   "end_date": "2026-11-29",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Recorrido: bahía de las Ánimas, costa y Centro Histórico",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": null,
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://www.ironman.com/races/im703-cartagena",
+   "source_name": "IRONMAN (organizador)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://www.ironman.com/races/im703-cartagena",
+   "source_keys": [
+    "anchor:ironman-70-3-cartagena-2026"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": null,
+   "evidence": [
+    {
+     "url": "https://www.ironman.com/races/im703-cartagena",
+     "name": "IRONMAN (organizador)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:25Z",
+     "http_status": 200,
+     "date_text": "November 29, 2026 IRONMAN 70.3 Cartagena Cartagena, Colombia",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-independencia-2026",
+   "anchor_version": 2,
+   "origin": "anchor",
+   "title": {
+    "es": "Fiestas de Independencia 2026",
+    "en": "Cartagena Independence Festivities 2026",
+    "fr": "Fêtes de l'Indépendance de Carthagène 2026",
+    "pt": "Festas da Independência de Cartagena 2026"
+   },
+   "description": {
+    "es": "Agenda oficial de las Fiestas de Independencia de Cartagena: preludios en los barrios, desfiles, cabildos, reinados y el Festival Náutico.",
+    "en": "Official programme of Cartagena's Independence Festivities: neighbourhood preludes, parades, cabildos, pageants and the Nautical Festival.",
+    "fr": "Programme officiel des Fêtes de l'Indépendance de Carthagène : préludes dans les quartiers, défilés, cabildos, concours de reines et Festival nautique.",
+    "pt": "Programação oficial das Festas da Independência de Cartagena: prelúdios nos bairros, desfiles, cabildos, concursos de rainhas e o Festival Náutico."
+   },
+   "category": "festival",
+   "flagship": true,
+   "start_date": "2026-10-02",
+   "end_date": "2026-11-15",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Varios escenarios · Cartagena de Indias",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": null,
+   "is_umbrella": true,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/28/este-viernes-sera-el-preludio-de-canapote-conozca-la-nomina-de-artistas/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-independencia-2026"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": "Paraguas: 2 oct (primer preludio, post IPCC + PDF 23 sep + El Universal 28 sep) a 15 nov (última fila del PDF 23 sep y artículo Alcaldía 25 sep). La fila 'Lunes 16 de noviembre' del comunicado de 17 sep la contradice el PDF más reciente (coronación corregimental movida al 7 nov).",
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/28/este-viernes-sera-el-preludio-de-canapote-conozca-la-nomina-de-artistas/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:37Z",
+     "http_status": 200,
+     "date_text": "Este viernes 2 de octubre de 2026 tendrá lugar el Preludio de la Localidad 1 (Histórica y del Caribe Norte) en la plaza principal de Canapote.",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/sector-turistico-cartagena-abraza-fiestas-independencia-11-noviembre-como-principal-evento-turismo-cultural",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:39Z",
+     "http_status": 200,
+     "date_text": "finalizando el 15 de noviembre con la Velada de Elección y Coronación de la Reina Popular de las Fiestas de Independencia.",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Domingo 15 · Cabildo de Getsemaní · Velada de elección y coronación del Reinado Popular de las Fiestas de Independencia · Centro de Convenciones Cartagena de Indias",
+     "format": "pdf-image",
+     "page": 7,
+     "start_date": "2026-11-15",
+     "end_date": "2026-11-15",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Viernes 2 de octubre: Preludio Localidad 1 (Canapote) con Son Cartagena, Mr Black, Karen Lizarazo y David Pabón.",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-preludio-localidad-1-canapote",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Preludio Localidad 1 · Canapote",
+    "en": "Locality 1 Prelude · Canapote",
+    "fr": "Prélude de la Localité 1 · Canapote",
+    "pt": "Prelúdio da Localidade 1 · Canapote"
+   },
+   "description": {
+    "es": "Primer preludio de las Fiestas de Independencia, en el barrio Canapote, con presentaciones musicales.",
+    "en": "First prelude of the Independence Festivities, in the Canapote neighbourhood, with live music.",
+    "fr": "Premier prélude des Fêtes de l'Indépendance, dans le quartier de Canapote, avec des concerts.",
+    "pt": "Primeiro prelúdio das Festas da Independência, no bairro Canapote, com apresentações musicais."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-10-02",
+   "end_date": "2026-10-02",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Canapote",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/28/este-viernes-sera-el-preludio-de-canapote-conozca-la-nomina-de-artistas/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-preludio-localidad-1-canapote"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": "Hora 4:00 p. m. solo en El Universal (tier 5): start_time queda null (sin hora en página oficial).",
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/28/este-viernes-sera-el-preludio-de-canapote-conozca-la-nomina-de-artistas/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:37Z",
+     "http_status": 200,
+     "date_text": "Este viernes 2 de octubre de 2026 tendrá lugar el Preludio de la Localidad 1 (Histórica y del Caribe Norte) en la plaza principal de Canapote.",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "Viernes 2 de octubre: Preludio Localidad 1 (Canapote) con Son Cartagena, Mr Black, Karen Lizarazo y David Pabón.",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA OCTUBRE · Viernes 2 · Preludio localidad 1 · Canapote",
+     "format": "pdf-image",
+     "page": 2,
+     "start_date": "2026-10-02",
+     "end_date": "2026-10-02",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Viernes 2 de octubre: Preludio Localidad 1 (Canapote) con Son Cartagena, Mr Black, Karen Lizarazo y David Pabón.",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-preludio-localidad-2-el-pozon",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Preludio Localidad 2 · El Pozón",
+    "en": "Locality 2 Prelude · El Pozón",
+    "fr": "Prélude de la Localité 2 · El Pozón",
+    "pt": "Prelúdio da Localidade 2 · El Pozón"
+   },
+   "description": {
+    "es": "Preludio de las Fiestas de Independencia en El Pozón, con presentaciones musicales.",
+    "en": "Independence Festivities prelude in El Pozón, with live music.",
+    "fr": "Prélude des Fêtes de l'Indépendance à El Pozón, avec des concerts.",
+    "pt": "Prelúdio das Festas da Independência em El Pozón, com apresentações musicais."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-10-09",
+   "end_date": "2026-10-09",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Polideportivo del barrio El Pozón",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/28/este-viernes-sera-el-preludio-de-canapote-conozca-la-nomina-de-artistas/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-preludio-localidad-2-el-pozon"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": null,
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/28/este-viernes-sera-el-preludio-de-canapote-conozca-la-nomina-de-artistas/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:37Z",
+     "http_status": 200,
+     "date_text": "Viernes 9 de octubre: Preludio Localidad 2 (El Pozón) con Soneros de Gámero, Nelson Velásquez, Farid Ortiz y Criss y Ronny.",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "Viernes 9 de octubre: Preludio Localidad 2 (El Pozón) con Soneros de Gámero, Nelson Velásquez, Farid Ortiz y Criss y Ronny.",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA OCTUBRE · Viernes 9 · Preludio localidad 2 · Polideportivo del barrio el Pozón",
+     "format": "pdf-image",
+     "page": 2,
+     "start_date": "2026-10-09",
+     "end_date": "2026-10-09",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Viernes 9 de octubre: Preludio Localidad 2 (El Pozón) con Soneros de Gámero, Nelson Velásquez, Farid Ortiz y Criss y Ronny.",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-preludio-localidad-3-blas-de-lezo",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Preludio Localidad 3 · Blas de Lezo",
+    "en": "Locality 3 Prelude · Blas de Lezo",
+    "fr": "Prélude de la Localité 3 · Blas de Lezo",
+    "pt": "Prelúdio da Localidade 3 · Blas de Lezo"
+   },
+   "description": {
+    "es": "Preludio de las Fiestas de Independencia en Blas de Lezo, con presentaciones musicales.",
+    "en": "Independence Festivities prelude in Blas de Lezo, with live music.",
+    "fr": "Prélude des Fêtes de l'Indépendance à Blas de Lezo, avec des concerts.",
+    "pt": "Prelúdio das Festas da Independência em Blas de Lezo, com apresentações musicais."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-10-16",
+   "end_date": "2026-10-16",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Blas de Lezo",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/28/este-viernes-sera-el-preludio-de-canapote-conozca-la-nomina-de-artistas/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-preludio-localidad-3-blas-de-lezo"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": null,
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/28/este-viernes-sera-el-preludio-de-canapote-conozca-la-nomina-de-artistas/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:37Z",
+     "http_status": 200,
+     "date_text": "Viernes 16 de octubre: Preludio Localidad 3 (Blas de Lezo) con Son Caribe, GiBlack, Rafa Pérez, Charlie Cardona y Jader Tremendo.",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "Viernes 16 de octubre: Preludio Localidad 3 (Blas de Lezo) con Son Caribe, GiBlack, Rafa Pérez, Charlie Cardona y Jader Tremendo.",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA OCTUBRE · Viernes 16 · Preludio localidad 3 · Blas de Lezo",
+     "format": "pdf-image",
+     "page": 2,
+     "start_date": "2026-10-16",
+     "end_date": "2026-10-16",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Viernes 16 de octubre: Preludio Localidad 3 (Blas de Lezo) con Son Caribe, GiBlack, Rafa Pérez, Charlie Cardona y Jader Tremendo.",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-noche-de-candela-y-jolgorio-de-tambores",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Noche de Candela y Jolgorio de Tambores",
+    "en": "Candela Night and Drum Revelry",
+    "fr": "Nuit de la Candela et fête des tambours",
+    "pt": "Noite de Candela e Folia de Tambores"
+   },
+   "description": {
+    "es": "Noche de tambores y folclor en la Plaza de los Coches, dentro de las Fiestas de Independencia.",
+    "en": "An evening of drums and folklore at Plaza de los Coches, part of the Independence Festivities.",
+    "fr": "Soirée de tambours et de folklore sur la Plaza de los Coches, dans le cadre des Fêtes de l'Indépendance.",
+    "pt": "Noite de tambores e folclore na Plaza de los Coches, dentro das Festas da Independência."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-10-23",
+   "end_date": "2026-10-23",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Plaza de los Coches",
+   "venue_gazetteer_id": "plaza-de-los-coches",
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/28/este-viernes-sera-el-preludio-de-canapote-conozca-la-nomina-de-artistas/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-noche-de-candela-y-jolgorio-de-tambores"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": null,
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/28/este-viernes-sera-el-preludio-de-canapote-conozca-la-nomina-de-artistas/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:37Z",
+     "http_status": 200,
+     "date_text": "Viernes 23 de octubre: Noche de Candela y Jolgorio de Tambores (Plaza de los Coches) con Isolina, Dj de Folclor y Grupo de Folclor.",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "Viernes 23 de octubre: Noche de Candela y Jolgorio de Tambores (Plaza de los Coches) con Isolina, Dj de Folclor y Grupo de Folclor.",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA OCTUBRE · Viernes 23 · Noche de Candela y Jolgorio de Tambores · Plaza de los Coches",
+     "format": "pdf-image",
+     "page": 3,
+     "start_date": "2026-10-23",
+     "end_date": "2026-10-23",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Viernes 23 de octubre: Noche de Candela y Jolgorio de Tambores (Plaza de los Coches) con Isolina, Dj de Folclor y Grupo de Folclor.",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-noche-de-tradicion-festiva-y-traje-artesanal",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Noche de Tradición Festiva y Traje Artesanal",
+    "en": "Night of Festive Tradition and Handmade Costume",
+    "fr": "Nuit de la tradition festive et du costume artisanal",
+    "pt": "Noite de Tradição Festiva e Traje Artesanal"
+   },
+   "description": {
+    "es": "Noche dedicada a la tradición festiva y a los trajes artesanales, en la Plaza de Variedades.",
+    "en": "An evening devoted to festive tradition and handmade costumes, at Plaza de Variedades.",
+    "fr": "Soirée consacrée à la tradition festive et aux costumes artisanaux, sur la Plaza de Variedades.",
+    "pt": "Noite dedicada à tradição festiva e aos trajes artesanais, na Plaza de Variedades."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-10-30",
+   "end_date": "2026-10-30",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Plaza de Variedades",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/28/este-viernes-sera-el-preludio-de-canapote-conozca-la-nomina-de-artistas/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-noche-de-tradicion-festiva-y-traje-artesanal"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": null,
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/28/este-viernes-sera-el-preludio-de-canapote-conozca-la-nomina-de-artistas/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:37Z",
+     "http_status": 200,
+     "date_text": "Viernes 30 de octubre: Noche de Tradición Festiva y Traje Artesanal (Plaza de Variedades) con Danny Daniel y Héctor Nazza.",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "*Viernes 30 de octubre:* Noche de Tradición Festiva y Traje Artesanal (Plaza de Variedades) con Danny Daniel y Héctor Nazza.",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA OCTUBRE · Viernes 30 · Noche de Tradición Festiva y Traje Artesanal · Plaza de Variedades",
+     "format": "pdf-image",
+     "page": 3,
+     "start_date": "2026-10-30",
+     "end_date": "2026-10-30",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Viernes 30 de octubre: Noche de Tradición Festiva y Traje Artesanal (Plaza de Variedades) con Danny Daniel y Héctor Nazza.",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-angeles-somos",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Ángeles Somos · Gran toma de la ciudad",
+    "en": "Ángeles Somos · children's takeover of the city",
+    "fr": "Ángeles Somos · grande fête des enfants dans la ville",
+    "pt": "Ángeles Somos · grande festa infantil na cidade"
+   },
+   "description": {
+    "es": "Toma festiva infantil de la ciudad y desfile de Ángeles Somos por el Centro Histórico.",
+    "en": "Children's festive takeover of the city and the Ángeles Somos parade through the historic centre.",
+    "fr": "Fête des enfants dans toute la ville et défilé d'Ángeles Somos dans le centre historique.",
+    "pt": "Festa infantil pela cidade e desfile de Ángeles Somos pelo Centro Histórico."
+   },
+   "category": "family",
+   "flagship": false,
+   "start_date": "2026-11-01",
+   "end_date": "2026-11-01",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Centro Histórico",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-angeles-somos"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": null,
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Domingo 1 de noviembre: Ángeles Somos (Gran toma de la ciudad) y Desfile de Ángeles Somos ‘Dioses de la Libertad’ (Centro Histórico).",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/sector-turistico-cartagena-abraza-fiestas-independencia-11-noviembre-como-principal-evento-turismo-cultural",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:39Z",
+     "http_status": 200,
+     "date_text": "La programación inicia el 1° de noviembre con la tradicional manifestación infantil de Ángeles Somos",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "*Domingo 1 de noviembre:* Ángeles Somos (Gran toma de la ciudad) y Desfile de Ángeles Somos 'Dioses de la Libertad' (Centro Histórico).",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Domingo 1 · Ángeles Somos · Gran toma de la ciudad · Desfile de Ángeles Somos dioses de la libertad · Centro Histórico",
+     "format": "pdf-image",
+     "page": 4,
+     "start_date": "2026-11-01",
+     "end_date": "2026-11-01",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Domingo 1 de noviembre: Ángeles Somos (Gran toma de la ciudad) y Desfile de Ángeles Somos ‘Dioses de la Libertad’ (Centro Histórico).",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-cabildo-escuela-normal-superior",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Cabildo Escuela Normal Superior de Cartagena",
+    "en": "Escuela Normal Superior de Cartagena Cabildo",
+    "fr": "Cabildo de l'Escuela Normal Superior de Cartagena",
+    "pt": "Cabildo da Escuela Normal Superior de Cartagena"
+   },
+   "description": {
+    "es": "Cabildo festivo de la Escuela Normal Superior de Cartagena por el Centro Histórico.",
+    "en": "Festive cabildo parade by the Escuela Normal Superior de Cartagena through the historic centre.",
+    "fr": "Cabildo festif de l'Escuela Normal Superior de Cartagena dans le centre historique.",
+    "pt": "Cabildo festivo da Escuela Normal Superior de Cartagena pelo Centro Histórico."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-11-06",
+   "end_date": "2026-11-06",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Centro Histórico",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-cabildo-escuela-normal-superior"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": null,
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Viernes 6 de noviembre: Desfile en Traje de Baño de las candidatas al Reinado Popular (Plaza de la Aduana) con Jerau y Byordi, Cabildo Vivo de Bocachica Itmina Fanti y Cabildo Escuela Normal Superior de Cartagena (Centro Histórico).",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/sector-turistico-cartagena-abraza-fiestas-independencia-11-noviembre-como-principal-evento-turismo-cultural",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:39Z",
+     "http_status": 200,
+     "date_text": "el 6 de noviembre se vestirá de color con el Cabildo de la Escuela Normal Superior y el Cabildo Vivo Itmina Fanti en Bocachica",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Viernes 6 · Cabildo Escuela Normal Superior de Cartagena · Centro Histórico",
+     "format": "pdf-image",
+     "page": 4,
+     "start_date": "2026-11-06",
+     "end_date": "2026-11-06",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Viernes 6 de noviembre: Desfile en Traje de Baño de las candidatas al Reinado Popular (Plaza de la Aduana) con Jerau y Byordi, Cabildo Vivo de Bocachica Itmina Fanti y Cabildo Escuela Normal Superior de Cartagena (Centro Histórico).",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-desfile-de-la-diversidad",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Desfile de la Diversidad",
+    "en": "Diversity Parade",
+    "fr": "Défilé de la diversité",
+    "pt": "Desfile da Diversidade"
+   },
+   "description": {
+    "es": "Desfile de la diversidad en la Plaza de la Aduana, dentro de las Fiestas de Independencia.",
+    "en": "Diversity parade at Plaza de la Aduana, part of the Independence Festivities.",
+    "fr": "Défilé de la diversité sur la Plaza de la Aduana, dans le cadre des Fêtes de l'Indépendance.",
+    "pt": "Desfile da diversidade na Plaza de la Aduana, dentro das Festas da Independência."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-11-08",
+   "end_date": "2026-11-08",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Plaza de la Aduana",
+   "venue_gazetteer_id": "plaza-de-la-aduana",
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-desfile-de-la-diversidad"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": null,
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Domingo 8 de noviembre: Desfile de la Diversidad (Plaza de la Aduana), Segundo Preludio Magisterial (Blas de Lezo) y Fiesta de Grandes Lanceros.",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "*Domingo 8 de noviembre:* Desfile de la Diversidad (Plaza de la Aduana), Segundo Preludio Magisterial (Blas de Lezo) y Fiesta de Grandes Lanceros.",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Domingo 8 · Desfile de las diversidades · Plaza de la Aduana",
+     "format": "pdf-image",
+     "page": 5,
+     "start_date": "2026-11-08",
+     "end_date": "2026-11-08",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Domingo 8 de noviembre: Desfile de la Diversidad (Plaza de la Aduana), Segundo Preludio Magisterial (Blas de Lezo) y Fiesta de Grandes Lanceros.",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-entrega-de-llaves-concurso-nacional-de-belleza",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Entrega de llaves a las candidatas del Concurso Nacional de Belleza",
+    "en": "Key handover to the National Beauty Pageant candidates",
+    "fr": "Remise des clés aux candidates du Concours national de beauté",
+    "pt": "Entrega das chaves às candidatas do Concurso Nacional de Beleza"
+   },
+   "description": {
+    "es": "Entrega de llaves a las candidatas del Concurso Nacional de Belleza, dentro de las Fiestas de Independencia.",
+    "en": "Key handover to the National Beauty Pageant candidates, part of the Independence Festivities.",
+    "fr": "Remise des clés aux candidates du Concours national de beauté, dans le cadre des Fêtes de l'Indépendance.",
+    "pt": "Entrega das chaves às candidatas do Concurso Nacional de Beleza, dentro das Festas da Independência."
+   },
+   "category": "civic",
+   "flagship": false,
+   "start_date": "2026-11-09",
+   "end_date": "2026-11-09",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Baluarte San Miguel",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-entrega-de-llaves-concurso-nacional-de-belleza"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": "VERIFY",
+   "hint_note": "La página oficial HTML marca el lugar 'por confirmar' → VERIFY hasta que una fuente oficial lo confirme.",
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Lunes 9 de noviembre: Entrega de llaves a las candidatas del Concurso Nacional de Belleza (Baluarte San Miguel - por confirmar).",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "*Lunes 9 de noviembre*: Entrega de llaves a las candidatas del Concurso Nacional de Belleza (Baluarte San Miguel - por confirmar).",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Lunes 9 · Entrega de llaves a candidatas del Concurso Nacional de Belleza · Baluarte San Miguel",
+     "format": "pdf-image",
+     "page": 6,
+     "start_date": "2026-11-09",
+     "end_date": "2026-11-09",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Lunes 9 de noviembre: Entrega de llaves a las candidatas del Concurso Nacional de Belleza (Baluarte San Miguel – por confirmar).",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-desfile-en-honor-a-los-heroes",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Desfile en Honor a los Héroes de la Independencia",
+    "en": "Parade Honouring the Heroes of Independence",
+    "fr": "Défilé en l'honneur des héros de l'Indépendance",
+    "pt": "Desfile em Honra aos Heróis da Independência"
+   },
+   "description": {
+    "es": "Desfile en honor a los héroes de la Independencia por el Centro Histórico.",
+    "en": "Parade honouring the heroes of Independence through the historic centre.",
+    "fr": "Défilé en l'honneur des héros de l'Indépendance dans le centre historique.",
+    "pt": "Desfile em honra aos heróis da Independência pelo Centro Histórico."
+   },
+   "category": "civic",
+   "flagship": false,
+   "start_date": "2026-11-10",
+   "end_date": "2026-11-10",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Centro Histórico",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-desfile-en-honor-a-los-heroes"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": null,
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Martes 10 de noviembre: Desfile en Honor a los Héroes (Centro Histórico).",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "*Martes 10 de noviembre:* Desfile en Honor a los Héroes (Centro Histórico).",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Martes 10 · Desfile en honor a los héroes de la Independencia · Centro Histórico",
+     "format": "pdf-image",
+     "page": 6,
+     "start_date": "2026-11-10",
+     "end_date": "2026-11-10",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Martes 10 de noviembre: Desfile en Honor a los Héroes (Centro Histórico).",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-ofrenda-floral",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Ofrenda Floral",
+    "en": "Floral Tribute",
+    "fr": "Hommage floral",
+    "pt": "Oferenda Floral"
+   },
+   "description": {
+    "es": "Ofrenda floral a los Mártires en el Camellón de los Mártires y la Plaza de la Trinidad.",
+    "en": "Floral tribute to the Martyrs at Camellón de los Mártires and Plaza de la Trinidad.",
+    "fr": "Hommage floral aux Martyrs au Camellón de los Mártires et sur la Plaza de la Trinidad.",
+    "pt": "Oferenda floral aos Mártires no Camellón de los Mártires e na Plaza de la Trinidad."
+   },
+   "category": "civic",
+   "flagship": false,
+   "start_date": "2026-11-11",
+   "end_date": "2026-11-11",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Camellón de los Mártires y Plaza de la Trinidad",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-ofrenda-floral"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": "Dos lugares → sin coordenadas (nunca elegible para notificación por proximidad).",
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Miércoles 11 de noviembre: Sesión Solemne del Concejo Distrital Acta de Independencia (Centro de Convenciones), Ofrenda Floral (Camellón de los Mártires y Plaza de la Trinidad)",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/sector-turistico-cartagena-abraza-fiestas-independencia-11-noviembre-como-principal-evento-turismo-cultural",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:39Z",
+     "http_status": 200,
+     "date_text": "el 11 de noviembre, fecha patria, se desarrollará la Sesión Solemne del Acta de Independencia en el Concejo Distrital, seguida de la Ofrenda Floral a los Mártires",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "*Miércoles 11 de noviembre:* Sesión Solemne del Concejo Distrital Acta de Independencia (Centro de Convenciones), Ofrenda Floral (Camellón de los Mártires y Plaza de la Trinidad)",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Miércoles 11 · Ofrenda Floral · Camellón de los Mártires y Plaza de la Trinidad",
+     "format": "pdf-image",
+     "page": 6,
+     "start_date": "2026-11-11",
+     "end_date": "2026-11-11",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Miércoles 11 de noviembre: Sesión Solemne del Concejo Distrital Acta de Independencia (Centro de Convenciones), Ofrenda Floral (Camellón de los Mártires y Plaza de la Trinidad)",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-gran-desfile-de-independencia",
+   "anchor_version": 2,
+   "origin": "anchor",
+   "title": {
+    "es": "Gran Desfile de Independencia (Bando)",
+    "en": "Grand Independence Parade (Bando)",
+    "fr": "Grand défilé de l'Indépendance (Bando)",
+    "pt": "Grande Desfile da Independência (Bando)"
+   },
+   "description": {
+    "es": "El gran desfile de las Fiestas de Independencia por la Avenida Santander, con danzas, comparsas y actores festivos.",
+    "en": "The main parade of the Independence Festivities along Avenida Santander, with dance groups, comparsas and festive characters.",
+    "fr": "Le grand défilé des Fêtes de l'Indépendance sur l'Avenida Santander, avec danses, comparsas et personnages festifs.",
+    "pt": "O grande desfile das Festas da Independência pela Avenida Santander, com danças, comparsas e personagens festivos."
+   },
+   "category": "cultural",
+   "flagship": true,
+   "start_date": "2026-11-12",
+   "end_date": "2026-11-12",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Avenida Santander",
+   "venue_gazetteer_id": "avenida-santander",
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-gran-desfile-de-independencia"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": "§15 W1: start_time null aunque el comunicado de 17 sep dice 10:00–12:00; el PDF de 23 sep no trae hora y en 2025 empezó a las 12:00. Reconfirmar la hora dentro de los 7 días previos. Ruta (sin coordenadas).",
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Jueves 12 de noviembre: Gran Desfile de Independencia (Avenida Santander - 10:00 a.m. a 12:00 p.m.).",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/sector-turistico-cartagena-abraza-fiestas-independencia-11-noviembre-como-principal-evento-turismo-cultural",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:39Z",
+     "http_status": 200,
+     "date_text": "el 12 de noviembre el pueblo cartagenero se volcará a la Avenida Santander para el imponente Gran Desfile de Independencia (Bando)",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "*Jueves 12 de noviembre:* Gran Desfile de Independencia (Avenida Santander - 10:00 a.m. a 12:00 p.m.).",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Jueves 12 · Gran Desfile de Independencia · Av. Santander",
+     "format": "pdf-image",
+     "page": 6,
+     "start_date": "2026-11-12",
+     "end_date": "2026-11-12",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Jueves 12 de noviembre: Gran Desfile de Independencia (Avenida Santander – 10:00 a.m. a 12:00 p.m.).",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-festival-nautico-y-bololo-del-arsenal",
+   "anchor_version": 2,
+   "origin": "anchor",
+   "title": {
+    "es": "Festival Náutico de la Independencia y Bololó del Arsenal",
+    "en": "Independence Nautical Festival and Bololó del Arsenal",
+    "fr": "Festival nautique de l'Indépendance et Bololó del Arsenal",
+    "pt": "Festival Náutico da Independência e Bololó del Arsenal"
+   },
+   "description": {
+    "es": "Festival náutico en la bahía interna de Cartagena, junto con el Bololó del Arsenal.",
+    "en": "Nautical festival on Cartagena's inner bay, together with the Bololó del Arsenal.",
+    "fr": "Festival nautique dans la baie intérieure de Carthagène, avec le Bololó del Arsenal.",
+    "pt": "Festival náutico na baía interna de Cartagena, junto com o Bololó del Arsenal."
+   },
+   "category": "festival",
+   "flagship": true,
+   "start_date": "2026-11-13",
+   "end_date": "2026-11-14",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Bahía interna de Cartagena",
+   "venue_gazetteer_id": "bahia-interna-de-cartagena",
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-festival-nautico-y-bololo-del-arsenal"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": "Evento en la bahía: sin coordenadas. Artistas fuera del título (§15 W1).",
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Viernes 13 y Sábado 14 de noviembre: Festival Náutico de la Independencia y Bololó del Arsenal.",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/sector-turistico-cartagena-abraza-fiestas-independencia-11-noviembre-como-principal-evento-turismo-cultural",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:39Z",
+     "http_status": 200,
+     "date_text": "los días 13 y 14 de noviembre las miradas se trasladarán al agua con el Festival Náutico de la Independencia en la Bahía interna y el evento Bololó del Arsenal",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "*Viernes 13 y Sábado 14 de noviembre:* Festival Náutico de la Independencia y Bololó del Arsenal.",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Viernes 13 · Festival Náutico de la independencia y Bololó del Arsenal · Sábado 14 · Festival Náutico de la independencia y Bololó del Arsenal",
+     "format": "pdf-image",
+     "page": 7,
+     "start_date": "2026-11-13",
+     "end_date": "2026-11-14",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Viernes 13 y Sábado 14 de noviembre: Festival Náutico de la Independencia y Bololó del Arsenal.",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-juan-luis-guerra-festival-nautico",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Juan Luis Guerra (Festival Náutico)",
+    "en": "Juan Luis Guerra (Nautical Festival)",
+    "fr": "Juan Luis Guerra (Festival nautique)",
+    "pt": "Juan Luis Guerra (Festival Náutico)"
+   },
+   "description": {
+    "es": "Juan Luis Guerra, anunciado por la Alcaldía como gran artista central del Festival Náutico de la Independencia.",
+    "en": "Juan Luis Guerra, announced by the Mayor's Office as the headline artist of the Independence Nautical Festival.",
+    "fr": "Juan Luis Guerra, annoncé par la mairie comme tête d'affiche du Festival nautique de l'Indépendance.",
+    "pt": "Juan Luis Guerra, anunciado pela Prefeitura como a grande atração do Festival Náutico da Independência."
+   },
+   "category": "concert",
+   "flagship": false,
+   "start_date": "2026-11-13",
+   "end_date": "2026-11-13",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Festival Náutico de la Independencia (escenario por confirmar)",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-juan-luis-guerra-festival-nautico"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": "VERIFY",
+   "hint_note": "§15 W1: solo en los comunicados de 16/17 sep; la Agenda Festiva PDF de 23 sep no lista artistas. VERIFY y nunca notificable hasta que una fuente fechada dentro de los 7 días previos lo confirme.",
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Viernes 13 de noviembre: Con Juan Luis Guerra, como gran artista central",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "*Viernes 13 de noviembre:* Con Juan Luis Guerra, como gran artista central",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Viernes 13 de noviembre: Con Juan Luis Guerra, como gran artista central",
+     "format": "html"
+    }
+   ],
+   "recent_confirmation_days": 7
+  },
+  {
+   "key": "fiestas-2026-salsa-a-la-plaza",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Salsa a la Plaza",
+    "en": "Salsa a la Plaza",
+    "fr": "Salsa a la Plaza",
+    "pt": "Salsa a la Plaza"
+   },
+   "description": {
+    "es": "Encuentro de salsa en la Plaza de la Aduana, dentro de las Fiestas de Independencia.",
+    "en": "Salsa gathering at Plaza de la Aduana, part of the Independence Festivities.",
+    "fr": "Rendez-vous salsa sur la Plaza de la Aduana, dans le cadre des Fêtes de l'Indépendance.",
+    "pt": "Encontro de salsa na Plaza de la Aduana, dentro das Festas da Independência."
+   },
+   "category": "concert",
+   "flagship": false,
+   "start_date": "2026-11-14",
+   "end_date": "2026-11-14",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Plaza de la Aduana",
+   "venue_gazetteer_id": "plaza-de-la-aduana",
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-salsa-a-la-plaza"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": null,
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Sábado 14 de noviembre: Salsa a la Plaza (Plaza de la Aduana).",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "*Sábado 14 de noviembre:* Salsa a la Plaza (Plaza de la Aduana).",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Sábado 14 · Salsa a la Plaza · Plaza de la Aduana",
+     "format": "pdf-image",
+     "page": 7,
+     "start_date": "2026-11-14",
+     "end_date": "2026-11-14",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Sábado 14 de noviembre: Salsa a la Plaza (Plaza de la Aduana).",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-velada-reinado-popular",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Velada de Elección y Coronación del Reinado Popular",
+    "en": "Popular Queen Election and Coronation Gala",
+    "fr": "Soirée d'élection et de couronnement de la Reine populaire",
+    "pt": "Noite de Eleição e Coroação do Reinado Popular"
+   },
+   "description": {
+    "es": "Velada de elección y coronación de la reina popular de las Fiestas de Independencia.",
+    "en": "Gala where the popular queen of the Independence Festivities is elected and crowned.",
+    "fr": "Soirée d'élection et de couronnement de la reine populaire des Fêtes de l'Indépendance.",
+    "pt": "Noite de eleição e coroação da rainha popular das Festas da Independência."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-11-15",
+   "end_date": "2026-11-15",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Centro de Convenciones Cartagena de Indias",
+   "venue_gazetteer_id": "centro-de-convenciones-cartagena-de-indias",
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+   "second_source_name": "El Universal",
+   "second_source_tier": 5,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-velada-reinado-popular"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": null,
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Domingo 15 de noviembre: Cabildo de Getsemaní y Velada de Elección y Coronación del Reinado Popular (Centro de Convenciones Cartagena de Indias)",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/sector-turistico-cartagena-abraza-fiestas-independencia-11-noviembre-como-principal-evento-turismo-cultural",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:39Z",
+     "http_status": 200,
+     "date_text": "finalizando el 15 de noviembre con la Velada de Elección y Coronación de la Reina Popular de las Fiestas de Independencia.",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "*Domingo 15 de noviembre:* Cabildo de Getsemaní y Velada de Elección y Coronación del Reinado Popular (Centro de Convenciones Cartagena de Indias)",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Domingo 15 · Velada de elección y coronación del Reinado Popular de las Fiestas de Independencia · Centro de Convenciones Cartagena de Indias",
+     "format": "pdf-image",
+     "page": 7,
+     "start_date": "2026-11-15",
+     "end_date": "2026-11-15",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Domingo 15 de noviembre: Cabildo de Getsemaní y Velada de Elección y Coronación del Reinado Popular (Centro de Convenciones Cartagena de Indias)",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-cabildo-de-getsemani",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Cabildo de Getsemaní",
+    "en": "Getsemaní Cabildo",
+    "fr": "Cabildo de Getsemaní",
+    "pt": "Cabildo de Getsemaní"
+   },
+   "description": {
+    "es": "Histórico cabildo del barrio Getsemaní dentro de las Fiestas de Independencia.",
+    "en": "The historic cabildo of the Getsemaní neighbourhood during the Independence Festivities.",
+    "fr": "Le cabildo historique du quartier de Getsemaní pendant les Fêtes de l'Indépendance.",
+    "pt": "O histórico cabildo do bairro Getsemaní durante as Festas da Independência."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-11-15",
+   "end_date": "2026-11-15",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Getsemaní",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-cabildo-de-getsemani"
+   ],
+   "status_hint": "review",
+   "status_reason_hint": "conflict",
+   "confidence_cap": null,
+   "hint_note": "Fuentes oficiales en desacuerdo: queda en revisión y nunca se publica sola. Fecha guardada = la de la mayoría de documentos oficiales (en empate, el más reciente); revisar antes de aprobar. Comunicado 17 sep + PDF 23 sep: 15 nov; artículo Alcaldía 25 sep: 14 nov.",
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Domingo 15 de noviembre: Cabildo de Getsemaní",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/sector-turistico-cartagena-abraza-fiestas-independencia-11-noviembre-como-principal-evento-turismo-cultural",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:39Z",
+     "http_status": 200,
+     "date_text": "el 14 de noviembre se vivirá el histórico Cabildo de Getsemaní",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Domingo 15 · Cabildo de Getsemaní",
+     "format": "pdf-image",
+     "page": 7,
+     "start_date": "2026-11-15",
+     "end_date": "2026-11-15",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Domingo 15 de noviembre: Cabildo de Getsemaní",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-desfile-en-traje-de-bano",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Desfile en Traje de Baño de las candidatas al Reinado Popular",
+    "en": "Popular Pageant Swimsuit Parade",
+    "fr": "Défilé en maillot de bain des candidates au Reinado Popular",
+    "pt": "Desfile de Maiô das candidatas ao Reinado Popular"
+   },
+   "description": {
+    "es": "Desfile de las candidatas al Reinado Popular de la Independencia en la Plaza de la Aduana.",
+    "en": "Parade of the Popular Pageant candidates at Plaza de la Aduana.",
+    "fr": "Défilé des candidates au Reinado Popular sur la Plaza de la Aduana.",
+    "pt": "Desfile das candidatas ao Reinado Popular na Plaza de la Aduana."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-11-06",
+   "end_date": "2026-11-06",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Plaza de la Aduana",
+   "venue_gazetteer_id": "plaza-de-la-aduana",
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-desfile-en-traje-de-bano"
+   ],
+   "status_hint": "review",
+   "status_reason_hint": "conflict",
+   "confidence_cap": null,
+   "hint_note": "Fuentes oficiales en desacuerdo: queda en revisión y nunca se publica sola. Fecha guardada = la de la mayoría de documentos oficiales (en empate, el más reciente); revisar antes de aprobar. Comunicado 17 sep + PDF 23 sep: 6 nov; artículo Alcaldía 25 sep: 7 nov.",
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Viernes 6 de noviembre: Desfile en Traje de Baño de las candidatas al Reinado Popular (Plaza de la Aduana)",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/sector-turistico-cartagena-abraza-fiestas-independencia-11-noviembre-como-principal-evento-turismo-cultural",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:39Z",
+     "http_status": 200,
+     "date_text": "el 7 de noviembre se llevará a cabo el esperado Desfile en Traje de Baño del Reinado Popular",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Viernes 6 · Desfile en Traje de Baño Candidatas al Reinado Popular · Plaza de la Aduana",
+     "format": "pdf-image",
+     "page": 5,
+     "start_date": "2026-11-06",
+     "end_date": "2026-11-06",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Viernes 6 de noviembre: Desfile en Traje de Baño de las candidatas al Reinado Popular (Plaza de la Aduana)",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-festival-jorge-garcia-usta",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Festival Jorge García Usta",
+    "en": "Jorge García Usta Festival",
+    "fr": "Festival Jorge García Usta",
+    "pt": "Festival Jorge García Usta"
+   },
+   "description": {
+    "es": "Festival de música Jorge García Usta en el Coliseo Bernardo Caraballo.",
+    "en": "Jorge García Usta music festival at Coliseo Bernardo Caraballo.",
+    "fr": "Festival de musique Jorge García Usta au Coliseo Bernardo Caraballo.",
+    "pt": "Festival de música Jorge García Usta no Coliseo Bernardo Caraballo."
+   },
+   "category": "festival",
+   "flagship": false,
+   "start_date": "2026-11-05",
+   "end_date": "2026-11-06",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Coliseo Bernardo Caraballo",
+   "venue_gazetteer_id": "coliseo-bernardo-caraballo",
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-festival-jorge-garcia-usta"
+   ],
+   "status_hint": "review",
+   "status_reason_hint": "conflict",
+   "confidence_cap": null,
+   "hint_note": "Fuentes oficiales en desacuerdo: queda en revisión y nunca se publica sola. Fecha guardada = la de la mayoría de documentos oficiales (en empate, el más reciente); revisar antes de aprobar. Comunicado 17 sep + PDF 23 sep: 5 y 6 nov; artículo Alcaldía 25 sep: 7 nov.",
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Jueves 5 y Viernes 6 de noviembre: Festival Jorge García Usta (Coliseo Bernardo Caraballo).",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/sector-turistico-cartagena-abraza-fiestas-independencia-11-noviembre-como-principal-evento-turismo-cultural",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:39Z",
+     "http_status": 200,
+     "date_text": "el 7 de noviembre se llevará a cabo el esperado Desfile en Traje de Baño del Reinado Popular junto al Festival de Música Jorge García Usta",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Jueves y Viernes 5 y 6 · Festival Jorge García Usta · Coliseo Bernardo Caraballo",
+     "format": "pdf-image",
+     "page": 4,
+     "start_date": "2026-11-05",
+     "end_date": "2026-11-06",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Jueves 5 y Viernes 6 de noviembre: Festival Jorge García Usta (Coliseo Bernardo Caraballo).",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-coronacion-reinado-intercorregimental",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Elección y Coronación del Reinado Intercorregimental",
+    "en": "Inter-corregimiento Pageant Election and Coronation",
+    "fr": "Élection et couronnement du Reinado Intercorregimental",
+    "pt": "Eleição e Coroação do Reinado Intercorregimental"
+   },
+   "description": {
+    "es": "Elección y coronación del Reinado Intercorregimental, dentro de las Fiestas de Independencia.",
+    "en": "Election and coronation of the inter-corregimiento pageant, part of the Independence Festivities.",
+    "fr": "Élection et couronnement du Reinado Intercorregimental, dans le cadre des Fêtes de l'Indépendance.",
+    "pt": "Eleição e coroação do Reinado Intercorregimental, dentro das Festas da Independência."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-11-07",
+   "end_date": "2026-11-07",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Coliseo Bernardo Caraballo",
+   "venue_gazetteer_id": "coliseo-bernardo-caraballo",
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-coronacion-reinado-intercorregimental"
+   ],
+   "status_hint": "review",
+   "status_reason_hint": "conflict",
+   "confidence_cap": null,
+   "hint_note": "Fuentes oficiales en desacuerdo: queda en revisión y nunca se publica sola. Fecha guardada = la de la mayoría de documentos oficiales (en empate, el más reciente); revisar antes de aprobar. Comunicado 17 sep: lunes 16 nov (sin lugar); PDF 23 sep: sábado 7 nov, Coliseo Bernardo Caraballo.",
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Lunes 16 de noviembre: Elección y Coronación del Reinado Intercorregimental.",
+     "format": "html"
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Sábado 7 · Velada de elección y coronación Reinado Corregemental · Coliseo Bernardo Caraballo",
+     "format": "pdf-image",
+     "page": 5,
+     "start_date": "2026-11-07",
+     "end_date": "2026-11-07",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Lunes 16 de noviembre: Elección y Coronación del Reinado Intercorregimental.",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-cabildo-vivo-de-bocachica-itmina-fanti",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Cabildo Vivo de Bocachica Itmina Fanti",
+    "en": "Itmina Fanti Living Cabildo of Bocachica",
+    "fr": "Cabildo vivant de Bocachica Itmina Fanti",
+    "pt": "Cabildo Vivo de Bocachica Itmina Fanti"
+   },
+   "description": {
+    "es": "Cabildo festivo de la comunidad de Bocachica dentro de las Fiestas de Independencia.",
+    "en": "Festive cabildo by the Bocachica community during the Independence Festivities.",
+    "fr": "Cabildo festif de la communauté de Bocachica pendant les Fêtes de l'Indépendance.",
+    "pt": "Cabildo festivo da comunidade de Bocachica durante as Festas da Independência."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-11-06",
+   "end_date": "2026-11-06",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Bocachica",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-cabildo-vivo-de-bocachica-itmina-fanti"
+   ],
+   "status_hint": "review",
+   "status_reason_hint": "conflict",
+   "confidence_cap": null,
+   "hint_note": "Fuentes oficiales en desacuerdo: queda en revisión y nunca se publica sola. Fecha guardada = la de la mayoría de documentos oficiales (en empate, el más reciente); revisar antes de aprobar. Comunicado 17 sep + artículo Alcaldía 25 sep: viernes 6 nov; PDF 23 sep: sábado 7 nov.",
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Viernes 6 de noviembre: Desfile en Traje de Baño de las candidatas al Reinado Popular (Plaza de la Aduana) con Jerau y Byordi, Cabildo Vivo de Bocachica Itmina Fanti y Cabildo Escuela Normal Superior de Cartagena (Centro Histórico).",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/sector-turistico-cartagena-abraza-fiestas-independencia-11-noviembre-como-principal-evento-turismo-cultural",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:39Z",
+     "http_status": 200,
+     "date_text": "el 6 de noviembre se vestirá de color con el Cabildo de la Escuela Normal Superior y el Cabildo Vivo Itmina Fanti en Bocachica",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Sábado 7 · Cabildo Vivo de Bocachica Itmina Fanti",
+     "format": "pdf-image",
+     "page": 5,
+     "start_date": "2026-11-07",
+     "end_date": "2026-11-07",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Viernes 6 de noviembre: Desfile en Traje de Baño de las candidatas al Reinado Popular (Plaza de la Aduana) con Jerau y Byordi, Cabildo Vivo de Bocachica Itmina Fanti y Cabildo Escuela Normal Superior de Cartagena (Centro Histórico).",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-segundo-preludio-magisterial",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Segundo Preludio Magisterial",
+    "en": "Second Teachers' Prelude",
+    "fr": "Deuxième prélude des enseignants",
+    "pt": "Segundo Prelúdio do Magistério"
+   },
+   "description": {
+    "es": "Preludio de las Fiestas de Independencia dedicado a los docentes, en Blas de Lezo.",
+    "en": "Independence Festivities prelude dedicated to teachers, in Blas de Lezo.",
+    "fr": "Prélude des Fêtes de l'Indépendance dédié aux enseignants, à Blas de Lezo.",
+    "pt": "Prelúdio das Festas da Independência dedicado aos professores, em Blas de Lezo."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-11-07",
+   "end_date": "2026-11-07",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Blas de Lezo",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-segundo-preludio-magisterial"
+   ],
+   "status_hint": "review",
+   "status_reason_hint": "conflict",
+   "confidence_cap": null,
+   "hint_note": "Fuentes oficiales en desacuerdo: queda en revisión y nunca se publica sola. Fecha guardada = la de la mayoría de documentos oficiales (en empate, el más reciente); revisar antes de aprobar. Comunicado 17 sep: domingo 8 nov; PDF 23 sep: sábado 7 nov ('Segundo Preludio del Magisterio').",
+   "evidence": [
+    {
+     "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
+     "name": "El Universal",
+     "tier": 5,
+     "fetched_at": "2026-09-28T23:50:32Z",
+     "http_status": 200,
+     "date_text": "Domingo 8 de noviembre: Desfile de la Diversidad (Plaza de la Aduana), Segundo Preludio Magisterial (Blas de Lezo) y Fiesta de Grandes Lanceros.",
+     "format": "html"
+    },
+    {
+     "url": "https://cartagena.gov.co/noticias/alcaldia-cartagena-presento-programacion-oficial-fiestas-independencia-11-noviembre-2026",
+     "name": "Alcaldía de Cartagena",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:49:36Z",
+     "http_status": 200,
+     "date_text": "*Domingo 8 de noviembre:* Desfile de la Diversidad (Plaza de la Aduana), Segundo Preludio Magisterial (Blas de Lezo) y Fiesta de Grandes Lanceros.",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    },
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:48:51Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Sábado 7 · Segundo Preludio del Magisterio · Blas de Lezo",
+     "format": "pdf-image",
+     "page": 5,
+     "start_date": "2026-11-07",
+     "end_date": "2026-11-07",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag que la copia descargada para la lectura."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-09-28T23:46:29Z",
+     "http_status": 200,
+     "date_text": "Domingo 8 de noviembre: Desfile de la Diversidad (Plaza de la Aduana), Segundo Preludio Magisterial (Blas de Lezo) y Fiesta de Grandes Lanceros.",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "ccc-la-pelota-de-letras-andres-lopez-2026",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "La pelota de Letras de Andrés López",
+    "en": "La pelota de Letras by Andrés López",
+    "fr": "La pelota de Letras d'Andrés López",
+    "pt": "La pelota de Letras de Andrés López"
+   },
+   "description": {
+    "es": "Espectáculo de Andrés López en el Centro de Convenciones Cartagena de Indias.",
+    "en": "Andrés López's show at the Cartagena de Indias Convention Centre.",
+    "fr": "Spectacle d'Andrés López au Centre de congrès de Carthagène des Indes.",
+    "pt": "Espetáculo de Andrés López no Centro de Convenções de Cartagena das Índias."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-10-03",
+   "end_date": "2026-10-03",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Centro de Convenciones Cartagena de Indias",
+   "venue_gazetteer_id": "centro-de-convenciones-cartagena-de-indias",
+   "address": "Getsemaní, Calle 24 Nº 8a-344",
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": null,
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://cccartagena.com/events/la-pelota-de-letras-de-andres-lopez/",
+   "source_name": "Centro de Convenciones Cartagena de Indias (recinto)",
+   "source_tier": 3,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://cccartagena.com/events/la-pelota-de-letras-de-andres-lopez/",
+   "source_keys": [
+    "anchor:ccc-la-pelota-de-letras-andres-lopez-2026"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": "Hora '1:00 a.m.' es el marcador de EventON (§15 S1): start_time null. Microdata startDate '2026-10-3T01:00'.",
+   "evidence": [
+    {
+     "url": "https://cccartagena.com/events/la-pelota-de-letras-de-andres-lopez/",
+     "name": "Centro de Convenciones Cartagena de Indias (recinto)",
+     "tier": 3,
+     "fetched_at": "2026-09-28T23:54:43Z",
+     "http_status": 200,
+     "date_text": "Octubre, 2026 La pelota de Letras de Andrés López 03 Oct 1:00 a.m.",
+     "format": "html",
+     "note": "Leída con parámetro anti-caché (?amo_cb=...) por la caché Cloudflare de 31 días del recinto."
+    }
+   ]
+  }
+ ]
+}

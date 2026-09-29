@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { AGENTS, AGENT_ORDER, AgentId, ConciergeAgent } from '../src/constants/agents';
-import { askAgent, ChatMessage } from '../src/services/concierge';
+import { askAgentFull, ChatMessage } from '../src/services/concierge';
 import { quickPicks } from '../src/lib/lunaOffline';
 import { useAuth } from '../src/context/AuthContext';
 import { useTr } from '../src/i18n/autoTr';
@@ -56,6 +56,13 @@ function TypingDots({ color }: { color: string }) {
   );
 }
 
+// Luna's event actions (EVENTS-ELITE §13 I2/J5): `navigate` to 'agenda'/'concerts'
+// or `show_events` → the verified feed on web / 1.1.2. Anything else is ignored.
+type TasteAction = { type?: unknown; screen?: unknown };
+const pointsToEvents = (actions: unknown): boolean =>
+  Array.isArray(actions) && actions.some((a: TasteAction) =>
+    !!a && (a.type === 'show_events' || (a.type === 'navigate' && (a.screen === 'agenda' || a.screen === 'concerts'))));
+
 // ── Main ──
 export default function ConciergeScreen() {
   const router = useRouter();
@@ -71,12 +78,15 @@ export default function ConciergeScreen() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [chipsVisible, setChipsVisible] = useState(true);
+  // Indices of assistant messages whose reply carried an events action.
+  const [eventLinkAt, setEventLinkAt] = useState<number[]>([]);
   const scrollRef = useRef<ScrollView>(null);
   const agent = activeAgent ? AGENTS[activeAgent] : null;
 
   const openAgent = (id: AgentId) => {
     setActiveAgent(id);
     setMessages([]);
+    setEventLinkAt([]);
     setChipsVisible(true);
     setInput('');
   };
@@ -108,6 +118,8 @@ export default function ConciergeScreen() {
           const d = await r.json();
           try { sessionStorage.setItem('amo_luna_tasted', '1'); } catch {}
           trackGate('luna_taste', { action: 'luna', archetype: getArchetype() });
+          // The assistant reply lands right after the user message appended above.
+          if (pointsToEvents(d?.assistant?.actions)) setEventLinkAt((l) => [...l, messages.length + 1]);
           setMessages((prev) => [...prev, { role: 'assistant', content: d?.assistant?.message || '¿En qué te ayudo?' }]);
         } else {
           // taste already used (429) or unavailable → the wall
@@ -142,8 +154,11 @@ export default function ConciergeScreen() {
       }).catch(() => {});
     }
 
-    const reply = await askAgent(activeAgent, updated, lang);
+    const { reply, actions } = await askAgentFull(activeAgent, updated, lang);
     answered = true;
+    // The assistant reply lands at index updated.length: show the verified-agenda link
+    // when Luna answered an event question (navigate → agenda / show_events).
+    if (pointsToEvents(actions)) setEventLinkAt((l) => [...l, updated.length]);
     setMessages([...updated, { role: 'assistant', content: reply }]);
     setLoading(false);
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
@@ -243,6 +258,18 @@ export default function ConciergeScreen() {
                   </Text>
                 )}
                 <Text style={[styles.bubbleText, msg.role === 'user' && { color: COLORS.black }]}>{text}</Text>
+                {msg.role === 'assistant' && eventLinkAt.includes(i) && (
+                  <TouchableOpacity
+                    onPress={() => router.push('/que-pasa' as never)}
+                    style={[styles.eventLink, { borderColor: agent.accent + '55' }]}
+                    accessibilityRole="button"
+                    testID="concierge-que-pasa-link"
+                  >
+                    <Ionicons name="calendar-outline" size={14} color={agent.accent} />
+                    <Text style={[styles.eventLinkText, { color: agent.accent }]}>{tr('Qué pasa en Cartagena')}</Text>
+                    <Ionicons name="arrow-forward" size={13} color={agent.accent} />
+                  </TouchableOpacity>
+                )}
               </View>
             );
           })}
@@ -333,6 +360,11 @@ const styles = StyleSheet.create({
   chipsWrap: { gap: SPACING.sm, paddingVertical: SPACING.xs },
   chip: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderRadius: RADIUS.lg, paddingHorizontal: SPACING.md, paddingVertical: 12, gap: SPACING.sm },
   chipText: { fontSize: 14, ...FONTS.medium, flex: 1 },
+  eventLink: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', minHeight: 36,
+    marginTop: SPACING.sm, paddingHorizontal: 12, borderRadius: RADIUS.full, borderWidth: 1,
+  },
+  eventLinkText: { fontSize: 13, ...FONTS.semibold },
 
   // ── Input ──
   inputBar: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, paddingBottom: SPACING.md, borderTopWidth: 1, borderTopColor: COLORS.border },

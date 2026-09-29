@@ -37,7 +37,8 @@ import { FadeInUp } from '../../src/components/FadeInUp';
 import { SkeletonFeaturedRow, SkeletonGrid } from '../../src/components/Skeleton';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
-import { getUpcomingEvents } from '../../src/lib/data';
+import { CATEGORY_META, PublicEvent, compactUpcoming, formatEventDates, loadFeed, pickL } from '../../src/lib/eventsFeed';
+import { EventMedia, EventTrustChip } from '../../src/components/EventFeedUI';
 import { monthShort } from '../../src/lib/formatDate';
 import { bogotaToday } from '../../src/lib/eventTime';
 import type { Lang } from '../../src/i18n/translations';
@@ -706,7 +707,7 @@ export default function ExploreScreen() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryItem>(CATEGORIES[0]);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [featured, setFeatured] = useState<Experience[]>([]);
-  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<PublicEvent[]>([]);
   const [allCategoryPartners, setAllCategoryPartners] = useState<Partner[]>([]);
   const [loadingFeatured, setLoadingFeatured] = useState(true);
   const [loadingPartners, setLoadingPartners] = useState(true);
@@ -836,21 +837,12 @@ export default function ExploreScreen() {
       .finally(() => setLoadingNeighborhoods(false));
   }, []);
 
+  // Verified city events only (EVENTS-ELITE feed): soonest first, sub-events
+  // folded under their umbrella. A feed the loader cannot vouch for → no rail.
   const loadUpcomingEvents = useCallback(async () => {
     try {
-      const evts = await getUpcomingEvents();
-      // Map to compat fields + filter for images
-      const mapped = evts.filter((e: any) => e.image_url).map((e: any) => ({
-        ...e,
-        event_id: e.slug || e.id || e.event_id,
-        title: e.name_es || e.title || '',
-        date: e.date_start || e.date || '',
-        type: e.category || e.type || '',
-        start_time: e.time_start || e.start_time || '',
-        venue_name: e.venue || e.venue_name || '',
-        price: e.price_min_cop || e.price || 0,
-      }));
-      setUpcomingEvents(mapped);
+      const feedState = await loadFeed();
+      setUpcomingEvents(compactUpcoming(feedState.data.events, 10));
     } catch (e) {
       console.error('[ExploreScreen] upcoming events', e);
       setUpcomingEvents([]);
@@ -1123,7 +1115,7 @@ export default function ExploreScreen() {
         </FadeInUp>
       )}
 
-      {/* ── Eventos destacados (only on "Todos" view) ── */}
+      {/* ── Eventos destacados (only on "Todos" view) — the verified feed ── */}
       {selectedCategory.key === 'all' && upcomingEvents.length > 0 && (
         <FadeInUp style={styles.section} delay={90}>
           <View style={styles.sectionHeader}>
@@ -1132,34 +1124,34 @@ export default function ExploreScreen() {
               {'  '}{tr('Eventos destacados')}
             </Text>
             <TouchableOpacity
-              onPress={() => router.push('/(tabs)/agenda' as any)}
+              onPress={() => router.push('/que-pasa' as any)}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Text style={styles.seeAll}>{tr('Ver todos')}</Text>
             </TouchableOpacity>
           </View>
           <FlatList
-            data={upcomingEvents.slice(0, 10)}
-            keyExtractor={(item) => item.event_id || item.id || item.slug}
+            data={upcomingEvents}
+            keyExtractor={(item) => item.event_id}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.featuredList}
             renderItem={({ item: ev, index }) => {
-              const dateLabel = eventDateLabel(ev.date_start || ev.date, ev.date_end, lang, tr);
-              const catLabel = tr(ev.category === 'festival' ? 'Festival' : ev.category === 'cultural' ? 'Cultural' : ev.category === 'music' ? 'Música' : ev.category === 'religious' ? 'Religioso' : ev.category === 'sports' ? 'Deportes' : ev.category || ev.type || '');
+              const meta = CATEGORY_META[ev.category] || CATEGORY_META.cultural;
+              const today = bogotaToday();
+              const ongoing = !ev.is_umbrella && !!ev.start_date && ev.start_date <= today && (ev.end_date || ev.start_date) >= today;
+              const dateLabel = ongoing ? tr('Hoy') : formatEventDates(ev, lang).toUpperCase();
               return (
                 <TouchableOpacity
                   style={styles.eventCard}
                   activeOpacity={0.85}
-                  onPress={() => router.push(`/event/${ev.event_id || ev.slug}` as any)}
+                  onPress={() => router.push(`/event/${ev.event_id}` as any)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${pickL(ev.title, lang)} · ${dateLabel}`}
                 >
-                  <SafeImage
-                    uri={ev.image_url}
-                    fallbackUri={ev.flyer_url || ev.partner_image}
-                    category={ev.category || ev.type || 'event'}
-                    priority={index < 2 ? 'high' : 'normal'}
-                    style={styles.eventCardImage}
-                  />
+                  <View style={styles.eventCardImage}>
+                    <EventMedia ev={ev} height="100%" iconSize={28} priority={index < 2 ? 'high' : 'normal'} />
+                  </View>
                   <LinearGradient
                     colors={['transparent', 'rgba(8,12,22,0.5)', COLORS.background]}
                     locations={[0, 0.55, 1]}
@@ -1172,13 +1164,16 @@ export default function ExploreScreen() {
                     </View>
                   ) : null}
                   <View style={styles.eventCardContent}>
-                    <View style={styles.eventCardCatBadge}>
-                      <Text style={styles.eventCardCatText}>{tr(catLabel).toUpperCase()}</Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
+                      <View style={styles.eventCardCatBadge}>
+                        <Text style={styles.eventCardCatText}>{tr(meta.label).toUpperCase()}</Text>
+                      </View>
+                      <EventTrustChip ev={ev} tr={tr} />
                     </View>
                     <Text style={styles.eventCardTitle} numberOfLines={2}>
-                      {ev.title || ev.name_es || ''}
+                      {pickL(ev.title, lang)}
                     </Text>
-                    {ev.venue_name && (
+                    {!!ev.venue_name && (
                       <View style={styles.eventCardVenueRow}>
                         <Ionicons name="location-outline" size={11} color="rgba(255,255,255,0.65)" />
                         <Text style={styles.eventCardVenueText} numberOfLines={1}>{ev.venue_name}</Text>

@@ -7,11 +7,15 @@
  * (The repo-root scripts/verify-images.mjs is now a thin shim that re-runs this.)
  *
  * What it gates:
- *   1. STATIC /data files on www.amocartagena.co — partners, events, partner-events,
- *      venues, seasons AND experiences/featured (the Explore "Featured Experiences"
- *      row paints from that file first).
- *   2. LIVE backend endpoints the app hydrates from — /api/partner-events and
- *      /api/experiences/featured. Every image field a card can consume is checked
+ *   1. STATIC /data files on www.amocartagena.co — partners, partner-events, venues,
+ *      seasons AND experiences/featured (the Explore "Featured Experiences" row paints
+ *      from that file first), plus the EVENTS-ELITE feed mirror /data/events-feed.json
+ *      when it has been generated (scripts/gen-events-static.mjs). /data/events.json
+ *      is no longer a file: vercel.json rewrites it to the backend's verified set
+ *      (DESIGN.md §15 T5), so it is not required here any more.
+ *   2. LIVE backend endpoints the app hydrates from — /api/partner-events,
+ *      /api/experiences/featured and /api/events/feed (the feed the app reads
+ *      backend-first). Every image field a card can consume is checked
  *      (image_url, flyer_url, partner_image), each as its own item, because the
  *      list endpoint once returned an image_url that 404'd (an 85 KB HTML page went
  *      through the phone's image queue per card) while flyer_url was fine.
@@ -22,7 +26,8 @@
  *      gate can be tightened once scripts/optimize-images lands.
  *
  * Prints "IMAGES OK: N/N 200" or lists every failure and exits non-zero. Empty
- * image fields are counted, not failed (SafeImage paints a bundled placeholder).
+ * image fields are counted, not failed (SafeImage paints a bundled placeholder;
+ * a feed event with image_url null gets its category placeholder).
  */
 
 const LIVE = 'https://www.amocartagena.co';
@@ -81,8 +86,8 @@ async function collect(path, idField, nameField, fields) {
   let res;
   try { res = await fetch(`${LIVE}${path}`); } catch (e) { console.error(`WARN: GET ${path} -> ${e.message} (skipped)`); return []; }
   if (!res.ok) {
-    // partners/events are required; the others are best-effort (warn, don't abort).
-    if (path.includes('partners.json') || path === '/data/events.json') { console.error(`FATAL: GET ${path} -> ${res.status}`); process.exit(2); }
+    // partners is required; the others are best-effort (warn, don't abort).
+    if (path.includes('partners.json')) { console.error(`FATAL: GET ${path} -> ${res.status}`); process.exit(2); }
     console.error(`WARN: GET ${path} -> ${res.status} (skipped)`);
     return [];
   }
@@ -101,9 +106,32 @@ async function collectLive(path, idField, nameField) {
   return itemsOf(rowsOf(data), idField, nameField, `api${path}`, IMAGE_FIELDS);
 }
 
+// EVENTS-ELITE feed ({generated_at, today, events: [...], date_tbc: [...]}): every row
+// of both lists, keyed by event_id, named by title.es. image_url may be null (it is
+// only ever a /images/... path in the public manifest, DESIGN §2): counted as empty.
+// Best-effort like the other non-partner sources: a missing feed warns, never aborts.
+async function collectFeed(url, source) {
+  let res;
+  try { res = await fetch(url, { headers: { Accept: 'application/json' } }); }
+  catch (e) { console.error(`WARN: GET ${url} -> ${e.message} (skipped)`); return []; }
+  if (!res.ok) { console.error(`WARN: GET ${url} -> ${res.status} (skipped)`); return []; }
+  let data;
+  try { data = await res.json(); } catch { console.error(`WARN: ${source} is not JSON (skipped)`); return []; }
+  const rows = [
+    ...(Array.isArray(data?.events) ? data.events : []),
+    ...(Array.isArray(data?.date_tbc) ? data.date_tbc : []),
+  ].filter((r) => r && typeof r === 'object').map((r) => ({
+    event_id: r.event_id,
+    name: (r.title && typeof r.title === 'object' ? r.title.es : r.title) || '?',
+    image_url: r.image_url,
+  }));
+  return itemsOf(rows, 'event_id', 'name', source, ['image_url']);
+}
+
 const items = [
   ...(await collect('/data/partners.json', 'partner_id', 'name')),
-  ...(await collect('/data/events.json', 'event_id', 'title')),
+  ...(await collectFeed(`${LIVE}/data/events-feed.json`, '/data/events-feed.json')),
+  ...(await collectFeed(`${BACKEND}/api/events/feed`, 'api/api/events/feed')),
   ...(await collect('/data/partner-events.json', 'event_id', 'title', IMAGE_FIELDS)),
   ...(await collect('/data/experiences/featured.json', 'partner_id', 'name', IMAGE_FIELDS)),
   ...(await collect('/data/venues.json', 'venue_id', 'name')),
