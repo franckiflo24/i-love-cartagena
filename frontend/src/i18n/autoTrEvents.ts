@@ -73,6 +73,15 @@ export const EVENTS_TR: Dict = {
   'Ver toda la semana': { en: 'See the whole week', fr: 'Voir toute la semaine', pt: 'Ver a semana toda' },
   'Nada confirmado este día': { en: 'Nothing confirmed this day', fr: 'Rien de confirmé ce jour-là', pt: 'Nada confirmado neste dia' },
   'Nada confirmado hoy': { en: 'Nothing confirmed today', fr: "Rien de confirmé aujourd'hui", pt: 'Nada confirmado hoje' },
+  // 2026-09-29 QA: one-line header, program counts, umbrella detail, empty feed, descriptive venues
+  'Qué pasa': { en: "What's on", fr: 'Que faire', pt: 'O que rola' },
+  '+{n} del programa': { en: '+{n} in the program', fr: '+{n} au programme', pt: '+{n} na programação' },
+  'Ver en Qué pasa': { en: "See in What's on", fr: 'Voir dans Que faire', pt: 'Ver em O que rola' },
+  'Ver programa en Qué pasa': { en: "See the program in What's on", fr: 'Voir le programme dans Que faire', pt: 'Ver a programação em O que rola' },
+  'El programa completo está en Qué pasa': { en: "The full program is in What's on", fr: 'Le programme complet est dans Que faire', pt: 'A programação completa está em O que rola' },
+  'Aún no hay eventos confirmados': { en: 'No confirmed events yet', fr: "Aucun événement confirmé pour l'instant", pt: 'Ainda não há eventos confirmados' },
+  'Ver Cartagena Music Week': { en: 'See Cartagena Music Week', fr: 'Voir Cartagena Music Week', pt: 'Ver Cartagena Music Week' },
+  'Varios escenarios · Cartagena de Indias': { en: 'Several venues · Cartagena', fr: 'Plusieurs lieux · Carthagène', pt: 'Vários locais · Cartagena' },
 
   // ── Agenda (Mi agenda) + Favorites ──
   'Ver pasados': { en: 'See past', fr: 'Voir les passés', pt: 'Ver passados' },

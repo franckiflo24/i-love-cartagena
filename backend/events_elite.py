@@ -3046,7 +3046,8 @@ async def legacy_featured_rows(db_: Any, *, now: Optional[datetime] = None, imag
     then date). Same gate as /api/events (published + HIGH + future + not umbrella)."""
     pvs = await runtime.public_rows(db_, legacy=True, now=now)
     prom = {str(pv.get("event_id")): int(pv.get("prominence") or 0) for pv in pvs}
-    return legacy.legacy_featured(_legacy_img(legacy.legacy_events(pvs), image_ok), limit, prominence=prom)
+    flag = {str(pv.get("event_id")) for pv in pvs if pv.get("flagship") is True}
+    return legacy.legacy_featured(_legacy_img(legacy.legacy_events(pvs), image_ok), limit, prominence=prom, flagship=flag)
 
 
 async def legacy_list(db_: Any, *, date_: Optional[str] = None, event_type: Optional[str] = None,

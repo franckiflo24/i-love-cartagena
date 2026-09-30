@@ -28,12 +28,14 @@ import { COLORS, FONTS, RADIUS, SPACING, TYPE } from '../../src/constants/theme'
 import { FadeInUp } from '../../src/components/FadeInUp';
 import { Skeleton } from '../../src/components/Skeleton';
 import NearbyEventsCard from '../../src/components/NearbyEventsCard';
+import CmwBanner from '../../src/components/cmw/CmwBanner';
 import {
-  DateStrip, EventDayRow, EventHeroCard, EventRow, FeedDayHeader, FeedEmptyLine, FeedMonthHeader,
-  FeedOfflineBanner, UmbrellaGroupCard, dayHeaderText, umbrellaShortName,
+  DateStrip, EventDayRow, EventHeroCard, FeedDayHeader, FeedEmptyLine, FeedMonthHeader,
+  FeedOfflineBanner, ProgramDayList, ProgramOutsideBlock, UmbrellaGroupCard, dayHeaderText, programByDay, umbrellaShortName,
 } from '../../src/components/EventFeedUI';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
+import { CMW_HUB_PATH, phaseOn as cmwPhaseOn, useCmwToday } from '../../src/lib/cmw';
 import { goBackOr, goHome, goTab } from '../../src/lib/nav';
 import {
   Bucket, CATEGORY_META, EVENT_CATEGORIES, EventCategory, PublicEvent,
@@ -65,10 +67,12 @@ export default function QuePasaScreen() {
   const { lang } = useLang();
   const tr = useTr();
   const { width: windowWidth } = useWindowDimensions();
-  const params = useLocalSearchParams<{ cat?: string; bucket?: string }>();
+  const params = useLocalSearchParams<{ cat?: string; bucket?: string; open?: string }>();
   const paramCat = asCategory(params.cat);
   const paramBucket = asBucket(params.bucket);
+  const paramOpen = typeof params.open === 'string' && /^ce-[a-z0-9-]+$/.test(params.open) ? params.open : null;
   const { feed, today, loading, error, reload } = useEventsFeed();
+  const cmwToday = useCmwToday();
 
   // Defaults on the first render (the static HTML has no query string); the
   // ?cat= / ?bucket= deep link is applied after mount — no hydration mismatch.
@@ -83,6 +87,13 @@ export default function QuePasaScreen() {
 
   useEffect(() => { if (paramCat) setCat(paramCat); }, [paramCat]);
   useEffect(() => { if (paramBucket) { autoBucketDone.current = true; setWhich(paramBucket); } }, [paramBucket]);
+  // /que-pasa?open=<umbrella id> (from the umbrella's detail page): Próximos with that program open.
+  useEffect(() => {
+    if (!paramOpen) return;
+    autoBucketDone.current = true;
+    setWhich('proximos');
+    setOpenUmb((m) => (m[paramOpen] ? m : { ...m, [paramOpen]: true }));
+  }, [paramOpen]);
 
   const events = useMemo(() => feed?.data.events ?? [], [feed]);
   const tbcRows = useMemo(() => feed?.data.date_tbc ?? [], [feed]);
@@ -140,19 +151,34 @@ export default function QuePasaScreen() {
     : []), [umbrellas, umbrellaVisible, today, weekEnd]);
 
   const proxFrom = today ? plusDays(today, 7) : '';
+  // Sub-events fold into their umbrella's card in Próximos (it is in the feed) — except a
+  // flagship sub-event (the Bando, the Festival Náutico), which is a headline event of its own
+  // month and is listed there too, with its "Parte de: …" tag (§16.1: top events always show).
+  const foldsAway = useCallback(
+    (e: PublicEvent) => !!e.parent_id && umbrellaById.has(e.parent_id) && !e.flagship,
+    [umbrellaById],
+  );
   const months = useMemo(() => {
     if (!today) return [];
-    // Sub-events fold into their umbrella's card in Próximos (it is in the feed).
-    const rows = rowsCat.filter((e) => !(e.parent_id && umbrellaById.has(e.parent_id)));
+    const rows = rowsCat.filter((e) => !foldsAway(e));
     return groupByMonth([...rows, ...umbrellas.filter(umbrellaVisible)], proxFrom, today);
-  }, [today, rowsCat, umbrellaById, umbrellas, umbrellaVisible, proxFrom]);
+  }, [today, rowsCat, foldsAway, umbrellas, umbrellaVisible, proxFrom]);
   const visibleTbc = useMemo(() => inCat(tbcRows), [tbcRows, inCat]);
 
+  // One count everywhere (tab badge, day header, date chip, Agenda): EVENT rows only. An
+  // umbrella is a group card, not an event; its own count is "N eventos del programa".
+  const rowCount = (list: PublicEvent[]): number => list.filter((e) => !e.is_umbrella).length;
   const counts: Record<Bucket, number> | null = useMemo(() => (today ? {
     hoy: hoyRows.length,
-    semana: weekAll.reduce((n, g) => n + g.events.length, 0) + weekUmbrellas.length,
-    proximos: months.reduce((n, g) => n + g.events.length, 0) + visibleTbc.length,
-  } : null), [today, hoyRows, weekAll, weekUmbrellas, months, visibleTbc]);
+    semana: weekAll.reduce((n, g) => n + g.events.length, 0),
+    proximos: months.reduce((n, g) => n + rowCount(g.events), 0) + visibleTbc.length,
+  } : null), [today, hoyRows, weekAll, months, visibleTbc]);
+  // What the period renders (rows + group cards): decides the empty line, never a badge.
+  const items: Record<Bucket, number> | null = useMemo(() => (counts ? {
+    hoy: counts.hoy,
+    semana: counts.semana + weekUmbrellas.length,
+    proximos: counts.proximos + months.reduce((n, g) => n + (g.events.length - rowCount(g.events)), 0),
+  } : null), [counts, weekUmbrellas, months]);
 
   // Same counts without the category chip — tells "empty period" from "empty category".
   const unfiltered: Record<Bucket, number> | null = useMemo(() => {
@@ -160,8 +186,9 @@ export default function QuePasaScreen() {
     const all = events.filter((e) => !e.is_umbrella);
     return {
       hoy: bucket(events, 'hoy', today).length,
-      semana: groupByDay(all, today, weekEnd, { firstDayOnly: true, today }).length + umbrellas.filter((u) => (u.start_date as string) <= weekEnd).length,
-      proximos: groupByMonth(events, proxFrom, today).length + tbcRows.length,
+      semana: groupByDay(all, today, weekEnd, { firstDayOnly: true, today }).reduce((n, g) => n + g.events.length, 0)
+        + umbrellas.filter((u) => (u.start_date as string) <= weekEnd).length,
+      proximos: groupByMonth(events, proxFrom, today).reduce((n, g) => n + g.events.length, 0) + tbcRows.length,
     };
   }, [today, events, weekEnd, umbrellas, proxFrom, tbcRows]);
 
@@ -178,8 +205,9 @@ export default function QuePasaScreen() {
     }
     if (autoBucketDone.current || paramBucket) return;
     autoBucketDone.current = true;
-    if (counts.hoy === 0) setWhich(counts.semana > 0 ? 'semana' : counts.proximos > 0 ? 'proximos' : 'hoy');
-  }, [feed, counts, paramCat, paramBucket, cat]);
+    const has = items || counts;
+    if (has.hoy === 0) setWhich(has.semana > 0 ? 'semana' : has.proximos > 0 ? 'proximos' : 'hoy');
+  }, [feed, counts, items, paramCat, paramBucket, cat]);
 
   const catsPresent = useMemo(() => {
     const present = new Set<EventCategory>();
@@ -200,15 +228,25 @@ export default function QuePasaScreen() {
   const canGoBack = router.canGoBack();
   const ready = !!feed && !!today;
   const heroW = heroWidth(windowWidth);
+  // An empty feed: the only real content on the page is Cartagena Music Week (before/during).
+  const feedEmpty = ready && events.length === 0 && tbcRows.length === 0;
+  const cmwLive = !!cmwToday && cmwPhaseOn(cmwToday) !== 'after';
+  const openCmw = useCallback(() => { router.push(CMW_HUB_PATH as never); }, [router]);
 
   // ── Honest one-line empty state per bucket / day / category ──
   const empty = (() => {
-    if (!counts || !unfiltered) return null;
+    if (!counts || !unfiltered || !items) return null;
     if (cat !== 'all' && unfiltered[which] > 0) {
       return { text: tr('No hay eventos de esta categoría en este periodo'), cta: `${tr('Ver todas las categorías')} →`, onPress: () => setCat('all') };
     }
+    if (feedEmpty) {
+      // Never a link to another empty list: the CMW hub is the one thing with rows.
+      return cmwLive
+        ? { text: tr('Aún no hay eventos confirmados'), cta: `${tr('Ver Cartagena Music Week')} →`, onPress: openCmw }
+        : { text: `${tr('Aún no hay eventos confirmados')}. ${tr('Estamos verificando fuentes oficiales. Vuelve pronto.')}`, cta: '', onPress: undefined };
+    }
     if (which === 'hoy') {
-      const next: Bucket = counts.semana > 0 ? 'semana' : 'proximos';
+      const next: Bucket = items.semana > 0 ? 'semana' : 'proximos';
       return {
         text: tr('No hay eventos confirmados para hoy — mira los próximos'),
         cta: `${tr(next === 'semana' ? 'Ver esta semana' : 'Ver próximos')} →`,
@@ -249,9 +287,44 @@ export default function QuePasaScreen() {
       expanded={!!openUmb[u.event_id]}
       onToggle={toggleUmb}
       onOpen={openEvent}
+      programInline={false}
       testID={`que-pasa-umbrella-${u.event_id}`}
     />
   );
+  // An open program is rendered UNDER its card as day blocks whose headers stick, so the
+  // context line reads "Jue 12 nov · Fiestas de Independencia" over the November rows instead
+  // of the month header the program started in.
+  const programBlocks = (u: PublicEvent): Block[] => {
+    if (!openUmb[u.event_id]) return [];
+    const days = programByDay(programFor(u), today as string);
+    const name = umbrellaShortName(u, lang);
+    return days.flatMap((g, i) => {
+      const last = i === days.length - 1;
+      return [
+        {
+          key: `prog-h-${u.event_id}-${g.day}`,
+          sticky: true,
+          node: (
+            <View style={styles.pad}>
+              <ProgramOutsideBlock ev={u}>
+                <FeedDayHeader label={`${dayHeaderText(g.day, today as string, lang, tr)} · ${name}`} tr={tr} testID={`que-pasa-program-day-${g.day}`} />
+              </ProgramOutsideBlock>
+            </View>
+          ),
+        },
+        {
+          key: `prog-l-${u.event_id}-${g.day}`,
+          node: (
+            <View style={[styles.pad, last && { marginBottom: GAP }]}>
+              <ProgramOutsideBlock ev={u} last={last}>
+                <ProgramDayList group={g} umbrella={u} today={today as string} lang={lang} tr={tr} offline={offline} onOpen={openEvent} label="" />
+              </ProgramOutsideBlock>
+            </View>
+          ),
+        },
+      ];
+    });
+  };
 
   if (!ready && !error) {
     blocks.push({
@@ -329,39 +402,60 @@ export default function QuePasaScreen() {
         blocks.push({
           key: `wk-h-${d}`,
           sticky: true,
-          node: <View style={styles.pad}><FeedDayHeader label={dayHeaderText(d, today as string, lang, tr)} count={(group?.events.length || 0) + umbs.length} tr={tr} /></View>,
+          node: <View style={styles.pad}><FeedDayHeader label={dayHeaderText(d, today as string, lang, tr)} count={group?.events.length || 0} tr={tr} /></View>,
         });
-        blocks.push({
-          key: `wk-l-${d}`,
-          node: (
-            <View style={styles.list}>
-              {umbs.map(umbCard)}
-              {(group?.events || []).map((e) => row(e, 'time', `${d}-${e.event_id}`, n++))}
-            </View>
-          ),
-        });
+        for (const u of umbs) {
+          blocks.push({ key: `wk-u-${d}-${u.event_id}`, node: <View style={styles.list}>{umbCard(u)}</View> });
+          blocks.push(...programBlocks(u));
+        }
+        if (group) {
+          blocks.push({
+            key: `wk-l-${d}`,
+            node: <View style={styles.list}>{group.events.map((e) => row(e, 'time', `${d}-${e.event_id}`, n++))}</View>,
+          });
+        }
       }
     } else {
       months.forEach((m) => {
+        const programCount = m.events.filter((e) => e.is_umbrella).reduce((n, u) => n + programFor(u).length, 0);
         blocks.push({
           key: `m-h-${m.key}`,
           sticky: true,
           node: (
             <View style={styles.pad}>
-              <FeedMonthHeader label={formatMonthYear(m.year, m.month0, lang)} count={m.events.length} tr={tr} testID={`que-pasa-month-${m.key}`} />
+              <FeedMonthHeader
+                label={formatMonthYear(m.year, m.month0, lang)}
+                count={m.events.filter((e) => !e.is_umbrella).length}
+                programCount={programCount}
+                tr={tr}
+                testID={`que-pasa-month-${m.key}`}
+              />
             </View>
           ),
         });
-        blocks.push({
-          key: `m-l-${m.key}`,
-          node: (
-            <View style={styles.list}>
-              {m.events.map((e, i) => (e.is_umbrella ? umbCard(e) : row(e, 'date', e.event_id, i)))}
-            </View>
-          ),
+        // Consecutive plain rows share one list; an umbrella card is its own block so its open
+        // program (sticky day headers) can follow it.
+        let run: PublicEvent[] = [];
+        let n = 0;
+        const flush = () => {
+          if (!run.length) return;
+          const rows = run;
+          run = [];
+          blocks.push({
+            key: `m-l-${m.key}-${rows[0].event_id}`,
+            node: <View style={styles.list}>{rows.map((e) => row(e, 'date', e.event_id, n++))}</View>,
+          });
+        };
+        m.events.forEach((e) => {
+          if (!e.is_umbrella) { run.push(e); return; }
+          flush();
+          blocks.push({ key: `m-u-${m.key}-${e.event_id}`, node: <View style={styles.list}>{umbCard(e)}</View> });
+          blocks.push(...programBlocks(e));
         });
+        flush();
       });
-      // Por confirmar — date_tbc rows, inside Próximos, never with a date.
+      // Por confirmar — date_tbc rows, inside Próximos, never with a date: the same calendar row
+      // with the announced month over "?" in the date column (the section already says the rest).
       if (visibleTbc.length) {
         blocks.push({
           key: 'tbc',
@@ -372,26 +466,29 @@ export default function QuePasaScreen() {
                 <Text style={styles.tbcTitle}>{tr('Por confirmar')}</Text>
               </View>
               <Text style={styles.tbcSub}>{tr('Anunciados por su fuente, sin fecha exacta todavía')}</Text>
-              {visibleTbc.map((ev) => (
-                <EventRow
-                  key={ev.event_id}
-                  ev={ev}
-                  lang={lang}
-                  tr={tr}
-                  offline={offline}
-                  onPress={() => openEvent(ev.event_id)}
-                  testID={`que-pasa-tbc-${ev.event_id}`}
-                />
-              ))}
+              <View style={{ gap: GAP }}>
+                {visibleTbc.map((ev) => (
+                  <EventDayRow
+                    key={ev.event_id}
+                    ev={ev}
+                    lang={lang}
+                    tr={tr}
+                    offline={offline}
+                    lead="tbc"
+                    onPress={openEvent}
+                    testID={`que-pasa-tbc-${ev.event_id}`}
+                  />
+                ))}
+              </View>
             </View>
           ),
         });
       }
     }
 
-    const shownCount = which === 'semana' && weekDay ? (weekShown[0]?.events.length || 0) : counts[which];
+    const shownCount = which === 'semana' && weekDay ? (weekShown[0]?.events.length || 0) : (items || counts)[which];
     if (shownCount === 0 && empty) {
-      const dayEmpty = which === 'semana' && !!weekDay && counts.semana > 0;
+      const dayEmpty = which === 'semana' && !!weekDay && (items || counts).semana > 0;
       blocks.push({
         key: 'empty',
         node: (
@@ -435,10 +532,8 @@ export default function QuePasaScreen() {
               <Ionicons name="home-outline" size={19} color={COLORS.textMain} />
             </TouchableOpacity>
           )}
-          <View style={{ flex: 1 }}>
-            <Text style={styles.eyebrow}>{tr('Agenda')}</Text>
-            <Text style={styles.title}>{tr('Qué pasa en Cartagena')}</Text>
-            <Text style={styles.promise}>{tr('Solo eventos con fuente verificada')}</Text>
+          <View style={styles.titleWrap}>
+            <Text style={styles.title} numberOfLines={1} accessibilityRole="header">{tr('Qué pasa')}</Text>
           </View>
           <TouchableOpacity testID="que-pasa-mi-agenda" onPress={openMiAgenda} style={styles.agendaBtn} accessibilityRole="button" accessibilityLabel={tr('Mi agenda')}>
             <Ionicons name="bookmark-outline" size={16} color={COLORS.textMain} />
@@ -447,7 +542,19 @@ export default function QuePasaScreen() {
         </View>
       ),
     },
+    {
+      key: 'promise',
+      node: (
+        <View style={styles.promiseRow} accessibilityRole="text">
+          <Ionicons name="shield-checkmark-outline" size={12} color={COLORS.official} />
+          <Text style={styles.promise} numberOfLines={1}>{tr('Solo eventos con fuente verificada')}</Text>
+        </View>
+      ),
+    },
   ];
+  // Cartagena Music Week (docs/cmw/DESIGN.md §4): the very top, above Destacados,
+  // in the before/during phases; null otherwise. CMW rows never enter this feed.
+  chrome.push({ key: 'cmw', node: <CmwBanner style={styles.banner} /> });
   if (offline && feed) {
     chrome.push({ key: 'offline', node: <FeedOfflineBanner stamp={feed.data.generated_at} lang={lang} tr={tr} style={styles.banner} /> });
   }
@@ -538,13 +645,15 @@ export default function QuePasaScreen() {
       node: (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.chipsScroll}>
           <TouchableOpacity
-            style={[styles.chip, cat === 'all' && styles.chipActive]}
+            style={styles.chipHit}
             onPress={() => setCat('all')}
             accessibilityRole="button"
             accessibilityState={{ selected: cat === 'all' }}
             testID="que-pasa-cat-all"
           >
-            <Text style={[styles.chipText, cat === 'all' && styles.chipTextActive]}>{tr('Todos')}</Text>
+            <View style={[styles.chip, cat === 'all' && styles.chipActive]}>
+              <Text style={[styles.chipText, cat === 'all' && styles.chipTextActive]}>{tr('Todos')}</Text>
+            </View>
           </TouchableOpacity>
           {catsPresent.map((c) => {
             const active = cat === c;
@@ -552,14 +661,16 @@ export default function QuePasaScreen() {
             return (
               <TouchableOpacity
                 key={c}
-                style={[styles.chip, active && styles.chipActive]}
+                style={styles.chipHit}
                 onPress={() => setCat(active ? 'all' : c)}
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
                 testID={`que-pasa-cat-${c}`}
               >
-                <View style={[styles.chipDot, { backgroundColor: meta.color }]} />
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>{tr(meta.label)}</Text>
+                <View style={[styles.chip, active && styles.chipActive]}>
+                  <View style={[styles.chipDot, { backgroundColor: meta.color }]} />
+                  <Text style={[styles.chipText, active && styles.chipTextActive]}>{tr(meta.label)}</Text>
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -601,11 +712,12 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   scroll: { paddingBottom: SPACING.xxl },
   pad: { paddingHorizontal: GUTTER },
-  headerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: GUTTER, paddingTop: SPACING.md, paddingBottom: 4 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: GUTTER, paddingTop: SPACING.md, paddingBottom: 0 },
   navBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.hairline, alignItems: 'center', justifyContent: 'center' },
-  eyebrow: { ...TYPE.overline, color: COLORS.mustard, marginTop: 4, textTransform: 'uppercase' },
-  title: { ...TYPE.title1, color: COLORS.textMain, marginTop: 2 },
-  promise: { ...TYPE.subhead, color: COLORS.textMuted, marginTop: 4 },
+  titleWrap: { flex: 1, minWidth: 0, justifyContent: 'center' },
+  title: { ...TYPE.title1, fontSize: 24, lineHeight: 30, color: COLORS.textMain },
+  promiseRow: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: GUTTER, marginTop: 6 },
+  promise: { flexShrink: 1, fontSize: 12, lineHeight: 16, color: COLORS.textMuted, ...FONTS.medium },
   agendaBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 5, minHeight: 44, paddingHorizontal: 12, maxWidth: 132,
     borderRadius: RADIUS.full, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.hairline,
@@ -634,8 +746,10 @@ const styles = StyleSheet.create({
   segmentCountText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.bold },
   segmentCountTextActive: { color: COLORS.black },
 
-  chipsScroll: { flexGrow: 0, marginTop: GAP },
+  chipsScroll: { flexGrow: 0, marginTop: GAP - 4 },
   chips: { paddingHorizontal: GUTTER, gap: 6 },
+  // 44 px hit area (paddingVertical 4) around the 36 px visual pill
+  chipHit: { minHeight: 44, justifyContent: 'center', paddingVertical: 4 },
   chip: {
     flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 36, paddingHorizontal: 12,
     borderRadius: RADIUS.full, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border,
@@ -646,13 +760,13 @@ const styles = StyleSheet.create({
   chipTextActive: { color: COLORS.black },
 
   mapLink: {
-    flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-end', minHeight: 36,
-    marginHorizontal: GUTTER, marginTop: 6, paddingHorizontal: 4,
+    flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-end', minHeight: 44,
+    marginHorizontal: GUTTER, marginTop: 2, paddingHorizontal: 4,
   },
   mapLinkText: { fontSize: 12.5, color: COLORS.official, ...FONTS.semibold },
 
   stripWrap: { paddingHorizontal: GUTTER, marginTop: GAP },
-  clearDay: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', minHeight: 36, marginTop: 6 },
+  clearDay: { flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', minHeight: 44, marginTop: 2, paddingRight: 8 },
   clearDayText: { fontSize: 12.5, color: COLORS.primary, ...FONTS.semibold },
 
   list: { paddingHorizontal: GUTTER, gap: GAP },

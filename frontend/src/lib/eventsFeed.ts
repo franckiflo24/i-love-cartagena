@@ -536,14 +536,18 @@ const rankDestacados = (list: PublicEvent[]): PublicEvent[] => [...list].sort((a
 /**
  * §16.2 "Destacados": published, dated rows that are ongoing or start within the
  * next 90 days, ranked HIGH-before-VERIFY, prominence desc, start_date asc.
- * date_tbc rows never qualify (they have no date). An umbrella in the feed
- * hides its own sub-events, except a flagship sub-event starting within 7 days
- * (the Bando in its week). Home keeps the rail while the feed has rows (§16.2),
- * so when nothing falls inside 90 days the same ranking runs over every live row.
+ * date_tbc rows never qualify (they have no date); a series/recurring row
+ * (prominence ≤ 0, "never promoted" in §16.1) never qualifies either. An
+ * umbrella in the feed hides its own sub-events, except a flagship sub-event
+ * starting within 7 days (the Bando in its week). When fewer than `max` rows
+ * fall inside 90 days, the rail is backfilled with the flagship rows beyond the
+ * window (prominence desc, then start_date asc), so the city's headline events
+ * always show first. Home keeps the rail while the feed has rows (§16.2), so
+ * when nothing falls inside 90 days the same ranking runs over every live row.
  */
 export function destacados(events: PublicEvent[], nowMs: number = Date.now(), max: number = 6): PublicEvent[] {
   const today = bogotaYmdAt(nowMs);
-  const live = liveRows(events, today, bogotaHmAt(nowMs));
+  const live = liveRows(events, today, bogotaHmAt(nowMs)).filter((e) => e.prominence > 0);
   if (!live.length) return [];
   const parents = umbrellaIds(live);
   const horizon = plusDays(today, 90);
@@ -553,7 +557,11 @@ export function destacados(events: PublicEvent[], nowMs: number = Date.now(), ma
     return true;
   });
   const inWindow = visible.filter((e) => (e.start_date as string) <= horizon);
-  return rankDestacados(inWindow.length ? inWindow : visible).slice(0, max);
+  if (!inWindow.length) return rankDestacados(visible).slice(0, max);
+  const ranked = rankDestacados(inWindow);
+  if (ranked.length >= max) return ranked.slice(0, max);
+  const beyond = rankDestacados(visible.filter((e) => e.flagship && (e.start_date as string) > horizon));
+  return [...ranked, ...beyond].slice(0, max);
 }
 
 /** The sub-events of an umbrella (published, not finished), in calendar order. */
@@ -736,6 +744,8 @@ const monthLabel = (m0: number, lang: Lang): string => {
   const v = monthShort(m0, lang);
   return lang === 'es' || lang === 'pt' ? v.toLowerCase() : v;
 };
+/** "sep" / "Sep" / "sept." — the short month the feed UI uses everywhere. */
+export const formatMonthShort = monthLabel;
 
 /** ISO timestamp → Bogotá "28 sep" (lang-aware). '' when unparseable. */
 export function formatVerifiedDate(iso: string | null | undefined, lang: Lang): string {
@@ -781,6 +791,19 @@ const MONTH_LONG: Record<Lang, string[]> = {
 export function formatMonthYear(year: number, month0: number, lang: Lang): string {
   const names = MONTH_LONG[lang] || MONTH_LONG.es;
   return `${names[((month0 % 12) + 12) % 12]} ${year}`;
+}
+
+/**
+ * The month a date_tbc row is announced for, read from the backend's Spanish
+ * note ("Noviembre 2026 · fecha por confirmar"). null when the note has no month
+ * (the row then shows the plain "Fecha por confirmar").
+ */
+export function tbcMonth(ev: Pick<PublicEvent, 'status' | 'date_tbc_note'>): { year: number; month0: number } | null {
+  if (ev.status !== 'date_tbc' || !ev.date_tbc_note?.es) return null;
+  const m = ev.date_tbc_note.es.match(/^\s*([A-Za-zÁÉÍÓÚáéíóú]+)(?:\s+de)?\s+(20\d{2})\b/);
+  if (!m) return null;
+  const month0 = MONTH_LONG.es.findIndex((n) => n.toLowerCase() === m[1].toLowerCase());
+  return month0 < 0 ? null : { year: Number(m[2]), month0 };
 }
 
 /** Day of week (Sunday = 0) of a Bogotá YYYY-MM-DD — noon-UTC, device-tz proof. */

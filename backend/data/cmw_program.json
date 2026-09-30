@@ -1,0 +1,558 @@
+{
+ "version": 1,
+ "source_name": "Programa oficial Cartagena Music Week",
+ "source_date": "2026-09-28",
+ "brand": {
+  "name": "Cartagena Music Week",
+  "start_date": "2026-12-31",
+  "end_date": "2027-01-07",
+  "days_label": {
+   "es": "Ocho días",
+   "en": "Eight days",
+   "fr": "Huit jours",
+   "pt": "Oito dias"
+  },
+  "tagline": {
+   "es": "La historia se encuentra con nuevos ritmos.",
+   "en": "History meets new rhythms.",
+   "fr": "L'histoire rencontre de nouveaux rythmes.",
+   "pt": "A história encontra novos ritmos."
+  },
+  "taglines": [
+   {
+    "es": "Más que eventos. Un estilo de vida.",
+    "en": "More than events. A way of life.",
+    "fr": "Plus que des événements. Un art de vivre.",
+    "pt": "Mais do que eventos. Um estilo de vida."
+   },
+   {
+    "es": "Una ciudad. Una semana. Un estilo de vida.",
+    "en": "One city. One week. One lifestyle.",
+    "fr": "Une ville. Une semaine. Un art de vivre.",
+    "pt": "Uma cidade. Uma semana. Um estilo de vida."
+   },
+   {
+    "es": "Aquí la música no es solo el evento. Es el hilo conductor.",
+    "en": "Here, music isn't just the event. It's the common thread.",
+    "fr": "Ici, la musique n'est pas seulement l'événement. C'est le fil conducteur.",
+    "pt": "Aqui a música não é só o evento. É o fio condutor."
+   }
+  ],
+  "pillars": [
+   {
+    "key": "music",
+    "icon": "musical-notes",
+    "label": {
+     "es": "Música",
+     "en": "Music",
+     "fr": "Musique",
+     "pt": "Música"
+    }
+   },
+   {
+    "key": "culture",
+    "icon": "color-palette",
+    "label": {
+     "es": "Cultura",
+     "en": "Culture",
+     "fr": "Culture",
+     "pt": "Cultura"
+    }
+   },
+   {
+    "key": "wellness",
+    "icon": "leaf",
+    "label": {
+     "es": "Bienestar",
+     "en": "Wellness",
+     "fr": "Bien-être",
+     "pt": "Bem-estar"
+    }
+   },
+   {
+    "key": "gastronomy",
+    "icon": "restaurant",
+    "label": {
+     "es": "Gastronomía",
+     "en": "Gastronomy",
+     "fr": "Gastronomie",
+     "pt": "Gastronomia"
+    }
+   },
+   {
+    "key": "ocean",
+    "icon": "boat",
+    "label": {
+     "es": "Mar",
+     "en": "Ocean",
+     "fr": "Mer",
+     "pt": "Mar"
+    }
+   },
+   {
+    "key": "people",
+    "icon": "people",
+    "label": {
+     "es": "Personas",
+     "en": "People",
+     "fr": "Rencontres",
+     "pt": "Pessoas"
+    }
+   }
+  ],
+  "hero_image": "/images/cmw/hero.jpg",
+  "image_credit": "Cartagena Music Week",
+  "concierge": {
+   "whatsapp_e164": "+573116844492",
+   "display": "+57 311 6844492",
+   "assistant": "Valentina",
+   "intro": {
+    "es": "Nuestro equipo está disponible para ayudarte durante toda la semana con reservas, traslados, experiencias y planes de último minuto.",
+    "en": "Our team is available to help you throughout the week with reservations, transfers, activities, and last-minute plans.",
+    "fr": "Notre équipe est disponible pour t'aider toute la semaine : réservations, transferts, expériences et plans de dernière minute.",
+    "pt": "Nossa equipe está disponível para ajudar você durante toda a semana com reservas, traslados, experiências e planos de última hora."
+   },
+   "assistant_note": {
+    "es": "Nuestra asistente Valentina te pondrá en contacto con el concierge oficial.",
+    "en": "Our assistant, Valentina, will put you in touch with the official concierge.",
+    "fr": "Notre assistante Valentina te mettra en contact avec le concierge officiel.",
+    "pt": "Nossa assistente Valentina colocará você em contato com o concierge oficial."
+   },
+   "services": [
+    {
+     "es": "Reservas",
+     "en": "Reservations",
+     "fr": "Réservations",
+     "pt": "Reservas"
+    },
+    {
+     "es": "Servicio de conserje personal",
+     "en": "Personal concierge",
+     "fr": "Concierge personnel",
+     "pt": "Concierge pessoal"
+    },
+    {
+     "es": "Itinerarios a medida",
+     "en": "Custom itineraries",
+     "fr": "Itinéraires sur mesure",
+     "pt": "Roteiros sob medida"
+    },
+    {
+     "es": "Asistencia 24/7",
+     "en": "24/7 support",
+     "fr": "Assistance 24h/24, 7j/7",
+     "pt": "Assistência 24/7"
+    }
+   ]
+  },
+  "access_note": {
+   "es": "Asegura con anticipación tus entradas, mesas y experiencias VIP para los diferentes eventos oficiales de Cartagena Music Week. La información y asistencia estarán disponibles a través de AMO LIFE y nuestro equipo de concierge.",
+   "en": "Secure your tickets, tables, and VIP experiences in advance for the various official events of Cartagena Music Week. Information and assistance will be available through AMO LIFE and our concierge team.",
+   "fr": "Réserve à l'avance tes entrées, tables et expériences VIP pour les événements officiels de Cartagena Music Week. Les informations et l'assistance seront disponibles via AMO LIFE et notre équipe de concierge.",
+   "pt": "Garanta com antecedência seus ingressos, mesas e experiências VIP para os eventos oficiais da Cartagena Music Week. As informações e a assistência estarão disponíveis pela AMO LIFE e pela nossa equipe de concierge."
+  },
+  "practical": [
+   {
+    "key": "getting_here",
+    "icon": "airplane",
+    "link": null,
+    "title": {
+     "es": "Cómo llegar",
+     "en": "How to get here",
+     "fr": "Comment venir",
+     "pt": "Como chegar"
+    },
+    "body": {
+     "es": "Aeropuerto Internacional Rafael Núñez (CTG).",
+     "en": "Rafael Núñez International Airport (CTG).",
+     "fr": "Aéroport international Rafael Núñez (CTG).",
+     "pt": "Aeroporto Internacional Rafael Núñez (CTG)."
+    }
+   },
+   {
+    "key": "where_to_stay",
+    "icon": "bed",
+    "link": null,
+    "title": {
+     "es": "Dónde alojarse",
+     "en": "Where to stay",
+     "fr": "Où loger",
+     "pt": "Onde se hospedar"
+    },
+    "body": {
+     "es": "Desde hoteles boutique dentro de la Ciudad Amurallada hasta resorts frente al mar y villas privadas.",
+     "en": "From boutique hotels within the Walled City to beachfront resorts and private villas.",
+     "fr": "Des hôtels-boutiques de la ville fortifiée aux resorts en bord de mer et villas privées.",
+     "pt": "De hotéis boutique dentro da Cidade Amuralhada a resorts à beira-mar e vilas privadas."
+    }
+   },
+   {
+    "key": "getting_around",
+    "icon": "car",
+    "link": "/ciudad",
+    "title": {
+     "es": "Cómo desplazarse",
+     "en": "Getting around",
+     "fr": "Se déplacer",
+     "pt": "Como se locomover"
+    },
+    "body": {
+     "es": "Taxis, conductores privados y transporte marítimo para recorrer la ciudad y llegar a las experiencias de Music Week.",
+     "en": "Taxis, private drivers and water transportation for exploring the city and getting to the Music Week events.",
+     "fr": "Taxis, chauffeurs privés et transport maritime pour parcourir la ville et rejoindre les événements de Music Week.",
+     "pt": "Táxis, motoristas particulares e transporte marítimo para percorrer a cidade e chegar aos eventos da Music Week."
+    }
+   },
+   {
+    "key": "boats",
+    "icon": "boat",
+    "link": "/ciudad",
+    "title": {
+     "es": "Botes y traslados",
+     "en": "Boats & transfers",
+     "fr": "Bateaux et transferts",
+     "pt": "Barcos e traslados"
+    },
+    "body": {
+     "es": "Yates privados, barcos compartidos y traslados marítimos hacia las islas y los beach clubs. El concierge coordina los traslados.",
+     "en": "Private yachts, shared boats and boat transfers to the islands and beach clubs. The concierge coordinates transfers.",
+     "fr": "Yachts privés, bateaux partagés et transferts maritimes vers les îles et les beach clubs. Le concierge coordonne les transferts.",
+     "pt": "Iates privados, barcos compartilhados e traslados marítimos para as ilhas e beach clubs. O concierge coordena os traslados."
+    }
+   }
+  ]
+ },
+ "events": [
+  {
+   "id": "cmw-zamna-on-the-beach",
+   "date": "2026-12-31",
+   "day_index": 1,
+   "title": "Zamna on the Beach",
+   "subtitle": null,
+   "venue_name": "Bethel Bellini",
+   "venue_id": "ptr_dv_003",
+   "lat": null,
+   "lng": null,
+   "category": "party",
+   "status": "confirmed",
+   "time": null,
+   "end_time": null,
+   "artist": null,
+   "artist_status": "none",
+   "price_info": null,
+   "booking_type": "concierge",
+   "image": "/images/cmw/zamna.jpg",
+   "image_credit": "Cartagena Music Week",
+   "description": {
+    "es": "Parte del programa oficial de Cartagena Music Week.",
+    "en": "Part of the official Cartagena Music Week program.",
+    "fr": "Fait partie du programme officiel de Cartagena Music Week.",
+    "pt": "Parte do programa oficial da Cartagena Music Week."
+   },
+   "tba": [
+    "time",
+    "price"
+   ]
+  },
+  {
+   "id": "cmw-casa-boheme-we-are-us",
+   "date": "2026-12-31",
+   "day_index": 1,
+   "title": "Casa Bohême × We Are Us",
+   "subtitle": null,
+   "venue_name": "Casa Bohême",
+   "venue_id": "ptr_V014",
+   "lat": null,
+   "lng": null,
+   "category": "party",
+   "status": "confirmed",
+   "time": null,
+   "end_time": null,
+   "artist": null,
+   "artist_status": "none",
+   "price_info": null,
+   "booking_type": "concierge",
+   "image": "/images/cmw/boheme.jpg",
+   "image_credit": "Cartagena Music Week",
+   "description": {
+    "es": "Parte del programa oficial de Cartagena Music Week.",
+    "en": "Part of the official Cartagena Music Week program.",
+    "fr": "Fait partie du programme officiel de Cartagena Music Week.",
+    "pt": "Parte do programa oficial da Cartagena Music Week."
+   },
+   "tba": [
+    "time",
+    "price"
+   ]
+  },
+  {
+   "id": "cmw-after-new-year",
+   "date": "2027-01-01",
+   "day_index": 2,
+   "title": "After New Year",
+   "subtitle": null,
+   "venue_name": null,
+   "venue_id": null,
+   "lat": null,
+   "lng": null,
+   "category": "after",
+   "status": "tba",
+   "time": null,
+   "end_time": null,
+   "artist": null,
+   "artist_status": "none",
+   "price_info": null,
+   "booking_type": "concierge",
+   "image": "/images/cmw/after.jpg",
+   "image_credit": "Cartagena Music Week",
+   "description": {
+    "es": "Parte del programa oficial de Cartagena Music Week.",
+    "en": "Part of the official Cartagena Music Week program.",
+    "fr": "Fait partie du programme officiel de Cartagena Music Week.",
+    "pt": "Parte do programa oficial da Cartagena Music Week."
+   },
+   "tba": [
+    "venue",
+    "time",
+    "price"
+   ]
+  },
+  {
+   "id": "cmw-wellness",
+   "date": "2027-01-02",
+   "day_index": 3,
+   "title": "Wellness",
+   "subtitle": {
+    "es": "Yoga · Respiración · Naturaleza",
+    "en": "Yoga · Breathwork · Nature",
+    "fr": "Yoga · Respiration · Nature",
+    "pt": "Yoga · Respiração · Natureza"
+   },
+   "venue_name": "Bethel Bellini",
+   "venue_id": "ptr_dv_003",
+   "lat": null,
+   "lng": null,
+   "category": "wellness",
+   "status": "confirmed",
+   "time": null,
+   "end_time": null,
+   "artist": null,
+   "artist_status": "none",
+   "price_info": null,
+   "booking_type": "concierge",
+   "image": "/images/cmw/wellness.jpg",
+   "image_credit": "Cartagena Music Week",
+   "description": {
+    "es": "Una invitación a reconectar cuerpo, mente y naturaleza. Parte del programa oficial de Cartagena Music Week.",
+    "en": "An invitation to reconnect body, mind and nature. Part of the official Cartagena Music Week program.",
+    "fr": "Une invitation à reconnecter corps, esprit et nature. Fait partie du programme officiel de Cartagena Music Week.",
+    "pt": "Um convite para reconectar corpo, mente e natureza. Parte do programa oficial da Cartagena Music Week."
+   },
+   "tba": [
+    "time",
+    "price"
+   ]
+  },
+  {
+   "id": "cmw-catamaran-sunset-party",
+   "date": "2027-01-02",
+   "day_index": 3,
+   "title": "Catamaran Sunset Party",
+   "subtitle": null,
+   "venue_name": null,
+   "venue_id": null,
+   "lat": null,
+   "lng": null,
+   "category": "sunset",
+   "status": "tba",
+   "time": null,
+   "end_time": null,
+   "artist": null,
+   "artist_status": "none",
+   "price_info": null,
+   "booking_type": "concierge",
+   "image": "/images/cmw/sunset.jpg",
+   "image_credit": "Cartagena Music Week",
+   "description": {
+    "es": "Parte del programa oficial de Cartagena Music Week.",
+    "en": "Part of the official Cartagena Music Week program.",
+    "fr": "Fait partie du programme officiel de Cartagena Music Week.",
+    "pt": "Parte do programa oficial da Cartagena Music Week."
+   },
+   "tba": [
+    "boarding_point",
+    "time",
+    "price"
+   ]
+  },
+  {
+   "id": "cmw-stardust-by-saraga",
+   "date": "2027-01-03",
+   "day_index": 4,
+   "title": "Stardust by Saraga",
+   "subtitle": null,
+   "venue_name": "El Lago",
+   "venue_id": null,
+   "lat": null,
+   "lng": null,
+   "category": "party",
+   "status": "confirmed",
+   "time": null,
+   "end_time": null,
+   "artist": null,
+   "artist_status": "none",
+   "price_info": null,
+   "booking_type": "concierge",
+   "image": "/images/cmw/party.jpg",
+   "image_credit": "Cartagena Music Week",
+   "description": {
+    "es": "Parte del programa oficial de Cartagena Music Week.",
+    "en": "Part of the official Cartagena Music Week program.",
+    "fr": "Fait partie du programme officiel de Cartagena Music Week.",
+    "pt": "Parte do programa oficial da Cartagena Music Week."
+   },
+   "tba": [
+    "time",
+    "price"
+   ]
+  },
+  {
+   "id": "cmw-main-event-jan-04",
+   "date": "2027-01-04",
+   "day_index": 5,
+   "title": "Main Event",
+   "subtitle": {
+    "es": "Very Special Guest",
+    "en": "Very Special Guest",
+    "fr": "Very Special Guest",
+    "pt": "Very Special Guest"
+   },
+   "venue_name": null,
+   "venue_id": null,
+   "lat": null,
+   "lng": null,
+   "category": "main_event",
+   "status": "tba",
+   "time": null,
+   "end_time": null,
+   "artist": "Very Special Guest",
+   "artist_status": "tba",
+   "price_info": null,
+   "booking_type": "concierge",
+   "image": "/images/cmw/main-event.jpg",
+   "image_credit": "Cartagena Music Week",
+   "description": {
+    "es": "Parte del programa oficial de Cartagena Music Week.",
+    "en": "Part of the official Cartagena Music Week program.",
+    "fr": "Fait partie du programme officiel de Cartagena Music Week.",
+    "pt": "Parte do programa oficial da Cartagena Music Week."
+   },
+   "tba": [
+    "artist",
+    "venue",
+    "time",
+    "price"
+   ]
+  },
+  {
+   "id": "cmw-main-event-after",
+   "date": "2027-01-05",
+   "day_index": 6,
+   "title": "Main Event After",
+   "subtitle": null,
+   "venue_name": "El Templo",
+   "venue_id": null,
+   "lat": null,
+   "lng": null,
+   "category": "after",
+   "status": "confirmed",
+   "time": null,
+   "end_time": null,
+   "artist": null,
+   "artist_status": "none",
+   "price_info": null,
+   "booking_type": "concierge",
+   "image": "/images/cmw/templo.jpg",
+   "image_credit": "Cartagena Music Week",
+   "description": {
+    "es": "Parte del programa oficial de Cartagena Music Week.",
+    "en": "Part of the official Cartagena Music Week program.",
+    "fr": "Fait partie du programme officiel de Cartagena Music Week.",
+    "pt": "Parte do programa oficial da Cartagena Music Week."
+   },
+   "tba": [
+    "time",
+    "price"
+   ]
+  },
+  {
+   "id": "cmw-main-event-jan-06",
+   "date": "2027-01-06",
+   "day_index": 7,
+   "title": "Main Event",
+   "subtitle": {
+    "es": "Very Special Guest",
+    "en": "Very Special Guest",
+    "fr": "Very Special Guest",
+    "pt": "Very Special Guest"
+   },
+   "venue_name": null,
+   "venue_id": null,
+   "lat": null,
+   "lng": null,
+   "category": "main_event",
+   "status": "tba",
+   "time": null,
+   "end_time": null,
+   "artist": "Very Special Guest",
+   "artist_status": "tba",
+   "price_info": null,
+   "booking_type": "concierge",
+   "image": "/images/cmw/main-event-2.jpg",
+   "image_credit": "Cartagena Music Week",
+   "description": {
+    "es": "Parte del programa oficial de Cartagena Music Week.",
+    "en": "Part of the official Cartagena Music Week program.",
+    "fr": "Fait partie du programme officiel de Cartagena Music Week.",
+    "pt": "Parte do programa oficial da Cartagena Music Week."
+   },
+   "tba": [
+    "artist",
+    "venue",
+    "time",
+    "price"
+   ]
+  },
+  {
+   "id": "cmw-after-temple",
+   "date": "2027-01-07",
+   "day_index": 8,
+   "title": "After Temple",
+   "subtitle": null,
+   "venue_name": "El Templo",
+   "venue_id": null,
+   "lat": null,
+   "lng": null,
+   "category": "after",
+   "status": "confirmed",
+   "time": null,
+   "end_time": null,
+   "artist": null,
+   "artist_status": "none",
+   "price_info": null,
+   "booking_type": "concierge",
+   "image": "/images/cmw/after-temple.jpg",
+   "image_credit": "Cartagena Music Week",
+   "description": {
+    "es": "Parte del programa oficial de Cartagena Music Week.",
+    "en": "Part of the official Cartagena Music Week program.",
+    "fr": "Fait partie du programme officiel de Cartagena Music Week.",
+    "pt": "Parte do programa oficial da Cartagena Music Week."
+   },
+   "tba": [
+    "time",
+    "price"
+   ]
+  }
+ ]
+}

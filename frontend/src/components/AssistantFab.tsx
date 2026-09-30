@@ -39,6 +39,7 @@ import { useAuth } from '../context/AuthContext';
 import type { Lang } from '../i18n/translations';
 import { cityModuleRoute } from '../lib/cityModules';
 import { EVENT_CATEGORIES } from '../lib/eventsFeed';
+import { cmwInAppPath } from '../lib/cmw';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import AddToTrip from './AddToTrip';
@@ -736,6 +737,14 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
         }
         case 'external_link': {
           if (!a.url) return;
+          // Luna's Cartagena Music Week links (https://www.amocartagena.co/music-week[/<id>])
+          // open the in-app hub / event; wa.me and everything else stay external.
+          const cmwPath = cmwInAppPath(a.url);
+          if (cmwPath) {
+            setOpen(false);
+            router.push(cmwPath as any);
+            return;
+          }
           if (Platform.OS === 'web') window.open(a.url, '_blank');
           else Linking.openURL(a.url).catch(() => {});
           return;

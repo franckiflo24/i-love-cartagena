@@ -21,7 +21,8 @@ import Head from '../../src/components/WebHead';
 import { Skeleton } from '../../src/components/Skeleton';
 import AvisameButton from '../../src/components/AvisameButton';
 import {
-  EventCategoryBadge, EventMedia, EventSoldOutChip, EventTrustChip, FeedOfflineBanner,
+  EventCategoryBadge, EventMedia, EventSoldOutChip, EventTrustChip, FeedEmptyLine, FeedOfflineBanner, ProgramDayList,
+  programByDay, venueLabel,
 } from '../../src/components/EventFeedUI';
 import { COLORS, SPACING, RADIUS, FONTS, TYPE } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
@@ -32,13 +33,19 @@ import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { useLang } from '../../src/context/LanguageContext';
 import {
-  FeedItemResult, PublicEvent, formatEventDates, formatEventTime, formatVerifiedDate,
-  hasRealCoords, loadFeedItem, loadLegacyEvent, pickL,
+  FeedItemResult, FeedState, PublicEvent, childrenOf, formatEventDates, formatEventTime, formatVerifiedDate,
+  getCachedFeed, hasRealCoords, loadFeedItem, loadLegacyEvent, pickL, subscribeFeed,
 } from '../../src/lib/eventsFeed';
+import { bogotaToday } from '../../src/lib/eventTime';
 
 // Partner-event ids: `pe_<hex>` (backend create), `pe_bethel_dj_<date>` and the
 // seeded `evt_NNN`. City events are `ce-…` and never match.
 const PARTNER_EVENT_ID = /^(evt_|pe_)/i;
+
+// A venue string that describes a spread ("Varios escenarios · …", "Recorrido: …") is not a
+// place a maps search can find: no "Cómo llegar" / "Ver mapa" for it (only real coordinates
+// or a named venue).
+const DESCRIPTIVE_VENUE = /^(varios|múltiples|multiples|recorrido|several|various|multiple|plusieurs|vários|varios locais)\b/i;
 
 // §13 J2: the only reasons a visitor is told. Any other code → no reason line.
 const REASON_COPY: Record<string, string> = {
@@ -58,6 +65,14 @@ export default function EventDetail() {
   const { isFavorite, toggleFavorite } = useFavorites();
   const [state, setState] = useState<Loaded>({ kind: 'loading' });
   const [attempt, setAttempt] = useState(0);
+  // The cached feed (never fetched from here): an umbrella lists its program from it.
+  const [feedCache, setFeedCache] = useState<FeedState | null>(() => getCachedFeed());
+  const [today, setToday] = useState<string | null>(null);
+  useEffect(() => {
+    setFeedCache(getCachedFeed());
+    setToday(bogotaToday());
+    return subscribeFeed((f) => setFeedCache(f));
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,13 +116,17 @@ export default function EventDetail() {
   const openSource = useCallback(() => { if (ev?.source_url) openExternal(ev.source_url); }, [ev]);
   const openTickets = useCallback(() => { if (ev?.ticket_url) openExternal(ev.ticket_url); }, [ev]);
   const openQuePasa = useCallback(() => { router.push('/que-pasa' as never); }, [router]);
+  const openProgram = useCallback(() => {
+    if (ev) router.push(`/que-pasa?open=${encodeURIComponent(ev.event_id)}` as never);
+  }, [router, ev]);
+  const openChild = useCallback((childId: string) => { router.push(`/event/${childId}` as never); }, [router]);
 
   const openMaps = useCallback(() => {
     if (!ev) return;
     // openDirections lets iOS users pick Apple Maps or Google Maps (Guideline 4).
     if (hasRealCoords(ev)) {
       openDirections({ lat: ev.lat, lng: ev.lng, label: ev.venue_name }, tr);
-    } else if (ev.venue_name && !ev.is_umbrella) {
+    } else if (ev.venue_name && !ev.is_umbrella && !DESCRIPTIVE_VENUE.test(ev.venue_name)) {
       openDirections({ query: `${ev.venue_name}, Cartagena, Colombia` }, tr);
     }
   }, [ev, tr]);
@@ -116,7 +135,7 @@ export default function EventDetail() {
     if (!ev) return;
     const title = pickL(ev.title, lang);
     const lines = [title];
-    if (ev.venue_name) lines.push(ev.venue_name);
+    if (ev.venue_name) lines.push(venueLabel(ev.venue_name, tr));
     if (ev.status === 'published') {
       const when = [formatEventDates(ev, lang), formatEventTime(ev)].filter(Boolean).join(' · ');
       if (when) lines.push(when);
@@ -190,9 +209,19 @@ export default function EventDetail() {
   const reason = gone && event.status_reason ? REASON_COPY[event.status_reason] : undefined;
   const dates = published ? formatEventDates(event, lang) : '';
   const time = published ? formatEventTime(event) : '';
-  const canMap = (published || tbc) && (hasRealCoords(event) || (!!event.venue_name && !event.is_umbrella));
+  const umbrella = published && event.is_umbrella;
+  const canMap = (published || tbc) && (hasRealCoords(event)
+    || (!!event.venue_name && !event.is_umbrella && !DESCRIPTIVE_VENUE.test(event.venue_name)));
   const canTicket = published && !!event.ticket_url && !event.sold_out;
   const verifiedOn = formatVerifiedDate(event.last_verified, lang);
+  // An umbrella (Fiestas de Independencia) is a program, not one date with a time and a price:
+  // its facts are the range and "N eventos del programa", and the program itself is listed
+  // below from the cached feed (day-grouped, headline rows first) — or linked to /que-pasa.
+  const program = umbrella && feedCache && today ? childrenOf(event, feedCache.data.events, today) : [];
+  const programDays = umbrella && today ? programByDay(program, today) : [];
+  const programLabel = program.length === 1
+    ? tr('1 evento del programa')
+    : tr('{n} eventos del programa').replace('{n}', String(program.length));
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -200,7 +229,7 @@ export default function EventDetail() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Hero — SafeImage paints the category placeholder from frame 0 */}
         <View style={styles.hero}>
-          <EventMedia ev={event} height={280} iconSize={40} priority="high" accessibilityLabel={title} />
+          <EventMedia ev={event} height={280} iconSize={40} priority="high" accessibilityLabel={title} variant="hero" />
           <LinearGradient
             colors={['rgba(8,12,22,0.10)', 'rgba(8,12,22,0.35)', COLORS.background]}
             locations={[0, 0.5, 1]}
@@ -275,7 +304,7 @@ export default function EventDetail() {
                 )}
               </View>
             </View>
-            {published && (
+            {published && !umbrella && (
               <View style={styles.infoRow}>
                 <View style={styles.infoIcon}>
                   <Ionicons name="time-outline" size={20} color={COLORS.primary} />
@@ -286,6 +315,17 @@ export default function EventDetail() {
                 </View>
               </View>
             )}
+            {umbrella && (
+              <View style={styles.infoRow} testID="event-program-count">
+                <View style={styles.infoIcon}>
+                  <Ionicons name="albums-outline" size={20} color={COLORS.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.infoLabel}>{tr('Programa')}</Text>
+                  <Text style={styles.infoValue}>{program.length ? programLabel : tr('Ver programa')}</Text>
+                </View>
+              </View>
+            )}
             {!!event.venue_name && (
               <TouchableOpacity style={styles.infoRow} onPress={openMaps} activeOpacity={0.7} disabled={!canMap} accessibilityRole={canMap ? 'button' : 'text'}>
                 <View style={styles.infoIcon}>
@@ -293,7 +333,7 @@ export default function EventDetail() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.infoLabel}>{tr('Lugar')}</Text>
-                  <Text style={styles.infoValue}>{event.venue_name}</Text>
+                  <Text style={styles.infoValue}>{venueLabel(event.venue_name, tr)}</Text>
                   {!!event.address && <Text style={styles.infoSub}>{event.address}</Text>}
                 </View>
                 {canMap && (
@@ -304,7 +344,7 @@ export default function EventDetail() {
                 )}
               </TouchableOpacity>
             )}
-            {published && (
+            {published && !umbrella && (
               <View style={styles.infoRow}>
                 <View style={styles.infoIcon}>
                   <Ionicons name="cash-outline" size={20} color={COLORS.primary} />
@@ -331,6 +371,30 @@ export default function EventDetail() {
           <View style={styles.descSection}>
             <Text style={styles.descTitle}>{tr('Descripción')}</Text>
             <Text style={styles.descText}>{description}</Text>
+          </View>
+        )}
+
+        {/* Umbrella: the day-grouped program (from the cached feed), or the way to it */}
+        {umbrella && (
+          <View style={styles.programSection} testID="event-program">
+            <View style={styles.programHead}>
+              <Text style={styles.descTitle}>{tr('Programa')}</Text>
+              {program.length > 0 && (
+                <TouchableOpacity onPress={openProgram} style={styles.programLink} accessibilityRole="link" testID="event-program-que-pasa">
+                  <Text style={styles.programLinkText}>{tr('Ver en Qué pasa')}</Text>
+                  <Ionicons name="chevron-forward" size={13} color={COLORS.primary} />
+                </TouchableOpacity>
+              )}
+            </View>
+            {program.length > 0 ? (
+              <View style={styles.programList}>
+                {programDays.map((g) => (
+                  <ProgramDayList key={g.day} group={g} umbrella={event} today={today as string} lang={lang} tr={tr} offline={offline} onOpen={openChild} />
+                ))}
+              </View>
+            ) : (
+              <FeedEmptyLine text={tr('El programa completo está en Qué pasa')} cta={`${tr('Ver programa en Qué pasa')} →`} onPress={openProgram} testID="event-program-link" />
+            )}
           </View>
         )}
 
@@ -430,7 +494,7 @@ const styles = StyleSheet.create({
   statusText: { ...TYPE.subhead, color: COLORS.textMuted, marginTop: 4 },
 
   infoSection: { padding: SPACING.lg, gap: SPACING.md },
-  infoRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, minHeight: 44 },
   infoIcon: { width: 40, height: 40, borderRadius: RADIUS.md, backgroundColor: COLORS.surface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.border },
   infoLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
   infoValue: { fontSize: 15, color: COLORS.textMain, ...FONTS.semibold },
@@ -442,6 +506,11 @@ const styles = StyleSheet.create({
   descSection: { paddingHorizontal: SPACING.lg, marginBottom: SPACING.lg },
   descTitle: { fontSize: 18, color: COLORS.textMain, ...FONTS.bold, marginBottom: SPACING.sm },
   descText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 22 },
+  programSection: { paddingHorizontal: SPACING.lg, marginBottom: SPACING.lg },
+  programHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  programLink: { flexDirection: 'row', alignItems: 'center', gap: 2, minHeight: 44, paddingLeft: 8 },
+  programLinkText: { fontSize: 12.5, color: COLORS.primary, ...FONTS.semibold },
+  programList: { gap: 4 },
 
   sourceCard: {
     marginHorizontal: SPACING.lg, padding: SPACING.md, gap: 6, borderRadius: RADIUS.lg,

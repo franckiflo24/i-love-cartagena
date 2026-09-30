@@ -24,12 +24,29 @@ import { PressableScale } from './PressableScale';
 import type { Lang } from '../i18n/translations';
 import { weekdayShort } from '../lib/formatDate';
 import {
-  CATEGORY_META, NowItem, PublicEvent, capFirst, formatDayShort, formatEventDates, formatEventTime, formatStamp,
-  formatVerifiedDate, pickL, plusDays, weekdayOf,
+  CATEGORY_META, NowItem, PublicEvent, capFirst, formatDayShort, formatEventDates, formatEventTime, formatMonthShort,
+  formatStamp, formatVerifiedDate, pickL, plusDays, tbcMonth, weekdayOf,
 } from '../lib/eventsFeed';
 
 type Tr = (es: string) => string;
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
+
+// ── Venue label ──────────────────────────────────────────────────────────────
+// A venue_name is a proper name and never translated — except the few descriptive
+// phrases the anchors use for city-wide events, which read in the app language.
+const DESCRIPTIVE_VENUES: readonly string[] = [
+  'Varios escenarios · Cartagena de Indias',
+];
+
+/** The venue as the cards print it: the name, or its translation for a descriptive phrase. */
+export function venueLabel(name: string | null | undefined, tr: Tr): string {
+  const v = (name || '').trim();
+  if (!v) return '';
+  return DESCRIPTIVE_VENUES.includes(v) ? tr(v) : v;
+}
+
+/** The primary source of a composite "IPCC · Alcaldía de Cartagena (agenda oficial)" name. */
+const primarySource = (name: string): string => name.split(' · ')[0].trim() || name;
 
 // ── Media: category art first, the event's own photo only when it has one ────
 // An event without an image never borrows a stock photo (the generic web
@@ -150,16 +167,17 @@ export function EventSoldOutChip({ tr, style }: { tr: Tr; style?: StyleProp<View
 // ── Trust line ───────────────────────────────────────────────────────────────
 type TrustLineProps = { ev: PublicEvent; lang: Lang; tr: Tr; offline: boolean; style?: StyleProp<ViewStyle> };
 
-/** "Fuente: X · verificado 28 sep" — offline copies say "sin actualizar" instead.
- *  Two sibling Texts: only the (long) source name is ellipsized, so the verification state —
- *  the part that matters, and the §13 J1 "sin actualizar" — is always visible at phone width. */
+/** "Fuente: IPCC · verificado 28 sep" — offline copies say "sin actualizar" instead.
+ *  Cards name the PRIMARY source only (a composite "IPCC · Alcaldía de Cartagena (agenda
+ *  oficial)" name is the detail page's business) and the row wraps, so the source is never
+ *  cut mid-word and the verification state — the §13 J1 "sin actualizar" — stays visible. */
 export function EventTrustLine({ ev, lang, tr, offline, style }: TrustLineProps) {
   if (!ev.source_name) return null;
   const when = offline ? tr('sin actualizar') : (() => {
     const d = formatVerifiedDate(ev.last_verified, lang);
     return d ? `${tr('verificado')} ${d}` : '';
   })();
-  const source = `${tr('Fuente')}: ${ev.source_name}`;
+  const source = `${tr('Fuente')}: ${primarySource(ev.source_name)}`;
   return (
     <View
       style={[ui.trustRow, style]}
@@ -228,7 +246,7 @@ export function EventRow({ ev, lang, tr, offline, onPress, hideDate, statusLine,
         {!!ev.venue_name && (
           <View style={ui.rowMeta}>
             <Ionicons name="location-outline" size={11} color={COLORS.textMuted} />
-            <Text style={ui.rowMetaText} numberOfLines={1}>{ev.venue_name}</Text>
+            <Text style={ui.rowMetaText} numberOfLines={1}>{venueLabel(ev.venue_name, tr)}</Text>
           </View>
         )}
         <View style={ui.rowChips}>
@@ -284,11 +302,12 @@ export function EventHeroCard({ ev, lang, tr, offline, width, height = 228, onPr
   const program = ev.is_umbrella && programCount ? countLabel(programCount, tr) : '';
   const open = useCallback(() => onPress(ev.event_id), [onPress, ev.event_id]);
   const showTrustChip = ev.confidence === 'VERIFY' || ev.origin === 'partner';
+  const venue = venueLabel(ev.venue_name, tr);
   return (
     <PressableScale
       style={[ui.hero, { width, height, borderColor: `${meta.color}47` }]}
       onPress={open}
-      accessibilityLabel={[title, when, ev.venue_name, tr(meta.label)].filter(Boolean).join(' · ')}
+      accessibilityLabel={[title, when, venue, tr(meta.label)].filter(Boolean).join(' · ')}
       testID={testID}
     >
       <EventMedia ev={ev} height="100%" iconSize={34} priority={priority} accessibilityLabel={title} variant="hero" />
@@ -316,10 +335,10 @@ export function EventHeroCard({ ev, lang, tr, offline, width, height = 228, onPr
           </Text>
         )}
         <Text style={ui.heroTitle} numberOfLines={2}>{title}</Text>
-        {!!ev.venue_name && (
+        {!!venue && (
           <View style={ui.heroMeta}>
             <Ionicons name="location-outline" size={12} color="rgba(245,247,250,0.72)" />
-            <Text style={ui.heroMetaText} numberOfLines={1}>{ev.venue_name}</Text>
+            <Text style={ui.heroMetaText} numberOfLines={1}>{venue}</Text>
           </View>
         )}
         {showTrustChip ? <EventTrustChip ev={ev} tr={tr} style={ui.heroChip} /> : null}
@@ -336,8 +355,9 @@ type DayRowProps = {
   tr: Tr;
   offline: boolean;
   onPress: (id: string) => void;
-  /** 'date' = day number + weekday (Próximos); 'time' = start time (a day-scoped list). */
-  lead: 'date' | 'time';
+  /** 'date' = day number + weekday (Próximos); 'time' = start time (a day-scoped list);
+   *  'tbc' = the announced month over "?" (the "Por confirmar" section: never a date). */
+  lead: 'date' | 'time' | 'tbc';
   /** "Parte de: Fiestas de Independencia" (a sub-event listed on its own day). */
   partOf?: string | null;
   /** Inside a festival program: tighter row; `hideTrust` drops a trust line that repeats the umbrella's. */
@@ -350,23 +370,54 @@ export function EventDayRow({ ev, lang, tr, offline, onPress, lead, partOf, dens
   const meta = metaOf(ev);
   const title = pickL(ev.title, lang);
   const icon = meta.icon as IconName;
-  const multi = !!ev.start_date && !!ev.end_date && ev.end_date !== ev.start_date;
+  const tbc = lead === 'tbc';
+  const multi = !tbc && !!ev.start_date && !!ev.end_date && ev.end_date !== ev.start_date;
+  const sameMonth = multi && (ev.end_date as string).slice(0, 7) === (ev.start_date as string).slice(0, 7);
   const range = multi ? formatEventDates(ev, lang) : '';
-  const when = lead === 'date' ? [range, ev.start_time || ''].filter(Boolean).join(' · ') : range;
+  // A same-month range lives in the date badge ("9–17" over "ENE"); a cross-month one gets its
+  // own line under the venue. The venue always keeps the full first line.
+  const badgeRange = lead === 'date' && sameMonth;
+  const rangeLine = multi && !badgeRange ? range : '';
+  const timeText = lead === 'date' ? ev.start_time || '' : '';
+  const month = tbc ? tbcMonth(ev) : null;
+  const tbcNote = tbc
+    ? (month ? `${formatMonthShort(month.month0, lang)} ${month.year} · ${lowerFirst(tr('Por confirmar'))}` : tr('Fecha por confirmar'))
+    : '';
   const day = ev.start_date ? String(Number(ev.start_date.slice(8, 10))) : '';
   const wd = ev.start_date ? weekdayShort(weekdayOf(ev.start_date), lang, true).replace(/\.$/, '') : '';
   const open = useCallback(() => onPress(ev.event_id), [onPress, ev.event_id]);
-  const trustChip = ev.confidence === 'VERIFY' || ev.origin === 'partner';
+  const trustChip = !tbc && (ev.confidence === 'VERIFY' || ev.origin === 'partner');
   const soldOut = ev.sold_out && ev.status === 'published';
-  const a11y = [title, lead === 'date' && ev.start_date ? formatDayShort(ev.start_date, lang) : '', formatEventTime(ev), range, ev.venue_name, tr(meta.label)]
+  const venue = venueLabel(ev.venue_name, tr);
+  const a11y = [title, lead === 'date' && ev.start_date ? formatDayShort(ev.start_date, lang) : '', tbcNote,
+    formatEventTime(ev), range, venue, tr(meta.label), ev.flagship ? tr('Destacado') : '']
     .filter(Boolean).join(' · ');
   return (
-    <TouchableOpacity style={[ui.drow, dense && ui.drowDense]} onPress={open} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={a11y} testID={testID}>
+    <TouchableOpacity
+      style={[ui.drow, dense && ui.drowDense, ev.flagship && { borderColor: `${meta.color}8C` }]}
+      onPress={open}
+      activeOpacity={0.85}
+      accessibilityRole="button"
+      accessibilityLabel={a11y}
+      testID={testID}
+    >
       <View style={[ui.lead, dense && ui.leadDense, { backgroundColor: `${meta.color}1C`, borderRightColor: `${meta.color}33` }]}>
-        {lead === 'date' ? (
+        {tbc ? (
           <>
-            <Text style={[ui.leadNum, { color: meta.color }]}>{day}</Text>
-            <Text style={[ui.leadSub, { color: meta.color }]} numberOfLines={1}>{wd}</Text>
+            <Text style={[ui.leadSub, { color: meta.color }]} numberOfLines={1}>
+              {month ? formatMonthShort(month.month0, lang).replace(/\.$/, '').toUpperCase() : ''}
+            </Text>
+            <Text style={[ui.leadNum, { color: meta.color }]}>?</Text>
+            <Ionicons name={icon} size={12} color={`${meta.color}B3`} style={ui.leadIcon} />
+          </>
+        ) : lead === 'date' ? (
+          <>
+            <Text style={[ui.leadNum, badgeRange && ui.leadRange, { color: meta.color }]} numberOfLines={1}>
+              {badgeRange ? `${day}–${Number((ev.end_date as string).slice(8, 10))}` : day}
+            </Text>
+            <Text style={[ui.leadSub, { color: meta.color }]} numberOfLines={1}>
+              {badgeRange ? formatMonthShort(Number((ev.start_date as string).slice(5, 7)) - 1, lang).replace(/\.$/, '').toUpperCase() : wd}
+            </Text>
             <Ionicons name={icon} size={12} color={`${meta.color}B3`} style={ui.leadIcon} />
           </>
         ) : ev.start_time ? (
@@ -380,16 +431,32 @@ export function EventDayRow({ ev, lang, tr, offline, onPress, lead, partOf, dens
         )}
       </View>
       <View style={[ui.drowBody, dense && ui.drowBodyDense]}>
-        <Text style={ui.drowTitle} numberOfLines={2}>{title}</Text>
-        {(!!ev.venue_name || !!when) && (
+        <View style={ui.drowTitleRow}>
+          {ev.flagship ? <Ionicons name="star" size={12} color={COLORS.mustard} style={ui.drowStar} accessibilityLabel={tr('Destacado')} /> : null}
+          <Text style={ui.drowTitle} numberOfLines={2}>{title}</Text>
+        </View>
+        {(!!venue || !!timeText) && (
           <View style={ui.drowMeta}>
-            {!!ev.venue_name && <Ionicons name="location-outline" size={11} color={COLORS.textMuted} />}
-            {!!ev.venue_name && <Text style={ui.drowMetaText} numberOfLines={1}>{ev.venue_name}</Text>}
-            {!!when && <Text style={ui.drowWhen} numberOfLines={1}>{ev.venue_name ? ` · ${when}` : when}</Text>}
+            {!!venue && <Ionicons name="location-outline" size={11} color={COLORS.textMuted} />}
+            {!!venue && <Text style={ui.drowMetaText} numberOfLines={1}>{venue}</Text>}
+            {!!timeText && <Text style={ui.drowWhen} numberOfLines={1}>{venue ? ` · ${timeText}` : timeText}</Text>}
           </View>
         )}
-        {(!!partOf || trustChip || soldOut) && (
+        {!!rangeLine && (
+          <View style={ui.drowMeta}>
+            <Ionicons name="calendar-outline" size={11} color={COLORS.textMuted} />
+            <Text style={ui.drowWhen} numberOfLines={1}>{rangeLine}</Text>
+          </View>
+        )}
+        {!!tbcNote && (
+          <View style={ui.drowMeta}>
+            <Ionicons name="help-circle-outline" size={11} color={COLORS.textMuted} />
+            <Text style={ui.drowWhen} numberOfLines={1}>{tbcNote}</Text>
+          </View>
+        )}
+        {(!!partOf || trustChip || soldOut || tbc) && (
           <View style={ui.drowBadges}>
+            {tbc ? <EventCategoryBadge ev={ev} tr={tr} /> : null}
             {partOf ? (
               <View style={[ui.chip, ui.chipPart]}>
                 <Ionicons name="albums-outline" size={10} color={COLORS.mustard} />
@@ -407,6 +474,9 @@ export function EventDayRow({ ev, lang, tr, offline, onPress, lead, partOf, dens
     </TouchableOpacity>
   );
 }
+
+/** "Por confirmar" → "por confirmar" (the note reads "nov 2026 · por confirmar"). */
+const lowerFirst = (s: string): string => (s ? s.charAt(0).toLowerCase() + s.slice(1) : s);
 
 // ── Date strip (§16.3: weekday · day number · count) ─────────────────────────
 type DateChipProps = {
@@ -515,13 +585,21 @@ export function FeedDayHeader({ label, count, tr, testID }: { label: string; cou
   );
 }
 
-/** Month header ("Octubre 2026 · 9 eventos") — opaque, sticky in Próximos. */
-export function FeedMonthHeader({ label, count, tr, testID }: { label: string; count: number; tr: Tr; testID?: string }) {
+/** Month header ("Octubre 2026 · 9 eventos") — opaque, sticky in Próximos. `programCount`
+ *  = the rows an umbrella card in that month folds away ("2 eventos · +16 del programa";
+ *  "16 eventos del programa" when the card is the month's only item). */
+export function FeedMonthHeader({ label, count, programCount = 0, tr, testID }: {
+  label: string; count: number; programCount?: number; tr: Tr; testID?: string;
+}) {
+  const program = programCount === 1 ? tr('1 evento del programa') : tr('{n} eventos del programa').replace('{n}', String(programCount));
+  const detail = programCount > 0
+    ? (count > 0 ? `${countLabel(count, tr)} · ${tr('+{n} del programa').replace('{n}', String(programCount))}` : program)
+    : countLabel(count, tr);
   return (
     <View style={ui.monthHeader} testID={testID} accessibilityRole="header">
       <Text style={ui.monthHeaderText} numberOfLines={1}>
         {label}
-        <Text style={ui.monthHeaderCount}>{`  ·  ${countLabel(count, tr)}`}</Text>
+        <Text style={ui.monthHeaderCount}>{`  ·  ${detail}`}</Text>
       </Text>
     </View>
   );
@@ -556,6 +634,55 @@ export function FeedEmptyLine({ text, cta, onPress, icon = 'calendar-clear-outli
 }
 
 // ── Umbrella festival: ONE group card that expands into its program ──────────
+export type ProgramDay = { day: string; rows: PublicEvent[] };
+
+/** A festival program grouped by day (each sub-event under its first visible day), in
+ *  calendar order; the rows keep the caller's within-day (headline first) order. */
+export function programByDay(items: PublicEvent[], today: string): ProgramDay[] {
+  const days: ProgramDay[] = [];
+  for (const row of items) {
+    const d = (row.start_date as string) < today ? today : (row.start_date as string);
+    let g = days.find((x) => x.day === d);
+    if (!g) { g = { day: d, rows: [] }; days.push(g); }
+    g.rows.push(row);
+  }
+  return days.sort((a, b) => (a.day < b.day ? -1 : 1));
+}
+
+/** A program row's trust line says nothing new when it matches the umbrella's exactly (HIGH, same source, same day). */
+export const sameTrust = (row: PublicEvent, umbrella: PublicEvent): boolean =>
+  row.confidence === 'HIGH' && umbrella.confidence === 'HIGH' && row.origin !== 'partner'
+  && !!row.source_name && row.source_name === umbrella.source_name
+  && (row.last_verified || '').slice(0, 10) === (umbrella.last_verified || '').slice(0, 10);
+
+/** One day of a festival program: the day label + its rows (dense, headline rows starred). */
+export function ProgramDayList({ group, umbrella, today, lang, tr, offline, onOpen, label }: {
+  group: ProgramDay; umbrella: PublicEvent; today: string; lang: Lang; tr: Tr; offline: boolean;
+  onOpen: (id: string) => void; label?: string;
+}) {
+  const text = label ?? dayHeaderText(group.day, today, lang, tr);
+  return (
+    <View style={ui.umbDay}>
+      {text ? <Text style={ui.umbDayText}>{text}</Text> : null}
+      {group.rows.map((row) => (
+        <EventDayRow
+          key={row.event_id}
+          ev={row}
+          lang={lang}
+          tr={tr}
+          offline={offline}
+          lead="time"
+          dense
+          // Same source + same verification day as the card above → the line would only repeat it.
+          hideTrust={sameTrust(row, umbrella)}
+          onPress={onOpen}
+          testID={`program-row-${row.event_id}`}
+        />
+      ))}
+    </View>
+  );
+}
+
 type UmbrellaProps = {
   ev: PublicEvent;
   /** The live sub-events to list (already category-filtered by the caller). */
@@ -567,10 +694,12 @@ type UmbrellaProps = {
   expanded: boolean;
   onToggle: (id: string) => void;
   onOpen: (id: string) => void;
+  /** false: the caller renders the expanded program itself (as sticky day blocks under the card). */
+  programInline?: boolean;
   testID?: string;
 };
 
-export function UmbrellaGroupCard({ ev, items, today, lang, tr, offline, expanded, onToggle, onOpen, testID }: UmbrellaProps) {
+export function UmbrellaGroupCard({ ev, items, today, lang, tr, offline, expanded, onToggle, onOpen, programInline = true, testID }: UmbrellaProps) {
   const meta = metaOf(ev);
   const title = pickL(ev.title, lang);
   const range = formatEventDates(ev, lang);
@@ -579,18 +708,9 @@ export function UmbrellaGroupCard({ ev, items, today, lang, tr, offline, expande
   const n = items.length;
   const programLabel = (n === 1 ? tr('1 evento del programa') : tr('{n} eventos del programa')).replace('{n}', String(n));
   // Day-grouped program: each sub-event under its first day, headline order within a day.
-  const days: { day: string; rows: PublicEvent[] }[] = [];
-  if (expanded) {
-    for (const row of items) {
-      const d = (row.start_date as string) < today ? today : (row.start_date as string);
-      let g = days.find((x) => x.day === d);
-      if (!g) { g = { day: d, rows: [] }; days.push(g); }
-      g.rows.push(row);
-    }
-    days.sort((a, b) => (a.day < b.day ? -1 : 1));
-  }
+  const days: ProgramDay[] = expanded && programInline ? programByDay(items, today) : [];
   return (
-    <View style={[ui.umb, { borderColor: `${meta.color}4D` }]} testID={testID}>
+    <View style={[ui.umb, { borderColor: `${meta.color}4D` }, expanded && !programInline && ui.umbOpenOutside]} testID={testID}>
       <LinearGradient
         colors={[`${meta.color}2E`, 'rgba(15,21,36,0)']}
         start={{ x: 0, y: 0 }}
@@ -607,7 +727,7 @@ export function UmbrellaGroupCard({ ev, items, today, lang, tr, offline, expande
             {range.toUpperCase()}
           </Text>
           <Text style={ui.umbTitle} numberOfLines={2}>{title}</Text>
-          {!!ev.venue_name && <Text style={ui.umbVenue} numberOfLines={1}>{ev.venue_name}</Text>}
+          {!!ev.venue_name && <Text style={ui.umbVenue} numberOfLines={1}>{venueLabel(ev.venue_name, tr)}</Text>}
         </View>
         {ev.flagship ? <Ionicons name="star" size={14} color={COLORS.mustard} /> : null}
       </TouchableOpacity>
@@ -631,26 +751,10 @@ export function UmbrellaGroupCard({ ev, items, today, lang, tr, offline, expande
           </View>
         ) : null}
       </TouchableOpacity>
-      {expanded && n > 0 && (
+      {days.length > 0 && (
         <View style={ui.umbProgram} testID={testID ? `${testID}-program` : undefined}>
           {days.map((g) => (
-            <View key={g.day} style={ui.umbDay}>
-              <Text style={ui.umbDayText}>{dayHeaderText(g.day, today, lang, tr)}</Text>
-              {g.rows.map((row) => (
-                <EventDayRow
-                  key={row.event_id}
-                  ev={row}
-                  lang={lang}
-                  tr={tr}
-                  offline={offline}
-                  lead="time"
-                  dense
-                  // Same source + same verification day as the card above → the line would only repeat it.
-                  hideTrust={sameTrust(row, ev)}
-                  onPress={onOpen}
-                />
-              ))}
-            </View>
+            <ProgramDayList key={g.day} group={g} umbrella={ev} today={today} lang={lang} tr={tr} offline={offline} onOpen={onOpen} />
           ))}
         </View>
       )}
@@ -658,11 +762,14 @@ export function UmbrellaGroupCard({ ev, items, today, lang, tr, offline, expande
   );
 }
 
-/** A program row's trust line says nothing new when it matches the umbrella's exactly (HIGH, same source, same day). */
-const sameTrust = (row: PublicEvent, umbrella: PublicEvent): boolean =>
-  row.confidence === 'HIGH' && umbrella.confidence === 'HIGH' && row.origin !== 'partner'
-  && !!row.source_name && row.source_name === umbrella.source_name
-  && (row.last_verified || '').slice(0, 10) === (umbrella.last_verified || '').slice(0, 10);
+/** The program rendered under an open umbrella card (que-pasa): the card's tint on the left
+ *  edge ties the day blocks to the card above; the day headers are sticky ScrollView children. */
+export function ProgramOutsideBlock({ ev, children, last }: { ev: PublicEvent; children: React.ReactNode; last?: boolean }) {
+  const meta = metaOf(ev);
+  return (
+    <View style={[ui.umbOutside, { borderColor: `${meta.color}4D` }, last && ui.umbOutsideLast]}>{children}</View>
+  );
+}
 
 // ── "Ahora en Cartagena" card (Home) ─────────────────────────────────────────
 type NowCardProps = { item: NowItem; lang: Lang; tr: Tr; width: number; onPress: (id: string) => void; testID?: string };
@@ -675,7 +782,7 @@ export function EventNowCard({ item, lang, tr, width, onPress, testID }: NowCard
   const live = item.state === 'ongoing';
   const chip = live ? tr('En curso') : tr('Empieza a las {t}').replace('{t}', item.at || '');
   return (
-    <PressableScale style={[ui.now, { width }]} onPress={open} accessibilityLabel={`${chip} · ${title}${ev.venue_name ? ` · ${ev.venue_name}` : ''}`} testID={testID}>
+    <PressableScale style={[ui.now, { width }]} onPress={open} accessibilityLabel={`${chip} · ${title}${ev.venue_name ? ` · ${venueLabel(ev.venue_name, tr)}` : ''}`} testID={testID}>
       <View style={[ui.nowBar, { backgroundColor: meta.color }]} />
       <View style={ui.nowBody}>
         <View style={[ui.nowChip, live ? ui.nowChipLive : ui.nowChipSoon]}>
@@ -683,7 +790,7 @@ export function EventNowCard({ item, lang, tr, width, onPress, testID }: NowCard
           <Text style={[ui.nowChipText, { color: live ? COLORS.coral : COLORS.primary }]} numberOfLines={1}>{chip}</Text>
         </View>
         <Text style={ui.nowTitle} numberOfLines={2}>{title}</Text>
-        {!!ev.venue_name && <Text style={ui.nowVenue} numberOfLines={1}>{ev.venue_name}</Text>}
+        {!!ev.venue_name && <Text style={ui.nowVenue} numberOfLines={1}>{venueLabel(ev.venue_name, tr)}</Text>}
         {ev.confidence === 'VERIFY' || ev.origin === 'partner' ? <EventTrustChip ev={ev} tr={tr} style={{ marginTop: 4 }} /> : null}
       </View>
     </PressableScale>
@@ -706,7 +813,7 @@ const ui = StyleSheet.create({
   chipPartner: { borderColor: COLORS.border, backgroundColor: 'rgba(174,182,196,0.08)' },
   chipSoldOut: { borderColor: `${COLORS.mustard}8C`, backgroundColor: `${COLORS.mustard}1A` },
   chipText: { fontSize: 9.5, ...FONTS.bold, letterSpacing: 0.3, flexShrink: 1 },
-  trustRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  trustRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 4 },
   trustText: { flexShrink: 1, fontSize: 10.5, lineHeight: 14, color: COLORS.textFaint, ...FONTS.medium },
   trustWhen: { flexShrink: 0, fontSize: 10.5, lineHeight: 14, color: COLORS.textFaint, ...FONTS.medium },
   offline: {
@@ -777,7 +884,10 @@ const ui = StyleSheet.create({
   leadEnd: { fontSize: 10.5, lineHeight: 13, color: COLORS.textMuted, ...FONTS.semibold, marginTop: 1 },
   leadIcon: { marginTop: 6 },
   drowBody: { flex: 1, paddingHorizontal: 12, paddingVertical: 11, gap: 4, justifyContent: 'center' },
-  drowTitle: { fontSize: 14.5, lineHeight: 19, color: COLORS.textMain, ...FONTS.bold, letterSpacing: -0.1 },
+  drowTitleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 5 },
+  drowStar: { marginTop: 3 },
+  drowTitle: { flexShrink: 1, fontSize: 14.5, lineHeight: 19, color: COLORS.textMain, ...FONTS.bold, letterSpacing: -0.1 },
+  leadRange: { fontSize: 17, lineHeight: 22, letterSpacing: -0.6 },
   drowMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   drowMetaText: { flexShrink: 1, fontSize: 12, color: COLORS.textMuted, ...FONTS.medium },
   drowWhen: { flexShrink: 0, fontSize: 12, color: COLORS.textMain, ...FONTS.semibold },
@@ -828,7 +938,7 @@ const ui = StyleSheet.create({
   monthHeaderCount: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold, letterSpacing: 0 },
 
   // One-line empty state
-  emptyLine: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 10 },
+  emptyLine: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 12, minHeight: 44 },
   emptyIcon: { marginTop: 1 },
   emptyText: { flex: 1, fontSize: 13, lineHeight: 19, color: COLORS.textMuted, ...FONTS.medium },
   emptyCta: { color: COLORS.primary, ...FONTS.bold },
@@ -855,6 +965,11 @@ const ui = StyleSheet.create({
   umbProgram: { paddingHorizontal: 12, paddingBottom: 12, gap: 4 },
   umbDay: { gap: 8, marginTop: 8 },
   umbDayText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.bold, letterSpacing: 0.3, marginTop: 4 },
+  umbOpenOutside: { borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottomWidth: 0 },
+  umbOutside: {
+    borderLeftWidth: 1, borderRightWidth: 1, paddingHorizontal: 12, paddingBottom: 4, backgroundColor: COLORS.surface,
+  },
+  umbOutsideLast: { borderBottomWidth: 1, borderBottomLeftRadius: RADIUS.lg, borderBottomRightRadius: RADIUS.lg, paddingBottom: 12 },
 
   // Ahora en Cartagena
   now: {

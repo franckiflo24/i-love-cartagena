@@ -1566,3 +1566,34 @@ def public_sort_key(pv: Mapping[str, Any]) -> Tuple[str, int, str]:
     p = pv.get("prominence")
     pr = p if isinstance(p, int) and not isinstance(p, bool) else 0
     return (pv.get("start_date") or "9999-99-99", -pr, pv.get("start_time") or "99:99")
+
+
+# ── CMW conflict (docs/cmw/DESIGN.md §0) ─────────────────────────────────────
+# The official Cartagena Music Week program is a curated dataset, separate from city_events:
+# only it may state a time, a venue or a price for a Music Week event. A scraped or general row
+# that names the brand (or one of its printed titles in its own title) is a conflict, dropped at
+# read time by events_runtime so the two can never contradict each other on one screen.
+CMW_ANCHOR_RE = re.compile(
+    r"\bmusic[\s\-_]*week\b|\bcmw\b|\bvery[\s\-]+special[\s\-]+guest\b|\bzamna\b|\bstardust\b|\bsaraga\b"
+    r"|\bwe[\s\-]+are[\s\-]+us\b")
+CMW_TITLE_RE = re.compile(
+    r"\bmain[\s\-]+event\b|\bafter[\s\-]+temple\b|\bafter[\s\-]+new[\s\-]+year\b"
+    r"|\bcatamaran[\s\-]+sunset[\s\-]+party\b")
+
+
+def _l4_values(v: Any) -> List[str]:
+    if isinstance(v, str):
+        return [v]
+    if isinstance(v, Mapping):
+        return [x for x in v.values() if isinstance(x, str)]
+    return []
+
+
+def cmw_conflict(doc: Mapping[str, Any]) -> bool:
+    """True when a city_events doc names Cartagena Music Week: a CMW anchor term anywhere in the
+    title or the description, or one of the printed CMW titles used as the row's own title."""
+    title = fold(" ".join(_l4_values(doc.get("title"))))
+    if CMW_ANCHOR_RE.search(title) or CMW_TITLE_RE.search(title):
+        return True
+    desc = fold(" ".join(_l4_values(doc.get("description"))))
+    return bool(CMW_ANCHOR_RE.search(desc))

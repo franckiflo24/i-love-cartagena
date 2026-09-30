@@ -31,6 +31,7 @@ export default function PrivacyScreen() {
         <Text style={styles.p}>{tr('d) Datos de reservas: partner solicitado, fecha, hora, número de personas, notas que escribes para el partner.')}</Text>
         <Text style={styles.p}>{tr('e) Datos de pago: NO almacenamos tu tarjeta. Los pagos son procesados directamente por Wompi (PCI-DSS Level 1). Solo guardamos el identificador de la transacción y el monto.')}</Text>
         <Text style={styles.p}>{tr('f) Ubicación (solo si concedes permiso, opcional): la usamos para mostrarte lugares y eventos cercanos. No guardamos tu ubicación ni tu recorrido en nuestros servidores: cuando buscas lugares cercanos, le preguntas a Luna por algo cerca de ti o validas un sello del pasaporte, la posición se envía solo para responder esa consulta y no se almacena. Si eliges una "Mi base", guardamos ese punto en tu cuenta hasta que lo borres.')}</Text>
+        <Text style={styles.p}>{tr('g) Solicitudes al concierge de Cartagena Music Week: guardamos tu nombre, el número de personas y el contacto que nos das (WhatsApp o correo) para que el concierge de Cartagena Music Week pueda comunicarse contigo. Puedes pedir que borremos esa solicitud escribiendo a privacidad@amocartagena.co.')}</Text>
 
         <Text style={styles.h1}>{tr('3. Para qué usamos tus datos')}</Text>
         <Text style={styles.p}>{tr('• Autenticarte y mantener tu sesión.')}</Text>

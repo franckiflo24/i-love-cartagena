@@ -1,0 +1,189 @@
+{
+  "_comment": "Deck copy for the hub's Experiencias and Las islas sections (docs/cmw/DESIGN.md §1 Experiences/Islands). es/en are the printed program's own words; fr/pt are translations. venue_id links ONLY a catalog venue that exists in public/data/partners.json (validated by scripts/sync-cmw-data.mjs). Images are deck art credited to Cartagena Music Week, never a photo of a specific venue.",
+  "image_credit": "Cartagena Music Week",
+  "experiences": {
+    "title": {
+      "es": "Experiencias",
+      "en": "Experiences",
+      "fr": "Expériences",
+      "pt": "Experiências"
+    },
+    "subtitle": {
+      "es": "Más allá de la música",
+      "en": "Beyond the music",
+      "fr": "Au-delà de la musique",
+      "pt": "Além da música"
+    },
+    "items": [
+      {
+        "key": "walled_city",
+        "image": "/images/cmw/city.jpg",
+        "title": {
+          "es": "Ciudad Amurallada",
+          "en": "Old City",
+          "fr": "Ville fortifiée",
+          "pt": "Cidade Amuralhada"
+        },
+        "tagline": {
+          "es": "Historia. Arte. Cultura.",
+          "en": "History. Art. Culture.",
+          "fr": "Histoire. Art. Culture.",
+          "pt": "História. Arte. Cultura."
+        },
+        "body": {
+          "es": "Arquitectura colonial, calles llenas de vida, azoteas, galerías y diseñadores locales. Descubre el alma de Cartagena.",
+          "en": "Colonial architecture, vibrant streets, rooftops, galleries and local designers. Discover the soul of Cartagena.",
+          "fr": "Architecture coloniale, rues pleines de vie, rooftops, galeries et créateurs locaux. Découvre l'âme de Carthagène.",
+          "pt": "Arquitetura colonial, ruas cheias de vida, rooftops, galerias e designers locais. Descubra a alma de Cartagena."
+        }
+      },
+      {
+        "key": "on_the_water",
+        "image": "/images/cmw/water.jpg",
+        "title": {
+          "es": "En el agua",
+          "en": "On the water",
+          "fr": "Sur l'eau",
+          "pt": "Na água"
+        },
+        "tagline": {
+          "es": "Barcos. Puestas de sol. Libertad.",
+          "en": "Boats. Sunsets. Freedom.",
+          "fr": "Bateaux. Couchers de soleil. Liberté.",
+          "pt": "Barcos. Pôr do sol. Liberdade."
+        },
+        "body": {
+          "es": "Barcos privados, catamaranes, recorridos por las islas y puestas de sol inolvidables. Cartagena desde una perspectiva diferente.",
+          "en": "Private boats, catamarans, island hops and unforgettable sunsets. Cartagena from a different perspective.",
+          "fr": "Bateaux privés, catamarans, escapades dans les îles et couchers de soleil inoubliables. Carthagène sous un autre angle.",
+          "pt": "Barcos privados, catamarãs, passeios pelas ilhas e pores do sol inesquecíveis. Cartagena de uma perspectiva diferente."
+        }
+      },
+      {
+        "key": "day_to_night",
+        "image": "/images/cmw/day-night.jpg",
+        "title": {
+          "es": "Del día a la noche",
+          "en": "Day to night",
+          "fr": "Du jour à la nuit",
+          "pt": "Do dia à noite"
+        },
+        "tagline": {
+          "es": "Una experiencia de estilo de vida completa.",
+          "en": "A full lifestyle experience.",
+          "fr": "Une expérience de vie complète.",
+          "pt": "Uma experiência de estilo de vida completa."
+        },
+        "body": {
+          "es": "Clubes de playa, almuerzos, puestas de sol, cenas, azoteas y noches legendarias. Desde la luz del sol hasta el amanecer.",
+          "en": "Beach clubs, lunches, sunsets, dinners, rooftops and legendary nights. From sunlight to sunrise.",
+          "fr": "Beach clubs, déjeuners, couchers de soleil, dîners, rooftops et nuits légendaires. Du lever du soleil à l'aube.",
+          "pt": "Beach clubs, almoços, pores do sol, jantares, rooftops e noites lendárias. Da luz do sol ao amanhecer."
+        }
+      }
+    ]
+  },
+  "islands": {
+    "image": "/images/cmw/island.jpg",
+    "title": {
+      "es": "Las islas",
+      "en": "The islands",
+      "fr": "Les îles",
+      "pt": "As ilhas"
+    },
+    "subtitle": {
+      "es": "Escapadas por el Caribe, descubrimientos sin límite",
+      "en": "Caribbean escapes, endless discoveries",
+      "fr": "Escapades dans les Caraïbes, découvertes sans limite",
+      "pt": "Escapadas pelo Caribe, descobertas sem limite"
+    },
+    "intro": {
+      "es": "A pocos minutos de la ciudad, el Caribe cambia de ritmo. El horizonte se abre entre aguas turquesas, playas de arena blanca y pequeñas islas rodeadas de naturaleza.",
+      "en": "Just a few minutes from the city, the Caribbean takes on a different rhythm. The horizon opens up amid turquoise waters, white-sand beaches, and small islands surrounded by nature.",
+      "fr": "À quelques minutes de la ville, les Caraïbes changent de rythme. L'horizon s'ouvre entre eaux turquoise, plages de sable blanc et petites îles entourées de nature.",
+      "pt": "A poucos minutos da cidade, o Caribe muda de ritmo. O horizonte se abre entre águas turquesa, praias de areia branca e pequenas ilhas cercadas de natureza."
+    },
+    "items": [
+      {
+        "key": "bellini",
+        "venue_id": "ptr_dv_003",
+        "title": {
+          "es": "Bellini Beach Club",
+          "en": "Bellini Beach Club",
+          "fr": "Bellini Beach Club",
+          "pt": "Bellini Beach Club"
+        },
+        "tagline": {
+          "es": "Playa. Música. Energía caribeña.",
+          "en": "Beach. Music. Caribbean energy.",
+          "fr": "Plage. Musique. Énergie caribéenne.",
+          "pt": "Praia. Música. Energia caribenha."
+        }
+      },
+      {
+        "key": "rosario",
+        "venue_id": "attr_017",
+        "title": {
+          "es": "Islas del Rosario",
+          "en": "Rosario Islands",
+          "fr": "Îles du Rosaire",
+          "pt": "Ilhas do Rosário"
+        },
+        "tagline": {
+          "es": "Belleza natural",
+          "en": "Natural beauty",
+          "fr": "Beauté naturelle",
+          "pt": "Beleza natural"
+        }
+      },
+      {
+        "key": "baru",
+        "venue_id": null,
+        "title": {
+          "es": "Barú",
+          "en": "Barú",
+          "fr": "Barú",
+          "pt": "Barú"
+        },
+        "tagline": {
+          "es": "Clubes de playa y puestas de sol",
+          "en": "Beach clubs & sunsets",
+          "fr": "Beach clubs et couchers de soleil",
+          "pt": "Beach clubs e pôr do sol"
+        }
+      },
+      {
+        "key": "nature",
+        "venue_id": null,
+        "title": {
+          "es": "Nature & Adventure",
+          "en": "Nature & Adventure",
+          "fr": "Nature & Adventure",
+          "pt": "Nature & Adventure"
+        },
+        "tagline": {
+          "es": "Snorkel. Buceo. Explorar.",
+          "en": "Snorkel. Dive. Explore.",
+          "fr": "Snorkeling. Plongée. Exploration.",
+          "pt": "Snorkel. Mergulho. Explorar."
+        }
+      },
+      {
+        "key": "private_boats",
+        "venue_id": null,
+        "title": {
+          "es": "Botes privados",
+          "en": "Private boats",
+          "fr": "Bateaux privés",
+          "pt": "Barcos privados"
+        },
+        "tagline": {
+          "es": "Tu propia ruta",
+          "en": "Your own route",
+          "fr": "Ta propre route",
+          "pt": "Sua própria rota"
+        }
+      }
+    ]
+  }
+}

@@ -1260,6 +1260,27 @@ async def event_gate(
 
 # ── post-LLM guards ──────────────────────────────────────────────────────────
 
+# CMW (docs/cmw/DESIGN.md §5): the ONLY non-event URL prefixes an external_link may carry —
+# the concierge WhatsApp and the Music Week hub. Kept literal here (luna_cmw / cmw assert
+# they match) so the sanitizer never depends on the CMW modules.
+CMW_URL_PREFIXES: Tuple[str, str] = ("https://wa.me/573116844492", "https://www.amocartagena.co/music-week")
+_URL_BAD_CHARS_RE = re.compile(r"[\s\\\x00-\x1f]|\.\.")
+
+
+def cmw_url_allowed(url: Any) -> bool:
+    """Exactly the two CMW prefixes: the WhatsApp number may only be followed by a query string
+    (so '/../<other number>' can never re-point it) and the hub by its own sub-path, query or
+    fragment. Never a whitespace, backslash, control char or '..' anywhere."""
+    if not isinstance(url, str):
+        return False
+    u = url.strip()
+    if not u or len(u) > 2048 or _URL_BAD_CHARS_RE.search(u):
+        return False
+    wa, hub = CMW_URL_PREFIXES
+    if u == wa or u.startswith(wa + "?"):
+        return True
+    return u == hub or (u.startswith(hub) and u[len(hub)] in "/?#")
+
 
 def sanitize(
     recs: Sequence[Any],
@@ -1273,7 +1294,8 @@ def sanitize(
     """§9 sanitizer. Event cards and open_event actions survive only for injected ids whose row
     every client can open (openable_everywhere: published, HIGH, not an umbrella — event cards
     are rebuilt from the row); external_link survives only for an injected row's ticket/source
-    URL (or an explicitly allowed official URL). Partner cards pass through."""
+    URL (or an explicitly allowed official URL, or a CMW concierge / hub URL — cmw_url_allowed).
+    Partner cards pass through."""
     by_id: Dict[str, Mapping[str, Any]] = {str(r["event_id"]): r for r in injected_rows if r.get("event_id")}
     urls: Set[str] = set()
     for r in injected_rows:
@@ -1307,7 +1329,7 @@ def sanitize(
             continue
         if typ == "external_link":
             u = a.get("url")
-            if not isinstance(u, str) or u.strip() not in urls:
+            if not isinstance(u, str) or (u.strip() not in urls and not cmw_url_allowed(u)):
                 continue
         out_actions.append(dict(a))
     return out_recs, out_actions

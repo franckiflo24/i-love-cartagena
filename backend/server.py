@@ -66,6 +66,9 @@ from events_time import (  # noqa: E402  — past events must fall out; "now" is
 # paths never read db.events / db.concerts again (§15 T1).
 import events_elite as _events_elite  # noqa: E402
 import luna_events as _luna_events  # noqa: E402
+# CMW (docs/cmw/DESIGN.md): the official Cartagena Music Week program + concierge requests.
+import cmw as _cmw  # noqa: E402
+import luna_cmw as _luna_cmw  # noqa: E402  — /search inherits the deterministic CMW gate (§5)
 
 # ── In-memory rate limiter for expensive AI endpoints ──────────
 from collections import defaultdict
@@ -4058,6 +4061,8 @@ async def delete_account(request: Request):
     await db.event_notif_prefs.delete_many({"user_id": user_id})
     await db.event_push_log.delete_many({"user_id": user_id})
     await db.event_reminders_sent.delete_many({"user_id": user_id})
+    # CMW concierge requests carry a name and a contact (docs/cmw/DESIGN.md §2).
+    await db.cmw_requests.delete_many({"user_id": user_id})
     await db.rewards_accounts.delete_many({"user_id": user_id})
     await db.rewards_history.delete_many({"user_id": user_id})
     await db.analytics.delete_many({"user_id": user_id})
@@ -6274,6 +6279,30 @@ async def global_search(q: str = "", request: Request = None):
     # authed account could loop GET /search for unbounded Anthropic spend.
     await _check_rate_limit(f"agent:{user_id}", max_calls=15, window_sec=60)
 
+    # ── CMW (docs/cmw/DESIGN.md §5): a Music Week question is answered from the official program,
+    # deterministically, BEFORE the city-events gate below (which would otherwise answer "no
+    # confirmed events" for "¿Qué hay hoy en Music Week?" — the curated program is not city_events).
+    try:
+        _cmw_payload = await _luna_cmw.gate(db, q, lang=_luna_cmw.guess_lang(q, user_lang), history=[])
+    except Exception as exc:
+        logger.error(f"[search] cmw gate failed: {type(exc).__name__}")
+        _cmw_payload = _luna_cmw.unavailable_payload(user_lang) if _luna_cmw.mentions_cmw(q) else None
+    if _cmw_payload is not None:
+        ai_payload = {
+            "query": q, "intent": "event",
+            "answer": _cmw_payload.get("message") or "",
+            "language": _cmw_payload.get("language") or user_lang,
+            "recommendations": _cmw_payload.get("recommendations") or [],
+            "actions": _cmw_payload.get("actions") or [],
+            "suggestions": _cmw_payload.get("suggestions") or [],
+            "highlights": [],
+        }
+        await _track_impressions(partners, user_id, extra={
+            "result_counts": {k: len(v) for k, v in matches.items()},
+            "ai_intent": "cmw", "ai_used": False,
+        })
+        return {**matches, "search_id": search_id, "ai": ai_payload}
+
     # ── EVENTS-ELITE §13 D4: an event question never reaches the LLM from the search bar ──
     # The answer is the deterministic grounded list (verified city_events only, cited) or the
     # decline (maintenance / nothing confirmed + what IS confirmed); highlights name only the
@@ -8452,6 +8481,11 @@ async def seed_analytics_demo_data():
 # get_event (§13 C1).
 _events_elite.init(db_=db, require_admin=require_admin)
 app.include_router(_events_elite.router, prefix="/api")
+
+# CMW router (official program + concierge requests + token-only admin), mounted BEFORE
+# api_router like the events router (docs/cmw/DESIGN.md §3).
+_cmw.init(db_=db)
+app.include_router(_cmw.router, prefix="/api")
 
 app.include_router(api_router)
 

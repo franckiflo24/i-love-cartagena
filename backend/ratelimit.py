@@ -47,6 +47,7 @@ SENSITIVE_PREFIXES = (
     "paycreate",                                  # payment-record creation (pre-B3)
     "agent", "concierge", "bizupload", "pulse", "bizpulse", "lunataste",  # paid-LLM cost abuse
     "adminlogin",                                 # master admin password brute-force
+    "cmwip", "cmwcontact",                        # CMW concierge requests (each one alerts a human)
 )
 
 # Degraded-mode fallback: the pre-RL in-process buckets. Per-instance only,

@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx expo export --platform web && node scripts/check-no-legacy-events.mjs && rm -f dist/_sitemap.html && cp dist/+not-found.html dist/404.html && node scripts/stamp-sw.mjs",
+  "buildCommand": "node scripts/sync-cmw-data.mjs && npx expo export --platform web && node scripts/check-no-legacy-events.mjs && rm -f dist/_sitemap.html && cp dist/+not-found.html dist/404.html && node scripts/stamp-sw.mjs",
   "outputDirectory": "dist",
   "framework": null,
   "redirects": [
@@ -71,6 +71,56 @@
     {
       "source": "/QUE-PASA",
       "destination": "/que-pasa",
+      "statusCode": 308
+    },
+    {
+      "source": "/cmw",
+      "destination": "/music-week",
+      "statusCode": 308
+    },
+    {
+      "source": "/Cmw",
+      "destination": "/music-week",
+      "statusCode": 308
+    },
+    {
+      "source": "/CMW",
+      "destination": "/music-week",
+      "statusCode": 308
+    },
+    {
+      "source": "/musicweek",
+      "destination": "/music-week",
+      "statusCode": 308
+    },
+    {
+      "source": "/Musicweek",
+      "destination": "/music-week",
+      "statusCode": 308
+    },
+    {
+      "source": "/MusicWeek",
+      "destination": "/music-week",
+      "statusCode": 308
+    },
+    {
+      "source": "/MUSICWEEK",
+      "destination": "/music-week",
+      "statusCode": 308
+    },
+    {
+      "source": "/Music-week",
+      "destination": "/music-week",
+      "statusCode": 308
+    },
+    {
+      "source": "/Music-Week",
+      "destination": "/music-week",
+      "statusCode": 308
+    },
+    {
+      "source": "/MUSIC-WEEK",
+      "destination": "/music-week",
       "statusCode": 308
     }
   ],
@@ -146,6 +196,10 @@
     {
       "source": "/event/:id",
       "destination": "/event/%5Bid%5D"
+    },
+    {
+      "source": "/music-week/:id",
+      "destination": "/music-week/%5Bid%5D"
     },
     {
       "source": "/partner-event/:id",

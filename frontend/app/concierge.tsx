@@ -16,6 +16,8 @@ import { useLang } from '../src/context/LanguageContext';
 import { API_BASE } from '../src/constants/api';
 import { useSignupGate } from '../src/context/SignupGateContext';
 import { trackGate, getArchetype } from '../src/lib/gateAnalytics';
+import { cmwActionLinks, type CmwActionLinks } from '../src/lib/cmw';
+import { openExternal } from '../src/lib/cityModules';
 
 // ── Agent Card ──
 function AgentCard({ agent, onPress }: { agent: ConciergeAgent; onPress: () => void }) {
@@ -80,6 +82,9 @@ export default function ConciergeScreen() {
   const [chipsVisible, setChipsVisible] = useState(true);
   // Indices of assistant messages whose reply carried an events action.
   const [eventLinkAt, setEventLinkAt] = useState<number[]>([]);
+  // Cartagena Music Week links per assistant message (docs/cmw/DESIGN.md §5): the
+  // public hub URL opens in-app, the concierge wa.me link opens externally.
+  const [cmwLinksAt, setCmwLinksAt] = useState<Record<number, CmwActionLinks>>({});
   const scrollRef = useRef<ScrollView>(null);
   const agent = activeAgent ? AGENTS[activeAgent] : null;
 
@@ -87,6 +92,7 @@ export default function ConciergeScreen() {
     setActiveAgent(id);
     setMessages([]);
     setEventLinkAt([]);
+    setCmwLinksAt({});
     setChipsVisible(true);
     setInput('');
   };
@@ -120,6 +126,8 @@ export default function ConciergeScreen() {
           trackGate('luna_taste', { action: 'luna', archetype: getArchetype() });
           // The assistant reply lands right after the user message appended above.
           if (pointsToEvents(d?.assistant?.actions)) setEventLinkAt((l) => [...l, messages.length + 1]);
+          const cmwGuest = cmwActionLinks(d?.assistant?.actions);
+          if (cmwGuest.path || cmwGuest.whatsapp) setCmwLinksAt((m) => ({ ...m, [messages.length + 1]: cmwGuest }));
           setMessages((prev) => [...prev, { role: 'assistant', content: d?.assistant?.message || '¿En qué te ayudo?' }]);
         } else {
           // taste already used (429) or unavailable → the wall
@@ -159,6 +167,8 @@ export default function ConciergeScreen() {
     // The assistant reply lands at index updated.length: show the verified-agenda link
     // when Luna answered an event question (navigate → agenda / show_events).
     if (pointsToEvents(actions)) setEventLinkAt((l) => [...l, updated.length]);
+    const cmw = cmwActionLinks(actions);
+    if (cmw.path || cmw.whatsapp) setCmwLinksAt((m) => ({ ...m, [updated.length]: cmw }));
     setMessages([...updated, { role: 'assistant', content: reply }]);
     setLoading(false);
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
@@ -270,6 +280,34 @@ export default function ConciergeScreen() {
                     <Ionicons name="arrow-forward" size={13} color={agent.accent} />
                   </TouchableOpacity>
                 )}
+                {msg.role === 'assistant' && !!cmwLinksAt[i] && (
+                  <View style={styles.cmwLinks}>
+                    {!!cmwLinksAt[i].path && (
+                      <TouchableOpacity
+                        onPress={() => router.push(cmwLinksAt[i].path as never)}
+                        style={[styles.eventLink, { borderColor: agent.accent + '55' }]}
+                        accessibilityRole="button"
+                        testID="concierge-cmw-link"
+                      >
+                        <Ionicons name="musical-notes-outline" size={14} color={agent.accent} />
+                        <Text style={[styles.eventLinkText, { color: agent.accent }]}>Cartagena Music Week</Text>
+                        <Ionicons name="arrow-forward" size={13} color={agent.accent} />
+                      </TouchableOpacity>
+                    )}
+                    {!!cmwLinksAt[i].whatsapp && (
+                      <TouchableOpacity
+                        onPress={() => openExternal(cmwLinksAt[i].whatsapp as string)}
+                        style={[styles.eventLink, { borderColor: agent.accent + '55' }]}
+                        accessibilityRole="link"
+                        testID="concierge-cmw-whatsapp"
+                      >
+                        <Ionicons name="logo-whatsapp" size={14} color={agent.accent} />
+                        <Text style={[styles.eventLinkText, { color: agent.accent }]}>{tr('Escribir por WhatsApp')}</Text>
+                        <Ionicons name="open-outline" size={13} color={agent.accent} />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
               </View>
             );
           })}
@@ -365,6 +403,7 @@ const styles = StyleSheet.create({
     marginTop: SPACING.sm, paddingHorizontal: 12, borderRadius: RADIUS.full, borderWidth: 1,
   },
   eventLinkText: { fontSize: 13, ...FONTS.semibold },
+  cmwLinks: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 
   // ── Input ──
   inputBar: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, paddingBottom: SPACING.md, borderTopWidth: 1, borderTopColor: COLORS.border },

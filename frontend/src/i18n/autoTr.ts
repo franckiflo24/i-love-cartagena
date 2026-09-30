@@ -16,6 +16,7 @@ import { useLang } from '../context/LanguageContext';
 import type { Lang } from './translations';
 import { EVENTS_TR } from './autoTrEvents';
 import { NEARBY_TR } from './autoTrNearby';
+import { CMW_TR } from './autoTrCmw';
 
 export type Dict = Record<string, Partial<Record<Lang, string>>>;
 
@@ -1705,7 +1706,7 @@ export const AUTO_TR: Dict = {
   // {es,en,fr,pt}. Badge labels live in STATUS_META (src/lib/cityModules.ts) and
   // are tr()'d at render — 'Próximamente' already exists above. TÚ voice; FR uses
   // tu to match the module copy on the same screen.
-  'Moverse': { en: 'Getting around', fr: 'Se déplacer', pt: 'Como se mover' },
+  'Moverse': { en: 'Get around', fr: 'Se déplacer', pt: 'Como se mover' },
   'Bus, muelle, taxis': { en: 'Bus, pier, taxis', fr: 'Bus, quai, taxis', pt: 'Ônibus, píer, táxis' },
   'Moverse en Cartagena': { en: 'Getting around Cartagena', fr: 'Se déplacer à Carthagène', pt: 'Como se mover em Cartagena' },
   'Precios reales, fuentes oficiales, sin sorpresas': { en: 'Real prices, official sources, no surprises', fr: 'Vrais prix, sources officielles, zéro surprise', pt: 'Preços reais, fontes oficiais, sem surpresas' },
@@ -1907,7 +1908,7 @@ export function useTr() {
   return useCallback((esText: string | null | undefined): string => {
     if (!esText) return '';
     if (lang === 'es') return esText;
-    const entry = AUTO_TR[esText] ?? EVENTS_TR[esText] ?? NEARBY_TR[esText];
+    const entry = AUTO_TR[esText] ?? EVENTS_TR[esText] ?? NEARBY_TR[esText] ?? CMW_TR[esText];
     if (!entry) return esText; // fallback: original Spanish
     return entry[lang] || esText;
   }, [lang]);

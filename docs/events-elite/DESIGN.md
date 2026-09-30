@@ -807,6 +807,8 @@ Phil's direction: *"all the top events are always showing first, not just the re
   - An umbrella hides its own sub-events from Destacados, except a flagship sub-event starting within 7 days (e.g. the Bando in its week).
   - date_tbc rows are never included.
   - HIGH rows outrank VERIFY rows.
+  - Rows with prominence ≤ 0 (series/recurring, "never promoted" in §16.1) are never included.
+  - When fewer than `max` rows qualify inside the 90 days, the rail is backfilled with the flagship rows beyond the window (prominence desc, then start_date asc), so the city's headline festivals are always on the rail (amended 2026-09-29: on the real anchors only 3 rows fall inside 90 days and a stand-up show outranked three flagships).
 - **/que-pasa** opens with a **Destacados** hero rail: large cards with image or category art, title, date range ("9–17 ene"), venue, and the trust line. The Hoy / Esta semana / Próximos control and the lists come below it.
 - **Home**, in this order:
   1. **"Ahora en Cartagena"**, only when something is ongoing today or starts within 3 h. It gets an "En curso" or "Empieza a las 20:00" chip.
@@ -818,7 +820,8 @@ Phil's direction: *"all the top events are always showing first, not just the re
 ## 16.3 Clean calendar
 - **Esta semana**: a 7-day date strip. Each chip shows the weekday and day number, plus a dot/count when that day has events; tapping a chip filters to that day. The list shows day headers ("Hoy · mar 29 sep", "Mañana", "Sáb 3 oct").
 - **Próximos** is grouped by month under sticky headers ("Octubre 2026 · 9 eventos"). Each row has a date-badge column on the left (the day number, plus a weekday abbreviation) and a compact card on the right: title in 2 lines max, venue, time, and category tint.
-- **Umbrella festivals** (Fiestas de Independencia) appear as ONE group card: the name, the date range, "16 eventos del programa" and "Ver programa". The card expands in place into a day-grouped sub-list. On their own day (Hoy/Semana), sub-events also appear individually, with a small "Parte de: Fiestas de Independencia" tag.
+- **Umbrella festivals** (Fiestas de Independencia) appear as ONE group card: the name, the date range, "16 eventos del programa" and "Ver programa". The card expands in place into a day-grouped sub-list (rendered under the card as day blocks whose headers stick: "Jue 12 nov · Fiestas de Independencia"). On their own day (Hoy/Semana), sub-events also appear individually, with a small "Parte de: Fiestas de Independencia" tag. A **flagship sub-event** (the Bando, the Festival Náutico) is also listed as its own row in its real month of Próximos, with the same tag and the gold star; inside the program it is starred and sorts first within its day.
+- **Counts:** every count (tab badge, day header, date-strip chip, month header, Agenda) counts EVENT rows only. An umbrella is a group card, never counted as an event; its own count is "N eventos del programa", and a month header whose card folds rows away reads "2 eventos · +16 del programa" (or "16 eventos del programa" when the card is the month's only item).
 - One scroll row of category chips ("Todos" by default). No duplicate filters and no nested tabs.
 - Visual rules: 16 px gutters, 12 px between cards, max 2 lines per title, one accent colour per category, no more than 3 badges per card, and no boxed empty states (one line plus a link).
 - **Agenda tab ("Salir hoy")** uses the same 14-day date strip with count dots and the same row component, ordered flagship first within each day.

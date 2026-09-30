@@ -199,7 +199,8 @@ def to_legacy_concert(pv: Mapping[str, Any]) -> Optional[Dict[str, Any]]:
 def legacy_events(pvs: Iterable[Mapping[str, Any]]) -> List[Dict[str, Any]]:
     out = []
     for pv in pvs:
-        row = to_legacy_event(pv)
+        # §16.1: a flagship row is featured for old binaries too (else featured = festival).
+        row = to_legacy_event(pv, featured=True if pv.get("flagship") is True else None)
         if row is not None:
             out.append(row)
     return out
@@ -217,12 +218,16 @@ def legacy_concerts(pvs: Iterable[Mapping[str, Any]]) -> List[Dict[str, Any]]:
 
 
 def legacy_featured(rows: Iterable[Mapping[str, Any]], limit: int = 10,
-                    prominence: Optional[Mapping[str, int]] = None) -> List[Dict[str, Any]]:
-    """/events/featured: rows that are geocoded or festivals, first 10, sorted by §16.1
-    prominence desc (by event_id; the legacy row shape itself never changes), then start date
-    and time. Without a prominence map every row weighs 0 (plain date order)."""
+                    prominence: Optional[Mapping[str, int]] = None,
+                    flagship: Optional[Iterable[str]] = None) -> List[Dict[str, Any]]:
+    """/events/featured: rows that are geocoded, festivals or §16.1 flagship (by event_id — the
+    IRONMAN course and the Bando route have no pin, yet they are headline events), first 10,
+    sorted by prominence desc (by event_id; the legacy row shape itself never changes), then
+    start date and time. Without a prominence map every row weighs 0 (plain date order)."""
     prom = prominence or {}
-    picked = [dict(r) for r in rows if "location" in r or r.get("category") == "festival"]
+    flag = set(flagship or ())
+    picked = [dict(r) for r in rows
+              if "location" in r or r.get("category") == "festival" or str(r.get("event_id")) in flag]
 
     def weight(r: Mapping[str, Any]) -> int:
         v = prom.get(str(r.get("event_id")), 0)

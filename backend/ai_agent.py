@@ -49,6 +49,7 @@ from partner_visibility import PUBLIC_PARTNER_FILTER  # U4: Luna never recommend
 from events_time import BOGOTA, now_bogota  # Luna's "now" is Bogota
 import events_gate as _events_gate  # EVENTS-ELITE: ISO parsing for the follow-up window
 import luna_events as _luna_events  # EVENTS-ELITE: the ONLY source of event facts for Luna (DESIGN.md §9/§13 I/§15 V)
+import luna_cmw as _luna_cmw  # CMW: Cartagena Music Week answers are deterministic, never the LLM (docs/cmw/DESIGN.md §5)
 import wompi as _wompi  # payments_live: Luna must not offer a checkout the app cannot open (env-only, no DB)
 from typing import Any, Dict, List, Mapping, Optional, Tuple
 
@@ -2198,6 +2199,19 @@ async def run_agent_turn(
     now_utc = now if isinstance(now, datetime) else datetime.now(timezone.utc)
     decl_lang = forced or _luna_events.guess_lang(user_text)
 
+    # ── CMW gate (docs/cmw/DESIGN.md §5): deterministic, BEFORE the events gate, never the LLM.
+    # A Music Week question is answered from the official program; during the week a general
+    # event question gets the day's official program first, then the verified city agenda.
+    try:
+        cmw_payload = await _luna_cmw.gate(
+            db, user_text, lang=_luna_cmw.guess_lang(user_text, forced or None), history=history,
+            location=location, now=now_utc)
+    except Exception as exc:  # noqa: BLE001 — a CMW question still never reaches the LLM
+        logger.error(f"[agent] cmw gate failed: {type(exc).__name__}")
+        cmw_payload = _luna_cmw.unavailable_payload(decl_lang) if _luna_cmw.mentions_cmw(user_text) else None
+    if cmw_payload is not None:
+        return cmw_payload
+
     # ── EVENTS-ELITE gate: deterministic, before any LLM call ──
     try:
         intent = _luna_events.detect_event_intent(user_text, decl_lang, now=now_utc)
@@ -2353,6 +2367,25 @@ async def run_agent_turn(
             if len(actions) < 4 and not any(a.get("type") == "navigate" and a.get("screen") == "agenda" for a in actions):
                 actions.append(_luna_events.agenda_action(language))
         message = stripped
+
+    # CMW guard (docs/cmw/DESIGN.md §5): on this non-CMW turn, a reply that puts a time, a price
+    # or a person the program does not name next to "Music Week" / "Very Special Guest" / Zamna /
+    # Stardust / Saraga / "We Are Us" is replaced by the deterministic program answer. When the
+    # previous user turn was CMW, the reply is checked as if it named Music Week: a follow-up
+    # ("¿y quién es el invitado?") can never name the guest, a time or a price.
+    try:
+        cmw_ctx = _luna_cmw.in_cmw_context(history, user_text, language, now_utc)
+        guarded = await _luna_cmw.guard_turn(
+            db, {"message": message, "recommendations": recommendations, "actions": actions,
+                 "suggestions": suggestions},
+            lang=language, now=now_utc, known_names=list(partner_names.values()), cmw_context=cmw_ctx)
+        message = guarded["message"]
+        recommendations, actions, suggestions = guarded["recommendations"], guarded["actions"], guarded["suggestions"]
+    except Exception as exc:  # noqa: BLE001 — fail closed: a CMW mention the guard cannot check is dropped
+        logger.error(f"[agent] cmw guard failed: {type(exc).__name__}")
+        if _luna_cmw.mentions_cmw(message):
+            message = _luna_cmw.unavailable_payload(language)["message"]
+        suggestions = [s for s in suggestions if not _luna_cmw.mentions_cmw(s)]
 
     return {
         "message": message,

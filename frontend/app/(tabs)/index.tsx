@@ -49,6 +49,7 @@ import { NowStrip } from '../../src/components/NowStrip';
 import { FxStrip } from '../../src/components/FxStrip';
 import LockedTease from '../../src/components/LockedTease';
 import NearbyEventsCard from '../../src/components/NearbyEventsCard';
+import CmwHomeCard from '../../src/components/cmw/CmwHomeCard';
 import {
   EventDayRow, EventHeroCard, EventNowCard, FeedEmptyLine, FeedOfflineBanner, umbrellaShortName,
 } from '../../src/components/EventFeedUI';
@@ -786,6 +787,11 @@ export default function HomeScreen() {
             <NearbyEventsCard events={feed.data.events} />
           </View>
         )}
+
+        {/* Cartagena Music Week (docs/cmw/DESIGN.md §4 Home): promo before the week,
+            "Hoy en Music Week" during it, nothing after. Self-contained; ABOVE the
+            city events rails and never mixed into them. */}
+        <CmwHomeCard />
 
         {/* 5 · Events (EVENTS-ELITE §16.2): Ahora en Cartagena → Destacados → Hoy.
             Each slot renders only with rows, except Hoy's single honest line, so

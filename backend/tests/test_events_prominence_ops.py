@@ -468,3 +468,19 @@ def test_backend_vercel_crons_are_self_healing_and_keep_the_other_crons() -> Non
     assert ("/api/admin/events/reminders", "*/15 * * * *") in crons
     assert ("/api/admin/demand/refresh?days=30", "0 10 * * 1") in crons
     assert ("/api/admin/local-picks/refresh", "0 8 * * *") in crons
+
+
+def test_featured_route_admits_flagship_rows_without_a_pin_and_marks_them_featured() -> None:
+    """§16.1: IRONMAN's course and the Bando's route have no pin and are not festivals, yet they
+    are headline events: /events/featured carries them (first), with featured=True."""
+    course = row("ce-ironman-20261129-aa04", category="sports", start="2026-11-29", flagship=True)
+    course.update({"lat": None, "lng": None, "geocode_source": None})
+    plain = row("ce-plain-20261020-aa05", start="2026-10-20")
+    plain.update({"lat": None, "lng": None, "geocode_source": None})
+    db = stub_db(course, plain, row("ce-mid-20261105-aa03", category="festival", start="2026-11-05"))
+    out = asyncio.run(E.legacy_featured_rows(db, now=NOW))
+    assert [r["event_id"] for r in out] == ["ce-ironman-20261129-aa04", "ce-mid-20261105-aa03"]
+    assert out[0]["featured"] is True and "location" not in out[0]
+    rows = asyncio.run(E.legacy_rows(db, now=NOW))
+    assert {r["event_id"]: r["featured"] for r in rows} == {
+        "ce-ironman-20261129-aa04": True, "ce-mid-20261105-aa03": True, "ce-plain-20261020-aa05": False}

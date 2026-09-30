@@ -183,6 +183,10 @@ async def public_rows(
             continue
         if legacy and (pv["is_umbrella"] or not pv["start_date"]):
             continue
+        if gate.cmw_conflict(doc):
+            # docs/cmw/DESIGN.md §0: only the curated program speaks about Music Week.
+            logger.warning("[events] cmw_conflict: dropped %s from the public feed", doc.get("event_id"))
+            continue
         out.append(pv)
     out.sort(key=gate.public_sort_key)
     return out[:lim]
@@ -211,6 +215,10 @@ async def public_item(db: Any, id_or_alias: Any, *, now: Optional[datetime] = No
         return None
     doc = await resolve_event(db, id_or_alias)
     if doc is None:
+        return None
+    if gate.cmw_conflict(doc):
+        # docs/cmw/DESIGN.md §0: a city row about Music Week is never served (same as the feed).
+        logger.warning("[events] cmw_conflict: dropped %s from feed/item", doc.get("event_id"))
         return None
     now_utc = gate.as_utc(now)
     healthy = await sentinel_healthy(db, now_utc)
