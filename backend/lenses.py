@@ -418,13 +418,18 @@ async def cruise_pull(*, dry: bool = False, now: Optional[datetime] = None) -> D
         import events_sources as srcs
         # The schedule is month-paginated server-side; without ?month the page
         # serves a stale window and today never appears (verified 2026-09-30).
-        url = await srcs.public_url_guard(f"{CRUISE_URL}?month={today.strftime('%Y-%m')}")
-        if url:
-            async with srcs.make_client() as client:
-                page = await srcs.fetch(client, url)
-                body = getattr(page, "text", None) or (page if isinstance(page, str) else None)
-                if body:
-                    ships = parse_cruise_ships(body, today)
+        target = f"{CRUISE_URL}?month={today.strftime('%Y-%m')}"
+        async with srcs.make_client() as client:
+            # fetch returns a FetchResult DICT; public_url_guard goes in as the
+            # per-hop url_guard (it returns a refusal string, None = allowed).
+            page = await srcs.fetch(
+                client, target, url_guard=srcs.public_url_guard,
+                headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                                       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"},
+            )
+            if (isinstance(page, dict) and not page.get("blocked_reason")
+                    and 200 <= int(page.get("status") or 0) < 300 and not page.get("challenged")):
+                ships = parse_cruise_ships(page.get("text") or "", today)
     except Exception as exc:  # noqa: BLE001 — hide, never fake
         logger.error("[lenses] cruise fetch failed: %s", type(exc).__name__)
         ships = None

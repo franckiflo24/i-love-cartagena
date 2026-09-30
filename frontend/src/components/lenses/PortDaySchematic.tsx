@@ -15,7 +15,7 @@
  * identical — no hydration drift. The <Svg> scales to its container through viewBox.
  */
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Polyline, Text as SvgText } from 'react-native-svg';
 import { COLORS, FONTS, RADIUS } from '../../constants/theme';
 import { useTr } from '../../i18n/autoTr';
@@ -49,6 +49,12 @@ const GRID = 34;
 const GRID_COLOR = 'rgba(255,255,255,0.05)';
 const FIRST_FILL = COLORS.mustard;
 const FIRST_TEXT = '#1A1206';
+// SVG <text> does not inherit RN-web's Text font stack (it fell back to a serif in Chrome), so
+// name the system stack on web. Native: react-native-svg already draws with the platform font.
+const SVG_FONT = Platform.select<string | undefined>({
+  web: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  default: undefined,
+});
 
 const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 
@@ -206,6 +212,7 @@ export function PortDaySchematic({ stops, height = DEFAULT_HEIGHT }: Props) {
                 <SvgText
                   x={p.x}
                   y={p.y + 4}
+                  fontFamily={SVG_FONT}
                   fontSize={11}
                   fontWeight="700"
                   fill={first ? FIRST_TEXT : COLORS.textMain}

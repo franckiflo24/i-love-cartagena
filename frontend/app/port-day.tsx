@@ -477,12 +477,10 @@ function ItineraryCard({ it, doc }: { it: Itinerary; doc: LensesDoc }) {
   const stops: ItineraryStop[] = Array.isArray(it.stops) ? it.stops : [];
   return (
     <View style={s.itCard} testID={`port-day-itinerary-${it.id}`}>
-      <View style={s.itHead}>
-        <Text style={s.itTitle}>{pickL4(it.title, lang)}</Text>
-        <View style={s.durationPill}>
-          <Ionicons name="time-outline" size={12} color={COLORS.textMuted} />
-          <Text style={s.durationText}>{it.duration_h} {tr('horas')}</Text>
-        </View>
+      <Text style={s.itTitle}>{pickL4(it.title, lang)}</Text>
+      <View style={s.durationPill}>
+        <Ionicons name="time-outline" size={12} color={COLORS.textMuted} />
+        <Text style={s.durationText}>{it.duration_h} {tr('horas')}</Text>
       </View>
       <Text style={s.itNote}>{pickL4(it.note, lang)}</Text>
       <PortDaySchematic stops={stops} />
@@ -686,11 +684,10 @@ const s = StyleSheet.create({
 
   // itineraries
   itCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, padding: SPACING.md, borderWidth: 1, borderColor: COLORS.border, marginBottom: SPACING.md },
-  itHead: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
-  itTitle: { ...TYPE.headline, color: COLORS.textMain, flex: 1 },
-  durationPill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: RADIUS.full, paddingHorizontal: 9, paddingVertical: 3 },
+  itTitle: { ...TYPE.headline, color: COLORS.textMain },
+  durationPill: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: RADIUS.full, paddingHorizontal: 9, paddingVertical: 3 },
   durationText: { fontSize: 11, color: COLORS.textMuted, ...FONTS.semibold },
-  itNote: { marginTop: 6, fontSize: 12.5, lineHeight: 18, color: COLORS.textMuted, ...FONTS.regular },
+  itNote: { marginTop: 8, fontSize: 12.5, lineHeight: 18, color: COLORS.textMuted, ...FONTS.regular },
   stopList: { marginTop: SPACING.md },
   stopRow: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, paddingVertical: 8 },
   stopDivider: { borderTopWidth: 1, borderTopColor: COLORS.hairline },

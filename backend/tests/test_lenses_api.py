@@ -141,6 +141,41 @@ def test_cruise_pull_requires_bearer(client, monkeypatch) -> None:
                       headers={"Authorization": "Bearer wrong"}).status_code == 401
 
 
+def test_cruise_pull_end_to_end_parses_and_stores(client, monkeypatch) -> None:
+    """Regression for the FetchResult seam: fetch returns a DICT whose usable body is
+    page['text'] with blocked_reason None — the pull must parse it and store the count
+    (this exact seam shipped broken once: .text attr + inverted guard → always null)."""
+    import types
+    import lenses as L_
+    today = NOW.astimezone(L_.BOGOTA).date()
+    d = f"{today.day} {today.strftime('%B')}, {today.year}"
+    page_html = _page(_day(d, 2))
+
+    class _Client:
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): return False
+
+    async def fake_fetch(client_, url, **kw):
+        assert f"?month={today.strftime('%Y-%m')}" in url  # month pagination is required
+        assert kw.get("url_guard") is not None
+        return {"status": 200, "text": page_html, "blocked_reason": None, "challenged": False}
+
+    fake_srcs = types.SimpleNamespace(make_client=lambda: _Client(), fetch=fake_fetch,
+                                      public_url_guard=object())
+    monkeypatch.setitem(sys.modules, "events_sources", fake_srcs)
+    monkeypatch.setenv("CRON_SECRET", "s" * 32)
+    r = client.post("/api/admin/lenses/cruise-pull", headers={"Authorization": "Bearer " + "s" * 32})
+    assert r.status_code == 200 and r.json()["ships"] == 2
+    assert L_.db.lens_state.doc["ships"] == 2 and L_.db.lens_state.doc["date"] == today.isoformat()
+    # and a blocked page stores null (hide, never fake)
+    async def blocked_fetch(client_, url, **kw):
+        return {"status": 403, "text": "x", "blocked_reason": "challenge", "challenged": True}
+    fake_srcs.fetch = blocked_fetch
+    r2 = client.post("/api/admin/lenses/cruise-pull", headers={"Authorization": "Bearer " + "s" * 32})
+    assert r2.status_code == 200 and r2.json()["ships"] is None
+    assert L_.db.lens_state.doc["ships"] is None
+
+
 def _day(d: str, ships: int) -> str:
     """One schedule day in the real CruiseMapper shape: a newDay marker row with
     the first ship, then plain rows for the rest of that day's ships."""
