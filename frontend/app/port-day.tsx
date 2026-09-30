@@ -637,7 +637,7 @@ const s = StyleSheet.create({
   emptySub: { ...TYPE.subhead, color: COLORS.textMuted },
 
   // all-aboard picker
-  selLabel: { marginTop: SPACING.md, marginBottom: SPACING.sm, fontSize: 11, color: COLORS.textMain, ...FONTS.bold, letterSpacing: 1, textTransform: 'uppercase' },
+  selLabel: { marginTop: SPACING.md, marginBottom: SPACING.sm, fontSize: 12.5, lineHeight: 17, color: COLORS.textMuted, ...FONTS.semibold, letterSpacing: 0.2 },
   chipGrid: { gap: 8 },
   chipRow: { flexDirection: 'row', gap: 8 },
   chip: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', backgroundColor: 'rgba(255,255,255,0.04)' },
@@ -672,7 +672,7 @@ const s = StyleSheet.create({
   fareCop: { fontSize: 16, lineHeight: 20, color: COLORS.primary, ...FONTS.bold, letterSpacing: -0.2, fontVariant: ['tabular-nums'] },
   fareText: { flexShrink: 1, fontSize: 13, lineHeight: 18, color: COLORS.textMuted, ...FONTS.regular },
   verifyChip: { flexDirection: 'row', alignItems: 'center', gap: 3, borderWidth: 1, borderRadius: RADIUS.full, paddingHorizontal: 7, paddingVertical: 2, borderColor: `${COLORS.coral}8C`, backgroundColor: `${COLORS.coral}1A` },
-  verifyChipText: { fontSize: 9.5, color: COLORS.coral, ...FONTS.bold, letterSpacing: 0.5, textTransform: 'uppercase' },
+  verifyChipText: { fontSize: 10.5, color: COLORS.coral, ...FONTS.bold, letterSpacing: 0.2 },
   sourceBox: { marginTop: SPACING.sm + 4, marginBottom: SPACING.sm, gap: 3, paddingHorizontal: 2 },
   sourceRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 5 },
   sourceIcon: { marginTop: 1 },

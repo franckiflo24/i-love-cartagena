@@ -2401,7 +2401,9 @@ const styles = StyleSheet.create({
 // the golden-hour slot bar floats under the filter pill, clear of the FAB column.
 const lensSt = StyleSheet.create({
   rowWrap: { marginBottom: 14 },
-  slotBar: { position: 'absolute', top: 64, left: 12, right: 72, alignItems: 'flex-start' },
+  // zIndex 1000 = the filter pill's: web Leaflet panes sit at z 400-700 and
+  // silently paint over any unlayered chrome (verified live 2026-09-30).
+  slotBar: { position: 'absolute', top: 64, left: 12, right: 72, alignItems: 'flex-start', zIndex: 1000 },
   slotChips: {
     flexDirection: 'row', gap: 6, backgroundColor: 'rgba(5,8,20,0.88)',
     borderRadius: 24, padding: 4, borderWidth: 1, borderColor: 'rgba(245,166,35,0.35)',
