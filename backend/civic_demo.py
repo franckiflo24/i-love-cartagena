@@ -324,7 +324,10 @@ async def civic_issue(body: IssueBody, request: Request):
                                                      "message": "Servicio no disponible en la demo / Service not available in the demo"})
     iph = _ip_hash(request)
     try:
-        live = await db.civic_demo_tickets.count_documents({"ip_hash": iph, "status": "issued"})
+        # Credentials only: a receipt never flips to used, so counting receipts would
+        # clog the cap for its whole 48 h TTL after a couple of recharge demos.
+        live = await db.civic_demo_tickets.count_documents(
+            {"ip_hash": iph, "status": "issued", "kind": "credential"})
     except Exception as exc:  # noqa: BLE001
         logger.error("[civic] live count failed: %s", type(exc).__name__)
         live = 0
@@ -419,7 +422,9 @@ async def civic_ticket(ticket_id: str, request: Request):
 async def civic_ticket_qr(ticket_id: str, request: Request, response: Response):
     """The rotating credential. The secret NEVER leaves the server — the client
     polls per step and renders the wire (react-native-qrcode-svg). no-store."""
-    await _rl(request, "civicqr", 30, 60)
+    # 120/min: each open boleta polls ~6×/min and a pitch room shares one Wi-Fi IP —
+    # 30/min 429'd at five phones (builder verification 2026-09-30). Session-gated anyway.
+    await _rl(request, "civicqr", 120, 60)
     await _require_demo(request)
     response.headers["Cache-Control"] = "no-store"
     if not TICKET_ID_RE.match(ticket_id or ""):

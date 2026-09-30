@@ -56,7 +56,7 @@ const MONO = Platform.select({
 
 interface Tone { color: string; bg: string; border: string }
 const TEAL: Tone = { color: COLORS.primary, bg: 'rgba(18,181,165,0.12)', border: 'rgba(18,181,165,0.55)' };
-const AMBER_TONE: Tone = { color: DEMO_AMBER, bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.55)' };
+const AMBER_TONE: Tone = { color: DEMO_AMBER, bg: 'rgba(245,166,35,0.12)', border: 'rgba(245,166,35,0.55)' };
 const RED_TONE: Tone = { color: RED, bg: 'rgba(239,68,68,0.10)', border: 'rgba(239,68,68,0.55)' };
 const GRAY_TONE: Tone = { color: GRAY, bg: 'rgba(154,163,178,0.10)', border: 'rgba(154,163,178,0.45)' };
 
@@ -326,7 +326,7 @@ export default function GobiernoValidadorScreen() {
   const tr = useTr();
   const { lang } = useLang();
   const router = useRouter();
-  const { ready, token } = useCivicSession();
+  const { ready, token, signOut } = useCivicSession();
 
   const [gate, setGate] = useState<string>(() => tr('Puesto 1'));
   const [wire, setWire] = useState('');
@@ -525,8 +525,8 @@ export default function GobiernoValidadorScreen() {
         icon="lock-closed-outline"
         title={tr('Sesión requerida')}
         text={tr('Esta demostración es solo para el Distrito. Ingresa con el código de acceso de la demostración.')}
-        actionLabel={tr('Volver')}
-        onAction={goBack}
+        actionLabel={tr('Ingresar de nuevo')}
+        onAction={signOut}
         testID="gobierno-validador-session-required"
       />
     );
@@ -771,7 +771,7 @@ const s = StyleSheet.create({
   headerInner: { width: '100%', maxWidth: 560, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: SPACING.md, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm + 4 },
   backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.hairline, alignItems: 'center', justifyContent: 'center' },
   headerLabel: { flex: 1, fontSize: 14, color: COLORS.textMuted, ...FONTS.semibold },
-  demoChip: { flexDirection: 'row', alignItems: 'center', gap: 5, minHeight: 28, backgroundColor: 'rgba(245,158,11,0.14)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.55)', borderRadius: RADIUS.full, paddingHorizontal: 11, paddingVertical: 4 },
+  demoChip: { flexDirection: 'row', alignItems: 'center', gap: 5, minHeight: 28, backgroundColor: 'rgba(245,166,35,0.14)', borderWidth: 1, borderColor: 'rgba(245,166,35,0.55)', borderRadius: RADIUS.full, paddingHorizontal: 11, paddingVertical: 4 },
   demoChipText: { fontSize: 11.5, color: DEMO_AMBER, ...FONTS.bold, letterSpacing: 1.4 },
 
   // hero
@@ -882,7 +882,7 @@ const s = StyleSheet.create({
   primaryBtnText: { fontSize: 14, color: COLORS.black, ...FONTS.bold },
 
   // disclaimer footer
-  disclaimer: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: SPACING.xl, padding: SPACING.md, borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)', backgroundColor: 'rgba(245,158,11,0.06)' },
+  disclaimer: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: SPACING.xl, padding: SPACING.md, borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(245,166,35,0.35)', backgroundColor: 'rgba(245,166,35,0.06)' },
   disclaimerIcon: { marginTop: 1 },
   disclaimerText: { flex: 1, fontSize: 12, lineHeight: 17, color: COLORS.textMuted, ...FONTS.medium },
 });

@@ -12,6 +12,7 @@
 //
 // Every response is parsed defensively (no `as` casts on network data): an unexpected body becomes a
 // CivicError the screen renders as an honest error state, never a crash and never a guessed verdict.
+import { useCallback } from 'react';
 import type { ComponentProps } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -21,7 +22,8 @@ import { useBusinessAuth } from '../../context/BusinessAuthContext';
 import type { Lang } from '../../i18n/translations';
 
 // ── Shared constants ─────────────────────────────────────────────────────────
-export const DEMO_AMBER = '#F59E0B';
+/** The demo amber, the same one app/gobierno/_layout.tsx paints its banner with. */
+export const DEMO_AMBER = '#F5A623';
 
 /** Business-session roles the civic endpoints accept (server._require_alcaldia_view). */
 export const CIVIC_ROLES: readonly string[] = ['alcaldia_demo', 'government'];
@@ -48,14 +50,15 @@ export function pickL2(v: Loc | null | undefined, lang: Lang): string {
 
 // "COP 18.000" — manual grouping (no Intl) so Hermes, the browser and the static export agree.
 // Same per-language house style as cityModules.formatCop: es/pt "COP 3.900", en "COP 3,900",
-// fr "3 900 COP" (narrow no-break space, currency after the number).
-const COP_SEP: Record<Lang, string> = { es: '.', pt: '.', en: ',', fr: ' ' };
+// fr "3 900 COP" (U+202F narrow no-break space between groups, U+00A0 before the currency; written as
+// escapes on purpose: invisible characters in source get "fixed" into plain spaces by the next editor).
+const COP_SEP: Record<Lang, string> = { es: '.', pt: '.', en: ',', fr: '\u202f' };
 export function formatCop(n: number, lang: Lang = 'es'): string {
   const v = Number.isFinite(n) ? n : 0;
   const sep = COP_SEP[lang] ?? '.';
   const grouped = String(Math.round(Math.abs(v))).replace(/\B(?=(\d{3})+(?!\d))/g, sep);
   const signed = `${v < 0 ? '-' : ''}${grouped}`;
-  return lang === 'fr' ? `${signed} COP` : `COP ${signed}`;
+  return lang === 'fr' ? `${signed}\u00a0COP` : `COP ${signed}`;
 }
 
 // Cartagena is UTC-5 all year (no DST). Fixed-offset arithmetic, not Intl: identical on Hermes,
@@ -834,6 +837,12 @@ export interface CivicSession {
    * API with a stored token that /business/me has not yet confirmed (it may be stale or revoked).
    */
   token: string | null;
+  /**
+   * Clears the stored business session. The layout judges "authorized" from the stored role, so a
+   * session the server has since expired would otherwise trap the user on "Sesión requerida"; signing
+   * out makes the layout show its passcode gate again.
+   */
+  signOut: () => Promise<void>;
 }
 
 /**
@@ -843,7 +852,14 @@ export interface CivicSession {
  * answers 403 otherwise.
  */
 export function useCivicSession(): CivicSession {
-  const { token, business, loading } = useBusinessAuth();
+  const { token, business, loading, logout } = useBusinessAuth();
   const roleOk = !business || CIVIC_ROLES.includes(business.role);
-  return { ready: !loading, token: !loading && token && roleOk ? token : null };
+  const signOut = useCallback(async (): Promise<void> => {
+    try {
+      await logout();
+    } catch (e) {
+      console.error('[civic] sign out', e);
+    }
+  }, [logout]);
+  return { ready: !loading, token: !loading && token && roleOk ? token : null, signOut };
 }

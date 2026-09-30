@@ -246,7 +246,7 @@ export default function GobiernoBoletaScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ id: string }>();
   const id = firstParam(params.id);
-  const { ready, token } = useCivicSession();
+  const { ready, token, signOut } = useCivicSession();
 
   const [mounted, setMounted] = useState(false);
   const [phase, setPhase] = useState<Phase>('loading');
@@ -396,8 +396,8 @@ export default function GobiernoBoletaScreen() {
         icon="lock-closed-outline"
         title={tr('Sesión requerida')}
         text={tr('Esta demostración es solo para el Distrito. Ingresa con el código de acceso de la demostración.')}
-        actionLabel={tr('Volver')}
-        onAction={goBack}
+        actionLabel={tr('Ingresar de nuevo')}
+        onAction={signOut}
         testID="gobierno-boleta-session-required"
       />
     );
@@ -571,7 +571,7 @@ const s = StyleSheet.create({
   headerInner: { width: '100%', maxWidth: 560, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: SPACING.md, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm + 4 },
   backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.hairline, alignItems: 'center', justifyContent: 'center' },
   headerLabel: { flex: 1, fontSize: 14, color: COLORS.textMuted, ...FONTS.semibold },
-  demoChip: { flexDirection: 'row', alignItems: 'center', gap: 5, minHeight: 28, backgroundColor: 'rgba(245,158,11,0.14)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.55)', borderRadius: RADIUS.full, paddingHorizontal: 11, paddingVertical: 4 },
+  demoChip: { flexDirection: 'row', alignItems: 'center', gap: 5, minHeight: 28, backgroundColor: 'rgba(245,166,35,0.14)', borderWidth: 1, borderColor: 'rgba(245,166,35,0.55)', borderRadius: RADIUS.full, paddingHorizontal: 11, paddingVertical: 4 },
   demoChipText: { fontSize: 11.5, color: DEMO_AMBER, ...FONTS.bold, letterSpacing: 1.4 },
 
   // hero
@@ -580,7 +580,7 @@ const s = StyleSheet.create({
   kindChip: { borderWidth: 1, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4, borderColor: 'rgba(18,181,165,0.40)', backgroundColor: 'rgba(18,181,165,0.10)' },
   kindChipText: { fontSize: 11, color: COLORS.primary, ...FONTS.bold, letterSpacing: 0.4 },
   statusChip: { borderWidth: 1, borderRadius: RADIUS.full, paddingHorizontal: 10, paddingVertical: 4 },
-  statusChipLive: { borderColor: 'rgba(245,158,11,0.45)', backgroundColor: 'rgba(245,158,11,0.10)' },
+  statusChipLive: { borderColor: 'rgba(245,166,35,0.45)', backgroundColor: 'rgba(245,166,35,0.10)' },
   statusChipUsed: { borderColor: 'rgba(34,197,94,0.45)', backgroundColor: 'rgba(34,197,94,0.12)' },
   statusChipText: { fontSize: 11, ...FONTS.bold, letterSpacing: 0.6, textTransform: 'uppercase' },
   statusTextLive: { color: DEMO_AMBER },
@@ -594,10 +594,10 @@ const s = StyleSheet.create({
   verifyChipText: { flexShrink: 1, fontSize: 10.5, color: COLORS.coral, ...FONTS.bold, letterSpacing: 0.2 },
 
   // QR card
-  qrCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, padding: SPACING.md, borderWidth: 1, borderColor: 'rgba(245,158,11,0.30)', marginTop: SPACING.lg, gap: SPACING.sm + 4 },
+  qrCard: { backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, padding: SPACING.md, borderWidth: 1, borderColor: 'rgba(245,166,35,0.30)', marginTop: SPACING.lg, gap: SPACING.sm + 4 },
   qrHead: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   qrHeadTitle: { ...TYPE.headline, color: COLORS.textMain, flex: 1 },
-  miniDemo: { borderWidth: 1, borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 2, borderColor: 'rgba(245,158,11,0.55)', backgroundColor: 'rgba(245,158,11,0.14)' },
+  miniDemo: { borderWidth: 1, borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 2, borderColor: 'rgba(245,166,35,0.55)', backgroundColor: 'rgba(245,166,35,0.14)' },
   miniDemoText: { fontSize: 10, color: DEMO_AMBER, ...FONTS.bold, letterSpacing: 1.2 },
   qrWrap: { alignItems: 'center', gap: 10 },
   qrPanel: { backgroundColor: QR_PAPER, borderRadius: RADIUS.lg, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
@@ -654,7 +654,7 @@ const s = StyleSheet.create({
   primaryBtnText: { fontSize: 14, color: COLORS.black, ...FONTS.bold },
 
   // disclaimer footer
-  disclaimer: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: SPACING.xl, padding: SPACING.md, borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)', backgroundColor: 'rgba(245,158,11,0.06)' },
+  disclaimer: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: SPACING.xl, padding: SPACING.md, borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(245,166,35,0.35)', backgroundColor: 'rgba(245,166,35,0.06)' },
   disclaimerIcon: { marginTop: 1 },
   disclaimerText: { flex: 1, fontSize: 12, lineHeight: 17, color: COLORS.textMuted, ...FONTS.medium },
 });

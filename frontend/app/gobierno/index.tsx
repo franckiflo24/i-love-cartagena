@@ -5,7 +5,7 @@
 // public entity collects directly into its own account, and AMO is only the technology channel that
 // issues the QR credential. Fares come from the server (city_modules.json facts) and are cited with
 // their source + last-verified date; unverified ones are hedged, never implied certain. This screen
-// never uses the word "tasa" and never presents itself as an official government surface.
+// never uses the retired port-tax wording and never presents itself as an official government surface.
 //
 // Session: app/gobierno/_layout.tsx gates entry. This screen only needs the business token to call
 // the API and renders an honest "Sesión requerida" state when it is missing or rejected.
@@ -410,7 +410,7 @@ export default function GobiernoHubScreen() {
   const tr = useTr();
   const { lang } = useLang();
   const router = useRouter();
-  const { ready, token } = useCivicSession();
+  const { ready, token, signOut } = useCivicSession();
 
   const [services, setServices] = useState<ServicesPayload | null>(null);
   const [svcLoading, setSvcLoading] = useState(true);
@@ -510,8 +510,8 @@ export default function GobiernoHubScreen() {
         icon="lock-closed-outline"
         title={tr('Sesión requerida')}
         text={tr('Esta demostración es solo para el Distrito. Ingresa con el código de acceso de la demostración.')}
-        actionLabel={tr('Volver')}
-        onAction={goBack}
+        actionLabel={tr('Ingresar de nuevo')}
+        onAction={signOut}
         testID="gobierno-session-required"
       />
     );
@@ -542,6 +542,11 @@ export default function GobiernoHubScreen() {
               <ServiceCard key={svc.key} svc={svc} expanded={open.has(svc.key)} onToggle={toggle} onNavigate={navigate} />
             ))}
           </View>
+          {services.services.length === 0 && (
+            <Text style={s.emptyNote} testID="gobierno-services-empty">
+              {tr('No hay servicios disponibles en la demostración.')}
+            </Text>
+          )}
         </View>
 
         <View style={s.section}>
@@ -590,7 +595,7 @@ const s = StyleSheet.create({
   headerInner: { width: '100%', maxWidth: 560, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: SPACING.md, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm + 4 },
   backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.hairline, alignItems: 'center', justifyContent: 'center' },
   headerSpacer: { flex: 1 },
-  demoChip: { flexDirection: 'row', alignItems: 'center', gap: 5, minHeight: 28, backgroundColor: 'rgba(245,158,11,0.14)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.55)', borderRadius: RADIUS.full, paddingHorizontal: 11, paddingVertical: 4 },
+  demoChip: { flexDirection: 'row', alignItems: 'center', gap: 5, minHeight: 28, backgroundColor: 'rgba(245,166,35,0.14)', borderWidth: 1, borderColor: 'rgba(245,166,35,0.55)', borderRadius: RADIUS.full, paddingHorizontal: 11, paddingVertical: 4 },
   demoChipText: { fontSize: 11.5, color: DEMO_AMBER, ...FONTS.bold, letterSpacing: 1.4 },
 
   // hero
@@ -686,7 +691,7 @@ const s = StyleSheet.create({
   primaryBtnText: { fontSize: 14, color: COLORS.black, ...FONTS.bold },
 
   // disclaimer footer
-  disclaimer: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: SPACING.xl, padding: SPACING.md, borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)', backgroundColor: 'rgba(245,158,11,0.06)' },
+  disclaimer: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: SPACING.xl, padding: SPACING.md, borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(245,166,35,0.35)', backgroundColor: 'rgba(245,166,35,0.06)' },
   disclaimerIcon: { marginTop: 1 },
   disclaimerText: { flex: 1, fontSize: 12, lineHeight: 17, color: COLORS.textMuted, ...FONTS.medium },
 });

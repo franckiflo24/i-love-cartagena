@@ -5,7 +5,7 @@
 // it — the public entity is the merchant, AMO only issues the credential. The total shown is
 // planCheckout() from civic.ts, which mirrors the backend's pricing (tested against the real router),
 // so the amount on screen is the amount the ticket will carry. Unverified fares (muelle insurance,
-// every coches tier) wear the "sin verificar" hedge. Never the word "tasa".
+// every coches tier) wear the "sin verificar" hedge. No retired port-tax wording anywhere.
 //
 // Hydration rule (React #418): the first render is the skeleton, identical on the server render and
 // the first client render; the route param and all data are only read after load.
@@ -252,7 +252,7 @@ export default function GobiernoPagarScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ service: string }>();
   const serviceKey = firstParam(params.service);
-  const { ready, token } = useCivicSession();
+  const { ready, token, signOut } = useCivicSession();
 
   const [payload, setPayload] = useState<ServicesPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -368,8 +368,8 @@ export default function GobiernoPagarScreen() {
         icon="lock-closed-outline"
         title={tr('Sesión requerida')}
         text={tr('Esta demostración es solo para el Distrito. Ingresa con el código de acceso de la demostración.')}
-        actionLabel={tr('Volver')}
-        onAction={goBack}
+        actionLabel={tr('Ingresar de nuevo')}
+        onAction={signOut}
         testID="gobierno-pagar-session-required"
       />
     );
@@ -526,7 +526,7 @@ const s = StyleSheet.create({
   headerInner: { width: '100%', maxWidth: 560, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: SPACING.md, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.sm + 4 },
   backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.hairline, alignItems: 'center', justifyContent: 'center' },
   headerLabel: { flex: 1, fontSize: 14, color: COLORS.textMuted, ...FONTS.semibold },
-  demoChip: { flexDirection: 'row', alignItems: 'center', gap: 5, minHeight: 28, backgroundColor: 'rgba(245,158,11,0.14)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.55)', borderRadius: RADIUS.full, paddingHorizontal: 11, paddingVertical: 4 },
+  demoChip: { flexDirection: 'row', alignItems: 'center', gap: 5, minHeight: 28, backgroundColor: 'rgba(245,166,35,0.14)', borderWidth: 1, borderColor: 'rgba(245,166,35,0.55)', borderRadius: RADIUS.full, paddingHorizontal: 11, paddingVertical: 4 },
   demoChipText: { fontSize: 11.5, color: DEMO_AMBER, ...FONTS.bold, letterSpacing: 1.4 },
 
   // title block
@@ -603,7 +603,7 @@ const s = StyleSheet.create({
   primaryBtnText: { fontSize: 14, color: COLORS.black, ...FONTS.bold },
 
   // disclaimer footer
-  disclaimer: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: SPACING.xl, padding: SPACING.md, borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(245,158,11,0.35)', backgroundColor: 'rgba(245,158,11,0.06)' },
+  disclaimer: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: SPACING.xl, padding: SPACING.md, borderRadius: RADIUS.md, borderWidth: 1, borderColor: 'rgba(245,166,35,0.35)', backgroundColor: 'rgba(245,166,35,0.06)' },
   disclaimerIcon: { marginTop: 1 },
   disclaimerText: { flex: 1, fontSize: 12, lineHeight: 17, color: COLORS.textMuted, ...FONTS.medium },
 });

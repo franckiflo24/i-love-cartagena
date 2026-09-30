@@ -169,11 +169,14 @@ def test_issue_math_and_kinds(client) -> None:
     assert client.post("/api/civic/demo/tickets", json={"service": "nope"}).status_code == 400
 
 
-def test_issue_cap_per_ip(client) -> None:
+def test_issue_cap_per_ip_counts_credentials_only(client) -> None:
+    _issue(client, {"service": "transcaribe", "amount_cop": 10000})  # receipts never clog the cap
     for _ in range(C.MAX_LIVE_PER_IP):
         _issue(client, {"service": "muelle"})
     r = client.post("/api/civic/demo/tickets", json={"service": "muelle"})
     assert r.status_code == 429
+    r2 = client.post("/api/civic/demo/tickets", json={"service": "transcaribe", "amount_cop": 10000})
+    assert r2.status_code == 429  # the cap still limits total issuance while full
 
 
 # ── the verdict matrix (§3) ──────────────────────────────────────────────────
