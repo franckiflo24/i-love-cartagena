@@ -615,6 +615,37 @@ def luna_context(user_text: str) -> Optional[Dict[str, Any]]:
     return {"updated": data.get("updated"), "lenses": out} if out else None
 
 
+def gated_decline_payload(user_text: str, lang: str) -> Optional[Dict[str, Any]]:
+    """§5 HARD gate: a trust-claim question whose lens is GATED is answered
+    deterministically with that lens's decline_line — the LLM never speaks.
+    Live-verified 2026-09-30: the prompt rule alone let the model append
+    improvised "safe for women" venue suggestions right after reciting the
+    decline. A women_verified hit outranks other gated hits, and any gated hit
+    outranks a live one (trust beats convenience on mixed questions). Live-only
+    hits return None — they answer through lens_reference + the LLM. Shape
+    mirrors luna_cmw._payload so run_agent_turn can return it as-is."""
+    data = load_lenses()
+    if not data:
+        return None
+    text = _norm(user_text or "")
+    if not text:
+        return None
+    fills = fill_counts(data)
+    gated_hits = [k for k, rx in _trigger_res()
+                  if rx.search(text) and not (fills.get(k) or {}).get("live")]
+    if not gated_hits:
+        return None
+    key = "women_verified" if "women_verified" in gated_hits else gated_hits[0]
+    ln = next((x for x in data.get("lenses") or [] if x.get("key") == key), None)
+    dl = ((ln or {}).get("luna") or {}).get("decline_line") or {}
+    lg = lang if lang in LANGS else "es"
+    msg = (dl.get(lg) or dl.get("es") or "").strip()
+    if not msg:
+        return None
+    return {"message": msg, "language": lg, "actions": [], "recommendations": [],
+            "suggestions": [], "lens_gate": key}
+
+
 # ── routes (mounted before api_router, like cmw) ─────────────────────────────
 
 async def _rl(request: Request) -> None:

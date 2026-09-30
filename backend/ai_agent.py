@@ -1448,6 +1448,16 @@ _CITY_TITLE_SKIP = frozenset({
 })
 
 
+def _lens_gated_payload(user_text: str, lang: str) -> Optional[Dict[str, Any]]:
+    """§5 hard gate helper: a GATED lens topic answers ONLY with its decline line
+    (lenses.gated_decline_payload) — never the LLM. Fail-safe None on any error."""
+    try:
+        import lenses as _lenses_mod
+        return _lenses_mod.gated_decline_payload(user_text, lang)
+    except Exception:  # noqa: BLE001 — a broken lens layer must not break Luna
+        return None
+
+
 def _lens_context(user_text: str) -> Optional[Dict[str, Any]]:
     """Deterministic lens reference (docs/lenses/DESIGN.md §5): a LIVE lens injects
     sourced entries; a GATED lens injects ONLY its four decline lines — Luna never
@@ -2227,6 +2237,15 @@ async def run_agent_turn(
         cmw_payload = _luna_cmw.unavailable_payload(decl_lang) if _luna_cmw.mentions_cmw(user_text) else None
     if cmw_payload is not None:
         return cmw_payload
+
+    # ── LENSES gated gate (docs/lenses/DESIGN.md §5): deterministic, BEFORE the LLM.
+    # A trust-claim topic (women-safe / family-safe / step-free) whose lens is below
+    # min_fill answers ONLY with its decline line. Live-verified 2026-09-30: the
+    # prompt rule alone let the model append improvised "safe for women" venues
+    # right after reciting the decline — a hard gate is the only honest shape.
+    lens_gate_payload = _lens_gated_payload(user_text, decl_lang)
+    if lens_gate_payload is not None:
+        return lens_gate_payload
 
     # ── EVENTS-ELITE gate: deterministic, before any LLM call ──
     try:

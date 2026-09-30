@@ -113,10 +113,15 @@ If code and this doc disagree, the doc wins until it is amended here first.
   context wherever `_city_context` is (same AUTORIDAD pattern: lens_reference MANDA):
   - LIVE lens triggered → up to 6 matching entries with name, one-line note, access tier and
     `Fuente: source_name`; Luna answers ONLY from them.
-  - GATED lens triggered → the lens's `decline_line` verbatim + redirect to verified adjacent data
-    (women → DATT taxi module; family/step_free → "En construcción").
-- `/search` inherits the same context path. Luna NEVER invents a tag, a safety claim, or an
-  accessibility claim; the guard is that gated lenses inject ONLY the decline text.
+  - GATED lens triggered → **a deterministic HARD GATE, before any LLM call** (amended
+    2026-09-30 after live verification: the prompt rule alone let the model append improvised
+    "safe for women" venues right after reciting the decline). `lenses.gated_decline_payload`
+    answers with the lens's `decline_line` verbatim (its text already carries the verified
+    redirect: women → DATT taxi module), zero actions, zero recommendations. It sits in
+    `run_agent_turn` after the CMW gate and before the events gate; any gated hit outranks a
+    live hit on mixed questions, and women_verified outranks every other gated hit.
+- `/search` inherits the same gate + context path. Luna NEVER invents a tag, a safety claim,
+  or an accessibility claim: while a lens is gated, the LLM never speaks on its topic.
 
 ## 6. Tests (backend pytest, no network)
 - `test_lenses_data.py` — schema; provenance on EVERY pin/tag (V1); access_tier on every pin (F3);

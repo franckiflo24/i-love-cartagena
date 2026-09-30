@@ -123,6 +123,36 @@ def test_women_decline_redirects_only_to_verified_adjacent_data() -> None:
     assert "verificado" in dl["es"] or "verificadas" in dl["es"] or "reales" in dl["es"]
 
 
+def test_gated_hard_gate_payload() -> None:
+    """§5 hard gate: gated trust topics answer ONLY the decline line, pre-LLM."""
+    by_key = {ln["key"]: ln for ln in DATA["lenses"]}
+    for q, key, lg in (("safe spots for a woman alone tonight", "women_verified", "en"),
+                       ("¿qué playa es buena para mi toddler?", "family", "es"),
+                       ("restaurants accessibles en fauteuil roulant", "step_free", "fr"),
+                       ("praia calma para meu bebê", "family", "pt")):
+        p = L.gated_decline_payload(q, lg)
+        assert p is not None, q
+        assert p["lens_gate"] == key and p["language"] == lg
+        assert p["actions"] == [] and p["recommendations"] == []
+        assert p["message"] == by_key[key]["luna"]["decline_line"][lg].strip()
+    # live lens → None (answers through lens_reference + LLM)
+    assert L.gated_decline_payload("best sunset photo spots", "en") is None
+    assert L.gated_decline_payload("estoy de crucero, mi escala", "es") is None
+    # mixed live+gated → the gated trust topic wins; women outranks everything
+    mixed = L.gated_decline_payload("fotos del atardecer para una mujer sola", "es")
+    assert mixed is not None and mixed["lens_gate"] == "women_verified"
+    # no lens topic at all → None
+    assert L.gated_decline_payload("cena romántica para dos", "es") is None
+
+
+def test_agent_wires_the_hard_gate_before_the_llm() -> None:
+    src = (BACKEND / "ai_agent.py").read_text(encoding="utf-8")
+    assert "_lens_gated_payload(user_text, decl_lang)" in src
+    gate_pos = src.index("_lens_gated_payload(user_text, decl_lang)")
+    assert gate_pos < src.index("detect_event_intent(user_text"), "gate must sit before the events gate"
+    assert src.index("cmw_payload is not None") < gate_pos, "CMW gate stays first"
+
+
 def test_prompt_rule_present_and_binding() -> None:
     src = (BACKEND / "ai_agent.py").read_text(encoding="utf-8")
     assert "AUTORIDAD LENTES" in src
