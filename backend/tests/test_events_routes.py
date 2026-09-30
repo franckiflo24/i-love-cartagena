@@ -314,6 +314,21 @@ def test_image_urls_only_when_the_manifest_ships_them() -> None:
     assert ev2["image_url"] is None
 
 
+def test_feed_synthesises_flyer_from_the_event_id_convention() -> None:
+    """A self-hosted /images/events/<event_id>.jpg flyer (imported from the event's OWN
+    source page by scripts/fetch_event_flyers.py, never fabricated) is served even when
+    the row carries no self-hosted image_url — mirrors server._normalize_event_media for
+    the elite feed. Still an honest null when no flyer ships (SafeImage → placeholder)."""
+    flyer = f"/images/events/{HIGH}.jpg"
+    h = Harness(make_db(), images=(flyer,))            # row image (/images/events/x.jpg) NOT in manifest
+    ev_ = next(e for e in h.client.get("/api/events/feed").json()["events"] if e["event_id"] == HIGH)
+    assert ev_["image_url"] == flyer
+    assert h.client.get(f"/api/events/feed/item/{HIGH}").json()["image_url"] == flyer
+    h2 = Harness(make_db())                            # empty manifest → no synthesis, honest null
+    ev2 = next(e for e in h2.client.get("/api/events/feed").json()["events"] if e["event_id"] == HIGH)
+    assert ev2["image_url"] is None
+
+
 # ── legacy endpoints (§13 D, §15 T1) ─────────────────────────────────────────
 
 LEGACY_PATHS = ["/api/events", "/api/events/featured", "/api/events/dates/available", f"/api/events/{HIGH}",

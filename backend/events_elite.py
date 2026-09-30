@@ -3001,6 +3001,22 @@ def _img(v: Any, image_ok: ImageOk) -> Optional[str]:
     return v
 
 
+def _event_img(row: Mapping[str, Any], image_ok: ImageOk) -> Optional[str]:
+    """The row's own self-hosted image, else the convention /images/events/<id>.jpg
+    when the manifest ships it. Mirrors server._normalize_event_media for the elite
+    feed: the file is a self-hosted flyer imported from the event's own source page by
+    scripts/fetch_event_flyers.py (never fabricated). _img already dropped any
+    non-self-hosted image_url, so this never emits an external URL. Honest null when
+    no flyer ships — SafeImage then paints the category placeholder."""
+    img = _img(row.get("image_url"), image_ok)
+    if img is None:
+        eid = row.get("event_id")
+        cand = f"/images/events/{eid}.jpg" if eid else None
+        if cand and image_ok is not None and image_ok(cand):
+            img = cand
+    return img
+
+
 async def feed_payload(db_: Any, *, now: Optional[datetime] = None, image_ok: ImageOk = None) -> Dict[str, Any]:
     """GET /api/events/feed: published + date_tbc, HIGH and VERIFY, ≤ 400 (§8). Kill switch → []."""
     n = _now(now)
@@ -3009,7 +3025,7 @@ async def feed_payload(db_: Any, *, now: Optional[datetime] = None, image_ok: Im
     tbc: List[Dict[str, Any]] = []
     for r in rows:
         r = dict(r)
-        r["image_url"] = _img(r.get("image_url"), image_ok)
+        r["image_url"] = _event_img(r, image_ok)
         if r["image_url"] is None:
             r["image_credit"] = None
         (events if r["status"] == "published" else tbc).append(r)
@@ -3022,7 +3038,7 @@ async def feed_item(db_: Any, event_id: str, *, now: Optional[datetime] = None, 
     if pv is None:
         return None
     pv = dict(pv)
-    pv["image_url"] = _img(pv.get("image_url"), image_ok)
+    pv["image_url"] = _event_img(pv, image_ok)
     if pv["image_url"] is None:
         pv["image_credit"] = None
     return pv
