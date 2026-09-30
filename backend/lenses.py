@@ -414,6 +414,7 @@ async def cruise_pull(*, dry: bool = False, now: Optional[datetime] = None) -> D
     n = now or datetime.now(timezone.utc)
     today = n.astimezone(BOGOTA).date()
     ships: Optional[int] = None
+    page_info: Optional[Dict[str, Any]] = None  # admin-only diagnosis when ships is null
     try:
         import events_sources as srcs
         # The schedule is month-paginated server-side; without ?month the page
@@ -430,8 +431,13 @@ async def cruise_pull(*, dry: bool = False, now: Optional[datetime] = None) -> D
             if (isinstance(page, dict) and not page.get("blocked_reason")
                     and 200 <= int(page.get("status") or 0) < 300 and not page.get("challenged")):
                 ships = parse_cruise_ships(page.get("text") or "", today)
+            else:
+                page_info = {k: (page or {}).get(k) if isinstance(page, dict) else None
+                             for k in ("status", "blocked_reason", "challenged")}
+                logger.error("[lenses] cruise page unusable: %s", page_info)
     except Exception as exc:  # noqa: BLE001 — hide, never fake
         logger.error("[lenses] cruise fetch failed: %s", type(exc).__name__)
+        page_info = {"error": type(exc).__name__}
         ships = None
     doc = {"_id": "cruise", "date": today.isoformat(), "ships": ships,
            "fetched_at": n.strftime("%Y-%m-%dT%H:%M:%SZ"), "source_url": CRUISE_URL}
@@ -440,7 +446,10 @@ async def cruise_pull(*, dry: bool = False, now: Optional[datetime] = None) -> D
             await db.lens_state.update_one({"_id": "cruise"}, {"$set": doc}, upsert=True)
         except Exception as exc:  # noqa: BLE001
             logger.error("[lenses] cruise store failed: %s", type(exc).__name__)
-    return {"date": doc["date"], "ships": ships, "dry": dry}
+    out = {"date": doc["date"], "ships": ships, "dry": dry}
+    if ships is None and page_info is not None:
+        out["page"] = page_info
+    return out
 
 
 # ── public payloads ──────────────────────────────────────────────────────────

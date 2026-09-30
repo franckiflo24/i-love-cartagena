@@ -171,6 +171,7 @@ function AllAboardCard({ bufferMin }: { bufferMin: number }) {
     const next: AllAboard = { ymd: bogotaYmd(Date.now()), hhmm };
     touched.current = true;
     setStored(next);
+    setStorageReady(true); // a deliberate choice settles the readout even if the restore is still pending
     setNowMs(Date.now());
     (async () => {
       try {
@@ -525,7 +526,10 @@ export default function PortDayScreen() {
   const goBack = useCallback(() => goBackOr(router), []);
 
   // ── All hooks are above this line; the JSX below branches but never returns early. ──
-  const kit: PortDayKit | null = doc.port_day;
+  // The kit ships only while its lens is live (DESIGN §2): a live index that says port_day is
+  // gated wins over the bundled copy, and the screen shows the honest "En construcción" card.
+  const lens = lensDef(doc, 'port_day');
+  const kit: PortDayKit | null = lens && lens.live === false ? null : doc.port_day;
   const bufferMin = kit && Number.isFinite(kit.return_buffer_min) && kit.return_buffer_min > 0
     ? kit.return_buffer_min
     : DEFAULT_BUFFER_MIN;
@@ -535,7 +539,7 @@ export default function PortDayScreen() {
     ? kit.itineraries.filter((it) => Array.isArray(it.stops) && it.stops.length > 0)
     : [];
   const muelle = kit && typeof kit.muelle_link === 'string' && kit.muelle_link.startsWith('/') ? kit.muelle_link : null;
-  const tagline = pickL4(lensDef(doc, 'port_day')?.tagline, lang);
+  const tagline = pickL4(lens?.tagline, lang);
 
   return (
     <SafeAreaView style={s.container} edges={['top']} testID="port-day-screen">
