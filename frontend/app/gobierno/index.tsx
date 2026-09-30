@@ -267,6 +267,7 @@ function ServiceCard({
           activeOpacity={0.85}
           accessibilityRole="button"
           accessibilityState={{ expanded }}
+          aria-expanded={expanded}
           accessibilityLabel={`${title} · ${expanded ? tr('Ocultar tarifas') : tr('Ver tarifas')}`}
           testID={`gobierno-service-${svc.key}-toggle`}
         >
@@ -316,7 +317,7 @@ function ServiceCard({
 
   // 'soon' (and any mode this client does not know): inert and muted — it can never start a payment.
   return (
-    <View style={[s.svcCard, s.svcCardSoon]} testID={`gobierno-service-${svc.key}`} accessibilityState={{ disabled: true }}>
+    <View style={[s.svcCard, s.svcCardSoon]} testID={`gobierno-service-${svc.key}`} accessibilityState={{ disabled: true }} aria-disabled>
       {head(
         { disc: 'rgba(255,255,255,0.05)', fg: COLORS.iconMuted },
         <Pill text={tr('Próximamente')} fg={COLORS.textMuted} bg="rgba(255,255,255,0.05)" border="rgba(255,255,255,0.14)" />,
@@ -465,6 +466,13 @@ export default function GobiernoHubScreen() {
     void loadSummary();
   }, [loadSummary]));
 
+  // The main error card retries EVERYTHING: a hub that recovered its catalog but still shows "—" for the
+  // counter would need a second, hidden retry.
+  const retryAll = useCallback(() => {
+    void loadServices();
+    void loadSummary();
+  }, [loadServices, loadSummary]);
+
   const goBack = useCallback(() => goBackOr(router), [router]);
   const navigate = useCallback((href: string) => {
     try {
@@ -514,7 +522,7 @@ export default function GobiernoHubScreen() {
         title={tr('No pudimos cargar la demostración')}
         text={civicErrorMessage(svcError, lang, tr, tr('La demostración no está disponible en este momento.'))}
         actionLabel={tr('Reintentar')}
-        onAction={loadServices}
+        onAction={retryAll}
         testID="gobierno-error"
       />
     );

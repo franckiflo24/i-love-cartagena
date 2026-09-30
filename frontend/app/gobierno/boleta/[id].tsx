@@ -130,7 +130,7 @@ const QrCode = React.memo(function QrCode({ wire, size }: { wire: string; size: 
 const Watermark = React.memo(function Watermark() {
   const tr = useTr();
   return (
-    <View style={s.watermark} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <View style={s.watermark} aria-hidden accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <View style={s.watermarkInner}>
         {[0, 1, 2].map((i) => (
           <Text key={i} style={s.watermarkText} numberOfLines={1} allowFontScaling={false}>
@@ -211,7 +211,7 @@ function QrPanel({
         )}
       </View>
 
-      <View style={[s.barTrack, { width: panel }]} accessibilityRole="progressbar" accessibilityLabel={tr('Tiempo restante del código')} accessibilityValue={{ text: secs === null ? '—' : `${secs} s` }} testID="gobierno-boleta-countdown">
+      <View style={[s.barTrack, { width: panel }]} accessibilityRole="progressbar" accessibilityLabel={tr('Tiempo restante del código')} accessibilityValue={{ min: 0, max: 100, now: Math.round(frac * 100), text: secs === null ? '—' : `${secs} s` }} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(frac * 100)} aria-valuetext={secs === null ? '—' : `${secs} s`} testID="gobierno-boleta-countdown">
         <View style={[s.barFill, warn && s.barFillWarn, { width: `${Math.round(frac * 1000) / 10}%` }]} />
       </View>
       <Text style={[s.barCaption, warn && !stale && s.barCaptionWarn]} testID="gobierno-boleta-countdown-text">{caption}</Text>
@@ -504,6 +504,7 @@ export default function GobiernoBoletaScreen() {
                 activeOpacity={0.85}
                 accessibilityRole="button"
                 accessibilityState={{ expanded: showWire }}
+                aria-expanded={showWire}
                 accessibilityLabel={showWire ? tr('Ocultar código') : tr('Mostrar código')}
                 testID="gobierno-boleta-wire-toggle"
               >
@@ -602,7 +603,7 @@ const s = StyleSheet.create({
   qrPanel: { backgroundColor: QR_PAPER, borderRadius: RADIUS.lg, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   qrPending: { minHeight: 200, alignItems: 'center', justifyContent: 'center', gap: 10 },
   pendingText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'center' },
-  watermark: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  watermark: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', pointerEvents: 'none' },
   watermarkInner: { width: '150%', alignItems: 'center', gap: 58, transform: [{ rotate: '-28deg' }] },
   watermarkText: { fontSize: 17, letterSpacing: 2.2, color: 'rgba(180,83,9,0.40)', ...FONTS.bold, textAlign: 'center' },
   staleOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.96)', alignItems: 'center', justifyContent: 'center', gap: 10, padding: SPACING.md },

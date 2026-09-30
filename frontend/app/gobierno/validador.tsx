@@ -247,6 +247,8 @@ const LiveRow = React.memo(function LiveRow({
         activeOpacity={0.85}
         accessibilityRole="button"
         accessibilityState={{ disabled: anyBusy, busy: busyAction === 'sim' }}
+        aria-disabled={anyBusy}
+        aria-busy={busyAction === 'sim'}
         accessibilityLabel={`${tr('Simular escaneo')} · ${title}`}
         testID={`gobierno-live-${ticket.ticket_id}-simulate`}
       >
@@ -262,6 +264,8 @@ const LiveRow = React.memo(function LiveRow({
           activeOpacity={0.85}
           accessibilityRole="button"
           accessibilityState={{ disabled: anyBusy, busy: busyAction === 'tam' }}
+          aria-disabled={anyBusy}
+          aria-busy={busyAction === 'tam'}
           accessibilityLabel={`${tr('Código adulterado')} · ${title}`}
           testID={`gobierno-live-${ticket.ticket_id}-tamper`}
         >
@@ -275,6 +279,8 @@ const LiveRow = React.memo(function LiveRow({
           activeOpacity={0.85}
           accessibilityRole="button"
           accessibilityState={{ disabled: anyBusy, busy: busyAction === 'old' }}
+          aria-disabled={anyBusy}
+          aria-busy={busyAction === 'old'}
           accessibilityLabel={`${tr('Código vencido')} · ${title}`}
           testID={`gobierno-live-${ticket.ticket_id}-stale`}
         >
@@ -627,6 +633,7 @@ export default function GobiernoValidadorScreen() {
             activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityState={{ expanded: pasteOpen }}
+            aria-expanded={pasteOpen}
             accessibilityLabel={tr('Pegar código')}
             testID="gobierno-validador-paste-toggle"
           >
@@ -667,6 +674,8 @@ export default function GobiernoValidadorScreen() {
                 activeOpacity={0.85}
                 accessibilityRole="button"
                 accessibilityState={{ disabled: anyBusy || wire.trim().length === 0, busy: busy === 'wire' }}
+                aria-disabled={anyBusy || wire.trim().length === 0}
+                aria-busy={busy === 'wire'}
                 accessibilityLabel={tr('Validar')}
                 testID="gobierno-validador-validate"
               >

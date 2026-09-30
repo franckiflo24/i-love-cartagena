@@ -121,6 +121,7 @@ function AmountPicker({
               activeOpacity={0.85}
               accessibilityRole="radio"
               accessibilityState={{ checked: on }}
+              aria-checked={on}
               accessibilityLabel={formatCop(a, lang)}
               testID={`gobierno-pay-amount-${a}`}
             >
@@ -163,6 +164,8 @@ function TierPicker({
               activeOpacity={0.85}
               accessibilityRole="radio"
               accessibilityState={{ checked: on, disabled: !priced }}
+              aria-checked={on}
+              aria-disabled={!priced}
               accessibilityLabel={`${label}${priced && t.value_cop !== null ? ` · ${formatCop(t.value_cop, lang)}` : ''}`}
               testID={`gobierno-pay-tier-${t.key}`}
             >
@@ -203,6 +206,8 @@ function InsuranceToggle({
         activeOpacity={0.85}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: on, disabled: !priced }}
+        aria-checked={on}
+        aria-disabled={!priced}
         accessibilityLabel={`${label}${priced && fact.value_cop !== null ? ` · ${formatCop(fact.value_cop, lang)}` : ''}`}
         testID="gobierno-pay-insurance"
       >
@@ -467,6 +472,8 @@ export default function GobiernoPagarScreen() {
           activeOpacity={0.85}
           accessibilityRole="button"
           accessibilityState={{ disabled: !canPay, busy: submitting }}
+          aria-disabled={!canPay}
+          aria-busy={submitting}
           accessibilityLabel={`${tr('Pagar (demo)')} · ${formatCop(plan.total, lang)}`}
           testID="gobierno-pay-button"
         >

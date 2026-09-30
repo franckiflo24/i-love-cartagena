@@ -828,17 +828,22 @@ export function createQrPoller(deps: QrPollerDeps): QrPoller {
 export interface CivicSession {
   /** False while the business session is still being restored: show a skeleton, not "Sesión requerida". */
   ready: boolean;
-  /** The Alcaldía-demo business token, or null (none, or a business session of the wrong role). */
+  /**
+   * The Alcaldía-demo business token, or null: none, a business session of the wrong role, or the
+   * session is still being restored (`ready` false). Every loader gates on this, so nothing calls the
+   * API with a stored token that /business/me has not yet confirmed (it may be stale or revoked).
+   */
   token: string | null;
 }
 
 /**
  * The civic screens assume app/gobierno/_layout.tsx already gated entry; this only hands them the token
  * and lets them fall back to an honest "Sesión requerida" state. A business profile that has not
- * loaded yet (role unknown) is let through: the server enforces the role and answers 403 otherwise.
+ * loaded yet (role unknown) is let through once the session is ready: the server enforces the role and
+ * answers 403 otherwise.
  */
 export function useCivicSession(): CivicSession {
   const { token, business, loading } = useBusinessAuth();
   const roleOk = !business || CIVIC_ROLES.includes(business.role);
-  return { ready: !loading, token: token && roleOk ? token : null };
+  return { ready: !loading, token: !loading && token && roleOk ? token : null };
 }
