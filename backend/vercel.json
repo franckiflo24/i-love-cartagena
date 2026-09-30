@@ -20,6 +20,10 @@
     {
       "path": "/api/admin/events/reminders",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/admin/lenses/cruise-pull",
+      "schedule": "0 */6 * * *"
     }
   ],
   "builds": [

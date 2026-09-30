@@ -69,6 +69,9 @@ import luna_events as _luna_events  # noqa: E402
 # CMW (docs/cmw/DESIGN.md): the official Cartagena Music Week program + concierge requests.
 import cmw as _cmw  # noqa: E402
 import luna_cmw as _luna_cmw  # noqa: E402  — /search inherits the deterministic CMW gate (§5)
+# LENSES (docs/lenses/DESIGN.md): demographic lenses + Golden Hour over the one catalog.
+# min_fill-gated; Luna reads it as lens_reference via ai_agent.build_context_snapshot.
+import lenses as _lenses  # noqa: E402
 
 # ── In-memory rate limiter for expensive AI endpoints ──────────
 from collections import defaultdict
@@ -8486,6 +8489,11 @@ app.include_router(_events_elite.router, prefix="/api")
 # api_router like the events router (docs/cmw/DESIGN.md §3).
 _cmw.init(db_=db)
 app.include_router(_cmw.router, prefix="/api")
+
+# Lenses router (index + payloads + cruise cron), mounted BEFORE api_router like the
+# events/CMW routers (docs/lenses/DESIGN.md §3). Gated lenses never leak content.
+_lenses.init(db_=db)
+app.include_router(_lenses.router, prefix="/api")
 
 app.include_router(api_router)
 

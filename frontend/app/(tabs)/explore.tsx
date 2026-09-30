@@ -38,6 +38,8 @@ import { SkeletonFeaturedRow, SkeletonGrid } from '../../src/components/Skeleton
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { CATEGORY_META, PublicEvent, compactUpcoming, formatEventDates, loadFeed, pickL } from '../../src/lib/eventsFeed';
+import LensRow from '../../src/components/lenses/LensChips';
+import { LensKey, bundledLenses, lensDef, pickL4 } from '../../src/lib/lenses';
 import { EventMedia, EventTrustChip } from '../../src/components/EventFeedUI';
 import { monthShort } from '../../src/lib/formatDate';
 import { bogotaToday } from '../../src/lib/eventTime';
@@ -718,7 +720,24 @@ export default function ExploreScreen() {
   const [nbModalVisible, setNbModalVisible] = useState(false);
   const [localsOnly, setLocalsOnly] = useState(false);
   const [localsNbh, setLocalsNbh] = useState<string | null>(null);
+  // LENSES (docs/lenses/DESIGN.md §4): a LIVE venues-lens filters the grid to its
+  // verified set. Gated lenses never reach this (LensRow shows the honest card).
+  const [lensFilter, setLensFilter] = useState<{ key: LensKey; label: string; ids: Set<string> } | null>(null);
   const localPicks = useLocalPicks();
+
+  const activateLens = useCallback((key: LensKey) => {
+    if (key === 'golden_hour') { router.push('/(tabs)/mapa?lens=golden_hour' as never); return; }
+    if (key === 'port_day') { router.push('/port-day' as never); return; }
+    const label = pickL4(lensDef(bundledLenses(), key)?.label ?? null, lang);
+    api.get(`/lenses/${key}`)
+      .then((res: unknown) => {
+        const venues = (res as { venues?: Array<{ venue_id?: string }> })?.venues || [];
+        const ids = new Set(venues.map((v) => String(v.venue_id || '')).filter(Boolean));
+        if (ids.size) setLensFilter({ key, label, ids });
+      })
+      .catch(() => { /* unreachable → nothing to filter, never a fake empty grid */ });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
 
   // Hydration guard: card widths are derived from Dimensions.get('window') at
   // module load, so the static export prerenders them with a default viewport
@@ -911,6 +930,11 @@ export default function ExploreScreen() {
       });
     }
   }
+  // Live venues-lens filter (step-free / family / women-verified once they fill):
+  // only venues in the lens's verified set. ANDs with everything above.
+  if (lensFilter) {
+    partners = partners.filter(p => lensFilter.ids.has((p as any).partner_id));
+  }
   const localsNbhOptions = localsOnly
     ? neighborhoods
         .filter(n => localsNbhCounts[n.slug])
@@ -1034,6 +1058,28 @@ export default function ExploreScreen() {
           );
         })}
       </ScrollView>
+
+      {/* ── LENSES — modes over the one catalog (docs/lenses/DESIGN.md §4) ── */}
+      <View style={{ paddingHorizontal: SPACING.lg, marginTop: 10 }}>
+        <LensRow active={lensFilter?.key ?? null} onActivate={activateLens} />
+        {lensFilter && (
+          <TouchableOpacity
+            onPress={() => setLensFilter(null)}
+            style={{
+              flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 6,
+              marginTop: 8, minHeight: 44, paddingHorizontal: 12, borderRadius: 22,
+              backgroundColor: 'rgba(18,181,165,0.12)', borderWidth: 1, borderColor: COLORS.primary,
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={tr('Limpiar filtros')}
+          >
+            <Text style={{ color: COLORS.primary, fontSize: 12, fontWeight: '700' }}>
+              {lensFilter.label} · {partners.length}
+            </Text>
+            <Ionicons name="close" size={14} color={COLORS.primary} />
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* ── Neighborhood sub-filter (only when "Locals" is active) ── */}
       {localsOnly && localsNbhOptions.length > 0 && (

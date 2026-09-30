@@ -1,0 +1,1567 @@
+{
+ "version": 1,
+ "updated": "2026-09-30",
+ "generated_at": "2026-09-30T19:28:43.963Z",
+ "lenses": [
+  {
+   "key": "golden_hour",
+   "kind": "places",
+   "icon": "camera-outline",
+   "label": {
+    "es": "Hora dorada",
+    "en": "Golden hour",
+    "fr": "Heure dorée",
+    "pt": "Hora dourada"
+   },
+   "tagline": {
+    "es": "Los rincones más fotogénicos, con su mejor luz",
+    "en": "The most photogenic corners, in their best light",
+    "fr": "Les coins les plus photogéniques, sous leur meilleure lumière",
+    "pt": "Os cantos mais fotogênicos, na sua melhor luz"
+   },
+   "live": true,
+   "fill": {
+    "high": 19,
+    "total": 29,
+    "min_fill": 8
+   }
+  },
+  {
+   "key": "port_day",
+   "kind": "kit",
+   "icon": "boat-outline",
+   "label": {
+    "es": "Día de crucero",
+    "en": "Port day",
+    "fr": "Jour d'escale",
+    "pt": "Dia de cruzeiro"
+   },
+   "tagline": {
+    "es": "Tu escala, resuelta: ruta, tarifas justas y regreso a tiempo — sin datos",
+    "en": "Your port call, solved: route, fair fares and back on time — works offline",
+    "fr": "Votre escale, réglée : itinéraire, tarifs justes et retour à l'heure — hors ligne",
+    "pt": "Sua escala, resolvida: roteiro, tarifas justas e volta a tempo — funciona offline"
+   },
+   "live": true,
+   "fill": {
+    "high": 1,
+    "total": 1,
+    "min_fill": 1
+   }
+  },
+  {
+   "key": "step_free",
+   "kind": "venues",
+   "icon": "accessibility-outline",
+   "label": {
+    "es": "Sin escalones",
+    "en": "Step-free",
+    "fr": "Sans marches",
+    "pt": "Sem degraus"
+   },
+   "tagline": {
+    "es": "Lugares con acceso verificado — pequeño pero cierto",
+    "en": "Places with verified access — small but true",
+    "fr": "Lieux à l'accès vérifié — petit mais vrai",
+    "pt": "Lugares com acesso verificado — pequeno mas verdadeiro"
+   },
+   "live": false,
+   "fill": {
+    "high": 0,
+    "total": 2,
+    "min_fill": 6
+   }
+  },
+  {
+   "key": "family",
+   "kind": "venues",
+   "icon": "happy-outline",
+   "label": {
+    "es": "Modo familia",
+    "en": "Family mode",
+    "fr": "Mode famille",
+    "pt": "Modo família"
+   },
+   "tagline": {
+    "es": "Playas calmadas, sillas altas y traslados con silla infantil — verificado",
+    "en": "Calm beaches, high chairs and car-seat transfers — verified",
+    "fr": "Plages calmes, chaises hautes et transferts avec siège enfant — vérifié",
+    "pt": "Praias calmas, cadeirões e traslados com cadeirinha — verificado"
+   },
+   "live": false,
+   "fill": {
+    "high": 0,
+    "total": 0,
+    "min_fill": 8
+   }
+  },
+  {
+   "key": "women_verified",
+   "kind": "venues",
+   "icon": "shield-checkmark-outline",
+   "label": {
+    "es": "Verificado por mujeres",
+    "en": "Women-verified",
+    "fr": "Vérifié par des femmes",
+    "pt": "Verificado por mulheres"
+   },
+   "tagline": {
+    "es": "Calificado por mujeres que ya estuvieron ahí — nunca adivinado",
+    "en": "Rated by women who were actually there — never guessed",
+    "fr": "Évalué par des femmes qui y sont allées — jamais deviné",
+    "pt": "Avaliado por mulheres que estiveram lá — nunca adivinhado"
+   },
+   "live": false,
+   "fill": {
+    "high": 0,
+    "total": 0,
+    "min_fill": 8
+   }
+  }
+ ],
+ "access_tiers": {
+  "free": {
+   "es": "Gratis",
+   "en": "Free",
+   "fr": "Gratuit",
+   "pt": "Grátis"
+  },
+  "purchase": {
+   "es": "Con consumo",
+   "en": "Purchase required",
+   "fr": "Avec consommation",
+   "pt": "Com consumo"
+  },
+  "reservation": {
+   "es": "Con reserva",
+   "en": "Reservation",
+   "fr": "Sur réservation",
+   "pt": "Com reserva"
+  },
+  "guest_only": {
+   "es": "Solo huéspedes",
+   "en": "Guests only",
+   "fr": "Clients uniquement",
+   "pt": "Só hóspedes"
+  },
+  "paid_entry": {
+   "es": "Entrada paga",
+   "en": "Paid entry",
+   "fr": "Entrée payante",
+   "pt": "Entrada paga"
+  }
+ },
+ "sunset_by_month": {
+  "1": "17:56",
+  "2": "18:07",
+  "3": "18:09",
+  "4": "18:05",
+  "5": "18:04",
+  "6": "18:08",
+  "7": "18:11",
+  "8": "18:05",
+  "9": "17:52",
+  "10": "17:40",
+  "11": "17:36",
+  "12": "17:44"
+ },
+ "pins": [
+  {
+   "id": "gh-calle-don-sancho",
+   "lens": "golden_hour",
+   "name": "Calle de Don Sancho",
+   "venue_id": null,
+   "zone": "centro",
+   "best_light": [
+    "sunrise"
+   ],
+   "access_tier": "free",
+   "crowd_hotspot": true,
+   "photogenic": {
+    "es": "La cúpula de la catedral al final de la calle, balcones con flores y fachadas de colores — la foto clásica de Cartagena.",
+    "en": "The cathedral dome at the end of the street, flower-draped balconies and colorful facades — the classic Cartagena shot.",
+    "fr": "Le dôme de la cathédrale au bout de la rue, balcons fleuris et façades colorées — la photo classique de Carthagène.",
+    "pt": "A cúpula da catedral no fim da rua, varandas floridas e fachadas coloridas — a foto clássica de Cartagena."
+   },
+   "etiquette": {
+    "es": "Madruga (6–9 a. m.) para la calle vacía y cuida el paso de carros.",
+    "en": "Go early (6–9 AM) for an empty street, and watch for cars.",
+    "fr": "Venez tôt (6–9 h) pour la rue vide, attention aux voitures.",
+    "pt": "Vá cedo (6–9h) para a rua vazia e cuidado com os carros."
+   },
+   "link": null,
+   "source_url": "https://apassionandapassport.com/cartagena-photo-spots-for-instagram/",
+   "source_name": "A Passion and A Passport",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "approx",
+   "lat": 10.4262,
+   "lng": -75.55,
+   "image_url": null,
+   "venue_name": null
+  },
+  {
+   "id": "gh-siete-infantes",
+   "lens": "golden_hour",
+   "name": "Calle de los Siete Infantes (Calle 38)",
+   "venue_id": null,
+   "zone": "san_diego",
+   "best_light": [
+    "sunrise"
+   ],
+   "access_tier": "free",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Casas coloniales con jardines verticales y balcones cubiertos de flores; las calles 37 y 38 son el tramo más fotografiado de San Diego.",
+    "en": "Colonial houses with vertical gardens and flower-covered balconies; Calles 37–38 are San Diego's most photographed stretch.",
+    "fr": "Maisons coloniales aux jardins verticaux et balcons fleuris ; les calles 37–38 sont le tronçon le plus photographié de San Diego.",
+    "pt": "Casas coloniais com jardins verticais e varandas floridas; as calles 37–38 são o trecho mais fotografado de San Diego."
+   },
+   "etiquette": {
+    "es": "Mejor entre semana por la mañana; es una calle residencial — no bloquees puertas.",
+    "en": "Best on weekday mornings; it's residential — don't block doorways.",
+    "fr": "Idéal en semaine le matin ; rue résidentielle — ne bloquez pas les portes.",
+    "pt": "Melhor em manhãs de dia útil; é residencial — não bloqueie portas."
+   },
+   "link": null,
+   "source_url": "https://joujoutravels.com/most-instagrammable-spots-in-cartagena/",
+   "source_name": "Jou Jou Travels",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "approx",
+   "lat": 10.4277,
+   "lng": -75.5465,
+   "image_url": null,
+   "venue_name": null
+  },
+  {
+   "id": "gh-calle-sierpe",
+   "lens": "golden_hour",
+   "name": "Calle de la Sierpe",
+   "venue_id": null,
+   "zone": "getsemani",
+   "best_light": [
+    "sunrise",
+    "midday"
+   ],
+   "access_tier": "free",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Cientos de banderines de colores sobre la calle y murales grandes a lo largo del camino.",
+    "en": "Hundreds of colorful pennant flags overhead and large murals along the street.",
+    "fr": "Des centaines de fanions colorés au-dessus de la rue et de grandes fresques tout du long.",
+    "pt": "Centenas de bandeirinhas coloridas sobre a rua e grandes murais ao longo do caminho."
+   },
+   "etiquette": {
+    "es": "Los murales se ven mejor de día; buen punto de partida para la ruta de arte urbano.",
+    "en": "Murals read best in daylight; a good start for the street-art walk.",
+    "fr": "Les fresques se voient mieux de jour ; bon départ pour le circuit street-art.",
+    "pt": "Os murais aparecem melhor de dia; bom início para a rota de arte urbana."
+   },
+   "link": null,
+   "source_url": "https://www.ericgamble.com/exploring-cartagena-street-art/",
+   "source_name": "Eric Gamble",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "approx",
+   "lat": 10.421,
+   "lng": -75.546,
+   "image_url": null,
+   "venue_name": null
+  },
+  {
+   "id": "gh-plaza-trinidad",
+   "lens": "golden_hour",
+   "name": "Plaza de la Trinidad",
+   "venue_id": null,
+   "zone": "getsemani",
+   "best_light": [
+    "sunrise",
+    "midday"
+   ],
+   "access_tier": "free",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "La iglesia de la Trinidad (c. 1600), la estatua de Pedro Romero y el mural de la María Mulata sobre pared mostaza.",
+    "en": "Trinidad church (c. 1600), the Pedro Romero statue and the María Mulata mural on a mustard wall.",
+    "fr": "L'église de la Trinité (v. 1600), la statue de Pedro Romero et la fresque María Mulata sur mur moutarde.",
+    "pt": "A igreja da Trindade (c. 1600), a estátua de Pedro Romero e o mural da María Mulata na parede mostarda."
+   },
+   "etiquette": {
+    "es": "Con las palenqueras, acuerda el precio antes de levantar la cámara (sugerido: 10.000–20.000 COP por persona fotografiada).",
+    "en": "With palenqueras, agree the price before raising your camera (suggested: 10,000–20,000 COP per person photographed).",
+    "fr": "Avec les palenqueras, convenez du prix avant de lever l'appareil (suggéré : 10 000–20 000 COP par personne).",
+    "pt": "Com as palenqueras, combine o preço antes de levantar a câmera (sugerido: 10.000–20.000 COP por pessoa)."
+   },
+   "link": null,
+   "source_url": "https://practicalwanderlust.com/instagrammable-places-in-cartagena-colombia/",
+   "source_name": "Practical Wanderlust",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "exact",
+   "lat": 10.420614,
+   "lng": -75.5453984,
+   "image_url": null,
+   "venue_name": null
+  },
+  {
+   "id": "gh-street-art-getsemani",
+   "lens": "golden_hour",
+   "name": "Murales de Getsemaní",
+   "venue_id": "attr_011",
+   "zone": null,
+   "best_light": [
+    "sunrise",
+    "midday"
+   ],
+   "access_tier": "free",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "El circuito de murales del festival de arte urbano: Calle del Guerrero, Calle San Juan, el pulpo del Espíritu Santo y \"Las Tres Guerreras\".",
+    "en": "The urban-art festival mural circuit: Calle del Guerrero, Calle San Juan, the Espíritu Santo octopus and \"Las Tres Guerreras\".",
+    "fr": "Le circuit de fresques du festival d'art urbain : Calle del Guerrero, Calle San Juan, la pieuvre d'Espíritu Santo et « Las Tres Guerreras ».",
+    "pt": "O circuito de murais do festival de arte urbana: Calle del Guerrero, Calle San Juan, o polvo do Espíritu Santo e \"Las Tres Guerreras\"."
+   },
+   "etiquette": {
+    "es": "Gratis y autoguiado; por la mañana para el color, de noche para el neón.",
+    "en": "Free and self-guided; mornings for color, nights for neon.",
+    "fr": "Gratuit et auto-guidé ; le matin pour la couleur, la nuit pour le néon.",
+    "pt": "Grátis e autoguiado; de manhã pela cor, à noite pelo neon."
+   },
+   "link": "/partner/attr_011",
+   "source_url": "https://www.ericgamble.com/exploring-cartagena-street-art/",
+   "source_name": "Eric Gamble",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "exact",
+   "lat": 10.4208127,
+   "lng": -75.5455971,
+   "image_url": "/images/partners/attr_011.jpg",
+   "venue_name": "Street Art de Getsemaní"
+  },
+  {
+   "id": "gh-umbrella-magdalena",
+   "lens": "golden_hour",
+   "name": "Calle de la Magdalena (sombrillas)",
+   "venue_id": null,
+   "zone": "getsemani",
+   "best_light": [
+    "sunrise"
+   ],
+   "access_tier": "free",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Un techo de sombrillas de colores sobre casas pintadas — instalación rotativa: puede no estar montada.",
+    "en": "A canopy of colorful umbrellas over painted houses — a rotating installation: it may not be up.",
+    "fr": "Un plafond de parapluies colorés au-dessus des maisons — installation tournante : elle peut être absente.",
+    "pt": "Um teto de guarda-chuvas coloridos sobre casas pintadas — instalação rotativa: pode não estar montada."
+   },
+   "etiquette": null,
+   "link": null,
+   "source_url": "https://apassionandapassport.com/cartagena-photo-spots-for-instagram/",
+   "source_name": "A Passion and A Passport",
+   "last_verified": "2026-09-30",
+   "confidence": "VERIFY",
+   "geo_precision": "approx",
+   "lat": 10.4214,
+   "lng": -75.5449,
+   "image_url": null,
+   "venue_name": null
+  },
+  {
+   "id": "gh-torre-del-reloj",
+   "lens": "golden_hour",
+   "name": "Torre del Reloj",
+   "venue_id": null,
+   "zone": "centro",
+   "best_light": [
+    "sunrise",
+    "sunset"
+   ],
+   "access_tier": "free",
+   "crowd_hotspot": true,
+   "photogenic": {
+    "es": "La torre amarilla del reloj, puerta principal de la Ciudad Amurallada.",
+    "en": "The yellow clock tower, main gate of the Walled City.",
+    "fr": "La tour de l'horloge jaune, porte principale de la ville fortifiée.",
+    "pt": "A torre do relógio amarela, portão principal da Cidade Amuralhada."
+   },
+   "etiquette": {
+    "es": "Cruce muy transitado — madruga o espera la hora dorada.",
+    "en": "Busy crossroads — go at dawn or wait for golden hour.",
+    "fr": "Carrefour très fréquenté — venez à l'aube ou attendez l'heure dorée.",
+    "pt": "Cruzamento movimentado — vá de madrugada ou espere a hora dourada."
+   },
+   "link": null,
+   "source_url": "https://apassionandapassport.com/cartagena-photo-spots-for-instagram/",
+   "source_name": "A Passion and A Passport",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "exact",
+   "lat": 10.423,
+   "lng": -75.5491,
+   "image_url": null,
+   "venue_name": null
+  },
+  {
+   "id": "gh-portal-dulces",
+   "lens": "golden_hour",
+   "name": "Portal de los Dulces",
+   "venue_id": null,
+   "zone": "centro",
+   "best_light": [
+    "sunrise"
+   ],
+   "access_tier": "purchase",
+   "crowd_hotspot": true,
+   "photogenic": {
+    "es": "Arcos amarillos y frascos de dulces tradicionales de todos los colores en la Plaza de los Coches.",
+    "en": "Yellow arches and jars of brightly colored traditional sweets on Plaza de los Coches.",
+    "fr": "Arches jaunes et bocaux de douceurs traditionnelles multicolores sur la Plaza de los Coches.",
+    "pt": "Arcos amarelos e potes de doces tradicionais coloridos na Plaza de los Coches."
+   },
+   "etiquette": {
+    "es": "Pide permiso a las vendedoras antes de fotografiarlas; una cajita de dulces ronda 5.000 COP.",
+    "en": "Ask vendors before photographing them; a small sweet box runs about 5,000 COP.",
+    "fr": "Demandez aux vendeuses avant de les photographier ; une petite boîte coûte env. 5 000 COP.",
+    "pt": "Peça licença às vendedoras antes de fotografar; uma caixinha custa uns 5.000 COP."
+   },
+   "link": null,
+   "source_url": "https://apassionandapassport.com/cartagena-photo-spots-for-instagram/",
+   "source_name": "A Passion and A Passport",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "exact",
+   "lat": 10.4229,
+   "lng": -75.5495,
+   "image_url": null,
+   "venue_name": null
+  },
+  {
+   "id": "gh-catedral-santa-catalina",
+   "lens": "golden_hour",
+   "name": "Catedral de Santa Catalina",
+   "venue_id": "attr_009",
+   "zone": null,
+   "best_light": [
+    "sunrise"
+   ],
+   "access_tier": "free",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "El exterior de piedra caliza y la cúpula que corona las fotos de todo el Centro.",
+    "en": "The limestone exterior and the dome that crowns photos across the Centro.",
+    "fr": "L'extérieur en calcaire et le dôme qui couronne les photos de tout le Centro.",
+    "pt": "O exterior de calcário e a cúpula que coroa as fotos de todo o Centro."
+   },
+   "etiquette": null,
+   "link": "/partner/attr_009",
+   "source_url": "https://apassionandapassport.com/cartagena-photo-spots-for-instagram/",
+   "source_name": "A Passion and A Passport",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "exact",
+   "lat": 10.4236446,
+   "lng": -75.5506735,
+   "image_url": "/images/partners/attr_009.jpg",
+   "venue_name": "Catedral de Santa Catalina de Alejandría"
+  },
+  {
+   "id": "gh-abaco",
+   "lens": "golden_hour",
+   "name": "Ábaco Libros y Café · Calle de la Iglesia",
+   "venue_id": "ptr_V012",
+   "zone": null,
+   "best_light": [
+    "sunrise",
+    "midday"
+   ],
+   "access_tier": "purchase",
+   "crowd_hotspot": true,
+   "photogenic": {
+    "es": "Librería-café de techos altos y arcos; en la esquina con Mantilla se toma la clásica foto de calle estrecha con torre.",
+    "en": "High-ceilinged bookstore-café with arches; the corner with Mantilla frames the classic narrow-street-and-tower shot.",
+    "fr": "Librairie-café aux hauts plafonds et arches ; l'angle avec Mantilla cadre la photo classique rue étroite et tour.",
+    "pt": "Livraria-café de tetos altos e arcos; a esquina com Mantilla enquadra a clássica foto da rua estreita com torre."
+   },
+   "etiquette": {
+    "es": "\"Ven por la selfie, quédate por el café\" — consume si usas el local.",
+    "en": "\"Come for the selfie, stay for the coffee\" — buy something if you shoot inside.",
+    "fr": "« Venez pour le selfie, restez pour le café » — consommez si vous photographiez à l'intérieur.",
+    "pt": "\"Venha pela selfie, fique pelo café\" — consuma se fotografar lá dentro."
+   },
+   "link": "/partner/ptr_V012",
+   "source_url": "https://practicalwanderlust.com/instagrammable-places-in-cartagena-colombia/",
+   "source_name": "Practical Wanderlust",
+   "last_verified": "2026-09-30",
+   "confidence": "VERIFY",
+   "geo_precision": "exact",
+   "lat": 10.4249306,
+   "lng": -75.5512267,
+   "image_url": "/images/partners/ptr_V012.jpg",
+   "venue_name": "Ábaco Libros y Café"
+  },
+  {
+   "id": "gh-alma",
+   "lens": "golden_hour",
+   "name": "Alma (Casa San Agustín)",
+   "venue_id": "ptr_R104",
+   "zone": null,
+   "best_light": [
+    "midday",
+    "sunset"
+   ],
+   "access_tier": "reservation",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Patio colonial a la luz de las velas junto a los restos de un acueducto centenario.",
+    "en": "A candlelit colonial courtyard set against the remains of a centuries-old aqueduct.",
+    "fr": "Un patio colonial aux chandelles adossé aux vestiges d'un aqueduc centenaire.",
+    "pt": "Um pátio colonial à luz de velas junto aos restos de um aqueduto centenário."
+   },
+   "etiquette": {
+    "es": "Reserva y pide mesa en el patio (almuerzo 12–3, cena desde las 7).",
+    "en": "Reserve and ask for a courtyard table (lunch 12–3, dinner from 7).",
+    "fr": "Réservez et demandez une table dans le patio (déjeuner 12–15 h, dîner dès 19 h).",
+    "pt": "Reserve e peça mesa no pátio (almoço 12–15h, jantar a partir das 19h)."
+   },
+   "link": "/partner/ptr_R104",
+   "source_url": "https://beblissfultravel.com/most-beautiful-restaurants-in-cartagena/",
+   "source_name": "Be Blissful Travel",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "exact",
+   "lat": 10.4253081,
+   "lng": -75.5494088,
+   "image_url": "/images/partners/ptr_R104.jpg",
+   "venue_name": "Alma"
+  },
+  {
+   "id": "gh-carmen",
+   "lens": "golden_hour",
+   "name": "Carmen",
+   "venue_id": "ptr_R102",
+   "zone": null,
+   "best_light": [
+    "sunset"
+   ],
+   "access_tier": "reservation",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Jardín-patio verde e iluminado dentro de una casona colonial, con música en vivo frecuente.",
+    "en": "A lush, lit courtyard garden inside a colonial mansion, often with live music.",
+    "fr": "Un jardin-patio verdoyant et éclairé dans une demeure coloniale, souvent en musique.",
+    "pt": "Um jardim-pátio verde e iluminado numa casona colonial, com música ao vivo frequente."
+   },
+   "etiquette": {
+    "es": "Pide mesa en el patio al reservar.",
+    "en": "Ask for a courtyard table when you book.",
+    "fr": "Demandez une table dans le patio en réservant.",
+    "pt": "Peça mesa no pátio ao reservar."
+   },
+   "link": "/partner/ptr_R102",
+   "source_url": "https://beblissfultravel.com/most-beautiful-restaurants-in-cartagena/",
+   "source_name": "Be Blissful Travel",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "exact",
+   "lat": 10.4268664,
+   "lng": -75.54781609999999,
+   "image_url": "/images/partners/ptr_R102.jpg",
+   "venue_name": "Carmen"
+  },
+  {
+   "id": "gh-cande",
+   "lens": "golden_hour",
+   "name": "Candé — Cocina 100% Cartagenera",
+   "venue_id": "ptr_R011",
+   "zone": null,
+   "best_light": [
+    "sunset"
+   ],
+   "access_tier": "reservation",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Entrada lavanda, salón rosa chicle, piso ajedrez y un patio dominado por un árbol gigante — con baile folclórico cada noche.",
+    "en": "Lavender entrance, bubblegum-pink dining room, checkered floor and a courtyard ruled by a giant tree — folk dancing nightly.",
+    "fr": "Entrée lavande, salle rose bonbon, sol en damier et un patio dominé par un arbre géant — danse folklorique chaque soir.",
+    "pt": "Entrada lavanda, salão rosa chiclete, piso xadrez e um pátio dominado por uma árvore gigante — dança folclórica toda noite."
+   },
+   "etiquette": {
+    "es": "Reserva recomendada; el show es de noche.",
+    "en": "Reservations recommended; the show is at night.",
+    "fr": "Réservation recommandée ; le spectacle a lieu le soir.",
+    "pt": "Reserva recomendada; o show é à noite."
+   },
+   "link": "/partner/ptr_R011",
+   "source_url": "https://restaurantecande.com/en/home/",
+   "source_name": "Restaurante Candé",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "exact",
+   "lat": 10.4279365,
+   "lng": -75.5461255,
+   "image_url": "/images/partners/ptr_R011.jpg",
+   "venue_name": "Candé"
+  },
+  {
+   "id": "gh-jardin-santa-clara",
+   "lens": "golden_hour",
+   "name": "Jardín Santa Clara (Sofitel)",
+   "venue_id": "ptr_ho_004",
+   "zone": null,
+   "best_light": [
+    "midday"
+   ],
+   "access_tier": "reservation",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Mesas en el jardín interior de un convento del siglo XVII, con luz filtrada entre la vegetación.",
+    "en": "Tables in the inner garden of a 17th-century convent, in dappled light.",
+    "fr": "Tables dans le jardin intérieur d'un couvent du XVIIe, sous une lumière tamisée.",
+    "pt": "Mesas no jardim interno de um convento do século XVII, sob luz filtrada."
+   },
+   "etiquette": {
+    "es": "Abierto al público con reserva; el bar El Coro recibe visitantes desde las 3 p. m. (vestimenta smart casual).",
+    "en": "Open to the public with a booking; El Coro bar takes visitors from 3 PM (smart casual).",
+    "fr": "Ouvert au public sur réservation ; le bar El Coro accueille dès 15 h (tenue smart casual).",
+    "pt": "Aberto ao público com reserva; o bar El Coro recebe visitantes das 15h (traje esporte fino)."
+   },
+   "link": "/partner/ptr_ho_004",
+   "source_url": "https://beblissfultravel.com/most-beautiful-restaurants-in-cartagena/",
+   "source_name": "Be Blissful Travel",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "exact",
+   "lat": 10.4282704,
+   "lng": -75.5478512,
+   "image_url": "/images/partners/ptr_ho_004.jpg",
+   "venue_name": "Sofitel Legend Santa Clara"
+  },
+  {
+   "id": "gh-epoca",
+   "lens": "golden_hour",
+   "name": "Época Café",
+   "venue_id": "ptr_W120",
+   "zone": null,
+   "best_light": [
+    "midday"
+   ],
+   "access_tier": "purchase",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Café de dos niveles con aire parisino de los 40 en casona colonial — el piso de arriba es el favorito.",
+    "en": "Two-level café with 1940s Parisian flair in a colonial house — upstairs is the favorite.",
+    "fr": "Café sur deux niveaux à l'esprit parisien années 40 — l'étage est le préféré.",
+    "pt": "Café de dois níveis com clima parisiense dos anos 40 — o andar de cima é o favorito."
+   },
+   "etiquette": null,
+   "link": "/partner/ptr_W120",
+   "source_url": "https://travelinsighter.com/best-cafes-in-cartagena-colombia/",
+   "source_name": "Travel Insighter",
+   "last_verified": "2026-09-30",
+   "confidence": "VERIFY",
+   "geo_precision": "exact",
+   "lat": 10.4240157,
+   "lng": -75.55027009999999,
+   "image_url": "/images/partners/ptr_W120.jpg",
+   "venue_name": "Época Café"
+  },
+  {
+   "id": "gh-nia-bakery",
+   "lens": "golden_hour",
+   "name": "Nía Bakery",
+   "venue_id": "ptr_R145",
+   "zone": null,
+   "best_light": [
+    "midday"
+   ],
+   "access_tier": "purchase",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Repostería con frutas colombianas y flores comestibles en una casona colonial restaurada.",
+    "en": "Pastries with Colombian fruits and edible flowers in a restored colonial building.",
+    "fr": "Pâtisseries aux fruits colombiens et fleurs comestibles dans une bâtisse coloniale restaurée.",
+    "pt": "Doces com frutas colombianas e flores comestíveis num casarão colonial restaurado."
+   },
+   "etiquette": null,
+   "link": "/partner/ptr_R145",
+   "source_url": "https://www.niabakery.com/",
+   "source_name": "Nía Bakery",
+   "last_verified": "2026-09-30",
+   "confidence": "VERIFY",
+   "geo_precision": "exact",
+   "lat": 10.422686,
+   "lng": -75.55069329999999,
+   "image_url": "/images/partners/ptr_R145.jpg",
+   "venue_name": "Nia Bakery"
+  },
+  {
+   "id": "gh-baluarte-de-la-gente",
+   "lens": "golden_hour",
+   "name": "Baluarte de la Gente (Baluarte de Santo Domingo)",
+   "venue_id": null,
+   "zone": "centro",
+   "best_light": [
+    "sunset"
+   ],
+   "access_tier": "free",
+   "crowd_hotspot": true,
+   "photogenic": {
+    "es": "El atardecer sin obstáculos sobre el Caribe desde el baluarte colonial — hoy mirador público (el antiguo Café del Mar cerró en 2024).",
+    "en": "An unobstructed Caribbean sunset from the colonial bastion — now a public viewpoint (the former Café del Mar closed in 2024).",
+    "fr": "Le coucher de soleil dégagé sur les Caraïbes depuis le bastion colonial — aujourd'hui belvédère public (l'ancien Café del Mar a fermé en 2024).",
+    "pt": "O pôr do sol sem obstáculos sobre o Caribe do baluarte colonial — hoje mirante público (o antigo Café del Mar fechou em 2024)."
+   },
+   "etiquette": {
+    "es": "Espacio público: pagas solo lo que consumas en el restaurante de la Escuela Taller.",
+    "en": "Public space: you pay only for what you order at the Escuela Taller restaurant.",
+    "fr": "Espace public : vous ne payez que votre consommation au restaurant de l'Escuela Taller.",
+    "pt": "Espaço público: você paga só o que consumir no restaurante da Escuela Taller."
+   },
+   "link": null,
+   "source_url": "https://www.elespectador.com/colombia/cartagena/reabren-baluarte-santo-domingo-en-murallas-de-cartagena-tiene-nuevo-nombre/",
+   "source_name": "El Espectador",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "approx",
+   "lat": 10.4254,
+   "lng": -75.5527,
+   "image_url": null,
+   "venue_name": null
+  },
+  {
+   "id": "gh-murallas",
+   "lens": "golden_hour",
+   "name": "Las Murallas",
+   "venue_id": "attr_002",
+   "zone": null,
+   "best_light": [
+    "sunrise",
+    "sunset"
+   ],
+   "access_tier": "free",
+   "crowd_hotspot": true,
+   "photogenic": {
+    "es": "Las fortificaciones de piedra (1614–1796): siluetas al atardecer y murallas vacías al amanecer.",
+    "en": "The stone fortifications (1614–1796): sunset silhouettes and empty ramparts at dawn.",
+    "fr": "Les fortifications de pierre (1614–1796) : silhouettes au couchant et remparts vides à l'aube.",
+    "pt": "As fortificações de pedra (1614–1796): silhuetas ao pôr do sol e muralhas vazias ao amanhecer."
+   },
+   "etiquette": {
+    "es": "Al atardecer se llena; para murallas solas, ve al amanecer.",
+    "en": "Sunset gets crowded; for empty walls, go at dawn.",
+    "fr": "Bondé au couchant ; pour des remparts vides, venez à l'aube.",
+    "pt": "Lota ao pôr do sol; para muralhas vazias, vá de madrugada."
+   },
+   "link": "/partner/attr_002",
+   "source_url": "https://apassionandapassport.com/cartagena-photo-spots-for-instagram/",
+   "source_name": "A Passion and A Passport",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "exact",
+   "lat": 10.4296098,
+   "lng": -75.54486500000002,
+   "image_url": "/images/partners/attr_002.jpg",
+   "venue_name": "Las Murallas de Cartagena"
+  },
+  {
+   "id": "gh-castillo-bandera",
+   "lens": "golden_hour",
+   "name": "Castillo San Felipe — Batería de la bandera",
+   "venue_id": "attr_001",
+   "zone": null,
+   "best_light": [
+    "sunrise",
+    "sunset"
+   ],
+   "access_tier": "paid_entry",
+   "crowd_hotspot": true,
+   "photogenic": {
+    "es": "La bandera gigante de Colombia sobre el Hornabeque, con la ciudad amurallada al fondo — termina el recorrido ~5:30 p. m. para el atardecer.",
+    "en": "Colombia's giant flag over the Hornabeque battery with the walled city behind — finish your visit ~5:30 PM for sunset.",
+    "fr": "Le drapeau géant de la Colombie sur l'Hornabeque, la ville fortifiée en fond — terminez vers 17 h 30 pour le coucher.",
+    "pt": "A bandeira gigante da Colômbia sobre o Hornabeque, com a cidade amuralhada ao fundo — termine ~17h30 para o pôr do sol."
+   },
+   "etiquette": {
+    "es": "Tarifas y horarios oficiales en Moverse → Monumentos; lleva agua, hay poca sombra.",
+    "en": "Official fares and hours in Getting around → Monuments; bring water, there's little shade.",
+    "fr": "Tarifs et horaires officiels dans Se déplacer → Monuments ; prenez de l'eau, peu d'ombre.",
+    "pt": "Tarifas e horários oficiais em Moverse → Monumentos; leve água, há pouca sombra."
+   },
+   "link": "/ciudad/monumentos",
+   "source_url": "https://apassionandapassport.com/cartagena-photo-spots-for-instagram/",
+   "source_name": "A Passion and A Passport",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "exact",
+   "lat": 10.4225232,
+   "lng": -75.5392887,
+   "image_url": "/images/partners/attr_001.jpg",
+   "venue_name": "Castillo San Felipe de Barajas"
+  },
+  {
+   "id": "gh-movich-alyzia",
+   "lens": "golden_hour",
+   "name": "Alyzia Rooftop (Movich)",
+   "venue_id": "ptr_dv_030",
+   "zone": null,
+   "best_light": [
+    "sunset"
+   ],
+   "access_tier": "purchase",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Vista 360°: cúpulas del Centro, la bahía, Bocagrande y el Caribe — \"como con dron\".",
+    "en": "360° view: the Centro's domes, the bay, Bocagrande and the Caribbean — \"like a drone shot\".",
+    "fr": "Vue à 360° : dômes du Centro, baie, Bocagrande et Caraïbes — « comme au drone ».",
+    "pt": "Vista 360°: cúpulas do Centro, a baía, Bocagrande e o Caribe — \"como de drone\"."
+   },
+   "etiquette": {
+    "es": "Abierto a no huéspedes con consumo; llega 2–3 h antes del atardecer por sitio — la piscina es solo para huéspedes.",
+    "en": "Open to non-guests with a drink; arrive 2–3 h before sunset for a seat — the pool is guests-only.",
+    "fr": "Ouvert aux non-clients avec consommation ; arrivez 2–3 h avant le coucher — piscine réservée aux clients.",
+    "pt": "Aberto a não hóspedes com consumo; chegue 2–3h antes do pôr do sol — a piscina é só para hóspedes."
+   },
+   "link": "/partner/ptr_dv_030",
+   "source_url": "https://travelswithmr.com/rooftop-bars-cartagena/",
+   "source_name": "Travels with MR",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "exact",
+   "lat": 10.4243,
+   "lng": -75.5508,
+   "image_url": "/images/partners/ptr_dv_030.jpg",
+   "venue_name": "Alyzia Rooftop & Dining (Movich)"
+  },
+  {
+   "id": "gh-casa-pura",
+   "lens": "golden_hour",
+   "name": "Casa Pura Rooftop",
+   "venue_id": "ptr_1373",
+   "zone": null,
+   "best_light": [
+    "sunset"
+   ],
+   "access_tier": "purchase",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Terraza frondosa en tercer piso con 360° de mar y ciudad vieja; atardeceres sobre las murallas.",
+    "en": "A lush third-floor terrace with 360° of sea and old town; sunsets over the walls.",
+    "fr": "Terrasse verdoyante au 3e étage, 360° mer et vieille ville ; couchers sur les remparts.",
+    "pt": "Terraço frondoso no 3º andar com 360° de mar e cidade velha; pores do sol sobre as muralhas."
+   },
+   "etiquette": {
+    "es": "Espacio pequeño: reserva, sobre todo en fin de semana (abre 5 p. m.–medianoche).",
+    "en": "Small space: reserve, especially weekends (open 5 PM–midnight).",
+    "fr": "Petit espace : réservez, surtout le week-end (17 h–minuit).",
+    "pt": "Espaço pequeno: reserve, principalmente no fim de semana (17h–meia-noite)."
+   },
+   "link": "/partner/ptr_1373",
+   "source_url": "https://travelswithmr.com/rooftop-bars-cartagena/",
+   "source_name": "Travels with MR",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "exact",
+   "lat": 10.4222754,
+   "lng": -75.55283539999999,
+   "image_url": "/images/partners/ptr_1373.jpg",
+   "venue_name": "Casa Pura Rooftop"
+  },
+  {
+   "id": "gh-charleston-rooftop",
+   "lens": "golden_hour",
+   "name": "Rooftop del Charleston Santa Teresa",
+   "venue_id": "ptr_1401",
+   "zone": null,
+   "best_light": [
+    "sunset"
+   ],
+   "access_tier": "purchase",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Azotea \"de ensueño\" sobre un exconvento — la alternativa tranquila al Movich.",
+    "en": "A \"dreamy\" rooftop atop a former convent — the calm alternative to Movich.",
+    "fr": "Un rooftop « de rêve » sur un ancien couvent — l'alternative calme au Movich.",
+    "pt": "Um rooftop \"dos sonhos\" sobre um ex-convento — a alternativa calma ao Movich."
+   },
+   "etiquette": {
+    "es": "Sube con la compra de un cóctel.",
+    "en": "Access with a cocktail purchase.",
+    "fr": "Accès avec l'achat d'un cocktail.",
+    "pt": "Acesso com a compra de um coquetel."
+   },
+   "link": "/partner/ptr_1401",
+   "source_url": "https://www.jetsetchristina.com/the-best-instagram-photo-spots-in-cartagena-colombia/",
+   "source_name": "JetSet Christina",
+   "last_verified": "2026-09-30",
+   "confidence": "VERIFY",
+   "geo_precision": "exact",
+   "lat": 10.4222674,
+   "lng": -75.5525837,
+   "image_url": "/images/partners/ptr_1401.jpg",
+   "venue_name": "Hotel Charleston Santa Teresa"
+  },
+  {
+   "id": "gh-club-de-pesca",
+   "lens": "golden_hour",
+   "name": "Fuerte del Pastelillo (Club de Pesca)",
+   "venue_id": "ptr_dv_008",
+   "zone": null,
+   "best_light": [
+    "sunset"
+   ],
+   "access_tier": "reservation",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Mesas en las antiguas troneras del fuerte, veleros de la marina y las dos Cartagenas al fondo.",
+    "en": "Tables in the fort's old cannon openings, marina sailboats and both Cartagenas behind.",
+    "fr": "Tables dans les anciennes embrasures du fort, voiliers de la marina et les deux Carthagènes.",
+    "pt": "Mesas nas antigas canhoneiras do forte, veleiros da marina e as duas Cartagenas ao fundo."
+   },
+   "etiquette": {
+    "es": "Reserva con anticipación para un buen puesto de 5:00 a 6:30 p. m.",
+    "en": "Book ahead for a good 5:00–6:30 PM table.",
+    "fr": "Réservez à l'avance pour une bonne table de 17 h à 18 h 30.",
+    "pt": "Reserve com antecedência para um bom lugar das 17h às 18h30."
+   },
+   "link": "/partner/ptr_dv_008",
+   "source_url": "https://cartagenadeindias.travel/experiencia/restaurante-fuerte-del-pastelillo-club-de-pesca/",
+   "source_name": "Cartagena de Indias Travel",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "exact",
+   "lat": 10.411,
+   "lng": -75.5385,
+   "image_url": "/images/partners/ptr_dv_008.jpg",
+   "venue_name": "Club de Pesca"
+  },
+  {
+   "id": "gh-muelle-manga",
+   "lens": "golden_hour",
+   "name": "Muelle de la Bahía de Manga",
+   "venue_id": null,
+   "zone": "manga",
+   "best_light": [
+    "sunset"
+   ],
+   "access_tier": "free",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Veleros cruzando la bahía a la hora dorada con el skyline de Bocagrande detrás.",
+    "en": "Sailboats gliding across the bay at golden hour with the Bocagrande skyline behind.",
+    "fr": "Des voiliers traversant la baie à l'heure dorée, skyline de Bocagrande en fond.",
+    "pt": "Veleiros cruzando a baía na hora dourada com o skyline de Bocagrande atrás."
+   },
+   "etiquette": {
+    "es": "Gratis; ambiente local de pícnic — se siente seguro con el movimiento del atardecer.",
+    "en": "Free; local picnic vibe — feels safe with the sunset crowd around.",
+    "fr": "Gratuit ; ambiance pique-nique locale — rassurant avec l'affluence du soir.",
+    "pt": "Grátis; clima local de piquenique — seguro com o movimento do entardecer."
+   },
+   "link": null,
+   "source_url": "https://www.minube.com/rincon/bahia--a87856",
+   "source_name": "Minube",
+   "last_verified": "2026-09-30",
+   "confidence": "HIGH",
+   "geo_precision": "approx",
+   "lat": 10.4139,
+   "lng": -75.5345,
+   "image_url": null,
+   "venue_name": null
+  },
+  {
+   "id": "gh-plaza-bolivar",
+   "lens": "golden_hour",
+   "name": "Plaza de Bolívar",
+   "venue_id": "attr_005",
+   "zone": null,
+   "best_light": [
+    "sunset"
+   ],
+   "access_tier": "free",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Plaza sombreada e histórica con presentaciones de cumbia y mapalé al caer la tarde.",
+    "en": "A shaded historic square with cumbia and mapalé performances in late afternoon.",
+    "fr": "Place historique ombragée, avec cumbia et mapalé en fin d'après-midi.",
+    "pt": "Praça histórica e sombreada com apresentações de cumbia e mapalé no fim da tarde."
+   },
+   "etiquette": {
+    "es": "Los bailarines viven de esto: deja propina si fotografías.",
+    "en": "The dancers live on this: tip if you photograph them.",
+    "fr": "Les danseurs en vivent : laissez un pourboire si vous photographiez.",
+    "pt": "Os dançarinos vivem disso: dê gorjeta se fotografar."
+   },
+   "link": "/partner/attr_005",
+   "source_url": "https://joujoutravels.com/most-instagrammable-spots-in-cartagena/",
+   "source_name": "Jou Jou Travels",
+   "last_verified": "2026-09-30",
+   "confidence": "VERIFY",
+   "geo_precision": "exact",
+   "lat": 10.4232347,
+   "lng": -75.55119049999999,
+   "image_url": "/images/partners/attr_005.jpg",
+   "venue_name": "Plaza de Bolívar"
+  },
+  {
+   "id": "gh-las-bovedas",
+   "lens": "golden_hour",
+   "name": "Las Bóvedas",
+   "venue_id": "attr_010",
+   "zone": null,
+   "best_light": [
+    "sunrise",
+    "midday"
+   ],
+   "access_tier": "free",
+   "crowd_hotspot": true,
+   "photogenic": {
+    "es": "La hilera de bóvedas coloniales sobre la muralla, llenas de artesanías de colores.",
+    "en": "The row of colonial vaults on the walls, filled with colorful crafts.",
+    "fr": "La rangée de voûtes coloniales sur les remparts, remplies d'artisanat coloré.",
+    "pt": "A fileira de abóbadas coloniais sobre a muralha, cheias de artesanato colorido."
+   },
+   "etiquette": null,
+   "link": "/partner/attr_010",
+   "source_url": "https://vivalalilya.com/most-instagrammable-places-in-cartagena/",
+   "source_name": "Viva La Lilya",
+   "last_verified": "2026-09-30",
+   "confidence": "VERIFY",
+   "geo_precision": "exact",
+   "lat": 10.4301532,
+   "lng": -75.5464571,
+   "image_url": "/images/partners/attr_010.jpg",
+   "venue_name": "Las Bóvedas"
+  },
+  {
+   "id": "gh-la-popa",
+   "lens": "golden_hour",
+   "name": "Convento de La Popa",
+   "venue_id": "attr_012",
+   "zone": null,
+   "best_light": [
+    "midday"
+   ],
+   "access_tier": "paid_entry",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "El punto más alto de la ciudad: 360° de mar, bahía y techos, y un claustro florido.",
+    "en": "The city's highest point: 360° of sea, bay and rooftops, plus a flower-filled cloister.",
+    "fr": "Le point culminant de la ville : 360° de mer, baie et toits, plus un cloître fleuri.",
+    "pt": "O ponto mais alto da cidade: 360° de mar, baía e telhados, e um claustro florido."
+   },
+   "etiquette": {
+    "es": "No subas a pie: toma un taxi y pídele que te espere — hay reportes de robos en la vía.",
+    "en": "Do not walk up: take a taxi and have it wait — there are robbery reports on the road.",
+    "fr": "Ne montez pas à pied : prenez un taxi et faites-le attendre — vols signalés sur la route.",
+    "pt": "Não suba a pé: pegue um táxi e peça para esperar — há relatos de assaltos na estrada."
+   },
+   "link": "/partner/attr_012",
+   "source_url": "https://www.eluniversal.com.co/turismo/2025/01/23/cerro-de-la-popa-un-lugar-de-fe-y-devocion/",
+   "source_name": "El Universal",
+   "last_verified": "2026-09-30",
+   "confidence": "VERIFY",
+   "geo_precision": "exact",
+   "lat": 10.4261111,
+   "lng": -75.5241667,
+   "image_url": "/images/partners/attr_012.jpg",
+   "venue_name": "Cerro de la Popa"
+  },
+  {
+   "id": "gh-bocagrande-beach",
+   "lens": "golden_hour",
+   "name": "Playa de Bocagrande",
+   "venue_id": null,
+   "zone": "bocagrande",
+   "best_light": [
+    "sunset"
+   ],
+   "access_tier": "free",
+   "crowd_hotspot": false,
+   "photogenic": {
+    "es": "Sombrillas de colores contra la fila de rascacielos — el contraste moderno de Cartagena.",
+    "en": "Colorful umbrellas against the line of skyscrapers — Cartagena's modern contrast.",
+    "fr": "Parasols colorés contre la rangée de gratte-ciel — le contraste moderne de Carthagène.",
+    "pt": "Guarda-sóis coloridos contra a fileira de arranha-céus — o contraste moderno de Cartagena."
+   },
+   "etiquette": {
+    "es": "Hay vendedores insistentes: acuerda precios antes de aceptar cualquier cosa.",
+    "en": "Vendors are persistent: agree on prices before accepting anything.",
+    "fr": "Vendeurs insistants : convenez des prix avant d'accepter quoi que ce soit.",
+    "pt": "Vendedores insistentes: combine preços antes de aceitar qualquer coisa."
+   },
+   "link": null,
+   "source_url": "https://lasmaplone.com/best-photo-spots-in-cartagena/",
+   "source_name": "Las Maplone",
+   "last_verified": "2026-09-30",
+   "confidence": "VERIFY",
+   "geo_precision": "approx",
+   "lat": 10.399,
+   "lng": -75.5566,
+   "image_url": null,
+   "venue_name": null
+  },
+  {
+   "id": "gh-plaza-santo-domingo",
+   "lens": "golden_hour",
+   "name": "Plaza de Santo Domingo",
+   "venue_id": "attr_004",
+   "zone": null,
+   "best_light": [
+    "sunrise"
+   ],
+   "access_tier": "free",
+   "crowd_hotspot": true,
+   "photogenic": {
+    "es": "La plaza colonial de la iglesia de Santo Domingo, con palenqueras y terrazas de café.",
+    "en": "The colonial square of Santo Domingo church, with palenqueras and café terraces.",
+    "fr": "La place coloniale de l'église Santo Domingo, avec palenqueras et terrasses de café.",
+    "pt": "A praça colonial da igreja de Santo Domingo, com palenqueras e mesas de café."
+   },
+   "etiquette": {
+    "es": "Con las palenqueras, acuerda el precio antes (sugerido 10.000–20.000 COP por persona).",
+    "en": "With palenqueras, agree the price first (suggested 10,000–20,000 COP per person).",
+    "fr": "Avec les palenqueras, convenez du prix avant (10 000–20 000 COP suggérés).",
+    "pt": "Com as palenqueras, combine o preço antes (sugerido 10.000–20.000 COP por pessoa)."
+   },
+   "link": "/partner/attr_004",
+   "source_url": "https://joujoutravels.com/most-instagrammable-spots-in-cartagena/",
+   "source_name": "Jou Jou Travels",
+   "last_verified": "2026-09-30",
+   "confidence": "VERIFY",
+   "geo_precision": "exact",
+   "lat": 10.4241,
+   "lng": -75.5516,
+   "image_url": "/images/partners/attr_004.jpg",
+   "venue_name": "Plaza Santo Domingo"
+  }
+ ],
+ "port_day": {
+  "fares": [
+   {
+    "key": "taxi_minimum",
+    "label": {
+     "es": "Carrera mínima 2026",
+     "en": "2026 minimum fare",
+     "fr": "Course minimale 2026",
+     "pt": "Corrida mínima 2026"
+    },
+    "value_cop": 12250,
+    "value_text": {
+     "es": "COP 12.250 (Decreto 0051 de 2026)",
+     "en": "COP 12,250 (Decree 0051 of 2026)",
+     "fr": "12 250 COP (décret 0051 de 2026)",
+     "pt": "COP 12.250 (Decreto 0051 de 2026)"
+    },
+    "confidence": "HIGH",
+    "source_name": "Alcaldía Mayor de Cartagena — Decreto 0051 de 2026 (estudio técnico del DATT), anunciado el 2 mar. 2026",
+    "source_url": "https://www.cartagena.gov.co/noticias/distrito-fija-nuevas-tarifas-para-el-servicio-publico-taxi-cartagena",
+    "last_verified": "2026-09-25",
+    "note": {
+     "es": "Subió 13,42 % frente a 2025 (COP 10.800). Según viajeros, algunos conductores redondean a 13.000: la tarifa oficial es 12.250 y puedes exigirla.",
+     "en": "Up 13.42% from 2025 (COP 10,800). Travellers report some drivers round up to 13,000: the official fare is 12,250 and you can insist on it.",
+     "fr": "Hausse de 13,42 % par rapport à 2025 (10 800 COP). Selon des voyageurs, certains chauffeurs arrondissent à 13 000 : le tarif officiel est de 12 250 et tu peux l'exiger.",
+     "pt": "Subiu 13,42% em relação a 2025 (COP 10.800). Segundo viajantes, alguns motoristas arredondam para 13.000: a tarifa oficial é 12.250 e você pode exigi-la."
+    }
+   },
+   {
+    "key": "taxi_night_surcharge",
+    "label": {
+     "es": "Recargo nocturno",
+     "en": "Night surcharge",
+     "fr": "Supplément de nuit",
+     "pt": "Adicional noturno"
+    },
+    "value_cop": 1100,
+    "value_text": {
+     "es": "COP 1.100 adicionales de 7:00 p. m. a 5:00 a. m.",
+     "en": "COP 1,100 extra from 7 p.m. to 5 a.m.",
+     "fr": "1 100 COP de plus de 19 h à 5 h",
+     "pt": "COP 1.100 a mais das 19h às 5h"
+    },
+    "confidence": "HIGH",
+    "source_name": "Alcaldía Mayor de Cartagena — Decreto 0051 de 2026",
+    "source_url": "https://www.cartagena.gov.co/noticias/distrito-fija-nuevas-tarifas-para-el-servicio-publico-taxi-cartagena",
+    "last_verified": "2026-09-25",
+    "note": {
+     "es": "La ventana se amplió: en 2025 empezaba a las 9:00 p. m. (COP 1.000).",
+     "en": "The window widened: in 2025 it started at 9 p.m. (COP 1,000).",
+     "fr": "La plage s'est élargie : en 2025 elle commençait à 21 h (1 000 COP).",
+     "pt": "A janela aumentou: em 2025 começava às 21h (COP 1.000)."
+    }
+   },
+   {
+    "key": "taxi_airport_centro",
+    "label": {
+     "es": "Aeropuerto → Centro Histórico / San Diego / Getsemaní",
+     "en": "Airport → Old City / San Diego / Getsemaní",
+     "fr": "Aéroport → Centre historique / San Diego / Getsemaní",
+     "pt": "Aeroporto → Centro Histórico / San Diego / Getsemaní"
+    },
+    "value_cop": 20200,
+    "value_text": {
+     "es": "COP 20.200 (también La Matuna, Marbella, El Cabrero, Crespo, Torices)",
+     "en": "COP 20,200 (also La Matuna, Marbella, El Cabrero, Crespo, Torices)",
+     "fr": "20 200 COP (aussi La Matuna, Marbella, El Cabrero, Crespo, Torices)",
+     "pt": "COP 20.200 (também La Matuna, Marbella, El Cabrero, Crespo, Torices)"
+    },
+    "confidence": "HIGH",
+    "source_name": "OINAC — Aeropuerto Internacional Rafael Núñez, tabla «Tarifas taxis desde el aeropuerto» (Decreto 0051 de 2026), PDF actualizado 2026-03-05; corroborada por cielo.travel (2026-09-09) y Cartagena Explorer (2026-03-15)",
+    "source_url": "https://aeropuertocartagena.com.co/wp-content/uploads/2022/05/Tarifas-taxis-desde-aeropuerto-2022.pdf",
+    "last_verified": "2026-09-25",
+    "note": {
+     "es": "La tabla del decreto separa «Centro - San Diego - La Matuna - Getsemaní» (20.200) de «Centro - Zona Hotelera Centro Histórico» (24.300): si tu hotel está en la zona hotelera de la ciudad amurallada, espera 24.300. Confírmalo en la caseta.",
+     "en": "The decree table separates \"Centro - San Diego - La Matuna - Getsemaní\" (20,200) from \"Centro - Zona Hotelera Centro Histórico\" (24,300): if your hotel is in the walled city's hotel zone, expect 24,300. Confirm at the stand.",
+     "fr": "Le tableau du décret distingue « Centro - San Diego - La Matuna - Getsemaní » (20 200) de « Centro - Zona Hotelera Centro Histórico » (24 300) : si ton hôtel est dans la zone hôtelière de la ville fortifiée, compte 24 300. Vérifie au guichet.",
+     "pt": "A tabela do decreto separa «Centro - San Diego - La Matuna - Getsemaní» (20.200) de «Centro - Zona Hotelera Centro Histórico» (24.300): se o seu hotel fica na zona hoteleira da cidade murada, espere 24.300. Confirme no ponto de táxi."
+    }
+   },
+   {
+    "key": "taxi_airport_bodeguita",
+    "label": {
+     "es": "Aeropuerto → Muelle de la Bodeguita / La Boquilla / zona hotelera del Centro",
+     "en": "Airport → La Bodeguita pier / La Boquilla / Old City hotel zone",
+     "fr": "Aéroport → Quai de la Bodeguita / La Boquilla / zone hôtelière du centre",
+     "pt": "Aeroporto → Cais da Bodeguita / La Boquilla / zona hoteleira do Centro"
+    },
+    "value_cop": 24300,
+    "value_text": {
+     "es": "COP 24.300 (también Zona Morros y Cielo Mar)",
+     "en": "COP 24,300 (also Zona Morros and Cielo Mar)",
+     "fr": "24 300 COP (aussi Zona Morros et Cielo Mar)",
+     "pt": "COP 24.300 (também Zona Morros e Cielo Mar)"
+    },
+    "confidence": "HIGH",
+    "source_name": "OINAC — Aeropuerto Internacional Rafael Núñez, tabla «Tarifas taxis desde el aeropuerto» (Decreto 0051 de 2026), PDF actualizado 2026-03-05; corroborada por cielo.travel (2026-09-09) y Cartagena Explorer (2026-03-15)",
+    "source_url": "https://aeropuertocartagena.com.co/wp-content/uploads/2022/05/Tarifas-taxis-desde-aeropuerto-2022.pdf",
+    "last_verified": "2026-09-25",
+    "note": {
+     "es": "Zona 2 de la tabla del decreto: Muelle de la Bodeguita, Boquilla - Zona Morros - Cielo Mar y «Centro - Zona Hotelera Centro Histórico». Si tu hotel está dentro de la ciudad amurallada, espera 24.300; confírmalo en la caseta.",
+     "en": "Zone 2 of the decree table: Muelle de la Bodeguita, Boquilla - Zona Morros - Cielo Mar and \"Centro - Zona Hotelera Centro Histórico\". If your hotel is inside the walled city, expect 24,300; confirm at the stand.",
+     "fr": "Zone 2 du tableau du décret : Muelle de la Bodeguita, Boquilla - Zona Morros - Cielo Mar et « Centro - Zona Hotelera Centro Histórico ». Si ton hôtel est dans la ville fortifiée, compte 24 300 ; vérifie au guichet.",
+     "pt": "Zona 2 da tabela do decreto: Muelle de la Bodeguita, Boquilla - Zona Morros - Cielo Mar e «Centro - Zona Hotelera Centro Histórico». Se o seu hotel fica dentro da cidade murada, espere 24.300; confirme no ponto de táxi."
+    }
+   },
+   {
+    "key": "taxi_airport_manga",
+    "label": {
+     "es": "Aeropuerto → Manga / Pie de la Popa",
+     "en": "Airport → Manga / Pie de la Popa",
+     "fr": "Aéroport → Manga / Pie de la Popa",
+     "pt": "Aeroporto → Manga / Pie de la Popa"
+    },
+    "value_cop": 28500,
+    "value_text": {
+     "es": "COP 28.500 (también Pie del Cerro, El Espinal, Lo Amador)",
+     "en": "COP 28,500 (also Pie del Cerro, El Espinal, Lo Amador)",
+     "fr": "28 500 COP (aussi Pie del Cerro, El Espinal, Lo Amador)",
+     "pt": "COP 28.500 (também Pie del Cerro, El Espinal, Lo Amador)"
+    },
+    "confidence": "HIGH",
+    "source_name": "OINAC — Aeropuerto Internacional Rafael Núñez, tabla «Tarifas taxis desde el aeropuerto» (Decreto 0051 de 2026), PDF actualizado 2026-03-05; corroborada por cielo.travel (2026-09-09) y Cartagena Explorer (2026-03-15)",
+    "source_url": "https://aeropuertocartagena.com.co/wp-content/uploads/2022/05/Tarifas-taxis-desde-aeropuerto-2022.pdf",
+    "last_verified": "2026-09-25",
+    "note": {
+     "es": "Zona 3 de la tabla del decreto publicada por el operador del aeropuerto (OINAC); confírmalo en la caseta.",
+     "en": "Zone 3 of the decree table published by the airport operator (OINAC); confirm at the stand.",
+     "fr": "Zone 3 du tableau du décret publié par l'exploitant de l'aéroport (OINAC) ; vérifie au guichet.",
+     "pt": "Zona 3 da tabela do decreto publicada pelo operador do aeroporto (OINAC); confirme no ponto de táxi."
+    }
+   },
+   {
+    "key": "taxi_airport_bocagrande",
+    "label": {
+     "es": "Aeropuerto → Bocagrande / Castillogrande / El Laguito",
+     "en": "Airport → Bocagrande / Castillogrande / El Laguito",
+     "fr": "Aéroport → Bocagrande / Castillogrande / El Laguito",
+     "pt": "Aeroporto → Bocagrande / Castillogrande / El Laguito"
+    },
+    "value_cop": 34400,
+    "value_text": {
+     "es": "COP 34.400",
+     "en": "COP 34,400",
+     "fr": "34 400 COP",
+     "pt": "COP 34.400"
+    },
+    "confidence": "HIGH",
+    "source_name": "OINAC — Aeropuerto Internacional Rafael Núñez, tabla «Tarifas taxis desde el aeropuerto» (Decreto 0051 de 2026), PDF actualizado 2026-03-05; corroborada por cielo.travel (2026-09-09) y Cartagena Explorer (2026-03-15)",
+    "source_url": "https://aeropuertocartagena.com.co/wp-content/uploads/2022/05/Tarifas-taxis-desde-aeropuerto-2022.pdf",
+    "last_verified": "2026-09-25",
+    "note": {
+     "es": "Es la zona turística más cara desde el aeropuerto; de noche suma el recargo de 1.100. Zona 5 de la tabla del decreto (OINAC); confírmalo en la caseta.",
+     "en": "The priciest tourist zone from the airport; add the 1,100 surcharge at night. Zone 5 of the decree table (OINAC); confirm at the stand.",
+     "fr": "La zone touristique la plus chère depuis l'aéroport ; la nuit, ajoute le supplément de 1 100. Zone 5 du tableau du décret (OINAC) ; vérifie au guichet.",
+     "pt": "A zona turística mais cara saindo do aeroporto; à noite some o adicional de 1.100. Zona 5 da tabela do decreto (OINAC); confirme no ponto de táxi."
+    }
+   },
+   {
+    "key": "no_taximeter_control_card",
+    "label": {
+     "es": "Sin taxímetro: Tarjeta de Control",
+     "en": "No meter: the Tarjeta de Control",
+     "fr": "Sans compteur : la Tarjeta de Control",
+     "pt": "Sem taxímetro: a Tarjeta de Control"
+    },
+    "value_cop": null,
+    "value_text": {
+     "es": "La tarifa es fija por zona y el conductor debe llevar la Tarjeta de Control visible con las tarifas vigentes.",
+     "en": "Fares are fixed by zone and the driver must display the Tarjeta de Control with the current fares.",
+     "fr": "Le tarif est fixe par zone et le chauffeur doit afficher la Tarjeta de Control avec les tarifs en vigueur.",
+     "pt": "A tarifa é fixa por zona e o motorista deve exibir a Tarjeta de Control com as tarifas vigentes."
+    },
+    "confidence": "HIGH",
+    "source_name": "Alcaldía Mayor de Cartagena — Decreto 0051 de 2026",
+    "source_url": "https://www.cartagena.gov.co/noticias/distrito-fija-nuevas-tarifas-para-el-servicio-publico-taxi-cartagena",
+    "last_verified": "2026-09-25",
+    "note": {
+     "es": "Pídela si el precio no te cuadra. No llevar las tarifas visibles se sanciona con multa de 8 salarios mínimos diarios (SMLDV), según El Universal (27 feb. 2026).",
+     "en": "Ask to see it if the price doesn't add up. Not displaying the fares carries a fine of 8 daily minimum wages (SMLDV), per El Universal (27 Feb 2026).",
+     "fr": "Demande à la voir si le prix ne colle pas. Ne pas afficher les tarifs est passible d'une amende de 8 salaires minimums journaliers (SMLDV), selon El Universal (27 févr. 2026).",
+     "pt": "Peça para ver se o preço não bater. Não exibir as tarifas gera multa de 8 salários mínimos diários (SMLDV), segundo o El Universal (27 fev. 2026)."
+    }
+   },
+   {
+    "key": "airport_official_stands",
+    "label": {
+     "es": "Casetas autorizadas en el aeropuerto",
+     "en": "Authorised airport taxi stands",
+     "fr": "Guichets de taxis autorisés à l'aéroport",
+     "pt": "Pontos de táxi autorizados no aeroporto"
+    },
+    "value_cop": null,
+    "value_text": {
+     "es": "Dos casetas oficiales: salida nacional y salida internacional del Aeropuerto Rafael Núñez.",
+     "en": "Two official stands: the domestic exit and the international exit of Rafael Núñez Airport.",
+     "fr": "Deux guichets officiels : sortie nationale et sortie internationale de l'aéroport Rafael Núñez.",
+     "pt": "Dois pontos oficiais: saída nacional e saída internacional do Aeroporto Rafael Núñez."
+    },
+    "confidence": "HIGH",
+    "source_name": "Aeropuerto Internacional Rafael Núñez (OINAC, operador del aeropuerto) — página sin fecha; el texto de las dos casetas ya aparece en la captura de Wayback del 17 dic. 2025",
+    "source_url": "https://aeropuertocartagena.com.co/transporte/",
+    "last_verified": "2026-09-25",
+    "note": {
+     "es": "Según viajeros, hay kioscos en llegadas que imprimen el tiquete con tu tarifa; el operador no lo documenta, así que pídelo en la caseta.",
+     "en": "Travellers report kiosks in arrivals that print a ticket with your fare; the operator doesn't document this, so ask at the stand.",
+     "fr": "Des voyageurs signalent des bornes aux arrivées qui impriment un ticket avec ton tarif ; l'exploitant ne le documente pas, demande-le au guichet.",
+     "pt": "Viajantes relatam quiosques no desembarque que imprimem o tíquete com a sua tarifa; o operador não documenta isso, então peça no ponto."
+    }
+   },
+   {
+    "key": "report_catalina_datt",
+    "label": {
+     "es": "Denunciar cobro de más (DATT)",
+     "en": "Report overcharging (DATT)",
+     "fr": "Signaler une surfacturation (DATT)",
+     "pt": "Denunciar cobrança abusiva (DATT)"
+    },
+    "value_cop": null,
+    "value_text": {
+     "es": "WhatsApp «Catalina» del DATT: 323 319 0810. Envía foto de la placa, datos del conductor (Tarjeta de Operación), día, hora, recorrido y valor cobrado.",
+     "en": "DATT's WhatsApp assistant \"Catalina\": 323 319 0810. Send a photo of the plate, the driver's details (Tarjeta de Operación), date, time, route and amount charged.",
+     "fr": "Assistant WhatsApp « Catalina » du DATT : 323 319 0810. Envoie une photo de la plaque, les données du chauffeur (Tarjeta de Operación), date, heure, trajet et montant payé.",
+     "pt": "WhatsApp \"Catalina\" do DATT: 323 319 0810. Envie foto da placa, dados do motorista (Tarjeta de Operación), dia, hora, trajeto e valor cobrado."
+    },
+    "confidence": "HIGH",
+    "source_name": "Alcaldía Mayor de Cartagena / DATT — asistente virtual Catalina",
+    "source_url": "https://www.cartagena.gov.co/noticias/cogele-placa-denuncia-abusos-tarifas-taxi-traves-asistente-virtual-catalina",
+    "last_verified": "2026-09-25",
+    "note": {
+     "es": "Canal reiterado por la Alcaldía en la noticia de tarifas 2026 (2 mar. 2026).",
+     "en": "Channel reiterated by the city in the 2026 fares announcement (2 Mar 2026).",
+     "fr": "Canal rappelé par la mairie dans l'annonce des tarifs 2026 (2 mars 2026).",
+     "pt": "Canal reiterado pela prefeitura no anúncio das tarifas 2026 (2 mar. 2026)."
+    }
+   },
+   {
+    "key": "report_titan_chat",
+    "label": {
+     "es": "Titán Chat — abusos y emergencias",
+     "en": "Titán Chat — abuses and emergencies",
+     "fr": "Titán Chat — abus et urgences",
+     "pt": "Titán Chat — abusos e emergências"
+    },
+    "value_cop": null,
+    "value_text": {
+     "es": "WhatsApp de Distriseguridad: 304 251 1127. Para reportar cobros injustos (playa, coches, taxis) y situaciones sospechosas o de seguridad.",
+     "en": "Distriseguridad's WhatsApp: 304 251 1127. To report unfair charges (beach, carriages, taxis) and suspicious or security situations.",
+     "fr": "WhatsApp de Distriseguridad : 304 251 1127. Pour signaler des tarifs abusifs (plage, calèches, taxis) et des situations suspectes ou de sécurité.",
+     "pt": "WhatsApp da Distriseguridad: 304 251 1127. Para denunciar cobranças abusivas (praia, charretes, táxis) e situações suspeitas ou de segurança."
+    },
+    "confidence": "HIGH",
+    "source_name": "Alcaldía Mayor de Cartagena / Distriseguridad — Titán Chat (número: noticia del 11 oct. 2024; alcance: noticia de lanzamiento del 17 sep. 2024)",
+    "source_url": "https://www.cartagena.gov.co/noticias/traves-uso-herramienta-tecnologica-titan-chat-alcaldia-mayor-cartagena-frustra-estafa-una-turista-baru",
+    "last_verified": "2026-09-25",
+    "note": {
+     "es": "El horario no consta en ninguna página oficial: El Universal (17 sep. 2026) lo describe como disponible las 24 horas y documenta, con el mismo número, un cobro abusivo en la playa resuelto con devolución del dinero. Alcance según la noticia oficial de lanzamiento (17 sep. 2024): precios recomendados en playas, paseos en coches, tarifas de taxis y reporte de cobros injustos.",
+     "en": "Opening hours appear on no official page: El Universal (17 Sep 2026) describes it as available 24 hours and documents, with the same number, a beach overcharge resolved with a refund. Scope per the official launch notice (17 Sep 2024): recommended beach prices, carriage rides, taxi fares and reporting unfair charges.",
+     "fr": "Les horaires ne figurent sur aucune page officielle : El Universal (17 sept. 2026) le décrit comme disponible 24 h/24 et documente, avec le même numéro, une surfacturation à la plage résolue par un remboursement. Périmètre selon l'annonce officielle de lancement (17 sept. 2024) : prix recommandés sur les plages, calèches, tarifs de taxis et signalement de tarifs abusifs.",
+     "pt": "O horário não consta em nenhuma página oficial: o El Universal (17 set. 2026) o descreve como disponível 24 horas e documenta, com o mesmo número, uma cobrança abusiva na praia resolvida com devolução do dinheiro. Alcance segundo a notícia oficial de lançamento (17 set. 2024): preços recomendados nas praias, charretes, tarifas de táxi e denúncia de cobranças abusivas."
+    }
+   }
+  ],
+  "fare_link": "/ciudad/taxis",
+  "muelle_link": "/ciudad/muelle-bodeguita",
+  "return_buffer_min": 90,
+  "crowd_note": {
+   "es": "En día de crucero el Centro se llena desde ~10 a. m. — ve al amanecer, o cambia a Getsemaní y Manga.",
+   "en": "On cruise days the Centro fills from ~10 AM — go at dawn, or switch to Getsemaní and Manga.",
+   "fr": "Les jours de croisière, le Centro se remplit dès ~10 h — venez à l'aube ou passez à Getsemaní et Manga.",
+   "pt": "Em dia de cruzeiro o Centro lota a partir das ~10h — vá de madrugada ou mude para Getsemaní e Manga."
+  },
+  "hotspot_pins": [
+   "gh-torre-del-reloj",
+   "gh-portal-dulces",
+   "gh-calle-don-sancho",
+   "gh-abaco",
+   "gh-murallas",
+   "gh-castillo-bandera",
+   "gh-las-bovedas",
+   "gh-plaza-santo-domingo"
+  ],
+  "itineraries": [
+   {
+    "id": "pd-esencial-4h",
+    "duration_h": 4,
+    "editorial": true,
+    "title": {
+     "es": "Lo esencial en 4 horas",
+     "en": "The essentials in 4 hours",
+     "fr": "L'essentiel en 4 heures",
+     "pt": "O essencial em 4 horas"
+    },
+    "note": {
+     "es": "Circuito a pie por la Ciudad Amurallada desde la Torre del Reloj. Tiempos estimados por AMO — ajusta a tu hora de regreso.",
+     "en": "Walking loop through the Walled City from the Clock Tower. Times are AMO estimates — adjust to your all-aboard.",
+     "fr": "Boucle à pied dans la ville fortifiée depuis la tour de l'horloge. Durées estimées par AMO.",
+     "pt": "Circuito a pé pela Cidade Amuralhada desde a Torre do Relógio. Tempos estimados pela AMO."
+    },
+    "stops": [
+     {
+      "pin": "gh-torre-del-reloj",
+      "minutes": 20,
+      "name": "Torre del Reloj",
+      "lat": 10.423,
+      "lng": -75.5491,
+      "access_tier": "free"
+     },
+     {
+      "pin": "gh-portal-dulces",
+      "minutes": 20,
+      "name": "Portal de los Dulces",
+      "lat": 10.4229,
+      "lng": -75.5495,
+      "access_tier": "purchase"
+     },
+     {
+      "pin": "gh-plaza-santo-domingo",
+      "minutes": 30,
+      "name": "Plaza de Santo Domingo",
+      "lat": 10.4241,
+      "lng": -75.5516,
+      "access_tier": "free"
+     },
+     {
+      "pin": "gh-calle-don-sancho",
+      "minutes": 25,
+      "name": "Calle de Don Sancho",
+      "lat": 10.4262,
+      "lng": -75.55,
+      "access_tier": "free"
+     },
+     {
+      "pin": "gh-catedral-santa-catalina",
+      "minutes": 20,
+      "name": "Catedral de Santa Catalina",
+      "lat": 10.4236446,
+      "lng": -75.5506735,
+      "access_tier": "free"
+     },
+     {
+      "pin": "gh-siete-infantes",
+      "minutes": 25,
+      "name": "Calle de los Siete Infantes (Calle 38)",
+      "lat": 10.4277,
+      "lng": -75.5465,
+      "access_tier": "free"
+     },
+     {
+      "pin": "gh-las-bovedas",
+      "minutes": 30,
+      "name": "Las Bóvedas",
+      "lat": 10.4301532,
+      "lng": -75.5464571,
+      "access_tier": "free"
+     },
+     {
+      "pin": "gh-murallas",
+      "minutes": 30,
+      "name": "Las Murallas",
+      "lat": 10.4296098,
+      "lng": -75.54486500000002,
+      "access_tier": "free"
+     }
+    ]
+   },
+   {
+    "id": "pd-getsemani-3h",
+    "duration_h": 3,
+    "editorial": true,
+    "title": {
+     "es": "Getsemaní sin multitudes (3 h)",
+     "en": "Getsemaní without the crowds (3 h)",
+     "fr": "Getsemaní sans la foule (3 h)",
+     "pt": "Getsemaní sem multidões (3 h)"
+    },
+    "note": {
+     "es": "La alternativa de día de crucero: arte urbano y plazas locales mientras el Centro está lleno.",
+     "en": "The cruise-day alternative: street art and local plazas while the Centro is packed.",
+     "fr": "L'alternative jour de croisière : street art et places locales pendant que le Centro est bondé.",
+     "pt": "A alternativa do dia de cruzeiro: arte urbana e praças locais enquanto o Centro está cheio."
+    },
+    "stops": [
+     {
+      "pin": "gh-plaza-trinidad",
+      "minutes": 30,
+      "name": "Plaza de la Trinidad",
+      "lat": 10.420614,
+      "lng": -75.5453984,
+      "access_tier": "free"
+     },
+     {
+      "pin": "gh-calle-sierpe",
+      "minutes": 25,
+      "name": "Calle de la Sierpe",
+      "lat": 10.421,
+      "lng": -75.546,
+      "access_tier": "free"
+     },
+     {
+      "pin": "gh-street-art-getsemani",
+      "minutes": 45,
+      "name": "Murales de Getsemaní",
+      "lat": 10.4208127,
+      "lng": -75.5455971,
+      "access_tier": "free"
+     },
+     {
+      "pin": "gh-umbrella-magdalena",
+      "minutes": 15,
+      "name": "Calle de la Magdalena (sombrillas)",
+      "lat": 10.4214,
+      "lng": -75.5449,
+      "access_tier": "free"
+     },
+     {
+      "pin": "gh-muelle-manga",
+      "minutes": 40,
+      "name": "Muelle de la Bahía de Manga",
+      "lat": 10.4139,
+      "lng": -75.5345,
+      "access_tier": "free"
+     }
+    ]
+   }
+  ]
+ }
+}

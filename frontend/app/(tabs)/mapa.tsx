@@ -22,6 +22,8 @@ import { openDirections } from '../../src/lib/maps';
 import { ATLAS_VERIFIED, ATLAS_VENUE_FIXES, ATLAS_ADD_VENUES, ATLAS_ROUTE, ATLAS_WALK, ATLAS_RUTAS } from '../../src/data/atlas';
 import { useLang } from '../../src/context/LanguageContext';
 import { loadFeed } from '../../src/lib/eventsFeed';
+import { LensKey, LensesDoc, LightSlot, bundledLenses, goldenPins, loadLenses, pickL4, sunsetThisMonth } from '../../src/lib/lenses';
+import LensRow from '../../src/components/lenses/LensChips';
 import { bogotaYmd, fmtEventWhen, hasRealCoords, pickTitle, toEventLite } from '../../src/lib/eventNotif';
 
 // Embeds arbitrary text as a JS string literal inside the WebView's inline <script>.
@@ -47,6 +49,9 @@ type Place = {
   verified?: boolean; // atlas-verified position (src/data/atlas.ts)
   // EVENTS-ELITE eventos layer: pre-rendered, already-translated popup lines.
   event?: { when: string; trust: string; verified: boolean };
+  // LENSES golden-hour layer (docs/lenses/DESIGN.md §4): pre-rendered, already-
+  // translated popup lines — access tier, honesty flags, source trust, etiquette.
+  lens?: { access: string; flags: string; trust: string; etiquette: string };
 };
 
 // Keyless Esri basemaps. Dark Gray canvas is the default; World Imagery powers
@@ -165,7 +170,29 @@ const fmtLiveDist = fmtDistance;
 // type/category not explicitly assigned a color.
 function markerColor(p: Place): string {
   if (p.category === 'eventos') return EVENT_PIN_COLOR;
+  if (p.category === 'lente') return GH_PIN_COLOR;
   return colorForKey(p.type || p.category);
+}
+
+// LENSES golden-hour pins — amber, distinct from passport mustard and event orange.
+const GH_PIN_COLOR = '#F5A623';
+
+// Golden-hour pin popup lines (access tier + honesty flags + source + etiquette),
+// HTML-escaped and pre-translated (Place.lens). Shared by both render paths, the
+// eventPopupHtml pattern. A VERIFY pin says "sin verificar"; an approx street pin
+// says "ubicación aproximada" — the flags never render as plain fact.
+function lensPopupHtml(p: Place): string {
+  if (!p.lens) return '';
+  const flags = p.lens.flags
+    ? '<span style="font-size:10px;color:#F5A623;font-weight:800">' + escHtml(p.lens.flags) + '</span><br>'
+    : '';
+  const etiquette = p.lens.etiquette
+    ? '<span style="font-size:10px;color:' + COLORS.textMuted + ';font-style:italic">' + escHtml(p.lens.etiquette) + '</span><br>'
+    : '';
+  return '<span style="font-size:12px;color:' + GH_PIN_COLOR + ';font-weight:700">' + escHtml(p.lens.access) + '</span><br>'
+    + flags
+    + etiquette
+    + '<span style="font-size:10px;color:' + COLORS.textMuted + ';font-weight:700">' + escHtml(p.lens.trust) + '</span><br>';
 }
 
 // Event pin popup lines (date/time + source trust line), HTML-escaped. Shared
@@ -197,10 +224,14 @@ const SAFE_NAV_PATH = /^\/[A-Za-z0-9_\-/]*$/;
 // "Ver detalle" target by place kind. Partners have a detail page and verified
 // events have /event/<id>; venues / essentials (hospitals, ess_*) have none —
 // linking them to /partner/<id> was a "No encontrado" dead end.
-function detailPath(p: { id: string; category: string; type: string }): string | null {
+function detailPath(p: { id: string; category: string; type: string; link?: string }): string | null {
   const id = (p.id || '').replace(/[^A-Za-z0-9_-]/g, '');
   if (!id) return null;
   if (p.category === 'eventos') return EVENT_ID_RE.test(id) ? `/event/${id}` : null;
+  // Golden-hour pins: the catalog venue page or the city-hub module that owns the
+  // facts (e.g. Castillo → /ciudad/monumentos). Same SAFE_NAV_PATH charset the
+  // WebView message handler enforces — an unsafe link renders no button at all.
+  if (p.category === 'lente') return p.link && SAFE_NAV_PATH.test(p.link) ? p.link : null;
   if (p.category === 'partner' && p.type !== 'essential' && !id.startsWith('ess_')) return `/partner/${id}`;
   return null;
 }
@@ -347,6 +378,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
       + '</div>'
       + '<b style=font-size:15px;color:' + COLORS.textMain + '>' + safeName + '</b><br>'
       + eventPopupHtml(p)
+      + lensPopupHtml(p)
       + verifiedHtml
       + '<span style=font-size:11px;color:' + COLORS.textMuted + '>' + safeDesc + '</span><br>'
       + '<span style=font-size:11px;color:' + COLORS.textMuted + '>📍 ' + safeAddr + '</span><br>'
@@ -1067,7 +1099,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
         </div>
         <b style="font-size:15px;color:${COLORS.textMain}">${safeName}</b><br>
         <span data-dist style="display:none;font-size:12px;color:#1a7f37;font-weight:700"></span>
-        ${eventPopupHtml(p)}${passportHtml}${verifiedHtml}
+        ${eventPopupHtml(p)}${lensPopupHtml(p)}${passportHtml}${verifiedHtml}
         <span style="font-size:11px;color:${COLORS.textMuted}">${safeDesc}</span><br>
         <span style="font-size:11px;color:${COLORS.textMuted}">📍 ${safeAddr}</span><br>
         ${priceHtml}
@@ -1247,6 +1279,13 @@ export default function MapaScreen() {
   // three primary FABs. Zone shading is opt-in from that sheet.
   const [moreOpen, setMoreOpen] = useState(false);
   const [zones, setZones] = useState(false);
+  // ── LENSES (docs/lenses/DESIGN.md §4): golden-hour mode over the map ──
+  // `lens` replaces the pin set wholesale (a mode, not an additive layer);
+  // `lightSlot` is the signature 3-way time toggle filtering by best_light.
+  const [lens, setLens] = useState<LensKey | null>(null);
+  const [lightSlot, setLightSlot] = useState<'all' | LightSlot>('all');
+  const [lensDoc, setLensDoc] = useState<LensesDoc | null>(null);
+  const [sunsetHHMM, setSunsetHHMM] = useState<string | null>(null); // set after mount only (#418)
   // ── CAMINAR: curated + custom walking routes over real streets ──
   const [caminarOpen, setCaminarOpen] = useState(false);
   const [building, setBuilding] = useState(false); // custom-ruta stop picking
@@ -1343,7 +1382,7 @@ export default function MapaScreen() {
   // the walk effect re-fires on mapReady, on native the document boots with
   // autoWalk — so setting state here is safe even while places still load.
   // The param is cleared right after so a tab re-focus does not restart it.
-  const { walk: walkParam, layer: layerParam } = useLocalSearchParams<{ walk?: string; layer?: string }>();
+  const { walk: walkParam, layer: layerParam, lens: lensParam } = useLocalSearchParams<{ walk?: string; layer?: string; lens?: string }>();
   const walkParamRef = useRef<string | null>(null);
   useEffect(() => {
     const wanted = walkParam === '1' || walkParam === 'virtual';
@@ -1380,6 +1419,34 @@ export default function MapaScreen() {
     router.setParams({ layer: undefined } as never);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layerParam]);
+
+  // ── `?lens=golden_hour` (lens chips / Luna) — activate the mode once per
+  // arrival, then clear the param (the layerParam pattern above).
+  const lensParamRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (lensParam !== 'golden_hour') { lensParamRef.current = null; return; }
+    if (lensParamRef.current === lensParam) return;
+    lensParamRef.current = lensParam;
+    setLens('golden_hour');
+    setLightSlot('all');
+    setFilter('all');
+    setNbhFilter(null);
+    setMoreOpen(false);
+    router.setParams({ lens: undefined } as never);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lensParam]);
+
+  // ── Lens data: bundled floor instantly, live hydrate after (offline-safe).
+  useEffect(() => {
+    let alive = true;
+    const boot = bundledLenses();
+    setLensDoc(boot);
+    setSunsetHHMM(sunsetThisMonth(boot));
+    loadLenses()
+      .then((d) => { if (alive) { setLensDoc(d); setSunsetHHMM(sunsetThisMonth(d)); } })
+      .catch(() => { /* keep the bundled floor */ });
+    return () => { alive = false; };
+  }, []);
 
   // ── Eventos layer: verified feed rows (eventsFeed), refreshed on focus ──
   useFocusEffect(
@@ -1517,10 +1584,41 @@ export default function MapaScreen() {
     requestLocation();
   }, []);
 
-  // Catalog pins + verified event pins (eventos layer).
+  // Golden-hour pins → Places with pre-rendered, translated popup lines (the
+  // eventos-layer pattern). `verified` (precision halo) only for HIGH + exact.
+  const goldenPlaces = useMemo<Place[]>(() => {
+    if (lens !== 'golden_hour' || !lensDoc) return [];
+    return goldenPins(lensDoc, lightSlot).map((p) => ({
+      id: p.id,
+      name: p.name,
+      description: pickL4(p.photogenic, lang),
+      category: 'lente',
+      type: tr('Hora dorada'),
+      address: '',
+      lat: p.lat,
+      lng: p.lng,
+      image_url: p.image_url || '',
+      price: '',
+      link: p.link || '',
+      extra: '',
+      verified: p.confidence === 'HIGH' && p.geo_precision === 'exact',
+      lens: {
+        access: pickL4(lensDoc.access_tiers?.[p.access_tier] ?? null, lang),
+        flags: [
+          p.confidence === 'VERIFY' ? tr('sin verificar') : '',
+          p.geo_precision === 'approx' ? tr('Ubicación aproximada') : '',
+        ].filter(Boolean).join(' · '),
+        trust: `${tr('Fuente')}: ${p.source_name} · ${p.last_verified}`,
+        etiquette: p.etiquette ? pickL4(p.etiquette, lang) : '',
+      },
+    }));
+  }, [lens, lensDoc, lightSlot, lang, tr]);
+
+  // Catalog pins + verified event pins (eventos layer) — or, in lens mode, the
+  // golden-hour set wholesale.
   const allPlaces = useMemo(
-    () => (eventPlaces.length ? [...places, ...eventPlaces] : places),
-    [places, eventPlaces],
+    () => (lens === 'golden_hour' ? goldenPlaces : (eventPlaces.length ? [...places, ...eventPlaces] : places)),
+    [lens, goldenPlaces, places, eventPlaces],
   );
 
   // Assign each place its nearest barrio once centroids load (memoized).
@@ -1686,11 +1784,18 @@ export default function MapaScreen() {
   // Active filters → one dismissible pill over the map (top-right, clear of
   // Leaflet's zoom control); the full chip sets live in the ⋯ sheet.
   const activeFilter = FILTERS.find(f => f.key === filter && f.key !== 'all') || null;
-  const filterPillLabel = [activeFilter ? tr(activeFilter.label) : '', nbhFilter ? (NBH_LABELS[nbhFilter] || nbhFilter) : ''].filter(Boolean).join(' · ');
+  const lensActive = lens === 'golden_hour';
+  const slotLabel = lightSlot === 'sunrise' ? tr('Amanecer') : lightSlot === 'midday' ? tr('Día') : lightSlot === 'sunset' ? tr('Atardecer') : '';
+  const filterPillLabel = [
+    lensActive ? tr('Hora dorada') : '',
+    lensActive && lightSlot !== 'all' ? slotLabel : '',
+    !lensActive && activeFilter ? tr(activeFilter.label) : '',
+    nbhFilter ? (NBH_LABELS[nbhFilter] || nbhFilter) : '',
+  ].filter(Boolean).join(' · ');
   // Pins actually on the map = category count within the barrio-filtered set.
   const filterPillCount = counts[filter as keyof typeof counts] ?? counts.all;
-  const filtersActive = !!activeFilter || !!nbhFilter;
-  const clearFilters = () => { setFilter('all'); setNbhFilter(null); };
+  const filtersActive = lensActive || !!activeFilter || !!nbhFilter;
+  const clearFilters = () => { setFilter('all'); setNbhFilter(null); setLens(null); setLightSlot('all'); };
   const openMore = () => { setCaminarOpen(false); setMoreOpen(o => !o); };
   const openCaminar = () => { setMoreOpen(false); setCaminarOpen(o => !o); };
 
@@ -1711,7 +1816,7 @@ export default function MapaScreen() {
         ) : (
           <WebView
             ref={webViewRef}
-            key={filter + (nbhFilter || 'allnbh') + (bakedLoc ? '_u' : '') + (satellite ? '_sat' : '_dark') + (zones ? '_zones' : '') + (tour ? '_tour' : '') + (walk ? '_walk' : '') + (ruta ? `_ruta${ruta.title}_${ruta.stops.length}` : '')}
+            key={filter + (nbhFilter || 'allnbh') + (lens ? `_lens${lens}_${lightSlot}` : '') + (bakedLoc ? '_u' : '') + (satellite ? '_sat' : '_dark') + (zones ? '_zones' : '') + (tour ? '_tour' : '') + (walk ? '_walk' : '') + (ruta ? `_ruta${ruta.title}_${ruta.stops.length}` : '')}
             source={{ html }}
             onLoadEnd={() => { if (userLocRef.current) moveNativeUser(userLocRef.current); }}
             style={styles.webview}
@@ -1749,7 +1854,7 @@ export default function MapaScreen() {
         {/* Active-filter pill — the only filter chrome in the default state */}
         {filtersActive && (
           <View style={styles.filterPill} testID="map-filter-pill">
-            <Ionicons name={(activeFilter?.icon || 'map-outline') as any} size={13} color={activeFilter?.color || COLORS.primary} />
+            <Ionicons name={(lensActive ? 'camera-outline' : activeFilter?.icon || 'map-outline') as any} size={13} color={lensActive ? GH_PIN_COLOR : activeFilter?.color || COLORS.primary} />
             <Text style={styles.filterPillText} numberOfLines={1}>{filterPillLabel} · {filterPillCount} {tr('lugares')}</Text>
             <TouchableOpacity
               onPress={clearFilters}
@@ -1759,6 +1864,34 @@ export default function MapaScreen() {
             >
               <Ionicons name="close" size={16} color={COLORS.textMain} />
             </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Golden-hour 3-way time toggle (F2 — the signature interaction). RN
+            chrome over the map on both platforms; the slot re-filters pins by
+            best_light. Sunset shows the real monthly hour (seasonal table). */}
+        {lensActive && !moreOpen && !caminarOpen && (
+          <View style={lensSt.slotBar} pointerEvents="box-none" testID="map-lens-slots">
+            <View style={lensSt.slotChips}>
+              {([['sunrise', tr('Amanecer'), 'partly-sunny-outline'], ['midday', tr('Día'), 'sunny-outline'], ['sunset', tr('Atardecer'), 'moon-outline']] as const).map(([key, label, icon]) => {
+                const active = lightSlot === key;
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    style={[lensSt.slotChip, active && lensSt.slotChipActive]}
+                    onPress={() => setLightSlot(active ? 'all' : key)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                  >
+                    <Ionicons name={icon as any} size={13} color={active ? '#0b0e18' : COLORS.textMain} />
+                    <Text style={[lensSt.slotChipText, active && lensSt.slotChipTextActive]}>{label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            {lightSlot === 'sunset' && sunsetHHMM ? (
+              <Text style={lensSt.sunsetNote}>{tr('El sol se pone')} ≈ {sunsetHHMM} {tr('este mes')}</Text>
+            ) : null}
           </View>
         )}
 
@@ -1842,7 +1975,29 @@ export default function MapaScreen() {
               </View>
             </View>
             <ScrollView style={styles.moreScroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              <Text style={styles.sheetLabel}>{tr('Filtrar')}</Text>
+              {/* LENSES — modes over the map (docs/lenses/DESIGN.md §4). A live
+                  lens activates; a gated one opens its honest coming-soon card. */}
+              <View style={lensSt.rowWrap}>
+                <LensRow
+                  active={lens}
+                  onActivate={(key) => {
+                    if (key === 'golden_hour') {
+                      setLens('golden_hour');
+                      setLightSlot('all');
+                      setFilter('all');
+                      setMoreOpen(false);
+                    } else if (key === 'port_day') {
+                      setMoreOpen(false);
+                      router.push('/port-day' as never);
+                    } else {
+                      setMoreOpen(false);
+                      router.push('/(tabs)/explore' as never);
+                    }
+                  }}
+                />
+              </View>
+              {!lensActive && <Text style={styles.sheetLabel}>{tr('Filtrar')}</Text>}
+              {!lensActive && (
               <View style={styles.chipWrap}>
                 {FILTERS.map(f => {
                   const isActive = filter === f.key;
@@ -1864,6 +2019,7 @@ export default function MapaScreen() {
                   );
                 })}
               </View>
+              )}
 
               {nbhChips.length > 0 && (
                 <>
@@ -2239,4 +2395,27 @@ const styles = StyleSheet.create({
   },
   locDeniedText: { flex: 1, fontSize: 11, color: COLORS.textMain, ...FONTS.medium },
   locDeniedAction: { fontSize: 11, color: COLORS.icon, ...FONTS.bold },
+});
+
+// LENSES chrome (docs/lenses/DESIGN.md §4): kept separate from the main sheet —
+// the golden-hour slot bar floats under the filter pill, clear of the FAB column.
+const lensSt = StyleSheet.create({
+  rowWrap: { marginBottom: 14 },
+  slotBar: { position: 'absolute', top: 64, left: 12, right: 72, alignItems: 'flex-start' },
+  slotChips: {
+    flexDirection: 'row', gap: 6, backgroundColor: 'rgba(5,8,20,0.88)',
+    borderRadius: 24, padding: 4, borderWidth: 1, borderColor: 'rgba(245,166,35,0.35)',
+  },
+  slotChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 5, minHeight: 36,
+    paddingHorizontal: 12, borderRadius: 20,
+  },
+  slotChipActive: { backgroundColor: '#F5A623' },
+  slotChipText: { color: COLORS.textMain, fontSize: 12, fontWeight: '700' },
+  slotChipTextActive: { color: '#0b0e18' },
+  sunsetNote: {
+    marginTop: 6, color: '#F5A623', fontSize: 11, fontWeight: '800',
+    backgroundColor: 'rgba(5,8,20,0.88)', borderRadius: 12,
+    paddingHorizontal: 10, paddingVertical: 4, overflow: 'hidden',
+  },
 });

@@ -128,8 +128,23 @@ async function collectFeed(url, source) {
   return itemsOf(rows, 'event_id', 'name', source, ['image_url']);
 }
 
+// LENSES golden-hour pins ({pins:[...]}): venue-backed pins reuse the venue's own
+// /images/partners/<id>.jpg; place pins carry image_url null (bundled placeholder).
+// Best-effort like the feed: a missing mirror warns, never aborts.
+async function collectLensPins(source) {
+  let res;
+  try { res = await fetch(`${LIVE}${source}`, { headers: { Accept: 'application/json' } }); }
+  catch (e) { console.error(`WARN: GET ${LIVE}${source} -> ${e.message} (skipped)`); return []; }
+  if (!res.ok) { console.error(`WARN: GET ${source} -> ${res.status} (skipped)`); return []; }
+  let data;
+  try { data = await res.json(); } catch { console.error(`WARN: ${source} is not JSON (skipped)`); return []; }
+  const rows = (Array.isArray(data?.pins) ? data.pins : []).filter((r) => r && typeof r === 'object');
+  return itemsOf(rows, 'id', 'name', source, ['image_url']);
+}
+
 const items = [
   ...(await collect('/data/partners.json', 'partner_id', 'name')),
+  ...(await collectLensPins('/data/lenses.json')),
   ...(await collectFeed(`${LIVE}/data/events-feed.json`, '/data/events-feed.json')),
   ...(await collectFeed(`${BACKEND}/api/events/feed`, 'api/api/events/feed')),
   ...(await collect('/data/partner-events.json', 'event_id', 'title', IMAGE_FIELDS)),

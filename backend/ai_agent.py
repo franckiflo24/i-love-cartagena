@@ -1326,6 +1326,9 @@ async def build_context_snapshot(
         # City hub (transporte / muelle / monumentos / coches / taxis): ANY intent — the
         # trigger decides, not the router. Rules over trust_reference + cartagena_knowledge.
         **({"city_reference": cc} if cc else {}),
+        # Lenses (hora dorada / día de crucero / sin escalones / familia / mujeres):
+        # provenance-carrying; a gated lens injects ONLY its decline lines (§5).
+        **({"lens_reference": lc} if (lc := _lens_context(user_text)) else {}),
         **({"seasonal": sc} if (sc := _seasonal_context(user_text)) else {}),
         **({"occasions": oc} if (oc := _occasion_context(user_text)) else {}),
         "relevant_partners": relevant_partners,
@@ -1443,6 +1446,18 @@ _CITY_TITLE_SKIP = frozenset({
     "le", "les", "du", "des", "da", "do", "das", "dos", "city", "water",
     "electric", "eléctricos", "elétricas", "électriques", "coches", "walls", "bateau",
 })
+
+
+def _lens_context(user_text: str) -> Optional[Dict[str, Any]]:
+    """Deterministic lens reference (docs/lenses/DESIGN.md §5): a LIVE lens injects
+    sourced entries; a GATED lens injects ONLY its four decline lines — Luna never
+    improvises a trust claim (women-safe / family-safe / step-free). Fail-safe:
+    any error means no reference, never a crash of the context snapshot."""
+    try:
+        import lenses as _lenses_mod
+        return _lenses_mod.luna_context(user_text)
+    except Exception:  # noqa: BLE001 — a broken lens layer must not break Luna
+        return None
 
 
 def _city_trigger_re(k: str) -> "re.Pattern[str]":
@@ -1775,6 +1790,7 @@ TU TRABAJO
 - Si `essentials_layer` está en el contexto, responde las necesidades básicas (traslado del aeropuerto, taxi, cajeros/cambio, SIM, farmacias, supermercados, agua, emergencias, hospitales, salud del viajero) DESDE `essentials_layer.live_essentials` — cada categoría trae `guidance` y `entries` verificadas (cadenas reales, tarifas oficiales, números). Da el dato con su fuente/año cuando es HIGH.
 - AUTORIDAD: para ATM/hospital/tarifa/policía de turismo/agua, `essentials_layer` y `trust_reference` MANDAN sobre `cartagena_knowledge` (que es solo contexto de fondo, sin verificar). Si difieren, sigue SIEMPRE a essentials_layer/trust_reference.
 - AUTORIDAD CIUDAD: si `city_reference` está en el contexto, MANDA sobre `cartagena_knowledge` y `trust_reference` para transporte (Transcaribe), muelle e islas, monumentos, coches eléctricos y taxis — responde DESDE `city_reference.modules[].facts` y `luna.facts_es`, nunca de memoria. AMO NO vende ni opera estos servicios: NUNCA digas que el pasaje, la tarjeta, la tasa del muelle, el ingreso al parque, el seguro, la boleta de un monumento, el paseo en coche o el taxi se compra o se reserva en AMO, ni ofrezcas una acción de compra para ellos (mientras `city_reference` esté presente, esta regla gana sobre "Inicias compras"). Si el usuario quiere comprar, reservar o pagar, responde con `luna.decline_line_es` (en su idioma) y dirígelo a `luna.redirect_to` / `official_links`, con UNA acción `open_city_module` cuyo `module_id` sea el del módulo en contexto (ej. islas → "muelle-bodeguita") para que vea el costo real en la app. Cita cada precio con su confianza: HIGH → cifra + fuente/año ("COP 3.900, Decreto 017 de 2026"); VERIFY → "aprox., confirma en taquilla / en la estación / con el cochero". `status=proximamente` = todavía NO opera y no hay pasajes: jamás lo presentes como disponible. NUNCA inventes tarifas, horarios, rutas ni pases que no estén en `city_reference`. value_cop=0 → di "gratis" (nunca "COP 0"); puedes cerrar con "verificado el {city_reference.last_verified}" cuando el usuario pida certeza. Si el usuario escribe en inglés/francés/portugués usa `luna.decline_line_en/fr/pt` tal cual (no traduzcas la española). Esta regla gana también sobre el bloque CONOCIMIENTO LOCAL DE CARTAGENA y sobre los EJEMPLOS OBLIGATORIOS de este prompt.
+- AUTORIDAD LENTES: si `lens_reference` está en el contexto, MANDA para fotos/hora dorada, día de crucero (escala), accesibilidad sin escalones, planes con niños y seguridad de mujeres. Lente con `live=true` → responde SOLO desde sus `entries` (nombre + nota + acceso + "Fuente: {source_name}"); para hora dorada puedes citar la puesta de sol del mes desde `sunset_by_month` ("este mes el sol se pone ≈ {HH:MM}") y la etiqueta (`etiquette_es`) cuando aplique — las palenqueras se acuerdan ANTES de la foto. Lente con `live=false` → responde EXACTAMENTE con su `decline_line` en el idioma del usuario (en/fr/pt tal cual, no traduzcas la española) y NADA más improvisado sobre ese tema: PROHIBIDO ABSOLUTO inventar o deducir un lugar "seguro para mujeres", "apto para niños" o "accesible" — son reclamos de confianza y sin dato verificado NO existen (esto gana sobre `party_type=family` y sobre cualquier otro bloque). Tras un decline puedes remitir SOLO a datos verificados adyacentes ya presentes en el contexto (ej. tarifas de taxi DATT en `city_reference`). Acciones: únicamente `open_partner` con un `partner_id` que venga en las entries; ninguna otra. Esta regla gana sobre CONOCIMIENTO LOCAL y los EJEMPLOS.
 - CITY PASS — son DOS cosas distintas: (1) el City Pass de AMO (Explorer/Classic/Premium/Ultimate) es un pase de beneficios de la app (descuentos, eventos, concierge); NO incluye entradas a monumentos ni museos. Ofrécelo con open_city_pass / navigate citypass SOLO si `context.payments_live=true`; si es false di "los pagos en la app llegan próximamente" y no emitas open_city_pass. (2) NO existe un pase oficial de monumentos de Cartagena: cada sitio vende su boleta (Castillo → ETCAR en línea o taquilla; Inquisición → taquilla MUHCA; murallas y Bóvedas gratis). Si preguntan "¿puedo comprar el city pass en AMO?" responde ambas cosas en una frase: qué es el pase de AMO y que la boleta del Castillo se compra a ETCAR.
 - Datos clave verificados que SÍ puedes afirmar (HIGH): emergencias **123**, aeropuerto→Centro **$20.200** (oficial 2026), mínima taxi **$12.250**, farmacias = cadenas (Cruz Verde/Farmatodo/La Rebaja/Olímpica), hospital de referencia = **Serena del Mar** (JCI). Nunca inventes otro número, cadena, clínica o tarifa.
 - Entradas confidence=VERIFY en `essentials_layer` → dilas SIEMPRE con la salvedad exacta de su value_text/source ("no oficial", "confirma vigencia"); ante urgencia remite al 123. NUNCA las afirmes con el mismo peso que una HIGH (ej: el teléfono de la Policía de Turismo es VERIFY — dalo con el hedge, no como dato firme).

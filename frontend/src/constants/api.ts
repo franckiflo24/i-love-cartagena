@@ -83,6 +83,7 @@ export const PUBLIC_GET_NO_AUTH = new RegExp(
     'essentials/(taxonomy|category/[^/?]+)',
     'reviews/partner/[^/?]+',
     'collections(/[^/?]+)?',
+    'lenses(/[^/?]+)?',
   ].join('|') + ')(\\?|$)',
 );
 

@@ -276,6 +276,10 @@ PROTECTED_FIELDS: set[str] = {
     # trust badges + confidence tier
     "trust", "confidence", "verified", "is_certified", "price_reference",
     "rnt", "place_verified",
+    # lens tags are trust claims (women-verified / family / step-free): they enter ONLY
+    # through sourced editorial data or a moderated self-report flow, never a direct edit
+    # (docs/lenses/DESIGN.md §1) — a direct write hard-403s so the block is observable
+    "lens_tags", "lenses", "lens_attrs",
     # partner_price is set ONLY by the moderated B2D flow, never a direct edit
     "partner_price",
     # images go ONLY through the moderated /business/media flow (C3) — a direct

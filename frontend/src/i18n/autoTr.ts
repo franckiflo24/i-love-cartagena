@@ -17,6 +17,7 @@ import type { Lang } from './translations';
 import { EVENTS_TR } from './autoTrEvents';
 import { NEARBY_TR } from './autoTrNearby';
 import { CMW_TR } from './autoTrCmw';
+import { LENSES_TR } from './autoTrLenses';
 
 export type Dict = Record<string, Partial<Record<Lang, string>>>;
 
@@ -1908,7 +1909,7 @@ export function useTr() {
   return useCallback((esText: string | null | undefined): string => {
     if (!esText) return '';
     if (lang === 'es') return esText;
-    const entry = AUTO_TR[esText] ?? EVENTS_TR[esText] ?? NEARBY_TR[esText] ?? CMW_TR[esText];
+    const entry = AUTO_TR[esText] ?? EVENTS_TR[esText] ?? NEARBY_TR[esText] ?? CMW_TR[esText] ?? LENSES_TR[esText];
     if (!entry) return esText; // fallback: original Spanish
     return entry[lang] || esText;
   }, [lang]);
