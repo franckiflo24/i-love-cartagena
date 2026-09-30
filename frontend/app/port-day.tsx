@@ -22,7 +22,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Head from '../src/components/WebHead';
-import PortDaySchematic from '../src/components/lenses/PortDaySchematic';
+import { PortDaySchematic } from '../src/components/lenses/PortDaySchematic';
 import { COLORS, FONTS, RADIUS, SPACING, TYPE } from '../src/constants/theme';
 import { useLang } from '../src/context/LanguageContext';
 import { useTr } from '../src/i18n/autoTr';
@@ -191,6 +191,7 @@ function AllAboardCard({ bufferMin }: { bufferMin: number }) {
   const targetMs = active ? allAboardToMs(active) : null;
   const remainingMs = ready && targetMs !== null && nowMs !== null ? targetMs - nowMs : null;
   const warn = remainingMs !== null && remainingMs < bufferMin * 60000;
+  // floor, not round/ceil: the countdown never claims more time than is actually left.
   const remMin = remainingMs !== null ? Math.max(0, Math.floor(remainingMs / 60000)) : null;
   const hrs = remMin !== null ? Math.floor(remMin / 60) : 0;
   const mins = remMin !== null ? remMin % 60 : 0;

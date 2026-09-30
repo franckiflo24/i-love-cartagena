@@ -107,11 +107,11 @@ function spreadPoints(input: Point[], minGap: number, box: { x0: number; y0: num
  *  - lat axis inverts for screen y (north up).
  */
 export function projectStops(
-  stops: ReadonlyArray<{ lat: number; lng: number }>,
+  stops: readonly { lat: number; lng: number }[],
   width: number,
   height: number,
-): Array<Point | null> {
-  const out: Array<Point | null> = stops.map(() => null);
+): (Point | null)[] {
+  const out: (Point | null)[] = stops.map(() => null);
   const valid: number[] = [];
   stops.forEach((s, i) => {
     if (Number.isFinite(s.lat) && Number.isFinite(s.lng)) valid.push(i);
@@ -158,7 +158,7 @@ const fmt = (n: number): string => n.toFixed(1);
 export function PortDaySchematic({ stops, height = DEFAULT_HEIGHT }: Props) {
   const tr = useTr();
   const h = Math.max(MIN_HEIGHT, Number.isFinite(height) ? height : DEFAULT_HEIGHT);
-  const list = Array.isArray(stops) ? stops : [];
+  const list = useMemo(() => (Array.isArray(stops) ? stops : []), [stops]);
   const pts = useMemo(() => projectStops(list, VB_W, h), [list, h]);
 
   const drawn = pts.filter((p): p is Point => p !== null);
