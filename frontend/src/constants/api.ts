@@ -1016,7 +1016,7 @@ export const api = {
       credentials: _creds(path),
       body: body ? JSON.stringify(body) : undefined,
     }, WRITE_TIMEOUT_MS);
-    if (!res.ok) throw new Error(`PUT ${path} failed: ${res.status}`);
+    if (!res.ok) throw new Error(await _writeErr('PUT', path, res));
     return res.json();
   },
   patch: async (path: string, body?: any, opts?: Opts) => {
@@ -1028,14 +1028,7 @@ export const api = {
       credentials: _creds(path),
       body: body ? JSON.stringify(body) : undefined,
     }, WRITE_TIMEOUT_MS);
-    if (!res.ok) {
-      let msg = `PATCH ${path} failed: ${res.status}`;
-      try {
-        const err = await res.json();
-        if (err?.detail) msg = err.detail;
-      } catch { /* response body not JSON — use status code message */ }
-      throw new Error(msg);
-    }
+    if (!res.ok) throw new Error(await _writeErr('PATCH', path, res));
     return res.json();
   },
   delete: async (path: string, body?: any, opts?: Opts) => {
@@ -1047,7 +1040,20 @@ export const api = {
       body: body !== undefined ? JSON.stringify(body) : undefined,
       credentials: _creds(path),
     }, WRITE_TIMEOUT_MS);
-    if (!res.ok) throw new Error(`DELETE ${path} failed: ${res.status}`);
+    if (!res.ok) throw new Error(await _writeErr('DELETE', path, res));
     return res.json();
   },
 };
+
+// The server's real reason, surfaced (audit fix #9c): "PUT … failed: 422" hid every
+// validation message. detail may be a string OR {error, message} — never "[object Object]".
+async function _writeErr(method: string, path: string, res: Response): Promise<string> {
+  let msg = `${method} ${path} failed: ${res.status}`;
+  try {
+    const err = await res.json();
+    const d = err?.detail;
+    if (typeof d === 'string' && d) msg = d;
+    else if (d && typeof d === 'object' && typeof d.message === 'string' && d.message) msg = d.message;
+  } catch { /* response body not JSON — keep the status message */ }
+  return msg;
+}

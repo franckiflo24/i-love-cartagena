@@ -336,6 +336,12 @@ async def activate_partner(request: Request):
         "email": email,
         "password_hash": pw_hash,
         "partner_id": partner["partner_id"],
+        # Audit fix #4 (2026-09-30): activation IS the ownership proof (the operator
+        # invited this exact email), but these fields were never set, so every content
+        # route 403'd (_require_verified_owner) and the dashboard sent the vendor
+        # hunting for a venue that search can't show. The Vercel startup fix-up that
+        # would have healed it returns early in prod and never runs.
+        "claimed_partner_ids": [partner["partner_id"]],
         "full_name": partner.get("name") or email,
         "role": "business",
         "activated_at": _iso(),
@@ -353,6 +359,10 @@ async def activate_partner(request: Request):
             "status": "active",
             "activated_at": _iso(),
             "onboarding_percent": 30,
+            # Audit fix #4: the invite chain is the verification. Without these the
+            # activated vendor was a verified nobody (dead-end dashboard, 403 content).
+            "claim_status": "verified_owner",
+            "claimed_by": business_id,
         },
          "$unset": {"activation_token": ""}}
     )

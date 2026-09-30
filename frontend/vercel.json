@@ -182,6 +182,14 @@
       "destination": "/ciudad/%5Bid%5D"
     },
     {
+      "source": "/gobierno/pagar/:service",
+      "destination": "/gobierno/pagar/%5Bservice%5D"
+    },
+    {
+      "source": "/gobierno/boleta/:id",
+      "destination": "/gobierno/boleta/%5Bid%5D"
+    },
+    {
       "source": "/business/claim/:id",
       "destination": "/business/claim/%5Bid%5D"
     },
@@ -377,6 +385,12 @@
           "key": "Cache-Control",
           "value": "public, max-age=60, stale-while-revalidate=120"
         }
+      ]
+    },
+    {
+      "source": "/gobierno(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     },
     {

@@ -27,10 +27,16 @@ For each event, you must:
 3. Score completeness of the description (0-100) — content quality only, per the structured-fields rule above.
 4. Decide a verdict: AUTO_APPROVE / NEEDS_REVIEW / REJECT.
 
-Decision rules:
-- REJECT: Inappropriate content (drugs/sexual/violence/hate/scams) or clearly fake. This is the ONLY verdict that blocks publication.
-- NEEDS_REVIEW: Description too vague (<60), or partner-stated category is wrong AND you're unsure of correct one, or borderline content. The event is STILL PUBLISHED — this verdict only flags it for an optional human spot-check, so reserve it for genuine doubts.
-- AUTO_APPROVE: Clean, complete, correct category.
+Decision rules (NEEDS_REVIEW and REJECT both BLOCK publication until a human acts —
+holding an event costs the partner real business, so quality is NEVER a reason to hold):
+- REJECT: Inappropriate content (drugs/sexual/violence/hate/scams) or clearly fake.
+- NEEDS_REVIEW: ONLY a genuine safety or authenticity doubt you cannot resolve yourself
+  (possible scam or impersonation, suspected illegal activity, content that might target
+  minors). If your doubt is about writing quality, vagueness, or category fit, it is NOT
+  a NEEDS_REVIEW.
+- AUTO_APPROVE: everything else — including vague or thin descriptions (supply your
+  improved_description; the system applies it) and wrong categories you can confidently
+  correct yourself (supply the corrected category).
 
 You can SUGGEST a better category and a polished description. The system will auto-apply if verdict is AUTO_APPROVE.
 

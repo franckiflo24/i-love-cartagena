@@ -390,3 +390,42 @@ async def send_itinerary_email(*, to: str, title: str, stops: list, subtitle: st
     return await _send_email(to=to, subject=f"Tu plan para Cartagena: {_plain(title)} 🌴",
                              html=_shell(preheader=preheader, inner=inner), text=text,
                              log_label="Itinerario")
+
+
+async def send_partner_event_decision_email(*, to: str, business_name: str, event_title: str,
+                                            event_date: str, approved: bool, reason: str = "",
+                                            public_url: str = "") -> bool:
+    """Close the vendor loop on human moderation (docs/civic-demo/DESIGN.md §1 A3):
+    an approved event links to its live page; a rejected one lists the exact fix.
+    Fail-soft at every call site — a mail hiccup never blocks moderation."""
+    if approved:
+        preheader = f"Tu evento «{_plain(event_title)}» ya está publicado en AMO Life."
+        head = "¡Evento publicado! 🎉"
+        body = (f"Tu evento <b style=\"color:{_GOLD_BRIGHT};\">{_safe(event_title)}</b> "
+                f"({_safe(event_date)}) ya está visible para los viajeros y locales en AMO Life.")
+        cta = _button("Ver mi evento →", public_url or SITE)
+        subject = f"Publicado: {_plain(event_title)}"
+    else:
+        preheader = f"Tu evento «{_plain(event_title)}» necesita un ajuste antes de publicarse."
+        head = "Tu evento necesita un ajuste"
+        fix = _safe(reason or "Revisa la descripción, hora y precio, y vuelve a enviarlo.")
+        body = (f"Revisamos <b style=\"color:{_GOLD_BRIGHT};\">{_safe(event_title)}</b> "
+                f"({_safe(event_date)}) y aún no se publicó.<br><br>"
+                f"<b>Qué ajustar:</b> {fix}")
+        cta = _button("Editar mi evento →", f"{SITE}/business/dashboard")
+        subject = f"Ajusta tu evento: {_plain(event_title)}"
+    inner = f"""
+  <tr><td align="center" style="padding:22px 34px 2px;">
+    <div style="font-family:{_SERIF};font-size:25px;color:{_TEXT};">{head}</div>
+  </td></tr>
+  <tr><td style="padding:14px 34px 0;">
+    <p style="margin:0 0 8px;font-family:{_SANS};font-size:16px;color:{_TEXT};">Hola {_safe(business_name)},</p>
+    <p style="margin:0 0 22px;font-family:{_SANS};font-size:14px;line-height:1.6;color:{_MUTED};">{body}</p>
+  </td></tr>
+  {cta}"""
+    text = (f"{head}\n\n{_plain(event_title)} ({_plain(event_date)})\n"
+            + ("Ya está publicado en AMO Life." if approved else f"Qué ajustar: {_plain(reason)}")
+            + f"\n\n{public_url or SITE}\n\n— AMO Life")
+    return await _send_email(to=to, subject=subject,
+                             html=_shell(preheader=preheader, inner=inner), text=text,
+                             log_label="EventoModeración")

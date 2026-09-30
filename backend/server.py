@@ -72,6 +72,9 @@ import luna_cmw as _luna_cmw  # noqa: E402  — /search inherits the determinist
 # LENSES (docs/lenses/DESIGN.md): demographic lenses + Golden Hour over the one catalog.
 # min_fill-gated; Luna reads it as lens_reference via ai_agent.build_context_snapshot.
 import lenses as _lenses  # noqa: E402
+# CIVIC DEMO (docs/civic-demo/DESIGN.md): the government-pitch payment demo. The city is
+# the merchant of record; AMO is the channel. No real money; Luna never references it.
+import civic_demo as _civic  # noqa: E402
 
 # ── In-memory rate limiter for expensive AI endpoints ──────────
 from collections import defaultdict
@@ -980,9 +983,17 @@ async def business_create_event(request: Request):
         if not body.get(r):
             raise HTTPException(status_code=400, detail=f"{r} is required")
     event_price = _bounded_int(body.get("price", 0), field="price") or 0
+    # A past-dated event can never be seen (Bogotá date filter) — reject it up front
+    # instead of letting the vendor "publish" into the void (funnel audit 2026-09-30).
+    if str(body.get("date") or "") < _today_bogota():
+        raise HTTPException(status_code=422, detail="La fecha del evento ya pasó / The event date is in the past")
     flyer = (body.get("flyer_url") or "").strip()
+    # I3 still holds (only moderated uploads / self-hosted paths render), but an
+    # external URL now COERCES TO EMPTY instead of 422: the form shipped an Unsplash
+    # default for months, so every event using it was unpublishable (audit fix #1).
+    # SafeImage paints the category placeholder for an empty flyer.
     if flyer and not _pc.validate_image_value(flyer):
-        raise HTTPException(status_code=422, detail="Flyer inválido (I3): solo subidas moderadas o /images/ / Invalid flyer: moderated upload or /images/ only")
+        flyer = ""
 
     # ── AI Moderation ──
     from ai_moderation import moderate_event
@@ -1022,6 +1033,7 @@ async def business_create_event(request: Request):
         "description": final_description,
         "category": final_category,
         "date": body["date"],
+        "date_end": _overnight_date_end(body["date"], body["start_time"], body["end_time"]),
         "start_time": body["start_time"],
         "end_time": body["end_time"],
         "flyer_url": flyer,
@@ -1082,6 +1094,25 @@ async def business_create_event(request: Request):
             )
         except Exception as exc:
             logger.warning(f"[AutoVerify] event alert email failed: {exc}")
+        # Telegram too (fail-soft). The email channel ALONE left this queue unreviewed
+        # for 5+ weeks (found 2026-09-30: three Casa Bohême events stranded pending,
+        # two expired unseen). Every NEEDS_REVIEW/REJECT now pings the ops chat with
+        # the backlog size and the one-tap review link.
+        try:
+            import telegram_alerts as _tg_alerts
+            pending_n = await db.partner_events.count_documents({"moderation_status": "pending"})
+            head = ("⛔ Evento rechazado por IA — NO publicado" if verdict == "REJECT"
+                    else "🔎 Evento de partner EN REVISIÓN — NO publicado")
+            await _tg_alerts.send("\n".join([
+                head,
+                f"{(partner or {}).get('name', '')} · {event['title']}",
+                f"Fecha del evento: {event['date']} {event.get('start_time') or ''}".strip(),
+                f"Motivo IA: {str(mod.get('reason', ''))[:180]}",
+                f"Pendientes en cola: {pending_n}",
+                "Revisar: https://www.amocartagena.co/business/admin/queue",
+            ]))
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(f"[AutoVerify] event alert telegram failed: {type(exc).__name__}")
 
     return event
 
@@ -2590,13 +2621,58 @@ async def admin_list_submissions(request: Request):
             "counts": {"events": len(ev), "media": len(media), "prices": len(price), "auto": len(auto)}}
 
 
+def _overnight_date_end(date_s: str, start_s: str, end_s: str) -> Optional[str]:
+    """Audit fix #7: a 22:00→03:00 party ends the NEXT day — without date_end the
+    Bogotá date filter dropped it at 03:00 on its own day, before it even started."""
+    try:
+        if date_s and start_s and end_s and end_s < start_s:
+            return (datetime.strptime(date_s, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
+    except Exception:  # noqa: BLE001
+        pass
+    return None
+
+
+async def _notify_vendor_event_decision(ev: dict, *, approved: bool, reason: str = "") -> None:
+    """Audit fix #5: the vendor hears about EVERY human decision, from BOTH admin
+    surfaces — email (house template) + push. All fail-soft; a mail/push hiccup
+    never blocks moderation."""
+    try:
+        owner = await db.business_users.find_one(
+            {"partner_id": ev.get("partner_id")}, {"_id": 0, "email": 1, "full_name": 1})
+        if owner and owner.get("email"):
+            await _emails_svc.send_partner_event_decision_email(
+                to=owner["email"],
+                business_name=owner.get("full_name") or "",
+                event_title=str(ev.get("title") or ""),
+                event_date=str(ev.get("date") or ""),
+                approved=approved,
+                reason=reason or str(ev.get("moderation_reason") or ""),
+                public_url=(f"https://www.amocartagena.co/partner-event/{ev.get('event_id')}"
+                            if approved else ""),
+            )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"[Moderación] vendor decision email failed: {type(exc).__name__}")
+    try:
+        from push import push_to_partner
+        await push_to_partner(
+            db, ev.get("partner_id"),
+            "Evento publicado 🎉" if approved else "Tu evento necesita un ajuste",
+            str(ev.get("title") or ""),
+            data={"kind": "event_moderation", "event_id": ev.get("event_id"), "approved": approved},
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"[Moderación] vendor decision push failed: {type(exc).__name__}")
+
+
 @api_router.post("/business/admin/events/{event_id}/moderate")
 async def admin_moderate_event(event_id: str, request: Request):
     gov = await _require_moderator(request)
     body = await request.json()
     action = (body.get("action") or "").strip().lower()  # approve | reject
     reason = (body.get("reason") or "")[:300]
-    ev = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0, "partner_id": 1})
+    ev = await db.partner_events.find_one({"event_id": event_id},
+                                          {"_id": 0, "partner_id": 1, "title": 1, "date": 1,
+                                           "moderation_reason": 1})
     if not ev:
         raise HTTPException(status_code=404, detail="Evento no encontrado / Event not found")
     if action == "approve":
@@ -2606,6 +2682,8 @@ async def admin_moderate_event(event_id: str, request: Request):
     else:
         raise HTTPException(status_code=400, detail="action debe ser approve|reject")
     await _mod_log("event", event_id, action, gov.get("email", "admin"), reason=reason, extra={"partner_id": ev.get("partner_id")})
+    await _notify_vendor_event_decision({**ev, "event_id": event_id},
+                                        approved=(action == "approve"), reason=reason)
     return {"moderated": True, "action": action}
 
 
@@ -2728,16 +2806,26 @@ async def business_update_event(event_id: str, request: Request):
         update["price"] = _bounded_int(update["price"], field="price") or 0
     if "is_free" in update:
         update["is_free"] = bool(update["is_free"])
-    if "flyer_url" in update:  # S6: I3
+    if "flyer_url" in update:  # S6: I3 — external URLs coerce to empty (audit fix #1):
+        # legacy events carried the old Unsplash default, so every save (even a pause)
+        # 422'd. Empty renders the category placeholder; the event stays editable.
         fv = (update["flyer_url"] or "").strip()
         if fv and not _pc.validate_image_value(fv):
-            raise HTTPException(status_code=422, detail="Flyer inválido (I3) / Invalid flyer")
+            fv = ""
         update["flyer_url"] = fv
-    # S1: a partner may PAUSE (true->false) but NEVER self-publish (false->true) — a
-    # rejected event can only go public through re-moderation on a content edit.
-    # (Fail-closed model, §15 T4: only AUTO_APPROVE publishes; server decides is_published.)
-    if update.get("is_published") is True:
+    # S1: a partner may PAUSE (true->false) and may RE-PUBLISH an event that is
+    # already moderation-approved (audit fix #9a: pausing used to be one-way).
+    # A pending/rejected event still can NEVER self-publish — only re-moderation
+    # or a human approve flips it (fail-closed, §15 T4).
+    if update.get("is_published") is True and existing.get("moderation_status") != "approved":
         update.pop("is_published")
+    # Overnight recompute (audit fix #7) whenever the date or times change.
+    if any(k in update for k in ("date", "start_time", "end_time")):
+        update["date_end"] = _overnight_date_end(
+            str(update.get("date", existing.get("date", "")) or ""),
+            str(update.get("start_time", existing.get("start_time", "")) or ""),
+            str(update.get("end_time", existing.get("end_time", "")) or ""),
+        )
 
     # ── Re-moderation if substantial fields changed ──
     needs_remoderation = any(
@@ -2791,6 +2879,20 @@ async def business_update_event(event_id: str, request: Request):
                 "is_resolved": False,
                 "created_at": datetime.now(timezone.utc).isoformat(),
             })
+            # Telegram too (audit fix #6): an EDIT that takes a live event down was
+            # even quieter than a held create — email row only, never a ping.
+            try:
+                import telegram_alerts as _tg_alerts
+                pending_n = await db.partner_events.count_documents({"moderation_status": "pending"})
+                await _tg_alerts.send("\n".join([
+                    "🔎 Edición dejó un evento EN REVISIÓN — ya no está publicado",
+                    f"{(partner or {}).get('name', '')} · {new_title}",
+                    f"Motivo IA: {str(mod.get('reason', ''))[:180]}",
+                    f"Pendientes en cola: {pending_n}",
+                    "Revisar: https://www.amocartagena.co/business/admin/queue",
+                ]))
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(f"[AutoVerify] edit alert telegram failed: {type(exc).__name__}")
 
     await db.partner_events.update_one({"event_id": event_id}, {"$set": update})
     updated = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0})
@@ -3440,6 +3542,10 @@ async def admin_approve_event(event_id: str, request: Request):
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Event not found")
     await db.admin_notifications.update_many({"event_id": event_id}, {"$set": {"is_resolved": True, "is_read": True, "resolution": "approved"}})
+    ev_doc = await db.partner_events.find_one(
+        {"event_id": event_id}, {"_id": 0, "partner_id": 1, "title": 1, "date": 1})
+    if ev_doc:
+        await _notify_vendor_event_decision({**ev_doc, "event_id": event_id}, approved=True)
     return {"approved": True}
 
 
@@ -3464,6 +3570,11 @@ async def admin_reject_event(event_id: str, request: Request):
     if res.matched_count == 0:
         raise HTTPException(status_code=404, detail="Event not found")
     await db.admin_notifications.update_many({"event_id": event_id}, {"$set": {"is_resolved": True, "is_read": True, "resolution": "rejected"}})
+    ev_doc = await db.partner_events.find_one(
+        {"event_id": event_id}, {"_id": 0, "partner_id": 1, "title": 1, "date": 1})
+    if ev_doc:
+        await _notify_vendor_event_decision({**ev_doc, "event_id": event_id}, approved=False,
+                                            reason=body.get("reason", "Contenido no apto"))
     return {"rejected": True}
 
 
@@ -7170,7 +7281,9 @@ async def activate_city_pass(request: Request):
         "status": "active" if _mock_pay else "pending_payment",
         "payment_status": "paid" if _mock_pay else "pending",
         "activated_at": now.isoformat() if _mock_pay else None,
-        "expires_at": (now + timedelta(days=7)).isoformat() if _mock_pay else None,
+        # The tier's OWN duration (7/12/12/30) — a hardcoded 7 shortchanged every
+        # paid tier by up to 23 days (funnel/citypass audit 2026-09-30).
+        "expires_at": (now + timedelta(days=CITY_PASS_PLANS.get(plan_id, {}).get("duration_days", 7))).isoformat() if _mock_pay else None,
         "is_active": bool(_mock_pay),
         "created_at": now.isoformat(),
     }
@@ -7680,7 +7793,9 @@ async def _fulfill_payment(payment: dict, tx: dict):
                     "user_id": user_id,
                     "plan_id": metadata.get("plan_id"),
                     "activated_at": datetime.now(timezone.utc).isoformat(),
-                    "expires_at": (datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),
+                    # Tier's own duration — the paid fulfilment had the same hardcoded-7 bug.
+                    "expires_at": (datetime.now(timezone.utc) + timedelta(
+                        days=CITY_PASS_PLANS.get(metadata.get("plan_id"), {}).get("duration_days", 7))).isoformat(),
                     "is_active": True,
                     "payment_id": payment.get("payment_id"),
                     "wompi_transaction_id": tx.get("id"),
@@ -8494,6 +8609,10 @@ app.include_router(_cmw.router, prefix="/api")
 # events/CMW routers (docs/lenses/DESIGN.md §3). Gated lenses never leak content.
 _lenses.init(db_=db)
 app.include_router(_lenses.router, prefix="/api")
+
+# Civic demo router (docs/civic-demo/DESIGN.md §2-§3): demo-only civic credentials.
+_civic.init(db_=db)
+app.include_router(_civic.router, prefix="/api")
 
 app.include_router(api_router)
 

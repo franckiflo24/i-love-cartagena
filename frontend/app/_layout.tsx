@@ -71,6 +71,7 @@ export default function RootLayout() {
         <Stack.Screen name="music-week/index" options={{ presentation: 'card' }} />
         <Stack.Screen name="music-week/[id]" options={{ presentation: 'card' }} />
         <Stack.Screen name="port-day" options={{ presentation: 'card' }} />
+        <Stack.Screen name="gobierno" options={{ presentation: 'card' }} />
         <Stack.Screen name="ciudad/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="partner-event/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="experience/[id]" options={{ presentation: 'card' }} />

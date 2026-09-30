@@ -19,13 +19,9 @@ const CATEGORIES = [
   { key: 'popup', label: 'Pop-up', icon: 'bag-handle' },
 ];
 
-const SUGGESTED_FLYERS = [
-  'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=1000&fit=crop',
-  'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=1000&fit=crop',
-  'https://images.unsplash.com/photo-1495567720989-cebdbdd97913?w=800&h=1000&fit=crop',
-  'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&h=1000&fit=crop',
-  'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&h=1000&fit=crop',
-];
+// (The old SUGGESTED_FLYERS were Unsplash URLs the server's I3 rule can never
+// accept — every event that kept the default was unpublishable. Audit fix #1:
+// no flyer is a fine flyer; SafeImage paints the category art.)
 
 export default function EventForm() {
   const router = useRouter();
@@ -41,7 +37,7 @@ export default function EventForm() {
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [flyerUrl, setFlyerUrl] = useState(SUGGESTED_FLYERS[0]);
+  const [flyerUrl, setFlyerUrl] = useState('');
   const [isFree, setIsFree] = useState(false);
   const [price, setPrice] = useState('');
   const [bookingLink, setBookingLink] = useState('');
@@ -64,7 +60,7 @@ export default function EventForm() {
           setDate(ev.date);
           setStartTime(ev.start_time);
           setEndTime(ev.end_time);
-          setFlyerUrl(ev.flyer_url || SUGGESTED_FLYERS[0]);
+          setFlyerUrl(ev.flyer_url || '');
           setIsFree(!!ev.is_free);
           setPrice(String(ev.price || ''));
           setBookingLink(ev.booking_link || '');
@@ -81,12 +77,16 @@ export default function EventForm() {
   const handleSave = async () => {
     if (!title || !description) return Alert.alert('Faltan datos', 'Título y descripción son requeridos');
     if (!validateDate(date)) return Alert.alert('Fecha inválida', 'Usa el formato YYYY-MM-DD (ej: 2026-05-15)');
+    // Bogotá "today" — a past date can never be visible, so stop it here (audit #13).
+    const todayBogota = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' });
+    if (!isEdit && date < todayBogota) return Alert.alert('Fecha pasada', 'La fecha del evento ya pasó — usa una fecha de hoy en adelante.');
     if (!validateTime(startTime) || !validateTime(endTime)) return Alert.alert('Hora inválida', 'Usa el formato HH:MM (ej: 19:30)');
     setSaving(true);
     try {
       const payload = {
         title, description, category, date, start_time: startTime, end_time: endTime,
-        flyer_url: flyerUrl, is_free: isFree, price: isFree ? 0 : parseInt(price || '0', 10),
+        // "50.000" used to parseInt to 50 — strip every non-digit first (audit #13).
+        flyer_url: flyerUrl, is_free: isFree, price: isFree ? 0 : parseInt((price || '0').replace(/[^0-9]/g, '') || '0', 10),
         booking_link: bookingLink || partner?.booking_link || '',
         is_published: isPublished,
       };
@@ -102,17 +102,20 @@ export default function EventForm() {
       // onPress (Alert is a no-op on react-native-web). The message is informational.
       router.back();
       if (verdict === 'NEEDS_REVIEW') {
-        Alert.alert('¡Publicado!', 'Tu evento ya está en vivo en la agenda. El equipo puede darle un vistazo adicional, pero no necesitas hacer nada más.');
+        // The truth (audit fix #2): a held event is NOT public until a human approves.
+        Alert.alert(
+          'En revisión — aún NO es público',
+          (reason ? `Motivo: ${reason}\n\n` : '')
+          + 'Un moderador lo revisará pronto. Si editas el título o la descripción, se re-evalúa al instante.',
+        );
       } else if (verdict === 'REJECT') {
         Alert.alert('Rechazado', reason || 'La IA detectó contenido no apto.');
+      } else if (verdict === 'AUTO_APPROVE') {
+        Alert.alert(isEdit ? 'Cambios guardados' : '¡Publicado!',
+          isEdit ? 'Tu evento fue actualizado y sigue en vivo.' : 'Tu evento ya está en vivo en la agenda.');
       } else {
-        // In static mode, result has no verdict (just the payload back).
-        Alert.alert(
-          isEdit ? 'Cambios guardados' : '¡Publicado!',
-          isEdit
-            ? 'Tu evento fue actualizado exitosamente.'
-            : 'Tu evento fue creado y ya está en vivo en la agenda.',
-        );
+        // No verdict (static mode / older server) — never promise "en vivo" blind.
+        Alert.alert('Evento enviado', 'Revisa su estado en tu panel.');
       }
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'No se pudo guardar');
@@ -140,8 +143,8 @@ export default function EventForm() {
             <View style={{ flex: 1 }}>
               <Text style={styles.aiBannerTitle}>Moderación IA activa</Text>
               <Text style={styles.aiBannerText}>
-                {isEdit ? 'Tus cambios se publican al instante. ' : 'Tu evento se publica al instante. '}
-                La IA solo bloquea contenido no apto.
+                La mayoría de los eventos se publican al instante. Si la IA tiene una duda
+                de seguridad o autenticidad, pasa a revisión humana y te avisamos.
               </Text>
             </View>
           </View>
@@ -233,15 +236,6 @@ export default function EventForm() {
           </View>
           <Text style={styles.hint}>🤖 La IA revisa tu flyer al instante (caption, tags y verifica que sea apropiado).</Text>
 
-          <Text style={[styles.label, { marginTop: SPACING.md }]}>O elige uno sugerido</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.flyerRow} contentContainerStyle={{ gap: SPACING.xs }}>
-            {SUGGESTED_FLYERS.map(url => (
-              <TouchableOpacity key={url} onPress={() => setFlyerUrl(url)} style={[styles.flyerOption, flyerUrl === url && styles.flyerActive]}>
-                <SafeImage uri={url} category="event" style={styles.flyerThumb} />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-
           {/* Price */}
           <View style={styles.row}>
             <Text style={styles.label}>¿Evento gratis?</Text>
@@ -259,14 +253,18 @@ export default function EventForm() {
           <TextInput style={styles.input} value={bookingLink} onChangeText={setBookingLink} placeholder={partner?.booking_link || 'https://tu-sitio.com/reservar'} placeholderTextColor={COLORS.textMuted} autoCapitalize="none" />
           <Text style={styles.hint}>💡 Si lo dejas vacío, usaremos el link de tu perfil. Todos los clicks se trackean con UTM (utm_source=amocartagena).</Text>
 
-          {/* Published */}
-          <View style={styles.row}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.label}>Publicar evento</Text>
-              <Text style={styles.hint}>Si lo desactivas, queda como borrador</Text>
+          {/* Published — only meaningful on EDIT (pause / re-publish an approved
+              event). On create the server decides via moderation; showing a switch
+              it ignores was a lie (audit #13). */}
+          {isEdit && (
+            <View style={styles.row}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.label}>Publicar evento</Text>
+                <Text style={styles.hint}>Pausa o re-publica un evento ya aprobado</Text>
+              </View>
+              <Switch value={isPublished} onValueChange={setIsPublished} trackColor={{ false: '#444', true: COLORS.primary }} thumbColor={COLORS.white} />
             </View>
-            <Switch value={isPublished} onValueChange={setIsPublished} trackColor={{ false: '#444', true: COLORS.primary }} thumbColor={COLORS.white} />
-          </View>
+          )}
 
           <TouchableOpacity style={[styles.saveBtn, saving && { opacity: 0.6 }]} onPress={handleSave} disabled={saving}>
             {saving ? <ActivityIndicator size="small" color={COLORS.white} /> : (

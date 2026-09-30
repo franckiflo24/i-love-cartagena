@@ -3,4 +3,5 @@ Allow: /
 Disallow: /admin
 Disallow: /business
 Disallow: /api
+Disallow: /gobierno
 Sitemap: https://www.amocartagena.co/sitemap.xml
