@@ -34,8 +34,10 @@ class _Tickets:
         d = self.rows.get(q.get("ticket_id"))
         return dict(d) if d else None
     async def count_documents(self, q):
+        # exact-match every filter field — a fake that drops a predicate (e.g. the
+        # credentials-only `kind`) silently green-lights the wrong cap behavior
         return sum(1 for d in self.rows.values()
-                   if d.get("ip_hash") == q.get("ip_hash") and d.get("status") == q.get("status"))
+                   if all(d.get(k) == v for k, v in q.items()))
     async def find_one_and_update(self, q, u):
         d = self.rows.get(q.get("ticket_id"))
         if not d or d.get("status") != q.get("status"):
