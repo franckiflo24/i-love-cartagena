@@ -1536,6 +1536,9 @@ async def trust_reference(request: Request, response: Response):
     # Anonymous + identity-free → CDN-cacheable (same policy as server._cache(response, 60);
     # inlined because this module must not import server).
     response.headers["Cache-Control"] = "public, max-age=60, s-maxage=60, stale-while-revalidate=300"
+    # Shared CDN entry must carry ACAO even when filled by an Origin-less caller (see server._cache).
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Vary"] = "Origin"
     if not _trust_pub_cache:
         try:
             with open(_TRUST_PUB_PATH, "r", encoding="utf-8") as f:

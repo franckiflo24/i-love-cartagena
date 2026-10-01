@@ -665,6 +665,9 @@ async def get_lenses(request: Request, response: Response):
     if not data:
         raise HTTPException(status_code=503, detail="Lentes no disponibles / Lenses unavailable")
     response.headers["Cache-Control"] = "public, max-age=300"
+    # Shared CDN entry must carry ACAO even when filled by an Origin-less caller (see server._cache).
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Vary"] = "Origin"
     return data
 
 

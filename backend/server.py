@@ -339,8 +339,6 @@ async def email_signup(body: SignupBody, request: Request):
     # FIRST — an attacker can't mint unbounded email-keyed rate_buckets docs (a
     # write-flood that, on a fail-closed prefix, could DoS everyone's signup).
     await _check_rate_limit(f"signupip:{_client_ip(request)}", max_calls=20, window_sec=3600)
-    # Then the per-email code cap: 3 codes per email per 15 min.
-    await _check_rate_limit(f"verify:{email}", max_calls=3, window_sec=900)
 
     # App Review demo account: a single env-gated email whose code is FIXED and
     # whose email send is skipped, so an App Store reviewer can sign in without
@@ -349,6 +347,15 @@ async def email_signup(body: SignupBody, request: Request):
     review_email = os.environ.get("REVIEW_DEMO_EMAIL", "").strip().lower()
     review_code = os.environ.get("REVIEW_DEMO_CODE", "").strip()
     is_review_demo = bool(review_email) and email == review_email and bool(review_code)
+
+    # Per-email code cap: 3 codes per email per 15 min — in its OWN bucket.
+    # It used to share `verify:{email}` with /auth/verify, so three wrong guesses
+    # by ANYONE (no auth needed) locked the real owner out of even requesting a
+    # code, and could lock the App Review address out of signing in (audit
+    # 2026-10-01). The review address is exempt from this per-email cap ONLY —
+    # the per-IP cap above still applies to it, and it sends no email.
+    if not is_review_demo:
+        await _check_rate_limit(f"signupemail:{email}", max_calls=3, window_sec=900)
 
     code = review_code if is_review_demo else _emails.generate_verification_code()
     expires_at = datetime.now(timezone.utc) + timedelta(minutes=_emails.VERIFY_CODE_TTL_MINUTES)
@@ -391,7 +398,13 @@ async def verify_email(body: VerifyBody, request: Request, response: Response, b
     # and the target email (fail-closed prefix `verify`), then claim the
     # attempt ATOMICALLY so concurrent guesses can't race past the 5-cap.
     await _check_rate_limit(f"verify:{_client_ip(request)}", max_calls=15, window_sec=900)
-    await _check_rate_limit(f"verify:{email}", max_calls=8, window_sec=900)
+    # The env-gated App Review address is exempt from the per-EMAIL guess cap only
+    # (its code is fixed; a stranger's wrong guesses must not lock the reviewer
+    # out). The per-IP cap above and the atomic 5-attempts-per-code cap below
+    # still apply to it.
+    _review_email = os.environ.get("REVIEW_DEMO_EMAIL", "").strip().lower()
+    if not (_review_email and email == _review_email):
+        await _check_rate_limit(f"verify:{email}", max_calls=8, window_sec=900)
 
     record = await db.email_verifications.find_one({"email": email})
     if not record:
@@ -577,10 +590,20 @@ def _cache(response: Response, seconds: int, swr: int = 300) -> None:
     ~10 s cold instance. Requests carrying an Authorization header bypass the CDN,
     and Cookie is NOT part of its key — so never call this from a handler that
     reads cookies / Authorization / get_current_user: one user's body would be
-    served to everyone. HTTPException responses never carry the header."""
+    served to everyone. HTTPException responses never carry the header.
+
+    CORS on a shared CDN entry (audit 2026-10-01): CORSMiddleware adds
+    Access-Control-Allow-Origin only when the request carries an Origin, so an
+    entry filled by an Origin-less caller (native fetch, cron, curl) has none and
+    a browser on www then rejects the cached HIT — home/agenda painted "no
+    events". These are anonymous public GETs and the web client sends
+    credentials: same-origin, so a wildcard is correct; Vary keeps origin-keyed
+    caches honest."""
     response.headers["Cache-Control"] = (
         f"public, max-age={seconds}, s-maxage={seconds}, stale-while-revalidate={swr}"
     )
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Vary"] = "Origin"
 
 
 async def _login_throttle_guard(ip: str):
@@ -4962,6 +4985,8 @@ async def city_modules(request: Request, response: Response):
     if not data:
         raise HTTPException(status_code=503, detail="Módulos de ciudad no disponibles / City modules unavailable")
     response.headers["Cache-Control"] = "public, max-age=300"
+    response.headers["Access-Control-Allow-Origin"] = "*"  # shared CDN entry; see _cache()
+    response.headers["Vary"] = "Origin"
     return data
 
 
@@ -4974,6 +4999,8 @@ async def city_module(module_id: str, request: Request, response: Response):
     for m in data.get("modules") or []:
         if isinstance(m, dict) and m.get("id") == module_id:
             response.headers["Cache-Control"] = "public, max-age=300"
+            response.headers["Access-Control-Allow-Origin"] = "*"  # shared CDN entry; see _cache()
+            response.headers["Vary"] = "Origin"
             return m
     raise HTTPException(status_code=404, detail={
         "error": "not_found",

@@ -214,10 +214,14 @@ def _fail(status: int, code: str, message_key: Optional[str] = None, data: Any =
 
 
 def _cache(response: Response, seconds: int, swr: int = 300) -> None:
-    """Same public cache hint as server._cache (anonymous, identity-independent GET only)."""
+    """Same public cache hint as server._cache (anonymous, identity-independent GET
+    only), including its CORS rule: a CDN entry filled by an Origin-less caller
+    must still carry ACAO or a browser on www rejects the cached HIT."""
     response.headers["Cache-Control"] = (
         f"public, max-age={seconds}, s-maxage={seconds}, stale-while-revalidate={swr}"
     )
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Vary"] = "Origin"
 
 
 def _now(now: Optional[datetime] = None) -> datetime:
