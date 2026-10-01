@@ -3343,7 +3343,7 @@ async def admin_alcaldia_payments(request: Request, limit: int = 200):
     limit = max(1, min(limit, 1000))
 
     # City Pass purchases
-    passes = await db.city_passes.find({}, {"_id": 0}).sort("activated_at", -1).limit(limit).to_list(limit)
+    passes = await db.city_passes.find({}, {"_id": 0, "qr_secret": 0}).sort("activated_at", -1).limit(limit).to_list(limit)
     pt_tickets = await db.port_tax_tickets.find({}, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(limit)
 
     # Batch the user lookups — ONE $in query for every row instead of a find_one
@@ -3435,7 +3435,7 @@ async def admin_export_users_csv(request: Request):
 async def admin_export_payments_csv(request: Request):
     await _require_government_role(request)
     # Reuse the aggregated list
-    passes = await db.city_passes.find({}, {"_id": 0}).sort("activated_at", -1).to_list(5000)
+    passes = await db.city_passes.find({}, {"_id": 0, "qr_secret": 0}).sort("activated_at", -1).to_list(5000)
     pt_tickets = await db.port_tax_tickets.find({}, {"_id": 0}).sort("created_at", -1).to_list(5000)
 
     headers = ["id", "type", "label", "user_email", "user_name", "amount_cop", "status", "created_at", "metadata"]
@@ -7268,7 +7268,11 @@ async def activate_city_pass(request: Request):
     if not plan_id:
         raise HTTPException(status_code=400, detail="plan_id required")
 
-    existing = await db.city_passes.find_one({"user_id": user["user_id"], "is_active": True}, {"_id": 0})
+    # qr_secret is the HMAC signing key for the pass's rotating QR (tickets.py
+    # mints it on first /city-pass/qr). It must NEVER reach the client: a holder
+    # who reads it can derive valid AMOPASS1 codes offline for anyone.
+    existing = await db.city_passes.find_one(
+        {"user_id": user["user_id"], "is_active": True}, {"_id": 0, "qr_secret": 0})
     if existing:
         return {"status": "already_active", "pass": existing}
 
@@ -7300,7 +7304,9 @@ async def activate_city_pass(request: Request):
 @api_router.get("/city-pass/mine")
 async def my_city_pass(request: Request):
     user = await get_current_user(request)
-    active = await db.city_passes.find_one({"user_id": user["user_id"], "is_active": True}, {"_id": 0})
+    # Same projection rule as activate: the pass's QR signing key never leaves the server.
+    active = await db.city_passes.find_one(
+        {"user_id": user["user_id"], "is_active": True}, {"_id": 0, "qr_secret": 0})
     return active
 
 
