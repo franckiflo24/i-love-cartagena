@@ -40,7 +40,7 @@ db = None  # injected via init()
 # Prefixes whose gates protect auth, codes, enumeration brakes, or paid LLM
 # calls — these DENY when the store is unreachable (fail closed).
 SENSITIVE_PREFIXES = (
-    "verify", "signup", "signupip", "refclaim",   # auth + verification codes
+    "verify", "signup", "signupip", "signupemail", "refclaim",   # auth + verification codes
     "bizverify",                                  # venue-claim OTP (fraud vector)
     "tripguest", "tripcode", "tripjoin",          # share-code enumeration brakes
     "bizforgot", "bizforgotip", "bizreset", "bizresetip",  # partner-portal recovery
