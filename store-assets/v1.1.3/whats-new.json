@@ -1,0 +1,7 @@
+{
+  "version": "1.1.3",
+  "whatsNew": {
+    "en-US": "• Event tickets: RSVP to verified events and get a live QR ticket — free, in two taps\n• Your tickets: every pass in one place, with a countdown QR that refreshes itself at the door\n• Venue door scanner: partner venues validate tickets in real time — one clear verdict per scan, duplicates and fakes called out instantly\n• City Pass now carries its own live QR\n• Everything loads faster: screens paint instantly from your last visit while fresh data arrives in the background\n• Lighter images across the whole app — less data, quicker browsing\n• Fixes and polish throughout",
+    "es-MX": "• Boletas de eventos: confirma tu asistencia a eventos verificados y recibe una boleta QR en vivo — gratis, en dos toques\n• Tus boletas: todos tus pases en un solo lugar, con un QR que se renueva solo en la puerta\n• Escáner de puerta: los negocios aliados validan boletas en tiempo real — un veredicto claro por escaneo, duplicados y falsificaciones detectados al instante\n• El City Pass ahora tiene su propio QR en vivo\n• Todo carga más rápido: las pantallas aparecen al instante con tu última visita mientras llegan los datos frescos\n• Imágenes más ligeras en toda la app — menos datos, navegación más ágil\n• Correcciones y mejoras en toda la app"
+  }
+}
