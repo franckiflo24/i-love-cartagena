@@ -75,6 +75,9 @@ import lenses as _lenses  # noqa: E402
 # CIVIC DEMO (docs/civic-demo/DESIGN.md): the government-pitch payment demo. The city is
 # the merchant of record; AMO is the channel. No real money; Luna never references it.
 import civic_demo as _civic  # noqa: E402
+# TICKETS: consumer RSVP tickets + City Pass rotating QR + venue gate scanner —
+# payments-free, PALCO1 credential via the shared qr_credential engine.
+import tickets as _tickets  # noqa: E402
 
 # ── In-memory rate limiter for expensive AI endpoints ──────────
 from collections import defaultdict
@@ -8613,6 +8616,11 @@ app.include_router(_lenses.router, prefix="/api")
 # Civic demo router (docs/civic-demo/DESIGN.md §2-§3): demo-only civic credentials.
 _civic.init(db_=db)
 app.include_router(_civic.router, prefix="/api")
+
+# Tickets router — mounted BEFORE api_router so /tickets/mine never falls into a
+# parameterized sibling, and /city-pass/qr beats any /city-pass/{x} pattern.
+_tickets.init(db_=db)
+app.include_router(_tickets.router, prefix="/api")
 
 app.include_router(api_router)
 

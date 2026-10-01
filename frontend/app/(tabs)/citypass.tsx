@@ -8,6 +8,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { COLORS, SPACING, RADIUS, FONTS, TYPE } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
+import { useQrCountdown, useQrFeed } from '../../src/components/tickets/tickets';
 import { openWompiCheckout, checkWompiEnabled, notConfiguredAlert } from '../../src/lib/wompi';
 import { useTr } from '../../src/i18n/autoTr';
 
@@ -23,6 +24,88 @@ const PLAN_ICONS: Record<string, string> = {
   pass_premium: 'star',
   pass_ultimate: 'diamond',
 };
+
+// The pass credential (AMOPASS1) rotates every 10 s SERVER-side, exactly like an event ticket: a screenshot dies in
+// seconds (it replaced a static, unsigned JSON QR). useQrFeed owns the poll — focus + AppState aware, every timer
+// cleared on blur / unmount — and the countdown only starts after `mounted`, so nothing clock-derived renders before
+// hydration. A 404 (no active pass server-side) hides the whole QR block; a code past its deadline that could not be
+// refreshed is hidden behind an overlay, never left looking live.
+const CITY_PASS_QR_SOURCE = { kind: 'city_pass' } as const;
+const QR_NOOP = (): void => undefined; // a renderer failure blanks the panel instead of throwing
+
+function CityPassLiveQr() {
+  const tr = useTr();
+  const [mounted, setMounted] = useState(false);
+  const [boxWidth, setBoxWidth] = useState(0);
+  useEffect(() => { setMounted(true); }, []);
+  const feed = useQrFeed(CITY_PASS_QR_SOURCE);
+  const { frac, secs, warn, stale } = useQrCountdown(feed.frame, mounted && feed.focused);
+
+  if (feed.missing) return null;
+
+  // 24 px of white around the modules, not qrWhiteBg's 16: the old static JSON drew ~55 modules at 180 px (16 px was
+  // ~4.7 modules of quiet zone), this short wire draws 33 at 200 px, where 16 px would be under 3 modules against the
+  // dark card — below what a door scanner needs.
+  const size = Math.max(144, Math.min(200, (boxWidth > 0 ? boxWidth : 248) - 48));
+  const panel = size + 48;
+  const pct = Math.round(frac * 1000) / 10;
+  const secsText = secs === null ? '—' : `${secs} s`;
+
+  return (
+    <View
+      style={styles.qrContainer}
+      onLayout={(e) => setBoxWidth(Math.round(e.nativeEvent.layout.width))}
+      testID="citypass-qr"
+    >
+      {feed.frame ? (
+        <>
+          <View style={[styles.qrWhiteBg, qrLive.paper]}>
+            <QRCode value={feed.frame.wire} size={size} color="#1a1a2e" backgroundColor="#FFFFFF" ecl="Q" onError={QR_NOOP} />
+            {stale && (
+              <View style={qrLive.stale} testID="citypass-qr-stale" accessibilityRole="alert">
+                <Ionicons name={feed.failed ? 'cloud-offline-outline' : 'refresh'} size={26} color={COLORS.textMuted} />
+                <Text style={qrLive.staleText}>
+                  {feed.failed ? tr('Este código ya venció y no pudimos renovarlo.') : tr('Renovando el código…')}
+                </Text>
+                {feed.failed && (
+                  <TouchableOpacity style={qrLive.retry} onPress={feed.refresh} accessibilityRole="button" accessibilityLabel={tr('Reintentar')}>
+                    <Text style={qrLive.retryText}>{tr('Reintentar')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+          </View>
+          <View
+            style={[qrLive.barTrack, { width: panel }]}
+            accessibilityRole="progressbar"
+            accessibilityLabel={tr('Tiempo restante del código')}
+            accessibilityValue={{ min: 0, max: 100, now: Math.round(frac * 100), text: secsText }}
+            testID="citypass-qr-countdown"
+          >
+            <View style={[qrLive.barFill, warn && qrLive.barFillWarn, { width: `${pct}%` }]} />
+          </View>
+        </>
+      ) : feed.authLost ? (
+        <View style={qrLive.pendingBox}>
+          <Text style={qrLive.pending}>{tr('Vuelve a iniciar sesión para ver tu código.')}</Text>
+        </View>
+      ) : feed.failed ? (
+        <View style={qrLive.pendingBox} testID="citypass-qr-failed">
+          <Ionicons name="cloud-offline-outline" size={26} color={COLORS.textMuted} />
+          <Text style={qrLive.pending}>{tr('No pudimos obtener el código.')}</Text>
+          <TouchableOpacity style={qrLive.retry} onPress={feed.refresh} accessibilityRole="button" accessibilityLabel={tr('Reintentar')}>
+            <Text style={qrLive.retryText}>{tr('Reintentar')}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={qrLive.pendingBox} testID="citypass-qr-pending">
+          <ActivityIndicator size="small" color={COLORS.icon} />
+        </View>
+      )}
+      <Text style={styles.qrHint}>{tr('Código dinámico — se renueva cada 10 s')}</Text>
+    </View>
+  );
+}
 
 export default function CityPassTab() {
   const tr = useTr();
@@ -149,25 +232,8 @@ export default function CityPassTab() {
               <Text style={styles.qrPlanName}>{plans.find(p => p.plan_id === myPass.plan_id)?.name || 'City Pass'}</Text>
               <Text style={styles.qrExpiry}>{tr('Válido hasta')}: {myPass.expires_at ? new Date(myPass.expires_at).toLocaleDateString('es-CO') : tr('—')}</Text>
 
-              {/* QR Code */}
-              <View style={styles.qrContainer}>
-                <View style={styles.qrWhiteBg}>
-                  <QRCode
-                    value={JSON.stringify({
-                      type: 'city_pass',
-                      pass_id: myPass.pass_id,
-                      plan: myPass.plan_id,
-                      user: myPass.user_id,
-                      exp: myPass.expires_at,
-                      app: 'musica_cartagena',
-                    })}
-                    size={180}
-                    color="#1a1a2e"
-                    backgroundColor="#FFFFFF"
-                  />
-                </View>
-                <Text style={styles.qrHint}>{tr('Muestra este código en los partners')}</Text>
-              </View>
+              {/* QR Code — the rotating credential (AMOPASS1); no active pass server-side hides the block */}
+              <CityPassLiveQr />
 
               <View style={styles.qrPassId}>
                 <Text style={styles.qrPassIdText}>ID: {myPass.pass_id?.toUpperCase()?.slice(0, 12)}</Text>
@@ -421,4 +487,18 @@ const styles = StyleSheet.create({
   trustRow: { flexDirection: 'row', justifyContent: 'center', gap: SPACING.lg, paddingVertical: SPACING.lg, paddingHorizontal: SPACING.lg },
   trustItem: { alignItems: 'center', gap: 4 },
   trustText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
+});
+
+// City Pass live credential (CityPassLiveQr): the compact rotating-QR panel.
+const qrLive = StyleSheet.create({
+  paper: { padding: 24 },
+  pendingBox: { minHeight: 160, alignItems: 'center', justifyContent: 'center', gap: 8 },
+  pending: { fontSize: 13, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'center' },
+  stale: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,255,255,0.96)', borderRadius: RADIUS.lg, alignItems: 'center', justifyContent: 'center', gap: 8, padding: SPACING.sm },
+  staleText: { fontSize: 12, lineHeight: 16, color: '#1F2937', ...FONTS.semibold, textAlign: 'center' },
+  retry: { minHeight: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.primary, paddingHorizontal: SPACING.lg, borderRadius: RADIUS.full },
+  retryText: { fontSize: 13, color: COLORS.black, ...FONTS.bold },
+  barTrack: { height: 5, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.10)', overflow: 'hidden', marginTop: 10 },
+  barFill: { height: 5, borderRadius: 3, backgroundColor: COLORS.primary },
+  barFillWarn: { backgroundColor: '#F59E0B' },
 });

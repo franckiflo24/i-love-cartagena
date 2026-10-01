@@ -489,6 +489,7 @@ export default function PerfilScreen() {
           <Text style={sty.sectionTitle}>{tr('Acceso rápido')}</Text>
           <SettingsRow icon="book-outline" label={tr('Mi Pasaporte')} onPress={() => router.push('/pasaporte' as any)} />
           <SettingsRow icon="briefcase-outline" label={tr('Mi Viaje')} onPress={() => router.push('/viaje' as any)} />
+          <SettingsRow icon="ticket-outline" label={tr('Mis entradas')} onPress={() => router.push('/tickets' as any)} />
           <SettingsRow icon="heart-outline" iconColor={COLORS.bougainvillea} label={s('home_favorites')} onPress={() => router.push('/favorites' as any)} />
           <SettingsRow icon="medkit-outline" iconColor="#14B8A6" label={tr('Esenciales')} onPress={() => router.push('/esenciales' as any)} />
           <SettingsRow icon="shield-checkmark-outline" iconColor="#22C55E" label={tr('Sin sustos')} onPress={() => router.push('/seguridad' as any)} />

@@ -51,10 +51,12 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+import qr_credential as _qc
+
 WIRE_VERSION = "AMOCIV1"
-TOKEN_STEP_SECONDS = 10
-TOKEN_SKEW_STEPS = 1
-TOKEN_LEN = 12
+TOKEN_STEP_SECONDS = _qc.TOKEN_STEP_SECONDS
+TOKEN_SKEW_STEPS = _qc.TOKEN_SKEW_STEPS
+TOKEN_LEN = _qc.TOKEN_LEN
 TICKET_TTL_H = 48
 MAX_LIVE_PER_IP = 10
 TICKET_ID_RE = re.compile(r"^civ_[a-f0-9]{10}$")
@@ -223,38 +225,30 @@ def _resolved_service(s: Mapping[str, Any]) -> Dict[str, Any]:
     return out
 
 
-# ── PALCO1 derivation, byte-identical (palco-core lib/qr.ts) ──────────────────
+# ── PALCO1 derivation — thin wrappers over the SHARED engine (qr_credential.py),
+# so the civic demo, consumer tickets and the City Pass can never drift apart. ──
 
-def counter_for_now(now_ms: Optional[int] = None) -> int:
-    ms = now_ms if now_ms is not None else int(time.time() * 1000)
-    return ms // 1000 // TOKEN_STEP_SECONDS
+def counter_for_now(now_ms=None) -> int:
+    return _qc.counter_for_now(now_ms)
 
 
-def step_remaining_ms(now_ms: Optional[int] = None) -> int:
-    ms = now_ms if now_ms is not None else int(time.time() * 1000)
-    period = TOKEN_STEP_SECONDS * 1000
-    return period - (ms % period)
+def step_remaining_ms(now_ms=None) -> int:
+    return _qc.step_remaining_ms(now_ms)
 
 
 def derive_token(ticket_id: str, secret: str, counter: int) -> str:
-    digest = hmac.new(secret.encode(), f"{ticket_id}|{counter}".encode(), hashlib.sha256).hexdigest()
-    return digest[:TOKEN_LEN]
+    return _qc.derive_token(ticket_id, secret, counter)
 
 
-def build_wire(ticket_id: str, secret: str, now_ms: Optional[int] = None) -> str:
-    c = counter_for_now(now_ms)
-    return f"{WIRE_VERSION}.{ticket_id}.{c}.{derive_token(ticket_id, secret, c)}"
+def build_wire(ticket_id: str, secret: str, now_ms=None) -> str:
+    return _qc.build_wire(WIRE_VERSION, ticket_id, secret, now_ms)
 
 
-def parse_wire(payload: str) -> Optional[Dict[str, Any]]:
-    parts = (payload or "").strip().split(".")
-    if len(parts) != 4 or parts[0] != WIRE_VERSION or not parts[1] or not parts[3]:
+def parse_wire(payload: str):
+    p = _qc.parse_wire(WIRE_VERSION, payload)
+    if p is None:
         return None
-    try:
-        counter = int(parts[2])
-    except ValueError:
-        return None
-    return {"ticket_id": parts[1], "counter": counter, "token": parts[3]}
+    return {"ticket_id": p["entity_id"], "counter": p["counter"], "token": p["token"]}
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────

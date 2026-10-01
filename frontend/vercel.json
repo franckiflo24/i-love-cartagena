@@ -182,6 +182,10 @@
       "destination": "/ciudad/%5Bid%5D"
     },
     {
+      "source": "/ticket/:id",
+      "destination": "/ticket/%5Bid%5D"
+    },
+    {
       "source": "/gobierno/pagar/:service",
       "destination": "/gobierno/pagar/%5Bservice%5D"
     },

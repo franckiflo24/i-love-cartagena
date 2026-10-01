@@ -29,11 +29,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // files are `[]`, so a backend blip told signed-in users they had no
 // reservations/tickets/favorites, and a stripped ?date=/?partner_id= served
 // unrelated rows as if they matched. (Owned here so api.ts and the cache agree.)
-export const PRIVATE_PATH = /^\/(auth|business|admin|reservations|rewards\/me|favorites|notifications|my-week|city-pass\/mine|experience-bookings|port-tax\/my-tickets|calendar|profile|passport|for-you|intel|itineraries|agent)(\/|\?|$)/;
+export const PRIVATE_PATH = /^\/(auth|business|admin|reservations|rewards\/me|favorites|notifications|my-week|city-pass\/mine|city-pass\/qr|tickets|experience-bookings|port-tax\/my-tickets|calendar|profile|passport|for-you|intel|itineraries|agent)(\/|\?|$)/;
 
 // Never worth caching: per-query computations, auth handshakes, health pings,
 // admin intel. A 'no' here means api.get neither writes nor recovers from cache.
-export const NO_CACHE_PATH = /^\/(search|auth|health|intel|admin)(\/|\?|$)/;
+// tickets + city-pass/qr: a cached rotating wire is a DEAD QR replayed with a live
+// countdown — never store them (the tickets client also bypasses api.get entirely).
+export const NO_CACHE_PATH = /^\/(search|auth|health|intel|admin|tickets|city-pass\/qr)(\/|\?|$)/;
 
 export const SWR_NS = 'swr:v1:';
 export const SWR_TTL_MS = 7 * 24 * 3600 * 1000;

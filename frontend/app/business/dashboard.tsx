@@ -283,6 +283,16 @@ export default function BusinessDashboard() {
           <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
         </TouchableOpacity>
 
+        {/* B5: Escáner — the PALCO gate: validate entradas at the door, the guest's name on every scan */}
+        <TouchableOpacity style={styles.contentLink} onPress={() => router.push('/business/scanner' as any)} activeOpacity={0.85} accessibilityRole="button" testID="dashboard-scanner-link">
+          <View style={styles.contentIconWrap}><Ionicons name="qr-code-outline" size={18} color={COLORS.primary} /></View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.contentTitle}>{tr('Escanear entradas')}</Text>
+            <Text style={styles.contentSub}>{tr('Valida las entradas en la puerta y mira quién llega')}</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+        </TouchableOpacity>
+
         {/* Onboarding / Approval banner (non-government) */}
         {!isGovernment && onboarding ? (() => {
           const pct = onboarding.percent ?? 0;

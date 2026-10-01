@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking as RNLinking } from 'react-native';
 import { Alert } from '../../src/lib/alert';
 import { SafeImage } from '../../src/components/SafeImage';
@@ -13,8 +13,10 @@ import { TierBadge } from '../../src/components/TierBadge';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useMyCalendar } from '../../src/context/MyCalendarContext';
 import { useLang } from '../../src/context/LanguageContext';
+import { useAuth } from '../../src/context/AuthContext';
 import { useTr } from '@/src/i18n/autoTr';
 import AddToTrip from '../../src/components/AddToTrip';
+import { isAuthError, rsvpToEvent, ticketHref, ticketsErrorMessage } from '../../src/components/tickets/tickets';
 import { goHome, goBackOr } from '../../src/lib/nav';
 
 const CAT_ICONS: Record<string, string> = {
@@ -50,11 +52,17 @@ export default function PartnerEventDetail() {
   const router = useRouter();
   const { isFavorite, toggleFavorite } = useFavorites();
   const { isInCalendar, addToCalendar, removeFromCalendar } = useMyCalendar();
-  const { s } = useLang();
+  const { s, lang } = useLang();
+  const { user } = useAuth();
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [reserving, setReserving] = useState(false);
   const [partnerContact, setPartnerContact] = useState<{ number: string; name?: string } | null>(null);
+  // Free RSVP ticket. Every hook lives up here, above the loading / not-found early returns (React #310).
+  const [rsvping, setRsvping] = useState(false);
+  const [rsvpError, setRsvpError] = useState<string | null>(null);
+  const [myTicketId, setMyTicketId] = useState<string | null>(null);
+  const rsvpInFlight = useRef(false);
   const tr = useTr();
 
   useEffect(() => {
@@ -147,6 +155,38 @@ export default function PartnerEventDetail() {
       // Fallback to AMO concierge
       const msg = encodeURIComponent(`¡Hola! Quiero reservar para *${event.title}* via AMO Life 🌴`);
       RNLinking.openURL(`https://wa.me/573176481183?text=${msg}`);
+    }
+  };
+
+  // Free RSVP: a registration, never a payment. Signed in → POST → the live ticket; signed out → login, then back
+  // here. A repeat tap is harmless (the server answers `already` with the same ticket) and the in-flight ref stops a
+  // double tap inside one frame from sending two requests.
+  const handleRsvp = async () => {
+    if (!event || rsvpInFlight.current) return;
+    if (myTicketId) {
+      router.push(ticketHref(myTicketId));
+      return;
+    }
+    const eventId = String(event.event_id || id);
+    const loginHref = `/login?next=/partner-event/${encodeURIComponent(eventId)}`;
+    if (!user) {
+      router.push(loginHref);
+      return;
+    }
+    rsvpInFlight.current = true;
+    setRsvping(true);
+    setRsvpError(null);
+    try {
+      const res = await rsvpToEvent(eventId);
+      setMyTicketId(res.ticket.ticket_id);
+      router.push(ticketHref(res.ticket.ticket_id));
+    } catch (e) {
+      console.error('[PartnerEvent] rsvp', e);
+      if (isAuthError(e)) router.push(loginHref);
+      else setRsvpError(ticketsErrorMessage(e, lang, tr));
+    } finally {
+      rsvpInFlight.current = false;
+      setRsvping(false);
     }
   };
 
@@ -252,6 +292,46 @@ export default function PartnerEventDetail() {
                 <Text style={styles.dateTimeValue}>{event.start_time} – {event.end_time}</Text>
               </View>
             </View>
+          </View>
+
+          {/* Free RSVP ticket — a registration with a verifiable rotating QR, never a payment. */}
+          <View style={styles.rsvpBox} testID="partner-event-rsvp">
+            <TouchableOpacity
+              style={[styles.rsvpBtn, rsvping && styles.rsvpBtnBusy]}
+              onPress={handleRsvp}
+              disabled={rsvping}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={myTicketId ? tr('Ver mi entrada') : event?.is_free === false ? tr('Reservar mi entrada') : tr('Reservar mi entrada (gratis)')}
+              accessibilityState={{ disabled: rsvping, busy: rsvping }}
+              testID="partner-event-rsvp-btn"
+            >
+              {rsvping ? (
+                <ActivityIndicator size="small" color={COLORS.black} />
+              ) : (
+                <Ionicons name={myTicketId ? 'ticket' : 'ticket-outline'} size={20} color={COLORS.black} />
+              )}
+              <Text style={styles.rsvpBtnText}>
+                {/* On a PAID event "(gratis)" would read as the event being free —
+                    the registration is free, the cover (if any) is paid at the door. */}
+                {rsvping ? tr('Reservando…') : myTicketId ? tr('Ver mi entrada')
+                  : event?.is_free === false ? tr('Reservar mi entrada') : tr('Reservar mi entrada (gratis)')}
+              </Text>
+            </TouchableOpacity>
+            <View style={styles.rsvpNoteRow}>
+              <Ionicons name="qr-code-outline" size={13} color={COLORS.textMuted} />
+              <Text style={styles.rsvpNote}>
+                {event?.is_free === false
+                  ? tr('Registro gratuito con QR verificable — el cobro del evento se paga en el lugar')
+                  : tr('Entrada con código QR verificable en puerta')}
+              </Text>
+            </View>
+            {!user && !myTicketId ? (
+              <Text style={styles.rsvpNote}>{tr('Inicia sesión para reservar tu entrada')}</Text>
+            ) : null}
+            {!!rsvpError && (
+              <Text style={styles.rsvpError} accessibilityRole="alert" testID="partner-event-rsvp-error">{rsvpError}</Text>
+            )}
           </View>
 
           {/* Description */}
@@ -377,6 +457,14 @@ const styles = StyleSheet.create({
   dateTimeDivider: { width: 1, backgroundColor: COLORS.border, marginHorizontal: SPACING.sm },
   dateTimeLabel: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium, letterSpacing: 0.5, textTransform: 'uppercase' },
   dateTimeValue: { fontSize: 13, color: COLORS.textMain, ...FONTS.semibold, marginTop: 2 },
+
+  rsvpBox: { gap: 8, marginBottom: SPACING.xs },
+  rsvpBtn: { minHeight: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, backgroundColor: COLORS.primary, borderRadius: RADIUS.full, paddingHorizontal: SPACING.lg, paddingVertical: 14 },
+  rsvpBtnBusy: { opacity: 0.75 },
+  rsvpBtnText: { fontSize: 16, color: COLORS.black, ...FONTS.bold, letterSpacing: 0.2 },
+  rsvpNoteRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  rsvpNote: { flexShrink: 1, fontSize: 12, lineHeight: 17, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'center' },
+  rsvpError: { fontSize: 12.5, lineHeight: 18, color: COLORS.coral, ...FONTS.semibold, textAlign: 'center' },
 
   sectionTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold, marginBottom: SPACING.sm, marginTop: SPACING.md, letterSpacing: 0.3 },
   description: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 22 },

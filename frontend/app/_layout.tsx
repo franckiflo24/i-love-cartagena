@@ -74,6 +74,8 @@ export default function RootLayout() {
         <Stack.Screen name="gobierno" options={{ presentation: 'card' }} />
         <Stack.Screen name="ciudad/[id]" options={{ presentation: 'modal' }} />
         <Stack.Screen name="partner-event/[id]" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="ticket/[id]" options={{ presentation: 'card' }} />
+        <Stack.Screen name="tickets" options={{ presentation: 'card' }} />
         <Stack.Screen name="experience/[id]" options={{ presentation: 'card' }} />
         <Stack.Screen name="experience/booking" options={{ presentation: 'card' }} />
         <Stack.Screen name="rewards/index" options={{ presentation: 'modal' }} />
@@ -87,6 +89,7 @@ export default function RootLayout() {
         <Stack.Screen name="search" options={{ presentation: 'modal' }} />
         <Stack.Screen name="business/login" options={{ presentation: 'modal' }} />
         <Stack.Screen name="business/dashboard" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="business/scanner" options={{ presentation: 'modal' }} />
         <Stack.Screen name="business/event-form" options={{ presentation: 'modal' }} />
         <Stack.Screen name="business/profile-edit" options={{ presentation: 'modal' }} />
         <Stack.Screen name="port-tax" options={{ presentation: 'modal' }} />

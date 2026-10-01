@@ -1,0 +1,348 @@
+"""tickets.py — consumer-visible TICKETING with the PALCO-grade rotating QR.
+
+Contract: the two frontend builders code against the shapes below verbatim.
+Payments-free by design: an event ticket is a FREE registration (RSVP) on a
+published partner event — never a sale, never a price (the payments hard gate
+stands). The credential is the shared engine (qr_credential.py, PALCO1
+byte-identical): wire `AMOTKT1.<ticket_id>.<counter>.<hmac12>` rotating every
+10 s, and the City Pass rides the same engine as `AMOPASS1.<pass_id>.…` —
+replacing its old static unsigned-JSON QR.
+
+Verdicts at the venue gate: VALIDO / DUPLICADO / FALSIFICADO / EXPIRADO for
+event tickets (atomic one-winner flip), and PASE for a City Pass (multi-scan by
+nature — it proves the pass is genuine and active; it never "admits"). Guest
+name rides every resolvable verdict (PALCO guest-on-scan). A venue may only
+scan tickets for ITS OWN events (government sees all); any verified business
+may validate a City Pass (it is a cross-venue perks pass).
+
+Secrets never leave the server: holders poll /qr per step; scanners send the
+wire (or use simulate mode — the deployed site ships Permissions-Policy:
+camera=(), so in-page camera scanning is off until that header is revisited).
+"""
+from __future__ import annotations
+
+import logging
+import secrets as _secrets
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Mapping, Optional
+
+from fastapi import APIRouter, HTTPException, Request, Response
+from pydantic import BaseModel, Field
+
+import qr_credential as qc
+from events_time import event_is_live, upcoming_query
+from partner_visibility import PARTNER_EVENT_PUBLIC
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter()
+
+NS_TICKET = "AMOTKT1"
+NS_PASS = "AMOPASS1"
+TICKET_RE = r"^amt_[a-f0-9]{10}$"
+import re as _re
+_TICKET_ID_RE = _re.compile(TICKET_RE)
+_PASS_ID_RE = _re.compile(r"^cp_[a-f0-9]{6,32}$")
+
+db: Any = None
+_indexed = False
+
+
+def init(db_: Any) -> None:
+    global db
+    db = db_
+
+
+async def _ensure_indexed() -> None:
+    global _indexed
+    if _indexed:
+        return
+    _indexed = True
+    try:
+        await db.amo_tickets.create_index("ticket_id", unique=True)
+        await db.amo_tickets.create_index([("user_id", 1), ("event_id", 1)])
+        await db.amo_ticket_scans.create_index("at")
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[tickets] index ensure failed: %s", type(exc).__name__)
+
+
+def _now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _iso(dt: datetime) -> str:
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+async def _user(request: Request) -> Dict[str, Any]:
+    from server import get_current_user
+    return await get_current_user(request)
+
+
+async def _business(request: Request) -> Dict[str, Any]:
+    from server import get_current_business
+    return await get_current_business(request)
+
+
+async def _rl(request: Request, bucket: str, max_calls: int, window: int) -> None:
+    try:
+        from server import _check_rate_limit, _client_ip
+        await _check_rate_limit(f"{bucket}:{_client_ip(request)}", max_calls=max_calls, window_sec=window)
+    except HTTPException:
+        raise
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def _public_ticket(doc: Mapping[str, Any]) -> Dict[str, Any]:
+    return {k: doc.get(k) for k in ("ticket_id", "kind", "event_id", "title", "venue_name",
+                                    "partner_id", "partner_name", "date", "start_time",
+                                    "status", "used_at", "created_at")}
+
+
+# ── consumer: free RSVP tickets ───────────────────────────────────────────────
+
+class RsvpBody(BaseModel):
+    event_id: str = Field(min_length=4, max_length=60)
+
+
+@router.post("/tickets/event-rsvp")
+async def ticket_rsvp(body: RsvpBody, request: Request):
+    user = await _user(request)
+    await _rl(request, "tktrsvp", 20, 60)
+    await _ensure_indexed()
+    ev = await db.partner_events.find_one({"event_id": body.event_id, **PARTNER_EVENT_PUBLIC}, {"_id": 0})
+    if not ev or not event_is_live(ev):
+        raise HTTPException(status_code=404, detail={
+            "error": "not_available",
+            "message": "Este evento no está disponible para reservas / This event is not available for registration"})
+    existing = await db.amo_tickets.find_one(
+        {"user_id": user["user_id"], "event_id": body.event_id, "kind": "event_rsvp"}, {"_id": 0, "qr_secret": 0})
+    if existing:
+        return {"ticket": _public_ticket(existing), "already": True}
+    partner = await db.partners.find_one({"partner_id": ev.get("partner_id")}, {"_id": 0, "name": 1})
+    now = _now()
+    doc = {
+        "ticket_id": f"amt_{_secrets.token_hex(5)}",
+        "kind": "event_rsvp",
+        "user_id": user["user_id"],
+        "holder_name": (user.get("name") or user.get("email") or "Invitado").strip()[:60],
+        "event_id": body.event_id,
+        "title": ev.get("title") or "",
+        "venue_name": (partner or {}).get("name") or "",
+        "partner_id": ev.get("partner_id"),
+        "partner_name": (partner or {}).get("name") or "",
+        "date": ev.get("date"),
+        "start_time": ev.get("start_time"),
+        "qr_secret": _secrets.token_hex(16),
+        "status": "issued",
+        "used_at": None,
+        "used_gate": None,
+        "created_at": _iso(now),
+    }
+    await db.amo_tickets.insert_one(dict(doc))
+    return {"ticket": _public_ticket(doc)}
+
+
+@router.get("/tickets/mine")
+async def tickets_mine(request: Request):
+    user = await _user(request)
+    rows = await db.amo_tickets.find(
+        {"user_id": user["user_id"]}, {"_id": 0, "qr_secret": 0}).sort("created_at", -1).to_list(100)
+    return {"tickets": [_public_ticket(r) for r in rows]}
+
+
+@router.get("/tickets/{ticket_id}")
+async def ticket_one(ticket_id: str, request: Request):
+    user = await _user(request)
+    if not _TICKET_ID_RE.match(ticket_id or ""):
+        raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Entrada no encontrada / Ticket not found"})
+    doc = await db.amo_tickets.find_one({"ticket_id": ticket_id, "user_id": user["user_id"]}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Entrada no encontrada / Ticket not found"})
+    return {"ticket": _public_ticket(doc)}
+
+
+@router.get("/tickets/{ticket_id}/qr")
+async def ticket_qr(ticket_id: str, request: Request, response: Response):
+    user = await _user(request)
+    await _rl(request, "tktqr", 120, 60)
+    response.headers["Cache-Control"] = "no-store"
+    if not _TICKET_ID_RE.match(ticket_id or ""):
+        raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Entrada no encontrada / Ticket not found"})
+    doc = await db.amo_tickets.find_one({"ticket_id": ticket_id, "user_id": user["user_id"]},
+                                        {"_id": 0, "qr_secret": 1, "status": 1})
+    if not doc:
+        raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Entrada no encontrada / Ticket not found"})
+    return {"wire": qc.build_wire(NS_TICKET, ticket_id, doc["qr_secret"]),
+            "step_ms": qc.TOKEN_STEP_SECONDS * 1000, "expires_in_ms": qc.step_remaining_ms(),
+            "status": doc.get("status")}
+
+
+# ── City Pass: the rotating credential replaces the static unsigned QR ────────
+
+@router.get("/city-pass/qr")
+async def city_pass_qr(request: Request, response: Response):
+    user = await _user(request)
+    await _rl(request, "passqr", 120, 60)
+    response.headers["Cache-Control"] = "no-store"
+    doc = await db.city_passes.find_one({"user_id": user["user_id"], "is_active": True}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail={"error": "no_pass", "message": "No tienes un pase activo / No active pass"})
+    secret = doc.get("qr_secret")
+    if not secret:
+        secret = _secrets.token_hex(16)
+        await db.city_passes.update_one({"pass_id": doc["pass_id"]}, {"$set": {"qr_secret": secret}})
+    return {"wire": qc.build_wire(NS_PASS, doc["pass_id"], secret),
+            "step_ms": qc.TOKEN_STEP_SECONDS * 1000, "expires_in_ms": qc.step_remaining_ms(),
+            "plan_id": doc.get("plan_id"), "expires_at": doc.get("expires_at")}
+
+
+# ── venue side: events, guest lists, the gate ─────────────────────────────────
+
+def _is_gov(biz: Mapping[str, Any]) -> bool:
+    return biz.get("role") == "government"
+
+
+@router.get("/business/tickets/events")
+async def biz_ticket_events(request: Request):
+    biz = await _business(request)
+    q: Dict[str, Any] = dict(PARTNER_EVENT_PUBLIC)
+    if not _is_gov(biz):
+        q["partner_id"] = biz.get("partner_id")
+    rows = await db.partner_events.find(upcoming_query(q), {"_id": 0, "event_id": 1, "title": 1,
+                                                            "date": 1, "start_time": 1}).sort("date", 1).to_list(50)
+    out = []
+    for ev in rows:
+        rsvp = await db.amo_tickets.count_documents({"event_id": ev["event_id"], "kind": "event_rsvp"})
+        used = await db.amo_tickets.count_documents({"event_id": ev["event_id"], "kind": "event_rsvp", "status": "used"})
+        out.append({**ev, "rsvp_count": rsvp, "used_count": used})
+    return {"events": out}
+
+
+@router.get("/business/tickets/event/{event_id}")
+async def biz_ticket_guestlist(event_id: str, request: Request):
+    biz = await _business(request)
+    ev = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0, "partner_id": 1})
+    if not ev:
+        raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Evento no encontrado / Event not found"})
+    if not _is_gov(biz) and ev.get("partner_id") != biz.get("partner_id"):
+        raise HTTPException(status_code=403, detail={"error": "forbidden", "message": "Este evento es de otro negocio / This event belongs to another venue"})
+    rows = await db.amo_tickets.find({"event_id": event_id, "kind": "event_rsvp"},
+                                     {"_id": 0, "ticket_id": 1, "holder_name": 1, "status": 1,
+                                      "used_at": 1, "used_gate": 1}).sort("created_at", -1).to_list(200)
+    return {"tickets": rows}
+
+
+class ScanBody(BaseModel):
+    wire: Optional[str] = Field(default=None, min_length=8, max_length=200)
+    ticket_id: Optional[str] = None
+    simulate: bool = False
+    tamper: bool = False
+    stale: bool = False
+    gate: Optional[str] = Field(default=None, max_length=40)
+
+
+def _guest_panel(t: Mapping[str, Any]) -> Dict[str, Any]:
+    return {"name": t.get("holder_name") or "", "ticket_title": t.get("title") or "",
+            "event_date": t.get("date") or "", "venue_name": t.get("venue_name") or ""}
+
+
+async def _log_scan(verdict: str, biz: Mapping[str, Any], gate: str,
+                    guest_name: str = "", title: str = "") -> None:
+    try:
+        await db.amo_ticket_scans.insert_one({
+            "at": _iso(_now()), "verdict": verdict, "gate": gate,
+            "guest_name": guest_name, "ticket_title": title,
+            "partner_id": biz.get("partner_id"), "scanned_by": biz.get("business_id"),
+        })
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[tickets] scan log failed: %s", type(exc).__name__)
+
+
+@router.post("/business/tickets/scan")
+async def biz_ticket_scan(body: ScanBody, request: Request):
+    biz = await _business(request)
+    await _rl(request, "tktscan", 120, 60)
+    await _ensure_indexed()
+    gate = body.gate or "Puerta 1"
+    wire = body.wire or ""
+
+    if body.simulate:
+        tid = body.ticket_id or ""
+        if not _TICKET_ID_RE.match(tid):
+            raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Entrada no encontrada / Ticket not found"})
+        doc = await db.amo_tickets.find_one({"ticket_id": tid}, {"_id": 0, "qr_secret": 1, "partner_id": 1})
+        if not doc:
+            raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Entrada no encontrada / Ticket not found"})
+        if not _is_gov(biz) and doc.get("partner_id") != biz.get("partner_id"):
+            raise HTTPException(status_code=403, detail={"error": "forbidden", "message": "Esta entrada es de otro negocio / This ticket belongs to another venue"})
+        c = qc.counter_for_now() - (qc.TOKEN_SKEW_STEPS + 2 if body.stale else 0)
+        token = qc.derive_token(tid, doc["qr_secret"], c)
+        if body.tamper:
+            token = ("0" * qc.TOKEN_LEN) if token[0] != "0" else ("1" * qc.TOKEN_LEN)
+        wire = f"{NS_TICKET}.{tid}.{c}.{token}"
+    if not wire:
+        raise HTTPException(status_code=400, detail={"error": "empty", "message": "Código vacío / Empty code"})
+
+    # City Pass wire → PASE (genuine + active), never a flip, scannable by any business.
+    pp = qc.parse_wire(NS_PASS, wire)
+    if pp is not None:
+        verdict = "FALSIFICADO"
+        guest: Optional[Dict[str, Any]] = None
+        if _PASS_ID_RE.match(pp["entity_id"]):
+            pdoc = await db.city_passes.find_one({"pass_id": pp["entity_id"]}, {"_id": 0})
+            if pdoc and pdoc.get("qr_secret"):
+                v = qc.verify(pp, pdoc["qr_secret"])
+                if v == "OK":
+                    active = bool(pdoc.get("is_active")) and str(pdoc.get("expires_at") or "") > _iso(_now())
+                    verdict = "PASE" if active else "EXPIRADO"
+                    holder = await db.users.find_one({"user_id": pdoc.get("user_id")}, {"_id": 0, "name": 1, "email": 1})
+                    guest = {"name": (holder or {}).get("name") or "", "ticket_title": "City Pass",
+                             "event_date": str(pdoc.get("expires_at") or "")[:10], "venue_name": "",
+                             "plan_id": pdoc.get("plan_id")}
+                elif v == "EXPIRED":
+                    verdict = "EXPIRADO"
+        await _log_scan(verdict, biz, gate, (guest or {}).get("name", ""), "City Pass")
+        out: Dict[str, Any] = {"verdict": verdict}
+        if guest:
+            out["guest"] = guest
+        return out
+
+    pt = qc.parse_wire(NS_TICKET, wire)
+    verdict = "FALSIFICADO"
+    detail: Dict[str, Any] = {}
+    tdoc = None
+    if pt and _TICKET_ID_RE.match(pt["entity_id"]):
+        tdoc = await db.amo_tickets.find_one({"ticket_id": pt["entity_id"]}, {"_id": 0})
+    if pt is not None and tdoc is not None:
+        if not _is_gov(biz) and tdoc.get("partner_id") != biz.get("partner_id"):
+            raise HTTPException(status_code=403, detail={"error": "forbidden", "message": "Esta entrada es de otro negocio / This ticket belongs to another venue"})
+        v = qc.verify(pt, tdoc["qr_secret"])
+        if v == "COUNTERFEIT":
+            verdict = "FALSIFICADO"
+        elif v == "EXPIRED":
+            verdict = "EXPIRADO"
+        else:
+            flipped = await db.amo_tickets.find_one_and_update(
+                {"ticket_id": pt["entity_id"], "status": "issued"},
+                {"$set": {"status": "used", "used_at": _iso(_now()), "used_gate": gate}},
+            )
+            if flipped is not None:
+                verdict = "VALIDO"
+            else:
+                verdict = "DUPLICADO"
+                detail["first_used_at"] = tdoc.get("used_at")
+                detail["first_gate"] = tdoc.get("used_gate")
+        detail["guest"] = _guest_panel(tdoc)
+    await _log_scan(verdict, biz, gate, ((detail.get("guest") or {}).get("name") or ""),
+                    (tdoc or {}).get("title") or "")
+    return {"verdict": verdict, **detail}
+
+
+@router.get("/business/tickets/scan-feed")
+async def biz_scan_feed(request: Request):
+    biz = await _business(request)
+    q = {} if _is_gov(biz) else {"partner_id": biz.get("partner_id")}
+    rows = await db.amo_ticket_scans.find(q, {"_id": 0}).sort("at", -1).to_list(20)
+    return {"scans": rows}
