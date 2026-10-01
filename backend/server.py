@@ -57,6 +57,7 @@ from pymongo.errors import DuplicateKeyError as _DuplicateKeyError
 from partner_visibility import (  # noqa: E402
     PUBLIC_PARTNER_FILTER, INTERNAL_PARTNER_FIELDS, PUBLIC_PARTNER_PROJECTION,
     PUBLIC_EVENT_PROJECTION, is_publicly_visible, PARTNER_EVENT_PUBLIC,
+    partner_visibility_blocker,
 )
 from events_time import (  # noqa: E402  — past events must fall out; "now" is Bogota, not UTC
     upcoming_query, filter_live, today_str as _today_bogota,
@@ -1143,6 +1144,11 @@ async def business_create_event(request: Request):
         except Exception as exc:  # noqa: BLE001
             logger.warning(f"[AutoVerify] event alert telegram failed: {type(exc).__name__}")
 
+    # The truth about reach (audit 2026-10-01): an AI-approved event on a venue
+    # that is not yet public (admin_operator activation leaves is_public=False
+    # until approval) is invisible to every traveller, yet the form said
+    # "¡Publicado!". Response-only fields — never stored on the event doc.
+    event["public_visible"], event["visibility_blocker"] = _event_public_visibility(partner, event)
     return event
 
 
@@ -1393,7 +1399,40 @@ async def _require_content_owner(biz: dict, partner_id: str) -> dict:
             status_code=403,
             detail="Tu negocio debe estar aprobado por el equipo antes de publicar contenido / Your venue must be approved before you can publish content",
         )
+    # A SUSPENDED venue (admin_operator "suspend": status=suspended, is_public=False)
+    # is hidden by PUBLIC_PARTNER_FILTER on every read, so content it "publishes"
+    # reaches nobody — refuse outright instead of accepting into the void (audit
+    # 2026-10-01). Other not-yet-public states (invited/active-pending-approval)
+    # stay allowed; the response then carries public_visible=False (see
+    # _event_public_visibility) so the vendor is told the truth.
+    if partner.get("status") == "suspended":
+        raise HTTPException(
+            status_code=403,
+            detail="Tu negocio está suspendido — contacta al equipo AMO Life / Your venue is suspended — contact the AMO Life team",
+        )
     return partner
+
+
+def _event_public_visibility(partner: dict, event: dict) -> tuple:
+    """(public_visible, visibility_blocker) for a partner event AS THE PUBLIC WOULD
+    SEE IT — the in-Python mirror of what /partner-events applies at read time:
+    the venue must pass PUBLIC_PARTNER_FILTER (partner_visibility_blocker is that
+    filter's single source of truth) AND the event must be moderation-approved
+    AND published. The venue gate is reported first: it is the one the vendor
+    cannot fix from the form. Pure (no db) so the handlers' truth is unit-testable.
+
+    Blockers: venue_* (see partner_visibility_blocker) | event_pending_moderation |
+              event_rejected | event_unpublished | None."""
+    blocker = partner_visibility_blocker(partner or {})
+    if blocker is None:
+        ms = (event or {}).get("moderation_status")
+        if ms == "pending":
+            blocker = "event_pending_moderation"
+        elif ms == "rejected":
+            blocker = "event_rejected"
+        elif ms != "approved" or not (event or {}).get("is_published"):
+            blocker = "event_unpublished"
+    return blocker is None, blocker
 
 
 def _truncate(v):
@@ -2827,7 +2866,7 @@ async def business_update_event(event_id: str, request: Request):
         raise HTTPException(status_code=403, detail="Not your event")
     # N6: the bound venue must still be catalog-approved — if it was later de-listed
     # (fraud/churn), the owner can't re-publish content on it via re-moderation.
-    await _require_content_owner(biz, biz["partner_id"])
+    owner_partner = await _require_content_owner(biz, biz["partner_id"])
     body = await _json_body(request)
     allowed = {"title", "description", "category", "date", "start_time", "end_time", "flyer_url", "is_free", "price", "booking_link", "is_published"}
     update = {k: v for k, v in body.items() if k in allowed}
@@ -2931,6 +2970,9 @@ async def business_update_event(event_id: str, request: Request):
             "verdict": update.get("moderation_verdict"),
             "reason": update.get("moderation_reason"),
         }
+    # Same reach-truth as create (response-only, never stored): "sigue en vivo"
+    # is a lie while the venue itself is not public.
+    updated["public_visible"], updated["visibility_blocker"] = _event_public_visibility(owner_partner, updated)
     return updated
 
 

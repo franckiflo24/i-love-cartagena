@@ -57,10 +57,13 @@ export default function BusinessDashboard() {
         api.get('/business/stats', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
         api.get('/business/reservations?limit=1', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
         api.get('/business/membership', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
-        // /business/onboarding-status was never built on the backend (it 404'd
-        // on every load). The onboarding banner it feeds is only for non-gov
-        // partners and stays dormant until that endpoint exists — skip the call.
-        Promise.resolve(null),
+        // GET /business/onboarding-status (backend/admin_operator.py, business
+        // Bearer): completion %, missing fields and the REAL public-catalog verdict
+        // (is_public mirrors PUBLIC_PARTNER_FILTER). It feeds the "not public yet /
+        // suspended" banner below — the only place a vendor learns that their
+        // approved events reach nobody until the admin approves the venue
+        // (audit 2026-10-01). Fail-soft: no banner is better than a wrong one.
+        api.get('/business/onboarding-status', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
       ]);
       setEvents(Array.isArray(eventsData) ? eventsData : []);
       setStats(statsData);

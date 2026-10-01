@@ -94,3 +94,27 @@ def is_publicly_visible(partner: dict) -> bool:
         and p.get("status") not in ("pending_review", "rejected", "needs_verification", "suspended")
         and p.get("is_public") is not False
     )
+
+
+def partner_visibility_blocker(partner: dict) -> "str | None":
+    """WHY a partner is hidden from the public catalog, or None when it is visible.
+
+    The reason is derived from the SAME three fields PUBLIC_PARTNER_FILTER gates
+    on (checked in the filter's own order), so a partner is blocked here if and
+    only if is_publicly_visible() is False — keep the three in lockstep. Used to
+    tell a vendor the truth about their event's reach (audit 2026-10-01: the
+    form said "¡Publicado!" for events on venues no traveller could see).
+
+    Values: venue_pending_review | venue_rejected | venue_sandbox |
+            venue_needs_verification | venue_suspended | venue_not_public
+    """
+    p = partner or {}
+    cs = p.get("catalog_status")
+    if cs in ("pending_review", "rejected", "sandbox"):
+        return f"venue_{cs}"
+    st = p.get("status")
+    if st in ("pending_review", "rejected", "needs_verification", "suspended"):
+        return f"venue_{st}"
+    if p.get("is_public") is False:
+        return "venue_not_public"
+    return None

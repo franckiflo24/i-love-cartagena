@@ -98,10 +98,30 @@ export default function EventForm() {
       }
       const verdict = result?._remoderation?.verdict || result?.moderation_verdict;
       const reason = result?._remoderation?.reason || result?.moderation_reason;
+      // Server-computed reach (audit 2026-10-01): an AI-approved event on a venue
+      // that is not public yet (activated, awaiting admin approval) is invisible to
+      // every traveller. Only an explicit `false` changes the copy — an older server
+      // (no field) keeps the verdict-based messages below.
+      const notPublic = result?.public_visible === false;
+      const blocker: string = typeof result?.visibility_blocker === 'string' ? result.visibility_blocker : '';
       // Route DIRECTLY on every outcome — never gate navigation on an Alert button's
       // onPress (Alert is a no-op on react-native-web). The message is informational.
       router.back();
-      if (verdict === 'NEEDS_REVIEW') {
+      if (verdict === 'AUTO_APPROVE' && notPublic) {
+        if (blocker.startsWith('venue_')) {
+          Alert.alert(
+            'Evento guardado — tu negocio aún no es público',
+            'Tu evento quedó guardado y aprobado, pero tu negocio aún no es público, así que los viajeros no lo verán todavía. '
+            + 'En cuanto el equipo AMO Life apruebe tu perfil, el evento aparecerá en la agenda automáticamente.',
+          );
+        } else {
+          // The only other AUTO_APPROVE blocker is a paused event (is_published=false).
+          Alert.alert(
+            'Evento guardado — está pausado',
+            'Tu evento quedó guardado pero no es público: actívalo con "Publicar evento" para que los viajeros lo vean.',
+          );
+        }
+      } else if (verdict === 'NEEDS_REVIEW') {
         // The truth (audit fix #2): a held event is NOT public until a human approves.
         Alert.alert(
           'En revisión — aún NO es público',

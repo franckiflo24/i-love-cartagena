@@ -33,6 +33,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import emails as _emails  # branded invite + approval emails
+from partner_visibility import is_publicly_visible, partner_visibility_blocker
 
 from fastapi import APIRouter, HTTPException, Request
 
@@ -447,7 +448,12 @@ async def onboarding_status(request: Request):
                 missing.append(field)
     return {
         "percent": pct,
-        "is_public": bool(partner.get("is_public")),
+        # The REAL public-catalog verdict (PUBLIC_PARTNER_FILTER mirror), not the raw
+        # flag: the ~422 editorial venues carry no is_public field at all and ARE
+        # public, so bool(partner.get("is_public")) told their owners "en revisión"
+        # (audit 2026-10-01). Vendors see this on the dashboard banner.
+        "is_public": is_publicly_visible(partner),
+        "visibility_blocker": partner_visibility_blocker(partner),
         "status": partner.get("status", "active"),
         "missing": missing,
     }
