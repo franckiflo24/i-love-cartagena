@@ -43,13 +43,17 @@ _deps: dict[str, Any] = {}
 
 
 def init(*, db, get_current_user, get_current_business, require_government_role,
-         wompi=None, create_payment_record: Optional[Callable] = None):
+         wompi=None, create_payment_record: Optional[Callable] = None,
+         check_rate_limit: Optional[Callable] = None):
     """Wire dependencies from server.py. (wompi/create_payment_record kept for backward
-    compatibility but no longer used — reservations never touch app payments now.)"""
+    compatibility but no longer used — reservations never touch app payments now.)
+    check_rate_limit: server._check_rate_limit (shared Mongo buckets); optional so
+    older callers / tests that never pass it keep working unthrottled."""
     _deps["db"] = db
     _deps["get_current_user"] = get_current_user
     _deps["get_current_business"] = get_current_business
     _deps["require_government_role"] = require_government_role
+    _deps["check_rate_limit"] = check_rate_limit
 
 
 def _db():
@@ -236,6 +240,11 @@ async def create_reservation(request: Request):
       { reservation, message }
     """
     user = await _deps["get_current_user"](request)
+    # P1 (audit 2026-10-01): every request pings the partner (push/email) — cap
+    # the creator, not the IP, so one account can't flood a venue's inbox.
+    rl = _deps.get("check_rate_limit")
+    if rl:
+        await rl(f"resvcreate:{user['user_id']}", max_calls=20, window_sec=3600)
     body = await request.json()
 
     partner_id = (body.get("partner_id") or "").strip()

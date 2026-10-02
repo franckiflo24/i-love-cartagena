@@ -31,11 +31,13 @@ router = APIRouter()
 _deps: dict[str, Any] = {}
 
 
-def init(*, db, get_current_user, award_points=None):
-    """Wire dependencies from server.py."""
+def init(*, db, get_current_user, award_points=None, check_rate_limit=None):
+    """Wire dependencies from server.py. check_rate_limit (server._check_rate_limit)
+    is optional so older callers / tests that never pass it keep working."""
     _deps["db"] = db
     _deps["get_current_user"] = get_current_user
     _deps["award_points"] = award_points
+    _deps["check_rate_limit"] = check_rate_limit
 
 
 def _db():
@@ -260,6 +262,11 @@ async def mark_helpful(request: Request, review_id: str):
 async def report_review(request: Request, review_id: str):
     """Report a review for moderation."""
     user = await _deps["get_current_user"](request)
+    # P1 (audit 2026-10-01): three reports auto-hide a review (is_moderated) —
+    # cap the reporter so one account can't mass-report a venue's reviews.
+    rl = _deps.get("check_rate_limit")
+    if rl:
+        await rl(f"reviewreport:{user['user_id']}", max_calls=10, window_sec=3600)
     db = _db()
     body = await request.json()
     reason = (body.get("reason") or "").strip()

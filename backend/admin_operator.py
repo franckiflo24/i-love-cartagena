@@ -301,6 +301,12 @@ async def get_activation(token: str, request: Request):
 @public_router.post("/business/activate")
 async def activate_partner(request: Request):
     """Body: {token, password, accept_terms: true}."""
+    # P1 (audit 2026-10-01): a public credential-setting endpoint with no throttle —
+    # each call bcrypt-hashes and, on a hit, mints a session. Trusted-IP gate
+    # (ratelimit.client_ip, never the XFF chain), 10 / 15 min; `bizactivate`
+    # fails closed as an auth surface.
+    from ratelimit import check as _rl_check, client_ip as _rl_ip
+    await _rl_check(f"bizactivate:{_rl_ip(request)}", max_calls=10, window_sec=900)
     body = await request.json()
     token = (body.get("token") or "").strip()
     password = (body.get("password") or "").strip()

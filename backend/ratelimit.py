@@ -42,6 +42,7 @@ db = None  # injected via init()
 SENSITIVE_PREFIXES = (
     "verify", "signup", "signupip", "signupemail", "refclaim",   # auth + verification codes
     "bizverify",                                  # venue-claim OTP (fraud vector)
+    "bizsignup", "bizactivate",                   # partner account creation / magic-link activation (set credentials)
     "tripguest", "tripcode", "tripjoin",          # share-code enumeration brakes
     "bizforgot", "bizforgotip", "bizreset", "bizresetip",  # partner-portal recovery
     "paycreate",                                  # payment-record creation (pre-B3)

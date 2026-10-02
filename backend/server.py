@@ -1538,6 +1538,11 @@ def _nit_digits(raw) -> str:
 # ── B1A · Partner account signup (self-serve, separate namespace) ──────────
 @api_router.post("/business/signup")
 async def business_signup(request: Request):
+    # Account creation was UNTHROTTLED (P1, audit 2026-10-01): each call bcrypt-hashes,
+    # inserts an account + session and emails the team (_notify_admin alert=True) —
+    # a queue/inbox flood for free. Bounded-cardinality trusted-IP gate FIRST, same
+    # shape as /auth/signup's signupip; `bizsignup` fails closed (auth surface).
+    await _check_rate_limit(f"bizsignup:{_client_ip(request)}", max_calls=5, window_sec=3600)
     body = await request.json()
     email = (body.get("email") or "").strip().lower()
     password = body.get("password") or ""
@@ -8759,13 +8764,15 @@ _reservations.init(
     require_government_role=_require_government_role,
     wompi=_wompi,
     create_payment_record=_create_payment_record,
+    check_rate_limit=_check_rate_limit,   # P1: POST /reservations per-user cap
 )
 app.include_router(_reservations.router, prefix="/api")
 
 _rewards.init(db=db, get_current_user=get_current_user)
 app.include_router(_rewards.router, prefix="/api")
 
-_reviews.init(db=db, get_current_user=get_current_user, award_points=_rewards.award_points)
+_reviews.init(db=db, get_current_user=get_current_user, award_points=_rewards.award_points,
+              check_rate_limit=_check_rate_limit)   # P1: POST /reviews/{id}/report per-user cap
 app.include_router(_reviews.router, prefix="/api")
 
 _pulse.init(db_=db, check_rate_limit=_check_rate_limit, get_current_business=get_current_business)
