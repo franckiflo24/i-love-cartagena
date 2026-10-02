@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
+import LoadError from '../../src/components/LoadError';
 
 // ── Types ────────────────────────────────────────────────────
 type Kpis = {
@@ -63,6 +64,7 @@ export default function EagleEye() {
   const [data, setData] = useState<Eagle | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [tab, setTab] = useState<Tab>('signups');
 
   useEffect(() => {
@@ -70,8 +72,11 @@ export default function EagleEye() {
   }, [user, authLoading, router]);
 
   const load = useCallback(async () => {
-    try { setData(await api.get('/admin/eagle')); }
-    catch (e) { console.error('[EagleEye]', e); }
+    // P1-9: a failed load used to leave `data` null → "Sin eventos de seguridad",
+    // a FALSE all-clear on a security surface. Keep last-good and raise an error
+    // the operator can see + retry.
+    try { setData(await api.get('/admin/eagle')); setLoadError(false); }
+    catch (e) { console.error('[EagleEye]', e); setLoadError(true); }
   }, []);
 
   useEffect(() => { setLoading(true); load().finally(() => setLoading(false)); }, [load]);
@@ -79,6 +84,20 @@ export default function EagleEye() {
 
   if (authLoading || !user?.is_admin || loading) {
     return <SafeAreaView style={styles.container}><ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} /></SafeAreaView>;
+  }
+
+  if (loadError && !data) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={{ flex: 1, justifyContent: 'center', padding: SPACING.lg }}>
+          <LoadError
+            message="No se pudo cargar Eagle Eye — esto NO significa que no haya alertas"
+            retryLabel="Reintentar"
+            onRetry={() => { setLoading(true); load().finally(() => setLoading(false)); }}
+          />
+        </View>
+      </SafeAreaView>
+    );
   }
 
   const k = data?.kpis;

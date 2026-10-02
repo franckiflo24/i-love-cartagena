@@ -71,9 +71,16 @@ export default function OffersScreen() {
             setRedeeming(offer.offer_id);
             try {
               const result = await api.post('/rewards/redeem', { offer_id: offer.offer_id });
-              // In static mode api.post returns the body with no redemption_id.
-              // Generate one locally so the flow completes.
-              const redemptionId = result?.redemption?.redemption_id || `rdm_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+              // The code must come from the server — it is what the partner
+              // validates. A locally-invented id looked "¡Canjeado!" but redeemed
+              // nothing (audit 2026-10-02: STATIC_MODE echoed the body with no
+              // redemption_id). No real id → treat as a failed redemption.
+              const redemptionId = result?.redemption?.redemption_id;
+              if (!redemptionId) {
+                Alert.alert(tr('No se pudo canjear'), tr('Inténtalo de nuevo en un momento.'));
+                setRedeeming(null);
+                return;
+              }
               // Persist redemption locally. Read+parse is isolated in its own
               // try/catch — a corrupt local cache must never mask a successful
               // server charge (points already deducted) as a failed redemption.
