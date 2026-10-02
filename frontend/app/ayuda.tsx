@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Linking, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { Alert } from '../src/lib/alert';
 import { useRouter } from 'expo-router';
@@ -8,6 +8,7 @@ import Constants from 'expo-constants';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { api } from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
+import LoadError from '../src/components/LoadError';
 
 const CATEGORY_ORDER = ['police', 'fire', 'health', 'civil_defense', 'maritime', 'transit', 'government', 'utilities'];
 const CATEGORY_LABELS: Record<string, string> = {
@@ -49,10 +50,18 @@ export default function HelpScreen() {
   const [kind, setKind] = useState<'bug' | 'idea'>('idea');
   const [sending, setSending] = useState(false);
   const [emergencyContacts, setEmergencyContacts] = useState<any[]>([]);
-
-  useEffect(() => {
-    api.get('/emergency-contacts').then(d => setEmergencyContacts(Array.isArray(d) ? d : [])).catch(() => {});
+  // P1-9: the full directory below the quick-dial row comes from
+  // /emergency-contacts (live → swr cache → bundled snapshot inside api.get).
+  // When even that chain fails the section says so instead of vanishing. The
+  // SOS banner + the four quick-dial numbers are hardcoded and never depend on
+  // it, so this screen can never show zero emergency numbers.
+  const [contactsError, setContactsError] = useState(false);
+  const loadContacts = useCallback(() => {
+    api.get('/emergency-contacts')
+      .then(d => { setEmergencyContacts(Array.isArray(d) ? d : []); setContactsError(false); })
+      .catch((e) => { console.error('[Ayuda] /emergency-contacts', e); setContactsError(true); });
   }, []);
+  useEffect(() => { loadContacts(); }, [loadContacts]);
 
   const appVersion = (Constants?.expoConfig as any)?.version || '1.0.0';
 
@@ -122,6 +131,9 @@ export default function HelpScreen() {
           </View>
 
           {/* ── ALL EMERGENCY CONTACTS BY CATEGORY ── */}
+          {contactsError && emergencyContacts.length === 0 && (
+            <LoadError style={{ marginHorizontal: 0, marginTop: 0 }} message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={loadContacts} testID="ayuda-contacts-error" />
+          )}
           {CATEGORY_ORDER.map(cat => {
             const contacts = grouped[cat];
             if (!contacts || contacts.length === 0) return null;

@@ -12,6 +12,7 @@ import { api , ASSET_ORIGIN} from '../src/constants/api';
 import { useTr } from '../src/i18n/autoTr';
 import { useLang } from '../src/context/LanguageContext';
 import { SafeImage } from '../src/components/SafeImage';
+import LoadError from '../src/components/LoadError';
 import AddToTrip from '../src/components/AddToTrip';
 import { useAuth } from '../src/context/AuthContext';
 import LockedTease from '../src/components/LockedTease';
@@ -281,6 +282,9 @@ export default function SearchScreen() {
   const { user } = useAuth();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Results | null>(null);
+  // P1-9: the backend search AND the bundled catalog fallback both failed —
+  // the screen says so instead of "Sin resultados" with search tips.
+  const [searchError, setSearchError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
@@ -305,12 +309,14 @@ export default function SearchScreen() {
     if (q.length < 2) { setResults(null); setSearched(false); return; }
     setLoading(true);
     setSearched(true);
+    let backendFailed = false;
+    let staticFailed = false;
     try {
       // Try backend search first
       let data: any = null;
       try {
         data = await api.get(`/search?q=${encodeURIComponent(q)}&lang=${lang || 'es'}`);
-      } catch { /* backend failed, will use static fallback */ }
+      } catch (e) { backendFailed = true; console.error('[Search] backend', e); /* static fallback below */ }
 
       // Check if backend returned real results (partners, events, OR AI)
       const hasPartners = data && Array.isArray(data.partners) && data.partners.length > 0;
@@ -580,7 +586,10 @@ export default function SearchScreen() {
           return { score, hasDistinctive };
         };
 
-        const allPartners = await fetch(ASSET_ORIGIN + '/data/partners.json').then(r => r.json()).catch(() => []);
+        const allPartners = await fetch(ASSET_ORIGIN + '/data/partners.json')
+          .then(r => (r.ok ? r.json() : null))
+          .catch((e) => { console.error('[Search] static catalog', e); return null; });
+        staticFailed = !Array.isArray(allPartners);
 
         const minScore = distinctiveTerms.length > 0 ? 3 : 1.5;
         const scored = (Array.isArray(allPartners) ? allPartners : [])
@@ -625,7 +634,9 @@ export default function SearchScreen() {
         search_id:      typeof data?.search_id === 'string' ? data.search_id : undefined,
       };
       setResults(normalized);
-    } catch (e) { console.error('[Search] error:', e); }
+      // Both answer sources down = we could not search, not "nothing matched".
+      setSearchError(backendFailed && staticFailed);
+    } catch (e) { console.error('[Search] error:', e); setSearchError(true); }
     setLoading(false);
     Keyboard.dismiss();
   }, [lang]);
@@ -990,7 +1001,11 @@ export default function SearchScreen() {
               </TouchableOpacity>
             ) : null}
 
-            {totalResults === 0 && !(results as any)?.essentials ? (
+            {/* P1-9: we could not search at all (backend + bundled catalog down) */}
+            {searchError && (
+              <LoadError message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={() => doSearch(query)} testID="search-load-error" />
+            )}
+            {totalResults === 0 && !(results as any)?.essentials && !searchError ? (
               <View style={styles.emptyState}>
                 <Ionicons name="search-outline" size={48} color={COLORS.textMuted} />
                 <Text style={styles.emptyTitle}>{tr('Sin resultados')}</Text>

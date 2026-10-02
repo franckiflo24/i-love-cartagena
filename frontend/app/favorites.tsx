@@ -5,11 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../src/constants/theme';
 import { useFavorites } from '../src/context/FavoritesContext';
-import { api } from '../src/constants/api';
+import { api, isAuthStatus, isGoneStatus } from '../src/constants/api';
 import { eventPriceLabel } from '../src/utils/price';
 import { TierBadge } from '../src/components/TierBadge';
 import { SafeImage } from '../src/components/SafeImage';
 import { EventRow } from '../src/components/EventFeedUI';
+import LoadError from '../src/components/LoadError';
 import { useTr } from '../src/i18n/autoTr';
 import { useLang } from '../src/context/LanguageContext';
 import { PublicEvent, loadFeed, loadFeedItem, sortEvents } from '../src/lib/eventsFeed';
@@ -61,6 +62,19 @@ const CAT_LABELS: Record<string, string> = {
   popup: 'Pop-up',
 };
 
+// P1-9: per-id hydration must tell a STALE favorite (404/410 → hide, as before)
+// from an OUTAGE (anything else → the row is unknown, the tab says so). A symbol
+// never passes the "real object with an id" filters below.
+const HYDRATE_FAILED: unique symbol = Symbol('hydrate-failed');
+const hydrateById = (path: string): Promise<unknown> =>
+  api.get(path).catch((e: unknown) => {
+    if (isGoneStatus(e)) return null;
+    console.error('[Favorites]', path, e);
+    return HYDRATE_FAILED;
+  });
+const isRealRow = (p: unknown, idKeys: string[]): p is Record<string, unknown> =>
+  !!p && typeof p === 'object' && !Array.isArray(p) && idKeys.some((k) => !!(p as Record<string, unknown>)[k]);
+
 export default function FavoritesScreen() {
   const tr = useTr();
   const { lang } = useLang();
@@ -76,6 +90,13 @@ export default function FavoritesScreen() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [resLoading, setResLoading] = useState(false);
   const [loading, setLoading] = useState(true);
+  // P1-9: a hydration outage used to read as "Sin eventos guardados" / "Sin
+  // reservas todavía". Each tab keeps its last good rows and shows <LoadError/>.
+  const [agendaError, setAgendaError] = useState(false);
+  const [partnersError, setPartnersError] = useState(false);
+  const [resError, setResError] = useState(false);
+  const [reloadTick, setReloadTick] = useState(0);
+  const retryHydrate = useCallback(() => setReloadTick((t) => t + 1), []);
 
   // Group favorite IDs by type. City events/concerts: only verified-feed ids
   // (`ce-…`). Legacy event/concert ids — and rows the backend marks
@@ -98,57 +119,69 @@ export default function FavoritesScreen() {
       try {
         // City events: the verified feed first, feed/item for saved ids that left
         // it (hidden / expired / review → honest status line, never a live date).
-        const cityTask = (async (): Promise<{ rows: SavedEvent[]; offline: boolean }> => {
-          if (ids.cityEvents.length === 0) return { rows: [], offline: false };
+        const cityTask = (async (): Promise<{ rows: SavedEvent[]; offline: boolean; failed: boolean }> => {
+          if (ids.cityEvents.length === 0) return { rows: [], offline: false, failed: false };
           const feedState = await loadFeed().catch((e: unknown) => { console.error('[Favorites] events feed', e); return null; });
           const byId = new Map<string, PublicEvent>();
           if (feedState) for (const e of [...feedState.data.events, ...feedState.data.date_tbc]) byId.set(e.event_id, e);
+          let failed = false;
           const rows = await Promise.all(ids.cityEvents.map(async ({ id, type }): Promise<SavedEvent | null> => {
             const hit = byId.get(id);
             if (hit) return { ev: hit, itemType: type };
             const r = await loadFeedItem(id);
+            // 'not_found' = the row left the feed (hide, as before); 'error' = we cannot vouch either way.
+            if (r.kind === 'error') failed = true;
             return r.kind === 'ok' ? { ev: r.event, itemType: type } : null;
           }));
           const found = rows.filter((r): r is SavedEvent => !!r);
           const ordered = sortEvents(found.map((r) => r.ev))
             .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status])
             .map((ev) => found.find((r) => r.ev.event_id === ev.event_id) as SavedEvent);
-          return { rows: ordered, offline: !!feedState?.offline };
+          return { rows: ordered, offline: !!feedState?.offline, failed };
         })();
         // Partner events: fetch by id
-        const peTask = Promise.all(
-          ids.partner_event.map(id => api.get(`/partner-events/${id}`).catch(() => null))
-        );
+        const peTask = Promise.all(ids.partner_event.map(id => hydrateById(`/partner-events/${id}`)));
         // Partners: fetch by id
-        const pTask = Promise.all(
-          ids.partner.map(id => api.get(`/partners/${id}`).catch(() => null))
-        );
+        const pTask = Promise.all(ids.partner.map(id => hydrateById(`/partners/${id}`)));
 
         const [city, peList, pList] = await Promise.all([cityTask, peTask, pTask]);
 
         if (cancelled) return;
-        setSavedEvents(city.rows);
-        setEventsOffline(city.offline);
+        const peFailed = peList.some((p) => p === HYDRATE_FAILED);
+        const pFailed = pList.some((p) => p === HYDRATE_FAILED);
         // .filter(Boolean) drops null (caught fetch errors) but NOT a resolved []
         // ([] is truthy) → a stale favorite whose detail 404s would push a blank
         // card. Require a real object with an id.
-        setPartnerEvents((peList || []).filter((p: any) => p && typeof p === 'object' && !Array.isArray(p) && (p.event_id || p.id)));
-        setPartners((pList || []).filter((p: any) => p && typeof p === 'object' && !Array.isArray(p) && (p.partner_id || p.id)));
-      } catch (e) { console.error(e); }
+        const peOk = peList.filter((p) => isRealRow(p, ['event_id', 'id'])) as any[];
+        const pOk = pList.filter((p) => isRealRow(p, ['partner_id', 'id'])) as any[];
+        // Keep the last good rows when a refresh came back shorter because of an outage.
+        setSavedEvents((prev) => (city.failed && prev.length > city.rows.length ? prev : city.rows));
+        setEventsOffline(city.offline);
+        setPartnerEvents((prev) => (peFailed && prev.length > peOk.length ? prev : peOk));
+        setPartners((prev) => (pFailed && prev.length > pOk.length ? prev : pOk));
+        setAgendaError(city.failed || peFailed);
+        setPartnersError(pFailed);
+      } catch (e) { console.error(e); if (!cancelled) { setAgendaError(true); setPartnersError(true); } }
       if (!cancelled) setLoading(false);
     };
     load();
     return () => { cancelled = true; };
-  }, [ids]);
+  }, [ids, reloadTick]);
 
   // ── Fetch reservations once, refresh when tab is opened ──
   const loadReservations = async () => {
     setResLoading(true);
     try {
-      const data = await api.get('/reservations/my').catch(() => []);
+      const data = await api.get('/reservations/my');
       // /reservations/my returns { upcoming, past, total } — not an array.
       setReservations(Array.isArray(data) ? data : [...(data?.upcoming || []), ...(data?.past || [])]);
-    } catch (e) { console.error(e); }
+      setResError(false);
+    } catch (e) {
+      // 401/403 = guest / signed out → genuinely no reservations. Anything else:
+      // keep the last good list and say so, never "Sin reservas todavía".
+      if (isAuthStatus(e)) { setReservations([]); setResError(false); }
+      else { console.error('[Favorites] /reservations/my', e); setResError(true); }
+    }
     setResLoading(false);
   };
   useEffect(() => { loadReservations(); }, []);
@@ -233,7 +266,10 @@ export default function FavoritesScreen() {
         {loading ? (
           <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 60 }} />
         ) : tab === 'agenda' ? (
-          agendaCount === 0 ? (
+          agendaCount === 0 && agendaError ? (
+            /* P1-9: saved rows could not be hydrated — never "Sin eventos guardados" */
+            <LoadError message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={retryHydrate} testID="favorites-agenda-error" />
+          ) : agendaCount === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="calendar-outline" size={56} color={COLORS.textMuted} />
               <Text style={styles.emptyTitle}>{tr('Sin eventos guardados')}</Text>
@@ -245,6 +281,10 @@ export default function FavoritesScreen() {
             </View>
           ) : (
             <>
+              {/* Some saved rows are missing because their detail call failed */}
+              {agendaError && (
+                <LoadError message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={retryHydrate} testID="favorites-agenda-error" />
+              )}
               {/* Partner Events */}
               {partnerEvents.length > 0 && (
                 <View style={styles.section}>
@@ -341,6 +381,11 @@ export default function FavoritesScreen() {
           ) : (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>📍 {tr('Lugares que amo')} ({partnersCount})</Text>
+              {/* P1-9: the count above comes from the saved ids; the cards below need the
+                  detail calls — when those failed the section says so instead of going blank */}
+              {partnersError && (
+                <LoadError style={{ marginHorizontal: 0 }} message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={retryHydrate} testID="favorites-partners-error" />
+              )}
               {partners.map(p => {
                 const tierColors = p.tier ? TIER_COLORS[p.tier as Tier] : null;
                 return (
@@ -383,6 +428,9 @@ export default function FavoritesScreen() {
           // Reservations tab
           resLoading ? (
             <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 60 }} />
+          ) : reservationsCount === 0 && resError ? (
+            /* P1-9: /reservations/my failed — never "Sin reservas todavía" */
+            <LoadError message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={loadReservations} testID="favorites-reservations-error" />
           ) : reservationsCount === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="bookmark-outline" size={56} color={COLORS.textMuted} />
@@ -396,6 +444,9 @@ export default function FavoritesScreen() {
           ) : (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>📋 {tr('Tus reservas')} ({reservationsCount})</Text>
+              {resError && (
+                <LoadError style={{ marginHorizontal: 0 }} message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={loadReservations} testID="favorites-reservations-error" />
+              )}
               {reservations.map(r => {
                 const meta = RES_STATUS_META[r.status] || { label: r.status, color: COLORS.textMuted, bg: 'rgba(148,163,184,0.12)' };
                 const isUpcoming = ['pending_partner_activation', 'pending_confirmation', 'confirmed'].includes(r.status);

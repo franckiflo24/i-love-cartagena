@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { API_BASE } from '../src/constants/api';
+import LoadError from '../src/components/LoadError';
 
 const KEY_STORAGE = 'amo_intel_key';
 const GOLD = '#FBBF24';
@@ -34,6 +35,8 @@ export default function IntelScreen() {
   const [overview, setOverview] = useState<any>(null);
   const [demand, setDemand] = useState<any>(null);
   const [locals, setLocals] = useState<any>(null);
+  // P1-9: the Locales-vs-Turistas section used to vanish when its call failed.
+  const [localsError, setLocalsError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [refreshingReport, setRefreshingReport] = useState(false);
 
@@ -45,14 +48,16 @@ export default function IntelScreen() {
     setLoading(true);
     setKeyError(false);
     try {
+      let lpFailed = false;
       const [ov, dm, lp] = await Promise.all([
         intelGet('/admin/intel/overview', key),
         intelGet('/admin/demand', key),
-        intelGet('/admin/local-picks/intel', key).catch(() => null),
+        intelGet('/admin/local-picks/intel', key).catch((e) => { console.error('[Intel] local-picks', e); lpFailed = true; return null; }),
       ]);
       setOverview(ov);
       setDemand(dm);
-      setLocals(lp);
+      if (!lpFailed) setLocals(lp); // keep the last good panel on a failed refresh
+      setLocalsError(lpFailed);
       await AsyncStorage.setItem(KEY_STORAGE, key);
       setAccessKey(key);
     } catch (e: any) {
@@ -158,7 +163,13 @@ export default function IntelScreen() {
           ))}
         </View>
 
-        {/* Locals vs Tourists */}
+        {/* Locals vs Tourists — P1-9: a failed panel is a line with retry, not a missing section */}
+        {!locals && localsError ? (
+          <>
+            <Text style={styles.sectionTitle}>🏠 Locales vs Turistas</Text>
+            <LoadError compact style={{ paddingHorizontal: 0 }} onRetry={() => accessKey && load(accessKey)} testID="intel-locals-error" />
+          </>
+        ) : null}
         {locals ? (
           <>
             <Text style={styles.sectionTitle}>🏠 Locales vs Turistas</Text>

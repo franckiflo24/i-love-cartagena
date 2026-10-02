@@ -14,6 +14,7 @@ import { FadeInUp } from '../../src/components/FadeInUp';
 import { LinearGradient } from 'expo-linear-gradient';
 import ReviewsList from '../../src/components/ReviewsList';
 import { SkeletonPartnerDetail } from '../../src/components/Skeleton';
+import LoadError from '../../src/components/LoadError';
 import { useLang } from '../../src/context/LanguageContext';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useTr } from '../../src/i18n/autoTr';
@@ -129,10 +130,24 @@ export default function PartnerDetail() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [networkError, setNetworkError] = useState(false);
-  const [partnerEvents, setPartnerEvents] = useState<any[]>([]);
+  // P1-9: null = the upcoming-events call failed. The calendar then shows a
+  // LoadError line instead of "Sin eventos publicados próximamente".
+  const [partnerEvents, setPartnerEvents] = useState<any[] | null>([]);
   const [brandSiblings, setBrandSiblings] = useState<CatalogVenue[]>([]);
   const [brandName, setBrandName] = useState('');
   const [reserving, setReserving] = useState(false);
+
+  const fetchEvents = useCallback((): Promise<any[] | null> =>
+    api.get(`/partner-events?partner_id=${id}&upcoming=true`)
+      .then((e) => (Array.isArray(e) ? e : []))
+      .catch((e) => { console.error('[PartnerDetail] upcoming events', e); return null; }),
+  [id]);
+  const reloadEvents = useCallback(async () => {
+    const eData = await fetchEvents();
+    // keep the last good list on a failed refresh
+    if (eData !== null) setPartnerEvents(eData);
+    else setPartnerEvents((prev) => (prev && prev.length > 0 ? prev : null));
+  }, [fetchEvents]);
 
   const loadPartner = async () => {
     setLoading(true);
@@ -141,13 +156,13 @@ export default function PartnerDetail() {
     try {
       const [pData, eData] = await Promise.all([
         api.get(`/partners/${id}`),
-        api.get(`/partner-events?partner_id=${id}&upcoming=true`).catch(() => []),
+        fetchEvents(),
       ]);
       if (!pData || (Array.isArray(pData) && pData.length === 0)) {
         setNotFound(true);
       } else {
         setPartner(pData);
-        setPartnerEvents(eData || []);
+        setPartnerEvents(eData);
       }
     } catch (e: any) {
       console.error('[PartnerDetail]', e);
@@ -677,8 +692,11 @@ export default function PartnerDetail() {
           ) : null}
 
           {/* Calendar of upcoming events — no events → one 44 px row that
-              points at the agenda instead of an empty box with a title. */}
-          {partnerEvents.length === 0 ? (
+              points at the agenda instead of an empty box with a title.
+              P1-9: a FAILED call is a LoadError line, never "Sin eventos publicados". */}
+          {partnerEvents === null ? (
+            <LoadError compact style={{ paddingHorizontal: 0 }} message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={reloadEvents} testID="partner-events-error" />
+          ) : partnerEvents.length === 0 ? (
             <TouchableOpacity style={styles.inlineCta} onPress={() => router.push('/(tabs)/agenda' as any)} activeOpacity={0.8}>
               <Ionicons name="calendar-outline" size={14} color={COLORS.textMuted} />
               <Text style={styles.inlineCtaText} numberOfLines={1}>{tr('Sin eventos publicados próximamente')} · {tr('Ver agenda')}</Text>
