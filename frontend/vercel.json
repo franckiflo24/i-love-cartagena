@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node scripts/sync-cmw-data.mjs && node scripts/sync-lenses-data.mjs && npx expo export --platform web && node scripts/check-backend-url.mjs && node scripts/check-no-legacy-events.mjs && rm -f dist/_sitemap.html && cp dist/+not-found.html dist/404.html && node scripts/stamp-sw.mjs",
+  "buildCommand": "npm run vercel-build",
   "outputDirectory": "dist",
   "framework": null,
   "redirects": [
@@ -398,7 +398,10 @@
     {
       "source": "/gobierno(.*)",
       "headers": [
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
       ]
     },
     {

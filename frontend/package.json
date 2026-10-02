@@ -9,7 +9,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build": "expo export --platform web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "vercel-build": "node scripts/sync-cmw-data.mjs && node scripts/sync-lenses-data.mjs && npx expo export --platform web && node scripts/check-backend-url.mjs && node scripts/check-no-legacy-events.mjs && rm -f dist/_sitemap.html && cp dist/+not-found.html dist/404.html && node scripts/stamp-sw.mjs"
   },
   "dependencies": {
     "@babel/runtime": "^7.20.6",
