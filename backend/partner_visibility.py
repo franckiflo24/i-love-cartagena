@@ -63,7 +63,15 @@ PUBLIC_PARTNER_PROJECTION = {
 # the government moderation route (reviewed_by = the moderator's account email). The
 # PUBLIC event reads (/partner-events, /experiences) must strip these; the OWNER's
 # own /business/* views and the /admin moderation queue keep them (different routes).
-INTERNAL_EVENT_FIELDS = ("reviewed_by", "reviewed_at", "moderation_status", "moderation_reason")
+# P1 (audit 2026-10-01): the AI moderation verdict/issues/score, the vendor's
+# original category and the raw view/click counters were still leaking on every
+# public card — internal signal, never read by a consumer screen.
+INTERNAL_EVENT_FIELDS = (
+    "reviewed_by", "reviewed_at", "moderation_status", "moderation_reason",
+    "moderation_verdict", "moderation_issues", "moderation_score", "original_category",
+    "moderated_by_admin", "moderated_at", "rejection_reason",
+    "views_count", "reserve_clicks",
+)
 PUBLIC_EVENT_PROJECTION = {"_id": 0, **{f: 0 for f in INTERNAL_EVENT_FIELDS}}
 
 # EVENTS-ELITE §15 T4 / §13 D5: every public partner-event surface (server.py feeds, trips,

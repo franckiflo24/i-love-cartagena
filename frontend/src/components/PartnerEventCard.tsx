@@ -24,15 +24,20 @@ export type PartnerEvent = {
   partner_category?: string;
 };
 
-// Never hand an external (http/https) flyer to the image pipeline: those were
+// Never hand a third-party (http/https) flyer to the image pipeline: those were
 // Unsplash/CDN hotlinks that expire, 403 and hurt LCP. image_url is the
 // backend-normalized self-hosted copy; a flyer_url is only used when it is one
-// of ours ('/images/…'). Anything else falls through to SafeImage's bundled
-// category placeholder.
+// of ours: '/images/…' OR our own Vercel Blob store, where vendor-uploaded
+// flyers live (<store>.public.blob.vercel-storage.com — host-exact, https only;
+// mirrors backend blob_storage.is_blob_url). Anything else falls through to
+// SafeImage's bundled category placeholder.
 const isExternal = (u?: string | null): boolean => !!u && /^https?:\/\//i.test(u);
+const isOwnBlob = (u?: string | null): boolean =>
+  !!u && /^https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\//i.test(u);
+const isOurs = (u?: string | null): boolean => !!u && (!isExternal(u) || isOwnBlob(u));
 export const partnerEventImage = (ev: Pick<PartnerEvent, 'image_url' | 'flyer_url'>): string | null => {
-  if (ev.image_url && !isExternal(ev.image_url)) return ev.image_url;
-  if (ev.flyer_url && !isExternal(ev.flyer_url)) return ev.flyer_url;
+  if (ev.image_url && isOurs(ev.image_url)) return ev.image_url;
+  if (ev.flyer_url && isOurs(ev.flyer_url)) return ev.flyer_url;
   return null;
 };
 

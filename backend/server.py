@@ -4366,19 +4366,24 @@ def _normalize_event_media(events, id_keys=("event_id", "id", "concert_id")):
     paint and the backend hydrate agree — no image flip. SafeImage degrades any
     genuinely-missing file to its category fallback.
 
-    Preference order — the first self-hosted (/images/…) candidate wins:
+    Preference order — the first self-hosted candidate wins, where self-hosted
+    means a /images/… path OR our own Vercel Blob store (vendor-uploaded flyers
+    land there via /business/upload-image — P1, audit 2026-10-01: they were
+    discarded here and consumer cards fell back to the category art):
       1. the record's own image_url
       2. flyer_url      (partner-published events carry their flyer here)
       3. partner_image  (the venue card image the list handlers enrich)
       4. /images/events/<id>.jpg           — only when KNOWN to ship
       5. /images/partners/<partner_id>.jpg — only when KNOWN to ship (the
          frontend's own partner-card convention, so both layers agree)
-    Otherwise partner_image when it is not an external URL, else "". Never an
-    http(s) URL, never a path that does not exist."""
+    Otherwise partner_image when it is not an external URL, else "". Never a
+    third-party http(s) URL, never a path that does not exist."""
+    def _self_hosted(c) -> bool:
+        return isinstance(c, str) and (c.startswith("/images/") or _blob.is_blob_url(c))
+
     for e in events or []:
         chosen = next(
-            (c for c in (e.get("image_url"), e.get("flyer_url"), e.get("partner_image"))
-             if isinstance(c, str) and c.startswith("/images/")),
+            (c for c in (e.get("image_url"), e.get("flyer_url"), e.get("partner_image")) if _self_hosted(c)),
             None,
         )
         if chosen is None:
