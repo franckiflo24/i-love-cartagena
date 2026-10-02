@@ -26,7 +26,14 @@ def test_every_public_cache_hint_carries_cors_wildcard():
         if not name.endswith(".py") or name.startswith("test"):
             continue
         src = _read(name)
-        for m in re.finditer(r'response\.headers\["Cache-Control"\]\s*=\s*\(?\s*f?"public, max-age', src):
+        # Match ANY Cache-Control assignment whose value can be a public max-age —
+        # including a ternary ("no-store" if … else "public, max-age=300"), which
+        # dodged the old anchored regex and shipped /lenses/{key} without ACAO
+        # (audit 2026-10-02). Flag the assignment line unless ACAO is set nearby.
+        for m in re.finditer(r'response\.headers\["Cache-Control"\]\s*=\s*([^\n]*)', src):
+            value = m.group(1)
+            if '"public, max-age' not in value:
+                continue
             window = src[m.start(): m.start() + 900]
             if 'Access-Control-Allow-Origin"] = "*"' not in window:
                 line = src.count("\n", 0, m.start()) + 1

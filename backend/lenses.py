@@ -681,6 +681,13 @@ async def get_lens(key: str, request: Request, response: Response, preview: int 
         raise HTTPException(status_code=404, detail={"error": "not_found",
                                                      "message": "Lente no encontrado / Lens not found"})
     response.headers["Cache-Control"] = "no-store" if preview == 1 else "public, max-age=300"
+    # A CDN entry filled by an Origin-less caller (native fetch, cron, curl) must
+    # still carry ACAO or a browser on www rejects the cached HIT — the exact
+    # class fixed on /lenses (above) and server._cache. This detail route was
+    # missed because the ternary Cache-Control dodged the stop-the-bleed guard
+    # regex (audit 2026-10-02); the guard is being widened to catch ternaries too.
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Vary"] = "Origin"
     return payload
 
 

@@ -6728,8 +6728,23 @@ async def track_analytics(body: AnalyticsEvent, request: Request):
         pass  # Anonymous tracking OK
 
     meta = body.metadata or {}
-    if isinstance(meta, dict) and len(meta) > 30:
-        meta = dict(list(meta.items())[:30])
+    if isinstance(meta, dict):
+        # Bound the free-form blob: <=30 keys, scalar values only, each clipped,
+        # and the whole thing dropped if it still serializes over 2 KB. An
+        # unbounded metadata value let an unauthenticated caller write arbitrarily
+        # large docs and fill storage (audit 2026-10-02; 200 KB value → 200).
+        trimmed = {}
+        for k, v in list(meta.items())[:30]:
+            if isinstance(v, (str, int, float, bool)) or v is None:
+                trimmed[str(k)[:64]] = v[:256] if isinstance(v, str) else v
+        try:
+            if len(json.dumps(trimmed)) > 2048:
+                trimmed = {}
+        except (TypeError, ValueError):
+            trimmed = {}
+        meta = trimmed
+    else:
+        meta = {}
 
     doc = {
         "analytics_id": f"an_{uuid.uuid4().hex[:12]}",
