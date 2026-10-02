@@ -19,6 +19,7 @@ import os
 import re
 import base64
 import logging
+from urllib.parse import urlparse
 import httpx
 
 logger = logging.getLogger("blob")
@@ -97,8 +98,21 @@ async def upload_bytes(data: bytes, *, pathname: str, content_type: str = "image
         return None
 
 
+PUBLIC_BLOB_HOST_SUFFIX = ".public.blob.vercel-storage.com"
+
+
 def is_blob_url(url: str) -> bool:
-    return isinstance(url, str) and "blob.vercel-storage.com" in url
+    """True only for an https URL whose HOST is our public Blob store
+    (<store>.public.blob.vercel-storage.com). The old substring test matched
+    `https://evil.com/?x=blob.vercel-storage.com` and `http://…` too (P1, audit
+    2026-10-01) — host-exact via urlparse, like partner_claims.validate_image_value."""
+    if not isinstance(url, str):
+        return False
+    try:
+        p = urlparse(url.strip())
+    except ValueError:
+        return False
+    return p.scheme == "https" and (p.hostname or "").endswith(PUBLIC_BLOB_HOST_SUFFIX)
 
 
 async def delete_url(blob_url: str) -> bool:

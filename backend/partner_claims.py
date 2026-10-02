@@ -19,6 +19,7 @@ import re
 import unicodedata
 from difflib import SequenceMatcher
 from typing import Iterable
+from urllib.parse import urlparse
 
 # ── Dedup threshold (reported in the deliverable) ────────────────────────────
 # A create is blocked when the best existing candidate scores >= this. The score
@@ -330,9 +331,16 @@ def validate_image_value(value) -> bool:
         return True
     # Our OWN Vercel Blob store — the URL is always generated server-side from the
     # partner's moderated upload (never partner-supplied), so it's trusted, not an
-    # arbitrary external URL. Public Blob host: <store>.public.blob.vercel-storage.com
-    if v.startswith("https://") and "blob.vercel-storage.com" in v:
-        return True
+    # arbitrary external URL. Public Blob host: <store>.public.blob.vercel-storage.com.
+    # Host-exact (P1, audit 2026-10-01): the old substring test accepted
+    # `https://evil.com/?x=blob.vercel-storage.com` as a trusted flyer.
+    if v.startswith("https://"):
+        try:
+            host = urlparse(v).hostname or ""
+        except ValueError:
+            return False
+        if host.endswith(".public.blob.vercel-storage.com"):
+            return True
     return False
 
 
