@@ -375,7 +375,7 @@ function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; l
     const popupContent = '<div style=font-family:sans-serif;min-width:180px>'
       + '<div style=display:flex;align-items:center;gap:6px;margin-bottom:6px>'
       + '<div style=width:10px;height:10px;border-radius:50%;background:' + color + ';flex-shrink:0></div>'
-      + '<span style=font-size:10px;color:' + color + ';text-transform:uppercase;font-weight:700>' + p.type + '</span>'
+      + '<span style=font-size:10px;color:' + color + ';text-transform:uppercase;font-weight:700>' + escHtml(String(p.type || '')) + '</span>'
       + '</div>'
       + '<b style=font-size:15px;color:' + COLORS.textMain + '>' + safeName + '</b><br>'
       + eventPopupHtml(p)
@@ -1086,7 +1086,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
       const safeAddr = escHtml(p.address || '');
       const safeId = (p.id || '').replace(/[^A-Za-z0-9_-]/g, '');
       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`;
-      const priceHtml = p.price ? `<span style="font-size:12px;color:${COLORS.mustard};font-weight:700">${p.price}</span><br>` : '';
+      const priceHtml = p.price ? `<span style="font-size:12px;color:${COLORS.mustard};font-weight:700">${escHtml(String(p.price))}</span><br>` : '';
       const passportHtml = isPassport
         ? `<span style="font-size:10px;color:#8a6d1f;font-weight:800">🛂 ${escHtml(tr('SELLO DEL PASAPORTE'))}</span><br>`
         : '';
@@ -1096,7 +1096,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
       const popup = `<div style="font-family:sans-serif;min-width:180px">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
           <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0"></div>
-          <span style="font-size:10px;color:${color};text-transform:uppercase;font-weight:700">${isPassport ? 'pasaporte' : p.type}</span>
+          <span style="font-size:10px;color:${color};text-transform:uppercase;font-weight:700">${isPassport ? 'pasaporte' : escHtml(String(p.type || ''))}</span>
         </div>
         <b style="font-size:15px;color:${COLORS.textMain}">${safeName}</b><br>
         <span data-dist style="display:none;font-size:12px;color:#1a7f37;font-weight:700"></span>

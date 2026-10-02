@@ -40,7 +40,7 @@ export type ReviewsPayload = {
 
 // ─── Backend API ─────────────────────────────────────────────────────────────
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+import { BACKEND_URL } from '../constants/api';
 
 async function getToken(): Promise<string | null> {
   if (Platform.OS === 'web') {

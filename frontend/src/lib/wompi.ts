@@ -1,9 +1,7 @@
 import { Platform } from 'react-native';
 import { Alert } from './alert';
 import * as WebBrowser from 'expo-web-browser';
-import { api } from '../constants/api';
-
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+import { api, BACKEND_URL } from '../constants/api';
 
 export type WompiCheckoutResult = {
   status: 'approved' | 'declined' | 'pending' | 'error' | 'voided' | 'cancelled' | 'unknown';

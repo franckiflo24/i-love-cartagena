@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
-import { api } from '../constants/api';
+import { api, BACKEND_URL } from '../constants/api';
 import LoadError from './LoadError';
 import { useTr } from '../i18n/autoTr';
 import { NBH_LABELS } from '../utils/neighborhood';
@@ -148,7 +148,6 @@ export default function AlcaldiaDashboard({
   const handleExport = async (kind: 'users' | 'payments') => {
     setExporting(kind);
     try {
-      const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
       if (!BACKEND_URL) {
         Alert.alert('No disponible', 'La exportación requiere conexión al servidor.');
         setExporting(null);

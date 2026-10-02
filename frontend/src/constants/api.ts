@@ -14,7 +14,12 @@ export { swr, setSwrScope, readCache, writeCache } from '../lib/swrCache';
 // fallbacks on native; env vars still override everywhere.
 const PROD_BACKEND_URL = 'https://backend-mu-one-74.vercel.app';
 const PROD_APP_URL = 'https://www.amocartagena.co';
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL
+// Exported so modules that do raw fetch (reviews, itineraries, the Alcaldía CSV
+// export, wompi) resolve the backend the SAME way — with the native PROD
+// fallback. Reading process.env.EXPO_PUBLIC_BACKEND_URL directly returns
+// undefined on an EAS native build (EXPO_PUBLIC_* isn't inlined there), which
+// left those four pointed at '' / the app host (audit 2026-10-02, AT-16).
+export const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL
   || (Platform.OS !== 'web' ? PROD_BACKEND_URL : undefined);
 // Origin for static /data assets: same-origin on web, production site on native.
 export const ASSET_ORIGIN = Platform.OS === 'web' ? '' : (process.env.EXPO_PUBLIC_APP_URL || PROD_APP_URL);

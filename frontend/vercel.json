@@ -122,6 +122,31 @@
       "source": "/MUSIC-WEEK",
       "destination": "/music-week",
       "statusCode": 308
+    },
+    {
+      "source": "/itinerary",
+      "destination": "/itineraries",
+      "statusCode": 308
+    },
+    {
+      "source": "/routes",
+      "destination": "/itineraries",
+      "statusCode": 308
+    },
+    {
+      "source": "/dashboard",
+      "destination": "/admin",
+      "statusCode": 308
+    },
+    {
+      "source": "/reviews",
+      "destination": "/review/new",
+      "statusCode": 308
+    },
+    {
+      "source": "/partner-access",
+      "destination": "/business/login",
+      "statusCode": 308
     }
   ],
   "rewrites": [
@@ -248,26 +273,6 @@
     {
       "source": "/admin/operator/:id",
       "destination": "/admin/operator/index"
-    },
-    {
-      "source": "/itinerary",
-      "destination": "/itineraries"
-    },
-    {
-      "source": "/routes",
-      "destination": "/itineraries"
-    },
-    {
-      "source": "/dashboard",
-      "destination": "/admin"
-    },
-    {
-      "source": "/reviews",
-      "destination": "/review/new"
-    },
-    {
-      "source": "/partner-access",
-      "destination": "/business/login"
     },
     {
       "source": "/port-tax",

@@ -13,7 +13,7 @@ import { getToken } from '@/src/constants/api';
 import { useLang } from '@/src/context/LanguageContext';
 
 const PROD_HOST = process.env.EXPO_PUBLIC_APP_URL || 'https://amocartagena.co';
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+import { BACKEND_URL } from '@/src/constants/api';
 const apiBase = Platform.OS === 'web' ? '' : PROD_HOST;
 const shareBase =
   Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.origin : PROD_HOST;
