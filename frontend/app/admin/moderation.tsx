@@ -24,8 +24,12 @@ type Stats = {
 export default function AdminModeration() {
   const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
-  const [pending, setPending] = useState<any[]>([]);
+  // null until the first successful load: "¡Todo en orden!" must never paint
+  // over a fetch that failed (audit 2026-10-01 — the swallowed error rendered
+  // the all-clear while the queue was not empty).
+  const [pending, setPending] = useState<any[] | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -42,14 +46,23 @@ export default function AdminModeration() {
         api.get('/admin/moderation/pending'),
         api.get('/admin/moderation/stats'),
       ]);
-      setPending(pendingData);
+      setPending(Array.isArray(pendingData) ? pendingData : []);
       setStats(statsData);
-    } catch (e) { console.error(e); }
+      setLoadError(null);
+    } catch (e: any) {
+      console.error(e);
+      setLoadError(e?.message || 'network');   // keep the last known list + stats
+    }
   }, []);
 
   useEffect(() => {
     setLoading(true);
     load().finally(() => setLoading(false));
+  }, [load]);
+
+  const retry = useCallback(async () => {
+    setLoading(true);
+    try { await load(); } finally { setLoading(false); }
   }, [load]);
 
   const handleApprove = async (eventId: string, title: string) => {
@@ -59,7 +72,7 @@ export default function AdminModeration() {
         try {
           await api.post(`/admin/moderation/${eventId}/approve`);
           // Optimistically remove from pending list
-          setPending(prev => prev.filter((e: any) => (e.event_id || e.id) !== eventId));
+          setPending(prev => (prev || []).filter((e: any) => (e.event_id || e.id) !== eventId));
           if (stats) setStats({ ...stats, pending: Math.max(0, stats.pending - 1), approved: stats.approved + 1 });
         }
         catch (e: any) { Alert.alert('Error', e?.message); }
@@ -74,7 +87,7 @@ export default function AdminModeration() {
         try {
           await api.post(`/admin/moderation/${eventId}/reject`, { reason: 'Contenido no apto para la agenda' });
           // Optimistically remove from pending list
-          setPending(prev => prev.filter((e: any) => (e.event_id || e.id) !== eventId));
+          setPending(prev => (prev || []).filter((e: any) => (e.event_id || e.id) !== eventId));
           if (stats) setStats({ ...stats, pending: Math.max(0, stats.pending - 1), rejected: stats.rejected + 1 });
         }
         catch (e: any) { Alert.alert('Error', e?.message); }
@@ -171,16 +184,31 @@ export default function AdminModeration() {
           </View>
         )}
 
-        {/* Pending list */}
+        {/* Load failure: never let it look like an empty queue */}
+        {loadError && (
+          <View style={styles.errorBanner} testID="moderation-load-error">
+            <Ionicons name="alert-circle" size={20} color="#EF4444" />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.errorTitle}>No se pudo cargar la cola. Esto NO significa que esté vacía.</Text>
+              <Text style={styles.errorSub}>{pending ? 'Mostrando la última carga correcta.' : 'Sin datos todavía.'}</Text>
+            </View>
+            <TouchableOpacity style={styles.retryBtn} onPress={retry} activeOpacity={0.85}>
+              <Ionicons name="refresh" size={14} color={COLORS.white} />
+              <Text style={styles.retryText}>Reintentar</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Pending list — the all-clear renders ONLY after an error-free load */}
         <Text style={styles.sectionTitle}>Pendientes de tu revisión</Text>
-        {pending.length === 0 ? (
+        {!loadError && pending !== null && pending.length === 0 ? (
           <View style={styles.empty}>
             <Ionicons name="checkmark-done-circle" size={48} color="#22C55E" />
             <Text style={styles.emptyTitle}>¡Todo en orden!</Text>
             <Text style={styles.emptyText}>La IA está aprobando los eventos automáticamente. Te avisaremos cuando algo necesite tu atención.</Text>
           </View>
         ) : (
-          pending.map((ev: any) => {
+          (pending || []).map((ev: any) => {
             const tierColors = ev.partner_tier ? TIER_COLORS[ev.partner_tier as Tier] : null;
             const isRejected = ev.moderation_status === 'rejected';
             return (
@@ -274,6 +302,12 @@ const styles = StyleSheet.create({
   achievementBold: { ...FONTS.bold, color: COLORS.primary },
 
   sectionTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold, marginHorizontal: SPACING.lg, marginVertical: SPACING.sm, letterSpacing: 0.3 },
+
+  errorBanner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, marginHorizontal: SPACING.lg, marginBottom: SPACING.sm, backgroundColor: 'rgba(239,68,68,0.12)', borderRadius: RADIUS.lg, borderWidth: 1.5, borderColor: '#EF4444' },
+  errorTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold, lineHeight: 18 },
+  errorSub: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+  retryBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#EF4444', borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 8 },
+  retryText: { color: COLORS.white, fontSize: 12, ...FONTS.bold },
 
   empty: { alignItems: 'center', padding: SPACING.xl, marginHorizontal: SPACING.lg, gap: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, borderStyle: 'dashed' },
   emptyTitle: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold },

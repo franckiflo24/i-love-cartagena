@@ -148,6 +148,8 @@ type HubCardDef = {
   accent: string;
   available: boolean;
   badge?: number;
+  /** The badge's source failed to refresh: keep the last known count, flag it. */
+  badgeStale?: boolean;
   onPress: () => void;
   // Locked cards must never dead-end: tapping one routes to the unlock path
   // (e.g. admin sign-in). Franck hit locked cards with no way forward.
@@ -166,6 +168,13 @@ const PortalCard = ({ card }: { card: HubCardDef }) => (
       {card.available && !!card.badge && (
         <View style={styles.hubCardBadge}>
           <Text style={styles.hubCardBadgeText}>{card.badge > 99 ? '99+' : card.badge}</Text>
+        </View>
+      )}
+      {/* Refresh failed: the count above is the LAST KNOWN value (or unknown) —
+          never hide it and pretend the queue is clear (audit 2026-10-01). */}
+      {card.available && card.badgeStale && (
+        <View style={styles.hubCardStale} testID={`hub-badge-stale-${card.key}`}>
+          <Text style={styles.hubCardStaleText}>!</Text>
         </View>
       )}
     </View>
@@ -779,6 +788,9 @@ export default function AdminPortal() {
   // trigger a 401 against them (they carry no user session). ──
   const [data, setData] = useState<DashboardData | null>(null);
   const [modStats, setModStats] = useState<ModStats | null>(null);
+  // The moderation badge's fetch failed on the last refresh: keep showing the
+  // last known count and flag it ("!") instead of silently dropping the badge.
+  const [modStatsStale, setModStatsStale] = useState(false);
   const [usersData, setUsersData] = useState<any>(null);
   const [businessesData, setBusinessesData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -790,7 +802,7 @@ export default function AdminPortal() {
       const [d, u, ms, biz] = await Promise.all([
         api.get('/analytics/dashboard').catch(() => null),
         api.get('/admin/users').catch(() => null),
-        api.get('/admin/moderation/stats').catch(() => null),
+        api.get('/admin/moderation/stats').then((v) => { setModStatsStale(false); return v; }).catch(() => { setModStatsStale(true); return null; }),
         api.get('/admin/businesses').catch(() => null),
       ]);
       setData(d);
@@ -925,6 +937,7 @@ export default function AdminPortal() {
       accent: colorForKey('moderation'),
       available: isAdmin,
       badge: modStats?.pending,
+      badgeStale: modStatsStale,
       onPress: () => router.push('/admin/moderation'),
       onLockedPress: goAdminLogin,
     },
@@ -1082,6 +1095,8 @@ const styles = StyleSheet.create({
   hubCardIconWrap: { width: 40, height: 40, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center', borderWidth: 1, position: 'relative' },
   hubCardBadge: { position: 'absolute', top: -6, right: -6, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
   hubCardBadgeText: { color: '#FFF', fontSize: 10, ...FONTS.bold },
+  hubCardStale: { position: 'absolute', bottom: -6, right: -6, width: 16, height: 16, borderRadius: 8, backgroundColor: '#F59E0B', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: COLORS.surface },
+  hubCardStaleText: { color: '#000', fontSize: 10, ...FONTS.bold },
   hubCardTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold, marginTop: 6 },
   hubCardTitleLocked: { color: COLORS.textMuted },
   hubCardSubtitle: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 15 },

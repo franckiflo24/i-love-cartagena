@@ -43,7 +43,10 @@ export default function AdminQueue() {
   const canModerate = business?.role === 'government' || !!user?.is_admin;
   const [drafts, setDrafts] = useState<any[]>([]);
   const [claims, setClaims] = useState<any[]>([]);
-  const [submissions, setSubmissions] = useState<Submissions>(EMPTY_SUBMISSIONS);
+  // null until the FIRST successful load — the "nothing pending" empties render
+  // only once real data has arrived (and no error is outstanding).
+  const [submissions, setSubmissions] = useState<Submissions | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -57,22 +60,30 @@ export default function AdminQueue() {
     // user session token, which the backend `_require_moderator` accepts. Gating on
     // token left the whole queue empty for the primary admin.
     if (!canModerate) return;
+    // A failed fetch used to become `{drafts: []}` / EMPTY_SUBMISSIONS, so a 401,
+    // a timeout or a cold backend rendered "Sin contenido pendiente" — the queue
+    // looked clear while Casa Bohème sat pending for five weeks (audit
+    // 2026-10-01). Now: any failure keeps the LAST KNOWN data and raises a
+    // banner; the empties are gated on a real, error-free load.
     try {
       const [d, c, s] = await Promise.all([
-        api.get('/business/admin/venue-drafts', auth).catch(() => ({ drafts: [] })),
-        api.get('/business/admin/claims', auth).catch(() => ({ claims: [] })),
-        api.get('/business/admin/submissions', auth).catch(() => EMPTY_SUBMISSIONS),
+        api.get('/business/admin/venue-drafts', auth),
+        api.get('/business/admin/claims', auth),
+        api.get('/business/admin/submissions', auth),
       ]);
-      setDrafts(d.drafts || []);
-      setClaims(c.claims || []);
+      setDrafts(d?.drafts || []);
+      setClaims(c?.claims || []);
       setSubmissions({
-        events: s.events || [],
-        media: s.media || [],
-        prices: s.prices || [],
-        auto: s.auto_media || [],
-        counts: s.counts || { events: 0, media: 0, prices: 0, auto: 0 },
+        events: s?.events || [],
+        media: s?.media || [],
+        prices: s?.prices || [],
+        auto: s?.auto_media || [],
+        counts: s?.counts || { events: 0, media: 0, prices: 0, auto: 0 },
       });
-    } catch { /* fail soft */ }
+      setLoadError(null);
+    } catch (e: any) {
+      setLoadError(e?.message || 'network');
+    }
   }, [token, canModerate]);
 
   useFocusEffect(useCallback(() => {
@@ -82,6 +93,9 @@ export default function AdminQueue() {
   }, [canModerate, token, authLoading, userLoading, load]));
 
   const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
+  const retry = async () => { setLoading(true); try { await load(); } finally { setLoading(false); } };
+  const subs = submissions ?? EMPTY_SUBMISSIONS;
+  const loaded = !loadError && submissions !== null;
 
   const act = async (fn: () => Promise<any>, okMsg: string) => {
     try { await fn(); await load(); }
@@ -145,8 +159,21 @@ export default function AdminQueue() {
 
       {loading ? <ActivityIndicator color={COLORS.primary} style={{ marginTop: 60 }} /> : (
         <ScrollView contentContainerStyle={styles.scroll} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}>
+          {loadError && (
+            <View style={styles.errorBanner} testID="queue-load-error">
+              <Ionicons name="alert-circle" size={20} color="#EF4444" />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.errorTitle}>{tr('No se pudo cargar la cola. Esto NO significa que esté vacía.')}</Text>
+                <Text style={styles.errorSub}>{submissions ? tr('Mostrando la última carga correcta.') : tr('Sin datos todavía.')}</Text>
+              </View>
+              <TouchableOpacity style={styles.retryBtn} onPress={retry} activeOpacity={0.85}>
+                <Ionicons name="refresh" size={14} color={COLORS.white} />
+                <Text style={styles.retryText}>{tr('Reintentar')}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
           <Text style={styles.section}>{tr('Negocios nuevos')} · {drafts.length}</Text>
-          {drafts.length === 0 && <Text style={styles.empty}>{tr('Sin borradores pendientes')}</Text>}
+          {loaded && drafts.length === 0 && <Text style={styles.empty}>{tr('Sin borradores pendientes')}</Text>}
           {drafts.map(d => (
             <View key={d.partner_id} style={styles.card}>
               <Text style={styles.cardName}>{d.name}</Text>
@@ -161,7 +188,7 @@ export default function AdminQueue() {
           ))}
 
           <Text style={[styles.section, { marginTop: SPACING.xl }]}>{tr('Reclamos y disputas')} · {claims.length}</Text>
-          {claims.length === 0 && <Text style={styles.empty}>{tr('Sin reclamos pendientes')}</Text>}
+          {loaded && claims.length === 0 && <Text style={styles.empty}>{tr('Sin reclamos pendientes')}</Text>}
           {claims.map(c => (
             <View key={c.claim_id} style={styles.card}>
               <View style={styles.claimHead}>
@@ -181,14 +208,14 @@ export default function AdminQueue() {
           ))}
 
           {(() => {
-            const total = (submissions.counts.events || 0) + (submissions.counts.media || 0) + (submissions.counts.prices || 0);
+            const total = (subs.counts.events || 0) + (subs.counts.media || 0) + (subs.counts.prices || 0);
             return <Text style={[styles.section, { marginTop: SPACING.xl }]}>{tr('Contenido pendiente')} · {total}</Text>;
           })()}
-          {submissions.media.length === 0 && submissions.prices.length === 0 && submissions.events.length === 0 && (
+          {loaded && subs.media.length === 0 && subs.prices.length === 0 && subs.events.length === 0 && (
             <Text style={styles.empty}>{tr('Sin contenido pendiente')}</Text>
           )}
 
-          {submissions.media.map(m => (
+          {subs.media.map(m => (
             <View key={m.media_id} style={styles.card}>
               <View style={[styles.tag, styles.tagMedia, { alignSelf: 'flex-start', marginBottom: SPACING.xs }]}>
                 <Text style={styles.tagText}>{tr('Foto')}</Text>
@@ -218,7 +245,7 @@ export default function AdminQueue() {
             </View>
           ))}
 
-          {submissions.prices.map(p => {
+          {subs.prices.map(p => {
             const range = fmtPriceRange(p);
             return (
               <View key={p.price_id} style={styles.card}>
@@ -236,7 +263,7 @@ export default function AdminQueue() {
             );
           })}
 
-          {submissions.events.map(e => (
+          {subs.events.map(e => (
             <View key={e.event_id} style={styles.card}>
               <View style={[styles.tag, styles.tagEvent, { alignSelf: 'flex-start', marginBottom: SPACING.xs }]}>
                 <Text style={styles.tagText}>{tr('Evento')}</Text>
@@ -251,11 +278,11 @@ export default function AdminQueue() {
             </View>
           ))}
 
-          {submissions.auto.length > 0 && (
+          {subs.auto.length > 0 && (
             <>
-              <Text style={[styles.section, { marginTop: SPACING.xl }]}>{tr('Publicadas automáticamente')} · {submissions.auto.length}</Text>
+              <Text style={[styles.section, { marginTop: SPACING.xl }]}>{tr('Publicadas automáticamente')} · {subs.auto.length}</Text>
               <Text style={styles.autoHint}>{tr('Fotos de negocios de confianza que la IA aprobó. No requieren acción — quítalas si algo no cuadra (eso también revisa sus próximas fotos).')}</Text>
-              {submissions.auto.map((m: any) => (
+              {subs.auto.map((m: any) => (
                 <View key={m.media_id} style={styles.card}>
                   <View style={styles.mediaRow}>
                     <SafeImage uri={m.data_url} style={styles.mediaThumb} />
@@ -289,6 +316,11 @@ const styles = StyleSheet.create({
   backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border },
   hTitle: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold },
   scroll: { padding: SPACING.lg },
+  errorBanner: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, padding: SPACING.md, marginBottom: SPACING.lg, backgroundColor: 'rgba(239,68,68,0.12)', borderRadius: RADIUS.lg, borderWidth: 1.5, borderColor: '#EF4444' },
+  errorTitle: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold, lineHeight: 18 },
+  errorSub: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular, marginTop: 2 },
+  retryBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#EF4444', borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 8 },
+  retryText: { color: COLORS.white, fontSize: 12, ...FONTS.bold },
   section: { fontSize: 13, color: COLORS.textMuted, ...FONTS.bold, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: SPACING.sm },
   empty: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, fontStyle: 'italic', marginBottom: SPACING.md },
   card: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, padding: SPACING.md, marginBottom: SPACING.md },
