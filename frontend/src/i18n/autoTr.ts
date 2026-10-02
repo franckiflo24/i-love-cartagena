@@ -48,7 +48,6 @@ export const AUTO_TR: Dict = {
   'Instagram (opcional)': { en: 'Instagram (optional)', fr: 'Instagram (facultatif)', pt: 'Instagram (opcional)' },
   '¿Tienes un negocio en Cartagena?': { en: 'Own a business in Cartagena?', fr: 'Vous avez un commerce à Carthagène ?', pt: 'Tem um negócio em Cartagena?' },
   'Regístralo': { en: 'List it', fr: 'Inscrivez-le', pt: 'Cadastre-o' },
-  'Pagar y generar QR': { en: 'Pay & generate QR', fr: 'Payer et générer le QR', pt: 'Pagar e gerar QR' },
   'opcional': { en: 'optional', fr: 'facultatif', pt: 'opcional' },
   'Email verificado': { en: 'Email verified', fr: 'Email vérifié', pt: 'Email verificado' },
   'No pudimos cargar la tasa portuaria': { en: "We couldn't load the port tax", fr: 'Impossible de charger la taxe portuaire', pt: 'Não foi possível carregar a taxa portuária' },
@@ -633,8 +632,6 @@ export const AUTO_TR: Dict = {
   // Tutorial coach-marks + City Pass port-tax module (M11)
   'Entendido': { en: 'Got it', fr: 'Compris', pt: 'Entendi' },
   'Pago oficial Muelle La Bodeguita → Islas': { en: 'Official payment · La Bodeguita Pier → Islands', fr: 'Paiement officiel · Quai La Bodeguita → Îles', pt: 'Pagamento oficial · Cais La Bodeguita → Ilhas' },
-  'Reembolso 24h': { en: '24h refund', fr: 'Remboursement 24h', pt: 'Reembolso 24h' },
-  'Soporte 24/7': { en: '24/7 support', fr: 'Support 24/7', pt: 'Suporte 24/7' },
 
   // Login / profile-gate value props (FRANCK-3) — wrapped in tr() but missing from
   // the dict, so they leaked Spanish on the FR/EN/PT login screen.
@@ -1134,7 +1131,6 @@ export const AUTO_TR: Dict = {
   "Accede a los eventos con tu pass": { en: "Access events with your pass", fr: "Accédez aux événements avec votre pass", pt: "Acesse os eventos com seu pass" },
   "Vive la cultura sin límite": { en: "Live culture without limits", fr: "Vivez la culture sans limites", pt: "Viva a cultura sem limites" },
   "COP / persona": { en: "COP / person", fr: "COP / personne", pt: "COP / pessoa" },
-  "Pago seguro": { en: "Secure payment", fr: "Paiement sécurisé", pt: "Pagamento seguro" },
   "Nivel de precios": { en: "Price level", fr: "Niveau de prix", pt: "Nível de preços" },
   "Taxi desde el aeropuerto": { en: "Taxi from the airport", fr: "Taxi depuis l'aéroport", pt: "Táxi do aeroporto" },
   "Ideal para": { en: "Ideal for", fr: "Idéal pour", pt: "Ideal para" },
