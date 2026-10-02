@@ -3487,7 +3487,14 @@ async def admin_alcaldia_payments(request: Request, limit: int = 200):
 def _csv_escape(v) -> str:
     if v is None:
         return ""
-    s = str(v).replace('"', '""')
+    s = str(v)
+    # CSV/formula injection (P1, audit 2026-10-01): these government exports carry
+    # user-typed names/emails; a cell starting with = + - @ or a tab/CR is executed
+    # as a formula by Excel / Sheets ("=HYPERLINK(...)", "=cmd|..."). The leading
+    # apostrophe forces text — the OWASP-recommended neutralisation.
+    if s and s[0] in "=+-@\t\r":
+        s = "'" + s
+    s = s.replace('"', '""')
     if any(c in s for c in [",", "\n", "\r", '"']):
         return f'"{s}"'
     return s
