@@ -9,6 +9,7 @@ changed, and the response reports COUNTS and ids only — never a secret value.
     POST /admin/maintenance/sessions/revoke          {business_ids?: [...], emails?: [...]}
     POST /admin/maintenance/city-pass/rotate-keys    {dry_run?: bool}
     POST /admin/maintenance/partner-events/backfill-date-end {dry_run?: bool}
+    POST /admin/maintenance/alert-test                       (Telegram delivery counts)
 """
 from __future__ import annotations
 
@@ -190,3 +191,19 @@ async def backfill_date_end(body: DryRun, request: Request):
             changed.append(p)
     await _audit("partner_events.backfill_date_end", f"scanned={len(rows)} set={len(changed)}")
     return {"dry_run": False, "scanned": len(rows), "set": len(changed), "rows": changed, "backup_id": backup_id}
+
+
+# ── alert channel check ───────────────────────────────────────────────────────
+
+@router.post("/admin/maintenance/alert-test")
+async def alert_test(request: Request):
+    """Send one fixed test line through the production Telegram alert path and
+    report delivery COUNTS only (never a chat id). Used after any change to
+    TELEGRAM_ALERT_CHAT_IDS to prove every listed chat actually receives alerts
+    (ops rule: Sergio is on the list for all production alerts)."""
+    await _require_cron(request)
+    import telegram_alerts as _tg
+    res = await _tg.send(f"🔔 AMO prueba de alertas · {_now()[:16]} — si ves esto, el canal funciona.")
+    await _audit("alert_test", f"chats={res.get('chats')} sent={res.get('sent')} errors={len(res.get('errors') or [])}")
+    return {"configured": res.get("configured"), "chats": res.get("chats"), "sent": res.get("sent"),
+            "errors": res.get("errors") or []}
