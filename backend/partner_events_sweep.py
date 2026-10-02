@@ -207,9 +207,20 @@ async def run_sweep(db_: Any, *, now: Optional[datetime] = None, send: Optional[
             expired_n += int(getattr(r, "modified_count", 0))
 
     oldest = oldest_age_hours(live, now)
+    # Read-only evidence for operators: how many rows this sweep has retired over
+    # its lifetime, and when the last stale-queue alert went out (dedupe marker).
+    expired_total: Optional[int] = None
+    last_alert_at: Optional[str] = None
+    try:
+        expired_total = await db_.partner_events.count_documents({"moderation_status": EXPIRED_STATUS})
+        st = await db_.cron_state.find_one({"_id": STATE_ID}, {"_id": 0, "last_alert_at": 1})
+        last_alert_at = (st or {}).get("last_alert_at")
+    except Exception:  # noqa: BLE001 — evidence must never break the sweep
+        pass
     out: Dict[str, Any] = {
         "today": today, "scanned": len(rows), "expired": expired_n if not dry else 0,
         "would_expire": len(expired), "pending_live": len(live),
+        "expired_total": expired_total, "last_alert_at": last_alert_at,
         "oldest_age_h": None if oldest is None else round(oldest, 1),
         "alert_due": should_alert(oldest), "alerted": False, "alert_skipped": None, "dry": dry,
     }
