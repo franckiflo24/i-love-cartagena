@@ -22,6 +22,9 @@ import { LENSES_TR } from './autoTrLenses';
 export type Dict = Record<string, Partial<Record<Lang, string>>>;
 
 export const AUTO_TR: Dict = {
+  // P1-9 (Oct 2) — <LoadError/> copy: a failed load must never look like an empty result.
+  'No se pudo cargar': { en: "Couldn't load", fr: 'Chargement impossible', pt: 'Não foi possível carregar' },
+  'reintentar': { en: 'retry', fr: 'réessayer', pt: 'tentar novamente' },
   // Elite-audit i18n pass (Sep 12) — strings tr()'d but missing, or newly wrapped,
   // on reviewer-path screens (onboarding, complete-profile, port-tax, search, login,
   // admin confirms). Keys that already existed (Continuar/Reintentar/Cancelar/

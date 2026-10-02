@@ -1057,3 +1057,26 @@ async function _writeErr(method: string, path: string, res: Response): Promise<s
   } catch { /* response body not JSON — keep the status message */ }
   return msg;
 }
+
+// ── Error introspection for screens (P1-9) ───────────────────────────────
+// GET failures throw `Error("GET <path> failed: <status>")` (no .status); writes
+// attach `.status`; network/timeout errors carry neither. Screens use these to
+// tell an ANSWER (401/403 = not signed in / not yours, 404/410 = gone → an honest
+// empty state) from an OUTAGE (anything else → <LoadError/>, never empty copy).
+export const httpStatusOf = (err: unknown): number | null => {
+  if (!err || typeof err !== 'object') return null;
+  const s = (err as { status?: unknown }).status;
+  if (typeof s === 'number' && Number.isFinite(s)) return s;
+  const m = /failed: (\d{3})\b/.exec(String((err as { message?: unknown }).message ?? ''));
+  return m ? Number(m[1]) : null;
+};
+/** 401/403 — the server answered "not signed in / not yours": empty, not an outage. */
+export const isAuthStatus = (err: unknown): boolean => {
+  const s = httpStatusOf(err);
+  return s === 401 || s === 403;
+};
+/** 404/410 — the row is gone: hide it, do not flag an outage. */
+export const isGoneStatus = (err: unknown): boolean => {
+  const s = httpStatusOf(err);
+  return s === 404 || s === 410;
+};
