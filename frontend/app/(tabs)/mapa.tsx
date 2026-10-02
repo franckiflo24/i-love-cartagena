@@ -17,6 +17,7 @@ import { getCollections } from '../../src/lib/passport';
 import { getVenues } from '../../src/lib/venueCache';
 import { venueBarrio, NBH_LABELS, NbhCentroid } from '../../src/utils/neighborhood';
 import { HomeBaseSheet } from '../../src/components/HomeBaseSheet';
+import LoadError from '../../src/components/LoadError';
 import { getHomeBase, syncHomeBase } from '../../src/lib/homeBase';
 import { openDirections } from '../../src/lib/maps';
 import { ATLAS_VERIFIED, ATLAS_VENUE_FIXES, ATLAS_ADD_VENUES, ATLAS_ROUTE, ATLAS_WALK, ATLAS_RUTAS } from '../../src/data/atlas';
@@ -1326,7 +1327,7 @@ export default function MapaScreen() {
     fetch(ASSET_ORIGIN + '/data/neighborhoods.json')
       .then(r => (r.ok ? r.json() : []))
       .then((n) => Array.isArray(n) && setNeighborhoods(n))
-      .catch(() => {});
+      .catch((e) => console.error('[mapa] neighborhoods', e)); // barrio chips only — pins unaffected
   }, []);
 
   // ── LIVE tracking: geoService watch while the map is focused ──
@@ -1486,7 +1487,11 @@ export default function MapaScreen() {
     }
   };
 
-  useEffect(() => {
+  // P1-9: an outage on every pin source (bundled snapshot + live catalog) used to
+  // paint a blank Cartagena. loadError is raised only when BOTH failed and the
+  // map still has no catalog pins; a failed refresh keeps the last good pins.
+  const [loadError, setLoadError] = useState(false);
+  const loadPlaces = useCallback(() => {
     // Verified essentials pins (Google-Places-geocoded hospitals) — the seed
     // safety layer isn't in the partner catalog, so it needs its own pin source.
     let essentialsPins: any[] = [];
@@ -1546,13 +1551,20 @@ export default function MapaScreen() {
       return allPlaces.filter(p => p.lat !== 0);
     };
 
-    const staticFetch = (file: string) =>
-      fetch(`${ASSET_ORIGIN}/data/${file}.json`).then(r => r.ok ? r.json() : []).catch(() => []);
+    // null = that file did not load (logged); [] is a real empty answer.
+    const staticFetch = (file: string): Promise<any[] | null> =>
+      fetch(`${ASSET_ORIGIN}/data/${file}.json`).then(r => r.ok ? r.json() : null)
+        .catch((e) => { console.error('[mapa] static', file, e); return null; });
+
+    // Both chains below report into these; the flag settles once each is done.
+    let staticOk = false, staticDone = false, liveOk = false, liveDone = false;
+    const settle = () => { if (staticDone && liveDone) setLoadError(!staticOk && !liveOk); };
 
     // Static-first: paint partner markers immediately (fastest file),
     // then add venues as they arrive
     staticFetch('partners').then(sp => {
       if (Array.isArray(sp) && sp.length > 0) {
+        staticOk = true;
         setPlaces(buildPlaces([], sp));
         setLoading(false);
       }
@@ -1564,25 +1576,35 @@ export default function MapaScreen() {
         // Re-read current partners from the already-set state via a fresh fetch
         staticFetch('partners').then(sp => {
           if (Array.isArray(sp) && sp.length > 0) {
-            setPlaces(buildPlaces(sv, sp));
+            staticOk = true;
+            setPlaces(buildPlaces(Array.isArray(sv) ? sv : [], sp));
           }
           setLoading(false);
-        }).catch((e) => { console.error('[mapa]', e); setLoading(false); });
-      }).catch((e) => { console.error('[mapa]', e); setLoading(false); });
+          staticDone = true; settle();
+        }).catch((e) => { console.error('[mapa]', e); setLoading(false); staticDone = true; settle(); });
+      }).catch((e) => { console.error('[mapa]', e); setLoading(false); staticDone = true; settle(); });
 
-    // Hydrate from backend (non-blocking)
+    // Hydrate from backend (non-blocking). api.get already fell back to the swr
+    // cache and the public snapshot before rejecting — a reject here is a real outage.
     Promise.all([
-      api.get('/venues').catch(() => []),
-      api.get('/partners').catch(() => []),
+      api.get('/venues').catch((e) => { console.error('[mapa] live venues', e); return null; }),
+      api.get('/partners').catch((e) => { console.error('[mapa] live partners', e); return null; }),
       api.get('/essentials/pins').catch(() => ({ pins: [] })),
     ]).then(([venues, partners, essRes]: any[]) => {
       essentialsPins = (essRes && essRes.pins) || [];
       if (Array.isArray(partners) && partners.length > 0) {
-        setPlaces(buildPlaces(venues, partners));
+        liveOk = true;
+        setPlaces(buildPlaces(Array.isArray(venues) ? venues : [], partners));
       }
-    }).catch((e) => { console.error('[mapa]', e); setLoading(false); });
-    requestLocation();
+      liveDone = true; settle();
+    }).catch((e) => { console.error('[mapa]', e); setLoading(false); liveDone = true; settle(); });
   }, []);
+
+  useEffect(() => {
+    loadPlaces();
+    requestLocation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadPlaces]);
 
   // Golden-hour pins → Places with pre-rendered, translated popup lines (the
   // eventos-layer pattern). `verified` (precision halo) only for HIGH + exact.
@@ -1848,6 +1870,18 @@ export default function MapaScreen() {
                 }
               } catch { /* non-JSON message — ignore */ }
             }}
+          />
+        )}
+
+        {/* P1-9: no catalog pins because every source failed — say so over the
+            empty canvas; retry re-runs the same loader (no map remount). */}
+        {loadError && places.length === 0 && (
+          <LoadError
+            message={tr('No se pudo cargar')}
+            retryLabel={tr('reintentar')}
+            onRetry={() => { setLoadError(false); loadPlaces(); }}
+            style={styles.loadErrorOverlay}
+            testID="map-load-error"
           />
         )}
 
@@ -2213,6 +2247,8 @@ const styles = StyleSheet.create({
 
   mapWrap: { flex: 1, overflow: 'hidden', borderTopWidth: 1, borderTopColor: COLORS.border },
   webview: { flex: 1, backgroundColor: COLORS.background },
+  // P1-9 catalog-outage row, floated over the canvas (same band as filterPill).
+  loadErrorOverlay: { position: 'absolute', top: 10, left: 12, right: 12, marginHorizontal: 0, marginVertical: 0, backgroundColor: 'rgba(5,8,20,0.94)', zIndex: 1000 },
 
   // Active-filter pill: top-right, clear of Leaflet's zoom control (top-left).
   filterPill: {

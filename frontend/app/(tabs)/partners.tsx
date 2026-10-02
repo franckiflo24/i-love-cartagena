@@ -9,6 +9,7 @@ import { TierBadge } from '../../src/components/TierBadge';
 import { SafeImage } from '../../src/components/SafeImage';
 import { PressableScale } from '../../src/components/PressableScale';
 import { BrandLoader } from '../../src/components/BrandLoader';
+import LoadError from '../../src/components/LoadError';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { matchesCuisine } from '../../src/lib/cuisineMatch';
@@ -160,17 +161,26 @@ export default function PartnersScreen() {
   const [tierShowcase, setTierShowcase] = useState<Tier | null>(null);
 
   const [refreshing, setRefreshing] = useState(false);
+  // P1-9: true only when BOTH the bundled snapshot and the live catalog failed —
+  // the grid then shows <LoadError/> instead of an empty "certified places" page.
+  // A failed refresh keeps the last good catalog on screen.
+  const [loadError, setLoadError] = useState(false);
   const load = useCallback(async () => {
     try {
       // Static-first: this tab must never be empty on a backend cold-start
       // (a slow/errored /api/partners was showing every tier as "0 · Próximamente").
       const staticData = await fetch(ASSET_ORIGIN + '/data/partners.json')
-        .then(r => (r.ok ? r.json() : null)).catch(() => null);
-      if (Array.isArray(staticData) && staticData.length) setPartners(staticData);
+        .then(r => (r.ok ? r.json() : null))
+        .catch((e) => { console.error('[Partners] static catalog', e); return null; });
+      const staticOk = Array.isArray(staticData) && staticData.length > 0;
+      if (staticOk) setPartners(staticData);
       // Hydrate from backend (live tiers/pulses) only if it returns real data.
-      const live = await api.get('/partners').catch(() => null);
-      if (Array.isArray(live) && live.length) setPartners(live);
-    } catch (e) { console.error(e); }
+      const live = await api.get('/partners')
+        .catch((e) => { console.error('[Partners] live catalog', e); return null; });
+      const liveOk = Array.isArray(live) && live.length > 0;
+      if (liveOk) setPartners(live);
+      setLoadError(!staticOk && !liveOk);
+    } catch (e) { console.error(e); setLoadError(true); }
     setLoading(false);
   }, []);
   useEffect(() => { load(); }, [load]);
@@ -342,6 +352,9 @@ export default function PartnersScreen() {
             {(() => {
               const tierPartners = partners.filter(p => p.tier === tierShowcase);
               if (tierPartners.length === 0) {
+                if (loadError && partners.length === 0) {
+                  return <LoadError message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={load} />;
+                }
                 return (
                   <View style={styles.emptyState}>
                     <Ionicons name="business-outline" size={48} color={COLORS.textMuted} />
@@ -439,6 +452,11 @@ export default function PartnersScreen() {
               </View>
             </View>
 
+            {/* P1-9: both catalog sources failed and nothing is cached → say so,
+                never an empty grid that reads as "AMO has no partners". */}
+            {loadError && partners.length === 0 && (
+              <LoadError message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={load} testID="partners-load-error" />
+            )}
             <View style={styles.categoryGrid}>
             {CATEGORIES
               .map(cat => ({ ...cat, count: getCategoryCount(cat.key) }))
@@ -610,10 +628,14 @@ export default function PartnersScreen() {
             </View>
 
             {filtered.length === 0 ? (
+              loadError && partners.length === 0 ? (
+                <LoadError message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={load} />
+              ) : (
               <View style={styles.emptyState}>
                 <Ionicons name="business-outline" size={48} color={COLORS.textMuted} />
                 <Text style={styles.emptyText}>{tr('Próximamente en esta categoría')}</Text>
               </View>
+              )
             ) : (
               filtered.map(partner => {
                 const tierColor = partner.tier ? TIER_COLORS[partner.tier as Tier] : null;

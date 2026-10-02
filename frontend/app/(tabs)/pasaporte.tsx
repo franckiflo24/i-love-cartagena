@@ -29,6 +29,7 @@ import { shareCard, canShareCard } from '../../src/lib/shareCard';
 import { ACHIEVEMENTS, achievementDef } from '../../src/lib/achievements';
 import { StampCelebration, CelebrationData } from '../../src/components/StampCelebration';
 import { FAB_CLEARANCE } from '../../src/components/AssistantFab';
+import LoadError from '../../src/components/LoadError';
 
 const SEAL_RADIUS_M = 75; // mirrors the server's honesty gate
 
@@ -153,10 +154,19 @@ export default function PasaporteScreen() {
   const [groupName, setGroupName] = useState('');
   const [groupCode, setGroupCode] = useState('');
   const [groupBusy, setGroupBusy] = useState(false);
+  // P1-9: a failed /passport/groups/mine used to paint the "create a group"
+  // invite over groups the user is already in. null from groupsMine = unknown →
+  // keep the last good list, show <LoadError/>, never the empty-state copy.
+  const [groupsError, setGroupsError] = useState(false);
+  const loadGroups = useCallback(async () => {
+    const g = await groupsMine();
+    if (g) setGroups(g);
+    setGroupsError(g === null);
+  }, []);
   useEffect(() => {
-    if (user?.user_id) groupsMine().then(setGroups).catch(() => {});
-    else setGroups([]);
-  }, [user?.user_id]);
+    if (user?.user_id) loadGroups();
+    else { setGroups([]); setGroupsError(false); }
+  }, [user?.user_id, loadGroups]);
   // Invite deep-link: /pasaporte?join=AMOG-XXXX prefills the code. Falls back
   // to the shell-captured code so it survives a login redirect (new users).
   useEffect(() => {
@@ -183,14 +193,14 @@ export default function PasaporteScreen() {
       if (r?.code) {
         setGroupName('');
         flash(`${tr('Grupo creado')} · ${r.code}`, 6000);
-        setGroups(await groupsMine());
+        await loadGroups();
       } else {
         flash(tr('No se pudo crear el grupo'));
       }
     } finally {
       setGroupBusy(false);
     }
-  }, [groupBusy, groupHandle, groupName, tr, flash]);
+  }, [groupBusy, groupHandle, groupName, tr, flash, loadGroups]);
 
   const onGroupJoin = useCallback(async () => {
     if (groupBusy || groupHandle.trim().length < 2 || groupCode.trim().length < 4) return;
@@ -200,14 +210,14 @@ export default function PasaporteScreen() {
       if (r.ok) {
         setGroupCode('');
         flash(tr('¡Ya estás en el grupo!'));
-        setGroups(await groupsMine());
+        await loadGroups();
       } else {
         flash(tr('Código de grupo no válido'));
       }
     } finally {
       setGroupBusy(false);
     }
-  }, [groupBusy, groupHandle, groupCode, tr, flash]);
+  }, [groupBusy, groupHandle, groupCode, tr, flash, loadGroups]);
 
   const onGroupShare = useCallback(async (g: GroupStanding) => {
     const label = g.name ? `"${g.name}"` : tr('mi grupo');
@@ -226,11 +236,11 @@ export default function PasaporteScreen() {
     try {
       const ok = await groupLeave(g.group_id);
       flash(ok ? tr('Saliste del grupo') : tr('No se pudo salir del grupo'));
-      if (ok) setGroups(await groupsMine());
+      if (ok) await loadGroups();
     } finally {
       setGroupBusy(false);
     }
-  }, [groupBusy, tr, flash]);
+  }, [groupBusy, tr, flash, loadGroups]);
 
   // 8A2/8A3: per-collection pull — how many left + the nearest missing item.
   // Only real venues with real coords; no phantom distances (geo off → count only).
@@ -784,9 +794,14 @@ export default function PasaporteScreen() {
                   </View>
                 )}
 
+                {/* P1-9: groups could not be loaded — say so instead of the "create one" invite */}
+                {groupsError && (
+                  <LoadError compact message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={loadGroups} testID="pasaporte-groups-error" />
+                )}
+
                 {/* Create / join — always available (you can be in several groups) */}
                 <View style={{ paddingHorizontal: SPACING.lg, gap: 8 }}>
-                  {groups.length === 0 && (
+                  {groups.length === 0 && !groupsError && (
                     <Text style={styles.groupInviteText}>{tr('Crea un grupo con tu pareja, tus amigos o tu barco — y comparen pasaportes.')}</Text>
                   )}
                   <TextInput

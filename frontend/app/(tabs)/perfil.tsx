@@ -6,7 +6,8 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TYPE, EVENT_TYPE_LABELS } from '../../src/constants/theme';
-import { api } from '../../src/constants/api';
+import { api, isAuthStatus } from '../../src/constants/api';
+import LoadError from '../../src/components/LoadError';
 import { useAuth } from '../../src/context/AuthContext';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { useLang } from '../../src/context/LanguageContext';
@@ -46,8 +47,11 @@ export default function PerfilScreen() {
   const { favorites: favIds } = useFavorites();
   const rewards = useRewards();
   const { userProfile, updateProfile } = usePersonalization();
-  const [favorites, setFavorites] = useState<Event[]>([]);
-  const [myWeek, setMyWeek] = useState<Event[]>([]);
+  // P1-9: null = never loaded (the counter prints "—", not a false 0). A failed
+  // refresh keeps the last good list and raises activityError instead.
+  const [favorites, setFavorites] = useState<Event[] | null>(null);
+  const [myWeek, setMyWeek] = useState<Event[] | null>(null);
+  const [activityError, setActivityError] = useState(false);
   const [activeTab, setActiveTab] = useState<'week' | 'favorites'>('week');
   const [loading, setLoading] = useState(false);
   const [aiProfile, setAiProfile] = useState<any>(null);
@@ -137,19 +141,32 @@ export default function PerfilScreen() {
     setProfileBuilding(false);
   };
 
+  // 401/403 = the session answered (nothing saved) → honest 0; any other failure
+  // → null ("unknown") so the stat tiles never print a false 0.
+  const loadActivity = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    const fetchList = (path: string): Promise<Event[] | null> =>
+      api.get(path)
+        .then((d) => (Array.isArray(d) ? (d as Event[]) : []))
+        .catch((e) => {
+          if (isAuthStatus(e)) return [];
+          console.error(`[Perfil] ${path}`, e);
+          return null;
+        });
+    const [f, w] = await Promise.all([fetchList('/favorites'), fetchList('/my-week')]);
+    if (f !== null) setFavorites(f);
+    if (w !== null) setMyWeek(w);
+    setActivityError(f === null || w === null);
+    setLoading(false);
+  }, [user]);
+
   useEffect(() => {
     if (user) {
-      setLoading(true);
-      Promise.all([
-        api.get('/favorites').catch(() => []),
-        api.get('/my-week').catch(() => []),
-      ]).then(([f, w]) => {
-        setFavorites(f);
-        setMyWeek(w);
-      }).finally(() => setLoading(false));
+      loadActivity();
       loadAiProfile();
     }
-  }, [user]);
+  }, [user, loadActivity]);
 
   // Refresh AI profile when favorites change (in addition to passive auto-build via context)
   useEffect(() => {
@@ -354,7 +371,7 @@ export default function PerfilScreen() {
     );
   }
 
-  const events = activeTab === 'week' ? myWeek : favorites;
+  const events = activeTab === 'week' ? (myWeek ?? []) : (favorites ?? []);
 
   const providerLabel = user.provider === 'google' ? 'Google' : user.provider === 'email_verified' ? tr('Email verificado') : user.provider === 'whatsapp_local' ? 'WhatsApp' : user.provider === 'email_local' ? 'Email' : '';
 
@@ -443,12 +460,12 @@ export default function PerfilScreen() {
           <View style={sty.statsRow}>
             <TouchableOpacity style={sty.statBox} onPress={() => setActiveTab('favorites')} activeOpacity={0.8}>
               <Ionicons name="heart" size={20} color="#EF4444" />
-              <Text style={sty.statNum}>{favorites.length}</Text>
+              <Text style={sty.statNum}>{favorites === null ? '—' : favorites.length}</Text>
               <Text style={sty.statLabel}>{tr('Favoritos')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={sty.statBox} onPress={() => setActiveTab('week')} activeOpacity={0.8}>
               <Ionicons name="calendar" size={20} color="#3B82F6" />
-              <Text style={sty.statNum}>{myWeek.length}</Text>
+              <Text style={sty.statNum}>{myWeek === null ? '—' : myWeek.length}</Text>
               <Text style={sty.statLabel}>{tr('Mi Semana')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={sty.statBox} onPress={() => router.push('/reservations' as any)} activeOpacity={0.8}>
@@ -457,6 +474,10 @@ export default function PerfilScreen() {
               <Text style={sty.statLabel}>{tr('Reservas')}</Text>
             </TouchableOpacity>
           </View>
+          {/* P1-9: the counters above could not be refreshed — one quiet line, with retry */}
+          {activityError && (
+            <LoadError compact style={{ paddingHorizontal: 0, marginTop: SPACING.sm }} message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={loadActivity} testID="perfil-activity-error" />
+          )}
         </View>
 
         {!profileCompleted && (

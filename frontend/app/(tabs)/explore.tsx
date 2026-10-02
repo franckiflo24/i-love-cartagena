@@ -35,6 +35,7 @@ import { FAB_CLEARANCE } from '../../src/components/AssistantFab';
 import { PressableScale } from '../../src/components/PressableScale';
 import { FadeInUp } from '../../src/components/FadeInUp';
 import { SkeletonFeaturedRow, SkeletonGrid } from '../../src/components/Skeleton';
+import LoadError from '../../src/components/LoadError';
 import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { CATEGORY_META, PublicEvent, compactUpcoming, formatEventDates, loadFeed, pickL } from '../../src/lib/eventsFeed';
@@ -716,6 +717,12 @@ export default function ExploreScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [neighborhoods, setNeighborhoods] = useState<Neighborhood[]>([]);
   const [loadingNeighborhoods, setLoadingNeighborhoods] = useState(true);
+  // P1-9: a load that fails on EVERY source (static snapshot + live) is an error
+  // row, never a silently missing rail or a "Próximamente" grid. Last good data
+  // stays on screen while the flag is up.
+  const [featuredError, setFeaturedError] = useState(false);
+  const [partnersError, setPartnersError] = useState(false);
+  const [nbError, setNbError] = useState(false);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<Neighborhood | null>(null);
   const [nbModalVisible, setNbModalVisible] = useState(false);
   const [localsOnly, setLocalsOnly] = useState(false);
@@ -802,26 +809,33 @@ export default function ExploreScreen() {
   }, []);
 
   const loadFeatured = useCallback(async () => {
+    let staticOk = false;
+    let apiOk = false;
     const staticP = fetch(ASSET_ORIGIN + '/data/experiences/featured.json')
-      .then(r => (r.ok ? r.json() : []))
+      .then(r => (r.ok ? r.json() : null))
       .then(sf => {
         if (Array.isArray(sf) && sf.length > 0) {
+          staticOk = true;
           staticFeaturedRef.current = sf;
           applyFeatured();
           setLoadingFeatured(false);
         }
       })
-      .catch(() => {});
+      .catch((e) => console.error('[ExploreScreen] featured static', e));
     const apiP = api.get('/experiences/featured')
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          apiFeaturedRef.current = data;
-          applyFeatured();
+        if (Array.isArray(data)) {
+          apiOk = true; // the server answered — an empty rail is an answer, not an outage
+          if (data.length > 0) {
+            apiFeaturedRef.current = data;
+            applyFeatured();
+          }
         }
       })
-      .catch(() => {})
+      .catch((e) => console.error('[ExploreScreen] featured live', e))
       .finally(() => setLoadingFeatured(false));
     await Promise.allSettled([staticP, apiP]);
+    setFeaturedError(!staticOk && !apiOk);
   }, [applyFeatured]);
 
   const loadPartners = useCallback(async (category: CategoryItem) => {
@@ -830,29 +844,38 @@ export default function ExploreScreen() {
       const sorted = sortPartners(list, category);
       return userProfile.isPersonalized ? getPersonalizedPartners(sorted) : sorted;
     };
+    let staticOk = false;
+    let liveOk = false;
     // Static-first (non-blocking)
-    fetch(ASSET_ORIGIN + '/data/partners.json').then(r => r.ok ? r.json() : [])
+    const staticP = fetch(ASSET_ORIGIN + '/data/partners.json').then(r => r.ok ? r.json() : null)
       .then(sf => {
         if (Array.isArray(sf) && sf.length > 0) {
+          staticOk = true;
           setAllCategoryPartners(applyPersonalization(sf));
           setLoadingPartners(false);
         }
-      }).catch(() => {});
+      }).catch((e) => console.error('[ExploreScreen] partners static', e));
     // Hydrate from backend (non-blocking)
-    api.get('/partners')
+    const liveP = api.get('/partners')
       .then(data => {
         const all: Partner[] = Array.isArray(data) ? data : [];
-        if (all.length > 0) setAllCategoryPartners(applyPersonalization(all));
+        if (all.length > 0) { liveOk = true; setAllCategoryPartners(applyPersonalization(all)); }
       })
       .catch(e => console.error('[ExploreScreen] partners', e))
       .finally(() => setLoadingPartners(false));
+    await Promise.allSettled([staticP, liveP]);
+    // Error only when BOTH the bundled snapshot and the live catalog failed.
+    setPartnersError(!staticOk && !liveOk);
   }, [sortPartners, userProfile.isPersonalized, getPersonalizedPartners]);
 
   const loadNeighborhoods = useCallback(async () => {
     // Static-first (backend has no /neighborhoods endpoint — data is static-only)
-    fetch(ASSET_ORIGIN + '/data/neighborhoods.json').then(r => r.ok ? r.json() : [])
-      .then(data => { if (Array.isArray(data)) setNeighborhoods(data); })
-      .catch(() => {})
+    await fetch(ASSET_ORIGIN + '/data/neighborhoods.json').then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (Array.isArray(data)) { setNeighborhoods(data); setNbError(false); }
+        else setNbError(true);
+      })
+      .catch((e) => { console.error('[ExploreScreen] neighborhoods', e); setNbError(true); })
       .finally(() => setLoadingNeighborhoods(false));
   }, []);
 
@@ -1115,7 +1138,7 @@ export default function ExploreScreen() {
       )}
 
       {/* ── Featured experiences (only on "Todos" view) ── */}
-      {selectedCategory.key === 'all' && (loadingFeatured || featured.length > 0) && (
+      {selectedCategory.key === 'all' && (loadingFeatured || featured.length > 0 || featuredError) && (
         <FadeInUp style={styles.section} delay={0}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
@@ -1132,6 +1155,9 @@ export default function ExploreScreen() {
 
           {loadingFeatured ? (
             <SkeletonFeaturedRow />
+          ) : featured.length === 0 ? (
+            /* P1-9: both featured sources failed — one quiet line, never a vanished rail */
+            <LoadError compact message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={loadFeatured} testID="explore-featured-error" />
           ) : (
             <FlatList
               data={featured}
@@ -1234,7 +1260,7 @@ export default function ExploreScreen() {
       )}
 
       {/* ── Barrios de Cartagena (only on "Todos" view) ── */}
-      {selectedCategory.key === 'all' && (loadingNeighborhoods || neighborhoods.length > 0) && (
+      {selectedCategory.key === 'all' && (loadingNeighborhoods || neighborhoods.length > 0 || nbError) && (
         <FadeInUp style={styles.section} delay={180}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
@@ -1245,6 +1271,8 @@ export default function ExploreScreen() {
 
           {loadingNeighborhoods ? (
             <SkeletonFeaturedRow />
+          ) : neighborhoods.length === 0 ? (
+            <LoadError compact message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={loadNeighborhoods} testID="explore-barrios-error" />
           ) : (
             <FlatList
               data={neighborhoods}
@@ -1336,6 +1364,9 @@ export default function ExploreScreen() {
 
   const ListEmpty = loadingPartners ? (
     <SkeletonGrid rows={3} />
+  ) : partnersError && allCategoryPartners.length === 0 ? (
+    /* P1-9: the catalog itself failed (static + live) — never "Próximamente" */
+    <LoadError message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={() => loadPartners(selectedCategory)} testID="explore-partners-error" />
   ) : (
     <View style={styles.emptyState}>
       <Ionicons name="search-outline" size={48} color={COLORS.textMuted} />

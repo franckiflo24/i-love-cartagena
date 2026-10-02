@@ -16,7 +16,7 @@
 //     y≈400, one context line ("you are far" OR "right now"), sponsors as one
 //     slim strip BELOW the app's own tools, and the secondary rails (Para ti,
 //     Colecciones, Favoritos, cambio del día) folded under "Más".
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Linking, Platform, useWindowDimensions } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,6 +32,7 @@ import { useTr } from '../../src/i18n/autoTr';
 import { SafeImage } from '../../src/components/SafeImage';
 import { partnerEventImage } from '../../src/components/PartnerEventCard';
 import { SkeletonTileRow } from '../../src/components/Skeleton';
+import LoadError from '../../src/components/LoadError';
 import { getPartners } from '../../src/lib/data';
 import type { Partner } from '../../src/lib/schema';
 import { bogotaToday } from '../../src/lib/eventTime';
@@ -221,6 +222,12 @@ export default function HomeScreen() {
   const [promotions, setPromotions] = useState<Promo[]>(() => HOME_CACHE?.promotions ?? []);
   const [sponsors, setSponsors] = useState<Sponsor[]>(() => HOME_CACHE?.sponsors ?? []);
   const [refreshing, setRefreshing] = useState(false);
+  // P1-9: the live hydrate (partner-events / sponsors / promotions) failed with
+  // nothing to fall back on. This was invisible: the "Qué pasa hoy" rail simply
+  // hid its partner events (the CORS-outage symptom of 2026-10-01) and Home read
+  // "Nada confirmado hoy". One compact line + retry now sits in that slot.
+  const [hydrateError, setHydrateError] = useState(false);
+  const [forYouError, setForYouError] = useState(false);
 
   // ── City events: the verified feed (EVENTS-ELITE §13 J3) ──
   // First paint: HOME_CACHE → getCachedFeed() (inside the hook) → the static
@@ -292,14 +299,26 @@ export default function HomeScreen() {
 
   // Taste-engine rail for signed-in users (server-side affinity from
   // favorites + reservations + onboarding). Lives under "Más".
-  useEffect(() => {
-    if (!user) { setForYou([]); return; }
-    let alive = true;
+  const forYouAlive = useRef(true);
+  const loadForYou = useCallback(() => {
     api.get('/for-you')
-      .then((d: { partners?: RecItem[] }) => { if (alive && Array.isArray(d?.partners)) setForYou(d.partners); })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, [user]);
+      .then((d: { partners?: RecItem[] }) => {
+        if (!forYouAlive.current) return;
+        if (Array.isArray(d?.partners)) setForYou(d.partners);
+        setForYouError(false);
+      })
+      .catch((e) => {
+        if (!forYouAlive.current) return;
+        console.error('[Home] /for-you', e);
+        setForYouError(true); // last good rail stays; the line shows only when the rail is empty
+      });
+  }, []);
+  useEffect(() => {
+    forYouAlive.current = true;
+    if (!user) { setForYou([]); setForYouError(false); return; }
+    loadForYou();
+    return () => { forYouAlive.current = false; };
+  }, [user, loadForYou]);
 
   // Guest personalization banner — show on 2nd visit, dismissible
   useEffect(() => {
@@ -364,7 +383,7 @@ export default function HomeScreen() {
         .slice(0, 8)
         .map((x) => x.rec);
       setRecommendations(scored);
-    }).catch(() => {});
+    }).catch((e) => console.error('[Home] /profile/me', e)); // fallback rail only — /for-you owns the error line
     return () => { alive = false; };
   }, [user, catalog]);
 
@@ -390,12 +409,13 @@ export default function HomeScreen() {
       const today = todayIso();
       // Static-first: paint from /data/*.json, then hydrate from backend.
       // 8 s abort so a stalled request can never pin a placeholder.
-      const staticFetch = (file: string): Promise<unknown[]> => {
+      // null = the snapshot did not load (logged) — distinct from a real [].
+      const staticFetch = (file: string): Promise<unknown[] | null> => {
         const ac = new AbortController();
         const t = setTimeout(() => ac.abort(), 8000);
         return fetch(`${ASSET_ORIGIN}/data/${file}.json`, { signal: ac.signal })
-          .then((r) => (r.ok ? r.json() : []))
-          .catch(() => [])
+          .then((r) => (r.ok ? r.json() : null))
+          .catch((e) => { console.error('[Home] static', file, e); return null; })
           .finally(() => clearTimeout(t));
       };
 
@@ -426,20 +446,28 @@ export default function HomeScreen() {
         staticFetch('sponsors'),
         staticFetch('promotions/today'),
       ]);
-      applyData(staticSponsors, HOME_CACHE?.todayPEvents ?? [], staticPromos);
+      applyData(staticSponsors ?? [], HOME_CACHE?.todayPEvents ?? [], staticPromos ?? []);
 
       // 2. Hydrate from backend in the background (never holds up first paint).
       // Each live dataset wins on its own; an EMPTY live answer must replace the
       // bundled snapshot (no promos today ≠ keep June's promos); null = that
-      // call failed → keep static.
+      // call failed → keep static (api.get already tried the swr cache and the
+      // public snapshot before rejecting, so a null here is a real outage).
+      const liveFail = (path: string) => (e: unknown) => { console.error(`[Home] ${path}`, e); return null; };
       Promise.all([
-        api.get('/sponsors').catch(() => null),
-        api.get(`/partner-events?date=${today}`).catch(() => null),
-        api.get('/promotions/today').catch(() => null),
+        api.get('/sponsors').catch(liveFail('/sponsors')),
+        api.get(`/partner-events?date=${today}`).catch(liveFail('/partner-events')),
+        api.get('/promotions/today').catch(liveFail('/promotions/today')),
       ]).then(([sp, pe, promos]) => {
         const live = (v: unknown, fallback: unknown) => (Array.isArray(v) ? v : fallback);
-        applyData(live(sp, staticSponsors), live(pe, HOME_CACHE?.todayPEvents ?? []), live(promos, staticPromos));
-      }).catch((e) => console.error('[Home] hydrate', e));
+        applyData(live(sp, staticSponsors ?? []), live(pe, HOME_CACHE?.todayPEvents ?? []), live(promos, staticPromos ?? []));
+        // P1-9: static-first sources count as failed only when BOTH copies failed;
+        // partner events are live-only, so a null there is always a failure.
+        const spFailed = !Array.isArray(sp) && staticSponsors === null;
+        const peFailed = !Array.isArray(pe);
+        const prFailed = !Array.isArray(promos) && staticPromos === null;
+        setHydrateError(spFailed || peFailed || prFailed);
+      }).catch((e) => { console.error('[Home] hydrate', e); setHydrateError(true); });
     } catch (e) {
       console.error('[Home] fetchData', e);
     } finally {
@@ -890,22 +918,29 @@ export default function HomeScreen() {
                   )}
                 </View>
                 {hoyCount > 0 ? (
-                  <View style={styles.hoyList}>
-                    {hoyCity.map((ev) => (
-                      <EventDayRow
-                        key={ev.event_id}
-                        ev={ev}
-                        lang={lang}
-                        tr={tr}
-                        offline={feedOffline}
-                        lead="time"
-                        partOf={umbrellaName(ev)}
-                        onPress={openFeedEvent}
-                        testID={`home-event-${ev.event_id}`}
-                      />
-                    ))}
-                    {hoyPartnerShown.map(renderPECard)}
-                  </View>
+                  <>
+                    <View style={styles.hoyList}>
+                      {hoyCity.map((ev) => (
+                        <EventDayRow
+                          key={ev.event_id}
+                          ev={ev}
+                          lang={lang}
+                          tr={tr}
+                          offline={feedOffline}
+                          lead="time"
+                          partOf={umbrellaName(ev)}
+                          onPress={openFeedEvent}
+                          testID={`home-event-${ev.event_id}`}
+                        />
+                      ))}
+                      {hoyPartnerShown.map(renderPECard)}
+                    </View>
+                    {/* P1-9: the partner-published rows (or sponsors/promos) did not
+                        load — one line under the rows we DO have, never silence */}
+                    {hydrateError && (
+                      <LoadError compact message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={fetchData} testID="home-hydrate-error" />
+                    )}
+                  </>
                 ) : feedFailed ? (
                   <FeedEmptyLine
                     icon="cloud-offline-outline"
@@ -915,6 +950,9 @@ export default function HomeScreen() {
                     style={styles.emptyLine}
                     testID="home-nothing-today"
                   />
+                ) : hydrateError ? (
+                  /* P1-9: never "Nada confirmado hoy" when the partner-events call failed */
+                  <LoadError compact message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={fetchData} testID="home-hydrate-error" />
                 ) : (
                   <FeedEmptyLine
                     text={`${tr('Nada confirmado hoy')} ·`}
@@ -925,18 +963,28 @@ export default function HomeScreen() {
                   />
                 )}
               </View>
-            ) : topEvents.length === 0 ? (
-              <View style={styles.section}>
-                <FeedEmptyLine
-                  icon={feedFailed ? 'cloud-offline-outline' : 'calendar-clear-outline'}
-                  text={`${tr(feedFailed ? 'No pudimos cargar la agenda' : 'Nada confirmado hoy')} ·`}
-                  cta={tr(feedFailed ? 'Reintentar' : 'Ver todo →')}
-                  onPress={feedFailed ? reloadFeed : openQuePasa}
-                  style={styles.emptyLine}
-                  testID="home-nothing-today"
-                />
-              </View>
-            ) : null}
+            ) : (
+              <>
+                {topEvents.length === 0 && (
+                  <View style={styles.section}>
+                    <FeedEmptyLine
+                      icon={feedFailed ? 'cloud-offline-outline' : 'calendar-clear-outline'}
+                      text={`${tr(feedFailed ? 'No pudimos cargar la agenda' : 'Nada confirmado hoy')} ·`}
+                      cta={tr(feedFailed ? 'Reintentar' : 'Ver todo →')}
+                      onPress={feedFailed ? reloadFeed : openQuePasa}
+                      style={styles.emptyLine}
+                      testID="home-nothing-today"
+                    />
+                  </View>
+                )}
+                {/* Far mode has no "Hoy" slot; the hydrate line (sponsors/promos) still shows once */}
+                {hydrateError && (
+                  <View style={styles.section}>
+                    <LoadError compact message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={fetchData} testID="home-hydrate-error" />
+                  </View>
+                )}
+              </>
+            )}
           </>
         )}
 
@@ -1151,8 +1199,9 @@ export default function HomeScreen() {
 
             {moreOpen && (
               <View style={{ marginTop: SPACING.md }}>
-                {/* Para ti — one rail: taste engine first, AI profile as fallback */}
-                {paraTi.length > 0 && (
+                {/* Para ti — one rail: taste engine first, AI profile as fallback.
+                    P1-9: a failed /for-you with no fallback rows is a line, not a missing rail. */}
+                {(paraTi.length > 0 || forYouError) && (
                   <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                       <View style={styles.sectionTitleRow}>
@@ -1161,9 +1210,13 @@ export default function HomeScreen() {
                         <View style={styles.aiBadge}><Text style={styles.aiBadgeText}>AI</Text></View>
                       </View>
                     </View>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
-                      {paraTi.map((p) => renderRecCard(p, forYou.length === 0))}
-                    </ScrollView>
+                    {paraTi.length > 0 ? (
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+                        {paraTi.map((p) => renderRecCard(p, forYou.length === 0))}
+                      </ScrollView>
+                    ) : (
+                      <LoadError compact message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={loadForYou} testID="home-foryou-error" />
+                    )}
                   </View>
                 )}
 

@@ -12,7 +12,7 @@
 // backend (8–10 s, over GET_TIMEOUT_MS) on a fresh install left plates=[] and
 // the partner page rendered no stamp block at all.
 
-import { api, fetchT, ASSET_ORIGIN } from '../constants/api';
+import { api, fetchT, ASSET_ORIGIN, isAuthStatus } from '../constants/api';
 import { kvGet, kvSet } from './venueCache';
 
 export interface CollectionVenue {
@@ -134,8 +134,15 @@ export async function groupLeave(groupId: string): Promise<boolean> {
   try { const r = await api.post(`/passport/groups/${groupId}/leave`, {}); return !!r?.ok; } catch { return false; }
 }
 
-export async function groupsMine(): Promise<GroupStanding[]> {
-  try { const r = await api.get('/passport/groups/mine'); return r?.groups || []; } catch { return []; }
+/** P1-9: null = could not load (outage). Callers keep their last good list and
+ *  show <LoadError/>; a 401/403 is an answer (no session → no groups) → []. */
+export async function groupsMine(): Promise<GroupStanding[] | null> {
+  try { const r = await api.get('/passport/groups/mine'); return r?.groups || []; }
+  catch (e) {
+    if (isAuthStatus(e)) return [];
+    console.error('[passport] groups/mine', e);
+    return null;
+  }
 }
 
 const KV_COLLECTIONS = 'passport:collections';

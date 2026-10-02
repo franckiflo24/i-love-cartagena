@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions, Share } from 'react-native';
 import { Alert } from '../../src/lib/alert';
 import { useRouter } from 'expo-router';
@@ -6,9 +6,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { COLORS, SPACING, RADIUS, FONTS, TYPE } from '../../src/constants/theme';
-import { api } from '../../src/constants/api';
+import { api, isAuthStatus } from '../../src/constants/api';
 import { useAuth } from '../../src/context/AuthContext';
 import { useQrCountdown, useQrFeed } from '../../src/components/tickets/tickets';
+import LoadError from '../../src/components/LoadError';
 import { openWompiCheckout, checkWompiEnabled, notConfiguredAlert } from '../../src/lib/wompi';
 import { useTr } from '../../src/i18n/autoTr';
 
@@ -136,23 +137,38 @@ export default function CityPassTab() {
       .catch(() => setPaymentsLive(false));
   }, []);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const p = await api.get('/city-pass/plans');
-        setPlans(Array.isArray(p) ? p : []);
-        if (user) {
-          const mp = await api.get('/city-pass/mine').catch(() => null);
-          // STATIC_MODE returns [] (truthy) → without this guard the tab rendered a
-          // fake "PASS ACTIVO" QR with plan_id undefined / "Invalid Date" (P2 audit).
-          // Match the sibling screen: only a real object with a plan_id is an active pass.
-          setMyPass(mp && !Array.isArray(mp) && typeof mp === 'object' && mp.plan_id ? mp : null);
-        }
-      } catch (e) { console.error(e); }
-      setLoading(false);
-    };
-    load();
+  // P1-9: a failed /city-pass/mine used to drop a HOLDER into the "activate a plan"
+  // view; a failed /city-pass/plans left the hero with no plans. Both now surface
+  // <LoadError/> and keep the last good data. 401/403 is an answer (no session →
+  // no pass), everything else is "we don't know" — never "you have no pass".
+  const [passError, setPassError] = useState(false);
+  const [plansError, setPlansError] = useState(false);
+  const load = useCallback(async () => {
+    try {
+      const p = await api.get('/city-pass/plans');
+      setPlans(Array.isArray(p) ? p : []);
+      setPlansError(false);
+    } catch (e) {
+      console.error('[CityPass] /city-pass/plans', e);
+      setPlansError(true);
+    }
+    if (user) {
+      let unknown = false;
+      const mp = await api.get('/city-pass/mine').catch((e) => {
+        if (!isAuthStatus(e)) { console.error('[CityPass] /city-pass/mine', e); unknown = true; }
+        return null;
+      });
+      setPassError(unknown);
+      // STATIC_MODE returns [] (truthy) → without this guard the tab rendered a
+      // fake "PASS ACTIVO" QR with plan_id undefined / "Invalid Date" (P2 audit).
+      // Match the sibling screen: only a real object with a plan_id is an active pass.
+      if (!unknown) setMyPass(mp && !Array.isArray(mp) && typeof mp === 'object' && mp.plan_id ? mp : null);
+    } else {
+      setPassError(false);
+    }
+    setLoading(false);
   }, [user]);
+  useEffect(() => { load(); }, [load]);
 
   const activatePass = async (planId: string) => {
     if (activatingId) return;
@@ -278,6 +294,11 @@ export default function CityPassTab() {
         ) : (
           /* ── Plans View ── */
           <>
+            {/* P1-9: we could not confirm whether this user holds a pass — say so
+                ABOVE the plans instead of silently offering to "activate" one. */}
+            {passError && (
+              <LoadError message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={load} testID="citypass-pass-error" />
+            )}
             {/* Hero */}
             <View style={styles.hero}>
               <View style={styles.heroIconRow}>
@@ -293,7 +314,10 @@ export default function CityPassTab() {
               </Text>
             </View>
 
-            {/* Plans */}
+            {/* Plans — a failed catalog load is an error row, never a hero with no plans */}
+            {plansError && plans.length === 0 && (
+              <LoadError message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={load} testID="citypass-plans-error" />
+            )}
             {plans.map((plan, idx) => (
               <View key={plan.plan_id} style={[styles.planCard, idx === 1 && styles.planCardFeatured]}>
 
