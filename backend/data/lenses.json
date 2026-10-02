@@ -9,7 +9,12 @@
       "kind": "places",
       "min_fill": 8,
       "icon": "camera-outline",
-      "label": { "es": "Hora dorada", "en": "Golden hour", "fr": "Heure dorée", "pt": "Hora dourada" },
+      "label": {
+        "es": "Hora dorada",
+        "en": "Golden hour",
+        "fr": "Heure dorée",
+        "pt": "Hora dourada"
+      },
       "tagline": {
         "es": "Los rincones más fotogénicos, con su mejor luz",
         "en": "The most photogenic corners, in their best light",
@@ -17,7 +22,26 @@
         "pt": "Os cantos mais fotogênicos, na sua melhor luz"
       },
       "luna": {
-        "triggers": ["hora dorada", "golden hour", "atardecer", "sunset", "amanecer", "sunrise", "foto", "photo", "fotogénico", "fotogenico", "photogenic", "instagram", "fotos bonitas", "coucher de soleil", "pôr do sol", "por do sol", "mirador para fotos", "spot para fotos"],
+        "triggers": [
+          "hora dorada",
+          "golden hour",
+          "atardecer",
+          "sunset",
+          "amanecer",
+          "sunrise",
+          "foto",
+          "photo",
+          "fotogénico",
+          "fotogenico",
+          "photogenic",
+          "instagram",
+          "fotos bonitas",
+          "coucher de soleil",
+          "pôr do sol",
+          "por do sol",
+          "mirador para fotos",
+          "spot para fotos"
+        ],
         "decline_line": {
           "es": "Solo te recomiendo lugares verificados para fotos — para ese punto aún no tengo datos confirmados.",
           "en": "I only recommend verified photo spots — I don't have confirmed data for that one yet.",
@@ -31,7 +55,12 @@
       "kind": "kit",
       "min_fill": 1,
       "icon": "boat-outline",
-      "label": { "es": "Día de crucero", "en": "Port day", "fr": "Jour d'escale", "pt": "Dia de cruzeiro" },
+      "label": {
+        "es": "Día de crucero",
+        "en": "Port day",
+        "fr": "Jour d'escale",
+        "pt": "Dia de cruzeiro"
+      },
       "tagline": {
         "es": "Tu escala, resuelta: ruta, tarifas justas y regreso a tiempo — sin datos",
         "en": "Your port call, solved: route, fair fares and back on time — works offline",
@@ -39,7 +68,20 @@
         "pt": "Sua escala, resolvida: roteiro, tarifas justas e volta a tempo — funciona offline"
       },
       "luna": {
-        "triggers": ["crucero", "cruise", "escala", "port day", "barco", "ship", "all aboard", "puerto de manga", "croisière", "cruzeiro", "cuánto tiempo en puerto", "volver al barco"],
+        "triggers": [
+          "crucero",
+          "cruise",
+          "escala",
+          "port day",
+          "barco",
+          "ship",
+          "all aboard",
+          "puerto de manga",
+          "croisière",
+          "cruzeiro",
+          "cuánto tiempo en puerto",
+          "volver al barco"
+        ],
         "decline_line": {
           "es": "Para horarios exactos de tu barco confirma con tu naviera — yo te doy la ruta y las tarifas oficiales.",
           "en": "For your ship's exact times check with your cruise line — I can give you the route and official fares.",
@@ -53,7 +95,12 @@
       "kind": "venues",
       "min_fill": 6,
       "icon": "accessibility-outline",
-      "label": { "es": "Sin escalones", "en": "Step-free", "fr": "Sans marches", "pt": "Sem degraus" },
+      "label": {
+        "es": "Sin escalones",
+        "en": "Step-free",
+        "fr": "Sans marches",
+        "pt": "Sem degraus"
+      },
       "tagline": {
         "es": "Lugares con acceso verificado — pequeño pero cierto",
         "en": "Places with verified access — small but true",
@@ -61,7 +108,22 @@
         "pt": "Lugares com acesso verificado — pequeno mas verdadeiro"
       },
       "luna": {
-        "triggers": ["silla de ruedas", "wheelchair", "accesible", "accessible", "rampa", "ramp", "movilidad reducida", "reduced mobility", "sin escalones", "step-free", "step free", "fauteuil roulant", "cadeira de rodas", "acessível"],
+        "triggers": [
+          "silla de ruedas",
+          "wheelchair",
+          "accesible",
+          "accessible",
+          "rampa",
+          "ramp",
+          "movilidad reducida",
+          "reduced mobility",
+          "sin escalones",
+          "step-free",
+          "step free",
+          "fauteuil roulant",
+          "cadeira de rodas",
+          "acessível"
+        ],
         "decline_line": {
           "es": "La accesibilidad no se adivina: aún no tengo suficientes lugares verificados sin escalones para prometértelo. Lo que sí está confirmado: las aceras de Bocagrande son más planas que las del Centro amurallado.",
           "en": "Accessibility is never a guess: I don't yet have enough verified step-free places to promise you that. What is confirmed: Bocagrande's sidewalks are flatter than the walled Centro's.",
@@ -75,7 +137,12 @@
       "kind": "venues",
       "min_fill": 8,
       "icon": "happy-outline",
-      "label": { "es": "Modo familia", "en": "Family mode", "fr": "Mode famille", "pt": "Modo família" },
+      "label": {
+        "es": "Modo familia",
+        "en": "Family mode",
+        "fr": "Mode famille",
+        "pt": "Modo família"
+      },
       "tagline": {
         "es": "Playas calmadas, sillas altas y traslados con silla infantil — verificado",
         "en": "Calm beaches, high chairs and car-seat transfers — verified",
@@ -83,7 +150,27 @@
         "pt": "Praias calmas, cadeirões e traslados com cadeirinha — verificado"
       },
       "luna": {
-        "triggers": ["niños", "ninos", "kids", "toddler", "bebé", "bebe", "baby", "familia", "family", "carriola", "stroller", "cochecito", "silla para niños", "kids menu", "menú infantil", "enfants", "crianças", "criancas", "playa para niños"],
+        "triggers": [
+          "niños",
+          "ninos",
+          "kids",
+          "toddler",
+          "bebé",
+          "bebe",
+          "baby",
+          "familia",
+          "family",
+          "carriola",
+          "stroller",
+          "cochecito",
+          "silla para niños",
+          "kids menu",
+          "menú infantil",
+          "enfants",
+          "crianças",
+          "criancas",
+          "playa para niños"
+        ],
         "decline_line": {
           "es": "El modo familia está en construcción: todavía no tengo suficientes lugares verificados (salvavidas, sillas altas, agua calmada) para prometerte algo con niños. No quiero adivinar con tu familia.",
           "en": "Family mode is still being built: I don't yet have enough verified places (lifeguards, high chairs, calm water) to make you a promise with kids involved. I won't guess with your family.",
@@ -97,7 +184,12 @@
       "kind": "venues",
       "min_fill": 8,
       "icon": "shield-checkmark-outline",
-      "label": { "es": "Verificado por mujeres", "en": "Women-verified", "fr": "Vérifié par des femmes", "pt": "Verificado por mulheres" },
+      "label": {
+        "es": "Verificado por mujeres",
+        "en": "Women-verified",
+        "fr": "Vérifié par des femmes",
+        "pt": "Verificado por mulheres"
+      },
       "tagline": {
         "es": "Calificado por mujeres que ya estuvieron ahí — nunca adivinado",
         "en": "Rated by women who were actually there — never guessed",
@@ -105,7 +197,35 @@
         "pt": "Avaliado por mulheres que estiveram lá — nunca adivinhado"
       },
       "luna": {
-        "triggers": ["mujer sola", "sola de noche", "woman alone", "solo female", "safe for women", "seguro para mujeres", "segura", "viajo sola", "traveling alone woman", "femme seule", "mulher sozinha", "sozinha"],
+        "triggers": [
+          "mujer sola",
+          "sola de noche",
+          "woman alone",
+          "solo female",
+          "safe for women",
+          "seguro para mujeres",
+          "segura",
+          "viajo sola",
+          "traveling alone woman",
+          "femme seule",
+          "mulher sozinha",
+          "sozinha",
+          "seguros para mujeres",
+          "lugares seguros para mujeres",
+          "lugares seguros",
+          "lugares seguras",
+          "zonas seguras",
+          "zona segura",
+          "barrios seguros",
+          "barrio seguro",
+          "donde es seguro",
+          "dónde es seguro",
+          "es seguro para mujeres",
+          "safe places for women",
+          "safe for a woman",
+          "safe neighborhood",
+          "safe area"
+        ],
         "decline_line": {
           "es": "Esta capa se construye con calificaciones reales de mujeres, no con suposiciones — aún no tengo suficientes para prometerte \"verificado\". Lo que sí es oficial: las tarifas de taxi DATT están en Moverse, y puedes pedir el viaje desde la app del lugar donde estés.",
           "en": "This layer is built from real ratings by women, not assumptions — I don't have enough yet to promise you \"verified.\" What is official: DATT taxi fares are in Getting around, and you can request your ride from wherever you are.",
@@ -116,11 +236,36 @@
     }
   ],
   "access_tiers": {
-    "free": { "es": "Gratis", "en": "Free", "fr": "Gratuit", "pt": "Grátis" },
-    "purchase": { "es": "Con consumo", "en": "Purchase required", "fr": "Avec consommation", "pt": "Com consumo" },
-    "reservation": { "es": "Con reserva", "en": "Reservation", "fr": "Sur réservation", "pt": "Com reserva" },
-    "guest_only": { "es": "Solo huéspedes", "en": "Guests only", "fr": "Clients uniquement", "pt": "Só hóspedes" },
-    "paid_entry": { "es": "Entrada paga", "en": "Paid entry", "fr": "Entrée payante", "pt": "Entrada paga" }
+    "free": {
+      "es": "Gratis",
+      "en": "Free",
+      "fr": "Gratuit",
+      "pt": "Grátis"
+    },
+    "purchase": {
+      "es": "Con consumo",
+      "en": "Purchase required",
+      "fr": "Avec consommation",
+      "pt": "Com consumo"
+    },
+    "reservation": {
+      "es": "Con reserva",
+      "en": "Reservation",
+      "fr": "Sur réservation",
+      "pt": "Com reserva"
+    },
+    "guest_only": {
+      "es": "Solo huéspedes",
+      "en": "Guests only",
+      "fr": "Clients uniquement",
+      "pt": "Só hóspedes"
+    },
+    "paid_entry": {
+      "es": "Entrada paga",
+      "en": "Paid entry",
+      "fr": "Entrée payante",
+      "pt": "Entrada paga"
+    }
   },
   "pins": [
     {
@@ -128,8 +273,13 @@
       "lens": "golden_hour",
       "name": "Calle de Don Sancho",
       "venue_id": null,
-      "lat": 10.4262, "lng": -75.55, "geo_precision": "approx", "zone": "centro",
-      "best_light": ["sunrise"],
+      "lat": 10.4262,
+      "lng": -75.55,
+      "geo_precision": "approx",
+      "zone": "centro",
+      "best_light": [
+        "sunrise"
+      ],
       "access_tier": "free",
       "crowd_hotspot": true,
       "photogenic": {
@@ -154,8 +304,13 @@
       "lens": "golden_hour",
       "name": "Calle de los Siete Infantes (Calle 38)",
       "venue_id": null,
-      "lat": 10.4277, "lng": -75.5465, "geo_precision": "approx", "zone": "san_diego",
-      "best_light": ["sunrise"],
+      "lat": 10.4277,
+      "lng": -75.5465,
+      "geo_precision": "approx",
+      "zone": "san_diego",
+      "best_light": [
+        "sunrise"
+      ],
       "access_tier": "free",
       "crowd_hotspot": false,
       "photogenic": {
@@ -180,8 +335,14 @@
       "lens": "golden_hour",
       "name": "Calle de la Sierpe",
       "venue_id": null,
-      "lat": 10.421, "lng": -75.546, "geo_precision": "approx", "zone": "getsemani",
-      "best_light": ["sunrise", "midday"],
+      "lat": 10.421,
+      "lng": -75.546,
+      "geo_precision": "approx",
+      "zone": "getsemani",
+      "best_light": [
+        "sunrise",
+        "midday"
+      ],
       "access_tier": "free",
       "crowd_hotspot": false,
       "photogenic": {
@@ -206,8 +367,14 @@
       "lens": "golden_hour",
       "name": "Plaza de la Trinidad",
       "venue_id": null,
-      "lat": 10.420614, "lng": -75.5453984, "geo_precision": "exact", "zone": "getsemani",
-      "best_light": ["sunrise", "midday"],
+      "lat": 10.420614,
+      "lng": -75.5453984,
+      "geo_precision": "exact",
+      "zone": "getsemani",
+      "best_light": [
+        "sunrise",
+        "midday"
+      ],
       "access_tier": "free",
       "crowd_hotspot": false,
       "photogenic": {
@@ -232,7 +399,10 @@
       "lens": "golden_hour",
       "name": "Murales de Getsemaní",
       "venue_id": "attr_011",
-      "best_light": ["sunrise", "midday"],
+      "best_light": [
+        "sunrise",
+        "midday"
+      ],
       "access_tier": "free",
       "crowd_hotspot": false,
       "photogenic": {
@@ -257,8 +427,13 @@
       "lens": "golden_hour",
       "name": "Calle de la Magdalena (sombrillas)",
       "venue_id": null,
-      "lat": 10.4214, "lng": -75.5449, "geo_precision": "approx", "zone": "getsemani",
-      "best_light": ["sunrise"],
+      "lat": 10.4214,
+      "lng": -75.5449,
+      "geo_precision": "approx",
+      "zone": "getsemani",
+      "best_light": [
+        "sunrise"
+      ],
       "access_tier": "free",
       "crowd_hotspot": false,
       "photogenic": {
@@ -278,8 +453,14 @@
       "lens": "golden_hour",
       "name": "Torre del Reloj",
       "venue_id": null,
-      "lat": 10.4230, "lng": -75.5491, "geo_precision": "exact", "zone": "centro",
-      "best_light": ["sunrise", "sunset"],
+      "lat": 10.423,
+      "lng": -75.5491,
+      "geo_precision": "exact",
+      "zone": "centro",
+      "best_light": [
+        "sunrise",
+        "sunset"
+      ],
       "access_tier": "free",
       "crowd_hotspot": true,
       "photogenic": {
@@ -304,8 +485,13 @@
       "lens": "golden_hour",
       "name": "Portal de los Dulces",
       "venue_id": null,
-      "lat": 10.4229, "lng": -75.5495, "geo_precision": "exact", "zone": "centro",
-      "best_light": ["sunrise"],
+      "lat": 10.4229,
+      "lng": -75.5495,
+      "geo_precision": "exact",
+      "zone": "centro",
+      "best_light": [
+        "sunrise"
+      ],
       "access_tier": "purchase",
       "crowd_hotspot": true,
       "photogenic": {
@@ -330,7 +516,9 @@
       "lens": "golden_hour",
       "name": "Catedral de Santa Catalina",
       "venue_id": "attr_009",
-      "best_light": ["sunrise"],
+      "best_light": [
+        "sunrise"
+      ],
       "access_tier": "free",
       "crowd_hotspot": false,
       "photogenic": {
@@ -350,7 +538,10 @@
       "lens": "golden_hour",
       "name": "Ábaco Libros y Café · Calle de la Iglesia",
       "venue_id": "ptr_V012",
-      "best_light": ["sunrise", "midday"],
+      "best_light": [
+        "sunrise",
+        "midday"
+      ],
       "access_tier": "purchase",
       "crowd_hotspot": true,
       "photogenic": {
@@ -375,7 +566,10 @@
       "lens": "golden_hour",
       "name": "Alma (Casa San Agustín)",
       "venue_id": "ptr_R104",
-      "best_light": ["midday", "sunset"],
+      "best_light": [
+        "midday",
+        "sunset"
+      ],
       "access_tier": "reservation",
       "crowd_hotspot": false,
       "photogenic": {
@@ -400,7 +594,9 @@
       "lens": "golden_hour",
       "name": "Carmen",
       "venue_id": "ptr_R102",
-      "best_light": ["sunset"],
+      "best_light": [
+        "sunset"
+      ],
       "access_tier": "reservation",
       "crowd_hotspot": false,
       "photogenic": {
@@ -425,7 +621,9 @@
       "lens": "golden_hour",
       "name": "Candé — Cocina 100% Cartagenera",
       "venue_id": "ptr_R011",
-      "best_light": ["sunset"],
+      "best_light": [
+        "sunset"
+      ],
       "access_tier": "reservation",
       "crowd_hotspot": false,
       "photogenic": {
@@ -450,7 +648,9 @@
       "lens": "golden_hour",
       "name": "Jardín Santa Clara (Sofitel)",
       "venue_id": "ptr_ho_004",
-      "best_light": ["midday"],
+      "best_light": [
+        "midday"
+      ],
       "access_tier": "reservation",
       "crowd_hotspot": false,
       "photogenic": {
@@ -475,7 +675,9 @@
       "lens": "golden_hour",
       "name": "Época Café",
       "venue_id": "ptr_W120",
-      "best_light": ["midday"],
+      "best_light": [
+        "midday"
+      ],
       "access_tier": "purchase",
       "crowd_hotspot": false,
       "photogenic": {
@@ -495,7 +697,9 @@
       "lens": "golden_hour",
       "name": "Nía Bakery",
       "venue_id": "ptr_R145",
-      "best_light": ["midday"],
+      "best_light": [
+        "midday"
+      ],
       "access_tier": "purchase",
       "crowd_hotspot": false,
       "photogenic": {
@@ -515,8 +719,13 @@
       "lens": "golden_hour",
       "name": "Baluarte de la Gente (Baluarte de Santo Domingo)",
       "venue_id": null,
-      "lat": 10.4254, "lng": -75.5527, "geo_precision": "approx", "zone": "centro",
-      "best_light": ["sunset"],
+      "lat": 10.4254,
+      "lng": -75.5527,
+      "geo_precision": "approx",
+      "zone": "centro",
+      "best_light": [
+        "sunset"
+      ],
       "access_tier": "free",
       "crowd_hotspot": true,
       "photogenic": {
@@ -541,7 +750,10 @@
       "lens": "golden_hour",
       "name": "Las Murallas",
       "venue_id": "attr_002",
-      "best_light": ["sunrise", "sunset"],
+      "best_light": [
+        "sunrise",
+        "sunset"
+      ],
       "access_tier": "free",
       "crowd_hotspot": true,
       "photogenic": {
@@ -566,7 +778,10 @@
       "lens": "golden_hour",
       "name": "Castillo San Felipe — Batería de la bandera",
       "venue_id": "attr_001",
-      "best_light": ["sunrise", "sunset"],
+      "best_light": [
+        "sunrise",
+        "sunset"
+      ],
       "access_tier": "paid_entry",
       "crowd_hotspot": true,
       "link": "/ciudad/monumentos",
@@ -592,7 +807,9 @@
       "lens": "golden_hour",
       "name": "Alyzia Rooftop (Movich)",
       "venue_id": "ptr_dv_030",
-      "best_light": ["sunset"],
+      "best_light": [
+        "sunset"
+      ],
       "access_tier": "purchase",
       "crowd_hotspot": false,
       "photogenic": {
@@ -617,7 +834,9 @@
       "lens": "golden_hour",
       "name": "Casa Pura Rooftop",
       "venue_id": "ptr_1373",
-      "best_light": ["sunset"],
+      "best_light": [
+        "sunset"
+      ],
       "access_tier": "purchase",
       "crowd_hotspot": false,
       "photogenic": {
@@ -642,7 +861,9 @@
       "lens": "golden_hour",
       "name": "Rooftop del Charleston Santa Teresa",
       "venue_id": "ptr_1401",
-      "best_light": ["sunset"],
+      "best_light": [
+        "sunset"
+      ],
       "access_tier": "purchase",
       "crowd_hotspot": false,
       "photogenic": {
@@ -667,7 +888,9 @@
       "lens": "golden_hour",
       "name": "Fuerte del Pastelillo (Club de Pesca)",
       "venue_id": "ptr_dv_008",
-      "best_light": ["sunset"],
+      "best_light": [
+        "sunset"
+      ],
       "access_tier": "reservation",
       "crowd_hotspot": false,
       "photogenic": {
@@ -692,8 +915,13 @@
       "lens": "golden_hour",
       "name": "Muelle de la Bahía de Manga",
       "venue_id": null,
-      "lat": 10.4139, "lng": -75.5345, "geo_precision": "approx", "zone": "manga",
-      "best_light": ["sunset"],
+      "lat": 10.4139,
+      "lng": -75.5345,
+      "geo_precision": "approx",
+      "zone": "manga",
+      "best_light": [
+        "sunset"
+      ],
       "access_tier": "free",
       "crowd_hotspot": false,
       "photogenic": {
@@ -718,7 +946,9 @@
       "lens": "golden_hour",
       "name": "Plaza de Bolívar",
       "venue_id": "attr_005",
-      "best_light": ["sunset"],
+      "best_light": [
+        "sunset"
+      ],
       "access_tier": "free",
       "crowd_hotspot": false,
       "photogenic": {
@@ -743,7 +973,10 @@
       "lens": "golden_hour",
       "name": "Las Bóvedas",
       "venue_id": "attr_010",
-      "best_light": ["sunrise", "midday"],
+      "best_light": [
+        "sunrise",
+        "midday"
+      ],
       "access_tier": "free",
       "crowd_hotspot": true,
       "photogenic": {
@@ -763,7 +996,9 @@
       "lens": "golden_hour",
       "name": "Convento de La Popa",
       "venue_id": "attr_012",
-      "best_light": ["midday"],
+      "best_light": [
+        "midday"
+      ],
       "access_tier": "paid_entry",
       "crowd_hotspot": false,
       "photogenic": {
@@ -788,8 +1023,13 @@
       "lens": "golden_hour",
       "name": "Playa de Bocagrande",
       "venue_id": null,
-      "lat": 10.399, "lng": -75.5566, "geo_precision": "approx", "zone": "bocagrande",
-      "best_light": ["sunset"],
+      "lat": 10.399,
+      "lng": -75.5566,
+      "geo_precision": "approx",
+      "zone": "bocagrande",
+      "best_light": [
+        "sunset"
+      ],
       "access_tier": "free",
       "crowd_hotspot": false,
       "photogenic": {
@@ -814,7 +1054,9 @@
       "lens": "golden_hour",
       "name": "Plaza de Santo Domingo",
       "venue_id": "attr_004",
-      "best_light": ["sunrise"],
+      "best_light": [
+        "sunrise"
+      ],
       "access_tier": "free",
       "crowd_hotspot": true,
       "photogenic": {
@@ -839,7 +1081,12 @@
     {
       "lens": "step_free",
       "venue_id": "attr_012",
-      "attrs": { "step_free_entrance": null, "ramp": null, "accessible_toilet": null, "accessible_transport": true },
+      "attrs": {
+        "step_free_entrance": null,
+        "ramp": null,
+        "accessible_toilet": null,
+        "accessible_transport": true
+      },
       "note": {
         "es": "Se reporta acceso en vehículo hasta la cima (taxi que espera) — pendiente verificación en sitio del recorrido interno.",
         "en": "Vehicle access to the top is reported (waiting taxi) — on-site verification of the interior route pending.",
@@ -854,7 +1101,11 @@
     {
       "lens": "step_free",
       "venue_id": "ptr_007",
-      "attrs": { "step_free_entrance": null, "ramp": null, "accessible_toilet": null },
+      "attrs": {
+        "step_free_entrance": null,
+        "ramp": null,
+        "accessible_toilet": null
+      },
       "note": {
         "es": "Hotel moderno con ascensor a la azotea — atributos de acceso pendientes de confirmación del hotel.",
         "en": "Modern hotel with rooftop elevator — access attributes pending the hotel's confirmation.",
@@ -872,7 +1123,16 @@
     "muelle_module": "muelle-bodeguita",
     "return_buffer_min": 90,
     "crowd": {
-      "hotspot_pins": ["gh-torre-del-reloj", "gh-portal-dulces", "gh-calle-don-sancho", "gh-abaco", "gh-murallas", "gh-castillo-bandera", "gh-las-bovedas", "gh-plaza-santo-domingo"],
+      "hotspot_pins": [
+        "gh-torre-del-reloj",
+        "gh-portal-dulces",
+        "gh-calle-don-sancho",
+        "gh-abaco",
+        "gh-murallas",
+        "gh-castillo-bandera",
+        "gh-las-bovedas",
+        "gh-plaza-santo-domingo"
+      ],
       "note": {
         "es": "En día de crucero el Centro se llena desde ~10 a. m. — ve al amanecer, o cambia a Getsemaní y Manga.",
         "en": "On cruise days the Centro fills from ~10 AM — go at dawn, or switch to Getsemaní and Manga.",
@@ -888,7 +1148,12 @@
         "id": "pd-esencial-4h",
         "duration_h": 4,
         "editorial": true,
-        "title": { "es": "Lo esencial en 4 horas", "en": "The essentials in 4 hours", "fr": "L'essentiel en 4 heures", "pt": "O essencial em 4 horas" },
+        "title": {
+          "es": "Lo esencial en 4 horas",
+          "en": "The essentials in 4 hours",
+          "fr": "L'essentiel en 4 heures",
+          "pt": "O essencial em 4 horas"
+        },
         "note": {
           "es": "Circuito a pie por la Ciudad Amurallada desde la Torre del Reloj. Tiempos estimados por AMO — ajusta a tu hora de regreso.",
           "en": "Walking loop through the Walled City from the Clock Tower. Times are AMO estimates — adjust to your all-aboard.",
@@ -896,21 +1161,50 @@
           "pt": "Circuito a pé pela Cidade Amuralhada desde a Torre do Relógio. Tempos estimados pela AMO."
         },
         "stops": [
-          { "pin": "gh-torre-del-reloj", "minutes": 20 },
-          { "pin": "gh-portal-dulces", "minutes": 20 },
-          { "pin": "gh-plaza-santo-domingo", "minutes": 30 },
-          { "pin": "gh-calle-don-sancho", "minutes": 25 },
-          { "pin": "gh-catedral-santa-catalina", "minutes": 20 },
-          { "pin": "gh-siete-infantes", "minutes": 25 },
-          { "pin": "gh-las-bovedas", "minutes": 30 },
-          { "pin": "gh-murallas", "minutes": 30 }
+          {
+            "pin": "gh-torre-del-reloj",
+            "minutes": 20
+          },
+          {
+            "pin": "gh-portal-dulces",
+            "minutes": 20
+          },
+          {
+            "pin": "gh-plaza-santo-domingo",
+            "minutes": 30
+          },
+          {
+            "pin": "gh-calle-don-sancho",
+            "minutes": 25
+          },
+          {
+            "pin": "gh-catedral-santa-catalina",
+            "minutes": 20
+          },
+          {
+            "pin": "gh-siete-infantes",
+            "minutes": 25
+          },
+          {
+            "pin": "gh-las-bovedas",
+            "minutes": 30
+          },
+          {
+            "pin": "gh-murallas",
+            "minutes": 30
+          }
         ]
       },
       {
         "id": "pd-getsemani-3h",
         "duration_h": 3,
         "editorial": true,
-        "title": { "es": "Getsemaní sin multitudes (3 h)", "en": "Getsemaní without the crowds (3 h)", "fr": "Getsemaní sans la foule (3 h)", "pt": "Getsemaní sem multidões (3 h)" },
+        "title": {
+          "es": "Getsemaní sin multitudes (3 h)",
+          "en": "Getsemaní without the crowds (3 h)",
+          "fr": "Getsemaní sans la foule (3 h)",
+          "pt": "Getsemaní sem multidões (3 h)"
+        },
         "note": {
           "es": "La alternativa de día de crucero: arte urbano y plazas locales mientras el Centro está lleno.",
           "en": "The cruise-day alternative: street art and local plazas while the Centro is packed.",
@@ -918,11 +1212,26 @@
           "pt": "A alternativa do dia de cruzeiro: arte urbana e praças locais enquanto o Centro está cheio."
         },
         "stops": [
-          { "pin": "gh-plaza-trinidad", "minutes": 30 },
-          { "pin": "gh-calle-sierpe", "minutes": 25 },
-          { "pin": "gh-street-art-getsemani", "minutes": 45 },
-          { "pin": "gh-umbrella-magdalena", "minutes": 15 },
-          { "pin": "gh-muelle-manga", "minutes": 40 }
+          {
+            "pin": "gh-plaza-trinidad",
+            "minutes": 30
+          },
+          {
+            "pin": "gh-calle-sierpe",
+            "minutes": 25
+          },
+          {
+            "pin": "gh-street-art-getsemani",
+            "minutes": 45
+          },
+          {
+            "pin": "gh-umbrella-magdalena",
+            "minutes": 15
+          },
+          {
+            "pin": "gh-muelle-manga",
+            "minutes": 40
+          }
         ]
       }
     ]
