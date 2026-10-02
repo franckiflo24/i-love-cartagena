@@ -392,21 +392,9 @@ export default function CityPassTab() {
               <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
             </TouchableOpacity>
 
-            {/* Trust badges */}
-            <View style={styles.trustRow}>
-              <View style={styles.trustItem}>
-                <Ionicons name="shield-checkmark" size={18} color={COLORS.textMuted} />
-                <Text style={styles.trustText}>{tr('Pago seguro')}</Text>
-              </View>
-              <View style={styles.trustItem}>
-                <Ionicons name="refresh" size={18} color={COLORS.textMuted} />
-                <Text style={styles.trustText}>{tr('Reembolso 24h')}</Text>
-              </View>
-              <View style={styles.trustItem}>
-                <Ionicons name="headset" size={18} color={COLORS.textMuted} />
-                <Text style={styles.trustText}>{tr('Soporte 24/7')}</Text>
-              </View>
-            </View>
+            {/* Trust badges removed (drop P1-14): "Pago seguro / Reembolso 24h /
+                Soporte 24/7" promised a payment path that is not live. They may
+                only return, deliberately, with a real pentested checkout. */}
           </>
         )}
       </ScrollView>
@@ -484,9 +472,6 @@ const styles = StyleSheet.create({
   discoverCTADesc: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
 
   // Trust
-  trustRow: { flexDirection: 'row', justifyContent: 'center', gap: SPACING.lg, paddingVertical: SPACING.lg, paddingHorizontal: SPACING.lg },
-  trustItem: { alignItems: 'center', gap: 4 },
-  trustText: { fontSize: 10, color: COLORS.textMuted, ...FONTS.medium },
 });
 
 // City Pass live credential (CityPassLiveQr): the compact rotating-QR panel.

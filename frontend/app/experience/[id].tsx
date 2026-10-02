@@ -209,7 +209,12 @@ export default function ExperienceDetailScreen() {
               router.push('/login' as any);
               return;
             }
-            router.push(`/experience/booking?id=${experience.event_id}&title=${encodeURIComponent(experience.title)}&price=${price}&currency=${currency}` as any);
+            // The booking screen reserves by WhatsApp while payments are off, so it
+            // needs the operator's validated number + name (venueWhatsApp() falls
+            // back to the AMO concierge line when the number isn't a real mobile).
+            const wa = encodeURIComponent(experience.partner?.whatsapp || '');
+            const venue = encodeURIComponent(experience.partner?.name || experience.location_name || '');
+            router.push(`/experience/booking?id=${experience.event_id}&title=${encodeURIComponent(experience.title)}&price=${price}&currency=${currency}&wa=${wa}&venue=${venue}` as any);
           }}
         >
           <Text style={styles.bookButtonText}>{s('experience_book') || 'Book Now'}</Text>

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  ActivityIndicator,
+  ActivityIndicator, Linking,
 } from 'react-native';
 import { Alert } from '../../src/lib/alert';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,16 +14,30 @@ import { openWompiCheckout, checkWompiEnabled } from '@/src/lib/wompi';
 import { useTr } from '@/src/i18n/autoTr';
 import { bogotaDatePlus } from '@/src/lib/eventTime';
 import { goTab } from '@/src/lib/nav';
+import { venueWhatsApp } from '@/src/lib/whatsapp';
 
 export default function ExperienceBookingScreen() {
-  const params = useLocalSearchParams<{ id: string; title: string; price: string; currency: string }>();
+  const params = useLocalSearchParams<{ id: string; title: string; price: string; currency: string; wa?: string; venue?: string }>();
   const router = useRouter();
   const { s } = useLang();
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState('');
   const [guests, setGuests] = useState(1);
   const [loading, setLoading] = useState(false);
+  // Honesty rule (drop P1-14): the CTA may only say "Pagar" when a real payment
+  // path is live for this surface. Native is hard-off (wompi.ts), web follows
+  // the server flag. Until then the booking is a pre-filled WhatsApp request —
+  // the same path reservation/new.tsx has always used.
+  const [paymentsLive, setPaymentsLive] = useState(false);
   const tr = useTr();
+
+  useEffect(() => {
+    let alive = true;
+    checkWompiEnabled()
+      .then((cfg) => { if (alive) setPaymentsLive(!!cfg.enabled); })
+      .catch(() => { if (alive) setPaymentsLive(false); });
+    return () => { alive = false; };
+  }, []);
 
   const pricePerPerson = parseInt(params.price || '0', 10);
   const totalPrice = pricePerPerson * guests;
@@ -39,24 +53,47 @@ export default function ExperienceBookingScreen() {
     return { day: tr(days[d.getDay()]), date: d.getDate(), month: tr(months[d.getMonth()]) };
   };
 
+  // WhatsApp reservation: pre-filled with the item so the operator (or the AMO
+  // concierge line, when the venue has no validated mobile) gets everything in
+  // one message. Mirrors reservation/new.tsx. No payment is taken by AMO.
+  const reserveByWhatsApp = async () => {
+    const { number: waPhone, isAmo } = venueWhatsApp({ whatsapp: params.wa || '' });
+    const venue = params.venue || '';
+    const people = `${guests} persona${guests > 1 ? 's' : ''}`;
+    const peopleEn = `${guests} ${guests > 1 ? 'people' : 'person'}`;
+    const ref = `${totalPrice.toLocaleString()} ${currency}`;
+    const msgEs = isAmo
+      ? `Hola AMO Life! Quiero reservar la experiencia *${params.title}*${venue ? ` con ${venue}` : ''}.\n\nFecha: ${selectedDate}\nPersonas: ${people}\nPrecio de referencia: ${ref}\n\nVia AMO Life`
+      : `Hola! Reserva via *AMO Life* 🌴\n\nExperiencia: *${params.title}*\nFecha: ${selectedDate}\nPersonas: ${people}\nPrecio de referencia: ${ref}\n\nGracias!`;
+    const msgEn = isAmo
+      ? `Hi AMO Life! I'd like to book the experience *${params.title}*${venue ? ` with ${venue}` : ''}.\n\nDate: ${selectedDate}\nParty: ${peopleEn}\nReference price: ${ref}\n\nVia AMO Life`
+      : `Hi! Booking via *AMO Life* 🌴\n\nExperience: *${params.title}*\nDate: ${selectedDate}\nParty: ${peopleEn}\nReference price: ${ref}\n\nThank you!`;
+    const waUrl = `https://wa.me/${waPhone}?text=${encodeURIComponent(`${msgEs}\n\n---\n\n${msgEn}`)}`;
+    try {
+      await Linking.openURL(waUrl);
+    } catch {
+      Alert.alert(tr('No se pudo abrir WhatsApp'), tr('Instala WhatsApp o escríbenos a') + ` +${waPhone}`);
+    }
+  };
+
   const handleBook = async () => {
     if (!selectedDate) {
       Alert.alert('', s('experience_date') || 'Please select a date');
       return;
     }
+    if (!paymentsLive) {
+      await reserveByWhatsApp();
+      return;
+    }
     setLoading(true);
     try {
-      // Gate on Wompi config BEFORE POSTing. Unlike city-pass/port-tax, this flow
-      // was ungated → when Wompi is off, the backend 503 ("edit backend/.env") was
-      // shown raw to the user. Degrade gracefully to the WhatsApp fallback instead.
+      // Payments are live for this surface (never on native — wompi.ts hard-off).
+      // Re-check the flag at tap time so a flipped server config can't strand the user.
       const cfg = await checkWompiEnabled();
       if (!cfg.enabled) {
         setLoading(false);
-        Alert.alert(
-          'Reserva tu experiencia',
-          `El pago en línea estará disponible pronto.\n\nMientras tanto, contacta al operador por WhatsApp para reservar "${params.title}" el ${selectedDate} para ${guests} persona${guests > 1 ? 's' : ''}.`,
-          [{ text: 'OK', onPress: () => router.back() }],
-        );
+        setPaymentsLive(false);
+        await reserveByWhatsApp();
         return;
       }
       const result = await api.post('/payments/wompi/experience', {
@@ -72,14 +109,10 @@ export default function ExperienceBookingScreen() {
           Alert.alert(tr('Pago'), `Estado: ${wompiResult.status}`);
         }
       } else {
-        // Static mode: no checkout_url. Show clear feedback instead of silent nothing.
-        Alert.alert(
-          'Reserva tu experiencia',
-          `El pago en línea estará disponible pronto.\n\nMientras tanto, contacta al operador por WhatsApp para reservar "${params.title}" el ${selectedDate} para ${guests} persona${guests > 1 ? 's' : ''}.`,
-          [
-            { text: 'OK', onPress: () => router.back() },
-          ],
-        );
+        // No checkout_url from the server: never leave the user with nothing — the
+        // WhatsApp request is the honest path in every non-live case.
+        setLoading(false);
+        await reserveByWhatsApp();
       }
     } catch (e: any) {
       Alert.alert('Error', e.message || tr('No se pudo reservar'));
@@ -193,10 +226,20 @@ export default function ExperienceBookingScreen() {
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
-              ) : (
+              ) : paymentsLive ? (
                 <Text style={styles.payButtonText}>{tr('Pagar')} ${totalPrice.toLocaleString()} {currency}</Text>
+              ) : (
+                <View style={styles.waRow}>
+                  <Ionicons name="logo-whatsapp" size={18} color="#fff" />
+                  <Text style={styles.payButtonText}>{tr('Reservar por WhatsApp')}</Text>
+                </View>
               )}
             </TouchableOpacity>
+            {!paymentsLive && (
+              <Text style={styles.waNote}>
+                {tr('AMO no cobra: confirmas y pagas directamente con el operador.')}
+              </Text>
+            )}
           </View>
         )}
       </ScrollView>
@@ -235,4 +278,6 @@ const styles = StyleSheet.create({
   totalValue: { color: COLORS.primary, fontSize: 20, ...FONTS.bold },
   payButton: { backgroundColor: COLORS.primary, paddingVertical: SPACING.md, borderRadius: RADIUS.full, alignItems: 'center' },
   payButtonText: { color: '#fff', fontSize: 16, ...FONTS.bold },
+  waRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  waNote: { color: COLORS.textMuted, fontSize: 12, textAlign: 'center', marginTop: SPACING.sm },
 });
