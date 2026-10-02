@@ -805,7 +805,7 @@ export default function AdminPortal() {
         api.get('/admin/moderation/stats').then((v) => { setModStatsStale(false); return v; }).catch(() => { setModStatsStale(true); return null; }),
         api.get('/admin/businesses').catch(() => null),
       ]);
-      setData(d);
+      if (d) setData(d);   // keep last-good KPIs on a failed refresh, never blank to null
       if (u) setUsersData(u);
       if (ms) setModStats(ms);
       if (biz) setBusinessesData(biz);

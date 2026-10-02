@@ -16,6 +16,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { COLORS, SPACING, RADIUS, FONTS } from '../constants/theme';
 import { api } from '../constants/api';
+import LoadError from './LoadError';
 import { useTr } from '../i18n/autoTr';
 import { NBH_LABELS } from '../utils/neighborhood';
 
@@ -102,6 +103,9 @@ export default function AlcaldiaDashboard({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [exporting, setExporting] = useState<string | null>(null);
+  // P1-9: the overview is the whole dashboard. On an outage it must say so (this
+  // is the screen the city sees), not sit on a blank/loading frame forever.
+  const [loadError, setLoadError] = useState(false);
 
   const load = useCallback(async () => {
     const headers = { Authorization: `Bearer ${token}` };
@@ -111,6 +115,7 @@ export default function AlcaldiaDashboard({
       // them — the real government login fetches the full set.
       const a = await api.get('/business/admin/analytics?days=30', { headers });
       setAnalytics(a);
+      setLoadError(false);
       if (!demo) {
         const [u, p, ev, po] = await Promise.all([
           api.get('/business/admin/users?limit=200', { headers }).catch(() => null),
@@ -125,6 +130,7 @@ export default function AlcaldiaDashboard({
       }
     } catch (e) {
       console.error('Alcaldia load error', e);
+      setLoadError(true);
     }
   }, [token, demo]);
 
@@ -195,6 +201,18 @@ export default function AlcaldiaDashboard({
     return (
       <View style={styles.loadingWrap}>
         <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  if (loadError && !analytics) {
+    return (
+      <View style={styles.loadingWrap}>
+        <LoadError
+          message={tr('No se pudo cargar el panel')}
+          retryLabel={tr('Reintentar')}
+          onRetry={() => { setLoading(true); load().finally(() => setLoading(false)); }}
+        />
       </View>
     );
   }

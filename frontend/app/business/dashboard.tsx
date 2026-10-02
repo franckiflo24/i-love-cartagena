@@ -6,7 +6,8 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier } from '../../src/constants/theme';
-import { api } from '../../src/constants/api';
+import { api, isAuthStatus } from '../../src/constants/api';
+import LoadError from '../../src/components/LoadError';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { TierBadge } from '../../src/components/TierBadge';
 import AlcaldiaDashboard from '../../src/components/AlcaldiaDashboard';
@@ -44,6 +45,7 @@ export default function BusinessDashboard() {
   const [reservationStats, setReservationStats] = useState<{ pending_count?: number } | null>(null);
   const [membership, setMembership] = useState<any | null>(null);
   const [onboarding, setOnboarding] = useState<Onboarding | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [forcePartnerView, setForcePartnerView] = useState(false);
@@ -51,9 +53,16 @@ export default function BusinessDashboard() {
 
   const load = useCallback(async () => {
     if (!token) return;
+    // P1-9: the events call is the dashboard's spine. If it fails with an OUTAGE
+    // (not 401/403 — those mean the session died and the effect redirects to
+    // login), a `.catch(() => [])` used to show the vendor "0 eventos" — making
+    // an outage look like "your events are gone". Keep the last-good list and
+    // raise a retry banner instead.
+    const EV_FAIL = Symbol('events-failed');
     try {
       const [eventsData, statsData, reservData, memData, onbData] = await Promise.all([
-        api.get('/business/events', { headers: { Authorization: `Bearer ${token}` } }).catch(() => []),
+        api.get('/business/events', { headers: { Authorization: `Bearer ${token}` } })
+          .catch((e: unknown) => (isAuthStatus(e) ? [] : EV_FAIL)),
         api.get('/business/stats', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
         api.get('/business/reservations?limit=1', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
         api.get('/business/membership', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
@@ -65,12 +74,18 @@ export default function BusinessDashboard() {
         // (audit 2026-10-01). Fail-soft: no banner is better than a wrong one.
         api.get('/business/onboarding-status', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
       ]);
-      setEvents(Array.isArray(eventsData) ? eventsData : []);
+      if (eventsData === EV_FAIL) {
+        // Keep whatever we last showed; never blank the vendor's own events.
+        setLoadError(true);
+      } else {
+        setLoadError(false);
+        setEvents(Array.isArray(eventsData) ? eventsData : []);
+      }
       setStats(statsData);
       setReservationStats(reservData?.stats || null);
       setMembership(memData || null);
       setOnboarding(onbData || null);
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error('[dashboard] load', e); setLoadError(true); }
   }, [token]);
 
   useEffect(() => {
@@ -207,6 +222,14 @@ export default function BusinessDashboard() {
       </View>
 
       <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />} contentContainerStyle={{ paddingBottom: 100 }}>
+        {loadError && (
+          <LoadError
+            message={tr('No se pudo cargar tu panel')}
+            retryLabel={tr('Reintentar')}
+            onRetry={() => { setLoading(true); load().finally(() => setLoading(false)); }}
+            style={{ margin: SPACING.md }}
+          />
+        )}
         {needsClaim && (
           <View style={styles.claimGate}>
             <View style={styles.claimIcon}>
