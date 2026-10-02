@@ -11,12 +11,18 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import re
 import time
 from typing import Any, Dict, Optional
 
 TOKEN_STEP_SECONDS = 10
 TOKEN_SKEW_STEPS = 1
 TOKEN_LEN = 12
+# derive_token is a hex digest prefix, so a genuine token is exactly 12 lowercase hex
+# chars. hmac.compare_digest(str, str) raises TypeError on non-ASCII input, so an
+# attacker-controlled token must be shape-checked BEFORE the compare (P1, audit
+# 2026-10-01): anything else is a forgery, never a 500.
+TOKEN_RE = re.compile(r"^[0-9a-f]{12}$")
 
 
 def counter_for_now(now_ms: Optional[int] = None) -> int:
@@ -48,13 +54,18 @@ def parse_wire(namespace: str, payload: str) -> Optional[Dict[str, Any]]:
         counter = int(parts[2])
     except ValueError:
         return None
+    if not TOKEN_RE.match(parts[3]):
+        return None   # malformed / non-hex / non-ASCII token → callers answer FALSIFICADO
     return {"entity_id": parts[1], "counter": counter, "token": parts[3]}
 
 
 def verify(parsed: Dict[str, Any], secret: str, now_ms: Optional[int] = None) -> str:
     """'OK' | 'COUNTERFEIT' | 'EXPIRED' — stale is never conflated with forged."""
+    token = parsed.get("token")
+    if not isinstance(token, str) or not TOKEN_RE.match(token):
+        return "COUNTERFEIT"   # defence in depth for callers that bypass parse_wire
     expected = derive_token(parsed["entity_id"], secret, parsed["counter"])
-    if not hmac.compare_digest(expected, parsed["token"]):
+    if not hmac.compare_digest(expected, token):
         return "COUNTERFEIT"
     if abs(counter_for_now(now_ms) - parsed["counter"]) > TOKEN_SKEW_STEPS:
         return "EXPIRED"

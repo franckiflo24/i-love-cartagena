@@ -32,7 +32,6 @@ hardening documented in the pitch: Ed25519 (PALCO2) — gates verify, never forg
 from __future__ import annotations
 
 import hashlib
-import hmac
 import logging
 import os
 import re
@@ -449,10 +448,14 @@ async def _verdict_for_wire(wire: str, gate: str, request: Request) -> Dict[str,
     if parts and TICKET_ID_RE.match(parts["ticket_id"]):
         doc = await db.civic_demo_tickets.find_one({"ticket_id": parts["ticket_id"]}, {"_id": 0})
     if parts is not None and doc is not None:
-        expected = derive_token(parts["ticket_id"], doc["qr_secret"], parts["counter"])
-        if not hmac.compare_digest(expected, parts["token"]):
+        # ONE verifier for the civic demo, consumer tickets and the City Pass
+        # (qr_credential.verify: hex-shape check → constant-time HMAC → ±1 step skew).
+        # The old inline compare raised TypeError on a non-ASCII token (P1, audit 2026-10-01).
+        v = _qc.verify({"entity_id": parts["ticket_id"], "counter": parts["counter"], "token": parts["token"]},
+                       doc["qr_secret"])
+        if v == "COUNTERFEIT":
             verdict = "FALSIFICADO"
-        elif abs(counter_for_now() - parts["counter"]) > TOKEN_SKEW_STEPS:
+        elif v == "EXPIRED":
             verdict = "EXPIRADO"
         elif doc.get("kind") == "receipt":
             # A receipt VERIFIES but never "admits": Transcaribe validation belongs
