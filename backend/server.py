@@ -82,6 +82,9 @@ import tickets as _tickets  # noqa: E402
 # MAINTENANCE: Bearer-CRON_SECRET ops (session revoke, pass-key rotation,
 # date_end backfill) — backup-before-write, counts only, never a secret value.
 import maintenance as _maintenance  # noqa: E402
+# SWEEP: the partner-events dead-letter cron (expire past pending events, alert
+# on a stale review queue) — Bearer CRON_SECRET, */30 in vercel.json.
+import partner_events_sweep as _partner_events_sweep  # noqa: E402
 
 # ── In-memory rate limiter for expensive AI endpoints ──────────
 from collections import defaultdict
@@ -1109,10 +1112,17 @@ async def business_create_event(request: Request):
             "created_at": datetime.now(timezone.utc).isoformat(),
         })
         # Ping the team (fail-soft). NEEDS_REVIEW is NOT live: it waits for a moderator.
+        # "LLM unavailable" (ai_moderation's fallback: issues=["llm_unavailable"]) is
+        # a DIFFERENT emergency from a real hold — nobody reviewed anything, every
+        # submission is queueing — so the alert says so (P0-B, audit 2026-10-01).
+        llm_down = "llm_unavailable" in (mod.get("issues") or [])
         try:
             if verdict == "REJECT":
                 subject = f"AMO · Evento RECHAZADO: {(partner or {}).get('name','')}"
                 title_line = f"Evento rechazado (no publicado): {event['title']}"
+            elif llm_down:
+                subject = f"AMO · Moderación IA NO disponible — evento en cola sin revisar: {(partner or {}).get('name','')}"
+                title_line = f"La IA no pudo moderar (servicio no disponible) — evento en cola, no publicado: {event['title']}"
             else:
                 subject = f"AMO · Evento en revisión (no publicado): {(partner or {}).get('name','')}"
                 title_line = f"Evento pendiente de revisión — aún no publicado: {event['title']}"
@@ -1131,9 +1141,13 @@ async def business_create_event(request: Request):
         try:
             import telegram_alerts as _tg_alerts
             pending_n = await db.partner_events.count_documents({"moderation_status": "pending"})
-            head = ("⛔ Evento rechazado por IA — NO publicado" if verdict == "REJECT"
-                    else "🔎 Evento de partner EN REVISIÓN — NO publicado")
-            await _tg_alerts.send("\n".join([
+            if verdict == "REJECT":
+                head = "⛔ Evento rechazado por IA — NO publicado"
+            elif llm_down:
+                head = "⚠️ Moderación IA NO DISPONIBLE — evento en cola SIN revisar (no publicado)"
+            else:
+                head = "🔎 Evento de partner EN REVISIÓN — NO publicado"
+            _tg_res = await _tg_alerts.send("\n".join([
                 head,
                 f"{(partner or {}).get('name', '')} · {event['title']}",
                 f"Fecha del evento: {event['date']} {event.get('start_time') or ''}".strip(),
@@ -1141,6 +1155,11 @@ async def business_create_event(request: Request):
                 f"Pendientes en cola: {pending_n}",
                 "Revisar: https://www.amocartagena.co/business/admin/queue",
             ]))
+            # send() never raises; its return value was ignored, so a dropped alert
+            # (not configured / rate-limited / HTTP error) left no trace at all.
+            if not (_tg_res or {}).get("sent"):
+                logger.warning(f"[AutoVerify] event alert telegram NOT delivered: "
+                               f"{(_tg_res or {}).get('errors') or 'not configured'}")
         except Exception as exc:  # noqa: BLE001
             logger.warning(f"[AutoVerify] event alert telegram failed: {type(exc).__name__}")
 
@@ -2952,13 +2971,18 @@ async def business_update_event(event_id: str, request: Request):
             try:
                 import telegram_alerts as _tg_alerts
                 pending_n = await db.partner_events.count_documents({"moderation_status": "pending"})
-                await _tg_alerts.send("\n".join([
-                    "🔎 Edición dejó un evento EN REVISIÓN — ya no está publicado",
+                _llm_down = "llm_unavailable" in (mod.get("issues") or [])
+                _tg_res = await _tg_alerts.send("\n".join([
+                    ("⚠️ Moderación IA NO DISPONIBLE — la edición dejó el evento en cola SIN revisar (ya no está publicado)"
+                     if _llm_down else "🔎 Edición dejó un evento EN REVISIÓN — ya no está publicado"),
                     f"{(partner or {}).get('name', '')} · {new_title}",
                     f"Motivo IA: {str(mod.get('reason', ''))[:180]}",
                     f"Pendientes en cola: {pending_n}",
                     "Revisar: https://www.amocartagena.co/business/admin/queue",
                 ]))
+                if not (_tg_res or {}).get("sent"):
+                    logger.warning(f"[AutoVerify] edit alert telegram NOT delivered: "
+                                   f"{(_tg_res or {}).get('errors') or 'not configured'}")
             except Exception as exc:  # noqa: BLE001
                 logger.warning(f"[AutoVerify] edit alert telegram failed: {type(exc).__name__}")
 
@@ -8703,6 +8727,10 @@ app.include_router(_tickets.router, prefix="/api")
 # Maintenance ops (cron-secret only). Mounted before api_router like its siblings.
 _maintenance.init(db_=db)
 app.include_router(_maintenance.router, prefix="/api")
+
+# Partner-events sweep cron (cron-secret only), same mounting rule.
+_partner_events_sweep.init(db_=db)
+app.include_router(_partner_events_sweep.router, prefix="/api")
 
 app.include_router(api_router)
 

@@ -2188,6 +2188,16 @@ async def _send_digest(db_: Any, now: datetime) -> None:
             lines.append(f"Pendientes de revisión: {review} (panel admin)")
     except Exception as exc:  # noqa: BLE001
         logger.error("[events] digest build failed: %s", type(exc).__name__)
+    # Partner-submitted events waiting for a human (P0-B, audit 2026-10-01): the
+    # digest counted city_events only, so a stale partner queue (Casa Bohème,
+    # Aug 22 → Sep 29) never appeared here. Own try-block: never costs the rest.
+    try:
+        import partner_events_sweep as _pes  # lazy — no import cycle at module load
+        pe = await _pes.pending_summary(db_, now)
+        tail = f" · el más antiguo lleva {pe['oldest_age_h']} h" if pe.get("oldest_age_h") is not None else ""
+        lines.append(f"Eventos de partners pendientes de revisión: {pe['count']}{tail}")
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[events] digest partner-events summary failed: %s", type(exc).__name__)
     await telegram_alerts.digest(f"AMO · Agenda · resumen {today}", lines)
 
 

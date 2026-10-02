@@ -735,11 +735,13 @@ def test_vercel_crons() -> None:
     assert ("/api/admin/events/sentinel", "*/15 * * * *") in crons
     assert ("/api/admin/events/reminders", "*/15 * * * *") in crons
     assert not any(p.startswith("/api/admin/events/sentinel?") for p, _s in crons), "one sentinel cron (auto slot)"
-    assert len(cfg["crons"]) == 6
+    assert len(cfg["crons"]) == 7
     assert ("/api/admin/demand/refresh?days=30", "0 10 * * 1") in crons, "existing crons kept"
     assert ("/api/admin/local-picks/refresh", "0 8 * * *") in crons
     # LENSES (docs/lenses/DESIGN.md §3): cruise-schedule cache refresh, hide-on-fail.
     assert ("/api/admin/lenses/cruise-pull", "0 */6 * * *") in crons
+    # P0-B (audit 2026-10-01): partner-events dead-letter sweep (expire + stale-queue alert).
+    assert ("/api/cron/partner-events/sweep", "*/30 * * * *") in crons
 
 
 def test_dump_static_never_writes_events_concerts_or_seasons_data() -> None:

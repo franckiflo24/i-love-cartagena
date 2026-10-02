@@ -24,6 +24,10 @@
     {
       "path": "/api/admin/lenses/cruise-pull",
       "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/partner-events/sweep",
+      "schedule": "*/30 * * * *"
     }
   ],
   "builds": [
