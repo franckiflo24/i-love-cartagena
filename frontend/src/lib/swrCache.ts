@@ -29,13 +29,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // files are `[]`, so a backend blip told signed-in users they had no
 // reservations/tickets/favorites, and a stripped ?date=/?partner_id= served
 // unrelated rows as if they matched. (Owned here so api.ts and the cache agree.)
-export const PRIVATE_PATH = /^\/(auth|business|admin|reservations|rewards\/me|favorites|notifications|my-week|city-pass\/mine|city-pass\/qr|tickets|experience-bookings|port-tax\/my-tickets|calendar|profile|passport|for-you|intel|itineraries|agent)(\/|\?|$)/;
+// trips + payments added 2026-10-02: a trip doc and a payment-by-reference
+// result are per-user. Without 'trips'/'payments' here they cached under the
+// shared 'anon' scope, so /trips/{id} and /payments/by-reference/{ref} could be
+// served to another account (or an anon viewer) on a cache hit, and replayed on
+// a 5xx. (/trips/shared/{code} is a public guest view — being private just means
+// it isn't cached, which is correct, not a regression.)
+export const PRIVATE_PATH = /^\/(auth|business|admin|reservations|rewards\/me|favorites|notifications|my-week|city-pass\/mine|city-pass\/qr|tickets|experience-bookings|port-tax\/my-tickets|calendar|profile|passport|for-you|intel|itineraries|trips|payments|agent)(\/|\?|$)/;
 
 // Never worth caching: per-query computations, auth handshakes, health pings,
 // admin intel. A 'no' here means api.get neither writes nor recovers from cache.
 // tickets + city-pass/qr: a cached rotating wire is a DEAD QR replayed with a live
 // countdown — never store them (the tickets client also bypasses api.get entirely).
-export const NO_CACHE_PATH = /^\/(search|auth|health|intel|admin|tickets|city-pass\/qr)(\/|\?|$)/;
+export const NO_CACHE_PATH = /^\/(search|auth|health|intel|admin|tickets|city-pass\/qr|payments)(\/|\?|$)/;
 
 export const SWR_NS = 'swr:v1:';
 export const SWR_TTL_MS = 7 * 24 * 3600 * 1000;
