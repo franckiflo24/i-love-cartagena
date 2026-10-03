@@ -18,7 +18,8 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
-import { api } from '../../src/constants/api';
+import { api, isAuthStatus } from '../../src/constants/api';
+import LoadError from '../../src/components/LoadError';
 import { useTr } from '../../src/i18n/autoTr';
 import { useLang } from '../../src/context/LanguageContext';
 import { formatShortDate } from '../../src/lib/formatDate';
@@ -76,23 +77,31 @@ export default function MyReservations() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
-  // A failed load must not look like "you have no reservations" — track it so the
-  // empty branch can show a retryable error state instead (Alert is a web no-op).
+  // A failed load must not look like "you have no reservations" (P1-9). Two distinct
+  // failures: 401/403 = signed out → the sign-in state; anything else = an outage →
+  // <LoadError/> + retry, keeping the last-good list. Never a raw "GET … failed: 401" dialog.
   const [error, setError] = useState(false);
+  const [needsLogin, setNeedsLogin] = useState(false);
 
   const load = useCallback(async () => {
     try {
       setError(false);
       const res = await api.get('/reservations/my');
       setData(res);
-    } catch (e: any) {
-      setError(true);
-      Alert.alert(tr('Error'), String(e?.message || 'No se pudo cargar tus reservas'));
+      setNeedsLogin(false);
+    } catch (e) {
+      if (isAuthStatus(e)) {
+        setData(null);
+        setNeedsLogin(true);
+      } else {
+        console.error('[MyReservations] /reservations/my', e);
+        setError(true);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [tr]);
+  }, []);
 
   useEffect(() => { load(); }, [load]);
 
@@ -177,17 +186,30 @@ export default function MyReservations() {
         contentContainerStyle={{ padding: SPACING.md, paddingBottom: 60 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
       >
-        {list.length === 0 ? (
-          error ? (
-            <View style={styles.empty}>
-              <Ionicons name="cloud-offline-outline" size={48} color={COLORS.textMuted} />
-              <Text style={styles.emptyText}>{tr('No pudimos cargar la información')}</Text>
-              <TouchableOpacity style={styles.emptyBtn} onPress={() => { setLoading(true); load(); }}>
-                <Ionicons name="refresh" size={16} color={COLORS.white} />
-                <Text style={styles.emptyBtnText}>{tr('Reintentar')}</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
+        {/* Outage: shown above the (last-good) list, or alone when there is nothing to show */}
+        {error ? (
+          <LoadError
+            message={tr('No se pudo cargar')}
+            retryLabel={tr('reintentar')}
+            onRetry={() => { setLoading(true); load(); }}
+            style={{ marginHorizontal: 0 }}
+            testID="reservations-error"
+          />
+        ) : null}
+        {needsLogin ? (
+          <View style={styles.empty}>
+            <Ionicons name="lock-closed-outline" size={48} color={COLORS.textMuted} />
+            <Text style={styles.emptyText}>{tr('Inicia sesión para ver tus reservas')}</Text>
+            <TouchableOpacity
+              style={styles.emptyBtn}
+              onPress={() => router.push({ pathname: '/login' as any, params: { next: '/reservations' } })}
+            >
+              <Ionicons name="log-in-outline" size={16} color={COLORS.white} />
+              <Text style={styles.emptyBtnText}>{tr('Iniciar sesión')}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : list.length === 0 ? (
+          error ? null : (
           <View style={styles.empty}>
             <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
             <Text style={styles.emptyText}>

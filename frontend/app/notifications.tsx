@@ -4,7 +4,8 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
-import { api } from '../src/constants/api';
+import { api, isAuthStatus } from '../src/constants/api';
+import LoadError from '../src/components/LoadError';
 import { useAuth } from '../src/context/AuthContext';
 import { useTr } from '../src/i18n/autoTr';
 
@@ -70,6 +71,11 @@ export default function NotificationsScreen() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // P1-9: a failed load used to leave [] on screen → "No hay notificaciones". 401/403 =
+  // the session is gone (sign-in empty); anything else = an outage → <LoadError/> + retry,
+  // keeping the last-good list.
+  const [loadError, setLoadError] = useState(false);
+  const [needsLogin, setNeedsLogin] = useState(false);
 
   const load = useCallback(async () => {
     if (!user) {
@@ -79,12 +85,23 @@ export default function NotificationsScreen() {
     try {
       const data = await api.get('/notifications');
       setNotifications(Array.isArray(data) ? data : []);
+      setLoadError(false);
+      setNeedsLogin(false);
     } catch (e) {
-      console.error(e);
+      if (isAuthStatus(e)) {
+        setNotifications([]);
+        setLoadError(false);
+        setNeedsLogin(true);
+      } else {
+        console.error('[Notifications] load', e);
+        setLoadError(true);
+      }
     }
     setLoading(false);
     setRefreshing(false);
   }, [user]);
+
+  const retry = () => { setLoading(true); load(); };
 
   // Reload every time the screen comes into focus (so new confirmations show up immediately)
   useFocusEffect(useCallback(() => { load(); }, [load]));
@@ -159,19 +176,40 @@ export default function NotificationsScreen() {
       >
         {loading ? (
           <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 40 }} />
-        ) : !user ? (
+        ) : !user || needsLogin ? (
           <View style={styles.empty}>
             <Ionicons name="notifications-off-outline" size={48} color={COLORS.textMuted} />
             <Text style={styles.emptyText}>{tr('Inicia sesión para ver notificaciones')}</Text>
           </View>
         ) : notifications.length === 0 ? (
+          loadError ? (
+            <LoadError
+              message={tr('No se pudo cargar')}
+              retryLabel={tr('reintentar')}
+              onRetry={retry}
+              style={{ marginHorizontal: 0 }}
+              testID="notifications-error"
+            />
+          ) : (
           <View style={styles.empty}>
             <Ionicons name="notifications-outline" size={48} color={COLORS.textMuted} />
             <Text style={styles.emptyText}>{tr('No hay notificaciones')}</Text>
             <Text style={styles.emptyHint}>{tr('Aquí verás confirmaciones de reservas, eventos y actualizaciones de partners.')}</Text>
           </View>
+          )
         ) : (
-          notifications.map(notif => {
+          <>
+          {/* A failed refresh keeps the last-good list on screen and says so */}
+          {loadError ? (
+            <LoadError
+              message={tr('No se pudo cargar')}
+              retryLabel={tr('reintentar')}
+              onRetry={retry}
+              style={{ marginHorizontal: 0 }}
+              testID="notifications-error"
+            />
+          ) : null}
+          {notifications.map(notif => {
             const kind = notif.kind || notif.type || 'general';
             const meta = NOTIF_META[kind] || NOTIF_META.general;
             const body = notif.body || notif.message || '';
@@ -204,7 +242,8 @@ export default function NotificationsScreen() {
                 {!notif.is_read && <View style={[styles.unreadDot, { backgroundColor: meta.color }]} />}
               </TouchableOpacity>
             );
-          })
+          })}
+          </>
         )}
         <View style={{ height: SPACING.xxl }} />
       </ScrollView>

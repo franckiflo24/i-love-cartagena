@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/src/constants/theme';
-import { api } from '@/src/constants/api';
+import { api, isAuthStatus } from '@/src/constants/api';
+import LoadError from '@/src/components/LoadError';
+import { useAuth } from '@/src/context/AuthContext';
 import { useLang } from '@/src/context/LanguageContext';
 import { myReferral } from '@/src/lib/referral';
 import { hapticLight } from '@/src/lib/haptics';
@@ -94,7 +96,8 @@ type Offer = {
 };
 
 type RewardsData = {
-  account: { member_since: string };
+  // The backend account document carries `created_at` (rewards.py never sets `member_since`).
+  account?: { member_since?: string; created_at?: string } | null;
   tier: MemberTier;
   tier_label: string;
   points_balance: number;
@@ -107,6 +110,17 @@ type RewardsData = {
   offers: Offer[];
   points_config: Record<string, number>;
 };
+
+// "Member since" is a real date from the account, or nothing. It used to fall back to
+// `new Date()`, which printed "Member since <this month>" on every real card too —
+// the backend only ever sends `created_at`.
+function memberSinceLabel(account: RewardsData['account']): string | null {
+  const raw = account?.member_since ?? account?.created_at;
+  if (!raw) return null;
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return null;
+  try { return d.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }); } catch { return null; }
+}
 
 // ─── Progress Bar ─────────────────────────────────────────────────────────────
 
@@ -256,39 +270,54 @@ export default function RewardsHub() {
   const { s } = useLang();
   const tr = useTr();
   const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
   const [data, setData] = useState<RewardsData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  // P1-9: this screen used to paint a FABRICATED default card (tier Explorer, 0 pts,
+  // member-since = now) for anonymous/offline users and kept it on ANY fetch failure.
+  // A card now only ever renders from a real /rewards/me payload (`data` is set from
+  // nothing else), so the states are:
+  //   anonymous or 401/403 → sign-in gate · outage / bad payload → `data` stays null →
+  //   the <LoadError/> screen + retry. Never a made-up card.
+  const [needsLogin, setNeedsLogin] = useState(false);
 
-  // Show default Explorer card immediately — no skeleton wait
-  useEffect(() => {
-    if (!data) {
-      setData({
-        tier: 'explorer',
-        tier_label: 'Explorer',
-        points_balance: 0,
-        points_to_next: 500,
-        next_tier: 'voyager',
-        progress_pct: 0,
-        account: { member_since: new Date().toISOString() },
-        recent_history: [],
-        offers: [],
-      } as any);
-    }
-    // Hydrate from backend in background
-    (async () => {
-      try {
-        const result = await api.get('/rewards/me');
-        if (result && !Array.isArray(result) && result.tier) {
-          setData(result);
-        }
-      } catch {
-        // 401 or network — keep default Explorer card
+  const load = useCallback(async () => {
+    try {
+      const result = await api.get('/rewards/me');
+      if (result && typeof result === 'object' && !Array.isArray(result) && result.tier) {
+        setData(result);
+        setNeedsLogin(false);
+      } else {
+        // 200 but not a rewards payload (static mode / a proxy page): not a card we can vouch for.
+        console.error('[Rewards] /rewards/me returned an unexpected payload');
       }
-    })();
+    } catch (e) {
+      if (isAuthStatus(e)) {
+        setData(null);
+        setNeedsLogin(true);
+      } else {
+        console.error('[Rewards] /rewards/me', e);
+      }
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) {
+  useEffect(() => {
+    if (authLoading) return;
+    // One account's card must never survive into another account's (failed) load.
+    setData(null);
+    setNeedsLogin(false);
+    if (!user) {
+      // Anonymous: no card to show and no pointless 401 call — the sign-in gate renders.
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    load();
+  }, [authLoading, user, load]);
+
+  if (authLoading || loading) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} />
@@ -296,12 +325,48 @@ export default function RewardsHub() {
     );
   }
 
+  const header = (
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>{s('rewards_title')}</Text>
+      <View style={{ width: 40 }} />
+    </View>
+  );
+
+  if (!user || needsLogin) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        {header}
+        <View style={styles.errorWrap} testID="rewards-signin-gate">
+          <Ionicons name="lock-closed-outline" size={44} color={COLORS.textMuted} />
+          <Text style={styles.errorText}>{tr('Inicia sesión para ver tus recompensas')}</Text>
+          <TouchableOpacity
+            style={styles.gateBtn}
+            onPress={() => router.push({ pathname: '/login' as any, params: { next: '/rewards' } })}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.gateBtnText}>{tr('Iniciar sesión')}</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   if (!data) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
+        {header}
         <View style={styles.errorWrap}>
-          <Ionicons name="compass" size={40} color={COLORS.primary} />
-          <Text style={styles.errorText}>{tr('Cargando tu perfil de recompensas...')}</Text>
+          <Ionicons name="cloud-offline-outline" size={40} color={COLORS.textMuted} />
+          <LoadError
+            message={tr('No se pudo cargar')}
+            retryLabel={tr('reintentar')}
+            onRetry={() => { setLoading(true); load(); }}
+            style={{ alignSelf: 'stretch' }}
+            testID="rewards-error"
+          />
         </View>
       </SafeAreaView>
     );
@@ -309,8 +374,7 @@ export default function RewardsHub() {
 
   const tier = (data.tier ?? 'explorer') as MemberTier;
   const tierCfg = TIER_CONFIG[tier] ?? TIER_CONFIG.explorer;
-  let memberSince = 'junio 2026';
-  try { memberSince = new Date(data.account?.member_since ?? Date.now()).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }); } catch {}
+  const memberSince = memberSinceLabel(data.account);
 
   const handleRedeem = (_offer: Offer) => {
     // Route to the offers screen where redemption ACTUALLY happens
@@ -321,14 +385,7 @@ export default function RewardsHub() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{s('rewards_title')}</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      {header}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
@@ -349,7 +406,7 @@ export default function RewardsHub() {
             </View>
             <View style={styles.heroTopText}>
               <Text style={styles.heroTierLabel}>{tierCfg.label.toUpperCase()}</Text>
-              <Text style={styles.heroMemberSince}>Member since {memberSince}</Text>
+              {memberSince ? <Text style={styles.heroMemberSince}>Member since {memberSince}</Text> : null}
             </View>
           </View>
 
@@ -589,8 +646,10 @@ const styles = StyleSheet.create({
   cardCtaLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
   cardCtaText: { fontSize: 15, color: COLORS.textMain, ...FONTS.semibold },
 
-  errorWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: SPACING.md },
+  errorWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: SPACING.md, paddingHorizontal: SPACING.lg },
   errorText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center' },
+  gateBtn: { paddingHorizontal: SPACING.lg, paddingVertical: 11, borderRadius: RADIUS.full, backgroundColor: COLORS.primary },
+  gateBtnText: { fontSize: 14, color: COLORS.white, ...FONTS.bold },
 
   // Invite card
   inviteCard: {

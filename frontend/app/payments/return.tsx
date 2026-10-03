@@ -11,13 +11,21 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
-import { api } from '../../src/constants/api';
+import { api, isAuthStatus, isGoneStatus } from '../../src/constants/api';
 import { describeStatus } from '../../src/lib/wompi';
 import { useTr } from '../../src/i18n/autoTr';
 import { goHome, goTab } from '../../src/lib/nav';
 
 const fmtCOP = (n: number) =>
   '$ ' + (Number(n) || 0).toLocaleString('es-CO', { maximumFractionDigits: 0 });
+
+// P1-9: why this screen cannot show a REAL payment status. It used to swallow every
+// poll error and keep the default "Pago en proceso… PENDING" forever — even for a
+// link with no reference at all. null = polling normally.
+//   no_reference — the URL carries no reference: there is nothing to look up
+//   unverified   — N consecutive polls failed (outage), or the server answered 401/403/404
+type PollFail = 'no_reference' | 'unverified';
+const MAX_FAILED_POLLS = 4; // consecutive failures tolerated (each poll is 2.5 s apart + request time)
 
 export default function PaymentReturn() {
   const tr = useTr();
@@ -35,39 +43,70 @@ export default function PaymentReturn() {
   const [status, setStatus] = useState<string>('pending');
   const [loading, setLoading] = useState(true);
   const [polls, setPolls] = useState(0);
+  const [pollFail, setPollFail] = useState<PollFail | null>(null);
+  const [attempt, setAttempt] = useState(0); // bumped by "Reintentar" to restart polling
 
   useEffect(() => {
     let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let failures = 0;
+    setPollFail(null);
     if (!reference) {
+      // Nothing to poll: never an endless "Pago en proceso… PENDING" for a reference-less link.
+      // Set in the EFFECT, not derived at render: the static export prerenders this route with
+      // no URL params, so a render-time branch on `reference` would differ from the client's
+      // first render and break hydration (React #418).
       setLoading(false);
+      setPollFail('no_reference');
       return;
     }
+    setLoading(true);
+    setPolls(0);
     const tick = async () => {
       try {
         const p = await api.get(`/payments/by-reference/${reference}`);
         if (cancelled) return;
+        failures = 0;
         setPayment(p);
         setStatus(p?.status || 'pending');
         if (p?.status && p.status !== 'pending') {
           setLoading(false);
           return;
         }
-      } catch { /* payment status poll failed — keep retrying until timeout */ }
+      } catch (e) {
+        if (cancelled) return;
+        // 401/403 (signed out / not your payment) and 404 (no such reference) are ANSWERS —
+        // polling again cannot change them. Anything else is an outage: tolerate a few
+        // blips, then stop claiming the payment is "en proceso" when we cannot even ask.
+        failures += 1;
+        console.error('[PaymentReturn] status poll failed', failures, e);
+        if (isAuthStatus(e) || isGoneStatus(e) || failures >= MAX_FAILED_POLLS) {
+          setLoading(false);
+          setPollFail('unverified');
+          return;
+        }
+      }
       setPolls((n) => n + 1);
-      if (!cancelled) setTimeout(tick, 2500);
+      if (!cancelled) timer = setTimeout(tick, 2500);
     };
     tick();
     return () => {
       cancelled = true;
+      if (timer) clearTimeout(timer);
     };
-  }, [reference]);
+  }, [reference, attempt]);
 
   // Stop polling after ~60s — payment will still arrive via webhook
   useEffect(() => {
     if (polls > 24) setLoading(false);
   }, [polls]);
 
-  const meta = describeStatus(status);
+  // When we cannot reach a real status, say so — never the default "pending".
+  const failReason: PollFail | null = pollFail;
+  const failed = failReason !== null;
+  const meta = failed
+    ? { title: failReason === 'no_reference' ? 'Falta la referencia del pago' : 'No pudimos verificar tu pago', tone: 'warning' as const }
+    : describeStatus(status);
   const toneColor =
     meta.tone === 'success'
       ? '#22C55E'
@@ -76,8 +115,9 @@ export default function PaymentReturn() {
         : meta.tone === 'warning'
           ? '#F59E0B'
           : COLORS.primary;
-  const icon =
-    meta.tone === 'success'
+  const icon = failed
+    ? ('alert-circle' as const)
+    : meta.tone === 'success'
       ? ('checkmark-circle' as const)
       : meta.tone === 'error'
         ? ('close-circle' as const)
@@ -112,7 +152,7 @@ export default function PaymentReturn() {
 
       <ScrollView contentContainerStyle={{ padding: SPACING.lg, paddingBottom: 80 }}>
         <View style={[styles.bigIcon, { backgroundColor: toneColor + '22' }]}>
-          {loading && status === 'pending' ? (
+          {loading && !failed && status === 'pending' ? (
             <ActivityIndicator size="large" color={toneColor} />
           ) : (
             <Ionicons name={icon} size={64} color={toneColor} />
@@ -121,7 +161,13 @@ export default function PaymentReturn() {
 
         <Text style={[styles.title, { color: toneColor }]}>{tr(meta.title)}</Text>
 
-        {!!payment?.description && <Text style={styles.subtitle}>{payment.description}</Text>}
+        {failed ? (
+          <Text style={styles.subtitle} testID="payment-return-error">
+            {failReason === 'no_reference'
+              ? tr('Este enlace no incluye la referencia de tu pago, así que no podemos mostrarte su estado.')
+              : tr('No pudimos consultar el estado de tu pago. Revisa tu conexión y que hayas iniciado sesión con la misma cuenta con la que pagaste. Si ya completaste el pago en Wompi, puedes cerrar esta pantalla y revisarlo más tarde en tu perfil.')}
+          </Text>
+        ) : !!payment?.description && <Text style={styles.subtitle}>{payment.description}</Text>}
 
         <View style={styles.card}>
           <Row label="Referencia" value={reference || '—'} />
@@ -135,10 +181,11 @@ export default function PaymentReturn() {
           {!!wompiTxId && !payment?.wompi_transaction_id && (
             <Row label="ID Wompi" value={wompiTxId} small />
           )}
-          <Row label="Estado" value={status.toUpperCase()} bold />
+          {/* No "Estado: PENDING" when we do not actually know the status */}
+          {!failed && <Row label="Estado" value={status.toUpperCase()} bold />}
         </View>
 
-        {status === 'pending' && (
+        {!failed && status === 'pending' && (
           <View style={styles.helpBox}>
             <Ionicons name="information-circle" size={16} color={COLORS.textMuted} />
             <Text style={styles.helpText}>
@@ -159,6 +206,18 @@ export default function PaymentReturn() {
           <TouchableOpacity
             style={[styles.primaryBtn, { backgroundColor: COLORS.primary }]}
             onPress={() => router.back()}
+          >
+            <Text style={styles.primaryBtnText}>{tr('Reintentar')}</Text>
+          </TouchableOpacity>
+        )}
+
+        {failReason === 'unverified' && (
+          <TouchableOpacity
+            style={[styles.primaryBtn, { backgroundColor: COLORS.primary }]}
+            onPress={() => setAttempt((a) => a + 1)}
+            accessibilityRole="button"
+            accessibilityLabel={tr('Reintentar')}
+            testID="payment-return-retry"
           >
             <Text style={styles.primaryBtnText}>{tr('Reintentar')}</Text>
           </TouchableOpacity>

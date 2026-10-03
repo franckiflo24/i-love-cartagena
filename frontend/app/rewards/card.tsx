@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/src/constants/theme';
-import { api } from '@/src/constants/api';
+import { api, isAuthStatus } from '@/src/constants/api';
+import LoadError from '@/src/components/LoadError';
 import { useAuth } from '@/src/context/AuthContext';
 import { useLang } from '@/src/context/LanguageContext';
 import { useTr } from '@/src/i18n/autoTr';
@@ -40,12 +41,24 @@ const TIER_CONFIG: Record<
 };
 
 type RewardsData = {
-  account: { member_since: string };
+  // The backend account document carries `created_at` (rewards.py never sets `member_since`).
+  account?: { member_since?: string; created_at?: string } | null;
   tier: MemberTier;
   tier_label: string;
   points_balance: number;
   benefits: string[];
 };
+
+// "Member since" is a real date from the account, or nothing. It used to fall back to
+// `new Date()`, which printed "Member since <this month>" on every real card too —
+// the backend only ever sends `created_at`.
+function memberSinceLabel(account: RewardsData['account']): string | null {
+  const raw = account?.member_since ?? account?.created_at;
+  if (!raw) return null;
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return null;
+  try { return d.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }); } catch { return null; }
+}
 
 // ─── Card front ───────────────────────────────────────────────────────────────
 
@@ -58,7 +71,7 @@ function CardFront({
   userName: string;
   userId: string;
   tier: MemberTier;
-  memberSince: string;
+  memberSince: string | null;
 }) {
   const cfg = TIER_CONFIG[tier] ?? TIER_CONFIG.explorer;
   const qrValue = `AMO-MEMBER-${userId}`;
@@ -100,7 +113,7 @@ function CardFront({
       <View style={frontStyles.bottomRow}>
         <View>
           <Text style={frontStyles.userName}>{userName}</Text>
-          <Text style={frontStyles.memberSince}>Member since {memberSince}</Text>
+          {memberSince ? <Text style={frontStyles.memberSince}>Member since {memberSince}</Text> : null}
         </View>
       </View>
 
@@ -250,10 +263,15 @@ export default function AmoCardScreen() {
   const { s } = useLang();
   const tr = useTr();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
 
   const [data, setData] = useState<RewardsData | null>(null);
   const [loading, setLoading] = useState(true);
+  // P1-9: the catch used to stub a FABRICATED Explorer card (0 pts, member-since = now)
+  // for anonymous users and on any outage — and CardFront printed a "AMO-MEMBER-guest" QR.
+  // `data` is now set from a real /rewards/me payload only, so: anonymous or 401/403 →
+  // sign-in gate; outage / bad payload → `data` stays null → <LoadError/> + retry.
+  const [needsLogin, setNeedsLogin] = useState(false);
   const [isFront, setIsFront] = useState(true);
 
   // Flip animation
@@ -294,28 +312,45 @@ export default function AmoCardScreen() {
     outputRange: ['180deg', '360deg'],
   });
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const result = await api.get('/rewards/me');
+  const load = useCallback(async () => {
+    try {
+      const result = await api.get('/rewards/me');
+      if (result && typeof result === 'object' && !Array.isArray(result) && result.tier) {
         setData(result);
-      } catch {
-        // 401 or network — stub Explorer card, single call, no retry
-        console.warn('[AmoCard] /rewards/me unavailable — showing defaults');
-        setData({ tier: 'explorer', points_balance: 0, account: { member_since: new Date().toISOString() } } as any);
-      } finally {
-        setLoading(false);
+        setNeedsLogin(false);
+      } else {
+        // 200 but not a rewards payload (static mode / a proxy page): not a card we can vouch for.
+        console.error('[AmoCard] /rewards/me returned an unexpected payload');
       }
-    };
-    load();
+    } catch (e) {
+      if (isAuthStatus(e)) {
+        setData(null);
+        setNeedsLogin(true);
+      } else {
+        console.error('[AmoCard] /rewards/me', e);
+      }
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    if (authLoading) return;
+    // One account's card must never survive into another account's (failed) load.
+    setData(null);
+    setNeedsLogin(false);
+    if (!user) {
+      // Anonymous: no card to show and no pointless 401 call — the sign-in gate renders.
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    load();
+  }, [authLoading, user, load]);
 
   const tier = ((data?.tier) ?? 'explorer') as MemberTier;
   const cfg = TIER_CONFIG[tier] ?? TIER_CONFIG.explorer;
-  let memberSince = 'junio 2026';
-  try {
-    memberSince = new Date(data?.account?.member_since ?? Date.now()).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' });
-  } catch { /* fallback already set */ }
+  const memberSince = memberSinceLabel(data?.account);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -332,8 +367,28 @@ export default function AmoCardScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {loading ? (
+        {authLoading || loading ? (
           <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: SPACING.xxl }} />
+        ) : !user || needsLogin ? (
+          <View style={styles.gate} testID="card-signin-gate">
+            <Ionicons name="lock-closed-outline" size={44} color={COLORS.textMuted} />
+            <Text style={styles.gateText}>{tr('Inicia sesión para ver tu tarjeta AMO')}</Text>
+            <TouchableOpacity
+              style={styles.gateBtn}
+              onPress={() => router.push({ pathname: '/login' as any, params: { next: '/rewards/card' } })}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.gateBtnText}>{tr('Iniciar sesión')}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : !data ? (
+          <LoadError
+            message={tr('No se pudo cargar')}
+            retryLabel={tr('reintentar')}
+            onRetry={() => { setLoading(true); load(); }}
+            style={{ marginHorizontal: 0, marginTop: SPACING.xl }}
+            testID="card-error"
+          />
         ) : (
           <>
             {/* Flip hint */}
@@ -355,8 +410,8 @@ export default function AmoCardScreen() {
                 ]}
               >
                 <CardFront
-                  userName={user?.name ?? 'AMO Member'}
-                  userId={user?.user_id ?? 'guest'}
+                  userName={user.name ?? 'AMO Member'}
+                  userId={user.user_id}
                   tier={tier}
                   memberSince={memberSince}
                 />
@@ -400,14 +455,18 @@ export default function AmoCardScreen() {
                   <Text style={styles.infoValue}>{cfg.label}</Text>
                 </View>
               </View>
-              <View style={styles.infoSep} />
-              <View style={styles.infoRow}>
-                <Ionicons name="calendar-outline" size={18} color={cfg.accent} />
-                <View style={styles.infoText}>
-                  <Text style={styles.infoLabel}>{tr('Miembro desde')}</Text>
-                  <Text style={styles.infoValue}>{memberSince}</Text>
-                </View>
-              </View>
+              {memberSince ? (
+                <>
+                  <View style={styles.infoSep} />
+                  <View style={styles.infoRow}>
+                    <Ionicons name="calendar-outline" size={18} color={cfg.accent} />
+                    <View style={styles.infoText}>
+                      <Text style={styles.infoLabel}>{tr('Miembro desde')}</Text>
+                      <Text style={styles.infoValue}>{memberSince}</Text>
+                    </View>
+                  </View>
+                </>
+              ) : null}
               <View style={styles.infoSep} />
               <View style={styles.infoRow}>
                 <Ionicons name="qr-code-outline" size={18} color={cfg.accent} />
@@ -523,6 +582,12 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
   },
   infoSep: { height: 1, backgroundColor: COLORS.border, marginLeft: SPACING.lg + 18 + SPACING.md },
+
+  // P1-9 sign-in gate (anonymous / signed-out): no card is ever painted for these users
+  gate: { alignItems: 'center', gap: SPACING.md, paddingTop: SPACING.xxl, paddingHorizontal: SPACING.lg },
+  gateText: { fontSize: 14, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center' },
+  gateBtn: { paddingHorizontal: SPACING.lg, paddingVertical: 11, borderRadius: RADIUS.full, backgroundColor: COLORS.primary },
+  gateBtnText: { fontSize: 14, color: COLORS.white, ...FONTS.bold },
   infoText: { flex: 1 },
   infoLabel: { fontSize: 11, color: COLORS.textMuted, ...FONTS.regular },
   infoValue: { fontSize: 14, color: COLORS.textMain, ...FONTS.semibold, marginTop: 2 },

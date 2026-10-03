@@ -27,6 +27,15 @@ export const AUTO_TR: Dict = {
   'reintentar': { en: 'retry', fr: 'réessayer', pt: 'tentar novamente' },
   // P1-9 — honest not-found / sign-in copy for screens that used to blame every failure on "not found".
   'Experiencia no encontrada': { en: 'Experience not found', fr: 'Expérience introuvable', pt: 'Experiência não encontrada' },
+  // P1-9 — sign-in gates (anonymous / signed-out) that replace fabricated empty or default-card states.
+  'Inicia sesión para ver tus reservas': { en: 'Sign in to see your reservations', fr: 'Connectez-vous pour voir vos réservations', pt: 'Entre para ver suas reservas' },
+  'Inicia sesión para ver tus recompensas': { en: 'Sign in to see your rewards', fr: 'Connectez-vous pour voir vos récompenses', pt: 'Entre para ver suas recompensas' },
+  'Inicia sesión para ver tu tarjeta AMO': { en: 'Sign in to see your AMO card', fr: 'Connectez-vous pour voir votre carte AMO', pt: 'Entre para ver seu cartão AMO' },
+  // P1-9 — payment return: an honest error instead of an endless "Pago en proceso… PENDING".
+  'Falta la referencia del pago': { en: 'Payment reference missing', fr: 'Référence de paiement manquante', pt: 'Falta a referência do pagamento' },
+  'No pudimos verificar tu pago': { en: "We couldn't verify your payment", fr: 'Impossible de vérifier votre paiement', pt: 'Não foi possível verificar seu pagamento' },
+  'Este enlace no incluye la referencia de tu pago, así que no podemos mostrarte su estado.': { en: "This link doesn't include your payment reference, so we can't show you its status.", fr: "Ce lien ne contient pas la référence de votre paiement ; nous ne pouvons donc pas afficher son statut.", pt: 'Este link não inclui a referência do seu pagamento, por isso não podemos mostrar o status.' },
+  'No pudimos consultar el estado de tu pago. Revisa tu conexión y que hayas iniciado sesión con la misma cuenta con la que pagaste. Si ya completaste el pago en Wompi, puedes cerrar esta pantalla y revisarlo más tarde en tu perfil.': { en: "We couldn't check the status of your payment. Check your connection and that you're signed in with the same account you paid with. If you already completed the payment in Wompi, you can close this screen and check it later in your profile.", fr: "Nous n'avons pas pu consulter l'état de votre paiement. Vérifiez votre connexion et que vous êtes connecté avec le compte utilisé pour payer. Si vous avez déjà effectué le paiement dans Wompi, vous pouvez fermer cet écran et le consulter plus tard dans votre profil.", pt: 'Não foi possível consultar o status do seu pagamento. Verifique sua conexão e se você entrou com a mesma conta usada no pagamento. Se você já concluiu o pagamento na Wompi, pode fechar esta tela e conferir mais tarde no seu perfil.' },
   // Elite-audit i18n pass (Sep 12) — strings tr()'d but missing, or newly wrapped,
   // on reviewer-path screens (onboarding, complete-profile, port-tax, search, login,
   // admin confirms). Keys that already existed (Continuar/Reintentar/Cancelar/
