@@ -153,12 +153,20 @@ const items = [
   ...(await collect('/data/seasons.json', 'season_id', 'name')),
   ...(await collectLive('/api/partner-events', 'event_id', 'title')),
   ...(await collectLive('/api/experiences/featured', 'event_id', 'title')),
+  // Live catalog images (the app renders these cross-origin). Flagged ADVISORY:
+  // a dead one WARNs but does not fail the build, because the static
+  // /data/partners.json already carries a placeholder for it and SafeImage falls
+  // back — so a guest sees a category photo, not a broken image. This closes the
+  // blind spot the Oct-2 audit found (25 /api/partners photos 404, invisible to
+  // this check). Null the image_url or supply the photo to clear the warning.
+  ...(await collectLive('/api/partners', 'partner_id', 'name')).map((it) => ({ ...it, advisory: true })),
 ];
 
 const withUrl = items.filter((i) => i.url);
 const empty = items.length - withUrl.length;
 const external = withUrl.filter((i) => i.url.startsWith('http') && !i.url.includes('amocartagena.co')).length;
 const failures = [];
+const advisoryFailures = [];   // live-catalog images that 404 but have a static placeholder (WARN, non-fatal)
 const heavy = [];
 let done = 0;
 
@@ -177,8 +185,14 @@ for (let i = 0; i < urls.length; i += CONCURRENCY) {
     const { ok, status, bytes } = await headOk(abs);
     done++;
     const owners = byUrl.get(abs);
-    if (!ok) for (const it of owners) failures.push({ ...it, status, abs });
-    else if (bytes > MAX_KB * 1024) heavy.push({ abs, kb: Math.round(bytes / 1024), owners: owners.length, first: owners[0] });
+    // A url is advisory only if EVERY owner-field is advisory (a url shared by a
+    // static manifest entry and a live-only one must still fail hard).
+    if (!ok) {
+      const bucket = owners.every((it) => it.advisory) ? advisoryFailures : failures;
+      for (const it of owners) bucket.push({ ...it, status, abs });
+    } else if (bytes > MAX_KB * 1024) {
+      heavy.push({ abs, kb: Math.round(bytes / 1024), owners: owners.length, first: owners[0] });
+    }
   }));
   process.stdout.write(`\r  checking ${done}/${urls.length} unique urls (${withUrl.length} fields)…`);
 }
@@ -189,6 +203,13 @@ if (heavy.length > 0) {
   const total = heavy.reduce((s, h) => s + h.kb, 0);
   console.error(`${STRICT_SIZE ? 'SIZE FAILED' : 'WARN size'}: ${heavy.length} of ${urls.length} images > ${MAX_KB} KB (${Math.round(total / 1024)} MB over the line). Top 10:`);
   for (const h of heavy.slice(0, 10)) console.error(`  ${String(h.kb).padStart(5)} KB  ${h.first.id} ${h.first.name} -> ${h.abs} (${h.first.source}${h.owners > 1 ? `, x${h.owners}` : ''})`);
+}
+
+if (advisoryFailures.length > 0) {
+  const byId = new Map();
+  for (const f of advisoryFailures) if (!byId.has(f.id)) byId.set(f.id, f);
+  console.error(`WARN catalog-photo: ${byId.size} live /api/partners image(s) 404 (SafeImage shows a placeholder — fix the image_url or supply the photo):`);
+  for (const f of [...byId.values()].slice(0, 30)) console.error(`  [${f.status}] ${f.id} ${f.name} -> ${f.abs}`);
 }
 
 if (failures.length === 0 && !(STRICT_SIZE && heavy.length > 0)) {
