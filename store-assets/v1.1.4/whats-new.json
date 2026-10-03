@@ -1,0 +1,7 @@
+{
+  "version": "1.1.4",
+  "whatsNew": {
+    "en-US": "• More reliable everywhere: if the connection drops, screens now say \"try again\" instead of looking empty — your events, tickets, trips and bookings never falsely appear gone\n• Reviews and day-plans load dependably again\n• Your trips and any payment details stay private to your account\n• Clearer messages when something can't load, with one tap to retry\n• Fixes and polish throughout",
+    "es-MX": "• Más confiable en todo: si se cae la conexión, las pantallas dicen \"reintentar\" en lugar de verse vacías — tus eventos, entradas, viajes y reservas nunca aparecen como perdidos por error\n• Las reseñas y los planes del día vuelven a cargar de forma confiable\n• Tus viajes y cualquier dato de pago quedan privados de tu cuenta\n• Mensajes más claros cuando algo no carga, con un toque para reintentar\n• Correcciones y mejoras en toda la app"
+  }
+}
