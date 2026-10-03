@@ -14,6 +14,7 @@ import { api } from '../../src/constants/api';
 import { downscaleForUpload, downscaleUriNative } from '../../src/lib/downscaleImage';
 import { perceptualHash } from '../../src/lib/imageHash';
 import { SafeImage } from '../../src/components/SafeImage';
+import LoadError from '../../src/components/LoadError';
 import { useTr } from '../../src/i18n/autoTr';
 
 // DROP B2 — "Mi contenido": the partner-facing counterpart to the admin
@@ -77,13 +78,21 @@ export default function MyContent() {
   // ── Mis envíos ──
   const [subs, setSubs] = useState<Submissions>(EMPTY_SUBMISSIONS);
   const [subsLoading, setSubsLoading] = useState(true);
+  // P1-9: "fail soft" used to leave EMPTY_SUBMISSIONS on screen → "Aún no has enviado
+  // contenido" (an outage read as "your photos/prices/events are gone"). Keep the
+  // last-good submissions and raise <LoadError/> instead.
+  const [subsError, setSubsError] = useState(false);
 
   const loadSubs = useCallback(async () => {
     if (!token) return;
     try {
       const data = await api.get('/business/submissions', { headers: { Authorization: `Bearer ${token}` } });
       setSubs({ events: data.events || [], media: data.media || [], prices: data.prices || [] });
-    } catch { /* fail soft */ }
+      setSubsError(false);
+    } catch (e) {
+      console.error('[MyContent] /business/submissions', e);
+      setSubsError(true);
+    }
   }, [token]);
 
   useFocusEffect(useCallback(() => {
@@ -292,9 +301,29 @@ export default function MyContent() {
             {subsLoading ? (
               <ActivityIndicator color={COLORS.primary} style={{ marginTop: SPACING.md }} />
             ) : !hasSubs ? (
-              <Text style={styles.empty}>{tr('Aún no has enviado contenido')}</Text>
+              subsError ? (
+                <LoadError
+                  message={tr('No se pudo cargar')}
+                  retryLabel={tr('reintentar')}
+                  onRetry={loadSubs}
+                  style={{ marginHorizontal: 0 }}
+                  testID="business-content-error"
+                />
+              ) : (
+                <Text style={styles.empty}>{tr('Aún no has enviado contenido')}</Text>
+              )
             ) : (
               <>
+                {/* A failed refresh keeps the last-good submissions on screen and says so */}
+                {subsError ? (
+                  <LoadError
+                    message={tr('No se pudo cargar')}
+                    retryLabel={tr('reintentar')}
+                    onRetry={loadSubs}
+                    style={{ marginHorizontal: 0 }}
+                    testID="business-content-error"
+                  />
+                ) : null}
                 {subs.media.map((m: any) => {
                   const meta = statusMeta(m.status);
                   return (

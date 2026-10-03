@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { api } from '../../src/constants/api';
+import LoadError from '../../src/components/LoadError';
 import { useTr } from '../../src/i18n/autoTr';
 import { bogotaToday, bogotaDatePlus } from '../../src/lib/eventTime';
 
@@ -45,6 +46,9 @@ export default function BusinessPromotions() {
 
   const [promos, setPromos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  // P1-9: a failed load used to leave [] → "Aún no has publicado ofertas." (an outage read
+  // as "your offers are gone"). Keep the last-good list and show <LoadError/> instead.
+  const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState(false);
 
   // form
@@ -73,7 +77,11 @@ export default function BusinessPromotions() {
     try {
       const data = await api.get('/business/promotions', { headers: { Authorization: `Bearer ${token}` } });
       setPromos(Array.isArray(data?.promotions) ? data.promotions : []);
-    } catch (e) { console.error('[promotions] load', e); }
+      setLoadError(false);
+    } catch (e) {
+      console.error('[promotions] load', e);
+      setLoadError(true);
+    }
   }, [token]);
 
   useEffect(() => {
@@ -278,7 +286,17 @@ export default function BusinessPromotions() {
             {promos.length > 0 && <Text style={styles.count}>{promos.length}</Text>}
           </View>
 
-          {promos.length === 0 ? (
+          {loadError ? (
+            <LoadError
+              message={tr('No se pudo cargar')}
+              retryLabel={tr('reintentar')}
+              onRetry={load}
+              style={{ marginHorizontal: 0 }}
+              testID="business-promotions-error"
+            />
+          ) : null}
+
+          {promos.length === 0 && !loadError ? (
             <View style={styles.empty}>
               <Ionicons name="megaphone-outline" size={40} color={COLORS.textMuted} />
               <Text style={styles.emptyText}>{tr('Aún no has publicado ofertas.')}</Text>

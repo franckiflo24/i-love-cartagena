@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
+import LoadError from '../../src/components/LoadError';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { bogotaToday } from '../../src/lib/eventTime';
@@ -54,6 +55,11 @@ export default function StatsDetail() {
   const [reservations, setReservations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // P1-9: a failed load used to be swallowed into [] → "0 pendientes… Aún no tienes
+  // reservas" / "0 eventos publicados" (an outage read as "your events are gone").
+  // Keep the last-good rows, raise <LoadError/>, and never render the KPI/empty copy
+  // for data we never actually loaded.
+  const [loadError, setLoadError] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -61,7 +67,7 @@ export default function StatsDetail() {
       if (statType === 'reservations') {
         const data = await api.get('/business/reservations', {
           headers: { Authorization: `Bearer ${token}` },
-        }).catch(() => null);
+        });
         // Backend returns { reservations: [...], upgrade_required: bool, ... }
         const list = Array.isArray(data)
           ? data
@@ -72,10 +78,14 @@ export default function StatsDetail() {
       } else {
         const data = await api.get('/business/events', {
           headers: { Authorization: `Bearer ${token}` },
-        }).catch(() => []);
+        });
         setEvents(Array.isArray(data) ? data : []);
       }
-    } catch (e) { console.error(e); }
+      setLoadError(false);
+    } catch (e) {
+      console.error('[BusinessStats] load', e);
+      setLoadError(true);
+    }
     setLoading(false);
     setRefreshing(false);
   };
@@ -115,6 +125,11 @@ export default function StatsDetail() {
 
   const onRefresh = () => { setRefreshing(true); load(); };
 
+  // KPI banner + empty copy only describe data we really have: after a failed load with
+  // nothing last-good to show, the screen is just the <LoadError/> row.
+  const hasData = statType === 'reservations' ? reservations.length > 0 : events.length > 0;
+  const showKpi = !loadError || hasData;
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
@@ -140,20 +155,29 @@ export default function StatsDetail() {
           <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 60 }} />
         ) : (
           <>
+            {loadError ? (
+              <LoadError
+                message={tr('No se pudo cargar')}
+                retryLabel={tr('reintentar')}
+                onRetry={load}
+                style={{ marginHorizontal: 0 }}
+                testID="business-stats-error"
+              />
+            ) : null}
             {/* KPI banner specific to each type */}
-            {statType === 'upcoming' && (
+            {showKpi && statType === 'upcoming' && (
               <View style={[styles.kpiBanner, { borderColor: meta.color }]}>
                 <Text style={[styles.kpiNumber, { color: meta.color }]}>{filteredEvents.length}</Text>
                 <Text style={styles.kpiLabel}>{tr('eventos publicados desde hoy')}</Text>
               </View>
             )}
-            {statType === 'views' && (
+            {showKpi && statType === 'views' && (
               <View style={[styles.kpiBanner, { borderColor: meta.color }]}>
                 <Text style={[styles.kpiNumber, { color: meta.color }]}>{totalViews}</Text>
                 <Text style={styles.kpiLabel}>{tr('vistas totales en todos tus eventos')}</Text>
               </View>
             )}
-            {statType === 'total' && (
+            {showKpi && statType === 'total' && (
               <View style={[styles.kpiBanner, { borderColor: meta.color, flexDirection: 'row', justifyContent: 'space-around' }]}>
                 <View style={{ alignItems: 'center', flex: 1 }}>
                   <Text style={[styles.kpiNumber, { color: meta.color }]}>{events.length}</Text>
@@ -169,7 +193,7 @@ export default function StatsDetail() {
                 </View>
               </View>
             )}
-            {statType === 'reservations' && (
+            {showKpi && statType === 'reservations' && (
               <View style={[styles.kpiBanner, { borderColor: meta.color, flexDirection: 'row', justifyContent: 'space-around' }]}>
                 <View style={{ alignItems: 'center', flex: 1 }}>
                   <Text style={[styles.kpiNumber, { color: '#F59E0B' }]}>{reservationsByStatus.pending.length}</Text>
@@ -189,7 +213,7 @@ export default function StatsDetail() {
             {/* List */}
             {statType === 'reservations' ? (
               reservations.length === 0 ? (
-                <EmptyState icon="bookmark-outline" text={tr('Aún no tienes reservas.')} />
+                loadError ? null : <EmptyState icon="bookmark-outline" text={tr('Aún no tienes reservas.')} />
               ) : (
                 <>
                   {reservationsByStatus.pending.length > 0 && (
@@ -219,7 +243,7 @@ export default function StatsDetail() {
                 </>
               )
             ) : filteredEvents.length === 0 ? (
-              <EmptyState icon="calendar-outline" text={tr('Sin eventos en esta categoría todavía.')} />
+              loadError ? null : <EmptyState icon="calendar-outline" text={tr('Sin eventos en esta categoría todavía.')} />
             ) : (
               filteredEvents.map(ev => (
                 <TouchableOpacity

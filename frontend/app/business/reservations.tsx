@@ -28,6 +28,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
+import LoadError from '../../src/components/LoadError';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { useLang } from '../../src/context/LanguageContext';
@@ -108,6 +109,10 @@ export default function BusinessReservations() {
   const [membershipPlan, setMembershipPlan] = useState<'free' | 'pro'>('free');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // P1-9: a failed load used to raise a raw alert and then read "No tienes solicitudes
+  // pendientes" — to a vendor an outage looked like "no bookings". Keep the last-good
+  // reservations, show <LoadError/>, and never render the per-tab empty copy meanwhile.
+  const [loadError, setLoadError] = useState(false);
   const [tab, setTab] = useState<FilterTab>('pending');
 
   // Confirm/Reject modal state
@@ -130,14 +135,15 @@ export default function BusinessReservations() {
       setReservations(res.reservations || []);
       setStats(res.stats || null);
       setMembershipPlan((res.membership_plan as 'free' | 'pro') || 'free');
-    } catch (e: any) {
-      console.error('Load reservations:', e);
-      Alert.alert(tr('Error'), String(e?.message || 'No se pudieron cargar las reservas'));
+      setLoadError(false);
+    } catch (e) {
+      console.error('[BusinessReservations] load', e);
+      setLoadError(true);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [token, tr]);
+  }, [token]);
 
   useEffect(() => {
     if (authLoading) return;          // wait for the token to rehydrate on cold refresh
@@ -363,7 +369,16 @@ export default function BusinessReservations() {
         contentContainerStyle={{ padding: SPACING.md, paddingBottom: 80 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
       >
-        {filtered.length === 0 ? (
+        {loadError ? (
+          <LoadError
+            message={tr('No se pudo cargar')}
+            retryLabel={tr('reintentar')}
+            onRetry={() => { setLoading(true); load(); }}
+            style={{ marginHorizontal: 0 }}
+            testID="business-reservations-error"
+          />
+        ) : null}
+        {filtered.length === 0 && !loadError ? (
           <View style={styles.empty}>
             <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
             <Text style={styles.emptyText}>

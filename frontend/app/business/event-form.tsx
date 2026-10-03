@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, Switch, ActivityIndicator } from 'react-native';
 import { Alert } from '../../src/lib/alert';
 import { SafeImage } from '../../src/components/SafeImage';
@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { api } from '../../src/constants/api';
+import LoadError from '../../src/components/LoadError';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { pickAndUploadImage } from '../../src/lib/uploadImage';
 
@@ -42,34 +43,52 @@ export default function EventForm() {
   const [price, setPrice] = useState('');
   const [bookingLink, setBookingLink] = useState('');
   const [isPublished, setIsPublished] = useState(true);
+  // NOT `useState(isEdit)`: the static export prerenders this route without `?eventId=`, so an
+  // initial value derived from the URL would differ from the client's first render and break
+  // hydration (React #418). loadEvent() flips it on mount, as before.
   const [loading, setLoading] = useState(false);
+  // P1-9: editing used to open an EMPTY form with no error whenever the load failed (or
+  // the eventId was unknown) — and saving that form would PUT blank fields over the real
+  // event. An outage now blocks the form behind <LoadError/> + retry; an id that is not in
+  // the vendor's own list is a clear "Evento no encontrado". Never a silent blank form.
+  const [loadError, setLoadError] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  useEffect(() => {
+  const loadEvent = useCallback(async () => {
     if (!isEdit || !token) return;
     setLoading(true);
-    (async () => {
-      try {
-        const events = await api.get('/business/events', { headers: { Authorization: `Bearer ${token}` } });
-        const ev = events.find((e: any) => e.event_id === params.eventId);
-        if (ev) {
-          setTitle(ev.title);
-          setDescription(ev.description);
-          setCategory(ev.category);
-          setDate(ev.date);
-          setStartTime(ev.start_time);
-          setEndTime(ev.end_time);
-          setFlyerUrl(ev.flyer_url || '');
-          setIsFree(!!ev.is_free);
-          setPrice(String(ev.price || ''));
-          setBookingLink(ev.booking_link || '');
-          setIsPublished(ev.is_published !== false);
-        }
-      } catch (e) { console.error(e); }
-      setLoading(false);
-    })();
+    setLoadError(false);
+    setNotFound(false);
+    try {
+      const events = await api.get('/business/events', { headers: { Authorization: `Bearer ${token}` } });
+      if (!Array.isArray(events)) throw new Error('unexpected /business/events payload');
+      const ev = events.find((e: any) => e.event_id === params.eventId);
+      if (ev) {
+        setTitle(ev.title);
+        setDescription(ev.description);
+        setCategory(ev.category);
+        setDate(ev.date);
+        setStartTime(ev.start_time);
+        setEndTime(ev.end_time);
+        setFlyerUrl(ev.flyer_url || '');
+        setIsFree(!!ev.is_free);
+        setPrice(String(ev.price || ''));
+        setBookingLink(ev.booking_link || '');
+        setIsPublished(ev.is_published !== false);
+      } else {
+        // The list loaded fine and the event is not in it: deleted, or not this vendor's.
+        setNotFound(true);
+      }
+    } catch (e) {
+      console.error('[EventForm] load', e);
+      setLoadError(true);
+    }
+    setLoading(false);
   }, [isEdit, params.eventId, token]);
+
+  useEffect(() => { loadEvent(); }, [loadEvent]);
 
   const validateDate = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s);
   const validateTime = (s: string) => /^\d{2}:\d{2}$/.test(s);
@@ -145,15 +164,47 @@ export default function EventForm() {
 
   if (loading) return <SafeAreaView style={styles.container}><ActivityIndicator size="large" color={COLORS.primary} style={{ flex: 1 }} /></SafeAreaView>;
 
+  const header = (
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
+        <Ionicons name="close" size={22} color={COLORS.textMain} />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>{isEdit ? 'Editar evento' : 'Nuevo evento'}</Text>
+      <View style={styles.headerBtn} />
+    </View>
+  );
+
+  // Editing an event we could not load: never render the form (saving it would overwrite
+  // the real event with empty fields).
+  if (isEdit && (loadError || notFound)) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        {header}
+        <View style={styles.blockedWrap}>
+          {notFound ? (
+            <>
+              <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
+              <Text style={styles.blockedTitle} testID="business-event-form-notfound">Evento no encontrado</Text>
+              <Text style={styles.blockedText}>Este evento ya no existe o no pertenece a tu negocio.</Text>
+            </>
+          ) : (
+            <>
+              <Ionicons name="cloud-offline-outline" size={48} color={COLORS.textMuted} />
+              <LoadError onRetry={loadEvent} style={{ alignSelf: 'stretch' }} testID="business-event-form-error" />
+              <Text style={styles.blockedText}>Inténtalo de nuevo antes de editar: así no se sobrescribe tu evento con campos vacíos.</Text>
+            </>
+          )}
+          <TouchableOpacity style={styles.blockedBtn} onPress={() => router.back()}>
+            <Text style={styles.blockedBtnText}>Volver</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name="close" size={22} color={COLORS.textMain} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{isEdit ? 'Editar evento' : 'Nuevo evento'}</Text>
-        <View style={styles.headerBtn} />
-      </View>
+      {header}
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={{ padding: SPACING.lg, paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
@@ -305,6 +356,13 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, borderBottomWidth: 1, borderBottomColor: COLORS.border },
   headerBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold },
+
+  // Edit mode where the event could not be loaded (outage / not found): no form is shown.
+  blockedWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: SPACING.md, paddingHorizontal: SPACING.xl },
+  blockedTitle: { fontSize: 17, color: COLORS.textMain, ...FONTS.bold, textAlign: 'center' },
+  blockedText: { fontSize: 12, color: COLORS.textMuted, ...FONTS.regular, textAlign: 'center', lineHeight: 17 },
+  blockedBtn: { marginTop: SPACING.sm, paddingHorizontal: 24, paddingVertical: 12, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.border },
+  blockedBtnText: { color: COLORS.textMain, fontSize: 14, ...FONTS.semibold },
 
   label: { fontSize: 12, color: COLORS.textMuted, ...FONTS.semibold, letterSpacing: 0.5, textTransform: 'uppercase', marginTop: SPACING.md, marginBottom: SPACING.xs },
   input: { backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: SPACING.md, paddingVertical: 12, color: COLORS.textMain, fontSize: 14, ...FONTS.regular },
