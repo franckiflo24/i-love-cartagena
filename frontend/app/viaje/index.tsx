@@ -9,7 +9,8 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
-import { api } from '../../src/constants/api';
+import { api, isAuthStatus } from '../../src/constants/api';
+import LoadError from '../../src/components/LoadError';
 import { useTr } from '../../src/i18n/autoTr';
 
 type TripRow = {
@@ -24,6 +25,9 @@ export default function MisViajesScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [needsLogin, setNeedsLogin] = useState(false);
+  // P1-9: needsLogin used to be set for ANY failure, so a signed-in user whose load
+  // failed (offline / 5xx) was shown a sign-in prompt. Only a 401/403 means signed out.
+  const [loadError, setLoadError] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
   const [saving, setSaving] = useState(false);
@@ -33,8 +37,17 @@ export default function MisViajesScreen() {
       const res = await api.get('/trips/mine');
       setTrips(res?.trips || []);
       setNeedsLogin(false);
-    } catch {
-      setNeedsLogin(true);
+      setLoadError(false);
+    } catch (e) {
+      if (isAuthStatus(e)) {
+        setTrips([]);
+        setNeedsLogin(true);
+        setLoadError(false);
+      } else {
+        // Outage: keep the last-good trips, say so, never "Tu primer viaje empieza acá".
+        console.error('[Viajes] /trips/mine', e);
+        setLoadError(true);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -86,6 +99,15 @@ export default function MisViajesScreen() {
           </View>
         ) : (
           <>
+            {loadError ? (
+              <LoadError
+                message={tr('No se pudo cargar')}
+                retryLabel={tr('reintentar')}
+                onRetry={load}
+                style={{ marginHorizontal: 0 }}
+                testID="viaje-error"
+              />
+            ) : null}
             {trips.map((t) => (
               <TouchableOpacity
                 key={t.trip_id}
@@ -106,7 +128,7 @@ export default function MisViajesScreen() {
               </TouchableOpacity>
             ))}
 
-            {!trips.length && !creating ? (
+            {!trips.length && !creating && !loadError ? (
               <View style={styles.emptyBox}>
                 <Ionicons name="map-outline" size={44} color={COLORS.primary} />
                 <Text style={styles.emptyTitle}>{tr('Tu primer viaje empieza acá')}</Text>

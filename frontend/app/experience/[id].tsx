@@ -10,7 +10,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, SPACING, RADIUS, FONTS } from '@/src/constants/theme';
 import { getCategoryImage } from '@/src/constants/images';
-import { api } from '@/src/constants/api';
+import { api, isGoneStatus } from '@/src/constants/api';
+import LoadError from '@/src/components/LoadError';
+import { goBackOr } from '@/src/lib/nav';
 import { useLang } from '@/src/context/LanguageContext';
 import { useAuth } from '@/src/context/AuthContext';
 import { useTr } from '@/src/i18n/autoTr';
@@ -52,20 +54,32 @@ export default function ExperienceDetailScreen() {
   const { user } = useAuth();
   const [experience, setExperience] = useState<Experience | null>(null);
   const [loading, setLoading] = useState(true);
+  // P1-9: only the server's own 404/410 means "not found"; an outage gets a retry row.
+  const [loadError, setLoadError] = useState(false);
 
   const loadExperience = useCallback(async () => {
+    setLoadError(false);
     try {
       const data = await api.get(`/experiences/${id}`);
       // Guard against []/{} slipping past the not-found check (see event/[id]).
       setExperience(data && typeof data === 'object' && !Array.isArray(data) && (data.experience_id || data.id || data.title) ? data : null);
     } catch (e) {
-      console.error('[ExperienceDetail]', e);
+      if (isGoneStatus(e)) {
+        setExperience(null);
+      } else {
+        console.error('[ExperienceDetail]', e);
+        setLoadError(true);
+      }
     } finally {
       setLoading(false);
     }
   }, [id]);
 
-  useEffect(() => { loadExperience(); }, [loadExperience]);
+  useEffect(() => {
+    setExperience(null); // a new id must never paint the previous experience under a failed load
+    setLoading(true);
+    loadExperience();
+  }, [loadExperience]);
 
   if (loading) {
     return (
@@ -79,10 +93,26 @@ export default function ExperienceDetailScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.emptyContainer}>
-          <Ionicons name="alert-circle-outline" size={48} color={COLORS.textMuted} />
-          <Text style={styles.emptyText}>Experience not found</Text>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>Go back</Text>
+          {loadError ? (
+            <>
+              <Ionicons name="cloud-offline-outline" size={48} color={COLORS.textMuted} />
+              <LoadError
+                message={tr('No se pudo cargar')}
+                retryLabel={tr('reintentar')}
+                onRetry={() => { setLoading(true); loadExperience(); }}
+                style={{ alignSelf: 'stretch' }}
+                testID="experience-error"
+              />
+            </>
+          ) : (
+            <>
+              <Ionicons name="alert-circle-outline" size={48} color={COLORS.textMuted} />
+              <Text style={styles.emptyText}>{tr('Experiencia no encontrada')}</Text>
+            </>
+          )}
+          {/* goBackOr: a deep-linked guest has no history, so router.back() was a dead button */}
+          <TouchableOpacity style={styles.backButton} onPress={() => goBackOr(router)}>
+            <Text style={styles.backButtonText}>{tr('Volver')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking as RNLinking } from 'react-native';
 import { Alert } from '../../src/lib/alert';
 import { SafeImage } from '../../src/components/SafeImage';
@@ -7,8 +7,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TIER_COLORS, Tier, colorForKey } from '../../src/constants/theme';
-import { api } from '../../src/constants/api';
+import { api, isGoneStatus } from '../../src/constants/api';
 import { venueWhatsApp } from '../../src/lib/whatsapp';
+import LoadError from '../../src/components/LoadError';
 import { TierBadge } from '../../src/components/TierBadge';
 import { useFavorites } from '../../src/context/FavoritesContext';
 import { useMyCalendar } from '../../src/context/MyCalendarContext';
@@ -56,6 +57,9 @@ export default function PartnerEventDetail() {
   const { user } = useAuth();
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  // P1-9: an outage must not read as "Evento no encontrado" (a guest opening a shared
+  // link during a backend blip saw a dead link). Only the server's own 404/410 is "gone".
+  const [loadError, setLoadError] = useState(false);
   const [reserving, setReserving] = useState(false);
   const [partnerContact, setPartnerContact] = useState<{ number: string; name?: string } | null>(null);
   // Free RSVP ticket. Every hook lives up here, above the loading / not-found early returns (React #310).
@@ -65,17 +69,30 @@ export default function PartnerEventDetail() {
   const rsvpInFlight = useRef(false);
   const tr = useTr();
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await api.get(`/partner-events/${id}`);
-        // Guard against []/{} slipping past the not-found check (see event/[id]).
-        setEvent(data && typeof data === 'object' && !Array.isArray(data) && (data.event_id || data.id || data.title) ? data : null);
-      } catch (e) { console.error(e); }
-      setLoading(false);
-    };
-    load();
+  const loadEvent = useCallback(async () => {
+    setLoadError(false);
+    try {
+      const data = await api.get(`/partner-events/${id}`);
+      // Guard against []/{} slipping past the not-found check (see event/[id]).
+      setEvent(data && typeof data === 'object' && !Array.isArray(data) && (data.event_id || data.id || data.title) ? data : null);
+    } catch (e) {
+      // 404/410 = the server says it is gone/hidden/over → the honest "no encontrado".
+      // Anything else (timeout, offline, 5xx, a WAF/CORS block) is an OUTAGE → retry row.
+      if (isGoneStatus(e)) {
+        setEvent(null);
+      } else {
+        console.error('[PartnerEvent] load', e);
+        setLoadError(true);
+      }
+    }
+    setLoading(false);
   }, [id]);
+
+  useEffect(() => {
+    setEvent(null); // a new id must never paint the previous event under a failed load
+    setLoading(true);
+    loadEvent();
+  }, [loadEvent]);
 
   // Prefetch the partner's WhatsApp contact as soon as we know partner_id, so
   // the WhatsApp button can open synchronously on tap. An `await api.get(...)`
@@ -197,8 +214,23 @@ export default function PartnerEventDetail() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, paddingHorizontal: 32 }}>
-          <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
-          <Text style={{ color: COLORS.textMuted, fontSize: 16, textAlign: 'center' }}>{tr('Evento no encontrado')}</Text>
+          {loadError ? (
+            <>
+              <Ionicons name="cloud-offline-outline" size={48} color={COLORS.textMuted} />
+              <LoadError
+                message={tr('No se pudo cargar')}
+                retryLabel={tr('reintentar')}
+                onRetry={() => { setLoading(true); loadEvent(); }}
+                style={{ marginHorizontal: 0, alignSelf: 'stretch' }}
+                testID="partner-event-error"
+              />
+            </>
+          ) : (
+            <>
+              <Ionicons name="calendar-outline" size={48} color={COLORS.textMuted} />
+              <Text style={{ color: COLORS.textMuted, fontSize: 16, textAlign: 'center' }}>{tr('Evento no encontrado')}</Text>
+            </>
+          )}
           <TouchableOpacity
             onPress={() => goBackOr(router)}
             style={{ marginTop: 8, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 20, backgroundColor: COLORS.primary }}

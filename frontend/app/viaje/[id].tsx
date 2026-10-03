@@ -15,7 +15,8 @@ import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
-import { api } from '../../src/constants/api';
+import { api, isAuthStatus, isGoneStatus } from '../../src/constants/api';
+import LoadError from '../../src/components/LoadError';
 import { useTr } from '../../src/i18n/autoTr';
 import { shareTripCard } from '../../src/lib/tripShareCard';
 
@@ -41,6 +42,9 @@ export default function ViajeDetailScreen() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // P1-9: "No tienes acceso a este viaje" is the server's 401/403/404 answer — an outage
+  // (offline / 5xx / timeout) must say "no se pudo cargar" and keep the last-good trip.
+  const [loadError, setLoadError] = useState(false);
   const [customText, setCustomText] = useState('');
   const [editItem, setEditItem] = useState<Item | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -62,8 +66,18 @@ export default function ViajeDetailScreen() {
       // "undefined is not iterable" → the GLOBAL ErrorBoundary blanked the whole app.
       // Only accept a real trip object; anything else falls through to not-found.
       setTrip(t && typeof t === 'object' && !Array.isArray(t) && (t as any).trip_id ? t : null);
-    } catch {
-      setTrip(null);
+      setLoadError(false);
+    } catch (e) {
+      if (isAuthStatus(e) || isGoneStatus(e)) {
+        // 401/403 (signed out / not a member) and 404/410 (no such trip) → the access copy.
+        setTrip(null);
+        setLoadError(false);
+      } else {
+        // Outage: every mutation calls load() afterwards, so a blip here used to throw a
+        // signed-in member out to "No tienes acceso". Keep the last-good trip + retry row.
+        console.error('[Viaje] load', e);
+        setLoadError(true);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -204,8 +218,23 @@ export default function ViajeDetailScreen() {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.emptyBox}>
-          <Ionicons name="lock-closed-outline" size={40} color={COLORS.textMuted} />
-          <Text style={styles.emptyTitle}>{tr('No tienes acceso a este viaje')}</Text>
+          {loadError ? (
+            <>
+              <Ionicons name="cloud-offline-outline" size={40} color={COLORS.textMuted} />
+              <LoadError
+                message={tr('No se pudo cargar')}
+                retryLabel={tr('reintentar')}
+                onRetry={() => { setLoading(true); load(); }}
+                style={{ marginHorizontal: 0, alignSelf: 'stretch' }}
+                testID="viaje-detail-error"
+              />
+            </>
+          ) : (
+            <>
+              <Ionicons name="lock-closed-outline" size={40} color={COLORS.textMuted} />
+              <Text style={styles.emptyTitle}>{tr('No tienes acceso a este viaje')}</Text>
+            </>
+          )}
           <TouchableOpacity style={styles.cta} onPress={() => router.replace('/viaje' as any)}>
             <Text style={styles.ctaText}>{tr('Mis viajes')}</Text>
           </TouchableOpacity>
@@ -232,6 +261,16 @@ export default function ViajeDetailScreen() {
         contentContainerStyle={{ padding: SPACING.lg, paddingBottom: 140 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={COLORS.primary} />}
       >
+        {/* A failed refresh keeps the last-good trip on screen and says so */}
+        {loadError ? (
+          <LoadError
+            message={tr('No se pudo cargar')}
+            retryLabel={tr('reintentar')}
+            onRetry={load}
+            style={{ marginHorizontal: 0, marginTop: 0 }}
+            testID="viaje-detail-error"
+          />
+        ) : null}
         {/* Members + real last-updated — no fake presence, ever */}
         <View style={styles.metaRow}>
           <View style={styles.membersRow}>

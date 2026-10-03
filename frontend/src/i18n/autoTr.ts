@@ -25,6 +25,8 @@ export const AUTO_TR: Dict = {
   // P1-9 (Oct 2) — <LoadError/> copy: a failed load must never look like an empty result.
   'No se pudo cargar': { en: "Couldn't load", fr: 'Chargement impossible', pt: 'Não foi possível carregar' },
   'reintentar': { en: 'retry', fr: 'réessayer', pt: 'tentar novamente' },
+  // P1-9 — honest not-found / sign-in copy for screens that used to blame every failure on "not found".
+  'Experiencia no encontrada': { en: 'Experience not found', fr: 'Expérience introuvable', pt: 'Experiência não encontrada' },
   // Elite-audit i18n pass (Sep 12) — strings tr()'d but missing, or newly wrapped,
   // on reviewer-path screens (onboarding, complete-profile, port-tax, search, login,
   // admin confirms). Keys that already existed (Continuar/Reintentar/Cancelar/

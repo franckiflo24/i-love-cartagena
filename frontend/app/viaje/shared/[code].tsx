@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../../src/constants/theme';
 import { api, API_BASE } from '../../../src/constants/api';
+import LoadError from '../../../src/components/LoadError';
 import { useTr } from '../../../src/i18n/autoTr';
 import { useSignupGate } from '../../../src/context/SignupGateContext';
 import { markArchetype } from '../../../src/lib/gateAnalytics';
@@ -34,6 +35,9 @@ export default function SharedTripScreen() {
   const [trip, setTrip] = useState<GuestTrip | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // P1-9: "Este viaje no existe o el link cambió" is the server's 404/410 — anything else
+  // (offline, 5xx, 429, a non-JSON proxy page) is an OUTAGE and gets a retry, not a dead link.
+  const [loadError, setLoadError] = useState(false);
   const [joining, setJoining] = useState(false);
   const [joinedMoment, setJoinedMoment] = useState<string | null>(null);
 
@@ -41,15 +45,30 @@ export default function SharedTripScreen() {
     try {
       // Raw fetch: this endpoint is PUBLIC — works with no session at all.
       const res = await fetch(`${API_BASE}/trips/shared/${code}`);
-      const _j = res.ok ? await res.json() : null;
-      // Guard against []/{} slipping past `if (!trip)` → trip.members.map crashed.
-      // NOTE: the guest-view endpoint (trips.py GET /trips/shared/{code}) returns a
-      // minimized payload keyed by share_code/name/members/items — it does NOT include
-      // trip_id, so we must validate on a field it actually returns (an earlier guard
-      // checked trip_id and rejected EVERY valid shared trip — 100% dead share links).
-      setTrip(_j && typeof _j === 'object' && !Array.isArray(_j) && ((_j as any).share_code || (_j as any).name) ? _j : null);
-    } catch {
-      setTrip(null);
+      if (res.status === 404 || res.status === 410) {
+        // The only "not found" answer: no trip behind this code (never existed, or the link rotated).
+        setTrip(null);
+        setLoadError(false);
+      } else if (!res.ok) {
+        throw new Error(`GET /trips/shared failed: ${res.status}`);
+      } else {
+        const _j = await res.json();
+        // Guard against []/{} slipping past `if (!trip)` → trip.members.map crashed.
+        // NOTE: the guest-view endpoint (trips.py GET /trips/shared/{code}) returns a
+        // minimized payload keyed by share_code/name/members/items — it does NOT include
+        // trip_id, so we must validate on a field it actually returns (an earlier guard
+        // checked trip_id and rejected EVERY valid shared trip — 100% dead share links).
+        if (!(_j && typeof _j === 'object' && !Array.isArray(_j) && ((_j as any).share_code || (_j as any).name))) {
+          // A 200 that is not a trip: the server did not say "gone", so do not claim it.
+          throw new Error('GET /trips/shared returned an unexpected payload');
+        }
+        setTrip(_j);
+        setLoadError(false);
+      }
+    } catch (e) {
+      // Keep any last-good trip (failed pull-to-refresh) and say so; never "no existe".
+      console.error('[SharedTrip] load', e);
+      setLoadError(true);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -105,12 +124,32 @@ export default function SharedTripScreen() {
         {loading ? (
           <ActivityIndicator color={COLORS.primary} style={{ marginTop: 60 }} />
         ) : !trip ? (
-          <View style={styles.emptyBox}>
-            <Ionicons name="help-circle-outline" size={40} color={COLORS.textMuted} />
-            <Text style={styles.emptyTitle}>{tr('Este viaje no existe o el link cambió')}</Text>
-          </View>
+          loadError ? (
+            <LoadError
+              message={tr('No se pudo cargar')}
+              retryLabel={tr('reintentar')}
+              onRetry={() => { setLoading(true); load(); }}
+              style={{ marginHorizontal: 0 }}
+              testID="viaje-shared-error"
+            />
+          ) : (
+            <View style={styles.emptyBox}>
+              <Ionicons name="help-circle-outline" size={40} color={COLORS.textMuted} />
+              <Text style={styles.emptyTitle}>{tr('Este viaje no existe o el link cambió')}</Text>
+            </View>
+          )
         ) : (
           <>
+            {/* A failed refresh keeps the last-good trip on screen and says so */}
+            {loadError ? (
+              <LoadError
+                message={tr('No se pudo cargar')}
+                retryLabel={tr('reintentar')}
+                onRetry={load}
+                style={{ marginHorizontal: 0, marginTop: 0 }}
+                testID="viaje-shared-error"
+              />
+            ) : null}
             {trip.members[0]?.name ? (
               <Text style={styles.inviteLine}>
                 {trip.members[0].name.split(' ')[0]} {tr('te invitó a su viaje a Cartagena')}
