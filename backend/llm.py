@@ -78,6 +78,14 @@ async def llm_complete(
             return text.strip()
         except Exception as exc:
             logger.warning(f"Anthropic LLM call failed: {exc}")
+            # Page ops if this is the "AI is down for everyone" class (credits/auth),
+            # never for transient blips. Guard is best-effort — never let it mask the
+            # fallback the caller still needs.
+            try:
+                import ai_health as _ai_health
+                await _ai_health.on_llm_error(exc)
+            except Exception:  # noqa: BLE001
+                pass
             return None
 
     # 2. Legacy fallback: Emergent proxy (remove once fully migrated off Emergent).
@@ -147,6 +155,11 @@ async def llm_complete_image(
             return text.strip()
         except Exception as exc:
             logger.warning(f"Anthropic vision call failed: {exc}")
+            try:
+                import ai_health as _ai_health
+                await _ai_health.on_llm_error(exc)
+            except Exception:  # noqa: BLE001
+                pass
             return None
 
     # 2. Legacy fallback: Emergent proxy.
