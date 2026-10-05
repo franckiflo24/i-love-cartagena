@@ -497,11 +497,14 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
         const clearGuestTransient = (list: Message[]) => list.filter((m) => m.content !== '__typing__' && !m.provisional);
 
         try {
-          // Bound the wait exactly like the authed call below — and remember
-          // /agent/taste also hard 429s once this IP has used its 1 free call
-          // today; that lands here too, treated like any other failure.
+          // Bound the wait, then fall back. /agent/taste is fast:true (Haiku, no
+          // history/session) so it's quicker than the full authed chat below, but it
+          // still needs cold-start headroom — the old 14s aborted cold guest turns
+          // (same "concierge down" class, 2026-10-05). /agent/taste also hard 429s once
+          // this IP has used its 1 free call today; that lands here too, treated like
+          // any other failure. Do NOT lower without re-measuring live latency.
           const ctrl = new AbortController();
-          const timer = setTimeout(() => ctrl.abort(), 14000);
+          const timer = setTimeout(() => ctrl.abort(), 25000);
           let tasteRes: Response;
           try {
             tasteRes = await fetch(TASTE_URL, {
@@ -578,10 +581,15 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
           : await SecureStore.getItemAsync('session_token');
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
-        // Bound the wait: a slow Sonnet turn (or a 5xx) falls back to the instant local
-        // venues below instead of hanging or dead-erroring.
+        // Bound the wait, then fall back to the instant local venues. This MUST clear
+        // the real turn latency: live /agent/chat runs 12–18s (18s cold on Vercel) on
+        // Haiku 4.5 with the 6.9k-token prompt + 2048-token output. The old 14s cut
+        // aborted most turns BEFORE Luna answered → users got the "sin conexión"
+        // fallback instead of the real reply = "concierge down" (diagnosed 2026-10-05).
+        // Keep in lockstep with services/concierge.ts (40s); stays < backend maxDuration
+        // (60s). Do NOT lower this without re-measuring live latency.
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 14000);
+        const timer = setTimeout(() => ctrl.abort(), 40000);
         let apiRes: Response;
         try {
           apiRes = await fetch(CONCIERGE_URL, {
