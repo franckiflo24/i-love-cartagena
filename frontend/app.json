@@ -8,6 +8,12 @@
     "scheme": "amocartagena",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/8c0b790c-2d94-44f2-9ec6-d50d0c9ed8ad"
+    },
     "locales": {
       "en": "./locales/en.json",
       "es": "./locales/es.json",
