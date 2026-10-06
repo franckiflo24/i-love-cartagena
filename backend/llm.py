@@ -22,6 +22,24 @@ DEFAULT_MODEL = os.environ.get("AMO_LLM_MODEL", "claude-haiku-4-5")
 _anthropic_client = None
 
 
+def _log_usage(resp, model: str, caller: str) -> None:
+    """One line per successful call — the measurement channel for the cost
+    audit (2026-10-06): cache hit rate, input/output split, per-caller spend
+    all read from these lines in the Vercel logs. Never raises."""
+    try:
+        u = resp.usage
+        logger.info(
+            "[llm.usage] caller=%s model=%s in=%s cache_w=%s cache_r=%s out=%s",
+            caller or "-", model,
+            getattr(u, "input_tokens", 0),
+            getattr(u, "cache_creation_input_tokens", 0) or 0,
+            getattr(u, "cache_read_input_tokens", 0) or 0,
+            getattr(u, "output_tokens", 0),
+        )
+    except Exception:  # noqa: BLE001 — observability must never break the call
+        pass
+
+
 def _get_anthropic():
     """Lazily build (and cache) the async Anthropic client, or None if unconfigured."""
     global _anthropic_client
@@ -56,10 +74,19 @@ async def llm_complete(
     model: Optional[str] = None,
     max_tokens: int = 1024,
     temperature: Optional[float] = None,
+    cache_system: bool = False,
+    caller: str = "",
 ) -> Optional[str]:
     """Send one system+user turn and return the model's text, or None on failure.
 
     Prefers the owner's Anthropic key; falls back to the Emergent proxy.
+
+    cache_system=True puts a 5-minute prompt-cache breakpoint on the system
+    prompt (cost-audit 2026-10-06): callers whose system text is byte-stable
+    AND over the model's minimum cacheable prefix (4096 tokens on Haiku 4.5)
+    should set it — every request across all users then reads the prefix at
+    0.1x input price instead of re-billing it. Below the minimum it is a
+    harmless no-op. Volatile text must stay in user_text, never in system.
     """
     # 1. Preferred: owner-owned Anthropic key (official SDK).
     client = _get_anthropic()
@@ -68,12 +95,15 @@ async def llm_complete(
             kwargs: dict = {
                 "model": model or DEFAULT_MODEL,
                 "max_tokens": max_tokens,
-                "system": system,
+                "system": ([{"type": "text", "text": system,
+                             "cache_control": {"type": "ephemeral"}}]
+                           if cache_system else system),
                 "messages": [{"role": "user", "content": user_text}],
             }
             if temperature is not None:
                 kwargs["temperature"] = temperature
             resp = await client.messages.create(**kwargs)
+            _log_usage(resp, model or DEFAULT_MODEL, caller)
             text = "".join(b.text for b in resp.content if b.type == "text")
             return text.strip()
         except Exception as exc:
@@ -114,6 +144,7 @@ async def llm_complete_image(
     *,
     model: Optional[str] = None,
     max_tokens: int = 1024,
+    caller: str = "",
 ) -> Optional[str]:
     """Like llm_complete, but with one base64 image attached (vision).
 
@@ -151,6 +182,7 @@ async def llm_complete_image(
                     ],
                 }],
             )
+            _log_usage(resp, model or "claude-sonnet-4-6", caller)
             text = "".join(b.text for b in resp.content if b.type == "text")
             return text.strip()
         except Exception as exc:
