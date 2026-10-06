@@ -19,3 +19,7 @@ stripe==15.0.1
 anthropic>=0.40.0,<1.0
 google-auth>=2.29.0
 pywebpush==2.0.3
+# PALCO v2 (docs/palco-v2/DESIGN.md): ECDSA P-256 wire verification + Ed25519
+# validator manifests. Server holds PUBLIC keys only — no per-credential
+# symmetric secret can leak again (the qr_secret class, fixed 688c7a89).
+cryptography>=42.0,<47

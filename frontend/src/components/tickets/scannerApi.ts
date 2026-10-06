@@ -30,7 +30,10 @@ export const DEFAULT_GATE = 'Puerta 1';
 export type Translate = (es: string | null | undefined) => string;
 
 // ── Data model ───────────────────────────────────────────────────────────────
-export type ScanVerdict = 'VALIDO' | 'DUPLICADO' | 'FALSIFICADO' | 'EXPIRADO' | 'PASE';
+export type ScanVerdict =
+  | 'VALIDO' | 'DUPLICADO' | 'FALSIFICADO' | 'EXPIRADO' | 'PASE'
+  // PALCO-V2 (docs/palco-v2/DESIGN.md §4) — shipped lockstep with the backend:
+  | 'FUERA_DE_ALCANCE' | 'REVOCADO' | 'TRANSFERIDO';
 
 /** 'issued' | 'used'; anything else is 'unknown' and is shown neutrally, never as admissible. */
 export type GuestStatus = 'issued' | 'used' | 'unknown';
@@ -173,7 +176,10 @@ const asNum = (v: unknown): number | null => (typeof v === 'number' && Number.is
 const asArr = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
 const notNull = <T>(v: T | null): v is T => v !== null;
 
-const VERDICTS: ReadonlySet<string> = new Set<ScanVerdict>(['VALIDO', 'DUPLICADO', 'FALSIFICADO', 'EXPIRADO', 'PASE']);
+const VERDICTS: ReadonlySet<string> = new Set<ScanVerdict>([
+  'VALIDO', 'DUPLICADO', 'FALSIFICADO', 'EXPIRADO', 'PASE',
+  'FUERA_DE_ALCANCE', 'REVOCADO', 'TRANSFERIDO',
+]);
 function isVerdict(v: string): v is ScanVerdict {
   return VERDICTS.has(v);
 }

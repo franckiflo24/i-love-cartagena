@@ -42,6 +42,8 @@ def _match(d, q):
                 return False
             if "$in" in v and d.get(k) not in v["$in"]:
                 return False
+            if "$exists" in v and (k in d) != bool(v["$exists"]):
+                return False
         elif d.get(k) != v:
             return False
     return True
@@ -84,10 +86,23 @@ class _Coll:
         for d in self.rows:
             if _match(d, q):
                 d.update(u.get("$set", {})); return
-    async def find_one_and_update(self, q, u):
+    async def find_one_and_update(self, q, u, upsert=False, return_document=None, projection=None):
+        def _proj(doc):
+            if not projection:
+                return doc
+            out = dict(doc)
+            for k, v in projection.items():
+                if v == 0:
+                    out.pop(k, None)
+            return out
         for d in self.rows:
             if _match(d, q):
-                before = dict(d); d.update(u["$set"]); return before
+                before = dict(d); d.update(u.get("$set", {}))
+                return _proj(dict(d) if return_document else before)
+        if upsert:
+            doc = dict(u.get("$setOnInsert", {})); doc.update(u.get("$set", {}))
+            self.rows.append(doc)
+            return _proj(dict(doc)) if return_document else None
         return None
     async def create_index(self, *a, **k): return None
 
@@ -190,9 +205,13 @@ def test_gate_verdicts_with_guest_panel(ctx) -> None:
     c = qc.counter_for_now() - (qc.TOKEN_SKEW_STEPS + 1)
     stale = f"AMOTKT1.{t['ticket_id']}.{c}.{qc.derive_token(t['ticket_id'], sec, c)}"
     assert client.post("/api/business/tickets/scan", json={"wire": stale}).json()["verdict"] == "EXPIRADO"
-    # cross-venue wall
+    # cross-venue wall (PALCO-V2 Stage A): simulate for a foreign ticket is a
+    # plain 404 (no existence oracle), and a genuine foreign WIRE answers the
+    # FUERA_DE_ALCANCE verdict — verified first, never flipped, no guest panel.
     state["biz"] = BIZ_B
-    assert client.post("/api/business/tickets/scan", json={"ticket_id": t["ticket_id"], "simulate": True}).status_code == 403
+    assert client.post("/api/business/tickets/scan", json={"ticket_id": t["ticket_id"], "simulate": True}).status_code == 404
+    rf = client.post("/api/business/tickets/scan", json={"wire": _wire(t["ticket_id"])}).json()
+    assert rf["verdict"] == "FUERA_DE_ALCANCE" and "guest" not in rf
     state["biz"] = GOV
     assert client.post("/api/business/tickets/scan", json={"ticket_id": t["ticket_id"], "simulate": True}).json()["verdict"] == "DUPLICADO"
     state["biz"] = BIZ_A

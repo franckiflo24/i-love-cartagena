@@ -92,6 +92,9 @@ function verdictLabel(verdict: string, tr: Translate): string {
     case 'DUPLICADO': return tr('DUPLICADO');
     case 'FALSIFICADO': return tr('FALSIFICADO');
     case 'EXPIRADO': return tr('EXPIRADO');
+    case 'FUERA_DE_ALCANCE': return tr('FUERA DE ALCANCE');
+    case 'REVOCADO': return tr('REVOCADO');
+    case 'TRANSFERIDO': return tr('TRANSFERIDO');
     default: return verdict;
   }
 }
@@ -118,6 +121,12 @@ function verdictMeta(result: ScanResult, tr: Translate): VerdictMeta {
           ? tr('El City Pass ya no está vigente.')
           : tr('Código auténtico, pero ya venció: rota cada 10 s. Pide al invitado que lo actualice.'),
       };
+    case 'FUERA_DE_ALCANCE':
+      return { ...AMBER_TONE, icon: 'alert-circle', label, text: tr('Credencial auténtica, pero de otro alcance: este validador no puede admitirla.') };
+    case 'REVOCADO':
+      return { ...RED_TONE, icon: 'ban', label, text: tr('Credencial revocada por el emisor. No admite acceso.') };
+    case 'TRANSFERIDO':
+      return { ...GRAY_TONE, icon: 'swap-horizontal', label, text: tr('Credencial transferida: la vigente es la del nuevo titular.') };
   }
 }
 

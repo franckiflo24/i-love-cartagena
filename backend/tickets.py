@@ -22,12 +22,14 @@ camera=(), so in-page camera scanning is off until that header is revisited).
 from __future__ import annotations
 
 import logging
+import os
 import secrets as _secrets
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Mapping, Optional
 
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, Field
+from pymongo import ReturnDocument
 
 import qr_credential as qc
 from events_time import event_is_live, upcoming_query
@@ -140,7 +142,16 @@ async def ticket_rsvp(body: RsvpBody, request: Request):
         "used_gate": None,
         "created_at": _iso(now),
     }
-    await db.amo_tickets.insert_one(dict(doc))
+    # Atomic claim (PALCO-V2 Stage A): the old read-then-insert let two
+    # concurrent RSVPs mint two tickets. $setOnInsert + the partial unique index
+    # (built by /palco/admin/maintenance/dedupe-rsvp) make one winner; the loser
+    # gets the winner's ticket back as already=True.
+    claimed = await db.amo_tickets.find_one_and_update(
+        {"user_id": user["user_id"], "event_id": body.event_id, "kind": "event_rsvp"},
+        {"$setOnInsert": dict(doc)},
+        upsert=True, return_document=ReturnDocument.AFTER, projection={"_id": 0, "qr_secret": 0})
+    if claimed and claimed.get("ticket_id") != doc["ticket_id"]:
+        return {"ticket": _public_ticket(claimed), "already": True}
     return {"ticket": _public_ticket(doc)}
 
 
@@ -191,8 +202,16 @@ async def city_pass_qr(request: Request, response: Response):
         raise HTTPException(status_code=404, detail={"error": "no_pass", "message": "No tienes un pase activo / No active pass"})
     secret = doc.get("qr_secret")
     if not secret:
-        secret = _secrets.token_hex(16)
-        await db.city_passes.update_one({"pass_id": doc["pass_id"]}, {"$set": {"qr_secret": secret}})
+        # Guarded mint (PALCO-V2 Stage A): the old unconditional $set let two
+        # concurrent first calls race, briefly leaving one holder with a wire
+        # that scans FALSIFICADO. Set-if-absent, then re-read the winner.
+        candidate = _secrets.token_hex(16)
+        await db.city_passes.update_one(
+            {"pass_id": doc["pass_id"], "$or": [{"qr_secret": {"$exists": False}},
+                                                {"qr_secret": None}, {"qr_secret": ""}]},
+            {"$set": {"qr_secret": candidate}})
+        fresh = await db.city_passes.find_one({"pass_id": doc["pass_id"]}, {"_id": 0, "qr_secret": 1})
+        secret = (fresh or {}).get("qr_secret") or candidate
     return {"wire": qc.build_wire(NS_PASS, doc["pass_id"], secret),
             "step_ms": qc.TOKEN_STEP_SECONDS * 1000, "expires_in_ms": qc.step_remaining_ms(),
             "plan_id": doc.get("plan_id"), "expires_at": doc.get("expires_at")}
@@ -249,11 +268,12 @@ def _guest_panel(t: Mapping[str, Any]) -> Dict[str, Any]:
 
 
 async def _log_scan(verdict: str, biz: Mapping[str, Any], gate: str,
-                    guest_name: str = "", title: str = "") -> None:
+                    guest_name: str = "", title: str = "", ticket_id: str = "") -> None:
     try:
         await db.amo_ticket_scans.insert_one({
             "at": _iso(_now()), "verdict": verdict, "gate": gate,
             "guest_name": guest_name, "ticket_title": title,
+            "ticket_id": ticket_id,   # audit trail (PALCO-V2 §7.4): scans are traceable
             "partner_id": biz.get("partner_id"), "scanned_by": biz.get("business_id"),
         })
     except Exception as exc:  # noqa: BLE001
@@ -269,14 +289,21 @@ async def biz_ticket_scan(body: ScanBody, request: Request):
     wire = body.wire or ""
 
     if body.simulate:
+        # Simulate bypasses proof-of-possession (it builds the wire server-side
+        # from just a ticket id), so in production it is OFF unless explicitly
+        # re-enabled — PALCO-V2 Stage A hardening. Tests/dev keep it.
+        if os.environ.get("VERCEL_ENV") == "production" and os.environ.get("PALCO_SIMULATE_ENABLED") != "1":
+            raise HTTPException(status_code=403, detail={
+                "error": "simulate_disabled",
+                "message": "Simulación deshabilitada en producción / Simulation is disabled in production"})
         tid = body.ticket_id or ""
         if not _TICKET_ID_RE.match(tid):
             raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Entrada no encontrada / Ticket not found"})
         doc = await db.amo_tickets.find_one({"ticket_id": tid}, {"_id": 0, "qr_secret": 1, "partner_id": 1})
-        if not doc:
+        # Foreign venue gets the same 404 as a missing ticket: simulate must not
+        # be an existence oracle for other venues' ticket ids.
+        if not doc or (not _is_gov(biz) and doc.get("partner_id") != biz.get("partner_id")):
             raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Entrada no encontrada / Ticket not found"})
-        if not _is_gov(biz) and doc.get("partner_id") != biz.get("partner_id"):
-            raise HTTPException(status_code=403, detail={"error": "forbidden", "message": "Esta entrada es de otro negocio / This ticket belongs to another venue"})
         c = qc.counter_for_now() - (qc.TOKEN_SKEW_STEPS + 2 if body.stale else 0)
         token = qc.derive_token(tid, doc["qr_secret"], c)
         if body.tamper:
@@ -303,7 +330,8 @@ async def biz_ticket_scan(body: ScanBody, request: Request):
                              "plan_id": pdoc.get("plan_id")}
                 elif v == "EXPIRED":
                     verdict = "EXPIRADO"
-        await _log_scan(verdict, biz, gate, (guest or {}).get("name", ""), "City Pass")
+        await _log_scan(verdict, biz, gate, (guest or {}).get("name", ""), "City Pass",
+                        ticket_id=pp["entity_id"])
         out: Dict[str, Any] = {"verdict": verdict}
         if guest:
             out["guest"] = guest
@@ -316,13 +344,18 @@ async def biz_ticket_scan(body: ScanBody, request: Request):
     if pt and _TICKET_ID_RE.match(pt["entity_id"]):
         tdoc = await db.amo_tickets.find_one({"ticket_id": pt["entity_id"]}, {"_id": 0})
     if pt is not None and tdoc is not None:
-        if not _is_gov(biz) and tdoc.get("partner_id") != biz.get("partner_id"):
-            raise HTTPException(status_code=403, detail={"error": "forbidden", "message": "Esta entrada es de otro negocio / This ticket belongs to another venue"})
+        # Verify FIRST, scope after (PALCO-V2 Stage A): the old pre-verify 403
+        # was an existence oracle for other venues' ticket ids. Signature and
+        # freshness now precede scope; a genuine-but-foreign wire answers the
+        # FUERA_DE_ALCANCE verdict — no flip, no guest panel.
         v = qc.verify(pt, tdoc["qr_secret"])
         if v == "COUNTERFEIT":
             verdict = "FALSIFICADO"
         elif v == "EXPIRED":
             verdict = "EXPIRADO"
+        elif not _is_gov(biz) and tdoc.get("partner_id") != biz.get("partner_id"):
+            verdict = "FUERA_DE_ALCANCE"
+            detail["reason"] = "fuera_de_alcance"
         else:
             flipped = await db.amo_tickets.find_one_and_update(
                 {"ticket_id": pt["entity_id"], "status": "issued"},
@@ -334,9 +367,10 @@ async def biz_ticket_scan(body: ScanBody, request: Request):
                 verdict = "DUPLICADO"
                 detail["first_used_at"] = tdoc.get("used_at")
                 detail["first_gate"] = tdoc.get("used_gate")
-        detail["guest"] = _guest_panel(tdoc)
+        if verdict != "FUERA_DE_ALCANCE":
+            detail["guest"] = _guest_panel(tdoc)
     await _log_scan(verdict, biz, gate, ((detail.get("guest") or {}).get("name") or ""),
-                    (tdoc or {}).get("title") or "")
+                    (tdoc or {}).get("title") or "", ticket_id=(pt or {}).get("entity_id") or "")
     return {"verdict": verdict, **detail}
 
 

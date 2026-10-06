@@ -1906,6 +1906,14 @@ export const AUTO_TR: Dict = {
   'evento': { en: 'event', fr: 'événement', pt: 'evento' },
   'eventos': { en: 'events', fr: 'événements', pt: 'eventos' },
   'Añade eventos tocando "Añadir a mi agenda" en cualquier evento de partner': { en: 'Add events by tapping "Add to my agenda" on any partner event', fr: 'Ajoute des événements en touchant « Ajouter à mon agenda » sur n\'importe quel événement partenaire', pt: 'Adicione eventos tocando em "Adicionar à minha agenda" em qualquer evento de parceiro' },
+  // PALCO-V2 Stage A (docs/palco-v2/DESIGN.md §4) — the three new scanner
+  // verdicts, shipped lockstep with the backend. Full scanner backfill = Stage B.
+  'FUERA DE ALCANCE': { en: 'OUT OF SCOPE', fr: 'HORS PÉRIMÈTRE', pt: 'FORA DO ESCOPO' },
+  'REVOCADO': { en: 'REVOKED', fr: 'RÉVOQUÉ', pt: 'REVOGADO' },
+  'TRANSFERIDO': { en: 'TRANSFERRED', fr: 'TRANSFÉRÉ', pt: 'TRANSFERIDO' },
+  'Credencial auténtica, pero de otro alcance: este validador no puede admitirla.': { en: 'Authentic credential, but for another scope: this validator cannot admit it.', fr: 'Identifiant authentique, mais d\'un autre périmètre : ce validateur ne peut pas l\'admettre.', pt: 'Credencial autêntica, mas de outro escopo: este validador não pode admiti-la.' },
+  'Credencial revocada por el emisor. No admite acceso.': { en: 'Credential revoked by the issuer. No entry.', fr: 'Identifiant révoqué par l\'émetteur. Accès refusé.', pt: 'Credencial revogada pelo emissor. Não dá acesso.' },
+  'Credencial transferida: la vigente es la del nuevo titular.': { en: 'Credential transferred: the new holder\'s is the valid one.', fr: 'Identifiant transféré : celui du nouveau titulaire est le valide.', pt: 'Credencial transferida: a válida é a do novo titular.' },
 };
 
 /**

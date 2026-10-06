@@ -23,6 +23,11 @@ TOKEN_LEN = 12
 # attacker-controlled token must be shape-checked BEFORE the compare (P1, audit
 # 2026-10-01): anything else is a forgery, never a 500.
 TOKEN_RE = re.compile(r"^[0-9a-f]{12}$")
+# Counters are canonical decimal: int() alone also accepts "+1", "1_0", leading
+# zeros and unicode digits — all verifying as the SAME credential+counter, i.e.
+# many spellings of one wire. One spelling only (PALCO-V2 hardening, 2026-10-06);
+# build_wire always emitted this form, so genuine wires are unaffected.
+COUNTER_RE = re.compile(r"^(?:0|[1-9][0-9]{0,11})$")
 
 
 def counter_for_now(now_ms: Optional[int] = None) -> int:
@@ -50,10 +55,9 @@ def parse_wire(namespace: str, payload: str) -> Optional[Dict[str, Any]]:
     parts = (payload or "").strip().split(".")
     if len(parts) != 4 or parts[0] != namespace or not parts[1] or not parts[3]:
         return None
-    try:
-        counter = int(parts[2])
-    except ValueError:
+    if not COUNTER_RE.match(parts[2]):
         return None
+    counter = int(parts[2])
     if not TOKEN_RE.match(parts[3]):
         return None   # malformed / non-hex / non-ASCII token → callers answer FALSIFICADO
     return {"entity_id": parts[1], "counter": counter, "token": parts[3]}
