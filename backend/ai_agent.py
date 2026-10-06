@@ -1841,7 +1841,7 @@ TU TRABAJO
   • `confirmed_events` (solo en preguntas de eventos): la agenda verificada — ver AUTORIDAD EVENTOS.
 - **NUNCA INVENTÉS** partners o eventos. SOLO recomienda los que aparecen en el contexto.
 - ⚠️ **OBLIGATORIO: GENERÁ MÍNIMO 5 TARJETAS y APUNTÁ A 6-8** en `recommendations` siempre que el catálogo lo permita (casi siempre), EXCEPTO en preguntas de eventos (ahí solo tarjetas de `confirmed_events`). Solo mezcla partners con eventos si `confirmed_events` viene en el contexto.
-- ⚠️ **NUNCA devuelvas 1 sola tarjeta** cuando el usuario pide ideas/sugerencias de lugares. Si solo hay 1 match perfecto, completa con 4-7 alternativas relevantes (mismo vibe, categoría parecida, partners cercanos, etc.).
+- ⚠️ **NUNCA devuelvas 1 sola tarjeta** cuando el usuario pide ideas/sugerencias de lugares. Si solo hay 1 match perfecto, completa con 3-4 alternativas relevantes (mismo vibe, categoría parecida, partners cercanos, etc.).
 - Varía los `tier`/`price_range` dentro de las tarjetas (mezcla popular/premium/luxe) para cubrir distintos presupuestos.
 - Si no hay match preciso, sugiere explorar con `show_partners` filtrado o `navigate` al tab.
 - Si la consulta es ambigua, haz UNA pregunta corta de aclaración (ej: "¿Para cuántas personas?" / "How many people?" / "Pour combien de personnes ?").
@@ -1867,9 +1867,9 @@ FORMATO DE RESPUESTA (JSON estricto, sin markdown, sin código de bloque)
   "message": "<respuesta conversacional, máximo 3 frases, EN EL IDIOMA DETECTADO DEL USUARIO>",
   "language": "<es|en|fr|pt>",
   "recommendations": [
-    // 0 a 8 tarjetas ricas. Úsalas SIEMPRE que tengas matches del catálogo (partners o eventos).
+    // 0 a 5 tarjetas ricas. Úsalas SIEMPRE que tengas matches del catálogo (partners o eventos).
     // Cada tarjeta DEBE tener partner_id O event_id real del contexto.
-    // SUGERÍ AL MENOS 5 cuando haya matches suficientes para que el usuario tenga variedad.
+    // SUGERÍ 4-5 cuando haya matches suficientes para que el usuario tenga variedad — calidad sobre cantidad.
     {
       "kind": "partner",                    // 'partner' o 'event'
       "partner_id": "ptr_R025",             // requerido si kind=partner
@@ -1896,7 +1896,7 @@ FORMATO DE RESPUESTA (JSON estricto, sin markdown, sin código de bloque)
 }
 
 REGLAS DE recommendations:
-- ⚠️ **DEBES proponer entre 5 y 8 tarjetas** cuando haya suficientes matches en `relevant_partners` o `partner_directory` (salvo preguntas de eventos: ver AUTORIDAD EVENTOS).
+- ⚠️ **DEBES proponer entre 4 y 5 tarjetas** cuando haya suficientes matches en `relevant_partners` o `partner_directory` (salvo preguntas de eventos: ver AUTORIDAD EVENTOS). Nunca más de 5 — las mejores, no todas.
 - ⚠️ **PRECISIÓN MÁXIMA**: cada tarjeta apunta a un partner_id (o event_id) EXACTO del contexto. NUNCA inventes IDs.
 - Varía los tiers para dar opciones de distintos presupuestos (1 popular + 2 premium + 1 luxe por ejemplo).
 - `price_range`: deriva de `tier` → popular=$$, premium=$$$, luxe=$$$$, elite=$$$$$.
@@ -2330,7 +2330,11 @@ async def run_agent_turn(
     # ("search too long / not curated", Franck 2026-08). Haiku answers from the
     # same context in a few seconds.
     model = "claude-haiku-4-5"
-    max_tok = 1024 if fast else 2048
+    # 1536 is a BACKSTOP, not a target (cost-audit 2026-10-06): with the 4-5
+    # card cap a typical reply runs ~700-1100 tokens; 1536 leaves headroom so
+    # the JSON never truncates mid-card (a max_tokens cut = broken JSON =
+    # canned fallback). Output length is Luna's latency driver on Haiku.
+    max_tok = 1024 if fast else 1536
 
     try:
         response = await llm_complete(
@@ -2338,6 +2342,12 @@ async def run_agent_turn(
             model=model,
             max_tokens=max_tok,
             temperature=0.5 if fast else 0.7,
+            # system_msg is one of 5 byte-stable variants (base + 4 forced-lang
+            # prefixes), ~11k tokens — well over Haiku 4.5's 4096-token cache
+            # minimum. Every Luna turn across ALL users shares the entry:
+            # prefix re-reads at 0.1x input price + faster prefill.
+            cache_system=True,
+            caller="luna_taste" if fast else "luna_chat",
         )
     except Exception as exc:
         logger.error(f"[agent] llm_complete raised: {type(exc).__name__}")
