@@ -100,6 +100,8 @@ CANONICAL_OVERRIDES: Dict[str, str] = {
     "amo el cafe cafe de especialidad": "Amo el Café",
     # post-apply survivor (comma-blob, 2026-10-07):
     "boat rental cartagena arrecife boats cartagena cartagena boat rental islas del rosario colombia": "Arrecife Boats",
+    # Marriott's Tribute Portfolio naming IS comma-styled — real brand, kept:
+    "ermita cartagena a tribute portfolio hotel": "Ermita, Cartagena, a Tribute Portfolio Hotel",
 }
 
 # Verified DEAD / MOVED / UNVERIFIED — never show, never delete.

@@ -154,6 +154,9 @@ def test_comma_blob_gated_and_override_wins() -> None:
     other = "Tours Cartagena, BEST TOURS CARTAGENA, city tours, colombia"
     _d, _h2, conf2 = H.clean_display_name(other)
     assert conf2 is False
+    # …but a real comma-styled BRAND (Marriott Tribute Portfolio) is seeded
+    disp3, _h3, conf3 = H.clean_display_name("Ermita, Cartagena, a Tribute Portfolio Hotel")
+    assert conf3 is True and disp3.startswith("Ermita,")
 
 
 def test_true_fragment_still_blocked() -> None:
