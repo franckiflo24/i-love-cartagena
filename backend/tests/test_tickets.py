@@ -212,6 +212,20 @@ def test_gate_verdicts_with_guest_panel(ctx) -> None:
     assert client.post("/api/business/tickets/scan", json={"ticket_id": t["ticket_id"], "simulate": True}).status_code == 404
     rf = client.post("/api/business/tickets/scan", json={"wire": _wire(t["ticket_id"])}).json()
     assert rf["verdict"] == "FUERA_DE_ALCANCE" and "guest" not in rf
+    # V-A4b closure-audit lock (2026-10-06): out-of-scope enrichment is gone on
+    # EVERY verdict — a forged wire naming a real foreign ticket is EXACTLY the
+    # ghost-id response (no guest, no extra keys = no body-shape oracle), and a
+    # genuine-but-stale foreign wire is a bare EXPIRADO.
+    w = _wire(t["ticket_id"])
+    forged = w[:-12] + ("0" * 12 if not w.endswith("0" * 12) else "1" * 12)
+    r_forged = client.post("/api/business/tickets/scan", json={"wire": forged}).json()
+    ghost = f"AMOTKT1.amt_00000000ff.{qc.counter_for_now()}.{'a' * 12}"
+    r_ghost = client.post("/api/business/tickets/scan", json={"wire": ghost}).json()
+    assert r_forged == {"verdict": "FALSIFICADO"} and r_forged == r_ghost
+    sec_b = next(d["qr_secret"] for d in T.db.amo_tickets.rows)
+    c_b = qc.counter_for_now() - (qc.TOKEN_SKEW_STEPS + 1)
+    stale_b = f"AMOTKT1.{t['ticket_id']}.{c_b}.{qc.derive_token(t['ticket_id'], sec_b, c_b)}"
+    assert client.post("/api/business/tickets/scan", json={"wire": stale_b}).json() == {"verdict": "EXPIRADO"}
     state["biz"] = GOV
     assert client.post("/api/business/tickets/scan", json={"ticket_id": t["ticket_id"], "simulate": True}).json()["verdict"] == "DUPLICADO"
     state["biz"] = BIZ_A

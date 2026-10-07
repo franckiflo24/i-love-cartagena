@@ -120,6 +120,12 @@ event/sailing cancelled/absent → EXPIRADO with named reason (fail closed on mi
 a credential whose backing state cannot be re-read is NEVER admitted: `estado_inaccesible`) ·
 then admit: single-use → VALIDO (atomic flip) · counted pass → PASE with uses_left (atomic
 decrement; exhausted → DUPLICADO `sin_usos`) · recharge → RECIBO.
+- **Enrichment is in-scope-only, on EVERY verdict** (closure-audit amendment V-A4b,
+  2026-10-06): the guest panel, `first_used_at`/`first_gate`, and any holder detail attach
+  only when the scanner is in scope (own venue or government). An out-of-scope response
+  carries the verdict alone, so a forged wire naming a real foreign credential is
+  byte-identical to one naming a ghost — no existence oracle by status code OR body shape,
+  and holder PII never crosses venues (§0).
 - **Verify-only mode** (inspector/city) returns the verdict WITHOUT consuming: no flip, no
   decrement, no last_counter advance; logged as `mode:"verify"`.
 - Every rejection carries a named `reason` (machine key + es/en line). The scanner shows it.

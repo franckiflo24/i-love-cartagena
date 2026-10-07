@@ -262,6 +262,23 @@ def test_a8_verify_mode_consumes_nothing() -> None:
     assert r2["verdict"] == V_VALIDO and db.credentials.rows[0]["status"] == "used"
 
 
+def test_a4b_out_of_scope_enrichment_suppressed() -> None:
+    """Closure-audit lock: pre-scope early exits (ya_usada) carry NO holder
+    detail for an out-of-scope scanner; in-scope keeps the full panel."""
+    db = _DB()
+    priv, kid, cred = _run(_setup(db))
+    db.credentials.rows[0]["status"] = "used"
+    db.credentials.rows[0]["used_at"] = iso()
+    db.credentials.rows[0]["used_gate"] = "G1"
+    r = _run(verify.verify_scan(db, _wire_for(priv, cred, kid), SCOPE_B))
+    assert r["verdict"] == V_DUPLICADO
+    assert "guest" not in r and "first_used_at" not in r and "first_gate" not in r
+    db.credentials.rows[0]["last_counter"] = -1
+    r2 = _run(verify.verify_scan(db, _wire_for(priv, cred, kid), SCOPE_A))
+    assert r2["verdict"] == V_DUPLICADO and r2["guest"]["name"] == "Ana"
+    assert r2["first_gate"] == "G1"
+
+
 def test_a13_out_of_scope_verdict() -> None:
     db = _DB()
     priv, kid, cred = _run(_setup(db))

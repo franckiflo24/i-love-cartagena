@@ -195,9 +195,15 @@ async def verify_scan(db: Any, raw_wire: str, scope: Mapping[str, Any],
     if status == S_EXPIRED:
         return await done(_res(V_EXPIRADO, "fuera_de_ventana"), cred)
     if status in (S_USED, S_EXHAUSTED) and ptype in ("event_ticket", "ride"):
-        return await done(_res(V_DUPLICADO, "ya_usada",
-                               first_used_at=cred.get("used_at"), first_gate=cred.get("used_gate"),
-                               guest=_guest(cred, product)), cred)
+        # CLOSURE-AUDIT FIX (V-A4b, 2026-10-06): this exit fires before the
+        # scope gate, so enrichment must check scope itself — the verdict is
+        # contractual (§4 precedence), the guest panel is in-scope-only.
+        enrich: Dict[str, Any] = {}
+        if await _scope_ok(db, cred, scope) is True:
+            enrich = {"first_used_at": cred.get("used_at"),
+                      "first_gate": cred.get("used_gate"),
+                      "guest": _guest(cred, product)}
+        return await done(_res(V_DUPLICADO, "ya_usada", **enrich), cred)
 
     in_scope = await _scope_ok(db, cred, scope)
     if in_scope is None:

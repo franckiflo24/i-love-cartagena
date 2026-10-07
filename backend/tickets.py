@@ -346,14 +346,20 @@ async def biz_ticket_scan(body: ScanBody, request: Request):
     if pt is not None and tdoc is not None:
         # Verify FIRST, scope after (PALCO-V2 Stage A): the old pre-verify 403
         # was an existence oracle for other venues' ticket ids. Signature and
-        # freshness now precede scope; a genuine-but-foreign wire answers the
-        # FUERA_DE_ALCANCE verdict — no flip, no guest panel.
+        # freshness precede scope; a genuine-but-foreign wire answers the
+        # FUERA_DE_ALCANCE verdict — no flip.
+        # CLOSURE-AUDIT FIX (V-A4b, 2026-10-06): enrichment is gated on scope
+        # for EVERY verdict, not just FUERA. Out-of-scope responses carry the
+        # verdict alone, so a forged wire with a real foreign ticket id is
+        # byte-identical to a ghost id (bare FALSIFICADO) — no existence
+        # oracle, and the guest panel (holder PII) never crosses venues.
+        in_scope = _is_gov(biz) or tdoc.get("partner_id") == biz.get("partner_id")
         v = qc.verify(pt, tdoc["qr_secret"])
         if v == "COUNTERFEIT":
             verdict = "FALSIFICADO"
         elif v == "EXPIRED":
             verdict = "EXPIRADO"
-        elif not _is_gov(biz) and tdoc.get("partner_id") != biz.get("partner_id"):
+        elif not in_scope:
             verdict = "FUERA_DE_ALCANCE"
             detail["reason"] = "fuera_de_alcance"
         else:
@@ -367,7 +373,7 @@ async def biz_ticket_scan(body: ScanBody, request: Request):
                 verdict = "DUPLICADO"
                 detail["first_used_at"] = tdoc.get("used_at")
                 detail["first_gate"] = tdoc.get("used_gate")
-        if verdict != "FUERA_DE_ALCANCE":
+        if in_scope:
             detail["guest"] = _guest_panel(tdoc)
     await _log_scan(verdict, biz, gate, ((detail.get("guest") or {}).get("name") or ""),
                     (tdoc or {}).get("title") or "", ticket_id=(pt or {}).get("entity_id") or "")
