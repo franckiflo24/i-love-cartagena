@@ -93,7 +93,9 @@ CANONICAL_OVERRIDES: Dict[str, str] = {
     "epoca cafe bar": "Época Café Bar",
     "abaco libros y cafe": "Ábaco Libros y Café",
     "nia bakery": "Nía Bakery", "cafe san alberto": "Café San Alberto",
-    "casa boheme": "Casa Bohème",
+    # NO "casa boheme" row: docs/cmw/DESIGN.md standardizes "Casa Bohême"
+    # (circumflex, deck + catalog) — the raw is already clean and confident;
+    # seeding the French-generic è here broke the CMW build gate (2026-10-07).
     # live-audit specimens (2026-10-07), heads verified against the venues:
     "ca fe cafeteria brunch cartagena": "CA.FÉ",
     "el bololo bowls del caribe": "El Bololó",
