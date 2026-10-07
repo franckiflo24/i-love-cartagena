@@ -76,7 +76,10 @@ const BASIN: Record<string, string[]> = {
 };
 const STOP = new Set(['el','la','de','en','un','una','los','las','que','para','con','the','a','an','of','for',
   'to','is','me','my','do','can','where','what','how','quiero','donde','recomienda','recomiendame','busco',
-  'un','una','good','best','mejor','cerca','near','hay','tienes','dame','give','find','me']);
+  'un','una','good','best','mejor','cerca','near','hay','tienes','dame','give','find','me',
+  // conversational filler that must never become a venue-name stem ("I don't see
+  // the list" once matched Donjuán/Doña Lola via 'don' and answered with restaurants)
+  'dont','see','list','lista','veo','aqui','here','show','still','this','that','esto','eso']);
 
 export interface OfflineResult { venues: CatalogVenue[]; cats: Set<string>; tags: Set<string> }
 
@@ -88,7 +91,12 @@ export function matchCatalog(catalog: CatalogVenue[], query: string, limit = 6):
   for (const w of words) {
     if (CATEGORY_SYN[w]) cats.add(CATEGORY_SYN[w]);
     if (TAG_SYN[w]) for (const t of (BASIN[TAG_SYN[w]] || [TAG_SYN[w]])) tags.add(t);
-    stems.push(w.slice(0, 6)); // prefix stem bridges morphology (barbero→barber, boheme→Bohême)
+    // Prefix stem bridges morphology (barbero→barber, boheme→Bohême) — but only
+    // words ≥4 chars may stem into NAME matching: 3-letter fragments of chat
+    // filler ('don' from "don't") substring-match real venues (Donjuán, Doña
+    // Lola) and turn a complaint into a restaurant list. Category/cuisine words
+    // of any length still count through the SYN tables above.
+    if (w.length >= 4) stems.push(w.slice(0, 6));
   }
   const scored = catalog.map((v) => {
     let s = 0;
@@ -115,26 +123,6 @@ export function brandFamily(catalog: CatalogVenue[], brand: string, excludeId?: 
   return catalog
     .filter((v) => v.brand === brand && v.partner_id !== excludeId)
     .sort((a, b) => (b.rank_score || 0) - (a.rank_score || 0));
-}
-
-// Instant "quick picks" from the catalog to show WHILE the LLM is thinking (online).
-// Returns null when the query isn't a venue lookup, so non-venue turns just wait for
-// Luna's full answer instead of showing an irrelevant list.
-export async function quickPicks(query: string, lang: string = 'es'): Promise<string | null> {
-  const catalog = await loadCatalog();
-  if (!catalog.length) return null;
-  const { venues, cats, tags } = matchCatalog(catalog, query, 5);
-  // Only preview when the query clearly maps to venues (a category/cuisine or real hits).
-  if (!venues.length || (!cats.size && !tags.size && venues.length < 3)) return null;
-  const head = lang.startsWith('en')
-    ? 'Quick picks while I put together the full answer:'
-    : 'Ideas al instante mientras preparo la respuesta completa:';
-  const lines = venues.map((v) => {
-    const where = v.zone || (v.address ? v.address.split(',')[0] : '');
-    const kind = (lang.startsWith('en') ? v.display_en : v.display_es) || v.category;
-    return `• ${v.name}${where ? ` — ${where}` : ''}${kind ? ` · ${kind}` : ''}`;
-  });
-  return `${head}\n${lines.join('\n')}`;
 }
 
 // Build a helpful text reply from the catalog — real venues, instantly, offline.

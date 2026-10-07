@@ -42,9 +42,8 @@ import { EVENT_CATEGORIES } from '../lib/eventsFeed';
 import { cmwInAppPath } from '../lib/cmw';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
-import AddToTrip from './AddToTrip';
-import { SafeImage } from './SafeImage';
-import { loadCatalog, matchCatalog, type CatalogVenue } from '../lib/lunaOffline';
+import { loadCatalog, type CatalogVenue } from '../lib/lunaOffline';
+import { RecRow, enrichRecommendations, quickRecsFromCatalog, type Recommendation } from './concierge/LunaRecs';
 import { safeNext } from '../lib/safeNext';
 import { API_BASE } from '../constants/api';
 
@@ -84,22 +83,8 @@ type Action = {
   module_id?: string; // open_city_module → /ciudad/<id>
 };
 
-type Recommendation = {
-  kind: 'partner' | 'event';
-  partner_id?: string;
-  event_id?: string;
-  name: string;
-  type?: string;
-  vibe?: string;
-  price_range?: string;
-  address?: string;
-  reason?: string;
-  // Resolved CLIENT-SIDE from the bundled catalog (never sent by the backend —
-  // ai_agent.py's _sanitize_recommendations schema has no image/category field).
-  // Partner recs only; events have no local image source.
-  image?: string;
-  category?: string;
-};
+// Recommendation now lives in ./concierge/LunaRecs — the ONE pipeline both the
+// FAB and /concierge render from (type, enrichment, intent gate, card, row).
 
 type Message = {
   role: 'user' | 'assistant';
@@ -125,38 +110,7 @@ const STORAGE_REOPEN_KEY = 'amo_reopen_assistant';
 // tries the network before asking the guest to sign up.
 const GUEST_FREE_EXCHANGES = 2;
 
-// Real venues from the bundled catalog → concierge recommendation cards. Used for
-// the instant preview (perceived speed) AND the fallback when Luna is slow/errors,
-// so the guest ALWAYS gets real places instead of a dead "Tuve un problema".
-function venuesToRecs(venues: CatalogVenue[], lang: Lang): Recommendation[] {
-  const en = lang.startsWith('en');
-  return venues.map((v) => ({
-    kind: 'partner' as const,
-    partner_id: v.partner_id,
-    name: v.name,
-    type: (en ? v.display_en : v.display_es) || v.category,
-    price_range: v.price_range,
-    address: v.zone || (v.address ? v.address.split(',')[0] : ''),
-    image: v.image,
-    category: v.category,
-  }));
-}
-
-// The LIVE Sonnet reply never includes an image or raw category key. Backfill
-// both client-side from the same bundled catalog already loaded for the instant
-// preview, by partner_id. Events have no local image source and pass through
-// unchanged.
-function enrichRecommendations(recs: Recommendation[], catalog: CatalogVenue[]): Recommendation[] {
-  if (!recs.length || !catalog.length) return recs;
-  // `as const` forces a tuple (not a loose array) so Map's <K,V> infers correctly.
-  const byId = new Map(catalog.map((v) => [v.partner_id, v] as const));
-  return recs.map((r) => {
-    if (r.kind !== 'partner' || !r.partner_id) return r;
-    const cv = byId.get(r.partner_id);
-    if (!cv) return r;
-    return { ...r, image: r.image || cv.image, category: r.category || cv.category };
-  });
-}
+// venuesToRecs / enrichRecommendations moved to ./concierge/LunaRecs (one pipeline).
 
 // ── i18n tables — all 4 langs, ES/EN/FR/PT ───────────────────────────────────
 
@@ -263,13 +217,6 @@ function defaultLabel(a: Action, lang: Lang): string {
 }
 
 // Recommendation card chrome text.
-const RECOMMENDATION_LABELS: Record<Lang, { event: string; partner: string; viewEvent: string; viewPartner: string }> = {
-  es: { event: 'Evento', partner: 'Partner', viewEvent: 'Ver evento', viewPartner: 'Ver partner' },
-  en: { event: 'Event', partner: 'Partner', viewEvent: 'View event', viewPartner: 'View partner' },
-  fr: { event: 'Événement', partner: 'Partenaire', viewEvent: "Voir l'événement", viewPartner: 'Voir le partenaire' },
-  pt: { event: 'Evento', partner: 'Parceiro', viewEvent: 'Ver evento', viewPartner: 'Ver parceiro' },
-};
-
 const FAB_A11Y: Record<Lang, string> = {
   es: 'Luna, tu concierge de Cartagena',
   en: 'Luna, your Cartagena concierge',
@@ -483,10 +430,7 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
         let gLocalRecs: Recommendation[] = [];
         try {
           gCatalog = await loadCatalog();
-          const { venues, cats, tags } = matchCatalog(gCatalog, trimmed, 6);
-          if (venues.length && (cats.size || tags.size || venues.length >= 3)) {
-            gLocalRecs = venuesToRecs(venues, lang);
-          }
+          gLocalRecs = quickRecsFromCatalog(gCatalog, trimmed, lang);
         } catch { /* bundled catalog unavailable — fall through to the typing indicator */ }
         if (gLocalRecs.length) {
           setMessages((prev) => [...prev, { role: 'assistant', content: gStrs.preview, recommendations: gLocalRecs, provisional: true }]);
@@ -562,10 +506,7 @@ export default function AssistantFab({ hideFab = false }: { hideFab?: boolean } 
       let localRecs: Recommendation[] = [];
       try {
         catalog = await loadCatalog();
-        const { venues, cats, tags } = matchCatalog(catalog, trimmed, 6);
-        if (venues.length && (cats.size || tags.size || venues.length >= 3)) {
-          localRecs = venuesToRecs(venues, lang);
-        }
+        localRecs = quickRecsFromCatalog(catalog, trimmed, lang);
       } catch { /* bundled catalog unavailable — fall through to the typing indicator */ }
       if (localRecs.length) {
         setMessages((prev) => [...prev, { role: 'assistant', content: strs.preview, recommendations: localRecs, provisional: true }]);
@@ -959,58 +900,17 @@ function MessageBubble({
           <Text style={styles.bubbleAssistText}>{renderBold(m.content)}</Text>
         </View>
         {!!(m.recommendations && m.recommendations.length) && (
-          // Web: a plain CSS scroller — RNW ScrollView's JS touch responder
-          // swallows horizontal swipes inside the chat modal on iOS Safari.
-          Platform.OS === 'web' ? (
-            <View
-              style={[styles.recsScroll, styles.recsScrollContent, {
-                flexDirection: 'row',
-                overflowX: 'auto',
-                overflowY: 'hidden',
-                WebkitOverflowScrolling: 'touch',
-                touchAction: 'pan-x',
-                maxWidth: '100%',
-              } as any]}
-            >
-              {m.recommendations.map((r, i) => (
-                <RecommendationCard
-                  key={`rec-${i}-${r.partner_id || r.event_id}`}
-                  rec={r}
-                  lang={lang}
-                  onPress={() =>
-                    onAction(
-                      r.kind === 'event'
-                        ? { type: 'open_event', event_id: r.event_id }
-                        : { type: 'open_partner', partner_id: r.partner_id },
-                    )
-                  }
-                />
-              ))}
-            </View>
-          ) : (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            nestedScrollEnabled
-            contentContainerStyle={styles.recsScrollContent}
-            style={styles.recsScroll}
-          >
-            {m.recommendations.map((r, i) => (
-              <RecommendationCard
-                key={`rec-${i}-${r.partner_id || r.event_id}`}
-                rec={r}
-                lang={lang}
-                onPress={() =>
-                  onAction(
-                    r.kind === 'event'
-                      ? { type: 'open_event', event_id: r.event_id }
-                      : { type: 'open_partner', partner_id: r.partner_id },
-                  )
-                }
-              />
-            ))}
-          </ScrollView>
-          )
+          <RecRow
+            recs={m.recommendations}
+            lang={lang}
+            onPressRec={(r) =>
+              onAction(
+                r.kind === 'event'
+                  ? { type: 'open_event', event_id: r.event_id }
+                  : { type: 'open_partner', partner_id: r.partner_id },
+              )
+            }
+          />
         )}
         {!!(m.actions && m.actions.length) && (
           <View style={styles.actionsWrap}>
@@ -1046,102 +946,6 @@ function renderBold(text: string): React.ReactNode {
   return parts.map((p, i) => (i % 2 === 1 ? <Text key={i} style={{ fontWeight: '800' }}>{p}</Text> : p));
 }
 
-function RecommendationCard({
-  rec,
-  lang,
-  onPress,
-}: {
-  rec: Recommendation;
-  lang: Lang;
-  onPress: () => void;
-}) {
-  const isEvent = rec.kind === 'event';
-  // Every venue keeps ITS OWN spectrum color (never Luna's purple) — category
-  // when we have it (catalog-resolved), else the human `type` label, else a
-  // stable generic fallback. colorForKey() hashes anything unrecognized into a
-  // distinct, stable color, so a card is never monochrome.
-  const accent = colorForKey(rec.category || rec.type || (isEvent ? 'event' : 'partner'));
-  const icon: keyof typeof Ionicons.glyphMap = isEvent ? 'calendar' : 'business';
-  const L = RECOMMENDATION_LABELS[lang] || RECOMMENDATION_LABELS.es;
-  const chipLabel = rec.type || (isEvent ? L.event : L.partner);
-
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [styles.recCardShadow, pressed && { opacity: 0.88 }, Platform.OS === 'web' && ({ touchAction: 'manipulation', cursor: 'pointer' } as any)]}
-    >
-      <View style={styles.recCardInner}>
-        {rec.image ? (
-          <View style={styles.recImageWrap}>
-            <SafeImage uri={rec.image} category={rec.category} style={styles.recImage} resizeMode="cover" />
-            <View style={[styles.recImageBar, { backgroundColor: accent }]} />
-            {!!rec.price_range && (
-              <View style={[styles.recPriceBadge, styles.recPriceBadgeOnPhoto]}>
-                <Text style={styles.recPriceText}>{rec.price_range}</Text>
-              </View>
-            )}
-          </View>
-        ) : (
-          <View style={[styles.recIconHeader, { backgroundColor: accent + '1F' }]}>
-            <View style={[styles.recIcon, { backgroundColor: accent }]}>
-              <Ionicons name={icon} size={16} color={COLORS.white} />
-            </View>
-            {!!rec.price_range && (
-              <View style={[styles.recPriceBadge, styles.recPriceBadgeOnDark]}>
-                <Text style={styles.recPriceText}>{rec.price_range}</Text>
-              </View>
-            )}
-          </View>
-        )}
-
-        <View style={styles.recMetaRow}>
-          <View style={[styles.recKindChip, { backgroundColor: accent + '22', borderColor: accent + '55' }]}>
-            <Text style={[styles.recKindChipText, { color: accent }]} numberOfLines={1}>{chipLabel}</Text>
-          </View>
-          {/* Drop 10 (10D1): Luna recommends INTO the itinerary — one tap adds */}
-          {rec.kind === 'partner' && rec.partner_id ? (
-            <AddToTrip refType="venue" refId={rec.partner_id} name={rec.name} compact />
-          ) : rec.kind === 'event' && rec.event_id && String(rec.event_id).startsWith('pe_') ? (
-            <AddToTrip refType="experience" refId={rec.event_id} name={rec.name} compact />
-          ) : null}
-        </View>
-
-        <View style={styles.recBody}>
-          <Text style={styles.recName} numberOfLines={2}>
-            {rec.name}
-          </Text>
-          {!!rec.vibe && (
-            <View style={styles.recVibeRow}>
-              <Ionicons name="sparkles" size={11} color={COLORS.icon} />
-              <Text style={styles.recVibe} numberOfLines={2}>
-                {rec.vibe}
-              </Text>
-            </View>
-          )}
-          {!!rec.reason && (
-            <Text style={styles.recReason} numberOfLines={3}>
-              {rec.reason}
-            </Text>
-          )}
-          {!!rec.address && (
-            <View style={styles.recVibeRow}>
-              <Ionicons name="location-outline" size={11} color={COLORS.icon} />
-              <Text style={styles.recVibe} numberOfLines={1}>
-                {rec.address}
-              </Text>
-            </View>
-          )}
-          <View style={[styles.recCta, { backgroundColor: accent }]}>
-            <Text style={styles.recCtaText}>
-              {isEvent ? L.viewEvent : L.viewPartner}
-            </Text>
-            <Ionicons name="arrow-forward" size={13} color={COLORS.white} />
-          </View>
-        </View>
-      </View>
-    </Pressable>
-  );
-}
 
 function TypingDots({ reduced }: { reduced: boolean }) {
   const a1 = useRef(new Animated.Value(0)).current;
@@ -1354,93 +1158,6 @@ const styles = StyleSheet.create({
 
   actionsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, maxWidth: '90%' },
 
-  recsScroll: { marginLeft: -SPACING.md, marginRight: -SPACING.md },
-  recsScrollContent: { paddingHorizontal: SPACING.md, gap: 10 },
-  recCardShadow: {
-    width: 240,
-    flexShrink: 0,
-    marginRight: 10,
-    borderRadius: RADIUS.lg,
-    ...ELEVATION.card,
-  },
-  recCardInner: {
-    flex: 1,
-    backgroundColor: COLORS.surface,
-    borderRadius: RADIUS.lg,
-    borderWidth: 1,
-    borderColor: COLORS.hairline,
-    overflow: 'hidden',
-  },
-  recImageWrap: { width: '100%', height: 100, position: 'relative' },
-  recImage: { width: '100%', height: 100 },
-  recImageBar: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 3 },
-  recIconHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-  },
-  recIcon: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  recPriceBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: RADIUS.full,
-    borderWidth: 1,
-  },
-  recPriceBadgeOnDark: { backgroundColor: 'rgba(255,255,255,0.08)', borderColor: COLORS.hairline },
-  recPriceBadgeOnPhoto: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    backgroundColor: 'rgba(8,12,22,0.72)',
-    borderColor: 'rgba(255,255,255,0.18)',
-  },
-  recPriceText: { color: COLORS.white, fontSize: 10.5, ...FONTS.bold, letterSpacing: 0.3 },
-  recMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    paddingTop: 8,
-    gap: 6,
-  },
-  recKindChip: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: RADIUS.full,
-    borderWidth: 1,
-    flexShrink: 1,
-  },
-  recKindChipText: { fontSize: 10.5, ...FONTS.bold, letterSpacing: 0.2 },
-  recBody: { paddingHorizontal: 10, paddingBottom: 10, paddingTop: 6, gap: 5 },
-  recName: { color: COLORS.textMain, fontSize: 14, ...FONTS.bold, lineHeight: 18 },
-  recVibeRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
-  recVibe: { color: COLORS.textMuted, fontSize: 11, ...FONTS.regular, flex: 1 },
-  recReason: {
-    color: COLORS.textMain,
-    fontSize: 11.5,
-    ...FONTS.regular,
-    lineHeight: 15,
-    marginTop: 3,
-    opacity: 0.92,
-  },
-  recCta: {
-    marginTop: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    borderRadius: RADIUS.md,
-  },
-  recCtaText: { color: COLORS.white, fontSize: 12, ...FONTS.bold },
 
   actionBtn: {
     flexDirection: 'row',

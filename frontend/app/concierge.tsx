@@ -9,7 +9,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../src/constants/theme';
 import { AGENTS, AGENT_ORDER, AgentId, ConciergeAgent } from '../src/constants/agents';
 import { askAgentFull, ChatMessage } from '../src/services/concierge';
-import { quickPicks } from '../src/lib/lunaOffline';
+import { LUNA_STR, RecRow, enrichRecommendations, localQuickRecs, type Recommendation } from '../src/components/concierge/LunaRecs';
+import { loadCatalog } from '../src/lib/lunaOffline';
+import type { Lang } from '../src/i18n/translations';
 import { useAuth } from '../src/context/AuthContext';
 import { useTr } from '../src/i18n/autoTr';
 import { useLang } from '../src/context/LanguageContext';
@@ -133,7 +135,18 @@ export default function ConciergeScreen() {
           if (pointsToEvents(d?.assistant?.actions)) setEventLinkAt((l) => [...l, messages.length + 1]);
           const cmwGuest = cmwActionLinks(d?.assistant?.actions);
           if (cmwGuest.path || cmwGuest.whatsapp) setCmwLinksAt((m) => ({ ...m, [messages.length + 1]: cmwGuest }));
-          setMessages((prev) => [...prev, { role: 'assistant', content: d?.assistant?.message || '¿En qué te ayudo?' }]);
+          // Taste carries the full payload too: cards + follow-ups, same as paid turns.
+          const gRecs: Recommendation[] = Array.isArray(d?.assistant?.recommendations) ? d.assistant.recommendations : [];
+          const gSuggs: string[] = Array.isArray(d?.assistant?.suggestions)
+            ? d.assistant.suggestions.filter((s: unknown) => typeof s === 'string') : [];
+          let gEnriched = gRecs;
+          try { gEnriched = enrichRecommendations(gRecs, await loadCatalog()); } catch {}
+          setMessages((prev) => [...prev, {
+            role: 'assistant',
+            content: d?.assistant?.message || '¿En qué te ayudo?',
+            recommendations: gEnriched,
+            suggestions: gSuggs,
+          }]);
         } else {
           // taste already used (429) or unavailable → the wall
           openGate({ action: 'luna', next: '/concierge' });
@@ -154,27 +167,40 @@ export default function ConciergeScreen() {
     setLoading(true);
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
 
-    // Instant-local-then-enrich (Luna): show real venue picks from the bundled catalog
+    // Instant-local-then-enrich (Luna): show real venue CARDS from the bundled catalog
     // in <1s while the LLM composes the full answer, then replace with it. `answered`
-    // guards the (much faster) preview from overwriting the real reply.
+    // guards the (much faster) preview from overwriting the real reply. The preview
+    // only fires on real venue intent (LunaRecs gate) — never on "I don't see the list".
     let answered = false;
+    let provisionalRecs: Recommendation[] = [];
     if (activeAgent === 'luna') {
-      quickPicks(text.trim(), lang).then((preview) => {
-        if (preview && !answered) {
-          setMessages([...updated, { role: 'assistant', content: preview, provisional: true }]);
+      localQuickRecs(text.trim(), lang as Lang).then((recs) => {
+        if (recs.length && !answered) {
+          provisionalRecs = recs;
+          const preview = (LUNA_STR[lang as Lang] || LUNA_STR.es).preview;
+          setMessages([...updated, { role: 'assistant', content: preview, recommendations: recs, provisional: true }]);
           setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
         }
       }).catch(() => {});
     }
 
-    const { reply, actions } = await askAgentFull(activeAgent, updated, lang);
+    const { reply, actions, recommendations, suggestions } = await askAgentFull(activeAgent, updated, lang);
     answered = true;
     // The assistant reply lands at index updated.length: show the verified-agenda link
     // when Luna answered an event question (navigate → agenda / show_events).
     if (pointsToEvents(actions)) setEventLinkAt((l) => [...l, updated.length]);
     const cmw = cmwActionLinks(actions);
     if (cmw.path || cmw.whatsapp) setCmwLinksAt((m) => ({ ...m, [updated.length]: cmw }));
-    setMessages([...updated, { role: 'assistant', content: reply }]);
+    // Backfill image/category from the bundled catalog; a reply with no cards keeps
+    // the provisional's local cards so a promised list can never render as nothing.
+    let enriched = recommendations;
+    try { enriched = enrichRecommendations(recommendations, await loadCatalog()); } catch {}
+    setMessages([...updated, {
+      role: 'assistant',
+      content: reply,
+      recommendations: enriched.length ? enriched : provisionalRecs,
+      suggestions,
+    }]);
     setLoading(false);
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
   };
@@ -253,7 +279,9 @@ export default function ConciergeScreen() {
           {chipsVisible && (
             <View style={styles.chipsWrap}>
               {agent.starterChips.map((chip, i) => (
-                <TouchableOpacity key={i} style={[styles.chip, { borderColor: agent.accent + '40', backgroundColor: agent.accent + '0D' }]} onPress={() => sendMessage(chip)} activeOpacity={0.8}>
+                <TouchableOpacity key={i} style={[styles.chip, { borderColor: agent.accent + '40', backgroundColor: agent.accent + '0D' }]} onPress={() => sendMessage(tr(chip))} activeOpacity={0.8}>
+                  {/* sendMessage(tr(chip)): send what the user SAW — an EN device tapping
+                      an EN chip must never echo a Spanish user bubble. */}
                   <Text style={[styles.chipText, { color: agent.accent }]}>{tr(chip)}</Text>
                   <Ionicons name="arrow-forward" size={12} color={agent.accent} />
                 </TouchableOpacity>
@@ -268,7 +296,8 @@ export default function ConciergeScreen() {
               ? msg.content.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1')
               : msg.content;
             return (
-              <View key={i} style={[styles.bubble, msg.role === 'user' ? styles.bubbleUser : styles.bubbleAgent, msg.provisional && styles.bubbleProvisional]}>
+              <View key={i}>
+              <View style={[styles.bubble, msg.role === 'user' ? styles.bubbleUser : styles.bubbleAgent, msg.provisional && styles.bubbleProvisional]}>
                 {msg.role === 'assistant' && (
                   <Text style={[styles.bubbleLabel, { color: agent.accent }]}>
                     {agent.emoji} {agent.name}{msg.provisional ? ` · ⚡ ${tr('al instante')}` : ''}
@@ -315,6 +344,42 @@ export default function ConciergeScreen() {
                     )}
                   </View>
                 )}
+              </View>
+
+              {/* Recommendation cards — the actual list Luna's text promises.
+                  LunaRecs pipeline, same cards as the FAB (gold-medal rule:
+                  a reply that says "here are the picks:" NEVER renders bare). */}
+              {msg.role === 'assistant' && !!(msg.recommendations && msg.recommendations.length) && (
+                <View style={styles.recsWrap}>
+                  <RecRow
+                    recs={msg.recommendations}
+                    lang={lang as Lang}
+                    onPressRec={(r) => {
+                      if (r.kind === 'event' && r.event_id) {
+                        router.push({ pathname: '/event/[id]' as any, params: { id: r.event_id } });
+                      } else if (r.partner_id) {
+                        router.push({ pathname: '/partner/[id]' as any, params: { id: r.partner_id } });
+                      }
+                    }}
+                  />
+                </View>
+              )}
+
+              {/* Tappable follow-ups from Luna — one tap continues the thread. */}
+              {msg.role === 'assistant' && !msg.provisional && !!(msg.suggestions && msg.suggestions.length) && (
+                <View style={styles.suggestionsWrap}>
+                  {msg.suggestions.slice(0, 4).map((sugg, k) => (
+                    <TouchableOpacity
+                      key={k}
+                      style={[styles.suggestionPill, { borderColor: agent.accent + '40' }]}
+                      onPress={() => sendMessage(sugg)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[styles.suggestionText, { color: agent.accent }]} numberOfLines={1}>{sugg}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
               </View>
             );
           })}
@@ -398,6 +463,14 @@ const styles = StyleSheet.create({
   bubbleAgent: { alignSelf: 'flex-start', backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border, borderTopLeftRadius: 4 },
   bubbleUser: { alignSelf: 'flex-end', backgroundColor: COLORS.primary, borderTopRightRadius: 4 },
   bubbleProvisional: { borderStyle: 'dashed', borderColor: COLORS.primary + '66', opacity: 0.92 },
+  // LunaRecs card row + follow-up pills, siblings under the assistant bubble
+  recsWrap: { marginTop: 8, marginBottom: 4, alignSelf: 'stretch' },
+  suggestionsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8, marginBottom: 4 },
+  suggestionPill: {
+    paddingHorizontal: 12, paddingVertical: 7, borderRadius: RADIUS.full,
+    borderWidth: 1, backgroundColor: COLORS.surface,
+  },
+  suggestionText: { fontSize: 12.5, ...FONTS.medium },
   bubbleLabel: { fontSize: 10, ...FONTS.bold, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 4 },
   bubbleText: { fontSize: 14, color: COLORS.textMain, ...FONTS.regular, lineHeight: 21 },
 
