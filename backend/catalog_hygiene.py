@@ -43,7 +43,9 @@ CATEGORY_WORDS = {
 # are NOT category evidence. Counting " el " as a category hit turned every
 # 'El X Bar' into a blob (dry-run regression 2026-10-07).
 CONNECTOR_TOKENS = {"and", "&", "y", "de", "la", "el"}
-_COUNTABLE_CATEGORY = CATEGORY_WORDS - CONNECTOR_TOKENS
+# 'cartagena' is locative, not category evidence — half the city's legitimate
+# venues carry it ('Movich Hotel Cartagena'); counting it gated real hotels.
+_COUNTABLE_CATEGORY = CATEGORY_WORDS - CONNECTOR_TOKENS - {"cartagena"}
 
 # Small words kept lowercase in Title Case (unless first token).
 SMALL = {"de", "la", "el", "las", "los", "y", "del", "by", "con", "the", "of",
@@ -151,13 +153,21 @@ def clean_display_name(raw: Optional[str]) -> Tuple[str, Optional[str], bool]:
     head = parts[0].strip() if parts else ""
     hint = " · ".join(_titlecase(p.strip()) for p in parts[1:]) or None
 
-    # Strip trailing category tokens — and then any connector the strip left
-    # dangling ('Casa Pizarro in Cartagena' → 'Casa Pizarro', never
-    # 'Casa Pizarro in'). Never down to empty.
+    # Tail-strip is CONSERVATIVE by design (dry-run #2, 2026-10-07): category
+    # nouns are usually part of the real brand ('Bora Bora Beach Club',
+    # 'Érase Un Café'), so we strip only the two provably-safe tails — the
+    # locative 'cartagena' and 'restaurante(s)' (the spec's CELELE case) —
+    # plus any connector left dangling. If the strip would leave a particle
+    # as the last word, we revert: a wrong name damages every surface, an
+    # unstripped one damages nothing.
     toks = head.split()
-    _TRAIL = CATEGORY_WORDS | {"in", "en", "del", "los", "las"}
-    while len(toks) > 1 and toks[-1].lower().strip("&") in _TRAIL:
+    orig_toks = list(toks)
+    _STRIP_TAIL = {"cartagena", "restaurante", "restaurantes", "restaurant",
+                   "restaurants", "in", "en", "de", "del", "los", "las"}
+    while len(toks) > 1 and toks[-1].lower().strip("&") in _STRIP_TAIL:
         toks.pop()
+    if toks[-1].lower() in {"un", "una", "uno", "el", "la", "y", "&", "the", "los", "las"}:
+        toks = orig_toks
     head = " ".join(toks)
 
     display = _titlecase(head) if (head.isupper() or head.islower()) else head

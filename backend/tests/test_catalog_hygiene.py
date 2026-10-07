@@ -115,13 +115,24 @@ def test_no_fabrication_display_is_subset_recase_of_raw() -> None:
 # ── dry-run regressions (prod specimens, 2026-10-07) ─────────────────────────
 
 def test_articles_are_not_fragments() -> None:
-    for raw, want in [("El Mirador Gastro Bar", "El Mirador Gastro"),
+    for raw, want in [("El Mirador Gastro Bar", "El Mirador Gastro Bar"),
                       ("The Pink Mango (formerly Amare Beach)",
                        "The Pink Mango (formerly Amare Beach)"),
                       ("La Mulata", "La Mulata")]:
         disp, _h, conf = H.clean_display_name(raw)
         assert conf is True, (raw, disp)
         assert disp == want
+
+
+def test_conservative_strip_keeps_brand_nouns() -> None:
+    # category nouns are usually THE brand — never stripped (dry-run #2)
+    for raw in ("Bora Bora Beach Club", "Érase Un Café", "Avatar Disco Bar"):
+        disp, _h, conf = H.clean_display_name(raw)
+        assert disp == raw and conf is True, (raw, disp)
+    # locative + spec's restaurante tail still strip, hotels stay confident
+    assert H.clean_display_name("Padel Club Cartagena")[0] == "Padel Club"
+    disp, _h, conf = H.clean_display_name("Movich Hotel Cartagena")
+    assert disp == "Movich Hotel" and conf is True
 
 
 def test_allcaps_simple_name_recases_confident() -> None:
