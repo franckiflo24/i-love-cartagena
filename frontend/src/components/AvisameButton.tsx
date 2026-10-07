@@ -158,6 +158,10 @@ export default function AvisameButton({ event, compact = false }: Props) {
         }
       } else if (eligible && windowAhead && remindersOn === false) {
         setMsg({ text: tr('Guardado · tienes los recordatorios de eventos desactivados en Perfil'), tone: 'warn' });
+      } else if (ev.status === 'date_tbc') {
+        // Honest promise only: the saved row updates in Favoritos when the date is
+        // confirmed (we never promise a push the reminders cron may not send).
+        setMsg({ text: tr('Guardado · la fecha aparecerá aquí y en Favoritos en cuanto se confirme'), tone: 'ok' });
       } else {
         setMsg({ text: tr('Guardado · no podremos avisarte a tiempo'), tone: 'warn' });
       }

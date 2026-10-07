@@ -20,6 +20,11 @@ export const NEARBY_TR: Dict = {
     fr: 'Enregistré · on ne pourra pas te prévenir à temps',
     pt: 'Salvo · não vamos conseguir te avisar a tempo',
   },
+  'Guardado · la fecha aparecerá aquí y en Favoritos en cuanto se confirme': {
+    en: 'Saved · the date will show up here and in Favorites as soon as it is confirmed',
+    fr: 'Enregistré · la date apparaîtra ici et dans Favoris dès qu’elle sera confirmée',
+    pt: 'Salvo · a data vai aparecer aqui e em Favoritos assim que for confirmada',
+  },
   'Guardado · tienes los recordatorios de eventos desactivados en Perfil': {
     en: 'Saved · your event reminders are turned off in Profile',
     fr: 'Enregistré · tes rappels d’événements sont désactivés dans ton Profil',

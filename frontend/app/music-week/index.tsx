@@ -33,8 +33,8 @@ import { useTr } from '../../src/i18n/autoTr';
 import { cityModuleRoute, openExternal } from '../../src/lib/cityModules';
 import { goBackOr } from '../../src/lib/nav';
 import {
-  CMW_HERO_IMAGE, CMW_IMAGE_CREDIT, CMW_NAME, CmwEvent, L4, dayLabel, pickL, programDays, rangeLabel, useCmwProgram,
-  useCmwToday, whatsappUrl,
+  CMW_END, CMW_HERO_IMAGE, CMW_IMAGE_CREDIT, CMW_NAME, CMW_START, CmwEvent, L4, dayLabel, pickL, programDays,
+  rangeLabel, useCmwProgram, useCmwToday, whatsappUrl,
 } from '../../src/lib/cmw';
 
 const HERO_H = 540;
@@ -364,6 +364,9 @@ export default function MusicWeekHub() {
     <View key="concierge" style={[styles.block, { paddingHorizontal: CMW_GUTTER }]}>
       <CmwConciergeCard brand={brand} lang={lang} tr={tr} onWhatsApp={openWhatsApp} onRequest={() => openRequest(null)} />
       <Text style={styles.credit}>{program?.source_name || 'Programa oficial Cartagena Music Week'} · {tr('Arte del evento')}: {CMW_IMAGE_CREDIT}</Text>
+      {/* CALENDAR-INTEGRATION v1: the classical festival starts two days after CMW ends —
+          people and search engines mix them up, so the hub says it out loud. */}
+      <Text style={styles.credit}>{tr('Music Week no es el Cartagena Festival de Música (música clásica, 9–17 de enero): son dos semanas distintas.')}</Text>
     </View>,
   );
 
@@ -371,7 +374,28 @@ export default function MusicWeekHub() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <Head>
         <title>{`${CMW_NAME} · AMO Life`}</title>
-        <meta name="description" content={`${CMW_NAME} · ${rangeLabel(brand, 'es')} · Programa oficial y concierge en AMO Life.`} />
+        {/* "Cartagena de Indias, Colombia" is deliberate: search engines (and people) must never
+            route this to Cartagena, Spain, nor to the classical Cartagena Festival de Música. */}
+        <meta name="description" content={`${CMW_NAME} · ${rangeLabel(brand, 'es')} · Cartagena de Indias, Colombia · Programa oficial y concierge en AMO Life.`} />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Event',
+            name: CMW_NAME,
+            startDate: brand?.start_date || CMW_START,
+            endDate: brand?.end_date || CMW_END,
+            eventStatus: 'https://schema.org/EventScheduled',
+            eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+            location: {
+              '@type': 'Place',
+              name: 'Cartagena de Indias',
+              address: { '@type': 'PostalAddress', addressLocality: 'Cartagena de Indias', addressRegion: 'Bolívar', addressCountry: 'CO' },
+            },
+            organizer: { '@type': 'Organization', name: 'AMO Life' },
+            // Free-RSVP nights are live in the app; COP is the pricing currency. Honest floor only.
+            offers: { '@type': 'AggregateOffer', lowPrice: '0', priceCurrency: 'COP', url: 'https://www.amocartagena.co/music-week' },
+          })}
+        </script>
       </Head>
       <ScrollView
         ref={scrollRef}

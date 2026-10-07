@@ -93,6 +93,13 @@ export const CMW_TR: Dict = {
   'El servicio no está disponible en este momento. Intenta de nuevo o escríbenos por WhatsApp.': { en: 'The service is unavailable right now. Try again or message us on WhatsApp.', fr: "Le service n'est pas disponible pour le moment. Réessaie ou écris-nous sur WhatsApp.", pt: 'O serviço não está disponível no momento. Tente de novo ou escreva pelo WhatsApp.' },
   'No pudimos enviar tu solicitud. Escríbenos por WhatsApp.': { en: "We couldn't send your request. Message us on WhatsApp.", fr: "Nous n'avons pas pu envoyer ta demande. Écris-nous sur WhatsApp.", pt: 'Não foi possível enviar sua solicitação. Escreva pelo WhatsApp.' },
 
+  // ── Disambiguation (hub footer, CALENDAR-INTEGRATION v1) ──
+  'Music Week no es el Cartagena Festival de Música (música clásica, 9–17 de enero): son dos semanas distintas.': {
+    en: 'Music Week is not the Cartagena Festival de Música (classical music, January 9–17): they are two different weeks.',
+    fr: 'La Music Week n’est pas le Cartagena Festival de Música (musique classique, 9–17 janvier) : ce sont deux semaines différentes.',
+    pt: 'A Music Week não é o Cartagena Festival de Música (música clássica, 9–17 de janeiro): são duas semanas diferentes.',
+  },
+
   // ── Privacy (privacidad.tsx §2) ──
   'g) Solicitudes al concierge de Cartagena Music Week: guardamos tu nombre, el número de personas y el contacto que nos das (WhatsApp o correo) para que el concierge de Cartagena Music Week pueda comunicarse contigo. Puedes pedir que borremos esa solicitud escribiendo a privacidad@amocartagena.co.': {
     en: 'g) Cartagena Music Week concierge requests: we store your name, your party size and the contact you give us (WhatsApp or email) so the Cartagena Music Week concierge can reach you. You can ask us to delete that request by writing to privacidad@amocartagena.co.',

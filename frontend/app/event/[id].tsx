@@ -25,6 +25,7 @@ import {
   programByDay, venueLabel,
 } from '../../src/components/EventFeedUI';
 import { COLORS, SPACING, RADIUS, FONTS, TYPE } from '../../src/constants/theme';
+import { copLine } from '../../src/lib/money';
 import { api } from '../../src/constants/api';
 import { openDirections } from '../../src/lib/maps';
 import { openExternal } from '../../src/lib/cityModules';
@@ -354,14 +355,20 @@ export default function EventDetail() {
                   <Text style={[styles.infoValue, event.price.is_free === true && { color: '#22C55E' }]}>
                     {tr(event.price.is_free === true ? 'GRATIS' : 'Consultar')}
                   </Text>
+                  {/* COP is the real price; US$ is an approximation by design (src/lib/money.ts). */}
+                  {event.price.is_free !== true && !!copLine(event.price.min_cop, event.price.max_cop) && (
+                    <Text style={styles.infoSub}>{copLine(event.price.min_cop, event.price.max_cop)}</Text>
+                  )}
                 </View>
               </View>
             )}
           </View>
         )}
 
-        {/* Avísame — published only, never from an offline copy (§13 J1/J2) */}
-        {published && !offline && (
+        {/* Avísame — published and date_tbc, never from an offline copy (§13 J1/J2).
+            On a date_tbc row it is the notify-me rail: "Guardar" keeps the row in
+            Favoritos, where the confirmed date lands the moment a curator sets it. */}
+        {(published || tbc) && !offline && (
           <View style={styles.avisameWrap}>
             <AvisameButton event={event} />
           </View>

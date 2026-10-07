@@ -74,6 +74,7 @@ const HERO_H = 220;
 const heroWidth = (w: number): number => Math.round(Math.min(320, Math.max(248, (w > 0 ? w : GRID_FALLBACK_W) - 72)));
 const nowCardWidth = (w: number): number => Math.round(Math.min(280, Math.max(220, (w > 0 ? w : GRID_FALLBACK_W) * 0.72)));
 const HOY_MAX = 4;
+const SEMANA_MAX = 6;
 
 // Next occurrence (today included) of a WEEKLY recurring event anchored on the
 // weekday of `startIso`, as "YYYY-MM-DD". Noon-UTC arithmetic so the device
@@ -570,6 +571,13 @@ export default function HomeScreen() {
   const hoyCity = hoyEvents.slice(0, HOY_MAX);
   const hoyPartnerShown = hoyPartner.slice(0, Math.max(0, HOY_MAX - hoyCity.length));
   const hoyCount = hoyEvents.length + hoyPartner.length;
+  // CALENDAR-INTEGRATION v1: "Esta semana" = today+1 … today+6 (lib bucket), children and
+  // standalones only — the month-long umbrella already owns a Destacados hero, repeating it
+  // here daily would bury the days that changed. City events only; renders only with rows.
+  const semanaEvents = useMemo(
+    () => (today ? bucket(feedEvents, 'semana', today).filter((e) => !e.is_umbrella).slice(0, SEMANA_MAX) : []),
+    [feedEvents, today],
+  );
   const feedFailed = !feed && !!feedError && feedEvents.length === 0;
   const umbrellaName = useCallback((ev: PublicEvent): string | null => {
     if (!ev.parent_id) return null;
@@ -908,6 +916,7 @@ export default function HomeScreen() {
             )}
 
             {!far ? (
+              <>
               <View style={styles.section} testID="home-hoy">
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionTitleRow}>
@@ -967,6 +976,40 @@ export default function HomeScreen() {
                   />
                 )}
               </View>
+
+              {/* CALENDAR-INTEGRATION v1 · "Esta semana": the forward calendar's next
+                  six days (children + standalones, never the umbrella hero again).
+                  Renders only with rows — Home never gains an empty slot (§16.2). */}
+              {semanaEvents.length > 0 && (
+                <View style={styles.section} testID="home-semana">
+                  <View style={styles.sectionHeader}>
+                    <View style={styles.sectionTitleRow}>
+                      <Ionicons name="calendar-outline" size={18} color={COLORS.primary} />
+                      <Text style={styles.sectionTitle}>{tr('Esta semana')}</Text>
+                      <Text style={styles.sectionCount}>{semanaEvents.length}</Text>
+                    </View>
+                    <TouchableOpacity onPress={openQuePasa} style={styles.seeAllBtn} accessibilityRole="button">
+                      <Text style={styles.seeAll}>{tr('Ver todos')}</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.hoyList}>
+                    {semanaEvents.map((ev) => (
+                      <EventDayRow
+                        key={ev.event_id}
+                        ev={ev}
+                        lang={lang}
+                        tr={tr}
+                        offline={feedOffline}
+                        lead="date"
+                        partOf={umbrellaName(ev)}
+                        onPress={openFeedEvent}
+                        testID={`home-semana-${ev.event_id}`}
+                      />
+                    ))}
+                  </View>
+                </View>
+              )}
+              </>
             ) : (
               <>
                 {topEvents.length === 0 && (
