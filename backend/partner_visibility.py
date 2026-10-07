@@ -23,10 +23,29 @@ leak (the U1-U6 class of finding).
 # partners (no is_public field) are unaffected; only an explicit is_public=False is
 # hidden. Verified live: OLD vs NEW filter delta = 0 today. "suspended" is added to
 # the status $nin as a second, independent guard on the same moderation transition.
+# "closed"/"unverified" added by CATALOG-HYGIENE v1 (2026-10-07): the research-
+# verified STATUS_OVERRIDES in catalog_hygiene.py (Interno, Café del Mar, …)
+# write these statuses so dead/dubious venues hide CATALOG-WIDE — never shown,
+# never deleted. $nin still matches docs missing the field (editorial venues).
 PUBLIC_PARTNER_FILTER = {
     "catalog_status": {"$nin": ["pending_review", "rejected", "sandbox"]},
-    "status": {"$nin": ["pending_review", "rejected", "needs_verification", "suspended"]},
+    "status": {"$nin": ["pending_review", "rejected", "needs_verification",
+                        "suspended", "closed", "unverified"]},
     "is_public": {"$ne": False},
+}
+
+# CATALOG-HYGIENE v1 — the CONCIERGE gate (docs: drop spec 2026-10-07).
+# Everything Luna / instant retrieval reads merges THIS instead of the public
+# filter: display_ready=False marks a venue whose name we could not confirm
+# (directory/SEO blob, fragment head) or that fails the min_fill floor — the
+# lenses' "won't ship until filled" philosophy applied to names. `$ne: False`
+# deliberately passes docs MISSING the flag (unstamped vendor docs, pre-
+# migration states) so the gate is additive and reversible by deleting one
+# line. The wider catalog (explore, partner pages) stays on
+# PUBLIC_PARTNER_FILTER — hiding there is a product decision, not hygiene.
+CONCIERGE_PARTNER_FILTER = {
+    **PUBLIC_PARTNER_FILTER,
+    "display_ready": {"$ne": False},
 }
 
 # Internal ownership / moderation fields stripped from any PUBLIC partner response.
@@ -99,7 +118,8 @@ def is_publicly_visible(partner: dict) -> bool:
     p = partner or {}
     return (
         p.get("catalog_status") not in ("pending_review", "rejected", "sandbox")
-        and p.get("status") not in ("pending_review", "rejected", "needs_verification", "suspended")
+        and p.get("status") not in ("pending_review", "rejected", "needs_verification",
+                                    "suspended", "closed", "unverified")
         and p.get("is_public") is not False
     )
 
@@ -114,14 +134,17 @@ def partner_visibility_blocker(partner: dict) -> "str | None":
     form said "¡Publicado!" for events on venues no traveller could see).
 
     Values: venue_pending_review | venue_rejected | venue_sandbox |
-            venue_needs_verification | venue_suspended | venue_not_public
+            venue_needs_verification | venue_suspended | venue_closed |
+            venue_unverified | venue_not_public
+    (closed/unverified = CATALOG-HYGIENE v1 research-verified status overrides.)
     """
     p = partner or {}
     cs = p.get("catalog_status")
     if cs in ("pending_review", "rejected", "sandbox"):
         return f"venue_{cs}"
     st = p.get("status")
-    if st in ("pending_review", "rejected", "needs_verification", "suspended"):
+    if st in ("pending_review", "rejected", "needs_verification", "suspended",
+              "closed", "unverified"):
         return f"venue_{st}"
     if p.get("is_public") is False:
         return "venue_not_public"

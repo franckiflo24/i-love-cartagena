@@ -19,6 +19,11 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 DATA_DIR = SCRIPT_DIR.parent.parent / "frontend" / "public" / "data"
 PARTNERS_FILE = DATA_DIR / "partners.json"
 
+# CATALOG-HYGIENE v1: every ingested doc passes apply_hygiene before save —
+# name cleaned (never invented), name_raw preserved, display_ready computed.
+sys.path.insert(0, str(SCRIPT_DIR.parent))
+from catalog_hygiene import apply_hygiene  # noqa: E402
+
 API_KEY = os.environ.get("GOOGLE_PLACES_KEY", "")
 if not API_KEY:
     print("ERROR: Set GOOGLE_PLACES_KEY env var")
@@ -79,16 +84,16 @@ def format_phone(intl: str, natl: str) -> str:
 
 
 def format_hours(opening_hours: dict | None) -> str:
-    """Convert regularOpeningHours to readable string."""
+    """Convert regularOpeningHours to a readable string.
+
+    HYGIENE v1: store the FULL week (the old first-two-days truncation threw
+    away five days; the UI clamps display). And when Google gives us nothing,
+    say nothing — the old hardcoded Mon-Sat default fabricated a schedule on
+    ~94% of venues. Empty string = honestly unknown."""
     if not opening_hours:
-        return "Lun-Sáb 09:00 - 19:00"
+        return ""
     descs = opening_hours.get("weekdayDescriptions", [])
-    if descs:
-        # Compact: take first and last day
-        if len(descs) >= 5:
-            return "; ".join(descs[:2]) + " ..."
-        return "; ".join(descs)
-    return "Lun-Sáb 09:00 - 19:00"
+    return "; ".join(descs) if descs else ""
 
 
 def resolve_photo(photo_resource: str) -> str | None:
@@ -261,6 +266,7 @@ def main():
             "membership_paid_until": None,
             "cuisine": "",
         }
+        apply_hygiene(partner)  # HYGIENE v1: clean-on-write, name_raw kept
         new_partners.append(partner)
         next_id += 1
         print(f"  + {c['name']} [{c['subcategory']}] | {phone} | ★{c['rating']}")

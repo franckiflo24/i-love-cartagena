@@ -10,6 +10,10 @@ changed, and the response reports COUNTS and ids only — never a secret value.
     POST /admin/maintenance/city-pass/rotate-keys    {dry_run?: bool}
     POST /admin/maintenance/partner-events/backfill-date-end {dry_run?: bool}
     POST /admin/maintenance/alert-test                       (Telegram delivery counts)
+    POST /admin/maintenance/catalog-hygiene  {dry_run?: bool, reverse?: bool}
+        CATALOG-HYGIENE v1 migration over db.partners — idempotent, reversible,
+        backup-before-write. Also accepts Bearer EVENTS_ADMIN_TOKEN (ops runs
+        it without the cron secret).
 """
 from __future__ import annotations
 
@@ -207,3 +211,115 @@ async def alert_test(request: Request):
     await _audit("alert_test", f"chats={res.get('chats')} sent={res.get('sent')} errors={len(res.get('errors') or [])}")
     return {"configured": res.get("configured"), "chats": res.get("chats"), "sent": res.get("sent"),
             "errors": res.get("errors") or []}
+
+
+# ── CATALOG-HYGIENE v1 (drop 2026-10-07) ─────────────────────────────────────
+
+async def _require_cron_or_events_admin(request: Request) -> None:
+    """This migration is ops-run with the scoped events admin bearer; the cron
+    secret stays valid. Same constant-time discipline as _require_cron."""
+    auth = request.headers.get("Authorization", "")
+    token = auth[7:] if auth.startswith("Bearer ") else ""
+    ev = os.environ.get("EVENTS_ADMIN_TOKEN", "").strip()
+    if ev and token and hmac.compare_digest(token, ev):
+        return
+    await _require_cron(request)
+
+
+class CatalogHygieneBody(BaseModel):
+    dry_run: bool = True          # default SAFE: look, don't touch
+    reverse: bool = False
+    sample: int = Field(default=40, ge=0, le=200)
+
+
+_HYGIENE_FIELDS = {"_id": 0, "partner_id": 1, "name": 1, "name_raw": 1,
+                   "name_verified": 1, "status": 1, "status_note": 1,
+                   "address": 1, "location": 1, "geo": 1,
+                   "category_hint": 1, "display_ready": 1, "hygiene_v": 1}
+
+
+@router.post("/admin/maintenance/catalog-hygiene")
+async def catalog_hygiene_migrate(body: CatalogHygieneBody, request: Request):
+    """Apply (or reverse) catalog_hygiene.apply_hygiene over EVERY partner doc.
+
+    Forward: name_raw preserved once, name cleaned unless name_verified,
+    STATUS_OVERRIDES applied, display_ready + hygiene_v stamped. Reverse (spec):
+    for hygiene_v==HYGIENE_V docs, name:=name_raw (unless name_verified) and
+    category_hint/display_ready/hygiene_v are unset — status overrides KEPT.
+    Mutating runs snapshot every changed doc's prior fields into
+    maintenance_backups first. Response: counts + a bounded sample, no dumps.
+    """
+    await _require_cron_or_events_admin(request)
+    import catalog_hygiene as H
+
+    rows = await db.partners.find({}, dict(_HYGIENE_FIELDS)).to_list(5000)
+    changes: List[Dict[str, Any]] = []
+    flipped_not_ready = 0
+    status_overridden = 0
+
+    for p in rows:
+        pid = p.get("partner_id")
+        if not pid:
+            continue
+        if body.reverse:
+            if p.get("hygiene_v") != H.HYGIENE_V:
+                continue
+            upd_set: Dict[str, Any] = {}
+            if p.get("name_raw") and not p.get("name_verified"):
+                upd_set["name"] = p["name_raw"]
+            changes.append({"partner_id": pid, "prev": {k: p.get(k) for k in
+                            ("name", "category_hint", "display_ready", "hygiene_v")},
+                            "set": upd_set,
+                            "unset": ["category_hint", "display_ready", "hygiene_v"]})
+            continue
+
+        after = H.apply_hygiene(dict(p))
+        upd_set = {k: after.get(k) for k in
+                   ("name", "name_raw", "category_hint", "status", "status_note",
+                    "display_ready", "hygiene_v")
+                   if after.get(k) is not None and after.get(k) != p.get(k)}
+        if not upd_set:
+            continue
+        if after.get("display_ready") is False and p.get("display_ready") is not False:
+            flipped_not_ready += 1
+        if "status" in upd_set:
+            status_overridden += 1
+        changes.append({"partner_id": pid,
+                        "prev": {k: p.get(k) for k in upd_set},
+                        "set": upd_set, "unset": []})
+
+    sample = [{"partner_id": c["partner_id"],
+               "name_raw": (c["prev"].get("name") if body.reverse else
+                            (c["set"].get("name_raw") or c["prev"].get("name"))),
+               "name": c["set"].get("name"),
+               "display_ready": c["set"].get("display_ready")}
+              for c in changes[: body.sample]]
+
+    result = {"dry_run": body.dry_run, "reverse": body.reverse,
+              "scanned": len(rows), "would_change": len(changes),
+              "flips_to_not_ready": flipped_not_ready,
+              "status_overridden": status_overridden, "sample": sample}
+    if body.dry_run:
+        await _audit("catalog_hygiene.dry", f"scan={len(rows)} chg={len(changes)} hide={flipped_not_ready}")
+        return result
+
+    backup_id = f"mb_{uuid.uuid4().hex[:10]}"
+    await db.maintenance_backups.insert_one({
+        "backup_id": backup_id, "kind": "catalog_hygiene_v1",
+        "reverse": body.reverse, "at": _now(), "count": len(changes),
+        "docs": [{"partner_id": c["partner_id"], **c["prev"]} for c in changes]})
+    applied = 0
+    for c in changes:
+        ops: Dict[str, Any] = {}
+        if c["set"]:
+            ops["$set"] = c["set"]
+        if c["unset"]:
+            ops["$unset"] = {k: "" for k in c["unset"]}
+        if not ops:
+            continue
+        r = await db.partners.update_one({"partner_id": c["partner_id"]}, ops)
+        applied += r.modified_count
+    await _audit("catalog_hygiene.apply",
+                 f"reverse={body.reverse} applied={applied} hide={flipped_not_ready} backup={backup_id}")
+    result.update({"applied": applied, "backup_id": backup_id})
+    return result

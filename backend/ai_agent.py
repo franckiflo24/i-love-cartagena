@@ -45,7 +45,7 @@ import time
 import uuid
 import re
 from datetime import datetime, timedelta, timezone
-from partner_visibility import PUBLIC_PARTNER_FILTER  # U4: Luna never recommends unapproved venues
+from partner_visibility import CONCIERGE_PARTNER_FILTER  # U4 + HYGIENE v1: Luna never recommends unapproved OR junk-named venues
 from events_time import BOGOTA, now_bogota  # Luna's "now" is Bogota
 import events_gate as _events_gate  # EVENTS-ELITE: ISO parsing for the follow-up window
 import luna_events as _luna_events  # EVENTS-ELITE: the ONLY source of event facts for Luna (DESIGN.md §9/§13 I/§15 V)
@@ -923,13 +923,13 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
                 {"experience": {"$regex": free_text[:50], "$options": "i"}},
             ]
 
-    cursor = db.partners.find({**PUBLIC_PARTNER_FILTER, **query}, fields).sort([("rank_score", -1), ("rating", -1)]).limit(max_results)
+    cursor = db.partners.find({**CONCIERGE_PARTNER_FILTER, **query}, fields).sort([("rank_score", -1), ("rating", -1)]).limit(max_results)
     rows = await cursor.to_list(max_results)
 
     # If LLM-routed query returned empty, try with just category (drop search_terms)
     if not rows and used_llm_routing and routed_cats:
         fallback_q: Dict[str, Any] = {"category": {"$in": routed_cats}} if len(routed_cats) > 1 else {"category": routed_cats[0]}
-        cursor = db.partners.find({**PUBLIC_PARTNER_FILTER, **fallback_q}, fields).sort([("rank_score", -1), ("rating", -1)]).limit(max_results)
+        cursor = db.partners.find({**CONCIERGE_PARTNER_FILTER, **fallback_q}, fields).sort([("rank_score", -1), ("rating", -1)]).limit(max_results)
         rows = await cursor.to_list(max_results)
 
     # Keyword fallback: broader bar/restaurant pool
@@ -941,13 +941,13 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
         ):
             cats = _alias_cats(semantic.get("category_in") or ["bar", "nightlife", "beach_club", "restaurant"])
             cursor = db.partners.find(
-                {**PUBLIC_PARTNER_FILTER, "category": {"$in": cats}}, fields,
+                {**CONCIERGE_PARTNER_FILTER, "category": {"$in": cats}}, fields,
             ).sort([("rank_score", -1), ("rating", -1)]).limit(max_results)
             rows = await cursor.to_list(max_results)
 
     # Ultimate fallback: diverse top partners
     if not rows:
-        cursor = db.partners.find(dict(PUBLIC_PARTNER_FILTER), fields).sort([("rank_score", -1), ("rating", -1)]).limit(max_results)
+        cursor = db.partners.find(dict(CONCIERGE_PARTNER_FILTER), fields).sort([("rank_score", -1), ("rating", -1)]).limit(max_results)
         rows = await cursor.to_list(max_results)
 
     # Guarantee the exact routed subcategory is present even when it's LOW-RANK inside a
@@ -963,7 +963,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
             if routed_cats:
                 _subq["category"] = {"$in": routed_cats}
             sub_rows = await db.partners.find(
-                {**PUBLIC_PARTNER_FILTER, **_subq}, fields
+                {**CONCIERGE_PARTNER_FILTER, **_subq}, fields
             ).sort([("rank_score", -1), ("rating", -1)]).limit(30).to_list(30)
             _seen = {r.get("partner_id") for r in rows}
             rows = rows + [r for r in sub_rows if r.get("partner_id") not in _seen]
@@ -983,7 +983,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
                           for f in ("name", "subcategory", "cuisine", "tags", "experience", "style_tags")]}
         try:
             stem_rows = await db.partners.find(
-                {**PUBLIC_PARTNER_FILTER, **stem_q}, fields
+                {**CONCIERGE_PARTNER_FILTER, **stem_q}, fields
             ).sort([("rank_score", -1), ("rating", -1)]).limit(80).to_list(80)
             seen = {r.get("partner_id") for r in rows}
             rows = rows + [r for r in stem_rows if r.get("partner_id") not in seen]
@@ -1029,7 +1029,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
         if _dest:
             op_q = {"category": {"$in": ["yacht", "service"]}, "serves_destinations": {"$in": _dest}}
         try:
-            op_rows = await db.partners.find({**PUBLIC_PARTNER_FILTER, **op_q}, fields).sort(
+            op_rows = await db.partners.find({**CONCIERGE_PARTNER_FILTER, **op_q}, fields).sort(
                 [("rank_score", -1), ("rating", -1)]).limit(12).to_list(12)
             if op_rows:
                 seen = {r.get("partner_id") for r in op_rows}
@@ -1094,7 +1094,7 @@ CARTAGENA_KNOWLEDGE: Dict[str, Any] = {
 
 async def _slim_all_partners_compact(db, limit: int = 80) -> List[Dict[str, Any]]:
     """Top partners — ultra-compact. Only partner_id + name + category for ID resolution."""
-    cursor = db.partners.find(dict(PUBLIC_PARTNER_FILTER), {
+    cursor = db.partners.find(dict(CONCIERGE_PARTNER_FILTER), {
         "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
     }).sort([("rank_score", -1), ("rating", -1)]).limit(limit)
     return await cursor.to_list(limit)
@@ -1140,7 +1140,7 @@ async def _curated_expert_picks(db, user_text: str) -> Optional[Dict[str, Any]]:
         }
         # U8: an expert-curated id that points to an unapproved / sandbox / rejected
         # venue must NOT become a Luna recommendation — same gate as /search (4631).
-        found = await db.partners.find({**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": ids}}, fields).to_list(len(ids))
+        found = await db.partners.find({**CONCIERGE_PARTNER_FILTER, "partner_id": {"$in": ids}}, fields).to_list(len(ids))
         by_id = {p.get("partner_id"): p for p in found}
         # Preserve the expert's exact rank order; drop any id missing from DB.
         for rank, pid in enumerate(ids, start=1):
@@ -1181,7 +1181,7 @@ async def _trip_context(db, user_id: str) -> Optional[Dict[str, Any]]:
     vids = [r["ref_id"] for r in rows if r.get("ref_type") == "venue" and r.get("ref_id")]
     cats: Dict[str, str] = {}
     if vids:
-        async for p in db.partners.find({**PUBLIC_PARTNER_FILTER, "partner_id": {"$in": vids}},
+        async for p in db.partners.find({**CONCIERGE_PARTNER_FILTER, "partner_id": {"$in": vids}},
                                         {"_id": 0, "partner_id": 1, "category": 1}):
             cats[p["partner_id"]] = p.get("category", "")
     items = [{
