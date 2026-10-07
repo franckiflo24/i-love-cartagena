@@ -1,6 +1,6 @@
 {
   "version": "1.1.6",
-  "whats_new": {
+  "whatsNew": {
     "es-MX": "Luna, unificada: la barra de búsqueda del inicio ahora abre la conversación completa con Luna — búsqueda, recomendaciones y seguimiento en un solo hilo.\n\n• La pantalla de chat respeta el área segura del iPhone y el botón de salir siempre funciona.\n• Recomendaciones más limpias: nombres de lugares verificados y curados.\n• Mejoras de estabilidad y rendimiento.",
     "en-US": "One Luna: the home search bar now opens the full Luna conversation — search, recommendations and follow-ups in a single thread.\n\n• The chat screen respects the iPhone safe area and the close button always works.\n• Cleaner recommendations: verified, curated venue names.\n• Stability and performance improvements."
   }
