@@ -17,6 +17,7 @@ import { API_BASE } from '../src/constants/api';
 import { useSignupGate } from '../src/context/SignupGateContext';
 import { trackGate, getArchetype } from '../src/lib/gateAnalytics';
 import { cmwActionLinks, type CmwActionLinks } from '../src/lib/cmw';
+import { goHome } from '../src/lib/nav';
 import { openExternal } from '../src/lib/cityModules';
 
 // ── Agent Card ──
@@ -73,9 +74,13 @@ export default function ConciergeScreen() {
   const { lang } = useLang();
   const { openGate } = useSignupGate();
   const { agent: routeAgent } = useLocalSearchParams<{ agent?: string }>();
+  const enteredDirect = !!(routeAgent && AGENTS[routeAgent as AgentId]);
   const [activeAgent, setActiveAgent] = useState<AgentId | null>(
-    routeAgent && AGENTS[routeAgent as AgentId] ? (routeAgent as AgentId) : null
+    enteredDirect ? (routeAgent as AgentId) : null
   );
+  // Exit that always works: router.back() is a silent no-op on a deep-linked
+  // or fresh stack (part of Phil's "can't exit" report) — fall back to home.
+  const exitScreen = () => { if (router.canGoBack()) router.back(); else goHome(router); };
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -179,7 +184,7 @@ export default function ConciergeScreen() {
     return (
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.pickerHeader}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <TouchableOpacity onPress={exitScreen} style={styles.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
           </TouchableOpacity>
           <View style={{ flex: 1 }} />
@@ -214,7 +219,9 @@ export default function ConciergeScreen() {
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={0}>
         {/* Header */}
         <View style={[styles.chatHeader, { borderBottomColor: agent.accent + '20' }]}>
-          <TouchableOpacity onPress={() => setActiveAgent(null)} style={styles.backBtn}>
+          {/* Entered straight into a chat (home bar → Luna)? Back exits the
+              screen — the user never saw the picker, don't strand them in it. */}
+          <TouchableOpacity onPress={() => (enteredDirect ? exitScreen() : setActiveAgent(null))} style={styles.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Ionicons name="arrow-back" size={22} color={COLORS.textMain} />
           </TouchableOpacity>
           <View style={[styles.headerEmojiWrap, { backgroundColor: agent.accent + '18' }]}>

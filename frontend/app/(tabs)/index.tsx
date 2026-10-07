@@ -771,7 +771,11 @@ export default function HomeScreen() {
         {/* 3 · Search hero — the primary tool (Luna) */}
         <PressableScale
           style={styles.searchHero}
-          onPress={() => router.push('/search')}
+          // ONE Luna (2026-10-07): the home AI bar opens the full conversational
+          // concierge (search + chat + recs in one thread), not the one-shot
+          // /search card — that split was the audit's "two different Lunas".
+          // /search stays reachable from Explore as the catalog tool.
+          onPress={() => router.push({ pathname: '/concierge', params: { agent: 'luna' } })}
           haptic
           testID="home-search-hero"
           accessibilityLabel={tr('Buscar en Cartagena con IA…')}

@@ -97,7 +97,12 @@ export default function RootLayout() {
         <Stack.Screen name="reservation/new" options={{ presentation: 'modal' }} />
         <Stack.Screen name="rewards/offers" options={{ presentation: 'modal' }} />
         <Stack.Screen name="rewards/card" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="concierge" options={{ presentation: 'modal' }} />
+        {/* card, NOT modal (2026-10-07): inside a native modal the safe-area
+            context reads 0 → the chat header rendered under the iOS status bar
+            and the ✕ sat in the system zone (Phil's 1.1.5 screenshots, "can't
+            exit"). A normal push insets correctly everywhere and adds the
+            native swipe-back gesture. */}
+        <Stack.Screen name="concierge" />
         {/* port-tax/tickets + port-tax/ticket/[id] are owned by port-tax/_layout — declaring
             them here too raised a runtime warning and their options were ignored. */}
         <Stack.Screen name="payments/return" options={{ presentation: 'card' }} />

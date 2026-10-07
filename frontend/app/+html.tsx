@@ -24,6 +24,48 @@ export default function Root({ children }: PropsWithChildren) {
             linking straight to the App Store (id 6809565354), so web visitors can
             install the native app in one tap without searching the store. */}
         <meta name="apple-itunes-app" content="app-id=6809565354" />
+        {/* ── TRANSLATE CRASH BUNDLE (elite-audit fix #1, 2026-10-07) ─────────
+            Chrome's Google Translate wraps React's text nodes in <font> tags;
+            the next big re-render then throws NotFoundError on removeChild and
+            the app dies to the error boundary — reproduced twice on live
+            (login completion, Luna's answer). Two inline defenses that must
+            run BEFORE the bundle:
+            1) pre-hydration <html lang> sync from the stored choice or the
+               browser language, so an English Chrome sees lang=en and never
+               offers to translate the Spanish-built shell (LanguageContext
+               re-syncs reactively after hydration — this closes the boot gap);
+            2) the standard removeChild/insertBefore guard, so when Translate
+               (or any extension) does steal nodes, React keeps working instead
+               of crashing. Guarded ops behave exactly like React's own
+               expectations on healthy DOM — the patch is a no-op there. */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            try{
+              var l = null;
+              try { l = localStorage.getItem('@musica_lang'); } catch(e){}
+              if (l !== 'es' && l !== 'en' && l !== 'fr' && l !== 'pt') {
+                var n = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+                n = String(n).toLowerCase();
+                l = n.indexOf('es')===0 ? 'es' : n.indexOf('fr')===0 ? 'fr' : n.indexOf('pt')===0 ? 'pt' : n ? 'en' : 'es';
+              }
+              document.documentElement.lang = l;
+            }catch(e){}
+            try{
+              if (typeof Node === 'function' && Node.prototype) {
+                var rc = Node.prototype.removeChild;
+                Node.prototype.removeChild = function(child){
+                  if (child && child.parentNode !== this) { return child; }
+                  return rc.apply(this, arguments);
+                };
+                var ib = Node.prototype.insertBefore;
+                Node.prototype.insertBefore = function(node, ref){
+                  if (ref && ref.parentNode !== this) { return this.appendChild(node); }
+                  return ib.apply(this, arguments);
+                };
+              }
+            }catch(e){}
+          })();
+        ` }} />
         {/* PWA manifest + installed-app icon (red brand, matches the preloader) */}
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" sizes="180x180" href="/splash/amo-icon-180.png" />
