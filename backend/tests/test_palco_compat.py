@@ -106,6 +106,18 @@ def test_legacy_civic_is_government_surface_only() -> None:
     assert db.civic_demo_tickets.rows[0]["status"] == "issued"
 
 
+def test_legacy_forged_real_id_is_byte_identical_to_ghost() -> None:
+    """Closure-audit residual lock: on the legacy adapter, a forged token on a
+    REAL ticket id and the same forgery on a ghost id answer the identical
+    response dict — no reason-string existence oracle (§4 amended bar)."""
+    db = _DB()
+    _seed_ticket(db)
+    c = qc.counter_for_now()
+    real = _run(verify.verify_scan(db, f"AMOTKT1.amt_1234567890.{c}.aaaaaaaaaaaa", SCOPE_B))
+    ghost = _run(verify.verify_scan(db, f"AMOTKT1.amt_0123456789.{c}.aaaaaaaaaaaa", SCOPE_B))
+    assert real == ghost and real["verdict"] == V_FALSIFICADO
+
+
 def test_garbage_wires_are_falsificado_never_500() -> None:
     db = _DB()
     for junk in ("", "x", "AMO2.", "AMO2.a.b.c.d", "AMOX9.amt_1.1.aaaaaaaaaaaa",

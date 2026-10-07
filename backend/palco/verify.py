@@ -276,8 +276,13 @@ async def _verify_legacy(db: Any, legacy: Mapping[str, Any], scope: Mapping[str,
 
     coll_name, id_field = _V1_COLLECTIONS[ns]
     doc = await getattr(db, coll_name).find_one({id_field: entity_id}, {"_id": 0})
+    # ONE reason for every legacy FALSIFICADO (closure-audit residual,
+    # 2026-10-06): a legacy wire carries no key_id, so "unknown id" vs "bad
+    # MAC on a real id" MUST answer byte-identically or the reason string is
+    # a ticket-id existence oracle (§4 amended bar). firma_invalida is honest
+    # for both: the wire could not be authenticated.
     if doc is None or not doc.get("qr_secret"):
-        return await done(_res(V_FALSIFICADO, "llave_desconocida"))
+        return await done(_res(V_FALSIFICADO, "firma_invalida"))
     v = _v1qc.verify({"entity_id": entity_id, "counter": legacy["counter"],
                       "token": legacy["token"]}, doc["qr_secret"])
     if v == "COUNTERFEIT":
