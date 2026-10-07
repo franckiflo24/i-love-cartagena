@@ -83,6 +83,8 @@ import tickets as _tickets  # noqa: E402
 # credential engine (device-bound AMO2 wires, verdicts, manifests, catalog).
 # AMO imports the engine; the engine never imports AMO route modules.
 import palco.router as _palco  # noqa: E402
+# SUPPLY-SPRINT v1: AMO-hosted free-event authoring (drains inventory zero).
+import amo_events_admin as _amo_events  # noqa: E402
 # MAINTENANCE: Bearer-CRON_SECRET ops (session revoke, pass-key rotation,
 # date_end backfill) — backup-before-write, counts only, never a secret value.
 import maintenance as _maintenance  # noqa: E402
@@ -8763,6 +8765,10 @@ app.include_router(_tickets.router, prefix="/api")
 # PALCO v2 engine router (docs/palco-v2/DESIGN.md §11) — same mount discipline.
 _palco.init(db_=db)
 app.include_router(_palco.router, prefix="/api")
+
+# SUPPLY-SPRINT v1 admin authoring (AMO-hosted free events).
+_amo_events.init(db_=db)
+app.include_router(_amo_events.router, prefix="/api")
 
 # Maintenance ops (cron-secret only). Mounted before api_router like its siblings.
 _maintenance.init(db_=db)

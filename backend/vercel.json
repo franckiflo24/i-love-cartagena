@@ -28,6 +28,10 @@
     {
       "path": "/api/cron/partner-events/sweep",
       "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/admin/maintenance/inventory-watch",
+      "schedule": "0 * * * *"
     }
   ],
   "builds": [
@@ -54,9 +58,18 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" }
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        }
       ]
     }
   ]

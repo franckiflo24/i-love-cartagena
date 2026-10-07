@@ -735,7 +735,10 @@ def test_vercel_crons() -> None:
     assert ("/api/admin/events/sentinel", "*/15 * * * *") in crons
     assert ("/api/admin/events/reminders", "*/15 * * * *") in crons
     assert not any(p.startswith("/api/admin/events/sentinel?") for p, _s in crons), "one sentinel cron (auto slot)"
-    assert len(cfg["crons"]) == 7
+    assert len(cfg["crons"]) == 8
+    # SUPPLY-SPRINT v1: hourly inventory drought alarm (zero-inventory can
+    # never silently recur).
+    assert ("/api/admin/maintenance/inventory-watch", "0 * * * *") in crons
     assert ("/api/admin/demand/refresh?days=30", "0 10 * * 1") in crons, "existing crons kept"
     assert ("/api/admin/local-picks/refresh", "0 8 * * *") in crons
     # LENSES (docs/lenses/DESIGN.md §3): cruise-schedule cache refresh, hide-on-fail.

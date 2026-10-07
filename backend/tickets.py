@@ -118,6 +118,25 @@ async def ticket_rsvp(body: RsvpBody, request: Request):
         raise HTTPException(status_code=404, detail={
             "error": "not_available",
             "message": "Este evento no está disponible para reservas / This event is not available for registration"})
+    # SUPPLY-SPRINT v1: AMO-hosted events carry an RSVP window + capacity.
+    # All checks are field-conditional — legacy vendor events (no such fields)
+    # behave exactly as before. Window strings are naive America/Bogota
+    # "YYYY-MM-DDTHH:MM" (events_time doctrine), compared lexicographically.
+    from events_time import now_bogota as _nb
+    _now_local = _nb().strftime("%Y-%m-%dT%H:%M")
+    if ev.get("rsvp_opens_at") and _now_local < str(ev["rsvp_opens_at"])[:16]:
+        raise HTTPException(status_code=409, detail={
+            "error": "rsvp_not_open",
+            "message": "Las reservas aún no abren para este evento / RSVPs have not opened yet"})
+    if ev.get("rsvp_closes_at") and _now_local > str(ev["rsvp_closes_at"])[:16]:
+        raise HTTPException(status_code=409, detail={
+            "error": "rsvp_closed",
+            "message": "Las reservas ya cerraron para este evento / RSVPs are closed"})
+    _cap = ev.get("capacity")
+    if isinstance(_cap, int) and _cap > 0 and int(ev.get("rsvp_count") or 0) >= _cap:
+        raise HTTPException(status_code=409, detail={
+            "error": "sold_out",
+            "message": "Evento lleno — se acabaron los cupos / Sold out — no spots left"})
     existing = await db.amo_tickets.find_one(
         {"user_id": user["user_id"], "event_id": body.event_id, "kind": "event_rsvp"}, {"_id": 0, "qr_secret": 0})
     if existing:
@@ -152,6 +171,25 @@ async def ticket_rsvp(body: RsvpBody, request: Request):
         upsert=True, return_document=ReturnDocument.AFTER, projection={"_id": 0, "qr_secret": 0})
     if claimed and claimed.get("ticket_id") != doc["ticket_id"]:
         return {"ticket": _public_ticket(claimed), "already": True}
+
+    # Genuine new ticket. On capacity-managed events, atomically claim a seat:
+    # the $expr guard makes overselling impossible under any concurrency; if
+    # the claim loses (full / closed between checks), the just-minted ticket is
+    # compensating-deleted and the caller gets the honest 409 (SUPPLY-SPRINT).
+    if isinstance(_cap, int) and _cap > 0:
+        seat = await db.partner_events.find_one_and_update(
+            {"event_id": body.event_id, "cancelled": {"$ne": True},
+             "$expr": {"$lt": [{"$ifNull": ["$rsvp_count", 0]}, "$capacity"]}},
+            [{"$set": {"rsvp_count": {"$add": [{"$ifNull": ["$rsvp_count", 0]}, 1]}}}],
+            return_document=ReturnDocument.AFTER)
+        if seat is None:
+            await db.amo_tickets.delete_one({"ticket_id": doc["ticket_id"], "status": "issued"})
+            raise HTTPException(status_code=409, detail={
+                "error": "sold_out",
+                "message": "Evento lleno — se acabaron los cupos / Sold out — no spots left"})
+        if int(seat.get("rsvp_count") or 0) >= int(seat.get("capacity") or 0):
+            await db.partner_events.update_one({"event_id": body.event_id},
+                                               {"$set": {"soldout": True}})
     return {"ticket": _public_ticket(doc)}
 
 
@@ -363,6 +401,34 @@ async def biz_ticket_scan(body: ScanBody, request: Request):
             verdict = "FUERA_DE_ALCANCE"
             detail["reason"] = "fuera_de_alcance"
         else:
+            # SUPPLY-SPRINT event-state gate: a fresh, correctly-rotating QR
+            # must NOT admit to a dead event. Re-read CURRENT event state —
+            # cancelled/unpublished → EVENTO_CANCELADO; finished (Bogota,
+            # end_time-aware via event_is_live) → EVENTO_VENCIDO. Fail closed:
+            # a ticket whose event is missing is a ticket to nothing.
+            _ev = await db.partner_events.find_one(
+                {"event_id": tdoc.get("event_id")},
+                {"_id": 0, "date": 1, "date_end": 1, "date_start": 1,
+                 "start_time": 1, "end_time": 1, "cancelled": 1,
+                 "is_published": 1, "moderation_status": 1})
+            if (_ev is None or _ev.get("cancelled")
+                    or not _ev.get("is_published")
+                    or _ev.get("moderation_status") != "approved"):
+                verdict = "EVENTO_CANCELADO"
+                detail["reason"] = "evento_cancelado"
+                await _log_scan(verdict, biz, gate,
+                                _guest_panel(tdoc).get("name", ""),
+                                tdoc.get("title") or "", ticket_id=pt["entity_id"])
+                detail["guest"] = _guest_panel(tdoc)
+                return {"verdict": verdict, **detail}
+            if not event_is_live(_ev):
+                verdict = "EVENTO_VENCIDO"
+                detail["reason"] = "evento_vencido"
+                await _log_scan(verdict, biz, gate,
+                                _guest_panel(tdoc).get("name", ""),
+                                tdoc.get("title") or "", ticket_id=pt["entity_id"])
+                detail["guest"] = _guest_panel(tdoc)
+                return {"verdict": verdict, **detail}
             flipped = await db.amo_tickets.find_one_and_update(
                 {"ticket_id": pt["entity_id"], "status": "issued"},
                 {"$set": {"status": "used", "used_at": _iso(_now()), "used_gate": gate}},

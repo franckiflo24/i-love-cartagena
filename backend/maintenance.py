@@ -213,6 +213,53 @@ async def alert_test(request: Request):
             "errors": res.get("errors") or []}
 
 
+# ── SUPPLY-SPRINT v1: inventory drought alarm (2026-10-07) ───────────────────
+# "Zero RSVP-able inventory" was the elite audit's P0-product — this cron makes
+# a silent recurrence structurally impossible: hourly count of open, future,
+# seat-available events in the next 14 days; below threshold → Telegram ops
+# alert (Phil + Sergio, standing rule) + a health doc the dashboard can read.
+
+@router.post("/admin/maintenance/inventory-watch")
+async def inventory_watch(request: Request):
+    await _require_cron_or_events_admin(request)
+    from events_time import now_bogota, upcoming_query
+    from partner_visibility import PARTNER_EVENT_PUBLIC
+    now = now_bogota()
+    horizon = (now + __import__("datetime").timedelta(days=14)).strftime("%Y-%m-%d")
+    base = {**PARTNER_EVENT_PUBLIC}
+    rows = await db.partner_events.find(
+        upcoming_query(base, now),
+        {"_id": 0, "event_id": 1, "date": 1, "capacity": 1, "rsvp_count": 1}).to_list(500)
+    live = 0
+    for ev in rows:
+        d = ev.get("date") or ""
+        if d and d > horizon:
+            continue
+        cap = ev.get("capacity")
+        if isinstance(cap, int) and cap > 0 and int(ev.get("rsvp_count") or 0) >= cap:
+            continue  # full house is not RSVP-able inventory
+        live += 1
+    threshold = int(os.environ.get("INVENTORY_MIN_14D", "3") or 3)
+    drought = live < threshold
+    if drought:
+        try:
+            import telegram_alerts as _tg
+            await _tg.send(f"⚠️ AMO inventory drought: {live} RSVP-able event(s) "
+                           f"in the next 14 days (threshold {threshold}). "
+                           f"The ticketing rail is starving — publish events.")
+        except Exception as exc:  # noqa: BLE001
+            logger.error("[inventory-watch] alert failed: %s", type(exc).__name__)
+    try:
+        await db.system_health.update_one(
+            {"_id": "inventory_watch"},
+            {"$set": {"live_14d": live, "threshold": threshold,
+                      "drought": drought, "checked_at": _now()}}, upsert=True)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[inventory-watch] health write failed: %s", type(exc).__name__)
+    await _audit("inventory_watch", f"live={live} threshold={threshold} drought={drought}")
+    return {"live_14d": live, "threshold": threshold, "drought": drought}
+
+
 # ── CATALOG-HYGIENE v1 (drop 2026-10-07) ─────────────────────────────────────
 
 async def _require_cron_or_events_admin(request: Request) -> None:

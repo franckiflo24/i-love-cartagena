@@ -33,7 +33,9 @@ export type Translate = (es: string | null | undefined) => string;
 export type ScanVerdict =
   | 'VALIDO' | 'DUPLICADO' | 'FALSIFICADO' | 'EXPIRADO' | 'PASE'
   // PALCO-V2 (docs/palco-v2/DESIGN.md §4) — shipped lockstep with the backend:
-  | 'FUERA_DE_ALCANCE' | 'REVOCADO' | 'TRANSFERIDO';
+  | 'FUERA_DE_ALCANCE' | 'REVOCADO' | 'TRANSFERIDO'
+  // SUPPLY-SPRINT v1: a live wire never admits to a dead event.
+  | 'EVENTO_CANCELADO' | 'EVENTO_VENCIDO';
 
 /** 'issued' | 'used'; anything else is 'unknown' and is shown neutrally, never as admissible. */
 export type GuestStatus = 'issued' | 'used' | 'unknown';
@@ -179,6 +181,7 @@ const notNull = <T>(v: T | null): v is T => v !== null;
 const VERDICTS: ReadonlySet<string> = new Set<ScanVerdict>([
   'VALIDO', 'DUPLICADO', 'FALSIFICADO', 'EXPIRADO', 'PASE',
   'FUERA_DE_ALCANCE', 'REVOCADO', 'TRANSFERIDO',
+  'EVENTO_CANCELADO', 'EVENTO_VENCIDO',
 ]);
 function isVerdict(v: string): v is ScanVerdict {
   return VERDICTS.has(v);

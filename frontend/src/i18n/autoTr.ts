@@ -1914,6 +1914,11 @@ export const AUTO_TR: Dict = {
   'Credencial auténtica, pero de otro alcance: este validador no puede admitirla.': { en: 'Authentic credential, but for another scope: this validator cannot admit it.', fr: 'Identifiant authentique, mais d\'un autre périmètre : ce validateur ne peut pas l\'admettre.', pt: 'Credencial autêntica, mas de outro escopo: este validador não pode admiti-la.' },
   'Credencial revocada por el emisor. No admite acceso.': { en: 'Credential revoked by the issuer. No entry.', fr: 'Identifiant révoqué par l\'émetteur. Accès refusé.', pt: 'Credencial revogada pelo emissor. Não dá acesso.' },
   'Credencial transferida: la vigente es la del nuevo titular.': { en: 'Credential transferred: the new holder\'s is the valid one.', fr: 'Identifiant transféré : celui du nouveau titulaire est le valide.', pt: 'Credencial transferida: a válida é a do novo titular.' },
+  // SUPPLY-SPRINT v1 — event-state gate verdicts (lockstep with backend)
+  'EVENTO CANCELADO': { en: 'EVENT CANCELLED', fr: 'ÉVÉNEMENT ANNULÉ', pt: 'EVENTO CANCELADO' },
+  'EVENTO TERMINADO': { en: 'EVENT ENDED', fr: 'ÉVÉNEMENT TERMINÉ', pt: 'EVENTO ENCERRADO' },
+  'Entrada auténtica, pero el evento fue cancelado. No admite acceso.': { en: 'Authentic ticket, but the event was cancelled. No entry.', fr: 'Billet authentique, mais l\'événement a été annulé. Accès refusé.', pt: 'Ingresso autêntico, mas o evento foi cancelado. Não dá acesso.' },
+  'Entrada auténtica, pero el evento ya terminó.': { en: 'Authentic ticket, but the event already ended.', fr: 'Billet authentique, mais l\'événement est déjà terminé.', pt: 'Ingresso autêntico, mas o evento já terminou.' },
 };
 
 /**

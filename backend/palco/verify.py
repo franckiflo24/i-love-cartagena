@@ -34,7 +34,8 @@ from . import catalog, crypto, wire
 from .models import (COL_CREDENTIALS, COL_DEVICES, COL_SCAN_LOG, CONSUMABLE_STATUSES,
                      DEVICE_STATUS_ACTIVE, MODE_CONSUME, MODE_VERIFY, S_ACTIVE,
                      S_EXHAUSTED, S_EXPIRED, S_ISSUED, S_REFUNDED, S_REVOKED,
-                     S_TRANSFERRED, S_USED, TIER_LEGACY, V_DUPLICADO, V_EXPIRADO,
+                     S_TRANSFERRED, S_USED, TIER_LEGACY, V_DUPLICADO,
+                     V_EVENTO_CANCELADO, V_EVENTO_VENCIDO, V_EXPIRADO,
                      V_FALSIFICADO, V_FUERA, V_PASE, V_RECIBO, V_REVOCADO,
                      V_TRANSFERIDO, V_VALIDO, iso, now_utc, reason_line)
 
@@ -293,6 +294,17 @@ async def _verify_legacy(db: Any, legacy: Mapping[str, Any], scope: Mapping[str,
     if ns == "AMOTKT1":
         if not scope.get("gov") and doc.get("partner_id") != scope.get("partner_id"):
             return await done(_res(V_FUERA, "fuera_de_alcance"))
+        # SUPPLY-SPRINT mirror of the consuming scan's event-state gate:
+        # inspectors must see the same truth the door sees.
+        ev = await db.partner_events.find_one(
+            {"event_id": doc.get("event_id")},
+            {"_id": 0, "date": 1, "date_end": 1, "date_start": 1, "start_time": 1,
+             "end_time": 1, "cancelled": 1, "is_published": 1, "moderation_status": 1})
+        if (ev is None or ev.get("cancelled") or not ev.get("is_published")
+                or ev.get("moderation_status") != "approved"):
+            return await done(_res(V_EVENTO_CANCELADO, "evento_cancelado"))
+        if not event_is_live(ev):
+            return await done(_res(V_EVENTO_VENCIDO, "evento_vencido"))
         if doc.get("status") == "used":
             return await done(_res(V_DUPLICADO, "ya_usada",
                                    first_used_at=doc.get("used_at"), first_gate=doc.get("used_gate")))

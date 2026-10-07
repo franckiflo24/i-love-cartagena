@@ -31,8 +31,12 @@ V_REVOCADO = "REVOCADO"
 V_TRANSFERIDO = "TRANSFERIDO"
 V_PASE = "PASE"
 V_RECIBO = "RECIBO"
+# SUPPLY-SPRINT v1: a live wire must not admit to a dead event.
+V_EVENTO_CANCELADO = "EVENTO_CANCELADO"
+V_EVENTO_VENCIDO = "EVENTO_VENCIDO"
 VERDICTS = frozenset({V_VALIDO, V_DUPLICADO, V_FALSIFICADO, V_EXPIRADO, V_FUERA,
-                      V_REVOCADO, V_TRANSFERIDO, V_PASE, V_RECIBO})
+                      V_REVOCADO, V_TRANSFERIDO, V_PASE, V_RECIBO,
+                      V_EVENTO_CANCELADO, V_EVENTO_VENCIDO})
 
 # credential statuses (DESIGN §1.1)
 S_ISSUED, S_ACTIVE, S_USED, S_EXHAUSTED = "issued", "active", "used", "exhausted"
@@ -61,6 +65,8 @@ REASONS: Dict[str, Dict[str, str]] = {
     "estado_inaccesible":{"es": "No se pudo confirmar el estado respaldante.", "en": "Backing state could not be confirmed."},
     "ya_usada":          {"es": "Esta credencial ya fue usada.", "en": "This credential was already used."},
     "producto_invalido": {"es": "Producto no reconocido.", "en": "Unknown product."},
+    "evento_cancelado":  {"es": "El evento fue cancelado.", "en": "The event was cancelled."},
+    "evento_vencido":    {"es": "El evento ya terminó.", "en": "The event already ended."},
 }
 
 CRED_ID_RE = re.compile(r"^crd_[a-f0-9]{12}$")

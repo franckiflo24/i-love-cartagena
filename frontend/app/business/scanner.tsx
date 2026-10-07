@@ -95,6 +95,8 @@ function verdictLabel(verdict: string, tr: Translate): string {
     case 'FUERA_DE_ALCANCE': return tr('FUERA DE ALCANCE');
     case 'REVOCADO': return tr('REVOCADO');
     case 'TRANSFERIDO': return tr('TRANSFERIDO');
+    case 'EVENTO_CANCELADO': return tr('EVENTO CANCELADO');
+    case 'EVENTO_VENCIDO': return tr('EVENTO TERMINADO');
     default: return verdict;
   }
 }
@@ -127,6 +129,10 @@ function verdictMeta(result: ScanResult, tr: Translate): VerdictMeta {
       return { ...RED_TONE, icon: 'ban', label, text: tr('Credencial revocada por el emisor. No admite acceso.') };
     case 'TRANSFERIDO':
       return { ...GRAY_TONE, icon: 'swap-horizontal', label, text: tr('Credencial transferida: la vigente es la del nuevo titular.') };
+    case 'EVENTO_CANCELADO':
+      return { ...RED_TONE, icon: 'close-circle', label, text: tr('Entrada auténtica, pero el evento fue cancelado. No admite acceso.') };
+    case 'EVENTO_VENCIDO':
+      return { ...GRAY_TONE, icon: 'time-outline', label, text: tr('Entrada auténtica, pero el evento ya terminó.') };
   }
 }
 

@@ -96,7 +96,12 @@ PUBLIC_EVENT_PROJECTION = {"_id": 0, **{f: 0 for f in INTERNAL_EVENT_FIELDS}}
 # EVENTS-ELITE §15 T4 / §13 D5: every public partner-event surface (server.py feeds, trips,
 # shared trips) requires an EXPLICIT moderation_status == "approved" plus is_published. A pending
 # or LLM-failed event is never public (moderation fails closed).
-PARTNER_EVENT_PUBLIC = {"is_published": True, "moderation_status": "approved"}
+# cancelled $ne True added by SUPPLY-SPRINT v1 (2026-10-07): an admin-cancelled
+# AMO event also unpublishes, but this belt means a later republish mistake can
+# never resurrect a cancelled event into discovery. Matches docs missing the
+# field, so every existing vendor event is unaffected.
+PARTNER_EVENT_PUBLIC = {"is_published": True, "moderation_status": "approved",
+                        "cancelled": {"$ne": True}}
 
 # The curated/seasonal `events` collection (editorial, NOT partner-submitted) can
 # carry a moderation_status from the AI auto-approval pipeline. Public reads must
