@@ -145,6 +145,17 @@ def test_no_dangling_connector_after_strip() -> None:
     assert disp == "Casa Pizarro" and conf is True
 
 
+def test_comma_blob_gated_and_override_wins() -> None:
+    raw = ("Boat Rental Cartagena, ARRECIFE BOATS CARTAGENA, cartagena boat "
+           "rental, islas del Rosario, colombia")
+    disp, _h, conf = H.clean_display_name(raw)
+    assert disp == "Arrecife Boats" and conf is True  # seeded override
+    # a different comma-blob without an override stays unconfident
+    other = "Tours Cartagena, BEST TOURS CARTAGENA, city tours, colombia"
+    _d, _h2, conf2 = H.clean_display_name(other)
+    assert conf2 is False
+
+
 def test_true_fragment_still_blocked() -> None:
     assert H.clean_display_name("by Rausch")[2] is False
     assert H.clean_display_name("de la")[2] is False

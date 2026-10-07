@@ -98,6 +98,8 @@ CANONICAL_OVERRIDES: Dict[str, str] = {
     "ca fe cafeteria brunch cartagena": "CA.FÉ",
     "el bololo bowls del caribe": "El Bololó",
     "amo el cafe cafe de especialidad": "Amo el Café",
+    # post-apply survivor (comma-blob, 2026-10-07):
+    "boat rental cartagena arrecife boats cartagena cartagena boat rental islas del rosario colombia": "Arrecife Boats",
 }
 
 # Verified DEAD / MOVED / UNVERIFIED — never show, never delete.
@@ -128,6 +130,8 @@ def _looks_like_directory(s: str) -> bool:
     """True if a string still smells like an SEO/category blob."""
     low = f" {s.lower()} "
     if SEP.search(s):
+        return True
+    if s.count(",") >= 2:   # comma-separated keyword blobs (post-apply survivor)
         return True
     cat_hits = sum(1 for w in _COUNTABLE_CATEGORY if f" {w} " in low)
     caps_words = [w for w in s.split() if len(w) > 2 and w.isupper()]
