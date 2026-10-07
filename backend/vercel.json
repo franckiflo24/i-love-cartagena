@@ -32,6 +32,10 @@
     {
       "path": "/api/admin/maintenance/inventory-watch",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/admin/maintenance/recheck-due",
+      "schedule": "11 11 * * *"
     }
   ],
   "builds": [

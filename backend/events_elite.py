@@ -18,6 +18,7 @@ Mounted by server.py BEFORE api_router (prefix /api):
   allowlisted Origin + X-AMO-Admin: 1):
     POST       /admin/events/seed-anchors                          §6, §15 W2
     POST       /admin/events/{id}/approve | hide | verify          §7, §15 R1/X3
+    POST       /admin/events/{id}/set-dates                        §15 W2 companion (curator dates)
     POST|PATCH /admin/events/flags     {enabled?, sources_disabled?}   §13 E1, §15 T1
     POST       /admin/events/import-legacy                         §13 L
   admin reads:
@@ -2901,6 +2902,50 @@ async def approve_event(db_: Any, event_id: str, *, actor: str, now: Optional[da
     return {"event_id": doc["event_id"], "status": merged.get("status"), "confidence": merged.get("confidence")}
 
 
+_SET_DATES_HHMM = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
+
+
+async def set_event_dates(db_: Any, event_id: str, body: Mapping[str, Any], *, actor: str,
+                          now: Optional[datetime] = None) -> Dict[str, Any]:
+    """CALENDAR-INTEGRATION v1 — curator date injection, the §15 W2 companion: the anchors seed
+    never rewrites dates on an existing doc, so a resolved date_tbc/review row gets its dates HERE.
+    The dates are stamped as proposed_dates and pushed through approve_event — the single
+    date-mutation path — so the gate still re-decides, date_history records the change and the
+    tbc fields are cleared. A row the gate refuses is left exactly as it was (stamp rolled back);
+    its 409 hint routes the curator through /verify with a fresh tier ≤ 3 page first."""
+    n = _now(now)
+    doc = await _doc_or_404(db_, event_id)
+    sd = gate._ymd(body.get("start_date"))  # noqa: SLF001 — same pure parse approve_event uses
+    if not sd:
+        raise HTTPException(status_code=422, detail={"error": "bad_start_date", "hint": "YYYY-MM-DD"})
+    ed = gate._ymd(body.get("end_date")) if body.get("end_date") is not None else sd  # noqa: SLF001
+    if not ed or ed < sd:
+        raise HTTPException(status_code=422, detail={"error": "bad_range"})
+    if ed.isoformat() < _today(n):
+        raise HTTPException(status_code=422, detail={"error": "past_dates"})
+    st = body.get("start_time")
+    if st is not None and (not isinstance(st, str) or not _SET_DATES_HHMM.match(st)):
+        raise HTTPException(status_code=422, detail={"error": "bad_start_time", "hint": "HH:MM"})
+    src = body.get("source_url")
+    if not gate.is_http_url(src):
+        raise HTTPException(status_code=422, detail={"error": "source_url_required"})
+    reason = body.get("reason")
+    if not isinstance(reason, str) or len(reason.strip()) < 3:
+        raise HTTPException(status_code=422, detail={"error": "reason_required"})
+    proposed = {"start_date": sd.isoformat(), "end_date": ed.isoformat(), "start_time": st, "source": "curator",
+                "url": src, "reason": reason.strip()[:300], "proposed_by": actor, "proposed_at": _iso(n)}
+    await db_.city_events.update_one({"event_id": doc["event_id"]},
+                                     {"$set": {"proposed_dates": proposed, "updated_at": _iso(n)}})
+    await _log(db_, doc["event_id"], actor, doc.get("status"), doc.get("status"), "set_dates",
+               {"proposed": proposed}, n)
+    try:
+        return await approve_event(db_, event_id, actor=actor, now=n)
+    except HTTPException:
+        # fail closed: never leave a dangling curator proposal on a row the gate refused
+        await db_.city_events.update_one({"event_id": doc["event_id"]}, {"$unset": {"proposed_dates": ""}})
+        raise
+
+
 async def hide_event(db_: Any, event_id: str, *, actor: str, note: Optional[str] = None,
                      now: Optional[datetime] = None) -> Dict[str, Any]:
     n = _now(now)
@@ -3402,6 +3447,14 @@ async def approve_route(event_id: str, request: Request) -> Dict[str, Any]:
     d = _need_db()
     user = await require_admin_mutation(request)
     return await approve_event(d, event_id, actor=f"admin:{user.get('user_id', '?')}")
+
+
+@router.post("/admin/events/{event_id}/set-dates")
+async def set_dates_route(event_id: str, request: Request) -> Dict[str, Any]:
+    d = _need_db()
+    user = await require_admin_mutation(request)
+    body = await _json_body(request)
+    return await set_event_dates(d, event_id, body, actor=f"admin:{user.get('user_id', '?')}")
 
 
 @router.post("/admin/events/{event_id}/hide")

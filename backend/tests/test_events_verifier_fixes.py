@@ -255,7 +255,7 @@ def test_recheck_that_moves_the_event_to_turbaco_hides_it_as_country_fail() -> N
     old = "Noche de Candela y Jolgorio de Tambores (Plaza de los Coches)"
     assert old in html
     moved = html.replace(old, "Noche de Candela y Jolgorio de Tambores (Parque Principal de Turbaco)")
-    doc = asyncio.run(_seeded_anchor("candela"))
+    doc = asyncio.run(_seeded_anchor("candela-y-jolgorio"))  # exact child; "candela" alone also matches the 2027 Candelaria row
     rec = asyncio.run(_recheck(doc, moved))
     assert rec["outcome"] == "success" and "Turbaco" in str(rec.get("venue"))
     tr = E.sentinel_transition(doc, rec, NOW)

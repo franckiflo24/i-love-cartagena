@@ -315,6 +315,18 @@ def test_minimum_set_fiestas():
     assert "14 de noviembre" in texts and "15 de noviembre" in texts
 
 
+@pytest.mark.parametrize("a", ANCHORS, ids=lambda a: a["key"])
+def test_anchor_recheck_at_shape(a):
+    """CALENDAR-INTEGRATION v1: recheck_at is the file-side curation watch date (the daily
+    recheck-due cron digests overdue rows to ops until the file is re-researched). None, or a
+    real YMD on/after the audit cutoff; on a published dated row it needs a hint_note saying
+    what is still open (ticket opening, venue, conflict…)."""
+    v = a.get("recheck_at")
+    assert v is None or (isinstance(v, str) and YMD.match(v) and v >= CUTOFF), a["key"]
+    if isinstance(v, str) and a.get("status_hint") is None and a.get("start_date"):
+        assert a.get("hint_note"), f"{a['key']}: dated published row with recheck_at needs a hint_note (why)"
+
+
 def test_umbrella_flags_and_parents():
     parents = {a["parent_key"] for a in ANCHORS if a["parent_key"]}
     for a in ANCHORS:

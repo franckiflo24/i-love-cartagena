@@ -1,10 +1,10 @@
 {
- "anchors_version": 2,
- "anchors_version_note": "Bump on ANY change to this file: pull re-seeds anchors (idempotent, §15 W2) when the stored version differs (§16.4). Per-anchor anchor_version gates descriptive-field updates on existing docs.",
+ "anchors_version": 3,
+ "anchors_version_note": "Bump on ANY change to this file: pull re-seeds anchors (idempotent, §15 W2) when the stored version differs (§16.4). Per-anchor anchor_version gates descriptive-field updates on existing docs. v3 (2026-10-07): CALENDAR-INTEGRATION v1 — forward calendar loaded (4 fiestas children, Festival del Pastel, 5 date_tbc rows), ticket_urls for Hay/Festival de Música, recheck_at watch dates, Náutico safety line. Conflictos oficiales siguen en review; nunca se guardó una fecha no declarada por fuente oficial.",
  "anchors": [
   {
    "key": "cartagena-festival-musica-2027",
-   "anchor_version": 2,
+   "anchor_version": 3,
    "origin": "anchor",
    "title": {
     "es": "Cartagena Festival de Música 2027",
@@ -39,7 +39,7 @@
     "max_cop": null,
     "text": null
    },
-   "ticket_url": null,
+   "ticket_url": "https://cartagenamusicfestival.com/boleteria-tuboleta/",
    "sold_out": false,
    "source_url": "https://cartagenamusicfestival.com/",
    "source_name": "Cartagena Festival de Música (organizador)",
@@ -65,11 +65,12 @@
      "date_text": "Del 9 al 17 de enero de 2027, el Festival de Cartagena convertirá la ciudad amurallada en el escenario más importante de la música académica.",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "hay-festival-cartagena-2027",
-   "anchor_version": 2,
+   "anchor_version": 3,
    "origin": "anchor",
    "title": {
     "es": "Hay Festival Cartagena de Indias 2027",
@@ -104,7 +105,7 @@
     "max_cop": null,
     "text": null
    },
-   "ticket_url": null,
+   "ticket_url": "https://www.hayfestival.com/cartagena/tickets",
    "sold_out": false,
    "source_url": "https://www.hayfestival.com/cartagena/inicio",
    "source_name": "Hay Festival (organizador)",
@@ -119,8 +120,17 @@
    "status_hint": null,
    "status_reason_hint": null,
    "confidence_cap": null,
-   "hint_note": null,
+   "hint_note": "Boletería oficial anuncia venta 'on November' (página en inglés); la página en español dice 'a partir de finales de noviembre'. recheck_at vigila la apertura real y los precios.",
    "evidence": [
+    {
+     "url": "https://www.hayfestival.com/cartagena/tickets",
+     "name": "Hay Festival (boletería oficial)",
+     "tier": 1,
+     "fetched_at": "2026-10-07T22:14:09Z",
+     "http_status": 200,
+     "date_text": "Tickets for Hay Festival Cartagena de Indias 2027 will be available on November.",
+     "format": "html"
+    },
     {
      "url": "https://www.hayfestival.com/cartagena/inicio",
      "name": "Hay Festival (organizador)",
@@ -130,7 +140,8 @@
      "date_text": "La próxima edición del Hay Festival Cartagena de Indias se celebrará del 28 al 31 de enero del 2027.",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": "2026-11-05"
   },
   {
    "key": "ficci-66-2027",
@@ -204,7 +215,8 @@
      "date_text": "Festival Internacional de Cine de Cartagena de Indias 6 – 11 ABRIL 2027",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "ironman-70-3-cartagena-2026",
@@ -269,11 +281,12 @@
      "date_text": "November 29, 2026 IRONMAN 70.3 Cartagena Cartagena, Colombia",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-independencia-2026",
-   "anchor_version": 2,
+   "anchor_version": 3,
    "origin": "anchor",
    "title": {
     "es": "Fiestas de Independencia 2026",
@@ -371,7 +384,8 @@
      "date_text": "Viernes 2 de octubre: Preludio Localidad 1 (Canapote) con Son Cartagena, Mr Black, Karen Lizarazo y David Pabón.",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": "2026-10-30"
   },
   {
    "key": "fiestas-2026-preludio-localidad-1-canapote",
@@ -473,7 +487,8 @@
      "date_text": "Viernes 2 de octubre: Preludio Localidad 1 (Canapote) con Son Cartagena, Mr Black, Karen Lizarazo y David Pabón.",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-preludio-localidad-2-el-pozon",
@@ -575,7 +590,8 @@
      "date_text": "Viernes 9 de octubre: Preludio Localidad 2 (El Pozón) con Soneros de Gámero, Nelson Velásquez, Farid Ortiz y Criss y Ronny.",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-preludio-localidad-3-blas-de-lezo",
@@ -677,7 +693,8 @@
      "date_text": "Viernes 16 de octubre: Preludio Localidad 3 (Blas de Lezo) con Son Caribe, GiBlack, Rafa Pérez, Charlie Cardona y Jader Tremendo.",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-noche-de-candela-y-jolgorio-de-tambores",
@@ -779,7 +796,8 @@
      "date_text": "Viernes 23 de octubre: Noche de Candela y Jolgorio de Tambores (Plaza de los Coches) con Isolina, Dj de Folclor y Grupo de Folclor.",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-noche-de-tradicion-festiva-y-traje-artesanal",
@@ -881,7 +899,8 @@
      "date_text": "Viernes 30 de octubre: Noche de Tradición Festiva y Traje Artesanal (Plaza de Variedades) con Danny Daniel y Héctor Nazza.",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-angeles-somos",
@@ -993,7 +1012,8 @@
      "date_text": "Domingo 1 de noviembre: Ángeles Somos (Gran toma de la ciudad) y Desfile de Ángeles Somos ‘Dioses de la Libertad’ (Centro Histórico).",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-cabildo-escuela-normal-superior",
@@ -1095,7 +1115,8 @@
      "date_text": "Viernes 6 de noviembre: Desfile en Traje de Baño de las candidatas al Reinado Popular (Plaza de la Aduana) con Jerau y Byordi, Cabildo Vivo de Bocachica Itmina Fanti y Cabildo Escuela Normal Superior de Cartagena (Centro Histórico).",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-desfile-de-la-diversidad",
@@ -1197,7 +1218,8 @@
      "date_text": "Domingo 8 de noviembre: Desfile de la Diversidad (Plaza de la Aduana), Segundo Preludio Magisterial (Blas de Lezo) y Fiesta de Grandes Lanceros.",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-entrega-de-llaves-concurso-nacional-de-belleza",
@@ -1299,7 +1321,8 @@
      "date_text": "Lunes 9 de noviembre: Entrega de llaves a las candidatas del Concurso Nacional de Belleza (Baluarte San Miguel – por confirmar).",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-desfile-en-honor-a-los-heroes",
@@ -1401,7 +1424,8 @@
      "date_text": "Martes 10 de noviembre: Desfile en Honor a los Héroes (Centro Histórico).",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-ofrenda-floral",
@@ -1513,7 +1537,8 @@
      "date_text": "Miércoles 11 de noviembre: Sesión Solemne del Concejo Distrital Acta de Independencia (Centro de Convenciones), Ofrenda Floral (Camellón de los Mártires y Plaza de la Trinidad)",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-gran-desfile-de-independencia",
@@ -1625,11 +1650,12 @@
      "date_text": "Jueves 12 de noviembre: Gran Desfile de Independencia (Avenida Santander – 10:00 a.m. a 12:00 p.m.).",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-festival-nautico-y-bololo-del-arsenal",
-   "anchor_version": 2,
+   "anchor_version": 3,
    "origin": "anchor",
    "title": {
     "es": "Festival Náutico de la Independencia y Bololó del Arsenal",
@@ -1638,10 +1664,10 @@
     "pt": "Festival Náutico da Independência e Bololó del Arsenal"
    },
    "description": {
-    "es": "Festival náutico en la bahía interna de Cartagena, junto con el Bololó del Arsenal.",
-    "en": "Nautical festival on Cartagena's inner bay, together with the Bololó del Arsenal.",
-    "fr": "Festival nautique dans la baie intérieure de Carthagène, avec le Bololó del Arsenal.",
-    "pt": "Festival náutico na baía interna de Cartagena, junto com o Bololó del Arsenal."
+    "es": "Festival náutico en la bahía interna de Cartagena, junto con el Bololó del Arsenal. Reserva lanchas solo con operadores verificados; evita paquetes informales en la bahía.",
+    "en": "Nautical festival on Cartagena's inner bay, together with the Bololó del Arsenal. Book boats only with verified operators; avoid informal bay packages.",
+    "fr": "Festival nautique dans la baie intérieure de Carthagène, avec le Bololó del Arsenal. Réservez les bateaux uniquement auprès d'opérateurs vérifiés ; évitez les offres informelles.",
+    "pt": "Festival náutico na baía interna de Cartagena, junto com o Bololó del Arsenal. Reserve lanchas apenas com operadores verificados; evite pacotes informais na baía."
    },
    "category": "festival",
    "flagship": true,
@@ -1737,7 +1763,8 @@
      "date_text": "Viernes 13 y Sábado 14 de noviembre: Festival Náutico de la Independencia y Bololó del Arsenal.",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-juan-luis-guerra-festival-nautico",
@@ -1822,7 +1849,8 @@
      "format": "html"
     }
    ],
-   "recent_confirmation_days": 7
+   "recent_confirmation_days": 7,
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-salsa-a-la-plaza",
@@ -1924,7 +1952,8 @@
      "date_text": "Sábado 14 de noviembre: Salsa a la Plaza (Plaza de la Aduana).",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-velada-reinado-popular",
@@ -2036,7 +2065,8 @@
      "date_text": "Domingo 15 de noviembre: Cabildo de Getsemaní y Velada de Elección y Coronación del Reinado Popular (Centro de Convenciones Cartagena de Indias)",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-cabildo-de-getsemani",
@@ -2138,7 +2168,8 @@
      "date_text": "Domingo 15 de noviembre: Cabildo de Getsemaní",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-desfile-en-traje-de-bano",
@@ -2240,7 +2271,8 @@
      "date_text": "Viernes 6 de noviembre: Desfile en Traje de Baño de las candidatas al Reinado Popular (Plaza de la Aduana)",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-festival-jorge-garcia-usta",
@@ -2342,11 +2374,12 @@
      "date_text": "Jueves 5 y Viernes 6 de noviembre: Festival Jorge García Usta (Coliseo Bernardo Caraballo).",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-coronacion-reinado-intercorregimental",
-   "anchor_version": 1,
+   "anchor_version": 2,
    "origin": "anchor",
    "title": {
     "es": "Elección y Coronación del Reinado Intercorregimental",
@@ -2396,7 +2429,7 @@
    "status_hint": "review",
    "status_reason_hint": "conflict",
    "confidence_cap": null,
-   "hint_note": "Fuentes oficiales en desacuerdo: queda en revisión y nunca se publica sola. Fecha guardada = la de la mayoría de documentos oficiales (en empate, el más reciente); revisar antes de aprobar. Comunicado 17 sep: lunes 16 nov (sin lugar); PDF 23 sep: sábado 7 nov, Coliseo Bernardo Caraballo.",
+   "hint_note": "Fuentes oficiales en desacuerdo: queda en revisión y nunca se publica sola. Fecha guardada = la de la mayoría de documentos oficiales (en empate, el más reciente); revisar antes de aprobar. Comunicado 17 sep: lunes 16 nov (sin lugar); PDF 23 sep: sábado 7 nov, Coliseo Bernardo Caraballo. Re-investigado 2026-10-07: ninguna fuente posterior al PDF del 23 sep resuelve el conflicto; se espera prensa diaria cerca de la fecha.",
    "evidence": [
     {
      "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
@@ -2434,7 +2467,8 @@
      "date_text": "Lunes 16 de noviembre: Elección y Coronación del Reinado Intercorregimental.",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": "2026-10-30"
   },
   {
    "key": "fiestas-2026-cabildo-vivo-de-bocachica-itmina-fanti",
@@ -2536,11 +2570,12 @@
      "date_text": "Viernes 6 de noviembre: Desfile en Traje de Baño de las candidatas al Reinado Popular (Plaza de la Aduana) con Jerau y Byordi, Cabildo Vivo de Bocachica Itmina Fanti y Cabildo Escuela Normal Superior de Cartagena (Centro Histórico).",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": null
   },
   {
    "key": "fiestas-2026-segundo-preludio-magisterial",
-   "anchor_version": 1,
+   "anchor_version": 2,
    "origin": "anchor",
    "title": {
     "es": "Segundo Preludio Magisterial",
@@ -2590,7 +2625,7 @@
    "status_hint": "review",
    "status_reason_hint": "conflict",
    "confidence_cap": null,
-   "hint_note": "Fuentes oficiales en desacuerdo: queda en revisión y nunca se publica sola. Fecha guardada = la de la mayoría de documentos oficiales (en empate, el más reciente); revisar antes de aprobar. Comunicado 17 sep: domingo 8 nov; PDF 23 sep: sábado 7 nov ('Segundo Preludio del Magisterio').",
+   "hint_note": "Fuentes oficiales en desacuerdo: queda en revisión y nunca se publica sola. Fecha guardada = la de la mayoría de documentos oficiales (en empate, el más reciente); revisar antes de aprobar. Comunicado 17 sep: domingo 8 nov; PDF 23 sep: sábado 7 nov ('Segundo Preludio del Magisterio'). Re-investigado 2026-10-07: ninguna fuente posterior al PDF del 23 sep resuelve el conflicto; se espera prensa diaria cerca de la fecha.",
    "evidence": [
     {
      "url": "https://www.eluniversal.com.co/farandula/2026/09/16/cartagena-presenta-oficialmente-la-agenda-de-las-fiestas-2026/",
@@ -2638,7 +2673,8 @@
      "date_text": "Domingo 8 de noviembre: Desfile de la Diversidad (Plaza de la Aduana), Segundo Preludio Magisterial (Blas de Lezo) y Fiesta de Grandes Lanceros.",
      "format": "html"
     }
-   ]
+   ],
+   "recheck_at": "2026-10-30"
   },
   {
    "key": "ccc-la-pelota-de-letras-andres-lopez-2026",
@@ -2703,6 +2739,703 @@
      "date_text": "Octubre, 2026 La pelota de Letras de Andrés López 03 Oct 1:00 a.m.",
      "format": "html",
      "note": "Leída con parámetro anti-caché (?amo_cb=...) por la caché Cloudflare de 31 días del recinto."
+    }
+   ],
+   "recheck_at": null
+  },
+  {
+   "key": "fiestas-2026-toma-cultural-corregimental",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Toma Cultural Corregimental",
+    "en": "Corregimientos Cultural Takeover",
+    "fr": "Toma culturelle des corregimientos",
+    "pt": "Toma Cultural dos Corregimentos"
+   },
+   "description": {
+    "es": "Jornada cultural por los corregimientos de Cartagena con las candidatas al Reinado Popular de la Independencia.",
+    "en": "Cultural day across Cartagena's rural corregimientos with the Popular Independence Pageant candidates.",
+    "fr": "Journée culturelle dans les corregimientos ruraux de Carthagène avec les candidates du Reinado Popular.",
+    "pt": "Jornada cultural pelos corregimentos de Cartagena com as candidatas do Reinado Popular da Independência."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-10-22",
+   "end_date": "2026-10-22",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Corregimientos de Cartagena",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-toma-cultural-corregimental"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": "El PDF del 23 sep escribe 'Toma Corrigemental' (errata visual); el comunicado escribe 'Toma Corregimental'. Mismo día en ambos.",
+   "recheck_at": null,
+   "evidence": [
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-10-07T22:14:06Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA OCTUBRE · Jueves 22 · Toma Corrigemental · Candidatas Reinado Popular de la Independencia",
+     "format": "pdf-image",
+     "page": 3,
+     "start_date": "2026-10-22",
+     "end_date": "2026-10-22",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag y tamaño que la copia ya citada en este archivo."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-10-07T22:13:19Z",
+     "http_status": 200,
+     "date_text": "Jueves 22 de octubre: Toma Corregimental con las candidatas al Reinado Popular de la Independencia.",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-prueba-de-talento-reinado-popular",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Prueba de Talento del Reinado Popular",
+    "en": "Popular Pageant Talent Night",
+    "fr": "Soirée de talents du Reinado Popular",
+    "pt": "Prova de Talento do Reinado Popular"
+   },
+   "description": {
+    "es": "Noche de talento de las candidatas al Reinado Popular de la Independencia en el Teatro Adolfo Mejía.",
+    "en": "Talent night of the Popular Independence Pageant candidates at the Adolfo Mejía Theatre.",
+    "fr": "Soirée de talents des candidates du Reinado Popular au théâtre Adolfo Mejía.",
+    "pt": "Noite de talento das candidatas do Reinado Popular no Teatro Adolfo Mejía."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": "2026-11-03",
+   "end_date": "2026-11-03",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Teatro Adolfo Mejía",
+   "venue_gazetteer_id": "teatro-adolfo-mejia",
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-prueba-de-talento-reinado-popular"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": "El comunicado la llama 'Prueba de Talento'; el PDF del 23 sep, 'Noche de Talentos'. Mismo día y mismo teatro.",
+   "recheck_at": null,
+   "evidence": [
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-10-07T22:14:06Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Martes 3 · Noche de Talentos · Teatro Adolfo Mejía",
+     "format": "pdf-image",
+     "page": 4,
+     "start_date": "2026-11-03",
+     "end_date": "2026-11-03",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag y tamaño que la copia ya citada en este archivo."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-10-07T22:13:19Z",
+     "http_status": 200,
+     "date_text": "Martes 3 de noviembre: Prueba de Talento (Teatro Adolfo Mejía).",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "fiestas-2026-sesion-solemne-y-ofrenda-floral",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Sesión Solemne del Concejo y Ofrenda Floral",
+    "en": "Solemn Council Session and Floral Tribute",
+    "fr": "Session solennelle du Conseil et offrande florale",
+    "pt": "Sessão Solene do Conselho e Oferenda Floral"
+   },
+   "description": {
+    "es": "Acto central del día de la Independencia de Cartagena: sesión solemne con el Acta de Independencia y ofrenda floral a los Mártires.",
+    "en": "Centrepiece of Cartagena's Independence day: solemn session with the Independence Act and floral tribute to the Martyrs.",
+    "fr": "Acte central du jour de l'Indépendance : session solennelle avec l'Acte d'Indépendance et offrande florale aux Martyrs.",
+    "pt": "Ato central do dia da Independência: sessão solene com a Ata da Independência e oferenda floral aos Mártires."
+   },
+   "category": "civic",
+   "flagship": false,
+   "start_date": "2026-11-11",
+   "end_date": "2026-11-11",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Centro de Convenciones Cartagena de Indias",
+   "venue_gazetteer_id": "centro-de-convenciones-cartagena-de-indias",
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": "fiestas-independencia-2026",
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:fiestas-2026-sesion-solemne-y-ofrenda-floral"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": null,
+   "recheck_at": null,
+   "evidence": [
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-10-07T22:14:06Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Miércoles 11 · Ofrenda Floral · Camellón de los Mártires y Plaza de la Trinidad · Sesión solemne Concejo Distrital Acta de Independencia · Centro de Convenciones",
+     "format": "pdf-image",
+     "page": 6,
+     "start_date": "2026-11-11",
+     "end_date": "2026-11-11",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag y tamaño que la copia ya citada en este archivo."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-10-07T22:13:19Z",
+     "http_status": 200,
+     "date_text": "Miércoles 11 de noviembre: Sesión Solemne del Concejo Distrital Acta de Independencia (Centro de Convenciones), Ofrenda Floral (Camellón de los Mártires y Plaza de la Trinidad) y Elección y Coronación del Reinado Juvenil Insular.",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "festival-del-pastel-2026",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Festival del Pastel Cartagenero 2026",
+    "en": "Cartagena Pastel Festival 2026",
+    "fr": "Festival du Pastel de Carthagène 2026",
+    "pt": "Festival do Pastel Cartageneiro 2026"
+   },
+   "description": {
+    "es": "La gran cita gastronómica navideña de Cartagena alrededor del pastel cartagenero, con cocineras tradicionales de toda la ciudad.",
+    "en": "Cartagena's great Christmas food gathering around the pastel cartagenero, with traditional cooks from across the city.",
+    "fr": "Le grand rendez-vous gastronomique de Noël autour du pastel cartagenero, avec des cuisinières traditionnelles de toute la ville.",
+    "pt": "O grande encontro gastronômico natalino em torno do pastel cartageneiro, com cozinheiras tradicionais de toda a cidade."
+   },
+   "category": "gastronomic",
+   "flagship": false,
+   "start_date": "2026-12-17",
+   "end_date": "2026-12-26",
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Sede 2026 por confirmar",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": null,
+   "tbc_window_end": null,
+   "parent_key": null,
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026",
+   "source_name": "Alcaldía de Cartagena (agenda cultural 2026)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026",
+   "source_keys": [
+    "anchor:festival-del-pastel-2026"
+   ],
+   "status_hint": null,
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": "Fechas 17–26 dic según la agenda cultural 2026 de la Alcaldía; un resumen secundario dice 17–27 (no oficial, no se guarda). Sede por anunciar — la edición pasada usó la Plaza de Variedades (Parque Espíritu del Manglar); la convocatoria de noviembre la revela.",
+   "recheck_at": "2026-11-10",
+   "evidence": [
+    {
+     "url": "https://cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026",
+     "name": "Alcaldía de Cartagena (agenda cultural 2026)",
+     "tier": 1,
+     "fetched_at": "2026-10-07T22:14:07Z",
+     "http_status": 200,
+     "date_text": "En diciembre se realizará el encendido de la Super Navidad con una gran puesta en escena artística que se sumará al Mercadito Navideño y Vive tu Plaza en la Plaza de los Coches  y las Novenas Navideñas en toda la ciudad; el Festival del Pastel Cartagenero se realizará del 17 al 26 de diciembre.",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    }
+   ]
+  },
+  {
+   "key": "senorita-colombia-2026-eleccion-y-coronacion",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Señorita Colombia · Noche de Elección y Coronación",
+    "en": "Señorita Colombia · Election and Coronation Night",
+    "fr": "Señorita Colombia · Soirée d'élection et de couronnement",
+    "pt": "Señorita Colombia · Noite de Eleição e Coroação"
+   },
+   "description": {
+    "es": "La noche final del Concurso Nacional de Belleza corona a la nueva Señorita Colombia en Cartagena, en plenas Fiestas de Independencia.",
+    "en": "The National Beauty Pageant's final night crowns the new Señorita Colombia in Cartagena, at the height of the Independence Festivities.",
+    "fr": "La soirée finale du Concours national de beauté couronne la nouvelle Señorita Colombia à Carthagène, en pleines Fêtes de l'Indépendance.",
+    "pt": "A noite final do Concurso Nacional de Beleza coroa a nova Señorita Colombia em Cartagena, em plenas Festas da Independência."
+   },
+   "category": "cultural",
+   "flagship": false,
+   "start_date": null,
+   "end_date": null,
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Cartagena de Indias · sede por confirmar",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": {
+    "es": "Noviembre de 2026 · fecha de la gala por confirmar por el Concurso Nacional de Belleza; tradicionalmente cae el lunes festivo de noviembre. Te avisamos.",
+    "en": "November 2026 · gala date to be confirmed by the National Beauty Pageant; it traditionally falls on November's holiday Monday. We'll let you know.",
+    "fr": "Novembre 2026 · date du gala à confirmer par le Concours national de beauté ; elle tombe traditionnellement le lundi férié de novembre. On vous prévient.",
+    "pt": "Novembro de 2026 · data da gala a confirmar pelo Concurso Nacional de Beleza; tradicionalmente cai na segunda-feira de feriado de novembro. A gente te avisa."
+   },
+   "tbc_window_end": "2026-11-16",
+   "parent_key": null,
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+   "source_keys": [
+    "anchor:senorita-colombia-2026-eleccion-y-coronacion"
+   ],
+   "status_hint": "date_tbc",
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": "La agenda oficial de Fiestas solo fija la entrega de llaves (lun 9 nov); la gala no tiene fecha oficial publicada. Patrón histórico: coronación el lunes festivo (17 nov en la edición pasada; 16 nov probable en esta). srtacolombia.org responde 404 el 7 oct; revisar prensa y redes del CNB.",
+   "recheck_at": "2026-10-20",
+   "evidence": [
+    {
+     "url": "https://ipcc.gov.co/wp-content/uploads/2026/09/agenda-festiva-2026.pdf",
+     "name": "IPCC · Agenda Festiva 2026 (PDF)",
+     "tier": 1,
+     "fetched_at": "2026-10-07T22:14:06Z",
+     "http_status": 200,
+     "date_text": "AGENDA FESTIVA NOVIEMBRE · Lunes 9 · Entrega de llaves a candidatas del Concurso Nacional de Belleza · Baluarte San Miguel",
+     "format": "pdf-image",
+     "page": 6,
+     "start_date": "2026-11-09",
+     "end_date": "2026-11-09",
+     "date_source": "pdf-image-transcription",
+     "recheck": "head",
+     "etag": "\"b4e6b6-65c278bfd37be\"",
+     "last_modified": "Wed, 23 Sep 2026 14:46:22 GMT",
+     "content_length": 11855542,
+     "note": "PDF de solo imagen (sin capa de texto): date_text es una transcripción visual literal de la página; cada bloque visual separado por ' · '. Mismo ETag y tamaño que la copia ya citada en este archivo."
+    },
+    {
+     "url": "https://ipcc.gov.co/alcaldia-de-cartagena-presento-la-programacion-oficial-de-las-fiestas-de-independencia-del-11-de-noviembre-2026/",
+     "name": "IPCC · Alcaldía de Cartagena (agenda oficial)",
+     "tier": 1,
+     "fetched_at": "2026-10-07T22:13:19Z",
+     "http_status": 200,
+     "date_text": "Lunes 9 de noviembre: Entrega de llaves a las candidatas del Concurso Nacional de Belleza (Baluarte San Miguel – por confirmar).",
+     "format": "html"
+    }
+   ]
+  },
+  {
+   "key": "super-navidad-2026-encendido",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Encendido de la Super Navidad",
+    "en": "Super Navidad Lights Switch-On",
+    "fr": "Illumination de la Super Navidad",
+    "pt": "Acendimento da Super Navidad"
+   },
+   "description": {
+    "es": "El encendido del alumbrado navideño de Cartagena abre la temporada con una gran puesta en escena artística.",
+    "en": "Cartagena's Christmas-lights switch-on opens the season with a grand artistic staging.",
+    "fr": "L'illumination des lumières de Noël de Carthagène ouvre la saison avec une grande mise en scène artistique.",
+    "pt": "O acendimento das luzes de Natal de Cartagena abre a temporada com uma grande encenação artística."
+   },
+   "category": "family",
+   "flagship": false,
+   "start_date": null,
+   "end_date": null,
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Por confirmar · tradicionalmente Plaza de la Aduana",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": {
+    "es": "Diciembre de 2026 · la Alcaldía solo anuncia 'en diciembre'; la fecha exacta del encendido está por confirmar. Te avisamos.",
+    "en": "December 2026 · the city has only announced 'in December'; the exact switch-on date is still to be confirmed. We'll let you know.",
+    "fr": "Décembre 2026 · la mairie n'annonce que « en décembre » ; la date exacte de l'illumination reste à confirmer. On vous prévient.",
+    "pt": "Dezembro de 2026 · a Prefeitura só anuncia 'em dezembro'; a data exata do acendimento ainda está por confirmar. A gente te avisa."
+   },
+   "tbc_window_end": "2026-12-06",
+   "parent_key": null,
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026",
+   "source_name": "Alcaldía de Cartagena (agenda cultural 2026)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026",
+   "source_keys": [
+    "anchor:super-navidad-2026-encendido"
+   ],
+   "status_hint": "date_tbc",
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": "Patrón: viernes a inicios de diciembre (vie 5 dic la edición pasada, show central Plaza de la Aduana). Probable vie 4 dic; nunca se muestra como fijo.",
+   "recheck_at": "2026-11-15",
+   "evidence": [
+    {
+     "url": "https://cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026",
+     "name": "Alcaldía de Cartagena (agenda cultural 2026)",
+     "tier": 1,
+     "fetched_at": "2026-10-07T22:14:07Z",
+     "http_status": 200,
+     "date_text": "En diciembre se realizará el encendido de la Super Navidad con una gran puesta en escena artística que se sumará al Mercadito Navideño y Vive tu Plaza en la Plaza de los Coches  y las Novenas Navideñas en toda la ciudad; el Festival del Pastel Cartagenero se realizará del 17 al 26 de diciembre.",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    }
+   ]
+  },
+  {
+   "key": "novenas-navidenas-2026",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Novenas Navideñas",
+    "en": "Christmas Novenas",
+    "fr": "Neuvaines de Noël",
+    "pt": "Novenas de Natal"
+   },
+   "description": {
+    "es": "Las novenas de aguinaldos llenan los barrios y plazas de Cartagena de villancicos, faroles y tradición en familia.",
+    "en": "The novenas de aguinaldos fill Cartagena's neighbourhoods and plazas with carols, lanterns and family tradition.",
+    "fr": "Les novenas de aguinaldos remplissent les quartiers et les places de Carthagène de chants de Noël et de tradition familiale.",
+    "pt": "As novenas de aguinaldos enchem os bairros e praças de Cartagena de vilancicos, lampiões e tradição em família."
+   },
+   "category": "family",
+   "flagship": false,
+   "start_date": null,
+   "end_date": null,
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2026,
+   "venue_name": "Barrios y plazas de toda la ciudad",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": {
+    "es": "Diciembre de 2026 · programación por confirmar; tradicionalmente del 16 al 24 de diciembre en toda la ciudad. Te avisamos.",
+    "en": "December 2026 · programme to be confirmed; traditionally December 16–24 across the city. We'll let you know.",
+    "fr": "Décembre 2026 · programme à confirmer ; traditionnellement du 16 au 24 décembre dans toute la ville. On vous prévient.",
+    "pt": "Dezembro de 2026 · programação a confirmar; tradicionalmente de 16 a 24 de dezembro em toda a cidade. A gente te avisa."
+   },
+   "tbc_window_end": "2026-12-16",
+   "parent_key": null,
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026",
+   "source_name": "Alcaldía de Cartagena (agenda cultural 2026)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026",
+   "source_keys": [
+    "anchor:novenas-navidenas-2026"
+   ],
+   "status_hint": "date_tbc",
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": "La agenda cultural 2026 anuncia las Novenas Navideñas sin días; el novenario litúrgico es 16–24 dic, pero no se guarda como fecha hasta que la Alcaldía lo publique.",
+   "recheck_at": "2026-12-01",
+   "evidence": [
+    {
+     "url": "https://cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026",
+     "name": "Alcaldía de Cartagena (agenda cultural 2026)",
+     "tier": 1,
+     "fetched_at": "2026-10-07T22:14:07Z",
+     "http_status": 200,
+     "date_text": "En diciembre se realizará el encendido de la Super Navidad con una gran puesta en escena artística que se sumará al Mercadito Navideño y Vive tu Plaza en la Plaza de los Coches  y las Novenas Navideñas en toda la ciudad; el Festival del Pastel Cartagenero se realizará del 17 al 26 de diciembre.",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    }
+   ]
+  },
+  {
+   "key": "fiestas-candelaria-y-frito-2027",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Fiestas de la Candelaria y Festival del Frito 2027",
+    "en": "Candelaria Festivities and Frito Festival 2027",
+    "fr": "Fêtes de la Candelaria et Festival du Frito 2027",
+    "pt": "Festas da Candelária e Festival do Frito 2027"
+   },
+   "description": {
+    "es": "Novenario de la Virgen de la Candelaria en La Popa y gran feria del frito cartagenero: la apertura festiva del año.",
+    "en": "Novena of the Virgen de la Candelaria at La Popa and the great Cartagena frito fair: the city's festive opening of the year.",
+    "fr": "Neuvaine de la Vierge de la Candelaria à La Popa et grande foire du frito : l'ouverture festive de l'année.",
+    "pt": "Novenário da Virgem da Candelária em La Popa e a grande feira do frito cartageneiro: a abertura festiva do ano."
+   },
+   "category": "gastronomic",
+   "flagship": false,
+   "start_date": null,
+   "end_date": null,
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2027,
+   "venue_name": "Cerro de la Popa · sede del Frito por confirmar",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": {
+    "es": "Enero de 2027 · fechas de la edición nueva por confirmar; la ventana típica va de fines de enero al dos de febrero. Te avisamos.",
+    "en": "January 2027 · next edition's dates to be confirmed; the typical window runs from late January to February the second. We'll let you know.",
+    "fr": "Janvier 2027 · dates de la prochaine édition à confirmer ; la fenêtre typique va de fin janvier au deux février. On vous prévient.",
+    "pt": "Janeiro de 2027 · datas da nova edição a confirmar; a janela típica vai do fim de janeiro ao dia dois de fevereiro. A gente te avisa."
+   },
+   "tbc_window_end": "2027-02-02",
+   "parent_key": null,
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026",
+   "source_name": "Alcaldía de Cartagena (agenda cultural 2026)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026",
+   "source_keys": [
+    "anchor:fiestas-candelaria-y-frito-2027"
+   ],
+   "status_hint": "date_tbc",
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": "Evidencia = edición 2026 (agenda cultural oficial: 'hasta el 2 de febrero'). Las dos ediciones pasadas usaron la misma ventana 24 ene–2 feb; la convocatoria del IPCC (fines de dic) fija sede y fechas 2027.",
+   "recheck_at": "2026-12-20",
+   "evidence": [
+    {
+     "url": "https://cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026",
+     "name": "Alcaldía de Cartagena (agenda cultural 2026)",
+     "tier": 1,
+     "fetched_at": "2026-10-07T22:14:07Z",
+     "http_status": 200,
+     "date_text": "Continúan las Fiestas de la Candelaria, el Festival del Frito Cartagenero y el Hay Festival hasta el 2 de febrero. El 1 y 2 de febrero se realizará el Festival de la Cumbia y el último domingo del mes tendrá lugar la Ruta Patrimonial con entrada libre.",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
+    }
+   ]
+  },
+  {
+   "key": "festival-de-la-cumbia-2027",
+   "anchor_version": 1,
+   "origin": "anchor",
+   "title": {
+    "es": "Festival de la Cumbia a la Manera Cartagenera 2027",
+    "en": "Cartagena-Style Cumbia Festival 2027",
+    "fr": "Festival de la Cumbia à la manière de Carthagène 2027",
+    "pt": "Festival da Cumbia à Moda Cartageneira 2027"
+   },
+   "description": {
+    "es": "Ruedas de cumbia, tamboras y parejas de baile celebran la cumbia a la manera cartagenera al cierre de la Candelaria.",
+    "en": "Cumbia circles, drums and dance couples celebrate cumbia the Cartagena way at the close of the Candelaria festivities.",
+    "fr": "Rondes de cumbia, tambours et couples de danseurs célèbrent la cumbia à la manière de Carthagène pour clore la Candelaria.",
+    "pt": "Rodas de cumbia, tamboras e pares de dança celebram a cumbia à moda cartageneira no encerramento da Candelária."
+   },
+   "category": "festival",
+   "flagship": false,
+   "start_date": null,
+   "end_date": null,
+   "start_time": null,
+   "end_time": null,
+   "time_confirmed": false,
+   "edition_year": 2027,
+   "venue_name": "Pie de la Popa · sede por confirmar",
+   "venue_gazetteer_id": null,
+   "address": null,
+   "date_tbc_note": {
+    "es": "Febrero de 2027 · fechas de la edición nueva por confirmar; la edición pasada se realizó el primero y el dos de febrero. Te avisamos.",
+    "en": "February 2027 · next edition's dates to be confirmed; the previous edition ran on February the first and second. We'll let you know.",
+    "fr": "Février 2027 · dates de la prochaine édition à confirmer ; l'édition précédente a eu lieu les premier et deux février. On vous prévient.",
+    "pt": "Fevereiro de 2027 · datas da nova edição a confirmar; a edição anterior aconteceu no primeiro e no dois de fevereiro. A gente te avisa."
+   },
+   "tbc_window_end": "2027-02-02",
+   "parent_key": null,
+   "is_umbrella": false,
+   "price": {
+    "is_free": null,
+    "min_cop": null,
+    "max_cop": null,
+    "text": null
+   },
+   "ticket_url": null,
+   "sold_out": false,
+   "source_url": "https://cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026",
+   "source_name": "Alcaldía de Cartagena (agenda cultural 2026)",
+   "source_tier": 1,
+   "second_source_url": null,
+   "second_source_name": null,
+   "second_source_tier": null,
+   "recheck_url": "https://cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026",
+   "source_keys": [
+    "anchor:festival-de-la-cumbia-2027"
+   ],
+   "status_hint": "date_tbc",
+   "status_reason_hint": null,
+   "confidence_cap": null,
+   "hint_note": "Evidencia = edición 2026 (agenda cultural oficial: 'El 1 y 2 de febrero se realizará el Festival de la Cumbia'). Edición 2027 por anunciar.",
+   "recheck_at": "2026-12-20",
+   "evidence": [
+    {
+     "url": "https://cartagena.gov.co/noticias/heroica-vivira-cultura-todo-el-ano-alcaldia-cartagena-presenta-agenda-cultural-2026",
+     "name": "Alcaldía de Cartagena (agenda cultural 2026)",
+     "tier": 1,
+     "fetched_at": "2026-10-07T22:14:07Z",
+     "http_status": 200,
+     "date_text": "Continúan las Fiestas de la Candelaria, el Festival del Frito Cartagenero y el Hay Festival hasta el 2 de febrero. El 1 y 2 de febrero se realizará el Festival de la Cumbia y el último domingo del mes tendrá lugar la Ruta Patrimonial con entrada libre.",
+     "format": "html",
+     "note": "www.cartagena.gov.co responde con desafío Cloudflare (403); copia leída una sola vez en el host apex cartagena.gov.co, cuyo robots.txt permite /noticias. Evidencia manual, nunca rastreo automático."
     }
    ]
   }

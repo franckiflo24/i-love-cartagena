@@ -735,16 +735,42 @@ def test_vercel_crons() -> None:
     assert ("/api/admin/events/sentinel", "*/15 * * * *") in crons
     assert ("/api/admin/events/reminders", "*/15 * * * *") in crons
     assert not any(p.startswith("/api/admin/events/sentinel?") for p, _s in crons), "one sentinel cron (auto slot)"
-    assert len(cfg["crons"]) == 8
+    assert len(cfg["crons"]) == 9
     # SUPPLY-SPRINT v1: hourly inventory drought alarm (zero-inventory can
     # never silently recur).
     assert ("/api/admin/maintenance/inventory-watch", "0 * * * *") in crons
+    # CALENDAR-INTEGRATION v1: daily anchors recheck watchlist digest (TBC and
+    # conflict rows carry recheck_at; the alarm repeats until the file is updated).
+    assert ("/api/admin/maintenance/recheck-due", "11 11 * * *") in crons
     assert ("/api/admin/demand/refresh?days=30", "0 10 * * 1") in crons, "existing crons kept"
     assert ("/api/admin/local-picks/refresh", "0 8 * * *") in crons
     # LENSES (docs/lenses/DESIGN.md §3): cruise-schedule cache refresh, hide-on-fail.
     assert ("/api/admin/lenses/cruise-pull", "0 */6 * * *") in crons
     # P0-B (audit 2026-10-01): partner-events dead-letter sweep (expire + stale-queue alert).
     assert ("/api/cron/partner-events/sweep", "*/30 * * * *") in crons
+
+
+def test_vercel_cron_routes_accept_get() -> None:
+    """Vercel invokes crons with GET: a POST-only cron route 405s on every tick and the
+    schedule silently does nothing (bit inventory-watch, found 2026-10-07). Every path in
+    vercel.json crons must resolve to a route whose methods include GET."""
+    from fastapi.routing import APIRoute
+
+    import demand as _demand
+    import lenses as _lenses
+    import local_signals as _local_signals
+    import maintenance as _maintenance
+    import partner_events_sweep as _sweep
+    cfg = json.load(open(os.path.join(BACKEND, "vercel.json"), encoding="utf-8"))
+    methods: Dict[str, set] = {}
+    for mod in (E, _maintenance, _sweep, _demand, _local_signals, _lenses):
+        for r in mod.router.routes:
+            if isinstance(r, APIRoute):
+                methods.setdefault("/api" + r.path, set()).update(r.methods or set())
+    for c in cfg["crons"]:
+        path = c["path"].split("?")[0]
+        assert path in methods, f"{path}: cron path has no importable route"
+        assert "GET" in methods[path], f"{path}: Vercel cron sends GET; methods={sorted(methods[path])}"
 
 
 def test_dump_static_never_writes_events_concerts_or_seasons_data() -> None:

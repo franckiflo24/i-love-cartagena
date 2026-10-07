@@ -219,7 +219,7 @@ async def alert_test(request: Request):
 # seat-available events in the next 14 days; below threshold → Telegram ops
 # alert (Phil + Sergio, standing rule) + a health doc the dashboard can read.
 
-@router.post("/admin/maintenance/inventory-watch")
+@router.api_route("/admin/maintenance/inventory-watch", methods=["GET", "POST"])
 async def inventory_watch(request: Request):
     await _require_cron_or_events_admin(request)
     from events_time import now_bogota, upcoming_query
@@ -258,6 +258,61 @@ async def inventory_watch(request: Request):
         logger.error("[inventory-watch] health write failed: %s", type(exc).__name__)
     await _audit("inventory_watch", f"live={live} threshold={threshold} drought={drought}")
     return {"live_14d": live, "threshold": threshold, "drought": drought}
+
+
+# ── CALENDAR-INTEGRATION v1: recheck watchlist (2026-10-07) ──────────────────
+# The forward calendar stores recheck_at watch dates on anchor rows — a
+# file-side curation field (docs/calendar/FORWARD_CALENDAR_2026-10.md carries
+# the research). Daily: digest every row whose watch date has arrived to
+# Telegram ops until a curator re-researches and edits the file. Stateless by
+# design: the file is the truth, the alarm repeats, and the fix is always
+# "re-verify the source, then update backend/data/events_anchors.json".
+
+@router.api_route("/admin/maintenance/recheck-due", methods=["GET", "POST"])
+async def recheck_due(request: Request):
+    await _require_cron_or_events_admin(request)
+    import json as _json
+    from pathlib import Path
+    from events_time import now_bogota
+    today = now_bogota().strftime("%Y-%m-%d")
+    path = Path(__file__).resolve().parent / "data" / "events_anchors.json"
+    try:
+        anchors = _json.loads(path.read_text(encoding="utf-8")).get("anchors") or []
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[recheck-due] anchors read failed: %s", type(exc).__name__)
+        raise HTTPException(status_code=500, detail="anchors_unreadable")
+    due = [{"key": a.get("key"), "recheck_at": a.get("recheck_at"),
+            "recheck_url": a.get("recheck_url"), "status_hint": a.get("status_hint")}
+           for a in anchors
+           if isinstance(a.get("recheck_at"), str) and a["recheck_at"] <= today]
+    due.sort(key=lambda r: (r["recheck_at"], r["key"]))
+    sent = False
+    if due:
+        # one digest per Bogota day, however often the route fires
+        try:
+            cur = await db.system_health.find_one({"_id": "events_recheck"}, {"_id": 0, "digest_day": 1})
+        except Exception:  # noqa: BLE001
+            cur = None
+        if not (isinstance(cur, dict) and cur.get("digest_day") == today):
+            lines = "\n".join(f"• {r['key']} (desde {r['recheck_at']}) → {r['recheck_url']}" for r in due[:12])
+            more = f"\n… y {len(due) - 12} más" if len(due) > 12 else ""
+            try:
+                import telegram_alerts as _tg
+                await _tg.send(f"📅 AMO calendario: {len(due)} ancla(s) por re-verificar:\n{lines}{more}\n"
+                               "Re-investiga la fuente y actualiza backend/data/events_anchors.json "
+                               "(fecha o recheck_at nuevos).")
+                sent = True
+            except Exception as exc:  # noqa: BLE001
+                logger.error("[recheck-due] alert failed: %s", type(exc).__name__)
+    try:
+        health = {"due": len(due), "keys": [r["key"] for r in due][:30], "checked_at": _now()}
+        if sent:
+            health["digest_day"] = today
+        await db.system_health.update_one({"_id": "events_recheck"}, {"$set": health}, upsert=True)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[recheck-due] health write failed: %s", type(exc).__name__)
+    await _audit("events_recheck", f"due={len(due)} sent={sent}")
+    return {"due": [r["key"] for r in due], "count": len(due), "digest_sent": sent}
 
 
 # ── CATALOG-HYGIENE v1 (drop 2026-10-07) ─────────────────────────────────────
