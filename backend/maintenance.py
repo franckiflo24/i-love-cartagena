@@ -291,8 +291,10 @@ async def catalog_hygiene_migrate(body: CatalogHygieneBody, request: Request):
     sample = [{"partner_id": c["partner_id"],
                "name_raw": (c["prev"].get("name") if body.reverse else
                             (c["set"].get("name_raw") or c["prev"].get("name"))),
-               "name": c["set"].get("name"),
-               "display_ready": c["set"].get("display_ready")}
+               "name": c["set"].get("name") or c["prev"].get("name"),
+               "name_changed": "name" in c["set"],
+               "display_ready": c["set"].get("display_ready",
+                                             c["prev"].get("display_ready"))}
               for c in changes[: body.sample]]
 
     result = {"dry_run": body.dry_run, "reverse": body.reverse,

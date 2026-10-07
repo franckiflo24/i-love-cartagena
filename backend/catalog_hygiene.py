@@ -39,6 +39,12 @@ CATEGORY_WORDS = {
     "and", "&", "y", "de", "la", "el",
 }
 
+# Connectors/articles live in CATEGORY_WORDS for tail-STRIPPING only — they
+# are NOT category evidence. Counting " el " as a category hit turned every
+# 'El X Bar' into a blob (dry-run regression 2026-10-07).
+CONNECTOR_TOKENS = {"and", "&", "y", "de", "la", "el"}
+_COUNTABLE_CATEGORY = CATEGORY_WORDS - CONNECTOR_TOKENS
+
 # Small words kept lowercase in Title Case (unless first token).
 SMALL = {"de", "la", "el", "las", "los", "y", "del", "by", "con", "the", "of",
          "and", "à", "en", "a"}
@@ -121,7 +127,7 @@ def _looks_like_directory(s: str) -> bool:
     low = f" {s.lower()} "
     if SEP.search(s):
         return True
-    cat_hits = sum(1 for w in CATEGORY_WORDS if f" {w} " in low)
+    cat_hits = sum(1 for w in _COUNTABLE_CATEGORY if f" {w} " in low)
     caps_words = [w for w in s.split() if len(w) > 2 and w.isupper()]
     return cat_hits >= 2 or len(caps_words) >= 3
 
@@ -145,22 +151,33 @@ def clean_display_name(raw: Optional[str]) -> Tuple[str, Optional[str], bool]:
     head = parts[0].strip() if parts else ""
     hint = " · ".join(_titlecase(p.strip()) for p in parts[1:]) or None
 
-    # Strip trailing category tokens from the head — never down to empty.
+    # Strip trailing category tokens — and then any connector the strip left
+    # dangling ('Casa Pizarro in Cartagena' → 'Casa Pizarro', never
+    # 'Casa Pizarro in'). Never down to empty.
     toks = head.split()
-    while len(toks) > 1 and toks[-1].lower().strip("&") in CATEGORY_WORDS:
+    _TRAIL = CATEGORY_WORDS | {"in", "en", "del", "los", "las"}
+    while len(toks) > 1 and toks[-1].lower().strip("&") in _TRAIL:
         toks.pop()
     head = " ".join(toks)
 
     display = _titlecase(head) if (head.isupper() or head.islower()) else head
-    # Confidence is earned, never guessed:
-    # - a raw that arrived as a multi-part blob (separators) stays unconfident
-    #   even when its head cleans nicely — we don't guess the brand boundary;
-    #   the override table is the only promotion path (spec acceptance #1);
-    # - a head that OPENS on a connector ("by Rausch") is a fragment;
-    # - anything still smelling like a directory string stays out.
-    raw_blob = len(parts) > 1 or _looks_like_directory(raw)
+    # Confidence is earned, never guessed — but articles are not guesses:
+    # - a raw that arrived MULTI-PART (separators) or category-stuffed stays
+    #   unconfident even when its head cleans nicely — we don't guess the
+    #   brand boundary; the override table is the only promotion path.
+    #   An ALL-CAPS run alone is NOT blob evidence on the raw side: plain
+    #   shouting ('LUNALA HOTEL BOUTIQUE') recases cleanly (dry-run 2026-10-07
+    #   showed the caps rule alone would have hidden legitimate venues).
+    # - a FRAGMENT head opens on a true connector ('by Rausch'); Spanish/
+    #   English ARTICLES (El/La/The…) are legitimate name openers and never
+    #   fragments (same dry-run: 'El Mirador', 'The Pink Mango').
+    low_raw = f" {raw.lower()} "
+    raw_cat_hits = sum(1 for w in _COUNTABLE_CATEGORY if f" {w} " in low_raw)
+    raw_blob = len(parts) > 1 or raw_cat_hits >= 2
     toks_disp = display.split()
-    fragment = (not toks_disp) or toks_disp[0].lower() in SMALL
+    _CONNECTOR_OPENERS = {"by", "de", "del", "con", "y", "and", "of", "en", "à", "a"}
+    fragment = (not toks_disp) or (toks_disp[0].lower() in _CONNECTOR_OPENERS
+                                   and len(toks_disp) <= 2)
     confident = (bool(display) and len(display) >= 2 and not fragment
                  and not raw_blob and not _looks_like_directory(display))
     return (display or raw, hint, confident)

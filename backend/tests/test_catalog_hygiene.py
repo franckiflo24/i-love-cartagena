@@ -112,6 +112,33 @@ def test_no_fabrication_display_is_subset_recase_of_raw() -> None:
             assert H._strip_accents(w) in raw_words, (raw, disp, w)
 
 
+# ── dry-run regressions (prod specimens, 2026-10-07) ─────────────────────────
+
+def test_articles_are_not_fragments() -> None:
+    for raw, want in [("El Mirador Gastro Bar", "El Mirador Gastro"),
+                      ("The Pink Mango (formerly Amare Beach)",
+                       "The Pink Mango (formerly Amare Beach)"),
+                      ("La Mulata", "La Mulata")]:
+        disp, _h, conf = H.clean_display_name(raw)
+        assert conf is True, (raw, disp)
+        assert disp == want
+
+
+def test_allcaps_simple_name_recases_confident() -> None:
+    disp, _h, conf = H.clean_display_name("LUNALA HOTEL BOUTIQUE")
+    assert disp == "Lunala Hotel Boutique" and conf is True
+
+
+def test_no_dangling_connector_after_strip() -> None:
+    disp, _h, conf = H.clean_display_name("Casa Pizarro in Cartagena")
+    assert disp == "Casa Pizarro" and conf is True
+
+
+def test_true_fragment_still_blocked() -> None:
+    assert H.clean_display_name("by Rausch")[2] is False
+    assert H.clean_display_name("de la")[2] is False
+
+
 # ── wiring locks ──────────────────────────────────────────────────────────────
 
 def test_concierge_filter_composes_public_plus_gate() -> None:
