@@ -266,7 +266,11 @@ def _is_gov(biz: Mapping[str, Any]) -> bool:
 async def biz_ticket_events(request: Request):
     biz = await _business(request)
     q: Dict[str, Any] = dict(PARTNER_EVENT_PUBLIC)
-    if not _is_gov(biz):
+    if _is_gov(biz):
+        pass  # government sees all events
+    elif biz.get("role") == "amo_scanner":
+        q["host"] = "AMO"  # the AMO door scanner: every AMO-hosted event
+    else:
         q["partner_id"] = biz.get("partner_id")
     rows = await db.partner_events.find(upcoming_query(q), {"_id": 0, "event_id": 1, "title": 1,
                                                             "date": 1, "start_time": 1}).sort("date", 1).to_list(50)
@@ -281,10 +285,12 @@ async def biz_ticket_events(request: Request):
 @router.get("/business/tickets/event/{event_id}")
 async def biz_ticket_guestlist(event_id: str, request: Request):
     biz = await _business(request)
-    ev = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0, "partner_id": 1})
+    ev = await db.partner_events.find_one({"event_id": event_id}, {"_id": 0, "partner_id": 1, "host": 1})
     if not ev:
         raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Evento no encontrado / Event not found"})
-    if not _is_gov(biz) and ev.get("partner_id") != biz.get("partner_id"):
+    allowed = (_is_gov(biz) or ev.get("partner_id") == biz.get("partner_id")
+               or (biz.get("role") == "amo_scanner" and ev.get("host") == "AMO"))
+    if not allowed:
         raise HTTPException(status_code=403, detail={"error": "forbidden", "message": "Este evento es de otro negocio / This event belongs to another venue"})
     rows = await db.amo_tickets.find({"event_id": event_id, "kind": "event_rsvp"},
                                      {"_id": 0, "ticket_id": 1, "holder_name": 1, "status": 1,
