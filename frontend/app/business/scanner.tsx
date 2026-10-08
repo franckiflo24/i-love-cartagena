@@ -34,6 +34,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Head from '../../src/components/WebHead';
 import { Skeleton } from '../../src/components/Skeleton';
+import CameraScanner from '../../src/components/tickets/CameraScanner';
 import {
   DEFAULT_GATE, SCAN_GATE_MAX, SCAN_WIRE_MAX, SCAN_WIRE_MIN, fetchEvents, fetchGuestList, fetchScanFeed,
   formatEventDate, formatGateTime, formatStartTime, isForbiddenError, isOutcomeUnknown, isSessionError,
@@ -410,6 +411,7 @@ export default function BusinessScannerScreen() {
   const [wire, setWire] = useState('');
   const [wireHint, setWireHint] = useState<string | null>(null);
   const [pasteOpen, setPasteOpen] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [scanError, setScanError] = useState<unknown>(null);
@@ -599,6 +601,12 @@ export default function BusinessScannerScreen() {
   }, [runScan, gateValue]);
   const onStale = useCallback((id: string) => {
     void runScan({ ticket_id: id, simulate: true, stale: true, gate: gateValue() }, `old:${id}`);
+  }, [runScan, gateValue]);
+  // Live camera scan (web): the decoded QR IS the wire → the real possession
+  // scan (works for any venue + the AMO scanner). Close, then submit.
+  const onCameraDetected = useCallback((w: string) => {
+    setCameraOpen(false);
+    void runScan({ wire: w, gate: gateValue() }, 'wire');
   }, [runScan, gateValue]);
 
   const onGateChange = useCallback((v: string) => {
@@ -926,6 +934,21 @@ export default function BusinessScannerScreen() {
           </>
         )}
 
+        {Platform.OS === 'web' && (
+          <TouchableOpacity
+            style={s.cameraBtn}
+            onPress={() => { setResult(null); setScanError(null); setCameraOpen(true); }}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={tr('Escanear con cámara')}
+            testID="scanner-camera-btn"
+          >
+            <Ionicons name="scan-outline" size={20} color={COLORS.white} />
+            <Text style={s.cameraBtnText}>{tr('Escanear con cámara')}</Text>
+          </TouchableOpacity>
+        )}
+        {cameraOpen && <CameraScanner onDetected={onCameraDetected} onClose={() => setCameraOpen(false)} lang={lang} />}
+
         <View style={s.card} testID="scanner-paste">
           <TouchableOpacity
             style={s.pasteToggle}
@@ -1159,6 +1182,11 @@ const s = StyleSheet.create({
   linkLabel: { fontSize: 13.5, color: COLORS.official, ...FONTS.semibold },
 
   // paste
+  cameraBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, minHeight: 54,
+    backgroundColor: COLORS.primary, borderRadius: RADIUS.lg, marginBottom: SPACING.md,
+  },
+  cameraBtnText: { ...TYPE.headline, color: COLORS.white },
   pasteToggle: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44 },
   pasteTitle: { ...TYPE.headline, color: COLORS.textMain, flex: 1 },
   pasteBody: { gap: SPACING.sm + 2, marginTop: SPACING.sm },
