@@ -1,0 +1,7 @@
+# Build artifacts never ship from the laptop — Vercel runs build:web itself.
+# eas update writes dist/ locally; past 15000 files vercel CLI REFUSES the
+# upload but EXITS 0, leaving the OLD deployment serving silently.
+dist
+.expo
+raw-screenshots
+store-assets
