@@ -83,7 +83,7 @@ export default function EventDetail() {
     const isPartnerEvent = async (): Promise<boolean> => {
       if (!PARTNER_EVENT_ID.test(eventId)) return false;
       try {
-        const row: unknown = await api.get(`/partner-events/${encodeURIComponent(eventId)}`);
+        const row: unknown = await api.get(`/partner-events/${encodeURIComponent(eventId)}`, { timeoutMs: 15000 });
         return !!row && typeof row === 'object' && !Array.isArray(row) && !!(row as { partner_id?: string }).partner_id;
       } catch {
         return false; // 404 live + no bundled row (or offline) → not a partner event

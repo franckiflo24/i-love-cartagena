@@ -71,8 +71,19 @@ export default function PartnerEventDetail() {
 
   const loadEvent = useCallback(async () => {
     setLoadError(false);
+    // A shared event link can be the first request to hit a cold serverless
+    // lambda; the endpoint answers in <1s warm but the first hit can exceed the
+    // default GET timeout. Give it a 15s window and one silent retry before the
+    // user ever sees an error row — a flagship ticket link must open first try.
+    const fetchOnce = () => api.get(`/partner-events/${id}`, { timeoutMs: 15000 });
     try {
-      const data = await api.get(`/partner-events/${id}`);
+      let data: any;
+      try {
+        data = await fetchOnce();
+      } catch (e1) {
+        if (isGoneStatus(e1)) throw e1;        // a real 404/410 is not retryable
+        data = await fetchOnce();              // cold-start / transient blip → one retry
+      }
       // Guard against []/{} slipping past the not-found check (see event/[id]).
       setEvent(data && typeof data === 'object' && !Array.isArray(data) && (data.event_id || data.id || data.title) ? data : null);
     } catch (e) {

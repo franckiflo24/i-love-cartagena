@@ -906,7 +906,7 @@ const _authPath = (p: string) => p.startsWith('/auth/');
 const _apiUrl = (p: string) => (Platform.OS === 'web' && _authPath(p)) ? `/api${p}` : `${BACKEND_URL}/api${p}`;
 const _creds = (p: string): RequestCredentials => (Platform.OS === 'web' && _authPath(p)) ? 'include' : CREDS;
 
-type Opts = { headers?: Record<string, string> };
+type Opts = { headers?: Record<string, string>; timeoutMs?: number };
 
 // ── GET single-flight ────────────────────────────────────────────
 // Concurrent identical GETs (same path, same auth scope, no custom headers)
@@ -925,7 +925,9 @@ const liveGet = async (path: string, opts?: Opts): Promise<any> => {
   let res: Response;
   try {
     const headers = await buildHeaders(opts?.headers, !PUBLIC_GET_NO_AUTH.test(path));
-    res = await fetchT(`${_apiUrl(path)}`, { headers, credentials: _creds(path) });
+    // A caller may ask for a longer window than GET_TIMEOUT_MS for a single-doc
+    // read that hits a cold serverless lambda (first open of a shared event link).
+    res = await fetchT(`${_apiUrl(path)}`, { headers, credentials: _creds(path) }, opts?.timeoutMs || GET_TIMEOUT_MS);
   } catch (err) {
     // Network failure / 8 s timeout → last good payload (fresher than the
     // static snapshot, and covers ?query paths), then the public static catalog.
