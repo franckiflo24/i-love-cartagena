@@ -11,7 +11,7 @@
 // mount (useCmwToday), so the static export never bakes a build-day phase in.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleSheet, Text, TouchableOpacity, View,
+  LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -19,6 +19,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Head from '../../src/components/WebHead';
 import { SafeImage } from '../../src/components/SafeImage';
+import { api } from '../../src/constants/api';
 import { Skeleton } from '../../src/components/Skeleton';
 import { FadeInUp } from '../../src/components/FadeInUp';
 import CmwRequestSheet from '../../src/components/cmw/CmwRequestSheet';
@@ -67,6 +68,27 @@ export default function MusicWeekHub() {
   // program on both platforms. It un-pins at Experiencias.
   const [pinned, setPinned] = useState(false);
   const [sheet, setSheet] = useState<{ open: boolean; event: CmwEvent | null }>({ open: false, event: null });
+
+  // AMO-hosted FREE-RSVP nights for CMW — the bookable inventory. These live in
+  // partner_events (host=AMO, category=cmw) and own the whole PALCO ticket flow
+  // (reserve → rotating QR → wallet). The informational day-by-day program below
+  // is not bookable; THIS rail is the "buy a ticket" surface, so a visitor can
+  // find and reserve the night instead of only reaching it by deep link.
+  const [rsvpNights, setRsvpNights] = useState<any[]>([]);
+  useEffect(() => {
+    let alive = true;
+    api.get('/partner-events', { timeoutMs: 15000 })
+      .then((rows: any) => {
+        if (!alive) return;
+        const list = (Array.isArray(rows) ? rows : [])
+          .filter((e) => e && e.host === 'AMO' && e.is_free && (e.category === 'cmw' || /music week/i.test(e.title || '')))
+          .sort((a, b) => String(a.date || '').localeCompare(String(b.date || '')));
+        setRsvpNights(list);
+      })
+      .catch(() => { if (alive) setRsvpNights([]); });
+    return () => { alive = false; };
+  }, []);
+  const openRsvp = useCallback((id: string) => { router.push(`/partner-event/${id}` as never); }, [router]);
 
   const brand = program?.brand || null;
   const days = useMemo(() => programDays(brand), [brand]);
@@ -190,6 +212,44 @@ export default function MusicWeekHub() {
       ))}
     </View>,
   );
+
+  // Bookable RSVP nights — the "Reserva tu entrada" surface (PALCO free tickets).
+  if (rsvpNights.length) {
+    blocks.push(
+      <View key="rsvp-nights" style={styles.rsvpWrap} testID="cmw-rsvp-nights">
+        <SectionHeader eyebrow={tr('Entradas gratis')} title={tr('Reserva tu entrada')}
+          subtitle={tr('Cupos limitados · código QR verificable en puerta')} />
+        <View style={styles.rsvpList}>
+          {rsvpNights.map((e) => {
+            const full = typeof e.capacity === 'number' && e.capacity > 0 && (e.rsvp_count || 0) >= e.capacity;
+            const dt = (() => { try { return new Date(String(e.date) + 'T12:00:00')
+              .toLocaleDateString(lang === 'en' ? 'en-US' : 'es-CO', { weekday: 'short', day: 'numeric', month: 'short' }); }
+              catch { return String(e.date || ''); } })();
+            return (
+              <Pressable key={e.event_id} onPress={() => openRsvp(e.event_id)} disabled={full}
+                style={({ pressed }) => [styles.rsvpCard, pressed && !full && { opacity: 0.9 }, full && { opacity: 0.6 }]}
+                accessibilityRole="button" accessibilityLabel={`${tr('Reservar')} — ${e.title}`} testID={`cmw-rsvp-${e.event_id}`}>
+                <View style={styles.rsvpDate}><Text style={styles.rsvpDateText}>{dt}{e.start_time ? ` · ${String(e.start_time).slice(0, 5)}` : ''}</Text></View>
+                <Text style={styles.rsvpTitle} numberOfLines={2}>{e.title}</Text>
+                {!!e.partner_name && <Text style={styles.rsvpVenue} numberOfLines={1}>📍 {e.partner_name}</Text>}
+                <View style={styles.rsvpCtaRow}>
+                  <View style={[styles.rsvpBadge, full && { backgroundColor: 'rgba(255,255,255,0.12)' }]}>
+                    <Text style={styles.rsvpBadgeText}>{full ? tr('Agotado') : tr('GRATIS')}</Text>
+                  </View>
+                  {!full && (
+                    <View style={styles.rsvpBtn}>
+                      <Ionicons name="ticket-outline" size={14} color={CMW.onAccent} />
+                      <Text style={styles.rsvpBtnText}>{tr('Reservar entrada')}</Text>
+                    </View>
+                  )}
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>,
+    );
+  }
 
   blocks.push(
     <View key="program-head" onLayout={(e) => { programY.current = e.nativeEvent.layout.y; }} style={styles.programHead}>
@@ -446,6 +506,22 @@ const styles = StyleSheet.create({
   pillarLabel: { fontSize: 10.5, lineHeight: 13, fontWeight: '700', letterSpacing: 1.3, textTransform: 'uppercase', color: CMW.cream },
 
   programHead: { paddingTop: 30, paddingBottom: 12 },
+  // "Reserva tu entrada" bookable-nights rail
+  rsvpWrap: { paddingTop: 26 },
+  rsvpList: { paddingHorizontal: CMW_GUTTER, gap: 12, marginTop: 4 },
+  rsvpCard: {
+    backgroundColor: CMW.surfaceAlt, borderRadius: CMW_RADIUS.card, borderWidth: 1, borderColor: CMW.line,
+    padding: 14, gap: 7,
+  },
+  rsvpDate: { alignSelf: 'flex-start', backgroundColor: 'rgba(244,164,58,0.14)', borderRadius: 8, paddingHorizontal: 9, paddingVertical: 3 },
+  rsvpDateText: { color: CMW.amber, fontSize: 11.5, fontWeight: '800', letterSpacing: 0.4, textTransform: 'uppercase' },
+  rsvpTitle: { color: CMW.cream, fontSize: 15.5, fontWeight: '800', lineHeight: 20 },
+  rsvpVenue: { color: CMW.sand, fontSize: 12.5 },
+  rsvpCtaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
+  rsvpBadge: { backgroundColor: 'rgba(84,214,138,0.18)', borderRadius: CMW_RADIUS.chip, paddingHorizontal: 10, paddingVertical: 4 },
+  rsvpBadgeText: { color: '#6EE7A8', fontSize: 11.5, fontWeight: '800', letterSpacing: 0.4 },
+  rsvpBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: CMW.gold, borderRadius: CMW_RADIUS.chip, paddingHorizontal: 14, paddingVertical: 8 },
+  rsvpBtnText: { color: CMW.onAccent, fontSize: 13, fontWeight: '800' },
   stripWrap: { backgroundColor: COLORS.background, paddingVertical: STRIP_PAD },
   pinned: { position: 'absolute', left: 0, right: 0, paddingVertical: STRIP_PAD, backgroundColor: COLORS.background, borderBottomWidth: 1, borderBottomColor: CMW.lineSoft },
   daySection: { paddingHorizontal: CMW_GUTTER, paddingTop: 18, gap: 14 },

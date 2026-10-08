@@ -93,6 +93,16 @@ export const CMW_TR: Dict = {
   'El servicio no está disponible en este momento. Intenta de nuevo o escríbenos por WhatsApp.': { en: 'The service is unavailable right now. Try again or message us on WhatsApp.', fr: "Le service n'est pas disponible pour le moment. Réessaie ou écris-nous sur WhatsApp.", pt: 'O serviço não está disponível no momento. Tente de novo ou escreva pelo WhatsApp.' },
   'No pudimos enviar tu solicitud. Escríbenos por WhatsApp.': { en: "We couldn't send your request. Message us on WhatsApp.", fr: "Nous n'avons pas pu envoyer ta demande. Écris-nous sur WhatsApp.", pt: 'Não foi possível enviar sua solicitação. Escreva pelo WhatsApp.' },
 
+  // ── Bookable RSVP nights rail (hub) ──
+  'Entradas gratis': { en: 'Free tickets', fr: 'Entrées gratuites', pt: 'Entradas grátis' },
+  'Reserva tu entrada': { en: 'Reserve your ticket', fr: 'Réserve ta place', pt: 'Reserve sua entrada' },
+  'Cupos limitados · código QR verificable en puerta': {
+    en: 'Limited spots · QR code verified at the door',
+    fr: 'Places limitées · code QR vérifié à l’entrée',
+    pt: 'Vagas limitadas · código QR verificável na porta',
+  },
+  'Reservar entrada': { en: 'Reserve ticket', fr: 'Réserver', pt: 'Reservar entrada' },
+
   // ── Disambiguation (hub footer, CALENDAR-INTEGRATION v1) ──
   'Music Week no es el Cartagena Festival de Música (música clásica, 9–17 de enero): son dos semanas distintas.': {
     en: 'Music Week is not the Cartagena Festival de Música (classical music, January 9–17): they are two different weeks.',
