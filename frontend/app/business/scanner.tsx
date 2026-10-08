@@ -41,7 +41,7 @@ import {
   planName, scannerErrorMessage, submitScan,
 } from '../../src/components/tickets/scannerApi';
 import type {
-  FeedScan, GuestTicket, ScanRequest, ScanResult, ScannerEvent, Translate,
+  CameraScanOutcome, FeedScan, GuestTicket, ScanRequest, ScanResult, ScannerEvent, Translate,
 } from '../../src/components/tickets/scannerApi';
 import { COLORS, FONTS, RADIUS, SPACING, TYPE } from '../../src/constants/theme';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
@@ -49,6 +49,7 @@ import { useLang } from '../../src/context/LanguageContext';
 import type { Lang } from '../../src/i18n/translations';
 import { useTr } from '../../src/i18n/autoTr';
 import { bogotaToday } from '../../src/lib/eventTime';
+import { primeAudio } from '../../src/lib/chime';
 import { hapticError, hapticSuccess } from '../../src/lib/haptics';
 import { goBackOr } from '../../src/lib/nav';
 
@@ -602,12 +603,36 @@ export default function BusinessScannerScreen() {
   const onStale = useCallback((id: string) => {
     void runScan({ ticket_id: id, simulate: true, stale: true, gate: gateValue() }, `old:${id}`);
   }, [runScan, gateValue]);
-  // Live camera scan (web): the decoded QR IS the wire → the real possession
-  // scan (works for any venue + the AMO scanner). Close, then submit.
-  const onCameraDetected = useCallback((w: string) => {
-    setCameraOpen(false);
-    void runScan({ wire: w, gate: gateValue() }, 'wire');
-  }, [runScan, gateValue]);
+  // Live camera scan (continuous door line): the decoded QR IS the wire → a real
+  // possession scan (works for any venue + the AMO scanner). The camera stays open
+  // and auto-advances to the next guest, so this submits WITHOUT closing and returns
+  // the verdict + name for the in-overlay flash. No page scroll (the camera is on
+  // top); the last verdict is left on the page for when the operator closes it.
+  const scanFromCamera = useCallback(async (w: string): Promise<CameraScanOutcome | null> => {
+    if (!sessionToken || busyLock.current) return null;
+    busyLock.current = true;
+    setScanError(null);
+    try {
+      const r = await submitScan(sessionToken, { wire: w, gate: gateValue() });
+      if (!alive.current) return null;
+      setResult(r);
+      if (r.verdict === 'VALIDO' || r.verdict === 'PASE') hapticSuccess();
+      else hapticError();
+      return { verdict: r.verdict, name: r.guest?.name ?? null };
+    } catch (e) {
+      console.error('[BusinessScanner] camera scan', e);
+      if (alive.current) {
+        setResult(null);
+        setScanError(e);
+        hapticError();
+      }
+      return null;
+    } finally {
+      busyLock.current = false;
+      // A scan changed server state (ticket flips to used, feed grows, counts move): reload them.
+      if (alive.current) void refreshAll();
+    }
+  }, [sessionToken, gateValue, refreshAll]);
 
   const onGateChange = useCallback((v: string) => {
     gateTouched.current = true;
@@ -936,7 +961,7 @@ export default function BusinessScannerScreen() {
 
         <TouchableOpacity
           style={s.cameraBtn}
-          onPress={() => { setResult(null); setScanError(null); setCameraOpen(true); }}
+          onPress={() => { primeAudio(); setResult(null); setScanError(null); setCameraOpen(true); }}
           activeOpacity={0.85}
           accessibilityRole="button"
           accessibilityLabel={tr('Escanear con cámara')}
@@ -945,7 +970,7 @@ export default function BusinessScannerScreen() {
           <Ionicons name="scan-outline" size={20} color={COLORS.white} />
           <Text style={s.cameraBtnText}>{tr('Escanear con cámara')}</Text>
         </TouchableOpacity>
-        {cameraOpen && <CameraScanner onDetected={onCameraDetected} onClose={() => setCameraOpen(false)} lang={lang} />}
+        {cameraOpen && <CameraScanner onScan={scanFromCamera} onClose={() => setCameraOpen(false)} lang={lang} />}
 
         <View style={s.card} testID="scanner-paste">
           <TouchableOpacity

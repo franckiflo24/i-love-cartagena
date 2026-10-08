@@ -87,6 +87,17 @@ export interface ScanResult {
   first_gate: string | null;
 }
 
+/**
+ * The minimal outcome the live camera overlay renders on each scan: the verdict (for the
+ * green/red flash + chime) and the holder name (the guest-on-scan moment). `null` from the
+ * caller means the scan could not be resolved (offline / server fault) — the overlay shows a
+ * neutral "retry" flash, never a guessed admit.
+ */
+export interface CameraScanOutcome {
+  verdict: ScanVerdict;
+  name: string | null;
+}
+
 export interface FeedScan {
   at: string | null;
   /** Kept as a string: the ledger may carry a verdict this client does not know (shown neutrally). */
@@ -261,6 +272,9 @@ function readDetail(body: unknown): { code: string | null; message: string | nul
   return { code: null, message: null }; // 422 validation arrays etc.: no user-facing text
 }
 
+/** Cold-start budget for the ONE GET retry: a Vercel Python lambda waking up can exceed 8 s. */
+const COLD_RETRY_MS = 16000;
+
 async function scannerRequest(token: string, method: 'GET' | 'POST', path: string, body?: unknown): Promise<unknown> {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
@@ -268,20 +282,27 @@ async function scannerRequest(token: string, method: 'GET' | 'POST', path: strin
     ...AMO_CLIENT_HEADERS,
   };
   if (body !== undefined) headers['Content-Type'] = 'application/json';
+  const url = `${API_BASE}${path}`;
+  const init = {
+    method,
+    headers,
+    credentials: 'omit' as const, // Bearer only — no cookies, so no credentialed-CORS requirements
+    body: body === undefined ? undefined : JSON.stringify(body),
+  };
   let res: Response;
   try {
-    res = await fetchT(
-      `${API_BASE}${path}`,
-      {
-        method,
-        headers,
-        credentials: 'omit', // Bearer only — no cookies, so no credentialed-CORS requirements
-        body: body === undefined ? undefined : JSON.stringify(body),
-      },
-      method === 'GET' ? GET_TIMEOUT_MS : WRITE_TIMEOUT_MS,
-    );
+    res = await fetchT(url, init, method === 'GET' ? GET_TIMEOUT_MS : WRITE_TIMEOUT_MS);
   } catch {
-    throw new ScannerError(0, null, 'network'); // offline / DNS / TimeoutError
+    // A GET is idempotent: a cold backend can blow past the 8 s read timeout on the first hit,
+    // so retry ONCE with a longer budget before reporting offline. A scan POST is NEVER retried —
+    // a timed-out scan may already have admitted the ticket (outcome UNKNOWN), and a blind retry
+    // could double-admit it or wrongly read DUPLICADO.
+    if (method !== 'GET') throw new ScannerError(0, null, 'network');
+    try {
+      res = await fetchT(url, init, COLD_RETRY_MS);
+    } catch {
+      throw new ScannerError(0, null, 'network'); // offline / DNS / TimeoutError
+    }
   }
   let json: unknown = null;
   try {
