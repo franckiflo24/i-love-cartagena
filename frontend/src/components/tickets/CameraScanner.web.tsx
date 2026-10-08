@@ -7,6 +7,10 @@
 // BarcodeDetector). Pure DOM — this file only loads on web (Metro picks the
 // .web.tsx); the native twin is a stub until expo-camera ships in a build.
 import React, { useEffect, useRef, useState } from 'react';
+// react-dom is present at runtime on web (Expo renders through it) but ships no
+// bundled types in this RN project; this file only loads on web.
+// @ts-ignore - no @types/react-dom
+import { createPortal } from 'react-dom';
 
 type Props = { onDetected: (wire: string) => void; onClose: () => void; lang?: string };
 
@@ -117,7 +121,11 @@ export default function CameraScanner({ onDetected, onClose, lang }: Props) {
         ? T(lang, 'Abriendo cámara…', 'Opening camera…')
         : T(lang, 'Apunta al código QR de la entrada', 'Point at the ticket QR code');
 
-  return React.createElement(
+  // Portal to <body>: expo-router wraps each screen in a transformed View, and a
+  // CSS transform on an ancestor re-bases position:fixed to that ancestor (the
+  // overlay landed off-screen). Rendering into document.body escapes it so the
+  // overlay truly covers the viewport on phones.
+  const tree = React.createElement(
     'div', { style: overlay },
     React.createElement('div', { key: 'title', style: { color: '#fff', fontSize: 18, fontWeight: 800, marginBottom: 16 } },
       T(lang, 'Escanear entrada', 'Scan ticket')),
@@ -135,4 +143,5 @@ export default function CameraScanner({ onDetected, onClose, lang }: Props) {
       },
     }, T(lang, 'Cerrar', 'Close')),
   );
+  return typeof document !== 'undefined' ? createPortal(tree, document.body) : tree;
 }
