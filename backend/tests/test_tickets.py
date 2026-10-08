@@ -125,6 +125,7 @@ USER = {"user_id": "u1", "name": "Ana Viajera", "email": "a@x.co"}
 BIZ_A = {"business_id": "bizA", "partner_id": "ptr_A", "role": "business"}
 BIZ_B = {"business_id": "bizB", "partner_id": "ptr_B", "role": "business"}
 GOV = {"business_id": "bizG", "partner_id": None, "role": "government"}
+AMO_SCANNER = {"business_id": "bizScan", "partner_id": "ptr_amo_scanner", "role": "amo_scanner"}
 
 
 @pytest.fixture()
@@ -228,6 +229,45 @@ def test_gate_verdicts_with_guest_panel(ctx) -> None:
     assert client.post("/api/business/tickets/scan", json={"wire": stale_b}).json() == {"verdict": "EXPIRADO"}
     state["biz"] = GOV
     assert client.post("/api/business/tickets/scan", json={"ticket_id": t["ticket_id"], "simulate": True}).json()["verdict"] == "DUPLICADO"
+    state["biz"] = BIZ_A
+
+
+def test_amo_scanner_scopes_to_hosted_events_only(ctx, monkeypatch) -> None:
+    """amo_scanner (least-privilege door role) validates host==AMO tickets whose
+    partner_id is the VENUE, but a non-AMO ticket stays FUERA_DE_ALCANCE."""
+    client, state = ctx
+    async def _norl(_r, _b, _m, _w): return None  # rate limiter needs a store this env lacks
+    monkeypatch.setattr(T, "_rl", _norl)
+    # an AMO-hosted night at a venue (partner_id = the venue, host = AMO)
+    import qr_credential as _qc
+    sec = "a" * 32
+    T.db.amo_tickets.rows.append({
+        "ticket_id": "amt_aaaaaaaaaa", "kind": "event_rsvp", "user_id": "u9",
+        "holder_name": "CMW Guest", "event_id": "ae_casaboheme", "host": "AMO",
+        "title": "Casa Bohême CMW", "venue_name": "Casa Bohême", "partner_id": "ptr_V014",
+        "partner_name": "Casa Bohême", "date": D1, "start_time": "21:00",
+        "qr_secret": sec, "status": "issued", "used_at": None, "used_gate": None,
+    })
+    T.db.partner_events.rows.append({
+        "event_id": "ae_casaboheme", "partner_id": "ptr_V014", "title": "Casa Bohême CMW",
+        "date": D1, "start_time": "21:00", "is_published": True,
+        "moderation_status": "approved", "host": "AMO",
+    })
+    # a different venue's NON-AMO ticket (host absent) — out of scope for the AMO scanner
+    T.db.amo_tickets.rows.append({
+        "ticket_id": "amt_bbbbbbbbbb", "kind": "event_rsvp", "user_id": "u8",
+        "holder_name": "Vendor Guest", "event_id": "pe_vendor", "host": None,
+        "title": "Vendor night", "venue_name": "Casa Prueba", "partner_id": "ptr_A",
+        "partner_name": "Casa Prueba", "date": D1, "start_time": "21:00",
+        "qr_secret": "b" * 32, "status": "issued", "used_at": None, "used_gate": None,
+    })
+    amo_wire = _qc.build_wire(T.NS_TICKET, "amt_aaaaaaaaaa", sec)
+    vendor_wire = _qc.build_wire(T.NS_TICKET, "amt_bbbbbbbbbb", "b" * 32)
+    state["biz"] = AMO_SCANNER
+    r = client.post("/api/business/tickets/scan", json={"wire": amo_wire, "gate": "Puerta AMO"}).json()
+    assert r["verdict"] == "VALIDO", r
+    rf = client.post("/api/business/tickets/scan", json={"wire": vendor_wire}).json()
+    assert rf["verdict"] == "FUERA_DE_ALCANCE" and "guest" not in rf, rf
     state["biz"] = BIZ_A
 
 

@@ -2276,6 +2276,68 @@ async def admin_ensure_alcaldia(request: Request):
     }
 
 
+@api_router.post("/business/admin/ensure-amo-scanner")
+async def admin_ensure_amo_scanner(request: Request):
+    """Provision the least-privilege AMO door-scanner account.
+
+    AMO-hosted events (Casa Bohême / Zamna CMW nights) carry the VENUE as the
+    ticket partner_id, so no single venue login can scan them and a full
+    government login is over-privileged for a door phone. This account has role
+    `amo_scanner`: it can ONLY validate tickets for host=="AMO" events (see
+    tickets.biz_ticket_scan) — never PII, payouts, moderation or exports.
+
+    Auth: Bearer CRON_SECRET ONLY (same bootstrap class as ensure-alcaldia; a
+    scanner session can't mint the scanner account). The password is supplied in
+    the request body, so the operator owns the credential — it is NEVER stored in
+    env, logged, or returned. Idempotent: upsert + re-align the hash + clear the
+    login lock. Reports STATE only.
+    """
+    auth = request.headers.get("Authorization", "")
+    token = auth[7:] if auth.startswith("Bearer ") else ""
+    cron = os.environ.get("CRON_SECRET", "")
+    if not cron or not hmac.compare_digest(token, cron):
+        raise HTTPException(status_code=403, detail="cron secret required")
+    body = await request.json()
+    email = (body.get("email") or "scanner@amocartagena.app").strip().lower()
+    password = body.get("password") or ""
+    if "@" not in email or "." not in email.split("@")[-1]:
+        raise HTTPException(status_code=400, detail="Email inválido / Invalid email")
+    if len(password) < 10:
+        raise HTTPException(status_code=400, detail="La contraseña debe tener al menos 10 caracteres / Password must be ≥ 10 chars")
+
+    before_biz = await db.business_users.find_one({"email": email}, {"_id": 0, "role": 1, "business_id": 1})
+    pw_hash = _bcrypt.hashpw(password.encode("utf-8"), _bcrypt.gensalt()).decode("utf-8")
+    await db.business_users.update_one(
+        {"email": email},
+        {"$set": {
+            "email": email,
+            "password_hash": pw_hash,
+            "role": "amo_scanner",
+            "partner_id": "ptr_amo_scanner",   # sentinel; scope is host-based, not venue-based
+            "status": "active",
+        }, "$setOnInsert": {
+            "business_id": f"biz_amo_scanner_{uuid.uuid4().hex[:8]}",
+            "full_name": "AMO · Escáner de entradas",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }},
+        upsert=True,
+    )
+    try:
+        await db.business_users.create_index("email", unique=True)
+    except Exception:
+        pass
+    await db.login_throttle.delete_many({})
+    return {
+        "ensured": True,
+        "email": email,
+        "role": "amo_scanner",
+        "existed": bool(before_biz),
+        "scope": "host==AMO events only (scan-only; no PII/payouts/moderation)",
+        "login_at": "/business/scanner",
+        "note": "Scanner login works with the password you supplied; rotate it from /business/change-password.",
+    }
+
+
 @api_router.post("/business/admin/purge-demo-passes")
 async def admin_purge_demo_passes(request: Request):
     """GOV-FIX (data honesty): remove the fabricated City Pass rows that

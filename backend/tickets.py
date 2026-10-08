@@ -149,6 +149,7 @@ async def ticket_rsvp(body: RsvpBody, request: Request):
         "user_id": user["user_id"],
         "holder_name": (user.get("name") or user.get("email") or "Invitado").strip()[:60],
         "event_id": body.event_id,
+        "host": ev.get("host"),   # "AMO" for AMO-produced nights → the amo_scanner door scope
         "title": ev.get("title") or "",
         "venue_name": (partner or {}).get("name") or "",
         "partner_id": ev.get("partner_id"),
@@ -392,6 +393,20 @@ async def biz_ticket_scan(body: ScanBody, request: Request):
         # byte-identical to a ghost id (bare FALSIFICADO) — no existence
         # oracle, and the guest panel (holder PII) never crosses venues.
         in_scope = _is_gov(biz) or tdoc.get("partner_id") == biz.get("partner_id")
+        if not in_scope and biz.get("role") == "amo_scanner":
+            # Least-privilege door role: an AMO scanner validates AMO-HOSTED
+            # events (Casa Bohême / Zamna CMW nights etc.), whose ticket
+            # partner_id is the VENUE, not AMO — so same-partner never matches.
+            # It can ONLY scan (no PII/payouts/moderation: those stay gov-gated),
+            # and only host=="AMO" tickets; a vendor's own ticket stays out of
+            # scope (FUERA_DE_ALCANCE), byte-identical to any wrong-venue scan.
+            host = tdoc.get("host")
+            if host is None:  # ticket minted before host was stamped on the doc
+                _hv = await db.partner_events.find_one(
+                    {"event_id": tdoc.get("event_id")}, {"_id": 0, "host": 1})
+                host = (_hv or {}).get("host")
+            if host == "AMO":
+                in_scope = True
         v = qc.verify(pt, tdoc["qr_secret"])
         if v == "COUNTERFEIT":
             verdict = "FALSIFICADO"
@@ -449,6 +464,11 @@ async def biz_ticket_scan(body: ScanBody, request: Request):
 @router.get("/business/tickets/scan-feed")
 async def biz_scan_feed(request: Request):
     biz = await _business(request)
-    q = {} if _is_gov(biz) else {"partner_id": biz.get("partner_id")}
+    if _is_gov(biz):
+        q: Dict[str, Any] = {}
+    elif biz.get("role") == "amo_scanner":
+        q = {"scanned_by": biz.get("business_id")}  # its own door log only
+    else:
+        q = {"partner_id": biz.get("partner_id")}
     rows = await db.amo_ticket_scans.find(q, {"_id": 0}).sort("at", -1).to_list(20)
     return {"scans": rows}
