@@ -2,7 +2,7 @@
   "expo": {
     "name": "AMO Life",
     "slug": "amo-cartagena",
-    "version": "1.1.6",
+    "version": "1.1.7",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "amocartagena",
@@ -35,7 +35,8 @@
           "mailto",
           "comgooglemaps",
           "uber"
-        ]
+        ],
+        "NSCameraUsageDescription": "AMO uses the camera to scan ticket QR codes at the door."
       }
     },
     "android": {
@@ -115,6 +116,12 @@
           "locationWhenInUsePermission": "We use your location to show you events and partners near you.",
           "locationAlwaysAndWhenInUsePermission": false,
           "locationAlwaysPermission": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "AMO usa la cámara para escanear los códigos QR de las entradas en la puerta."
         }
       ]
     ],

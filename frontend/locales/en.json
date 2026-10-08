@@ -1,4 +1,5 @@
 {
   "NSLocationWhenInUseUsageDescription": "We use your location to show you events and partners near you.",
-  "NSPhotoLibraryUsageDescription": "Allow access to your photos to attach images to your events."
+  "NSPhotoLibraryUsageDescription": "Allow access to your photos to attach images to your events.",
+  "NSCameraUsageDescription": "AMO uses the camera to scan ticket QR codes at the door."
 }

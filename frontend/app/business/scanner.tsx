@@ -934,19 +934,17 @@ export default function BusinessScannerScreen() {
           </>
         )}
 
-        {Platform.OS === 'web' && (
-          <TouchableOpacity
-            style={s.cameraBtn}
-            onPress={() => { setResult(null); setScanError(null); setCameraOpen(true); }}
-            activeOpacity={0.85}
-            accessibilityRole="button"
-            accessibilityLabel={tr('Escanear con cámara')}
-            testID="scanner-camera-btn"
-          >
-            <Ionicons name="scan-outline" size={20} color={COLORS.white} />
-            <Text style={s.cameraBtnText}>{tr('Escanear con cámara')}</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={s.cameraBtn}
+          onPress={() => { setResult(null); setScanError(null); setCameraOpen(true); }}
+          activeOpacity={0.85}
+          accessibilityRole="button"
+          accessibilityLabel={tr('Escanear con cámara')}
+          testID="scanner-camera-btn"
+        >
+          <Ionicons name="scan-outline" size={20} color={COLORS.white} />
+          <Text style={s.cameraBtnText}>{tr('Escanear con cámara')}</Text>
+        </TouchableOpacity>
         {cameraOpen && <CameraScanner onDetected={onCameraDetected} onClose={() => setCameraOpen(false)} lang={lang} />}
 
         <View style={s.card} testID="scanner-paste">
