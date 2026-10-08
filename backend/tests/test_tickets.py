@@ -268,6 +268,23 @@ def test_amo_scanner_scopes_to_hosted_events_only(ctx, monkeypatch) -> None:
     assert r["verdict"] == "VALIDO", r
     rf = client.post("/api/business/tickets/scan", json={"wire": vendor_wire}).json()
     assert rf["verdict"] == "FUERA_DE_ALCANCE" and "guest" not in rf, rf
+
+    # reset the AMO ticket (the wire scan above flipped it to used)
+    T.db.amo_tickets.rows[-2]["status"] = "issued"  # the AMO ticket (vendor is last)
+    for r in T.db.amo_tickets.rows:
+        if r["ticket_id"] == "amt_aaaaaaaaaa":
+            r["status"] = "issued"; r.pop("used_at", None); r.pop("used_gate", None)
+    # In PRODUCTION, the AMO scanner may still CHECK IN (plain simulate) its own
+    # AMO event — but never the tamper/stale attack sims, and a vendor never can.
+    monkeypatch.setenv("VERCEL_ENV", "production")
+    monkeypatch.delenv("PALCO_SIMULATE_ENABLED", raising=False)
+    ok = client.post("/api/business/tickets/scan", json={"ticket_id": "amt_aaaaaaaaaa", "simulate": True})
+    assert ok.json()["verdict"] == "VALIDO", ok.json()
+    atk = client.post("/api/business/tickets/scan", json={"ticket_id": "amt_aaaaaaaaaa", "simulate": True, "tamper": True})
+    assert atk.status_code == 403  # attack sims stay disabled in prod
+    state["biz"] = BIZ_A
+    blocked = client.post("/api/business/tickets/scan", json={"ticket_id": "amt_aaaaaaaaaa", "simulate": True})
+    assert blocked.status_code in (403, 404)  # a vendor gets no prod simulate
     state["biz"] = BIZ_A
 
 

@@ -334,21 +334,32 @@ async def biz_ticket_scan(body: ScanBody, request: Request):
     wire = body.wire or ""
 
     if body.simulate:
-        # Simulate bypasses proof-of-possession (it builds the wire server-side
-        # from just a ticket id), so in production it is OFF unless explicitly
-        # re-enabled — PALCO-V2 Stage A hardening. Tests/dev keep it.
-        if os.environ.get("VERCEL_ENV") == "production" and os.environ.get("PALCO_SIMULATE_ENABLED") != "1":
-            raise HTTPException(status_code=403, detail={
-                "error": "simulate_disabled",
-                "message": "Simulación deshabilitada en producción / Simulation is disabled in production"})
+        # Simulate builds the wire server-side from a ticket id (bypasses
+        # proof-of-possession), so it is OFF in production — PALCO-V2 Stage A —
+        # EXCEPT a plain check-in admit by the AMO door scanner on its own
+        # AMO-hosted event (free-RSVP check-in by trusted staff; never the
+        # tamper/stale attack sims, never another venue). Tests/dev keep it all.
         tid = body.ticket_id or ""
         if not _TICKET_ID_RE.match(tid):
             raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Entrada no encontrada / Ticket not found"})
-        doc = await db.amo_tickets.find_one({"ticket_id": tid}, {"_id": 0, "qr_secret": 1, "partner_id": 1})
+        doc = await db.amo_tickets.find_one({"ticket_id": tid}, {"_id": 0, "qr_secret": 1, "partner_id": 1, "host": 1, "event_id": 1})
+        host = doc.get("host") if doc else None
+        if doc and host is None and biz.get("role") == "amo_scanner":
+            _hv = await db.partner_events.find_one({"event_id": doc.get("event_id")}, {"_id": 0, "host": 1})
+            host = (_hv or {}).get("host")
+        amo_scanner_ok = biz.get("role") == "amo_scanner" and host == "AMO"
+        in_scope_sim = _is_gov(biz) or (doc is not None and doc.get("partner_id") == biz.get("partner_id")) or amo_scanner_ok
         # Foreign venue gets the same 404 as a missing ticket: simulate must not
         # be an existence oracle for other venues' ticket ids.
-        if not doc or (not _is_gov(biz) and doc.get("partner_id") != biz.get("partner_id")):
+        if not doc or not in_scope_sim:
             raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Entrada no encontrada / Ticket not found"})
+        amo_checkin = amo_scanner_ok and not body.tamper and not body.stale
+        if (os.environ.get("VERCEL_ENV") == "production"
+                and os.environ.get("PALCO_SIMULATE_ENABLED") != "1"
+                and not amo_checkin):
+            raise HTTPException(status_code=403, detail={
+                "error": "simulate_disabled",
+                "message": "Simulación deshabilitada en producción / Simulation is disabled in production"})
         c = qc.counter_for_now() - (qc.TOKEN_SKEW_STEPS + 2 if body.stale else 0)
         token = qc.derive_token(tid, doc["qr_secret"], c)
         if body.tamper:
