@@ -257,7 +257,7 @@ async def whatsapp_webhook(request: Request):
         raise HTTPException(status_code=503, detail="webhook not configured")
     sig = request.headers.get("x-hub-signature-256", "")
     expected = "sha256=" + hmac.new(app_secret.encode(), raw, hashlib.sha256).hexdigest()
-    if not hmac.compare_digest(sig, expected):
+    if not hmac.compare_digest(sig.encode(), expected.encode()):
         raise HTTPException(status_code=403, detail="bad signature")
 
     try:

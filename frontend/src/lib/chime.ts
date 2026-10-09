@@ -25,8 +25,18 @@ function audio(): AudioContext | null {
   try {
     const AC = g.AudioContext || g.webkitAudioContext;
     if (!AC) return null;
-    if (!ctx) ctx = new AC();
-    if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {});
+    if (!ctx) {
+      ctx = new AC();
+      try {
+        // iOS Safari 17+: route as media playback so the chime survives the ringer switch
+        // (a door phone is routinely silenced). Optional API — absent elsewhere.
+        const session = (navigator as any).audioSession;
+        if (session && typeof session.type === 'string') session.type = 'playback';
+      } catch { /* optional API */ }
+    }
+    // iOS also parks the context as 'interrupted' (a call, Siri), not just 'suspended':
+    // resume on anything that is not running; a rejected resume is just "no sound yet".
+    if (ctx && ctx.state !== 'running') ctx.resume().catch(() => {});
     return ctx;
   } catch {
     return null;

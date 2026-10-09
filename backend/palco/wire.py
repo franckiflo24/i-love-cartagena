@@ -50,9 +50,11 @@ def parse_wire_v2(payload: str) -> Optional[Dict[str, Any]]:
     if len(parts) != 5 or parts[0] != WIRE_PREFIX:
         return None
     cred_id, counter_s, key_id, sig = parts[1], parts[2], parts[3], parts[4]
-    if not CRED_ID_RE.match(cred_id) or not COUNTER_RE.match(counter_s):
+    # fullmatch, never match: re's `$` also matches before a trailing "\n", which would
+    # give one credential+counter a second spelling (audit 2026-10-09).
+    if not CRED_ID_RE.fullmatch(cred_id) or not COUNTER_RE.fullmatch(counter_s):
         return None
-    if not KEY_ID_RE.match(key_id) or not SIG_RE.match(sig):
+    if not KEY_ID_RE.fullmatch(key_id) or not SIG_RE.fullmatch(sig):
         return None
     return {"cred_id": cred_id, "counter": int(counter_s), "key_id": key_id, "sig": sig}
 

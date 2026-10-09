@@ -58,7 +58,10 @@ function CityPassLiveQr() {
       onLayout={(e) => setBoxWidth(Math.round(e.nativeEvent.layout.width))}
       testID="citypass-qr"
     >
-      {feed.frame ? (
+      {/* authLost outranks a held frame: after a mid-session 401 the poller has ENDED, so the old
+          frame would otherwise sit behind "Renovando…" forever instead of asking for a login
+          (ticket/[id].tsx orders these the same way). */}
+      {feed.frame && !feed.authLost ? (
         <>
           <View style={[styles.qrWhiteBg, qrLive.paper]}>
             <QRCode value={feed.frame.wire} size={size} color="#1a1a2e" backgroundColor="#FFFFFF" ecl="Q" onError={QR_NOOP} />

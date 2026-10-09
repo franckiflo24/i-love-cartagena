@@ -236,7 +236,7 @@ def test_amo_scanner_scopes_to_hosted_events_only(ctx, monkeypatch) -> None:
     """amo_scanner (least-privilege door role) validates host==AMO tickets whose
     partner_id is the VENUE, but a non-AMO ticket stays FUERA_DE_ALCANCE."""
     client, state = ctx
-    async def _norl(_r, _b, _m, _w): return None  # rate limiter needs a store this env lacks
+    async def _norl(_r, _b, _m, _w, subject=None): return None  # rate limiter needs a store this env lacks
     monkeypatch.setattr(T, "_rl", _norl)
     # an AMO-hosted night at a venue (partner_id = the venue, host = AMO)
     import qr_credential as _qc

@@ -35,7 +35,9 @@ def test_v1_counter_is_canonical_now() -> None:
     c = qc.counter_for_now()
     tok = qc.derive_token("amt_0123456789", "s3cret", c)
     assert qc.parse_wire("AMOTKT1", f"AMOTKT1.amt_0123456789.{c}.{tok}") is not None
-    for spelling in (f"+{c}", f"0{c}", f"{c:_}", f" {c}"):
+    # f"{c}\n": re's `$` matches before a trailing newline, so .match() accepted an embedded
+    # "\n" as a second spelling of the same counter — fullmatch closed it (audit 2026-10-09).
+    for spelling in (f"+{c}", f"0{c}", f"{c:_}", f" {c}", f"{c}\n"):
         assert qc.parse_wire("AMOTKT1", f"AMOTKT1.amt_0123456789.{spelling}.{tok}") is None
     # whole-payload surrounding whitespace stays tolerated (paste behavior)
     assert qc.parse_wire("AMOTKT1", f"  AMOTKT1.amt_0123456789.{c}.{tok}  ") is not None

@@ -147,6 +147,26 @@
       "source": "/partner-access",
       "destination": "/business/login",
       "statusCode": 308
+    },
+    {
+      "source": "/business/Scanner",
+      "destination": "/business/scanner",
+      "statusCode": 308
+    },
+    {
+      "source": "/Business/scanner",
+      "destination": "/business/scanner",
+      "statusCode": 308
+    },
+    {
+      "source": "/Business/Scanner",
+      "destination": "/business/scanner",
+      "statusCode": 308
+    },
+    {
+      "source": "/BUSINESS/SCANNER",
+      "destination": "/business/scanner",
+      "statusCode": 308
     }
   ],
   "rewrites": [

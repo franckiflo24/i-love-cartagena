@@ -160,7 +160,7 @@ function QrPanel({
     const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', (v) => setReduceMotion(v));
     return () => {
       on = false;
-      sub.remove();
+      sub?.remove(); // react-native-web returns undefined when matchMedia is missing
     };
   }, []);
 
@@ -312,7 +312,10 @@ export default function GobiernoBoletaScreen() {
   // Focus: this screen stays mounted under whatever is pushed on top; it must not keep polling then.
   useFocusEffect(useCallback(() => {
     setFocused(true);
-    return () => setFocused(false);
+    return () => {
+      setFocused(false);
+      setQr(null); // never keep a code across a blur — it may be minutes old when we return
+    };
   }, []));
 
   const used = ticket?.status === 'used' || qrUsed;
@@ -329,8 +332,8 @@ export default function GobiernoBoletaScreen() {
         setQr(frame);
       },
       onUsed: () => setQrUsed(true), // the screen flips to UTILIZADA; the ticket reloads for used_at
-      onFail: (_failures, e) => {
-        console.error('[GobiernoBoleta] qr poll', e);
+      onFail: (failures, e) => {
+        if (failures === 1) console.error('[GobiernoBoleta] qr poll', e); // first of a streak, not every retry
         setQrFailed(true);
       },
       onMissing: (e) => {
@@ -349,12 +352,18 @@ export default function GobiernoBoletaScreen() {
     // Backgrounded timers are throttled or frozen: pause, and fetch a fresh code the moment we return.
     const sub = AppState.addEventListener('change', (status) => {
       if (status === 'active') poller.refresh();
-      else poller.pause();
+      else {
+        // The monotonic clock can freeze while the device sleeps (iOS/WebKit): a frame kept across
+        // a background span would wake up minutes old yet still render as live. Blank it — the
+        // refresh() on 'active' paints a fresh code in one round trip.
+        poller.pause();
+        setQr(null);
+      }
     });
     return () => {
       pollNow.current = null;
       poller.stop();
-      sub.remove();
+      sub?.remove(); // react-native-web hands back undefined where the DOM API is missing
     };
   }, [token, id, phase, used, focused]);
 

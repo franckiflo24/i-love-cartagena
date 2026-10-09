@@ -90,7 +90,7 @@ async def _auth(request: Request):
     secret = os.environ.get("CRON_SECRET", "").strip()
     auth_header = request.headers.get("Authorization", "")
     import hmac
-    if secret and hmac.compare_digest(auth_header, f"Bearer {secret}"):
+    if secret and hmac.compare_digest(auth_header.encode(), f"Bearer {secret}".encode()):
         return {"via": "cron"}
     try:
         user = await _require_admin(request)

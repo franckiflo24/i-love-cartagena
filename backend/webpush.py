@@ -253,7 +253,7 @@ async def push_test(request: Request):
     secret = os.environ.get("CRON_SECRET", "").strip()
     auth = request.headers.get("Authorization", "")
     import hmac
-    if not secret or not hmac.compare_digest(auth, f"Bearer {secret}"):
+    if not secret or not hmac.compare_digest(auth.encode(), f"Bearer {secret}".encode()):
         raise HTTPException(status_code=403, detail="forbidden")
     body = await request.json()
     uid = (body.get("user_id") or "").strip()

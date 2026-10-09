@@ -1,13 +1,15 @@
 // /business/scanner — the venue-side TICKET SCANNER: the PALCO gate for the business portal.
 //
-// The site ships Permissions-Policy: camera=(), so there is no camera scanner. The primary interaction is
-// the live guest list of the selected event: each guest offers "Simular escaneo" (the SERVER derives the
-// current wire and runs the same verdict pipeline as a real scan) plus, collapsed under "Probar ataques",
-// two attack demos — "Código adulterado" (bad token → FALSIFICADO) and "Código vencido" (stale step →
-// EXPIRADO). Pasting a wire stays available as a secondary path (and is the way to scan a City Pass, which
-// belongs to no event). Verdicts: VÁLIDO / DUPLICADO / FALSIFICADO / EXPIRADO, and PASE for a City Pass —
-// a multi-scan perks credential: it proves the pass is genuine and active, it never "admits" and is never
-// DUPLICADO. The guest panel rides every resolvable scan (the PALCO guest-on-scan moment): the name, huge.
+// The PRIMARY interaction is the live CAMERA line ("Escanear con cámara" → the CameraScanner
+// web/native twins): decode a guest's rotating QR → verdict + name flash → auto-advance. The
+// site ships Permissions-Policy: camera=(self) for it. The guest list offers "Simular escaneo"
+// (the SERVER derives the wire — in production only the AMO door's plain check-in survives
+// that path) plus, collapsed under "Probar ataques", two attack demos — "Código adulterado"
+// (bad token → FALSIFICADO) and "Código vencido" (stale step → EXPIRADO) — prod-gated. Pasting
+// a wire stays as the fallback (and scans a City Pass, which belongs to no event). Verdicts:
+// VÁLIDO / DUPLICADO / FALSIFICADO / EXPIRADO, and PASE for a City Pass — a multi-scan perks
+// credential: genuine and active, it never "admits" and is never DUPLICADO. The guest panel
+// rides every resolvable scan (the PALCO guest-on-scan moment): the name, huge.
 //
 // Honesty: a simulated scan of an issued ticket REALLY admits it (the server flips it to "used"), and the
 // list says so; a FALSIFICADO that still names a ticket labels that panel as untrusted (it is what the
@@ -36,7 +38,8 @@ import Head from '../../src/components/WebHead';
 import { Skeleton } from '../../src/components/Skeleton';
 import CameraScanner from '../../src/components/tickets/CameraScanner';
 import {
-  DEFAULT_GATE, SCAN_GATE_MAX, SCAN_WIRE_MAX, SCAN_WIRE_MIN, fetchEvents, fetchGuestList, fetchScanFeed,
+  DEFAULT_GATE, SCAN_GATE_MAX, SCAN_WATCHDOG_MS, SCAN_WIRE_MAX, SCAN_WIRE_MIN, ScannerError,
+  fetchEvents, fetchGuestList, fetchScanFeed,
   formatEventDate, formatGateTime, formatStartTime, isForbiddenError, isOutcomeUnknown, isSessionError,
   planName, scannerErrorMessage, submitScan,
 } from '../../src/components/tickets/scannerApi';
@@ -594,31 +597,53 @@ export default function BusinessScannerScreen() {
   }, [sessionToken, refreshAll]);
 
   const gateValue = useCallback(() => gateRef.current.trim() || DEFAULT_GATE, []);
+  // Every scan carries the event the operator is working: a genuine wire for a DIFFERENT
+  // event answers FUERA_DE_ALCANCE server-side instead of admitting (and burning) it tonight.
+  const eventScope = useCallback(() => selectedRef.current ?? undefined, []);
   const onSimulate = useCallback((id: string) => {
-    void runScan({ ticket_id: id, simulate: true, gate: gateValue() }, `sim:${id}`);
-  }, [runScan, gateValue]);
+    void runScan({ ticket_id: id, simulate: true, gate: gateValue(), event_id: eventScope() }, `sim:${id}`);
+  }, [runScan, gateValue, eventScope]);
   const onTamper = useCallback((id: string) => {
-    void runScan({ ticket_id: id, simulate: true, tamper: true, gate: gateValue() }, `tam:${id}`);
-  }, [runScan, gateValue]);
+    void runScan({ ticket_id: id, simulate: true, tamper: true, gate: gateValue(), event_id: eventScope() }, `tam:${id}`);
+  }, [runScan, gateValue, eventScope]);
   const onStale = useCallback((id: string) => {
-    void runScan({ ticket_id: id, simulate: true, stale: true, gate: gateValue() }, `old:${id}`);
-  }, [runScan, gateValue]);
+    void runScan({ ticket_id: id, simulate: true, stale: true, gate: gateValue(), event_id: eventScope() }, `old:${id}`);
+  }, [runScan, gateValue, eventScope]);
   // Live camera scan (continuous door line): the decoded QR IS the wire → a real
   // possession scan (works for any venue + the AMO scanner). The camera stays open
   // and auto-advances to the next guest, so this submits WITHOUT closing and returns
-  // the verdict + name for the in-overlay flash. No page scroll (the camera is on
-  // top); the last verdict is left on the page for when the operator closes it.
+  // the verdict + context for the in-overlay flash. Page reloads are deferred to
+  // closeCamera (3 GETs per guest while the page is hidden were waste).
   const scanFromCamera = useCallback(async (w: string): Promise<CameraScanOutcome | null> => {
     if (!sessionToken || busyLock.current) return null;
     busyLock.current = true;
     setScanError(null);
+    let watchdog: ReturnType<typeof setTimeout> | undefined;
     try {
-      const r = await submitScan(sessionToken, { wire: w, gate: gateValue() });
+      // fetchT disarms its abort timer once headers arrive, so a stalled response BODY would
+      // hold busyLock forever (every later scan no-ops until reload). The watchdog caps the
+      // whole await; it firing means outcome UNKNOWN — same contract as a timed-out POST.
+      const post = submitScan(sessionToken, { wire: w, gate: gateValue(), event_id: selectedRef.current ?? undefined });
+      post.catch(() => {}); // the race's loser must never surface as an unhandled rejection
+      const r = await Promise.race([
+        post,
+        new Promise<never>((_, reject) => {
+          watchdog = setTimeout(() => reject(new ScannerError(0, null, 'watchdog')), SCAN_WATCHDOG_MS);
+        }),
+      ]);
       if (!alive.current) return null;
       setResult(r);
       if (r.verdict === 'VALIDO' || r.verdict === 'PASE') hapticSuccess();
       else hapticError();
-      return { verdict: r.verdict, name: r.guest?.name ?? null };
+      return {
+        verdict: r.verdict,
+        name: r.guest?.name ?? null,
+        title: r.guest?.ticket_title || null,
+        eventDate: r.guest?.event_date || null,
+        isPass: !!r.guest?.plan_id || r.verdict === 'PASE',
+        firstUsedAt: r.first_used_at,
+        firstGate: r.first_gate,
+      };
     } catch (e) {
       console.error('[BusinessScanner] camera scan', e);
       if (alive.current) {
@@ -626,13 +651,19 @@ export default function BusinessScannerScreen() {
         setScanError(e);
         hapticError();
       }
-      return null;
+      // The overlay's copy depends on WHY: 'unknown' = the server may already have admitted
+      // (check the list before retrying); 'session' = the login card is behind the overlay;
+      // anything else = plain retry.
+      return {
+        verdict: null,
+        name: null,
+        unresolved: isOutcomeUnknown(e) ? 'unknown' : isSessionError(e) ? 'session' : 'dropped',
+      };
     } finally {
+      if (watchdog !== undefined) clearTimeout(watchdog);
       busyLock.current = false;
-      // A scan changed server state (ticket flips to used, feed grows, counts move): reload them.
-      if (alive.current) void refreshAll();
     }
-  }, [sessionToken, gateValue, refreshAll]);
+  }, [sessionToken, gateValue]);
 
   const onGateChange = useCallback((v: string) => {
     gateTouched.current = true;
@@ -657,8 +688,8 @@ export default function BusinessScannerScreen() {
       return;
     }
     setWireHint(null);
-    void runScan({ wire: code, gate: gateValue() }, 'wire');
-  }, [wire, runScan, gateValue, tr]);
+    void runScan({ wire: code, gate: gateValue(), event_id: eventScope() }, 'wire');
+  }, [wire, runScan, gateValue, eventScope, tr]);
 
   const onVerdictLayout = useCallback((y: number) => {
     if (!pendingScroll.current) return;
@@ -691,11 +722,25 @@ export default function BusinessScannerScreen() {
     if (alive.current) setLeaving(false);
   }, [token, logout, router]);
 
-  // ── All hooks are above this line; the JSX below branches but never returns early. ──
+  // Session/permission gates — computed BEFORE the camera-close effect that reads them.
   const needSession = ready && (
     !token || isSessionError(eventsError) || isSessionError(guestsError) || isSessionError(feedError) || isSessionError(scanError)
   );
   const noAccess = ready && !needSession && events === null && isForbiddenError(eventsError);
+
+  // Closing the camera is when the page catches up: one reload brings counts/list/feed current
+  // (per-scan reloads while the overlay hid the page were 3 wasted GETs per guest).
+  const closeCamera = useCallback(() => {
+    setCameraOpen(false);
+    void refreshAll();
+  }, [refreshAll]);
+  // Session lost mid-line: the page swaps to the login card; the camera must not linger over
+  // it, and must not auto-reopen by itself after re-login.
+  useEffect(() => {
+    if (needSession && cameraOpen) setCameraOpen(false);
+  }, [needSession, cameraOpen]);
+
+  // ── All hooks are above this line; the JSX below branches but never returns early. ──
   const anyBusy = busy !== null;
   const busyFor = (id: string): 'sim' | 'tam' | 'old' | null => {
     if (busy === `sim:${id}`) return 'sim';
@@ -970,7 +1015,9 @@ export default function BusinessScannerScreen() {
           <Ionicons name="scan-outline" size={20} color={COLORS.white} />
           <Text style={s.cameraBtnText}>{tr('Escanear con cámara')}</Text>
         </TouchableOpacity>
-        {cameraOpen && <CameraScanner onScan={scanFromCamera} onClose={() => setCameraOpen(false)} lang={lang} />}
+        {/* The overlay itself renders at the SCREEN ROOT (bottom of this file), never here:
+            inside the ScrollView content, RN absolute-fill resolves against the scroll
+            content, and on a long guest list the frame landed off-viewport on native. */}
 
         <View style={s.card} testID="scanner-paste">
           <TouchableOpacity
@@ -1093,6 +1140,13 @@ export default function BusinessScannerScreen() {
           <View style={s.content}>{body}</View>
         </ScrollView>
       </KeyboardAvoidingView>
+      {/* SCREEN ROOT render: the overlay's absolute-fill now resolves against the viewport on
+          native (web portals to <body> regardless). Gated so it never covers the session/
+          no-access cards. NOT an RN Modal: this route is presentation:'modal' already, the
+          known iOS inset trap. */}
+      {ready && !needSession && !noAccess && cameraOpen && (
+        <CameraScanner onScan={scanFromCamera} onClose={closeCamera} lang={lang} />
+      )}
     </SafeAreaView>
   );
 }

@@ -25,9 +25,11 @@ RECIBO for recharge receipts (a receipt verifies but never "admits": Transcaribe
 validation belongs to its fare concession, which the demo does NOT simulate).
 Duplicates are decided ATOMICALLY (one find_one_and_update flips issued→used
 exactly once, credentials only). Secrets never leave the server: the client
-polls /qr per step and renders the wire; the validator "scans" server-side
-(simulate mode) because camera access is disabled site-wide. Production
-hardening documented in the pitch: Ed25519 (PALCO2) — gates verify, never forge.
+polls /qr per step and renders the wire; the validador screen "scans"
+server-side (simulate mode) because it ships no camera UI — the consumer door
+scanner (/business/scanner) does carry a live camera, this demo keeps the
+server-derived path. Production hardening documented in the pitch: Ed25519
+(PALCO2) — gates verify, never forge.
 """
 from __future__ import annotations
 
@@ -403,7 +405,7 @@ async def civic_tickets_live(request: Request, response: Response, live: int = 1
 async def civic_ticket(ticket_id: str, request: Request):
     await _rl(request, "civic", 120, 60)
     await _require_demo(request)
-    if not TICKET_ID_RE.match(ticket_id or ""):
+    if not TICKET_ID_RE.fullmatch(ticket_id or ""):
         raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Boleta no encontrada / Ticket not found"})
     doc = await db.civic_demo_tickets.find_one({"ticket_id": ticket_id}, {"_id": 0})
     if not doc:
@@ -420,13 +422,14 @@ async def civic_ticket_qr(ticket_id: str, request: Request, response: Response):
     await _rl(request, "civicqr", 120, 60)
     await _require_demo(request)
     response.headers["Cache-Control"] = "no-store"
-    if not TICKET_ID_RE.match(ticket_id or ""):
+    if not TICKET_ID_RE.fullmatch(ticket_id or ""):
         raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Boleta no encontrada / Ticket not found"})
     doc = await db.civic_demo_tickets.find_one({"ticket_id": ticket_id}, {"_id": 0})
     if not doc:
         raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Boleta no encontrada / Ticket not found"})
-    return {"demo": True, "wire": build_wire(ticket_id, doc["qr_secret"]),
-            "step_ms": TOKEN_STEP_SECONDS * 1000, "expires_in_ms": step_remaining_ms(),
+    now_ms = int(time.time() * 1000)  # ONE clock read: wire and expires_in_ms agree at a step boundary
+    return {"demo": True, "wire": build_wire(ticket_id, doc["qr_secret"], now_ms),
+            "step_ms": TOKEN_STEP_SECONDS * 1000, "expires_in_ms": step_remaining_ms(now_ms),
             "status": doc.get("status"), "kind": doc.get("kind")}
 
 
@@ -445,7 +448,7 @@ async def _verdict_for_wire(wire: str, gate: str, request: Request) -> Dict[str,
     detail: Dict[str, Any] = {}
     parts = parse_wire(wire)
     doc = None
-    if parts and TICKET_ID_RE.match(parts["ticket_id"]):
+    if parts and TICKET_ID_RE.fullmatch(parts["ticket_id"]):
         doc = await db.civic_demo_tickets.find_one({"ticket_id": parts["ticket_id"]}, {"_id": 0})
     if parts is not None and doc is not None:
         # ONE verifier for the civic demo, consumer tickets and the City Pass
@@ -470,8 +473,11 @@ async def _verdict_for_wire(wire: str, gate: str, request: Request) -> Dict[str,
                 verdict = "VALIDO"
             else:
                 verdict = "DUPLICADO"
-                detail["first_used_at"] = doc.get("used_at")
-                detail["first_gate"] = doc.get("used_gate")
+                # Re-read: when two scans race, the loser's pre-flip snapshot has no used_at.
+                fresh = await db.civic_demo_tickets.find_one(
+                    {"ticket_id": parts["ticket_id"]}, {"_id": 0, "used_at": 1, "used_gate": 1})
+                detail["first_used_at"] = (fresh or doc).get("used_at")
+                detail["first_gate"] = (fresh or doc).get("used_gate")
         detail["ticket"] = _public_ticket({**doc, "status": "used" if verdict == "VALIDO" else doc.get("status"),
                                            "used_at": _iso(now) if verdict == "VALIDO" else doc.get("used_at")})
     try:
@@ -492,9 +498,10 @@ async def _verdict_for_wire(wire: str, gate: str, request: Request) -> Dict[str,
 @router.post("/civic/demo/scan")
 async def civic_scan(body: ScanBody, request: Request):
     """Atomic gate verdict (PALCO admit semantics) + ledger. `simulate` exists
-    because the site ships Permissions-Policy: camera=() — the validator screen
-    'scans' server-side: the server derives the CURRENT wire (or a tampered /
-    stale one for the attack demos) and runs the SAME pipeline as a pasted code."""
+    because the civic validador screen ships no camera UI — the server derives
+    the CURRENT wire (or a tampered / stale one for the attack demos) and runs
+    the SAME pipeline as a pasted code. (The consumer door scanner at
+    /business/scanner carries the live camera; this demo keeps simulate.)"""
     await _rl(request, "civicscan", 60, 60)
     await _require_demo(request)
     gate = body.gate or "demo"
@@ -502,7 +509,7 @@ async def civic_scan(body: ScanBody, request: Request):
     if body.simulate:
         tid = body.ticket_id or ""
         doc = await db.civic_demo_tickets.find_one({"ticket_id": tid}, {"_id": 0, "qr_secret": 1}) \
-            if TICKET_ID_RE.match(tid) else None
+            if TICKET_ID_RE.fullmatch(tid) else None
         if not doc:
             raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Boleta no encontrada / Ticket not found"})
         c = counter_for_now() - (TOKEN_SKEW_STEPS + 2 if body.stale else 0)

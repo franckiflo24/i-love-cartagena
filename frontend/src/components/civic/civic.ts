@@ -189,7 +189,7 @@ export interface IssueRequest {
 export interface ScanRequest {
   /** Pasted code. */
   wire?: string;
-  /** Simulated scan: the SERVER derives the current wire (camera access is disabled site-wide). */
+  /** Simulated scan: the SERVER derives the current wire (the civic validador ships no camera UI). */
   ticket_id?: string;
   simulate?: boolean;
   tamper?: boolean;
@@ -671,10 +671,20 @@ export function planCheckout(svc: CivicService, sel: CheckoutSelection): Checkou
 // ── Rotating-credential timing (pure, so the boleta's poll loop stays testable) ─
 /** Next fetch lands this long after the server-side rotation (the brief: expires_in_ms + 150). */
 export const QR_RENEW_SLACK_MS = 150;
-/** Never poll faster than this, whatever the server says: the endpoint is rate-limited (30/min/IP). */
+/**
+ * Random extra delay on each scheduled renewal, so every open boleta doesn't refetch in the same
+ * ~250 ms window right after the 10 s rotation (a synchronized stampede on the shared lambdas).
+ * The server accepts the previous wire for a full step (±1 counter skew), so the spread costs
+ * nothing: the code on screen stays scannable the whole time. Mirrors tickets.ts.
+ */
+export const QR_POLL_JITTER_MS = 2000;
+/** Never poll faster than this, whatever the server says: the endpoint is rate-limited server-side. */
 export const QR_MIN_GAP_MS = 1000;
-/** How long a code may sit past its deadline (waiting on the refetch) before the UI hides it. */
-export const QR_STALE_GRACE_MS = 2500;
+/**
+ * How long a code may sit past its deadline (waiting on the refetch) before the UI hides it. Must
+ * comfortably cover QR_POLL_JITTER_MS plus a round trip, or the overlay would flash every rotation.
+ */
+export const QR_STALE_GRACE_MS = 5000;
 
 export interface QrTiming {
   /** Local monotonic instant the shown code rotates out. */
@@ -780,7 +790,7 @@ export function createQrPoller(deps: QrPollerDeps): QrPoller {
         deps.onUsed();
         return;
       }
-      schedule(timing.nextDelay);
+      schedule(timing.nextDelay + Math.random() * QR_POLL_JITTER_MS); // de-synchronized: see QR_POLL_JITTER_MS
     } catch (e) {
       if (stopped || myGen !== gen) return;
       if (isCivicError(e) && (e.status === 401 || e.status === 403)) {

@@ -145,7 +145,8 @@ async def batch_update(request: Request):
     await _check_rate_limit(f"batchupdate:{_client_ip(request)}", max_calls=10, window_sec=60)
     body = await request.json()
     _admin_secret = os.environ.get("ADMIN_OPERATOR_PASSWORD", "")
-    if not _admin_secret or not hmac.compare_digest(str(body.get("secret") or ""), _admin_secret):
+    # bytes, not str: compare_digest(str, str) raises TypeError on non-ASCII input → a 500
+    if not _admin_secret or not hmac.compare_digest(str(body.get("secret") or "").encode(), _admin_secret.encode()):
         raise HTTPException(403, "Invalid admin secret")
     updated = 0
     for u in body.get("updates", []):
@@ -269,7 +270,7 @@ async def demo_login(body: DemoLoginBody, response: Response):
     # Signup code check — optional additional gate
     expected_code = os.environ.get("DEMO_SIGNUP_CODE", "").strip()
     if expected_code:
-        if not body.signup_code or not hmac.compare_digest(body.signup_code, expected_code):
+        if not body.signup_code or not hmac.compare_digest(body.signup_code.encode(), expected_code.encode()):
             raise HTTPException(403, "Invalid signup code")
 
     user = await db.users.find_one({"email": email}, {"_id": 0})
@@ -443,7 +444,7 @@ async def verify_email(body: VerifyBody, request: Request, response: Response, b
         raise HTTPException(429, "Demasiados intentos. Solicita un nuevo código.")
 
     # Check code (constant-time comparison)
-    if not hmac.compare_digest(body.code.strip(), record["code"]):
+    if not hmac.compare_digest(body.code.strip().encode(), str(record["code"]).encode()):
         raise HTTPException(401, "Código incorrecto")
 
     # Code is valid — delete the verification record
@@ -740,7 +741,7 @@ async def alcaldia_demo_access(request: Request):
     expected = os.environ.get("ALCALDIA_DEMO_PASSCODE", "")
     if not expected:
         raise HTTPException(status_code=503, detail="Acceso no configurado / Access not configured")
-    if not passcode or not hmac.compare_digest(passcode, expected):
+    if not passcode or not hmac.compare_digest(passcode.encode(), expected.encode()):
         raise HTTPException(status_code=401, detail="Código incorrecto / Incorrect passcode")
     biz = await db.business_users.find_one({"business_id": "biz_alcaldia_demo", "role": "alcaldia_demo"}, {"_id": 0, "password_hash": 0})
     if not biz:
@@ -2180,7 +2181,7 @@ async def admin_unlock_login(request: Request):
     auth = request.headers.get("Authorization", "")
     token = auth[7:] if auth.startswith("Bearer ") else ""
     cron = os.environ.get("CRON_SECRET", "")
-    if not (cron and hmac.compare_digest(token, cron)):
+    if not (cron and hmac.compare_digest(token.encode(), cron.encode())):
         await _require_government_role(request)
     try:
         body = await request.json()
@@ -2211,7 +2212,7 @@ async def admin_ensure_alcaldia(request: Request):
     auth = request.headers.get("Authorization", "")
     token = auth[7:] if auth.startswith("Bearer ") else ""
     cron = os.environ.get("CRON_SECRET", "")
-    if not cron or not hmac.compare_digest(token, cron):
+    if not cron or not hmac.compare_digest(token.encode(), cron.encode()):
         raise HTTPException(status_code=403, detail="cron secret required")
 
     ALCALDIA_PARTNER_ID = "ptr_alcaldia"
@@ -2295,7 +2296,7 @@ async def admin_ensure_amo_scanner(request: Request):
     auth = request.headers.get("Authorization", "")
     token = auth[7:] if auth.startswith("Bearer ") else ""
     cron = os.environ.get("CRON_SECRET", "")
-    if not cron or not hmac.compare_digest(token, cron):
+    if not cron or not hmac.compare_digest(token.encode(), cron.encode()):
         raise HTTPException(status_code=403, detail="cron secret required")
     body = await request.json()
     email = (body.get("email") or "scanner@amocartagena.app").strip().lower()
@@ -2353,7 +2354,7 @@ async def admin_purge_demo_passes(request: Request):
     auth = request.headers.get("Authorization", "")
     token = auth[7:] if auth.startswith("Bearer ") else ""
     cron = os.environ.get("CRON_SECRET", "")
-    if not cron or not hmac.compare_digest(token, cron):
+    if not cron or not hmac.compare_digest(token.encode(), cron.encode()):
         raise HTTPException(status_code=403, detail="cron secret required")
 
     fake_q = {"user_id": {"$regex": "^user_demo"}}
@@ -4355,6 +4356,25 @@ async def delete_account(request: Request):
     await db.rewards_accounts.delete_many({"user_id": user_id})
     await db.rewards_history.delete_many({"user_id": user_id})
     await db.analytics.delete_many({"user_id": user_id})
+
+    # PALCO door data (Ley 1581 + the live privacy policy's own promise): the ticket and
+    # scan ledgers keep ANONYMIZED rows — admits stay provable by ticket_id, never by name —
+    # and the pass's QR signing keys do not outlive the account (audit 2026-10-09).
+    my_ticket_ids = [t["ticket_id"] async for t in db.amo_tickets.find(
+        {"user_id": user_id}, {"_id": 0, "ticket_id": 1})]
+    await db.amo_tickets.update_many(
+        {"user_id": user_id}, {"$set": {"holder_name": "Cuenta eliminada"}})
+    if my_ticket_ids:
+        await db.amo_ticket_scans.update_many(
+            {"ticket_id": {"$in": my_ticket_ids}}, {"$set": {"guest_name": "Cuenta eliminada"}})
+    await db.city_passes.update_many(
+        {"user_id": user_id},
+        {"$set": {"is_active": False, "status": "deleted"}, "$unset": {"qr_secret": ""}})
+    # payments kept their name/email + the raw provider payload past deletion, contradicting
+    # the privacy policy; the financial skeleton (amounts, reference, status) stays for audit.
+    await db.payments.update_many(
+        {"user_id": user_id},
+        {"$set": {"user_email": "", "user_name": ""}, "$unset": {"wompi_raw": ""}})
 
     # Anonymize user record (keep for fiscal/legal records per privacy policy)
     await db.users.update_one(
@@ -7459,10 +7479,14 @@ async def activate_city_pass(request: Request):
     confirms. MOCK_PAY=1 env var preserves legacy free-activation for demos.
     """
     user = await get_current_user(request)
+    # Brake + validation (audit 2026-10-09): this endpoint had no limiter and accepted any
+    # plan_id string, allowing unlimited junk pending_payment rows (with a 7-day fallback
+    # duration) from one account.
+    await _check_rate_limit(f"cpactivate:{user['user_id']}", max_calls=10, window_sec=3600)
     body = await request.json()
     plan_id = body.get("plan_id")
-    if not plan_id:
-        raise HTTPException(status_code=400, detail="plan_id required")
+    if not plan_id or plan_id not in CITY_PASS_PLANS:
+        raise HTTPException(status_code=400, detail="plan_id inválido / invalid plan_id")
 
     # qr_secret is the HMAC signing key for the pass's rotating QR (tickets.py
     # mints it on first /city-pass/qr). It must NEVER reach the client: a holder
@@ -7620,6 +7644,11 @@ async def _create_payment_record(*, user, kind: str, partner_id: Optional[str], 
     split = _wompi.compute_app_commission(amount_cop, is_government=is_gov, kind=kind)
 
     reference = f"PAY-{uuid.uuid4().hex[:18].upper()}"
+    # The landing screen (/payments/return) polls /payments/by-reference/{reference}. Wompi's
+    # redirect appends only ITS transaction id (?id=…), never our reference — without this,
+    # the redirect tab reported a SUCCESSFUL payment as unverifiable (audit 2026-10-09).
+    _sep = "&" if "?" in (redirect_url or "") else "?"
+    redirect_url = f"{redirect_url}{_sep}reference={reference}"
     checkout = _wompi.build_checkout_url(
         reference=reference,
         amount_cop=amount_cop,

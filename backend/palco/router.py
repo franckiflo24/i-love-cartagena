@@ -79,7 +79,9 @@ async def _require_admin(request: Request) -> Dict[str, Any]:
     """Bearer EVENTS_ADMIN_TOKEN (constant-time) or a government session."""
     token = os.environ.get("EVENTS_ADMIN_TOKEN") or ""
     auth = request.headers.get("authorization") or ""
-    if token and auth.startswith("Bearer ") and _hmac.compare_digest(auth[7:], token):
+    # Bytes, not str: compare_digest(str, str) raises TypeError on a non-ASCII header,
+    # which surfaced as a 500 (and told the caller the secret is configured).
+    if token and auth.startswith("Bearer ") and _hmac.compare_digest(auth[7:].encode(), token.encode()):
         return {"admin": "token"}
     try:
         biz = await _business(request)

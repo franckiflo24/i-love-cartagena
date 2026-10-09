@@ -252,7 +252,7 @@ async def _require_cron(request: Request) -> None:
     auth = request.headers.get("Authorization", "")
     token = auth[7:] if auth.startswith("Bearer ") else ""
     cron = os.environ.get("CRON_SECRET", "").strip()
-    if not cron or not hmac.compare_digest(token, cron):
+    if not cron or not hmac.compare_digest(token.encode(), cron.encode()):
         raise HTTPException(status_code=403, detail="cron secret required")
     try:
         from server import _check_rate_limit, _client_ip  # lazy: server imports this module

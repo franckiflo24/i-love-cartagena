@@ -80,6 +80,9 @@ def _exec_handlers():
     async def get_current_user(request):
         return {"user_id": "user_x", "email": "x@example.com"}
 
+    async def _check_rate_limit(*a, **k):  # the real one needs a Mongo store this unit env lacks
+        return None
+
     deco = lambda *a, **k: (lambda f: f)  # noqa: E731
     ns: Dict[str, Any] = {
         "db": types.SimpleNamespace(city_passes=_Coll([PASS])),
@@ -87,6 +90,7 @@ def _exec_handlers():
         "Request": object, "Response": object,
         "CITY_PASS_PLANS": {"classic": {"duration_days": 7}},
         "HTTPException": HTTPException, "get_current_user": get_current_user,
+        "_check_rate_limit": _check_rate_limit,
         "api_router": types.SimpleNamespace(get=deco, post=deco),
     }
     exec(server_block('@api_router.post("/city-pass/activate")', src), ns)

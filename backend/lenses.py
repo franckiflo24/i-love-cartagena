@@ -698,7 +698,7 @@ def _cron_ok(request: Request) -> bool:
     tok = auth[7:].strip()
     for env in ("CRON_SECRET", "EVENTS_ADMIN_TOKEN"):
         want = os.environ.get(env) or ""
-        if len(want) >= 16 and hmac.compare_digest(tok, want):
+        if len(want) >= 16 and hmac.compare_digest(tok.encode(), want.encode()):
             return True
     return False
 

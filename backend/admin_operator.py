@@ -72,7 +72,7 @@ def _verify_token(token: str) -> bool:
     try:
         payload, sig = token.split("|", 1)
         expected_sig = hmac.new(ADMIN_TOKEN_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(sig, expected_sig):
+        if not hmac.compare_digest(sig.encode(), expected_sig.encode()):
             return False
         expires = datetime.fromisoformat(payload)
         return datetime.now(timezone.utc) < expires
@@ -103,12 +103,15 @@ async def admin_login(request: Request):
     # attacker had unlimited unthrottled guesses at the password controlling the
     # whole partner catalog lifecycle (P1 security audit). 8 tries / 15 min per IP,
     # constant-time compare, fail-closed via the "adminlogin" SENSITIVE_PREFIX.
-    ip = request.client.host if request.client else "unknown"
-    from ratelimit import check as _rl_check
+    # client_ip (trusted x-real-ip), NOT request.client.host: behind Vercel the latter is
+    # the proxy edge, so every caller shared one bucket — a stranger's guesses locked the
+    # real admin out, and the attacker was never the one keyed (audit 2026-10-09).
+    from ratelimit import check as _rl_check, client_ip as _trusted_ip
+    ip = _trusted_ip(request)
     await _rl_check(f"adminlogin:{ip}", max_calls=8, window_sec=900)
     body = await request.json()
     password = (body.get("password") or "").strip()
-    if not password or not hmac.compare_digest(password, ADMIN_PASSWORD):
+    if not password or not hmac.compare_digest(password.encode(), ADMIN_PASSWORD.encode()):
         raise HTTPException(status_code=401, detail="Contraseña incorrecta")
     return {"token": _sign_token(), "expires_in_hours": ADMIN_TOKEN_TTL_HOURS}
 
@@ -319,6 +322,12 @@ async def activate_partner(request: Request):
     partner = await db.partners.find_one({"activation_token": token})
     if not partner:
         raise HTTPException(status_code=404, detail="Token inválido o ya usado")
+    # Takeover guard (audit 2026-10-09): activation is the ownership proof for an UNCLAIMED
+    # venue. Once verified_owner is stamped, a fresh invite link must NOT let a second
+    # activation overwrite the owner account's password and claim. A lost password goes
+    # through the bizforgot/bizreset recovery flow, never re-activation.
+    if partner.get("claim_status") == "verified_owner" and partner.get("claimed_by"):
+        raise HTTPException(status_code=409, detail="Este negocio ya tiene dueño verificado / This venue already has a verified owner")
     expires = partner.get("activation_expires_at")
     if expires:
         try:

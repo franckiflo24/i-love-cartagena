@@ -1589,7 +1589,7 @@ async def admin_stamps_reverify(request: Request):
     uses). This is the surface that keeps 'reverify' honest."""
     secret = os.environ.get("CRON_SECRET", "").strip()
     import hmac
-    if not secret or not hmac.compare_digest(request.headers.get("Authorization", ""), f"Bearer {secret}"):
+    if not secret or not hmac.compare_digest(request.headers.get("Authorization", "").encode(), f"Bearer {secret}".encode()):
         raise HTTPException(status_code=403, detail="cron secret required")
     now = datetime.now(timezone.utc).astimezone(BOGOTA)
     items = _reverify_list(now)

@@ -169,8 +169,12 @@ function normQrBase(body: unknown): QrPayload {
   const wire = asStr(body.wire);
   const expires = asNum(body.expires_in_ms);
   const step = asNum(body.step_ms);
-  if (!wire || expires === null || expires < 0) throw shapeError();
-  return { wire, step_ms: step !== null && step > 0 ? step : DEFAULT_STEP_MS, expires_in_ms: expires };
+  if (!wire || wire.length < 8 || expires === null) throw shapeError();
+  // civic.ts normQr's clamps, ported verbatim so the twins agree: step bounded to a sane band and
+  // expires_in_ms clamped to [0, step] — a garbled server value can never park the next poll for an
+  // hour while a dead code sits on screen under a live-looking countdown.
+  const stepMs = step !== null && step >= 1000 && step <= 60000 ? step : DEFAULT_STEP_MS;
+  return { wire, step_ms: stepMs, expires_in_ms: Math.min(Math.max(expires, 0), stepMs) };
 }
 
 function normTicketQr(body: unknown): TicketQrPayload {
@@ -302,10 +306,21 @@ const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.m
 // ── Rotating-credential timing (pure, so the poll loop stays testable) ───────
 /** Next fetch lands this long after the server-side rotation (the contract: expires_in_ms + 150). */
 export const QR_RENEW_SLACK_MS = 150;
-/** Never poll faster than this, whatever the server says: the endpoint is rate-limited per IP. */
+/**
+ * Random extra delay on each scheduled renewal. Without it every open QR screen fetches in the same
+ * ~250 ms window right after the 10 s rotation (planQrTiming aims them all at rotation + 150 ms) — a
+ * synchronized stampede on the shared /qr lambdas. The server accepts the previous wire for a full
+ * step (±1 counter skew), so spreading the refetch across the next 2 s costs nothing: the code on
+ * screen stays scannable the whole time. Mirrors civic.ts.
+ */
+export const QR_POLL_JITTER_MS = 2000;
+/** Never poll faster than this, whatever the server says: the endpoint is rate-limited server-side. */
 export const QR_MIN_GAP_MS = 1000;
-/** How long a code may sit past its deadline (waiting on the refetch) before the UI hides it. */
-export const QR_STALE_GRACE_MS = 2500;
+/**
+ * How long a code may sit past its deadline (waiting on the refetch) before the UI hides it. Must
+ * comfortably cover QR_POLL_JITTER_MS plus a round trip, or the overlay would flash every rotation.
+ */
+export const QR_STALE_GRACE_MS = 5000;
 /** The countdown turns amber below this. */
 export const QR_WARN_MS = 3000;
 
@@ -413,7 +428,7 @@ export function createQrPoller(deps: QrPollerDeps): QrPoller {
         deps.onUsed();
         return;
       }
-      schedule(timing.nextDelay);
+      schedule(timing.nextDelay + Math.random() * QR_POLL_JITTER_MS); // de-synchronized: see QR_POLL_JITTER_MS
     } catch (e) {
       if (stopped || myGen !== gen) return;
       if (isTicketsError(e) && (e.status === 401 || e.status === 403)) {
@@ -510,7 +525,10 @@ export function useQrFeed(source: QrSource | null): QrFeed {
   // Focus: a screen stays mounted under whatever is pushed on top; it must not keep polling then.
   useFocusEffect(useCallback(() => {
     setFocused(true);
-    return () => setFocused(false);
+    return () => {
+      setFocused(false);
+      setFrame(null); // never keep a code across a blur — it may be minutes old when we return
+    };
   }, []));
 
   useEffect(() => {
@@ -542,7 +560,13 @@ export function useQrFeed(source: QrSource | null): QrFeed {
     // Backgrounded timers are throttled or frozen: pause, and fetch a fresh code the moment we return.
     const sub = AppState.addEventListener('change', (status) => {
       if (status === 'active') poller.refresh();
-      else poller.pause();
+      else {
+        // The monotonic clock can freeze while the device sleeps (iOS/WebKit): a frame kept across
+        // a background span would wake up minutes old yet still render as live. Blank it — the
+        // refresh() on 'active' paints a fresh code in one round trip.
+        poller.pause();
+        setFrame(null);
+      }
     });
     return () => {
       pollNow.current = null;

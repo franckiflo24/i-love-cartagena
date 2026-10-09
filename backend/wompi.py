@@ -140,7 +140,7 @@ def verify_event_signature(body_dict: dict, provided_checksum: str) -> bool:
             concatenated += "" if value is None else str(value)
         concatenated += str(timestamp) + secret
         expected = hashlib.sha256(concatenated.encode("utf-8")).hexdigest().upper()
-        return hmac.compare_digest(expected.lower(), str(provided_checksum).lower())
+        return hmac.compare_digest(expected.lower().encode(), str(provided_checksum).lower().encode())
     except Exception as e:
         logger.error(f"verify_event_signature error: {e}")
         return False

@@ -26,6 +26,13 @@ export const SCAN_WIRE_MAX = 200;
 export const SCAN_GATE_MAX = 40;
 /** What the server itself logs when no gate is sent. */
 export const DEFAULT_GATE = 'Puerta 1';
+/**
+ * Hard ceiling on a camera scan, PAST the fetch timeout: fetchT disarms its abort timer once
+ * headers arrive, so a response body that stalls would otherwise hold the door's busy lock
+ * forever. Outcome at this point is UNKNOWN (the server likely committed) — same contract as a
+ * timed-out POST.
+ */
+export const SCAN_WATCHDOG_MS = 25000;
 
 export type Translate = (es: string | null | undefined) => string;
 
@@ -69,14 +76,16 @@ export interface GuestInfo {
 }
 
 export interface ScanRequest {
-  /** Pasted code. */
+  /** Decoded (camera) or pasted code. */
   wire?: string;
-  /** Simulated scan: the SERVER derives the current wire (camera access is disabled site-wide). */
+  /** Simulated scan: the SERVER derives the wire. In prod only the AMO door's plain check-in survives. */
   ticket_id?: string;
   simulate?: boolean;
   tamper?: boolean;
   stale?: boolean;
   gate?: string;
+  /** The event the operator is working: a genuine wire for a DIFFERENT event answers FUERA_DE_ALCANCE. */
+  event_id?: string;
 }
 
 export interface ScanResult {
@@ -88,14 +97,27 @@ export interface ScanResult {
 }
 
 /**
- * The minimal outcome the live camera overlay renders on each scan: the verdict (for the
- * green/red flash + chime) and the holder name (the guest-on-scan moment). `null` from the
- * caller means the scan could not be resolved (offline / server fault) — the overlay shows a
- * neutral "retry" flash, never a guessed admit.
+ * The outcome the live camera overlay renders on each scan: the verdict (flash + chime), the
+ * holder name (the guest-on-scan moment) and enough context (title/date, pass-ness, first use)
+ * that the overlay never says less than the page's own verdict card. `verdict: null` means the
+ * scan did not resolve — `unresolved` says HOW, because the three cases need different copy:
+ * 'unknown'  → the POST may have landed server-side (timeout after send): the operator must
+ *              check the guest list before retrying, never treat it as a plain retry;
+ * 'session'  → the business session is gone (the page behind shows the login card);
+ * 'dropped'  → nothing usable was sent (busy / offline before send): plain retry.
+ * A null outcome object (caller busy) renders the same neutral retry as 'dropped'.
  */
 export interface CameraScanOutcome {
-  verdict: ScanVerdict;
+  verdict: ScanVerdict | null;
   name: string | null;
+  /** Ticket title, or "City Pass", when the server resolved the credential. */
+  title?: string | null;
+  /** Event date for a ticket, expiry for a pass ("YYYY-MM-DD…"). */
+  eventDate?: string | null;
+  isPass?: boolean;
+  firstUsedAt?: string | null;
+  firstGate?: string | null;
+  unresolved?: 'unknown' | 'session' | 'dropped';
 }
 
 export interface FeedScan {

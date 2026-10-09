@@ -27,6 +27,9 @@ TOKEN_RE = re.compile(r"^[0-9a-f]{12}$")
 # zeros and unicode digits — all verifying as the SAME credential+counter, i.e.
 # many spellings of one wire. One spelling only (PALCO-V2 hardening, 2026-10-06);
 # build_wire always emitted this form, so genuine wires are unaffected.
+# NOTE: matched with .fullmatch(), never .match() — re's `$` also matches before a
+# trailing "\n", which let "…<counter>\n.<token>" through as a second spelling
+# (audit 2026-10-09). fullmatch has no newline allowance.
 COUNTER_RE = re.compile(r"^(?:0|[1-9][0-9]{0,11})$")
 
 
@@ -55,10 +58,10 @@ def parse_wire(namespace: str, payload: str) -> Optional[Dict[str, Any]]:
     parts = (payload or "").strip().split(".")
     if len(parts) != 4 or parts[0] != namespace or not parts[1] or not parts[3]:
         return None
-    if not COUNTER_RE.match(parts[2]):
+    if not COUNTER_RE.fullmatch(parts[2]):
         return None
     counter = int(parts[2])
-    if not TOKEN_RE.match(parts[3]):
+    if not TOKEN_RE.fullmatch(parts[3]):
         return None   # malformed / non-hex / non-ASCII token → callers answer FALSIFICADO
     return {"entity_id": parts[1], "counter": counter, "token": parts[3]}
 
@@ -66,7 +69,7 @@ def parse_wire(namespace: str, payload: str) -> Optional[Dict[str, Any]]:
 def verify(parsed: Dict[str, Any], secret: str, now_ms: Optional[int] = None) -> str:
     """'OK' | 'COUNTERFEIT' | 'EXPIRED' — stale is never conflated with forged."""
     token = parsed.get("token")
-    if not isinstance(token, str) or not TOKEN_RE.match(token):
+    if not isinstance(token, str) or not TOKEN_RE.fullmatch(token):
         return "COUNTERFEIT"   # defence in depth for callers that bypass parse_wire
     expected = derive_token(parsed["entity_id"], secret, parsed["counter"])
     if not hmac.compare_digest(expected, token):
