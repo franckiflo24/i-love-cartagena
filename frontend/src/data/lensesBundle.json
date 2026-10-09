@@ -1,7 +1,7 @@
 {
  "version": 1,
  "updated": "2026-09-30",
- "generated_at": "2026-09-30T19:28:43.963Z",
+ "generated_at": "2026-10-08T20:07:40.353Z",
  "lenses": [
   {
    "key": "golden_hour",
@@ -694,7 +694,7 @@
    "lat": 10.422686,
    "lng": -75.55069329999999,
    "image_url": "/images/partners/ptr_R145.jpg",
-   "venue_name": "Nia Bakery"
+   "venue_name": "Nía Bakery"
   },
   {
    "id": "gh-baluarte-de-la-gente",
@@ -763,7 +763,7 @@
    "lat": 10.4296098,
    "lng": -75.54486500000002,
    "image_url": "/images/partners/attr_002.jpg",
-   "venue_name": "Las Murallas de Cartagena"
+   "venue_name": "Las Murallas"
   },
   {
    "id": "gh-castillo-bandera",
