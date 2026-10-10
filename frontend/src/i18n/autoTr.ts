@@ -25,6 +25,7 @@ export const AUTO_TR: Dict = {
   // WALLET-DIGNITY (audit #4, Oct 10) — ticket companion actions + sections + home strip.
   // 'Apple Wallet' / 'Próximas' / 'Pasadas' / 'Compartir' intentionally not re-added (proper
   // noun / already in the dictionary).
+  'Añadir a Apple Wallet': { en: 'Add to Apple Wallet', fr: 'Ajouter à Apple Wallet', pt: 'Adicionar à Apple Wallet' },
   'Calendario': { en: 'Calendar', fr: 'Calendrier', pt: 'Calendário' },
   'Enlace copiado': { en: 'Link copied', fr: 'Lien copié', pt: 'Link copiado' },
   'No disponible por ahora': { en: 'Not available right now', fr: 'Indisponible pour le moment', pt: 'Indisponível por enquanto' },

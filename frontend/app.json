@@ -30,9 +30,6 @@
         "webcredentials:www.amocartagena.co",
         "webcredentials:amocartagena.co"
       ],
-      "entitlements": {
-        "com.apple.developer.devicecheck.appattest-environment": "production"
-      },
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "We use your location to show you events and partners near you.",
         "NSPhotoLibraryUsageDescription": "Allow access to your photos to attach images to your events.",

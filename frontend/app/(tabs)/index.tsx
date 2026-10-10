@@ -829,6 +829,11 @@ export default function HomeScreen() {
           </View>
         )}
 
+        {/* WALLET-DIGNITY (audit #4): the signed-in user's next ticket — personal and
+            time-sensitive, so it sits ABOVE the promo/feed rails, one tap from the top
+            in both city and remote modes. Renders nothing without one. */}
+        <NextTicketStrip />
+
         {/* Cartagena Music Week (docs/cmw/DESIGN.md §4 Home): promo before the week,
             "Hoy en Music Week" during it, nothing after. Self-contained; ABOVE the
             city events rails and never mixed into them. */}
@@ -915,10 +920,6 @@ export default function HomeScreen() {
                 </ScrollView>
               </View>
             )}
-
-            {/* WALLET-DIGNITY (audit #4): the signed-in user's next ticket, one tap from
-                Home in BOTH city and remote modes. Renders nothing without one. */}
-            <NextTicketStrip />
 
             {!far ? (
               <>

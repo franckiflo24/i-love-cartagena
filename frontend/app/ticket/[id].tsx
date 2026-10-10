@@ -489,28 +489,42 @@ export default function TicketScreen() {
             post-event row instead — never a dead "Añadir a mi día" for a finished night. */}
         {isUpcomingTicket(ticket) && !used ? (
           <>
-            <View style={s.actionsRow} testID="ticket-actions">
+            {/* Apple Wallet gets its own full-width row (HIG: "Add to Apple Wallet" is a
+                prominent badge, and three-up it truncated to "Apple Wal…" on phones). */}
+            <View testID="ticket-actions">
               {appleDevice && (
-                <ActionBtn
-                  icon="wallet-outline"
-                  label={tr('Apple Wallet')}
+                <TouchableOpacity
+                  style={s.walletBtn}
                   onPress={addToAppleWallet}
-                  busy={actionBusy === 'pass'}
+                  disabled={actionBusy === 'pass'}
+                  activeOpacity={0.85}
+                  accessibilityRole="button"
+                  accessibilityLabel={tr('Añadir a Apple Wallet')}
+                  accessibilityState={{ busy: actionBusy === 'pass' }}
                   testID="ticket-add-wallet"
-                />
+                >
+                  {actionBusy === 'pass' ? (
+                    <ActivityIndicator size="small" color={COLORS.white} />
+                  ) : (
+                    <Ionicons name="wallet-outline" size={18} color={COLORS.white} />
+                  )}
+                  <Text style={s.walletBtnText} numberOfLines={1}>{tr('Añadir a Apple Wallet')}</Text>
+                </TouchableOpacity>
               )}
-              {!!ticket.date && (
-                <ActionBtn
-                  icon="calendar-number-outline"
-                  label={tr('Calendario')}
-                  onPress={addToCalendar}
-                  busy={actionBusy === 'ics'}
-                  testID="ticket-add-calendar"
-                />
-              )}
-              {!!ticket.event_id && (
-                <ActionBtn icon="share-outline" label={tr('Compartir')} onPress={shareEvent} testID="ticket-share" />
-              )}
+              <View style={s.actionsRow}>
+                {!!ticket.date && (
+                  <ActionBtn
+                    icon="calendar-number-outline"
+                    label={tr('Calendario')}
+                    onPress={addToCalendar}
+                    busy={actionBusy === 'ics'}
+                    testID="ticket-add-calendar"
+                  />
+                )}
+                {!!ticket.event_id && (
+                  <ActionBtn icon="share-outline" label={tr('Compartir')} onPress={shareEvent} testID="ticket-share" />
+                )}
+              </View>
             </View>
             {!!ticket.event_id && (
               <TouchableOpacity
@@ -663,7 +677,9 @@ const s = StyleSheet.create({
   usedNote: { fontSize: 12.5, lineHeight: 18, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'center' },
 
   // companion actions (Wallet / calendar / share)
-  actionsRow: { flexDirection: 'row', gap: SPACING.sm, marginTop: SPACING.md },
+  walletBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 50, marginTop: SPACING.md, paddingHorizontal: SPACING.md, borderRadius: RADIUS.lg, backgroundColor: '#0B1020', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
+  walletBtnText: { fontSize: 14, color: COLORS.white, ...FONTS.semibold },
+  actionsRow: { flexDirection: 'row', gap: SPACING.sm, marginTop: SPACING.sm + 2 },
   actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 48, paddingHorizontal: SPACING.sm, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: 'rgba(18,181,165,0.30)' },
   actionBtnText: { flexShrink: 1, fontSize: 12.5, color: COLORS.textMain, ...FONTS.semibold },
 
