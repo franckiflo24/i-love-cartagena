@@ -23,9 +23,11 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
-from . import catalog, issue as issue_mod, manifest as manifest_mod, verify as verify_mod, wire
-from .models import (COL_CREDENTIALS, COL_DEVICES, COL_LEDGER, COL_SCAN_LOG,
-                     MODE_CONSUME, MODE_VERIFY, iso, now_utc, public_credential)
+from . import (catalog, consent as consent_mod, enroll as enroll_mod, identity,
+               issue as issue_mod, manifest as manifest_mod, verify as verify_mod, wire)
+from .models import (COL_CONSENT, COL_CREDENTIALS, COL_DEVICES, COL_ENROLL_CHALLENGES,
+                     COL_LEDGER, COL_SCAN_LOG, MODE_CONSUME, MODE_VERIFY, iso, now_utc,
+                     public_credential)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -51,6 +53,9 @@ async def _ensure_indexed() -> None:
         await getattr(db, COL_DEVICES).create_index("device_key_id", unique=True)
         await getattr(db, COL_LEDGER).create_index([("cred_id", 1), ("at", 1)])
         await getattr(db, COL_SCAN_LOG).create_index("at")
+        await getattr(db, COL_CONSENT).create_index([("user_id", 1), ("consented_at", -1)])
+        await getattr(db, COL_ENROLL_CHALLENGES).create_index("challenge_id", unique=True)
+        await getattr(db, COL_ENROLL_CHALLENGES).create_index("expire_at", expireAfterSeconds=0)
     except Exception as exc:  # noqa: BLE001
         logger.error("[palco] index ensure failed: %s", type(exc).__name__)
 
@@ -63,6 +68,15 @@ async def _user(request: Request) -> Dict[str, Any]:
 async def _business(request: Request) -> Dict[str, Any]:
     from server import get_current_business
     return await get_current_business(request)
+
+
+def _ip(request: Request) -> str:
+    """Trusted client IP for consent/audit hashing (never stored raw); never raises."""
+    try:
+        from server import _client_ip
+        return _client_ip(request)
+    except Exception:  # noqa: BLE001
+        return "unknown"
 
 
 async def _rl(request: Request, bucket: str, max_calls: int, window: int) -> None:
@@ -117,6 +131,79 @@ async def palco_mine(request: Request):
     rows = await getattr(db, COL_CREDENTIALS).find(
         {"holder.user_id": user["user_id"]}, {"_id": 0}).sort("created_at", -1).to_list(100)
     return {"credentials": [public_credential(r) for r in rows]}
+
+
+# ── holder: enrollment + consent (the Stage B wallet calls these; the sandbox
+#    attester makes the whole flow provable now — DESIGN §5, §13) ───────────────
+
+@router.post("/palco/enroll/challenge")
+async def palco_enroll_challenge(request: Request):
+    user = await _user(request)
+    await _rl(request, "palenroll", 30, 60)
+    await _ensure_indexed()
+    return await enroll_mod.new_challenge(db, user["user_id"])
+
+
+class EnrollVerifyBody(BaseModel):
+    challenge_id: str = Field(min_length=4, max_length=40)
+    pubkey_jwk: Dict[str, Any]
+    attestation: Dict[str, Any] = Field(default_factory=dict)
+    platform: str = Field(default="ios", max_length=20)
+    consent: Dict[str, Any] = Field(default_factory=dict)
+
+
+@router.post("/palco/enroll/verify")
+async def palco_enroll_verify(body: EnrollVerifyBody, request: Request):
+    user = await _user(request)
+    await _rl(request, "palenroll", 30, 60)
+    await _ensure_indexed()
+    # Ley 1581: a device cannot bind without a recordable consent (DESIGN §5).
+    if not body.consent.get("accepted"):
+        raise HTTPException(status_code=422, detail={
+            "error": "consent_required",
+            "message": "Debes aceptar la política para registrar el dispositivo / Consent required to enroll."})
+    if body.consent.get("policy_version") not in consent_mod.KNOWN_POLICY_VERSIONS:
+        raise HTTPException(status_code=422, detail={"error": "unknown_policy_version"})
+    try:
+        out = await enroll_mod.verify_enrollment(
+            db, user["user_id"], body.challenge_id, body.pubkey_jwk,
+            body.attestation, body.platform)
+    except enroll_mod.EnrollError as exc:
+        raise HTTPException(status_code=(409 if str(exc) == "challenge_used" else 422),
+                            detail={"error": str(exc)})
+    rec = await consent_mod.record_consent(
+        db, user["user_id"], str(body.consent.get("policy_version")), "enrollment", "app",
+        ip_hash=identity.hash_value("ip", _ip(request)))
+    out["consent_id"] = rec["consent_id"]
+    return out
+
+
+class ConsentBody(BaseModel):
+    policy_version: str = Field(min_length=1, max_length=40)
+    purpose: str = Field(default="general", max_length=24)
+    accepted: bool = False
+
+
+@router.post("/palco/consent")
+async def palco_consent(body: ConsentBody, request: Request):
+    user = await _user(request)
+    await _rl(request, "palconsent", 30, 60)
+    await _ensure_indexed()
+    if not body.accepted:
+        raise HTTPException(status_code=422, detail={"error": "consent_required"})
+    try:
+        return await consent_mod.record_consent(
+            db, user["user_id"], body.policy_version, body.purpose, "app",
+            ip_hash=identity.hash_value("ip", _ip(request)))
+    except consent_mod.ConsentError as exc:
+        raise HTTPException(status_code=422, detail={"error": str(exc)})
+
+
+@router.get("/palco/consent/mine")
+async def palco_consent_mine(request: Request):
+    user = await _user(request)
+    await _ensure_indexed()
+    return {"consents": await consent_mod.list_consents(db, user["user_id"])}
 
 
 # ── venue / inspector gate ────────────────────────────────────────────────────

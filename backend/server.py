@@ -83,6 +83,7 @@ import tickets as _tickets  # noqa: E402
 # credential engine (device-bound AMO2 wires, verdicts, manifests, catalog).
 # AMO imports the engine; the engine never imports AMO route modules.
 import palco.router as _palco  # noqa: E402
+import palco.deletion as _palco_deletion  # noqa: E402  (DESIGN §5, A12 — account deletion)
 # SUPPLY-SPRINT v1: AMO-hosted free-event authoring (drains inventory zero).
 import amo_events_admin as _amo_events  # noqa: E402
 # MAINTENANCE: Bearer-CRON_SECRET ops (session revoke, pass-key rotation,
@@ -4375,6 +4376,15 @@ async def delete_account(request: Request):
     await db.payments.update_many(
         {"user_id": user_id},
         {"$set": {"user_email": "", "user_name": ""}, "$unset": {"wompi_raw": ""}})
+
+    # PALCO v2 credential engine (DESIGN §5, §8 A12): the holder's credentials
+    # de-identify and any live one is revoked (a stray wire dies REVOCADO at the gate),
+    # devices revoke, and consent proof is retained (Ley 1581) but stripped of the IP.
+    # Wrapped so a storage hiccup on the engine's rows never fails the account deletion.
+    try:
+        await _palco_deletion.purge_user(db, user_id)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[delete_account] palco purge failed: %s", type(exc).__name__)
 
     # Anonymize user record (keep for fiscal/legal records per privacy policy)
     await db.users.update_one(

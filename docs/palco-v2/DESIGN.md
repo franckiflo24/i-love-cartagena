@@ -270,3 +270,50 @@ decrement; exhausted → DUPLICADO `sin_usos`) · recharge → RECIBO.
 - V-A7 banned-claims sweep green over frontend+backend sources.
 - V-A8 alias moved (`vercel inspect`), DEPLOY-CARRIES-COMMIT, verify-images if frontend shipped.
 - Builder never closes own drop: closure audit = separate session against this §.
+
+## 13. Amendment — Stage B backend half (2026-10-09)
+
+Appended per the house rule (doc wins; amendments appended). This ships the parts of §5
+(identity · consent · deletion) and §8 A12 that are **pure backend** — no new binary, no
+owner action, no new wire or verdict — so the live 1.1.x fleet is untouched. Full device
+attestation, the wallet consent UX and WhatsApp-OTP binding remain Stage B (binary).
+
+### 13.1 Enrollment (server scaffolding for the Stage B wallet) — `palco/enroll.py`
+- `POST /palco/enroll/challenge` (holder session) → `{challenge_id, challenge, expires_in_ms}`:
+  a one-time server nonce (≥16 B, TTL 600 s) in `palco_enroll_challenges` (TTL index on
+  `expire_at`; expiry also checked in code via `expires_at_ms`).
+- `POST /palco/enroll/verify` (holder session) binds a device public JWK once an attester for
+  `attestation.mode` verifies it, consumes the challenge atomically, then records an
+  `enrollment` consent. Refused without `consent.accepted` + a known `policy_version` (§5).
+- **Attester registry:** the device signs `"palco-enroll|<challenge>|<key_id>"` (key_id =
+  RFC-7638 thumbprint of the pubkey ⇒ binds the challenge to that exact public key, §5). The
+  `sandbox` attester verifies that P-256 proof-of-possession — a real check, hardware-free;
+  stored `hw_tier: "sandbox"` so nothing over-claims (§0). The hardware attesters `app_attest`
+  (pyattest) and `play_integrity` register with the Stage B binary; an **unregistered mode is
+  refused `attester_unavailable` (fail closed — never a silent software downgrade).** Device
+  storage reuses the Stage-A `issue.register_device` shape unchanged.
+
+### 13.2 Consent (Ley 1581 server-side records — §9 payment-gate item) — `palco/consent.py`
+- Collection `consent_records`: `{consent_id, user_id, policy_version, purpose, channel,
+  consented_at, ip_hash, phone_hash}`. IP/phone are stored ONLY as a non-reversible HMAC
+  digest (`palco/identity.hash_value`, same pepper chain as `issue.phone_hash`); the holder
+  projection never returns them.
+- `POST /palco/consent` records one (refuses `accepted:false` or an unknown `policy_version`);
+  `GET /palco/consent/mine` lists the holder's own. Known version: `ley1581-v1-2026-10`.
+  Purposes: general · enrollment · transfer · payment · whatsapp_otp (unknown → `general`).
+- The client-only login checkbox is still NOT consent; the wallet writes a real record at
+  enrollment now, and the §6 payment flow will at checkout (Stage D).
+
+### 13.3 Deletion (A12 backend half) — `palco/deletion.py`
+- `purge_user(db, user_id)`, called by `server.py delete_account`: credentials de-identify
+  (`holder.display_name`/`holder.phone_hash`) and any `issued|active` one is revoked
+  (`account_deleted` ⇒ an outstanding wire dies REVOCADO); devices revoke; consent proof is
+  RETAINED (Ley 1581 permits keeping proof-of-consent) but stripped of `ip_hash`/`phone_hash`.
+  The ledger stores only hashes by construction. Terminal statuses (used/refunded/transferred)
+  are preserved — deletion never rewrites gate history. The call is wrapped so it can never
+  fail the account deletion. Proven by `tests/test_palco_stage_b.py`.
+
+### 13.4 §9 status change
+"Ley 1581 server-side consent records" → **backend shipped 2026-10-09** (records + endpoints +
+enrollment capture). The in-wallet consent UX + WhatsApp-OTP binding remain Stage B. No other
+payment-gate line changes; **the gate stays closed.**

@@ -79,6 +79,8 @@ COL_DEVICES = "credential_devices"
 COL_LEDGER = "credential_ledger"
 COL_VALIDATORS = "validators"
 COL_SCAN_LOG = "palco_scan_log"
+COL_CONSENT = "consent_records"              # Ley 1581 proof records (DESIGN §5, §13)
+COL_ENROLL_CHALLENGES = "palco_enroll_challenges"  # one-time enrollment nonces (TTL)
 
 
 def now_utc() -> datetime:
