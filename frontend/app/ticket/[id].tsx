@@ -19,7 +19,7 @@ import React, {
   useCallback, useEffect, useState,
 } from 'react';
 import {
-  AppState, LayoutChangeEvent, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View,
+  ActivityIndicator, AppState, LayoutChangeEvent, Linking, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -28,8 +28,10 @@ import QRCode from 'react-native-qrcode-svg';
 import Head from '../../src/components/WebHead';
 import { Skeleton } from '../../src/components/Skeleton';
 import {
-  formatCartagenaStamp, getTicket, isAuthError, isNotFound, ticketHref, ticketsErrorMessage, useQrCountdown, useQrFeed,
+  formatCartagenaStamp, getTicket, getTicketWalletUrls, isAuthError, isNotFound, isUpcomingTicket, ticketHref,
+  ticketsErrorMessage, useQrCountdown, useQrFeed,
 } from '../../src/components/tickets/tickets';
+import { Alert } from '../../src/lib/alert';
 import type { QrFrame, Ticket } from '../../src/components/tickets/tickets';
 import { COLORS, FONTS, RADIUS, SPACING, TYPE } from '../../src/constants/theme';
 import { useAuth } from '../../src/context/AuthContext';
@@ -57,6 +59,38 @@ const MONO = Platform.select({
 });
 const noop = (): void => undefined;
 const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
+
+/** Apple Wallet exists on iPhone / iPad / Mac only. Called from an effect, never at render (React #418). */
+function detectAppleDevice(): boolean {
+  if (Platform.OS === 'ios') return true;
+  if (Platform.OS !== 'web' || typeof navigator === 'undefined') return false;
+  return /iPhone|iPad|Macintosh/i.test(navigator.userAgent || '');
+}
+
+/** One companion action under the QR card: Wallet / calendar / share. */
+function ActionBtn({
+  icon, label, onPress, busy, testID,
+}: { icon: IconName; label: string; onPress: () => void; busy?: boolean; testID: string }) {
+  return (
+    <TouchableOpacity
+      style={s.actionBtn}
+      onPress={onPress}
+      disabled={!!busy}
+      activeOpacity={0.85}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ busy: !!busy }}
+      testID={testID}
+    >
+      {busy ? (
+        <ActivityIndicator size="small" color={COLORS.primary} />
+      ) : (
+        <Ionicons name={icon} size={18} color={COLORS.primary} />
+      )}
+      <Text style={s.actionBtnText} numberOfLines={1}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
 
 /** A route param that expo-router may hand over as string | string[] | undefined. */
 function firstParam(v: string | string[] | undefined): string {
@@ -261,6 +295,59 @@ export default function TicketScreen() {
     setCardWidth(Math.round(e.nativeEvent.layout.width));
   }, []);
 
+  // ── Companion actions (WALLET-DIGNITY, audit #4). The rotating QR above stays the ONLY
+  // door credential; the Wallet pass / .ics are conveniences minted as short-lived signed
+  // URLs by the holder's session (passkit.py). Device detection runs in an effect (#418).
+  const [appleDevice, setAppleDevice] = useState(false);
+  const [actionBusy, setActionBusy] = useState<null | 'pass' | 'ics'>(null);
+  useEffect(() => {
+    setAppleDevice(detectAppleDevice());
+  }, []);
+
+  const openWalletUrl = useCallback(async (kind: 'pass' | 'ics') => {
+    if (!ticket || actionBusy) return;
+    setActionBusy(kind);
+    try {
+      const urls = await getTicketWalletUrls(ticket.ticket_id);
+      const url = kind === 'pass' ? urls.pass_url : urls.ics_url;
+      if (!url) {
+        Alert.alert(tr('No disponible por ahora'), tr('Inténtalo de nuevo más tarde.'));
+        return;
+      }
+      if (Platform.OS === 'web') window.location.assign(url);
+      else await Linking.openURL(url);
+    } catch (e) {
+      console.error('[Ticket] wallet url', e);
+      Alert.alert(tr('No pudimos generar el enlace'), ticketsErrorMessage(e, lang, tr));
+    } finally {
+      setActionBusy(null);
+    }
+  }, [ticket, actionBusy, tr, lang]);
+
+  const addToAppleWallet = useCallback(() => void openWalletUrl('pass'), [openWalletUrl]);
+  const addToCalendar = useCallback(() => void openWalletUrl('ics'), [openWalletUrl]);
+
+  const shareEvent = useCallback(async () => {
+    if (!ticket || !ticket.event_id) return;
+    const url = `https://www.amocartagena.co/partner-event/${encodeURIComponent(ticket.event_id)}`;
+    const message = `${ticket.title || 'Evento AMO'} — ${url}`;
+    try {
+      await Share.share(Platform.OS === 'ios' ? { message, url } : { message });
+    } catch {
+      // Web without navigator.share: copy the link instead of failing silently.
+      try {
+        if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard) {
+          await navigator.clipboard.writeText(url);
+          Alert.alert(tr('Enlace copiado'));
+        }
+      } catch {
+        // clipboard blocked: nothing honest left to do
+      }
+    }
+  }, [ticket, tr]);
+
+  const goMoreEvents = useCallback(() => router.push('/que-pasa'), [router]);
+
   // ── All hooks are above this line; the JSX below branches but never returns early. ──
   const used = (ticket !== null && ticket.status === 'used') || feed.used;
   const needLogin = (!isLoading && !userId) || authLost || feed.authLost;
@@ -397,24 +484,93 @@ export default function TicketScreen() {
           )}
         </View>
 
-        {!!ticket.event_id && (
-          <TouchableOpacity
-            style={s.linkRow}
-            onPress={goEvent}
-            activeOpacity={0.85}
-            accessibilityRole="link"
-            accessibilityLabel={tr('Añadir a mi día')}
-            testID="ticket-add-to-day"
-          >
-            <View style={s.linkIcon}>
-              <Ionicons name="calendar-outline" size={17} color={COLORS.official} />
+        {/* Companion actions for a ticket that is still ahead: Apple Wallet (Apple devices),
+            calendar (.ics, any phone) and sharing the event. A past/used ticket gets the
+            post-event row instead — never a dead "Añadir a mi día" for a finished night. */}
+        {isUpcomingTicket(ticket) && !used ? (
+          <>
+            <View style={s.actionsRow} testID="ticket-actions">
+              {appleDevice && (
+                <ActionBtn
+                  icon="wallet-outline"
+                  label={tr('Apple Wallet')}
+                  onPress={addToAppleWallet}
+                  busy={actionBusy === 'pass'}
+                  testID="ticket-add-wallet"
+                />
+              )}
+              {!!ticket.date && (
+                <ActionBtn
+                  icon="calendar-number-outline"
+                  label={tr('Calendario')}
+                  onPress={addToCalendar}
+                  busy={actionBusy === 'ics'}
+                  testID="ticket-add-calendar"
+                />
+              )}
+              {!!ticket.event_id && (
+                <ActionBtn icon="share-outline" label={tr('Compartir')} onPress={shareEvent} testID="ticket-share" />
+              )}
             </View>
-            <View style={s.linkBody}>
-              <Text style={s.linkLabel}>{tr('Añadir a mi día')}</Text>
-              <Text style={s.linkCaption}>{tr('Ver el evento y guardarlo en tu agenda')}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
-          </TouchableOpacity>
+            {!!ticket.event_id && (
+              <TouchableOpacity
+                style={s.linkRow}
+                onPress={goEvent}
+                activeOpacity={0.85}
+                accessibilityRole="link"
+                accessibilityLabel={tr('Añadir a mi día')}
+                testID="ticket-add-to-day"
+              >
+                <View style={s.linkIcon}>
+                  <Ionicons name="calendar-outline" size={17} color={COLORS.official} />
+                </View>
+                <View style={s.linkBody}>
+                  <Text style={s.linkLabel}>{tr('Añadir a mi día')}</Text>
+                  <Text style={s.linkCaption}>{tr('Ver el evento y guardarlo en tu agenda')}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+              </TouchableOpacity>
+            )}
+          </>
+        ) : (
+          <>
+            {!!ticket.event_id && (
+              <TouchableOpacity
+                style={s.linkRow}
+                onPress={goEvent}
+                activeOpacity={0.85}
+                accessibilityRole="link"
+                accessibilityLabel={tr('Ver el evento')}
+                testID="ticket-view-event"
+              >
+                <View style={s.linkIcon}>
+                  <Ionicons name="time-outline" size={17} color={COLORS.official} />
+                </View>
+                <View style={s.linkBody}>
+                  <Text style={s.linkLabel}>{tr('Ver el evento')}</Text>
+                  <Text style={s.linkCaption}>{tr('Así estuvo la noche')}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={s.linkRow}
+              onPress={goMoreEvents}
+              activeOpacity={0.85}
+              accessibilityRole="link"
+              accessibilityLabel={tr('Descubre más eventos')}
+              testID="ticket-post-event"
+            >
+              <View style={s.linkIcon}>
+                <Ionicons name="sparkles-outline" size={17} color={COLORS.official} />
+              </View>
+              <View style={s.linkBody}>
+                <Text style={s.linkLabel}>{tr('Descubre más eventos')}</Text>
+                <Text style={s.linkCaption}>{tr('Lo que viene esta semana en Cartagena')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
+            </TouchableOpacity>
+          </>
         )}
 
         <Text style={s.idLine} selectable testID="ticket-id">
@@ -505,6 +661,11 @@ const s = StyleSheet.create({
   usedTitle: { fontSize: 24, lineHeight: 30, color: COLORS.primary, ...FONTS.bold, letterSpacing: 1 },
   usedTime: { fontSize: 15, color: COLORS.textMain, ...FONTS.semibold, fontVariant: ['tabular-nums'], textAlign: 'center' },
   usedNote: { fontSize: 12.5, lineHeight: 18, color: COLORS.textMuted, ...FONTS.medium, textAlign: 'center' },
+
+  // companion actions (Wallet / calendar / share)
+  actionsRow: { flexDirection: 'row', gap: SPACING.sm, marginTop: SPACING.md },
+  actionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 48, paddingHorizontal: SPACING.sm, borderRadius: RADIUS.lg, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: 'rgba(18,181,165,0.30)' },
+  actionBtnText: { flexShrink: 1, fontSize: 12.5, color: COLORS.textMain, ...FONTS.semibold },
 
   // secondary row
   linkRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm + 4, minHeight: 56, paddingHorizontal: SPACING.md, paddingVertical: 10, marginTop: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: 'rgba(57,184,255,0.22)' },

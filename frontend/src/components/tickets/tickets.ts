@@ -280,6 +280,39 @@ export async function getCityPassQr(): Promise<CityPassQrPayload> {
 /** In-app route of one ticket. The id is encoded: it comes from the network. */
 export const ticketHref = (ticketId: string): string => `/ticket/${encodeURIComponent(ticketId)}`;
 
+// ── Apple Wallet / calendar (passkit.py) ─────────────────────────────────────
+export interface WalletUrls {
+  /** Signed 15-min URL of the .pkpass — null while the server has no signing identity (hide the button). */
+  pass_url: string | null;
+  /** Signed 15-min URL of the .ics (any phone). */
+  ics_url: string | null;
+}
+
+/** GET /tickets/{id}/wallet-url — holder-only mint of short-lived download URLs. */
+export async function getTicketWalletUrls(id: string): Promise<WalletUrls> {
+  const body = await ticketsRequest('GET', `/tickets/${encodeURIComponent(id)}/wallet-url`);
+  if (!isRec(body)) throw shapeError();
+  const pass = asStr(body.pass_url);
+  const ics = asStr(body.ics_url);
+  return {
+    pass_url: pass && pass.startsWith('https://') ? pass : null,
+    ics_url: ics && ics.startsWith('https://') ? ics : null,
+  };
+}
+
+/**
+ * Whether a ticket belongs in the "Próximas" section: its event date is today or later
+ * (Cartagena calendar, fixed UTC-5), or it published no readable date (unknown ≠ past).
+ * `used` does not demote it — a scanned ticket for tonight is still tonight's plan.
+ */
+export function isUpcomingTicket(t: Ticket, nowMs?: number): boolean {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(t.date);
+  if (!m) return true;
+  const d = new Date((nowMs ?? Date.now()) - CARTAGENA_UTC_OFFSET_MS);
+  const today = `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
+  return `${m[1]}-${m[2]}-${m[3]}` >= today;
+}
+
 // ── Formatting ───────────────────────────────────────────────────────────────
 // Cartagena is UTC-5 all year (no DST). Fixed-offset arithmetic, not Intl: identical on Hermes, the browser and Node,
 // and independent of the phone's own timezone (a visitor's phone may be set anywhere).

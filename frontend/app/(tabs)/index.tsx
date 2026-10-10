@@ -51,6 +51,7 @@ import { FxStrip } from '../../src/components/FxStrip';
 import LockedTease from '../../src/components/LockedTease';
 import NearbyEventsCard from '../../src/components/NearbyEventsCard';
 import CmwHomeCard from '../../src/components/cmw/CmwHomeCard';
+import NextTicketStrip from '../../src/components/NextTicketStrip';
 import {
   EventDayRow, EventHeroCard, EventNowCard, FeedEmptyLine, FeedOfflineBanner, umbrellaShortName,
 } from '../../src/components/EventFeedUI';
@@ -914,6 +915,10 @@ export default function HomeScreen() {
                 </ScrollView>
               </View>
             )}
+
+            {/* WALLET-DIGNITY (audit #4): the signed-in user's next ticket, one tap from
+                Home in BOTH city and remote modes. Renders nothing without one. */}
+            <NextTicketStrip />
 
             {!far ? (
               <>

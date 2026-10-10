@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["4C39DXRG9L.com.amocartagena.app"],
+        "components": [
+          { "/": "/api/*", "exclude": true },
+          { "/": "/business/*", "exclude": true },
+          { "/": "/admin/*", "exclude": true },
+          { "/": "*" }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["4C39DXRG9L.com.amocartagena.app"]
+  }
+}

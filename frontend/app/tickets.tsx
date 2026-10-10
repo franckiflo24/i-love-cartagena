@@ -19,7 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Head from '../src/components/WebHead';
 import { Skeleton } from '../src/components/Skeleton';
 import {
-  getMyTickets, isAuthError, ticketHref, ticketsErrorMessage,
+  getMyTickets, isAuthError, isUpcomingTicket, ticketHref, ticketsErrorMessage,
 } from '../src/components/tickets/tickets';
 import type { Ticket } from '../src/components/tickets/tickets';
 import { COLORS, FONTS, RADIUS, SPACING, TYPE } from '../src/constants/theme';
@@ -207,6 +207,12 @@ export default function TicketsScreen() {
       />
     );
   } else {
+    // WALLET-DIGNITY (audit #4): what is ahead comes first, what already happened sits
+    // under its own quiet header — never one flat pile where tonight's ticket hides
+    // between last month's. Section headers only appear when BOTH sections exist.
+    const upcoming = tickets.filter((t) => isUpcomingTicket(t));
+    const past = tickets.filter((t) => !isUpcomingTicket(t));
+    const sectioned = upcoming.length > 0 && past.length > 0;
     body = (
       <>
         {!!loadError && (
@@ -215,11 +221,28 @@ export default function TicketsScreen() {
             <Text style={s.bannerText}>{tr('No pudimos actualizar tus entradas. Toca para reintentar.')}</Text>
           </TouchableOpacity>
         )}
+        {sectioned && (
+          <Text style={s.sectionHead} accessibilityRole="header" testID="tickets-upcoming-head">{tr('Próximas')}</Text>
+        )}
         <View style={s.list} testID="tickets-list">
-          {tickets.map((t) => (
+          {upcoming.map((t) => (
             <TicketCard key={t.ticket_id} ticket={t} lang={lang} onOpen={openTicket} />
           ))}
         </View>
+        {past.length > 0 && (
+          <>
+            {sectioned && (
+              <Text style={[s.sectionHead, s.sectionHeadPast]} accessibilityRole="header" testID="tickets-past-head">
+                {tr('Pasadas')}
+              </Text>
+            )}
+            <View style={s.list} testID="tickets-list-past">
+              {past.map((t) => (
+                <TicketCard key={t.ticket_id} ticket={t} lang={lang} onOpen={openTicket} />
+              ))}
+            </View>
+          </>
+        )}
       </>
     );
   }
@@ -262,6 +285,8 @@ const s = StyleSheet.create({
   title: { flex: 1, ...TYPE.title1, color: COLORS.textMain },
 
   // list
+  sectionHead: { ...TYPE.title3, color: COLORS.textMain, marginBottom: SPACING.sm },
+  sectionHeadPast: { marginTop: SPACING.lg, color: COLORS.textMuted },
   list: { gap: SPACING.sm + 4 },
   card: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, minHeight: 92, padding: SPACING.md, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: COLORS.border },
   cardLive: { borderColor: 'rgba(18,181,165,0.30)' },

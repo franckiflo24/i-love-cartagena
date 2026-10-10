@@ -22,6 +22,19 @@ import { LENSES_TR } from './autoTrLenses';
 export type Dict = Record<string, Partial<Record<Lang, string>>>;
 
 export const AUTO_TR: Dict = {
+  // WALLET-DIGNITY (audit #4, Oct 10) — ticket companion actions + sections + home strip.
+  // 'Apple Wallet' / 'Próximas' / 'Pasadas' / 'Compartir' intentionally not re-added (proper
+  // noun / already in the dictionary).
+  'Calendario': { en: 'Calendar', fr: 'Calendrier', pt: 'Calendário' },
+  'Enlace copiado': { en: 'Link copied', fr: 'Lien copié', pt: 'Link copiado' },
+  'No disponible por ahora': { en: 'Not available right now', fr: 'Indisponible pour le moment', pt: 'Indisponível por enquanto' },
+  'Inténtalo de nuevo más tarde.': { en: 'Try again later.', fr: 'Réessayez plus tard.', pt: 'Tente novamente mais tarde.' },
+  'No pudimos generar el enlace': { en: "We couldn't create the link", fr: "Impossible de générer le lien", pt: 'Não foi possível gerar o link' },
+  'Ver el evento': { en: 'See the event', fr: "Voir l'événement", pt: 'Ver o evento' },
+  'Así estuvo la noche': { en: 'How the night went', fr: "Comment s'est passée la soirée", pt: 'Como foi a noite' },
+  'Descubre más eventos': { en: 'Discover more events', fr: "Découvrez plus d'événements", pt: 'Descubra mais eventos' },
+  'Lo que viene esta semana en Cartagena': { en: "What's coming this week in Cartagena", fr: 'Ce qui arrive cette semaine à Carthagène', pt: 'O que vem esta semana em Cartagena' },
+  'Tu próxima entrada': { en: 'Your next ticket', fr: 'Votre prochaine entrée', pt: 'Sua próxima entrada' },
   // P1-9 (Oct 2) — <LoadError/> copy: a failed load must never look like an empty result.
   'No se pudo cargar': { en: "Couldn't load", fr: 'Chargement impossible', pt: 'Não foi possível carregar' },
   'reintentar': { en: 'retry', fr: 'réessayer', pt: 'tentar novamente' },
