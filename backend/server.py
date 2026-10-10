@@ -79,6 +79,9 @@ import civic_demo as _civic  # noqa: E402
 # TICKETS: consumer RSVP tickets + City Pass rotating QR + venue gate scanner —
 # payments-free, PALCO1 credential via the shared qr_credential engine.
 import tickets as _tickets  # noqa: E402
+# PASSKIT: Apple Wallet companion pass + .ics for a ticket (signed short-lived
+# URLs; the pass carries NO door barcode — the rotating QR stays the credential).
+import passkit as _passkit  # noqa: E402
 # PALCO v2 — © MachineMind, licensed into AMO (docs/palco-v2/DESIGN.md): the one
 # credential engine (device-bound AMO2 wires, verdicts, manifests, catalog).
 # AMO imports the engine; the engine never imports AMO route modules.
@@ -8862,6 +8865,11 @@ app.include_router(_civic.router, prefix="/api")
 # parameterized sibling, and /city-pass/qr beats any /city-pass/{x} pattern.
 _tickets.init(db_=db)
 app.include_router(_tickets.router, prefix="/api")
+
+# Passkit (Apple Wallet pass + calendar.ics) — mounted right after tickets so
+# /tickets/{id}/pass.pkpass and /wallet-url resolve before any catch-all sibling.
+_passkit.init(db_=db)
+app.include_router(_passkit.router, prefix="/api")
 
 # PALCO v2 engine router (docs/palco-v2/DESIGN.md §11) — same mount discipline.
 _palco.init(db_=db)
