@@ -1,0 +1,7 @@
+{
+  "version": "1.1.7",
+  "whatsNew": {
+    "es-MX": "Entradas con código QR: reserva gratis los eventos de AMO y entra con un código QR que cambia cada pocos segundos, imposible de copiar.\n\n• Nuevo escáner de puerta con cámara para los organizadores: valida las entradas al instante.\n• Agenda ampliada: más eventos verificados de Cartagena, con fechas por confirmar marcadas con honestidad.\n• Mejoras de estabilidad y rendimiento.",
+    "en-US": "QR ticketing: reserve AMO events for free and get in with a QR code that changes every few seconds — impossible to copy.\n\n• New camera door-scanner for organizers: validate tickets instantly.\n• Expanded calendar: more verified Cartagena events, with to-be-confirmed dates flagged honestly.\n• Stability and performance improvements."
+  }
+}
