@@ -2,7 +2,7 @@
   "expo": {
     "name": "AMO Life",
     "slug": "amo-cartagena",
-    "version": "1.1.7",
+    "version": "1.1.8",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "amocartagena",
@@ -24,6 +24,15 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.amocartagena.app",
       "buildNumber": "1",
+      "associatedDomains": [
+        "applinks:www.amocartagena.co",
+        "applinks:amocartagena.co",
+        "webcredentials:www.amocartagena.co",
+        "webcredentials:amocartagena.co"
+      ],
+      "entitlements": {
+        "com.apple.developer.devicecheck.appattest-environment": "production"
+      },
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "We use your location to show you events and partners near you.",
         "NSPhotoLibraryUsageDescription": "Allow access to your photos to attach images to your events.",
