@@ -4308,6 +4308,59 @@ async def admin_confirm_user(user_id: str, request: Request):
     return {"ok": True, "user_id": user_id, "email_verified": True}
 
 
+@api_router.get("/admin/users/admin-lookup")
+async def admin_user_lookup(request: Request, email: str = ""):
+    """Bootstrap helper: confirm a consumer account exists + its current is_admin flag,
+    by email. Gated by the EVENTS_ADMIN_TOKEN operator primitive ONLY (the one admin
+    lever that needs no pre-existing is_admin session — otherwise granting the FIRST
+    admin is a chicken-and-egg). Minimal projection: no favorites, phone, picture — just
+    enough to verify the target before a grant. Read-only."""
+    if not _events_elite.is_events_admin_token(request):
+        raise HTTPException(status_code=401, detail={"error": "operator_token_required"})
+    em = (email or "").strip().lower()
+    if not em or "@" not in em:
+        raise HTTPException(status_code=422, detail={"error": "email_required"})
+    u = await db.users.find_one({"email": em}, {"_id": 0, "user_id": 1, "email": 1,
+                                                "name": 1, "is_admin": 1, "provider": 1})
+    if not u:
+        return {"found": False, "email": em}
+    return {"found": True, "email": u.get("email"), "user_id": u.get("user_id"),
+            "name": u.get("name"), "provider": u.get("provider") or "email",
+            "is_admin": bool(u.get("is_admin"))}
+
+
+@api_router.post("/admin/users/grant-admin")
+async def admin_grant_admin(request: Request):
+    """Bootstrap the consumer-side is_admin flag on an EXISTING account, by email.
+
+    Gated by the EVENTS_ADMIN_TOKEN operator primitive ONLY: a holder of that token
+    already wields full events-admin backend power, so this grants nothing beyond the
+    token — it just projects that trust onto a named human account so the /admin/*
+    UI (which checks db.users.is_admin, not the token) opens for them. Never creates
+    an account. Idempotent. Fully reversible via {"revoke": true}. Every change is
+    audited in activity_log with the acting token principal."""
+    if not _events_elite.is_events_admin_token(request):
+        raise HTTPException(status_code=401, detail={"error": "operator_token_required"})
+    body = await request.json() if request.headers.get("content-type", "").startswith("application/json") else {}
+    em = str((body or {}).get("email") or "").strip().lower()
+    revoke = bool((body or {}).get("revoke"))
+    if not em or "@" not in em:
+        raise HTTPException(status_code=422, detail={"error": "email_required"})
+    u = await db.users.find_one({"email": em}, {"_id": 0, "user_id": 1, "is_admin": 1})
+    if not u:
+        # Never create an account here — the person must have signed in at least once.
+        raise HTTPException(status_code=404, detail={"error": "no_such_account",
+                            "hint": "the person must sign in to AMO Life once first"})
+    await db.users.update_one(
+        {"email": em},
+        {"$set": {"is_admin": (not revoke), "admin_flag_by": "operator_token",
+                  "admin_flag_at": _now_iso()}},
+    )
+    await _log_activity("admin_flag_revoked" if revoke else "admin_flag_granted",
+                        scope="admin", user_id="operator_token", detail=u.get("user_id", ""))
+    return {"ok": True, "email": em, "user_id": u.get("user_id"), "is_admin": (not revoke)}
+
+
 @api_router.post("/auth/logout")
 async def logout(request: Request, response: Response):
     # Accept token from cookie OR Authorization: Bearer (mirrors get_current_user).
