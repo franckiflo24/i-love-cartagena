@@ -2,7 +2,7 @@
   "expo": {
     "name": "AMO Life",
     "slug": "amo-cartagena",
-    "version": "1.1.8",
+    "version": "1.1.9",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "amocartagena",
@@ -24,6 +24,9 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.amocartagena.app",
       "buildNumber": "1",
+      "entitlements": {
+        "com.apple.developer.devicecheck.appattest-environment": "production"
+      },
       "associatedDomains": [
         "applinks:www.amocartagena.co",
         "applinks:amocartagena.co",
