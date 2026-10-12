@@ -99,11 +99,17 @@ export default function BilleteraScreen() {
     body = (
       <View style={s.card} testID="billetera-native-only">
         <Ionicons name="phone-portrait-outline" size={34} color={COLORS.icon} />
-        <Text style={s.cardTitle}>{tr('La billetera segura vive en la app de iPhone')}</Text>
+        <Text style={s.cardTitle}>
+          {support === 'no_attest'
+            ? tr('Este dispositivo no soporta la verificación de Apple.')
+            : tr('La billetera segura vive en la app de iPhone')}
+        </Text>
         <Text style={s.cardText}>
           {support === 'android'
             ? tr('Disponible pronto para Android.')
-            : tr('Tus llaves se guardan en el chip seguro del teléfono, por eso no existe en la web.')}
+            : support === 'no_attest'
+              ? tr('La billetera necesita un iPhone con el chip seguro de Apple.')
+              : tr('Tus llaves se guardan en el chip seguro del teléfono, por eso no existe en la web.')}
         </Text>
         {isWeb && Platform.OS === 'web' ? (
           <TouchableOpacity

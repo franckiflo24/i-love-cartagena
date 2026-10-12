@@ -58,6 +58,7 @@ export const AUTO_TR: Dict = {
   'Disponible pronto para Android.': { en: 'Coming soon to Android.', fr: 'Bientôt disponible sur Android.', pt: 'Em breve para Android.' },
   'Inicia sesión para activar tu billetera': { en: 'Sign in to activate your wallet', fr: 'Connectez-vous pour activer votre portefeuille', pt: 'Entre para ativar sua carteira' },
   'Este dispositivo no soporta la verificación de Apple.': { en: 'This device doesn’t support Apple verification.', fr: 'Cet appareil ne prend pas en charge la vérification Apple.', pt: 'Este dispositivo não suporta a verificação da Apple.' },
+  'La billetera necesita un iPhone con el chip seguro de Apple.': { en: 'The wallet needs an iPhone with Apple’s secure chip.', fr: 'Le portefeuille nécessite un iPhone avec la puce sécurisée d’Apple.', pt: 'A carteira precisa de um iPhone com o chip seguro da Apple.' },
   'Apple no pudo verificar la app. Inténtalo de nuevo.': { en: 'Apple couldn’t verify the app. Try again.', fr: 'Apple n’a pas pu vérifier l’app. Réessayez.', pt: 'A Apple não conseguiu verificar o app. Tente novamente.' },
   'No se pudo crear la llave segura.': { en: 'Couldn’t create the secure key.', fr: 'Impossible de créer la clé sécurisée.', pt: 'Não foi possível criar a chave segura.' },
   'Sin conexión. Inténtalo de nuevo.': { en: 'No connection. Try again.', fr: 'Pas de connexion. Réessayez.', pt: 'Sem conexão. Tente novamente.' },
