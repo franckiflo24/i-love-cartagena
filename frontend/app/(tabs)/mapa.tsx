@@ -21,6 +21,7 @@ import LoadError from '../../src/components/LoadError';
 import { getHomeBase, syncHomeBase } from '../../src/lib/homeBase';
 import { openDirections } from '../../src/lib/maps';
 import { ATLAS_VERIFIED, ATLAS_VENUE_FIXES, ATLAS_ADD_VENUES, ATLAS_ROUTE, ATLAS_WALK, ATLAS_RUTAS } from '../../src/data/atlas';
+import { CIVIC_PIN_COLOR, CIVIC_SUBTYPE_ES, civicMergedIds, civicOwnPins, resolveCivic } from '../../src/lib/civicLocations';
 import { useLang } from '../../src/context/LanguageContext';
 import { loadFeed } from '../../src/lib/eventsFeed';
 import { LensKey, LensesDoc, LightSlot, bundledLenses, goldenPins, loadLenses, pickL4, sunsetThisMonth } from '../../src/lib/lenses';
@@ -152,7 +153,13 @@ const FILTERS = [
   { key: 'partner', label: 'Partners', icon: 'diamond', color: '#8B5CF6' },
   { key: 'esenciales', label: 'Esenciales', icon: 'medkit', color: '#14B8A6' },
   { key: 'eventos', label: 'Eventos', icon: 'calendar', color: '#FF6B4A' },
+  { key: 'civico', label: 'Cívico', icon: 'flag', color: CIVIC_PIN_COLOR },
 ];
+
+// DROP 2: a place belongs to the Cívico filter when it is a civic row itself OR
+// an existing attraction pin a civic record merged with (one Torre del Reloj).
+const isCivicPlace = (p: { id: string; category: string }) =>
+  p.category === 'civico' || civicMergedIds.has(p.id);
 
 // EVENTS-ELITE eventos layer (§10 Map): pins ONLY from verified-feed rows with
 // real geocoded coordinates. Replaces the legacy concert pins, which sat on a
@@ -172,6 +179,7 @@ const fmtLiveDist = fmtDistance;
 function markerColor(p: Place): string {
   if (p.category === 'eventos') return EVENT_PIN_COLOR;
   if (p.category === 'lente') return GH_PIN_COLOR;
+  if (p.category === 'civico') return CIVIC_PIN_COLOR;
   return colorForKey(p.type || p.category);
 }
 
@@ -345,6 +353,7 @@ function orderRutaStops(origin: { lat: number; lng: number }, stops: RutaStop[])
 function buildMapHTML(places: Place[], filter: string, userLoc: { lat: number; lng: number } | null, satellite: boolean, autoTour: boolean, autoWalk: boolean, route: { origin: { lat: number; lng: number } | null; stops: RutaStop[] } | null, zones: boolean, tr: (es: string) => string) {
   const filtered = filter === 'all' ? places
     : filter === 'esenciales' ? places.filter(p => p.type === 'service' || p.type === 'essential')
+    : filter === 'civico' ? places.filter(isCivicPlace)
     : places.filter(p => p.category === filter);
 
   const markers = filtered.map(p => {
@@ -1075,6 +1084,7 @@ function WebMapDirect({ places, filter, passportIds, userLoc, follow, satellite,
     const filtered = filter === 'all' ? places
       : filter === 'pasaporte' ? places.filter(p => passportIds.has(p.id))
       : filter === 'esenciales' ? places.filter(p => p.type === 'service' || p.type === 'essential')
+      : filter === 'civico' ? places.filter(isCivicPlace)
       : places.filter(p => p.category === filter);
     filtered.forEach(p => {
       if (!p.lat || !p.lng) return;
@@ -1230,7 +1240,17 @@ function feedEventPlaces(res: unknown, lang: string, tr: (es: string) => string,
   const out: Place[] = [];
   for (const row of rows) {
     const ev = toEventLite(row);
-    if (!ev || ev.status !== 'published' || ev.isUmbrella || !hasRealCoords(ev)) continue;
+    if (!ev || ev.status !== 'published' || ev.isUmbrella) continue;
+    // Real curator coords win. Otherwise DROP 2: a venue string that resolves to
+    // a civic location pins THERE (a named public landmark, never a zone
+    // placeholder). Anything else still never pins.
+    let lat = ev.lat, lng = ev.lng;
+    if (!hasRealCoords(ev)) {
+      const civic = resolveCivic(ev.venue);
+      if (!civic) continue;
+      lat = civic.lat; lng = civic.lng;
+    }
+    if (lat == null || lng == null) continue;
     if ((ev.endDate || ev.startDate || '') < today) continue;
     const verified = !offline && ev.confidence === 'HIGH';
     const status = offline ? tr('sin actualizar')
@@ -1243,8 +1263,8 @@ function feedEventPlaces(res: unknown, lang: string, tr: (es: string) => string,
       category: 'eventos',
       type: tr('Evento'),
       address: ev.venue,
-      lat: ev.lat,
-      lng: ev.lng,
+      lat,
+      lng,
       image_url: '',
       price: '',
       link: '',
@@ -1545,6 +1565,20 @@ export default function MapaScreen() {
       });
 
       allPlaces.push(...essToPlaces());
+
+      // DROP 2 civic layer (bundled registry, src/data/civicLocations.json):
+      // own pins only — merged rows ride the attraction pin that already exists.
+      // coords_status 'unverified' never reaches civicOwnPins() (gate in the lib).
+      // No price/hours/booking ever — a plaza is not a venue to verify.
+      for (const c of civicOwnPins()) {
+        const subtype = tr(CIVIC_SUBTYPE_ES[c.subtype] || 'Espacio público');
+        allPlaces.push({
+          id: c.id, name: c.name, description: tr('Espacio público'),
+          category: 'civico', type: subtype, address: `${c.zone}, Cartagena`,
+          lat: c.lat, lng: c.lng, image_url: '', price: '', link: '', extra: '',
+        });
+      }
+
       // Atlas-verified badge — ids whose position survived adversarial
       // OSM verification (docs/atlas-verification.json).
       for (const p of allPlaces) if (ATLAS_VERIFIED.has(p.id)) p.verified = true;
@@ -1671,6 +1705,7 @@ export default function MapaScreen() {
     partner: visiblePlaces.filter(p => p.category === 'partner').length,
     esenciales: visiblePlaces.filter(p => p.type === 'service' || p.type === 'essential').length,
     eventos: visiblePlaces.filter(p => p.category === 'eventos').length,
+    civico: visiblePlaces.filter(isCivicPlace).length,
   };
 
   if (loading) {

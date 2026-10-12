@@ -39,6 +39,7 @@ import {
 } from '../../src/lib/eventsFeed';
 import { bogotaToday } from '../../src/lib/eventTime';
 import { eventJsonLd } from '../../src/lib/eventJsonLd';
+import { resolveCivic } from '../../src/lib/civicLocations';
 
 // Partner-event ids: `pe_<hex>` (backend create), `pe_bethel_dj_<date>` and the
 // seeded `evt_NNN`. City events are `ce-…` and never match.
@@ -142,8 +143,18 @@ export default function EventDetail() {
     // openDirections lets iOS users pick Apple Maps or Google Maps (Guideline 4).
     if (hasRealCoords(ev)) {
       openDirections({ lat: ev.lat, lng: ev.lng, label: ev.venue_name }, tr);
-    } else if (ev.venue_name && !ev.is_umbrella && !DESCRIPTIVE_VENUE.test(ev.venue_name)) {
-      openDirections({ query: `${ev.venue_name}, Cartagena, Colombia` }, tr);
+      return;
+    }
+    if (ev.venue_name && !ev.is_umbrella && !DESCRIPTIVE_VENUE.test(ev.venue_name)) {
+      // DROP 2: a venue string naming a civic space (plaza/baluarte/paseo) resolves
+      // to the registry's coords — a real pin instead of a text search. Unresolved
+      // strings keep today's behavior; unverified civics never resolve (lib gate).
+      const civic = resolveCivic(ev.venue_name);
+      if (civic) {
+        openDirections({ lat: civic.lat, lng: civic.lng, label: ev.venue_name }, tr);
+      } else {
+        openDirections({ query: `${ev.venue_name}, Cartagena, Colombia` }, tr);
+      }
     }
   }, [ev, tr]);
 

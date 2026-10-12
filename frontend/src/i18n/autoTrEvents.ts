@@ -89,4 +89,13 @@ export const EVENTS_TR: Dict = {
   'Ocultar pasados': { en: 'Hide past', fr: 'Masquer les passés', pt: 'Ocultar passados' },
   'PASADO': { en: 'PAST', fr: 'PASSÉ', pt: 'PASSADO' },
   'Eventos guardados': { en: 'Saved events', fr: 'Événements enregistrés', pt: 'Eventos salvos' },
+  // ── DROP 2: civic locations (map filter + pin chrome; place NAMES stay Spanish) ──
+  'Espacio público': { en: 'Public space', fr: 'Espace public', pt: 'Espaço público' },
+  'Plaza': { en: 'Plaza', fr: 'Place', pt: 'Praça' },
+  'Baluarte': { en: 'Bastion', fr: 'Bastion', pt: 'Baluarte' },
+  'Fuerte': { en: 'Fort', fr: 'Fort', pt: 'Forte' },
+  'Parque': { en: 'Park', fr: 'Parc', pt: 'Parque' },
+  'Paseo peatonal': { en: 'Promenade', fr: 'Promenade', pt: 'Calçadão' },
+  'Muelle': { en: 'Pier', fr: 'Quai', pt: 'Cais' },
+  'Avenida': { en: 'Avenue', fr: 'Avenue', pt: 'Avenida' },
 };
