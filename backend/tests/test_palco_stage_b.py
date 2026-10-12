@@ -131,14 +131,16 @@ def test_enroll_sandbox_binds_device() -> None:
 
 def test_enroll_unknown_attester_fail_closed() -> None:
     """A hardware mode with no registered attester is refused — never a silent
-    downgrade to software (DESIGN §13.1)."""
+    downgrade to software (DESIGN §13.1). play_integrity registers with the
+    Android engine; when it does, this test moves to the next unregistered mode
+    (the tripwire firing is the point — app_attest sat here until 2026-10-11)."""
     db = _DB()
     async def go():
         priv, jwk, key_id = _mk()
         ch, pop = await _issue_and_pop(db, priv, jwk, key_id)
         with pytest.raises(enroll.EnrollError) as e:
             await enroll.verify_enrollment(
-                db, "u1", ch["challenge_id"], jwk, {"mode": "app_attest", "pop_sig": pop}, "ios")
+                db, "u1", ch["challenge_id"], jwk, {"mode": "play_integrity", "pop_sig": pop}, "android")
         assert str(e.value) == "attester_unavailable"
         assert await db.credential_devices.find_one({"device_key_id": key_id}) is None
     _run(go())

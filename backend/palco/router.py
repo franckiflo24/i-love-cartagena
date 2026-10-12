@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field
 
 from . import (catalog, consent as consent_mod, enroll as enroll_mod, identity,
                issue as issue_mod, manifest as manifest_mod, verify as verify_mod, wire)
+from . import app_attest as _app_attest  # noqa: F401 — registers the iOS attester (fail-closed if deps missing)
 from .models import (COL_CONSENT, COL_CREDENTIALS, COL_DEVICES, COL_ENROLL_CHALLENGES,
                      COL_LEDGER, COL_SCAN_LOG, MODE_CONSUME, MODE_VERIFY, iso, now_utc,
                      public_credential)

@@ -20,6 +20,7 @@ register here with the Stage B binary; until one is registered its mode is refus
 """
 from __future__ import annotations
 
+import inspect
 import secrets
 from datetime import timedelta
 from typing import Any, Callable, Dict, Mapping
@@ -68,8 +69,9 @@ def _sandbox_attester(challenge: str, pubkey_jwk: Mapping[str, Any], key_id: str
 
 
 register_attester("sandbox", _sandbox_attester)
-# Stage B binary registers "app_attest" (iOS, pyattest) and "play_integrity" (Android)
-# here; an unregistered mode is refused `attester_unavailable` in verify_enrollment.
+# "app_attest" (iOS, pyattest) registers from .app_attest on router import — fail-closed
+# when its deps are missing. "play_integrity" (Android) lands with the Android engine;
+# an unregistered mode is refused `attester_unavailable` in verify_enrollment.
 
 
 # ── flow ─────────────────────────────────────────────────────────────────────────
@@ -106,6 +108,8 @@ async def verify_enrollment(db: Any, user_id: str, challenge_id: str,
     if attester is None:
         raise EnrollError("attester_unavailable")        # fail closed — no silent downgrade
     result = attester(ch["challenge"], pubkey_jwk, key_id, attestation or {})
+    if inspect.isawaitable(result):            # hw attesters verify async (pyattest)
+        result = await result
     if not result.get("ok"):
         raise EnrollError("attestation_failed")
     # one-time: consume the challenge atomically BEFORE binding the key
@@ -114,7 +118,9 @@ async def verify_enrollment(db: Any, user_id: str, challenge_id: str,
         {"$set": {"consumed": True, "consumed_at": iso()}})
     if claimed is None:
         raise EnrollError("challenge_used")
+    att_record = {"mode": mode, "attested_at": iso()}
+    att_record.update(dict(result.get("record") or {}))   # attester audit extras, PII-free
     reg = await issue.register_device(
         db, user_id, pubkey_jwk, platform, result.get("hw_tier", "sandbox"),
-        attestation={"mode": mode, "attested_at": iso()})
+        attestation=att_record)
     return {"device_key_id": reg["device_key_id"], "hw_tier": result.get("hw_tier", "sandbox")}

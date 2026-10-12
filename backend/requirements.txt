@@ -23,3 +23,7 @@ pywebpush==2.0.3
 # validator manifests. Server holds PUBLIC keys only — no per-credential
 # symmetric secret can leak again (the qr_secret class, fixed 688c7a89).
 cryptography>=42.0,<47
+# PALCO Stage B: Apple App Attest verification for /palco/enroll (hardware tier).
+# pyattest pulls cbor2 + asn1crypto + pyhanko-certvalidator (chain to Apple's
+# App Attestation Root CA). Pinned: attestation verification is security-load-bearing.
+pyattest==1.0.5

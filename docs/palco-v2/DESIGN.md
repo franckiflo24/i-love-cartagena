@@ -317,3 +317,31 @@ attestation, the wallet consent UX and WhatsApp-OTP binding remain Stage B (bina
 "Ley 1581 server-side consent records" → **backend shipped 2026-10-09** (records + endpoints +
 enrollment capture). The in-wallet consent UX + WhatsApp-OTP binding remain Stage B. No other
 payment-gate line changes; **the gate stays closed.**
+
+### 13.5 App Attest attester (iOS hardware tier, shipped 2026-10-11) — `palco/app_attest.py`
+- Mode `app_attest` registers on router import, **only if pyattest imports** (missing dep ⇒
+  the mode stays unregistered ⇒ `attester_unavailable`, fail closed per §13.1).
+- Client flow (Stage B wallet): generate the wallet P-256 key (Secure Enclave via
+  io-react-native-crypto) → `POST /palco/enroll/challenge` → binding =
+  `palco-enroll|<challenge>|<key_id>` → `pop_sig` = wallet-key signature over the binding
+  (DER→raw r‖s, b64url) → DCAppAttest `generateKey` ⇒ `key_id` (b64) and
+  `attestKey(key_id, binding)` ⇒ `attestation` (b64 CBOR; the native layer hashes the
+  binding string to clientDataHash) → `POST /palco/enroll/verify` with
+  `{mode:"app_attest", pop_sig, key_id, attestation}`.
+- Server verifies BOTH, in order: (1) proof-of-possession of the wallet key — same bar as
+  sandbox, App Attest never replaces it; (2) the attestation object via pyattest — chain to
+  Apple's App Attestation Root CA, nonce = SHA-256(authData ‖ SHA-256(binding)) read from the
+  credCert OID 1.2.840.113635.100.8.2, submitted `key_id` == SHA-256(credCert public key),
+  app id pinned `4C39DXRG9L.com.amocartagena.app` (env `PALCO_APP_ATTEST_APP_ID`), counter 0,
+  production aaguid (env `PALCO_APP_ATTEST_ENV=development` for dev-signed binaries only).
+  Because the nonce covers the challenge AND the wallet key id, an attestation cannot be
+  replayed for any other enrollment.
+- Stored: `hw_tier:"app_attest"` (honesty §0 — Apple attests the app instance + its
+  attestation key, so we do not claim `secure_enclave` for the wallet key) and a PII-free
+  audit record `{aa_key_id, att_sha256, aa_env}`; the ~5.5 KB blob itself is never stored.
+- Any pyattest refusal or malformed input answers uniform `attestation_failed` (no
+  which-check-failed oracle; the reason is server-logged only).
+- Proven by `tests/test_palco_app_attest.py`: a forged chain against an injected test root
+  exercises the real CBOR→chain→nonce→key-id→app-id→counter→aaguid→credential-id path, plus
+  refusals for wrong nonce / wrong key id / foreign app id / nonzero counter / dev aaguid in
+  prod / untrusted root / garbage / missing pyattest.

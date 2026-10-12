@@ -511,6 +511,7 @@ export default function PerfilScreen() {
           {/* WALLET-DIGNITY (audit #4): tickets lead the list — a guest at a door digs for
               this row with the line moving; it must be the first thing under the title. */}
           <SettingsRow icon="ticket-outline" label={tr('Mis entradas')} onPress={() => router.push('/tickets' as any)} />
+          <SettingsRow icon="wallet-outline" iconColor={COLORS.primary} label={tr('Billetera segura')} onPress={() => router.push('/billetera' as any)} />
           <SettingsRow icon="book-outline" label={tr('Mi Pasaporte')} onPress={() => router.push('/pasaporte' as any)} />
           <SettingsRow icon="briefcase-outline" label={tr('Mi Viaje')} onPress={() => router.push('/viaje' as any)} />
           <SettingsRow icon="heart-outline" iconColor={COLORS.bougainvillea} label={s('home_favorites')} onPress={() => router.push('/favorites' as any)} />
