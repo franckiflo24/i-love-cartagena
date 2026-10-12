@@ -987,12 +987,12 @@ HEALTHY = [{"kind": "sentinel", "done": True, "finished_at": iso(NOW - timedelta
 
 
 def test_get_flags_fail_closed_and_cached():
-    assert run(R.get_flags(_DB())) == {"enabled": False, "sources_disabled": []}
+    assert run(R.get_flags(_DB())) == {"enabled": False, "sources_disabled": [], "review_only_sources": []}
     R.invalidate_caches()
-    assert run(R.get_flags(_DB(fail=("state",)))) == {"enabled": False, "sources_disabled": []}
+    assert run(R.get_flags(_DB(fail=("state",)))) == {"enabled": False, "sources_disabled": [], "review_only_sources": []}
     R.invalidate_caches()
     db = _DB(flags=dict(FLAGS_ON))
-    assert run(R.get_flags(db)) == {"enabled": True, "sources_disabled": ["fever_co"]}
+    assert run(R.get_flags(db)) == {"enabled": True, "sources_disabled": ["fever_co"], "review_only_sources": []}
     db.city_events_state.rows[0]["enabled"] = False
     assert run(R.get_flags(db))["enabled"] is True        # 30 s instance cache
     R.invalidate_caches()

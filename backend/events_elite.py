@@ -97,7 +97,7 @@ FAVORITE_EVENT_TYPES = ("event", "concert")
 LEGACY_IMPORT_MAX_SPAN_DAYS = 30
 PROD_CLUSTER_HOST = "cluster0.i4uvhfv"
 DEFAULT_ADMIN_ORIGINS = ("https://www.amocartagena.co", "https://amocartagena.co")
-FLAG_KEYS = frozenset({"enabled", "sources_disabled"})
+FLAG_KEYS = frozenset({"enabled", "sources_disabled", "review_only_sources"})
 PREF_LANGS = ("es", "en", "fr", "pt")
 DEFAULT_PREFS: Dict[str, Any] = {
     "reminders_enabled": True, "nearby_enabled": False,
@@ -575,7 +575,8 @@ PULL_COUNTS = ("found", "published", "held_review", "date_tbc", "dropped_no_sour
 
 class PullCtx:
     def __init__(self, db_: Any, now: datetime, run_id: str, *, dry: bool,
-                 catalog: List[Dict[str, Any]], gazetteer: List[Dict[str, Any]]) -> None:
+                 catalog: List[Dict[str, Any]], gazetteer: List[Dict[str, Any]],
+                 review_only: Optional[Set[str]] = None) -> None:
         self.db = db_
         self.now = now
         self.today = _today(now)
@@ -583,6 +584,8 @@ class PullCtx:
         self.dry = dry
         self.catalog = catalog
         self.gazetteer = gazetteer
+        # 3B: flags.review_only_sources — these sources' NEW rows always land review.
+        self.review_only: Set[str] = set(review_only or ())
         self.counts: Dict[str, int] = {k: 0 for k in PULL_COUNTS}
         self.alerts: List[str] = []
         self.results: List[Dict[str, Any]] = []
@@ -828,6 +831,46 @@ async def _find_fuzzy(db_: Any, c: Mapping[str, Any], *, same_dates: bool,
     return hits[0][1]
 
 
+async def _find_conflict(db_: Any, c: Mapping[str, Any], *,
+                         geo: Optional[Mapping[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    """3B date-conflict matcher: the SAME event held under ANOTHER date by a weaker source
+    (the Buena Vida case — an aggregator 'June' row in review vs the ticketer's real January
+    page). Deliberately narrow: only aggregator-grade rows (source_tier ≥ 6) SITTING IN REVIEW
+    can match, title overlap ≥ 0.85 both ways, venues compatible, edition years equal, dates
+    different, hit unique. The caller routes the pair through _merge_into, whose date-conflict
+    branch holds the row in review/date_changed with the primary's dates PROPOSED — a human
+    still confirms the correction, so a rare false pairing (recurring club nights share titles)
+    is caught at the queue, never published."""
+    title = _es(c.get("title"))
+    c_start = c.get("start_date")
+    if not title or not isinstance(c_start, str):
+        return None
+    ey = c.get("edition_year") if isinstance(c.get("edition_year"), int) else gate.edition_year_from(
+        title, c_start)
+    try:
+        rows = await db_.city_events.find(
+            {"status": "review", "source_tier": {"$gte": 6}}, {"_id": 0}).limit(200).to_list(length=200)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[events] conflict lookup failed: %s", type(exc).__name__)
+        return None
+    hits = []
+    for r in rows or []:
+        if r.get("start_date") == c_start:
+            continue  # same date = the fuzzy matcher's job, not a conflict
+        if ey is not None and isinstance(r.get("edition_year"), int) and r["edition_year"] != ey:
+            continue
+        score = min(sources.title_overlap(_es(r.get("title")), title),
+                    sources.title_overlap(title, _es(r.get("title"))))
+        if score >= 0.85 and _venue_compatible(r, c, geo):
+            hits.append((score, dict(r)))
+    if not hits:
+        return None
+    hits.sort(key=lambda x: -x[0])
+    if len(hits) > 1 and hits[0][0] == hits[1][0]:
+        return None  # ambiguous: never guess
+    return hits[0][1]
+
+
 async def _parent_for(db_: Any, c: Mapping[str, Any]) -> Optional[Dict[str, Any]]:
     psk = c.get("parent_source_key")
     if not isinstance(psk, str) or not psk:
@@ -950,6 +993,14 @@ async def process_candidate(ctx: PullCtx, c: Mapping[str, Any], *, role: str, pe
         if existing is not None:
             result["match"] = existing.get("event_id")
             result["fuzzy"] = True
+    if existing is None and role != "corroborate" and _cand_tier(c) <= 3:
+        # 3B: a primary (tier ≤ 3) page may state the REAL date for an event an aggregator
+        # listed under a wrong one — match it instead of minting a twin (never silent: the
+        # merge's date-conflict branch holds it in review with the correction proposed).
+        existing = await _find_conflict(ctx.db, c, geo=geo)
+        if existing is not None:
+            result["match"] = existing.get("event_id")
+            result["date_conflict"] = True
 
     parent = await _parent_for(ctx.db, c)
     if existing is not None:
@@ -993,6 +1044,13 @@ async def process_candidate(ctx: PullCtx, c: Mapping[str, Any], *, role: str, pe
         ctx.alerts.append(f"📅 {title[:80]}: la fuente anuncia '{markers.get('date_notice')}'"
                           f"{' → ' + str(ann['start_date']) if ann and ann.get('start_date') else ''} "
                           f"(nuevo, listado del {start}; a revisión) · {src_url}")
+    if c.get("source_key") in ctx.review_only and ev["status"] in LIVE_STATUSES:
+        # 3B probation (flags.review_only_sources): this source's NEW rows wait for a human
+        # even when gate-clean. Sticky (source_probation ∈ STICKY_REVIEW_REASONS) — only an
+        # admin approve clears it. Merges into rows other sources already own are unaffected.
+        doc.update(status="review", status_reason="source_probation", confidence="VERIFY", notif_eligible=False)
+        ev = {**ev, "status": "review", "status_reason": "source_probation", "confidence": "VERIFY",
+              "notif_eligible": False}
     try:
         doc["event_id"] = _mint_id(doc)
     except ValueError:
@@ -1149,6 +1207,23 @@ async def _merge_into(ctx: PullCtx, doc: Dict[str, Any], c: Mapping[str, Any], *
         fields.update(status="review", status_reason="date_changed", proposed_dates=proposed)
         reason_detail = {"from": [d_start, d_end], "to": [c_start, c_end], "url": c.get("source_url")}
         ctx.alerts.append(f"📅 {_title_line(doc)}: la fuente cambió la fecha {d_start} → {c_start} (a revisión)")
+    elif date_differs and not same_source and d_start and c_start and tier <= 3 \
+            and (_int(doc.get("source_tier"), 6) or 6) >= 6 and role != "corroborate":
+        # 3B source-upgrade on a date conflict: a primary (tier ≤ 3) page states ANOTHER date
+        # for an aggregator-held row. The primary becomes the row's source (aggregator demoted
+        # to second_source), its dates land as PROPOSED — review/date_changed; approve applies
+        # them. Never silent, never a twin, and an aggregator's value never outranks a primary's.
+        specific_alert = True
+        d_tier0 = _int(doc.get("source_tier"), 6) or 6
+        fields.update(status="review", status_reason="date_changed", proposed_dates=proposed,
+                      second_source_url=doc.get("source_url"), second_source_name=doc.get("source_name"),
+                      second_source_tier=d_tier0, source_url=c.get("source_url"),
+                      source_name=c.get("source_name") or doc.get("source_name"), source_tier=tier,
+                      source_key=c.get("source_key"), recheck_url=c.get("recheck_url") or c.get("source_url"))
+        reason_detail = {"marker": "date_corrected", "from": [d_start, d_end], "to": [c_start, c_end],
+                         "upgraded_from": doc.get("source_name"), "url": c.get("source_url")}
+        ctx.alerts.append(f"📅 {_title_line(doc)}: {c_dom} (tier {tier}) corrige la fecha {d_start} → {c_when} "
+                          f"y mejora la fuente ({gate.registrable_domain(doc.get('source_url'))} → {c_dom}) · a revisión")
     elif not d_start and isinstance(c_start, str) and tier <= 3 and c_visible:
         # A date_tbc row whose date another official (tier ≤ 3) page now states visibly: §13 A3 /
         # §15 S3 — review/date_changed with the proposed dates and an alert; approve applies them
@@ -1287,7 +1362,8 @@ async def run_pull(db_: Any, *, now: Optional[datetime] = None, source_key: Opti
     # ticks stay one cursor read + one anchors-version read (§16.4).
     flags = await runtime.get_flags(db_)
     disabled = set(flags.get("sources_disabled") or [])
-    ctx = PullCtx(db_, started, run_id, dry=dry, catalog=await load_catalog(db_), gazetteer=load_gazetteer())
+    ctx = PullCtx(db_, started, run_id, dry=dry, catalog=await load_catalog(db_), gazetteer=load_gazetteer(),
+                  review_only=set(flags.get("review_only_sources") or []))
     if poison:
         ctx.errors.append(poison)
     idx = _int(cur.get("idx"))
@@ -3034,6 +3110,14 @@ async def patch_flags(db_: Any, body: Mapping[str, Any], *, actor: str, now: Opt
         if bad:
             raise HTTPException(status_code=400, detail={"error": "unknown_sources", "keys": bad})
         upd["sources_disabled"] = sorted(set(sd))
+    if "review_only_sources" in body:
+        ro = body["review_only_sources"]
+        if not isinstance(ro, list) or not all(isinstance(s, str) for s in ro):
+            raise HTTPException(status_code=400, detail="review_only_sources must be a list of source keys")
+        bad = sorted(set(ro) - set(sources.SOURCES_BY_KEY))
+        if bad:
+            raise HTTPException(status_code=400, detail={"error": "unknown_sources", "keys": bad})
+        upd["review_only_sources"] = sorted(set(ro))
     await db_.city_events_state.update_one({"_id": "flags"},
                                            {"$set": {**upd, "updated_at": _iso(n), "updated_by": actor}}, upsert=True)
     await _log(db_, None, actor, None, upd, "flags", None, n)
@@ -3394,6 +3478,8 @@ async def flags_read_route(request: Request) -> Dict[str, Any]:
     d = _need_db()
     await require_admin_read(request)
     return {"flags": await runtime.get_flags(d), "sentinel_healthy": await runtime.sentinel_healthy(d),
+            "sources": [{k: e.get(k) for k in ("key", "name", "tier", "role", "enabled")}
+                        for e in sources.public_sources()],
             "note": "Cambios tardan hasta 30 s (caché de instancia) + CDN: feed ≈ 180 s, legacy ≈ 360 s."}
 
 

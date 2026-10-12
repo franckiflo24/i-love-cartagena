@@ -67,16 +67,21 @@ async def get_flags(db: Any) -> Dict[str, Any]:
             value["enabled"] = env_default_enabled()
         else:
             sd = doc.get("sources_disabled")
+            ro = doc.get("review_only_sources")
             en = doc.get("enabled")
             value = {
                 "enabled": en if isinstance(en, bool) else env_default_enabled(),
                 "sources_disabled": [str(s) for s in sd if isinstance(s, str)] if isinstance(sd, list) else [],
+                # 3B: sources whose NEW rows always land review (human probation lever).
+                "review_only_sources": [str(s) for s in ro if isinstance(s, str)] if isinstance(ro, list) else [],
             }
     except Exception as exc:  # noqa: BLE001 — any read failure disables events
         logger.error("[events] get_flags read failed: %s", type(exc).__name__)
         value, ttl = _disabled(), FLAGS_ERROR_TTL_S
+    value.setdefault("review_only_sources", [])
     _flags_cache.update(value=value, exp=now + ttl)
-    return dict(value, sources_disabled=list(value["sources_disabled"]))
+    return dict(value, sources_disabled=list(value["sources_disabled"]),
+                review_only_sources=list(value["review_only_sources"]))
 
 
 def _finished_at(run: Mapping[str, Any]) -> Optional[datetime]:

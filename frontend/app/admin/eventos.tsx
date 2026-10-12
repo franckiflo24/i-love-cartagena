@@ -27,11 +27,15 @@ type Row = {
   venue_name?: string;
   lat?: number; lng?: number;
   source_name?: string; source_url?: string;
+  source_tier?: number; second_source_name?: string; second_source_tier?: number;
+  proposed_dates?: { start_date?: string; end_date?: string; start_time?: string | null } | null;
   confidence?: string; status_reason?: string | null;
   possible_duplicate_of?: string | null;
   capture?: { note?: string | null; photo_url?: string | null; by?: string; at?: string } | null;
   updated_at?: string;
 };
+
+type SourceInfo = { key: string; name: string; tier: number; role: string; enabled?: boolean };
 
 const ERR_COPY: Record<string, string> = {
   no_source: 'Sin fuente citable — no se puede publicar.',
@@ -59,6 +63,10 @@ export default function AdminEventosQueue() {
   const [datesFor, setDatesFor] = useState<string | null>(null);
   const [dDate, setDDate] = useState(''); const [dTime, setDTime] = useState(''); const [dReason, setDReason] = useState('');
   const [rowMsg, setRowMsg] = useState<Record<string, string>>({});
+  const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [sourceList, setSourceList] = useState<SourceInfo[]>([]);
+  const [reviewOnly, setReviewOnly] = useState<string[]>([]);
+  const [flagBusy, setFlagBusy] = useState(false);
 
   useEffect(() => {
     if (!authLoading && (!user || !user.is_admin)) router.replace('/');
@@ -66,9 +74,16 @@ export default function AdminEventosQueue() {
 
   const load = useCallback(async () => {
     try {
-      const res = await api.get('/admin/events/review');
+      const [res, fl] = await Promise.all([
+        api.get('/admin/events/review'),
+        api.get('/admin/events/flags').catch(() => null),
+      ]);
       setRows(Array.isArray(res?.rows) ? res.rows : []);
       setRejects(Array.isArray(res?.rejects) ? res.rejects.length : 0);
+      if (fl) {
+        setSourceList(Array.isArray(fl.sources) ? fl.sources : []);
+        setReviewOnly(Array.isArray(fl.flags?.review_only_sources) ? fl.flags.review_only_sources : []);
+      }
       setLoadError(false);
     } catch (e) {
       console.error('[AdminEventos] load', e);
@@ -76,6 +91,22 @@ export default function AdminEventosQueue() {
     }
     setRefreshing(false);
   }, []);
+
+  // 3B probation toggle: a listed source's NEW rows always land review (sticky)
+  // until a human approves them — flips flags.review_only_sources server-side.
+  const toggleReviewOnly = useCallback(async (key: string) => {
+    if (flagBusy) return;
+    const next = reviewOnly.includes(key) ? reviewOnly.filter((k) => k !== key) : [...reviewOnly, key];
+    setFlagBusy(true);
+    try {
+      const out = await api.post('/admin/events/flags', { review_only_sources: next });
+      setReviewOnly(Array.isArray(out?.flags?.review_only_sources) ? out.flags.review_only_sources : next);
+    } catch (e) {
+      console.error('[AdminEventos] flags', e);
+    } finally {
+      setFlagBusy(false);
+    }
+  }, [flagBusy, reviewOnly]);
 
   useEffect(() => { if (user?.is_admin) load(); }, [user, load]);
 
@@ -153,6 +184,38 @@ export default function AdminEventosQueue() {
             <TouchableOpacity onPress={load}><Text style={styles.retry}>{tr('reintentar')}</Text></TouchableOpacity>
           </View>
         )}
+        {sourceList.length > 0 && (
+          <View style={styles.card}>
+            <TouchableOpacity style={styles.srcHead} onPress={() => setSourcesOpen((o) => !o)} accessibilityRole="button">
+              <Ionicons name="git-network-outline" size={15} color={COLORS.textMuted} />
+              <Text style={styles.srcHeadText}>{tr('Fuentes')} ({sourceList.length})</Text>
+              <Ionicons name={sourcesOpen ? 'chevron-up' : 'chevron-down'} size={15} color={COLORS.textMuted} />
+            </TouchableOpacity>
+            {sourcesOpen && sourceList.map((s) => {
+              const probation = reviewOnly.includes(s.key);
+              return (
+                <View key={s.key} style={styles.srcRow}>
+                  <Text style={styles.srcName}>{s.name} <Text style={styles.srcTier}>T{s.tier}</Text></Text>
+                  <TouchableOpacity
+                    style={[styles.srcToggle, probation && styles.srcToggleOn]}
+                    disabled={flagBusy}
+                    onPress={() => toggleReviewOnly(s.key)}
+                    accessibilityRole="button"
+                  >
+                    <Text style={[styles.srcToggleText, probation && { color: COLORS.mustard }]}>
+                      {tr(probation ? 'Solo revisión' : 'Publica con la puerta')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+            {sourcesOpen && (
+              <Text style={styles.srcFine}>
+                {tr('“Solo revisión”: lo nuevo de esa fuente espera aprobación humana aunque pase la puerta.')}
+              </Text>
+            )}
+          </View>
+        )}
         {rows === null && !loadError && <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />}
         {rows !== null && rows.length === 0 && !loadError && (
           <View style={styles.center}>
@@ -186,6 +249,19 @@ export default function AdminEventosQueue() {
                 <TouchableOpacity onPress={() => openExternal(r.source_url as string)} accessibilityRole="link">
                   <Text style={styles.sourceLink}>🔗 {r.source_name || r.source_url}</Text>
                 </TouchableOpacity>
+              )}
+              {typeof r.second_source_tier === 'number' && typeof r.source_tier === 'number'
+                && r.second_source_tier > r.source_tier && (
+                <Text style={styles.upgradeChip}>
+                  ⬆ {tr('Fuente mejorada')}: {r.second_source_name || `T${r.second_source_tier}`} → {r.source_name}
+                </Text>
+              )}
+              {!!r.proposed_dates?.start_date && (
+                <Text style={styles.proposedLine}>
+                  📅 {tr('Fecha propuesta')}: {r.proposed_dates.start_date}
+                  {r.proposed_dates.start_time ? ` ${r.proposed_dates.start_time}` : ''}
+                  {r.start_date ? ` (${tr('hoy en la fila')}: ${r.start_date})` : ''} — {tr('Aprobar la aplica')}
+                </Text>
               )}
               {!!r.capture?.note && <Text style={styles.note}>“{r.capture.note}”</Text>}
               {!!r.capture?.photo_url && (
@@ -294,6 +370,20 @@ const styles = StyleSheet.create({
   dupBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: `${COLORS.mustard}14`, borderWidth: 1, borderColor: `${COLORS.mustard}55`, borderRadius: RADIUS.md, padding: 8 },
   dupText: { flex: 1, fontSize: 12, color: COLORS.mustard, ...FONTS.semibold },
   rowMsg: { fontSize: 12.5, color: '#22C55E', ...FONTS.semibold },
+  upgradeChip: { fontSize: 12, color: '#22C55E', ...FONTS.semibold },
+  proposedLine: { fontSize: 12, color: COLORS.mustard, ...FONTS.semibold },
+  srcHead: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 40 },
+  srcHeadText: { flex: 1, fontSize: 13.5, color: COLORS.textMain, ...FONTS.bold },
+  srcRow: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 40 },
+  srcName: { flex: 1, fontSize: 12.5, color: COLORS.textMuted, ...FONTS.medium },
+  srcTier: { fontSize: 10.5, color: COLORS.textFaint, ...FONTS.bold },
+  srcToggle: {
+    borderWidth: 1, borderColor: COLORS.hairline, borderRadius: RADIUS.full,
+    paddingHorizontal: 12, paddingVertical: 7, backgroundColor: COLORS.background,
+  },
+  srcToggleOn: { borderColor: `${COLORS.mustard}66`, backgroundColor: `${COLORS.mustard}14` },
+  srcToggleText: { fontSize: 11.5, color: COLORS.textMuted, ...FONTS.semibold },
+  srcFine: { fontSize: 11, color: COLORS.textFaint, ...FONTS.medium, marginTop: 4 },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
   btn: { minHeight: 40, borderRadius: RADIUS.full, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
   approve: { backgroundColor: COLORS.primary },

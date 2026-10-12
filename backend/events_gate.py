@@ -47,6 +47,9 @@ STICKY_REVIEW_REASONS = frozenset({
     # Verifier additions (same R1 class: a source disagrees with the row; only admin approve clears):
     # a tier 4–5 page matching the row says cancelled/postponed; the source row now names another venue.
     "cancel_reported", "venue_changed",
+    # 3B: the source is on review-probation (flags.review_only_sources) — its new rows wait for a
+    # human even when gate-clean; without stickiness the next evaluate() would flip them live.
+    "source_probation",
 })
 
 # §15 Q5 Distrito box + Turbaná/Turbaco exclusion.

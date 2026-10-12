@@ -668,14 +668,14 @@ def test_admin_mutations_need_bearer_session_or_cookie_origin_and_header(monkeyp
                         headers={"Origin": "https://www.amocartagena.co", "X-AMO-Admin": "1"})
     assert ok.status_code == 200 and ok.json()["flags"]["enabled"] is False
     r = h.client.post("/api/admin/events/flags", json={"enabled": True}, headers={"Authorization": "Bearer st_adm"})
-    assert r.status_code == 200 and r.json()["flags"] == {"enabled": True, "sources_disabled": []}
+    assert r.status_code == 200 and r.json()["flags"] == {"enabled": True, "sources_disabled": [], "review_only_sources": []}
     assert h.client.post("/api/admin/events/flags", json={"legacy_hidden": True},
                          headers={"Authorization": "Bearer st_adm"}).status_code == 400
     assert h.client.post("/api/admin/events/flags", json={"sources_disabled": ["nope"]},
                          headers={"Authorization": "Bearer st_adm"}).status_code == 400
     r = h.client.post("/api/admin/events/flags", json={"sources_disabled": ["tuboleta"]},
                       headers={"Authorization": "Bearer st_adm"})
-    assert r.json()["flags"] == {"enabled": True, "sources_disabled": ["tuboleta"]}, "PATCH keeps the other keys"
+    assert r.json()["flags"] == {"enabled": True, "sources_disabled": ["tuboleta"], "review_only_sources": []}, "PATCH keeps the other keys"
     assert h.client.post("/api/admin/events/flags", json={"enabled": True},
                          headers={"Authorization": "Bearer st_other"}).status_code == 401
 

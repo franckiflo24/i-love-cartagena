@@ -435,7 +435,7 @@ def test_env_enabled_defaults_only_a_missing_flags_doc(monkeypatch: pytest.Monke
     assert _flags(stub_db(enabled=True))["enabled"] is True
     no_key = stub_db(enabled=None)
     asyncio.run(no_key.city_events_state.insert_one({"_id": "flags", "sources_disabled": ["tuboleta"]}))
-    assert _flags(no_key) == {"enabled": True, "sources_disabled": ["tuboleta"]}
+    assert _flags(no_key) == {"enabled": True, "sources_disabled": ["tuboleta"], "review_only_sources": []}
 
     class Broken(StubDB):
         @property

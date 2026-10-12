@@ -70,7 +70,11 @@ BOGOTA_TZ = timezone(timedelta(hours=-5), "America/Bogota")
 
 # Hosts we never crawl automatically (§13 G: www.cartagena.gov.co sits behind a deliberate bot
 # wall; its articles are anchor evidence only) and dead ends from §5 (eTicket DNS / spam takeover).
-NEVER_CRAWL_HOSTS = ("cartagena.gov.co", "eticket.co", "eticket.com.co")
+# passline.com: challenge page (anti-bot) even for a polite identified UA from prod egress
+# (probed 2026-10-12) — we do not bypass bot walls; revisit only if they open a feed/API.
+# eventu.co: WordPress tc_events with ZERO JSON-LD on event pages and an Atlántico-centric
+# catalog (probed 2026-10-12) — nothing honest to parse; URL-sentinel territory like eticket.
+NEVER_CRAWL_HOSTS = ("cartagena.gov.co", "eticket.co", "eticket.com.co", "passline.com", "eventu.co")
 
 # §15 Q5 placeholder coordinates (mirrors events_gate.PLACEHOLDER_COORDS). Source coordinates that
 # match one of these within 1e-3 are never passed on as "geocoded".
