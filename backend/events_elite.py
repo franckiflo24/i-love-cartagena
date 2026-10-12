@@ -48,6 +48,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pymongo import ReturnDocument
 from pymongo.errors import DuplicateKeyError
 
+import blob_storage as _blob
 import events_gate as gate
 import events_legacy as legacy
 import events_runtime as runtime
@@ -3473,6 +3474,216 @@ async def verify_route(event_id: str, request: Request) -> Dict[str, Any]:
     body = await _json_body(request)
     return await verify_event(d, event_id, body.get("evidence_url"), body.get("date_text"),
                               actor=f"admin:{user.get('user_id', '?')}")
+
+
+# ── DROP 3A: field capture intake ("Vi un evento ahora") ────────────────────
+# A staff sighting enters the SAME funnel as every pipeline row: status review,
+# source required, country gate, dedup — approve_event stays the only door to
+# published (3A ships no auto-publish). The capture's citable source is its own
+# public record (GET /api/events/captures/{id}), served by server.py.
+
+CAPTURE_SOURCE_BASE = os.environ.get(
+    "EVENTS_CAPTURE_BASE", "https://backend-mu-one-74.vercel.app/api/events/captures")
+_CAPTURE_DATE_MODES = ("now", "today", "date", "tbc")
+_CAPTURE_MAX_PHOTO_CHARS = 3_500_000  # ~2.6 MB binary; the client compresses first
+
+
+def _capture_err(code: str, hint: Optional[str] = None) -> HTTPException:
+    detail: Dict[str, Any] = {"error": code}
+    if hint:
+        detail["hint"] = hint
+    return HTTPException(status_code=422, detail=detail)
+
+
+async def _capture_duplicate_of(db_: Any, mk: str, title: Any, start_date: Optional[str]) -> Optional[str]:
+    """Dedup on intake: exact match_key first, then folded-title + same local date.
+    Searches live + queue rows (hidden/expired twins are the sentinel's business)."""
+    probe_statuses = ("published", "date_tbc", "review")
+    try:
+        row = await db_.city_events.find_one({"match_key": mk, "status": {"$in": list(probe_statuses)}}, {"_id": 0})
+        if row:
+            return str(row.get("event_id"))
+        if start_date:
+            cand = await db_.city_events.find({"start_date": start_date,
+                                               "status": {"$in": list(probe_statuses)}}, {"_id": 0}) \
+                .limit(200).to_list(length=200)
+            ft = gate.fold(title)
+            for r in cand:
+                t = r.get("title")
+                t_es = t.get("es") if isinstance(t, Mapping) else t
+                if ft and gate.fold(t_es) == ft:
+                    return str(r.get("event_id"))
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[events] capture dedup failed: %s", type(exc).__name__)
+    return None
+
+
+async def create_capture_draft(db_: Any, body: Mapping[str, Any], *, actor: str,
+                               now: Optional[datetime] = None) -> Dict[str, Any]:
+    n = _now(now)
+    n_b = n.astimezone(gate.BOGOTA)
+    today = gate.bogota_today(n)
+
+    title = str(body.get("title") or "").strip()
+    if not 4 <= len(title) <= 120:
+        raise _capture_err("bad_title")
+    venue_name = str(body.get("venue_name") or "").strip()[:120]
+    note = str(body.get("note") or "").strip()[:500]
+    category = body.get("category") if body.get("category") in gate.CATEGORIES else "cultural"
+
+    # dates — Bogotá wall clock only; never a guessed date (§ honesty rails)
+    mode = body.get("date_mode")
+    if mode not in _CAPTURE_DATE_MODES:
+        raise _capture_err("bad_date_mode")
+    start_date: Optional[str] = None
+    start_time: Optional[str] = None
+    if mode == "now":
+        start_date, start_time = today, n_b.strftime("%H:%M")
+    elif mode == "today":
+        start_date = today
+    elif mode == "date":
+        d = gate._ymd(body.get("start_date"))  # noqa: SLF001
+        if d is None:
+            raise _capture_err("bad_start_date")
+        if d.isoformat() < today:
+            raise _capture_err("past_date")
+        start_date = d.isoformat()
+        t = body.get("start_time")
+        if t is not None:
+            if not isinstance(t, str) or not _SET_DATES_HHMM.match(t):
+                raise _capture_err("bad_start_time")
+            start_time = t
+
+    # civic resolution travels WITH the capture (client runs the Drop-2 resolver
+    # live in the form); the server only accepts coords inside the Distrito.
+    civic = body.get("civic") if isinstance(body.get("civic"), Mapping) else None
+    lat = lng = None
+    civic_id: Optional[str] = None
+    if civic:
+        c_lat, c_lng = gate._finite(civic.get("lat")), gate._finite(civic.get("lng"))  # noqa: SLF001
+        if c_lat is not None and c_lng is not None and gate.in_distrito(c_lat, c_lng):
+            lat, lng = c_lat, c_lng
+            civic_id = str(civic.get("id") or "")[:60] or None
+
+    capture_id = uuid.uuid4().hex[:12]
+    capture_url = f"{CAPTURE_SOURCE_BASE}/{capture_id}"
+
+    # geofilter — the same §15 Q gate every scraped row passes. The Cartagena
+    # locality context is product truth (staff capture = AMO ground team on site);
+    # any Spain signal in the typed text still fails it closed.
+    verdict, signals = gate.country_check({
+        "source_url": capture_url,
+        "venue_name": venue_name or None,
+        "address": "Cartagena de Indias, Bolívar, Colombia",
+        "country_iso": "CO",
+        "tz_offset": "-05:00",
+        "lat": lat, "lng": lng,
+        "event_text": f"{title} · {venue_name} · {note}",
+        "geocode_source": f"civic:{civic_id}" if civic_id else None,
+    })
+    if verdict != "pass":
+        raise _capture_err("geofilter", hint="; ".join(signals[:4]))
+
+    # optional photo = EVIDENCE (never auto-shown publicly: image_url stays unset)
+    photo_url: Optional[str] = None
+    photo = body.get("photo_data_url")
+    if isinstance(photo, str) and photo.startswith("data:image/"):
+        if len(photo) > _CAPTURE_MAX_PHOTO_CHARS:
+            raise _capture_err("photo_too_large")
+        photo_url = await _blob.upload_data_url(photo, pathname=f"captures/{capture_id}.jpg")
+
+    # A field sighting is this cycle's edition by definition — a tbc capture has
+    # no date/text year to derive one from, so the Bogotá year anchors match_key.
+    edition_year = gate.edition_year_from(title, start_date) or n_b.year
+    mk = gate.match_key(title, edition_year, venue_name, start_date)
+    dup = await _capture_duplicate_of(db_, mk, title, start_date)
+    event_id = gate.make_event_id(title, mk, start_date=start_date,
+                                  tbc_year=n_b.year, tbc_month=n_b.month)
+
+    date_text = (f"{start_date} {start_time}".strip() if start_date else "por confirmar")
+    evidence: List[Dict[str, Any]] = [{
+        "url": capture_url, "tier": 2, "fetched_at": _iso(n), "http_status": 200,
+        "date_text": date_text, "date_visible": bool(start_date), "kind": "field_capture",
+    }]
+    if photo_url:
+        evidence.append({"url": photo_url, "tier": 2, "fetched_at": _iso(n), "http_status": 200,
+                         "date_text": date_text, "date_visible": bool(start_date), "kind": "capture_photo"})
+
+    doc: Dict[str, Any] = {
+        "event_id": event_id, "canonical_key": mk, "match_key": mk,
+        "title": {"es": title}, "description": {"es": ""}, "category": category,
+        "edition_year": edition_year,
+        "start_date": start_date, "end_date": start_date, "start_time": start_time,
+        "time_confirmed": bool(start_time),
+        "venue_name": venue_name, "address": None,
+        "source_url": capture_url, "source_name": "Captura AMO", "source_tier": 2,
+        "source_keys": [f"capture:{capture_id}"],
+        "evidence": evidence,
+        "last_verified": _iso(n),
+        "country_check": verdict, "country_signals": signals[:8],
+        "status": "review", "status_reason": "field_capture",
+        "confidence": "VERIFY", "notif_eligible": False,
+        "origin": "pipeline", "ingest_kind": "field_capture",
+        "capture": {"capture_id": capture_id, "by": actor, "at": _iso(n),
+                    "note": note or None, "photo_url": photo_url, "civic_id": civic_id},
+        "ingested_at": _iso(n), "created_at": _iso(n), "updated_at": _iso(n),
+    }
+    if mode == "tbc":
+        doc["tbc_window_end"] = gate.tbc_window_end(n_b.year, n_b.month)
+        doc["date_tbc_note"] = gate.make_date_tbc_note(n_b.year, n_b.month)
+    if lat is not None and lng is not None:
+        doc["lat"], doc["lng"] = lat, lng
+        doc["geocode_source"] = f"civic:{civic_id}" if civic_id else "capture"
+    if dup:
+        doc["possible_duplicate_of"] = dup
+
+    try:
+        await db_.city_events.insert_one(doc)
+    except DuplicateKeyError:
+        raise _capture_err("already_exists", hint=event_id)
+    await _log(db_, event_id, actor, None, "review", "capture",
+               detail={"capture_id": capture_id, "civic_id": civic_id,
+                       "possible_duplicate_of": dup, "photo": bool(photo_url)}, now=n)
+    return {"event_id": event_id, "capture_id": capture_id, "status": "review",
+            "possible_duplicate_of": dup, "civic_id": civic_id,
+            "pinned": lat is not None, "source_url": capture_url}
+
+
+async def capture_public_record(db_: Any, capture_id: str) -> Optional[Dict[str, Any]]:
+    """The citable record behind a capture's source_url. Sanitized: team-level
+    attribution only — staff identity stays in the admin log (Ley 1581 instinct)."""
+    if not re.fullmatch(r"[a-f0-9]{8,16}", capture_id or ""):
+        return None
+    try:
+        row = await db_.city_events.find_one({"capture.capture_id": capture_id}, {"_id": 0})
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[events] capture record read failed: %s", type(exc).__name__)
+        return None
+    if not row:
+        return None
+    cap = row.get("capture") if isinstance(row.get("capture"), Mapping) else {}
+    title = row.get("title")
+    return {
+        "capture_id": capture_id,
+        "kind": "field_capture",
+        "captured_at": cap.get("at"),
+        "reported_by": "Equipo AMO · Cartagena",
+        "title": title.get("es") if isinstance(title, Mapping) else title,
+        "venue_name": row.get("venue_name") or None,
+        "civic_id": cap.get("civic_id"),
+        "photo_url": cap.get("photo_url"),
+        "event_id": row.get("event_id"),
+        "event_status": row.get("status"),
+        "note": "Avistamiento reportado por el equipo AMO en campo. Pasa por revisión humana antes de publicarse.",
+    }
+
+
+@router.post("/admin/events/capture")
+async def capture_route(request: Request) -> Dict[str, Any]:
+    d = _need_db()
+    user = await require_admin_mutation(request)
+    body = await _json_body(request)
+    return await create_capture_draft(d, body, actor=f"admin:{user.get('user_id', '?')}")
 
 
 # ── prefs (§2 event_notif_prefs, §13 J7) ─────────────────────────────────────

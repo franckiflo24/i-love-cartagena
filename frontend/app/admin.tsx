@@ -793,22 +793,25 @@ export default function AdminPortal() {
   const [modStatsStale, setModStatsStale] = useState(false);
   const [usersData, setUsersData] = useState<any>(null);
   const [businessesData, setBusinessesData] = useState<any>(null);
+  const [eventsPending, setEventsPending] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showDashboard, setShowDashboard] = useState(true);
 
   const fetchData = useCallback(async () => {
     try {
-      const [d, u, ms, biz] = await Promise.all([
+      const [d, u, ms, biz, evq] = await Promise.all([
         api.get('/analytics/dashboard').catch(() => null),
         api.get('/admin/users').catch(() => null),
         api.get('/admin/moderation/stats').then((v) => { setModStatsStale(false); return v; }).catch(() => { setModStatsStale(true); return null; }),
         api.get('/admin/businesses').catch(() => null),
+        api.get('/admin/events/review').catch(() => null),
       ]);
       if (d) setData(d);   // keep last-good KPIs on a failed refresh, never blank to null
       if (u) setUsersData(u);
       if (ms) setModStats(ms);
       if (biz) setBusinessesData(biz);
+      if (evq && Array.isArray(evq.rows)) setEventsPending(evq.rows.length);
     } catch (e) { console.error('Dashboard fetch error:', e); }
     setLoading(false);
     setRefreshing(false);
@@ -939,6 +942,29 @@ export default function AdminPortal() {
       badge: modStats?.pending,
       badgeStale: modStatsStale,
       onPress: () => router.push('/admin/moderation'),
+      onLockedPress: goAdminLogin,
+    },
+    {
+      key: 'eventos-cola',
+      title: tr('Qué pasa — Cola de eventos'),
+      subtitle: tr('Capturas e ingesta en revisión'),
+      lockReason: tr('Requiere sesión admin · toca para entrar'),
+      icon: 'calendar',
+      accent: colorForKey('eventos'),
+      available: isAdmin,
+      badge: eventsPending ?? undefined,
+      onPress: () => router.push('/admin/eventos' as any),
+      onLockedPress: goAdminLogin,
+    },
+    {
+      key: 'captura',
+      title: tr('Vi un evento ahora'),
+      subtitle: tr('Captura de campo en 15 segundos'),
+      lockReason: tr('Requiere sesión admin · toca para entrar'),
+      icon: 'camera',
+      accent: colorForKey('captura'),
+      available: isAdmin,
+      onPress: () => router.push('/admin/captura' as any),
       onLockedPress: goAdminLogin,
     },
     {

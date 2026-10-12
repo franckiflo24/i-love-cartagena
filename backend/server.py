@@ -4514,6 +4514,17 @@ async def events_feed(response: Response):
     return await _events_elite.feed_payload(db, image_ok=_public_image_exists)
 
 
+@api_router.get("/events/captures/{capture_id}")
+async def events_capture_record(capture_id: str, response: Response):
+    """DROP 3A: the citable public record behind a field capture's source_url —
+    sanitized (team-level attribution only), any event status, 404 when unknown."""
+    _cache(response, 300, swr=600)
+    rec = await _events_elite.capture_public_record(db, capture_id)
+    if rec is None:
+        raise HTTPException(status_code=404, detail="Capture not found")
+    return rec
+
+
 @api_router.get("/events/feed/item/{event_id}")
 async def events_feed_item(event_id: str, response: Response):
     """ANY status (hidden/expired carry status_reason; hidden/review rows have dates, times and
