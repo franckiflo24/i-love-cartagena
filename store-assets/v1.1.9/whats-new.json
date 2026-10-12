@@ -1,0 +1,7 @@
+{
+  "version": "1.1.9",
+  "whatsNew": {
+    "es-MX": "Llega la Billetera segura:\n\n• Activa tu billetera en Perfil → Billetera segura: tu llave se crea dentro del chip seguro de tu iPhone y nunca sale de él.\n• Apple verifica que tu app es auténtica antes de activarla — protección real contra copias y capturas.\n• Tus códigos QR siguen rotando: una captura de pantalla muere en segundos.\n• Mejoras de estabilidad y rendimiento.",
+    "en-US": "Meet the Secure Wallet:\n\n• Activate your wallet in Profile → Secure Wallet: your key is created inside your iPhone's secure chip and never leaves it.\n• Apple verifies your app is genuine before activation — real protection against clones and screenshots.\n• Your QR codes keep rotating: a screenshot dies in seconds.\n• Stability and performance improvements."
+  }
+}
