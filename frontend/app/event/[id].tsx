@@ -12,7 +12,7 @@
 // Price honesty: GRATIS only when price.is_free === true, otherwise "Consultar".
 // All hooks sit above the early returns (React #310).
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -38,6 +38,7 @@ import {
   getCachedFeed, hasRealCoords, loadFeedItem, loadLegacyEvent, pickL, subscribeFeed,
 } from '../../src/lib/eventsFeed';
 import { bogotaToday } from '../../src/lib/eventTime';
+import { eventJsonLd } from '../../src/lib/eventJsonLd';
 
 // Partner-event ids: `pe_<hex>` (backend create), `pe_bethel_dj_<date>` and the
 // seeded `evt_NNN`. City events are `ce-…` and never match.
@@ -112,6 +113,20 @@ export default function EventDetail() {
 
   const ev: PublicEvent | null = state.kind === 'ok' ? state.event : null;
   const offline = state.kind === 'ok' ? state.offline : false;
+
+  // SEO (web only): schema.org/Event JSON-LD injected into <head> — Google's renderer
+  // reads DOM-injected blocks; preview crawlers get the same data from api/event-share.
+  // The builder refuses anything that is not published with a real date (honesty rails).
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined' || !ev) return;
+    const ld = eventJsonLd(ev);
+    if (!ld) return;
+    const el = document.createElement('script');
+    el.type = 'application/ld+json';
+    el.text = JSON.stringify(ld);
+    document.head.appendChild(el);
+    return () => { el.remove(); };
+  }, [ev]);
 
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
   const openSource = useCallback(() => { if (ev?.source_url) openExternal(ev.source_url); }, [ev]);
@@ -226,7 +241,7 @@ export default function EventDetail() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Head><title>{`${title} · AMO Life`}</title></Head>
+      <Head><title>{published && dates ? `${title} · ${dates} · AMO Life` : `${title} · AMO Life`}</title></Head>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Hero — SafeImage paints the category placeholder from frame 0 */}
         <View style={styles.hero}>
@@ -433,6 +448,13 @@ export default function EventDetail() {
           </View>
         )}
 
+        {/* Contract line — same promise the /que-pasa footer makes */}
+        {(published || tbc) && (
+          <Text style={styles.contractLine}>
+            {tr('Horarios y precios pueden cambiar: confirma siempre con el organizador.')}
+          </Text>
+        )}
+
         <View style={{ height: 110 }} />
       </ScrollView>
 
@@ -528,6 +550,10 @@ const styles = StyleSheet.create({
   sourceLink: { flexDirection: 'row', alignItems: 'center', gap: 5, minHeight: 44 },
   sourceLinkText: { flexShrink: 1, fontSize: 13, color: COLORS.official, ...FONTS.semibold, textDecorationLine: 'underline' },
   sourceMeta: { fontSize: 11.5, color: COLORS.textFaint, ...FONTS.medium },
+  contractLine: {
+    fontSize: 11, lineHeight: 16, color: COLORS.textFaint, ...FONTS.medium, textAlign: 'center',
+    marginHorizontal: SPACING.xl, marginTop: SPACING.md,
+  },
 
   bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', padding: SPACING.lg, gap: SPACING.md, backgroundColor: COLORS.background, borderTopWidth: 1, borderTopColor: COLORS.border },
   dirBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: RADIUS.full, borderWidth: 1, borderColor: COLORS.primary, minHeight: 48 },

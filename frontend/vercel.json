@@ -167,6 +167,21 @@
       "source": "/BUSINESS/SCANNER",
       "destination": "/business/scanner",
       "statusCode": 308
+    },
+    {
+      "source": "/evento",
+      "destination": "/que-pasa",
+      "statusCode": 308
+    },
+    {
+      "source": "/evento/:id",
+      "destination": "/event/:id",
+      "statusCode": 308
+    },
+    {
+      "source": "/Evento/:id",
+      "destination": "/event/:id",
+      "statusCode": 308
     }
   ],
   "rewrites": [
@@ -253,6 +268,23 @@
     {
       "source": "/experience/:id",
       "destination": "/experience/%5Bid%5D"
+    },
+    {
+      "source": "/event/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|WhatsApp|whatsapp|Twitterbot|TelegramBot|Slackbot|Slack-ImgProxy|Discordbot|LinkedInBot|Pinterest|redditbot|Applebot|SkypeUriPreview|vkShare|Iframely|Embedly).*"
+        }
+      ],
+      "missing": [
+        {
+          "type": "query",
+          "key": "app"
+        }
+      ],
+      "destination": "/api/event-share?id=:id"
     },
     {
       "source": "/event/:id",
