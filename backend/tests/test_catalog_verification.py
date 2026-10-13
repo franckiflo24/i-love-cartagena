@@ -87,3 +87,29 @@ def test_hold_registry_exists_and_publishes_nothing() -> None:
         head = r["name"].split("/")[0].split("·")[0].strip().lower()
         if head in ("colombia4u", "uncover colombia", "travel city tours", "cultural cartagena"):
             assert head not in pub_names, f"HOLD row published: {head}"
+
+
+def test_5b_classes_rows_follow_the_model() -> None:
+    """5B: schools + cooking at Reportado; the price-spread exemplar states its spread;
+    self-claims stripped; the gateway tag present; the door-conflict row NOT published."""
+    by_id = {p["partner_id"]: p for p in PARTNERS}
+    for pid in ("ptr_act_nueva_lengua", "ptr_act_centro_catalina"):
+        p = by_id[pid]
+        assert p["verification"]["status"] == "reportado", pid
+        assert "classes" in (p.get("style_tags") or []), pid
+        assert p["category"] == "activity" and p["location"]["lat"], pid
+        blob = p["description"].lower()
+        assert "antes de pagar" in blob, pid
+        assert "la mejor escuela" not in blob, pid  # Nueva Lengua's self-claim never ships
+    lun = by_id["ptr_V054"]
+    assert lun["verification"]["status"] == "reportado"
+    assert "classes" in (lun.get("style_tags") or [])
+    assert "85" in lun["description"] and "116" in lun["description"], "the spread is the point"
+    assert "según la plataforma" in lun["description"]
+    # door-conflict and no-door rows stay unpublished
+    names = {p["name"].lower() for p in PARTNERS}
+    assert "crazy salsa" not in names
+    reg = json.loads((BACKEND / "data" / "activities_registry_5c.json").read_text(encoding="utf-8"))
+    reg_names = " ".join(r["name"] for r in reg["rows"]).lower()
+    for held in ("crazy salsa", "babel", "soma yoga", "tata"):
+        assert held in reg_names, held

@@ -1238,6 +1238,23 @@ async def build_context_snapshot(
     relevant_result = results[1] if not isinstance(results[1], Exception) else ([], {"intent_type": "general"})
     relevant_partners, routed_intent = relevant_result
     intent_type = routed_intent.get("intent_type", "general")
+
+    # 5B: class-intent injector. The tier-tagged class rows (schools, cooking) are new
+    # and unrated, so rank-ordered retrieval cut them from the context and Luna either
+    # declined ("check tourism offices") or pivoted — live-probed. A class question now
+    # deterministically puts the style_tags:"classes" rows at the head of
+    # relevant_partners (discipline-matched when the text names one), which also arms
+    # the 5A activities floor on the reply. Fail-open: any error changes nothing.
+    try:
+        if _CLASS_INTENT_RE.search(user_text or ""):
+            cls_rows = await _class_rows(db, user_text)
+            if cls_rows:
+                seen = {p.get("partner_id") for p in cls_rows}
+                relevant_partners = cls_rows + [p for p in relevant_partners
+                                                if p.get("partner_id") not in seen]
+                relevant_partners = relevant_partners[:15]
+    except Exception as exc:  # noqa: BLE001
+        logger.error(f"[agent] class injector failed: {type(exc).__name__}")
     pulse_map = results[2] if not isinstance(results[2], Exception) else {}
     curated = results[3] if not isinstance(results[3], Exception) else None
     if is_event and curated:
@@ -1464,6 +1481,44 @@ def _lens_gated_payload(user_text: str, lang: str) -> Optional[Dict[str, Any]]:
         return _lenses_mod.safety_guard_payload(user_text, lang)
     except Exception:  # noqa: BLE001 — a broken lens layer must not break Luna
         return None
+
+
+# 5B: class-intent detection + the tier-tagged class rows (style_tags "classes").
+_CLASS_INTENT_RE = re.compile(
+    r"(?<![a-z0-9])(clases?|class(?:es)?|cursos?|lecci(?:o|ó)n(?:es)?|lessons?|escuelas?|"
+    r"schools?|talleres?|workshops?|aprender|learn(?:ing)?)(?![a-z0-9])", re.IGNORECASE)
+_CLASS_DISCIPLINES = (
+    ("salsa", ("salsa", "baile", "bailar", "dance", "dancing")),
+    ("spanish", ("espanol", "español", "spanish", "idioma", "language", "dele")),
+    ("cooking", ("cocina", "cocinar", "cooking", "culinar", "gastronom")),
+    ("yoga", ("yoga", "pilates")),
+)
+
+
+async def _class_rows(db: Any, user_text: str) -> List[Dict[str, Any]]:
+    """The style_tags:"classes" rows, discipline-filtered when the question names one
+    (salsa/español/cocina/yoga); ALL class rows on a generic class question. Same
+    projection as retrieval so the 5A verification tier rides into the context."""
+    from partner_visibility import CONCIERGE_PARTNER_FILTER
+    fields = {"_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
+              "tier": 1, "price_range": 1, "address": 1, "rating": 1, "neighborhood": 1,
+              "experience": 1, "tags": 1, "signature_dishes": 1, "verification": 1,
+              "search_profile": 1, "style_tags": 1}
+    rows = await db.partners.find(
+        {**CONCIERGE_PARTNER_FILTER, "style_tags": "classes"}, fields).to_list(12)
+    t = _norm_es(user_text)
+    wanted = [d for d, words in _CLASS_DISCIPLINES if any(w in t for w in words)]
+    if not wanted:
+        return rows
+    def hit(p: Mapping[str, Any]) -> bool:
+        hay = _norm_es(f"{p.get('name','')} {p.get('search_profile','')} {p.get('subcategory','')}")
+        return any(any(w in hay for w in words) for d, words in _CLASS_DISCIPLINES if d in wanted)
+    return [p for p in rows if hit(p)]
+
+
+def _norm_es(s: Any) -> str:
+    import unicodedata
+    return unicodedata.normalize("NFD", str(s or "")).encode("ascii", "ignore").decode().lower()
 
 
 def _lens_context(user_text: str) -> Optional[Dict[str, Any]]:

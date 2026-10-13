@@ -195,6 +195,9 @@ const SUBCATEGORIES: Record<string, Subcat[]> = {
   ],
   activity: [
     { key: 'cultural',      label: 'Cultural',       icon: 'library' },
+    // 5B: classes (salsa / español / cocina) ride style_tags 'classes' so one tile
+    // gathers them across their specific subcategories (spanish_school, cooking_class…).
+    { key: 'classes',       label: 'Clases',         icon: 'school' },
     { key: 'yacht',         label: 'Yates',          icon: 'boat' },
     { key: 'concierge',     label: 'Concierge',      icon: 'briefcase' },
   ],

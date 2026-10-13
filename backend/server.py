@@ -4445,6 +4445,12 @@ async def admin_upsert_editorial_venue(request: Request):
     verification = _clean_reportado_verification((body or {}).get("verification"))
     if verification:
         doc["verification"] = verification
+    # 5B: style_tags power the explore gateway tiles (e.g. the "Clases" tile matches
+    # style_tags.includes('classes')) — editorial rows may carry a small clean set.
+    raw_tags = (body or {}).get("style_tags")
+    if isinstance(raw_tags, list):
+        doc["style_tags"] = [str(t).strip()[:40] for t in raw_tags
+                             if isinstance(t, str) and t.strip()][:10]
     # NOTE: is_certified is forced False on every editorial write below — which is also
     # the 5A lever that strips the demo-era rows' unearned CERTIFICADO on update.
     doc.update(
