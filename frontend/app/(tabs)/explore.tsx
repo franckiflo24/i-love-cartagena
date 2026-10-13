@@ -1156,14 +1156,28 @@ export default function ExploreScreen() {
             {!!lensFilter.tagline && <Text style={styles.lensTagline}>{pickL4(lensFilter.tagline, lang)}</Text>}
             {lensFilter.advisories.map((a, i) => (
               <View key={i} style={styles.lensAdvisoryRow}>
-                <View style={[styles.lensAdvisoryChip, a.kind === 'unverified' && styles.lensAdvisoryChipWarn]}>
-                  <Text style={[styles.lensAdvisoryChipText, a.kind === 'unverified' && styles.lensAdvisoryChipTextWarn]}>
-                    {a.kind === 'unverified' ? tr('Sin verificar') : tr('Reportado por viajeros')}
+                <View style={[
+                  styles.lensAdvisoryChip,
+                  a.kind === 'unverified' && styles.lensAdvisoryChipWarn,
+                  a.kind === 'confirmed' && styles.lensAdvisoryChipOk,
+                  a.kind === 'invite' && styles.lensAdvisoryChipInvite,
+                ]}>
+                  <Text style={[
+                    styles.lensAdvisoryChipText,
+                    a.kind === 'unverified' && styles.lensAdvisoryChipTextWarn,
+                    a.kind === 'confirmed' && styles.lensAdvisoryChipTextOk,
+                    a.kind === 'invite' && styles.lensAdvisoryChipTextInvite,
+                  ]}>
+                    {a.kind === 'unverified' ? tr('Sin verificar')
+                      : a.kind === 'confirmed' ? tr('Oficial')
+                      : a.kind === 'invite' ? tr('Sé la primera')
+                      : tr(lensFilter.key === 'women_verified' ? 'Reportado por viajeras' : 'Reportado por viajeros')}
                   </Text>
                 </View>
                 <Text style={styles.lensAdvisoryText}>
                   {pickL4(a.text, lang)}
-                  {a.kind === 'reported' && a.source_name ? `  ·  ${tr('Fuente')}: ${a.source_name}` : ''}
+                  {(a.kind === 'reported' || a.kind === 'confirmed') && a.source_name
+                    ? `  ·  ${tr('Fuente')}: ${a.source_name}` : ''}
                 </Text>
               </View>
             ))}
@@ -1492,7 +1506,8 @@ export default function ExploreScreen() {
             partner={item}
             localCount={behavioralPick(localPicks, item.partner_id)?.local_count}
             lensBadge={lensFilter?.meta.get(item.partner_id)?.confidence === 'VERIFY'
-              ? tr('Reportado por viajeros') : null}
+              ? tr(lensFilter.key === 'women_verified' ? 'Reportado por viajeras' : 'Reportado por viajeros')
+              : null}
             onPress={() => router.push(`/partner/${item.partner_id}` as any)}
           />
         )}
@@ -1781,6 +1796,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(245,166,35,0.12)',
     borderColor: 'rgba(245,166,35,0.45)',
   },
+  lensAdvisoryChipOk: {
+    backgroundColor: 'rgba(59,130,246,0.12)',
+    borderColor: 'rgba(59,130,246,0.45)',
+  },
+  lensAdvisoryChipInvite: {
+    backgroundColor: 'rgba(236,72,153,0.12)',
+    borderColor: 'rgba(236,72,153,0.45)',
+  },
   lensAdvisoryChipText: {
     fontSize: 9,
     color: COLORS.textMuted,
@@ -1788,6 +1811,12 @@ const styles = StyleSheet.create({
   },
   lensAdvisoryChipTextWarn: {
     color: '#F5A623',
+  },
+  lensAdvisoryChipTextOk: {
+    color: '#3B82F6',
+  },
+  lensAdvisoryChipTextInvite: {
+    color: '#EC4899',
   },
   lensAdvisoryText: {
     flex: 1,

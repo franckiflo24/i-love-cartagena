@@ -82,10 +82,11 @@ function validate(data, catalogIds, catalogNames = new Map()) {
       // states a HOLD category as not confirmed (attached to no place).
       if (!Array.isArray(ln.advisories) || !ln.advisories.length) errs.push(`${k}: advisories empty`);
       for (const [i, a] of (Array.isArray(ln.advisories) ? ln.advisories : []).entries()) {
-        if (!['reported', 'unverified'].includes(a?.kind)) errs.push(`${k}.advisories[${i}]: kind`);
+        if (!['reported', 'unverified', 'confirmed', 'invite'].includes(a?.kind))
+          errs.push(`${k}.advisories[${i}]: kind`);
         if (!l4Ok(a?.text)) errs.push(`${k}.advisories[${i}]: text not L4`);
-        if (a?.kind === 'reported' && (!isStr(a.source_name) || !isStr(a.source_url)))
-          errs.push(`${k}.advisories[${i}]: reported advisory needs source_name+source_url`);
+        if (['reported', 'confirmed'].includes(a?.kind) && (!isStr(a.source_name) || !isStr(a.source_url)))
+          errs.push(`${k}.advisories[${i}]: ${a.kind} advisory needs source_name+source_url`);
       }
     }
   }

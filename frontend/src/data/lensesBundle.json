@@ -1,7 +1,7 @@
 {
  "version": 1,
  "updated": "2026-10-13",
- "generated_at": "2026-10-13T06:22:05.832Z",
+ "generated_at": "2026-10-13T06:55:18.762Z",
  "lenses": [
   {
    "key": "golden_hour",
@@ -177,12 +177,76 @@
     "fr": "Évalué par des femmes qui y sont allées — jamais deviné",
     "pt": "Avaliado por mulheres que estiveram lá — nunca adivinhado"
    },
-   "live": false,
+   "live": true,
    "fill": {
-    "high": 0,
-    "total": 0,
-    "min_fill": 8
-   }
+    "high": 4,
+    "total": 5,
+    "min_fill": 4
+   },
+   "advisories": [
+    {
+     "kind": "confirmed",
+     "text": {
+      "es": "Línea 155: orientación a mujeres víctimas de violencia — nacional, gratuita, 24/7, desde cualquier operador y puedes omitir tus datos. Emergencias: 123.",
+      "en": "Line 155: support line for women facing violence — national, free, 24/7, from any carrier, and you can stay anonymous. Emergencies: 123.",
+      "fr": "Ligne 155 : orientation pour les femmes victimes de violences — nationale, gratuite, 24 h/24, depuis tout opérateur, anonymat possible. Urgences : 123.",
+      "pt": "Linha 155: orientação a mulheres vítimas de violência — nacional, gratuita, 24/7, de qualquer operadora, e você pode omitir seus dados. Emergências: 123."
+     },
+     "source_name": "Policía Nacional de Colombia",
+     "source_url": "https://www.policia.gov.co/noticia/linea-155-orientacion-mujeres-victimas-violencia"
+    },
+    {
+     "kind": "confirmed",
+     "text": {
+      "es": "Citas por app y escopolamina (aviso del gobierno de Canadá): los estafadores construyen confianza en varias citas — a menudo en lugares públicos — antes de drogar la bebida o comida. Conoce en público, tu bebida siempre contigo, no lleves contactos nuevos a tu alojamiento, comparte tu plan con alguien y, ante un robo, no te resistas.",
+      "en": "Dating apps and scopolamine (Government of Canada advisory): scammers build trust over several dates — often in public places — before drugging a drink or food. Meet in public, keep your drink with you, don't bring new acquaintances to your accommodation, share your plan with someone, and don't resist a robbery.",
+      "fr": "Applis de rencontre et scopolamine (avis du gouvernement du Canada) : les escrocs gagnent la confiance sur plusieurs rendez-vous — souvent dans des lieux publics — avant de droguer un verre ou un plat. Rencontre en public, garde ton verre avec toi, n'amène pas de nouvelles connaissances à ton logement, partage ton plan et, en cas de vol, ne résiste pas.",
+      "pt": "Apps de encontro e escopolamina (aviso do governo do Canadá): golpistas constroem confiança ao longo de vários encontros — muitas vezes em lugares públicos — antes de drogar a bebida ou comida. Encontre em público, sua bebida sempre com você, não leve contatos novos à sua hospedagem, compartilhe seu plano e, num assalto, não resista."
+     },
+     "source_name": "Government of Canada — travel.gc.ca",
+     "source_url": "https://travel.gc.ca/destinations/colombia"
+    },
+    {
+     "kind": "confirmed",
+     "text": {
+      "es": "La Alcaldía opera la Casa de la Mujer Heroica: atención psicológica y asesoría jurídica gratuita para mujeres. Su sede ha tenido cambios — verifica la dirección y horario actuales en cartagena.gov.co o pregunta en la Línea 155.",
+      "en": "The city runs the Casa de la Mujer Heroica: free psychological care and legal counsel for women. Its location has changed over time — verify the current address and hours at cartagena.gov.co or ask Line 155.",
+      "fr": "La mairie gère la Casa de la Mujer Heroica : accompagnement psychologique et conseil juridique gratuits pour les femmes. Son adresse a changé — vérifie l'adresse et les horaires actuels sur cartagena.gov.co ou via la ligne 155.",
+      "pt": "A prefeitura opera a Casa de la Mujer Heroica: atendimento psicológico e assessoria jurídica gratuitos para mulheres. A sede mudou ao longo do tempo — verifique o endereço e horário atuais em cartagena.gov.co ou pergunte na Linha 155."
+     },
+     "source_name": "El Universal",
+     "source_url": "https://www.eluniversal.com.co/cartagena/2023/06/28/abren-casa-de-la-mujer-heroica-en-cartagena/"
+    },
+    {
+     "kind": "reported",
+     "text": {
+      "es": "Viajeras y guías locales reportan: de noche, pide vehículo por app en lugar de caminar o parar taxi en la calle; las zonas concurridas del Centro y Getsemaní se mantienen animadas hasta tarde — quédate donde hay gente y luz, y nunca dejes tu bebida sola.",
+      "en": "Women travelers and local guides report: at night, use ride-hailing instead of walking or street-hailing a taxi; the busy parts of the Centro and Getsemaní stay lively late — stick to people and light, and never leave your drink unattended.",
+      "fr": "Des voyageuses et guides locaux rapportent : la nuit, prends un véhicule par appli plutôt que marcher ou héler un taxi ; les zones animées du Centro et de Getsemaní restent vivantes tard — reste où il y a du monde et de la lumière, et ne laisse jamais ton verre sans surveillance.",
+      "pt": "Viajantes e guias locais relatam: à noite, peça carro por app em vez de caminhar ou parar táxi na rua; as áreas movimentadas do Centro e de Getsemaní ficam animadas até tarde — fique onde há gente e luz, e nunca deixe sua bebida sozinha."
+     },
+     "source_name": "Cartagena Explorer",
+     "source_url": "https://www.cartagenaexplorer.com/cartagena-safety-tips/"
+    },
+    {
+     "kind": "unverified",
+     "text": {
+      "es": "No confirmamos ningún servicio de conductoras mujeres en Cartagena. («Violeta al Volante» es un programa distrital de formación — no es una app ni se puede reservar.)",
+      "en": "We can't confirm any women-driver service in Cartagena. (\"Violeta al Volante\" is a city training program — it is not an app and can't be booked.)",
+      "fr": "Nous ne confirmons aucun service de conductrices à Carthagène. (« Violeta al Volante » est un programme municipal de formation — ce n'est pas une appli et il ne se réserve pas.)",
+      "pt": "Não confirmamos nenhum serviço de motoristas mulheres em Cartagena. («Violeta al Volante» é um programa municipal de formação — não é um app e não pode ser reservado.)"
+     }
+    },
+    {
+     "kind": "invite",
+     "text": {
+      "es": "Aún no hay lugares verificados por mujeres: esa capa se abre solo con calificaciones reales de usuarias dentro de la app — nunca con listas compradas. Sé la primera en calificar.",
+      "en": "No women-verified places yet: that layer opens only with real in-app ratings from women — never with bought lists. Be the first to rate.",
+      "fr": "Pas encore de lieux vérifiés par des femmes : cette couche ne s'ouvre qu'avec de vraies évaluations d'utilisatrices dans l'appli — jamais avec des listes achetées. Sois la première à évaluer.",
+      "pt": "Ainda não há lugares verificados por mulheres: essa camada só abre com avaliações reais de usuárias no app — nunca com listas compradas. Seja a primeira a avaliar."
+     }
+    }
+   ]
   }
  ],
  "access_tiers": {

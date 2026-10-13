@@ -69,9 +69,10 @@ def test_fill_gate_launch_state() -> None:  # §2 + V2 (+ 4A amendment)
     assert fills["family"]["live"] is True
     assert fills["family"]["high"] == 4 and fills["family"]["min_fill"] == 4
     assert fills["family"]["total"] >= 9              # + the VERIFY reported picks
-    assert fills["women_verified"]["live"] is False   # fills ONLY from in-app ratings
-    assert (DATA_tags_high := [t for t in DATA["venue_tags"]
-                               if t["lens"] == "women_verified"]) == [], DATA_tags_high
+    # 4C: women_verified is LIVE on its RESOURCE layer (the tourist-police svc rows);
+    # the venue-VERIFIED layer still fills ONLY from in-app ratings and launches empty.
+    assert fills["women_verified"]["live"] is True
+    assert fills["women_verified"]["high"] == 4 and fills["women_verified"]["min_fill"] == 4
 
 
 def test_castillo_pin_links_to_city_hub_and_states_no_price() -> None:
@@ -176,3 +177,37 @@ def test_family_never_claims_car_seats_or_life_jackets_on_a_venue() -> None:  # 
     advisory_text = " ".join(a["text"]["es"] for a in fam["advisories"])
     assert "al reservar" in advisory_text          # the confirm-at-booking advisory exists
     assert "regazo" in advisory_text               # the published lap-riding red flag is surfaced
+
+
+def test_women_lens_resource_only_rails() -> None:  # 4C — the strictest rails in the project
+    wt = [t for t in DATA["venue_tags"] if t["lens"] == "women_verified"]
+    w = next(l for l in DATA["lenses"] if l["key"] == "women_verified")
+    # HIGH rows are RESOURCES (svc_* public-institution records) — a HIGH women tag on a
+    # normal venue would be an editorial "women-verified place", which is ratings-only.
+    for t in wt:
+        if t["confidence"] == "HIGH":
+            assert t["venue_id"].startswith("svc_"), t["venue_id"]
+            assert t["attrs"].get("official_resource") is True, t["venue_id"]
+        # harassment_rating comes ONLY from in-app ratings — never seeded, any tier.
+        assert "harassment_rating" not in t["attrs"], t["venue_id"]
+    # scan everything the lens CLAIMS (tags, advisories, tagline, the deterministic
+    # lines) — but NOT luna.triggers, which are question MATCHERS and legitimately
+    # contain phrases like "zona segura" so the guard can catch them.
+    claims = {"tags": wt, "advisories": w["advisories"], "tagline": w["tagline"],
+              "resource_line": w["luna"]["resource_line"],
+              "decline_line": w["luna"]["decline_line"]}
+    body = json.dumps(claims, ensure_ascii=False).lower()
+    # never a danger map, never a safety guarantee, never the excluded "services"
+    assert "peligros" not in body            # no neighborhood labeled dangerous
+    forbidden_claims = body.replace("el lugar «seguro» garantizado", "")
+    assert "zona segura" not in forbidden_claims and "lugar seguro" not in forbidden_claims
+    assert "cartagenawomen" not in body      # men's dating-tour operation — excluded
+    assert "318" not in body                 # Línea rosa 318-555-2107: unverified → absent
+    # Violeta al Volante may appear ONLY as the not-bookable clarification
+    if "violeta al volante" in body:
+        assert "no es una app" in body or "not an app" in body
+    # the empty-state invitation exists and the resource line carries the real numbers
+    kinds = [a["kind"] for a in w["advisories"]]
+    assert kinds.count("confirmed") == 3 and "invite" in kinds and "unverified" in kinds
+    rl = w["luna"]["resource_line"]["es"]
+    assert "155" in rl and "123" in rl and "escopolamina" in rl

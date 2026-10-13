@@ -24,9 +24,11 @@ export type LightSlot = 'sunrise' | 'midday' | 'sunset';
 export type AccessTier = 'free' | 'purchase' | 'reservation' | 'guest_only' | 'paid_entry';
 
 /** 4A: lens-level honest-gap line. 'unverified' states a HOLD category as NOT
- *  confirmed (attached to no place); 'reported' is sourced area guidance. */
+ *  confirmed (attached to no place); 'reported' is sourced area guidance.
+ *  4C adds 'confirmed' (official, sourced — gov lines/advisories) and 'invite'
+ *  (the honest empty-state for the ratings-only women layer). */
 export interface LensAdvisory {
-  kind: 'reported' | 'unverified';
+  kind: 'reported' | 'unverified' | 'confirmed' | 'invite';
   text: L4;
   source_name?: string;
   source_url?: string;

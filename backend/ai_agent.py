@@ -1450,10 +1450,16 @@ _CITY_TITLE_SKIP = frozenset({
 
 def _lens_gated_payload(user_text: str, lang: str) -> Optional[Dict[str, Any]]:
     """§5 hard gate helper: a GATED lens topic answers ONLY with its decline line
-    (lenses.gated_decline_payload) — never the LLM. Fail-safe None on any error."""
+    (lenses.gated_decline_payload) — never the LLM. 4C: the safety-question space
+    then answers deterministically too (lenses.safety_guard_payload) — resources +
+    honest guidance, EVEN when lens routing misses the phrasing and even with the
+    women lens live. The model never freestyles a safety claim. Fail-safe None."""
     try:
         import lenses as _lenses_mod
-        return _lenses_mod.gated_decline_payload(user_text, lang)
+        p = _lenses_mod.gated_decline_payload(user_text, lang)
+        if p is not None:
+            return p
+        return _lenses_mod.safety_guard_payload(user_text, lang)
     except Exception:  # noqa: BLE001 — a broken lens layer must not break Luna
         return None
 

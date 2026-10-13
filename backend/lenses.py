@@ -154,7 +154,9 @@ def validate_lenses(data: Any, catalog_ids: Optional[set] = None) -> List[str]:
         if advs is not None:
             # 4A: lens-level honest-gap lines. "unverified" states a HOLD category as NOT
             # confirmed (never attached to a place); "reported" is area guidance and must
-            # carry its source like any other trust claim.
+            # carry its source like any other trust claim. 4C adds "confirmed" (official,
+            # source REQUIRED — gov lines/advisories) and "invite" (the honest empty-state
+            # for a layer that only fills from in-app ratings; no source by design).
             if not isinstance(advs, list) or not advs:
                 errs.append(f"{k}: advisories must be a non-empty list when present")
             else:
@@ -163,15 +165,17 @@ def validate_lenses(data: Any, catalog_ids: Optional[set] = None) -> List[str]:
                     if not isinstance(a, Mapping):
                         errs.append(f"{aid}: not an object")
                         continue
-                    if a.get("kind") not in ("reported", "unverified"):
-                        errs.append(f"{aid}: kind must be reported|unverified")
+                    if a.get("kind") not in ("reported", "unverified", "confirmed", "invite"):
+                        errs.append(f"{aid}: kind must be reported|unverified|confirmed|invite")
                     if not _l4_ok(a.get("text")):
                         errs.append(f"{aid}: text not L4-complete")
-                    if a.get("kind") == "reported":
+                    if a.get("kind") in ("reported", "confirmed"):
                         for f in ("source_name", "source_url"):
                             if not (isinstance(a.get(f), str) and a[f].strip()):
-                                errs.append(f"{aid}: reported advisory needs {f}")
+                                errs.append(f"{aid}: {a.get('kind')} advisory needs {f}")
         luna = ln.get("luna") or {}
+        if luna.get("resource_line") is not None and not _l4_ok(luna.get("resource_line")):
+            errs.append(f"{k}: luna.resource_line not L4-complete")
         if not (isinstance(luna.get("triggers"), list) and luna["triggers"]):
             errs.append(f"{k}: luna.triggers missing")
         if not _l4_ok(luna.get("decline_line")):
@@ -665,6 +669,94 @@ def luna_context(user_text: str) -> Optional[Dict[str, Any]]:
                     "entries": entries, "sunset_by_month": sunset_hhmm_by_month()
                     if key == "golden_hour" else None})
     return {"updated": data.get("updated"), "lenses": out} if out else None
+
+
+# ── 4C safety guard (§5): the never-guarantee space, INDEPENDENT of lens routing ──
+# The 4B lesson applied where it matters most: trigger lists miss phrasings, and a missed
+# safety question must never freestyle. This guard matches the broad danger/incident/
+# drugging/dating space plus solo-woman and "is it safe" shapes, and answers with the
+# women lens's deterministic resource_line (resources + honest guidance, zero claims of
+# any place being "safe"). It fires whether the women lens is live or gated.
+_B = r"(?<![a-z0-9])(?:{})(?![a-z0-9])"
+_SAFETY_HARD_RE = re.compile(_B.format("|".join([
+    r"peligr\w*", r"danger\w*", r"perigos\w*", r"dangereux", r"dangereuse",
+    r"rob(?:o|os|ar|an|aron|arme|ada|ado)", "robbed", "robbery", r"mugg\w*",
+    r"asalt\w*", r"atrac(?:o|os|an|aron)", r"acos\w*", r"harass\w*", "assedio",
+    "agresion", "agression", r"aggress\w*", r"agredi\w*",
+    "escopolamina", "scopolamine", "burundanga", r"drog\w*", "drugged",
+    "spike", "spiked", "spiking",
+    "me siguieron", "me siguio", "me esta siguiendo", "followed me", "following me",
+    r"stalk\w*", r"denunci\w*", "a quien llamo", "who do i call",
+    "miedo", "afraid", "scared", "peur", "medo", "sketchy",
+    "zonas a evitar", "zonas evito", "que zonas evito", "areas to avoid",
+    "avoid at night", "a eviter", "zonas a evitar",
+    "tinder", "bumble", "hinge", "app de citas", "apps de citas", "dating app",
+    "cita de", "blind date", r"manose\w*", r"grope\w*", "me tocaron",
+])))
+_SAFETY_STRONG_RE = re.compile(_B.format("|".join([
+    "viaja sola", "viajo sola", "viajar sola", "viajan solas", "sola de noche",
+    "salir sola", "andar sola", "caminar sola", "mujer sola", "mujeres solas",
+    "woman alone", "women alone", "alone at night", "traveling alone",
+    "travels alone", "travelling alone", "solo female", "voyage seule",
+    "seule la nuit", "femme seule", "femmes seules", "sortir seule", "sozinha",
+])))
+_SAFETY_SAFEQ_RE = re.compile(_B.format("|".join([
+    "es seguro", "es segura", "tan seguro", "tan segura", "is it safe", "how safe",
+    "safe to", "safe at", "safe for", "safe area", "safe neighborhood",
+    "zona segura", "zonas seguras", "lugar seguro", "lugares seguros",
+    "barrio seguro", "barrios seguros", "sans danger", "securite", "seguranca",
+    # FR "sûr" normalizes to "sur" (= "on"), so only the unambiguous plural phrase ships.
+    "endroits surs", "e seguro",
+])))
+_SAFETY_NIGHTZONE_RE = re.compile(_B.format("|".join([
+    "noche", "night", "nuit", "noite", "madrugada", "late", "dark", r"oscur\w*",
+    "centro", "getsemani", "barrio", "zona", "area", "neighborhood",
+    "caminar", "walk", "andar", "downtown",
+])))
+_SAFETY_KID_RE = re.compile(_B.format("|".join([
+    "nino", "nina", "toddler", "bebe", "baby", "kid", "kids", "child", "children",
+    "crianca", "enfant", "hijo", "hija", "familia", "family",
+])))
+_SAFETY_NEG_RE = re.compile(_B.format("|".join([
+    "agua", "water", "eau", "grifo", "tap", "comida", "food", "comer", "ceviche",
+    "nadar", "swim", "banarse", "sol", "sunburn", "mosquito", "zika", "dengue",
+    "seguro de viaje", "seguro medico", "insurance",
+])))
+_SAFETY_ACTION_LABEL = {
+    "es": "Recursos y números de ayuda", "en": "Help lines & resources",
+    "fr": "Ressources et numéros d'aide", "pt": "Recursos e números de ajuda",
+}
+
+
+def safety_guard_payload(user_text: str, lang: str) -> Optional[Dict[str, Any]]:
+    """Deterministic resource-forward answer for the safety-question space (4C).
+    Fires on HARD danger/incident/drugging/dating terms, on STRONG solo-woman
+    phrasings, or on soft "is it safe"+night/zone combos (unless it is really a
+    kids/food/water question — those flow to their own authorities). The reply is
+    the women lens's resource_line verbatim: the model never speaks on safety."""
+    data = load_lenses()
+    if not data:
+        return None
+    t = _norm(user_text or "")
+    if not t:
+        return None
+    if not _SAFETY_HARD_RE.search(t) and not _SAFETY_STRONG_RE.search(t):
+        safeq = _SAFETY_SAFEQ_RE.search(t)
+        nightzone = _SAFETY_NIGHTZONE_RE.search(t)
+        if not (safeq and nightzone):
+            return None
+        if _SAFETY_KID_RE.search(t) or _SAFETY_NEG_RE.search(t):
+            return None
+    ln = next((x for x in data.get("lenses") or [] if x.get("key") == "women_verified"), None)
+    rl = ((ln or {}).get("luna") or {}).get("resource_line") or {}
+    lg = lang if lang in LANGS else "es"
+    msg = (rl.get(lg) or rl.get("es") or "").strip()
+    if not msg:
+        return None
+    return {"message": msg, "language": lg,
+            "actions": [{"type": "navigate", "screen": "ayuda",
+                         "label": _SAFETY_ACTION_LABEL[lg]}],
+            "recommendations": [], "suggestions": [], "lens_gate": "women_safety"}
 
 
 def gated_decline_payload(user_text: str, lang: str) -> Optional[Dict[str, Any]]:

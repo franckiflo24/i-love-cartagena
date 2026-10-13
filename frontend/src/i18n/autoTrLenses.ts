@@ -24,6 +24,11 @@ export const LENSES_TR: Dict = {
   'Reportado por viajeros': { en: 'Reported by travelers', fr: 'Rapporté par des voyageurs', pt: 'Relatado por viajantes' },
   'Sin verificar': { en: 'Unverified', fr: 'Non vérifié', pt: 'Não verificado' },
 
+  // ── 4C women-lens chrome: feminine badge + official/invite advisory chips ──
+  'Reportado por viajeras': { en: 'Reported by women travelers', fr: 'Rapporté par des voyageuses', pt: 'Relatado por viajantes (mulheres)' },
+  'Oficial': { en: 'Official', fr: 'Officiel', pt: 'Oficial' },
+  'Sé la primera': { en: 'Be the first', fr: 'Sois la première', pt: 'Seja a primeira' },
+
   // ── golden hour ──
   'Amanecer': { en: 'Sunrise', fr: 'Lever', pt: 'Amanhecer' },
   'Día': { en: 'Daytime', fr: 'Journée', pt: 'Dia' },

@@ -108,19 +108,31 @@ def test_live_port_day_carries_official_fares_not_ship_names() -> None:
     assert "Carnival" not in body and "cruisemapper" not in body.lower()  # never ship names to the LLM
 
 
-def test_gated_lens_injects_only_its_decline_lines() -> None:  # V7 headline
-    for q, key in (("¿es seguro para una mujer sola esta noche?", "women_verified"),
-                   ("safe spots for a woman alone tonight", "women_verified")):
-        hit = _lens(_ctx(q), key)
-        assert hit["live"] is False
-        assert "entries" not in hit, f"{key}: a gated lens must not leak entries"
-        dl = hit["decline_line"]
-        assert all(isinstance(dl[k], str) and dl[k].strip() for k in ("es", "en", "fr", "pt"))
-        body = json.dumps(hit, ensure_ascii=False).lower()
-        # the real leak vector is venue material — a decline may name the attributes
-        # it is waiting on ("lifeguards, high chairs"), but never a venue or a rating
-        for invented in ("ptr_", "attr_", "svc_", "harassment_rating"):
-            assert invented not in body, f"{key}: {invented} leaked into a gated reference"
+def test_gated_lens_injects_only_its_decline_lines(monkeypatch) -> None:  # V7 machinery
+    """All lenses are live since 4C — synthetically re-gate women to prove the gate
+    still leaks nothing when a lens falls below threshold."""
+    import copy
+    import os as _os
+    d2 = copy.deepcopy(DATA)
+    next(l for l in d2["lenses"] if l["key"] == "women_verified")["min_fill"] = 99
+    monkeypatch.setitem(L._cache, "lenses",
+                        {"mtime": _os.path.getmtime(L._LENSES_PATH), "data": d2})
+    L._trigger_cache.update(mtime=None, res=None)
+    try:
+        for q in ("¿es seguro para una mujer sola esta noche?",
+                  "safe spots for a woman alone tonight"):
+            hit = _lens(_ctx(q), "women_verified")
+            assert hit["live"] is False
+            assert "entries" not in hit, "a gated lens must not leak entries"
+            dl = hit["decline_line"]
+            assert all(isinstance(dl[k], str) and dl[k].strip() for k in ("es", "en", "fr", "pt"))
+            body = json.dumps(hit, ensure_ascii=False).lower()
+            # the real leak vector is venue material — a decline may name the attributes
+            # it is waiting on, but never a venue or a rating
+            for invented in ("ptr_", "attr_", "svc_", "harassment_rating"):
+                assert invented not in body, f"{invented} leaked into a gated reference"
+    finally:
+        L._trigger_cache.update(mtime=None, res=None)
 
 
 def test_live_step_free_entries_are_high_anchors_plus_advisories() -> None:  # 4A
@@ -159,36 +171,79 @@ def test_live_family_entries_are_high_anchors_plus_advisories() -> None:  # 4B
 
 
 def test_women_decline_redirects_only_to_verified_adjacent_data() -> None:
-    dl = _lens(_ctx("safe for a woman alone?"), "women_verified")["decline_line"]
+    # The decline_line stays in data as the regression gate (if fill ever drops below
+    # min_fill again) — women is LIVE since 4C, so read it from DATA, not routing.
+    dl = next(l for l in DATA["lenses"] if l["key"] == "women_verified")["luna"]["decline_line"]
     assert "DATT" in dl["es"] and "DATT" in dl["en"]  # taxi fares are the honest redirect
     assert "verificado" in dl["es"] or "verificadas" in dl["es"] or "reales" in dl["es"]
 
 
-def test_gated_hard_gate_payload() -> None:
-    """§5 hard gate: gated trust topics answer ONLY the decline line, pre-LLM."""
-    by_key = {ln["key"]: ln for ln in DATA["lenses"]}
-    for q, key, lg in (("safe spots for a woman alone tonight", "women_verified", "en"),
-                       ("¿es seguro para una mujer sola esta noche?", "women_verified", "es"),
-                       ("des endroits sûrs pour une femme seule ?", "women_verified", "fr"),
-                       ("é seguro para uma mulher sozinha à noite?", "women_verified", "pt")):
-        p = L.gated_decline_payload(q, lg)
+def test_hard_gate_is_now_the_safety_guard() -> None:
+    """§5 (4C): every lens is live, so gated_decline is None — the deterministic slot
+    is the SAFETY GUARD: women/safety questions answer with resource_line verbatim."""
+    w = next(ln for ln in DATA["lenses"] if ln["key"] == "women_verified")
+    for q, lg in (("safe spots for a woman alone tonight", "en"),
+                  ("¿es seguro para una mujer sola esta noche?", "es"),
+                  ("des endroits sûrs pour une femme seule ?", "fr"),
+                  ("é seguro para uma mulher sozinha à noite?", "pt")):
+        assert L.gated_decline_payload(q, lg) is None, q  # women is live
+        p = L.safety_guard_payload(q, lg)
         assert p is not None, q
-        assert p["lens_gate"] == key and p["language"] == lg
-        assert p["actions"] == [] and p["recommendations"] == []
-        assert p["message"] == by_key[key]["luna"]["decline_line"][lg].strip()
-    # live lens → None (answers through lens_reference + LLM)
+        assert p["lens_gate"] == "women_safety" and p["language"] == lg
+        assert p["message"] == w["luna"]["resource_line"][lg].strip()
+        assert p["recommendations"] == []
+        assert p["actions"] == [{"type": "navigate", "screen": "ayuda",
+                                 "label": L._SAFETY_ACTION_LABEL[lg]}]
+    # live lenses still answer their topics through lens_reference + LLM
     assert L.gated_decline_payload("best sunset photo spots", "en") is None
     assert L.gated_decline_payload("estoy de crucero, mi escala", "es") is None
-    # 4A: step_free is live — accessibility questions now answer from its entries
     assert L.gated_decline_payload("restaurants accessibles en fauteuil roulant", "fr") is None
-    # 4B: family is live — kids questions now answer from its entries
     assert L.gated_decline_payload("¿qué playa es buena para mi toddler?", "es") is None
-    assert L.gated_decline_payload("praia calma para meu bebê", "pt") is None
-    # mixed live+gated → the gated trust topic wins; women outranks everything
-    mixed = L.gated_decline_payload("fotos del atardecer para una mujer sola", "es")
-    assert mixed is not None and mixed["lens_gate"] == "women_verified"
-    # no lens topic at all → None
-    assert L.gated_decline_payload("cena romántica para dos", "es") is None
+    # mixed photo+woman → the safety guard wins (deterministic resources, never freestyle)
+    mixed = L.safety_guard_payload("fotos del atardecer para una mujer sola", "es")
+    assert mixed is not None and mixed["lens_gate"] == "women_safety"
+    # no safety topic at all → None
+    assert L.safety_guard_payload("cena romántica para dos", "es") is None
+
+
+def test_safety_guard_probe_bank_catches_the_misses() -> None:  # 4C — the drop's real work
+    """The 4C recon matrix: 16 of these MISSED every gate pre-4C and freestyled.
+    Each must now answer deterministically (guard) — across languages, singular,
+    slang, indirect and incident phrasings."""
+    must_guard = [
+        "¿es seguro para una mujer sola esta noche?", "safe spots for a woman alone tonight",
+        "viajo sola, ¿dónde puedo salir?", "des endroits sûrs pour une femme seule ?",
+        "é seguro para uma mulher sozinha?",
+        "mi hija viaja sola a cartagena",
+        "una amiga viaja sola, ¿consejos?",
+        "¿es peligroso getsemaní de noche?",
+        "is it dangerous to walk at night?",
+        "¿me pueden drogar la bebida?",
+        "scopolamine drink spiking cartagena?",
+        "tengo una cita de tinder, ¿precauciones?",
+        "me da miedo salir de noche sola",
+        "¿van a robarme en el centro?",
+        "qué tan seguro es getsemaní?",
+        "is it sketchy at night downtown?",
+        "c'est dangereux de sortir seule la nuit ?",
+        "é perigoso andar à noite?",
+        "como mujer, ¿qué zonas evito?",
+        "any areas to avoid as a woman?",
+        "me siguieron anoche, ¿a quién llamo?",
+        "¿dónde denuncio un acoso?",
+    ]
+    for q in must_guard:
+        p = L.safety_guard_payload(q, "es")
+        assert p is not None and p["lens_gate"] == "women_safety", f"guard missed: {q!r}"
+    # negatives: food/water/swim/insurance and family-calm questions keep their own
+    # authorities — the guard must NOT swallow them
+    for q in ("is the tap water safe to drink?",
+              "¿es seguro comer ceviche callejero?",
+              "is it safe to swim at playa blanca?",
+              "¿qué playa es segura para mi toddler?",
+              "necesito un seguro de viaje, ¿recomiendas?",
+              "mejores playas para niños"):
+        assert L.safety_guard_payload(q, "es") is None, f"guard overreached: {q!r}"
 
 
 def test_agent_wires_the_hard_gate_before_the_llm() -> None:

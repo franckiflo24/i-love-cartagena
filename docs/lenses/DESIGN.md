@@ -26,9 +26,11 @@ If code and this doc disagree, the doc wins until it is amended here first.
 ```
 { version, source_name, field_guide, updated,
   lenses: [ { key, kind: "places"|"venues"|"kit", min_fill, icon, label L4, tagline L4,
-              advisories?: [ { kind: "reported"|"unverified", text L4,
-                              source_name?/source_url? (REQUIRED when kind="reported") } ],
-              luna: { triggers[], decline_line L4 } } ],
+              advisories?: [ { kind: "reported"|"unverified"|"confirmed"|"invite", text L4,
+                              source_name?/source_url? (REQUIRED when kind is "reported" or
+                              "confirmed"; "invite" = honest empty-state, no source by design) } ],
+              luna: { triggers[], decline_line L4, resource_line? L4 (4C: the deterministic
+                      safety answer — the live counterpart of decline_line) } } ],
   access_tiers: { free|purchase|reservation|guest_only|paid_entry: L4 },
   pins: [ { id "gh-…", lens, name, venue_id|null, lat?/lng?/geo_precision "exact"|"approx", zone?,
             best_light ⊆ [sunrise,midday,sunset] (non-empty), access_tier (required),
@@ -52,7 +54,10 @@ If code and this doc disagree, the doc wins until it is amended here first.
   absent until verified. Tests enforce this.
 - Lens attribute vocabularies (fixed keys, all optional, `null` = unknown, never guessed):
   - `women_verified`: harassment_rating (in-app only), staff_responsive, safe_ride_from, well_lit,
-    women_only_event.
+    women_only_event, official_resource (4C: a public-institution resource row — tourist police,
+    Casa de la Mujer class), female_dorm (4C: operator-listed female-only dorms, always VERIFY +
+    "confirma al reservar"). NOTE (4C): no attribute ever means "safe" — the lens surfaces
+    resources and reports, never a safety guarantee.
   - `family`: calm_water_beach, lifeguard, shade, high_chairs, kids_menu, stroller_feasible_route,
     child_life_jacket, car_seat_transfer, pediatric_er (4B 2026-10-13: the Hospital Serena del Mar
     resource row's one sourced attribute). NOTE (4B): car_seat_transfer / child_life_jacket are in
@@ -95,6 +100,21 @@ If code and this doc disagree, the doc wins until it is amended here first.
   operator record), Oceanario "under-2 free" (single weak source → "confirma en taquilla").
   Family-NEGATIVE exclusions are tested: Palacio de la Inquisición, Bora Bora, Playa Blanca,
   Cholón, Luxury BC, Makani never carry a family tag. women_verified stays GATED (4C).
+- 4C amendment (2026-10-13): women_verified is LIVE on its RESOURCE layer — 4 HIGH rows are the
+  Policía de Turismo points (airport arrivals, Playa Azul, Muelle de La Bodeguita, Bocagrande —
+  new svc_055..058, is_government, sourced to the 2024 Corpoturismo channels roundup) + 1 VERIFY
+  amenity row (Viajero's operator-listed female dorms, "confirma al reservar"). min_fill 8 → 4:
+  the fill gate still counts HIGH rows, but the rows ARE resources — the VENUE-VERIFIED layer
+  (places "verified by women") remains in-app-ratings-only and launches EMPTY, said out loud by
+  the "invite" advisory ("sé la primera"). 4C seeds ZERO women-verified venues; a HIGH women tag
+  on a non-svc record is a test failure. Casa de la Mujer ships as a CONFIRMED program advisory,
+  NOT a venue (its address/hours failed re-verification: conflicting official pages). Dropped on
+  the rails: Santuario/Life is Good dorms (unsourced), IMPULSE/Nuestra Cartagena/Palenque
+  women-led rows (sources did not converge), Línea rosa + 2022 cuadrante numbers (unverified),
+  cartagenawomen.com (a men's dating-tour operation — excluded entirely), women-driver services
+  (none confirmed — stated as an "unverified" advisory; Violeta al Volante is training, not
+  bookable). No neighborhood is ever labeled "peligroso" — night guidance is REPORTED and
+  actionable (ride-hailing, people + light), never a danger map.
 
 ## 3. API (backend; envelope + `_cache()` like the city hub)
 - `GET /api/lenses` — public. Lens list with fill counts + live flags + access_tiers. Never the
@@ -164,6 +184,15 @@ If code and this doc disagree, the doc wins until it is amended here first.
     live hit on mixed questions, and women_verified outranks every other gated hit.
 - `/search` inherits the same gate + context path. Luna NEVER invents a tag, a safety claim,
   or an accessibility claim: while a lens is gated, the LLM never speaks on its topic.
+- **4C SAFETY GUARD (lenses.safety_guard_payload)** — the 4B trigger-gap lesson applied where it
+  matters most: the safety-question space answers DETERMINISTICALLY regardless of lens routing
+  and regardless of the women lens being live. A broad matcher (danger/incident/drugging/dating
+  terms · solo-woman phrasings · "is it safe" + night/zone combos, with kid/food/water questions
+  excluded so family and city authorities keep their topics) returns
+  `women_verified.luna.resource_line` verbatim + a navigate-to-/ayuda action, zero
+  recommendations. Wired in `_lens_gated_payload` right after gated_decline_payload — same
+  pre-LLM slot, so the model never freestyles "zona segura", invented women-driver services, or
+  stale advice. The probe bank in test_lenses_luna locks ≥20 phrasings across es/en/fr/pt.
 
 ## 6. Tests (backend pytest, no network)
 - `test_lenses_data.py` — schema; provenance on EVERY pin/tag (V1); access_tier on every pin (F3);

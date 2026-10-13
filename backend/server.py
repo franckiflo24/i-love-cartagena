@@ -4413,7 +4413,11 @@ async def admin_upsert_editorial_venue(request: Request):
     doc = {k: str((body or {}).get(k) or "").strip() for k in _EDITORIAL_VENUE_FIELDS}
     doc.update(
         partner_id=pid, name=name, location={"lat": lat, "lng": lng}, image_url=image_url,
-        tier="standard", is_certified=False, is_government=False, membership_status="inactive",
+        tier="standard", is_certified=False,
+        # 4C: official public-institution points (tourist police) carry is_government
+        # like the Alcaldía record; it stays operator-set, never partner-set.
+        is_government=bool((body or {}).get("is_government", False)),
+        membership_status="inactive",
         display_ready=bool((body or {}).get("display_ready", True)),
         editorial_origin="operator_token", updated_at=_now_iso(),
     )

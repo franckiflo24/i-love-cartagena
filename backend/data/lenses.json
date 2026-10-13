@@ -269,7 +269,7 @@
     {
       "key": "women_verified",
       "kind": "venues",
-      "min_fill": 8,
+      "min_fill": 4,
       "icon": "shield-checkmark-outline",
       "label": {
         "es": "Verificado por mujeres",
@@ -311,15 +311,96 @@
           "safe places for women",
           "safe for a woman",
           "safe neighborhood",
-          "safe area"
+          "safe area",
+          "viaja sola",
+          "viajar sola",
+          "viajan solas",
+          "salir sola",
+          "andar sola",
+          "caminar sola",
+          "traveling alone",
+          "travels alone",
+          "voyage seule",
+          "viaja sozinha",
+          "andar sozinha"
         ],
         "decline_line": {
           "es": "Esta capa se construye con calificaciones reales de mujeres, no con suposiciones — aún no tengo suficientes para prometerte \"verificado\". Lo que sí es oficial: las tarifas de taxi DATT están en Moverse, y puedes pedir el viaje desde la app del lugar donde estés.",
           "en": "This layer is built from real ratings by women, not assumptions — I don't have enough yet to promise you \"verified.\" What is official: DATT taxi fares are in Getting around, and you can request your ride from wherever you are.",
           "fr": "Cette couche se construit avec de vraies évaluations de femmes, pas des suppositions — je n'en ai pas encore assez pour promettre « vérifié ». Ce qui est officiel : les tarifs taxi DATT sont dans Se déplacer.",
           "pt": "Esta camada é construída com avaliações reais de mulheres, não suposições — ainda não tenho o suficiente para prometer \"verificado\". O que é oficial: as tarifas de táxi DATT estão em Moverse."
+        },
+        "resource_line": {
+          "es": "La seguridad nunca se promete: no existe el lugar «seguro» garantizado y no te lo voy a inventar. Lo que sí está verificado: Línea 155 (orientación a mujeres víctimas de violencia — nacional, gratuita, 24/7, puedes omitir tus datos) y 123 (emergencias). Hay puntos de Policía de Turismo en el aeropuerto (llegadas), el Muelle de La Bodeguita, Playa Azul y la playa de Bocagrande. De noche, viajeras recomiendan pedir vehículo por app en vez de caminar o parar taxi en la calle, y quedarte donde hay gente y luz. En citas por app: lugar público, tu bebida siempre contigo (la escopolamina existe), no lleves contactos nuevos a tu alojamiento y comparte tu plan. ¿Pasó algo? Llama al 123; la denuncia también se puede poner en adenunciar.policia.gov.co.",
+          "en": "Safety is never a promise: there is no guaranteed \"safe\" place and I won't invent one. What IS verified: Line 155 (support for women facing violence — national, free, 24/7, you can stay anonymous) and 123 (emergencies). Tourist Police points sit at the airport (arrivals), Muelle de La Bodeguita, Playa Azul and Bocagrande beach. At night, women travelers recommend ride-hailing instead of walking or street-hailing, and staying where there are people and light. On app dates: public place, keep your drink with you (scopolamine is real), don't bring new acquaintances to your accommodation, and share your plan. If something happens, call 123; reports can also be filed at adenunciar.policia.gov.co.",
+          "fr": "La sécurité ne se promet jamais : le lieu « sûr » garanti n'existe pas et je ne vais pas l'inventer. Ce qui est vérifié : la ligne 155 (orientation pour les femmes victimes de violences — nationale, gratuite, 24 h/24, anonymat possible) et le 123 (urgences). Des points de Police du Tourisme se trouvent à l'aéroport (arrivées), au Muelle de La Bodeguita, à Playa Azul et sur la plage de Bocagrande. La nuit, des voyageuses recommandent un véhicule par appli plutôt que marcher ou héler un taxi, et de rester là où il y a du monde et de la lumière. Pour un rendez-vous d'appli : lieu public, garde ton verre avec toi (la scopolamine existe), n'amène pas de nouvelles connaissances à ton logement et partage ton plan. S'il arrive quelque chose : appelle le 123 ; la plainte peut aussi se déposer sur adenunciar.policia.gov.co.",
+          "pt": "Segurança nunca é uma promessa: não existe lugar «seguro» garantido e eu não vou inventar um. O que está verificado: Linha 155 (orientação a mulheres vítimas de violência — nacional, gratuita, 24/7, pode omitir seus dados) e 123 (emergências). Há pontos de Polícia de Turismo no aeroporto (desembarque), no Muelle de La Bodeguita, na Playa Azul e na praia de Bocagrande. À noite, viajantes recomendam pedir carro por app em vez de caminhar ou parar táxi na rua, e ficar onde há gente e luz. Em encontros de app: lugar público, sua bebida sempre com você (a escopolamina existe), não leve contatos novos à sua hospedagem e compartilhe seu plano. Aconteceu algo? Ligue 123; a denúncia também pode ser feita em adenunciar.policia.gov.co."
         }
-      }
+      },
+      "advisories": [
+        {
+          "kind": "confirmed",
+          "text": {
+            "es": "Línea 155: orientación a mujeres víctimas de violencia — nacional, gratuita, 24/7, desde cualquier operador y puedes omitir tus datos. Emergencias: 123.",
+            "en": "Line 155: support line for women facing violence — national, free, 24/7, from any carrier, and you can stay anonymous. Emergencies: 123.",
+            "fr": "Ligne 155 : orientation pour les femmes victimes de violences — nationale, gratuite, 24 h/24, depuis tout opérateur, anonymat possible. Urgences : 123.",
+            "pt": "Linha 155: orientação a mulheres vítimas de violência — nacional, gratuita, 24/7, de qualquer operadora, e você pode omitir seus dados. Emergências: 123."
+          },
+          "source_name": "Policía Nacional de Colombia",
+          "source_url": "https://www.policia.gov.co/noticia/linea-155-orientacion-mujeres-victimas-violencia"
+        },
+        {
+          "kind": "confirmed",
+          "text": {
+            "es": "Citas por app y escopolamina (aviso del gobierno de Canadá): los estafadores construyen confianza en varias citas — a menudo en lugares públicos — antes de drogar la bebida o comida. Conoce en público, tu bebida siempre contigo, no lleves contactos nuevos a tu alojamiento, comparte tu plan con alguien y, ante un robo, no te resistas.",
+            "en": "Dating apps and scopolamine (Government of Canada advisory): scammers build trust over several dates — often in public places — before drugging a drink or food. Meet in public, keep your drink with you, don't bring new acquaintances to your accommodation, share your plan with someone, and don't resist a robbery.",
+            "fr": "Applis de rencontre et scopolamine (avis du gouvernement du Canada) : les escrocs gagnent la confiance sur plusieurs rendez-vous — souvent dans des lieux publics — avant de droguer un verre ou un plat. Rencontre en public, garde ton verre avec toi, n'amène pas de nouvelles connaissances à ton logement, partage ton plan et, en cas de vol, ne résiste pas.",
+            "pt": "Apps de encontro e escopolamina (aviso do governo do Canadá): golpistas constroem confiança ao longo de vários encontros — muitas vezes em lugares públicos — antes de drogar a bebida ou comida. Encontre em público, sua bebida sempre com você, não leve contatos novos à sua hospedagem, compartilhe seu plano e, num assalto, não resista."
+          },
+          "source_name": "Government of Canada — travel.gc.ca",
+          "source_url": "https://travel.gc.ca/destinations/colombia"
+        },
+        {
+          "kind": "confirmed",
+          "text": {
+            "es": "La Alcaldía opera la Casa de la Mujer Heroica: atención psicológica y asesoría jurídica gratuita para mujeres. Su sede ha tenido cambios — verifica la dirección y horario actuales en cartagena.gov.co o pregunta en la Línea 155.",
+            "en": "The city runs the Casa de la Mujer Heroica: free psychological care and legal counsel for women. Its location has changed over time — verify the current address and hours at cartagena.gov.co or ask Line 155.",
+            "fr": "La mairie gère la Casa de la Mujer Heroica : accompagnement psychologique et conseil juridique gratuits pour les femmes. Son adresse a changé — vérifie l'adresse et les horaires actuels sur cartagena.gov.co ou via la ligne 155.",
+            "pt": "A prefeitura opera a Casa de la Mujer Heroica: atendimento psicológico e assessoria jurídica gratuitos para mulheres. A sede mudou ao longo do tempo — verifique o endereço e horário atuais em cartagena.gov.co ou pergunte na Linha 155."
+          },
+          "source_name": "El Universal",
+          "source_url": "https://www.eluniversal.com.co/cartagena/2023/06/28/abren-casa-de-la-mujer-heroica-en-cartagena/"
+        },
+        {
+          "kind": "reported",
+          "text": {
+            "es": "Viajeras y guías locales reportan: de noche, pide vehículo por app en lugar de caminar o parar taxi en la calle; las zonas concurridas del Centro y Getsemaní se mantienen animadas hasta tarde — quédate donde hay gente y luz, y nunca dejes tu bebida sola.",
+            "en": "Women travelers and local guides report: at night, use ride-hailing instead of walking or street-hailing a taxi; the busy parts of the Centro and Getsemaní stay lively late — stick to people and light, and never leave your drink unattended.",
+            "fr": "Des voyageuses et guides locaux rapportent : la nuit, prends un véhicule par appli plutôt que marcher ou héler un taxi ; les zones animées du Centro et de Getsemaní restent vivantes tard — reste où il y a du monde et de la lumière, et ne laisse jamais ton verre sans surveillance.",
+            "pt": "Viajantes e guias locais relatam: à noite, peça carro por app em vez de caminhar ou parar táxi na rua; as áreas movimentadas do Centro e de Getsemaní ficam animadas até tarde — fique onde há gente e luz, e nunca deixe sua bebida sozinha."
+          },
+          "source_name": "Cartagena Explorer",
+          "source_url": "https://www.cartagenaexplorer.com/cartagena-safety-tips/"
+        },
+        {
+          "kind": "unverified",
+          "text": {
+            "es": "No confirmamos ningún servicio de conductoras mujeres en Cartagena. («Violeta al Volante» es un programa distrital de formación — no es una app ni se puede reservar.)",
+            "en": "We can't confirm any women-driver service in Cartagena. (\"Violeta al Volante\" is a city training program — it is not an app and can't be booked.)",
+            "fr": "Nous ne confirmons aucun service de conductrices à Carthagène. (« Violeta al Volante » est un programme municipal de formation — ce n'est pas une appli et il ne se réserve pas.)",
+            "pt": "Não confirmamos nenhum serviço de motoristas mulheres em Cartagena. («Violeta al Volante» é um programa municipal de formação — não é um app e não pode ser reservado.)"
+          }
+        },
+        {
+          "kind": "invite",
+          "text": {
+            "es": "Aún no hay lugares verificados por mujeres: esa capa se abre solo con calificaciones reales de usuarias dentro de la app — nunca con listas compradas. Sé la primera en calificar.",
+            "en": "No women-verified places yet: that layer opens only with real in-app ratings from women — never with bought lists. Be the first to rate.",
+            "fr": "Pas encore de lieux vérifiés par des femmes : cette couche ne s'ouvre qu'avec de vraies évaluations d'utilisatrices dans l'appli — jamais avec des listes achetées. Sois la première à évaluer.",
+            "pt": "Ainda não há lugares verificados por mulheres: essa camada só abre com avaliações reais de usuárias no app — nunca com listas compradas. Seja a primeira a avaliar."
+          }
+        }
+      ]
     }
   ],
   "access_tiers": {
@@ -1496,6 +1577,96 @@
       },
       "source_url": "https://www.cartagenaexplorer.com/things-to-do-children-cartagena-colombia/",
       "source_name": "Cartagena Explorer",
+      "last_verified": "2026-10-13",
+      "confidence": "VERIFY"
+    },
+    {
+      "lens": "women_verified",
+      "venue_id": "svc_055",
+      "display_name": "Policía de Turismo — Aeropuerto Rafael Núñez",
+      "attrs": {
+        "official_resource": true
+      },
+      "note": {
+        "es": "Punto oficial en la sala de llegadas nacionales: orientación y recepción de denuncias de turistas. Horario publicado (2024): lunes a sábado 7 a. m.–6 p. m. — confírmalo en el punto. Emergencias siempre al 123.",
+        "en": "Official point in the domestic-arrivals hall: guidance and tourist crime reports. Published hours (2024): Mon–Sat 7 AM–6 PM — confirm at the point. Emergencies always via 123.",
+        "fr": "Point officiel dans le hall des arrivées nationales : orientation et dépôt de plaintes des touristes. Horaires publiés (2024) : lun–sam 7 h–18 h — confirme sur place. Urgences : toujours le 123.",
+        "pt": "Ponto oficial no desembarque nacional: orientação e registro de denúncias de turistas. Horário publicado (2024): seg–sáb 7h–18h — confirme no local. Emergências sempre pelo 123."
+      },
+      "source_url": "https://donde.co/es/cartagena/articulos/canales-de-atencion-al-turista-en-cartagena-5598251",
+      "source_name": "Donde (Semana) · Corpoturismo",
+      "last_verified": "2026-10-13",
+      "confidence": "HIGH"
+    },
+    {
+      "lens": "women_verified",
+      "venue_id": "svc_056",
+      "display_name": "Policía de Turismo — Playa Azul (La Boquilla)",
+      "attrs": {
+        "official_resource": true
+      },
+      "note": {
+        "es": "Punto oficial en la playa Bandera Azul de La Boquilla (Zona Norte, sector Blas El Teso). Horario publicado (2024): lunes a sábado 8 a. m.–6 p. m. — confírmalo en el punto. Emergencias al 123.",
+        "en": "Official point on La Boquilla's Blue Flag beach (Zona Norte, Blas El Teso sector). Published hours (2024): Mon–Sat 8 AM–6 PM — confirm at the point. Emergencies via 123.",
+        "fr": "Point officiel sur la plage Pavillon Bleu de La Boquilla (Zona Norte, secteur Blas El Teso). Horaires publiés (2024) : lun–sam 8 h–18 h — confirme sur place. Urgences : 123.",
+        "pt": "Ponto oficial na praia Bandeira Azul de La Boquilla (Zona Norte, setor Blas El Teso). Horário publicado (2024): seg–sáb 8h–18h — confirme no local. Emergências pelo 123."
+      },
+      "source_url": "https://donde.co/es/cartagena/articulos/canales-de-atencion-al-turista-en-cartagena-5598251",
+      "source_name": "Donde (Semana) · Corpoturismo",
+      "last_verified": "2026-10-13",
+      "confidence": "HIGH"
+    },
+    {
+      "lens": "women_verified",
+      "venue_id": "svc_057",
+      "display_name": "Policía de Turismo — Muelle de La Bodeguita",
+      "attrs": {
+        "official_resource": true
+      },
+      "note": {
+        "es": "Punto oficial en el muelle del Centro Histórico (Av. Blas de Lezo, salida a las islas) — al lado queda la sede de Corpoturismo. Los horarios publicados varían según la fuente (2024: L–V 8 a. m.–7 p. m., sáb. hasta 5 p. m.) — confírmalo en el punto. Emergencias al 123.",
+        "en": "Official point at the Centro Histórico pier (Av. Blas de Lezo, island departures) — Corpoturismo's HQ sits next door. Published hours vary by source (2024: Mon–Fri 8 AM–7 PM, Sat to 5 PM) — confirm at the point. Emergencies via 123.",
+        "fr": "Point officiel au quai du Centre historique (Av. Blas de Lezo, départ des îles) — le siège de Corpoturismo est à côté. Les horaires publiés varient selon la source (2024 : lun–ven 8 h–19 h, sam. jusqu'à 17 h) — confirme sur place. Urgences : 123.",
+        "pt": "Ponto oficial no cais do Centro Histórico (Av. Blas de Lezo, saída para as ilhas) — a sede da Corpoturismo fica ao lado. Os horários publicados variam conforme a fonte (2024: seg–sex 8h–19h, sáb. até 17h) — confirme no local. Emergências pelo 123."
+      },
+      "source_url": "https://donde.co/es/cartagena/articulos/canales-de-atencion-al-turista-en-cartagena-5598251",
+      "source_name": "Donde (Semana) · Corpoturismo",
+      "last_verified": "2026-10-13",
+      "confidence": "HIGH"
+    },
+    {
+      "lens": "women_verified",
+      "venue_id": "svc_058",
+      "display_name": "Policía de Turismo — Playa de Bocagrande",
+      "attrs": {
+        "official_resource": true
+      },
+      "note": {
+        "es": "Punto oficial en el malecón de Bocagrande, frente al Hotel Cartagena Plaza. Horario publicado (2024): todos los días 8 a. m.–6 p. m. — confírmalo en el punto. Emergencias al 123.",
+        "en": "Official point on the Bocagrande seafront, opposite the Hotel Cartagena Plaza. Published hours (2024): daily 8 AM–6 PM — confirm at the point. Emergencies via 123.",
+        "fr": "Point officiel sur le front de mer de Bocagrande, face à l'hôtel Cartagena Plaza. Horaires publiés (2024) : tous les jours 8 h–18 h — confirme sur place. Urgences : 123.",
+        "pt": "Ponto oficial na orla de Bocagrande, em frente ao Hotel Cartagena Plaza. Horário publicado (2024): todos os dias 8h–18h — confirme no local. Emergências pelo 123."
+      },
+      "source_url": "https://donde.co/es/cartagena/articulos/canales-de-atencion-al-turista-en-cartagena-5598251",
+      "source_name": "Donde (Semana) · Corpoturismo",
+      "last_verified": "2026-10-13",
+      "confidence": "HIGH"
+    },
+    {
+      "lens": "women_verified",
+      "venue_id": "ptr_1412",
+      "display_name": "Viajero",
+      "attrs": {
+        "female_dorm": true
+      },
+      "note": {
+        "es": "El hostal lista dormitorios solo para mujeres entre sus habitaciones compartidas (Hostelworld). El tipo de cama puede variar: confírmalo al reservar y por escrito.",
+        "en": "The hostel lists female-only dorms among its shared rooms (Hostelworld). Room types can shift: confirm when you book, in writing.",
+        "fr": "L'auberge liste des dortoirs réservés aux femmes parmi ses chambres partagées (Hostelworld). Le type de chambre peut changer : confirme à la réservation, par écrit.",
+        "pt": "O hostel lista dormitórios só para mulheres entre os quartos compartilhados (Hostelworld). O tipo de cama pode mudar: confirme ao reservar, por escrito."
+      },
+      "source_url": "https://www.hostelworld.com/hostels/p/44341/viajero-cartagena-centro-hostel/",
+      "source_name": "Hostelworld",
       "last_verified": "2026-10-13",
       "confidence": "VERIFY"
     }

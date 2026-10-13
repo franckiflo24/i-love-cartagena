@@ -71,7 +71,15 @@ def test_index_lists_all_lenses_never_their_content(client) -> None:
     assert body["sunset_by_month"]["9"] == "17:52"
 
 
-def test_gated_lens_leaks_nothing_publicly(client) -> None:  # V2 (step_free 4A, family 4B)
+def test_gated_lens_leaks_nothing_publicly(client, monkeypatch) -> None:  # V2 machinery
+    """All five lenses are live since 4C, so the gate is tested by synthetically
+    re-gating women (min_fill 99): below threshold, content leaks NOTHING."""
+    import copy
+    import os as _os
+    d2 = copy.deepcopy(DATA)
+    next(l for l in d2["lenses"] if l["key"] == "women_verified")["min_fill"] = 99
+    monkeypatch.setitem(L._cache, "lenses",
+                        {"mtime": _os.path.getmtime(L._LENSES_PATH), "data": d2})
     body = client.get("/api/lenses/women_verified").json()
     assert body["coming_soon"] is True and body["live"] is False
     assert "pins" not in body and "venues" not in body
@@ -79,7 +87,28 @@ def test_gated_lens_leaks_nothing_publicly(client) -> None:  # V2 (step_free 4A,
     assert prev.headers["cache-control"] == "no-store"
     b = prev.json()
     assert b["preview"] is True and b["coming_soon"] is True
-    assert b["venues"] == []  # women holds zero tags BY DESIGN — nothing leaks even in preview
+    assert all(v["confidence"] in ("HIGH", "VERIFY") for v in b["venues"])
+
+
+def test_live_women_serves_resources_and_the_honest_empty_state(client) -> None:  # 4C
+    body = client.get("/api/lenses/women_verified").json()
+    assert body["live"] is True and "coming_soon" not in body
+    kinds = [a["kind"] for a in body["advisories"]]
+    assert kinds.count("confirmed") == 3 and kinds.count("reported") == 1
+    assert "unverified" in kinds and "invite" in kinds
+    for a in body["advisories"]:
+        if a["kind"] in ("confirmed", "reported"):
+            assert a["source_name"] and a["source_url"], a["kind"]
+    # the resource rows: 4 official points (svc, HIGH) + the female-dorm amenity (VERIFY)
+    by_id = {v["venue_id"]: v for v in body["venues"]}
+    for pid in ("svc_055", "svc_056", "svc_057", "svc_058"):
+        assert by_id[pid]["confidence"] == "HIGH", pid
+        assert by_id[pid]["lat"] is not None
+    assert by_id["ptr_1412"]["confidence"] == "VERIFY"
+    assert "confírmalo al reservar" in by_id["ptr_1412"]["note"]["es"]  # dorm = confirm at booking
+    blob = json.dumps(body, ensure_ascii=False).lower()
+    assert "peligros" not in blob            # never a danger label on the public payload
+    assert "155" in blob and "123" in blob   # resource-forward
 
 
 def test_live_family_serves_anchors_resource_and_advisories(client) -> None:  # 4B
