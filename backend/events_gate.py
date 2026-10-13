@@ -50,6 +50,9 @@ STICKY_REVIEW_REASONS = frozenset({
     # 3B: the source is on review-probation (flags.review_only_sources) — its new rows wait for a
     # human even when gate-clean; without stickiness the next evaluate() would flip them live.
     "source_probation",
+    # 3C-GOV: civic/news agenda sources (registry civic=True) create rows that ALWAYS wait for a
+    # human — same stickiness contract as probation, but structural (code, not a runtime flag).
+    "civic_review",
 })
 
 # §15 Q5 Distrito box + Turbaná/Turbaco exclusion.

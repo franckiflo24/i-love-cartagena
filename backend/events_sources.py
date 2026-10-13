@@ -2384,6 +2384,56 @@ def parse_rss_items(xml: str) -> list[dict[str, Any]]:
 _AGENDA_TOPIC_RE = re.compile(r"agenda|programacion|fiestas|festival|concierto|preludio|desfile|teatro adolfo", re.I)
 
 
+# 3C-GOV: titles that read as "this article announces an event" — the gate for the
+# article-level fallback below. Deliberately narrow: plain news ("Policía lanza…")
+# must never become a candidate; fold() strips accents before the match.
+_ARTICLE_EVENT_TITLE_RE = re.compile(
+    r"\b(fest(ival)?|concierto|carrera|gran fondo|marat[oó]n|preludio|desfile|fiesta?s|"
+    r"temporada|obra|noche de|agenda|programacion|aniversario|inauguracion)\b", re.I)
+
+
+def article_event_candidate(src: Mapping[str, Any], meta: PageMeta, *, article_title: str,
+                            text: str, published: Optional[datetime], ref_year: int) -> Optional[Candidate]:
+    """3C-GOV (the Nairo Fest fix): a civic/news PROSE article that announces one event —
+    no agenda rows, no ticket page, no JSON-LD — becomes ONE tentative candidate. Honesty
+    rails: the title is the article's own headline (never rewritten), the date window is
+    exactly the dates the text states (dominant single day when the span is implausibly
+    wide), venue/time/price stay EMPTY (no pin, no invented hour, never "free" unless a
+    parser proves it). Every such row lands review/civic_review — a human renames, fixes
+    dates via set-dates and publishes, or it never ships."""
+    if not _ARTICLE_EVENT_TITLE_RE.search(fold(article_title)):
+        return None
+    exprs = find_date_expressions(text, ref_year=ref_year)
+    if not exprs:
+        return None
+    days = sorted({str(e["start"]) for e in exprs} | {str(e.get("end") or e["start"]) for e in exprs})
+    start, end = days[0], days[-1]
+    d0, d1 = _date_of(start), _date_of(end)
+    if not d0 or not d1:
+        return None
+    if (d1 - d0).days > 14:
+        # a prose piece naming dates weeks apart is not one event window — keep the
+        # most-mentioned single day and let the reviewer widen it if the source supports it
+        counts: dict[str, int] = {}
+        for e in exprs:
+            counts[str(e["start"])] = counts.get(str(e["start"]), 0) + 1
+        start = end = max(counts, key=lambda k: counts[k])
+    date_text = "; ".join(dict.fromkeys(str(e.get("text") or "") for e in exprs[:4]))
+    url = str(meta.get("url") or "")
+    # The whole article IS the event node here (the fallback only fires when the post has
+    # no agenda rows and announces one event) — so the §15 Q gate judges the article's own
+    # locality statements, never page-level laundering from an unrelated event card.
+    return make_candidate(
+        src, meta, native_id=f"{_slug_token(url) or 'post'}#article-{start.replace('-', '')}",
+        title=clean_text(article_title), start_date=start, end_date=end,
+        start_time=None, time_confirmed=False, date_text=_cap(date_text, 300), date_visible=True,
+        event_text=f"{article_title} · {text}",
+        page_text=text, venue_name=None, category=guess_category(article_title),
+        flags=["agenda_article", "tentative"], markers=event_markers(src, _cap(text, EVENT_TEXT_CAP)),
+        context={"article_title": article_title, "article_url": url,
+                 "published": iso_utc(published) if published else None})
+
+
 def agenda_candidates(src: Mapping[str, Any], meta: PageMeta, *, article_title: str, content_html: str,
                       published: Optional[datetime], page_text: str, ref_year: Optional[int] = None) -> list[Candidate]:
     if ref_year is None:
@@ -2391,6 +2441,11 @@ def agenda_candidates(src: Mapping[str, Any], meta: PageMeta, *, article_title: 
     rows = parse_agenda_rows(html_to_lines(content_html), ref_year)
     url = str(meta.get("url") or "")
     post_slug = _slug_token(url) or "post"
+    if not rows:
+        # 3C-GOV fallback: prose announcement → one tentative candidate (see above).
+        one = article_event_candidate(src, meta, article_title=article_title,
+                                      text=html_to_text(content_html), published=published, ref_year=ref_year)
+        return [one] if one else []
     out: list[Candidate] = []
     for r in rows:
         flags = ["agenda_row"] + (["tentative"] if r["tentative"] else []) + (["lineup"] if r["lineup"] else [])
@@ -3613,12 +3668,15 @@ async def head_recheck(client: httpx.AsyncClient, doc: Mapping[str, Any], *, url
 def _entry(adapter: Adapter, *, name: str, tier: int, domain: str, scope: str, role: str, tz_policy: str,
            min_gap_s: float = DEFAULT_MIN_GAP_S, cookie_jar: bool = False, max_items_per_call: int = 10,
            recheck: str = "adapter", enabled: bool = True, hosts: Sequence[str] = (), llm_text_ok: bool = True,
-           headers: Optional[Mapping[str, str]] = None) -> dict[str, Any]:
+           headers: Optional[Mapping[str, str]] = None, civic: bool = False) -> dict[str, Any]:
     e: dict[str, Any] = {
         "key": adapter.key, "name": name, "tier": tier, "domain": domain, "hosts": list(hosts) or [domain],
         "scope": scope, "role": role, "min_gap_s": min_gap_s, "cookie_jar": cookie_jar,
         "max_items_per_call": max_items_per_call, "recheck": recheck, "enabled": enabled,
         "tz_policy": tz_policy, "llm_text_ok": llm_text_ok, "headers": dict(headers or {}), "adapter": adapter,
+        # 3C-GOV: a civic source's NEW rows are review-gated in code (events_elite insert →
+        # status review / civic_review, sticky) — no civic event ever auto-publishes.
+        "civic": civic,
     }
     adapter.bind(e)
     return e
@@ -3633,8 +3691,15 @@ SOURCES: list[dict[str, Any]] = [
            role="discover", tz_policy="utc_z_convert", max_items_per_call=6),
     _entry(IronmanAdapter(), name="IRONMAN (organizador)", tier=1, domain="ironman.com",
            scope="/races/im703-cartagena", role="discover", tz_policy="date_only", max_items_per_call=1),
+    # 3C-GOV: IPCC is the official civic primary (tier 1 → OFICIAL once a human approves) and now
+    # CREATES review rows — the free civic class (Preludios, Teatro Adolfo Mejía program, fiestas)
+    # has no ticket page to discover it elsewhere. Teatro Adolfo Mejía folds in here: its program
+    # is published through IPCC posts and both teatro domains were dead on probe (2026-10-13).
+    # Alcaldía (cartagena.gov.co) stays NEVER_CRAWL (deliberate bot wall, §13 G — anchor evidence
+    # only); Corpoturismo (cartagenadeindias.travel) probed 2026-10-13 = "Sitio en reconstrucción",
+    # 0 JSON-LD — trimmed until their site returns.
     _entry(IpccAdapter(), name="IPCC · Instituto de Patrimonio y Cultura de Cartagena", tier=1, domain="ipcc.gov.co",
-           scope="/", role="corroborate", tz_policy="visible_text", max_items_per_call=2),
+           scope="/", role="discover", civic=True, tz_policy="visible_text", max_items_per_call=4),
     _entry(LaTiqueteraAdapter(), name="La Tiquetera", tier=2, domain="latiquetera.com", scope="/",
            role="discover", tz_policy="honour_minus5", max_items_per_call=10),
     _entry(TuBoletaAdapter(), name="TuBoleta", tier=2, domain="tuboleta.com", scope="/es/eventos/ + SecuTix /list/events",
@@ -3647,13 +3712,25 @@ SOURCES: list[dict[str, Any]] = [
            role="discover", tz_policy="honour_minus5", max_items_per_call=6),
     _entry(CccAdapter(), name="Centro de Convenciones Cartagena de Indias", tier=3, domain="cccartagena.com",
            scope="/events/", role="discover", tz_policy="microdata_local", max_items_per_call=10),
+    # 3C-GOV: news agenda now CREATES rows too (tier 5 → REPORTADO when approved) — the Nairo Fest
+    # gap: EU's /cartagena feed carried the Gran Fondo tránsito piece on Oct 7, four days before
+    # the Camellón concert, and the corroborate role dropped it corroboration_unmatched. Every new
+    # row still lands review/civic_review; a human publishes or it never ships.
     _entry(ElUniversalAdapter(), name="El Universal", tier=5, domain="eluniversal.com.co",
-           scope="/arc/outboundfeeds/rss/category/", role="corroborate", tz_policy="visible_text",
+           scope="/arc/outboundfeeds/rss/category/", role="discover", civic=True, tz_policy="visible_text",
            max_items_per_call=3, llm_text_ok=False),
     _entry(CartagenaplayAdapter(), name="Cartagenaplay (agregador)", tier=6, domain="cartagenaplay.com",
            scope="/event/", role="review", tz_policy="visible_text", max_items_per_call=8, recheck="adapter"),
 ]
 SOURCES_BY_KEY: dict[str, dict[str, Any]] = {e["key"]: e for e in SOURCES}
+
+
+def is_civic_source(key: Any) -> bool:
+    """3C-GOV: true for registry sources whose NEW rows must always wait for a human
+    (official civic primaries + news agenda). Consulted by the insert path in
+    events_elite — code-level, so no runtime flag can ever auto-publish civic."""
+    e = SOURCES_BY_KEY.get(str(key or ""))
+    return bool(e and e.get("civic"))
 
 
 def public_sources() -> list[dict[str, Any]]:

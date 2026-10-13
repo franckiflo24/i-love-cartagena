@@ -1051,6 +1051,14 @@ async def process_candidate(ctx: PullCtx, c: Mapping[str, Any], *, role: str, pe
         doc.update(status="review", status_reason="source_probation", confidence="VERIFY", notif_eligible=False)
         ev = {**ev, "status": "review", "status_reason": "source_probation", "confidence": "VERIFY",
               "notif_eligible": False}
+    elif sources.is_civic_source(c.get("source_key")) and ev["status"] in LIVE_STATUSES:
+        # 3C-GOV: a civic source (IPCC official, El Universal agenda) may CREATE rows but NOTHING
+        # civic auto-publishes — published AND date_tbc both demote to review until a human in
+        # /admin/eventos approves (then the row ships at the source's tier: 1 = OFICIAL, 5 =
+        # REPORTADO). Sticky (civic_review ∈ STICKY_REVIEW_REASONS); structural, not a flag.
+        doc.update(status="review", status_reason="civic_review", confidence="VERIFY", notif_eligible=False)
+        ev = {**ev, "status": "review", "status_reason": "civic_review", "confidence": "VERIFY",
+              "notif_eligible": False}
     try:
         doc["event_id"] = _mint_id(doc)
     except ValueError:

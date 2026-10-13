@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 3C-GOV replay fixture: VERBATIM paragraphs from El Universal's /cartagena feed item,
+     published 2026-10-07 — four days BEFORE the Gran Fondo Nairo Fest closing concert
+     (Carlos Vives, Camellón de los Mártires, Sunday 2026-10-11). The pipeline polled this
+     feed on those days with role=corroborate and dropped it corroboration_unmatched.
+     Source article: https://www.eluniversal.com.co/cartagena/2026/10/07/este-es-el-plan-de-manejo-de-transito-para-el-gran-fondo-nairo-fest-2026/ -->
+<rss xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0"><channel>
+<title><![CDATA[El Universal]]></title>
+<item>
+<title><![CDATA[Este es el plan de manejo de tránsito para el Gran Fondo Nairo Fest 2026]]></title>
+<link>https://www.eluniversal.com.co/cartagena/2026/10/07/este-es-el-plan-de-manejo-de-transito-para-el-gran-fondo-nairo-fest-2026/</link>
+<pubDate>Wed, 07 Oct 2026 16:00:00 +0000</pubDate>
+<content:encoded><![CDATA[<p>Cartagena se prepara para recibir este fin de semana el Gran Fondo Nairo Fest, un evento deportivo que consolida a la ciudad como destino deportivo de talla mundial y que reunirá a 10.600 participantes, entre ellos 6.900 ciclistas, 3.100 atletas, 300 niños que participarán en Nairo Kids y 300 deportistas de la modalidad MTB, provenientes de 21 países.</p>
+<p>Agréganos a tus favoritos de Google En esta carrera participarán ciclistas de 23 países // Cortesía: Gobernación de Bolívar.</p>
+<p>Con el propósito de garantizar la seguridad de los participantes y mantener condiciones adecuadas de movilidad para residentes y visitantes, la Alcaldía de Cartagena, a través del Departamento Administrativo de Tránsito y Transporte (Datt) implementará un Plan de Manejo de Tránsito (PMT) que contempla cierres y restricciones viales desde este jueves 8 de octubre hasta el lunes 12 de octubre.</p>
+<p>Cierre vial por concierto Gran Fondo Nairo Quintana // Cortesía: Alcaldía de Cartagena. Desde las 8:00 a. m. del jueves 8 de octubre y hasta el lunes 12 de octubre, se mantendrá el cierre de la avenida Daniel Lemaitre, entre la carrera 8 y la carrera 9A, avenida Panamá, debido a las actividades de montaje y desmontaje de la infraestructura del concierto del Gran Fondo Nairo Quintana.</p>
+<p>Recorrido carrera ciclismo del domingo 11 de octubre // Cortesía: Alcaldía de Cartagena. Para el domingo 11 de octubre, fecha en la que se desarrollará la competencia ciclística Gran Fondo Nairo Quintana, se han programado los siguientes cierres y restricciones:</p>
+<p>Recorrido carrera Running 21k // Cortesía: Alcaldía de Cartgena. El recorrido iniciará en la calle 30 (Corredor Histórico) y continuará por la avenida Blas de Lezo, carrera 8B, avenida Rafael Núñez, avenida del Arsenal, avenida del Pedregal, calle de la Media Luna, Camellón de los Mártires, carrera 7, calle de las Carretas, calles Primera de Badillo, calle 36, calle de la Moneda, calle de la Cruz, calle del Cabo, carrera 11, calle Reculada del Ovejo, carrera 10, calle del Jardín de la Carbonara, calle del Pilar, calle 37, calle del Quero, carrera 9, calle Tumbamuerto, calle de las Bóvedas, carrera 2, carrera 8, calle del Torno de Santa Clara, calle Cochera del Hobo, calle 38, calle del Santísimo, carrera 7, carrera 2 y carrera 6.</p>
+<p>Los cierres viales se implementarán desde el jueves 8 de octubre y se mantendrán hasta el lunes 12 de octubre.</p>
+<p>Cierres viales para el sábado 10 de octubre // Cortesía: Alcaldía de Cartagena. Para la realización de la carrera Running 21K, se implementarán cierres viales desde las 4:00 a. m. y hasta las 9:00 a. m. en los diferentes puntos del recorrido.</p>
+]]></content:encoded>
+</item>
+</channel></rss>

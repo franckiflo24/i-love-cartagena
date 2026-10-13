@@ -69,7 +69,10 @@ def test_registry_order_and_fields() -> None:
     tiers = {e["key"]: e["tier"] for e in S.SOURCES}
     assert tiers["ipcc"] == 1 and tiers["cccartagena"] == 3 and tiers["eluniversal"] == 5 and tiers["cartagenaplay"] == 6
     assert S.SOURCES_BY_KEY["cartagenaplay"]["role"] == "review"
-    assert S.SOURCES_BY_KEY["eluniversal"]["role"] == "corroborate" and S.SOURCES_BY_KEY["eluniversal"]["llm_text_ok"] is False
+    # 3C-GOV: agenda sources CREATE review rows now (civic-gated in events_elite insert)
+    assert S.SOURCES_BY_KEY["eluniversal"]["role"] == "discover" and S.SOURCES_BY_KEY["eluniversal"]["llm_text_ok"] is False
+    assert S.SOURCES_BY_KEY["ipcc"]["role"] == "discover"
+    assert S.SOURCES_BY_KEY["ipcc"]["civic"] is True and S.SOURCES_BY_KEY["eluniversal"]["civic"] is True
     assert S.SOURCES_BY_KEY["tuboleta"]["cookie_jar"] is True
     assert S.HOST_MIN_GAP_S[S.politeness_key("https://special.checkout.tuboleta.com/list/events")] == 6.0
     assert S.politeness_key("https://teatros.checkout.tuboleta.com/x") == S.politeness_key("https://special.checkout.tuboleta.com/y")
@@ -201,7 +204,11 @@ def test_ironman_date_only_no_shift() -> None:
 # ═══ IPCC + El Universal agenda rows ═════════════════════════════════════════════════════════
 def test_ipcc_feed_rows() -> None:
     items, _ = S.parse_agenda_feed("ipcc", rd("ipcc_feed.xml"), "2026-09-28T20:00:00Z", 200)
-    assert len(items) == 24 and all(c["source_tier"] == 1 and c["role"] == "corroborate" for c in items)
+    # 24 agenda rows + the 3C-GOV article fallback on the prose "Noche de Museos" post
+    assert len(items) == 25 and all(c["source_tier"] == 1 and c["role"] == "discover" for c in items)
+    arts = [c for c in items if "agenda_article" in (c.get("flags") or [])]
+    assert len(arts) == 1 and arts[0]["start_date"] == "2026-09-25" and "tentative" in arts[0]["flags"]
+    assert arts[0]["venue_name"] is None and arts[0]["start_time"] is None  # no invented pin/hour
     assert all(c["start_date"].startswith("2026-") for c in items)  # year from the weekday, never a dateline
     bando = by_title(items, "Gran Desfile de Independencia")
     assert (bando["start_date"], bando["start_time"], bando["end_time"], bando["venue_name"]) == ("2026-11-12", "10:00", "12:00", "Avenida Santander")
@@ -215,9 +222,9 @@ def test_ipcc_feed_rows() -> None:
     assert by_title(items, "Cabildo de Getsemaní")["start_date"] == "2026-11-15"
 
 
-def test_eluniversal_feed_rows_are_tier5_corroboration() -> None:
+def test_eluniversal_feed_rows_are_tier5_discover() -> None:
     items, skips = S.parse_agenda_feed("eluniversal", rd("eluniversal_rss_farandula.xml"), "2026-09-28T20:00:00Z", 200)
-    assert len(items) == 23 and all(c["source_tier"] == 5 and c["role"] == "corroborate" for c in items)
+    assert len(items) == 23 and all(c["source_tier"] == 5 and c["role"] == "discover" for c in items)
     assert by_title(items, "Preludio Localidad 2")["start_date"] == "2026-10-09"
     assert all("carlos-vives" not in c["source_url"] for c in items)
 
@@ -786,7 +793,7 @@ def test_tuboleta_pull_lists_and_event_pages() -> None:
 def test_agenda_pull_and_ccc_pull() -> None:
     r = Router({"https://ipcc.gov.co/feed/": (200, rd("ipcc_feed.xml"), {"content-type": "application/rss+xml"})})
     res = run(_with(r, lambda c: S.SOURCES_BY_KEY["ipcc"]["adapter"].pull(c, None, sched=fast_sched(), now_utc=NOW)))
-    assert len(res) == 24 and res.next_offset is None
+    assert len(res) == 25 and res.next_offset is None
     r = Router({S.CCC_SITEMAP: (200, rd("ccc_ajde_events_sitemap.xml"), {"content-type": "application/xml"})})
     res = run(_with(r, lambda c: S.SOURCES_BY_KEY["cccartagena"]["adapter"].pull(c, None, sched=fast_sched(), now_utc=NOW)))
     assert res.total == 12 and len(res) == 0 and res.next_offset == 10  # 12 recent sitemap URLs, cap 10 per call
@@ -804,7 +811,7 @@ def test_ipcc_wp_rest_json_path() -> None:
     rest = S.IpccAdapter.FEEDS[1]
     r = Router({S.IpccAdapter.FEEDS[0]: (200, rd("ipcc_feed.xml"), {}), rest: (200, json.dumps(posts), {"content-type": "application/json"})})
     res = run(_with(r, lambda c: S.SOURCES_BY_KEY["ipcc"]["adapter"].pull(c, None, sched=fast_sched(), now_utc=NOW)))
-    assert len(res) == 24  # the REST copy of the same post is de-duplicated by source key
+    assert len(res) == 25  # the REST copy of the same post is de-duplicated by source key
 
 
 # ═══ §15 R3 4c: JSON-LD start == end == fetch day is a placeholder, never a date ═════════════
