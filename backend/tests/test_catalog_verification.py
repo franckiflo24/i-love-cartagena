@@ -5,6 +5,7 @@ are operator-token writes proven live (grant-admin precedent)."""
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -115,6 +116,46 @@ def test_6a_fabricated_render_nowhere_and_twins_resolve() -> None:
     # the redirect is wired into the partner screen (map imported + replace on alias)
     screen = (BACKEND.parent / "frontend" / "app" / "partner" / "[id].tsx").read_text(encoding="utf-8")
     assert "partnerAliases.json" in screen and "aliasTarget" in screen
+
+
+def test_static_layer_is_subset_of_approved_partners() -> None:
+    """Phil's 6A corollary (2026-10-13): 'A clean API is not a clean surface.'
+    Every partner_id referenced ANYWHERE under frontend/public/data — and every
+    per-partner detail file by filename — must belong to the approved static
+    catalog (partners.json, the mirror of Mongo's PUBLIC filter). A hide/remove
+    that misses a static surface fails here, not in prod. First catch of this
+    sweep: 30 orphan detail files for closed/hidden venues + a promotions file
+    advertising 5 dead venues with June-expired promos."""
+    DATA = BACKEND.parent / "frontend" / "public" / "data"
+    approved = {p["partner_id"] for p in PARTNERS}
+    bad: dict[str, list[str]] = {}
+    for f in sorted(DATA.rglob("*.json")):
+        ids = set(re.findall(r'"partner_id"\s*:\s*"([^"]+)"', f.read_text(encoding="utf-8")))
+        if f.parent.name == "partners":
+            ids.add(f.stem)
+        extra = sorted(ids - approved)
+        if extra:
+            bad[str(f.relative_to(DATA))] = extra
+    assert not bad, f"static files reference non-approved partner_ids: {bad}"
+
+
+def test_fabricated_seed_rows_never_return() -> None:
+    """The ptr_ac_* operators were BORN in server.py startup seeds: ACTIVITY_PARTNERS
+    ($setOnInsert, certified + invented ratings) and their pe_ac_* partner_events
+    (re-stamped to TODAY on every boot via $set). Prod rows are hidden, but the
+    seeds were a resurrection vector for any fresh/restored environment. Both are
+    removed; this locks the tombstone."""
+    src = (BACKEND / "server.py").read_text(encoding="utf-8")
+    assert "ACTIVITY_PARTNERS = [" not in src, "fabricated partner seed is back"
+    for marker in ("Cartagena Diving Center", "Cartagena Food Tours",
+                   "Walking Cartagena", "Aventura Rosario", "bautizo submarino",
+                   "cartagenadivers.com", "aventurarosario.co"):
+        assert marker not in src, f"fabricated seed content resurfacing: {marker}"
+    # seed dicts for the fabricated ids must not exist; pe_ac_* may appear only
+    # inside the cleanup migration (unpublish+cancel), never as a seeded event.
+    assert '"partner_id": "ptr_ac_' not in src
+    assert '"event_id": "pe_ac_' not in src, "fabricated event seed is back"
+    assert "unpublish_reason" in src and '"pe_ac_001"' in src  # the cleanup stays
 
 
 def test_6b_only_earned_verification_ranks() -> None:

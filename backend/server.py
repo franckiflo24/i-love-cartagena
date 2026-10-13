@@ -9946,71 +9946,11 @@ async def startup():
             upsert=True,
         )
 
-    # ── Migration: Seed Activity partners (idempotent) ──
-    ACTIVITY_PARTNERS = [
-        {
-            "partner_id": "ptr_ac_001",
-            "name": "Cartagena Diving Center",
-            "description": "Centro de buceo PADI 5 estrellas. Cursos, inmersiones y snorkel en los arrecifes de las Islas del Rosario.",
-            "category": "activity", "tier": "premium",
-            "image_url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
-            "location": {"lat": 10.4188, "lng": -75.5523},
-            "address": "Muelle de la Bodeguita, Centro",
-            "booking_link": "https://cartagenadivers.com",
-            "price_range": "$$$",
-            "experience": "Buceo PADI, snorkel, inmersión nocturna, bautizo submarino",
-            "is_certified": True, "instagram": "cartagenadivers",
-            "rating": 4.7, "reviews": 412,
-        },
-        {
-            "partner_id": "ptr_ac_002",
-            "name": "Cartagena Food Tours",
-            "description": "Tours gastronómicos por el Centro Histórico y Getsemaní. Degustación de comida callejera, mercados y restaurantes locales.",
-            "category": "activity", "tier": "popular",
-            "image_url": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=600&fit=crop",
-            "location": {"lat": 10.4228, "lng": -75.5510},
-            "address": "Plaza Santo Domingo, Centro Histórico",
-            "booking_link": "https://cartagenafoodtours.com",
-            "price_range": "$$",
-            "experience": "Tour gastronómico, cocina callejera, mercado Bazurto, clase de cocina",
-            "is_certified": True, "instagram": "cartagenafoodtours",
-            "rating": 4.8, "reviews": 567,
-        },
-        {
-            "partner_id": "ptr_ac_003",
-            "name": "Walking Cartagena",
-            "description": "Tours históricos a pie por la ciudad amurallada. Guías bilingües, historia colonial, leyendas y arquitectura.",
-            "category": "activity", "tier": "popular",
-            "image_url": "https://images.unsplash.com/photo-1583037189850-1921ae7c6c22?w=800&h=600&fit=crop",
-            "location": {"lat": 10.4236, "lng": -75.5483},
-            "address": "Torre del Reloj, Centro Histórico",
-            "booking_link": "https://walkingcartagena.co",
-            "price_range": "$",
-            "experience": "Tour colonial, leyendas, foto tour, tour nocturno",
-            "is_certified": True, "instagram": "walkingcartagena",
-            "rating": 4.6, "reviews": 823,
-        },
-        {
-            "partner_id": "ptr_ac_004",
-            "name": "Aventura Rosario Islands",
-            "description": "Kayak, paddleboard, jet ski y banana boat en las Islas del Rosario. Paquetes para familias y grupos.",
-            "category": "activity", "tier": "premium",
-            "image_url": "https://images.unsplash.com/photo-1530053969600-caed2596d242?w=800&h=600&fit=crop",
-            "location": {"lat": 10.1780, "lng": -75.5800},
-            "address": "Islas del Rosario",
-            "booking_link": "https://aventurarosario.co",
-            "price_range": "$$",
-            "experience": "Kayak, paddle board, jet ski, banana boat, snorkel",
-            "is_certified": True, "instagram": "aventurarosario",
-            "rating": 4.5, "reviews": 290,
-        },
-    ]
-    for partner in ACTIVITY_PARTNERS:
-        await db.partners.update_one(
-            {"partner_id": partner["partner_id"]},
-            {"$setOnInsert": partner},
-            upsert=True,
-        )
+    # ── 6A tombstone: the demo-era ACTIVITY_PARTNERS seed (ptr_ac_001..004) lived here.
+    # It planted fabricated operators as certified with invented ratings ($setOnInsert on
+    # boot). The rows are hidden in prod (status unverified + status_reason); the seed is
+    # REMOVED so no fresh/restored environment can ever re-plant them. Locked by
+    # tests/test_catalog_verification.py::test_fabricated_seed_rows_never_return.
 
     # Tag the original El Arsenal Wellness with subcategory
     await db.partners.update_one(
@@ -10412,55 +10352,6 @@ async def startup():
             "booking_link": "https://caribbeanyachtclub.co/fishing",
             "status": "approved", "is_published": True, "is_active": True,
         },
-        # ACTIVITY experiences
-        {
-            "event_id": "pe_ac_001", "partner_id": "ptr_ac_001",
-            "title": "Bautizo de Buceo — Islas del Rosario",
-            "description": "Primera inmersión con instructor PADI. Incluye equipo, lancha y snack. Sin experiencia previa necesaria.",
-            "category": "activity",
-            "date": today_yacht, "start_time": "08:00", "end_time": "13:00",
-            "flyer_url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
-            "venue": "Islas del Rosario",
-            "is_free": False, "price": 280000, "price_cop": 280000, "currency": "COP",
-            "booking_link": "https://cartagenadivers.com/bautizo",
-            "status": "approved", "is_published": True, "is_active": True,
-        },
-        {
-            "event_id": "pe_ac_002", "partner_id": "ptr_ac_002",
-            "title": "Food Tour Getsemaní",
-            "description": "Recorrido gastronómico de 3 horas por Getsemaní: comida callejera, mercados locales y cocina tradicional. 8 paradas de degustación.",
-            "category": "activity",
-            "date": today_yacht, "start_time": "10:00", "end_time": "13:00",
-            "flyer_url": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=600&fit=crop",
-            "venue": "Getsemaní, Centro Histórico",
-            "is_free": False, "price": 150000, "price_cop": 150000, "currency": "COP",
-            "booking_link": "https://cartagenafoodtours.com/getsemani",
-            "status": "approved", "is_published": True, "is_active": True,
-        },
-        {
-            "event_id": "pe_ac_003", "partner_id": "ptr_ac_003",
-            "title": "Tour Histórico — Ciudad Amurallada",
-            "description": "Recorrido de 2.5 horas por la ciudad colonial. Murallas, palacios, iglesias, leyendas de piratas. Guía bilingüe.",
-            "category": "activity",
-            "date": today_yacht, "start_time": "09:00", "end_time": "11:30",
-            "flyer_url": "https://images.unsplash.com/photo-1583037189850-1921ae7c6c22?w=800&h=600&fit=crop",
-            "venue": "Torre del Reloj, Centro",
-            "is_free": False, "price": 80000, "price_cop": 80000, "currency": "COP",
-            "booking_link": "https://walkingcartagena.co/colonial",
-            "status": "approved", "is_published": True, "is_active": True,
-        },
-        {
-            "event_id": "pe_ac_004", "partner_id": "ptr_ac_004",
-            "title": "Kayak & Paddle Board — Islas del Rosario",
-            "description": "Medio día de deportes acuáticos: kayak, paddle board y snorkel en aguas cristalinas. Incluye transporte en lancha.",
-            "category": "activity",
-            "date": today_yacht, "start_time": "08:30", "end_time": "13:00",
-            "flyer_url": "https://images.unsplash.com/photo-1530053969600-caed2596d242?w=800&h=600&fit=crop",
-            "venue": "Islas del Rosario",
-            "is_free": False, "price": 180000, "price_cop": 180000, "currency": "COP",
-            "booking_link": "https://aventurarosario.co/watersports",
-            "status": "approved", "is_published": True, "is_active": True,
-        },
     ]
     for ev in YACHT_ACTIVITY_EVENTS:
         ev["created_at"] = datetime.now(timezone.utc).isoformat()
@@ -10471,6 +10362,15 @@ async def startup():
             {"$set": ev},
             upsert=True,
         )
+
+    # 6A sweep: the fabricated ACTIVITY hosts' seeded events (pe_ac_001..004) are
+    # unpublished + cancelled in place (cancelled:True can never re-enter discovery —
+    # PARTNER_EVENT_PUBLIC belt). Rows kept for the audit trail, like their hosts.
+    await db.partner_events.update_many(
+        {"event_id": {"$in": ["pe_ac_001", "pe_ac_002", "pe_ac_003", "pe_ac_004"]}},
+        {"$set": {"is_published": False, "cancelled": True, "is_active": False,
+                  "unpublish_reason": "6A: fabricated demo host (see partners status_reason)"}},
+    )
 
     # ── Migration: Seed Cafés (subcategory of Restaurantes) ──
     CAFE_PARTNERS = [
