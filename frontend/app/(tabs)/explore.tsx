@@ -919,14 +919,14 @@ export default function ExploreScreen() {
         const q = byCat.get(c);
         if (q) q.push(p); else byCat.set(c, [p]);
       }
-      // Drop 6: within each category queue, verification-carrying rows ride FIRST
-      // (verificado > reportado > untiered, order otherwise stable) — so the honest
-      // tiers surface in the first rotations of "Todos" instead of sorting last
-      // behind rating-carrying bulk-import rows.
-      const vRank = (p: Partner) => {
-        const s = (p as any).verification?.status;
-        return s === 'verificado' ? 0 : s === 'reportado' ? 1 : 2;
-      };
+      // Drop 6B rail: ONLY EARNED verification boosts — 'verificado' is set
+      // exclusively by the evidence-gated verify-provider action (RUES + Cámara +
+      // DIMAR/PADI/IKO). 'reportado' deliberately does NOT boost: it is stamped at
+      // SEED time (5A/5B), and a seed-based boost is exactly what the honesty rails
+      // ban. The boost is bounded by construction: it reorders WITHIN one category's
+      // stream only — the cross-category rotation always wins.
+      const vRank = (p: Partner) =>
+        (p as any).verification?.status === 'verificado' ? 0 : 1;
       const queues = [...byCat.values()].map((q) =>
         q.map((p, i) => ({ p, i })).sort((a, b) => (vRank(a.p) - vRank(b.p)) || (a.i - b.i)).map(x => x.p));
       const mixed: Partner[] = [];

@@ -117,6 +117,22 @@ def test_6a_fabricated_render_nowhere_and_twins_resolve() -> None:
     assert "partnerAliases.json" in screen and "aliasTarget" in screen
 
 
+def test_6b_only_earned_verification_ranks() -> None:
+    """DROP 6B honesty rail, locked: ranking boosts ride EARNED verification only
+    ('verificado', set by the evidence-gated verify-provider action). Seed-stamped
+    'reportado' must never branch a rank weight — a `'reportado' ?` ternary inside
+    either ranking site is the banned seed-based boost coming back."""
+    FRONTEND = BACKEND.parent / "frontend"
+    explore = (FRONTEND / "app" / "(tabs)" / "explore.tsx").read_text(encoding="utf-8")
+    coll = (FRONTEND / "app" / "collections" / "[key].tsx").read_text(encoding="utf-8")
+    for src, name in ((explore, "explore.tsx"), (coll, "collections/[key].tsx")):
+        assert "'reportado' ?" not in src, f"{name}: seed-based rank boost reintroduced"
+    assert "=== 'verificado' ? 0 : 1" in explore      # bounded in-stream boost
+    assert "=== 'verificado' ? 100 : 0" in coll       # earned weight only
+    # the cross-category axis stays the FINAL pass (diversity beats boost)
+    assert "capConsecutiveByCategory(interleaveByCategory(partners), 2)" in explore
+
+
 def test_hold_registry_exists_and_publishes_nothing() -> None:
     reg = json.loads((BACKEND / "data" / "activities_registry_5c.json").read_text(encoding="utf-8"))
     names = " ".join(r["name"] for r in reg["rows"]).lower()

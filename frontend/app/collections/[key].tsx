@@ -47,8 +47,10 @@ export default function CollectionScreen() {
           const q = (p: any) =>
             (TIER[(p.tier || '').toLowerCase()] || 0) * 1000 +
             // Drop 6: the +100 used to ride is_certified — a bulk-import flag on 459
-            // records that verified nothing. Rank weight now follows EARNED tiers.
-            (p.verification?.status === 'verificado' ? 100 : p.verification?.status === 'reportado' ? 40 : 0) +
+            // records that verified nothing. Drop 6B rail: only EARNED verification
+            // weighs ('verificado' via verify-provider); seed-stamped 'reportado'
+            // carries ZERO boost — seed-based ranking is banned.
+            (p.verification?.status === 'verificado' ? 100 : 0) +
             (p.membership_status === 'active' ? 10 : 0) +
             (p.rating || 0);
           rows = list
