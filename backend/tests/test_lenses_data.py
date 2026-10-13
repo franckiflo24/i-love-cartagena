@@ -211,3 +211,7 @@ def test_women_lens_resource_only_rails() -> None:  # 4C — the strictest rails
     assert kinds.count("confirmed") == 3 and "invite" in kinds and "unverified" in kinds
     rl = w["luna"]["resource_line"]["es"]
     assert "155" in rl and "123" in rl and "escopolamina" in rl
+    # every CONFIRMED resource the spec seeds is present: 155/123, gov guidance,
+    # Casa (program), adenunciar + Migración Colombia (lost passport)
+    assert "adenunciar" in rl
+    assert "migracioncolombia" in body

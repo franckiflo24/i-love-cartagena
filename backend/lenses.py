@@ -727,16 +727,26 @@ _SAFETY_ACTION_LABEL = {
     "fr": "Ressources et numéros d'aide", "pt": "Recursos e números de ajuda",
 }
 
+# The 4C rollback clause: the safety FLOOR is never rolled back. If the lens data is
+# ever rolled back (resource_line stripped, lens re-gated, file unreadable), the guard
+# still answers deterministically with this minimal line instead of going silent and
+# letting the LLM freestyle. Numbers here are the two stable national lines only.
+_SAFETY_FLOOR_LINE = {
+    "es": "La seguridad nunca se promete: ningún lugar es «seguro» garantizado. Lo verificado: Línea 155 (orientación a mujeres víctimas de violencia, 24/7, gratuita) y 123 (emergencias). Si pasó algo, llama al 123.",
+    "en": "Safety is never a promise: no place is guaranteed \"safe\". What's verified: Line 155 (support for women facing violence, 24/7, free) and 123 (emergencies). If something happened, call 123.",
+    "fr": "La sécurité ne se promet jamais : aucun lieu n'est « sûr » garanti. Vérifié : la ligne 155 (orientation pour les femmes victimes de violences, 24 h/24, gratuite) et le 123 (urgences). S'il s'est passé quelque chose, appelle le 123.",
+    "pt": "Segurança nunca é uma promessa: nenhum lugar é «seguro» garantido. O verificado: Linha 155 (orientação a mulheres vítimas de violência, 24/7, gratuita) e 123 (emergências). Se algo aconteceu, ligue 123.",
+}
+
 
 def safety_guard_payload(user_text: str, lang: str) -> Optional[Dict[str, Any]]:
     """Deterministic resource-forward answer for the safety-question space (4C).
     Fires on HARD danger/incident/drugging/dating terms, on STRONG solo-woman
     phrasings, or on soft "is it safe"+night/zone combos (unless it is really a
     kids/food/water question — those flow to their own authorities). The reply is
-    the women lens's resource_line verbatim: the model never speaks on safety."""
-    data = load_lenses()
-    if not data:
-        return None
+    the women lens's resource_line verbatim — and if the lens data is rolled back
+    or unreadable, the code-level _SAFETY_FLOOR_LINE answers instead: the floor
+    never goes silent, the model never speaks on safety."""
     t = _norm(user_text or "")
     if not t:
         return None
@@ -747,12 +757,11 @@ def safety_guard_payload(user_text: str, lang: str) -> Optional[Dict[str, Any]]:
             return None
         if _SAFETY_KID_RE.search(t) or _SAFETY_NEG_RE.search(t):
             return None
+    data = load_lenses() or {}
     ln = next((x for x in data.get("lenses") or [] if x.get("key") == "women_verified"), None)
     rl = ((ln or {}).get("luna") or {}).get("resource_line") or {}
     lg = lang if lang in LANGS else "es"
-    msg = (rl.get(lg) or rl.get("es") or "").strip()
-    if not msg:
-        return None
+    msg = (rl.get(lg) or rl.get("es") or "").strip() or _SAFETY_FLOOR_LINE[lg]
     return {"message": msg, "language": lg,
             "actions": [{"type": "navigate", "screen": "ayuda",
                          "label": _SAFETY_ACTION_LABEL[lg]}],

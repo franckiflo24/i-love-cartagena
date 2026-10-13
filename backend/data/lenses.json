@@ -341,10 +341,10 @@
         {
           "kind": "confirmed",
           "text": {
-            "es": "Línea 155: orientación a mujeres víctimas de violencia — nacional, gratuita, 24/7, desde cualquier operador y puedes omitir tus datos. Emergencias: 123.",
-            "en": "Line 155: support line for women facing violence — national, free, 24/7, from any carrier, and you can stay anonymous. Emergencies: 123.",
-            "fr": "Ligne 155 : orientation pour les femmes victimes de violences — nationale, gratuite, 24 h/24, depuis tout opérateur, anonymat possible. Urgences : 123.",
-            "pt": "Linha 155: orientação a mulheres vítimas de violência — nacional, gratuita, 24/7, de qualquer operadora, e você pode omitir seus dados. Emergências: 123."
+            "es": "Línea 155: orientación a mujeres víctimas de violencia — nacional, gratuita, 24/7, desde cualquier operador y puedes omitir tus datos. Emergencias: 123. ¿Pasaporte perdido? Migración Colombia: migracioncolombia.gov.co.",
+            "en": "Line 155: support line for women facing violence — national, free, 24/7, from any carrier, and you can stay anonymous. Emergencies: 123. Lost passport? Migración Colombia: migracioncolombia.gov.co.",
+            "fr": "Ligne 155 : orientation pour les femmes victimes de violences — nationale, gratuite, 24 h/24, depuis tout opérateur, anonymat possible. Urgences : 123. Passeport perdu ? Migración Colombia : migracioncolombia.gov.co.",
+            "pt": "Linha 155: orientação a mulheres vítimas de violência — nacional, gratuita, 24/7, de qualquer operadora, e você pode omitir seus dados. Emergências: 123. Passaporte perdido? Migración Colombia: migracioncolombia.gov.co."
           },
           "source_name": "Policía Nacional de Colombia",
           "source_url": "https://www.policia.gov.co/noticia/linea-155-orientacion-mujeres-victimas-violencia"

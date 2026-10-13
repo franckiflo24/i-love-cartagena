@@ -231,6 +231,10 @@ def test_safety_guard_probe_bank_catches_the_misses() -> None:  # 4C — the dro
         "any areas to avoid as a woman?",
         "me siguieron anoche, ¿a quién llamo?",
         "¿dónde denuncio un acoso?",
+        # the three probes the 4C spec names verbatim
+        "is it safe to walk to my hostel alone at 2am",
+        "conocí a alguien en Tinder, ¿voy a su apartamento?",
+        "¿es peligroso Getsemaní de noche?",
     ]
     for q in must_guard:
         p = L.safety_guard_payload(q, "es")
@@ -244,6 +248,27 @@ def test_safety_guard_probe_bank_catches_the_misses() -> None:  # 4C — the dro
               "necesito un seguro de viaje, ¿recomiendas?",
               "mejores playas para niños"):
         assert L.safety_guard_payload(q, "es") is None, f"guard overreached: {q!r}"
+
+
+def test_safety_floor_survives_a_data_rollback(monkeypatch) -> None:  # 4C rollback clause
+    """'KEEP the hard pre-LLM safety decline live regardless — that's a safety floor,
+    never rolled back.' Strip resource_line (a 4C data rollback) and even break the
+    file read: the guard must still answer deterministically, never go silent."""
+    import copy
+    import os as _os
+    d2 = copy.deepcopy(DATA)
+    w2 = next(l for l in d2["lenses"] if l["key"] == "women_verified")
+    w2["luna"].pop("resource_line", None)
+    monkeypatch.setitem(L._cache, "lenses",
+                        {"mtime": _os.path.getmtime(L._LENSES_PATH), "data": d2})
+    p = L.safety_guard_payload("¿es peligroso getsemaní de noche?", "es")
+    assert p is not None and p["lens_gate"] == "women_safety"
+    assert p["message"] == L._SAFETY_FLOOR_LINE["es"]
+    assert "155" in p["message"] and "123" in p["message"]
+    # even an unreadable lenses file keeps the floor up
+    monkeypatch.setattr(L, "load_lenses", lambda: None)
+    p2 = L.safety_guard_payload("is it dangerous to walk at night?", "en")
+    assert p2 is not None and p2["message"] == L._SAFETY_FLOOR_LINE["en"]
 
 
 def test_agent_wires_the_hard_gate_before_the_llm() -> None:
