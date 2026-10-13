@@ -1776,6 +1776,29 @@ export const AUTO_TR: Dict = {
   'Confirma': { en: 'Confirm', fr: 'À confirmer', pt: 'Confirme' },
   'aprox.': { en: 'approx.', fr: 'env.', pt: 'aprox.' },
   'Fuente': { en: 'Source', fr: 'Source', pt: 'Fonte' },
+  // ── P0 browse-spine: gateway singulars + lens empty-state ──
+  'restaurante': { en: 'restaurant', fr: 'restaurant', pt: 'restaurante' },
+  'café': { en: 'café', fr: 'café', pt: 'café' },
+  'plan de noche': { en: 'night plan', fr: 'plan de soirée', pt: 'programa de noite' },
+  'beach club': { en: 'beach club', fr: 'beach club', pt: 'beach club' },
+  'yate': { en: 'yacht', fr: 'yacht', pt: 'iate' },
+  'servicio de belleza': { en: 'beauty service', fr: 'service beauté', pt: 'serviço de beleza' },
+  'experiencia': { en: 'experience', fr: 'expérience', pt: 'experiência' },
+  'atracción': { en: 'attraction', fr: 'attraction', pt: 'atração' },
+  'servicio': { en: 'service', fr: 'service', pt: 'serviço' },
+  'Sin resultados en esta lente': { en: 'No results in this lens', fr: 'Aucun résultat dans ce filtre', pt: 'Sem resultados nesta lente' },
+  'Ningún lugar de esta categoría está en esta lente todavía — mira los avisos arriba o quita el filtro.': {
+    en: 'No place in this category is in this lens yet — see the notices above or remove the filter.',
+    fr: "Aucun lieu de cette catégorie n'est encore dans ce filtre — regarde les avis ci-dessus ou retire le filtre.",
+    pt: 'Nenhum lugar desta categoria está nesta lente ainda — veja os avisos acima ou remova o filtro.',
+  },
+  'Aún no hay lugares verificados por mujeres en esta categoría.': {
+    en: 'No women-verified places in this category yet.',
+    fr: "Pas encore de lieux vérifiés par des femmes dans cette catégorie.",
+    pt: 'Ainda não há lugares verificados por mulheres nesta categoria.',
+  },
+  'Quitar lente': { en: 'Remove lens', fr: 'Retirer le filtre', pt: 'Remover lente' },
+
   // ── 5A activities verification chrome (Reportado → earned Verificado) ──
   'Reportado': { en: 'Reported', fr: 'Signalé', pt: 'Reportado' },
   'Verificado por AMO': { en: 'AMO Verified', fr: 'Vérifié par AMO', pt: 'Verificado pela AMO' },

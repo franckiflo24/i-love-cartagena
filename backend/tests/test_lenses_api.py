@@ -275,3 +275,18 @@ def test_cruise_parser_counts_today_zero_and_anomalies() -> None:
     assert L.parse_cruise_ships("<html>no ships here</html>", today) is None    # structure changed
     assert L.parse_cruise_ships(_page('<tr><td><a href="/ships/x">S</a></td></tr>'), today) is None  # no day markers
     assert L.parse_cruise_ships(_page(_day("30 September, 2026", 25)), today) is None  # sanity cap
+
+
+def test_venue_cache_is_not_poisoned_across_lenses(client) -> None:  # P0 2026-10-13
+    """The venue-views cache used to return whatever id-set was fetched LAST,
+    ignoring the requested ids — with several venues lenses live, the first lens
+    poisoned the 10-min window and the rest served only the intersection (family
+    was live-serving 1 of 9 rows). The cache now merge-fetches missing ids."""
+    a = client.get("/api/lenses/step_free").json()
+    b = client.get("/api/lenses/family").json()          # same warm cache
+    c = client.get("/api/lenses/women_verified").json()  # and again
+    assert len(a["venues"]) >= 8, [v["venue_id"] for v in a["venues"]]
+    assert len(b["venues"]) >= 9, [v["venue_id"] for v in b["venues"]]
+    assert len(c["venues"]) >= 5, [v["venue_id"] for v in c["venues"]]
+    a2 = client.get("/api/lenses/step_free").json()
+    assert {v["venue_id"] for v in a2["venues"]} == {v["venue_id"] for v in a["venues"]}

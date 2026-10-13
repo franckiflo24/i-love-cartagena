@@ -313,15 +313,25 @@ _venue_cache: Dict[str, Any] = {"at": 0.0, "views": {}}
 async def _venue_views(ids: List[str]) -> Dict[str, Dict[str, Any]]:
     """partner_id → {name, lat, lng, zone, image_url, category} for publicly
     visible catalog rows. Last-good on any failure (pins then resolve from the
-    previous copy; a cold failure resolves none and those pins are omitted)."""
+    previous copy; a cold failure resolves none and those pins are omitted).
+
+    P0 fix (2026-10-13): the cache is a MERGED map keyed by partner_id — a fresh
+    cache hit used to return WHATEVER ID SET WAS FETCHED LAST, ignoring `ids`,
+    so with several venues lenses live the first lens to resolve poisoned the
+    10-minute window and the others served only the intersection (family was
+    live-serving 1 of 9 rows). Now ids missing from the cache are fetched and
+    merged; membership checks by the callers stay correct for every lens."""
     now = datetime.now(timezone.utc).timestamp()
-    if _venue_cache["views"] and now - _venue_cache["at"] < _VENUE_TTL_S:
-        return _venue_cache["views"]
-    views: Dict[str, Dict[str, Any]] = {}
+    fresh = bool(_venue_cache["views"]) and now - _venue_cache["at"] < _VENUE_TTL_S
+    views: Dict[str, Dict[str, Any]] = dict(_venue_cache["views"]) if fresh else {}
+    wanted = [i for i in dict.fromkeys(ids) if isinstance(i, str)]
+    missing = [i for i in wanted if i not in views]
+    if not missing and fresh:
+        return views
     try:
         from partner_visibility import PUBLIC_PARTNER_FILTER
         cur = db.partners.find(
-            {"partner_id": {"$in": ids}, **PUBLIC_PARTNER_FILTER},
+            {"partner_id": {"$in": missing if fresh else wanted}, **PUBLIC_PARTNER_FILTER},
             {"_id": 0, "partner_id": 1, "name": 1, "location": 1, "zone": 1,
              "image_url": 1, "category": 1},
         )
@@ -333,10 +343,10 @@ async def _venue_views(ids: List[str]) -> Dict[str, Dict[str, Any]]:
                 "zone": r.get("zone"), "image_url": r.get("image_url"),
                 "category": r.get("category"),
             }
-        _venue_cache.update(at=now, views=views)
+        _venue_cache.update(at=now if not fresh else _venue_cache["at"], views=views)
     except Exception as exc:  # noqa: BLE001
         logger.error("[lenses] venue resolve failed: %s", type(exc).__name__)
-    return _venue_cache["views"]
+    return _venue_cache["views"] if not views else views
 
 
 def _resolved_pin(p: Mapping[str, Any], views: Mapping[str, Mapping[str, Any]]) -> Optional[Dict[str, Any]]:

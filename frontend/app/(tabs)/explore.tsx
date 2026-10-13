@@ -229,6 +229,14 @@ const SUBCATEGORIES: Record<string, Subcat[]> = {
   ],
 };
 
+// Real singulars for the gateway header — a naive strip-the-s produced "hotele",
+// "bare" and "atraccione" (P0 browse-spine fix). Keys = CATEGORIES[].key.
+const CATEGORY_SINGULAR: Record<string, string> = {
+  restaurants: 'restaurante', bars: 'bar', cafes: 'café', nightlife: 'plan de noche',
+  spas: 'spa', beachclubs: 'beach club', yachts: 'yate', beauty: 'servicio de belleza',
+  activities: 'experiencia', hotels: 'hotel', attractions: 'atracción', services: 'servicio',
+};
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const formatPrice = (price: number, isFree: boolean): string | null => {
@@ -843,6 +851,24 @@ export default function ExploreScreen() {
       const rb = (b as any).rank_score ?? (b as any).rating ?? 0;
       return rb - ra;
     });
+    // P0 browse fix: "Todos" used to be the raw global tier sort, whose elite/premium
+    // head is wall-to-wall beach clubs — the front door looked like one category.
+    // Interleave the (already tier-sorted) categories round-robin so the first
+    // screens are a representative mix; each category's internal order is preserved.
+    if (!category.apiValue) {
+      const byCat = new Map<string, Partner[]>();
+      for (const p of filtered) {
+        const c = String((p as any).category || 'other');
+        const q = byCat.get(c);
+        if (q) q.push(p); else byCat.set(c, [p]);
+      }
+      const queues = [...byCat.values()];
+      const mixed: Partner[] = [];
+      for (let i = 0; queues.some(q => q.length > i); i++) {
+        for (const q of queues) if (q[i]) mixed.push(q[i]);
+      }
+      return mixed;
+    }
     return filtered;
   }, []);
 
@@ -966,10 +992,37 @@ export default function ExploreScreen() {
     ? (SUBCATEGORIES[selectedCategory.apiValue] || [])
     : [];
 
+  // Count of partners per subcategory tile (hoisted above the gateway decision —
+  // the gateway must know whether ANY tile has data). Restaurants count via
+  // matchesCuisine so cross-cutting cuisines (Mediterránea = the whole basin) and
+  // multi-cuisine venues are included — not only the single stored subcategory —
+  // otherwise the tile would read 0 and hide (the "Mediterranean missing" bug).
+  const subcatCounts: Record<string, number> = {};
+  if (selectedCategory.apiValue === 'restaurant') {
+    for (const sc of availableSubcats) {
+      subcatCounts[sc.key] = allCategoryPartners.filter(p => matchesCuisine(p, sc.key)).length;
+    }
+  } else {
+    for (const sc of availableSubcats) {
+      subcatCounts[sc.key] = allCategoryPartners.filter(p =>
+        (p as any).subcategory === sc.key ||
+        (Array.isArray((p as any).style_tags) && (p as any).style_tags.includes(sc.key))
+      ).length;
+    }
+  }
+
   // Are we showing the sub-category gateway (tiles) or the partner grid?
-  // Gateway shows when: category has subs AND user hasn't picked one yet.
+  // Gateway shows when: the category has subs, the user hasn't picked one yet,
+  // AND at least one tile actually has places. P0 browse-spine fix: tiles whose
+  // keys don't match the stored subcategories all count 0 and auto-hide — the
+  // gateway used to render anyway (header + zero tiles) while force-emptying the
+  // grid, so Cafés/Hoteles showed a blank "Elige tu …" although "Ver todos" had
+  // the full list. With zero populated tiles we fall straight through to the
+  // partner grid — the same render path "Ver todos" uses — so an inline section
+  // can never again be blank while the category has places.
   const inSubcatGateway =
-    availableSubcats.length > 0 && !selectedSubcategory;
+    availableSubcats.length > 0 && !selectedSubcategory &&
+    availableSubcats.some((sc) => (subcatCounts[sc.key] || 0) > 0);
 
   // Partners shown in the grid: respect subcategory filter when set.
   // '__all__' sentinel means "show all in this category" (skip subcat filter).
@@ -1012,23 +1065,7 @@ export default function ExploreScreen() {
         .sort((a, b) => b.count - a.count)
     : [];
 
-  // Count of partners per subcategory tile. Restaurants count via matchesCuisine so
-  // cross-cutting cuisines (Mediterránea = the whole basin) and multi-cuisine venues
-  // are included — not only the single stored subcategory — otherwise the tile would
-  // read 0 and hide (the reported "Mediterranean missing" bug).
-  const subcatCounts: Record<string, number> = {};
-  if (selectedCategory.apiValue === 'restaurant') {
-    for (const sc of availableSubcats) {
-      subcatCounts[sc.key] = allCategoryPartners.filter(p => matchesCuisine(p, sc.key)).length;
-    }
-  } else {
-    for (const sc of availableSubcats) {
-      subcatCounts[sc.key] = allCategoryPartners.filter(p =>
-        (p as any).subcategory === sc.key ||
-        (Array.isArray((p as any).style_tags) && (p as any).style_tags.includes(sc.key))
-      ).length;
-    }
-  }
+  // (subcatCounts is computed above, before the gateway decision — P0 browse fix.)
 
   // Resolved label for currently selected subcategory (for the back-header)
   const subcatLabel = availableSubcats.find(s => s.key === selectedSubcategory)?.label || '';
@@ -1389,7 +1426,8 @@ export default function ExploreScreen() {
         <View>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
-              {tr('Elige tu')} {selectedCategory.label.replace(/s$/, '').toLowerCase()}
+              {/* P0: replace(/s$/) minted "hotele"/"bare"/"atraccione" — singulars are data */}
+              {tr('Elige tu')} {tr(CATEGORY_SINGULAR[selectedCategory.key] || selectedCategory.label.toLowerCase())}
             </Text>
             {allCategoryPartners.length > 0 && (
               <TouchableOpacity onPress={() => setSelectedSubcategory('__all__')} activeOpacity={0.8}>
@@ -1457,6 +1495,30 @@ export default function ExploreScreen() {
   ) : partnersError && allCategoryPartners.length === 0 ? (
     /* P1-9: the catalog itself failed (static + live) — never "Próximamente" */
     <LoadError message={tr('No se pudo cargar')} retryLabel={tr('reintentar')} onRetry={() => loadPartners(selectedCategory)} testID="explore-partners-error" />
+  ) : lensFilter ? (
+    /* P0: a lens ANDed with a category can legitimately hit zero — that renders the
+       lens's HONEST empty state (women: the "sé la primera" invite), never the
+       generic "Próximamente" and never a silent blank. The advisories box above
+       stays visible; this block names the why and offers the way out. */
+    <View style={styles.emptyState}>
+      <Ionicons name="telescope-outline" size={48} color={COLORS.textMuted} />
+      <Text style={styles.emptyTitle}>
+        {lensFilter.key === 'women_verified' ? tr('Sé la primera') : tr('Sin resultados en esta lente')}
+      </Text>
+      <Text style={styles.emptyText}>
+        {lensFilter.key === 'women_verified'
+          ? pickL4(lensFilter.advisories.find(a => a.kind === 'invite')?.text ?? null, lang)
+            || tr('Aún no hay lugares verificados por mujeres en esta categoría.')
+          : tr('Ningún lugar de esta categoría está en esta lente todavía — mira los avisos arriba o quita el filtro.')}
+      </Text>
+      <TouchableOpacity
+        style={styles.emptyBtn}
+        onPress={() => setLensFilter(null)}
+        activeOpacity={0.85}
+      >
+        <Text style={styles.emptyBtnText}>{tr('Quitar lente')}</Text>
+      </TouchableOpacity>
+    </View>
   ) : (
     <View style={styles.emptyState}>
       <Ionicons name="search-outline" size={48} color={COLORS.textMuted} />

@@ -11,6 +11,7 @@
 - **`git push` does NOT auto-deploy.** The Vercel projects are `frontend` and `backend`, linked via `.vercel/project.json`, not via GitHub integration.
 - After every push, you MUST run `npx vercel --prod` from the correct subdirectory.
 - **MANDATORY after every deploy: `node scripts/verify-images.mjs`** — HEAD-checks every live partner/event image; non-zero exit = broken images on prod.
+- **MANDATORY after every frontend deploy: `node scripts/verify-browse.mjs`** — the core-browse smoke (P0 2026-10-13): every category chip must render a non-blank inline section whenever the catalog has places, "Todos" must be a multi-category mix, every lens must show results or its honest empty state, and the broken singulars ("hotele"/"bare"/"atraccione") must never return. Needs Google Chrome + the playwright-core devDependency. Non-zero exit = the front door is broken on prod.
 - **Stale-client cache-bust is AUTOMATIC since Aug 3 2026**: `app/+html.tsx` stamps `APP_VERSION` at build time and `scripts/stamp-sw.mjs` (wired into `buildCommand`) stamps `dist/sw.js`. Returning devices hard-reload once per deploy. NEVER hardcode a version again — the 3.1.0 era required a manual bump per deploy; five deploys shipped without one and returning users (including Phil) stayed on the old bundle while fresh browsers saw the new one.
 - **`vercel --prod` can FAIL while printing a Production URL.** Always confirm with `npx vercel inspect www.amocartagena.co` that the alias moved to the new deployment (an Error build leaves the previous deploy serving silently).
 
