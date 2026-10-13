@@ -4451,6 +4451,16 @@ async def admin_upsert_editorial_venue(request: Request):
     if isinstance(raw_tags, list):
         doc["style_tags"] = [str(t).strip()[:40] for t in raw_tags
                              if isinstance(t, str) and t.strip()][:10]
+    # Drop 6 hygiene lever: 'unverified' hides a record catalog-wide (PUBLIC filter's
+    # $nin — the catalog-hygiene precedent for dead/dubious rows: never shown, never
+    # deleted); 'active' un-hides. Only these two values; anything else is refused so
+    # this can never grant a moderation state.
+    raw_status = str((body or {}).get("status") or "").strip()
+    if raw_status:
+        if raw_status not in ("unverified", "active"):
+            raise HTTPException(status_code=422, detail={"error": "bad_status",
+                                "allowed": ["unverified", "active"]})
+        doc["status"] = raw_status
     # NOTE: is_certified is forced False on every editorial write below — which is also
     # the 5A lever that strips the demo-era rows' unearned CERTIFICADO on update.
     doc.update(

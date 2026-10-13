@@ -232,6 +232,59 @@ const SUBCATEGORIES: Record<string, Subcat[]> = {
   ],
 };
 
+// Drop 6 "Todos" invariant: personalization re-sorts AFTER the round-robin
+// interleave (scorePartner clusters the user's interest categories), which on a
+// personalized device collapsed the front door back to beach-clubs↔experiences —
+// Phil's live repro: first 20 of 865 were those two categories only. The axis is
+// therefore enforced as a FINAL pass, downstream of every sort and filter: no more
+// than `max` consecutive rows of the same category; when a run would exceed it, the
+// next different-category row is pulled forward (otherwise stable).
+// The axis itself, as the FINAL pass: one row per category in rotation before any
+// category repeats. Order WITHIN each category is whatever upstream produced
+// (tier → verification boost → personalization), and the rotation order is the
+// categories' first appearance in that personalized list — so the user's interest
+// categories lead the rotation without owning the whole door. (The cap alone was
+// insufficient: with two interest categories clustered on top, B-B-A-B-B-A satisfies
+// "≤2 consecutive" forever and distinct stayed at 2 — live-proven.)
+function interleaveByCategory(list: Partner[]): Partner[] {
+  const byCat = new Map<string, Partner[]>();
+  for (const p of list) {
+    const c = String((p as any).category || 'other');
+    const q = byCat.get(c);
+    if (q) q.push(p); else byCat.set(c, [p]);
+  }
+  const queues = [...byCat.values()];
+  const out: Partner[] = [];
+  for (let i = 0; queues.some(q => q.length > i); i++) {
+    for (const q of queues) if (q[i]) out.push(q[i]);
+  }
+  return out;
+}
+
+function capConsecutiveByCategory(list: Partner[], max = 2): Partner[] {
+  const src = [...list];
+  const out: Partner[] = [];
+  let run = 0;
+  let runCat = '';
+  while (src.length) {
+    const cat0 = String((src[0] as any).category || 'other');
+    if (cat0 !== runCat || run < max) {
+      const p = src.shift() as Partner;
+      run = cat0 === runCat ? run + 1 : 1;
+      runCat = cat0;
+      out.push(p);
+      continue;
+    }
+    const j = src.findIndex(p => String((p as any).category || 'other') !== runCat);
+    if (j === -1) { out.push(...src); break; }  // only one category left — nothing to mix
+    const p = src.splice(j, 1)[0];
+    out.push(p);
+    runCat = String((p as any).category || 'other');
+    run = 1;
+  }
+  return out;
+}
+
 // Real singulars for the gateway header — a naive strip-the-s produced "hotele",
 // "bare" and "atraccione" (P0 browse-spine fix). Keys = CATEGORIES[].key.
 const CATEGORY_SINGULAR: Record<string, string> = {
@@ -436,7 +489,8 @@ function PartnerGridCard({
       )}
       <View style={styles.gridTopRow}>
         {partner.tier && <TierBadge tier={partner.tier} size="xs" showLabel={false} />}
-        {partner.is_certified && (
+        {/* Drop 6: the shield dot is EARNED verification only, never the import flag */}
+        {(partner as any)?.verification?.status === 'verificado' && (
           <View style={styles.certDot}>
             <Ionicons name="shield-checkmark" size={10} color={COLORS.official} />
           </View>
@@ -865,7 +919,16 @@ export default function ExploreScreen() {
         const q = byCat.get(c);
         if (q) q.push(p); else byCat.set(c, [p]);
       }
-      const queues = [...byCat.values()];
+      // Drop 6: within each category queue, verification-carrying rows ride FIRST
+      // (verificado > reportado > untiered, order otherwise stable) — so the honest
+      // tiers surface in the first rotations of "Todos" instead of sorting last
+      // behind rating-carrying bulk-import rows.
+      const vRank = (p: Partner) => {
+        const s = (p as any).verification?.status;
+        return s === 'verificado' ? 0 : s === 'reportado' ? 1 : 2;
+      };
+      const queues = [...byCat.values()].map((q) =>
+        q.map((p, i) => ({ p, i })).sort((a, b) => (vRank(a.p) - vRank(b.p)) || (a.i - b.i)).map(x => x.p));
       const mixed: Partner[] = [];
       for (let i = 0; queues.some(q => q.length > i); i++) {
         for (const q of queues) if (q[i]) mixed.push(q[i]);
@@ -1060,6 +1123,13 @@ export default function ExploreScreen() {
   // only venues in the lens's verified set. ANDs with everything above.
   if (lensFilter) {
     partners = partners.filter(p => lensFilter.ids.has((p as any).partner_id));
+  }
+  // Drop 6: the "Todos" category-axis invariant — applied LAST, after sort,
+  // personalization, locals and lens filters, so nothing upstream can recluster
+  // the front door: full round-robin across categories, plus the ≤2-consecutive
+  // cap as belt-and-braces for the deep tail where queues run out.
+  if (selectedCategory.key === 'all') {
+    partners = capConsecutiveByCategory(interleaveByCategory(partners), 2);
   }
   const localsNbhOptions = localsOnly
     ? neighborhoods

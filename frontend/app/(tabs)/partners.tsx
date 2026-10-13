@@ -659,10 +659,11 @@ export default function PartnersScreen() {
                     <TierBadge tier={partner.tier} size="sm" />
                   </View>
 
-                  {partner.is_certified && (
+                  {/* Drop 6: badge is EARNED verification only — never the import flag */}
+                  {(partner as any)?.verification?.status === 'verificado' && (
                     <View style={styles.certifiedBadge}>
                       <Ionicons name="shield-checkmark" size={14} color={COLORS.official} />
-                      <Text style={styles.certifiedText}>CERTIFICADO</Text>
+                      <Text style={styles.certifiedText}>VERIFICADO</Text>
                     </View>
                   )}
 

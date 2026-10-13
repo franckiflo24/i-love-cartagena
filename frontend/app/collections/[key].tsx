@@ -46,7 +46,9 @@ export default function CollectionScreen() {
           const TIER: Record<string, number> = { elite: 4, premium: 3, popular: 2, standard: 1 };
           const q = (p: any) =>
             (TIER[(p.tier || '').toLowerCase()] || 0) * 1000 +
-            (p.is_certified ? 100 : 0) +
+            // Drop 6: the +100 used to ride is_certified — a bulk-import flag on 459
+            // records that verified nothing. Rank weight now follows EARNED tiers.
+            (p.verification?.status === 'verificado' ? 100 : p.verification?.status === 'reportado' ? 40 : 0) +
             (p.membership_status === 'active' ? 10 : 0) +
             (p.rating || 0);
           rows = list

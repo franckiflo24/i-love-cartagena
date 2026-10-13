@@ -489,10 +489,14 @@ export default function PartnerDetail() {
               />
             </TouchableOpacity>
           </View>
-          {partner.is_certified && (
+          {/* Drop 6 TRUST LEDGER: the hero seal is EARNED only. is_certified was a
+              bulk-import flag on 459 records (verified nothing) — it renders nowhere
+              now. The seal = verification.status 'verificado', set exclusively by the
+              evidence-gated verify-provider action (RUES + Cámara + DIMAR/PADI/IKO). */}
+          {(partner as any)?.verification?.status === 'verificado' && (
             <View style={styles.sealBadge}>
               <Ionicons name="shield-checkmark" size={16} color={COLORS.official} />
-              <Text style={styles.sealText}>{tr('PARTNER CERTIFICADO')}</Text>
+              <Text style={styles.sealText}>{tr('Verificado por AMO')}</Text>
             </View>
           )}
           <FadeInUp style={styles.heroBottom} distance={22}>

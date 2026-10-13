@@ -59,20 +59,66 @@ await ctx.addInitScript(() => { try {
   localStorage.setItem('@musica_lang', 'es');
   localStorage.setItem('@onboarding_done', 'true');
   localStorage.setItem('@tutorial_seen', 'true');
+  // Drop 6 hardening: a PERSONALIZED profile is the condition that broke "Todos"
+  // live (interest scoring re-clustered beach clubs + experiences after the
+  // interleave) — the smoke now runs AS that profile, not as a blank visitor.
+  localStorage.setItem('@onboarding_profile', JSON.stringify({ interests: ['beach_club', 'activity'] }));
 } catch {} });
 const page = await ctx.newPage();
 await page.goto(`${BASE}/explore`, { waitUntil: 'networkidle', timeout: 60000 }).catch(() => {});
 await page.waitForTimeout(9000);
 
-// ── 2. "Todos" is a mix across categories ──
+// ── 2. "Todos" is a mix across the CATEGORY AXIS, read in true grid order ──
+// (The old check — "any 3 categories' names anywhere in the viewport" — passed at
+// 2-3 via the rails while the grid itself was a beach-club wall. This one parses
+// the grid rows in order below the "Todos los Lugares" marker across scroll steps.)
 {
-  const body = await page.evaluate(() => document.body.innerText);
-  const hitCats = new Set();
+  const nameToCat = new Map();
   for (const [cat, rows] of byCat) {
-    if (rows.slice(0, 12).some((p) => p.name && body.includes(p.name))) hitCats.add(cat);
+    for (const p of rows) {
+      if (!p.name || p.name.length < 6) continue;         // short names collide
+      if (nameToCat.has(p.name)) nameToCat.set(p.name, null); // ambiguous — drop
+      else nameToCat.set(p.name, cat);
+    }
   }
-  check(`[all] mix spans ≥3 categories (got ${hitCats.size}: ${[...hitCats].slice(0, 6).join(',')})`, hitCats.size >= 3);
+  const ordered = [];
+  const seen = new Set();
+  for (let step = 0; step < 5 && ordered.length < 20; step++) {
+    const body = await page.evaluate(() => document.body.innerText);
+    const marker = body.indexOf('Todos los Lugares');
+    const grid = marker >= 0 ? body.slice(marker) : body;
+    const found = [];
+    for (const [name, cat] of nameToCat) {
+      if (!cat) continue;
+      const idx = grid.indexOf(name);
+      if (idx >= 0) found.push({ idx, name, cat });
+    }
+    found.sort((a, b) => a.idx - b.idx);
+    for (const f of found) {
+      if (!seen.has(f.name)) { seen.add(f.name); ordered.push(f); }
+    }
+    await page.mouse.wheel(0, 1400);
+    await page.waitForTimeout(900);
+  }
+  const first15 = ordered.slice(0, 15);
+  const histogram = {};
+  let maxRun = 0, run = 0, runCat = '';
+  for (const f of first15) {
+    histogram[f.cat] = (histogram[f.cat] || 0) + 1;
+    run = f.cat === runCat ? run + 1 : 1;
+    runCat = f.cat;
+    if (run > maxRun) maxRun = run;
+  }
+  const distinct = Object.keys(histogram).length;
+  console.log(`[all] Todos first-${first15.length} histogram:`, JSON.stringify(histogram),
+              `| distinct=${distinct} maxRun=${maxRun}`);
+  check(`[all] ≥5 distinct categories in first 15 (got ${distinct})`, first15.length >= 12 && distinct >= 5);
+  check(`[all] ≤2 consecutive same-category (maxRun=${maxRun})`, maxRun <= 2);
+  const body = await page.evaluate(() => document.body.innerText);
   check('[all] no broken singulars', !BROKEN_SINGULARS.test(body));
+  // reset scroll for the category-chip loop below
+  await page.goto(`${BASE}/explore`, { waitUntil: 'networkidle', timeout: 60000 }).catch(() => {});
+  await page.waitForTimeout(6000);
 }
 
 // ── 1. every category chip → non-blank inline section ──

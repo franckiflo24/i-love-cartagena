@@ -66,15 +66,15 @@ def test_seed_rows_are_reportado_never_certified_never_selfclaiming() -> None:
         assert p["category"] == "activity" and p["location"]["lat"], pid
         assert "Pide el RNT" in p["description"], pid
         assert p["image_url"] == "", pid  # SafeImage placeholder, like the 4A/4B seeds
-    # demo-era rows lost the unearned seal
-    for pid in ("ptr_ac_001", "ptr_ac_002", "ptr_ac_004"):
-        p = next(x for x in PARTNERS if x["partner_id"] == pid)
-        assert p.get("is_certified") is False, pid
-    # dedup rail: the tagged existing records are THE records (no ptr_act_ twin)
-    for existing, name in (("ptr_X1086", "Diving Planet"), ("ptr_V055", "Beyond Colombia")):
-        twins = [p["partner_id"] for p in PARTNERS
-                 if p["partner_id"].startswith("ptr_act_") and name.lower() in p["name"].lower()]
-        assert twins == [], f"{existing} twinned by {twins}"
+    # Drop 6 TRUST LEDGER: the demo-era fabricated rows and the pre-existing twins
+    # are HIDDEN (status unverified in Mongo) and gone from the static catalog.
+    hidden = {"ptr_ac_001", "ptr_ac_002", "ptr_ac_004", "ptr_dv2_047", "ptr_dv2_049"}
+    present = {p["partner_id"] for p in PARTNERS}
+    assert not (hidden & present), hidden & present
+    # dedup rail: exactly ONE record per operator remains
+    for name, canonical in (("Diving Planet", "ptr_X1086"), ("Beyond Colombia", "ptr_V055")):
+        rows = [p["partner_id"] for p in PARTNERS if name.lower() in p["name"].lower()]
+        assert rows == [canonical], f"{name}: {rows}"
 
 
 def test_hold_registry_exists_and_publishes_nothing() -> None:
