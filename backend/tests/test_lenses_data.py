@@ -53,12 +53,17 @@ def test_f5_corrections_are_law() -> None:
     assert not any("café del mar" in n for n in names)
 
 
-def test_fill_gate_launch_state() -> None:  # §2 + V2
+def test_fill_gate_launch_state() -> None:  # §2 + V2 (+ 4A amendment)
     fills = L.fill_counts(DATA)
     assert fills["golden_hour"]["live"] is True
     assert fills["golden_hour"]["high"] >= 8
     assert fills["port_day"]["live"] is True          # fares resolve from the city module
-    assert fills["step_free"]["live"] is False        # VERIFY-only seed stays gated
+    # 4A: step_free is LIVE on exactly its 4 source-verified anchors (Playa 5/4/Azul +
+    # Museo del Oro); min_fill moved 6→4 WITH the tagline reframe to "anchors + assisted
+    # routes" — padding to 6 would have required unsourced claims (DESIGN.md §2).
+    assert fills["step_free"]["live"] is True
+    assert fills["step_free"]["high"] == 4 and fills["step_free"]["min_fill"] == 4
+    assert fills["step_free"]["total"] >= 8           # the VERIFY assisted rows ride along
     assert fills["family"]["live"] is False
     assert fills["women_verified"]["live"] is False   # fills ONLY from in-app ratings
     assert (DATA_tags_high := [t for t in DATA["venue_tags"]
@@ -120,3 +125,21 @@ def test_mirror_matches_source_resolution() -> None:
     # luna trigger/decline blocks are internal — never in the public mirror (city-hub rule)
     for ln in mirror["lenses"]:
         assert "luna" not in ln, ln["key"]
+
+
+def test_validate_rejects_unprovenanced_4a_shapes() -> None:  # 4A rails
+    import copy
+    bad = copy.deepcopy(DATA)
+    del bad["venue_tags"][0]["display_name"]
+    assert any("display_name" in e for e in L.validate_lenses(bad, catalog_ids=CATALOG_IDS))
+    bad2 = copy.deepcopy(DATA)
+    sf = next(l for l in bad2["lenses"] if l["key"] == "step_free")
+    sf["advisories"][0]["kind"] = "guessed"
+    assert any("kind must be reported|unverified" in e
+               for e in L.validate_lenses(bad2, catalog_ids=CATALOG_IDS))
+    bad3 = copy.deepcopy(DATA)
+    sf3 = next(l for l in bad3["lenses"] if l["key"] == "step_free")
+    rep = next(a for a in sf3["advisories"] if a["kind"] == "reported")
+    rep.pop("source_url")
+    assert any("reported advisory needs source_url" in e
+               for e in L.validate_lenses(bad3, catalog_ids=CATALOG_IDS))

@@ -23,6 +23,15 @@ export type LensKey = 'golden_hour' | 'port_day' | 'step_free' | 'family' | 'wom
 export type LightSlot = 'sunrise' | 'midday' | 'sunset';
 export type AccessTier = 'free' | 'purchase' | 'reservation' | 'guest_only' | 'paid_entry';
 
+/** 4A: lens-level honest-gap line. 'unverified' states a HOLD category as NOT
+ *  confirmed (attached to no place); 'reported' is sourced area guidance. */
+export interface LensAdvisory {
+  kind: 'reported' | 'unverified';
+  text: L4;
+  source_name?: string;
+  source_url?: string;
+}
+
 export interface LensDef {
   key: LensKey;
   kind: 'places' | 'venues' | 'kit';
@@ -31,6 +40,23 @@ export interface LensDef {
   tagline: L4;
   live: boolean;
   fill: { high: number; total: number; min_fill: number };
+  advisories?: LensAdvisory[];
+}
+
+/** A venues-lens row from GET /lenses/{key} (4A): the tag joined with the catalog
+ *  record's name/coords at read time. confidence VERIFY = "Reportado por viajeros". */
+export interface LensVenueRow {
+  venue_id: string;
+  display_name: string;
+  attrs: Record<string, boolean | string | null>;
+  note: L4 | null;
+  source_url: string;
+  source_name: string;
+  last_verified: string;
+  confidence: 'HIGH' | 'VERIFY';
+  name: string | null;
+  lat: number | null;
+  lng: number | null;
 }
 
 export interface GoldenPin {

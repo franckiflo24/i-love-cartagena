@@ -1,7 +1,7 @@
 {
  "version": 1,
- "updated": "2026-09-30",
- "generated_at": "2026-10-08T20:07:40.353Z",
+ "updated": "2026-10-12",
+ "generated_at": "2026-10-13T02:29:10.511Z",
  "lenses": [
   {
    "key": "golden_hour",
@@ -60,17 +60,48 @@
     "pt": "Sem degraus"
    },
    "tagline": {
-    "es": "Lugares con acceso verificado — pequeño pero cierto",
-    "en": "Places with verified access — small but true",
-    "fr": "Lieux à l'accès vérifié — petit mais vrai",
-    "pt": "Lugares com acesso verificado — pequeno mas verdadeiro"
+    "es": "Lugares ancla con acceso verificado y rutas asistidas — no toda la ciudad",
+    "en": "Anchor places with verified access, plus assisted routes — not the whole city",
+    "fr": "Des lieux d'ancrage à l'accès vérifié et des parcours assistés — pas toute la ville",
+    "pt": "Lugares âncora com acesso verificado e rotas assistidas — não a cidade inteira"
    },
-   "live": false,
+   "live": true,
    "fill": {
-    "high": 0,
-    "total": 2,
-    "min_fill": 6
-   }
+    "high": 4,
+    "total": 8,
+    "min_fill": 4
+   },
+   "advisories": [
+    {
+     "kind": "unverified",
+     "text": {
+      "es": "No confirmamos taxis adaptados en Cartagena: planifica un trasbordo asistido a sedán.",
+      "en": "We can't confirm adapted taxis in Cartagena: plan an assisted transfer into a sedan.",
+      "fr": "Nous ne confirmons pas de taxis adaptés à Carthagène : prévois un transfert assisté en berline.",
+      "pt": "Não confirmamos táxis adaptados em Cartagena: planeje uma transferência assistida para um sedã."
+     }
+    },
+    {
+     "kind": "unverified",
+     "text": {
+      "es": "El abordaje sin escalones a las lanchas de islas no está confirmado.",
+      "en": "Step-free boarding onto island boats is not confirmed.",
+      "fr": "L'embarquement sans marches sur les bateaux des îles n'est pas confirmé.",
+      "pt": "O embarque sem degraus nas lanchas para as ilhas não está confirmado."
+     }
+    },
+    {
+     "kind": "reported",
+     "text": {
+      "es": "Base recomendada: Bocagrande o Castillogrande (aceras más planas). El Centro amurallado es adoquín irregular — mejor con asistencia.",
+      "en": "Recommended base: Bocagrande or Castillogrande (flatter sidewalks). The walled Centro is uneven cobblestone — best with assistance.",
+      "fr": "Base recommandée : Bocagrande ou Castillogrande (trottoirs plus plats). Le Centre fortifié est en pavés irréguliers — mieux avec de l'aide.",
+      "pt": "Base recomendada: Bocagrande ou Castillogrande (calçadas mais planas). O Centro amuralhado tem paralelepípedos irregulares — melhor com assistência."
+     },
+     "source_name": "wheelchairtraveling.com",
+     "source_url": "https://wheelchairtraveling.com/colombia-wheelchair-travel-tips/"
+    }
+   ]
   },
   {
    "key": "family",

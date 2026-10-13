@@ -150,6 +150,27 @@ def validate_lenses(data: Any, catalog_ids: Optional[set] = None) -> List[str]:
         for f in ("label", "tagline"):
             if not _l4_ok(ln.get(f)):
                 errs.append(f"{k}: {f} not L4-complete")
+        advs = ln.get("advisories")
+        if advs is not None:
+            # 4A: lens-level honest-gap lines. "unverified" states a HOLD category as NOT
+            # confirmed (never attached to a place); "reported" is area guidance and must
+            # carry its source like any other trust claim.
+            if not isinstance(advs, list) or not advs:
+                errs.append(f"{k}: advisories must be a non-empty list when present")
+            else:
+                for i, a in enumerate(advs):
+                    aid = f"{k}.advisories[{i}]"
+                    if not isinstance(a, Mapping):
+                        errs.append(f"{aid}: not an object")
+                        continue
+                    if a.get("kind") not in ("reported", "unverified"):
+                        errs.append(f"{aid}: kind must be reported|unverified")
+                    if not _l4_ok(a.get("text")):
+                        errs.append(f"{aid}: text not L4-complete")
+                    if a.get("kind") == "reported":
+                        for f in ("source_name", "source_url"):
+                            if not (isinstance(a.get(f), str) and a[f].strip()):
+                                errs.append(f"{aid}: reported advisory needs {f}")
         luna = ln.get("luna") or {}
         if not (isinstance(luna.get("triggers"), list) and luna["triggers"]):
             errs.append(f"{k}: luna.triggers missing")
@@ -215,6 +236,10 @@ def validate_lenses(data: Any, catalog_ids: Optional[set] = None) -> List[str]:
             errs.append(f"{tid}: venue_id not in catalog")
         if not isinstance(t.get("attrs"), Mapping) or not t["attrs"]:
             errs.append(f"{tid}: attrs missing")
+        if not (isinstance(t.get("display_name"), str) and t["display_name"].strip()):
+            # 4A: Luna's venues entries are built synchronously from this file, so each tag
+            # snapshots its record's name; the sync script enforces equality with the catalog.
+            errs.append(f"{tid}: display_name missing")
         if t.get("note") is not None and not _l4_ok(t.get("note")):
             errs.append(f"{tid}: note not L4-complete")
         errs += [f"{tid}: {e}" for e in _prov_ok(t)]
@@ -455,11 +480,14 @@ async def cruise_pull(*, dry: bool = False, now: Optional[datetime] = None) -> D
 # ── public payloads ──────────────────────────────────────────────────────────
 
 def _public_lens_def(ln: Mapping[str, Any], f: Mapping[str, Any]) -> Dict[str, Any]:
-    return {"key": ln.get("key"), "kind": ln.get("kind"), "icon": ln.get("icon"),
-            "label": ln.get("label"), "tagline": ln.get("tagline"),
-            "live": f.get("live", False),
-            "fill": {"high": f.get("high", 0), "total": f.get("total", 0),
-                     "min_fill": f.get("min_fill", 0)}}
+    out = {"key": ln.get("key"), "kind": ln.get("kind"), "icon": ln.get("icon"),
+           "label": ln.get("label"), "tagline": ln.get("tagline"),
+           "live": f.get("live", False),
+           "fill": {"high": f.get("high", 0), "total": f.get("total", 0),
+                    "min_fill": f.get("min_fill", 0)}}
+    if ln.get("advisories"):
+        out["advisories"] = ln["advisories"]
+    return out
 
 
 async def lenses_index() -> Optional[Dict[str, Any]]:
@@ -499,7 +527,7 @@ async def lens_payload(key: str, *, preview: bool = False) -> Optional[Dict[str,
         tags = [t for t in data.get("venue_tags") or [] if t.get("lens") == key]
         views = await _venue_views([t["venue_id"] for t in tags])
         base["venues"] = [
-            {**{k: t.get(k) for k in ("venue_id", "attrs", "note", "source_url",
+            {**{k: t.get(k) for k in ("venue_id", "display_name", "attrs", "note", "source_url",
                                        "source_name", "last_verified", "confidence")},
              "name": views.get(t["venue_id"], {}).get("name"),
              "lat": views.get(t["venue_id"], {}).get("lat"),
@@ -601,6 +629,30 @@ def luna_context(user_text: str) -> Optional[Dict[str, Any]]:
                 })
                 if len(entries) >= 6:
                     break
+        elif ln.get("kind") == "venues":
+            # 4A: HIGH tags only — a VERIFY ("Reportado por viajeros") row never reaches the
+            # LLM. Advisories ride as entries so Luna states the taxi/boat gaps instead of
+            # improvising around them (the AUTORIDAD rule already limits her to entries).
+            for t in data.get("venue_tags") or []:
+                if t.get("lens") != key or t.get("confidence") != "HIGH":
+                    continue
+                entries.append({
+                    "name": t.get("display_name"),
+                    "note_es": (t.get("note") or {}).get("es"),
+                    "note_en": (t.get("note") or {}).get("en"),
+                    "attrs": sorted(k2 for k2, v in (t.get("attrs") or {}).items() if v is True),
+                    "partner_id": t.get("venue_id"),
+                    "source_name": t.get("source_name"),
+                })
+                if len(entries) >= 6:
+                    break
+            for adv in ln.get("advisories") or []:
+                entries.append({"kind": "advisory", "advisory_kind": adv.get("kind"),
+                                "note_es": (adv.get("text") or {}).get("es"),
+                                "note_en": (adv.get("text") or {}).get("en"),
+                                # reported advisories carry their source; unverified ones are
+                                # sourceless BY DESIGN — they claim an absence of confirmation.
+                                "source_name": adv.get("source_name")})
         elif ln.get("kind") == "kit":
             pd = data.get("port_day") or {}
             entries.append({"kind": "port_day",

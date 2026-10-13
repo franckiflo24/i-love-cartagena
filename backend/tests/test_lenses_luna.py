@@ -29,7 +29,7 @@ REQUIRED = {
     "one day port day itinerary": "port_day",
     "mi barco sale a las 5, all aboard": "port_day",
     "¿cuánto es el taxi? estamos de escala": "port_day",
-    # step-free (gated)
+    # step-free (LIVE since 4A)
     "¿restaurantes accesibles en silla de ruedas?": "step_free",
     "wheelchair accessible places in the walled city": "step_free",
     "lugares sin escalones": "step_free",
@@ -103,8 +103,7 @@ def test_live_port_day_carries_official_fares_not_ship_names() -> None:
 
 def test_gated_lens_injects_only_its_decline_lines() -> None:  # V7 headline
     for q, key in (("¿es seguro para una mujer sola esta noche?", "women_verified"),
-                   ("calm beach for my toddler", "family"),
-                   ("¿hay rampa para silla de ruedas?", "step_free")):
+                   ("calm beach for my toddler", "family")):
         hit = _lens(_ctx(q), key)
         assert hit["live"] is False
         assert "entries" not in hit, f"{key}: a gated lens must not leak entries"
@@ -115,6 +114,24 @@ def test_gated_lens_injects_only_its_decline_lines() -> None:  # V7 headline
         # it is waiting on ("lifeguards, high chairs"), but never a venue or a rating
         for invented in ("ptr_", "attr_", "svc_", "harassment_rating"):
             assert invented not in body, f"{key}: {invented} leaked into a gated reference"
+
+
+def test_live_step_free_entries_are_high_anchors_plus_advisories() -> None:  # 4A
+    hit = _lens(_ctx("¿hay rampa para silla de ruedas?"), "step_free")
+    assert hit["live"] is True and "decline_line" not in hit
+    venue_entries = [e for e in hit["entries"] if e.get("kind") != "advisory"]
+    advisories = [e for e in hit["entries"] if e.get("kind") == "advisory"]
+    names = {e["name"] for e in venue_entries}
+    assert {"Playa 5 (Bocagrande)", "Museo del Oro Zenú"} <= names
+    for e in venue_entries:
+        assert e["source_name"] and e["note_es"], e
+        assert e["partner_id"], e  # open_partner stays actionable
+    # VERIFY ("Reportado por viajeros") rows never reach the LLM
+    assert "Castillo San Felipe de Barajas" not in names
+    assert "Las Murallas" not in names
+    # the honest-absence lines ride as entries — taxis adaptados stated as unconfirmed
+    assert any("taxis adaptados" in (e.get("note_es") or "") for e in advisories)
+    assert all(e.get("advisory_kind") in ("reported", "unverified") for e in advisories)
 
 
 def test_women_decline_redirects_only_to_verified_adjacent_data() -> None:
@@ -128,7 +145,7 @@ def test_gated_hard_gate_payload() -> None:
     by_key = {ln["key"]: ln for ln in DATA["lenses"]}
     for q, key, lg in (("safe spots for a woman alone tonight", "women_verified", "en"),
                        ("¿qué playa es buena para mi toddler?", "family", "es"),
-                       ("restaurants accessibles en fauteuil roulant", "step_free", "fr"),
+                       ("plage calme pour mon bébé", "family", "fr"),
                        ("praia calma para meu bebê", "family", "pt")):
         p = L.gated_decline_payload(q, lg)
         assert p is not None, q
@@ -138,6 +155,8 @@ def test_gated_hard_gate_payload() -> None:
     # live lens → None (answers through lens_reference + LLM)
     assert L.gated_decline_payload("best sunset photo spots", "en") is None
     assert L.gated_decline_payload("estoy de crucero, mi escala", "es") is None
+    # 4A: step_free is live — accessibility questions now answer from its entries
+    assert L.gated_decline_payload("restaurants accessibles en fauteuil roulant", "fr") is None
     # mixed live+gated → the gated trust topic wins; women outranks everything
     mixed = L.gated_decline_payload("fotos del atardecer para una mujer sola", "es")
     assert mixed is not None and mixed["lens_gate"] == "women_verified"
@@ -179,7 +198,10 @@ def test_question_bank_never_produces_untagged_claims() -> None:
             continue
         for hit in ctx["lenses"]:
             if hit["live"]:
-                assert all(e.get("source_name") or e.get("kind") == "port_day"
+                # three honest entry shapes: sourced venue/pin, the port_day kit, or a 4A
+                # advisory (an "unverified" advisory is sourceless BY DESIGN — it states
+                # that something is NOT confirmed, which is the opposite of a claim).
+                assert all(e.get("source_name") or e.get("kind") in ("port_day", "advisory")
                            for e in hit["entries"]), q
             else:
                 assert "entries" not in hit and hit["decline_line"], q

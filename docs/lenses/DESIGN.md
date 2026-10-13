@@ -22,13 +22,16 @@ If code and this doc disagree, the doc wins until it is amended here first.
 ```
 { version, source_name, field_guide, updated,
   lenses: [ { key, kind: "places"|"venues"|"kit", min_fill, icon, label L4, tagline L4,
+              advisories?: [ { kind: "reported"|"unverified", text L4,
+                              source_name?/source_url? (REQUIRED when kind="reported") } ],
               luna: { triggers[], decline_line L4 } } ],
   access_tiers: { free|purchase|reservation|guest_only|paid_entry: L4 },
   pins: [ { id "gh-…", lens, name, venue_id|null, lat?/lng?/geo_precision "exact"|"approx", zone?,
             best_light ⊆ [sunrise,midday,sunset] (non-empty), access_tier (required),
             crowd_hotspot bool, photogenic L4, etiquette L4|null, link?,
             source_url, source_name, last_verified, confidence } ],
-  venue_tags: [ { lens, venue_id, attrs{…bool|null}, note L4|null,
+  venue_tags: [ { lens, venue_id, display_name (== the catalog record's name; sync-validated),
+                  attrs{…bool|null}, note L4|null,
                   source_url, source_name, last_verified, confidence } ],
   port_day: { fare_module: "taxis", muelle_module, return_buffer_min,
               crowd: { hotspot_pins[], note L4, source_url, confidence },
@@ -48,7 +51,9 @@ If code and this doc disagree, the doc wins until it is amended here first.
     women_only_event.
   - `family`: calm_water_beach, lifeguard, shade, high_chairs, kids_menu, stroller_feasible_route,
     child_life_jacket, car_seat_transfer.
-  - `step_free`: ramp, ramp_height_note, accessible_toilet, step_free_entrance, accessible_transport.
+  - `step_free`: ramp, ramp_height_note, accessible_toilet, step_free_entrance, accessible_transport,
+    lift, amphibious_chair (4A 2026-10-12: lift = Museo del Oro's sourced elevator; amphibious_chair =
+    the sillas anfibias on the accessible beaches — both were unrepresentable in the v1 vocabulary).
 - Growth paths (later, not this drop): venue self-report via the business portal (moderation-gated)
   and in-app women's ratings. Both write Mongo overlays merged over this file at read time; every
   overlay row carries the same provenance fields and a moderation trail.
@@ -63,6 +68,15 @@ If code and this doc disagree, the doc wins until it is amended here first.
   `preview:true` and the client keeps every VERIFY/"sin verificar" treatment plus a builder banner.
 - Launch state (seeded): golden_hour LIVE (19 HIGH ≥ 8) · port_day LIVE (kit) ·
   step_free GATED (2 VERIFY, min_fill 6) · family GATED (0) · women_verified GATED (0, by design).
+- 4A amendment (2026-10-12): step_free is LIVE — 4 HIGH anchors (Playa 5, Playa 4, Playa Azul,
+  Museo del Oro Zenú — each source-verified, the beaches added to the catalog as attr_023/024/025)
+  + 4 VERIFY assisted rows. `min_fill` 6 → 4: the lens was reframed from a citywide promise to
+  "lugares ancla + rutas asistidas" (its tagline says so), and 4 is every anchor the research could
+  actually source — padding to 6 would have meant tagging claims we cannot stand behind. A VERIFY
+  venue row renders the badge **"Reportado por viajeros"** (never "verificado"); lens-level
+  `advisories` surface honest gaps: kind "unverified" = a HOLD category stated as NOT confirmed
+  (adapted taxis, island-boat boarding — never attached to any place), kind "reported" = sourced
+  area guidance. family + women_verified stay GATED (4B/4C).
 
 ## 3. API (backend; envelope + `_cache()` like the city hub)
 - `GET /api/lenses` — public. Lens list with fill counts + live flags + access_tiers. Never the
@@ -101,6 +115,13 @@ If code and this doc disagree, the doc wins until it is amended here first.
   down and flags `return_buffer_min` (90) before. Cruise badge appears only from live cached data.
 - **Gated lenses** render the "En construcción" card (tagline + why + how it fills) — never an
   empty list, never a live-looking badge.
+- **Venues lenses (step_free live since 4A)**: the lens's home surface is Explore — activating it
+  filters the one catalog grid to the tagged venue set (`/lenses/{key}`.venues ids), exactly as
+  §4 A4 shipped it; the map chip deep-links `/(tabs)/explore?lens=<key>` (the mirror of explore's
+  golden_hour chip deep-linking `mapa?lens=golden_hour`). While the filter is active: the lens
+  tagline renders as the header frame, `advisories` render as labelled lines ("Sin verificar" /
+  "Reportado por viajeros"), and a VERIFY-tagged venue's card carries the "Reportado por viajeros"
+  chip — HIGH rows render plain. Tags attach to existing records only: no new pins, no duplicates.
 - **Images**: a pin shows ONLY the linked catalog venue's existing self-hosted image
   (`/images/partners/…`, already rights-cleared) or the SafeImage category placeholder. No scraped
   photos, no AI renders of real places. Credits stay with the catalog entry.
@@ -112,7 +133,10 @@ If code and this doc disagree, the doc wins until it is amended here first.
 - `lenses.luna_context(text)` (backend/lenses.py) → deterministic reference injected into the agent
   context wherever `_city_context` is (same AUTORIDAD pattern: lens_reference MANDA):
   - LIVE lens triggered → up to 6 matching entries with name, one-line note, access tier and
-    `Fuente: source_name`; Luna answers ONLY from them.
+    `Fuente: source_name`; Luna answers ONLY from them. For a venues lens (4A) the entries are the
+    HIGH tags (display_name + note + true-attrs + source) and each lens advisory rides along as an
+    `{kind:"advisory"}` entry — so Luna states the taxi/boat gaps honestly instead of improvising;
+    VERIFY rows never reach the LLM.
   - GATED lens triggered → **a deterministic HARD GATE, before any LLM call** (amended
     2026-09-30 after live verification: the prompt rule alone let the model append improvised
     "safe for women" venues right after reciting the decline). `lenses.gated_decline_payload`

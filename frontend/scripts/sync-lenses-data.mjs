@@ -64,7 +64,7 @@ const prov = (r, id, errs) => {
   if (!['HIGH', 'VERIFY'].includes(r.confidence)) errs.push(`${id}: confidence must be HIGH|VERIFY`);
 };
 
-function validate(data, catalogIds) {
+function validate(data, catalogIds, catalogNames = new Map()) {
   const errs = [];
   if (!isObj(data)) return ['root must be an object'];
   const lenses = data.lenses;
@@ -77,6 +77,17 @@ function validate(data, catalogIds) {
     if (!KINDS.has(ln.kind)) errs.push(`${k}: bad kind`);
     if (!Number.isInteger(ln.min_fill) || ln.min_fill < 1) errs.push(`${k}: min_fill`);
     for (const f of ['label', 'tagline']) if (!l4Ok(ln[f])) errs.push(`${k}: ${f} not L4`);
+    if (ln.advisories != null) {
+      // 4A honest-gap lines: "reported" guidance must carry its source; "unverified"
+      // states a HOLD category as not confirmed (attached to no place).
+      if (!Array.isArray(ln.advisories) || !ln.advisories.length) errs.push(`${k}: advisories empty`);
+      for (const [i, a] of (Array.isArray(ln.advisories) ? ln.advisories : []).entries()) {
+        if (!['reported', 'unverified'].includes(a?.kind)) errs.push(`${k}.advisories[${i}]: kind`);
+        if (!l4Ok(a?.text)) errs.push(`${k}.advisories[${i}]: text not L4`);
+        if (a?.kind === 'reported' && (!isStr(a.source_name) || !isStr(a.source_url)))
+          errs.push(`${k}.advisories[${i}]: reported advisory needs source_name+source_url`);
+      }
+    }
   }
   if (!isObj(data.access_tiers) || !Object.values(data.access_tiers).every(l4Ok)) errs.push('access_tiers not L4');
   const pins = data.pins || [];
@@ -109,6 +120,10 @@ function validate(data, catalogIds) {
     if (!keys.has(t.lens)) errs.push(`${id}: unknown lens`);
     if (!catalogIds.has(t.venue_id)) errs.push(`${id}: venue_id not in catalog`);
     if (!isObj(t.attrs) || !Object.keys(t.attrs).length) errs.push(`${id}: attrs`);
+    if (!isStr(t.display_name)) errs.push(`${id}: display_name missing`);
+    else if (catalogNames.has(t.venue_id) && t.display_name !== catalogNames.get(t.venue_id))
+      errs.push(`${id}: display_name ${JSON.stringify(t.display_name)} != catalog name ` +
+        `${JSON.stringify(catalogNames.get(t.venue_id))}`);
     if (t.note != null && !l4Ok(t.note)) errs.push(`${id}: note not L4`);
     prov(t, id, errs);
   }
@@ -160,6 +175,7 @@ function buildMirror(data, partners, sunset, fares) {
     return {
       key: ln.key, kind: ln.kind, icon: ln.icon, label: ln.label, tagline: ln.tagline,
       live: f.live, fill: { high: f.high, total: f.total, min_fill: f.min_fill },
+      ...(ln.advisories?.length ? { advisories: ln.advisories } : {}),
     };
   };
   const resolvePin = (p) => {
@@ -249,7 +265,8 @@ function main() {
   }
 
   const data = JSON.parse(fs.readFileSync(SOURCE, 'utf8'));
-  const errs = validate(data, catalogIds);
+  const catalogNames = new Map(partners.map((p) => [p.partner_id, p.name]));
+  const errs = validate(data, catalogIds, catalogNames);
   if (errs.length) { console.error('sync-lenses-data:\n  ' + errs.join('\n  ')); process.exit(1); }
 
   const seasonal = JSON.parse(fs.readFileSync(SEASONAL, 'utf8'));

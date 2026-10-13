@@ -71,16 +71,38 @@ def test_index_lists_all_lenses_never_their_content(client) -> None:
     assert body["sunset_by_month"]["9"] == "17:52"
 
 
-def test_gated_lens_leaks_nothing_publicly(client) -> None:  # V2
-    for key in ("women_verified", "family", "step_free"):
+def test_gated_lens_leaks_nothing_publicly(client) -> None:  # V2 (step_free went live in 4A)
+    for key in ("women_verified", "family"):
         body = client.get(f"/api/lenses/{key}").json()
         assert body["coming_soon"] is True and body["live"] is False
         assert "pins" not in body and "venues" not in body
-    prev = client.get("/api/lenses/step_free?preview=1")
+    prev = client.get("/api/lenses/family?preview=1")
     assert prev.headers["cache-control"] == "no-store"
     b = prev.json()
     assert b["preview"] is True and b["coming_soon"] is True
-    assert all(v["confidence"] == "VERIFY" for v in b["venues"])  # sin verificar stays
+    assert b["venues"] == []  # family holds zero tags — nothing leaks even in preview
+
+
+def test_live_step_free_serves_tagged_venues_and_advisories(client) -> None:  # 4A
+    body = client.get("/api/lenses/step_free").json()
+    assert body["live"] is True and "coming_soon" not in body
+    # honest-gap advisories: both HOLD gaps stated as unverified, zones line sourced
+    kinds = [a["kind"] for a in body["advisories"]]
+    assert kinds.count("unverified") == 2 and kinds.count("reported") == 1
+    rep = next(a for a in body["advisories"] if a["kind"] == "reported")
+    assert rep["source_name"] and rep["source_url"]
+    vs = body["venues"]
+    by_id = {v["venue_id"]: v for v in vs}
+    # the 4 CONFIRMED anchors resolve, incl. the catalog-reused Museo del Oro record
+    assert {"attr_023", "attr_024", "attr_025", "attr_006"} <= set(by_id)
+    for want in ("attr_023", "attr_024", "attr_025", "attr_006"):
+        assert by_id[want]["confidence"] == "HIGH"
+    # the assisted heritage rows are VERIFY — the "Reportado por viajeros" badge material
+    assert by_id["attr_001"]["confidence"] == "VERIFY"
+    for v in vs:
+        assert v["display_name"] and v["confidence"] in ("HIGH", "VERIFY")
+        assert v["lat"] is not None and v["lng"] is not None  # resolved from the ONE catalog
+        assert v["name"], v["venue_id"]  # catalog name joined at read time — zero duplicates
 
 
 def test_live_lens_serves_resolved_pins(client) -> None:

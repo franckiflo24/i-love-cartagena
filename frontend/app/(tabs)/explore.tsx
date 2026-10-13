@@ -40,7 +40,7 @@ import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { CATEGORY_META, PublicEvent, compactUpcoming, formatEventDates, loadFeed, pickL } from '../../src/lib/eventsFeed';
 import LensRow from '../../src/components/lenses/LensChips';
-import { LensKey, bundledLenses, lensDef, pickL4 } from '../../src/lib/lenses';
+import { L4, LensAdvisory, LensKey, LensVenueRow, bundledLenses, lensDef, pickL4 } from '../../src/lib/lenses';
 import { EventMedia, EventTrustChip } from '../../src/components/EventFeedUI';
 import { monthShort } from '../../src/lib/formatDate';
 import { bogotaToday } from '../../src/lib/eventTime';
@@ -388,10 +388,14 @@ function PartnerGridCard({
   partner,
   onPress,
   localCount,
+  lensBadge,
 }: {
   partner: Partner;
   onPress: () => void;
   localCount?: number;
+  /** 4A: "Reportado por viajeros" on a VERIFY-tagged venue while a lens filter is
+   *  active — HIGH rows render plain, and the badge never says "verificado". */
+  lensBadge?: string | null;
 }) {
   const tr = useTr();
   const tierColor = partner.tier ? TIER_COLORS[partner.tier] : null;
@@ -453,6 +457,12 @@ function PartnerGridCard({
             <Text style={styles.localPickText} numberOfLines={1}>
               {tr('Favorito local')} · {localCount}
             </Text>
+          </View>
+        )}
+        {!!lensBadge && (
+          <View style={styles.lensVerifyBadge}>
+            <Ionicons name="people-outline" size={9} color={COLORS.mustard} />
+            <Text style={styles.lensVerifyBadgeText} numberOfLines={1}>{lensBadge}</Text>
           </View>
         )}
       </View>
@@ -701,8 +711,8 @@ function NeighborhoodDetailModal({
 
 export default function ExploreScreen() {
   const router = useRouter();
-  const { category: routeCategory, subcategory: routeSubcategory } =
-    useLocalSearchParams<{ category?: string; subcategory?: string }>();
+  const { category: routeCategory, subcategory: routeSubcategory, lens: routeLens } =
+    useLocalSearchParams<{ category?: string; subcategory?: string; lens?: string }>();
   const { s, lang } = useLang();
   const tr = useTr();
   const { getPersonalizedPartners, userProfile, isLoading: profileLoading } = usePersonalization();
@@ -729,22 +739,59 @@ export default function ExploreScreen() {
   const [localsNbh, setLocalsNbh] = useState<string | null>(null);
   // LENSES (docs/lenses/DESIGN.md §4): a LIVE venues-lens filters the grid to its
   // verified set. Gated lenses never reach this (LensRow shows the honest card).
-  const [lensFilter, setLensFilter] = useState<{ key: LensKey; label: string; ids: Set<string> } | null>(null);
+  // 4A: the payload's per-venue confidence/notes drive the "Reportado por viajeros"
+  // badge, and the lens's advisories render as labelled honest-gap lines.
+  // Label/tagline stay as L4 and localize AT RENDER: the ?lens= deep-link effect can
+  // fire before the stored language hydrates, so a capture-time pickL4 bakes Spanish
+  // chrome into an EN session (caught by the 4A live walk).
+  const [lensFilter, setLensFilter] = useState<{
+    key: LensKey;
+    tagline: L4 | null;
+    ids: Set<string>;
+    meta: Map<string, { confidence: 'HIGH' | 'VERIFY'; note: L4 | null }>;
+    advisories: LensAdvisory[];
+  } | null>(null);
   const localPicks = useLocalPicks();
 
   const activateLens = useCallback((key: LensKey) => {
     if (key === 'golden_hour') { router.push('/(tabs)/mapa?lens=golden_hour' as never); return; }
     if (key === 'port_day') { router.push('/port-day' as never); return; }
-    const label = pickL4(lensDef(bundledLenses(), key)?.label ?? null, lang);
+    const def = lensDef(bundledLenses(), key);
     api.get(`/lenses/${key}`)
       .then((res: unknown) => {
-        const venues = (res as { venues?: Array<{ venue_id?: string }> })?.venues || [];
+        const r = res as { venues?: LensVenueRow[]; advisories?: LensAdvisory[]; tagline?: L4 };
+        const venues = r?.venues || [];
         const ids = new Set(venues.map((v) => String(v.venue_id || '')).filter(Boolean));
-        if (ids.size) setLensFilter({ key, label, ids });
+        const meta = new Map(venues
+          .filter((v) => v.venue_id)
+          .map((v) => [String(v.venue_id), {
+            confidence: (v.confidence === 'HIGH' ? 'HIGH' : 'VERIFY') as 'HIGH' | 'VERIFY',
+            note: v.note ?? null,
+          }]));
+        if (ids.size) {
+          setLensFilter({
+            key, ids, meta,
+            tagline: r?.tagline ?? def?.tagline ?? null,
+            advisories: Array.isArray(r?.advisories) ? r.advisories : [],
+          });
+        }
       })
       .catch(() => { /* unreachable → nothing to filter, never a fake empty grid */ });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang]);
+  }, []);
+
+  // `/(tabs)/explore?lens=step_free` (map chip / Luna): activate the lens once per
+  // navigation — the mapa?lens= ref-guard pattern, mirrored.
+  const lensParamRef = useRef<string | null>(null);
+  useEffect(() => {
+    const k = typeof routeLens === 'string' ? routeLens : null;
+    if (!k) { lensParamRef.current = null; return; }
+    if (lensParamRef.current === k) return;
+    lensParamRef.current = k;
+    activateLens(k as LensKey);
+    router.setParams({ lens: undefined } as never);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeLens]);
 
   // Hydration guard: card widths are derived from Dimensions.get('window') at
   // module load, so the static export prerenders them with a default viewport
@@ -1097,10 +1144,30 @@ export default function ExploreScreen() {
             accessibilityLabel={tr('Limpiar filtros')}
           >
             <Text style={{ color: COLORS.primary, fontSize: 12, fontWeight: '700' }}>
-              {lensFilter.label} · {partners.length}
+              {pickL4(lensDef(bundledLenses(), lensFilter.key)?.label ?? null, lang)} · {partners.length}
             </Text>
             <Ionicons name="close" size={14} color={COLORS.primary} />
           </TouchableOpacity>
+        )}
+        {/* 4A: the lens header frames the promise honestly (anchors + assisted, never a
+            citywide guarantee) and the advisories surface what is NOT confirmed. */}
+        {lensFilter && (
+          <View style={styles.lensHeaderBox}>
+            {!!lensFilter.tagline && <Text style={styles.lensTagline}>{pickL4(lensFilter.tagline, lang)}</Text>}
+            {lensFilter.advisories.map((a, i) => (
+              <View key={i} style={styles.lensAdvisoryRow}>
+                <View style={[styles.lensAdvisoryChip, a.kind === 'unverified' && styles.lensAdvisoryChipWarn]}>
+                  <Text style={[styles.lensAdvisoryChipText, a.kind === 'unverified' && styles.lensAdvisoryChipTextWarn]}>
+                    {a.kind === 'unverified' ? tr('Sin verificar') : tr('Reportado por viajeros')}
+                  </Text>
+                </View>
+                <Text style={styles.lensAdvisoryText}>
+                  {pickL4(a.text, lang)}
+                  {a.kind === 'reported' && a.source_name ? `  ·  ${tr('Fuente')}: ${a.source_name}` : ''}
+                </Text>
+              </View>
+            ))}
+          </View>
         )}
       </View>
 
@@ -1424,6 +1491,8 @@ export default function ExploreScreen() {
           <PartnerGridCard
             partner={item}
             localCount={behavioralPick(localPicks, item.partner_id)?.local_count}
+            lensBadge={lensFilter?.meta.get(item.partner_id)?.confidence === 'VERIFY'
+              ? tr('Reportado por viajeros') : null}
             onPress={() => router.push(`/partner/${item.partner_id}` as any)}
           />
         )}
@@ -1657,6 +1726,75 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: COLORS.icon,
     ...FONTS.bold,
+  },
+
+  // 4A lens chrome: the VERIFY-row card badge and the honest-gap header lines.
+  lensVerifyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 3,
+    marginTop: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: RADIUS.full,
+    backgroundColor: `${COLORS.mustard}18`,
+    borderWidth: 1,
+    borderColor: `${COLORS.mustard}55`,
+  },
+  lensVerifyBadgeText: {
+    fontSize: 9,
+    color: COLORS.mustard,
+    ...FONTS.bold,
+  },
+  lensHeaderBox: {
+    marginTop: 10,
+    gap: 8,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  lensTagline: {
+    fontSize: 12.5,
+    color: COLORS.textMain,
+    lineHeight: 18,
+    ...FONTS.semibold,
+  },
+  lensAdvisoryRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  lensAdvisoryChip: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginTop: 1,
+  },
+  lensAdvisoryChipWarn: {
+    backgroundColor: 'rgba(245,166,35,0.12)',
+    borderColor: 'rgba(245,166,35,0.45)',
+  },
+  lensAdvisoryChipText: {
+    fontSize: 9,
+    color: COLORS.textMuted,
+    ...FONTS.bold,
+  },
+  lensAdvisoryChipTextWarn: {
+    color: '#F5A623',
+  },
+  lensAdvisoryText: {
+    flex: 1,
+    fontSize: 11.5,
+    color: COLORS.textMuted,
+    lineHeight: 16.5,
+    ...FONTS.regular,
   },
 
   // Section header

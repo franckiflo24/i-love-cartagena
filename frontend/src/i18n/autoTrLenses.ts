@@ -20,6 +20,10 @@ export const LENSES_TR: Dict = {
   },
   'lugares verificados': { en: 'verified places', fr: 'lieux vérifiés', pt: 'lugares verificados' },
 
+  // ── 4A venues-lens chrome (step_free live): badge + honest-gap labels ──
+  'Reportado por viajeros': { en: 'Reported by travelers', fr: 'Rapporté par des voyageurs', pt: 'Relatado por viajantes' },
+  'Sin verificar': { en: 'Unverified', fr: 'Non vérifié', pt: 'Não verificado' },
+
   // ── golden hour ──
   'Amanecer': { en: 'Sunrise', fr: 'Lever', pt: 'Amanhecer' },
   'Día': { en: 'Daytime', fr: 'Journée', pt: 'Dia' },

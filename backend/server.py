@@ -4361,6 +4361,65 @@ async def admin_grant_admin(request: Request):
     return {"ok": True, "email": em, "user_id": u.get("user_id"), "is_admin": (not revoke)}
 
 
+# 4A: curated catalog records (e.g. the accessible beaches attr_023/024/025) are authored as
+# committed static data, but lens venue resolution and the live /api/partners read Mongo — and
+# Atlas is IP-whitelisted, so the only writable path from an operator's machine is this backend.
+# Same trust footing as grant-admin above: the EVENTS_ADMIN_TOKEN holder is already the operator.
+_EDITORIAL_VENUE_ID = re.compile(r"^(attr|svc)_[A-Za-z0-9_]{1,40}$")
+_EDITORIAL_VENUE_FIELDS = (
+    "name", "description", "category", "subcategory", "address", "price_range",
+    "search_profile", "phone", "website", "zone",
+)
+
+
+@api_router.post("/admin/catalog/upsert-editorial-venue")
+async def admin_upsert_editorial_venue(request: Request):
+    """Insert/update ONE editorial (non-partner) catalog record. Never touches a record a
+    business claimed; forces the moderation-neutral editorial posture (standard tier, not
+    certified, not government); image_url only ever self-hosted or empty. Audited."""
+    if not _events_elite.is_events_admin_token(request):
+        raise HTTPException(status_code=401, detail={"error": "operator_token_required"})
+    body = await request.json() if request.headers.get("content-type", "").startswith("application/json") else {}
+    pid = str((body or {}).get("partner_id") or "").strip()
+    if not _EDITORIAL_VENUE_ID.match(pid):
+        raise HTTPException(status_code=422, detail={"error": "bad_partner_id",
+                            "hint": "attr_* or svc_* ids only — ptr_* records belong to the partner flows"})
+    name = str((body or {}).get("name") or "").strip()
+    if not name:
+        raise HTTPException(status_code=422, detail={"error": "name_required"})
+    loc = (body or {}).get("location") or {}
+    try:
+        lat, lng = float(loc.get("lat")), float(loc.get("lng"))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=422, detail={"error": "location_required"})
+    if not (10.0 <= lat <= 10.8 and -75.9 <= lng <= -75.2):
+        raise HTTPException(status_code=422, detail={"error": "location_outside_cartagena"})
+    image_url = str((body or {}).get("image_url") or "").strip()
+    if image_url and not image_url.startswith("/images/"):
+        raise HTTPException(status_code=422, detail={"error": "image_must_be_self_hosted_or_empty"})
+    existing = await db.partners.find_one({"partner_id": pid},
+                                          {"_id": 0, "name": 1, "claimed_by": 1, "submitted_by": 1})
+    if existing and (existing.get("claimed_by") or existing.get("submitted_by")):
+        raise HTTPException(status_code=409, detail={"error": "record_belongs_to_a_business"})
+    if existing and existing.get("name") != name and not bool((body or {}).get("update")):
+        raise HTTPException(status_code=409, detail={"error": "exists_with_different_name",
+                            "existing_name": existing.get("name"),
+                            "hint": "pass update:true to overwrite the editorial fields"})
+    doc = {k: str((body or {}).get(k) or "").strip() for k in _EDITORIAL_VENUE_FIELDS}
+    doc.update(
+        partner_id=pid, name=name, location={"lat": lat, "lng": lng}, image_url=image_url,
+        tier="standard", is_certified=False, is_government=False, membership_status="inactive",
+        display_ready=bool((body or {}).get("display_ready", True)),
+        editorial_origin="operator_token", updated_at=_now_iso(),
+    )
+    if not existing:
+        doc["created_at"] = _now_iso()
+    await db.partners.update_one({"partner_id": pid}, {"$set": doc}, upsert=True)
+    await _log_activity("editorial_venue_upserted", scope="admin", user_id="operator_token",
+                        detail=f"{pid} · {name}")
+    return {"ok": True, "partner_id": pid, "created": not bool(existing)}
+
+
 @api_router.post("/auth/logout")
 async def logout(request: Request, response: Response):
     # Accept token from cookie OR Authorization: Bearer (mirrors get_current_user).

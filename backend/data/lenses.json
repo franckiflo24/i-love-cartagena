@@ -2,7 +2,7 @@
   "version": 1,
   "source_name": "AMO Lenses",
   "field_guide": "Cartagena Golden Hour field guide 2026-09 (AMO research)",
-  "updated": "2026-09-30",
+  "updated": "2026-10-12",
   "lenses": [
     {
       "key": "golden_hour",
@@ -93,7 +93,7 @@
     {
       "key": "step_free",
       "kind": "venues",
-      "min_fill": 6,
+      "min_fill": 4,
       "icon": "accessibility-outline",
       "label": {
         "es": "Sin escalones",
@@ -102,10 +102,10 @@
         "pt": "Sem degraus"
       },
       "tagline": {
-        "es": "Lugares con acceso verificado — pequeño pero cierto",
-        "en": "Places with verified access — small but true",
-        "fr": "Lieux à l'accès vérifié — petit mais vrai",
-        "pt": "Lugares com acesso verificado — pequeno mas verdadeiro"
+        "es": "Lugares ancla con acceso verificado y rutas asistidas — no toda la ciudad",
+        "en": "Anchor places with verified access, plus assisted routes — not the whole city",
+        "fr": "Des lieux d'ancrage à l'accès vérifié et des parcours assistés — pas toute la ville",
+        "pt": "Lugares âncora com acesso verificado e rotas assistidas — não a cidade inteira"
       },
       "luna": {
         "triggers": [
@@ -130,7 +130,38 @@
           "fr": "L'accessibilité ne se devine pas : je n'ai pas encore assez de lieux vérifiés sans marches pour vous le promettre. Ce qui est confirmé : les trottoirs de Bocagrande sont plus plats que ceux du Centre fortifié.",
           "pt": "Acessibilidade não se adivinha: ainda não tenho lugares verificados sem degraus suficientes para prometer isso. O que está confirmado: as calçadas de Bocagrande são mais planas que as do Centro amuralhado."
         }
-      }
+      },
+      "advisories": [
+        {
+          "kind": "unverified",
+          "text": {
+            "es": "No confirmamos taxis adaptados en Cartagena: planifica un trasbordo asistido a sedán.",
+            "en": "We can't confirm adapted taxis in Cartagena: plan an assisted transfer into a sedan.",
+            "fr": "Nous ne confirmons pas de taxis adaptés à Carthagène : prévois un transfert assisté en berline.",
+            "pt": "Não confirmamos táxis adaptados em Cartagena: planeje uma transferência assistida para um sedã."
+          }
+        },
+        {
+          "kind": "unverified",
+          "text": {
+            "es": "El abordaje sin escalones a las lanchas de islas no está confirmado.",
+            "en": "Step-free boarding onto island boats is not confirmed.",
+            "fr": "L'embarquement sans marches sur les bateaux des îles n'est pas confirmé.",
+            "pt": "O embarque sem degraus nas lanchas para as ilhas não está confirmado."
+          }
+        },
+        {
+          "kind": "reported",
+          "text": {
+            "es": "Base recomendada: Bocagrande o Castillogrande (aceras más planas). El Centro amurallado es adoquín irregular — mejor con asistencia.",
+            "en": "Recommended base: Bocagrande or Castillogrande (flatter sidewalks). The walled Centro is uneven cobblestone — best with assistance.",
+            "fr": "Base recommandée : Bocagrande ou Castillogrande (trottoirs plus plats). Le Centre fortifié est en pavés irréguliers — mieux avec de l'aide.",
+            "pt": "Base recomendada: Bocagrande ou Castillogrande (calçadas mais planas). O Centro amuralhado tem paralelepípedos irregulares — melhor com assistência."
+          },
+          "source_name": "wheelchairtraveling.com",
+          "source_url": "https://wheelchairtraveling.com/colombia-wheelchair-travel-tips/"
+        }
+      ]
     },
     {
       "key": "family",
@@ -1096,7 +1127,8 @@
       "source_url": "https://www.eluniversal.com.co/turismo/2025/01/23/cerro-de-la-popa-un-lugar-de-fe-y-devocion/",
       "source_name": "El Universal",
       "last_verified": "2026-09-30",
-      "confidence": "VERIFY"
+      "confidence": "VERIFY",
+      "display_name": "Cerro de la Popa"
     },
     {
       "lens": "step_free",
@@ -1115,6 +1147,132 @@
       "source_url": "https://hicartagena.com/movich-rooftop/",
       "source_name": "Hi Cartagena",
       "last_verified": "2026-09-30",
+      "confidence": "VERIFY",
+      "display_name": "Movich Hotel"
+    },
+    {
+      "lens": "step_free",
+      "venue_id": "attr_023",
+      "display_name": "Playa 5 (Bocagrande)",
+      "attrs": {
+        "step_free_entrance": true,
+        "ramp": true,
+        "accessible_toilet": true,
+        "amphibious_chair": true,
+        "accessible_transport": null
+      },
+      "note": {
+        "es": "Pasarela peatonal desde la Cra. 1.ª con Calle 12 (frente al Hyatt), rampa a la arena y silla anfibia gratuita — pídela a los salvavidas. Baño accesible 8 a. m.–6 p. m. (cabina estrecha para sillas eléctricas). La rampa no llega al agua: la silla anfibia cubre el tramo final.",
+        "en": "Pedestrian boardwalk from Cra. 1 & Calle 12 (opposite the Hyatt), a ramp onto the sand and a free amphibious chair — ask the lifeguards. Accessible toilet 8 AM–6 PM (stall is tight for power chairs). The ramp stops short of the water: the amphibious chair covers the last stretch.",
+        "fr": "Passerelle piétonne depuis la Cra. 1 et la Calle 12 (face au Hyatt), rampe vers le sable et fauteuil amphibie gratuit — demande-le aux sauveteurs. Toilettes accessibles 8 h–18 h (cabine étroite pour fauteuils électriques). La rampe n'atteint pas l'eau : le fauteuil amphibie couvre le dernier tronçon.",
+        "pt": "Passarela de pedestres a partir da Cra. 1 com a Calle 12 (em frente ao Hyatt), rampa até a areia e cadeira anfíbia gratuita — peça aos salva-vidas. Banheiro acessível das 8h às 18h (cabine apertada para cadeiras motorizadas). A rampa não chega à água: a cadeira anfíbia cobre o trecho final."
+      },
+      "source_url": "https://wheelchairtravel.org/wheelchair-accessible-beach-cartagena-colombia-bocagrande-playa-5/",
+      "source_name": "Wheelchair Travel",
+      "last_verified": "2026-10-12",
+      "confidence": "HIGH"
+    },
+    {
+      "lens": "step_free",
+      "venue_id": "attr_024",
+      "display_name": "Playa 4 (Bocagrande)",
+      "attrs": {
+        "step_free_entrance": true,
+        "amphibious_chair": true,
+        "accessible_toilet": null,
+        "ramp": null
+      },
+      "note": {
+        "es": "Zona de baño entregada por la Alcaldía en el sector del Malecón del Mar: pasarela de acceso, silla anfibia y baños. Pregunta en el puesto de salvavidas por el punto de acceso.",
+        "en": "Bathing area delivered by the city in the Malecón del Mar sector: access boardwalk, amphibious chair and restrooms. Ask at the lifeguard post for the access point.",
+        "fr": "Zone de baignade livrée par la mairie dans le secteur du Malecón del Mar : passerelle d'accès, fauteuil amphibie et sanitaires. Demande le point d'accès au poste des sauveteurs.",
+        "pt": "Área de banho entregue pela prefeitura no setor do Malecón del Mar: passarela de acesso, cadeira anfíbia e banheiros. Pergunte no posto de salva-vidas pelo ponto de acesso."
+      },
+      "source_url": "https://cartagena.alerta.com.co/vivir-sabroso/cartagena-asi-funciona-la-nueva-playa-4-en-bocagrande-249576",
+      "source_name": "Alerta Caribe",
+      "last_verified": "2026-10-12",
+      "confidence": "HIGH"
+    },
+    {
+      "lens": "step_free",
+      "venue_id": "attr_025",
+      "display_name": "Playa Azul (La Boquilla)",
+      "attrs": {
+        "step_free_entrance": true,
+        "amphibious_chair": true,
+        "accessible_toilet": null,
+        "ramp": null
+      },
+      "note": {
+        "es": "Playa pública de 200 m administrada por Distriseguridad, con pasarela y silla anfibia — «totalmente apta para personas con movilidad reducida» (El Universal). Único balneario público del país certificado Bandera Azul (desde 2019; se renueva cada año).",
+        "en": "200 m public beach run by Distriseguridad, with a boardwalk and an amphibious chair — \"fully suitable for people with reduced mobility\" (El Universal). The country's only public beach certified Blue Flag (since 2019; renewed yearly).",
+        "fr": "Plage publique de 200 m gérée par Distriseguridad, avec passerelle et fauteuil amphibie — « totalement adaptée aux personnes à mobilité réduite » (El Universal). Seule plage publique du pays certifiée Pavillon Bleu (depuis 2019 ; renouvelé chaque année).",
+        "pt": "Praia pública de 200 m administrada pela Distriseguridad, com passarela e cadeira anfíbia — «totalmente apta para pessoas com mobilidade reduzida» (El Universal). Único balneário público do país certificado Bandeira Azul (desde 2019; renovado a cada ano)."
+      },
+      "source_url": "https://www.eluniversal.com.co/cartagena/2021/12/02/la-bandera-blue-flag-ya-ondea-en-playa-azul-la-boquilla/",
+      "source_name": "El Universal",
+      "last_verified": "2026-10-12",
+      "confidence": "HIGH"
+    },
+    {
+      "lens": "step_free",
+      "venue_id": "attr_006",
+      "display_name": "Museo del Oro Zenú",
+      "attrs": {
+        "lift": true,
+        "accessible_toilet": true,
+        "step_free_entrance": null,
+        "ramp": null
+      },
+      "note": {
+        "es": "Ascensor al fondo del primer piso y baño de acceso universal en el segundo (página oficial del museo). Entrada gratis y aire acondicionado — buen refugio del calor. Cierra los lunes.",
+        "en": "Lift at the back of the first floor and a universal-access toilet on the second (the museum's official page). Free entry and air-conditioned — a good heat refuge. Closed Mondays.",
+        "fr": "Ascenseur au fond du premier étage et toilettes à accès universel au deuxième (page officielle du musée). Entrée gratuite et climatisation — un bon refuge contre la chaleur. Fermé le lundi.",
+        "pt": "Elevador ao fundo do primeiro andar e banheiro de acesso universal no segundo (página oficial do museu). Entrada grátis e ar-condicionado — bom refúgio do calor. Fecha às segundas."
+      },
+      "source_url": "https://admin.banrepcultural.org/about-banco-de-la-republicas-cultural-labor/gold-museum/plan-your-visit-in-cartagena",
+      "source_name": "Banrepcultural (oficial)",
+      "last_verified": "2026-10-12",
+      "confidence": "HIGH"
+    },
+    {
+      "lens": "step_free",
+      "venue_id": "attr_001",
+      "display_name": "Castillo San Felipe de Barajas",
+      "attrs": {
+        "ramp": true,
+        "step_free_entrance": null,
+        "accessible_toilet": null,
+        "accessible_transport": null
+      },
+      "note": {
+        "es": "Acceso asistido: la ruta pavimentada desde la entrada principal se maneja con ayuda (rampas empinadas por tramos) y el centro de visitantes es accesible. Las zonas altas tienen escalones y piso irregular.",
+        "en": "Assisted access: the paved route from the main entrance is manageable with help (ramps are steep in sections) and the visitor center is accessible. The upper areas have steps and uneven ground.",
+        "fr": "Accès assisté : le parcours pavé depuis l'entrée principale se gère avec de l'aide (rampes raides par endroits) et le centre des visiteurs est accessible. Les zones hautes ont des marches et un sol irrégulier.",
+        "pt": "Acesso assistido: o percurso pavimentado desde a entrada principal dá para fazer com ajuda (rampas íngremes em trechos) e o centro de visitantes é acessível. As áreas altas têm degraus e piso irregular."
+      },
+      "source_url": "https://www.accesstravel.com/es-ES/Story/Index/4929",
+      "source_name": "AccessTravel",
+      "last_verified": "2026-10-12",
+      "confidence": "VERIFY"
+    },
+    {
+      "lens": "step_free",
+      "venue_id": "attr_002",
+      "display_name": "Las Murallas",
+      "attrs": {
+        "ramp": null,
+        "step_free_entrance": null
+      },
+      "note": {
+        "es": "Viajeros en silla reportan que el casco amurallado se recorre con ayuda: adoquín irregular y bordillos. Subir a la muralla implica rampas y escaleras históricas — ese tramo no está verificado.",
+        "en": "Wheelchair travelers report the walled quarter is doable with help: uneven cobblestone and curbs. Getting up onto the wall means historic ramps and stairs — that stretch is unverified.",
+        "fr": "Des voyageurs en fauteuil rapportent que le quartier fortifié se parcourt avec de l'aide : pavés irréguliers et bordures. Monter sur la muraille passe par des rampes et escaliers historiques — ce tronçon n'est pas vérifié.",
+        "pt": "Viajantes em cadeira relatam que o bairro amuralhado dá para percorrer com ajuda: paralelepípedos irregulares e meios-fios. Subir na muralha envolve rampas e escadas históricas — esse trecho não está verificado."
+      },
+      "source_url": "https://wheelchairtraveling.com/colombia-wheelchair-travel-tips/",
+      "source_name": "wheelchairtraveling.com",
+      "last_verified": "2026-10-12",
       "confidence": "VERIFY"
     }
   ],

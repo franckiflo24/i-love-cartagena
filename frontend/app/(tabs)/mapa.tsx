@@ -2059,8 +2059,11 @@ export default function MapaScreen() {
                       setMoreOpen(false);
                       router.push('/port-day' as never);
                     } else {
+                      // 4A: a live venues-lens lives on Explore — deep-link it with the
+                      // lens param so the filter activates (the mirror of explore's
+                      // golden_hour chip deep-linking mapa?lens=golden_hour).
                       setMoreOpen(false);
-                      router.push('/(tabs)/explore' as never);
+                      router.push(`/(tabs)/explore?lens=${key}` as never);
                     }
                   }}
                 />
