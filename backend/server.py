@@ -4429,6 +4429,63 @@ async def admin_upsert_editorial_venue(request: Request):
     return {"ok": True, "partner_id": pid, "created": not bool(existing)}
 
 
+# 4C follow-up: db.emergency_contacts (the /ayuda screen's source) had NO write path, so
+# Línea 155 could not be added without Atlas access. Same operator-token footing as the
+# editorial-venue write above. The category whitelist mirrors app/ayuda.tsx CATEGORY_ORDER —
+# a row outside those groups would silently never render.
+_EMERGENCY_CONTACT_ID = re.compile(r"^emg_[a-z0-9_]{1,30}$")
+_EMERGENCY_CATEGORIES = frozenset(
+    {"police", "fire", "health", "civil_defense", "maritime", "transit", "government", "utilities"})
+
+
+@api_router.post("/admin/catalog/upsert-emergency-contact")
+async def admin_upsert_emergency_contact(request: Request):
+    """Insert/update ONE /ayuda emergency contact. Operator-token gated; shape-validated
+    against what the screen renders (name, known category, phones[{service,phone}],
+    primary_phone ∈ phones). Audited; never deletes."""
+    if not _events_elite.is_events_admin_token(request):
+        raise HTTPException(status_code=401, detail={"error": "operator_token_required"})
+    body = await request.json() if request.headers.get("content-type", "").startswith("application/json") else {}
+    cid = str((body or {}).get("contact_id") or "").strip()
+    if not _EMERGENCY_CONTACT_ID.match(cid):
+        raise HTTPException(status_code=422, detail={"error": "bad_contact_id"})
+    name = str((body or {}).get("name") or "").strip()[:120]
+    if not name:
+        raise HTTPException(status_code=422, detail={"error": "name_required"})
+    category = str((body or {}).get("category") or "").strip()
+    if category not in _EMERGENCY_CATEGORIES:
+        raise HTTPException(status_code=422, detail={"error": "unknown_category",
+                            "allowed": sorted(_EMERGENCY_CATEGORIES)})
+    raw_phones = (body or {}).get("phones")
+    if not isinstance(raw_phones, list) or not raw_phones or len(raw_phones) > 8:
+        raise HTTPException(status_code=422, detail={"error": "phones_required"})
+    phones = []
+    for p in raw_phones:
+        svc = str((p or {}).get("service") or "").strip()[:120]
+        num = str((p or {}).get("phone") or "").strip()[:40]
+        if not svc or not num:
+            raise HTTPException(status_code=422, detail={"error": "bad_phone_row"})
+        phones.append({"service": svc, "phone": num})
+    primary = str((body or {}).get("primary_phone") or "").strip()[:40]
+    if primary not in {p["phone"] for p in phones}:
+        raise HTTPException(status_code=422, detail={"error": "primary_phone_must_be_listed"})
+    existing = await db.emergency_contacts.find_one({"contact_id": cid}, {"_id": 0, "name": 1})
+    if existing and existing.get("name") != name and not bool((body or {}).get("update")):
+        raise HTTPException(status_code=409, detail={"error": "exists_with_different_name",
+                            "existing_name": existing.get("name"),
+                            "hint": "pass update:true to overwrite"})
+    doc = {"contact_id": cid, "name": name, "category": category,
+           "icon": str((body or {}).get("icon") or "call").strip()[:40],
+           "phones": phones, "primary_phone": primary,
+           "email": str((body or {}).get("email") or "").strip()[:120],
+           "website": str((body or {}).get("website") or "").strip()[:300],
+           "editorial_origin": "operator_token", "updated_at": _now_iso()}
+    await db.emergency_contacts.update_one({"contact_id": cid}, {"$set": doc}, upsert=True)
+    await _log_activity("emergency_contact_upserted", scope="admin", user_id="operator_token",
+                        detail=f"{cid} · {name}")
+    return {"ok": True, "contact_id": cid, "created": not bool(existing)}
+
+
 @api_router.post("/auth/logout")
 async def logout(request: Request, response: Response):
     # Accept token from cookie OR Authorization: Bearer (mirrors get_current_user).
