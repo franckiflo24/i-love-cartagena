@@ -2,7 +2,7 @@
   "version": 1,
   "source_name": "AMO Lenses",
   "field_guide": "Cartagena Golden Hour field guide 2026-09 (AMO research)",
-  "updated": "2026-10-12",
+  "updated": "2026-10-13",
   "lenses": [
     {
       "key": "golden_hour",
@@ -166,7 +166,7 @@
     {
       "key": "family",
       "kind": "venues",
-      "min_fill": 8,
+      "min_fill": 4,
       "icon": "happy-outline",
       "label": {
         "es": "Modo familia",
@@ -175,10 +175,10 @@
         "pt": "Modo família"
       },
       "tagline": {
-        "es": "Playas calmadas, sillas altas y traslados con silla infantil — verificado",
-        "en": "Calm beaches, high chairs and car-seat transfers — verified",
-        "fr": "Plages calmes, chaises hautes et transferts avec siège enfant — vérifié",
-        "pt": "Praias calmas, cadeirões e traslados com cadeirinha — verificado"
+        "es": "Anclas confirmadas para ir con niños — y lo que debes confirmar al reservar",
+        "en": "Confirmed anchors for days out with kids — and what to confirm when you book",
+        "fr": "Des valeurs sûres pour sortir avec les enfants — et ce qu'il faut confirmer en réservant",
+        "pt": "Âncoras confirmadas para passear com crianças — e o que confirmar ao reservar"
       },
       "luna": {
         "triggers": [
@@ -200,7 +200,28 @@
           "enfants",
           "crianças",
           "criancas",
-          "playa para niños"
+          "playa para niños",
+          "niño",
+          "niña",
+          "hijo",
+          "hija",
+          "kid",
+          "child",
+          "children",
+          "infant",
+          "silla de auto",
+          "asiento de auto",
+          "car seat",
+          "booster",
+          "cadeirinha",
+          "siège auto",
+          "siege auto",
+          "silla infantil",
+          "enfant",
+          "criança",
+          "crianca",
+          "menino",
+          "menina"
         ],
         "decline_line": {
           "es": "El modo familia está en construcción: todavía no tengo suficientes lugares verificados (salvavidas, sillas altas, agua calmada) para prometerte algo con niños. No quiero adivinar con tu familia.",
@@ -208,7 +229,42 @@
           "fr": "Le mode famille est en construction : je n'ai pas encore assez de lieux vérifiés (sauveteurs, chaises hautes, eau calme) pour vous faire une promesse avec des enfants. Je ne devine pas avec votre famille.",
           "pt": "O modo família está em construção: ainda não tenho lugares verificados suficientes (salva-vidas, cadeirões, água calma) para prometer algo com crianças. Não vou adivinhar com a sua família."
         }
-      }
+      },
+      "advisories": [
+        {
+          "kind": "reported",
+          "text": {
+            "es": "Sillas de auto y chalecos infantiles dependen del operador y la disponibilidad — pídelos por escrito al reservar; no todos los tienen (al menos un traslado publicado dice que los bebés van en el regazo de un adulto, lo contrario de la silla certificada que la norma exige para menores de 2).",
+            "en": "Car seats and child life jackets depend on the operator and availability — request them in writing when you book; not all carry them (at least one published transfer states infants ride on an adult's lap, the opposite of the certified seat the rules require under age 2).",
+            "fr": "Sièges auto et gilets enfants dépendent de l'opérateur et de la disponibilité — demande-les par écrit en réservant ; tous n'en ont pas (au moins un transfert publié indique que les bébés voyagent sur les genoux d'un adulte, l'inverse du siège certifié que la norme exige avant 2 ans).",
+            "pt": "Cadeirinhas de carro e coletes infantis dependem do operador e da disponibilidade — peça por escrito ao reservar; nem todos têm (pelo menos um traslado publicado diz que bebês vão no colo de um adulto, o oposto da cadeirinha certificada que a norma exige para menores de 2)."
+          },
+          "source_name": "GetYourGuide (traslado publicado)",
+          "source_url": "https://www.getyourguide.com/cartagena-l362/cartagena-airport-private-arrival-or-departure-transfer-t34443/"
+        },
+        {
+          "kind": "reported",
+          "text": {
+            "es": "Edades: con menores de 5, prioriza el trayecto corto en lancha — Tierra Bomba (~20 min) o las playas urbanas; de 6 en adelante, los Rosario (45–60 min) van bien.",
+            "en": "Ages: under 5, make the short boat crossing the priority — Tierra Bomba (~20 min) or the city beaches; from 6 up, the Rosario Islands (45–60 min) work well.",
+            "fr": "Âges : avec moins de 5 ans, privilégie la traversée courte — Tierra Bomba (~20 min) ou les plages urbaines ; à partir de 6 ans, les Rosario (45–60 min) passent bien.",
+            "pt": "Idades: com menores de 5, priorize a travessia curta de lancha — Tierra Bomba (~20 min) ou as praias urbanas; de 6 em diante, as Rosario (45–60 min) funcionam bem."
+          },
+          "source_name": "Cartagena Day Tours",
+          "source_url": "https://cartagenadaytours.com/collections/family-friendly"
+        },
+        {
+          "kind": "reported",
+          "text": {
+            "es": "Coche de bebé: el adoquín del Centro y Getsemaní es irregular y algunos tours a pie no admiten coches — muchos padres van con portabebé; lo más plano está en Bocagrande/Castillogrande y el Museo del Oro tiene ascensor.",
+            "en": "Strollers: the Centro and Getsemaní cobblestone is uneven and some walking tours don't allow strollers — many parents carry instead; the flattest sidewalks are in Bocagrande/Castillogrande and the Museo del Oro has a lift.",
+            "fr": "Poussette : les pavés du Centro et de Getsemaní sont irréguliers et certains tours à pied refusent les poussettes — beaucoup de parents portent le bébé ; le plus plat est à Bocagrande/Castillogrande et le Museo del Oro a un ascenseur.",
+            "pt": "Carrinho de bebê: o paralelepípedo do Centro e de Getsemaní é irregular e alguns passeios a pé não aceitam carrinhos — muitos pais usam canguru; o mais plano fica em Bocagrande/Castillogrande e o Museo del Oro tem elevador."
+          },
+          "source_name": "wheelchairtraveling.com",
+          "source_url": "https://wheelchairtraveling.com/colombia-wheelchair-travel-tips/"
+        }
+      ]
     },
     {
       "key": "women_verified",
@@ -1273,6 +1329,174 @@
       "source_url": "https://wheelchairtraveling.com/colombia-wheelchair-travel-tips/",
       "source_name": "wheelchairtraveling.com",
       "last_verified": "2026-10-12",
+      "confidence": "VERIFY"
+    },
+    {
+      "lens": "family",
+      "venue_id": "ptr_dv_028",
+      "display_name": "Aviario Nacional de Colombia",
+      "attrs": {
+        "shade": null,
+        "stroller_feasible_route": null
+      },
+      "note": {
+        "es": "Abre todos los días (salvo el 1 de enero) de 9 a. m. a 5 p. m., último ingreso 4 p. m. El show «Aves al Vuelo» va a las 11:30 y 3:30 — se cancela si llueve. Tiquete de niño: 2–12 años; tarifa extranjera desde sep 2026: adulto COP 90.000, niño/estudiante COP 65.000.",
+        "en": "Open daily (except Jan 1) 9 AM–5 PM, last entry 4 PM. The 'Aves al Vuelo' flight show runs at 11:30 and 3:30 — cancelled if it rains. Child tickets: ages 2–12; foreign rates from Sep 2026: adult COP 90,000, child/student COP 65,000.",
+        "fr": "Ouvert tous les jours (sauf le 1er janvier) de 9 h à 17 h, dernière entrée 16 h. Le show « Aves al Vuelo » a lieu à 11 h 30 et 15 h 30 — annulé s'il pleut. Billet enfant : 2–12 ans ; tarifs étrangers dès sept. 2026 : adulte 90 000 COP, enfant/étudiant 65 000 COP.",
+        "pt": "Aberto todos os dias (exceto 1º de janeiro), das 9h às 17h, última entrada 16h. O show «Aves al Vuelo» acontece às 11h30 e 15h30 — cancelado se chover. Ingresso infantil: 2–12 anos; tarifa estrangeira desde set. 2026: adulto COP 90.000, criança/estudante COP 65.000."
+      },
+      "source_url": "https://aviarionacional.co/preguntas-frecuentes/",
+      "source_name": "Aviario Nacional (oficial)",
+      "last_verified": "2026-10-13",
+      "confidence": "HIGH"
+    },
+    {
+      "lens": "family",
+      "venue_id": "ptr_dv_006",
+      "display_name": "Oceanario Islas del Rosario (CEINER)",
+      "attrs": {
+        "child_life_jacket": null,
+        "calm_water_beach": null
+      },
+      "note": {
+        "es": "Todos los días de 9:00 a. m. a 1:30 p. m. — se llega en lancha o island-tour (la isla no tiene playa). Entrada según el canal: adultos ~COP 40.000 y niños de 2–10 ~COP 30.000 (El Universal) — confirma en taquilla; la tarifa del parque natural (~COP 13.500) se paga aparte.",
+        "en": "Daily 9:00 AM–1:30 PM — you arrive by boat or island tour (the island has no beach). Entry varies by channel: adults ~COP 40,000 and kids 2–10 ~COP 30,000 (El Universal) — confirm at the ticket office; the natural-park fee (~COP 13,500) is paid separately.",
+        "fr": "Tous les jours de 9 h à 13 h 30 — on arrive en bateau ou en island-tour (l'île n'a pas de plage). Entrée selon le canal : adultes ~40 000 COP et enfants 2–10 ans ~30 000 COP (El Universal) — confirme au guichet ; la taxe du parc naturel (~13 500 COP) se paie à part.",
+        "pt": "Todos os dias, das 9h às 13h30 — chega-se de lancha ou island-tour (a ilha não tem praia). Entrada conforme o canal: adultos ~COP 40.000 e crianças de 2–10 ~COP 30.000 (El Universal) — confirme na bilheteria; a taxa do parque natural (~COP 13.500) é à parte."
+      },
+      "source_url": "https://oceanario.co/",
+      "source_name": "Oceanario CEINER (oficial)",
+      "last_verified": "2026-10-13",
+      "confidence": "HIGH"
+    },
+    {
+      "lens": "family",
+      "venue_id": "attr_006",
+      "display_name": "Museo del Oro Zenú",
+      "attrs": {
+        "stroller_feasible_route": true,
+        "shade": true
+      },
+      "note": {
+        "es": "Gratis, con aire acondicionado — el refugio del calor con niños — y ascensor que sirve para el coche de bebé. Cierra los lunes.",
+        "en": "Free, air-conditioned — the heat refuge with kids — and a lift that works for the stroller. Closed Mondays.",
+        "fr": "Gratuit, climatisé — le refuge contre la chaleur avec des enfants — avec un ascenseur pratique pour la poussette. Fermé le lundi.",
+        "pt": "Grátis, com ar-condicionado — o refúgio do calor com crianças — e elevador que serve para o carrinho. Fecha às segundas."
+      },
+      "source_url": "https://admin.banrepcultural.org/about-banco-de-la-republicas-cultural-labor/gold-museum/plan-your-visit-in-cartagena",
+      "source_name": "Banrepcultural (oficial)",
+      "last_verified": "2026-10-13",
+      "confidence": "HIGH"
+    },
+    {
+      "lens": "family",
+      "venue_id": "svc_054",
+      "display_name": "Hospital Serena del Mar",
+      "attrs": {
+        "pediatric_er": true
+      },
+      "note": {
+        "es": "Urgencias 24/7 con áreas pediátricas y pediatras/neonatólogos de turno (sitio oficial). Vía al Mar, Km 8 — a ~15 min del Centro. Línea: (605) 693 4040 · urgencias móvil: +57 316 025 9202.",
+        "en": "24/7 ER with pediatric areas and pediatricians/neonatologists on duty (official site). Vía al Mar, Km 8 — ~15 min from the Centro. Line: (605) 693 4040 · emergency mobile: +57 316 025 9202.",
+        "fr": "Urgences 24 h/24 avec zones pédiatriques et pédiatres/néonatologistes de garde (site officiel). Vía al Mar, Km 8 — à ~15 min du Centre. Ligne : (605) 693 4040 · urgences mobile : +57 316 025 9202.",
+        "pt": "Emergência 24/7 com áreas pediátricas e pediatras/neonatologistas de plantão (site oficial). Vía al Mar, Km 8 — a ~15 min do Centro. Linha: (605) 693 4040 · emergência móvel: +57 316 025 9202."
+      },
+      "source_url": "https://www.hospitalserenadelmar.com/en/services/emergencies-247",
+      "source_name": "Hospital Serena del Mar (oficial)",
+      "last_verified": "2026-10-13",
+      "confidence": "HIGH"
+    },
+    {
+      "lens": "family",
+      "venue_id": "ptr_dv_007",
+      "display_name": "Playa de Castillogrande",
+      "attrs": {
+        "calm_water_beach": true,
+        "lifeguard": null
+      },
+      "note": {
+        "es": "La playa tranquila del lado de la bahía: menos oleaje y menos bullicio que Bocagrande, con más espacio — los fines de semana se llena de familias locales.",
+        "en": "The calm bay-side beach: less swell and less hustle than Bocagrande, with more room — on weekends it fills with local families.",
+        "fr": "La plage calme côté baie : moins de houle et d'agitation qu'à Bocagrande, avec plus d'espace — le week-end, elle se remplit de familles locales.",
+        "pt": "A praia calma do lado da baía: menos ondas e menos agito que Bocagrande, com mais espaço — nos fins de semana enche de famílias locais."
+      },
+      "source_url": "https://www.flyedelweiss.com/ch/en/destinations/cartagena/tips-beach.html",
+      "source_name": "Edelweiss (guía de playas)",
+      "last_verified": "2026-10-13",
+      "confidence": "VERIFY"
+    },
+    {
+      "lens": "family",
+      "venue_id": "ptr_occ_012",
+      "display_name": "Isla del Sol",
+      "attrs": {
+        "child_life_jacket": null
+      },
+      "note": {
+        "es": "Las guías de day-pass la nombran entre los destinos de isla más familiares de los Rosario (junto a Isla del Encanto). Lancha ~45–60 min: mejor de 6 años en adelante.",
+        "en": "Day-pass guides name it among the most family-friendly island picks in the Rosarios (with Isla del Encanto). ~45–60 min boat ride: best from age 6 up.",
+        "fr": "Les guides de day-pass la citent parmi les îles les plus familiales des Rosario (avec Isla del Encanto). Bateau ~45–60 min : mieux à partir de 6 ans.",
+        "pt": "Os guias de day-pass a citam entre as ilhas mais familiares das Rosario (com a Isla del Encanto). Lancha de ~45–60 min: melhor a partir dos 6 anos."
+      },
+      "source_url": "https://cartagenadaytours.com/collections/family-friendly",
+      "source_name": "Cartagena Day Tours",
+      "last_verified": "2026-10-13",
+      "confidence": "VERIFY"
+    },
+    {
+      "lens": "family",
+      "venue_id": "ptr_dv2_007",
+      "display_name": "Isla del Encanto",
+      "attrs": {
+        "child_life_jacket": null,
+        "shade": null
+      },
+      "note": {
+        "es": "Day pass familiar en los Rosario: lancha ida y vuelta, almuerzo y actividades de playa; las guías lo nombran entre los más familiares. Lancha ~60 min: mejor de 6 años en adelante.",
+        "en": "Family day pass in the Rosarios: round-trip boat, lunch and beach activities; guides name it among the most family-friendly. ~60 min boat ride: best from age 6 up.",
+        "fr": "Day pass familial aux Rosario : bateau aller-retour, déjeuner et activités de plage ; les guides le citent parmi les plus familiaux. Bateau ~60 min : mieux à partir de 6 ans.",
+        "pt": "Day pass familiar nas Rosario: lancha ida e volta, almoço e atividades de praia; os guias o citam entre os mais familiares. Lancha de ~60 min: melhor a partir dos 6 anos."
+      },
+      "source_url": "https://cartagenadaytours.com/collections/family-friendly",
+      "source_name": "Cartagena Day Tours",
+      "last_verified": "2026-10-13",
+      "confidence": "VERIFY"
+    },
+    {
+      "lens": "family",
+      "venue_id": "ptr_X1179",
+      "display_name": "Palmarito Beach",
+      "attrs": {
+        "calm_water_beach": null
+      },
+      "note": {
+        "es": "La opción familiar más sencilla de Tierra Bomba según las guías: tranquila y organizada, con piscina y kayaks — y un cruce corto en lancha (~20 min) que se agradece con peques.",
+        "en": "The most straightforward family option on Tierra Bomba per the guides: calm and organized, with a pool and kayaks — and a short (~20 min) boat crossing that helps with little ones.",
+        "fr": "L'option familiale la plus simple de Tierra Bomba selon les guides : calme et organisée, avec piscine et kayaks — et une traversée courte (~20 min) appréciable avec des petits.",
+        "pt": "A opção familiar mais simples de Tierra Bomba segundo os guias: tranquila e organizada, com piscina e caiaques — e uma travessia curta (~20 min) que ajuda com os pequenos."
+      },
+      "source_url": "https://cartagenadaytours.com/blogs/travel-guide/tierra-bomba-island-beach-clubs",
+      "source_name": "Cartagena Day Tours",
+      "last_verified": "2026-10-13",
+      "confidence": "VERIFY"
+    },
+    {
+      "lens": "family",
+      "venue_id": "attr_001",
+      "display_name": "Castillo San Felipe de Barajas",
+      "attrs": {
+        "stroller_feasible_route": false,
+        "shade": false
+      },
+      "note": {
+        "es": "A los niños les encantan los túneles — lleva linterna (hay tramos casi sin luz) y ve temprano por el calor. Con coche de bebé es difícil: rampas empinadas y piso irregular.",
+        "en": "Kids love the tunnels — bring a flashlight (some stretches are nearly unlit) and go early to beat the heat. Tough with a stroller: steep ramps and uneven ground.",
+        "fr": "Les enfants adorent les tunnels — prends une lampe (des tronçons sont presque sans lumière) et vas-y tôt à cause de la chaleur. Difficile en poussette : rampes raides et sol irrégulier.",
+        "pt": "As crianças adoram os túneis — leve lanterna (há trechos quase sem luz) e vá cedo por causa do calor. Difícil com carrinho: rampas íngremes e piso irregular."
+      },
+      "source_url": "https://www.cartagenaexplorer.com/things-to-do-children-cartagena-colombia/",
+      "source_name": "Cartagena Explorer",
+      "last_verified": "2026-10-13",
       "confidence": "VERIFY"
     }
   ],

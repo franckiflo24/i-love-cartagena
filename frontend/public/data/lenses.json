@@ -1,7 +1,7 @@
 {
  "version": 1,
- "updated": "2026-10-12",
- "generated_at": "2026-10-13T02:29:10.511Z",
+ "updated": "2026-10-13",
+ "generated_at": "2026-10-13T06:22:05.832Z",
  "lenses": [
   {
    "key": "golden_hour",
@@ -114,17 +114,52 @@
     "pt": "Modo família"
    },
    "tagline": {
-    "es": "Playas calmadas, sillas altas y traslados con silla infantil — verificado",
-    "en": "Calm beaches, high chairs and car-seat transfers — verified",
-    "fr": "Plages calmes, chaises hautes et transferts avec siège enfant — vérifié",
-    "pt": "Praias calmas, cadeirões e traslados com cadeirinha — verificado"
+    "es": "Anclas confirmadas para ir con niños — y lo que debes confirmar al reservar",
+    "en": "Confirmed anchors for days out with kids — and what to confirm when you book",
+    "fr": "Des valeurs sûres pour sortir avec les enfants — et ce qu'il faut confirmer en réservant",
+    "pt": "Âncoras confirmadas para passear com crianças — e o que confirmar ao reservar"
    },
-   "live": false,
+   "live": true,
    "fill": {
-    "high": 0,
-    "total": 0,
-    "min_fill": 8
-   }
+    "high": 4,
+    "total": 9,
+    "min_fill": 4
+   },
+   "advisories": [
+    {
+     "kind": "reported",
+     "text": {
+      "es": "Sillas de auto y chalecos infantiles dependen del operador y la disponibilidad — pídelos por escrito al reservar; no todos los tienen (al menos un traslado publicado dice que los bebés van en el regazo de un adulto, lo contrario de la silla certificada que la norma exige para menores de 2).",
+      "en": "Car seats and child life jackets depend on the operator and availability — request them in writing when you book; not all carry them (at least one published transfer states infants ride on an adult's lap, the opposite of the certified seat the rules require under age 2).",
+      "fr": "Sièges auto et gilets enfants dépendent de l'opérateur et de la disponibilité — demande-les par écrit en réservant ; tous n'en ont pas (au moins un transfert publié indique que les bébés voyagent sur les genoux d'un adulte, l'inverse du siège certifié que la norme exige avant 2 ans).",
+      "pt": "Cadeirinhas de carro e coletes infantis dependem do operador e da disponibilidade — peça por escrito ao reservar; nem todos têm (pelo menos um traslado publicado diz que bebês vão no colo de um adulto, o oposto da cadeirinha certificada que a norma exige para menores de 2)."
+     },
+     "source_name": "GetYourGuide (traslado publicado)",
+     "source_url": "https://www.getyourguide.com/cartagena-l362/cartagena-airport-private-arrival-or-departure-transfer-t34443/"
+    },
+    {
+     "kind": "reported",
+     "text": {
+      "es": "Edades: con menores de 5, prioriza el trayecto corto en lancha — Tierra Bomba (~20 min) o las playas urbanas; de 6 en adelante, los Rosario (45–60 min) van bien.",
+      "en": "Ages: under 5, make the short boat crossing the priority — Tierra Bomba (~20 min) or the city beaches; from 6 up, the Rosario Islands (45–60 min) work well.",
+      "fr": "Âges : avec moins de 5 ans, privilégie la traversée courte — Tierra Bomba (~20 min) ou les plages urbaines ; à partir de 6 ans, les Rosario (45–60 min) passent bien.",
+      "pt": "Idades: com menores de 5, priorize a travessia curta de lancha — Tierra Bomba (~20 min) ou as praias urbanas; de 6 em diante, as Rosario (45–60 min) funcionam bem."
+     },
+     "source_name": "Cartagena Day Tours",
+     "source_url": "https://cartagenadaytours.com/collections/family-friendly"
+    },
+    {
+     "kind": "reported",
+     "text": {
+      "es": "Coche de bebé: el adoquín del Centro y Getsemaní es irregular y algunos tours a pie no admiten coches — muchos padres van con portabebé; lo más plano está en Bocagrande/Castillogrande y el Museo del Oro tiene ascensor.",
+      "en": "Strollers: the Centro and Getsemaní cobblestone is uneven and some walking tours don't allow strollers — many parents carry instead; the flattest sidewalks are in Bocagrande/Castillogrande and the Museo del Oro has a lift.",
+      "fr": "Poussette : les pavés du Centro et de Getsemaní sont irréguliers et certains tours à pied refusent les poussettes — beaucoup de parents portent le bébé ; le plus plat est à Bocagrande/Castillogrande et le Museo del Oro a un ascenseur.",
+      "pt": "Carrinho de bebê: o paralelepípedo do Centro e de Getsemaní é irregular e alguns passeios a pé não aceitam carrinhos — muitos pais usam canguru; o mais plano fica em Bocagrande/Castillogrande e o Museo del Oro tem elevador."
+     },
+     "source_name": "wheelchairtraveling.com",
+     "source_url": "https://wheelchairtraveling.com/colombia-wheelchair-travel-tips/"
+    }
+   ]
   },
   {
    "key": "women_verified",

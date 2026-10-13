@@ -34,10 +34,17 @@ REQUIRED = {
     "wheelchair accessible places in the walled city": "step_free",
     "lugares sin escalones": "step_free",
     "restaurants accessibles en fauteuil roulant": "step_free",
-    # family (gated)
+    # family (LIVE since 4B)
     "¿qué playa es buena para mi toddler?": "family",
     "calm beach for kids with lifeguard": "family",
     "restaurante con menú infantil y silla para niños": "family",
+    # 4B live-probe regression: the SINGULAR never fired the lens and Luna freestyled an
+    # invented "ride-hailing has car seats" claim — these must route to family forever.
+    "vamos con un niño de 3 años, ¿qué planes hay?": "family",
+    "¿consiguen silla de auto para el traslado?": "family",
+    "traveling with my child, is there a car seat?": "family",
+    "on voyage avec un enfant de 4 ans": "family",
+    "viajo com uma criança pequena": "family",
     # women (gated) — the headline test
     "¿es seguro para una mujer sola esta noche?": "women_verified",
     "safe spots for a woman alone tonight": "women_verified",
@@ -103,7 +110,7 @@ def test_live_port_day_carries_official_fares_not_ship_names() -> None:
 
 def test_gated_lens_injects_only_its_decline_lines() -> None:  # V7 headline
     for q, key in (("¿es seguro para una mujer sola esta noche?", "women_verified"),
-                   ("calm beach for my toddler", "family")):
+                   ("safe spots for a woman alone tonight", "women_verified")):
         hit = _lens(_ctx(q), key)
         assert hit["live"] is False
         assert "entries" not in hit, f"{key}: a gated lens must not leak entries"
@@ -134,6 +141,23 @@ def test_live_step_free_entries_are_high_anchors_plus_advisories() -> None:  # 4
     assert all(e.get("advisory_kind") in ("reported", "unverified") for e in advisories)
 
 
+def test_live_family_entries_are_high_anchors_plus_advisories() -> None:  # 4B
+    hit = _lens(_ctx("¿qué playa es buena para mi toddler?"), "family")
+    assert hit["live"] is True and "decline_line" not in hit
+    venue_entries = [e for e in hit["entries"] if e.get("kind") != "advisory"]
+    advisories = [e for e in hit["entries"] if e.get("kind") == "advisory"]
+    names = {e["name"] for e in venue_entries}
+    assert {"Aviario Nacional de Colombia", "Museo del Oro Zenú", "Hospital Serena del Mar"} <= names
+    for e in venue_entries:
+        assert e["source_name"] and e["note_es"] and e["partner_id"], e
+    # VERIFY ("Reportado por viajeros") picks never reach the LLM
+    for reported in ("Playa de Castillogrande", "Isla del Sol", "Isla del Encanto",
+                     "Palmarito Beach", "Castillo San Felipe de Barajas"):
+        assert reported not in names, reported
+    # the car-seat/life-jacket reality rides as an advisory entry (confirm at booking)
+    assert any("al reservar" in (e.get("note_es") or "") for e in advisories)
+
+
 def test_women_decline_redirects_only_to_verified_adjacent_data() -> None:
     dl = _lens(_ctx("safe for a woman alone?"), "women_verified")["decline_line"]
     assert "DATT" in dl["es"] and "DATT" in dl["en"]  # taxi fares are the honest redirect
@@ -144,9 +168,9 @@ def test_gated_hard_gate_payload() -> None:
     """§5 hard gate: gated trust topics answer ONLY the decline line, pre-LLM."""
     by_key = {ln["key"]: ln for ln in DATA["lenses"]}
     for q, key, lg in (("safe spots for a woman alone tonight", "women_verified", "en"),
-                       ("¿qué playa es buena para mi toddler?", "family", "es"),
-                       ("plage calme pour mon bébé", "family", "fr"),
-                       ("praia calma para meu bebê", "family", "pt")):
+                       ("¿es seguro para una mujer sola esta noche?", "women_verified", "es"),
+                       ("des endroits sûrs pour une femme seule ?", "women_verified", "fr"),
+                       ("é seguro para uma mulher sozinha à noite?", "women_verified", "pt")):
         p = L.gated_decline_payload(q, lg)
         assert p is not None, q
         assert p["lens_gate"] == key and p["language"] == lg
@@ -157,6 +181,9 @@ def test_gated_hard_gate_payload() -> None:
     assert L.gated_decline_payload("estoy de crucero, mi escala", "es") is None
     # 4A: step_free is live — accessibility questions now answer from its entries
     assert L.gated_decline_payload("restaurants accessibles en fauteuil roulant", "fr") is None
+    # 4B: family is live — kids questions now answer from its entries
+    assert L.gated_decline_payload("¿qué playa es buena para mi toddler?", "es") is None
+    assert L.gated_decline_payload("praia calma para meu bebê", "pt") is None
     # mixed live+gated → the gated trust topic wins; women outranks everything
     mixed = L.gated_decline_payload("fotos del atardecer para una mujer sola", "es")
     assert mixed is not None and mixed["lens_gate"] == "women_verified"

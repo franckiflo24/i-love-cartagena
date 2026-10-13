@@ -64,7 +64,11 @@ def test_fill_gate_launch_state() -> None:  # §2 + V2 (+ 4A amendment)
     assert fills["step_free"]["live"] is True
     assert fills["step_free"]["high"] == 4 and fills["step_free"]["min_fill"] == 4
     assert fills["step_free"]["total"] >= 8           # the VERIFY assisted rows ride along
-    assert fills["family"]["live"] is False
+    # 4B: family is LIVE on its 4 official-site anchors (Aviario, Oceanario, Museo del Oro,
+    # Hospital Serena del Mar) — min_fill moved 8→4 with the tagline reframe (DESIGN.md §2).
+    assert fills["family"]["live"] is True
+    assert fills["family"]["high"] == 4 and fills["family"]["min_fill"] == 4
+    assert fills["family"]["total"] >= 9              # + the VERIFY reported picks
     assert fills["women_verified"]["live"] is False   # fills ONLY from in-app ratings
     assert (DATA_tags_high := [t for t in DATA["venue_tags"]
                                if t["lens"] == "women_verified"]) == [], DATA_tags_high
@@ -143,3 +147,32 @@ def test_validate_rejects_unprovenanced_4a_shapes() -> None:  # 4A rails
     rep.pop("source_url")
     assert any("reported advisory needs source_url" in e
                for e in L.validate_lenses(bad3, catalog_ids=CATALOG_IDS))
+
+
+def test_family_lens_never_tags_the_excluded_venues() -> None:  # 4B rails
+    """Family-NEGATIVE list: adults/party clubs, the torture-display museum and the
+    deep-water beach must never carry a family tag, whatever a future seed does."""
+    excluded = {
+        "attr_007",                 # Palacio de la Inquisición (instrumentos de tortura)
+        "ptr_W140",                 # Bora Bora (adults-only)
+        "attr_018",                 # Playa Blanca (deep water near shore)
+        "ptr_NEW_playa_blanca_bc",  # Playa Blanca Beach Club
+        "ptr_occ_010",              # Cholón (party)
+        "ptr_X1143",                # LUXURY Beach Club (DJ-driven)
+        "ptr_W141",                 # Makani (its own publisher's family list excludes it)
+    }
+    family_ids = {t["venue_id"] for t in DATA["venue_tags"] if t["lens"] == "family"}
+    assert not (family_ids & excluded), family_ids & excluded
+
+
+def test_family_never_claims_car_seats_or_life_jackets_on_a_venue() -> None:  # 4B rails
+    """Per-booking realities are advisories, never venue attributes set true."""
+    for t in DATA["venue_tags"]:
+        if t["lens"] != "family":
+            continue
+        for k in ("car_seat_transfer", "child_life_jacket", "high_chairs", "kids_menu"):
+            assert t["attrs"].get(k) is not True, f"{t['venue_id']}: {k} must never be claimed true"
+    fam = next(l for l in DATA["lenses"] if l["key"] == "family")
+    advisory_text = " ".join(a["text"]["es"] for a in fam["advisories"])
+    assert "al reservar" in advisory_text          # the confirm-at-booking advisory exists
+    assert "regazo" in advisory_text               # the published lap-riding red flag is surfaced

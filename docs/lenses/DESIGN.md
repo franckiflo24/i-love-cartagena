@@ -16,7 +16,11 @@ If code and this doc disagree, the doc wins until it is amended here first.
 - Luna answers lens questions from tagged data with the source, and **declines honestly** when
   coverage is thin (each lens carries a four-language `decline_line`). Luna never invents a tag.
 - Prices and opening hours are NEVER duplicated into lens data. A pin that needs them links to the
-  city hub module (e.g. Castillo → `/ciudad/monumentos`), which owns those facts.
+  city hub module (e.g. Castillo → `/ciudad/monumentos`), which owns those facts. (4B
+  clarification: the rule bars DUPLICATION, not facts — a sourced price/hour with no other owner
+  in the product may live in a tag note, and when channels conflict it renders as a range +
+  "confirma en taquilla", never one invented number. The venue's own catalog record stays the
+  first owner: the Oceanario's stale single price was fixed in the catalog, not papered over.)
 
 ## 1. Data — `backend/data/lenses.json` (committed; the base truth)
 ```
@@ -50,7 +54,10 @@ If code and this doc disagree, the doc wins until it is amended here first.
   - `women_verified`: harassment_rating (in-app only), staff_responsive, safe_ride_from, well_lit,
     women_only_event.
   - `family`: calm_water_beach, lifeguard, shade, high_chairs, kids_menu, stroller_feasible_route,
-    child_life_jacket, car_seat_transfer.
+    child_life_jacket, car_seat_transfer, pediatric_er (4B 2026-10-13: the Hospital Serena del Mar
+    resource row's one sourced attribute). NOTE (4B): car_seat_transfer / child_life_jacket are in
+    the vocabulary but are NEVER set true on a venue — availability is per-booking, so the reality
+    lives in the lens advisories ("confírmalo al reservar"), not on any place.
   - `step_free`: ramp, ramp_height_note, accessible_toilet, step_free_entrance, accessible_transport,
     lift, amphibious_chair (4A 2026-10-12: lift = Museo del Oro's sourced elevator; amphibious_chair =
     the sillas anfibias on the accessible beaches — both were unrepresentable in the v1 vocabulary).
@@ -77,6 +84,17 @@ If code and this doc disagree, the doc wins until it is amended here first.
   `advisories` surface honest gaps: kind "unverified" = a HOLD category stated as NOT confirmed
   (adapted taxis, island-boat boarding — never attached to any place), kind "reported" = sourced
   area guidance. family + women_verified stay GATED (4B/4C).
+- 4B amendment (2026-10-13): family is LIVE — 4 HIGH anchors (Aviario Nacional + Oceanario CEINER
+  + Museo del Oro, all official-site sourced, and Hospital Serena del Mar as the pediatric-ER
+  resource row, new svc_054) + 5 VERIFY reported picks (Playa de Castillogrande, Isla del Sol,
+  Isla del Encanto, Palmarito, San Felipe's tunnels). min_fill 8 → 4 with the tagline reframed —
+  the old line promised high chairs and car-seat transfers, which are HOLD/per-booking realities
+  and now live in the advisories ("pídelos por escrito al reservar", with the published
+  lap-riding red flag). Research-seed rows DROPPED on the rails: Makani (its own publisher's
+  family collection excludes it), Mantas/Rosario del Mar (no catalog record), kayak/manglar (no
+  operator record), Oceanario "under-2 free" (single weak source → "confirma en taquilla").
+  Family-NEGATIVE exclusions are tested: Palacio de la Inquisición, Bora Bora, Playa Blanca,
+  Cholón, Luxury BC, Makani never carry a family tag. women_verified stays GATED (4C).
 
 ## 3. API (backend; envelope + `_cache()` like the city hub)
 - `GET /api/lenses` — public. Lens list with fill counts + live flags + access_tiers. Never the

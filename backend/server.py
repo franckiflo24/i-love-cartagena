@@ -4365,7 +4365,7 @@ async def admin_grant_admin(request: Request):
 # committed static data, but lens venue resolution and the live /api/partners read Mongo — and
 # Atlas is IP-whitelisted, so the only writable path from an operator's machine is this backend.
 # Same trust footing as grant-admin above: the EVENTS_ADMIN_TOKEN holder is already the operator.
-_EDITORIAL_VENUE_ID = re.compile(r"^(attr|svc)_[A-Za-z0-9_]{1,40}$")
+_EDITORIAL_VENUE_ID = re.compile(r"^(attr|svc|ptr)_[A-Za-z0-9_]{1,40}$")
 _EDITORIAL_VENUE_FIELDS = (
     "name", "description", "category", "subcategory", "address", "price_range",
     "search_profile", "phone", "website", "zone",
@@ -4382,8 +4382,7 @@ async def admin_upsert_editorial_venue(request: Request):
     body = await request.json() if request.headers.get("content-type", "").startswith("application/json") else {}
     pid = str((body or {}).get("partner_id") or "").strip()
     if not _EDITORIAL_VENUE_ID.match(pid):
-        raise HTTPException(status_code=422, detail={"error": "bad_partner_id",
-                            "hint": "attr_* or svc_* ids only — ptr_* records belong to the partner flows"})
+        raise HTTPException(status_code=422, detail={"error": "bad_partner_id"})
     name = str((body or {}).get("name") or "").strip()
     if not name:
         raise HTTPException(status_code=422, detail={"error": "name_required"})
@@ -4399,6 +4398,12 @@ async def admin_upsert_editorial_venue(request: Request):
         raise HTTPException(status_code=422, detail={"error": "image_must_be_self_hosted_or_empty"})
     existing = await db.partners.find_one({"partner_id": pid},
                                           {"_id": 0, "name": 1, "claimed_by": 1, "submitted_by": 1})
+    # 4B: ptr_* may be UPDATED here only when it is an existing, unclaimed editorial record
+    # (e.g. the dossier venues ptr_dv_*) — creating a ptr_* editorially stays blocked, since
+    # new businesses belong to the partner flows (drafts, moderation, ownership).
+    if pid.startswith("ptr_") and not existing:
+        raise HTTPException(status_code=422, detail={"error": "ptr_create_blocked",
+                            "hint": "editorial creation is attr_*/svc_* only; ptr_* can only be updated"})
     if existing and (existing.get("claimed_by") or existing.get("submitted_by")):
         raise HTTPException(status_code=409, detail={"error": "record_belongs_to_a_business"})
     if existing and existing.get("name") != name and not bool((body or {}).get("update")):

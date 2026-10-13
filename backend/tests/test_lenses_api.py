@@ -71,16 +71,39 @@ def test_index_lists_all_lenses_never_their_content(client) -> None:
     assert body["sunset_by_month"]["9"] == "17:52"
 
 
-def test_gated_lens_leaks_nothing_publicly(client) -> None:  # V2 (step_free went live in 4A)
-    for key in ("women_verified", "family"):
-        body = client.get(f"/api/lenses/{key}").json()
-        assert body["coming_soon"] is True and body["live"] is False
-        assert "pins" not in body and "venues" not in body
-    prev = client.get("/api/lenses/family?preview=1")
+def test_gated_lens_leaks_nothing_publicly(client) -> None:  # V2 (step_free 4A, family 4B)
+    body = client.get("/api/lenses/women_verified").json()
+    assert body["coming_soon"] is True and body["live"] is False
+    assert "pins" not in body and "venues" not in body
+    prev = client.get("/api/lenses/women_verified?preview=1")
     assert prev.headers["cache-control"] == "no-store"
     b = prev.json()
     assert b["preview"] is True and b["coming_soon"] is True
-    assert b["venues"] == []  # family holds zero tags — nothing leaks even in preview
+    assert b["venues"] == []  # women holds zero tags BY DESIGN — nothing leaks even in preview
+
+
+def test_live_family_serves_anchors_resource_and_advisories(client) -> None:  # 4B
+    body = client.get("/api/lenses/family").json()
+    assert body["live"] is True and "coming_soon" not in body
+    # all three honest-gap lines are sourced "reported" guidance (car seats, ages, strollers)
+    assert [a["kind"] for a in body["advisories"]] == ["reported"] * 3
+    for a in body["advisories"]:
+        assert a["source_name"] and a["source_url"]
+    assert any("regazo" in a["text"]["es"] for a in body["advisories"])  # the lap-riding red flag
+    vs = body["venues"]
+    by_id = {v["venue_id"]: v for v in vs}
+    # the 4 CONFIRMED anchors, incl. the pediatric-ER resource row resolving from Mongo
+    for want in ("ptr_dv_028", "ptr_dv_006", "attr_006", "svc_054"):
+        assert by_id[want]["confidence"] == "HIGH", want
+    assert "316 025 9202" in by_id["svc_054"]["note"]["es"]  # the emergency number surfaces
+    # reported picks carry the badge tier
+    for rep in ("ptr_dv_007", "ptr_occ_012", "ptr_dv2_007", "ptr_X1179", "attr_001"):
+        assert by_id[rep]["confidence"] == "VERIFY", rep
+    # price honesty: a range + confirma, never one invented number
+    oce = by_id["ptr_dv_006"]["note"]["es"]
+    assert "confirma en taquilla" in oce and "30.000" in oce and "40.000" in oce
+    for v in vs:
+        assert v["display_name"] and v["lat"] is not None and v["name"], v["venue_id"]
 
 
 def test_live_step_free_serves_tagged_venues_and_advisories(client) -> None:  # 4A
