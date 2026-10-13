@@ -1174,7 +1174,14 @@ export default function ExploreScreen() {
       {selectedCategory.key === 'activities' && (
         <View style={styles.actAdvisory}>
           <Ionicons name="shield-outline" size={13} color={COLORS.mustard} />
-          <Text style={styles.actAdvisoryText}>{tr('Pide el RNT y acuerda el precio antes de pagar.')}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.actAdvisoryText}>{tr('Pide el RNT y acuerda el precio antes de pagar.')}</Text>
+            {/* 5C: the supply-side door — held operators (and new ones) verify to publish */}
+            <TouchableOpacity onPress={() => router.push('/reclama' as never)} accessibilityRole="button"
+              style={{ minHeight: 28, justifyContent: 'center' }}>
+              <Text style={styles.actAdvisoryLink}>{tr('¿Eres operador? Reclama tu listado →')}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 
@@ -1913,11 +1920,15 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(245,166,35,0.35)',
   },
   actAdvisoryText: {
-    flex: 1,
     fontSize: 11.5,
     color: COLORS.textMain,
     lineHeight: 16,
     ...FONTS.semibold,
+  },
+  actAdvisoryLink: {
+    fontSize: 11.5,
+    color: COLORS.primary,
+    ...FONTS.bold,
   },
 
   // Section header

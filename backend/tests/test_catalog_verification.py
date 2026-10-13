@@ -113,3 +113,38 @@ def test_5b_classes_rows_follow_the_model() -> None:
     reg_names = " ".join(r["name"] for r in reg["rows"]).lower()
     for held in ("crazy salsa", "babel", "soma yoga", "tata"):
         assert held in reg_names, held
+
+
+def test_5c_funnel_public_rows_and_claim_validation() -> None:
+    """5C: the public registry projection strips internals; claim intake validates;
+    the honeypot swallows bots silently."""
+    import activities_funnel as F
+    from fastapi import HTTPException as HX
+    import pytest as _pt
+    rows = F.public_rows()
+    assert len(rows) >= 10
+    blob = json.dumps(rows, ensure_ascii=False).lower()
+    # internal research material NEVER ships publicly: the registry's keys and the
+    # concrete research values (addresses, directory names, the client note)
+    for internal in ("hold_reason", "\"evidence\"", "einforma", "banco santander",
+                     "cliente de phil", "calle 30 #10-151", "flash pack"):
+        assert internal not in blob, internal
+    for r in rows:
+        assert r["id"] and r["name"] and r["reason"]["es"] and r["needed"]["es"], r
+        assert "shame" not in json.dumps(r).lower()
+    # validation: business name + one contact channel required; shapes enforced
+    with _pt.raises(HX):
+        F.validate_claim({"business_name": ""})
+    with _pt.raises(HX):
+        F.validate_claim({"business_name": "X"})  # no contact
+    with _pt.raises(HX):
+        F.validate_claim({"business_name": "X", "email": "nope"})
+    with _pt.raises(HX):
+        F.validate_claim({"business_name": "X", "whatsapp": "+57 300 123 4567",
+                          "registry_id": "no-such-row"})
+    ok = F.validate_claim({"business_name": "Crazy Salsa", "whatsapp": "+57 300 123 4567",
+                           "registry_id": "crazy-salsa", "rnt": "12345",
+                           "website": "@crazysalsa"})
+    assert ok["registry_id"] == "crazy-salsa" and ok["status" if False else "rnt"] == "12345"
+    # honeypot: bots fill `company` → accept-and-drop (empty doc, no exception)
+    assert F.validate_claim({"business_name": "Bot", "email": "a@b.co", "company": "x"}) == {}

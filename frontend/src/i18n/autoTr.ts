@@ -1799,6 +1799,60 @@ export const AUTO_TR: Dict = {
   },
   'Quitar lente': { en: 'Remove lens', fr: 'Retirer le filtre', pt: 'Remover lente' },
 
+  // ── 5C "Reclama tu listado" funnel ──
+  'Reclama tu listado': { en: 'Claim your listing', fr: 'Réclame ta fiche', pt: 'Reivindique sua listagem' },
+  '¿Eres operador? Reclama tu listado →': {
+    en: 'Are you the operator? Claim your listing →',
+    fr: "Tu es l'opérateur ? Réclame ta fiche →",
+    pt: 'É o operador? Reivindique sua listagem →',
+  },
+  'AMO publica operadores como «Reportado» y el sello «Verificado por AMO» solo se gana con un chequeo humano. Si tu negocio está en esta lista — o aún no está en AMO — reclámalo aquí.': {
+    en: 'AMO publishes operators as “Reported”, and the “AMO Verified” badge is only earned through a human check. If your business is on this list — or not on AMO yet — claim it here.',
+    fr: "AMO publie les opérateurs comme « Signalé », et le badge « Vérifié par AMO » ne s'obtient que par un contrôle humain. Si ton entreprise est sur cette liste — ou pas encore sur AMO — réclame-la ici.",
+    pt: 'A AMO publica operadores como «Reportado», e o selo «Verificado pela AMO» só se conquista com checagem humana. Se o seu negócio está nesta lista — ou ainda não está na AMO — reivindique aqui.',
+  },
+  'No se pudo cargar la lista — el formulario sigue abajo.': {
+    en: "Couldn't load the list — the form is still below.",
+    fr: 'Impossible de charger la liste — le formulaire reste ci-dessous.',
+    pt: 'Não foi possível carregar a lista — o formulário continua abaixo.',
+  },
+  '¿No estás en la lista? Regístrate igual': {
+    en: 'Not on the list? Register anyway',
+    fr: 'Pas sur la liste ? Inscris-toi quand même',
+    pt: 'Não está na lista? Registre-se mesmo assim',
+  },
+  'Tu nombre': { en: 'Your name', fr: 'Ton nom', pt: 'Seu nome' },
+  'Dirección o punto de encuentro en Cartagena': {
+    en: 'Address or meeting point in Cartagena',
+    fr: 'Adresse ou point de rencontre à Carthagène',
+    pt: 'Endereço ou ponto de encontro em Cartagena',
+  },
+  'Web o @instagram': { en: 'Website or @instagram', fr: 'Site ou @instagram', pt: 'Site ou @instagram' },
+  'Cuéntanos de tu operación (opcional)': {
+    en: 'Tell us about your operation (optional)',
+    fr: 'Parle-nous de ton activité (optionnel)',
+    pt: 'Conte sobre sua operação (opcional)',
+  },
+  'Escribe el nombre del negocio': { en: 'Enter the business name', fr: "Écris le nom de l'entreprise", pt: 'Escreva o nome do negócio' },
+  'Deja un WhatsApp o un email para contactarte': {
+    en: 'Leave a WhatsApp or an email so we can reach you',
+    fr: 'Laisse un WhatsApp ou un email pour te joindre',
+    pt: 'Deixe um WhatsApp ou um email para contato',
+  },
+  'No se pudo enviar — inténtalo de nuevo': { en: "Couldn't send — try again", fr: "Envoi impossible — réessaie", pt: 'Não foi possível enviar — tente de novo' },
+  'Enviar para verificación': { en: 'Submit for verification', fr: 'Envoyer pour vérification', pt: 'Enviar para verificação' },
+  'Recibido': { en: 'Received', fr: 'Bien reçu', pt: 'Recebido' },
+  'Verificamos antes de publicar — RUES y Cámara de Comercio siempre; DIMAR si operas en el agua; PADI/IKO para buceo o kite. Nada se publica automáticamente. Te contactamos.': {
+    en: 'We verify before publishing — RUES and Chamber of Commerce always; DIMAR if you operate on the water; PADI/IKO for dive or kite. Nothing publishes automatically. We will contact you.',
+    fr: "Nous vérifions avant de publier — RUES et Chambre de commerce toujours ; DIMAR si tu opères sur l'eau ; PADI/IKO pour la plongée ou le kite. Rien ne se publie automatiquement. Nous te contactons.",
+    pt: 'Verificamos antes de publicar — RUES e Câmara de Comércio sempre; DIMAR se opera na água; PADI/IKO para mergulho ou kite. Nada é publicado automaticamente. Entraremos em contato.',
+  },
+  'Verificación humana: RUES + Cámara de Comercio; DIMAR para operaciones en el agua; PADI/IKO para buceo/kite. Publicamos como «Reportado» mientras tanto — nunca vendemos el sello.': {
+    en: 'Human verification: RUES + Chamber of Commerce; DIMAR for on-the-water operations; PADI/IKO for dive/kite. We publish as “Reported” in the meantime — the badge is never for sale.',
+    fr: "Vérification humaine : RUES + Chambre de commerce ; DIMAR pour les opérations sur l'eau ; PADI/IKO pour plongée/kite. Nous publions comme « Signalé » entre-temps — le badge n'est jamais à vendre.",
+    pt: 'Verificação humana: RUES + Câmara de Comércio; DIMAR para operações na água; PADI/IKO para mergulho/kite. Publicamos como «Reportado» enquanto isso — o selo nunca está à venda.',
+  },
+
   // ── 5A activities verification chrome (Reportado → earned Verificado) ──
   'Reportado': { en: 'Reported', fr: 'Signalé', pt: 'Reportado' },
   'Verificado por AMO': { en: 'AMO Verified', fr: 'Vérifié par AMO', pt: 'Verificado pela AMO' },

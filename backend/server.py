@@ -9154,6 +9154,13 @@ app.include_router(_palco.router, prefix="/api")
 _amo_events.init(db_=db)
 app.include_router(_amo_events.router, prefix="/api")
 
+# 5C: "Reclama tu listado" — the activities verify-before-publish registry as a
+# public onboarding funnel (claim intake → operator-token queue; publishing stays
+# on the gated 5A levers). Same mount discipline as its siblings.
+import activities_funnel as _activities_funnel  # noqa: E402
+_activities_funnel.init(db_=db)
+app.include_router(_activities_funnel.router, prefix="/api")
+
 # Maintenance ops (cron-secret only). Mounted before api_router like its siblings.
 _maintenance.init(db_=db)
 app.include_router(_maintenance.router, prefix="/api")
