@@ -1776,6 +1776,25 @@ export const AUTO_TR: Dict = {
   'Confirma': { en: 'Confirm', fr: 'À confirmer', pt: 'Confirme' },
   'aprox.': { en: 'approx.', fr: 'env.', pt: 'aprox.' },
   'Fuente': { en: 'Source', fr: 'Source', pt: 'Fonte' },
+  // ── 5A activities verification chrome (Reportado → earned Verificado) ──
+  'Reportado': { en: 'Reported', fr: 'Signalé', pt: 'Reportado' },
+  'Verificado por AMO': { en: 'AMO Verified', fr: 'Vérifié par AMO', pt: 'Verificado pela AMO' },
+  'sin verificar en RUES': { en: 'unverified in RUES', fr: 'non vérifié au RUES', pt: 'não verificado no RUES' },
+  'RNT no publicado — pídelo al reservar': {
+    en: 'RNT not published — ask for it when booking',
+    fr: 'RNT non publié — demande-le en réservant',
+    pt: 'RNT não publicado — peça ao reservar',
+  },
+  'Pide el RNT y acuerda el precio antes de pagar.': {
+    en: 'Ask for the RNT and agree the price before paying.',
+    fr: 'Demande le RNT et fixe le prix avant de payer.',
+    pt: 'Peça o RNT e combine o preço antes de pagar.',
+  },
+  'RUES y Cámara de Comercio verificados por AMO': {
+    en: 'RUES and Chamber of Commerce verified by AMO',
+    fr: 'RUES et Chambre de commerce vérifiés par AMO',
+    pt: 'RUES e Câmara de Comércio verificados pela AMO',
+  },
   'Nota honesta': { en: 'Honest note', fr: 'Note honnête', pt: 'Nota honesta' },
   'Datos y precios': { en: 'Facts & prices', fr: 'Infos et tarifs', pt: 'Dados e preços' },
   '"Confirma" = dato que puede variar: verifica en taquilla o con la entidad.': { en: '"Confirm" = a figure that can change: check at the ticket office or with the entity.', fr: "« À confirmer » = donnée qui peut varier : vérifie au guichet ou auprès de l'entité.", pt: '"Confirme" = dado que pode variar: verifique na bilheteria ou com a entidade.' },

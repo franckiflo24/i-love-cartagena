@@ -4368,8 +4368,36 @@ async def admin_grant_admin(request: Request):
 _EDITORIAL_VENUE_ID = re.compile(r"^(attr|svc|ptr)_[A-Za-z0-9_]{1,40}$")
 _EDITORIAL_VENUE_FIELDS = (
     "name", "description", "category", "subcategory", "address", "price_range",
-    "search_profile", "phone", "website", "zone",
+    "search_profile", "phone", "whatsapp", "website", "zone",
 )
+
+# 5A: the activities verification object. Upserts can only ever write tier
+# "reportado" — "verificado" is EARNED through /admin/catalog/verify-provider
+# below, gated on recorded evidence. rnt_rues_checked is forced False here for
+# the same reason: the RUES check is a human act recorded by the promote action.
+_VERIFICATION_PUBLIC_KEYS = ("rnt_number", "rnt_source", "rnt_source_url", "note", "last_checked")
+
+
+def _clean_reportado_verification(raw: Any) -> Optional[Dict[str, Any]]:
+    if not isinstance(raw, dict):
+        return None
+    v = {k: str(raw.get(k) or "").strip()[:300] for k in _VERIFICATION_PUBLIC_KEYS if raw.get(k)}
+    v["status"] = "reportado"
+    v["rnt_rues_checked"] = False
+    return v
+
+
+def _verify_evidence_missing(evidence: Dict[str, Any], *, water: bool, discipline: str) -> List[str]:
+    """5A promote gate, pure: which evidence fields are still missing. RUES + Cámara
+    always; DIMAR for anything on the water; PADI for dive, IKO for kite."""
+    need = ["rues_url", "rues_checked_at", "camara_ref"]
+    if water:
+        need.append("dimar_ref")
+    if discipline == "dive":
+        need.append("padi_ref")
+    elif discipline == "kite":
+        need.append("iko_ref")
+    return [f for f in need if not (isinstance(evidence.get(f), str) and evidence[f].strip())]
 
 
 @api_router.post("/admin/catalog/upsert-editorial-venue")
@@ -4401,9 +4429,12 @@ async def admin_upsert_editorial_venue(request: Request):
     # 4B: ptr_* may be UPDATED here only when it is an existing, unclaimed editorial record
     # (e.g. the dossier venues ptr_dv_*) — creating a ptr_* editorially stays blocked, since
     # new businesses belong to the partner flows (drafts, moderation, ownership).
-    if pid.startswith("ptr_") and not existing:
+    # 5A carve-out: ptr_act_* is the editorial ACTIVITIES namespace (seeded at tier
+    # "reportado", claimable via the business flow, promotable only through
+    # verify-provider) — the one sanctioned editorial-business lane.
+    if pid.startswith("ptr_") and not existing and not pid.startswith("ptr_act_"):
         raise HTTPException(status_code=422, detail={"error": "ptr_create_blocked",
-                            "hint": "editorial creation is attr_*/svc_* only; ptr_* can only be updated"})
+                            "hint": "editorial creation is attr_*/svc_*/ptr_act_* only; other ptr_* can only be updated"})
     if existing and (existing.get("claimed_by") or existing.get("submitted_by")):
         raise HTTPException(status_code=409, detail={"error": "record_belongs_to_a_business"})
     if existing and existing.get("name") != name and not bool((body or {}).get("update")):
@@ -4411,6 +4442,11 @@ async def admin_upsert_editorial_venue(request: Request):
                             "existing_name": existing.get("name"),
                             "hint": "pass update:true to overwrite the editorial fields"})
     doc = {k: str((body or {}).get(k) or "").strip() for k in _EDITORIAL_VENUE_FIELDS}
+    verification = _clean_reportado_verification((body or {}).get("verification"))
+    if verification:
+        doc["verification"] = verification
+    # NOTE: is_certified is forced False on every editorial write below — which is also
+    # the 5A lever that strips the demo-era rows' unearned CERTIFICADO on update.
     doc.update(
         partner_id=pid, name=name, location={"lat": lat, "lng": lng}, image_url=image_url,
         tier="standard", is_certified=False,
@@ -4484,6 +4520,50 @@ async def admin_upsert_emergency_contact(request: Request):
     await _log_activity("emergency_contact_upserted", scope="admin", user_id="operator_token",
                         detail=f"{cid} · {name}")
     return {"ok": True, "contact_id": cid, "created": not bool(existing)}
+
+
+@api_router.post("/admin/catalog/verify-provider")
+async def admin_verify_provider(request: Request):
+    """5A: promote an activities record Reportado → AMO Verificado — ONLY with the
+    evidence recorded: RUES (RNT) + Cámara de Comercio always, DIMAR for anything on
+    the water, PADI for dive / IKO for kite. The evidence doc is stored INTERNAL
+    (verification_evidence, stripped from public reads); the public object carries
+    only the earned status. {revoke:true} demotes back to reportado. Audited.
+    This drop promotes NO ONE — the action exists so Verified can be earned."""
+    if not _events_elite.is_events_admin_token(request):
+        raise HTTPException(status_code=401, detail={"error": "operator_token_required"})
+    body = await request.json() if request.headers.get("content-type", "").startswith("application/json") else {}
+    pid = str((body or {}).get("partner_id") or "").strip()
+    p = await db.partners.find_one({"partner_id": pid}, {"_id": 0, "name": 1, "verification": 1})
+    if not p:
+        raise HTTPException(status_code=404, detail={"error": "no_such_partner"})
+    if bool((body or {}).get("revoke")):
+        await db.partners.update_one({"partner_id": pid}, {
+            "$set": {"verification.status": "reportado", "verification.revoked_at": _now_iso()},
+            "$unset": {"verification.verified_at": "", "verification_evidence": ""}})
+        await _log_activity("provider_verification_revoked", scope="admin",
+                            user_id="operator_token", detail=pid)
+        return {"ok": True, "partner_id": pid, "status": "reportado"}
+    evidence = (body or {}).get("evidence") or {}
+    water = bool((body or {}).get("water"))
+    discipline = str((body or {}).get("discipline") or "").strip()
+    missing = _verify_evidence_missing(evidence if isinstance(evidence, dict) else {},
+                                       water=water, discipline=discipline)
+    if missing:
+        raise HTTPException(status_code=422, detail={"error": "evidence_incomplete",
+                            "missing": missing,
+                            "hint": "Verified is earned: record every check before promoting"})
+    ev = {k: str(evidence[k]).strip()[:400] for k in evidence if isinstance(evidence.get(k), str)}
+    ev.update(water=water, discipline=discipline, recorded_at=_now_iso(), recorded_by="operator_token")
+    await db.partners.update_one({"partner_id": pid}, {"$set": {
+        "verification.status": "verificado",
+        "verification.verified_at": _now_iso(),
+        "verification.rnt_rues_checked": True,
+        "verification_evidence": ev,
+    }})
+    await _log_activity("provider_verified", scope="admin", user_id="operator_token",
+                        detail=f"{pid} · {p.get('name')}")
+    return {"ok": True, "partner_id": pid, "status": "verificado"}
 
 
 @api_router.post("/auth/logout")

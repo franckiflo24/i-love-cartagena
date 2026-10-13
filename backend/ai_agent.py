@@ -821,6 +821,7 @@ async def _smart_partner_query(db, user_text: str, max_results: int = 50) -> Tup
         "zone": 1, "serves_destinations": 1, "status": 1,
         "cuisine": 1,  # needed for cuisine-based recall/ranking (e.g. "Mediterráneo")
         "style_tags": 1, "rank_score": 1, "brand": 1,  # enriched catalog (CATALOG-MIGRATE)
+        "verification": 1,  # 5A: Reportado/Verificado tier — Luna states it, never upgrades it
     }
 
     # ── Step 1: Try LLM intent routing ──
@@ -1137,6 +1138,7 @@ async def _curated_expert_picks(db, user_text: str) -> Optional[Dict[str, Any]]:
             "_id": 0, "partner_id": 1, "name": 1, "category": 1, "subcategory": 1,
             "tier": 1, "price_range": 1, "address": 1, "rating": 1,
             "neighborhood": 1, "experience": 1, "tags": 1, "signature_dishes": 1,
+            "verification": 1,  # 5A: Reportado/Verificado tier — Luna states it, never upgrades it
         }
         # U8: an expert-curated id that points to an unapproved / sandbox / rejected
         # venue must NOT become a Luna recommendation — same gate as /search (4631).
@@ -1713,6 +1715,11 @@ Los partners pueden traer "tags" (romantic, first_date, family, kid_friendly, gr
 Usalos para preguntas de ocasión o característica: "cena romántica" → tags romantic/sea_view; "con niños" → kid_friendly/family; "está lloviendo" → indoor; "que hablen inglés" → english_friendly; "algo local, no turístico" → local_favorite. Prefiere partners cuyo tag coincide con la ocasión pedida y menciona el porqué ("terraza con vista al atardecer").
 
 Los partners también pueden traer "signature_dishes" (platos/bebidas insignia verificados). Cuando el usuario pide un plato o bebida específica ("lychee martini", "paella", "ceviche"), prefiere partners cuyo signature_dishes lo incluye y NOMBRÁ el plato exacto al recomendar ("pide el Pargo Platero con curry amarillo"). JAMÁS atribuyas un plato que no esté en signature_dishes del partner.
+- VERIFICACIÓN DE ACTIVIDADES (5A) — aplica a TODO partner de categoría "activity" y a tours/experiencias, traiga o no `verification`:
+  · Si trae `verification`, su `status` MANDA. "reportado" → preséntalo como «Reportado»: con rnt_number di «RNT {n} publicado por el operador — sin verificar en RUES, pídeselo al reservar»; sin rnt_number di «pide el RNT antes de pagar». Solo status "verificado" permite decir «Verificado por AMO».
+  · Si NO trae `verification`, trátalo como NO VETADO: recomiéndalo solo acompañado de «pide el RNT y acuerda el precio antes de pagar» — nunca como hecho establecido.
+  · PROHIBIDO en esta categoría decir "certificado(s)", "verificado", "con licencia", "seguro" o "confiable" sobre un operador o sus cursos, salvo que ese dato exacto venga en sus campos de contexto (p. ej. verification, experience). PROHIBIDO repetir autoclaims («primer/único/first/award», «mejor precio garantizado»).
+  · Precios de actividades: siempre «desde … · sujeto a cambios». La reserva se cierra con el operador (WhatsApp/canal propio) — AMO no cobra.
 
 Si context.user trae "taste" (gustos reales del usuario: tags, cocinas, lugares que le gustaron), úsalo con sutileza: prioriza recomendaciones afines y puedes referenciar su historial con naturalidad ("como te gustó {lugar}, creo que esto va contigo"). No lo recites como lista ni menciones la palabra "taste".
 
@@ -2439,6 +2446,35 @@ async def run_agent_turn(
         if _luna_cmw.mentions_cmw(message):
             message = _luna_cmw.unavailable_payload(language)["message"]
         suggestions = [s for s in suggestions if not _luna_cmw.mentions_cmw(s)]
+
+    # 5A deterministic floor: a reply that recommends activities/tours carries the honest
+    # tier line SERVER-SIDE. The prompt rule alone paraphrased around it live ("cursos
+    # certificados" → "certificaciones internacionales", RNT line skipped) — trust framing
+    # is never left to the model (the lenses hard-gate lesson, applied to the catalog).
+    try:
+        _ctx_rows: Dict[str, Dict[str, Any]] = {}
+        for _pool in (context.get("relevant_partners") or [],
+                      context.get("partner_directory") or [],
+                      (context.get("curated_recommendations") or {}).get("expert_ranked") or []):
+            for _p in _pool:
+                if isinstance(_p, dict) and _p.get("partner_id"):
+                    _ctx_rows.setdefault(str(_p["partner_id"]), _p)
+        _unverified_act = [
+            r for r in recommendations
+            if r.get("kind") == "partner"
+            and ((_ctx_rows.get(str(r.get("partner_id"))) or {}).get("category") == "activity"
+                 or ((_ctx_rows.get(str(r.get("partner_id"))) or {}).get("subcategory") or "") in ("tours", "experience"))
+            and ((_ctx_rows.get(str(r.get("partner_id"))) or {}).get("verification") or {}).get("status") != "verificado"
+        ]
+        if _unverified_act and "rnt" not in message.lower():
+            message = message.rstrip() + {
+                "es": "\n\nOjo: ninguna de estas actividades está verificada por AMO todavía — pide el RNT y acuerda el precio antes de pagar; la reserva la cierras directo con el operador.",
+                "en": "\n\nHeads-up: none of these activities is AMO-verified yet — ask for the RNT and agree the price before paying; you book directly with the operator.",
+                "fr": "\n\nÀ savoir : aucune de ces activités n'est encore vérifiée par AMO — demande le RNT et fixe le prix avant de payer ; la réservation se fait directement avec l'opérateur.",
+                "pt": "\n\nAtenção: nenhuma dessas atividades está verificada pela AMO ainda — peça o RNT e combine o preço antes de pagar; a reserva é fechada direto com o operador.",
+            }.get(language, "")
+    except Exception as exc:  # noqa: BLE001 — the floor must never break a reply
+        logger.error(f"[agent] activities floor failed: {type(exc).__name__}")
 
     return {
         "message": message,

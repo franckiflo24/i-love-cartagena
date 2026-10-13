@@ -56,6 +56,9 @@ CONCIERGE_PARTNER_FILTER = {
 # tier and membership_* are deliberately KEPT — the client sorts/badges on them
 # (partners.tsx/explore.tsx/data.ts). Full allowlist refactor is a post-launch item.
 INTERNAL_PARTNER_FIELDS = (
+    # 5A: the Verified-promotion evidence doc (RUES/Cámara/DIMAR/PADI refs) is an
+    # internal audit record; the public only ever sees verification.status.
+    "verification_evidence",
     "submitted_email", "submitted_by", "claimed_by", "claim_method",
     "claim_verified_at", "approved_by", "rejected_by", "reject_reason",
     # ── contact PII (not read by any public client) ──

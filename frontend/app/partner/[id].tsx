@@ -762,6 +762,36 @@ export default function PartnerDetail() {
           </View>
         )}
 
+        {/* 5A: honest activities tier — "Reportado" until a human live-check (RUES +
+            Cámara + DIMAR/PADI/IKO) earns "Verificado por AMO" via the gated admin
+            action. The RNT line never says "verificado" for operator-published numbers. */}
+        {(partner as any)?.verification?.status && (
+          <View style={styles.verifBox}>
+            <View style={styles.verifHead}>
+              <View style={[styles.verifChip, (partner as any).verification.status === 'verificado' && styles.verifChipOk]}>
+                <Ionicons
+                  name={(partner as any).verification.status === 'verificado' ? 'shield-checkmark' : 'alert-circle-outline'}
+                  size={12}
+                  color={(partner as any).verification.status === 'verificado' ? COLORS.official : COLORS.mustard}
+                />
+                <Text style={[styles.verifChipText, (partner as any).verification.status === 'verificado' && styles.verifChipTextOk]}>
+                  {(partner as any).verification.status === 'verificado' ? tr('Verificado por AMO') : tr('Reportado')}
+                </Text>
+              </View>
+              <Text style={styles.verifRnt} numberOfLines={2}>
+                {(partner as any).verification.status === 'verificado'
+                  ? tr('RUES y Cámara de Comercio verificados por AMO')
+                  : (partner as any).verification.rnt_number
+                    ? `RNT ${(partner as any).verification.rnt_number} · ${tr('sin verificar en RUES')}`
+                    : tr('RNT no publicado — pídelo al reservar')}
+              </Text>
+            </View>
+            {(partner as any).verification.status !== 'verificado' && (
+              <Text style={styles.verifAdvice}>{tr('Pide el RNT y acuerda el precio antes de pagar.')}</Text>
+            )}
+          </View>
+        )}
+
         {/* "Is this your business?" — entry point into the existing claim flow
             (find → claim → verify → activate → dashboard). Hidden once verified.
             Franck Aug 2026: partners need a discoverable way to claim their profile. */}
@@ -860,6 +890,15 @@ const styles = StyleSheet.create({
   sealBadge: { position: 'absolute', top: SPACING.md + 56, right: SPACING.md, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(5,8,20,0.85)', borderRadius: RADIUS.full, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: COLORS.official },
   sealText: { fontSize: 10, color: COLORS.official, ...FONTS.bold, letterSpacing: 1 },
   claimCta: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, marginHorizontal: SPACING.md, marginTop: SPACING.lg, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.md, borderWidth: 1, borderColor: 'rgba(18,181,165,0.4)' },
+  // 5A activities verification box
+  verifBox: { marginHorizontal: SPACING.md, marginTop: SPACING.lg, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, padding: SPACING.md, borderWidth: 1, borderColor: 'rgba(245,166,35,0.35)', gap: 6 },
+  verifHead: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  verifChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: RADIUS.full, backgroundColor: 'rgba(245,166,35,0.12)', borderWidth: 1, borderColor: 'rgba(245,166,35,0.45)' },
+  verifChipOk: { backgroundColor: 'rgba(59,130,246,0.12)', borderColor: 'rgba(59,130,246,0.45)' },
+  verifChipText: { fontSize: 11, color: COLORS.mustard, ...FONTS.bold },
+  verifChipTextOk: { color: COLORS.official },
+  verifRnt: { flex: 1, fontSize: 11.5, color: COLORS.textMuted, ...FONTS.semibold },
+  verifAdvice: { fontSize: 12, color: COLORS.textMain, lineHeight: 17, ...FONTS.regular },
   claimIcon: { width: 36, height: 36, borderRadius: RADIUS.full, backgroundColor: 'rgba(18,181,165,0.12)', alignItems: 'center', justifyContent: 'center' },
   claimTitle: { fontSize: 14, color: COLORS.textMain, ...FONTS.bold },
   claimSub: { fontSize: 11.5, color: COLORS.textMuted, ...FONTS.regular, marginTop: 1 },

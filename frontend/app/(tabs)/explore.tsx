@@ -1129,6 +1129,15 @@ export default function ExploreScreen() {
         })}
       </ScrollView>
 
+      {/* 5A: the anti-scam advisory rides the Experiencias category — the catalog's
+          activities are "Reportado", never a verification, until earned. */}
+      {selectedCategory.key === 'activities' && (
+        <View style={styles.actAdvisory}>
+          <Ionicons name="shield-outline" size={13} color={COLORS.mustard} />
+          <Text style={styles.actAdvisoryText}>{tr('Pide el RNT y acuerda el precio antes de pagar.')}</Text>
+        </View>
+      )}
+
       {/* ── LENSES — modes over the one catalog (docs/lenses/DESIGN.md §4) ── */}
       <View style={{ paddingHorizontal: SPACING.lg, marginTop: 10 }}>
         <LensRow active={lensFilter?.key ?? null} onActivate={activateLens} />
@@ -1824,6 +1833,26 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     lineHeight: 16.5,
     ...FONTS.regular,
+  },
+  actAdvisory: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    marginHorizontal: SPACING.lg,
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    backgroundColor: 'rgba(245,166,35,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(245,166,35,0.35)',
+  },
+  actAdvisoryText: {
+    flex: 1,
+    fontSize: 11.5,
+    color: COLORS.textMain,
+    lineHeight: 16,
+    ...FONTS.semibold,
   },
 
   // Section header

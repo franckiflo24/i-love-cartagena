@@ -1,0 +1,63 @@
+{
+  "_doc": "5C verify-before-publish registry — HOLD rows from DROP 5A with their evidence. Nothing here publishes; 5C turns this into the 'Reclama tu listado' funnel.",
+  "updated": "2026-10-13",
+  "rows": [
+    {
+      "name": "Colombia4u",
+      "class": "verified_rnt_no_local_door",
+      "evidence": {
+        "rnt": "58894",
+        "source": "own-site footer colombia4u.com (fetched 2026-10-13)",
+        "offerings": "Chiva Rumba party bus + Totumo (Cartagena)",
+        "phone": "+1 786 806 0047"
+      },
+      "hold_reason": "RNT verificado en medio propio, pero sin dirección/punto de encuentro en Cartagena — el catálogo es de lugares; pasa al funnel 5C (claim → punto de encuentro → publicar)."
+    },
+    {
+      "name": "Uncover Colombia",
+      "class": "verified_rnt_no_local_door",
+      "evidence": {
+        "rnt": "27816",
+        "nit": "900.553.236-9",
+        "source": "own-site footer uncovercolombia.com (fetched 2026-10-13)",
+        "offerings": "La Boquilla fishing + drum workshop (reportado por viajeros; no listado en su web)",
+        "whatsapp_co": "+57 311 2238820",
+        "notes": "base Bogotá; UK ATOL"
+      },
+      "hold_reason": "RNT+NIT verificados, base en Bogotá sin sede en Cartagena; el tour Boquilla no está listado públicamente — 5C."
+    },
+    {
+      "name": "Travel City Tours",
+      "class": "no_evidence",
+      "evidence": {
+        "rnt_claimed": "52742",
+        "search": "sin web propia ni rastro del RNT en fuentes abiertas (2026-10-13)"
+      },
+      "hold_reason": "Ni sitio propio ni RNT localizable — nada que citar."
+    },
+    {
+      "name": "Cultural Cartagena",
+      "class": "operator_unknown",
+      "evidence": {
+        "search": "ningún operador con ese nombre en fuentes abiertas; solo tours genéricos de street food (2026-10-13)"
+      },
+      "hold_reason": "Operador no identificable."
+    },
+    {
+      "name": "Nomad / Caribe / Kitesurf-en-Cartagena (escuelas)",
+      "class": "reviewer_claims_only",
+      "evidence": {
+        "note": "solo reseñas de viajeros; Kitesurf en Cartagena School existe en catálogo (ptr_X1008) desde el import masivo — sin fila 5A"
+      },
+      "hold_reason": "Spec HOLD: claims de reseñas, sin evidencia propia."
+    },
+    {
+      "name": "SANDEMANs partner local (sin nombre) · Viator top Street Food (operador desconocido) · Getsemaní Tour",
+      "class": "operator_unknown",
+      "evidence": {
+        "note": "Spec HOLD; Getsemaní Tour requiere verificar la tarjeta profesional del guía primero"
+      },
+      "hold_reason": "Operador sin identificar / credencial sin verificar."
+    }
+  ]
+}
