@@ -4461,6 +4461,17 @@ async def admin_upsert_editorial_venue(request: Request):
             raise HTTPException(status_code=422, detail={"error": "bad_status",
                                 "allowed": ["unverified", "active"]})
         doc["status"] = raw_status
+        # 6A audit trail: a hide carries WHY (e.g. "demo-era fabricated, unverifiable")
+        # and, for dedupe hides, WHICH canonical record supersedes it. Both are
+        # operator-facing bookkeeping only — PUBLIC projections never expose them.
+        raw_reason = str((body or {}).get("status_reason") or "").strip()[:200]
+        if raw_reason:
+            doc["status_reason"] = raw_reason
+        raw_dup = str((body or {}).get("duplicate_of") or "").strip()[:40]
+        if raw_dup:
+            if not raw_dup.startswith(("ptr_", "attr_", "svc_")) or raw_dup == pid:
+                raise HTTPException(status_code=422, detail={"error": "bad_duplicate_of"})
+            doc["duplicate_of"] = raw_dup
     # NOTE: is_certified is forced False on every editorial write below — which is also
     # the 5A lever that strips the demo-era rows' unearned CERTIFICADO on update.
     doc.update(

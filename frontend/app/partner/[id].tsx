@@ -31,6 +31,7 @@ import { geoService, GeoState, haversineM, fmtDistance, cityMode } from '../../s
 import { getCollections, platesForVenue, PlateDef } from '../../src/lib/passport';
 import { bogotaToday } from '../../src/lib/eventTime';
 import { goHome, goBackOr } from '../../src/lib/nav';
+import PARTNER_ALIASES from '../../src/data/partnerAliases.json';
 
 // Client pre-check for the passport stamp. The server gate is 75 m; we only
 // lock the UI when the fix is unambiguously far (GPS noise never locks out
@@ -177,7 +178,14 @@ export default function PartnerDetail() {
     setLoading(false);
   };
 
-  useEffect(() => { loadPartner(); }, [id]);
+  // Drop 6A dedupe rail: saved links/favorites pointing at a hidden duplicate
+  // resolve to the canonical record (which keeps the real verification) instead
+  // of dying on the duplicate's 404. replace() so Back never returns to the alias.
+  const aliasTarget = (PARTNER_ALIASES as Record<string, string>)[id as string];
+  useEffect(() => {
+    if (aliasTarget) { router.replace(`/partner/${aliasTarget}`); return; }
+    loadPartner();
+  }, [id]);
 
   // Brand family (from the bundled catalog — works offline too). Derive the brand
   // from the catalog by partner_id so it works even if the partner API omits `brand`.

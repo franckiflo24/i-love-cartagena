@@ -59,6 +59,9 @@ INTERNAL_PARTNER_FIELDS = (
     # 5A: the Verified-promotion evidence doc (RUES/Cámara/DIMAR/PADI refs) is an
     # internal audit record; the public only ever sees verification.status.
     "verification_evidence",
+    # 6A: hide bookkeeping (why a row was hidden, which canonical supersedes a
+    # duplicate). Stays internal even if a hidden row is ever flipped back live.
+    "status_reason", "duplicate_of",
     "submitted_email", "submitted_by", "claimed_by", "claim_method",
     "claim_verified_at", "approved_by", "rejected_by", "reject_reason",
     # ── contact PII (not read by any public client) ──

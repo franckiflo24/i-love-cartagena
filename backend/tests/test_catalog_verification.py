@@ -77,6 +77,46 @@ def test_seed_rows_are_reportado_never_certified_never_selfclaiming() -> None:
         assert rows == [canonical], f"{name}: {rows}"
 
 
+def test_6a_fabricated_render_nowhere_and_twins_resolve() -> None:
+    """DROP 6A acceptance, locked: the fabricated set renders NOWHERE in the
+    static-first layer (partners.json, catalog.json, experiences/featured.json,
+    per-partner files — every surface the app can paint without the backend),
+    and saved links to a hidden twin resolve to its canonical record."""
+    DATA = BACKEND.parent / "frontend" / "public" / "data"
+    HIDDEN = {"ptr_ac_001", "ptr_ac_002", "ptr_ac_003", "ptr_ac_004",
+              "ptr_dv2_047", "ptr_dv2_049"}
+    FABRICATED_NAMES = {"cartagena diving center", "cartagena food tours",
+                        "aventura rosario islands", "walking cartagena"}
+
+    # partners.json (explore/collections source)
+    assert not (HIDDEN & {p["partner_id"] for p in PARTNERS})
+    # catalog.json (Luna instant/offline layer)
+    catalog = json.loads((DATA / "catalog.json").read_text(encoding="utf-8"))
+    assert not (HIDDEN & {r.get("partner_id") for r in catalog})
+    assert not (FABRICATED_NAMES & {str(r.get("name", "")).lower() for r in catalog})
+    # experiences/featured.json (Featured Experiences rail — merges into the rail
+    # even when the API answers, so a stale row here IS a live render)
+    featured = json.loads((DATA / "experiences" / "featured.json").read_text(encoding="utf-8"))
+    assert not (HIDDEN & {e.get("partner_id") for e in featured})
+    assert not (FABRICATED_NAMES & {str(e.get("name", "")).lower() for e in featured})
+    # per-partner static files (the partner-detail static fallback path)
+    for pid in HIDDEN:
+        assert not (DATA / "partners" / f"{pid}.json").exists(), f"{pid}.json still served"
+
+    # dedupe rail: alias map sends each hidden twin to its canonical, the canonical
+    # is live in the catalog, and Diving Planet's survivor carries the real RNT.
+    aliases = json.loads((BACKEND.parent / "frontend" / "src" / "data" /
+                          "partnerAliases.json").read_text(encoding="utf-8"))
+    assert aliases == {"ptr_dv2_049": "ptr_X1086", "ptr_dv2_047": "ptr_V055"}
+    by_id = {p["partner_id"]: p for p in PARTNERS}
+    for dup, canonical in aliases.items():
+        assert canonical in by_id, f"canonical {canonical} missing for {dup}"
+    assert by_id["ptr_X1086"]["verification"]["rnt_number"] == "15394"
+    # the redirect is wired into the partner screen (map imported + replace on alias)
+    screen = (BACKEND.parent / "frontend" / "app" / "partner" / "[id].tsx").read_text(encoding="utf-8")
+    assert "partnerAliases.json" in screen and "aliasTarget" in screen
+
+
 def test_hold_registry_exists_and_publishes_nothing() -> None:
     reg = json.loads((BACKEND / "data" / "activities_registry_5c.json").read_text(encoding="utf-8"))
     names = " ".join(r["name"] for r in reg["rows"]).lower()
