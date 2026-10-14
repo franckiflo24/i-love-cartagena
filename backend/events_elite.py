@@ -920,6 +920,11 @@ async def _write_status(ctx_db: Any, doc: Mapping[str, Any], new_fields: Dict[st
         ev = {"status": "hidden", "status_reason": "no_source", "confidence": "VERIFY", "notif_eligible": False}
     merged.update(ev)
     upd: Dict[str, Any] = {"$set": {**new_fields, **ev, "updated_at": _iso(now)}}
+    # A1 provenance: a MACHINE actor (pull merge, enrich, verifier — never "admin:*")
+    # flipping a row public stamps autopublished_at once; operator writes never do.
+    if ev["status"] in ("published", "date_tbc") and not str(actor).startswith("admin:") \
+            and not merged.get("approved_by") and not merged.get("autopublished_at"):
+        upd["$set"]["autopublished_at"] = _iso(now)
     if unset:
         upd["$unset"] = {k: "" for k in unset}
     if push:
@@ -1065,6 +1070,11 @@ async def process_candidate(ctx: PullCtx, c: Mapping[str, Any], *, role: str, pe
         ctx.bump("dropped_other")
         await _reject(ctx.db, ctx, c, "id_out_of_contract")
         return "id_out_of_contract"
+    # A1 provenance: this row is landing PUBLIC straight from the pipeline — no human
+    # in the loop. The stamp (with approve_event's approved_by as its counterpart) is
+    # what lets /admin/events/autopublished show exactly the machine's unattended output.
+    if doc.get("status") in ("published", "date_tbc"):
+        doc["autopublished_at"] = _iso(ctx.now)
     label = {"published": "published", "review": "held_review", "date_tbc": "date_tbc"}.get(ev["status"])
     ctx.results.append({**result, "action": "insert", "status": ev["status"], "reason": ev["status_reason"],
                         "confidence": ev["confidence"], "event_id": doc["event_id"]})
@@ -3041,6 +3051,80 @@ async def hide_event(db_: Any, event_id: str, *, actor: str, note: Optional[str]
     return {"event_id": doc["event_id"], "status": "hidden", "status_reason": "admin_hide"}
 
 
+# ── A1: autopublish audit stream — rear-view + one-tap retract ───────────────
+# The stream = rows the MACHINE put public with no human in the loop:
+# autopublished_at set (or currently machine-public, for pre-A1 rows) AND
+# approved_by ABSENT. The moment an operator approves, the row is theirs and
+# leaves the stream. Retract = hidden/"operator_retracted": every hidden is
+# sticky (§15 R1), so no later cron, merge or re-evaluate can flip it back —
+# the suppression rail is structural, not a flag the pipeline must remember.
+
+async def list_autopublished(db_: Any) -> List[Dict[str, Any]]:
+    q = {"approved_by": {"$exists": False},
+         "$or": [{"autopublished_at": {"$exists": True}},
+                 {"status": {"$in": ["published", "date_tbc"]}}]}
+    rows = await db_.city_events.find(q, {"_id": 0, "event_text": 0}) \
+        .sort("updated_at", -1).limit(300).to_list(length=300)
+    out: List[Dict[str, Any]] = []
+    for r in rows:
+        if not r.get("autopublished_at") and r.get("status") not in ("published", "date_tbc"):
+            continue  # pre-A1 review/hidden rows the machine never put public
+        tiers = [gate.domain_tier(e.get("url"), e.get("tier"))
+                 for e in r.get("evidence") or [] if isinstance(e, Mapping)]
+        tier_vals = [t for t in tiers if isinstance(t, int)]
+        out.append({
+            "event_id": r.get("event_id"), "title": r.get("title"),
+            "status": r.get("status"), "status_reason": r.get("status_reason"),
+            "source_key": r.get("source_key"), "source_url": r.get("source_url"),
+            "source_tier": r.get("source_tier"),
+            "min_evidence_tier": min(tier_vals) if tier_vals else None,
+            "confidence": r.get("confidence"), "country_check": r.get("country_check"),
+            "start_date": r.get("start_date"), "venue_name": r.get("venue_name"),
+            "autopublished_at": r.get("autopublished_at") or r.get("created_at"),
+            "retracted_at": r.get("retracted_at"), "retracted_by": r.get("retracted_by"),
+        })
+    out.sort(key=lambda x: str(x.get("autopublished_at") or ""), reverse=True)
+    return out
+
+
+async def retract_event(db_: Any, event_id: str, *, actor: str, note: Optional[str] = None,
+                        now: Optional[datetime] = None) -> Dict[str, Any]:
+    """One-tap retract of a machine-published row: HIDE (never delete), reason-stamped,
+    reversible. Hidden is sticky, so the next cron cannot republish it."""
+    n = _now(now)
+    doc = await _doc_or_404(db_, event_id)
+    if doc.get("approved_by"):
+        raise HTTPException(status_code=409, detail={"error": "operator_approved_row",
+                            "hint": "this row is human-approved — use /hide"})
+    fields: Dict[str, Any] = {"status": "hidden", "status_reason": "operator_retracted",
+                              "retracted_at": _iso(n), "retracted_by": actor, "hidden_at": _iso(n)}
+    if not doc.get("autopublished_at"):
+        # pre-A1 machine row: back-stamp so the retracted row stays visible in the stream
+        fields["autopublished_at"] = doc.get("created_at") or _iso(n)
+    await _write_status(db_, doc, fields, actor=actor, now=n,
+                        log_detail={"action": "retract", "note": (note or "")[:300]})
+    runtime.invalidate_caches()
+    return {"event_id": doc["event_id"], "status": "hidden", "status_reason": "operator_retracted"}
+
+
+async def unretract_event(db_: Any, event_id: str, *, actor: str,
+                          now: Optional[datetime] = None) -> Dict[str, Any]:
+    """Reverse a retract: hand the row BACK to the machine (no approved_by — it stays in
+    the stream). The gate re-decides from scratch; a row whose evidence has rotted lands
+    review/expired honestly instead of being forced live."""
+    n = _now(now)
+    doc = await _doc_or_404(db_, event_id)
+    if doc.get("status_reason") != "operator_retracted":
+        raise HTTPException(status_code=409, detail={"error": "not_retracted"})
+    merged, _ = await _write_status(
+        db_, doc, {"status": "published", "status_reason": None, "restored_at": _iso(n), "restored_by": actor},
+        actor=actor, now=n, unset=["retracted_at", "retracted_by", "hidden_at"],
+        log_detail={"action": "unretract"})
+    runtime.invalidate_caches()
+    return {"event_id": doc["event_id"], "status": merged.get("status"),
+            "status_reason": merged.get("status_reason")}
+
+
 async def verify_event(db_: Any, event_id: str, evidence_url: Any, date_text: Any, *, actor: str,
                        now: Optional[datetime] = None, client_factory: Optional[ClientFactory] = None,
                        url_guard: Any = None) -> Dict[str, Any]:
@@ -3559,6 +3643,28 @@ async def hide_route(event_id: str, request: Request) -> Dict[str, Any]:
     body = await _json_body(request)
     return await hide_event(d, event_id, actor=f"admin:{user.get('user_id', '?')}",
                             note=body.get("note") if isinstance(body.get("note"), str) else None)
+
+
+@router.get("/admin/events/autopublished")
+async def autopublished_route(request: Request) -> Dict[str, Any]:
+    """A1: the machine's unattended output — every row 3B put public with no human in
+    the loop, newest first, with source / tier / when / current status."""
+    d = _need_db()
+    await require_admin_read(request)
+    return {"rows": await list_autopublished(d)}
+
+
+@router.post("/admin/events/{event_id}/retract")
+async def retract_route(event_id: str, request: Request) -> Dict[str, Any]:
+    """A1: retract (default) or restore ({restore:true}) a machine-published row."""
+    d = _need_db()
+    user = await require_admin_mutation(request)
+    body = await _json_body(request)
+    actor = f"admin:{user.get('user_id', '?')}"
+    if body.get("restore") is True:
+        return await unretract_event(d, event_id, actor=actor)
+    return await retract_event(d, event_id, actor=actor,
+                               note=body.get("note") if isinstance(body.get("note"), str) else None)
 
 
 @router.post("/admin/events/{event_id}/verify")

@@ -46,6 +46,15 @@ const ERR_COPY: Record<string, string> = {
   gate_refuses: 'La puerta de verificación lo rechazó',
 };
 
+// A1: a row of the autopublished stream (GET /admin/events/autopublished)
+type AutoRow = {
+  event_id: string; title?: Row['title']; status?: string; status_reason?: string | null;
+  source_key?: string; source_url?: string; source_tier?: number;
+  min_evidence_tier?: number | null; autopublished_at?: string;
+  start_date?: string | null; venue_name?: string | null;
+  retracted_at?: string | null; retracted_by?: string | null;
+};
+
 function titleOf(r: Row): string {
   return (typeof r.title === 'object' ? r.title?.es : r.title) || r.event_id;
 }
@@ -156,6 +165,38 @@ export default function AdminEventosQueue() {
     }
   }, [dDate, dTime, dReason, load, tr]);
 
+  // ── A1: Autopublicados — the machine's unattended output + one-tap retract ──
+  const [tab, setTab] = useState<'cola' | 'auto'>('cola');
+  const [autoRows, setAutoRows] = useState<AutoRow[] | null>(null);
+  const [autoError, setAutoError] = useState(false);
+  const loadAuto = useCallback(async () => {
+    try {
+      setAutoError(false);
+      const res = await api.get('/admin/events/autopublished');
+      setAutoRows(Array.isArray(res?.rows) ? res.rows : []);
+    } catch (e) {
+      console.error('[AdminEventos] autopublished', e);
+      setAutoError(true);
+    }
+  }, []);
+  useEffect(() => { if (tab === 'auto') loadAuto(); }, [tab, loadAuto]);
+  const actRetract = useCallback(async (id: string, restore: boolean) => {
+    setBusyId(id);
+    try {
+      await api.post(`/admin/events/${encodeURIComponent(id)}/retract`, restore ? { restore: true } : {});
+      setRowMsg((m) => ({ ...m, [id]: restore
+        ? `✓ ${tr('Restaurado — la automatización vuelve a gestionarlo')}`
+        : `✓ ${tr('Retirado del app público')}` }));
+      setConfirmKey(null);
+      setTimeout(loadAuto, 500);
+    } catch (e: unknown) {
+      const detail = (e as { data?: { detail?: { error?: string } } })?.data?.detail;
+      setRowMsg((m) => ({ ...m, [id]: `✕ ${detail?.error || tr('No se pudo aplicar.')}` }));
+    } finally {
+      setBusyId(null);
+    }
+  }, [loadAuto, tr]);
+
   if (authLoading || !user?.is_admin) {
     return <SafeAreaView style={styles.container}><View style={styles.center}><ActivityIndicator color={COLORS.primary} /></View></SafeAreaView>;
   }
@@ -173,6 +214,18 @@ export default function AdminEventosQueue() {
         </TouchableOpacity>
       </View>
 
+      {/* A1: Cola (review queue) · Autopublicados (the machine's rear-view) */}
+      <View style={styles.tabsRow}>
+        {(['cola', 'auto'] as const).map((t) => (
+          <TouchableOpacity key={t} style={[styles.tabBtn, tab === t && styles.tabBtnOn]}
+            onPress={() => setTab(t)} accessibilityRole="button" testID={`admin-tab-${t}`}>
+            <Text style={[styles.tabText, tab === t && styles.tabTextOn]}>
+              {t === 'cola' ? tr('Cola') : tr('Autopublicados')}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       <ScrollView
         contentContainerStyle={styles.body}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={COLORS.primary} />}
@@ -184,7 +237,7 @@ export default function AdminEventosQueue() {
             <TouchableOpacity onPress={load}><Text style={styles.retry}>{tr('reintentar')}</Text></TouchableOpacity>
           </View>
         )}
-        {sourceList.length > 0 && (
+        {tab === 'cola' && sourceList.length > 0 && (
           <View style={styles.card}>
             <TouchableOpacity style={styles.srcHead} onPress={() => setSourcesOpen((o) => !o)} accessibilityRole="button">
               <Ionicons name="git-network-outline" size={15} color={COLORS.textMuted} />
@@ -216,15 +269,15 @@ export default function AdminEventosQueue() {
             )}
           </View>
         )}
-        {rows === null && !loadError && <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />}
-        {rows !== null && rows.length === 0 && !loadError && (
+        {tab === 'cola' && rows === null && !loadError && <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />}
+        {tab === 'cola' && rows !== null && rows.length === 0 && !loadError && (
           <View style={styles.center}>
             <Ionicons name="checkmark-done-circle-outline" size={44} color={COLORS.textMuted} />
             <Text style={styles.emptyText}>{tr('Nada en revisión')}</Text>
           </View>
         )}
 
-        {(rows || []).map((r) => {
+        {tab === 'cola' && (rows || []).map((r) => {
           const isCapture = r.status_reason === 'field_capture' || !!r.capture;
           const when = r.start_date
             ? `${r.start_date}${r.start_time ? ` · ${r.start_time}` : ''}`
@@ -334,12 +387,75 @@ export default function AdminEventosQueue() {
           );
         })}
 
-        {rows !== null && (
+        {tab === 'cola' && rows !== null && (
           <Text style={styles.fine}>
             {tr('Aprobar re-ejecuta la puerta de verificación: nada sin fuente ni fuera de Cartagena se publica.')}
             {rejects > 0 ? ` · ${rejects} ${tr('rechazos recientes del pipeline')}` : ''}
           </Text>
         )}
+        {tab === 'auto' && (
+          <>
+            <Text style={styles.srcFine}>
+              {tr('Lo que la máquina publicó sola, más reciente primero. Retirar lo oculta al público (reversible) — y la próxima corrida no lo puede republicar.')}
+            </Text>
+            {autoError && (
+              <View style={styles.errorCard}>
+                <Ionicons name="cloud-offline-outline" size={18} color={COLORS.coral} />
+                <Text style={styles.errorText}>{tr('No se pudo cargar')}</Text>
+                <TouchableOpacity onPress={loadAuto}><Text style={styles.retry}>{tr('reintentar')}</Text></TouchableOpacity>
+              </View>
+            )}
+            {autoRows === null && !autoError && <ActivityIndicator color={COLORS.primary} style={{ marginTop: 40 }} />}
+            {autoRows !== null && autoRows.length === 0 && !autoError && (
+              <View style={styles.center}>
+                <Ionicons name="shield-checkmark-outline" size={44} color={COLORS.textMuted} />
+                <Text style={styles.emptyText}>{tr('Nada autopublicado todavía')}</Text>
+              </View>
+            )}
+            {(autoRows || []).map((r) => {
+              const retracted = r.status === 'hidden' && r.status_reason === 'operator_retracted';
+              const when = String(r.autopublished_at || '').slice(0, 16).replace('T', ' · ');
+              const msg = rowMsg[r.event_id];
+              return (
+                <View key={r.event_id} style={[styles.card, retracted && { opacity: 0.62 }]} testID={`auto-row-${r.event_id}`}>
+                  <View style={styles.cardHead}>
+                    <Text style={styles.cardTitle}>{titleOf(r as Row)}</Text>
+                    {retracted ? (
+                      <View style={styles.dupBanner}><Text style={styles.dupText}>{tr('Retirado')}</Text></View>
+                    ) : (
+                      <View style={styles.badge}>
+                        <Ionicons name="flash" size={11} color={COLORS.primary} />
+                        <Text style={styles.badgeText}>{r.status}</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.meta}>
+                    {(r.source_key || '—')} · T{r.source_tier ?? '?'}
+                    {r.min_evidence_tier != null ? ` · ${tr('evidencia')} T${r.min_evidence_tier}` : ''} · {when}
+                  </Text>
+                  {!!r.start_date && <Text style={styles.meta}>{r.start_date}{r.venue_name ? ` · ${r.venue_name}` : ''}</Text>}
+                  {!!msg && <Text style={styles.rowMsg}>{msg}</Text>}
+                  <View style={styles.actions}>
+                    {retracted ? (
+                      <TouchableOpacity style={[styles.btn, styles.approve]} disabled={busyId === r.event_id}
+                        onPress={() => actRetract(r.event_id, true)} accessibilityRole="button"
+                        testID={`auto-restore-${r.event_id}`}>
+                        <Text style={styles.btnTextDark}>{tr('Restaurar')}</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity style={[styles.btn, styles.reject]} disabled={busyId === r.event_id}
+                        onPress={() => (confirmKey === `retract:${r.event_id}` ? actRetract(r.event_id, false) : setConfirmKey(`retract:${r.event_id}`))}
+                        accessibilityRole="button" testID={`auto-retract-${r.event_id}`}>
+                        <Text style={styles.rejectText}>{confirmKey === `retract:${r.event_id}` ? tr('¿Confirmar?') : tr('Retirar')}</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              );
+            })}
+          </>
+        )}
+
         <View style={{ height: 60 }} />
       </ScrollView>
     </SafeAreaView>
@@ -395,4 +511,9 @@ const styles = StyleSheet.create({
   datesBox: { gap: 8, marginTop: 6 },
   input: { backgroundColor: COLORS.background, borderWidth: 1, borderColor: COLORS.hairline, borderRadius: RADIUS.md, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: COLORS.textMain, minHeight: 42 },
   fine: { fontSize: 11.5, color: COLORS.textFaint, ...FONTS.medium, textAlign: 'center', marginTop: SPACING.lg },
+  tabsRow: { flexDirection: 'row', gap: 8, paddingHorizontal: SPACING.lg, paddingBottom: 2 },
+  tabBtn: { minHeight: 38, borderRadius: RADIUS.full, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.hairline, backgroundColor: COLORS.background },
+  tabBtnOn: { borderColor: COLORS.primary, backgroundColor: `${COLORS.primary}14` },
+  tabText: { fontSize: 13, color: COLORS.textMuted, ...FONTS.semibold },
+  tabTextOn: { color: COLORS.primary },
 });

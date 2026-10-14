@@ -1801,6 +1801,25 @@ export const AUTO_TR: Dict = {
 
   // ── 5C "Reclama tu listado" funnel ──
   'Reclama tu listado': { en: 'Claim your listing', fr: 'Réclame ta fiche', pt: 'Reivindique sua listagem' },
+  // A1 autopublish audit stream — operator rear-view + one-tap retract
+  'Cola': { en: 'Queue', fr: "File d'attente", pt: 'Fila' },
+  'Autopublicados': { en: 'Auto-published', fr: 'Auto-publiés', pt: 'Autopublicados' },
+  'Retirar': { en: 'Retract', fr: 'Retirer', pt: 'Retirar' },
+  'Restaurar': { en: 'Restore', fr: 'Restaurer', pt: 'Restaurar' },
+  'Retirado': { en: 'Retracted', fr: 'Retiré', pt: 'Retirado' },
+  'evidencia': { en: 'evidence', fr: 'preuve', pt: 'evidência' },
+  'Nada autopublicado todavía': { en: 'Nothing auto-published yet', fr: 'Rien d’auto-publié encore', pt: 'Nada autopublicado ainda' },
+  'Retirado del app público': { en: 'Retracted from the public app', fr: "Retiré de l'app publique", pt: 'Retirado do app público' },
+  'Restaurado — la automatización vuelve a gestionarlo': {
+    en: 'Restored — automation manages it again',
+    fr: "Restauré — l'automatisation le gère à nouveau",
+    pt: 'Restaurado — a automação volta a gerenciá-lo',
+  },
+  'Lo que la máquina publicó sola, más reciente primero. Retirar lo oculta al público (reversible) — y la próxima corrida no lo puede republicar.': {
+    en: 'What the machine published on its own, newest first. Retract hides it from the public (reversible) — and the next run cannot republish it.',
+    fr: "Ce que la machine a publié seule, du plus récent au plus ancien. Retirer le cache au public (réversible) — et la prochaine exécution ne peut pas le republier.",
+    pt: 'O que a máquina publicou sozinha, mais recente primeiro. Retirar o oculta do público (reversível) — e a próxima execução não pode republicá-lo.',
+  },
   // P1 "Mis Planes" — reservas + entradas unified ('Entrada'/'Utilizada' also
   // backfill the tickets screen, which rendered them untranslated).
   'Mis planes': { en: 'My plans', fr: 'Mes plans', pt: 'Meus planos' },
