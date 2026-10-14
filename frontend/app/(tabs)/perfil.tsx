@@ -523,6 +523,12 @@ export default function PerfilScreen() {
           <SettingsRow icon="sparkles-outline" iconColor="#10B981" label={tr('Itinerarios IA')} onPress={() => router.push('/itineraries' as any)} />
           <SettingsRow icon="trophy-outline" iconColor={COLORS.mustard} label={s('profile_rewards') || tr('Recompensas')} onPress={() => router.push('/rewards' as any)} />
           <SettingsRow icon="card-outline" label="City Pass" onPress={() => router.push('/(tabs)/citypass' as any)} />
+          {/* D1: internal money-loop walkthrough — same gate as the /admin screens.
+              The route itself stays reachable by direct URL (Phil sends it); only
+              this ENTRY is admin-only, so the public never finds it in nav. */}
+          {user?.is_admin && (
+            <SettingsRow icon="flask-outline" iconColor={COLORS.mustard} label={tr('Demo del Pase (interno)')} onPress={() => router.push('/pase-demo' as any)} />
+          )}
           <SettingsRow icon="notifications-outline" label={s('profile_notifications') || tr('Notificaciones')} onPress={() => router.push('/notifications' as any)} />
           <SettingsRow icon="shield-outline" iconColor="#DC2626" label={tr('Emergencias')} onPress={() => router.push('/ayuda' as any)} />
           {/* "Mis reseñas" opened the review FORM with no partner (errored on submit) —
