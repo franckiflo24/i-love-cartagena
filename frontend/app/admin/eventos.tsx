@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS, TYPE } from '../../src/constants/theme';
-import { api } from '../../src/constants/api';
+import { api, isAuthStatus, isGoneStatus } from '../../src/constants/api';
 import { useTr } from '../../src/i18n/autoTr';
 import { useAuth } from '../../src/context/AuthContext';
 import { goBackOr } from '../../src/lib/nav';
@@ -44,6 +44,24 @@ const ERR_COPY: Record<string, string> = {
   no_evidence: 'Sin evidencia verificable (se necesita una página tier ≤ 3).',
   aggregator_only: 'Solo hay agregadores como evidencia — verifica con una fuente directa.',
   gate_refuses: 'La puerta de verificación lo rechazó',
+};
+
+// Cold-start resilience: the backend lambda's cold start can outlive api.get's
+// 8 s timeout, so whichever tab fetched FIRST painted its error card while the
+// abandoned request warmed the lambda for whichever ran second (operator saw
+// "la cola falla, autopublicados no" — it was order, not the fetch). /admin/*
+// has no cache/static fallback by design, so the only honest recovery is one
+// retry with a window wide enough to outlast the cold start. An auth/gone
+// failure (401/403/404) is an ANSWER, not an outage — rethrow immediately.
+const COLD_RETRY_MS = 25000;
+const adminGet = async (path: string): Promise<any> => {
+  try {
+    return await api.get(path);
+  } catch (e) {
+    if (isAuthStatus(e) || isGoneStatus(e)) throw e;
+    await new Promise((r) => setTimeout(r, 1200));
+    return api.get(path, { timeoutMs: COLD_RETRY_MS });
+  }
 };
 
 // A1: a row of the autopublished stream (GET /admin/events/autopublished)
@@ -83,9 +101,10 @@ export default function AdminEventosQueue() {
 
   const load = useCallback(async () => {
     try {
+      setLoadError(false); // "reintentar" returns to the spinner, not a frozen card
       const [res, fl] = await Promise.all([
-        api.get('/admin/events/review'),
-        api.get('/admin/events/flags').catch(() => null),
+        adminGet('/admin/events/review'),
+        adminGet('/admin/events/flags').catch(() => null),
       ]);
       setRows(Array.isArray(res?.rows) ? res.rows : []);
       setRejects(Array.isArray(res?.rejects) ? res.rejects.length : 0);
@@ -172,7 +191,7 @@ export default function AdminEventosQueue() {
   const loadAuto = useCallback(async () => {
     try {
       setAutoError(false);
-      const res = await api.get('/admin/events/autopublished');
+      const res = await adminGet('/admin/events/autopublished');
       setAutoRows(Array.isArray(res?.rows) ? res.rows : []);
     } catch (e) {
       console.error('[AdminEventos] autopublished', e);
@@ -230,7 +249,7 @@ export default function AdminEventosQueue() {
         contentContainerStyle={styles.body}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={COLORS.primary} />}
       >
-        {loadError && (
+        {tab === 'cola' && loadError && (
           <View style={styles.errorCard}>
             <Ionicons name="cloud-offline-outline" size={18} color={COLORS.coral} />
             <Text style={styles.errorText}>{tr('No se pudo cargar la cola')}</Text>
