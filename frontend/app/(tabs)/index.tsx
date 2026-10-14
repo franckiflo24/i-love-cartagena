@@ -68,8 +68,19 @@ import {
 const GRID_GAP = SPACING.sm;
 const GRID_TILE_H = 96;
 const GRID_FALLBACK_W = 390; // SSR / first frame before the window reports a width
+// P2 (desktop presentation): at ≥500px the web build renders inside the 393px
+// phone shell (app/+html.tsx) while useWindowDimensions still reports the real
+// viewport — 1440px minted ~457px tiles that bled past the frame. The rails
+// below survive because heroWidth/nowCardWidth are Math.min-capped; the grid
+// must use the frame's width instead. Web only: native iPads keep the window.
+const DESKTOP_SHELL_MIN_VIEWPORT = 500; // must match the @media in app/+html.tsx
+const DESKTOP_SHELL_FRAME_W = 393;      // must match #root width there
+const effectiveHomeWidth = (w: number): number =>
+  Platform.OS === 'web' && w >= DESKTOP_SHELL_MIN_VIEWPORT
+    ? DESKTOP_SHELL_FRAME_W
+    : (w > 0 ? w : GRID_FALLBACK_W);
 const gridTileWidth = (windowWidth: number): number =>
-  Math.max(64, Math.floor(((windowWidth > 0 ? windowWidth : GRID_FALLBACK_W) - SPACING.lg * 2 - GRID_GAP * 2) / 3));
+  Math.max(64, Math.floor((effectiveHomeWidth(windowWidth) - SPACING.lg * 2 - GRID_GAP * 2) / 3));
 // §16.2 event rails — widths from the window too (never module-scope Dimensions).
 const HERO_H = 220;
 const heroWidth = (w: number): number => Math.round(Math.min(320, Math.max(248, (w > 0 ? w : GRID_FALLBACK_W) - 72)));

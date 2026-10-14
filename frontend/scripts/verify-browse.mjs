@@ -53,8 +53,15 @@ const check = (name, ok, extra = '') => {
   if (!ok) fail++;
 };
 
+// P2: VIEWPORT=1440x900 runs the same smoke at desktop width (the phone-shell
+// frame). Default stays the phone viewport — both are release gates now.
+const VIEWPORT = (() => {
+  const m = /^(\d{3,4})x(\d{3,4})$/.exec(process.env.VIEWPORT || '');
+  return m ? { width: Number(m[1]), height: Number(m[2]) } : { width: 414, height: 896 };
+})();
+console.log(`[verify-browse] viewport ${VIEWPORT.width}x${VIEWPORT.height}`);
 const browser = await chromium.launch({ executablePath: CHROME, headless: true });
-const ctx = await browser.newContext({ userAgent: UA, viewport: { width: 414, height: 896 } });
+const ctx = await browser.newContext({ userAgent: UA, viewport: VIEWPORT });
 await ctx.addInitScript(() => { try {
   localStorage.setItem('@musica_lang', 'es');
   localStorage.setItem('@onboarding_done', 'true');

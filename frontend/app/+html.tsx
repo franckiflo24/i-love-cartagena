@@ -92,6 +92,12 @@ export default function Root({ children }: PropsWithChildren) {
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.amocartagena.co" />
         <meta property="og:image" content="https://www.amocartagena.co/data/og-image.jpg" />
+        {/* P2: explicit size + alt so WhatsApp/iMessage render the card on the FIRST
+            share (without them, some scrapers skip the image until a recrawl). */}
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="AMO Life — guía de viajes y concierge con IA en Cartagena" />
+        <meta property="og:site_name" content="AMO Life" />
         <meta property="og:locale" content="es_CO" />
         <meta property="og:locale:alternate" content="en_US" />
         <meta name="twitter:card" content="summary_large_image" />
@@ -160,17 +166,21 @@ export default function Root({ children }: PropsWithChildren) {
             -moz-osx-font-smoothing: grayscale;
           }
 
-          /* Mobile phone shell for desktop browsers */
+          /* Mobile phone shell for desktop browsers — P2: a BRANDED field, not raw
+             black: deep-navy base (matches theme-color), teal aurora top-left, a
+             faint brand-red glow bottom-right, and a soft vignette behind the frame. */
           @media (min-width: 500px) {
             body {
               display: flex;
               justify-content: center;
               align-items: center;
               min-height: 100vh;
-              background: #020408;
+              background: #050814;
               background-image:
-                radial-gradient(ellipse at 30% 20%, rgba(18,181,165,0.03) 0%, transparent 50%),
-                radial-gradient(ellipse at 70% 80%, rgba(18,181,165,0.02) 0%, transparent 50%);
+                radial-gradient(ellipse 60% 50% at 22% 12%, rgba(18,181,165,0.10) 0%, transparent 55%),
+                radial-gradient(ellipse 50% 45% at 82% 90%, rgba(255,45,63,0.07) 0%, transparent 55%),
+                radial-gradient(ellipse 42% 60% at 50% 50%, rgba(255,255,255,0.025) 0%, transparent 70%),
+                linear-gradient(180deg, #060a16 0%, #050814 55%, #04060e 100%);
             }
 
             #root {
@@ -225,6 +235,72 @@ export default function Root({ children }: PropsWithChildren) {
             #root {
               width: 100%;
               height: 100%;
+            }
+          }
+
+          /* ── P2: branded desktop panel beside the frame (wide screens only) ──
+             Honest presentation: this is the mobile app, framed — the panel says
+             what it is and where to get it, it never pretends to be a desktop app. */
+          #amo-desk { display: none; }
+          @media (min-width: 1100px) {
+            #amo-desk {
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              gap: 14px;
+              position: fixed;
+              top: 50%;
+              transform: translateY(-50%);
+              left: max(32px, calc(50% - 584px));
+              width: 300px;
+              z-index: 1;
+              font-family: 'Manrope', system-ui, sans-serif;
+            }
+            #amo-desk .amo-desk-logo {
+              width: 250px;
+              height: auto;
+              filter: drop-shadow(0 6px 24px rgba(255,45,63,0.18));
+            }
+            #amo-desk .amo-desk-tag {
+              margin: 0;
+              color: rgba(250,250,249,0.92);
+              font-family: 'Outfit', system-ui, sans-serif;
+              font-size: 21px;
+              font-weight: 600;
+              line-height: 1.25;
+              letter-spacing: 0.2px;
+            }
+            #amo-desk .amo-desk-sub {
+              margin: 0;
+              color: rgba(250,250,249,0.55);
+              font-size: 13.5px;
+              line-height: 1.5;
+            }
+            #amo-desk .amo-desk-store {
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+              margin-top: 4px;
+              padding: 10px 18px;
+              border: 1px solid rgba(255,255,255,0.16);
+              border-radius: 999px;
+              background: rgba(255,255,255,0.04);
+              color: #FAFAF9;
+              font-size: 13.5px;
+              font-weight: 600;
+              text-decoration: none;
+              transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+            }
+            #amo-desk .amo-desk-store:hover {
+              border-color: rgba(18,181,165,0.6);
+              background: rgba(18,181,165,0.08);
+              box-shadow: 0 0 24px rgba(18,181,165,0.18);
+            }
+            #amo-desk .amo-desk-url {
+              color: rgba(250,250,249,0.35);
+              font-size: 12px;
+              letter-spacing: 1.6px;
+              text-transform: lowercase;
             }
           }
 
@@ -340,6 +416,16 @@ export default function Root({ children }: PropsWithChildren) {
             <img className="amo-pl-logo" src="/brand/amo-life-logo-1200.jpg" alt="AMO Life — El mundo en tu mano" width={1200} height={460} />
           </picture>
           <div className="amo-pl-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+        </div>
+        {/* P2: the branded desktop panel (CSS-gated to ≥1100px; mobile never sees it) */}
+        <div id="amo-desk" aria-hidden="false">
+          {/* The alpha lockup — no black art-box against the branded field */}
+          <img className="amo-desk-logo" src="/brand/amo-life-logo-alpha.png" alt="AMO Life" width={1200} height={460} />
+          <p className="amo-desk-sub">Tu guía de viajes y concierge con IA — empezamos en Cartagena de Indias, con 800+ lugares, eventos y mapas.</p>
+          <a className="amo-desk-store" href="https://apps.apple.com/app/id6809565354" target="_blank" rel="noopener noreferrer">
+             Descárgala en el App Store
+          </a>
+          <span className="amo-desk-url">amocartagena.co</span>
         </div>
         {children}
         <script dangerouslySetInnerHTML={{ __html: `
