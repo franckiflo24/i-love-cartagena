@@ -203,6 +203,14 @@ def test_5b_classes_rows_follow_the_model() -> None:
     assert "classes" in (lun.get("style_tags") or [])
     assert "85" in lun["description"] and "116" in lun["description"], "the spread is the point"
     assert "según la plataforma" in lun["description"]
+    # 5B close-out: the claim strings never ride ANY public field (the verification
+    # note once quoted the stripped slogan verbatim — and _class_rows projects the
+    # whole verification object into Luna's context, so the row must be clean).
+    for pid in ("ptr_act_nueva_lengua", "ptr_act_centro_catalina", "ptr_V054"):
+        blob = json.dumps(by_id[pid], ensure_ascii=False).lower()
+        for claim in ("la mejor escuela", "best school", "certified instructor",
+                      "instructor certificado", "número 1", "numero 1"):
+            assert claim not in blob, (pid, claim)
     # door-conflict and no-door rows stay unpublished
     names = {p["name"].lower() for p in PARTNERS}
     assert "crazy salsa" not in names
