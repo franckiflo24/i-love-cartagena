@@ -468,10 +468,10 @@ export default function PerfilScreen() {
               <Text style={sty.statNum}>{myWeek === null ? '—' : myWeek.length}</Text>
               <Text style={sty.statLabel}>{tr('Mi Semana')}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={sty.statBox} onPress={() => router.push('/reservations' as any)} activeOpacity={0.8}>
+            <TouchableOpacity style={sty.statBox} onPress={() => router.push('/mis-planes' as any)} activeOpacity={0.8}>
               <Ionicons name="receipt" size={20} color="#22C55E" />
               <Text style={sty.statNum}>&mdash;</Text>
-              <Text style={sty.statLabel}>{tr('Reservas')}</Text>
+              <Text style={sty.statLabel}>{tr('Mis planes')}</Text>
             </TouchableOpacity>
           </View>
           {/* P1-9: the counters above could not be refreshed — one quiet line, with retry */}

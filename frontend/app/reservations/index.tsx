@@ -51,7 +51,9 @@ type Reservation = {
   created_at: string;
 };
 
-const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
+// Exported: /mis-planes renders reserva rows with the SAME vocabulary (one map,
+// no drift — a status label can never diverge between the two surfaces).
+export const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
   pending_partner_activation: { label: 'Solicitud enviada', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
   pending_confirmation: { label: 'Esperando confirmación', color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
   confirmed: { label: 'Confirmada', color: '#22C55E', bg: 'rgba(34,197,94,0.12)' },

@@ -1801,6 +1801,22 @@ export const AUTO_TR: Dict = {
 
   // ── 5C "Reclama tu listado" funnel ──
   'Reclama tu listado': { en: 'Claim your listing', fr: 'Réclame ta fiche', pt: 'Reivindique sua listagem' },
+  // P1 "Mis Planes" — reservas + entradas unified ('Entrada'/'Utilizada' also
+  // backfill the tickets screen, which rendered them untranslated).
+  'Mis planes': { en: 'My plans', fr: 'Mes plans', pt: 'Meus planos' },
+  'Aún no tienes planes': { en: 'No plans yet', fr: 'Pas encore de plans', pt: 'Ainda não tem planos' },
+  'Tus reservas y entradas aparecerán aquí': {
+    en: 'Your bookings and tickets will appear here',
+    fr: 'Tes réservations et billets apparaîtront ici',
+    pt: 'Suas reservas e entradas aparecerão aqui',
+  },
+  'Inicia sesión para ver tus planes': {
+    en: 'Sign in to see your plans',
+    fr: 'Connecte-toi pour voir tes plans',
+    pt: 'Entre para ver seus planos',
+  },
+  'Entrada': { en: 'Ticket', fr: 'Billet', pt: 'Entrada' },
+  'Utilizada': { en: 'Used', fr: 'Utilisé', pt: 'Utilizada' },
   // 5C paid placement — the label and its honesty note (slot ≠ seal ≠ rank).
   'Patrocinado': { en: 'Sponsored', fr: 'Sponsorisé', pt: 'Patrocinado' },
   'Espacio pagado — no afecta el orden ni el sello': {

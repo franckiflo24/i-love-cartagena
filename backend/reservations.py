@@ -25,6 +25,7 @@ Routes are mounted on `router`. `init(deps)` must be called from server.py befor
 from __future__ import annotations
 
 import logging
+import re
 import uuid
 from datetime import datetime, timezone, timedelta
 from typing import Any, Callable, Optional
@@ -405,6 +406,92 @@ async def my_reservations(request: Request):
             past.append(hydrated)
     upcoming.sort(key=lambda x: x.get("datetime_utc", ""))
     return {"upcoming": upcoming, "past": past, "total": len(docs)}
+
+
+# ── P1 "Mis Planes": reservas + entradas in ONE chronological view ───────────
+# Read-only merge of the two REAL stores (db.reservations + db.amo_tickets).
+# Statuses ship VERBATIM from each source — this route never invents, upgrades
+# or relabels a state. Each lane keeps its OWN upcoming rule: reservas = the
+# /reservations/my split (future datetime_utc AND status in ACTIVE_STATUSES);
+# entradas = the app's isUpcomingTicket contract (Cartagena calendar date,
+# UTC-5 fixed; a missing date is unknown ≠ past; 'used' does not demote
+# tonight's plan). Rows link the REAL existing detail surfaces.
+
+_PLAN_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}")
+_PLAN_TIME_RE = re.compile(r"^\d{2}:\d{2}$")
+
+
+def _ticket_when(t: dict) -> str:
+    """UTC instant for cross-lane ordering; '' when the event published no date."""
+    d = str(t.get("date") or "")
+    if not _PLAN_DATE_RE.match(d):
+        return ""
+    tm = str(t.get("start_time") or "")
+    if not _PLAN_TIME_RE.match(tm):
+        tm = "00:00"
+    try:
+        return datetime.fromisoformat(f"{d[:10]}T{tm}:00-05:00").astimezone(timezone.utc).isoformat()
+    except ValueError:
+        return ""
+
+
+def _plan_from_reservation(r: dict) -> dict:
+    ev = r.get("event") or {}
+    partner = r.get("partner") or {}
+    name = r.get("partner_name") or partner.get("name") or ""
+    return {
+        "kind": "reserva",
+        "id": r.get("reservation_id") or "",
+        "title": ev.get("title") or name or "Reserva",
+        "subtitle": name if ev.get("title") else "",
+        "date": r.get("date") or "",
+        "time": r.get("time") or "",
+        "when": r.get("datetime_utc") or "",
+        "status": r.get("status") or "",
+        "href": f"/reservations?highlight={r.get('reservation_id') or ''}",
+        "image_url": partner.get("image_url") or "",
+    }
+
+
+def _plan_from_ticket(t: dict) -> dict:
+    return {
+        "kind": "entrada",
+        "id": t.get("ticket_id") or "",
+        "title": t.get("title") or "Entrada",
+        "subtitle": t.get("venue_name") or t.get("partner_name") or "",
+        "date": t.get("date") or "",
+        "time": t.get("start_time") or "",
+        "when": _ticket_when(t),
+        "status": t.get("status") or "",
+        "href": f"/ticket/{t.get('ticket_id') or ''}",
+        "image_url": "",
+    }
+
+
+@router.get("/me/planes")
+async def my_planes(request: Request):
+    user = await _deps["get_current_user"](request)
+    now = _now()
+    upcoming: list[dict] = []
+    past: list[dict] = []
+    rdocs = await _db().reservations.find(
+        {"user_id": user["user_id"]}, {"_id": 0}).sort("datetime_utc", -1).to_list(200)
+    for r in rdocs:
+        hydrated = await _hydrate_reservation(r)
+        dt = datetime.fromisoformat(r["datetime_utc"]) if r.get("datetime_utc") else None
+        is_up = bool(dt and dt >= now and r.get("status") in ACTIVE_STATUSES)
+        (upcoming if is_up else past).append(_plan_from_reservation(hydrated))
+    tdocs = await _db().amo_tickets.find(
+        {"user_id": user["user_id"]}, {"_id": 0, "qr_secret": 0}).sort("created_at", -1).to_list(100)
+    today_ctg = (now - timedelta(hours=5)).strftime("%Y-%m-%d")
+    for t in tdocs:
+        d = str(t.get("date") or "")
+        is_up = (not _PLAN_DATE_RE.match(d)) or d[:10] >= today_ctg
+        (upcoming if is_up else past).append(_plan_from_ticket(t))
+    # Soonest first for what's ahead (date-less rows last); most recent first behind.
+    upcoming.sort(key=lambda x: (x["when"] == "", x["when"]))
+    past.sort(key=lambda x: x["when"], reverse=True)
+    return {"upcoming": upcoming, "past": past, "total": len(upcoming) + len(past)}
 
 
 @router.get("/reservations/{reservation_id}")
