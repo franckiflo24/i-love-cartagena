@@ -44,11 +44,33 @@ export const DEMO_PERKS: DemoPerk[] = [
 export const DEMO_METHODS = ['Nequi', 'PSE', 'Tarjeta', 'Bancolombia'] as const;
 export type DemoMethod = (typeof DEMO_METHODS)[number];
 
+// Official-services lane (the government pitch): the tourist pays a public
+// levy or municipal pass INSIDE the app, the ENTITY collects directly, AMO is
+// only the technology channel issuing the QR credential — the same model copy
+// /gobierno ships. Amounts are demo data (labeled); folios are minted locally.
+export type DemoOfficial = {
+  id: string;
+  name: string;        // tr() key
+  entity: string;      // tr() key — who collects
+  priceCop: number;    // COP, demo amount
+  icon: string;
+};
+
+export const DEMO_OFFICIAL: DemoOfficial[] = [
+  { id: 'tasa_portuaria', name: 'Tasa portuaria — salida a islas', entity: 'Entidad portuaria distrital', priceCop: 25000, icon: 'boat-outline' },
+  { id: 'aqua_taxi', name: 'Pase aqua-taxi — bahía (día)', entity: 'Autoridad de transporte acuático', priceCop: 18000, icon: 'water-outline' },
+  { id: 'castillo', name: 'Entrada — patrimonio histórico', entity: 'Entidad de patrimonio', priceCop: 35000, icon: 'business-outline' },
+];
+
+export const fmtCop = (n: number): string => `$${n.toLocaleString('es-CO')} COP`;
+
 export const WELCOME_PTS = 100;  // +100 pts de bienvenida al activar
 export const REDEEM_PTS = 50;    // +50 pts por canje
 export const GOAL_PTS = 500;     // 500 pts = $5 de crédito AMO
 
-export type DemoStep = 'intro' | 'checkout' | 'active' | 'perks' | 'redeem' | 'rewards' | 'business';
+export type DemoStep =
+  | 'intro' | 'checkout' | 'active' | 'perks' | 'redeem' | 'rewards'
+  | 'oficial' | 'business' | 'gobierno';
 
 export type DemoState = {
   step: DemoStep;
@@ -57,6 +79,7 @@ export type DemoState = {
   paying: boolean;
   redeemed: string[];        // perk ids, in redemption order (drives history)
   redeemingId: string | null; // perk currently on the QR screen
+  officialPaid: string[];    // official-service ids paid (demo folios derive from order)
 };
 
 export const initialDemoState = (): DemoState => ({
@@ -66,6 +89,7 @@ export const initialDemoState = (): DemoState => ({
   paying: false,
   redeemed: [],
   redeemingId: null,
+  officialPaid: [],
 });
 
 export const demoPoints = (s: DemoState): number =>

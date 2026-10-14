@@ -2187,6 +2187,50 @@ export const AUTO_TR: Dict = {
   'Terminar demo · volver a la app': { en: 'Finish demo · back to the app', fr: "Terminer la démo · retour à l'app", pt: 'Terminar demo · voltar ao app' },
   'Reiniciar demo': { en: 'Restart demo', fr: 'Relancer la démo', pt: 'Reiniciar demo' },
   'Demo del Pase (interno)': { en: 'Pass demo (internal)', fr: 'Démo du Pass (interne)', pt: 'Demo do Passe (interno)' },
+  // D1-gov — official-services lane of /pase-demo (tasa portuaria, aqua-taxi,
+  // patrimony) + the entity collections panel. Same honest framing as /gobierno:
+  // the entity collects directly; AMO is the technology channel, never the entity.
+  'Pagar servicios oficiales': { en: 'Pay official services', fr: 'Payer les services officiels', pt: 'Pagar serviços oficiais' },
+  'Servicios oficiales': { en: 'Official services', fr: 'Services officiels', pt: 'Serviços oficiais' },
+  'El mismo bolsillo paga lo público: tasas y pases oficiales dentro del app. La entidad recauda directamente — AMO es el canal tecnológico que emite la credencial QR.': {
+    en: 'The same wallet pays the public side: official levies and passes inside the app. The entity collects directly — AMO is the technology channel issuing the QR credential.',
+    fr: "Le même portefeuille paie le public : taxes et pass officiels dans l'app. L'entité encaisse directement — AMO est le canal technologique qui émet la crédentielle QR.",
+    pt: 'O mesmo bolso paga o público: taxas e passes oficiais dentro do app. A entidade arrecada diretamente — AMO é o canal tecnológico que emite a credencial QR.',
+  },
+  'Tasa portuaria — salida a islas': { en: 'Port levy — island departures', fr: 'Taxe portuaire — départ vers les îles', pt: 'Taxa portuária — saída às ilhas' },
+  'Entidad portuaria distrital': { en: 'District port entity', fr: 'Entité portuaire du district', pt: 'Entidade portuária distrital' },
+  'Pase aqua-taxi — bahía (día)': { en: 'Aqua-taxi pass — bay (day)', fr: 'Pass aqua-taxi — baie (jour)', pt: 'Passe aqua-táxi — baía (dia)' },
+  'Autoridad de transporte acuático': { en: 'Water-transport authority', fr: 'Autorité du transport aquatique', pt: 'Autoridade de transporte aquático' },
+  'Entrada — patrimonio histórico': { en: 'Entry — historic heritage site', fr: 'Entrée — patrimoine historique', pt: 'Entrada — patrimônio histórico' },
+  'Entidad de patrimonio': { en: 'Heritage entity', fr: 'Entité du patrimoine', pt: 'Entidade de patrimônio' },
+  'Recibo oficial (demo)': { en: 'Official receipt (demo)', fr: 'Reçu officiel (démo)', pt: 'Recibo oficial (demo)' },
+  'Pagado': { en: 'Paid', fr: 'Payé', pt: 'Pago' },
+  'Montos de demostración — sin cargo real; aquí no se recauda nada.': {
+    en: 'Demo amounts — no real charge; nothing is actually collected here.',
+    fr: 'Montants de démonstration — aucun débit réel ; rien n\'est encaissé ici.',
+    pt: 'Valores de demonstração — sem cobrança real; aqui nada é arrecadado.',
+  },
+  'Ver el panel de la entidad': { en: "See the entity's panel", fr: "Voir le panneau de l'entité", pt: 'Ver o painel da entidade' },
+  'Panel de la entidad': { en: 'Entity dashboard', fr: "Panneau de l'entité", pt: 'Painel da entidade' },
+  'Lo que la entidad ve: cada pago oficial trazable con folio, recaudo directo a su cuenta — AMO es el canal, no el recaudador final.': {
+    en: 'What the entity sees: every official payment traceable by folio, collections straight to its own account — AMO is the channel, never the final collector.',
+    fr: "Ce que l'entité voit : chaque paiement officiel traçable par folio, encaissement direct sur son compte — AMO est le canal, jamais le collecteur final.",
+    pt: 'O que a entidade vê: cada pagamento oficial rastreável por fólio, arrecadação direta na sua conta — AMO é o canal, nunca o arrecadador final.',
+  },
+  'Recaudo de esta sesión demo': { en: 'Collected in this demo session', fr: 'Encaissé dans cette session démo', pt: 'Arrecadado nesta sessão demo' },
+  'Aún no pagaste servicios oficiales en esta demo.': {
+    en: "You haven't paid any official services in this demo yet.",
+    fr: "Tu n'as pas encore payé de services officiels dans cette démo.",
+    pt: 'Você ainda não pagou serviços oficiais nesta demo.',
+  },
+  'Semana (datos de demostración)': { en: 'Week (demo data)', fr: 'Semaine (données de démo)', pt: 'Semana (dados de demonstração)' },
+  'Pagos': { en: 'Payments', fr: 'Paiements', pt: 'Pagamentos' },
+  'Trazable': { en: 'Traceable', fr: 'Traçable', pt: 'Rastreável' },
+  'Alineado con la visión de ciudad: recaudo oficial transparente. AMO es una empresa privada — el canal tecnológico, nunca la entidad.': {
+    en: 'Aligned with the city\'s vision: transparent official collections. AMO is a private company — the technology channel, never the entity.',
+    fr: "Aligné avec la vision de la ville : recouvrement officiel transparent. AMO est une entreprise privée — le canal technologique, jamais l'entité.",
+    pt: 'Alinhado com a visão da cidade: arrecadação oficial transparente. AMO é uma empresa privada — o canal tecnológico, nunca a entidade.',
+  },
 };
 
 /**

@@ -18,8 +18,8 @@ import Head from '../src/components/WebHead';
 import { COLORS, SPACING, RADIUS, FONTS, TYPE } from '../src/constants/theme';
 import { useTr } from '../src/i18n/autoTr';
 import {
-  DEMO_TIERS, DEMO_PERKS, DEMO_METHODS, WELCOME_PTS, REDEEM_PTS, GOAL_PTS,
-  initialDemoState, demoPoints, type DemoState, type DemoStep,
+  DEMO_TIERS, DEMO_PERKS, DEMO_METHODS, DEMO_OFFICIAL, WELCOME_PTS, REDEEM_PTS, GOAL_PTS,
+  initialDemoState, demoPoints, fmtCop, type DemoState, type DemoStep,
 } from '../src/lib/demoPass';
 
 type Action =
@@ -29,6 +29,7 @@ type Action =
   | { type: 'pay_start' } | { type: 'pay_done' }
   | { type: 'open_redeem'; id: string }
   | { type: 'confirm_redeem' }
+  | { type: 'pay_official'; id: string }
   | { type: 'reset' };
 
 function reducer(s: DemoState, a: Action): DemoState {
@@ -43,12 +44,17 @@ function reducer(s: DemoState, a: Action): DemoState {
       return s.redeemingId && !s.redeemed.includes(s.redeemingId)
         ? { ...s, redeemed: [...s.redeemed, s.redeemingId], redeemingId: null, step: 'perks' }
         : { ...s, redeemingId: null, step: 'perks' };
+    case 'pay_official':
+      return s.officialPaid.includes(a.id) ? s : { ...s, officialPaid: [...s.officialPaid, a.id] };
     case 'reset': return initialDemoState();
     default: return s;
   }
 }
 
-const STEP_NO: Record<DemoStep, number> = { intro: 1, checkout: 2, active: 3, perks: 4, redeem: 5, rewards: 6, business: 7 };
+const STEP_NO: Record<DemoStep, number> = {
+  intro: 1, checkout: 2, active: 3, perks: 4, redeem: 5, rewards: 6, oficial: 7, business: 8, gobierno: 9,
+};
+const STEPS_TOTAL = 9;
 const QR_ROTATE_S = 12; // mirrors the rotating door-QR cadence, demo payload only
 
 export default function PaseDemo() {
@@ -105,7 +111,7 @@ export default function PaseDemo() {
       </View>
 
       <ScrollView contentContainerStyle={sty.body} testID={`demo-step-${st.step}`}>
-        <Text style={sty.stepNo}>{tr('Paso')} {STEP_NO[st.step]}/7</Text>
+        <Text style={sty.stepNo}>{tr('Paso')} {STEP_NO[st.step]}/{STEPS_TOTAL}</Text>
 
         {/* ── 1 · Intro + tiers ── */}
         {st.step === 'intro' && (
@@ -277,6 +283,43 @@ export default function PaseDemo() {
             <Text style={sty.honesty}>
               {tr('Los puntos se ganan por usar, visitar y reseñar — nunca por reseñas positivas.')}
             </Text>
+            <TouchableOpacity style={sty.cta} onPress={() => dispatch({ type: 'goto', step: 'oficial' })} activeOpacity={0.85} testID="demo-to-oficial">
+              <Text style={sty.ctaText}>{tr('Pagar servicios oficiales')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ── 7 · Official services: the government lane ── */}
+        {st.step === 'oficial' && (
+          <View>
+            <Text style={sty.h1}>{tr('Servicios oficiales')}</Text>
+            <Text style={sty.lead}>
+              {tr('El mismo bolsillo paga lo público: tasas y pases oficiales dentro del app. La entidad recauda directamente — AMO es el canal tecnológico que emite la credencial QR.')}
+            </Text>
+            {DEMO_OFFICIAL.map((o) => {
+              const paidIdx = st.officialPaid.indexOf(o.id);
+              const paid = paidIdx >= 0;
+              return (
+                <View key={o.id} style={sty.perkCard}>
+                  <View style={sty.perkIconWrap}><Ionicons name={o.icon as never} size={18} color={COLORS.primary} /></View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={sty.perkPartner}>{tr(o.name)}</Text>
+                    <Text style={sty.perkText}>{tr(o.entity)} · {fmtCop(o.priceCop)}</Text>
+                    {paid && (
+                      <Text style={sty.folio}>{tr('Recibo oficial (demo)')} · AMO-GOB-{String(paidIdx + 1).padStart(3, '0')}</Text>
+                    )}
+                  </View>
+                  {paid ? (
+                    <Text style={sty.perkDone}>✓ {tr('Pagado')}</Text>
+                  ) : (
+                    <TouchableOpacity style={sty.perkBtn} onPress={() => dispatch({ type: 'pay_official', id: o.id })} activeOpacity={0.85} testID={`demo-pay-official-${o.id}`}>
+                      <Text style={sty.perkBtnText}>{tr('Pagar (demo)')}</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              );
+            })}
+            <Text style={sty.noCharge}>{tr('Montos de demostración — sin cargo real; aquí no se recauda nada.')}</Text>
             <TouchableOpacity style={sty.cta} onPress={() => dispatch({ type: 'goto', step: 'business' })} activeOpacity={0.85} testID="demo-to-business">
               <Text style={sty.ctaText}>{tr('Ver el lado del negocio')}</Text>
             </TouchableOpacity>
@@ -310,6 +353,51 @@ export default function PaseDemo() {
                 {tr('Espacio pagado y siempre etiquetado — no compra el sello ni cambia el orden del ranking.')}
               </Text>
             </View>
+            <TouchableOpacity style={sty.cta} onPress={() => dispatch({ type: 'goto', step: 'gobierno' })} activeOpacity={0.85} testID="demo-to-gobierno">
+              <Text style={sty.ctaText}>{tr('Ver el panel de la entidad')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ── 9 · Government view: the entity's collections rear-view ── */}
+        {st.step === 'gobierno' && (
+          <View>
+            <Text style={sty.h1}>{tr('Panel de la entidad')}</Text>
+            <Text style={sty.lead}>
+              {tr('Lo que la entidad ve: cada pago oficial trazable con folio, recaudo directo a su cuenta — AMO es el canal, no el recaudador final.')}
+            </Text>
+            <View style={sty.bizCard}>
+              <Text style={sty.sectionLabel}>{tr('Recaudo de esta sesión demo')}</Text>
+              <Text style={sty.balNum} testID="demo-gov-total">
+                {fmtCop(st.officialPaid.reduce((n, id) => n + (DEMO_OFFICIAL.find((o) => o.id === id)?.priceCop || 0), 0))}
+              </Text>
+              {st.officialPaid.length === 0 && (
+                <Text style={sty.perkText}>{tr('Aún no pagaste servicios oficiales en esta demo.')}</Text>
+              )}
+              {st.officialPaid.map((id, i) => {
+                const o = DEMO_OFFICIAL.find((x) => x.id === id);
+                return o ? (
+                  <View key={id} style={sty.histRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={sty.histLabel}>{tr(o.name)}</Text>
+                      <Text style={sty.folio}>AMO-GOB-{String(i + 1).padStart(3, '0')} · {tr(o.entity)}</Text>
+                    </View>
+                    <Text style={sty.histPts}>{fmtCop(o.priceCop)}</Text>
+                  </View>
+                ) : null;
+              })}
+            </View>
+            <View style={sty.bizCard}>
+              <Text style={sty.sectionLabel}>{tr('Semana (datos de demostración)')}</Text>
+              <View style={sty.statRow}>
+                <View style={sty.stat}><Text style={sty.statNum}>1.240</Text><Text style={sty.statLbl}>{tr('Pagos')}</Text></View>
+                <View style={sty.stat}><Text style={sty.statNum}>$31M</Text><Text style={sty.statLbl}>COP</Text></View>
+                <View style={sty.stat}><Text style={sty.statNum}>100%</Text><Text style={sty.statLbl}>{tr('Trazable')}</Text></View>
+              </View>
+            </View>
+            <Text style={sty.honesty}>
+              {tr('Alineado con la visión de ciudad: recaudo oficial transparente. AMO es una empresa privada — el canal tecnológico, nunca la entidad.')}
+            </Text>
             <TouchableOpacity style={sty.cta} onPress={exit} activeOpacity={0.85} testID="demo-finish">
               <Text style={sty.ctaText}>{tr('Terminar demo · volver a la app')}</Text>
             </TouchableOpacity>
@@ -412,6 +500,7 @@ const sty = StyleSheet.create({
   balNum: { fontSize: 42, color: COLORS.textMain, ...FONTS.bold },
   balPts: { fontSize: 13, color: COLORS.textMuted, marginBottom: 8 },
   balGoal: { fontSize: 12.5, color: COLORS.mustard, ...FONTS.semibold, marginTop: 8 },
+  folio: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold, marginTop: 3 },
   histRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: COLORS.hairline,
