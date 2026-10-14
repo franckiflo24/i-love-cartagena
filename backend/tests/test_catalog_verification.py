@@ -52,8 +52,15 @@ def test_seed_rows_are_reportado_never_certified_never_selfclaiming() -> None:
     acts = [p for p in PARTNERS if p.get("verification")]
     assert len(acts) >= 11  # 4 new + 4 tagged + 3 demo-stripped
     for p in acts:
-        assert p["verification"]["status"] == "reportado", p["partner_id"]
-        assert p["verification"].get("rnt_rues_checked") is False, p["partner_id"]
+        v = p["verification"]
+        # 5C: a row carrying the verify-provider stamp (rnt_rues_checked True +
+        # verified_at) has EARNED 'verificado'; anything else must still read
+        # reportado with the check unrun — seeds can never mint the seal.
+        if v.get("rnt_rues_checked") is True and v.get("verified_at"):
+            assert v["status"] == "verificado", p["partner_id"]
+        else:
+            assert v["status"] == "reportado", p["partner_id"]
+            assert v.get("rnt_rues_checked") is False, p["partner_id"]
         assert not p.get("is_certified"), f"{p['partner_id']}: CERTIFICADO is unearned"
         blob = (p.get("description", "") + " " + json.dumps(p.get("verification"))).lower()
         for banned in ("primer ", "único ", "first ", "precio más bajo", "lowest price",
@@ -190,9 +197,14 @@ def test_5b_classes_rows_follow_the_model() -> None:
     """5B: schools + cooking at Reportado; the price-spread exemplar states its spread;
     self-claims stripped; the gateway tag present; the door-conflict row NOT published."""
     by_id = {p["partner_id"]: p for p in PARTNERS}
+    # 5C: Nueva Lengua is the catalog's FIRST earned Verificado (real RUES + Cámara
+    # check 2026-10-14 — CC Cartagena matrícula 48000702 activa, NIT 901551902-0);
+    # Catalina stays Reportado until its own check runs.
+    nl_v = by_id["ptr_act_nueva_lengua"]["verification"]
+    assert nl_v["status"] == "verificado" and nl_v["rnt_rues_checked"] is True and nl_v["verified_at"]
+    assert by_id["ptr_act_centro_catalina"]["verification"]["status"] == "reportado"
     for pid in ("ptr_act_nueva_lengua", "ptr_act_centro_catalina"):
         p = by_id[pid]
-        assert p["verification"]["status"] == "reportado", pid
         assert "classes" in (p.get("style_tags") or []), pid
         assert p["category"] == "activity" and p["location"]["lat"], pid
         blob = p["description"].lower()
@@ -253,3 +265,78 @@ def test_5c_funnel_public_rows_and_claim_validation() -> None:
     assert ok["registry_id"] == "crazy-salsa" and ok["status" if False else "rnt"] == "12345"
     # honeypot: bots fill `company` → accept-and-drop (empty doc, no exception)
     assert F.validate_claim({"business_name": "Bot", "email": "a@b.co", "company": "x"}) == {}
+
+
+def test_5c_payment_lever_can_never_touch_verification() -> None:
+    """5C: the paid-placement lever sells the SLOT, never the badge. The pure update
+    builder is the route's only write shape — it can only ever touch 'sponsored' —
+    and 'verificado' keeps exactly ONE writer: the evidence-gated verify-provider."""
+    up = S._sponsored_update(True, "2026-12-31", "contract ref")
+    assert set(up) == {"$set"} and set(up["$set"]) == {"sponsored"}
+    sp = up["$set"]["sponsored"]
+    assert sp["active"] is True and sp["label"] == "patrocinado" and sp["until"] == "2026-12-31"
+    assert S._sponsored_update(False) == {"$unset": {"sponsored": ""}}
+    src = (BACKEND / "server.py").read_text(encoding="utf-8")
+    writes = [m.start() for m in re.finditer(r'"verification\.status":\s*"verificado"', src)]
+    assert len(writes) == 1, "the earned status must keep a single writer"
+    vp = src.index("async def admin_verify_provider")
+    vp_end = src.index("async def ", vp + 10)
+    assert vp < writes[0] < vp_end
+    sp_start = src.index("async def admin_set_sponsored")
+    sp_end = src.index("async def ", sp_start + 10)
+    route_body = src[sp_start:sp_end]
+    assert "verification" not in route_body
+    assert '"tier"' not in route_body and "rank_score" not in route_body
+
+
+def test_5c_claim_flow_cannot_hijack_or_mint_the_badge() -> None:
+    """5C: ownership is proven by a code sent to the ON-RECORD contact (the claimant
+    never chooses the destination); a verified row is LOCKED behind the dispute path
+    at start AND at commit time; the claim commit writes ownership fields only; the
+    public reclama funnel never writes partner records at all."""
+    src = (BACKEND / "server.py").read_text(encoding="utf-8")
+    start = src.index("async def business_claim_start")
+    verify = src.index("async def business_claim_verify")
+    verify_end = src.index("async def ", verify + 10)
+    claim_src = src[start:verify_end]
+    assert 'partner.get("email")' in claim_src
+    assert "Delivery ALWAYS to the on-record address" in claim_src
+    assert claim_src.count('"verified_owner"') >= 3  # lock + commit guard + re-check
+    assert '"disputed"' in claim_src
+    commit = src[verify:verify_end]
+    assert '"claim_status": "verified_owner"' in commit
+    assert '"verification' not in commit
+    funnel = (BACKEND / "activities_funnel.py").read_text(encoding="utf-8")
+    assert "db.partners" not in funnel
+
+
+def test_5c_sponsored_slot_is_labeled_and_never_ranks() -> None:
+    """5C: paid placement renders ONLY as its own labeled slot — the ranking pipeline
+    never sees 'sponsored' (so the 6B boost stays verified-only), the slot hides under
+    safety lenses, and the seal condition stays verification-earned."""
+    tsx = (BACKEND.parent / "frontend" / "app" / "(tabs)" / "explore.tsx").read_text(encoding="utf-8")
+    assert 'testID="sponsored-slot"' in tsx
+    assert "tr('Patrocinado')" in tsx
+    assert "no afecta el orden ni el sello" in tsx
+    rank_src = tsx[tsx.index("const sortPartners"):tsx.index("const loadPartners")]
+    assert "sponsored" not in rank_src
+    assert "'verificado' ? 0 : 1" in rank_src  # the 6B boost: earned only
+    deriv = tsx[tsx.index("const sponsoredPick"):tsx.index("const sponsoredPick") + 1200]
+    assert "lensFilter || localsOnly" in deriv
+    assert "!selectedCategory.apiValue" in deriv
+    assert "verification?.status === 'verificado' && (" in tsx  # the seal, untouched
+
+
+def test_6b_boost_survives_personalization_final_pass() -> None:
+    """5C live-caught: scorePartner re-sorts by tier/rating and buried the first
+    verificado row on personalized devices. The earned-first order is therefore part
+    of the FINAL pass: inside interleaveByCategory's per-category queues (Todos) and
+    as the single-stream pass on category views (never under a lens)."""
+    tsx = (BACKEND.parent / "frontend" / "app" / "(tabs)" / "explore.tsx").read_text(encoding="utf-8")
+    assert "const earnedFirst" in tsx
+    inter = tsx[tsx.index("function interleaveByCategory"):tsx.index("function capConsecutiveByCategory")]
+    assert "map(earnedFirst)" in inter, "Todos queues must re-assert the earned boost"
+    final = tsx[tsx.index("capConsecutiveByCategory(interleaveByCategory(partners), 2)"):]
+    final = final[:final.index("const localsNbhOptions")]
+    assert "earnedFirst(partners)" in final, "category views must head with the earned seal"
+    assert "!lensFilter" in final, "lens ordering stays untouched"

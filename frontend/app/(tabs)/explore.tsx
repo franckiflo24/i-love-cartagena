@@ -240,12 +240,24 @@ const SUBCATEGORIES: Record<string, Subcat[]> = {
 // than `max` consecutive rows of the same category; when a run would exceed it, the
 // next different-category row is pulled forward (otherwise stable).
 // The axis itself, as the FINAL pass: one row per category in rotation before any
-// category repeats. Order WITHIN each category is whatever upstream produced
-// (tier → verification boost → personalization), and the rotation order is the
-// categories' first appearance in that personalized list — so the user's interest
-// categories lead the rotation without owning the whole door. (The cap alone was
-// insufficient: with two interest categories clustered on top, B-B-A-B-B-A satisfies
-// "≤2 consecutive" forever and distinct stayed at 2 — live-proven.)
+// category repeats. Rotation order is the categories' first appearance in the
+// personalized list — so the user's interest categories lead the rotation without
+// owning the whole door. (The cap alone was insufficient: with two interest
+// categories clustered on top, B-B-A-B-B-A satisfies "≤2 consecutive" forever and
+// distinct stayed at 2 — live-proven.)
+// Order WITHIN each category: earned verification first (6B), then whatever
+// upstream produced (tier → personalization). The boost must be RE-ASSERTED here
+// because scorePartner re-sorts by tier/rating and knows nothing of verification —
+// live-caught 2026-10-14: the catalog's first verificado row sat buried on every
+// personalized device while the blank-visitor smoke stayed green.
+const earnedFirst = (list: Partner[]): Partner[] =>
+  list
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) =>
+      ((((a.p as any).verification?.status === 'verificado') ? 0 : 1)
+        - (((b.p as any).verification?.status === 'verificado') ? 0 : 1)) || (a.i - b.i))
+    .map(x => x.p);
+
 function interleaveByCategory(list: Partner[]): Partner[] {
   const byCat = new Map<string, Partner[]>();
   for (const p of list) {
@@ -253,7 +265,7 @@ function interleaveByCategory(list: Partner[]): Partner[] {
     const q = byCat.get(c);
     if (q) q.push(p); else byCat.set(c, [p]);
   }
-  const queues = [...byCat.values()];
+  const queues = [...byCat.values()].map(earnedFirst);
   const out: Partner[] = [];
   for (let i = 0; queues.some(q => q.length > i); i++) {
     for (const q of queues) if (q[i]) out.push(q[i]);
@@ -1090,6 +1102,26 @@ export default function ExploreScreen() {
     availableSubcats.length > 0 && !selectedSubcategory &&
     availableSubcats.some((sc) => (subcatCounts[sc.key] || 0) > 0);
 
+  // 5C: the labeled paid-placement slot. Three signals, never conflated — the slot
+  // sells PLACEMENT only: it never reorders the organic grid (the row keeps its
+  // earned position below), never renders a seal (the card's shield stays
+  // verification.status === 'verificado' only), and hides under lenses (safety
+  // surfaces are never sold). One deterministic pick per category view; rows flow
+  // from the live hydrate ('sponsored' is operator-set via set-sponsored, absent
+  // from the static snapshot).
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const sponsoredPick: Partner | null =
+    !selectedCategory.apiValue || lensFilter || localsOnly ||
+    (selectedSubcategory && selectedSubcategory !== '__all__')
+      ? null
+      : allCategoryPartners
+          .filter((p) => {
+            const sp = (p as any).sponsored;
+            return sp?.active && (!sp.until || String(sp.until) >= todayISO) &&
+              (p as any).category === selectedCategory.apiValue;
+          })
+          .sort((a, b) => String(a.partner_id).localeCompare(String(b.partner_id)))[0] || null;
+
   // Partners shown in the grid: respect subcategory filter when set.
   // '__all__' sentinel means "show all in this category" (skip subcat filter).
   let partners: Partner[] =
@@ -1130,6 +1162,11 @@ export default function ExploreScreen() {
   // cap as belt-and-braces for the deep tail where queues run out.
   if (selectedCategory.key === 'all') {
     partners = capConsecutiveByCategory(interleaveByCategory(partners), 2);
+  } else if (!lensFilter) {
+    // One category = one stream: the earned seal heads it (6B, bounded by
+    // construction — same semantics as the collections +100). Lens views keep
+    // their own ordering promise untouched.
+    partners = earnedFirst(partners);
   }
   const localsNbhOptions = localsOnly
     ? neighborhoods
@@ -1563,6 +1600,25 @@ export default function ExploreScreen() {
               {partners.length} {partners.length !== 1 ? tr('lugares') : tr('lugar')}
             </Text>
           )}
+        </View>
+      )}
+
+      {/* 5C: Patrocinado — a labeled ad slot ABOVE the grid, visibly distinct from
+          both the seal and organic rank. The organic list below is untouched. */}
+      {sponsoredPick && !inSubcatGateway && (
+        <View style={styles.sponsoredSlot} testID="sponsored-slot">
+          <View style={styles.sponsoredHead}>
+            <Text style={styles.sponsoredKicker}>{tr('Patrocinado')}</Text>
+            <Text style={styles.sponsoredNote} numberOfLines={2}>
+              {tr('Espacio pagado — no afecta el orden ni el sello')}
+            </Text>
+          </View>
+          <View style={styles.sponsoredCardWrap}>
+            <PartnerGridCard
+              partner={sponsoredPick}
+              onPress={() => router.push(`/partner/${sponsoredPick.partner_id}` as any)}
+            />
+          </View>
         </View>
       )}
     </View>
@@ -1999,6 +2055,42 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     color: COLORS.primary,
     ...FONTS.bold,
+  },
+
+  // 5C: the Patrocinado slot — its own bordered container + kicker so paid
+  // placement can never be mistaken for the seal or for organic rank.
+  sponsoredSlot: {
+    marginHorizontal: SPACING.lg,
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.xs,
+    padding: SPACING.sm,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(224,168,58,0.45)',
+    backgroundColor: 'rgba(224,168,58,0.07)',
+  },
+  sponsoredHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: SPACING.xs,
+  },
+  sponsoredKicker: {
+    fontSize: 10,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    color: COLORS.mustard,
+    ...FONTS.bold,
+  },
+  sponsoredNote: {
+    flex: 1,
+    fontSize: 10.5,
+    color: COLORS.textMuted,
+  },
+  sponsoredCardWrap: {
+    alignSelf: 'flex-start',
+    width: '55%',
+    maxWidth: 240,
   },
 
   // Section header

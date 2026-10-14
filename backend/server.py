@@ -4593,6 +4593,48 @@ async def admin_verify_provider(request: Request):
     return {"ok": True, "partner_id": pid, "status": "verificado"}
 
 
+# 5C: the paid-placement lever sells the SLOT, never the badge. This pure builder is
+# the ONLY write shape the route can produce — it touches the 'sponsored' sub-doc and
+# nothing else, so no payment state can ever reach verification/tier/rank (tested).
+_SPONSORED_UNTIL_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _sponsored_update(active: bool, until: str = "", note: str = "") -> Dict[str, Any]:
+    if not active:
+        return {"$unset": {"sponsored": ""}}
+    doc: Dict[str, Any] = {"active": True, "label": "patrocinado",
+                           "set_at": _now_iso(), "set_by": "operator_token"}
+    if until:
+        doc["until"] = until
+    if note:
+        doc["note"] = note[:200]
+    return {"$set": {"sponsored": doc}}
+
+
+@api_router.post("/admin/catalog/set-sponsored")
+async def admin_set_sponsored(request: Request):
+    """5C: mark/unmark ONE partner row as the labeled 'Patrocinado' placement. The
+    client renders it as its own labeled slot — never a reorder of organic rank and
+    never a seal (the shield stays earned, set only by the evidence gate above).
+    Operator-token gated; audited. Set it only once a real contract exists."""
+    if not _events_elite.is_events_admin_token(request):
+        raise HTTPException(status_code=401, detail={"error": "operator_token_required"})
+    body = await request.json() if request.headers.get("content-type", "").startswith("application/json") else {}
+    pid = str((body or {}).get("partner_id") or "").strip()
+    p = await db.partners.find_one({"partner_id": pid}, {"_id": 0, "name": 1})
+    if not p:
+        raise HTTPException(status_code=404, detail={"error": "no_such_partner"})
+    active = bool((body or {}).get("active"))
+    until = str((body or {}).get("until") or "").strip()
+    if until and not _SPONSORED_UNTIL_RE.match(until):
+        raise HTTPException(status_code=422, detail={"error": "bad_until", "hint": "YYYY-MM-DD"})
+    note = str((body or {}).get("note") or "").strip()
+    await db.partners.update_one({"partner_id": pid}, _sponsored_update(active, until, note))
+    await _log_activity("sponsored_slot_set", scope="admin", user_id="operator_token",
+                        detail=f"{pid} · {p.get('name')} · {'ON' if active else 'OFF'}")
+    return {"ok": True, "partner_id": pid, "sponsored": active}
+
+
 @api_router.post("/auth/logout")
 async def logout(request: Request, response: Response):
     # Accept token from cookie OR Authorization: Bearer (mirrors get_current_user).

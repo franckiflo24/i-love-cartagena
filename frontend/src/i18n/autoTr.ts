@@ -1801,6 +1801,13 @@ export const AUTO_TR: Dict = {
 
   // ── 5C "Reclama tu listado" funnel ──
   'Reclama tu listado': { en: 'Claim your listing', fr: 'Réclame ta fiche', pt: 'Reivindique sua listagem' },
+  // 5C paid placement — the label and its honesty note (slot ≠ seal ≠ rank).
+  'Patrocinado': { en: 'Sponsored', fr: 'Sponsorisé', pt: 'Patrocinado' },
+  'Espacio pagado — no afecta el orden ni el sello': {
+    en: 'Paid space — never affects ranking or the badge',
+    fr: "Espace payant — n'affecte ni l'ordre ni le badge",
+    pt: 'Espaço pago — não afeta a ordem nem o selo',
+  },
   '¿Eres operador? Reclama tu listado →': {
     en: 'Are you the operator? Claim your listing →',
     fr: "Tu es l'opérateur ? Réclame ta fiche →",
