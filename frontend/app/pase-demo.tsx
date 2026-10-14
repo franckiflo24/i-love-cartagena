@@ -18,7 +18,7 @@ import Head from '../src/components/WebHead';
 import { COLORS, SPACING, RADIUS, FONTS, TYPE } from '../src/constants/theme';
 import { useTr } from '../src/i18n/autoTr';
 import {
-  DEMO_TIERS, DEMO_PERKS, DEMO_METHODS, DEMO_OFFICIAL, WELCOME_PTS, REDEEM_PTS, GOAL_PTS,
+  DEMO_TIERS, DEMO_PERKS, DEMO_METHODS, ISLAND_SPLIT, islandTotal, WELCOME_PTS, REDEEM_PTS, GOAL_PTS,
   initialDemoState, demoPoints, fmtCop, type DemoState, type DemoStep,
 } from '../src/lib/demoPass';
 
@@ -29,7 +29,7 @@ type Action =
   | { type: 'pay_start' } | { type: 'pay_done' }
   | { type: 'open_redeem'; id: string }
   | { type: 'confirm_redeem' }
-  | { type: 'pay_official'; id: string }
+  | { type: 'pay_island' }
   | { type: 'reset' };
 
 function reducer(s: DemoState, a: Action): DemoState {
@@ -44,17 +44,18 @@ function reducer(s: DemoState, a: Action): DemoState {
       return s.redeemingId && !s.redeemed.includes(s.redeemingId)
         ? { ...s, redeemed: [...s.redeemed, s.redeemingId], redeemingId: null, step: 'perks' }
         : { ...s, redeemingId: null, step: 'perks' };
-    case 'pay_official':
-      return s.officialPaid.includes(a.id) ? s : { ...s, officialPaid: [...s.officialPaid, a.id] };
+    case 'pay_island':
+      return { ...s, islandPaid: true, step: 'credencial' };
     case 'reset': return initialDemoState();
     default: return s;
   }
 }
 
 const STEP_NO: Record<DemoStep, number> = {
-  intro: 1, checkout: 2, active: 3, perks: 4, redeem: 5, rewards: 6, oficial: 7, business: 8, gobierno: 9,
+  intro: 1, checkout: 2, active: 3, perks: 4, redeem: 5, rewards: 6,
+  oficial: 7, split: 8, credencial: 9, business: 10, ciudad: 11,
 };
-const STEPS_TOTAL = 9;
+const STEPS_TOTAL = 11;
 const QR_ROTATE_S = 12; // mirrors the rotating door-QR cadence, demo payload only
 
 export default function PaseDemo() {
@@ -67,7 +68,7 @@ export default function PaseDemo() {
   // Rotating demo QR: a fresh payload every QR_ROTATE_S seconds, like the real
   // door code — but the payload is self-describing demo data, never a ticket.
   useEffect(() => {
-    if (st.step !== 'redeem') return;
+    if (st.step !== 'redeem' && st.step !== 'credencial') return;
     setQrLeft(QR_ROTATE_S);
     const t = setInterval(() => {
       setQrLeft((v) => {
@@ -103,7 +104,7 @@ export default function PaseDemo() {
           <Ionicons name="flask-outline" size={13} color="#0B0E14" />
           <Text style={sty.demoBadgeText}>{tr('DEMO · Simulación')}</Text>
         </View>
-        <Text style={sty.demoBarHint}>{tr('Sin cargos reales')}</Text>
+        <Text style={sty.demoBarHint}>{tr('Propuesta AMO — sin cargos reales')}</Text>
         <TouchableOpacity onPress={exit} style={sty.exitBtn} accessibilityRole="button" testID="demo-exit">
           <Ionicons name="arrow-back" size={14} color={COLORS.textMain} />
           <Text style={sty.exitText}>{tr('Volver a la app')}</Text>
@@ -289,37 +290,89 @@ export default function PaseDemo() {
           </View>
         )}
 
-        {/* ── 7 · Official services: the government lane ── */}
+        {/* ── 7 · Pagos oficiales: the Island Day bundle (PROPOSAL) ── */}
         {st.step === 'oficial' && (
           <View>
-            <Text style={sty.h1}>{tr('Servicios oficiales')}</Text>
+            <Text style={sty.propTag}>{tr('Propuesta AMO — ninguna entidad ha adoptado este canal todavía')}</Text>
+            <Text style={sty.h1}>{tr('Pase Isla · Island Day')}</Text>
             <Text style={sty.lead}>
-              {tr('El mismo bolsillo paga lo público: tasas y pases oficiales dentro del app. La entidad recauda directamente — AMO es el canal tecnológico que emite la credencial QR.')}
+              {tr('Las tarifas obligatorias del día de islas, cobradas una sola vez en el app: el pago se divide automáticamente a cada entidad; AMO cobra solo su tarifa de servicio.')}
             </Text>
-            {DEMO_OFFICIAL.map((o) => {
-              const paidIdx = st.officialPaid.indexOf(o.id);
-              const paid = paidIdx >= 0;
+            {ISLAND_SPLIT.map((l) => (
+              <View key={l.id} style={sty.perkCard}>
+                <View style={sty.perkIconWrap}><Ionicons name={l.icon as never} size={18} color={l.color} /></View>
+                <View style={{ flex: 1 }}>
+                  <Text style={sty.perkPartner}>{tr(l.name)}</Text>
+                  <Text style={sty.perkText}>{tr(l.entity)}</Text>
+                </View>
+                <Text style={sty.histPts}>{fmtCop(l.amountCop)}</Text>
+              </View>
+            ))}
+            <View style={sty.sumRow}>
+              <Text style={sty.sumLabel}>{tr('Total del día')}</Text>
+              <Text style={sty.sumPrice} testID="demo-island-total">{fmtCop(islandTotal())}</Text>
+            </View>
+            <Text style={sty.noCharge}>{tr('Tarifas de ejemplo — las define el convenio. Sin cargo real; aquí no se recauda nada.')}</Text>
+            <TouchableOpacity style={sty.cta} onPress={() => dispatch({ type: 'goto', step: 'split' })} activeOpacity={0.85} testID="demo-to-split">
+              <Text style={sty.ctaText}>{tr('Pagar Pase Isla (demo)')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => dispatch({ type: 'goto', step: 'business' })} testID="demo-skip-island">
+              <Text style={sty.backLink}>{tr('Saltar al lado del negocio')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ── 8 · THE HERO: the split — every entity gets paid, visibly ── */}
+        {st.step === 'split' && (
+          <View>
+            <Text style={sty.propTag}>{tr('Propuesta AMO — ninguna entidad ha adoptado este canal todavía')}</Text>
+            <Text style={sty.h1}>{tr('Un pago, cada entidad cobra lo suyo')}</Text>
+            <View style={sty.splitBar}>
+              {ISLAND_SPLIT.map((l) => (
+                <View key={l.id} style={{ flex: l.amountCop, backgroundColor: l.color }} />
+              ))}
+            </View>
+            {ISLAND_SPLIT.map((l) => {
+              const pct = Math.round((l.amountCop / islandTotal()) * 100);
               return (
-                <View key={o.id} style={sty.perkCard}>
-                  <View style={sty.perkIconWrap}><Ionicons name={o.icon as never} size={18} color={COLORS.primary} /></View>
+                <View key={l.id} style={sty.histRow}>
+                  <View style={[sty.dot, { backgroundColor: l.color }]} />
                   <View style={{ flex: 1 }}>
-                    <Text style={sty.perkPartner}>{tr(o.name)}</Text>
-                    <Text style={sty.perkText}>{tr(o.entity)} · {fmtCop(o.priceCop)}</Text>
-                    {paid && (
-                      <Text style={sty.folio}>{tr('Recibo oficial (demo)')} · AMO-GOB-{String(paidIdx + 1).padStart(3, '0')}</Text>
-                    )}
+                    <Text style={sty.histLabel}>{tr(l.entity)}</Text>
+                    <Text style={sty.perkText}>{tr(l.name)}</Text>
                   </View>
-                  {paid ? (
-                    <Text style={sty.perkDone}>✓ {tr('Pagado')}</Text>
-                  ) : (
-                    <TouchableOpacity style={sty.perkBtn} onPress={() => dispatch({ type: 'pay_official', id: o.id })} activeOpacity={0.85} testID={`demo-pay-official-${o.id}`}>
-                      <Text style={sty.perkBtnText}>{tr('Pagar (demo)')}</Text>
-                    </TouchableOpacity>
-                  )}
+                  <Text style={sty.histPts}>{fmtCop(l.amountCop)} · {pct}%</Text>
                 </View>
               );
             })}
-            <Text style={sty.noCharge}>{tr('Montos de demostración — sin cargo real; aquí no se recauda nada.')}</Text>
+            <Text style={sty.honesty}>
+              {tr('El pago se divide automáticamente a cada entidad; AMO cobra solo su tarifa de servicio.')} {st.method ? `${st.method} · ` : ''}{tr('Sin cargo real')}.
+            </Text>
+            <TouchableOpacity style={sty.cta} onPress={() => dispatch({ type: 'pay_island' })} activeOpacity={0.85} testID="demo-pay-island">
+              <Text style={sty.ctaText}>{tr('Confirmar (demo)')} · {fmtCop(islandTotal())}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ── 9 · One credential clears the whole day ── */}
+        {st.step === 'credencial' && (
+          <View>
+            <Text style={sty.propTag}>{tr('Propuesta AMO — ninguna entidad ha adoptado este canal todavía')}</Text>
+            <Text style={sty.h1}>{tr('Credencial del día')}</Text>
+            <Text style={sty.lead}>{tr('Un solo QR verificado para los cuatro controles del día — muelle, parque, seguro y lancha.')}</Text>
+            <View style={sty.qrBox}>
+              <QRCode value={`AMO-DEMO-ISLA-${qrTick}`} size={180} backgroundColor="#FFFFFF" color="#0B0E14" />
+              <View style={sty.qrBarTrack}><View style={[sty.qrBarFill, { width: `${(qrLeft / QR_ROTATE_S) * 100}%` }]} /></View>
+              <Text style={sty.qrHint}>{tr('El código rota cada 12 s, como en la puerta real')}</Text>
+            </View>
+            {ISLAND_SPLIT.filter((l) => l.clears).map((l) => (
+              <View key={l.id} style={sty.histRow}>
+                <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
+                <Text style={[sty.histLabel, { flex: 1, marginLeft: 8 }]}>{tr(l.clears)}</Text>
+                <Text style={sty.folio}>{tr('aceptado (demo)')}</Text>
+              </View>
+            ))}
+            <Text style={sty.folio}>{tr('Recibo oficial (demo)')} · AMO-ISLA-001</Text>
             <TouchableOpacity style={sty.cta} onPress={() => dispatch({ type: 'goto', step: 'business' })} activeOpacity={0.85} testID="demo-to-business">
               <Text style={sty.ctaText}>{tr('Ver el lado del negocio')}</Text>
             </TouchableOpacity>
@@ -353,50 +406,47 @@ export default function PaseDemo() {
                 {tr('Espacio pagado y siempre etiquetado — no compra el sello ni cambia el orden del ranking.')}
               </Text>
             </View>
-            <TouchableOpacity style={sty.cta} onPress={() => dispatch({ type: 'goto', step: 'gobierno' })} activeOpacity={0.85} testID="demo-to-gobierno">
-              <Text style={sty.ctaText}>{tr('Ver el panel de la entidad')}</Text>
+            <TouchableOpacity style={sty.cta} onPress={() => dispatch({ type: 'goto', step: 'ciudad' })} activeOpacity={0.85} testID="demo-to-ciudad">
+              <Text style={sty.ctaText}>{tr('Ver lo que recauda la ciudad')}</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* ── 9 · Government view: the entity's collections rear-view ── */}
-        {st.step === 'gobierno' && (
+        {/* ── 11 · The Alcaldía slide: what the city collects, visibly ── */}
+        {st.step === 'ciudad' && (
           <View>
-            <Text style={sty.h1}>{tr('Panel de la entidad')}</Text>
+            <Text style={sty.propTag}>{tr('Propuesta AMO — ninguna entidad ha adoptado este canal todavía')}</Text>
+            <Text style={sty.h1}>{tr('Lo que recauda la ciudad')}</Text>
             <Text style={sty.lead}>
-              {tr('Lo que la entidad ve: cada pago oficial trazable con folio, recaudo directo a su cuenta — AMO es el canal, no el recaudador final.')}
+              {tr('Cada pago trazable por folio y dividido en origen: el efectivo sin registro deja de fugarse. AMO es el canal, no el recaudador final.')}
             </Text>
             <View style={sty.bizCard}>
-              <Text style={sty.sectionLabel}>{tr('Recaudo de esta sesión demo')}</Text>
-              <Text style={sty.balNum} testID="demo-gov-total">
-                {fmtCop(st.officialPaid.reduce((n, id) => n + (DEMO_OFFICIAL.find((o) => o.id === id)?.priceCop || 0), 0))}
-              </Text>
-              {st.officialPaid.length === 0 && (
-                <Text style={sty.perkText}>{tr('Aún no pagaste servicios oficiales en esta demo.')}</Text>
-              )}
-              {st.officialPaid.map((id, i) => {
-                const o = DEMO_OFFICIAL.find((x) => x.id === id);
-                return o ? (
-                  <View key={id} style={sty.histRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={sty.histLabel}>{tr(o.name)}</Text>
-                      <Text style={sty.folio}>AMO-GOB-{String(i + 1).padStart(3, '0')} · {tr(o.entity)}</Text>
-                    </View>
-                    <Text style={sty.histPts}>{fmtCop(o.priceCop)}</Text>
-                  </View>
-                ) : null;
-              })}
+              <Text style={sty.sectionLabel}>{tr('Hoy (datos de demostración)')}</Text>
+              <View style={sty.statRow}>
+                <View style={sty.stat}><Text style={sty.statNum}>$18,4M</Text><Text style={sty.statLbl}>{tr('Recaudado')} COP</Text></View>
+                <View style={sty.stat}><Text style={sty.statNum}>1.167</Text><Text style={sty.statLbl}>{tr('Turistas')}</Text></View>
+                <View style={sty.stat}><Text style={sty.statNum}>86%</Text><Text style={sty.statLbl}>{tr('Digital')}</Text></View>
+              </View>
+              <Text style={sty.perkText}>{tr('86% digital vs 14% efectivo — cada punto digital es recaudo que antes se perdía sin registro.')}</Text>
             </View>
             <View style={sty.bizCard}>
-              <Text style={sty.sectionLabel}>{tr('Semana (datos de demostración)')}</Text>
-              <View style={sty.statRow}>
-                <View style={sty.stat}><Text style={sty.statNum}>1.240</Text><Text style={sty.statLbl}>{tr('Pagos')}</Text></View>
-                <View style={sty.stat}><Text style={sty.statNum}>$31M</Text><Text style={sty.statLbl}>COP</Text></View>
-                <View style={sty.stat}><Text style={sty.statNum}>100%</Text><Text style={sty.statLbl}>{tr('Trazable')}</Text></View>
-              </View>
+              <Text style={sty.sectionLabel}>{tr('Desglose por entidad (demo)')}</Text>
+              {ISLAND_SPLIT.map((l) => {
+                const pct = Math.round((l.amountCop / islandTotal()) * 100);
+                return (
+                  <View key={l.id} style={sty.histRow}>
+                    <View style={[sty.dot, { backgroundColor: l.color }]} />
+                    <Text style={[sty.histLabel, { flex: 1 }]}>{tr(l.entity)}</Text>
+                    <Text style={sty.histPts}>{pct}%</Text>
+                  </View>
+                );
+              })}
+              {st.islandPaid && (
+                <Text style={sty.folio}>{tr('Incluye tu Pase Isla de esta sesión')} · AMO-ISLA-001 · {fmtCop(islandTotal())}</Text>
+              )}
             </View>
             <Text style={sty.honesty}>
-              {tr('Alineado con la visión de ciudad: recaudo oficial transparente. AMO es una empresa privada — el canal tecnológico, nunca la entidad.')}
+              {tr('Tarifas de ejemplo — las define el convenio. Alineado con la visión de ciudad: recaudo oficial transparente. AMO es una empresa privada — el canal tecnológico, nunca la entidad.')}
             </Text>
             <TouchableOpacity style={sty.cta} onPress={exit} activeOpacity={0.85} testID="demo-finish">
               <Text style={sty.ctaText}>{tr('Terminar demo · volver a la app')}</Text>
@@ -501,6 +551,15 @@ const sty = StyleSheet.create({
   balPts: { fontSize: 13, color: COLORS.textMuted, marginBottom: 8 },
   balGoal: { fontSize: 12.5, color: COLORS.mustard, ...FONTS.semibold, marginTop: 8 },
   folio: { fontSize: 11, color: COLORS.primary, ...FONTS.semibold, marginTop: 3 },
+  propTag: {
+    fontSize: 10.5, color: COLORS.mustard, ...FONTS.bold, letterSpacing: 0.4,
+    textTransform: 'uppercase' as const, marginBottom: 8,
+  },
+  splitBar: {
+    flexDirection: 'row', height: 14, borderRadius: 7, overflow: 'hidden' as const,
+    marginBottom: SPACING.md, marginTop: SPACING.sm,
+  },
+  dot: { width: 10, height: 10, borderRadius: 5, marginRight: 8 },
   histRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: COLORS.hairline,

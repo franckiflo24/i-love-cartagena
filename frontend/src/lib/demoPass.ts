@@ -44,23 +44,34 @@ export const DEMO_PERKS: DemoPerk[] = [
 export const DEMO_METHODS = ['Nequi', 'PSE', 'Tarjeta', 'Bancolombia'] as const;
 export type DemoMethod = (typeof DEMO_METHODS)[number];
 
-// Official-services lane (the government pitch): the tourist pays a public
-// levy or municipal pass INSIDE the app, the ENTITY collects directly, AMO is
-// only the technology channel issuing the QR credential — the same model copy
-// /gobierno ships. Amounts are demo data (labeled); folios are minted locally.
-export type DemoOfficial = {
+// D2 — "Pagos oficiales" track: AMO proposed as the digital collection rail
+// for the mandatory island-day fees. EVERYTHING here is a labeled PROPOSAL
+// with example figures ("tarifas de ejemplo — las define el convenio"): the
+// entity names are the real collectors of those fees in the world, but
+// nothing may imply they adopted this channel — no seals, no logos, neutral
+// text labels only. Client-only data; zero write paths, same as all of D1.
+export type SplitLine = {
   id: string;
-  name: string;        // tr() key
-  entity: string;      // tr() key — who collects
-  priceCop: number;    // COP, demo amount
+  name: string;        // tr() key — what the fee is
+  entity: string;      // tr() key — who collects it (neutral text label)
+  amountCop: number;   // example figure
+  color: string;       // split-bar segment
   icon: string;
+  clears: string;      // tr() key — what the single QR clears at this stop
 };
 
-export const DEMO_OFFICIAL: DemoOfficial[] = [
-  { id: 'tasa_portuaria', name: 'Tasa portuaria — salida a islas', entity: 'Entidad portuaria distrital', priceCop: 25000, icon: 'boat-outline' },
-  { id: 'aqua_taxi', name: 'Pase aqua-taxi — bahía (día)', entity: 'Autoridad de transporte acuático', priceCop: 18000, icon: 'water-outline' },
-  { id: 'castillo', name: 'Entrada — patrimonio histórico', entity: 'Entidad de patrimonio', priceCop: 35000, icon: 'business-outline' },
+// Island Day bundle: dock levy + national-park entry + mandatory insurance +
+// regulated boat, plus AMO's own service fee (the ONLY line AMO keeps —
+// deliberately the smallest and rendered in muted gray, never a brand color).
+export const ISLAND_SPLIT: SplitLine[] = [
+  { id: 'embarque', name: 'Tasa de embarque — Muelle de la Bodeguita', entity: 'Autoridad marítima (DIMAR)', amountCop: 21000, color: '#12B5A5', icon: 'boat-outline', clears: 'Muelle' },
+  { id: 'parque', name: 'Ingreso PNN Corales del Rosario', entity: 'Parques Nacionales', amountCop: 28000, color: '#22C55E', icon: 'leaf-outline', clears: 'Parque' },
+  { id: 'seguro', name: 'Seguro obligatorio (Barú/Islas)', entity: 'Aseguradora autorizada', amountCop: 6000, color: '#E9B949', icon: 'medkit-outline', clears: 'Seguro' },
+  { id: 'lancha', name: 'Lancha regulada (ida y vuelta)', entity: 'Operador de transporte', amountCop: 55000, color: '#A855F7', icon: 'water-outline', clears: 'Lancha' },
+  { id: 'amo', name: 'Tarifa de servicio AMO', entity: 'AMO (canal tecnológico)', amountCop: 5000, color: '#8A93A6', icon: 'phone-portrait-outline', clears: '' },
 ];
+
+export const islandTotal = (): number => ISLAND_SPLIT.reduce((n, l) => n + l.amountCop, 0);
 
 export const fmtCop = (n: number): string => `$${n.toLocaleString('es-CO')} COP`;
 
@@ -70,7 +81,7 @@ export const GOAL_PTS = 500;     // 500 pts = $5 de crédito AMO
 
 export type DemoStep =
   | 'intro' | 'checkout' | 'active' | 'perks' | 'redeem' | 'rewards'
-  | 'oficial' | 'business' | 'gobierno';
+  | 'oficial' | 'split' | 'credencial' | 'business' | 'ciudad';
 
 export type DemoState = {
   step: DemoStep;
@@ -79,7 +90,7 @@ export type DemoState = {
   paying: boolean;
   redeemed: string[];        // perk ids, in redemption order (drives history)
   redeemingId: string | null; // perk currently on the QR screen
-  officialPaid: string[];    // official-service ids paid (demo folios derive from order)
+  islandPaid: boolean;       // the Island Day bundle went through (demo)
 };
 
 export const initialDemoState = (): DemoState => ({
@@ -89,7 +100,7 @@ export const initialDemoState = (): DemoState => ({
   paying: false,
   redeemed: [],
   redeemingId: null,
-  officialPaid: [],
+  islandPaid: false,
 });
 
 export const demoPoints = (s: DemoState): number =>
