@@ -70,6 +70,7 @@ import luna_events as _luna_events  # noqa: E402
 # CMW (docs/cmw/DESIGN.md): the official Cartagena Music Week program + concierge requests.
 import cmw as _cmw  # noqa: E402
 import luna_cmw as _luna_cmw  # noqa: E402  — /search inherits the deterministic CMW gate (§5)
+import cmw_prereg as _cmw_prereg  # noqa: E402  — CMW-1 presale pre-registration front door
 # LENSES (docs/lenses/DESIGN.md): demographic lenses + Golden Hour over the one catalog.
 # min_fill-gated; Luna reads it as lens_reference via ai_agent.build_context_snapshot.
 import lenses as _lenses  # noqa: E402
@@ -225,6 +226,8 @@ async def google_auth(body: GoogleAuthBody, response: Response):
         "created_at": datetime.now(timezone.utc),
     })
     await _log_activity("login", scope="user", user_id=user["user_id"], email=user.get("email", ""), detail="google")
+    # CMW-1: attach this account to any pre-regs made anonymously with this email (never raises).
+    await _cmw_prereg.link_user_by_email(db, email=email, user_id=user["user_id"])
 
     response.set_cookie(
         key="session_token", value=session_token,
@@ -501,6 +504,9 @@ async def verify_email(body: VerifyBody, request: Request, response: Response, b
         httponly=True, secure=True, samesite="none",
         path="/", max_age=30 * 24 * 3600,
     )
+
+    # CMW-1: attach this account to any pre-regs made anonymously with this email (never raises).
+    await _cmw_prereg.link_user_by_email(db, email=email, user_id=user["user_id"])
 
     # Welcome email deferred so the final "Verificar" tap returns immediately
     # instead of blocking the spinner up to 10s on SMTP (send_welcome_email
@@ -4684,6 +4690,10 @@ async def delete_account(request: Request):
     await db.event_reminders_sent.delete_many({"user_id": user_id})
     # CMW concierge requests carry a name and a contact (docs/cmw/DESIGN.md §2).
     await db.cmw_requests.delete_many({"user_id": user_id})
+    # CMW-1 pre-registrations: purge by account AND by this account's email — an anonymous
+    # pre-reg with the same email is the same person exercising the Ley 1581 deletion.
+    await db.cmw_preregistrations.delete_many(
+        {"$or": [{"user_id": user_id}, {"email": email}]} if email else {"user_id": user_id})
     await db.rewards_accounts.delete_many({"user_id": user_id})
     await db.rewards_history.delete_many({"user_id": user_id})
     await db.analytics.delete_many({"user_id": user_id})
@@ -9189,6 +9199,8 @@ app.include_router(_events_elite.router, prefix="/api")
 # api_router like the events router (docs/cmw/DESIGN.md §3).
 _cmw.init(db_=db)
 app.include_router(_cmw.router, prefix="/api")
+_cmw_prereg.init(db_=db)
+app.include_router(_cmw_prereg.router, prefix="/api")
 
 # Lenses router (index + payloads + cruise cron), mounted BEFORE api_router like the
 # events/CMW routers (docs/lenses/DESIGN.md §3). Gated lenses never leak content.

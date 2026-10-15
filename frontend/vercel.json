@@ -74,18 +74,13 @@
       "statusCode": 308
     },
     {
-      "source": "/cmw",
-      "destination": "/music-week",
-      "statusCode": 308
-    },
-    {
       "source": "/Cmw",
-      "destination": "/music-week",
+      "destination": "/cmw",
       "statusCode": 308
     },
     {
       "source": "/CMW",
-      "destination": "/music-week",
+      "destination": "/cmw",
       "statusCode": 308
     },
     {

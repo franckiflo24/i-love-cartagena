@@ -116,4 +116,98 @@ export const CMW_TR: Dict = {
     fr: 'g) Demandes au concierge de Cartagena Music Week : nous conservons ton nom, le nombre de personnes et le contact que tu nous donnes (WhatsApp ou e-mail) pour que le concierge de Cartagena Music Week puisse te joindre. Tu peux demander la suppression de cette demande en écrivant à privacidad@amocartagena.co.',
     pt: 'g) Solicitações ao concierge da Cartagena Music Week: guardamos seu nome, o número de pessoas e o contato que você nos dá (WhatsApp ou e-mail) para que o concierge da Cartagena Music Week possa falar com você. Você pode pedir a exclusão dessa solicitação escrevendo para privacidad@amocartagena.co.',
   },
+
+  // ── Pre-registration (CMW-1, app/cmw.tsx) ──
+  // The consent/marketing paragraphs are faithful DISPLAY translations (same
+  // pattern as the privacy §g above); the record always stores the Spanish
+  // canon + version from backend/cmw_prereg.py.
+  '31 dic 2026 — 7 ene 2027 · Cartagena de Indias': {
+    en: 'Dec 31, 2026 — Jan 7, 2027 · Cartagena de Indias',
+    fr: '31 déc. 2026 — 7 janv. 2027 · Cartagena de Indias',
+    pt: '31 dez 2026 — 7 jan 2027 · Cartagena de Indias',
+  },
+  'Preinscríbete a la preventa': { en: 'Pre-register for the presale', fr: 'Préinscris-toi à la prévente', pt: 'Faça sua pré-inscrição para a pré-venda' },
+  'Los preinscritos reciben el aviso de la preventa antes que el público general.': {
+    en: 'Pre-registered guests get the presale notice before the general public.',
+    fr: 'Les préinscrits reçoivent l’annonce de la prévente avant le grand public.',
+    pt: 'Os pré-inscritos recebem o aviso da pré-venda antes do público geral.',
+  },
+  'Preinscripción gestionada por AMO.': { en: 'Pre-registration managed by AMO.', fr: 'Préinscription gérée par AMO.', pt: 'Pré-inscrição gerenciada pela AMO.' },
+  'Preinscripción recibida': { en: 'Pre-registration received', fr: 'Préinscription reçue', pt: 'Pré-inscrição recebida' },
+  'Ya estabas en la lista: actualizamos tus datos.': {
+    en: 'You were already on the list: we updated your details.',
+    fr: 'Tu étais déjà sur la liste : nous avons mis à jour tes informations.',
+    pt: 'Você já estava na lista: atualizamos seus dados.',
+  },
+  'Número de preinscripción': { en: 'Pre-registration number', fr: 'Numéro de préinscription', pt: 'Número de pré-inscrição' },
+  'Termina tu perfil en la app AMO': { en: 'Finish your profile in the AMO app', fr: 'Termine ton profil dans l’app AMO', pt: 'Complete seu perfil no app AMO' },
+  'El programa, tus solicitudes al concierge y el aviso de preventa, todo en un solo lugar.': {
+    en: 'The program, your concierge requests and the presale notice, all in one place.',
+    fr: 'Le programme, tes demandes au concierge et l’annonce de la prévente, tout au même endroit.',
+    pt: 'O programa, suas solicitações ao concierge e o aviso da pré-venda, tudo em um só lugar.',
+  },
+  'Descargar en el App Store': { en: 'Download on the App Store', fr: 'Télécharger sur l’App Store', pt: 'Baixar na App Store' },
+  'Usaremos estos datos de tu cuenta. Solo te pedimos lo que falta.': {
+    en: 'We’ll use these details from your account. We only ask for what’s missing.',
+    fr: 'Nous utiliserons ces informations de ton compte. Nous ne demandons que ce qui manque.',
+    pt: 'Usaremos estes dados da sua conta. Só pedimos o que falta.',
+  },
+  '¿Ya tienes cuenta AMO?': { en: 'Already have an AMO account?', fr: 'Tu as déjà un compte AMO ?', pt: 'Já tem conta AMO?' },
+  'Fecha de nacimiento': { en: 'Date of birth', fr: 'Date de naissance', pt: 'Data de nascimento' },
+  'Solo mayores de 18 años.': { en: '18 and over only.', fr: 'Réservé aux 18 ans et plus.', pt: 'Somente maiores de 18 anos.' },
+  'País': { en: 'Country', fr: 'Pays', pt: 'País' },
+  'Autorización de datos': { en: 'Data authorization', fr: 'Autorisation des données', pt: 'Autorização de dados' },
+  'Autorizo a Amo Cartagena S.A.S. a tratar mis datos personales con la finalidad de gestionar mi preinscripción a Cartagena Music Week, conforme a la Ley 1581 de 2012 y la Política de Privacidad. Conozco mi derecho a consultar, actualizar, rectificar, suprimir y revocar esta autorización escribiendo a privacidad@amocartagena.co.': {
+    en: 'I authorize Amo Cartagena S.A.S. to process my personal data for the purpose of managing my pre-registration for Cartagena Music Week, in accordance with Colombia’s Law 1581 of 2012 and the Privacy Policy. I know my right to access, update, rectify and delete my data and to revoke this authorization by writing to privacidad@amocartagena.co.',
+    fr: 'J’autorise Amo Cartagena S.A.S. à traiter mes données personnelles afin de gérer ma préinscription à Cartagena Music Week, conformément à la loi colombienne 1581 de 2012 et à la Politique de confidentialité. Je connais mon droit de consulter, mettre à jour, rectifier et supprimer mes données et de révoquer cette autorisation en écrivant à privacidad@amocartagena.co.',
+    pt: 'Autorizo a Amo Cartagena S.A.S. a tratar meus dados pessoais com a finalidade de gerenciar minha pré-inscrição na Cartagena Music Week, conforme a Lei colombiana 1581 de 2012 e a Política de Privacidade. Conheço meu direito de consultar, atualizar, retificar, excluir e revogar esta autorização escrevendo para privacidad@amocartagena.co.',
+  },
+  'Quiero recibir noticias, preventas y avisos de Cartagena Music Week por WhatsApp y correo.': {
+    en: 'I want to receive Cartagena Music Week news, presales and notices by WhatsApp and email.',
+    fr: 'Je veux recevoir les nouvelles, préventes et annonces de Cartagena Music Week par WhatsApp et e-mail.',
+    pt: 'Quero receber notícias, pré-vendas e avisos da Cartagena Music Week por WhatsApp e e-mail.',
+  },
+  'Preinscribirme': { en: 'Pre-register me', fr: 'Me préinscrire', pt: 'Fazer pré-inscrição' },
+  'Escribe un correo válido.': { en: 'Enter a valid email.', fr: 'Saisis un e-mail valide.', pt: 'Digite um e-mail válido.' },
+  'Escribe un número de WhatsApp con indicativo.': {
+    en: 'Enter a WhatsApp number with country code.',
+    fr: 'Saisis un numéro WhatsApp avec l’indicatif du pays.',
+    pt: 'Digite um número de WhatsApp com o código do país.',
+  },
+  'Escribe tu fecha de nacimiento completa (DD/MM/AAAA).': {
+    en: 'Enter your full date of birth (DD/MM/YYYY).',
+    fr: 'Saisis ta date de naissance complète (JJ/MM/AAAA).',
+    pt: 'Digite sua data de nascimento completa (DD/MM/AAAA).',
+  },
+  'La preinscripción es solo para mayores de 18 años.': {
+    en: 'Pre-registration is 18+ only.',
+    fr: 'La préinscription est réservée aux 18 ans et plus.',
+    pt: 'A pré-inscrição é somente para maiores de 18 anos.',
+  },
+  'Marca la autorización de datos para continuar.': {
+    en: 'Tick the data authorization to continue.',
+    fr: 'Coche l’autorisation des données pour continuer.',
+    pt: 'Marque a autorização de dados para continuar.',
+  },
+  'Demasiadas solicitudes. Intenta de nuevo en una hora.': {
+    en: 'Too many requests. Try again in an hour.',
+    fr: 'Trop de demandes. Réessaie dans une heure.',
+    pt: 'Muitas solicitações. Tente novamente em uma hora.',
+  },
+  'Sin conexión. Revisa tu red e intenta de nuevo.': {
+    en: 'No connection. Check your network and try again.',
+    fr: 'Pas de connexion. Vérifie ton réseau et réessaie.',
+    pt: 'Sem conexão. Verifique sua rede e tente novamente.',
+  },
+  'Revisa los datos e intenta de nuevo.': { en: 'Check your details and try again.', fr: 'Vérifie les informations et réessaie.', pt: 'Confira os dados e tente novamente.' },
+  'El texto de autorización cambió. Recarga la página e inténtalo de nuevo.': {
+    en: 'The consent text changed. Reload the page and try again.',
+    fr: 'Le texte d’autorisation a changé. Recharge la page et réessaie.',
+    pt: 'O texto de autorização mudou. Recarregue a página e tente novamente.',
+  },
+  'El servicio no está disponible en este momento. Intenta de nuevo.': {
+    en: 'The service is unavailable right now. Please try again.',
+    fr: 'Le service n’est pas disponible pour le moment. Réessaie.',
+    pt: 'O serviço não está disponível no momento. Tente novamente.',
+  },
 };
