@@ -492,6 +492,12 @@ export default function Root({ children }: PropsWithChildren) {
               window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
                   .then(function(reg) {
+                    // Some environments resolve this with NOTHING instead of a
+                    // registration (service workers disabled by policy/Lockdown
+                    // Mode, headless automation): without this guard the whole
+                    // block throws, the foreground update check never wires up,
+                    // and every page carries a console error that masks real ones.
+                    if (!reg || typeof reg.update !== 'function') return;
                     // Force check for updates immediately
                     reg.update();
                     // Re-check on every foreground. A PWA / tab left OPEN since a
@@ -509,7 +515,10 @@ export default function Root({ children }: PropsWithChildren) {
                       lastCheck = now;
                       reg.update();
                     });
-                  });
+                  })
+                  // Private mode / blocked SW rejects registration: the app works
+                  // without a service worker, so this must never surface.
+                  .catch(function() {});
               });
             }
             // Referral capture (1.5): the entry URL is only trustworthy HERE,
