@@ -1453,6 +1453,22 @@ try:
 except Exception:
     _CITY = None
 
+# Servicios públicos (2026-10-15): second module file, same contract, merged into the
+# same city index so Luna answers emergencias/migración/multas/trámites/domiciliarios
+# from verified facts under the same AUTORIDAD CIUDAD rule. Each module is stamped with
+# its FILE's last_verified ("_lv") — the services file re-verifies on its own clock.
+_CITY_SVC_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "city_services.json")
+try:
+    with open(_CITY_SVC_PATH, "r", encoding="utf-8") as _f:
+        _CITY_SVC = json.load(_f)
+except Exception:
+    _CITY_SVC = None
+for _src in (_CITY, _CITY_SVC):
+    if isinstance(_src, dict):
+        for _m in (_src.get("modules") or []):
+            if isinstance(_m, dict):
+                _m["_lv"] = _src.get("last_verified")
+
 # Title words too generic to fire a module on their own: function words in the four
 # UI languages + English glosses ("city walls", "Water Bus") that would hit every
 # "best rooftop in the city" / "is the tap water safe" message, plus adjectives shared
@@ -1554,8 +1570,10 @@ def _city_index() -> List[Dict[str, Any]]:
       ("Transcaribe (bus)" vs "Transcaribe Acuático (Water Bus)") belongs to the module
       with the shortest title — the generic one — so a plain bus question never drags
       in the proximamente water bus; its own triggers still fire it explicitly. An exact
-      tie goes to the module with the lower `order` (the one listed first in the hub)."""
-    mods = (_CITY or {}).get("modules") or []
+      tie goes to the module with the lower `order` (the one listed first in the hub).
+    Transport modules + servicios públicos share ONE index: service orders start at 101,
+    so on shared title words the transport module (lower order) keeps ownership."""
+    mods = ((_CITY or {}).get("modules") or []) + ((_CITY_SVC or {}).get("modules") or [])
     words_by_mod: List[set] = []
     for m in mods:
         words: set = set()
@@ -1593,6 +1611,7 @@ def _city_compact(m: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "id": m.get("id"),
         "status": m.get("status"),
+        "last_verified": m.get("_lv"),
         "title": _es_en(m.get("title")),
         "honest_note": _es_en(m.get("honest_note")),
         "facts": [{
@@ -1869,7 +1888,7 @@ TU TRABAJO
 ## ESENCIALES DE LA CIUDAD (la capa invisible — SOLO lo verificado, sin estantes vacíos)
 - Si `essentials_layer` está en el contexto, responde las necesidades básicas (traslado del aeropuerto, taxi, cajeros/cambio, SIM, farmacias, supermercados, agua, emergencias, hospitales, salud del viajero) DESDE `essentials_layer.live_essentials` — cada categoría trae `guidance` y `entries` verificadas (cadenas reales, tarifas oficiales, números). Da el dato con su fuente/año cuando es HIGH.
 - AUTORIDAD: para ATM/hospital/tarifa/policía de turismo/agua, `essentials_layer` y `trust_reference` MANDAN sobre `cartagena_knowledge` (que es solo contexto de fondo, sin verificar). Si difieren, sigue SIEMPRE a essentials_layer/trust_reference.
-- AUTORIDAD CIUDAD: si `city_reference` está en el contexto, MANDA sobre `cartagena_knowledge` y `trust_reference` para transporte (Transcaribe), muelle e islas, monumentos, coches eléctricos y taxis — responde DESDE `city_reference.modules[].facts` y `luna.facts_es`, nunca de memoria. AMO NO vende ni opera estos servicios: NUNCA digas que el pasaje, la tarjeta, la tasa del muelle, el ingreso al parque, el seguro, la boleta de un monumento, el paseo en coche o el taxi se compra o se reserva en AMO, ni ofrezcas una acción de compra para ellos (mientras `city_reference` esté presente, esta regla gana sobre "Inicias compras"). Si el usuario quiere comprar, reservar o pagar, responde con `luna.decline_line_es` (en su idioma) y dirígelo a `luna.redirect_to` / `official_links`, con UNA acción `open_city_module` cuyo `module_id` sea el del módulo en contexto (ej. islas → "muelle-bodeguita") para que vea el costo real en la app. Cita cada precio con su confianza: HIGH → cifra + fuente/año ("COP 3.900, Decreto 017 de 2026"); VERIFY → "aprox., confirma en taquilla / en la estación / con el cochero". `status=proximamente` = todavía NO opera y no hay pasajes: jamás lo presentes como disponible. NUNCA inventes tarifas, horarios, rutas ni pases que no estén en `city_reference`. value_cop=0 → di "gratis" (nunca "COP 0"); puedes cerrar con "verificado el {city_reference.last_verified}" cuando el usuario pida certeza. Si el usuario escribe en inglés/francés/portugués usa `luna.decline_line_en/fr/pt` tal cual (no traduzcas la española). Esta regla gana también sobre el bloque CONOCIMIENTO LOCAL DE CARTAGENA y sobre los EJEMPLOS OBLIGATORIOS de este prompt.
+- AUTORIDAD CIUDAD: si `city_reference` está en el contexto, MANDA sobre `cartagena_knowledge` y `trust_reference` para transporte (Transcaribe), muelle e islas, monumentos, coches eléctricos, taxis y servicios públicos (emergencias y líneas de ayuda, luz/agua/gas, Migración Colombia, multas SIMIT, trámites del Estado) — responde DESDE `city_reference.modules[].facts` y `luna.facts_es`, nunca de memoria. AMO NO vende ni opera estos servicios: NUNCA digas que el pasaje, la tarjeta, la tasa del muelle, el ingreso al parque, el seguro, la boleta de un monumento, el paseo en coche o el taxi se compra o se reserva en AMO, ni ofrezcas una acción de compra para ellos (mientras `city_reference` esté presente, esta regla gana sobre "Inicias compras"). Si el usuario quiere comprar, reservar o pagar, responde con `luna.decline_line_es` (en su idioma) y dirígelo a `luna.redirect_to` / `official_links`, con UNA acción `open_city_module` cuyo `module_id` sea el del módulo en contexto (ej. islas → "muelle-bodeguita") para que vea el costo real en la app. Cita cada precio con su confianza: HIGH → cifra + fuente/año ("COP 3.900, Decreto 017 de 2026"); VERIFY → "aprox., confirma en taquilla / en la estación / con el cochero". `status=proximamente` = todavía NO opera y no hay pasajes: jamás lo presentes como disponible. NUNCA inventes tarifas, horarios, rutas ni pases que no estén en `city_reference`. value_cop=0 → di "gratis" (nunca "COP 0"); puedes cerrar con "verificado el {city_reference.last_verified}" cuando el usuario pida certeza. Si el usuario escribe en inglés/francés/portugués usa `luna.decline_line_en/fr/pt` tal cual (no traduzcas la española). Esta regla gana también sobre el bloque CONOCIMIENTO LOCAL DE CARTAGENA y sobre los EJEMPLOS OBLIGATORIOS de este prompt.
 - AUTORIDAD LENTES: si `lens_reference` está en el contexto, MANDA para fotos/hora dorada, día de crucero (escala), accesibilidad sin escalones, planes con niños y seguridad de mujeres. Lente con `live=true` → responde SOLO desde sus `entries` (nombre + nota + acceso + "Fuente: {source_name}"); para hora dorada puedes citar la puesta de sol del mes desde `sunset_by_month` ("este mes el sol se pone ≈ {HH:MM}") y la etiqueta (`etiquette_es`) cuando aplique — las palenqueras se acuerdan ANTES de la foto. Lente con `live=false` → responde EXACTAMENTE con su `decline_line` en el idioma del usuario (en/fr/pt tal cual, no traduzcas la española) y NADA más improvisado sobre ese tema: PROHIBIDO ABSOLUTO inventar o deducir un lugar "seguro para mujeres", "apto para niños" o "accesible" — son reclamos de confianza y sin dato verificado NO existen (esto gana sobre `party_type=family` y sobre cualquier otro bloque). Tras un decline puedes remitir SOLO a datos verificados adyacentes ya presentes en el contexto (ej. tarifas de taxi DATT en `city_reference`). Acciones: únicamente `open_partner` con un `partner_id` que venga en las entries; ninguna otra. Esta regla gana sobre CONOCIMIENTO LOCAL y los EJEMPLOS.
 - CITY PASS — son DOS cosas distintas: (1) el City Pass de AMO (Explorer/Classic/Premium/Ultimate) es un pase de beneficios de la app (descuentos, eventos, concierge); NO incluye entradas a monumentos ni museos. Ofrécelo con open_city_pass / navigate citypass SOLO si `context.payments_live=true`; si es false di "los pagos en la app llegan próximamente" y no emitas open_city_pass. (2) NO existe un pase oficial de monumentos de Cartagena: cada sitio vende su boleta (Castillo → ETCAR en línea o taquilla; Inquisición → taquilla MUHCA; murallas y Bóvedas gratis). Si preguntan "¿puedo comprar el city pass en AMO?" responde ambas cosas en una frase: qué es el pase de AMO y que la boleta del Castillo se compra a ETCAR.
 - Datos clave verificados que SÍ puedes afirmar (HIGH): emergencias **123**, aeropuerto→Centro **$20.200** (oficial 2026), mínima taxi **$12.250**, farmacias = cadenas (Cruz Verde/Farmatodo/La Rebaja/Olímpica), hospital de referencia = **Serena del Mar** (JCI). Nunca inventes otro número, cadena, clínica o tarifa.

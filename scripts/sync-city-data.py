@@ -42,6 +42,10 @@ import sys
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(REPO, "backend", "data", "city_modules.json")
 DST = os.path.join(REPO, "frontend", "public", "data", "city", "modules.json")
+# Servicios públicos (2026-10-15): second file, same module contract, its own
+# last_verified (so adding a service never claims the transport facts were re-checked).
+SVC_SRC = os.path.join(REPO, "backend", "data", "city_services.json")
+SVC_DST = os.path.join(REPO, "frontend", "public", "data", "city", "services.json")
 PUBLIC = os.path.join(REPO, "frontend", "public")
 
 LANGS = ("es", "en", "fr", "pt")
@@ -119,9 +123,10 @@ def _check_luna(module, where, errors):
             errors.append(f"{where}.luna.decline_line_fr: vous-register ({hit.group(0)!r})")
 
 
-def validate(path, public):
+def validate(path, public, expected_modules=EXPECTED_MODULES):
     """Return a list of problems found in the city data file at path; empty means valid.
-    public=True validates the stripped frontend copy, public=False the full backend source."""
+    public=True validates the stripped frontend copy, public=False the full backend source.
+    expected_modules=None means "one or more" (the services file grows module by module)."""
     errors = []
     try:
         with open(path, encoding="utf-8") as fh:
@@ -138,8 +143,10 @@ def validate(path, public):
     if not isinstance(modules, list):
         errors.append("modules is not a list")
         return errors
-    if len(modules) != EXPECTED_MODULES:
-        errors.append(f"expected {EXPECTED_MODULES} modules, found {len(modules)}")
+    if expected_modules is not None and len(modules) != expected_modules:
+        errors.append(f"expected {expected_modules} modules, found {len(modules)}")
+    if expected_modules is None and not modules:
+        errors.append("expected at least 1 module")
 
     ids = [m.get("id") if isinstance(m, dict) else None for m in modules]
     duplicates = sorted({i for i in ids if ids.count(i) > 1}, key=str)
@@ -223,48 +230,71 @@ def _dump(data):
     return json.dumps(data, indent=2, ensure_ascii=False) + "\n"
 
 
-def main(argv):
-    check_only = "--check" in argv
-
-    errors = validate(SRC, public=False)
+def _sync_one(src, dst, check_only, expected_modules):
+    """Validate src, write (or check) the public copy at dst. Returns the parsed source
+    dict on success, None on failure (problems already reported)."""
+    errors = validate(src, public=False, expected_modules=expected_modules)
     if errors:
-        _report(SRC, errors)
-        return 1
+        _report(src, errors)
+        return None
 
-    with open(SRC, encoding="utf-8") as fh:
+    with open(src, encoding="utf-8") as fh:
         source = json.load(fh)
     expected = _dump(public_view(source))
 
     if not check_only:
         try:
-            os.makedirs(os.path.dirname(DST), exist_ok=True)
-            with open(DST, "w", encoding="utf-8") as fh:
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            with open(dst, "w", encoding="utf-8") as fh:
                 fh.write(expected)
         except OSError as exc:
             print(f"[sync-city-data] write failed: {exc}", file=sys.stderr)
-            return 1
+            return None
 
-    errors = validate(DST, public=True)
+    errors = validate(dst, public=True, expected_modules=expected_modules)
     if errors:
-        _report(DST, errors)
-        return 1
+        _report(dst, errors)
+        return None
 
     try:
-        with open(DST, encoding="utf-8") as fh:
+        with open(dst, encoding="utf-8") as fh:
             actual = fh.read()
     except OSError as exc:
         print(f"[sync-city-data] cannot read frontend copy: {exc}", file=sys.stderr)
-        return 1
+        return None
     if actual != expected:
-        print("[sync-city-data] frontend copy differs from the public view of the backend source", file=sys.stderr)
-        return 1
+        print(f"[sync-city-data] {os.path.relpath(dst, REPO)} differs from the public view of its source",
+              file=sys.stderr)
+        return None
 
     verb = "checked" if check_only else "synced"
     print(
         f"[sync-city-data] {verb} {len(source['modules'])} modules "
         f"(version {source['version']}, last_verified {source['last_verified']}) -> "
-        f"{os.path.relpath(DST, REPO)} ({len(expected.encode('utf-8'))} bytes, public view)"
+        f"{os.path.relpath(dst, REPO)} ({len(expected.encode('utf-8'))} bytes, public view)"
     )
+    return source
+
+
+def main(argv):
+    check_only = "--check" in argv
+
+    transport = _sync_one(SRC, DST, check_only, EXPECTED_MODULES)
+    if transport is None:
+        return 1
+
+    services = None
+    if os.path.isfile(SVC_SRC):
+        services = _sync_one(SVC_SRC, SVC_DST, check_only, None)
+        if services is None:
+            return 1
+        # /ciudad/[id] looks a module up across BOTH files — ids must never collide.
+        t_ids = {m.get("id") for m in transport.get("modules", [])}
+        s_ids = {m.get("id") for m in services.get("modules", [])}
+        clash = sorted(t_ids & s_ids, key=str)
+        if clash:
+            print(f"[sync-city-data] module ids collide across files: {clash}", file=sys.stderr)
+            return 1
     return 0
 
 

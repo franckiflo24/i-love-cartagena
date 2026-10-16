@@ -17,16 +17,74 @@ import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { goHome, goBackOr } from '../../src/lib/nav';
 import {
-  CityModulesPayload, STATUS_META, getCachedCityModules, loadCityModules, pickL,
+  CityModule, CityModulesPayload, STATUS_META, getCachedCityModules, getCachedCityServices,
+  loadCityModules, loadCityServices, pickL,
 } from '../../src/lib/cityModules';
 
 const MEDIA_HEIGHT = 156;
+
+// One card renderer for both rails (transport + servicios públicos): same media,
+// badge, tagline and one-line honesty reason; detail screens are shared too.
+function renderCard(
+  m: CityModule, i: number, lang: ReturnType<typeof useLang>['lang'],
+  tr: ReturnType<typeof useTr>, router: ReturnType<typeof useRouter>,
+) {
+  const meta = STATUS_META[m.status] || STATUS_META.info;
+  const title = pickL(m.title, lang);
+  const tagline = pickL(m.tagline, lang);
+  const reason = pickL(m.status_reason, lang);
+  return (
+    <FadeInUp key={m.id} delay={i * 60} distance={18}>
+      <PressableScale
+        style={styles.card}
+        onPress={() => router.push(`/ciudad/${m.id}` as any)}
+        accessibilityRole="button"
+        accessibilityLabel={`${title} · ${tr(meta.label)} · ${tr('Ver detalles')}`}
+        testID={`ciudad-card-${m.id}`}
+      >
+        <View style={styles.media}>
+          {/* Brand art paints first; the photo fades in over it once
+              loaded — a 200 KB JPEG on a slow link is never a black box. */}
+          <CityMedia
+            id={m.id}
+            icon={m.icon}
+            file={m.image?.file}
+            height={MEDIA_HEIGHT}
+            accessibilityLabel={pickL(m.image?.caption, lang) || title}
+          />
+          <LinearGradient
+            colors={['transparent', 'rgba(15,21,36,0.85)']}
+            locations={[0.45, 1]}
+            style={styles.mediaFade}
+            pointerEvents="none"
+          />
+          <CityStatusBadge status={m.status} tr={tr} style={styles.badgeOnMedia} />
+        </View>
+        <View style={styles.cardBody}>
+          <View style={styles.titleRow}>
+            <Text style={styles.cardTitle} numberOfLines={2}>{title}</Text>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.icon} />
+          </View>
+          {!!tagline && <Text style={styles.cardTagline} numberOfLines={2}>{tagline}</Text>}
+          {/* One line only: the full reason lives in the detail's honest card. */}
+          {!!reason && (
+            <View style={styles.reasonRow}>
+              <Ionicons name="information-circle-outline" size={12} color={COLORS.textFaint} style={{ marginTop: 2 }} />
+              <Text style={styles.reasonText} numberOfLines={1}>{reason}</Text>
+            </View>
+          )}
+        </View>
+      </PressableScale>
+    </FadeInUp>
+  );
+}
 
 export default function CiudadHubScreen() {
   const router = useRouter();
   const { lang } = useLang();
   const tr = useTr();
   const [payload, setPayload] = useState<CityModulesPayload | null>(getCachedCityModules());
+  const [services, setServices] = useState<CityModulesPayload | null>(getCachedCityServices());
   const [loading, setLoading] = useState<boolean>(!getCachedCityModules());
   const [failed, setFailed] = useState(false);
 
@@ -35,6 +93,11 @@ export default function CiudadHubScreen() {
     // Fallback-first: a hub that already holds the cached payload never drops
     // back into the skeleton, even on a forced refresh.
     setLoading(!getCachedCityModules());
+    // Servicios públicos load in parallel and NEVER fail the transport hub:
+    // a missing services payload simply hides that section.
+    loadCityServices(force).then(setServices).catch((e) => {
+      console.error('[CiudadHub] services', e);
+    });
     try {
       setPayload(await loadCityModules(force));
     } catch (e) {
@@ -46,11 +109,12 @@ export default function CiudadHubScreen() {
   }, []);
 
   useEffect(() => {
-    if (!getCachedCityModules()) load();
+    if (!getCachedCityModules() || !getCachedCityServices()) load();
   }, [load]);
 
   const canGoBack = router.canGoBack();
   const modules = payload?.modules || [];
+  const serviceModules = services?.modules || [];
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -138,56 +202,25 @@ export default function CiudadHubScreen() {
 
         {!loading && !failed && modules.length > 0 && (
           <View style={styles.list}>
-            {modules.map((m, i) => {
-              const meta = STATUS_META[m.status] || STATUS_META.info;
-              const title = pickL(m.title, lang);
-              const tagline = pickL(m.tagline, lang);
-              const reason = pickL(m.status_reason, lang);
-              return (
-                <FadeInUp key={m.id} delay={i * 60} distance={18}>
-                  <PressableScale
-                    style={styles.card}
-                    onPress={() => router.push(`/ciudad/${m.id}` as any)}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${title} · ${tr(meta.label)} · ${tr('Ver detalles')}`}
-                    testID={`ciudad-card-${m.id}`}
-                  >
-                    <View style={styles.media}>
-                      {/* Brand art paints first; the photo fades in over it once
-                          loaded — a 200 KB JPEG on a slow link is never a black box. */}
-                      <CityMedia
-                        id={m.id}
-                        icon={m.icon}
-                        file={m.image?.file}
-                        height={MEDIA_HEIGHT}
-                        accessibilityLabel={pickL(m.image?.caption, lang) || title}
-                      />
-                      <LinearGradient
-                        colors={['transparent', 'rgba(15,21,36,0.85)']}
-                        locations={[0.45, 1]}
-                        style={styles.mediaFade}
-                        pointerEvents="none"
-                      />
-                      <CityStatusBadge status={m.status} tr={tr} style={styles.badgeOnMedia} />
-                    </View>
-                    <View style={styles.cardBody}>
-                      <View style={styles.titleRow}>
-                        <Text style={styles.cardTitle} numberOfLines={2}>{title}</Text>
-                        <Ionicons name="chevron-forward" size={18} color={COLORS.icon} />
-                      </View>
-                      {!!tagline && <Text style={styles.cardTagline} numberOfLines={2}>{tagline}</Text>}
-                      {/* One line only: the full reason lives in the detail's honest card. */}
-                      {!!reason && (
-                        <View style={styles.reasonRow}>
-                          <Ionicons name="information-circle-outline" size={12} color={COLORS.textFaint} style={{ marginTop: 2 }} />
-                          <Text style={styles.reasonText} numberOfLines={1}>{reason}</Text>
-                        </View>
-                      )}
-                    </View>
-                  </PressableScale>
-                </FadeInUp>
-              );
-            })}
+            {modules.map((m, i) => renderCard(m, i, lang, tr, router))}
+          </View>
+        )}
+
+        {/* ── Servicios públicos: verified State/utility info on the same contract.
+            AMO is a private information channel aligned with the official channels —
+            never the entity itself; the section header says so on the surface. */}
+        {!loading && !failed && serviceModules.length > 0 && (
+          <View style={styles.sectionBlock} testID="ciudad-servicios">
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionEyebrow}>{tr('Servicios públicos')}</Text>
+              <Text style={styles.sectionTitle}>{tr('Líneas y trámites oficiales')}</Text>
+              <Text style={styles.sectionPromise}>
+                {tr('Información verificada con fuentes oficiales. AMO es un canal privado de información — cada trámite se hace con la entidad.')}
+              </Text>
+            </View>
+            <View style={styles.list}>
+              {serviceModules.map((m, i) => renderCard(m, i, lang, tr, router))}
+            </View>
           </View>
         )}
 
@@ -197,6 +230,7 @@ export default function CiudadHubScreen() {
               <Ionicons name="shield-checkmark-outline" size={13} color={COLORS.textFaint} />
               <Text style={styles.footerText}>
                 {tr('Última verificación')}: {payload.last_verified || '—'}
+                {services?.last_verified ? ` · ${tr('Servicios públicos')}: ${services.last_verified}` : ''}
               </Text>
             </View>
             <Text style={styles.footerText}>{tr('AMO te informa; pagas directamente con cada entidad.')}</Text>
@@ -216,6 +250,11 @@ const styles = StyleSheet.create({
   title: { ...TYPE.title1, color: COLORS.textMain, marginTop: 2 },
   promise: { ...TYPE.subhead, color: COLORS.textMuted, marginTop: 4 },
   list: { paddingHorizontal: SPACING.lg, gap: SPACING.md },
+  sectionBlock: { marginTop: SPACING.xl },
+  sectionHeader: { paddingHorizontal: SPACING.lg, paddingBottom: SPACING.md },
+  sectionEyebrow: { ...TYPE.overline, color: COLORS.mustard },
+  sectionTitle: { ...TYPE.title2, color: COLORS.textMain, marginTop: 2 },
+  sectionPromise: { ...TYPE.subhead, color: COLORS.textMuted, marginTop: 4, lineHeight: 19 },
   card: {
     backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: COLORS.hairline,
     overflow: 'hidden', ...ELEVATION.md,

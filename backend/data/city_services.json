@@ -1,0 +1,933 @@
+{
+  "version": "2026-10-15",
+  "last_verified": "2026-10-15",
+  "source_doc": "Verified live 2026-10-15 (session research): policia.gov.co (123/155/165), afinia.com.co (115), acuacar.com (116), portal.migracioncolombia.gov.co (PTP $143.000 / Check-Mig / 01 8000 51 55 15), fcm.org.co/simit, gov.co (78.000+ trámites). surtigas.com.co and cartagena.gov.co answer 403 from US egress (geo/WAF) — their facts carry VERIFY and hedged copy.",
+  "modules": [
+    {
+      "id": "emergencias-lineas",
+      "order": 101,
+      "icon": "call",
+      "status": "info",
+      "status_reason": {
+        "es": "Las líneas 123, 155 y 165 son del Estado colombiano (Policía Nacional). AMO no opera ni intermedia ninguna: te informa los números oficiales y nada más.",
+        "en": "Lines 123, 155 and 165 belong to the Colombian State (National Police). AMO neither operates nor intermediates any of them: it tells you the official numbers, nothing more.",
+        "fr": "Les lignes 123, 155 et 165 appartiennent à l'État colombien (Police nationale). AMO n'en exploite aucune : elle te donne les numéros officiels, rien de plus.",
+        "pt": "As linhas 123, 155 e 165 são do Estado colombiano (Polícia Nacional). A AMO não opera nem intermedia nenhuma: informa os números oficiais e nada mais."
+      },
+      "title": {
+        "es": "Emergencias y líneas de ayuda",
+        "en": "Emergencies & help lines",
+        "fr": "Urgences et lignes d'aide",
+        "pt": "Emergências e linhas de ajuda"
+      },
+      "tagline": {
+        "es": "123 para cualquier emergencia · 155 mujeres víctimas de violencia · 165 GAULA antiextorsión.",
+        "en": "123 for any emergency · 155 for women facing violence · 165 GAULA anti-extortion.",
+        "fr": "123 pour toute urgence · 155 femmes victimes de violence · 165 GAULA anti-extorsion.",
+        "pt": "123 para qualquer emergência · 155 mulheres vítimas de violência · 165 GAULA antiextorsão."
+      },
+      "summary": {
+        "es": "En Colombia la línea única de emergencias es el 123: gratuita, estatal y disponible las 24 horas, todos los días. Desde ahí despachan Policía, ambulancia y bomberos — no necesitas memorizar un número por entidad. Para violencia contra la mujer existe la línea 155 de orientación (24/7) y para extorsión o secuestro la Línea Nacional 165 del GAULA. Guarda las tres antes de salir: en una emergencia real lo único que importa es marcar rápido y dar tu ubicación exacta.",
+        "en": "Colombia's single emergency number is 123: free, state-run and available 24/7. It dispatches police, ambulance and firefighters — you don't need to memorize one number per agency. For violence against women there is the 155 guidance line (24/7), and for extortion or kidnapping the GAULA's national 165 line. Save all three before you go out: in a real emergency what matters is dialing fast and giving your exact location.",
+        "fr": "En Colombie, le numéro d'urgence unique est le 123 : gratuit, public et disponible 24 h/24, tous les jours. Il déclenche police, ambulance et pompiers — pas besoin de mémoriser un numéro par entité. Pour les violences faites aux femmes, il y a la ligne d'orientation 155 (24/7), et pour l'extorsion ou l'enlèvement la ligne nationale 165 du GAULA. Enregistre les trois avant de sortir : en urgence réelle, l'essentiel est d'appeler vite et de donner ta position exacte.",
+        "pt": "Na Colômbia, o número único de emergências é o 123: gratuito, estatal e disponível 24 horas, todos os dias. Por ele acionam polícia, ambulância e bombeiros — não precisa memorizar um número por entidade. Para violência contra a mulher existe a linha 155 de orientação (24/7) e, para extorsão ou sequestro, a Linha Nacional 165 do GAULA. Salve as três antes de sair: numa emergência real o que importa é ligar rápido e dar sua localização exata."
+      },
+      "honest_note": {
+        "es": "AMO te informa; no gestiona emergencias ni denuncias. Llamas directamente a las líneas del Estado.",
+        "en": "AMO informs you; it does not handle emergencies or reports. You call the State's lines directly.",
+        "fr": "AMO t'informe ; elle ne gère ni urgences ni plaintes. Tu appelles directement les lignes de l'État.",
+        "pt": "A AMO informa; não gerencia emergências nem denúncias. Você liga diretamente para as linhas do Estado."
+      },
+      "facts": [
+        {
+          "key": "linea_123",
+          "label": {
+            "es": "Línea única de emergencias",
+            "en": "Single emergency line",
+            "fr": "Numéro d'urgence unique",
+            "pt": "Linha única de emergências"
+          },
+          "value_cop": 0,
+          "value_text": {
+            "es": "123 — gratuita, 24 horas, todos los días: Policía, ambulancia y bomberos.",
+            "en": "123 — free, 24 hours, every day: police, ambulance and firefighters.",
+            "fr": "123 — gratuit, 24 h/24, tous les jours : police, ambulance et pompiers.",
+            "pt": "123 — gratuita, 24 horas, todos os dias: polícia, ambulância e bombeiros."
+          },
+          "confidence": "HIGH",
+          "source_url": "https://www.policia.gov.co/noticia/policia-nacional-sensibiliza-comunidad-sobre-uso-las-lineas-emergencia-123-155",
+          "source_name": "Policía Nacional de Colombia — \"la línea única de emergencias Nacional… que ofrece el Estado gratuitamente las 24 horas del día todos los días del año\"",
+          "source_date": "2023-03-12",
+          "last_verified": "2026-10-15",
+          "note": {
+            "es": "El mal uso (bromas, datos falsos) bloquea la atención de emergencias reales — la propia Policía lo advierte.",
+            "en": "Misuse (pranks, false reports) blocks real emergencies — the Police itself warns about it.",
+            "fr": "Le mauvais usage (canulars, fausses infos) bloque de vraies urgences — la police elle-même le rappelle.",
+            "pt": "O mau uso (trotes, dados falsos) bloqueia emergências reais — a própria Polícia alerta."
+          }
+        },
+        {
+          "key": "linea_155",
+          "label": {
+            "es": "Mujeres víctimas de violencia",
+            "en": "Women facing violence",
+            "fr": "Femmes victimes de violence",
+            "pt": "Mulheres vítimas de violência"
+          },
+          "value_cop": 0,
+          "value_text": {
+            "es": "155 — línea de orientación a mujeres víctimas de violencia, 24 horas, 7 días.",
+            "en": "155 — guidance line for women who are victims of violence, 24/7.",
+            "fr": "155 — ligne d'orientation pour les femmes victimes de violence, 24 h/24, 7 j/7.",
+            "pt": "155 — linha de orientação para mulheres vítimas de violência, 24 horas, 7 dias."
+          },
+          "confidence": "HIGH",
+          "source_url": "https://www.policia.gov.co/noticia/policia-nacional-sensibiliza-comunidad-sobre-uso-las-lineas-emergencia-123-155",
+          "source_name": "Policía Nacional de Colombia — Línea 155 de orientación a mujeres víctimas de violencia",
+          "source_date": "2023-03-12",
+          "last_verified": "2026-10-15",
+          "note": null
+        },
+        {
+          "key": "linea_165",
+          "label": {
+            "es": "GAULA — extorsión y secuestro",
+            "en": "GAULA — extortion & kidnapping",
+            "fr": "GAULA — extorsion et enlèvement",
+            "pt": "GAULA — extorsão e sequestro"
+          },
+          "value_cop": 0,
+          "value_text": {
+            "es": "165 — Línea Nacional Gratuita Antiextorsión y Antisecuestro del GAULA (alterna: 01 8000 911 129).",
+            "en": "165 — GAULA's free national anti-extortion and anti-kidnapping line (alternate: 01 8000 911 129).",
+            "fr": "165 — ligne nationale gratuite anti-extorsion et anti-enlèvement du GAULA (alternative : 01 8000 911 129).",
+            "pt": "165 — Linha Nacional Gratuita Antiextorsão e Antissequestro do GAULA (alternativa: 01 8000 911 129)."
+          },
+          "confidence": "HIGH",
+          "source_url": "https://www.policia.gov.co/noticia/le-hacemos-frente-extorsion",
+          "source_name": "Policía Nacional — GAULA, campaña \"Yo no pago, yo denuncio\" (Línea Nacional Gratuita 165)",
+          "source_date": "2025-04-14",
+          "last_verified": "2026-10-15",
+          "note": {
+            "es": "Ante una llamada extorsiva: cuelga, no pagues y marca 165. La campaña oficial es \"Yo no pago, yo denuncio\".",
+            "en": "If you get an extortion call: hang up, don't pay, dial 165. The official campaign is \"Yo no pago, yo denuncio\".",
+            "fr": "Face à un appel d'extorsion : raccroche, ne paie pas et compose le 165. La campagne officielle est « Yo no pago, yo denuncio ».",
+            "pt": "Diante de uma ligação extorsiva: desligue, não pague e disque 165. A campanha oficial é \"Yo no pago, yo denuncio\"."
+          }
+        }
+      ],
+      "official_links": [
+        {
+          "label": {
+            "es": "Policía Nacional de Colombia (sitio oficial)",
+            "en": "Colombian National Police (official site)",
+            "fr": "Police nationale de Colombie (site officiel)",
+            "pt": "Polícia Nacional da Colômbia (site oficial)"
+          },
+          "url": "https://www.policia.gov.co/",
+          "kind": "official"
+        },
+        {
+          "label": {
+            "es": "Líneas 123 y 155 (nota oficial)",
+            "en": "Lines 123 & 155 (official note)",
+            "fr": "Lignes 123 et 155 (note officielle)",
+            "pt": "Linhas 123 e 155 (nota oficial)"
+          },
+          "url": "https://www.policia.gov.co/noticia/policia-nacional-sensibiliza-comunidad-sobre-uso-las-lineas-emergencia-123-155",
+          "kind": "report"
+        }
+      ],
+      "safety": [
+        {
+          "es": "Ante cualquier emergencia marca 123 primero y da tu ubicación exacta (barrio, calle, referencia).",
+          "en": "In any emergency dial 123 first and give your exact location (neighborhood, street, landmark).",
+          "fr": "En cas d'urgence, compose d'abord le 123 et donne ta position exacte (quartier, rue, repère).",
+          "pt": "Em qualquer emergência disque 123 primeiro e dê sua localização exata (bairro, rua, referência)."
+        },
+        {
+          "es": "Si recibes una llamada extorsiva, cuelga y marca 165. Nunca pagues ni negocies por tu cuenta.",
+          "en": "If you receive an extortion call, hang up and dial 165. Never pay or negotiate on your own.",
+          "fr": "Si tu reçois un appel d'extorsion, raccroche et compose le 165. Ne paie jamais et ne négocie pas seul.",
+          "pt": "Se receber uma ligação extorsiva, desligue e disque 165. Nunca pague nem negocie por conta própria."
+        },
+        {
+          "es": "No uses el 123 para bromas o consultas: bloquea la atención de emergencias reales.",
+          "en": "Don't use 123 for pranks or questions: it blocks real emergencies from being attended.",
+          "fr": "N'utilise pas le 123 pour des blagues ou des questions : cela bloque de vraies urgences.",
+          "pt": "Não use o 123 para trotes ou consultas: isso bloqueia o atendimento de emergências reais."
+        }
+      ],
+      "fallback": {
+        "es": "Para lo último, consulta policia.gov.co.",
+        "en": "For the latest, check policia.gov.co.",
+        "fr": "Pour les dernières infos, consulte policia.gov.co.",
+        "pt": "Para o mais recente, consulte policia.gov.co."
+      },
+      "future": null,
+      "luna": {
+        "amo_sells": false,
+        "triggers": [
+          "emergencia", "emergencias", "emergency", "urgence", "policía", "policia", "police",
+          "ambulancia", "ambulance", "bomberos", "firefighters", "extorsión", "extorsion",
+          "extortion", "secuestro", "kidnap", "me robaron", "robaron", "me atracaron",
+          "denunciar", "report a crime", "línea 123", "linea 123", "llamar al 123"
+        ],
+        "facts_es": [
+          "La línea única de emergencias en Colombia es el 123: gratuita, del Estado, 24/7 — despacha Policía, ambulancia y bomberos (fuente: Policía Nacional).",
+          "La línea 155 orienta a mujeres víctimas de violencia, 24/7. La línea 165 es el GAULA antiextorsión y antisecuestro (alterna 01 8000 911 129); ante una llamada extorsiva: colgar, no pagar, marcar 165.",
+          "AMO no gestiona emergencias ni denuncias: siempre dirige a la persona a marcar 123 de inmediato si hay una emergencia en curso."
+        ],
+        "decline_line_es": "Eso es una emergencia o denuncia: marca 123 ya mismo (gratis, 24/7). AMO no puede gestionarla por ti.",
+        "decline_line_en": "That's an emergency or a police report: dial 123 right now (free, 24/7). AMO can't handle it for you.",
+        "decline_line_fr": "C'est une urgence ou une plainte : compose le 123 tout de suite (gratuit, 24 h/24). AMO ne peut pas la gérer pour toi.",
+        "decline_line_pt": "Isso é uma emergência ou denúncia: disque 123 agora mesmo (grátis, 24/7). A AMO não pode gerenciá-la por você.",
+        "redirect_to": "https://www.policia.gov.co/"
+      },
+      "research_notes": "2026-10-15: 123 + 155 verified on policia.gov.co noticia (sensibiliza-comunidad…123-155, dated 2023-03-12, Meta department publication of national lines); 165 + alterno 01 8000 911 129 verified across policia.gov.co GAULA notes ('le-hacemos-frente-extorsion', 'yo no pago yo denuncio'). Bomberos 119 / Cruz Roja 132 NOT included: no official page read this session states them; the 123 single-line doctrine covers dispatch. Add only with a read source.",
+      "image": null
+    },
+    {
+      "id": "servicios-domiciliarios",
+      "order": 102,
+      "icon": "flash",
+      "status": "info",
+      "status_reason": {
+        "es": "Afinia (energía), Aguas de Cartagena (acueducto) y Surtigas (gas) son empresas de servicios públicos independientes. AMO no tiene acuerdo con ninguna: te informa los canales oficiales de reporte y pago.",
+        "en": "Afinia (power), Aguas de Cartagena (water) and Surtigas (gas) are independent utilities. AMO has no agreement with any of them: it shows you the official reporting and payment channels.",
+        "fr": "Afinia (électricité), Aguas de Cartagena (eau) et Surtigas (gaz) sont des entreprises de services publics indépendantes. AMO n'a d'accord avec aucune : elle t'indique les canaux officiels de signalement et de paiement.",
+        "pt": "Afinia (energia), Aguas de Cartagena (água) e Surtigas (gás) são empresas de serviços públicos independentes. A AMO não tem acordo com nenhuma: informa os canais oficiais de reporte e pagamento."
+      },
+      "title": {
+        "es": "Luz, agua y gas (daños y averías)",
+        "en": "Power, water & gas (outages)",
+        "fr": "Électricité, eau et gaz (pannes)",
+        "pt": "Luz, água e gás (avarias)"
+      },
+      "tagline": {
+        "es": "Energía: 115 (Afinia) · Acueducto: 116 (Aguas de Cartagena) · Gas: 164 (Surtigas, confirma).",
+        "en": "Power: 115 (Afinia) · Water: 116 (Aguas de Cartagena) · Gas: 164 (Surtigas, confirm).",
+        "fr": "Électricité : 115 (Afinia) · Eau : 116 (Aguas de Cartagena) · Gaz : 164 (Surtigas, à confirmer).",
+        "pt": "Energia: 115 (Afinia) · Água: 116 (Aguas de Cartagena) · Gás: 164 (Surtigas, confirme)."
+      },
+      "summary": {
+        "es": "Tres empresas prestan los servicios domiciliarios de Cartagena. La energía es de Afinia (filial del Grupo EPM, cubre Bolívar y otros departamentos del Caribe): daños y cortes se reportan a la línea 115 o en la app Afiniapp. El acueducto y alcantarillado es de Aguas de Cartagena: call center 116 desde fijo, PBX (605) 693 2770, y los daños y fugas se reportan en acuacar.com. El gas natural es de Surtigas: su línea histórica de emergencias es el 164 — confirma en surtigas.com.co. Si hueles a gas, no enciendas nada, ventila y sal del lugar antes de llamar.",
+        "en": "Three companies run Cartagena's home utilities. Power is Afinia (an EPM Group subsidiary covering Bolívar and other Caribbean departments): report outages and damage to line 115 or in the Afiniapp. Water and sewerage is Aguas de Cartagena: call center 116 from a landline, PBX (605) 693 2770, and damage or leaks are reported at acuacar.com. Natural gas is Surtigas: its long-standing emergency line is 164 — confirm at surtigas.com.co. If you smell gas, don't switch anything on, ventilate and leave the place before calling.",
+        "fr": "Trois entreprises assurent les services domestiques de Carthagène. L'électricité, c'est Afinia (filiale du groupe EPM, couvre le Bolívar et d'autres départements des Caraïbes) : signale pannes et dégâts au 115 ou sur l'appli Afiniapp. L'eau et l'assainissement, c'est Aguas de Cartagena : centre d'appels 116 depuis un fixe, PBX (605) 693 2770, et les fuites se signalent sur acuacar.com. Le gaz naturel, c'est Surtigas : sa ligne d'urgence historique est le 164 — confirme sur surtigas.com.co. Si tu sens le gaz, n'allume rien, aère et sors avant d'appeler.",
+        "pt": "Três empresas prestam os serviços domiciliares de Cartagena. A energia é da Afinia (filial do Grupo EPM, cobre Bolívar e outros departamentos do Caribe): avarias e cortes são reportados na linha 115 ou no app Afiniapp. Água e esgoto é a Aguas de Cartagena: call center 116 de telefone fixo, PBX (605) 693 2770, e danos e vazamentos se reportam em acuacar.com. O gás natural é da Surtigas: sua linha histórica de emergências é o 164 — confirme em surtigas.com.co. Se sentir cheiro de gás, não acenda nada, ventile e saia do local antes de ligar."
+      },
+      "honest_note": {
+        "es": "AMO te informa; no recauda facturas ni gestiona reportes. Pagas y reportas directamente con cada empresa.",
+        "en": "AMO informs you; it doesn't collect bills or file reports. You pay and report directly with each utility.",
+        "fr": "AMO t'informe ; elle n'encaisse pas de factures et ne gère pas les signalements. Tu paies et signales directement auprès de chaque entreprise.",
+        "pt": "A AMO informa; não recebe faturas nem gerencia reportes. Você paga e reporta diretamente com cada empresa."
+      },
+      "facts": [
+        {
+          "key": "afinia_115",
+          "label": {
+            "es": "Energía — Afinia (daños)",
+            "en": "Power — Afinia (damage)",
+            "fr": "Électricité — Afinia (pannes)",
+            "pt": "Energia — Afinia (avarias)"
+          },
+          "value_cop": null,
+          "value_text": {
+            "es": "Línea 115 para reportar daños (te dan número de radicado); conmutador (605) 650 2120; app Afiniapp y oficina virtual.",
+            "en": "Line 115 to report damage (you get a case number); switchboard (605) 650 2120; Afiniapp and online office.",
+            "fr": "Ligne 115 pour signaler une panne (tu reçois un numéro de dossier) ; standard (605) 650 2120 ; appli Afiniapp et agence en ligne.",
+            "pt": "Linha 115 para reportar avarias (você recebe número de protocolo); central (605) 650 2120; app Afiniapp e agência virtual."
+          },
+          "confidence": "HIGH",
+          "source_url": "https://www.afinia.com.co/",
+          "source_name": "Afinia (Caribemar de la Costa S.A.S. E.S.P., Grupo EPM) — sitio oficial, \"Línea para reportar daños: 115\"",
+          "source_date": "2026-10-15",
+          "last_verified": "2026-10-15",
+          "note": {
+            "es": "Afinia cubre Bolívar, Córdoba, Sucre, Cesar y 11 municipios del sur del Magdalena.",
+            "en": "Afinia covers Bolívar, Córdoba, Sucre, Cesar and 11 municipalities of southern Magdalena.",
+            "fr": "Afinia couvre le Bolívar, Córdoba, Sucre, le Cesar et 11 communes du sud du Magdalena.",
+            "pt": "A Afinia cobre Bolívar, Córdoba, Sucre, Cesar e 11 municípios do sul do Magdalena."
+          }
+        },
+        {
+          "key": "acuacar_116",
+          "label": {
+            "es": "Acueducto — Aguas de Cartagena",
+            "en": "Water — Aguas de Cartagena",
+            "fr": "Eau — Aguas de Cartagena",
+            "pt": "Água — Aguas de Cartagena"
+          },
+          "value_cop": null,
+          "value_text": {
+            "es": "Call center 116 (desde fijo); PBX (605) 693 2770; daños y fugas se reportan en acuacar.com/reportar-danos.",
+            "en": "Call center 116 (from a landline); PBX (605) 693 2770; damage and leaks reported at acuacar.com/reportar-danos.",
+            "fr": "Centre d'appels 116 (depuis un fixe) ; PBX (605) 693 2770 ; fuites et dégâts à signaler sur acuacar.com/reportar-danos.",
+            "pt": "Call center 116 (de fixo); PBX (605) 693 2770; danos e vazamentos se reportam em acuacar.com/reportar-danos."
+          },
+          "confidence": "HIGH",
+          "source_url": "https://www.acuacar.com/",
+          "source_name": "Aguas de Cartagena S.A. E.S.P. — sitio oficial (Call Center 116 desde fijo; oficina Torices, Edificio Chambacú)",
+          "source_date": "2026-10-15",
+          "last_verified": "2026-10-15",
+          "note": {
+            "es": "Desde celular usa el PBX (605) 693 2770 o el formulario web de daños.",
+            "en": "From a mobile use the PBX (605) 693 2770 or the web damage form.",
+            "fr": "Depuis un mobile, utilise le PBX (605) 693 2770 ou le formulaire web.",
+            "pt": "Do celular use o PBX (605) 693 2770 ou o formulário web de danos."
+          }
+        },
+        {
+          "key": "surtigas_164",
+          "label": {
+            "es": "Gas natural — Surtigas (emergencias)",
+            "en": "Natural gas — Surtigas (emergencies)",
+            "fr": "Gaz naturel — Surtigas (urgences)",
+            "pt": "Gás natural — Surtigas (emergências)"
+          },
+          "value_cop": null,
+          "value_text": {
+            "es": "Línea de emergencias de gas: 164 (aprox. — confirma en surtigas.com.co; línea alterna histórica 01 8000 910 164).",
+            "en": "Gas emergency line: 164 (approx. — confirm at surtigas.com.co; historic alternate 01 8000 910 164).",
+            "fr": "Ligne d'urgence gaz : 164 (approx. — confirme sur surtigas.com.co ; ligne alternative historique 01 8000 910 164).",
+            "pt": "Linha de emergências de gás: 164 (aprox. — confirme em surtigas.com.co; linha alternativa histórica 01 8000 910 164)."
+          },
+          "confidence": "VERIFY",
+          "source_url": "https://www.eluniversal.com.co/cartagena/2022/03/29/tras-falla-temporal-en-su-plataforma-digital-surtigas-activa-linea-telefonica/",
+          "source_name": "El Universal (29 mar. 2022) — prensa; el sitio oficial surtigas.com.co respondió 403 desde fuera de Colombia al verificar hoy",
+          "source_date": "2022-03-29",
+          "last_verified": "2026-10-15",
+          "note": {
+            "es": "Si hueles a gas: no enciendas interruptores ni llamas, abre puertas y ventanas, sal del lugar y llama desde afuera.",
+            "en": "If you smell gas: don't flip switches or light flames, open doors and windows, leave the place and call from outside.",
+            "fr": "Si tu sens le gaz : n'actionne aucun interrupteur, n'allume pas de flamme, ouvre portes et fenêtres, sors et appelle de dehors.",
+            "pt": "Se sentir cheiro de gás: não acenda interruptores nem chamas, abra portas e janelas, saia do local e ligue de fora."
+          }
+        }
+      ],
+      "official_links": [
+        {
+          "label": {
+            "es": "Afinia (energía) — sitio oficial",
+            "en": "Afinia (power) — official site",
+            "fr": "Afinia (électricité) — site officiel",
+            "pt": "Afinia (energia) — site oficial"
+          },
+          "url": "https://www.afinia.com.co/",
+          "kind": "official"
+        },
+        {
+          "label": {
+            "es": "Aguas de Cartagena — reportar daños y fugas",
+            "en": "Aguas de Cartagena — report damage & leaks",
+            "fr": "Aguas de Cartagena — signaler fuites et dégâts",
+            "pt": "Aguas de Cartagena — reportar danos e vazamentos"
+          },
+          "url": "https://www.acuacar.com/reportar-danos/",
+          "kind": "report"
+        },
+        {
+          "label": {
+            "es": "Surtigas (gas natural) — sitio oficial",
+            "en": "Surtigas (natural gas) — official site",
+            "fr": "Surtigas (gaz naturel) — site officiel",
+            "pt": "Surtigas (gás natural) — site oficial"
+          },
+          "url": "https://www.surtigas.com.co/",
+          "kind": "official"
+        }
+      ],
+      "safety": [
+        {
+          "es": "Si hueles a gas, no enciendas nada (ni la luz): ventila, sal y llama desde afuera.",
+          "en": "If you smell gas, switch nothing on (not even the light): ventilate, leave and call from outside.",
+          "fr": "Si tu sens le gaz, n'allume rien (même pas la lumière) : aère, sors et appelle de dehors.",
+          "pt": "Se sentir cheiro de gás, não acenda nada (nem a luz): ventile, saia e ligue de fora."
+        },
+        {
+          "es": "Nunca pagues facturas a cobradores informales en la puerta: usa solo los canales oficiales de cada empresa.",
+          "en": "Never pay bills to informal door-to-door collectors: use each utility's official channels only.",
+          "fr": "Ne paie jamais tes factures à des encaisseurs informels à la porte : utilise uniquement les canaux officiels.",
+          "pt": "Nunca pague faturas a cobradores informais na porta: use apenas os canais oficiais de cada empresa."
+        },
+        {
+          "es": "Un cable caído se reporta al 115 sin acercarse: mantén mínimo 10 metros de distancia.",
+          "en": "Report a fallen power line to 115 without approaching it: keep at least 10 meters away.",
+          "fr": "Signale un câble tombé au 115 sans t'approcher : reste à au moins 10 mètres.",
+          "pt": "Um cabo caído se reporta ao 115 sem se aproximar: mantenha no mínimo 10 metros de distância."
+        }
+      ],
+      "fallback": {
+        "es": "Para lo último, consulta afinia.com.co, acuacar.com y surtigas.com.co.",
+        "en": "For the latest, check afinia.com.co, acuacar.com and surtigas.com.co.",
+        "fr": "Pour les dernières infos, consulte afinia.com.co, acuacar.com et surtigas.com.co.",
+        "pt": "Para o mais recente, consulte afinia.com.co, acuacar.com e surtigas.com.co."
+      },
+      "future": {
+        "es": "Si alguna de estas empresas habilitara un canal digital con AMO (como los que ya tienen Punto de Pago o SuperGiros con Transcaribe), este módulo lo diría aquí. Hoy no existe ningún acuerdo.",
+        "en": "If any of these utilities enabled a digital channel with AMO (like the ones Punto de Pago or SuperGiros already run for Transcaribe), this module would say so here. Today no agreement exists.",
+        "fr": "Si l'une de ces entreprises ouvrait un canal numérique avec AMO (comme ceux de Punto de Pago ou SuperGiros pour Transcaribe), ce module le dirait ici. Aujourd'hui, aucun accord n'existe.",
+        "pt": "Se alguma dessas empresas habilitasse um canal digital com a AMO (como os que Punto de Pago ou SuperGiros já operam para o Transcaribe), este módulo diria isso aqui. Hoje não existe nenhum acordo."
+      },
+      "luna": {
+        "amo_sells": false,
+        "triggers": [
+          "se fue la luz", "corte de luz", "apagón", "apagon", "power outage", "blackout",
+          "sin luz", "no hay luz", "afinia", "aguas de cartagena", "acuacar", "surtigas",
+          "fuga de agua", "water leak", "sin agua", "no hay agua", "olor a gas", "gas leak",
+          "fuga de gas", "recibo de la luz", "recibo del agua", "factura de energía",
+          "factura de energia", "pagar el gas"
+        ],
+        "facts_es": [
+          "Energía en Cartagena = Afinia (Grupo EPM): daños a la línea 115 o Afiniapp; conmutador (605) 650 2120 (fuente: afinia.com.co, verificado 2026-10-15).",
+          "Acueducto/alcantarillado = Aguas de Cartagena: call center 116 desde fijo, PBX (605) 693 2770, daños y fugas en acuacar.com (verificado 2026-10-15).",
+          "Gas natural = Surtigas: línea de emergencias 164 (VERIFY — confirma en surtigas.com.co). Si huele a gas: no encender nada, ventilar, salir y llamar desde afuera."
+        ],
+        "decline_line_es": "AMO no recauda facturas de servicios: paga directamente con Afinia, Aguas de Cartagena o Surtigas por sus canales oficiales.",
+        "decline_line_en": "AMO doesn't collect utility bills: pay Afinia, Aguas de Cartagena or Surtigas directly through their official channels.",
+        "decline_line_fr": "AMO n'encaisse pas les factures de services : paie directement Afinia, Aguas de Cartagena ou Surtigas via leurs canaux officiels.",
+        "decline_line_pt": "A AMO não recebe faturas de serviços: pague diretamente à Afinia, Aguas de Cartagena ou Surtigas pelos canais oficiais.",
+        "redirect_to": "https://www.afinia.com.co/"
+      },
+      "research_notes": "2026-10-15: afinia.com.co read live (115 'Línea para reportar daños', conmutador 6056502120 displayed [tel: link shows 6506502000 mismatch — displayed number used], Afiniapp, coverage Bolívar/Córdoba/Sucre/Cesar+11 Magdalena). acuacar.com read live (116 desde fijo, PBX 605 6932770, móvil 605 6943337, reportar-danos URL, office Torices Chambacú). surtigas.com.co = HTTP 403 from US egress (WAF/geo) → 164 kept VERIFY on El Universal 2022-03-29 (which reports 164 as their line, temporarily down then, alterno 018000 910 164). Upgrade 164 to HIGH only after reading the official site (works from Colombia).",
+      "image": null
+    },
+    {
+      "id": "migracion-colombia",
+      "order": 103,
+      "icon": "airplane",
+      "status": "info",
+      "status_reason": {
+        "es": "Migración Colombia es la autoridad migratoria del Estado. AMO no tramita visas ni prórrogas: te informa el canal oficial y el costo publicado.",
+        "en": "Migración Colombia is the State's migration authority. AMO doesn't process visas or extensions: it shows you the official channel and the published cost.",
+        "fr": "Migración Colombia est l'autorité migratoire de l'État. AMO ne traite ni visas ni prolongations : elle t'indique le canal officiel et le tarif publié.",
+        "pt": "A Migración Colombia é a autoridade migratória do Estado. A AMO não tramita vistos nem prorrogações: informa o canal oficial e o custo publicado."
+      },
+      "title": {
+        "es": "Migración Colombia (turistas)",
+        "en": "Migración Colombia (visitors)",
+        "fr": "Migración Colombia (visiteurs)",
+        "pt": "Migración Colombia (turistas)"
+      },
+      "tagline": {
+        "es": "Prórroga de permanencia 100% virtual: COP 143.000, resuelve en ~3 días hábiles.",
+        "en": "Stay extension is 100% online: COP 143,000, resolved in ~3 business days.",
+        "fr": "Prolongation de séjour 100 % en ligne : 143 000 COP, réponse sous ~3 jours ouvrés.",
+        "pt": "Prorrogação de permanência 100% virtual: COP 143.000, resolve em ~3 dias úteis."
+      },
+      "summary": {
+        "es": "Si entraste como turista con un Permiso de Ingreso y Permanencia (PIP) y quieres quedarte más tiempo, el trámite se llama Permiso Temporal de Permanencia para prorrogar permanencia: es 100% virtual en el portal de Migración Colombia, cuesta COP 143.000 (tarifa general publicada) y resuelve en unos 3 días hábiles. El tope de estadía como turista es 180 días por año calendario. Hazlo antes de que venza tu permiso: quedarse de más puede generar sanciones. Para viajes aéreos también existe el formulario Check-Mig, que se diligencia gratis en el portal oficial entre 72 y 1 hora antes del vuelo.",
+        "en": "If you entered as a tourist with an Entry and Stay Permit (PIP) and want to stay longer, the procedure is the Temporary Stay Permit to extend your stay: it is 100% online on Migración Colombia's portal, costs COP 143,000 (published general fee) and resolves in about 3 business days. The tourist cap is 180 days per calendar year. Do it before your permit expires: overstaying can bring penalties. For air travel there is also the Check-Mig form, filled in free on the official portal between 72 and 1 hour before your flight.",
+        "fr": "Si tu es entré comme touriste avec un permis d'entrée et de séjour (PIP) et que tu veux rester plus longtemps, la démarche s'appelle Permiso Temporal de Permanencia (prolongation de séjour) : 100 % en ligne sur le portail de Migración Colombia, 143 000 COP (tarif général publié), réponse sous environ 3 jours ouvrés. Le plafond touriste est de 180 jours par année civile. Fais-le avant l'expiration de ton permis : dépasser peut entraîner des sanctions. Pour les voyages aériens, il y a aussi le formulaire Check-Mig, gratuit sur le portail officiel, à remplir entre 72 h et 1 h avant le vol.",
+        "pt": "Se você entrou como turista com um Permiso de Ingreso y Permanencia (PIP) e quer ficar mais tempo, o trâmite se chama Permiso Temporal de Permanencia para prorrogar a permanência: é 100% virtual no portal da Migración Colombia, custa COP 143.000 (tarifa geral publicada) e resolve em cerca de 3 dias úteis. O teto de permanência como turista é 180 dias por ano-calendário. Faça antes do vencimento do seu permiso: ficar além pode gerar sanções. Para viagens aéreas também existe o formulário Check-Mig, preenchido grátis no portal oficial entre 72 e 1 hora antes do voo."
+      },
+      "honest_note": {
+        "es": "AMO te informa; el trámite y el pago se hacen solo en el portal oficial de Migración Colombia.",
+        "en": "AMO informs you; the procedure and payment happen only on Migración Colombia's official portal.",
+        "fr": "AMO t'informe ; la démarche et le paiement se font uniquement sur le portail officiel de Migración Colombia.",
+        "pt": "A AMO informa; o trâmite e o pagamento são feitos apenas no portal oficial da Migración Colombia."
+      },
+      "facts": [
+        {
+          "key": "prorroga_ptp",
+          "label": {
+            "es": "Prórroga de permanencia (PTP)",
+            "en": "Stay extension (PTP)",
+            "fr": "Prolongation de séjour (PTP)",
+            "pt": "Prorrogação de permanência (PTP)"
+          },
+          "value_cop": 143000,
+          "value_text": {
+            "es": "COP 143.000 (tarifa general), trámite virtual, resuelve en ~3 días hábiles; para titulares de un PIP vigente.",
+            "en": "COP 143,000 (general fee), online procedure, resolved in ~3 business days; for holders of a valid PIP.",
+            "fr": "143 000 COP (tarif général), démarche en ligne, réponse sous ~3 jours ouvrés ; pour titulaires d'un PIP valide.",
+            "pt": "COP 143.000 (tarifa geral), trâmite virtual, resolve em ~3 dias úteis; para titulares de um PIP vigente."
+          },
+          "confidence": "HIGH",
+          "source_url": "https://portal.migracioncolombia.gov.co/tramites-y-servicios/tramites-generales/prorroga/permiso-temporal-de-permanencia-ptp-/-prorroga",
+          "source_name": "Migración Colombia — trámite \"Permiso Temporal de Permanencia (PTP) / Prórroga\" (tipo: Virtual; tiempo: 3 días hábiles; costo general $143.000 COP)",
+          "source_date": "2026-10-15",
+          "last_verified": "2026-10-15",
+          "note": {
+            "es": "Tope como turista: 180 días (continuos o no) por año calendario. Hay excepciones de costo según nacionalidad — revisa la tabla del trámite.",
+            "en": "Tourist cap: 180 days (continuous or not) per calendar year. Fee exceptions exist by nationality — check the procedure's table.",
+            "fr": "Plafond touriste : 180 jours (continus ou non) par année civile. Des exceptions de tarif existent selon la nationalité — consulte le tableau de la démarche.",
+            "pt": "Teto como turista: 180 dias (contínuos ou não) por ano-calendário. Há exceções de custo por nacionalidade — veja a tabela do trâmite."
+          }
+        },
+        {
+          "key": "checkmig",
+          "label": {
+            "es": "Check-Mig (viajes aéreos)",
+            "en": "Check-Mig (air travel)",
+            "fr": "Check-Mig (voyages aériens)",
+            "pt": "Check-Mig (viagens aéreas)"
+          },
+          "value_cop": 0,
+          "value_text": {
+            "es": "Formulario migratorio gratuito para el control aéreo: se diligencia de 72 h a 1 h antes del viaje; no aplica en pasos terrestres.",
+            "en": "Free migration form for air control: filled in 72 h to 1 h before travel; not required at land crossings.",
+            "fr": "Formulaire migratoire gratuit pour le contrôle aérien : à remplir de 72 h à 1 h avant le voyage ; non requis aux passages terrestres.",
+            "pt": "Formulário migratório gratuito para o controle aéreo: preenchido de 72 h a 1 h antes da viagem; não se aplica em passagens terrestres."
+          },
+          "confidence": "HIGH",
+          "source_url": "https://apps.migracioncolombia.gov.co/pre-registro/",
+          "source_name": "Migración Colombia — Check-Mig (pre-registro oficial); portal: \"puede ser realizado desde 72 horas hasta 1 hora antes del viaje\"",
+          "source_date": "2026-10-15",
+          "last_verified": "2026-10-15",
+          "note": null
+        },
+        {
+          "key": "atencion",
+          "label": {
+            "es": "Atención al ciudadano",
+            "en": "Citizen service",
+            "fr": "Service aux usagers",
+            "pt": "Atendimento ao cidadão"
+          },
+          "value_cop": 0,
+          "value_text": {
+            "es": "Línea gratuita nacional 01 8000 51 55 15; la sede de Cartagena (Centro Facilitador) está en el directorio oficial de puntos de atención.",
+            "en": "Free national line 01 8000 51 55 15; the Cartagena office (Centro Facilitador) is in the official service-points directory.",
+            "fr": "Ligne nationale gratuite 01 8000 51 55 15 ; le bureau de Carthagène (Centro Facilitador) figure dans l'annuaire officiel des points de service.",
+            "pt": "Linha gratuita nacional 01 8000 51 55 15; a sede de Cartagena (Centro Facilitador) está no diretório oficial de pontos de atendimento."
+          },
+          "confidence": "HIGH",
+          "source_url": "https://portal.migracioncolombia.gov.co/atencion-a-la-ciudadania/canales-de-atencion",
+          "source_name": "Migración Colombia — canales de atención (línea gratuita 01 8000 51 55 15)",
+          "source_date": "2026-10-15",
+          "last_verified": "2026-10-15",
+          "note": {
+            "es": "La dirección exacta de la sede de Cartagena se consulta en el directorio oficial — no la publicamos sin verificarla.",
+            "en": "The exact address of the Cartagena office is in the official directory — we don't publish it unverified.",
+            "fr": "L'adresse exacte du bureau de Carthagène se trouve dans l'annuaire officiel — on ne la publie pas sans vérification.",
+            "pt": "O endereço exato da sede de Cartagena está no diretório oficial — não o publicamos sem verificação."
+          }
+        }
+      ],
+      "official_links": [
+        {
+          "label": {
+            "es": "Prórroga de permanencia (trámite oficial)",
+            "en": "Stay extension (official procedure)",
+            "fr": "Prolongation de séjour (démarche officielle)",
+            "pt": "Prorrogação de permanência (trâmite oficial)"
+          },
+          "url": "https://portal.migracioncolombia.gov.co/tramites-y-servicios/tramites-generales/prorroga/permiso-temporal-de-permanencia-ptp-/-prorroga",
+          "kind": "tickets"
+        },
+        {
+          "label": {
+            "es": "Check-Mig (formulario oficial)",
+            "en": "Check-Mig (official form)",
+            "fr": "Check-Mig (formulaire officiel)",
+            "pt": "Check-Mig (formulário oficial)"
+          },
+          "url": "https://apps.migracioncolombia.gov.co/pre-registro/",
+          "kind": "official"
+        },
+        {
+          "label": {
+            "es": "Puntos de atención (directorio oficial)",
+            "en": "Service points (official directory)",
+            "fr": "Points de service (annuaire officiel)",
+            "pt": "Pontos de atendimento (diretório oficial)"
+          },
+          "url": "https://portal.migracioncolombia.gov.co/acerca-de-migracion-colombia/directorios/puntos-de-atencion",
+          "kind": "map"
+        }
+      ],
+      "safety": [
+        {
+          "es": "Haz la prórroga antes de que venza tu permiso: quedarte de más puede generar sanciones económicas.",
+          "en": "Extend before your permit expires: overstaying can bring financial penalties.",
+          "fr": "Prolonge avant l'expiration de ton permis : dépasser peut entraîner des sanctions financières.",
+          "pt": "Prorrogue antes do vencimento do seu permiso: ficar além pode gerar sanções financeiras."
+        },
+        {
+          "es": "El trámite se hace solo en el portal oficial (migracioncolombia.gov.co): no pagues a tramitadores ni a sitios que imitan al oficial.",
+          "en": "The procedure happens only on the official portal (migracioncolombia.gov.co): don't pay fixers or look-alike sites.",
+          "fr": "La démarche se fait uniquement sur le portail officiel (migracioncolombia.gov.co) : ne paie ni intermédiaires ni sites imitant l'officiel.",
+          "pt": "O trâmite é feito só no portal oficial (migracioncolombia.gov.co): não pague despachantes nem sites que imitam o oficial."
+        },
+        {
+          "es": "Lleva tu pasaporte (o copia del sello/PIP) en tus salidas: es tu documento de permanencia legal.",
+          "en": "Carry your passport (or a copy of your stamp/PIP) when out: it is your legal-stay document.",
+          "fr": "Garde ton passeport (ou une copie du tampon/PIP) sur toi : c'est ton justificatif de séjour légal.",
+          "pt": "Leve seu passaporte (ou cópia do carimbo/PIP) ao sair: é seu documento de permanência legal."
+        }
+      ],
+      "fallback": {
+        "es": "Para lo último, consulta migracioncolombia.gov.co.",
+        "en": "For the latest, check migracioncolombia.gov.co.",
+        "fr": "Pour les dernières infos, consulte migracioncolombia.gov.co.",
+        "pt": "Para o mais recente, consulte migracioncolombia.gov.co."
+      },
+      "future": null,
+      "luna": {
+        "amo_sells": false,
+        "triggers": [
+          "migración", "migracion", "immigration", "visa", "prórroga", "prorroga",
+          "extend my stay", "overstay", "180 días", "180 dias", "180 days", "checkmig",
+          "check-mig", "check mig", "permiso de permanencia", "ptp", "pip vencido",
+          "quedarme más tiempo", "quedarme mas tiempo", "stay longer"
+        ],
+        "facts_es": [
+          "La prórroga de permanencia (PTP) para turistas con PIP vigente es 100% virtual en el portal de Migración Colombia: COP 143.000 (tarifa general), resuelve en ~3 días hábiles; tope 180 días por año calendario (fuente oficial, verificado 2026-10-15).",
+          "Check-Mig: formulario gratuito para viajes aéreos, se diligencia de 72 h a 1 h antes del vuelo en apps.migracioncolombia.gov.co/pre-registro; no aplica en pasos terrestres.",
+          "Atención: línea gratuita 01 8000 51 55 15; la sede de Cartagena aparece en el directorio oficial de puntos de atención (AMO no publica la dirección sin verificarla)."
+        ],
+        "decline_line_es": "AMO no tramita visas ni prórrogas: hazlo directo en el portal oficial de Migración Colombia (COP 143.000, virtual).",
+        "decline_line_en": "AMO doesn't process visas or extensions: do it directly on Migración Colombia's official portal (COP 143,000, online).",
+        "decline_line_fr": "AMO ne traite ni visas ni prolongations : fais-le directement sur le portail officiel de Migración Colombia (143 000 COP, en ligne).",
+        "decline_line_pt": "A AMO não tramita vistos nem prorrogações: faça direto no portal oficial da Migración Colombia (COP 143.000, virtual).",
+        "redirect_to": "https://portal.migracioncolombia.gov.co/tramites-y-servicios/tramites-generales/prorroga/permiso-temporal-de-permanencia-ptp-/-prorroga"
+      },
+      "research_notes": "2026-10-15: portal.migracioncolombia.gov.co read live — PTP/prórroga card states Virtual / 3 días hábiles / $143.000 COP general (exceptions table exists); Check-Mig '72 horas hasta 1 hora antes del viaje' + land-crossing exemption; línea gratuita 01 8000 51 55 15. Cartagena CFSM street address NOT published on the page read → deliberately linked to the official puntos-de-atencion directory instead of asserting an address. 180-day cap: stated on the trámite description (PIP/PTP framework).",
+      "image": null
+    },
+    {
+      "id": "comparendos-simit",
+      "order": 104,
+      "icon": "car",
+      "status": "info",
+      "status_reason": {
+        "es": "El SIMIT es el sistema nacional de multas de tránsito, administrado por la Federación Colombiana de Municipios por mandato del art. 10 de la Ley 769 de 2002. En Cartagena el organismo de tránsito es el DATT. AMO no cobra ni gestiona multas.",
+        "en": "SIMIT is the national traffic-fine system, run by the Colombian Federation of Municipalities under art. 10 of Law 769 of 2002. Cartagena's transit authority is the DATT. AMO neither collects nor manages fines.",
+        "fr": "Le SIMIT est le système national des amendes de circulation, géré par la Fédération colombienne des municipalités selon l'art. 10 de la loi 769 de 2002. À Carthagène, l'autorité de transit est le DATT. AMO n'encaisse ni ne gère d'amendes.",
+        "pt": "O SIMIT é o sistema nacional de multas de trânsito, administrado pela Federação Colombiana de Municípios pelo art. 10 da Lei 769 de 2002. Em Cartagena, o órgão de trânsito é o DATT. A AMO não cobra nem gerencia multas."
+      },
+      "title": {
+        "es": "Multas y comparendos (SIMIT)",
+        "en": "Traffic fines (SIMIT)",
+        "fr": "Amendes de circulation (SIMIT)",
+        "pt": "Multas de trânsito (SIMIT)"
+      },
+      "tagline": {
+        "es": "Consulta y paga comparendos de cualquier municipio en el portal nacional SIMIT.",
+        "en": "Check and pay fines from any municipality on the national SIMIT portal.",
+        "fr": "Consulte et paie les amendes de n'importe quelle commune sur le portail national SIMIT.",
+        "pt": "Consulte e pague multas de qualquer município no portal nacional SIMIT."
+      },
+      "summary": {
+        "es": "Si conduces en Colombia (carro propio, alquilado o moto), las multas de tránsito de todo el país se consultan en un solo lugar: el SIMIT, administrado por la Federación Colombiana de Municipios. Entras con tu cédula, pasaporte o placa y ves si tienes comparendos pendientes en cualquier municipio. El pago se hace en el mismo portal o en los canales que este indique. En Cartagena, el organismo de tránsito local es el DATT: allí se hacen los cursos pedagógicos que dan descuento por pronto pago según el Código Nacional de Tránsito — confirma plazos y porcentajes vigentes en el portal antes de pagar.",
+        "en": "If you drive in Colombia (your own car, a rental or a motorbike), traffic fines nationwide are checked in one place: SIMIT, run by the Colombian Federation of Municipalities. Enter your ID, passport or plate and see pending fines from any municipality. Payment happens on the same portal or through the channels it lists. In Cartagena the local transit authority is the DATT: that's where the course that earns an early-payment discount under the National Transit Code is taken — confirm current deadlines and percentages on the portal before paying.",
+        "fr": "Si tu conduis en Colombie (voiture personnelle, de location ou moto), les amendes de tout le pays se consultent au même endroit : le SIMIT, géré par la Fédération colombienne des municipalités. Entre ta pièce d'identité, ton passeport ou ta plaque et vois les amendes en attente dans n'importe quelle commune. Le paiement se fait sur le même portail ou via les canaux indiqués. À Carthagène, l'autorité locale est le DATT : c'est là que se suit le cours qui donne droit à la réduction pour paiement rapide selon le Code national de la route — confirme délais et pourcentages en vigueur sur le portail avant de payer.",
+        "pt": "Se você dirige na Colômbia (carro próprio, alugado ou moto), as multas de trânsito de todo o país se consultam num só lugar: o SIMIT, administrado pela Federação Colombiana de Municípios. Entre com seu documento, passaporte ou placa e veja multas pendentes em qualquer município. O pagamento é feito no mesmo portal ou nos canais que ele indicar. Em Cartagena, o órgão de trânsito local é o DATT: lá se faz o curso pedagógico que dá desconto por pagamento rápido segundo o Código Nacional de Trânsito — confirme prazos e percentuais vigentes no portal antes de pagar."
+      },
+      "honest_note": {
+        "es": "AMO te informa; las multas se consultan y pagan solo en el SIMIT o con el organismo de tránsito. AMO nunca cobra multas.",
+        "en": "AMO informs you; fines are checked and paid only on SIMIT or with the transit authority. AMO never collects fines.",
+        "fr": "AMO t'informe ; les amendes se consultent et se paient uniquement sur le SIMIT ou auprès de l'autorité de transit. AMO n'encaisse jamais d'amendes.",
+        "pt": "A AMO informa; as multas se consultam e pagam só no SIMIT ou com o órgão de trânsito. A AMO nunca cobra multas."
+      },
+      "facts": [
+        {
+          "key": "simit_portal",
+          "label": {
+            "es": "Portal nacional de multas",
+            "en": "National fines portal",
+            "fr": "Portail national des amendes",
+            "pt": "Portal nacional de multas"
+          },
+          "value_cop": null,
+          "value_text": {
+            "es": "SIMIT (fcm.org.co/simit): consulta por cédula, pasaporte o placa las multas de cualquier municipio del país.",
+            "en": "SIMIT (fcm.org.co/simit): check fines from any municipality by ID, passport or plate.",
+            "fr": "SIMIT (fcm.org.co/simit) : consulte les amendes de n'importe quelle commune par pièce d'identité, passeport ou plaque.",
+            "pt": "SIMIT (fcm.org.co/simit): consulte multas de qualquer município por documento, passaporte ou placa."
+          },
+          "confidence": "HIGH",
+          "source_url": "https://fcm.org.co/simit/",
+          "source_name": "Federación Colombiana de Municipios — SIMIT (sistema creado por el art. 10 de la Ley 769 de 2002, Código Nacional de Tránsito)",
+          "source_date": "2026-10-15",
+          "last_verified": "2026-10-15",
+          "note": {
+            "es": "Verifica siempre que el dominio sea fcm.org.co antes de pagar.",
+            "en": "Always verify the domain is fcm.org.co before paying.",
+            "fr": "Vérifie toujours que le domaine est fcm.org.co avant de payer.",
+            "pt": "Sempre verifique que o domínio é fcm.org.co antes de pagar."
+          }
+        },
+        {
+          "key": "pago_descuentos",
+          "label": {
+            "es": "Pago y descuentos",
+            "en": "Payment & discounts",
+            "fr": "Paiement et réductions",
+            "pt": "Pagamento e descontos"
+          },
+          "value_cop": null,
+          "value_text": {
+            "es": "Pago en línea (PSE) o bancos aliados; el curso pedagógico da descuento por pronto pago — plazos y porcentajes según el Código Nacional de Tránsito, confírmalos en el portal.",
+            "en": "Pay online (PSE) or at partner banks; the road-safety course earns an early-payment discount — deadlines and percentages per the National Transit Code, confirm them on the portal.",
+            "fr": "Paiement en ligne (PSE) ou banques partenaires ; le cours de sécurité routière donne une réduction pour paiement rapide — délais et pourcentages selon le Code national, confirme-les sur le portail.",
+            "pt": "Pagamento online (PSE) ou bancos parceiros; o curso pedagógico dá desconto por pagamento rápido — prazos e percentuais pelo Código Nacional de Trânsito, confirme no portal."
+          },
+          "confidence": "VERIFY",
+          "source_url": "https://fcm.org.co/simit/",
+          "source_name": "Prensa y guías (2023–2025) sobre el flujo de pago del SIMIT; mecánica exacta no leída hoy en la fuente oficial",
+          "source_date": "2025-01-01",
+          "last_verified": "2026-10-15",
+          "note": {
+            "es": "No publicamos porcentajes de descuento sin leerlos en la fuente oficial vigente: confírmalos en el SIMIT o el DATT.",
+            "en": "We don't publish discount percentages without reading them in the current official source: confirm on SIMIT or at the DATT.",
+            "fr": "On ne publie pas de pourcentages de réduction sans les lire dans la source officielle en vigueur : confirme-les sur le SIMIT ou au DATT.",
+            "pt": "Não publicamos percentuais de desconto sem lê-los na fonte oficial vigente: confirme no SIMIT ou no DATT."
+          }
+        },
+        {
+          "key": "datt_cartagena",
+          "label": {
+            "es": "Organismo de tránsito local",
+            "en": "Local transit authority",
+            "fr": "Autorité locale de transit",
+            "pt": "Órgão de trânsito local"
+          },
+          "value_cop": null,
+          "value_text": {
+            "es": "En Cartagena es el DATT (transitocartagena.gov.co): cursos pedagógicos, acuerdos de pago y atención presencial.",
+            "en": "In Cartagena it's the DATT (transitocartagena.gov.co): road-safety courses, payment plans and in-person service.",
+            "fr": "À Carthagène, c'est le DATT (transitocartagena.gov.co) : cours de sécurité routière, plans de paiement et accueil physique.",
+            "pt": "Em Cartagena é o DATT (transitocartagena.gov.co): cursos pedagógicos, acordos de pagamento e atendimento presencial."
+          },
+          "confidence": "VERIFY",
+          "source_url": "https://www.transitocartagena.gov.co/",
+          "source_name": "DATT Cartagena — sitio oficial (responde 403 desde fuera de Colombia al verificar hoy; opera normal dentro del país)",
+          "source_date": "2026-10-15",
+          "last_verified": "2026-10-15",
+          "note": {
+            "es": "Las tarifas de taxi del DATT viven en el módulo Taxis de Moverse (Decreto 0051 de 2026).",
+            "en": "The DATT's taxi fares live in the Taxis module of Getting Around (Decree 0051 of 2026).",
+            "fr": "Les tarifs de taxi du DATT sont dans le module Taxis de « Se déplacer » (décret 0051 de 2026).",
+            "pt": "As tarifas de táxi do DATT estão no módulo Táxis de Moverse (Decreto 0051 de 2026)."
+          }
+        }
+      ],
+      "official_links": [
+        {
+          "label": {
+            "es": "SIMIT — consulta y pago (oficial)",
+            "en": "SIMIT — check & pay (official)",
+            "fr": "SIMIT — consultation et paiement (officiel)",
+            "pt": "SIMIT — consulta e pagamento (oficial)"
+          },
+          "url": "https://fcm.org.co/simit/",
+          "kind": "tickets"
+        },
+        {
+          "label": {
+            "es": "DATT Cartagena (sitio oficial)",
+            "en": "DATT Cartagena (official site)",
+            "fr": "DATT Carthagène (site officiel)",
+            "pt": "DATT Cartagena (site oficial)"
+          },
+          "url": "https://www.transitocartagena.gov.co/",
+          "kind": "official"
+        }
+      ],
+      "safety": [
+        {
+          "es": "Paga solo en el portal SIMIT o bancos aliados: nunca a intermediarios o \"gestores\" en la vía.",
+          "en": "Pay only on the SIMIT portal or partner banks: never to middlemen or street \"fixers\".",
+          "fr": "Paie uniquement sur le portail SIMIT ou dans les banques partenaires : jamais à des intermédiaires dans la rue.",
+          "pt": "Pague só no portal SIMIT ou bancos parceiros: nunca a intermediários ou \"despachantes\" na rua."
+        },
+        {
+          "es": "Quien promete \"borrar\" una multa por fuera del sistema es una estafa: el SIMIT es el único registro nacional.",
+          "en": "Anyone promising to \"erase\" a fine outside the system is a scam: SIMIT is the only national registry.",
+          "fr": "Quiconque promet d'« effacer » une amende hors du système est une arnaque : le SIMIT est le seul registre national.",
+          "pt": "Quem promete \"apagar\" uma multa fora do sistema é golpe: o SIMIT é o único registro nacional."
+        },
+        {
+          "es": "Si alquilas carro o moto, consulta la placa en el SIMIT antes de devolverlo: evita sorpresas con la franquicia.",
+          "en": "If you rent a car or bike, check the plate on SIMIT before returning it: avoid deposit surprises.",
+          "fr": "Si tu loues une voiture ou une moto, consulte la plaque sur le SIMIT avant de la rendre : évite les surprises de caution.",
+          "pt": "Se alugar carro ou moto, consulte a placa no SIMIT antes de devolver: evite surpresas com a caução."
+        }
+      ],
+      "fallback": {
+        "es": "Para lo último, consulta fcm.org.co/simit y transitocartagena.gov.co.",
+        "en": "For the latest, check fcm.org.co/simit and transitocartagena.gov.co.",
+        "fr": "Pour les dernières infos, consulte fcm.org.co/simit et transitocartagena.gov.co.",
+        "pt": "Para o mais recente, consulte fcm.org.co/simit e transitocartagena.gov.co."
+      },
+      "future": null,
+      "luna": {
+        "amo_sells": false,
+        "triggers": [
+          "comparendo", "comparendos", "multa", "multas", "simit", "fotomulta", "fotomultas",
+          "traffic fine", "traffic ticket", "speeding ticket", "datt", "me multaron",
+          "pagar una multa", "pay a fine"
+        ],
+        "facts_es": [
+          "Las multas de tránsito de TODO el país se consultan y pagan en el SIMIT (fcm.org.co/simit), administrado por la Federación Colombiana de Municipios (art. 10, Ley 769 de 2002). Consulta por cédula, pasaporte o placa (verificado 2026-10-15).",
+          "El curso pedagógico da descuento por pronto pago según el Código Nacional de Tránsito — porcentajes y plazos se confirman en el portal o el DATT (VERIFY: no citar cifras exactas).",
+          "En Cartagena el organismo de tránsito es el DATT (transitocartagena.gov.co). AMO nunca cobra ni gestiona multas; quien promete 'borrarlas' es estafa."
+        ],
+        "decline_line_es": "AMO no gestiona ni cobra multas: consúltalas y págalas solo en el SIMIT (fcm.org.co/simit) o con el DATT.",
+        "decline_line_en": "AMO doesn't manage or collect fines: check and pay them only on SIMIT (fcm.org.co/simit) or with the DATT.",
+        "decline_line_fr": "AMO ne gère ni n'encaisse d'amendes : consulte-les et paie-les uniquement sur le SIMIT (fcm.org.co/simit) ou auprès du DATT.",
+        "decline_line_pt": "A AMO não gerencia nem cobra multas: consulte e pague só no SIMIT (fcm.org.co/simit) ou no DATT.",
+        "redirect_to": "https://fcm.org.co/simit/"
+      },
+      "research_notes": "2026-10-15: fcm.org.co/simit reached (JS shell; title 'Simit | Federación Colombiana de Municipios' confirms portal + owner). Legal basis art. 10 Ley 769/2002 (CNT) — well-established statute. Payment mechanics (PSE/banks) + discount percentages from press guides only → VERIFY, and the data deliberately refuses to state 50%/25% figures without reading the current official text (art. 136 CNT has been amended; confirm before ever publishing numbers). DATT site geo-403 from US egress like transitocartagena links in the taxis module — documented acceptable (works in Colombia).",
+      "image": null
+    },
+    {
+      "id": "tramites-estado",
+      "order": 105,
+      "icon": "document-text",
+      "status": "info",
+      "status_reason": {
+        "es": "GOV.CO es el portal único del Estado colombiano y la Alcaldía de Cartagena es la autoridad distrital. AMO es un canal privado de información, alineado con los canales oficiales — no es una entidad pública ni tramita por ti.",
+        "en": "GOV.CO is the Colombian State's single portal and the Alcaldía de Cartagena is the district authority. AMO is a private information channel, aligned with the official channels — it is not a public entity and doesn't file procedures for you.",
+        "fr": "GOV.CO est le portail unique de l'État colombien et la mairie de Carthagène est l'autorité du district. AMO est un canal privé d'information, aligné sur les canaux officiels — ce n'est pas une entité publique et elle ne fait pas les démarches à ta place.",
+        "pt": "GOV.CO é o portal único do Estado colombiano e a Alcaldía de Cartagena é a autoridade distrital. A AMO é um canal privado de informação, alinhado aos canais oficiais — não é entidade pública nem tramita por você."
+      },
+      "title": {
+        "es": "Trámites oficiales (GOV.CO y Alcaldía)",
+        "en": "Official procedures (GOV.CO & City Hall)",
+        "fr": "Démarches officielles (GOV.CO et mairie)",
+        "pt": "Trâmites oficiais (GOV.CO e prefeitura)"
+      },
+      "tagline": {
+        "es": "Más de 78.000 trámites del Estado en un solo portal: www.gov.co. Lo distrital, en cartagena.gov.co.",
+        "en": "78,000+ State procedures on one portal: www.gov.co. District matters at cartagena.gov.co.",
+        "fr": "Plus de 78 000 démarches de l'État sur un seul portail : www.gov.co. Le district : cartagena.gov.co.",
+        "pt": "Mais de 78.000 trâmites do Estado num só portal: www.gov.co. O distrital, em cartagena.gov.co."
+      },
+      "summary": {
+        "es": "Para casi cualquier trámite con el Estado colombiano, el punto de partida es GOV.CO: el portal único reúne más de 78.000 trámites del Gobierno de Colombia — ahí verificas requisitos, costos oficiales y el canal correcto antes de moverte. Para lo distrital (impuestos locales, PQRS, atención al ciudadano), el sitio oficial es cartagena.gov.co. Regla de oro en la calle: ningún trámite estatal se paga a intermediarios; si alguien te ofrece \"agilizarlo\" por un pago en efectivo, es una estafa.",
+        "en": "For almost any procedure with the Colombian State, the starting point is GOV.CO: the single portal gathers more than 78,000 Government of Colombia procedures — check requirements, official costs and the right channel there before moving. For district matters (local taxes, PQRS, citizen service), the official site is cartagena.gov.co. Golden street rule: no State procedure is paid to middlemen; anyone offering to \"speed it up\" for cash is a scam.",
+        "fr": "Pour presque toute démarche avec l'État colombien, le point de départ est GOV.CO : le portail unique réunit plus de 78 000 démarches du gouvernement — vérifies-y les conditions, les coûts officiels et le bon canal avant de bouger. Pour le district (impôts locaux, PQRS, accueil citoyen), le site officiel est cartagena.gov.co. Règle d'or dans la rue : aucune démarche d'État ne se paie à des intermédiaires ; qui propose de « l'accélérer » contre du liquide, c'est une arnaque.",
+        "pt": "Para quase qualquer trâmite com o Estado colombiano, o ponto de partida é o GOV.CO: o portal único reúne mais de 78.000 trâmites do Governo da Colômbia — verifique lá requisitos, custos oficiais e o canal correto antes de se mover. Para o distrital (impostos locais, PQRS, atendimento ao cidadão), o site oficial é cartagena.gov.co. Regra de ouro na rua: nenhum trâmite estatal se paga a intermediários; quem oferece \"agilizar\" por dinheiro é golpe."
+      },
+      "honest_note": {
+        "es": "AMO te informa; cada trámite se hace y se paga solo en el canal oficial de la entidad que lo presta.",
+        "en": "AMO informs you; each procedure is filed and paid only through the official channel of the entity that runs it.",
+        "fr": "AMO t'informe ; chaque démarche se fait et se paie uniquement via le canal officiel de l'entité qui la gère.",
+        "pt": "A AMO informa; cada trâmite é feito e pago só no canal oficial da entidade responsável."
+      },
+      "facts": [
+        {
+          "key": "govco_portal",
+          "label": {
+            "es": "Portal único del Estado",
+            "en": "The State's single portal",
+            "fr": "Portail unique de l'État",
+            "pt": "Portal único do Estado"
+          },
+          "value_cop": null,
+          "value_text": {
+            "es": "GOV.CO reúne más de 78.000 trámites del Gobierno de Colombia en www.gov.co.",
+            "en": "GOV.CO gathers more than 78,000 Government of Colombia procedures at www.gov.co.",
+            "fr": "GOV.CO réunit plus de 78 000 démarches du gouvernement colombien sur www.gov.co.",
+            "pt": "O GOV.CO reúne mais de 78.000 trâmites do Governo da Colômbia em www.gov.co."
+          },
+          "confidence": "HIGH",
+          "source_url": "https://www.gov.co/",
+          "source_name": "GOV.CO — \"Más de 78.000 trámites del Gobierno de Colombia\" (portal oficial)",
+          "source_date": "2026-10-15",
+          "last_verified": "2026-10-15",
+          "note": null
+        },
+        {
+          "key": "alcaldia_cartagena",
+          "label": {
+            "es": "Alcaldía de Cartagena",
+            "en": "Cartagena City Hall",
+            "fr": "Mairie de Carthagène",
+            "pt": "Prefeitura de Cartagena"
+          },
+          "value_cop": null,
+          "value_text": {
+            "es": "Sitio oficial cartagena.gov.co: PQRS, atención al ciudadano y trámites distritales. Desde fuera de Colombia puede no cargar; dentro del país opera normal.",
+            "en": "Official site cartagena.gov.co: PQRS, citizen service and district procedures. It may not load from outside Colombia; inside the country it works normally.",
+            "fr": "Site officiel cartagena.gov.co : PQRS, accueil citoyen et démarches du district. Il peut ne pas charger hors de Colombie ; dans le pays, il fonctionne normalement.",
+            "pt": "Site oficial cartagena.gov.co: PQRS, atendimento ao cidadão e trâmites distritais. De fora da Colômbia pode não carregar; dentro do país opera normal."
+          },
+          "confidence": "VERIFY",
+          "source_url": "https://www.cartagena.gov.co/",
+          "source_name": "Alcaldía Mayor de Cartagena de Indias — sitio oficial (responde 403 desde fuera de Colombia al verificar hoy)",
+          "source_date": "2026-10-15",
+          "last_verified": "2026-10-15",
+          "note": {
+            "es": "Los canales exactos de PQRS y horarios se confirman en el propio sitio o en los puntos de atención distritales.",
+            "en": "Exact PQRS channels and hours are confirmed on the site itself or at district service points.",
+            "fr": "Les canaux PQRS exacts et les horaires se confirment sur le site même ou aux points d'accueil du district.",
+            "pt": "Os canais exatos de PQRS e horários se confirmam no próprio site ou nos pontos de atendimento distritais."
+          }
+        }
+      ],
+      "official_links": [
+        {
+          "label": {
+            "es": "GOV.CO — trámites del Estado (oficial)",
+            "en": "GOV.CO — State procedures (official)",
+            "fr": "GOV.CO — démarches de l'État (officiel)",
+            "pt": "GOV.CO — trâmites do Estado (oficial)"
+          },
+          "url": "https://www.gov.co/",
+          "kind": "official"
+        },
+        {
+          "label": {
+            "es": "Alcaldía de Cartagena (sitio oficial)",
+            "en": "Alcaldía de Cartagena (official site)",
+            "fr": "Mairie de Carthagène (site officiel)",
+            "pt": "Prefeitura de Cartagena (site oficial)"
+          },
+          "url": "https://www.cartagena.gov.co/",
+          "kind": "official"
+        }
+      ],
+      "safety": [
+        {
+          "es": "Ningún trámite estatal se paga a tramitadores en la calle: los pagos oficiales van por bancos o PSE.",
+          "en": "No State procedure is paid to street fixers: official payments go through banks or PSE.",
+          "fr": "Aucune démarche d'État ne se paie à des intermédiaires dans la rue : les paiements officiels passent par les banques ou PSE.",
+          "pt": "Nenhum trâmite estatal se paga a despachantes na rua: os pagamentos oficiais vão por bancos ou PSE."
+        },
+        {
+          "es": "Verifica que el dominio termine en .gov.co antes de ingresar datos o pagar: hay sitios que imitan a los oficiales.",
+          "en": "Check the domain ends in .gov.co before entering data or paying: look-alike sites exist.",
+          "fr": "Vérifie que le domaine se termine par .gov.co avant de saisir des données ou payer : des sites imitateurs existent.",
+          "pt": "Verifique que o domínio termina em .gov.co antes de inserir dados ou pagar: existem sites que imitam os oficiais."
+        }
+      ],
+      "fallback": {
+        "es": "Para lo último, consulta www.gov.co y cartagena.gov.co.",
+        "en": "For the latest, check www.gov.co and cartagena.gov.co.",
+        "fr": "Pour les dernières infos, consulte www.gov.co et cartagena.gov.co.",
+        "pt": "Para o mais recente, consulte www.gov.co e cartagena.gov.co."
+      },
+      "future": {
+        "es": "Si la ciudad habilitara un canal digital oficial con AMO, este módulo lo diría aquí con su acuerdo firmado. Hoy AMO informa y nada más — ninguna entidad ha adoptado un canal de pago con AMO.",
+        "en": "If the city enabled an official digital channel with AMO, this module would say so here with the signed agreement. Today AMO informs and nothing more — no entity has adopted a payment channel with AMO.",
+        "fr": "Si la ville ouvrait un canal numérique officiel avec AMO, ce module le dirait ici avec l'accord signé. Aujourd'hui AMO informe, rien de plus — aucune entité n'a adopté de canal de paiement avec AMO.",
+        "pt": "Se a cidade habilitasse um canal digital oficial com a AMO, este módulo diria isso aqui com o acordo assinado. Hoje a AMO informa e nada mais — nenhuma entidade adotou um canal de pagamento com a AMO."
+      },
+      "luna": {
+        "amo_sells": false,
+        "triggers": [
+          "trámite", "tramite", "trámites", "tramites", "gov.co", "govco", "alcaldía",
+          "alcaldia", "pqrs", "city hall", "ventanilla", "impuesto predial", "paz y salvo",
+          "certificado", "antecedentes"
+        ],
+        "facts_es": [
+          "GOV.CO (www.gov.co) es el portal único del Estado: más de 78.000 trámites del Gobierno de Colombia — requisitos, costos oficiales y canal correcto (verificado 2026-10-15).",
+          "Lo distrital (PQRS, atención al ciudadano, impuestos locales) va en cartagena.gov.co, el sitio oficial de la Alcaldía (puede no cargar desde fuera de Colombia; dentro del país opera normal).",
+          "Ningún trámite estatal se paga a tramitadores: pagos oficiales solo por bancos/PSE, dominios .gov.co. AMO es un canal privado de información, no una entidad pública."
+        ],
+        "decline_line_es": "AMO no tramita ni cobra trámites del Estado: empieza en www.gov.co (o cartagena.gov.co para lo distrital).",
+        "decline_line_en": "AMO doesn't file or charge State procedures: start at www.gov.co (or cartagena.gov.co for district matters).",
+        "decline_line_fr": "AMO ne traite ni n'encaisse les démarches de l'État : commence sur www.gov.co (ou cartagena.gov.co pour le district).",
+        "decline_line_pt": "A AMO não tramita nem cobra trâmites do Estado: comece em www.gov.co (ou cartagena.gov.co para o distrital).",
+        "redirect_to": "https://www.gov.co/"
+      },
+      "research_notes": "2026-10-15: www.gov.co reached — page title 'Más de 78.000 trámites del Gobierno de Colombia | GOV.CO' is the portal's own claim → HIGH for the portal fact. cartagena.gov.co = 403 from US egress (same Cloudflare geo-wall documented for 27/114 links in the transport modules) → the alcaldía fact is VERIFY with the geo-block stated honestly in user-facing copy; no PQRS URL or office address asserted without reading it. Gov-vision framing applied in status_reason ('canal privado de información, alineado con los canales oficiales') per the standing rule: never 'programa del gobierno', no seals.",
+      "image": null
+    }
+  ]
+}

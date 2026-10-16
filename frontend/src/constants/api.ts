@@ -78,6 +78,7 @@ export const PUBLIC_GET_NO_AUTH = new RegExp(
     'transport',
     'city-pass/plans',
     'city/modules(/[^/?]+)?',
+    'city/services(/[^/?]+)?',
     'promotions/today',
     'venues(/[^/?]+)?',
     'emergency-contacts',

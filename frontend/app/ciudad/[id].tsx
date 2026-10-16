@@ -20,8 +20,8 @@ import { useLang } from '../../src/context/LanguageContext';
 import { useTr } from '../../src/i18n/autoTr';
 import { goHome as navHome, goBackOr } from '../../src/lib/nav';
 import {
-  CityModulesPayload, CityLink, LINK_ICONS, getCachedCityModules, loadCityModules,
-  openExternal, pickL, sortLinksByPriority,
+  CityModulesPayload, CityLink, LINK_ICONS, getCachedCityModules, getCachedCityServices,
+  loadCityModules, loadCityServices, openExternal, pickL, sortLinksByPriority,
 } from '../../src/lib/cityModules';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -42,6 +42,7 @@ export default function CiudadDetailScreen() {
   const { lang } = useLang();
   const tr = useTr();
   const [payload, setPayload] = useState<CityModulesPayload | null>(getCachedCityModules());
+  const [services, setServices] = useState<CityModulesPayload | null>(getCachedCityServices());
   const [loading, setLoading] = useState<boolean>(!getCachedCityModules());
   const [failed, setFailed] = useState(false);
 
@@ -57,20 +58,21 @@ export default function CiudadDetailScreen() {
   const load = useCallback(async (force = false) => {
     setFailed(false);
     // Fallback-first: a screen that already holds the cached payload never drops
-    // back into the skeleton, even on a forced refresh.
-    setLoading(!getCachedCityModules());
-    try {
-      setPayload(await loadCityModules(force));
-    } catch (e) {
-      console.error('[CiudadDetail]', e);
-      setFailed(true);
-    } finally {
-      setLoading(false);
-    }
+    // back into the skeleton, even on a forced refresh. Both files load in
+    // parallel; the screen only fails when NEITHER could be read (a service id
+    // must not die because the transport fetch hiccuped, and vice versa).
+    setLoading(!getCachedCityModules() && !getCachedCityServices());
+    const [mods, svcs] = await Promise.allSettled([loadCityModules(force), loadCityServices(force)]);
+    if (mods.status === 'fulfilled') setPayload(mods.value);
+    else console.error('[CiudadDetail]', mods.reason);
+    if (svcs.status === 'fulfilled') setServices(svcs.value);
+    else console.error('[CiudadDetail] services', svcs.reason);
+    if (mods.status === 'rejected' && svcs.status === 'rejected') setFailed(true);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
-    if (!getCachedCityModules()) load();
+    if (!getCachedCityModules() || !getCachedCityServices()) load();
   }, [load]);
 
   useEffect(() => {
@@ -81,10 +83,12 @@ export default function CiudadDetailScreen() {
     setFutureOpen(false);
   }, [id]);
 
-  const mod = useMemo(
-    () => payload?.modules.find((m) => m.id === String(id || '')) || null,
-    [payload, id],
-  );
+  const mod = useMemo(() => {
+    const key = String(id || '');
+    return payload?.modules.find((m) => m.id === key)
+      || services?.modules.find((m) => m.id === key)
+      || null;
+  }, [payload, services, id]);
 
   const toggleFact = useCallback((key: string) => {
     setOpenFacts((prev) => {
@@ -416,7 +420,11 @@ export default function CiudadDetailScreen() {
             <View style={styles.footerRow}>
               <Ionicons name="shield-checkmark-outline" size={13} color={COLORS.textFaint} />
               <Text style={styles.footerText}>
-                {tr('Última verificación')}: {payload.last_verified || '—'}
+                {tr('Última verificación')}: {
+                  (services?.modules.some((m) => m.id === mod?.id)
+                    ? services?.last_verified
+                    : payload?.last_verified) || '—'
+                }
               </Text>
             </View>
             <Text style={styles.footerText}>{tr('AMO te informa; pagas directamente con cada entidad.')}</Text>

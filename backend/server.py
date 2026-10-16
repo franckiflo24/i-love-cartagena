@@ -5551,6 +5551,73 @@ async def city_module(module_id: str, request: Request, response: Response):
     })
 
 
+# ── Servicios públicos (2026-10-15): second module file, same contract, same
+# public-view strip. Static twin frontend/public/data/city/services.json
+# (api.get('/city/services') falls back to it); Luna merges it into city_reference.
+_CITY_SVC_PATH = Path(__file__).resolve().parent / "data" / "city_services.json"
+_city_svc_cache: Dict[str, Any] = {"mtime": None, "data": None, "public": None}
+
+
+def _city_services() -> Optional[Dict[str, Any]]:
+    try:
+        mtime = os.path.getmtime(_CITY_SVC_PATH)
+        if _city_svc_cache["data"] is None or _city_svc_cache["mtime"] != mtime:
+            with open(_CITY_SVC_PATH, "r", encoding="utf-8") as f:
+                _city_svc_cache["data"] = json.load(f)
+            _city_svc_cache["mtime"] = mtime
+            _city_svc_cache["public"] = None
+    except Exception as exc:
+        logger.error(f"[city] services load failed: {exc}")
+    return _city_svc_cache["data"]
+
+
+def _city_services_public() -> Optional[Dict[str, Any]]:
+    data = _city_services()
+    if not data:
+        return None
+    if _city_svc_cache["public"] is None:
+        public = dict(data)
+        public["modules"] = [
+            {k: v for k, v in m.items() if k not in _CITY_INTERNAL_KEYS} if isinstance(m, dict) else m
+            for m in (data.get("modules") or [])
+        ]
+        _city_svc_cache["public"] = public
+    return _city_svc_cache["public"]
+
+
+_city_services()  # warm at import
+
+
+@api_router.get("/city/services")
+async def city_services(request: Request, response: Response):
+    await _check_rate_limit(f"city:{_client_ip(request)}", max_calls=60, window_sec=60)
+    data = _city_services_public()
+    if not data:
+        raise HTTPException(status_code=503, detail="Servicios públicos no disponibles / Public services unavailable")
+    response.headers["Cache-Control"] = "public, max-age=300"
+    response.headers["Access-Control-Allow-Origin"] = "*"  # shared CDN entry; see _cache()
+    response.headers["Vary"] = "Origin"
+    return data
+
+
+@api_router.get("/city/services/{module_id}")
+async def city_service(module_id: str, request: Request, response: Response):
+    await _check_rate_limit(f"city:{_client_ip(request)}", max_calls=60, window_sec=60)
+    data = _city_services_public()
+    if not data:
+        raise HTTPException(status_code=503, detail="Servicios públicos no disponibles / Public services unavailable")
+    for m in data.get("modules") or []:
+        if isinstance(m, dict) and m.get("id") == module_id:
+            response.headers["Cache-Control"] = "public, max-age=300"
+            response.headers["Access-Control-Allow-Origin"] = "*"  # shared CDN entry; see _cache()
+            response.headers["Vary"] = "Origin"
+            return m
+    raise HTTPException(status_code=404, detail={
+        "error": "not_found",
+        "message": "Módulo no encontrado / City module not found",
+    })
+
+
 # ── Emergency Contacts ──────────────────────────────────────
 @api_router.get("/emergency-contacts")
 async def list_emergency_contacts():

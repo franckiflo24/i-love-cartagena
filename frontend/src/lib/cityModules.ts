@@ -106,16 +106,23 @@ const MODULE_GRADIENTS: Record<string, readonly [string, string]> = {
   'coches-electricos':    ['#34D399', '#0F766E'],  // electric green
   'transcaribe-acuatico': ['#22D3EE', '#0E7490'],  // water cyan
   'taxis':                ['#FACC15', '#A16207'],  // taxi yellow
+  // Servicios públicos (2026-10-15)
+  'emergencias-lineas':      ['#F87171', '#991B1B'],  // emergency red
+  'servicios-domiciliarios': ['#FBBF24', '#B45309'],  // utility amber
+  'migracion-colombia':      ['#60A5FA', '#1E40AF'],  // passport blue
+  'comparendos-simit':       ['#A3A3A3', '#404040'],  // asphalt gray
+  'tramites-estado':         ['#2DD4BF', '#115E59'],  // civic teal
 };
 export const gradientFor = (id: string): readonly [string, string] =>
   MODULE_GRADIENTS[id] || DEFAULT_GRADIENT;
 
-// ── Published module ids (mirror of /data/city/modules.json) ─────────────────
+// ── Published module ids (mirror of /data/city/modules.json + services.json) ──
 // Luna's `open_city_module` action carries a module_id chosen by the model; an
 // unknown or missing id must land on the hub, never on the detail's not-found
 // state or a 404.
 export const CITY_MODULE_IDS = [
   'transcaribe', 'muelle-bodeguita', 'monumentos', 'coches-electricos', 'transcaribe-acuatico', 'taxis',
+  'emergencias-lineas', 'servicios-domiciliarios', 'migracion-colombia', 'comparendos-simit', 'tramites-estado',
 ] as const;
 export type CityModuleId = typeof CITY_MODULE_IDS[number];
 export const isCityModuleId = (id: unknown): id is CityModuleId =>
@@ -181,6 +188,21 @@ export async function loadCityModules(force = false): Promise<CityModulesPayload
   const payload = normalize(raw);
   if (!payload) throw new Error('city/modules: unexpected payload shape');
   CACHE = payload;
+  return payload;
+}
+
+// ── Servicios públicos: second payload, same contract, own cache ─────────────
+// api.get falls back to the static /data/city/services.json like the hub file.
+let SVC_CACHE: CityModulesPayload | null = null;
+
+export const getCachedCityServices = (): CityModulesPayload | null => SVC_CACHE;
+
+export async function loadCityServices(force = false): Promise<CityModulesPayload> {
+  if (SVC_CACHE && !force) return SVC_CACHE;
+  const raw = await api.get('/city/services');
+  const payload = normalize(raw);
+  if (!payload) throw new Error('city/services: unexpected payload shape');
+  SVC_CACHE = payload;
   return payload;
 }
 
