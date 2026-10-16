@@ -40,6 +40,12 @@ const ageFrom = (dob?: string): string => {
 };
 const digits = (v?: string) => (v || '').replace(/\D/g, '');
 const yn = (v: unknown) => (v ? 'Sí' : 'No');
+/** '2026-10-16T20:54:37.268246+00:00' → '2026-10-16 20:54'. Raw ISO is unreadable. */
+const stamp = (v?: string) => {
+  if (!v || typeof v !== 'string') return v;
+  const m = v.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+  return m ? `${m[1]} ${m[2]}` : v;
+};
 type PanelData = {
   total: number;
   count: number;
@@ -324,13 +330,13 @@ export default function CmwPanelScreen() {
                 <Row k="Cuenta AMO vinculada" v={r.user_id ? `${tr('Sí')} · ${r.user_id}` : tr('No')} />
                 <Row k="Plataforma" v={src.landing === 'app' ? 'App' : 'Web'} />
                 <Row k="Cliente" v={r.client} />
-                <Row k="Creado" v={r.created_at} />
-                <Row k="Actualizado" v={r.updated_at} />
+                <Row k="Creado" v={stamp(r.created_at)} />
+                <Row k="Actualizado" v={stamp(r.updated_at)} />
               </Section>
 
               <Section title="Autorización de datos (Ley 1581)">
                 <Row k="Aceptada" v={yn(consent.accepted)} />
-                <Row k="Fecha y hora" v={consent.accepted_at} />
+                <Row k="Fecha y hora" v={stamp(consent.accepted_at)} />
                 <Row k="Versión" v={consent.version} />
                 <Row k="Identificador del texto" v={consent.text_id} mono />
                 <Row k="Responsable" v={consent.responsable} />
@@ -349,8 +355,8 @@ export default function CmwPanelScreen() {
               <Section title="Marketing">
                 <Row k="Autorizó comunicaciones" v={yn(r.marketing_opt_in)} />
                 <Row k="Versión" v={mkt.version} />
-                <Row k="Aceptado" v={mkt.accepted_at} />
-                <Row k="Revocado" v={mkt.revoked_at} />
+                <Row k="Aceptado" v={stamp(mkt.accepted_at)} />
+                <Row k="Revocado" v={stamp(mkt.revoked_at)} />
               </Section>
 
               <Section title="Atribución">
@@ -690,9 +696,14 @@ const st = StyleSheet.create({
 
   // ── detail record ──
   dRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.hairline },
-  dKey: { width: 132, fontSize: 11, lineHeight: 15, ...FONTS.medium, color: COLORS.textFaint },
+  dKey: { width: 118, fontSize: 11, lineHeight: 15, ...FONTS.medium, color: COLORS.textFaint },
   dKeySmall: { fontSize: 11, color: COLORS.textFaint, ...FONTS.medium },
-  dVal: { flex: 1, fontSize: 13.5, lineHeight: 19, color: COLORS.textMain, ...FONTS.medium },
+  // A long email has no spaces, so it overflows the column on web unless we allow
+  // a mid-word break (native wraps these fine on its own).
+  dVal: {
+    flex: 1, fontSize: 13.5, lineHeight: 19, color: COLORS.textMain, ...FONTS.medium,
+    ...Platform.select({ web: { wordBreak: 'break-word' } as object, default: {} }),
+  },
   actionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: SPACING.lg, marginTop: SPACING.sm },
   action: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 40, paddingHorizontal: 14, borderRadius: RADIUS.full, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.hairline },
   actionText: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
