@@ -27,19 +27,39 @@ hashes (raw IP never stored), honeypot, Mongo-backed atomic rate buckets under t
 fail-closed `cmwip` / `cmwcontact` prefixes (own `:pre:` sub-buckets, so prereg
 traffic never eats the concierge quota).
 
+CMW-2 (2026-10-15) adds the growth/comms capture layer from Franck's spec:
+  - Apellido (last_name) + Género (optional) fields; Instagram becomes REQUIRED
+    (the spec marks it obligatorio — the handle is CMW's audience-building asset).
+  - Personal referral codes: every pre-reg mints a unique `referral_code`
+    (CMW-XXXXXX); an incoming `source.ref` matching another person's code stamps
+    `referred_by` on FIRST insert (never on self, never rewritten on re-submit).
+    Partner links keep using arbitrary ?ref= values — they simply never match.
+  - Funnel events (cmw_funnel_events, 180-day TTL): client fires cmw_link_abierto /
+    preinscripcion_iniciada / referido_compartido (+ native later: push_aceptado,
+    app_instalada); the SERVER stamps preinscripcion_completada and cuenta_creada
+    itself, so conversion truth never depends on client JS. No PII in events.
+  - CSV export + download log: every export writes db.cmw_admin_downloads
+    (who/when/filters/rows — the spec's "registro de quién descargó qué").
+  - Admin guard widens to require_admin_read (EVENTS_ADMIN_TOKEN bearer OR an
+    is_admin session) so the /cmw-panel screen works with Phil's admin session.
+
 Mounted by server.py on api prefix. Responses follow {data, error, message}.
 
   public:
     POST /cmw/prereg                 the pre-registration (20/h per IP, 6/h per contact)
-  admin (ONLY Authorization: Bearer EVENTS_ADMIN_TOKEN):
-    GET  /admin/cmw/prereg           rows + source breakdown  (?limit=)
+    POST /cmw/event                  funnel event (whitelisted kinds, 120/h per IP)
+  admin (Bearer EVENTS_ADMIN_TOKEN or is_admin session):
+    GET  /admin/cmw/prereg           rows + breakdowns + funnel  (?limit=)
+    GET  /admin/cmw/prereg.csv       filtered export (logged to cmw_admin_downloads)
 
 Logging: '[cmw-prereg] ...' with type(exc).__name__ only. Never a name, an email,
 a phone, a DOB, an IP or a token.
 """
 from __future__ import annotations
 
+import csv
 import hashlib
+import io
 import json
 import logging
 import re
@@ -48,8 +68,8 @@ import base64
 from datetime import date, datetime, timezone
 from typing import Any, Dict, List, Literal, Mapping, Optional, Tuple
 
-from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
 from pymongo.errors import DuplicateKeyError
 
@@ -94,11 +114,27 @@ MAX_BODY_BYTES = 16 * 1024
 PREREG_ID_PREFIX = "cmw-p-"
 PREREG_ID_RE = re.compile(r"^cmw-p-[a-z2-7]{8}$")
 
+# Personal referral codes: no 0/O/1/I/L so a code read aloud at a party survives the
+# retelling. 31^6 ≈ 887M — collisions are a unique-index retry, never a user error.
+REFERRAL_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+REFERRAL_RE = re.compile(r"^CMW-?([A-Z0-9]{6})$")
+
+# Funnel events. Client-fireable kinds only — the two conversion truths
+# (preinscripcion_completada, cuenta_creada) are stamped SERVER-side and a client
+# claiming them is rejected, so the funnel can never be inflated from a browser.
+EVENT_KINDS_CLIENT = frozenset({
+    "cmw_link_abierto", "preinscripcion_iniciada", "referido_compartido",
+    "push_aceptado", "app_instalada",
+})
+EVENT_TTL_SECONDS = 180 * 24 * 3600  # capture window → presale window, then gone
+
 # Rate buckets: same fail-closed prefixes as the concierge requests (they are in
 # ratelimit.SENSITIVE_PREFIXES), but `:pre:`-namespaced so the buckets are separate.
 RATE_PER_IP = 20        # a shared venue/booth NAT must not lock out real signups
 RATE_PER_CONTACT = 6
+RATE_PER_IP_EVENTS = 120  # `:evt:` bucket — a browsing session fires a handful
 RATE_WINDOW_S = 3600
+CSV_MAX_ROWS = 20000
 
 MSG: Dict[str, str] = {
     "received": ("Preinscripción recibida. Te avisaremos de la preventa antes que al público general. / "
@@ -108,7 +144,12 @@ MSG: Dict[str, str] = {
     "invalid_email": "Escribe un correo válido. / Enter a valid email.",
     "invalid_whatsapp": ("Escribe un número de WhatsApp con indicativo. / "
                          "Enter a WhatsApp number with country code."),
-    "invalid_instagram": "Ese usuario de Instagram no es válido. / That Instagram handle is not valid.",
+    "invalid_instagram": ("Escribe tu usuario de Instagram (sin @). / "
+                          "Enter your Instagram handle (no @)."),
+    "invalid_last_name": ("Escribe tu apellido (2 a 80 caracteres). / "
+                          "Enter your last name (2 to 80 characters)."),
+    "invalid_gender": "Género no válido. / Invalid gender option.",
+    "invalid_event": "Evento no válido. / Invalid event.",
     "invalid_city": "Ciudad o país no válidos. / City or country not valid.",
     "invalid_dob": "Escribe tu fecha de nacimiento (DD/MM/AAAA). / Enter your date of birth (DD/MM/YYYY).",
     "under_18": ("La preinscripción es solo para mayores de 18 años. / "
@@ -140,6 +181,21 @@ def _fail(status: int, code: str) -> JSONResponse:
 def new_prereg_id() -> str:
     """'cmw-p-' + 8 base32 characters (40 random bits), lowercase."""
     return PREREG_ID_PREFIX + base64.b32encode(secrets.token_bytes(5)).decode("ascii").lower()
+
+
+def new_referral_code() -> str:
+    """'CMW-' + 6 chars from the ambiguity-free alphabet. Uniqueness is the sparse
+    unique index's job — the mint loop retries on DuplicateKeyError."""
+    return "CMW-" + "".join(secrets.choice(REFERRAL_ALPHABET) for _ in range(6))
+
+
+def normalize_referral(v: Any) -> Optional[str]:
+    """A source.ref that LOOKS like a personal code → canonical CMW-XXXXXX; anything
+    else (partner tags, campaign slugs) → None, and stays plain attribution."""
+    if not isinstance(v, str):
+        return None
+    m = REFERRAL_RE.match(v.strip().upper())
+    return f"CMW-{m.group(1)}" if m else None
 
 
 # ── validation ────────────────────────────────────────────────────────────────
@@ -188,9 +244,11 @@ class PreregIn(BaseModel):
     """POST /cmw/prereg body."""
     model_config = ConfigDict(extra="ignore")
     full_name: str
+    last_name: Optional[str] = None
     email: str
     whatsapp: str
-    instagram: Optional[str] = None
+    instagram: str
+    gender: Optional[Literal["femenino", "masculino", "otro", "prefiero_no_decir"]] = None
     city: Optional[str] = None
     country: Optional[str] = None
     dob: str
@@ -207,6 +265,18 @@ class PreregIn(BaseModel):
             raise ValueError("name must be 2-80 characters")
         return s
 
+    @field_validator("last_name", mode="before")
+    @classmethod
+    def _lname(cls, v: Any) -> Optional[str]:
+        # Optional on the wire (profiles prefill one combined name); same hygiene as
+        # full_name when present.
+        if v is None or (isinstance(v, str) and not v.strip()):
+            return None
+        s = _cmw._clean_text(_cmw._FORMAT_RE.sub("", v), 2, 80) if isinstance(v, str) and len(v) <= 400 else None
+        if s is None or not re.search(r"[^\W\d_]", s) or re.search(r"[<>]|https?://|www\.", s, re.I):
+            raise ValueError("last name must be 2-80 characters")
+        return s
+
     @field_validator("email", "whatsapp", mode="before")
     @classmethod
     def _contactish(cls, v: Any) -> str:
@@ -216,11 +286,11 @@ class PreregIn(BaseModel):
 
     @field_validator("instagram", mode="before")
     @classmethod
-    def _ig(cls, v: Any) -> Optional[str]:
-        if v is None or (isinstance(v, str) and not v.strip()):
-            return None
-        if not isinstance(v, str):
-            raise ValueError("invalid instagram")
+    def _ig(cls, v: Any) -> str:
+        # CMW-2: REQUIRED (the spec marks Instagram obligatorio). Rows captured while
+        # it was optional stay valid; a re-submit must now include it.
+        if not isinstance(v, str) or not v.strip():
+            raise ValueError("instagram required")
         s = v.strip().lstrip("@")
         if not _IG_RE.match(s):
             raise ValueError("invalid instagram")
@@ -250,12 +320,13 @@ class PreregIn(BaseModel):
 
 
 _FIELD_CODES: Dict[str, str] = {
-    "full_name": "invalid_name", "email": "invalid_email", "whatsapp": "invalid_whatsapp",
-    "instagram": "invalid_instagram", "city": "invalid_city", "country": "invalid_city",
+    "full_name": "invalid_name", "last_name": "invalid_last_name", "email": "invalid_email",
+    "whatsapp": "invalid_whatsapp", "instagram": "invalid_instagram", "gender": "invalid_gender",
+    "city": "invalid_city", "country": "invalid_city",
     "dob": "invalid_dob", "lang": "invalid_lang", "consent": "consent_required",
 }
-_FIELD_ORDER: Tuple[str, ...] = ("consent", "full_name", "email", "whatsapp", "dob",
-                                 "instagram", "city", "country", "lang")
+_FIELD_ORDER: Tuple[str, ...] = ("consent", "full_name", "last_name", "email", "whatsapp", "dob",
+                                 "instagram", "gender", "city", "country", "lang")
 
 
 def _age_on(today: date, dob: date) -> int:
@@ -293,8 +364,9 @@ def validate_prereg(body: Any) -> Tuple[Optional[Dict[str, Any]], Optional[str]]
     if _age_on(today, dob) < MIN_AGE:
         return None, "under_18"
     return {
-        "full_name": req.full_name, "email": email, "whatsapp": whatsapp,
-        "instagram": req.instagram, "city": req.city, "country": req.country,
+        "full_name": req.full_name, "last_name": req.last_name, "email": email,
+        "whatsapp": whatsapp, "instagram": req.instagram, "gender": req.gender,
+        "city": req.city, "country": req.country,
         "dob": req.dob, "lang": req.lang, "marketing_opt_in": req.marketing_opt_in,
         "source": req.source.model_dump(),
     }, None
@@ -306,7 +378,8 @@ _indexes_done = False
 
 
 async def ensure_prereg_indexes(db_: Any = None) -> bool:
-    """Idempotent. The unique email index IS the dedupe guarantee under races."""
+    """Idempotent. The unique email index IS the dedupe guarantee under races; the
+    sparse unique referral_code index is the mint-collision guarantee."""
     global _indexes_done
     if _indexes_done:
         return True
@@ -315,14 +388,38 @@ async def ensure_prereg_indexes(db_: Any = None) -> bool:
         return False
     ok = True
     for keys, opts in (("email", {"unique": True}), ("whatsapp", {}),
-                       ("created_at_dt", {}), ("user_id", {"sparse": True})):
+                       ("created_at_dt", {}), ("user_id", {"sparse": True}),
+                       ("referral_code", {"unique": True, "sparse": True})):
         try:
             await d.cmw_preregistrations.create_index(keys, **opts)
         except Exception as exc:  # noqa: BLE001
             ok = False
             logger.error("[cmw-prereg] create_index %s failed: %s", keys, type(exc).__name__)
+    for keys, opts in (("event", {}), ("created_at_dt", {"expireAfterSeconds": EVENT_TTL_SECONDS}),):
+        try:
+            await d.cmw_funnel_events.create_index(keys, **opts)
+        except Exception as exc:  # noqa: BLE001
+            ok = False
+            logger.error("[cmw-prereg] event index %s failed: %s", keys, type(exc).__name__)
     _indexes_done = ok
     return ok
+
+
+async def record_event(db_: Any, event: str, *, lang: str = "es", landing: str = "web",
+                       source: Optional[Dict[str, Any]] = None, ip_hash: str = "",
+                       client: str = "", prereg_id: Optional[str] = None,
+                       now: Optional[datetime] = None) -> None:
+    """One funnel row. Analytics is best-effort by design: a failed insert is logged
+    and swallowed — it must never break a capture, a signup or a page view."""
+    try:
+        ts = now or datetime.now(timezone.utc)
+        await db_.cmw_funnel_events.insert_one({
+            "event": event, "created_at": ts.isoformat(), "created_at_dt": ts,
+            "lang": lang, "landing": landing, "source": source or {},
+            "ip_hash": ip_hash, "client": client, "prereg_id": prereg_id,
+        })
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[cmw-prereg] event insert failed: %s", type(exc).__name__)
 
 
 def _program_ref() -> Dict[str, Any]:
@@ -341,14 +438,18 @@ def _program_ref() -> Dict[str, Any]:
 
 async def link_user_by_email(db_: Any, *, email: str, user_id: str) -> None:
     """Attach an account to its earlier anonymous pre-regs (called from the signup
-    paths in server.py). Never raises: linking is best-effort, auth never depends on it."""
+    paths in server.py). Never raises: linking is best-effort, auth never depends on it.
+    A link that actually moved rows IS the spec's `cuenta_creada` conversion — stamped
+    here, server-side, so the funnel cannot be inflated or missed by client JS."""
     try:
         e = _cmw.normalize_email(email)
         if not e or not user_id:
             return
-        await db_.cmw_preregistrations.update_many(
+        res = await db_.cmw_preregistrations.update_many(
             {"email": e, "user_id": None},
             {"$set": {"user_id": user_id, "updated_at": datetime.now(timezone.utc).isoformat()}})
+        if getattr(res, "modified_count", 0) > 0:
+            await record_event(db_, "cuenta_creada")
     except Exception as exc:  # noqa: BLE001
         logger.error("[cmw-prereg] link_user failed: %s", type(exc).__name__)
 
@@ -406,10 +507,24 @@ async def create_prereg(db_: Any, body: Any, *, ip: str, user_id: Optional[str],
     try:
         existing = await db_.cmw_preregistrations.find_one(
             {"email": clean["email"]},
-            {"_id": 0, "prereg_id": 1, "marketing_opt_in": 1, "marketing": 1})
+            {"_id": 0, "prereg_id": 1, "marketing_opt_in": 1, "marketing": 1, "referral_code": 1})
     except Exception as exc:  # noqa: BLE001
         logger.error("[cmw-prereg] read failed: %s", type(exc).__name__)
         return 503, {"data": None, "error": "unavailable", "message": MSG["unavailable"]}
+
+    # Referral resolution — FIRST insert only ($setOnInsert): a source.ref shaped like a
+    # personal code that belongs to someone ELSE stamps referred_by. A partner tag never
+    # matches; your own code never counts; a re-submit never rewrites attribution.
+    referred_by: Optional[str] = None
+    ref_code = normalize_referral(clean["source"].get("ref"))
+    if ref_code and not existing:
+        try:
+            referrer = await db_.cmw_preregistrations.find_one(
+                {"referral_code": ref_code}, {"_id": 0, "prereg_id": 1, "email": 1})
+            if isinstance(referrer, Mapping) and referrer.get("email") != clean["email"]:
+                referred_by = str(referrer.get("prereg_id") or "") or None
+        except Exception as exc:  # noqa: BLE001
+            logger.error("[cmw-prereg] referrer lookup failed: %s", type(exc).__name__)
 
     # The consent block exists ONLY because the affirmative flag + version arrived.
     consent_doc = {
@@ -429,8 +544,10 @@ async def create_prereg(db_: Any, body: Any, *, ip: str, user_id: Optional[str],
         "ip_hash": ip_hash, "client": client,
     }
     # Optional fields: an omitted value means "no change", never "erase what they
-    # told us before" (a partial resubmit must not null instagram/city/country).
-    for opt in ("instagram", "city", "country"):
+    # told us before" (a partial resubmit must not null last_name/city/country).
+    # instagram is required since CMW-2, so it always lands in sets above the loop.
+    sets["instagram"] = clean["instagram"]
+    for opt in ("last_name", "gender", "city", "country"):
         if clean[opt] is not None:
             sets[opt] = clean[opt]
         elif not existing:
@@ -445,45 +562,78 @@ async def create_prereg(db_: Any, body: Any, *, ip: str, user_id: Optional[str],
     if linked_user is not None:
         sets["user_id"] = linked_user
 
-    # email itself comes from the upsert FILTER — putting it in $setOnInsert too
-    # would be a conflicting-update-operators error on first insert.
-    on_insert: Dict[str, Any] = {
-        "prereg_id": new_prereg_id(), "created_at": iso, "created_at_dt": ts,
-        "source": clean["source"],
-        "ticketing_handoff": {"system": None, "external_id": None, "status": "pending"},
-        "program_ref": _program_ref(),
-    }
-    if linked_user is None:
-        on_insert["user_id"] = None
-
-    update = {
-        "$set": sets,
-        "$setOnInsert": on_insert,
-        "$push": {"consent_log": {"version": CONSENT_VERSION, "text_id": CONSENT_TEXT_ID,
-                                  "accepted_at": iso, "ip_hash": ip_hash, "client": client,
-                                  "landing": clean["source"].get("landing", "web")}},
-    }
-
     stored = None
-    for _attempt in range(2):
+    # on_insert is rebuilt per attempt: a referral_code collision (sparse unique index)
+    # must retry with a FRESH code, and the email race must retake the update path.
+    # 3 attempts cover email-race + one code collision (31^6 space — effectively never).
+    for _attempt in range(3):
+        # email itself comes from the upsert FILTER — putting it in $setOnInsert too
+        # would be a conflicting-update-operators error on first insert.
+        on_insert: Dict[str, Any] = {
+            "prereg_id": new_prereg_id(), "created_at": iso, "created_at_dt": ts,
+            "source": clean["source"], "referral_code": new_referral_code(),
+            "ticketing_handoff": {"system": None, "external_id": None, "status": "pending"},
+            "program_ref": _program_ref(),
+        }
+        if referred_by is not None:
+            on_insert["referred_by"] = referred_by
+        if linked_user is None:
+            on_insert["user_id"] = None
+
+        update = {
+            "$set": sets,
+            "$setOnInsert": on_insert,
+            "$push": {"consent_log": {"version": CONSENT_VERSION, "text_id": CONSENT_TEXT_ID,
+                                      "accepted_at": iso, "ip_hash": ip_hash, "client": client,
+                                      "landing": clean["source"].get("landing", "web")}},
+        }
         try:
             stored = await db_.cmw_preregistrations.find_one_and_update(
                 {"email": clean["email"]}, update, upsert=True, return_document=True,
-                projection={"_id": 0, "prereg_id": 1, "created_at": 1})
+                projection={"_id": 0, "prereg_id": 1, "created_at": 1, "referral_code": 1})
             break
         except DuplicateKeyError:
-            continue  # two first-submits raced; the retry takes the update path
+            continue  # email race → update path; code collision → fresh mint
         except Exception as exc:  # noqa: BLE001
             logger.error("[cmw-prereg] upsert failed: %s", type(exc).__name__)
             break
     if not isinstance(stored, Mapping):
         return 503, {"data": None, "error": "unavailable", "message": MSG["unavailable"]}
 
+    referral_code = stored.get("referral_code")
+    if not referral_code:
+        # A CMW-1 row predating referral codes re-submitted: mint one now. The filter
+        # guards the race (only a row still missing the field takes the write).
+        for _attempt in range(3):
+            code = new_referral_code()
+            try:
+                res = await db_.cmw_preregistrations.update_one(
+                    {"email": clean["email"], "referral_code": {"$exists": False}},
+                    {"$set": {"referral_code": code}})
+                if getattr(res, "modified_count", 0) == 1:
+                    referral_code = code
+                else:  # someone else won the race — read theirs
+                    row = await db_.cmw_preregistrations.find_one(
+                        {"email": clean["email"]}, {"_id": 0, "referral_code": 1})
+                    referral_code = (row or {}).get("referral_code")
+                break
+            except DuplicateKeyError:
+                continue
+            except Exception as exc:  # noqa: BLE001
+                logger.error("[cmw-prereg] code backfill failed: %s", type(exc).__name__)
+                break
+
     updated = bool(existing)
-    logger.info("[cmw-prereg] stored: %s landing=%s updated=%s linked=%s",
-                stored.get("prereg_id"), clean["source"].get("landing"), updated, bool(linked_user))
+    # The conversion truth, stamped by the server that stored the row — never by JS.
+    await record_event(db_, "preinscripcion_completada", lang=clean["lang"],
+                       landing=clean["source"].get("landing", "web"), source=clean["source"],
+                       ip_hash=ip_hash, client=client, prereg_id=stored.get("prereg_id"), now=ts)
+    logger.info("[cmw-prereg] stored: %s landing=%s updated=%s linked=%s referred=%s",
+                stored.get("prereg_id"), clean["source"].get("landing"), updated,
+                bool(linked_user), bool(referred_by))
     data = {"prereg_id": stored.get("prereg_id"), "status": "prereg",
-            "priority_access": True, "updated": updated}
+            "priority_access": True, "updated": updated,
+            "referral_code": referral_code}
     return 200, {"data": data, "error": None, "message": MSG["received"]}
 
 
@@ -516,16 +666,60 @@ async def create_prereg_route(request: Request) -> Any:
     return JSONResponse(status_code=status, content=payload, headers={"Cache-Control": "no-store"})
 
 
-def _admin_guard(request: Request) -> Optional[JSONResponse]:
-    """ONLY Authorization: Bearer EVENTS_ADMIN_TOKEN — never a cookie, never a session."""
-    if _events_elite.is_events_admin_token(request):
+class EventIn(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    event: str
+    lang: Literal["es", "en", "fr", "pt"] = "es"
+    source: SourceIn = SourceIn()
+
+
+@router.post("/cmw/event")
+async def funnel_event_route(request: Request) -> Any:
+    """Client-side funnel beacons (page open, form start, share tap, native push/install
+    later). Whitelisted kinds only; the server-stamped conversions are rejected here so
+    a browser can never inflate them. No PII travels: tags + lang + salted ip only."""
+    if db is None:
+        return _fail(503, "unavailable")
+    try:
+        raw = await request.body()
+    except Exception:  # noqa: BLE001
+        return _fail(400, "invalid_request")
+    if not raw or len(raw) > 4 * 1024:
+        return _fail(400, "invalid_request")
+    try:
+        body = EventIn.model_validate(json.loads(raw))
+    except Exception:  # noqa: BLE001
+        return _fail(422, "invalid_event")
+    if body.event not in EVENT_KINDS_CLIENT:
+        return _fail(422, "invalid_event")
+    ip = ratelimit.client_ip(request)
+    denied = await _rate_limit(f"{_cmw.RL_PREFIX_IP}:evt:{_cmw.salted_hash(ip, 'ip')}", RATE_PER_IP_EVENTS)
+    if denied is not None:
+        return denied
+    await ensure_prereg_indexes(db)
+    src = body.source.model_dump()
+    await record_event(db, body.event, lang=body.lang, landing=src.get("landing", "web"),
+                       source=src, ip_hash=_cmw.salted_hash(ip, "ip"),
+                       client=_cmw._client_stamp(request))
+    return JSONResponse(content=_ok({"ok": True}, MSG["ok"]), headers={"Cache-Control": "no-store"})
+
+
+async def _admin_guard(request: Request) -> Optional[JSONResponse]:
+    """Bearer EVENTS_ADMIN_TOKEN or an is_admin session (events_elite.require_admin_read —
+    the same gate the events admin screens use). Never a bare cookie."""
+    try:
+        await _events_elite.require_admin_read(request)
         return None
-    return _fail(401, "unauthorized")
+    except HTTPException as exc:
+        return _fail(exc.status_code if exc.status_code in (401, 403) else 401, "unauthorized")
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[cmw-prereg] admin guard failed: %s", type(exc).__name__)
+        return _fail(503, "unavailable")
 
 
 @router.get("/admin/cmw/prereg")
 async def admin_prereg_route(request: Request) -> Any:
-    denied = _admin_guard(request)
+    denied = await _admin_guard(request)
     if denied is not None:
         return denied
     if db is None:
@@ -547,9 +741,28 @@ async def admin_prereg_route(request: Request) -> Any:
             "by_ref": [{"$group": {"_id": "$source.ref", "n": {"$sum": 1}}},
                        {"$sort": {"n": -1}}, {"$limit": 25}],
             "by_landing": [{"$group": {"_id": "$source.landing", "n": {"$sum": 1}}}],
+            "by_city": [{"$group": {"_id": "$city", "n": {"$sum": 1}}},
+                        {"$sort": {"n": -1}}, {"$limit": 25}],
+            "by_country": [{"$group": {"_id": "$country", "n": {"$sum": 1}}},
+                           {"$sort": {"n": -1}}, {"$limit": 25}],
+            "by_birth_year": [{"$group": {"_id": {"$substrBytes": ["$dob", 0, 4]}, "n": {"$sum": 1}}},
+                              {"$sort": {"_id": 1}}, {"$limit": 110}],
             "marketing": [{"$match": {"marketing_opt_in": True}}, {"$count": "n"}],
             "linked": [{"$match": {"user_id": {"$type": "string", "$ne": ""}}}, {"$count": "n"}],
+            # Spec KPI "% perfiles completos": IG + WhatsApp + DOB all present.
+            "profiles_complete": [{"$match": {
+                "instagram": {"$type": "string", "$ne": ""},
+                "whatsapp": {"$type": "string", "$ne": ""},
+                "dob": {"$type": "string", "$ne": ""}}}, {"$count": "n"}],
+            "referred": [{"$match": {"referred_by": {"$type": "string", "$ne": ""}}}, {"$count": "n"}],
+            "top_referrers": [{"$match": {"referred_by": {"$type": "string", "$ne": ""}}},
+                              {"$group": {"_id": "$referred_by", "n": {"$sum": 1}}},
+                              {"$sort": {"n": -1}}, {"$limit": 10}],
         }}]).to_list(length=1)
+        funnel_rows = await db.cmw_funnel_events.aggregate([
+            {"$group": {"_id": "$event", "n": {"$sum": 1}}}, {"$sort": {"n": -1}},
+        ]).to_list(length=20)
+        downloads = await db.cmw_admin_downloads.count_documents({})
     except Exception as exc:  # noqa: BLE001
         logger.error("[cmw-prereg] admin read failed: %s", type(exc).__name__)
         return _fail(503, "unavailable")
@@ -567,11 +780,92 @@ async def admin_prereg_route(request: Request) -> Any:
         "breakdown": {
             "by_utm_source": _pairs("by_utm_source"), "by_ref": _pairs("by_ref"),
             "by_landing": _pairs("by_landing"),
+            "by_city": _pairs("by_city"), "by_country": _pairs("by_country"),
+            "by_birth_year": _pairs("by_birth_year"),
             "marketing_opt_in": _count("marketing"), "linked_users": _count("linked"),
+            "profiles_complete": _count("profiles_complete"),
+            "referred": _count("referred"), "top_referrers": _pairs("top_referrers"),
         },
+        "funnel": [{"event": r.get("_id"), "n": r.get("n", 0)} for r in funnel_rows],
+        "csv_downloads_logged": downloads,
         "consent_version": CONSENT_VERSION, "consent_text_id": CONSENT_TEXT_ID,
     }
     return JSONResponse(content=_ok(data, MSG["ok"]), headers={"Cache-Control": "no-store"})
+
+
+# CSV export — the spec's "exportación CSV filtrable" with its download log.
+_CSV_COLUMNS: Tuple[str, ...] = (
+    "prereg_id", "created_at", "full_name", "last_name", "email", "whatsapp", "instagram",
+    "gender", "city", "country", "dob", "lang", "marketing_opt_in", "user_linked",
+    "utm_source", "utm_medium", "utm_campaign", "utm_content", "ref", "landing",
+    "referral_code", "referred_by", "status",
+)
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+@router.get("/admin/cmw/prereg.csv")
+async def admin_prereg_csv_route(request: Request) -> Any:
+    denied = await _admin_guard(request)
+    if denied is not None:
+        return denied
+    if db is None:
+        return _fail(503, "unavailable")
+    q: Dict[str, Any] = {}
+    p = request.query_params
+    for param, field in (("utm_source", "source.utm_source"), ("ref", "source.ref"),
+                         ("landing", "source.landing"), ("city", "city"), ("country", "country")):
+        v = _clean_src(p.get(param))
+        if v:
+            q[field] = v
+    span: Dict[str, Any] = {}
+    if _DATE_RE.match(p.get("from") or ""):
+        span["$gte"] = p.get("from")
+    if _DATE_RE.match(p.get("to") or ""):
+        span["$lte"] = (p.get("to") or "") + "T23:59:59"
+    if span:
+        q["created_at"] = span
+    try:
+        rows = await db.cmw_preregistrations.find(
+            q, {"_id": 0, "consent": 0, "marketing": 0, "consent_log": 0, "created_at_dt": 0,
+                "ip_hash": 0, "client": 0},
+        ).sort("created_at_dt", -1).limit(CSV_MAX_ROWS).to_list(length=CSV_MAX_ROWS)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[cmw-prereg] csv read failed: %s", type(exc).__name__)
+        return _fail(503, "unavailable")
+
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(_CSV_COLUMNS)
+    for r in rows:
+        src = r.get("source") if isinstance(r.get("source"), Mapping) else {}
+        w.writerow([
+            r.get("prereg_id"), r.get("created_at"), r.get("full_name"), r.get("last_name"),
+            r.get("email"), r.get("whatsapp"), r.get("instagram"), r.get("gender"),
+            r.get("city"), r.get("country"), r.get("dob"), r.get("lang"),
+            "1" if r.get("marketing_opt_in") else "0", "1" if r.get("user_id") else "0",
+            src.get("utm_source"), src.get("utm_medium"), src.get("utm_campaign"),
+            src.get("utm_content"), src.get("ref"), src.get("landing"),
+            r.get("referral_code"), r.get("referred_by"), r.get("status"),
+        ])
+
+    # The download log: who pulled what, when — exports of personal data are auditable.
+    try:
+        ts = datetime.now(timezone.utc)
+        await db.cmw_admin_downloads.insert_one({
+            "at": ts.isoformat(), "at_dt": ts, "rows": len(rows),
+            "filters": {k: v for k, v in q.items() if k != "created_at"},
+            "date_from": p.get("from") or None, "date_to": p.get("to") or None,
+            "ip_hash": _cmw.salted_hash(ratelimit.client_ip(request), "ip"),
+            "client": _cmw._client_stamp(request),
+            "via": "token" if _events_elite.is_events_admin_token(request) else "admin_session",
+        })
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[cmw-prereg] download log failed: %s", type(exc).__name__)
+
+    fname = f"cmw-preinscripciones-{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"
+    return Response(content=buf.getvalue(), media_type="text/csv; charset=utf-8",
+                    headers={"Cache-Control": "no-store",
+                             "Content-Disposition": f'attachment; filename="{fname}"'})
 
 
 @router.delete("/admin/cmw/prereg/{prereg_id}")
@@ -579,7 +873,7 @@ async def admin_prereg_delete_route(prereg_id: str, request: Request) -> Any:
     """The Ley 1581 suppression lever: the consent text promises 'suprimir' via
     privacidad@, and an anonymous lead has no account whose deletion would purge the
     row — the operator honors those requests here. One row, by prereg_id, admin only."""
-    denied = _admin_guard(request)
+    denied = await _admin_guard(request)
     if denied is not None:
         return denied
     if db is None:

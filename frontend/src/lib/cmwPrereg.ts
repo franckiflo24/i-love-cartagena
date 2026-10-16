@@ -12,6 +12,11 @@
 //      (fetchT + AMO client headers + Bearer when signed in). The consent flag is
 //      sent ONLY when the visitor ticked the box; the server refuses to invent it.
 //
+// CMW-2 adds: apellido + género fields, Instagram REQUIRED (spec: obligatorio),
+// the personal referral code returned on success (share link = /cmw?ref=CODE),
+// and fire-and-forget funnel beacons (fireCmwEvent) — the two conversion truths
+// (completada, cuenta_creada) are stamped by the SERVER, never from here.
+//
 // The consent/marketing texts here are DISPLAY copies of the backend canon
 // (cmw_prereg.py). The server verifies the version id and stores its own
 // canonical text — a drifted client gets `consent_version`, never silent consent.
@@ -118,18 +123,22 @@ export function prefillFrom(profile: ProfileLike | null): PreregPrefill {
 
 // ── validation ────────────────────────────────────────────────────────────────
 
-export type PreregFieldError = 'name' | 'email' | 'whatsapp' | 'dob' | 'under_18' | 'consent';
+export type PreregFieldError =
+  | 'name' | 'last_name' | 'email' | 'whatsapp' | 'instagram' | 'dob' | 'under_18' | 'consent';
 
 export const FIELD_ERROR_COPY: Record<PreregFieldError, string> = {
   name: 'Escribe tu nombre (2 a 80 caracteres).',
+  last_name: 'Escribe tu apellido (2 a 80 caracteres).',
   email: 'Escribe un correo válido.',
   whatsapp: 'Escribe un número de WhatsApp con indicativo.',
+  instagram: 'Escribe tu usuario de Instagram (sin @).',
   dob: 'Escribe tu fecha de nacimiento completa (DD/MM/AAAA).',
   under_18: 'La preinscripción es solo para mayores de 18 años.',
   consent: 'Marca la autorización de datos para continuar.',
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const IG_RE = /^[A-Za-z0-9._]{1,30}$/;
 
 export const dobIso = (d: string, m: string, y: string): string | null => {
   const dd = parseInt(d, 10); const mm = parseInt(m, 10); const yy = parseInt(y, 10);
@@ -150,9 +159,13 @@ export const ageFromIso = (iso: string): number | null => {
 };
 
 export type PreregDraft = {
-  fullName: string; email: string; whatsapp: string;
+  fullName: string; email: string; whatsapp: string; instagram: string;
   dobD: string; dobM: string; dobY: string;
   consentChecked: boolean;
+  /** Apellido input — validated only when the form shows it (askLastName). A
+   *  signed-in profile with a combined name on file is never forced to split it. */
+  lastName?: string;
+  askLastName?: boolean;
 };
 
 /** Client-side gate: the same rules the server enforces, so nobody waits on a
@@ -160,9 +173,11 @@ export type PreregDraft = {
 export function validatePrereg(f: PreregDraft): PreregFieldError[] {
   const errs: PreregFieldError[] = [];
   if (f.fullName.trim().length < 2) errs.push('name');
+  if (f.askLastName && (f.lastName || '').trim().length < 2) errs.push('last_name');
   if (!EMAIL_RE.test(f.email.trim()) || f.email.trim().length > 254) errs.push('email');
   const digits = f.whatsapp.replace(/\D/g, '');
   if (digits.length < 7 || digits.length > 15 || /[^\d+\s().-]/.test(f.whatsapp.trim())) errs.push('whatsapp');
+  if (!IG_RE.test(f.instagram.trim().replace(/^@/, ''))) errs.push('instagram');
   const iso = dobIso(f.dobD, f.dobM, f.dobY);
   if (!iso) errs.push('dob');
   else {
@@ -176,9 +191,11 @@ export function validatePrereg(f: PreregDraft): PreregFieldError[] {
 
 // ── submit ────────────────────────────────────────────────────────────────────
 
+export type PreregGender = 'femenino' | 'masculino' | 'otro' | 'prefiero_no_decir';
+
 export type PreregBody = {
-  full_name: string; email: string; whatsapp: string;
-  instagram?: string; city?: string; country?: string;
+  full_name: string; email: string; whatsapp: string; instagram: string;
+  last_name?: string; gender?: PreregGender; city?: string; country?: string;
   dob: string; lang: string;
   consent: { accepted: true; version: string };
   marketing_opt_in: boolean;
@@ -187,7 +204,7 @@ export type PreregBody = {
 };
 
 export type PreregResult =
-  | { ok: true; preregId: string; updated: boolean }
+  | { ok: true; preregId: string; updated: boolean; referralCode: string | null }
   | { ok: false; kind: 'fields' | 'rate' | 'unavailable' | 'network'; code: string | null; status: number | null };
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
@@ -215,7 +232,12 @@ export async function submitPrereg(body: PreregBody): Promise<PreregResult> {
   if (res.ok) {
     const data = isRecord(env.data) ? env.data : {};
     const preregId = typeof data.prereg_id === 'string' ? data.prereg_id : '';
-    if (preregId) return { ok: true, preregId, updated: data.updated === true };
+    if (preregId) {
+      return {
+        ok: true, preregId, updated: data.updated === true,
+        referralCode: typeof data.referral_code === 'string' ? data.referral_code : null,
+      };
+    }
     return { ok: false, kind: 'unavailable', code: null, status: res.status };
   }
   const code = typeof env.error === 'string' ? env.error : null;
@@ -234,6 +256,8 @@ export function failureCopy(r: Extract<PreregResult, { ok: false }>): string {
       case 'invalid_email': return FIELD_ERROR_COPY.email;
       case 'invalid_whatsapp': return FIELD_ERROR_COPY.whatsapp;
       case 'invalid_name': return FIELD_ERROR_COPY.name;
+      case 'invalid_last_name': return FIELD_ERROR_COPY.last_name;
+      case 'invalid_instagram': return FIELD_ERROR_COPY.instagram;
       case 'invalid_dob': return FIELD_ERROR_COPY.dob;
       case 'consent_required': return FIELD_ERROR_COPY.consent;
       case 'consent_version': return 'El texto de autorización cambió. Recarga la página e inténtalo de nuevo.';
@@ -242,3 +266,36 @@ export function failureCopy(r: Extract<PreregResult, { ok: false }>): string {
   }
   return 'El servicio no está disponible en este momento. Intenta de nuevo.';
 }
+
+// ── funnel beacons + referral share ──────────────────────────────────────────
+
+export type CmwFunnelEvent =
+  | 'cmw_link_abierto' | 'preinscripcion_iniciada' | 'referido_compartido'
+  | 'push_aceptado' | 'app_instalada';
+
+/** Fire-and-forget analytics beacon. Never throws, never blocks UI; the server
+ *  whitelists kinds and stamps the conversions itself, so losing one of these
+ *  costs a funnel data point, never truth. */
+export function fireCmwEvent(event: CmwFunnelEvent, source: PreregSource | null, lang: string): void {
+  try {
+    void fetchT(`${API_BASE}/cmw/event`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...AMO_CLIENT_HEADERS },
+      body: JSON.stringify({ event, lang, source: source || undefined }),
+    }, 8000).catch(() => undefined);
+  } catch {
+    // beacon loss is acceptable by design
+  }
+}
+
+/** The share link a pre-registered person forwards; ?ref=CODE round-trips through
+ *  captureSource → source.ref → referred_by on the friend's first insert. */
+export const referralLink = (code: string): string =>
+  `https://www.amocartagena.co/cmw?ref=${encodeURIComponent(code)}`;
+
+export const referralShareText = (code: string, lang: string): string => {
+  const link = referralLink(code);
+  return lang === 'en'
+    ? `I'm pre-registered for Cartagena Music Week (Dec 31 – Jan 7). Sign up with my link and we both get the presale notice first: ${link}`
+    : `Ya estoy preinscrito en Cartagena Music Week (31 dic – 7 ene). Preinscríbete con mi enlace y los dos recibimos el aviso de preventa primero: ${link}`;
+};

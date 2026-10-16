@@ -16,7 +16,7 @@
 //   - The app nudge appears ONLY after a successful capture.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,
+  ActivityIndicator, Platform, ScrollView, Share, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -29,8 +29,8 @@ import { api } from '../src/constants/api';
 import { openExternal } from '../src/lib/cityModules';
 import {
   CONSENT_TEXT_ES, CONSENT_VERSION, FIELD_ERROR_COPY, MARKETING_TEXT_ES, PRIORITY_LINE_ES,
-  PreregFieldError, PreregResult, PreregSource, captureSource, dobIso, failureCopy,
-  prefillFrom, submitPrereg, validatePrereg,
+  PreregFieldError, PreregGender, PreregResult, PreregSource, captureSource, dobIso, failureCopy,
+  fireCmwEvent, prefillFrom, referralLink, referralShareText, submitPrereg, validatePrereg,
 } from '../src/lib/cmwPrereg';
 import { CMW, CMW_GUTTER, CMW_RADIUS, CMW_TYPE } from '../src/components/cmw/cmwTheme';
 import { CmwButton, CmwWordmark } from '../src/components/cmw/CmwUI';
@@ -40,6 +40,8 @@ const APP_STORE_URL = 'https://apps.apple.com/app/id6809565354';
 // English twins for the bilingual second line (same pattern as CmwRequestSheet).
 const EN_LINE: Record<string, string> = {
   'Escribe tu nombre (2 a 80 caracteres).': 'Enter your name (2 to 80 characters).',
+  'Escribe tu apellido (2 a 80 caracteres).': 'Enter your last name (2 to 80 characters).',
+  'Escribe tu usuario de Instagram (sin @).': 'Enter your Instagram handle (no @).',
   'Escribe un correo válido.': 'Enter a valid email.',
   'Escribe un número de WhatsApp con indicativo.': 'Enter a WhatsApp number with country code.',
   'Escribe tu fecha de nacimiento completa (DD/MM/AAAA).': 'Enter your full date of birth (DD/MM/YYYY).',
@@ -52,7 +54,14 @@ const EN_LINE: Record<string, string> = {
   'El servicio no está disponible en este momento. Intenta de nuevo.': 'The service is unavailable right now. Please try again.',
 };
 
-type Done = { preregId: string; updated: boolean };
+type Done = { preregId: string; updated: boolean; referralCode: string | null };
+
+const GENDER_OPTIONS: Array<{ value: PreregGender; label: string }> = [
+  { value: 'femenino', label: 'Femenino' },
+  { value: 'masculino', label: 'Masculino' },
+  { value: 'otro', label: 'Otro' },
+  { value: 'prefiero_no_decir', label: 'Prefiero no decir' },
+];
 
 function CheckRow({ checked, onToggle, children, testID }: {
   checked: boolean; onToggle: () => void; children: React.ReactNode; testID: string;
@@ -86,16 +95,31 @@ export default function CmwPreregScreen() {
   const [source, setSource] = useState<PreregSource | null>(null);
   useEffect(() => {
     let alive = true;
-    captureSource(params).then((src) => { if (alive) setSource(src); });
+    captureSource(params).then((src) => {
+      if (!alive) return;
+      setSource(src);
+      fireCmwEvent('cmw_link_abierto', src, lang); // spec funnel: the link worked
+    });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // preinscripcion_iniciada: once, on the first real interaction with the form.
+  const startedRef = useRef(false);
+  const markStarted = useCallback(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    fireCmwEvent('preinscripcion_iniciada', source, lang);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [source, lang]);
+
   // ── form state
   const [fullName, setFullName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [instagram, setInstagram] = useState('');
+  const [gender, setGender] = useState<PreregGender | null>(null);
   const [city, setCity] = useState('');
   const [country, setCountry] = useState('');
   const [dobD, setDobD] = useState('');
@@ -142,7 +166,8 @@ export default function CmwPreregScreen() {
   }, []);
 
   const onField = useCallback(<T extends string>(set: (v: T) => void, err: PreregFieldError) =>
-    (v: T) => { set(v); clearError(err); if (err === 'dob') clearError('under_18'); }, [clearError]);
+    (v: T) => { markStarted(); set(v); clearError(err); if (err === 'dob') clearError('under_18'); },
+    [clearError, markStarted]);
 
   const errorLines = useMemo(() => {
     if (!serverFail) return null;
@@ -153,17 +178,27 @@ export default function CmwPreregScreen() {
   const submit = useCallback(async () => {
     if (sending) return;
     setServerFail(null);
-    const problems = validatePrereg({ fullName, email, whatsapp, dobD, dobM, dobY, consentChecked });
+    // Apellido is demanded only when the form is actually collecting the name
+    // (anonymous, or a profile with no name on file): a signed-in profile with a
+    // combined name is never forced to split it retroactively.
+    const askLastName = !user || ask.fullName;
+    const problems = validatePrereg({
+      fullName, lastName, askLastName, email, whatsapp, instagram, dobD, dobM, dobY, consentChecked,
+    });
     setErrors(problems);
     if (problems.length) return; // blocked client-side: nothing goes over the wire
     const iso = dobIso(dobD, dobM, dobY);
     if (!iso || !source) return;
     setSending(true);
+    const joinedName = askLastName && lastName.trim()
+      ? `${fullName.trim()} ${lastName.trim()}` : fullName.trim();
     const r = await submitPrereg({
-      full_name: fullName.trim(),
+      full_name: joinedName,
+      last_name: lastName.trim() || undefined,
       email: email.trim(),
       whatsapp: whatsapp.trim(),
-      instagram: instagram.trim() || undefined,
+      instagram: instagram.trim().replace(/^@/, ''),
+      gender: gender || undefined,
       city: city.trim() || undefined,
       country: country.trim() || undefined,
       dob: iso,
@@ -176,19 +211,41 @@ export default function CmwPreregScreen() {
     });
     setSending(false);
     if (r.ok) {
-      setDone({ preregId: r.preregId, updated: r.updated });
+      setDone({ preregId: r.preregId, updated: r.updated, referralCode: r.referralCode });
       setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 30);
     } else {
       setServerFail(r);
       setTimeout(() => scrollRef.current?.scrollTo({ y: 0, animated: true }), 30);
     }
-  }, [sending, fullName, email, whatsapp, instagram, city, country, dobD, dobM, dobY,
-      consentChecked, marketingChecked, website, source, lang]);
+  }, [sending, fullName, lastName, email, whatsapp, instagram, gender, city, country,
+      dobD, dobM, dobY, consentChecked, marketingChecked, website, source, lang,
+      user, ask.fullName, showAll]);
 
   const openPrivacy = useCallback(() => { router.push('/privacidad' as never); }, [router]);
   const goLogin = useCallback(() => {
     router.push({ pathname: '/login', params: { next: '/cmw' } } as never);
   }, [router]);
+
+  // Referral share: native/web share sheet first (Share.share also drives
+  // navigator.share on web); the WhatsApp button is the LATAM-first path.
+  const [copied, setCopied] = useState(false);
+  const shareReferral = useCallback(async (code: string, via: 'share' | 'whatsapp' | 'copy') => {
+    const text = referralShareText(code, lang);
+    fireCmwEvent('referido_compartido', source, lang);
+    try {
+      if (via === 'whatsapp') {
+        await openExternal(`https://wa.me/?text=${encodeURIComponent(text)}`);
+      } else if (via === 'copy' && Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(referralLink(code));
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      } else {
+        await Share.share({ message: text });
+      }
+    } catch {
+      // user closed the sheet / clipboard denied — nothing to recover
+    }
+  }, [lang, source]);
 
   const authedChips = useMemo(() => {
     if (!user) return [];
@@ -239,6 +296,34 @@ export default function CmwPreregScreen() {
               <Text style={s.ridValue} selectable testID="cmw-pre-id">{done.preregId}</Text>
             </View>
             <Text style={[CMW_TYPE.small, { textAlign: 'center' }]}>{tr('Guarda este número por si necesitas seguimiento.')}</Text>
+
+            {/* CMW-2: the referral loop — your code, your link, shared where LATAM shares. */}
+            {!!done.referralCode && (
+              <View style={s.referralBox} testID="cmw-pre-referral">
+                <Text style={[CMW_TYPE.h3, { fontSize: 18, lineHeight: 23 }]}>{tr('Invita a tus amigos')}</Text>
+                <Text style={[CMW_TYPE.small, { marginTop: 4 }]}>
+                  {tr('Comparte tu enlace: quien se preinscriba contigo también recibe el aviso de preventa primero.')}
+                </Text>
+                <View style={s.refCodeRow}>
+                  <Text style={s.refCode} selectable testID="cmw-pre-refcode">{done.referralCode}</Text>
+                </View>
+                <View style={s.refBtnRow}>
+                  <CmwButton label={tr('Compartir')} icon="share-social-outline"
+                    onPress={() => shareReferral(done.referralCode as string, 'share')}
+                    style={{ flex: 1 }} testID="cmw-pre-share" />
+                  <CmwButton label="WhatsApp" variant="secondary" icon="logo-whatsapp"
+                    onPress={() => shareReferral(done.referralCode as string, 'whatsapp')}
+                    style={{ flex: 1 }} testID="cmw-pre-share-wa" />
+                </View>
+                {Platform.OS === 'web' && (
+                  <TouchableOpacity onPress={() => shareReferral(done.referralCode as string, 'copy')}
+                    style={s.copyRow} accessibilityRole="button" testID="cmw-pre-copy">
+                    <Ionicons name={copied ? 'checkmark-circle-outline' : 'copy-outline'} size={14} color={CMW.amber} />
+                    <Text style={s.copyText}>{copied ? tr('Enlace copiado') : tr('Copiar enlace')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
 
             {Platform.OS === 'web' && (
               <View style={s.nudge} testID="cmw-pre-nudge">
@@ -296,13 +381,34 @@ export default function CmwPreregScreen() {
               )
             )}
 
-            {show('fullName') && (<>
-              <Text style={s.label}>{tr('Nombre completo')}</Text>
-              <TextInput value={fullName} onChangeText={onField(setFullName, 'name')} placeholder={tr('Nombre')} placeholderTextColor={CMW.sandFaint}
-                autoCapitalize="words" autoComplete="name" textContentType="name" maxLength={80}
-                style={[s.input, has('name') && s.inputError]} testID="cmw-pre-name" />
-              {has('name') && <Text style={s.fieldError}>{tr(FIELD_ERROR_COPY.name)}</Text>}
-            </>)}
+            {show('fullName') && ((!user || ask.fullName) ? (
+              /* Collecting the name fresh → Nombre + Apellidos, as the CMW spec asks. */
+              <View style={s.placeRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.label}>{tr('Nombre')}</Text>
+                  <TextInput value={fullName} onChangeText={onField(setFullName, 'name')} placeholder={tr('Nombre')} placeholderTextColor={CMW.sandFaint}
+                    autoCapitalize="words" autoComplete="name-given" textContentType="givenName" maxLength={80}
+                    style={[s.input, has('name') && s.inputError]} testID="cmw-pre-name" />
+                  {has('name') && <Text style={s.fieldError}>{tr(FIELD_ERROR_COPY.name)}</Text>}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.label}>{tr('Apellidos')}</Text>
+                  <TextInput value={lastName} onChangeText={onField(setLastName, 'last_name')} placeholder={tr('Apellidos')} placeholderTextColor={CMW.sandFaint}
+                    autoCapitalize="words" autoComplete="name-family" textContentType="familyName" maxLength={80}
+                    style={[s.input, has('last_name') && s.inputError]} testID="cmw-pre-lastname" />
+                  {has('last_name') && <Text style={s.fieldError}>{tr(FIELD_ERROR_COPY.last_name)}</Text>}
+                </View>
+              </View>
+            ) : (
+              /* Editing a profile that already carries one combined name field. */
+              <>
+                <Text style={s.label}>{tr('Nombre completo')}</Text>
+                <TextInput value={fullName} onChangeText={onField(setFullName, 'name')} placeholder={tr('Nombre')} placeholderTextColor={CMW.sandFaint}
+                  autoCapitalize="words" autoComplete="name" textContentType="name" maxLength={80}
+                  style={[s.input, has('name') && s.inputError]} testID="cmw-pre-name" />
+                {has('name') && <Text style={s.fieldError}>{tr(FIELD_ERROR_COPY.name)}</Text>}
+              </>
+            ))}
 
             {show('email') && (<>
               <Text style={s.label}>{tr('Correo electrónico')}</Text>
@@ -341,9 +447,12 @@ export default function CmwPreregScreen() {
             )}
 
             {show('instagram') && (<>
-              <Text style={s.label}>Instagram <Text style={s.optional}>· {tr('opcional')}</Text></Text>
-              <TextInput value={instagram} onChangeText={setInstagram} placeholder="@usuario" placeholderTextColor={CMW.sandFaint}
-                autoCapitalize="none" autoCorrect={false} maxLength={31} style={s.input} testID="cmw-pre-instagram" />
+              {/* CMW-2: required (spec: obligatorio) — the handle is how CMW builds its audience. */}
+              <Text style={s.label}>Instagram</Text>
+              <TextInput value={instagram} onChangeText={onField(setInstagram, 'instagram')} placeholder="@usuario" placeholderTextColor={CMW.sandFaint}
+                autoCapitalize="none" autoCorrect={false} maxLength={31}
+                style={[s.input, has('instagram') && s.inputError]} testID="cmw-pre-instagram" />
+              {has('instagram') && <Text style={s.fieldError}>{tr(FIELD_ERROR_COPY.instagram)}</Text>}
             </>)}
 
             <View style={s.placeRow}>
@@ -361,6 +470,26 @@ export default function CmwPreregScreen() {
                     autoCapitalize="words" maxLength={60} style={s.input} testID="cmw-pre-country" />
                 </View>
               )}
+            </View>
+
+            {/* Género — optional, per the spec's form; chips, never a free-text box. */}
+            <Text style={s.label}>{tr('Género')} <Text style={s.optional}>· {tr('opcional')}</Text></Text>
+            <View style={s.genderRow} testID="cmw-pre-gender">
+              {GENDER_OPTIONS.map((g) => {
+                const active = gender === g.value;
+                return (
+                  <TouchableOpacity
+                    key={g.value}
+                    onPress={() => { markStarted(); setGender(active ? null : g.value); }}
+                    style={[s.genderChip, active && s.genderChipOn]}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    testID={`cmw-pre-gender-${g.value}`}
+                  >
+                    <Text style={[s.genderChipText, active && s.genderChipTextOn]}>{tr(g.label)}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
             {/* Honeypot: off-screen, hidden from assistive tech and the tab order. */}
@@ -450,6 +579,19 @@ const s = StyleSheet.create({
   errorBox: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 14, borderRadius: 16, backgroundColor: 'rgba(238,107,77,0.10)', borderWidth: 1, borderColor: 'rgba(238,107,77,0.45)', marginBottom: 12 },
   errorText: { fontSize: 14, lineHeight: 20, fontWeight: '600', color: CMW.cream },
   errorTextSecond: { fontSize: 12.5, lineHeight: 17, fontWeight: '500', color: CMW.sand, marginTop: 4 },
+
+  genderRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  genderChip: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', backgroundColor: 'rgba(255,255,255,0.05)', minHeight: 40 },
+  genderChipOn: { backgroundColor: 'rgba(244,164,58,0.16)', borderColor: CMW.amber },
+  genderChipText: { fontSize: 13, fontWeight: '600', color: CMW.sand },
+  genderChipTextOn: { color: CMW.amber },
+
+  referralBox: { marginTop: 18, padding: 14, borderRadius: 16, backgroundColor: 'rgba(244,164,58,0.08)', borderWidth: 1, borderColor: CMW.line, alignSelf: 'stretch' },
+  refCodeRow: { alignItems: 'center', marginTop: 12, marginBottom: 12, paddingVertical: 10, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: CMW.lineSoft },
+  refCode: { fontSize: 22, lineHeight: 28, fontWeight: '800', letterSpacing: 2, color: CMW.gold, fontVariant: ['tabular-nums'] },
+  refBtnRow: { flexDirection: 'row', gap: 8 },
+  copyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10, minHeight: 32 },
+  copyText: { fontSize: 12.5, fontWeight: '700', color: CMW.amber },
 
   successIcon: { width: 64, height: 64, borderRadius: 32, backgroundColor: CMW.amber, alignItems: 'center', justifyContent: 'center', marginBottom: 14, alignSelf: 'center' },
   rid: { alignItems: 'center', marginTop: 16, marginBottom: 8, paddingVertical: 12, paddingHorizontal: 20, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: CMW.line, alignSelf: 'stretch' },
