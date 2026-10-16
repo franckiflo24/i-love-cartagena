@@ -32,7 +32,10 @@ export default function ClaimVenue() {
   }, [token, id]);
   useEffect(() => { load(); }, [load]);
 
-  if (!authLoading && !token) { router.replace('/business/login' as any); return null; }
+  // Anonymous owner (consumer "¿Es tu negocio?" tap, shared link, public find):
+  // route into signup with THIS claim as the return-url — after the account
+  // exists they land right back here instead of re-searching (audit gap #3).
+  if (!authLoading && !token) { router.replace({ pathname: '/business/signup', params: { next: `/business/claim/${id}` } } as any); return null; }
 
   const startEmail = async () => {
     if (nit.replace(/\D/g, '').length < 5) { Alert.alert(tr('NIT requerido'), tr('Confirma el NIT o registro del negocio')); return; }

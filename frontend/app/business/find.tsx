@@ -28,10 +28,11 @@ export default function FindBusiness() {
   const [loading, setLoading] = useState(false);
 
   const search = useCallback(async () => {
-    if (!token || q.trim().length < 2) return;
+    if (q.trim().length < 2) return;
     setLoading(true);
     try {
-      const data = await api.get(`/business/catalog/search?q=${encodeURIComponent(q.trim())}`, { headers: { Authorization: `Bearer ${token}` } });
+      // Public endpoint since the "busca primero" drop — a session is optional.
+      const data = await api.get(`/business/catalog/search?q=${encodeURIComponent(q.trim())}`, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
       setHits(data.results || []);
       setSearchError(false);
     } catch (e) { console.error('[business/find] search', e); setHits([]); setSearchError(true); }
@@ -39,7 +40,10 @@ export default function FindBusiness() {
     setLoading(false);
   }, [q, token]);
 
-  if (!authLoading && !token) { router.replace('/business/login' as any); return null; }
+  // "Busca primero, cuenta después": this screen is PUBLIC. The account is
+  // asked for only at the moment of claiming or creating, with the destination
+  // riding through signup/login as a safeNext return-url — no backtracking.
+  const gateTo = (next: string) => router.push({ pathname: '/business/signup', params: { next } } as any);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -54,6 +58,9 @@ export default function FindBusiness() {
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Text style={styles.intro}>{tr('Busca tu negocio en el catálogo. Si ya existe, reclámalo. Solo si no está, podrás crear uno nuevo.')}</Text>
+        {!authLoading && !token && (
+          <Text style={styles.anonHint}>{tr('Busca gratis y sin cuenta — la crearás solo al reclamar o crear tu negocio.')}</Text>
+        )}
 
         <View style={styles.searchRow}>
           <View style={styles.inputWrap}>
@@ -84,7 +91,7 @@ export default function FindBusiness() {
               style={styles.card}
               activeOpacity={0.85}
               disabled={claimed}
-              onPress={() => router.push(`/business/claim/${h.partner_id}` as any)}
+              onPress={() => (token ? router.push(`/business/claim/${h.partner_id}` as any) : gateTo(`/business/claim/${h.partner_id}`))}
             >
               {h.image_url ? <SafeImage uri={h.image_url} style={styles.thumb} /> : <View style={[styles.thumb, styles.thumbEmpty]}><Ionicons name="business" size={20} color={COLORS.textMuted} /></View>}
               <View style={{ flex: 1 }}>
@@ -115,7 +122,8 @@ export default function FindBusiness() {
             <Text style={styles.noneText}>
               {hits.length === 0 ? tr('No encontramos tu negocio en el catálogo.') : tr('¿No es ninguno de estos?')}
             </Text>
-            <TouchableOpacity style={styles.createBtn} onPress={() => router.push({ pathname: '/business/create-venue', params: { name: q.trim() } } as any)}>
+            <TouchableOpacity style={styles.createBtn} onPress={() => (token ? router.push({ pathname: '/business/create-venue', params: { name: q.trim() } } as any) : gateTo(`/business/create-venue?name=${encodeURIComponent(q.trim())}`))}>
+
               <Ionicons name="add-circle-outline" size={18} color={COLORS.primary} />
               <Text style={styles.createBtnText}>{tr('Crear un negocio nuevo')}</Text>
             </TouchableOpacity>
@@ -134,6 +142,7 @@ const styles = StyleSheet.create({
   hTitle: { fontSize: 16, color: COLORS.textMain, ...FONTS.bold },
   scroll: { padding: SPACING.lg },
   intro: { fontSize: 13, color: COLORS.textMuted, ...FONTS.regular, lineHeight: 20, marginBottom: SPACING.md },
+  anonHint: { fontSize: 12, color: COLORS.primary, ...FONTS.semibold, lineHeight: 18, marginTop: -SPACING.sm, marginBottom: SPACING.md },
   searchRow: { flexDirection: 'row', gap: SPACING.sm, alignItems: 'center' },
   inputWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, backgroundColor: COLORS.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: COLORS.border, paddingHorizontal: SPACING.md, height: 50 },
   input: { flex: 1, color: COLORS.textMain, fontSize: 14, ...FONTS.regular },

@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView, ActivityIndicator } from 'react-native';
 import { Alert } from '../../src/lib/alert';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
 import { useTr } from '../../src/i18n/autoTr';
+import { safeNext } from '../../src/lib/safeNext';
 
 // B1A — Self-serve partner account signup. A partner account is a SEPARATE
 // namespace from tourist end-users; creating one grants no consumer-app data.
 export default function BusinessSignup() {
   const tr = useTr();
   const router = useRouter();
+  const { next } = useLocalSearchParams<{ next?: string }>();
   const { signup } = useBusinessAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -38,8 +40,10 @@ export default function BusinessSignup() {
     setLoading(true);
     try {
       await signup(email.trim().toLowerCase(), password, name.trim(), phone.trim(), nit.trim());
-      // New account has no venue yet → go find/claim it.
-      router.replace('/business/find' as any);
+      // "Busca primero" drop: a return-url from the public find screen (claim or
+      // prefilled create) rides through signup — the owner lands exactly where
+      // they were going. No next → the classic find/claim start.
+      router.replace((safeNext(next) || '/business/find') as any);
     } catch (e: any) {
       Alert.alert(tr('No se pudo crear la cuenta'), e?.message || tr('Intenta de nuevo'));
     }
@@ -104,7 +108,7 @@ export default function BusinessSignup() {
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => router.replace('/business/login' as any)}>
+            <TouchableOpacity onPress={() => router.replace((safeNext(next) ? { pathname: '/business/login', params: { next: next as string } } : '/business/login') as any)}>
               <Text style={styles.loginLink}>{tr('Ya tengo cuenta — Iniciar sesión')}</Text>
             </TouchableOpacity>
           </View>

@@ -1614,7 +1614,18 @@ async def business_signup(request: Request):
 # ── B1B · Find-your-business search + dedup precheck ───────────────────────
 @api_router.get("/business/catalog/search")
 async def business_catalog_search(request: Request, q: str = "", neighborhood: str = ""):
-    await get_current_business(request)  # portal-only; no end-user data touched
+    # Public since the "busca primero" drop: an owner can check whether their
+    # business is already on AMO BEFORE creating an account. The result trim is
+    # catalog-public data only (same pool the consumer app serves anonymously);
+    # claim/create stay fully authed. Anonymous callers get an IP bucket whose
+    # prefix is deliberately NOT in SENSITIVE_PREFIXES — a public read of public
+    # data must survive a store blip (degraded in-process limiter, never 503).
+    try:
+        await get_current_business(request)
+    except HTTPException as exc:
+        if exc.status_code != 401:
+            raise
+        await _check_rate_limit(f"bizfindip:{_client_ip(request)}", max_calls=60, window_sec=3600)
     if not q or len(q.strip()) < 2:
         return {"results": [], "query": q}
     cands = await _catalog_candidates()

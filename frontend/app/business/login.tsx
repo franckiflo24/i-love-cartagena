@@ -5,18 +5,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, RADIUS, FONTS } from '../../src/constants/theme';
 import { useBusinessAuth } from '../../src/context/BusinessAuthContext';
+import { safeNext } from '../../src/lib/safeNext';
 import { useTr } from '../../src/i18n/autoTr';
 
 export default function BusinessLogin() {
   const tr = useTr();
   const router = useRouter();
-  const { role } = useLocalSearchParams<{ role?: string }>();
+  const { role, next } = useLocalSearchParams<{ role?: string; next?: string }>();
   const { login, passcodeLogin, token, loading: authLoading } = useBusinessAuth();
   // An already-signed-in partner who lands here (bookmark, back button, the
   // Perfil → "Dashboard de negocio" row) goes straight to the dashboard.
   useEffect(() => {
-    if (!authLoading && token) router.replace('/business/dashboard' as any);
-  }, [authLoading, token, router]);
+    if (!authLoading && token) router.replace((safeNext(next) || '/business/dashboard') as any);
+  }, [authLoading, token, router, next]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passcode, setPasscode] = useState('');
@@ -44,7 +45,10 @@ export default function BusinessLogin() {
     setLoading(true);
     try {
       await login(email.trim(), password);
-      router.replace('/business/dashboard');
+      // "Busca primero" drop: honor a safeNext return-url (claim/create carried
+      // through from the public find screen); alcaldía login below stays pinned
+      // to the dashboard on purpose.
+      router.replace((safeNext(next) || '/business/dashboard') as any);
     } catch (e: any) {
       // Backend detail is bilingual and non-enumerating (same "Credenciales
       // inválidas" for wrong email or wrong password) — show it verbatim.
