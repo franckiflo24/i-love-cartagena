@@ -341,7 +341,7 @@ function CrowdBanner({ note }: { note: L4 | null }) {
   );
 }
 
-// ── "Ver en Moverse" row (internal navigation to the city hub module) ────────
+// ── "Ver en Servicios públicos" row (internal navigation to the city hub module) ────────
 function MoverseLink({
   href, icon, caption, testID,
 }: { href: string; icon: IconName; caption?: string; testID: string }) {
@@ -359,7 +359,7 @@ function MoverseLink({
       onPress={go}
       activeOpacity={0.8}
       accessibilityRole="link"
-      accessibilityLabel={caption ? `${tr('Ver en Moverse')} · ${caption}` : tr('Ver en Moverse')}
+      accessibilityLabel={caption ? `${tr('Ver en Servicios públicos')} · ${caption}` : tr('Ver en Servicios públicos')}
       testID={testID}
     >
       <View style={s.linkIcon}>
@@ -367,7 +367,7 @@ function MoverseLink({
       </View>
       <View style={s.linkBody}>
         {!!caption && <Text style={s.linkCaption}>{caption}</Text>}
-        <Text style={s.linkLabel}>{tr('Ver en Moverse')}</Text>
+        <Text style={s.linkLabel}>{tr('Ver en Servicios públicos')}</Text>
       </View>
       <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
     </TouchableOpacity>

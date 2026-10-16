@@ -325,10 +325,10 @@
           "andar sozinha"
         ],
         "decline_line": {
-          "es": "Esta capa se construye con calificaciones reales de mujeres, no con suposiciones — aún no tengo suficientes para prometerte \"verificado\". Lo que sí es oficial: las tarifas de taxi DATT están en Moverse, y puedes pedir el viaje desde la app del lugar donde estés.",
-          "en": "This layer is built from real ratings by women, not assumptions — I don't have enough yet to promise you \"verified.\" What is official: DATT taxi fares are in Getting around, and you can request your ride from wherever you are.",
-          "fr": "Cette couche se construit avec de vraies évaluations de femmes, pas des suppositions — je n'en ai pas encore assez pour promettre « vérifié ». Ce qui est officiel : les tarifs taxi DATT sont dans Se déplacer.",
-          "pt": "Esta camada é construída com avaliações reais de mulheres, não suposições — ainda não tenho o suficiente para prometer \"verificado\". O que é oficial: as tarifas de táxi DATT estão em Moverse."
+          "es": "Esta capa se construye con calificaciones reales de mujeres, no con suposiciones — aún no tengo suficientes para prometerte \"verificado\". Lo que sí es oficial: las tarifas de taxi DATT están en Servicios públicos, y puedes pedir el viaje desde la app del lugar donde estés.",
+          "en": "This layer is built from real ratings by women, not assumptions — I don't have enough yet to promise you \"verified.\" What is official: DATT taxi fares are in Public services, and you can request your ride from wherever you are.",
+          "fr": "Cette couche se construit avec de vraies évaluations de femmes, pas des suppositions — je n'en ai pas encore assez pour promettre « vérifié ». Ce qui est officiel : les tarifs taxi DATT sont dans Services publics.",
+          "pt": "Esta camada é construída com avaliações reais de mulheres, não suposições — ainda não tenho o suficiente para prometer \"verificado\". O que é oficial: as tarifas de táxi DATT estão em Serviços públicos."
         },
         "resource_line": {
           "es": "La seguridad nunca se promete: no existe el lugar «seguro» garantizado y no te lo voy a inventar. Lo que sí está verificado: Línea 155 (orientación a mujeres víctimas de violencia — nacional, gratuita, 24/7, puedes omitir tus datos) y 123 (emergencias). Hay puntos de Policía de Turismo en el aeropuerto (llegadas), el Muelle de La Bodeguita, Playa Azul y la playa de Bocagrande. De noche, viajeras recomiendan pedir vehículo por app en vez de caminar o parar taxi en la calle, y quedarte donde hay gente y luz. En citas por app: lugar público, tu bebida siempre contigo (la escopolamina existe), no lleves contactos nuevos a tu alojamiento y comparte tu plan. ¿Pasó algo? Llama al 123; la denuncia también se puede poner en adenunciar.policia.gov.co.",
@@ -960,10 +960,10 @@
         "pt": "A bandeira gigante da Colômbia sobre o Hornabeque, com a cidade amuralhada ao fundo — termine ~17h30 para o pôr do sol."
       },
       "etiquette": {
-        "es": "Tarifas y horarios oficiales en Moverse → Monumentos; lleva agua, hay poca sombra.",
-        "en": "Official fares and hours in Getting around → Monuments; bring water, there's little shade.",
-        "fr": "Tarifs et horaires officiels dans Se déplacer → Monuments ; prenez de l'eau, peu d'ombre.",
-        "pt": "Tarifas e horários oficiais em Moverse → Monumentos; leve água, há pouca sombra."
+        "es": "Tarifas y horarios oficiales en Servicios públicos → Monumentos; lleva agua, hay poca sombra.",
+        "en": "Official fares and hours in Public services → Monuments; bring water, there's little shade.",
+        "fr": "Tarifs et horaires officiels dans Services publics → Monuments ; prenez de l'eau, peu d'ombre.",
+        "pt": "Tarifas e horários oficiais em Serviços públicos → Monumentos; leve água, há pouca sombra."
       },
       "source_url": "https://apassionandapassport.com/cartagena-photo-spots-for-instagram/",
       "source_name": "A Passion and A Passport",

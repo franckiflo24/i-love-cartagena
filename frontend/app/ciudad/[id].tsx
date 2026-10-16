@@ -114,7 +114,7 @@ export default function CiudadDetailScreen() {
   // Browser tab / history / share sheet: expo-router's Head provider injects an
   // EMPTY helmet <title> ahead of the shell one, so without a per-screen title
   // document.title is '' on every route.
-  const pageTitle = `${mod ? pickL(mod.title, lang) : tr('Moverse en Cartagena')} · AMO Life`;
+  const pageTitle = `${mod ? pickL(mod.title, lang) : tr('Servicios públicos en Cartagena')} · AMO Life`;
   const head = <Head><title>{pageTitle}</title></Head>;
 
   const navButtons = (
@@ -187,10 +187,10 @@ export default function CiudadDetailScreen() {
         <View style={styles.stateWrap} testID="ciudad-detail-notfound">
           <Ionicons name="search-outline" size={48} color={COLORS.textMuted} />
           <Text style={styles.stateTitle}>{tr('No encontramos este módulo')}</Text>
-          <Text style={styles.stateText}>{tr('Puede que el enlace haya cambiado. Mira todos los módulos de Moverse.')}</Text>
-          <TouchableOpacity onPress={goHub} style={styles.primaryBtn} accessibilityRole="link" accessibilityLabel={tr('Volver a Moverse')}>
+          <Text style={styles.stateText}>{tr('Puede que el enlace haya cambiado. Mira todos los servicios públicos.')}</Text>
+          <TouchableOpacity onPress={goHub} style={styles.primaryBtn} accessibilityRole="link" accessibilityLabel={tr('Volver a Servicios públicos')}>
             <Ionicons name="bus" size={16} color={COLORS.black} />
-            <Text style={styles.primaryBtnText}>{tr('Volver a Moverse')}</Text>
+            <Text style={styles.primaryBtnText}>{tr('Volver a Servicios públicos')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

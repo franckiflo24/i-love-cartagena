@@ -1,4 +1,4 @@
-// "Moverse en Cartagena" — the city hub. Six honesty-badged modules (bus, pier,
+// "Servicios públicos en Cartagena" — the city hub. Transport ("Moverse": bus, pier,
 // monuments, carriages, water bus, taxis) over official, dated sources. AMO
 // informs here; every price is paid off-app with the entity that runs it.
 import React, { useCallback, useEffect, useState } from 'react';
@@ -119,7 +119,7 @@ export default function CiudadHubScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Per-screen title: the helmet <title> expo-router injects is empty otherwise. */}
-      <Head><title>{`${tr('Moverse en Cartagena')} · AMO Life`}</title></Head>
+      <Head><title>{`${tr('Servicios públicos en Cartagena')} · AMO Life`}</title></Head>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.headerRow}>
           {canGoBack ? (
@@ -144,9 +144,11 @@ export default function CiudadHubScreen() {
             </TouchableOpacity>
           )}
           <View style={{ flex: 1 }}>
-            <Text style={styles.eyebrow}>{tr('Moverse')}</Text>
-            <Text style={styles.title}>{tr('Moverse en Cartagena')}</Text>
-            <Text style={styles.promise}>{tr('Precios reales, fuentes oficiales, sin sorpresas')}</Text>
+            <Text style={styles.eyebrow}>{tr('Servicios públicos')}</Text>
+            <Text style={styles.title}>{tr('Servicios públicos en Cartagena')}</Text>
+            {/* "Precios reales" alone under-described the category once emergency
+                lines (which have no price) joined it. */}
+            <Text style={styles.promise}>{tr('Datos oficiales, precios reales, sin sorpresas')}</Text>
           </View>
         </View>
 
@@ -200,9 +202,20 @@ export default function CiudadHubScreen() {
           </View>
         )}
 
+        {/* ── Transport keeps the familiar "Moverse" name as a SECTION, now that the
+            category above owns "Servicios públicos" — nothing is nested in itself. */}
         {!loading && !failed && modules.length > 0 && (
-          <View style={styles.list}>
-            {modules.map((m, i) => renderCard(m, i, lang, tr, router))}
+          <View testID="ciudad-moverse">
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionEyebrow}>{tr('Moverse')}</Text>
+              <Text style={styles.sectionTitle}>{tr('Transporte y movilidad')}</Text>
+              <Text style={styles.sectionPromise}>
+                {tr('Bus, muelle, monumentos, coches y taxis — con precios oficiales.')}
+              </Text>
+            </View>
+            <View style={styles.list}>
+              {modules.map((m, i) => renderCard(m, i, lang, tr, router))}
+            </View>
           </View>
         )}
 
@@ -212,7 +225,7 @@ export default function CiudadHubScreen() {
         {!loading && !failed && serviceModules.length > 0 && (
           <View style={styles.sectionBlock} testID="ciudad-servicios">
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionEyebrow}>{tr('Servicios públicos')}</Text>
+              <Text style={styles.sectionEyebrow}>{tr('Trámites')}</Text>
               <Text style={styles.sectionTitle}>{tr('Líneas y trámites oficiales')}</Text>
               <Text style={styles.sectionPromise}>
                 {tr('Información verificada con fuentes oficiales. AMO es un canal privado de información — cada trámite se hace con la entidad.')}

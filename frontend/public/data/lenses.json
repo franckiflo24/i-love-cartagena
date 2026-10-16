@@ -1,7 +1,7 @@
 {
  "version": 1,
  "updated": "2026-10-13",
- "generated_at": "2026-10-13T08:07:30.224Z",
+ "generated_at": "2026-10-16T21:10:49.220Z",
  "lenses": [
   {
    "key": "golden_hour",
@@ -914,10 +914,10 @@
     "pt": "A bandeira gigante da Colômbia sobre o Hornabeque, com a cidade amuralhada ao fundo — termine ~17h30 para o pôr do sol."
    },
    "etiquette": {
-    "es": "Tarifas y horarios oficiales en Moverse → Monumentos; lleva agua, hay poca sombra.",
-    "en": "Official fares and hours in Getting around → Monuments; bring water, there's little shade.",
-    "fr": "Tarifs et horaires officiels dans Se déplacer → Monuments ; prenez de l'eau, peu d'ombre.",
-    "pt": "Tarifas e horários oficiais em Moverse → Monumentos; leve água, há pouca sombra."
+    "es": "Tarifas y horarios oficiales en Servicios públicos → Monumentos; lleva agua, hay poca sombra.",
+    "en": "Official fares and hours in Public services → Monuments; bring water, there's little shade.",
+    "fr": "Tarifs et horaires officiels dans Services publics → Monuments ; prenez de l'eau, peu d'ombre.",
+    "pt": "Tarifas e horários oficiais em Serviços públicos → Monumentos; leve água, há pouca sombra."
    },
    "link": "/ciudad/monumentos",
    "source_url": "https://apassionandapassport.com/cartagena-photo-spots-for-instagram/",

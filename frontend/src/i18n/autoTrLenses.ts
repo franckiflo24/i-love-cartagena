@@ -48,7 +48,6 @@ export const LENSES_TR: Dict = {
   'Hora de zarpe (all aboard)': { en: 'All-aboard time', fr: "Heure d'embarquement", pt: 'Hora do all aboard' },
   'Sal del Centro a esta hora': { en: 'Leave the Centro by', fr: 'Quitte le Centro à', pt: 'Saia do Centro até' },
   'Tarifas oficiales de taxi': { en: 'Official taxi fares', fr: 'Tarifs officiels de taxi', pt: 'Tarifas oficiais de táxi' },
-  'Ver en Moverse': { en: 'Open in Getting around', fr: 'Voir dans Se déplacer', pt: 'Ver em Moverse' },
   'Itinerarios para tu escala': { en: 'Itineraries for your port call', fr: 'Itinéraires pour ton escale', pt: 'Roteiros para a sua escala' },
   'Hoy hay crucero en puerto': { en: 'Cruise ship in port today', fr: "Navire de croisière au port aujourd'hui", pt: 'Navio de cruzeiro no porto hoje' },
   'min': { en: 'min', fr: 'min', pt: 'min' },

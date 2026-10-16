@@ -1760,7 +1760,6 @@ export const AUTO_TR: Dict = {
   // tu to match the module copy on the same screen.
   'Moverse': { en: 'Get around', fr: 'Se déplacer', pt: 'Como se mover' },
   'Bus, muelle, taxis': { en: 'Bus, pier, taxis', fr: 'Bus, quai, taxis', pt: 'Ônibus, píer, táxis' },
-  'Moverse en Cartagena': { en: 'Getting around Cartagena', fr: 'Se déplacer à Carthagène', pt: 'Como se mover em Cartagena' },
   // SP-1 (Oct 15): servicios públicos rail in the /ciudad hub.
   'Servicios públicos': { en: 'Public services', fr: 'Services publics', pt: 'Serviços públicos' },
   'Líneas y trámites oficiales': { en: 'Official lines & procedures', fr: 'Lignes et démarches officielles', pt: 'Linhas e trâmites oficiais' },
@@ -1769,7 +1768,6 @@ export const AUTO_TR: Dict = {
     fr: 'Information vérifiée auprès de sources officielles. AMO est un canal privé d’information — chaque démarche se fait auprès de l’entité.',
     pt: 'Informação verificada com fontes oficiais. A AMO é um canal privado de informação — cada trâmite é feito com a própria entidade.',
   },
-  'Precios reales, fuentes oficiales, sin sorpresas': { en: 'Real prices, official sources, no surprises', fr: 'Vrais prix, sources officielles, zéro surprise', pt: 'Preços reais, fontes oficiais, sem surpresas' },
   'Info': { en: 'Info', fr: 'Info', pt: 'Info' },
   'En vivo': { en: 'Live', fr: 'En direct', pt: 'Ao vivo' },
   'Ver detalles': { en: 'See details', fr: 'Voir les détails', pt: 'Ver detalhes' },
@@ -1778,8 +1776,21 @@ export const AUTO_TR: Dict = {
   'Última verificación': { en: 'Last verified', fr: 'Dernière vérification', pt: 'Última verificação' },
   'AMO te informa; pagas directamente con cada entidad.': { en: 'AMO informs you; you pay each entity directly.', fr: "AMO t'informe ; tu paies directement auprès de chaque entité.", pt: 'A AMO te informa; você paga diretamente a cada entidade.' },
   'No encontramos este módulo': { en: "We couldn't find this module", fr: 'Module introuvable', pt: 'Não encontramos este módulo' },
-  'Puede que el enlace haya cambiado. Mira todos los módulos de Moverse.': { en: 'The link may have changed. Browse all the Getting around modules.', fr: 'Le lien a peut-être changé. Consulte tous les modules Se déplacer.', pt: 'O link pode ter mudado. Veja todos os módulos de Como se mover.' },
-  'Volver a Moverse': { en: 'Back to Getting around', fr: 'Retour à Se déplacer', pt: 'Voltar a Como se mover' },
+  // Renamed 2026-10-16: the CATEGORY is "Servicios públicos" (the name the city
+  // asks for); "Moverse" survives as the transport SECTION inside it, so both the
+  // old key above and these new ones are live.
+  'Servicios públicos en Cartagena': { en: 'Public services in Cartagena', fr: 'Services publics à Carthagène', pt: 'Serviços públicos em Cartagena' },
+  'Datos oficiales, precios reales, sin sorpresas': { en: 'Official data, real prices, no surprises', fr: 'Données officielles, vrais prix, zéro surprise', pt: 'Dados oficiais, preços reais, sem surpresas' },
+  'Transporte y movilidad': { en: 'Transport & mobility', fr: 'Transport et mobilité', pt: 'Transporte e mobilidade' },
+  'Bus, muelle, monumentos, coches y taxis — con precios oficiales.': {
+    en: 'Bus, pier, monuments, carriages and taxis — with official prices.',
+    fr: 'Bus, quai, monuments, calèches et taxis — avec les prix officiels.',
+    pt: 'Ônibus, píer, monumentos, charretes e táxis — com preços oficiais.',
+  },
+  'Trámites': { en: 'Procedures', fr: 'Démarches', pt: 'Trâmites' },
+  'Puede que el enlace haya cambiado. Mira todos los servicios públicos.': { en: 'The link may have changed. Browse all the public services.', fr: 'Le lien a peut-être changé. Consulte tous les services publics.', pt: 'O link pode ter mudado. Veja todos os serviços públicos.' },
+  'Volver a Servicios públicos': { en: 'Back to Public services', fr: 'Retour aux Services publics', pt: 'Voltar a Serviços públicos' },
+  'Ver en Servicios públicos': { en: 'See in Public services', fr: 'Voir dans Services publics', pt: 'Ver em Serviços públicos' },
   'abre enlace externo': { en: 'opens an external link', fr: 'ouvre un lien externe', pt: 'abre um link externo' },
   'Confirma': { en: 'Confirm', fr: 'À confirmer', pt: 'Confirme' },
   'aprox.': { en: 'approx.', fr: 'env.', pt: 'aprox.' },

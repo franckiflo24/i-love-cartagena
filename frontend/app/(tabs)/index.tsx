@@ -525,7 +525,9 @@ export default function HomeScreen() {
   //    lives in Profile › Acceso rápido. Cruise day: Mapa → Transporte.
   const quickItems = useMemo(() => {
     const items = [
-      { key: 'moverse',   icon: 'bus',      label: tr('Moverse'),      color: '#F59E0B',          route: '/ciudad' },
+      // Renamed 2026-10-16 (Franck: the name the city/government asks for). The key
+      // stays 'moverse' so historical quick_access analytics stay comparable.
+      { key: 'moverse',   icon: 'bus',      label: tr('Servicios públicos'), color: '#F59E0B',    route: '/ciudad' },
       { key: 'agenda',    icon: 'calendar', label: s('home_agenda'),   color: '#F97316',          route: '/que-pasa' },
       { key: 'explorar',  icon: 'compass',  label: tr('Explorar'),     color: '#3B82F6',          route: '/(tabs)/explore' },
       { key: 'pasaporte', icon: 'ribbon',   label: tr('Pasaporte'),    color: COLORS.primary,     route: '/(tabs)/pasaporte' },
@@ -827,7 +829,9 @@ export default function HomeScreen() {
               <View style={[styles.quickIcon, { backgroundColor: item.color + '26' }]}>
                 <Ionicons name={item.icon as any} size={22} color={item.color} />
               </View>
-              <Text style={styles.quickLabel} numberOfLines={1}>{item.label}</Text>
+              {/* 2 lines: "Servicios públicos" truncates to "Servicios públ…" on one.
+                  44 icon + 8 gap + 2×17 fits the 96 pt tile with room to spare. */}
+              <Text style={styles.quickLabel} numberOfLines={2}>{item.label}</Text>
             </PressableScale>
           ))}
         </View>
