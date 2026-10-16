@@ -186,7 +186,13 @@ export default function CmwPreregScreen() {
       fullName, lastName, askLastName, email, whatsapp, instagram, dobD, dobM, dobY, consentChecked,
     });
     setErrors(problems);
-    if (problems.length) return; // blocked client-side: nothing goes over the wire
+    if (problems.length) {
+      // A signed-in profile can prefill an INVALID value into a hidden input (e.g. a
+      // URL stored as instagram). Reveal the fields so the inline error is fixable —
+      // otherwise the screen errors at a field the person cannot see.
+      if (user && !showAll) setShowAll(true);
+      return; // blocked client-side: nothing goes over the wire
+    }
     const iso = dobIso(dobD, dobM, dobY);
     if (!iso || !source) return;
     setSending(true);
@@ -308,9 +314,14 @@ export default function CmwPreregScreen() {
                   <Text style={s.refCode} selectable testID="cmw-pre-refcode">{done.referralCode}</Text>
                 </View>
                 <View style={s.refBtnRow}>
-                  <CmwButton label={tr('Compartir')} icon="share-social-outline"
-                    onPress={() => shareReferral(done.referralCode as string, 'share')}
-                    style={{ flex: 1 }} testID="cmw-pre-share" />
+                  {/* The system share sheet only exists on native / web-with-navigator.share:
+                      a dead button teaches people the screen is broken. */}
+                  {(Platform.OS !== 'web'
+                    || (typeof navigator !== 'undefined' && typeof navigator.share === 'function')) && (
+                    <CmwButton label={tr('Compartir')} icon="share-social-outline"
+                      onPress={() => shareReferral(done.referralCode as string, 'share')}
+                      style={{ flex: 1 }} testID="cmw-pre-share" />
+                  )}
                   <CmwButton label="WhatsApp" variant="secondary" icon="logo-whatsapp"
                     onPress={() => shareReferral(done.referralCode as string, 'whatsapp')}
                     style={{ flex: 1 }} testID="cmw-pre-share-wa" />

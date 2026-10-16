@@ -1761,6 +1761,14 @@ export const AUTO_TR: Dict = {
   'Moverse': { en: 'Get around', fr: 'Se déplacer', pt: 'Como se mover' },
   'Bus, muelle, taxis': { en: 'Bus, pier, taxis', fr: 'Bus, quai, taxis', pt: 'Ônibus, píer, táxis' },
   'Moverse en Cartagena': { en: 'Getting around Cartagena', fr: 'Se déplacer à Carthagène', pt: 'Como se mover em Cartagena' },
+  // SP-1 (Oct 15): servicios públicos rail in the /ciudad hub.
+  'Servicios públicos': { en: 'Public services', fr: 'Services publics', pt: 'Serviços públicos' },
+  'Líneas y trámites oficiales': { en: 'Official lines & procedures', fr: 'Lignes et démarches officielles', pt: 'Linhas e trâmites oficiais' },
+  'Información verificada con fuentes oficiales. AMO es un canal privado de información — cada trámite se hace con la entidad.': {
+    en: 'Information verified against official sources. AMO is a private information channel — every procedure happens with the entity itself.',
+    fr: 'Information vérifiée auprès de sources officielles. AMO est un canal privé d’information — chaque démarche se fait auprès de l’entité.',
+    pt: 'Informação verificada com fontes oficiais. A AMO é um canal privado de informação — cada trâmite é feito com a própria entidade.',
+  },
   'Precios reales, fuentes oficiales, sin sorpresas': { en: 'Real prices, official sources, no surprises', fr: 'Vrais prix, sources officielles, zéro surprise', pt: 'Preços reais, fontes oficiais, sem surpresas' },
   'Info': { en: 'Info', fr: 'Info', pt: 'Info' },
   'En vivo': { en: 'Live', fr: 'En direct', pt: 'Ao vivo' },

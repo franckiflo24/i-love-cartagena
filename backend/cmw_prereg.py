@@ -745,7 +745,10 @@ async def admin_prereg_route(request: Request) -> Any:
                         {"$sort": {"n": -1}}, {"$limit": 25}],
             "by_country": [{"$group": {"_id": "$country", "n": {"$sum": 1}}},
                            {"$sort": {"n": -1}}, {"$limit": 25}],
-            "by_birth_year": [{"$group": {"_id": {"$substrBytes": ["$dob", 0, 4]}, "n": {"$sum": 1}}},
+            # $ifNull shields the expression: one row with a missing/odd dob must never
+            # 503 the whole panel aggregation.
+            "by_birth_year": [{"$group": {"_id": {"$substrBytes": [{"$ifNull": ["$dob", "0000"]}, 0, 4]},
+                                          "n": {"$sum": 1}}},
                               {"$sort": {"_id": 1}}, {"$limit": 110}],
             "marketing": [{"$match": {"marketing_opt_in": True}}, {"$count": "n"}],
             "linked": [{"$match": {"user_id": {"$type": "string", "$ne": ""}}}, {"$count": "n"}],
@@ -794,6 +797,19 @@ async def admin_prereg_route(request: Request) -> Any:
 
 
 # CSV export — the spec's "exportación CSV filtrable" with its download log.
+def _csv_safe(v: Any) -> Any:
+    """Formula-injection guard: this file gets opened in Excel/Sheets, and a stored
+    full_name/city like '=cmd|…' or '@SUM(…)' would execute there. A leading '='/'@'
+    (or '+'/'-' not starting a number, so phone numbers stay clean) gets an
+    apostrophe prefix — the standard spreadsheet escape."""
+    if not isinstance(v, str) or not v:
+        return v
+    c = v[0]
+    if c in "=@\t\r" or (c in "+-" and not v[1:2].isdigit()):
+        return "'" + v
+    return v
+
+
 _CSV_COLUMNS: Tuple[str, ...] = (
     "prereg_id", "created_at", "full_name", "last_name", "email", "whatsapp", "instagram",
     "gender", "city", "country", "dob", "lang", "marketing_opt_in", "user_linked",
@@ -838,7 +854,7 @@ async def admin_prereg_csv_route(request: Request) -> Any:
     w.writerow(_CSV_COLUMNS)
     for r in rows:
         src = r.get("source") if isinstance(r.get("source"), Mapping) else {}
-        w.writerow([
+        w.writerow([_csv_safe(v) for v in (
             r.get("prereg_id"), r.get("created_at"), r.get("full_name"), r.get("last_name"),
             r.get("email"), r.get("whatsapp"), r.get("instagram"), r.get("gender"),
             r.get("city"), r.get("country"), r.get("dob"), r.get("lang"),
@@ -846,7 +862,7 @@ async def admin_prereg_csv_route(request: Request) -> Any:
             src.get("utm_source"), src.get("utm_medium"), src.get("utm_campaign"),
             src.get("utm_content"), src.get("ref"), src.get("landing"),
             r.get("referral_code"), r.get("referred_by"), r.get("status"),
-        ])
+        )])
 
     # The download log: who pulled what, when — exports of personal data are auditable.
     try:

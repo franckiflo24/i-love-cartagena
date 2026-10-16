@@ -1480,6 +1480,15 @@ _CITY_TITLE_SKIP = frozenset({
     "de", "del", "la", "el", "los", "las", "y", "e", "o", "and", "the", "of", "et",
     "le", "les", "du", "des", "da", "do", "das", "dos", "city", "water",
     "electric", "eléctricos", "elétricas", "électriques", "coches", "walls", "bateau",
+    # Servicios-públicos titles carry everyday words that would pull a service module
+    # into ordinary tourism questions ("la luz del atardecer", "sitios para turistas",
+    # "precios oficiales", "necesito ayuda"). EN "fines" even matches inside ES
+    # "fines de semana". Intent still routes via each module's luna.triggers.
+    "colombia", "turistas", "visitors", "visiteurs", "ayuda", "help", "aide", "ajuda",
+    "luz", "agua", "água", "gas", "gaz", "gás", "power", "eau",
+    "líneas", "lineas", "lignes", "linhas", "lines",
+    "oficiales", "official", "officielles", "oficiais",
+    "traffic", "fines", "circulation", "hall", "trânsito", "transito",
 })
 
 
@@ -1977,7 +1986,7 @@ FORMATO DE RESPUESTA (JSON estricto, sin markdown, sin código de bloque)
     // {"type": "show_partners", "filters": {"category": "restaurant", "subcategory": "italiana", "tier": "premium"}, "label": "Ver todos los italianos"}
     // {"type": "show_events", "filters": {"category": "music", "date": "2026-05-15"}, "label": "Ver agenda"}
     // {"type": "open_city_pass", "plan_id": "pass_premium", "label": "Comprar Premium Pass"}   ← SOLO si context.payments_live=true
-    // {"type": "open_city_module", "module_id": "transcaribe" | "muelle-bodeguita" | "monumentos" | "coches-electricos" | "transcaribe-acuatico" | "taxis", "label": "..."}   ← guía /ciudad con precios oficiales (AMO informa, no vende). Ej. islas: {"type":"open_city_module","module_id":"muelle-bodeguita","label":"Ver costo real de las islas"}
+    // {"type": "open_city_module", "module_id": "transcaribe" | "muelle-bodeguita" | "monumentos" | "coches-electricos" | "transcaribe-acuatico" | "taxis" | "emergencias-lineas" | "servicios-domiciliarios" | "migracion-colombia" | "comparendos-simit" | "tramites-estado", "label": "..."}   ← guía /ciudad con precios oficiales (AMO informa, no vende). Ej. islas: {"type":"open_city_module","module_id":"muelle-bodeguita","label":"Ver costo real de las islas"}; multa: {"type":"open_city_module","module_id":"comparendos-simit","label":"Ver cómo pagar la multa"}
     // {"type": "navigate", "screen": "agenda" | "concerts" | "partners" | "citypass" | "transport" | "itineraries" | "ciudad", "label": "..."}
     // {"type": "show_itinerary", "category": "cultura" | "lifestyle" | "musical", "label": "..."}
   ],
@@ -2145,9 +2154,13 @@ ALLOWED_ACTIONS = {
     "external_link",
 }
 ALLOWED_TABS = {"agenda", "concerts", "partners", "citypass", "transport", "itineraries", "search", "ciudad"}
-# open_city_module.module_id must be a real hub module (the same ids /ciudad/[id] renders).
+# open_city_module.module_id must be a real hub module (the same ids /ciudad/[id] renders) —
+# transport AND servicios públicos, or a service deep-link gets silently stripped.
 CITY_MODULE_IDS = frozenset(
-    str(m.get("id")) for m in ((_CITY or {}).get("modules") or []) if isinstance(m, dict) and m.get("id")
+    str(m.get("id"))
+    for src in (_CITY, _CITY_SVC)
+    for m in ((src or {}).get("modules") or [])
+    if isinstance(m, dict) and m.get("id")
 )
 
 

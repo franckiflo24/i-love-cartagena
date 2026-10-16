@@ -240,3 +240,45 @@ def test_prereg_rate_buckets_still_pre_namespaced(env) -> None:
     _create(db, _body())
     assert any(k.startswith("cmwip:pre:") for k in rl_keys)
     assert any(k.startswith("cmwcontact:pre:") for k in rl_keys)
+
+
+# ── CSV export: formula-injection guard + download log ───────────────────────
+
+def test_csv_safe_escapes_formulas_keeps_phones() -> None:
+    assert cmw_prereg._csv_safe("=2+5+cmd") == "'=2+5+cmd"
+    assert cmw_prereg._csv_safe("@SUM(A1)") == "'@SUM(A1)"
+    assert cmw_prereg._csv_safe("+cmd|calc") == "'+cmd|calc"
+    assert cmw_prereg._csv_safe("-cmd|calc") == "'-cmd|calc"
+    assert cmw_prereg._csv_safe("\tpayload") == "'\tpayload"
+    # phones and plain values pass through untouched
+    assert cmw_prereg._csv_safe("+57 300 123 4567") == "+57 300 123 4567"
+    assert cmw_prereg._csv_safe("-5") == "-5"
+    assert cmw_prereg._csv_safe("Ana María") == "Ana María"
+    assert cmw_prereg._csv_safe(None) is None
+
+
+def test_csv_route_escapes_and_logs_download(env, monkeypatch: pytest.MonkeyPatch) -> None:
+    db, _ = env
+    # a hostile-but-valid name ('=…' passes validation: letters, no url, no <>)
+    status, _p = _create(db, _body(full_name="=2+5+cmd", instagram="hostile.a"))
+    assert status == 200
+    monkeypatch.setattr(cmw_prereg, "db", db)
+
+    async def allow(_request):  # bypass the admin gate for the handler test
+        return None
+
+    monkeypatch.setattr(cmw_prereg, "_admin_guard", allow)
+
+    class _Req:
+        headers: Dict[str, str] = {}
+        query_params: Dict[str, str] = {}
+        cookies: Dict[str, str] = {}
+        client = type("C", (), {"host": IP})()
+
+    resp = asyncio.run(cmw_prereg.admin_prereg_csv_route(_Req()))
+    body = bytes(resp.body).decode()
+    assert "'=2+5+cmd" in body          # escaped in the export
+    assert "\n=2+5+cmd" not in body      # never raw at a cell start
+    logs = asyncio.run(db.cmw_admin_downloads.find({}).to_list(None))
+    assert len(logs) == 1 and logs[0]["rows"] == 1 and IP not in str(logs[0])
+    monkeypatch.setattr(cmw_prereg, "db", None)

@@ -278,10 +278,17 @@ export type CmwFunnelEvent =
  *  costs a funnel data point, never truth. */
 export function fireCmwEvent(event: CmwFunnelEvent, source: PreregSource | null, lang: string): void {
   try {
+    // A beacon racing ahead of captureSource must still carry the TRUE platform:
+    // the server defaults a missing source to landing "web", which would
+    // mis-attribute native-app funnel rows.
+    const src: PreregSource = source || {
+      utm_source: null, utm_medium: null, utm_campaign: null, utm_content: null,
+      ref: null, landing: landing(),
+    };
     void fetchT(`${API_BASE}/cmw/event`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...AMO_CLIENT_HEADERS },
-      body: JSON.stringify({ event, lang, source: source || undefined }),
+      body: JSON.stringify({ event, lang, source: src }),
     }, 8000).catch(() => undefined);
   } catch {
     // beacon loss is acceptable by design

@@ -979,6 +979,17 @@ export default function AdminPortal() {
       onLockedPress: goAdminLogin,
     },
     {
+      key: 'cmw-panel',
+      title: tr('Panel de preinscripciones'),
+      subtitle: tr('CMW: embudo, fuentes y CSV'),
+      lockReason: tr('Requiere sesión admin · toca para entrar'),
+      icon: 'musical-notes',
+      accent: colorForKey('cmw'),
+      available: isAdmin,
+      onPress: () => router.push('/cmw-panel' as any),
+      onLockedPress: goAdminLogin,
+    },
+    {
       key: 'analytics',
       title: tr('Usuarios & Analytics'),
       subtitle: tr('Métricas, CRM y revenue'),
