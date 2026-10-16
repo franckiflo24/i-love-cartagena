@@ -242,6 +242,52 @@ def test_prereg_rate_buckets_still_pre_namespaced(env) -> None:
     assert any(k.startswith("cmwcontact:pre:") for k in rl_keys)
 
 
+# ── detail record ────────────────────────────────────────────────────────────
+
+def test_detail_returns_everything_and_both_referral_directions(env, monkeypatch: pytest.MonkeyPatch) -> None:
+    db, _ = env
+    _, pa = _create(db, _body())                                   # Ana
+    code = pa["data"]["referral_code"]
+    _create(db, _body(email="luis.cmw2@example.com", instagram="luis.c",
+                      source={"ref": code, "landing": "web"}))     # invited by Ana
+    monkeypatch.setattr(cmw_prereg, "db", db)
+
+    async def allow(_request):
+        return None
+
+    monkeypatch.setattr(cmw_prereg, "_admin_guard", allow)
+
+    class _Req:
+        headers: Dict[str, Any] = {}
+        query_params: Dict[str, Any] = {}
+        cookies: Dict[str, Any] = {}
+        client = type("C", (), {"host": IP})()
+
+    import json as _json
+    resp = asyncio.run(cmw_prereg.admin_prereg_detail_route(pa["data"]["prereg_id"], _Req()))
+    body = _json.loads(bytes(resp.body).decode())["data"]
+    rec = body["prereg"]
+    # the list view projects these away — the detail must carry them
+    assert rec["consent"]["text"] and rec["consent"]["version"] == cmw_prereg.CONSENT_VERSION
+    assert isinstance(rec["consent_log"], list) and rec["consent_log"]
+    for f in ("full_name", "last_name", "email", "whatsapp", "instagram", "gender",
+              "city", "country", "dob", "referral_code", "marketing", "source", "program_ref"):
+        assert f in rec, f
+    # Ana invited Luis
+    assert body["invited_count"] == 1
+    assert body["invited"][0]["full_name"] == "Ana María"[:0] or body["invited"][0]["prereg_id"]
+    # and Luis points back at Ana
+    luis = asyncio.run(db.cmw_preregistrations.find_one({"email": "luis.cmw2@example.com"}))
+    resp2 = asyncio.run(cmw_prereg.admin_prereg_detail_route(luis["prereg_id"], _Req()))
+    body2 = _json.loads(bytes(resp2.body).decode())["data"]
+    assert body2["referred_by_row"]["prereg_id"] == pa["data"]["prereg_id"]
+    assert body2["invited_count"] == 0
+    # a bogus id is a clean 404, never a 500
+    resp3 = asyncio.run(cmw_prereg.admin_prereg_detail_route("not-an-id", _Req()))
+    assert resp3.status_code == 404
+    monkeypatch.setattr(cmw_prereg, "db", None)
+
+
 # ── CSV export: formula-injection guard + download log ───────────────────────
 
 def test_csv_safe_escapes_formulas_keeps_phones() -> None:

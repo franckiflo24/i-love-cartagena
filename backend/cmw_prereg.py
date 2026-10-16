@@ -884,6 +884,61 @@ async def admin_prereg_csv_route(request: Request) -> Any:
                              "Content-Disposition": f'attachment; filename="{fname}"'})
 
 
+@router.get("/admin/cmw/prereg/{prereg_id}")
+async def admin_prereg_detail_route(prereg_id: str, request: Request) -> Any:
+    """The complete record for ONE person — everything stored, including the full
+    consent text and the consent_log the list view projects away (that log is the
+    demonstrable-consent evidence under Ley 1581). Also resolves the referral graph
+    both ways: who brought them, and who they brought."""
+    denied = await _admin_guard(request)
+    if denied is not None:
+        return denied
+    if db is None:
+        return _fail(503, "unavailable")
+    rid = prereg_id.strip().lower()
+    if not PREREG_ID_RE.match(rid):
+        return _fail(404, "not_found")
+    try:
+        row = await db.cmw_preregistrations.find_one({"prereg_id": rid}, {"_id": 0, "created_at_dt": 0})
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[cmw-prereg] detail read failed: %s", type(exc).__name__)
+        return _fail(503, "unavailable")
+    if not isinstance(row, Mapping):
+        return _fail(404, "not_found")
+
+    record = dict(row)
+    # The consent_log can grow with every re-submit; the newest entries are the
+    # ones an audit asks about.
+    log = record.get("consent_log")
+    if isinstance(log, list):
+        record["consent_log"] = log[-20:][::-1]
+
+    referred_by_row: Optional[Dict[str, Any]] = None
+    invited: List[Dict[str, Any]] = []
+    try:
+        if record.get("referred_by"):
+            ref = await db.cmw_preregistrations.find_one(
+                {"prereg_id": record["referred_by"]},
+                {"_id": 0, "prereg_id": 1, "full_name": 1, "referral_code": 1})
+            if isinstance(ref, Mapping):
+                referred_by_row = dict(ref)
+        if record.get("prereg_id"):
+            invited = await db.cmw_preregistrations.find(
+                {"referred_by": record["prereg_id"]},
+                {"_id": 0, "prereg_id": 1, "full_name": 1, "created_at": 1},
+            ).limit(50).to_list(length=50)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("[cmw-prereg] referral graph failed: %s", type(exc).__name__)
+
+    data = {
+        "prereg": record,
+        "referred_by_row": referred_by_row,
+        "invited": invited,
+        "invited_count": len(invited),
+    }
+    return JSONResponse(content=_ok(data, MSG["ok"]), headers={"Cache-Control": "no-store"})
+
+
 @router.delete("/admin/cmw/prereg/{prereg_id}")
 async def admin_prereg_delete_route(prereg_id: str, request: Request) -> Any:
     """The Ley 1581 suppression lever: the consent text promises 'suprimir' via

@@ -17,9 +17,29 @@ import { API_BASE, api, getToken, isAuthStatus } from '../src/constants/api';
 import { useAuth } from '../src/context/AuthContext';
 import { useTr } from '../src/i18n/autoTr';
 import { goBackOr } from '../src/lib/nav';
+import { openExternal } from '../src/lib/cityModules';
 import { COLORS, FONTS, RADIUS, SPACING, TYPE } from '../src/constants/theme';
 
 type Pair = { value: string | null; n: number };
+
+type PreregRow = Record<string, any>;
+type Detail = {
+  prereg: PreregRow;
+  referred_by_row: { prereg_id?: string; full_name?: string; referral_code?: string } | null;
+  invited: Array<{ prereg_id?: string; full_name?: string; created_at?: string }>;
+  invited_count: number;
+};
+
+const ageFrom = (dob?: string): string => {
+  if (!dob || !/^\d{4}-\d{2}-\d{2}$/.test(dob)) return '';
+  const [y, m, d] = dob.split('-').map(Number);
+  const now = new Date();
+  let a = now.getFullYear() - y;
+  if (now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < d)) a -= 1;
+  return a > 0 && a < 120 ? ` · ${a} años` : '';
+};
+const digits = (v?: string) => (v || '').replace(/\D/g, '');
+const yn = (v: unknown) => (v ? 'Sí' : 'No');
 type PanelData = {
   total: number;
   count: number;
@@ -80,6 +100,36 @@ export default function CmwPanelScreen() {
   const [to, setTo] = useState('');
   const [csvBusy, setCsvBusy] = useState(false);
   const [csvMsg, setCsvMsg] = useState<string | null>(null);
+
+  // ── one person's complete record ──
+  const [selected, setSelected] = useState<string | null>(null);
+  const [detail, setDetail] = useState<Detail | null>(null);
+  const [detailBusy, setDetailBusy] = useState(false);
+  const [detailErr, setDetailErr] = useState(false);
+  const [query, setQuery] = useState('');
+  const [confirmDel, setConfirmDel] = useState(false);
+  const [delBusy, setDelBusy] = useState(false);
+
+  const openDetail = useCallback(async (id: string) => {
+    setSelected(id);
+    setDetail(null);
+    setDetailErr(false);
+    setConfirmDel(false);
+    setDetailBusy(true);
+    try {
+      const env = await api.get(`/admin/cmw/prereg/${id}`);
+      const d = (env && typeof env === 'object' ? (env as { data?: Detail }).data : null) || null;
+      if (d?.prereg) setDetail(d); else setDetailErr(true);
+    } catch {
+      setDetailErr(true);
+    } finally {
+      setDetailBusy(false);
+    }
+  }, []);
+
+  const closeDetail = useCallback(() => {
+    setSelected(null); setDetail(null); setConfirmDel(false); setDetailErr(false);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -150,7 +200,228 @@ export default function CmwPanelScreen() {
   const bands = useMemo(() => ageBands(data?.breakdown.by_birth_year || []), [data]);
   const pct = (n: number): string => (data && data.total > 0 ? ` · ${Math.round((n / data.total) * 100)}%` : '');
 
-  const recent = useMemo(() => (data?.preregs || []).slice(0, 20), [data]);
+  // Search runs over everything the panel loaded (up to 500 most recent).
+  const recent = useMemo(() => {
+    const all = data?.preregs || [];
+    const q = query.trim().toLowerCase();
+    if (!q) return all.slice(0, 25);
+    return all.filter((r) => [
+      r.full_name, r.last_name, r.email, r.whatsapp, r.instagram,
+      r.city, r.country, r.referral_code, r.prereg_id,
+    ].some((v) => typeof v === 'string' && v.toLowerCase().includes(q))).slice(0, 50);
+  }, [data, query]);
+
+  const removePrereg = useCallback(async (id: string) => {
+    if (delBusy) return;
+    setDelBusy(true);
+    try {
+      await api.delete(`/admin/cmw/prereg/${id}`);
+      closeDetail();
+      await load();
+    } catch {
+      setDetailErr(true);
+    } finally {
+      setDelBusy(false);
+      setConfirmDel(false);
+    }
+  }, [delBusy, closeDetail, load]);
+
+  // ── one person, everything we hold ──────────────────────────────────────────
+  if (selected) {
+    const r: PreregRow = detail?.prereg || {};
+    const src = (r.source || {}) as Record<string, any>;
+    const last = (r.last_source || {}) as Record<string, any>;
+    const consent = (r.consent || {}) as Record<string, any>;
+    const mkt = (r.marketing || {}) as Record<string, any>;
+    const prog = (r.program_ref || {}) as Record<string, any>;
+    const name = [r.full_name, r.last_name && !String(r.full_name || '').includes(r.last_name) ? r.last_name : '']
+      .filter(Boolean).join(' ');
+
+    const Row = ({ k, v, mono }: { k: string; v?: any; mono?: boolean }) => {
+      if (v === undefined || v === null || v === '') return null;
+      return (
+        <View style={st.dRow}>
+          <Text style={st.dKey}>{tr(k)}</Text>
+          <Text style={[st.dVal, mono && { fontVariant: ['tabular-nums'] }]} selectable>{String(v)}</Text>
+        </View>
+      );
+    };
+    const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+      <View style={st.section}>
+        <Text style={st.sectionTitle}>{tr(title)}</Text>
+        {children}
+      </View>
+    );
+
+    return (
+      <SafeAreaView style={st.container} edges={['top']}>
+        <Head><title>{`${name || 'Preinscripción'} · Panel CMW`}</title><meta name="robots" content="noindex, nofollow" /></Head>
+        <ScrollView contentContainerStyle={st.scroll} showsVerticalScrollIndicator={false}>
+          <View style={st.headerRow}>
+            <TouchableOpacity onPress={closeDetail} style={st.navBtn} accessibilityRole="button" accessibilityLabel={tr('Volver')} testID="cmw-detail-back">
+              <Ionicons name="arrow-back" size={20} color={COLORS.textMain} />
+            </TouchableOpacity>
+            <View style={{ flex: 1 }}>
+              <Text style={st.eyebrow}>{tr('Preinscrito')}</Text>
+              <Text style={st.title} numberOfLines={2}>{name || selected}</Text>
+              {!!r.created_at && <Text style={st.sub}>{tr('Preinscrito el')} {String(r.created_at).slice(0, 10)}</Text>}
+            </View>
+          </View>
+
+          {detailBusy && <View style={st.stateCard}><ActivityIndicator color={COLORS.primary} /></View>}
+
+          {detailErr && !detailBusy && (
+            <View style={st.stateCard}>
+              <Ionicons name="cloud-offline-outline" size={32} color={COLORS.textMuted} />
+              <Text style={st.stateTitle}>{tr('No pudimos cargar el registro')}</Text>
+              <TouchableOpacity onPress={() => openDetail(selected)} style={st.primaryBtn} accessibilityRole="button">
+                <Text style={st.primaryBtnText}>{tr('Reintentar')}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {detail && !detailBusy && (
+            <>
+              {/* quick actions — the operator's real reasons to open a record */}
+              <View style={st.actionRow}>
+                {!!digits(r.whatsapp) && (
+                  <TouchableOpacity style={st.action} onPress={() => openExternal(`https://wa.me/${digits(r.whatsapp)}`)} accessibilityRole="button" testID="cmw-detail-wa">
+                    <Ionicons name="logo-whatsapp" size={16} color="#25D366" />
+                    <Text style={st.actionText}>WhatsApp</Text>
+                  </TouchableOpacity>
+                )}
+                {!!r.email && (
+                  <TouchableOpacity style={st.action} onPress={() => openExternal(`mailto:${r.email}`)} accessibilityRole="button" testID="cmw-detail-mail">
+                    <Ionicons name="mail-outline" size={16} color={COLORS.primary} />
+                    <Text style={st.actionText}>{tr('Correo')}</Text>
+                  </TouchableOpacity>
+                )}
+                {!!r.instagram && (
+                  <TouchableOpacity style={st.action} onPress={() => openExternal(`https://instagram.com/${String(r.instagram).replace(/^@/, '')}`)} accessibilityRole="button" testID="cmw-detail-ig">
+                    <Ionicons name="logo-instagram" size={16} color="#EC4899" />
+                    <Text style={st.actionText}>Instagram</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <Section title="Identidad">
+                <Row k="Nombre" v={r.full_name} />
+                <Row k="Apellidos" v={r.last_name} />
+                <Row k="Correo" v={r.email} />
+                <Row k="WhatsApp" v={r.whatsapp} mono />
+                <Row k="Instagram" v={r.instagram ? `@${String(r.instagram).replace(/^@/, '')}` : ''} />
+                <Row k="Género" v={r.gender} />
+                <Row k="Nacimiento" v={r.dob ? `${r.dob}${ageFrom(r.dob)}` : ''} />
+                <Row k="Ciudad" v={r.city} />
+                <Row k="País" v={r.country} />
+                <Row k="Idioma" v={r.lang} />
+              </Section>
+
+              <Section title="Registro">
+                <Row k="Número de preinscripción" v={r.prereg_id} mono />
+                <Row k="Estado" v={r.status} />
+                <Row k="Acceso prioritario" v={yn(r.priority_access)} />
+                <Row k="Cuenta AMO vinculada" v={r.user_id ? `${tr('Sí')} · ${r.user_id}` : tr('No')} />
+                <Row k="Plataforma" v={src.landing === 'app' ? 'App' : 'Web'} />
+                <Row k="Cliente" v={r.client} />
+                <Row k="Creado" v={r.created_at} />
+                <Row k="Actualizado" v={r.updated_at} />
+              </Section>
+
+              <Section title="Autorización de datos (Ley 1581)">
+                <Row k="Aceptada" v={yn(consent.accepted)} />
+                <Row k="Fecha y hora" v={consent.accepted_at} />
+                <Row k="Versión" v={consent.version} />
+                <Row k="Identificador del texto" v={consent.text_id} mono />
+                <Row k="Responsable" v={consent.responsable} />
+                <Row k="Finalidades" v={Array.isArray(consent.purposes) ? consent.purposes.join(', ') : consent.purposes} />
+                <Row k="Método" v={consent.method} />
+                <Row k="Idioma mostrado" v={consent.lang_shown} />
+                <Row k="Política" v={consent.policy_url} />
+                <Row k="Huella de IP (hash)" v={consent.ip_hash} mono />
+                {!!consent.text && (
+                  <View style={st.consentTextBox}>
+                    <Text style={st.consentText} selectable>{consent.text}</Text>
+                  </View>
+                )}
+              </Section>
+
+              <Section title="Marketing">
+                <Row k="Autorizó comunicaciones" v={yn(r.marketing_opt_in)} />
+                <Row k="Versión" v={mkt.version} />
+                <Row k="Aceptado" v={mkt.accepted_at} />
+                <Row k="Revocado" v={mkt.revoked_at} />
+              </Section>
+
+              <Section title="Atribución">
+                <Row k="utm_source" v={src.utm_source} />
+                <Row k="utm_medium" v={src.utm_medium} />
+                <Row k="utm_campaign" v={src.utm_campaign} />
+                <Row k="utm_content" v={src.utm_content} />
+                <Row k="Código / socio (ref)" v={src.ref} />
+                <Row k="Último contacto" v={last.utm_source || last.ref ? `${last.utm_source || '—'} · ${last.ref || '—'}` : ''} />
+              </Section>
+
+              <Section title="Referidos">
+                <Row k="Su código" v={r.referral_code} mono />
+                <Row k="Invitado por" v={detail.referred_by_row ? `${detail.referred_by_row.full_name || ''} (${detail.referred_by_row.referral_code || detail.referred_by_row.prereg_id})` : ''} />
+                <Row k="Personas que trajo" v={String(detail.invited_count)} />
+                {detail.invited.map((i) => (
+                  <TouchableOpacity key={i.prereg_id} style={st.invitedRow} onPress={() => i.prereg_id && openDetail(i.prereg_id)} accessibilityRole="button">
+                    <Ionicons name="person-add-outline" size={14} color={COLORS.mustard} />
+                    <Text style={st.invitedName} numberOfLines={1}>{i.full_name || i.prereg_id}</Text>
+                    <Text style={st.dKeySmall}>{String(i.created_at || '').slice(0, 10)}</Text>
+                  </TouchableOpacity>
+                ))}
+              </Section>
+
+              <Section title="Evento">
+                <Row k="Programa" v={prog.name} />
+                <Row k="Desde" v={prog.start_date} />
+                <Row k="Hasta" v={prog.end_date} />
+                <Row k="Versión del programa" v={prog.program_version} />
+              </Section>
+
+              {Array.isArray(r.consent_log) && r.consent_log.length > 0 && (
+                <Section title="Historial de autorizaciones">
+                  {r.consent_log.map((c: any, i: number) => (
+                    <View key={`${c.accepted_at}-${i}`} style={st.dRow}>
+                      <Text style={st.dKey}>{String(c.accepted_at || '').slice(0, 16).replace('T', ' ')}</Text>
+                      <Text style={st.dVal}>{c.version} · {c.landing}</Text>
+                    </View>
+                  ))}
+                </Section>
+              )}
+
+              {/* Ley 1581 suppression: the lever for a "bórrenme" request to privacidad@ */}
+              <View style={st.dangerCard}>
+                <Text style={st.sectionTitle}>{tr('Derecho de supresión')}</Text>
+                <Text style={st.hint}>
+                  {tr('Borra esta preinscripción de forma permanente. Úsalo solo cuando la persona lo pida.')}
+                </Text>
+                {confirmDel ? (
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity onPress={() => removePrereg(selected)} disabled={delBusy} style={[st.primaryBtn, { backgroundColor: '#EF4444' }]} accessibilityRole="button" testID="cmw-detail-del-confirm">
+                      {delBusy ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={[st.primaryBtnText, { color: '#FFF' }]}>{tr('Sí, borrar definitivamente')}</Text>}
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setConfirmDel(false)} style={[st.primaryBtn, { backgroundColor: COLORS.surfaceAlt }]} accessibilityRole="button">
+                      <Text style={[st.primaryBtnText, { color: COLORS.textMain }]}>{tr('Cancelar')}</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity onPress={() => setConfirmDel(true)} style={[st.primaryBtn, { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#EF4444' }]} accessibilityRole="button" testID="cmw-detail-del">
+                    <Ionicons name="trash-outline" size={15} color="#EF4444" />
+                    <Text style={[st.primaryBtnText, { color: '#EF4444' }]}>{tr('Suprimir preinscripción')}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </>
+          )}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={st.container} edges={['top']}>
@@ -310,9 +581,36 @@ export default function CmwPanelScreen() {
 
             {/* ── latest rows ── */}
             <View style={st.section}>
-              <Text style={st.sectionTitle}>{tr('Últimas preinscripciones')}</Text>
+              <Text style={st.sectionTitle}>{tr('Preinscritos')}</Text>
+              <Text style={st.hint}>{tr('Toca una persona para ver todos sus datos.')}</Text>
+              <View style={st.searchRow}>
+                <Ionicons name="search" size={16} color={COLORS.textMuted} />
+                <TextInput
+                  style={st.searchInput}
+                  value={query}
+                  onChangeText={setQuery}
+                  placeholder={tr('Buscar por nombre, correo, Instagram, ciudad o código')}
+                  placeholderTextColor={COLORS.textMuted}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="search"
+                  testID="cmw-panel-search"
+                />
+                {query.length > 0 && (
+                  <TouchableOpacity onPress={() => setQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <Ionicons name="close-circle" size={16} color={COLORS.textMuted} />
+                  </TouchableOpacity>
+                )}
+              </View>
               {recent.map((r) => (
-                <View key={String(r.prereg_id)} style={st.rowCard}>
+                <TouchableOpacity
+                  key={String(r.prereg_id)}
+                  style={st.rowCard}
+                  onPress={() => openDetail(String(r.prereg_id))}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${String(r.full_name || '')} · ${tr('Ver todos sus datos')}`}
+                  testID={`cmw-panel-row-${r.prereg_id}`}
+                >
                   <View style={{ flex: 1 }}>
                     <Text style={st.rowName} numberOfLines={1}>{String(r.full_name || '—')}</Text>
                     <Text style={st.rowMeta} numberOfLines={1}>
@@ -325,9 +623,19 @@ export default function CmwPanelScreen() {
                       {String((r.source as Record<string, unknown>)?.utm_source || (r.source as Record<string, unknown>)?.ref || 'directo')}
                     </Text>
                   </View>
-                </View>
+                  <Ionicons name="chevron-forward" size={16} color={COLORS.icon} />
+                </TouchableOpacity>
               ))}
-              {recent.length === 0 && <Text style={st.emptyLine}>{tr('Sin preinscripciones todavía')}</Text>}
+              {recent.length === 0 && (
+                <Text style={st.emptyLine}>
+                  {query ? tr('Nadie coincide con esa búsqueda') : tr('Sin preinscripciones todavía')}
+                </Text>
+              )}
+              {!query && (data?.total || 0) > recent.length && (
+                <Text style={st.hint}>
+                  {tr('Mostrando')} {recent.length} {tr('de')} {data?.total}. {tr('Usa la búsqueda o exporta el CSV.')}
+                </Text>
+              )}
             </View>
           </>
         )}
@@ -377,7 +685,24 @@ const st = StyleSheet.create({
   dateInput: { flex: 1, minHeight: 44, borderRadius: 12, paddingHorizontal: 12, fontSize: 14, color: COLORS.textMain, backgroundColor: COLORS.surfaceAlt, borderWidth: 1, borderColor: COLORS.hairline },
   dateSep: { color: COLORS.textFaint },
 
-  rowCard: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.hairline },
+  searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 12, borderRadius: 12, backgroundColor: COLORS.surfaceAlt, borderWidth: 1, borderColor: COLORS.hairline, marginBottom: 10 },
+  searchInput: { flex: 1, minHeight: 44, fontSize: 14, color: COLORS.textMain },
+
+  // ── detail record ──
+  dRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.hairline },
+  dKey: { width: 132, fontSize: 11, lineHeight: 15, ...FONTS.medium, color: COLORS.textFaint },
+  dKeySmall: { fontSize: 11, color: COLORS.textFaint, ...FONTS.medium },
+  dVal: { flex: 1, fontSize: 13.5, lineHeight: 19, color: COLORS.textMain, ...FONTS.medium },
+  actionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: SPACING.lg, marginTop: SPACING.sm },
+  action: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 40, paddingHorizontal: 14, borderRadius: RADIUS.full, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.hairline },
+  actionText: { fontSize: 13, color: COLORS.textMain, ...FONTS.bold },
+  consentTextBox: { marginTop: 10, padding: 12, borderRadius: 12, backgroundColor: COLORS.surfaceAlt, borderWidth: 1, borderColor: COLORS.hairline },
+  consentText: { fontSize: 12, lineHeight: 17, color: COLORS.textMuted, ...FONTS.medium },
+  invitedRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.hairline },
+  invitedName: { flex: 1, fontSize: 13, color: COLORS.textMain, ...FONTS.medium },
+  dangerCard: { marginHorizontal: SPACING.lg, marginTop: SPACING.lg, backgroundColor: COLORS.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: 'rgba(239,68,68,0.35)', padding: SPACING.md },
+
+  rowCard: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.hairline },
   rowName: { fontSize: 13.5, color: COLORS.textMain, ...FONTS.bold },
   rowMeta: { fontSize: 11.5, color: COLORS.textMuted, ...FONTS.medium, marginTop: 2 },
   rowSrc: { fontSize: 11.5, color: COLORS.mustard, ...FONTS.medium, marginTop: 2, maxWidth: 120 },
