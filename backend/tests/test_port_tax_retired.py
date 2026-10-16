@@ -291,10 +291,17 @@ def test_allowed_actions_swap_checkout_for_city_module():
 
 
 def test_city_module_ids_mirror_the_hub_data_file():
+    # SP-1 (2026-10-15): the action whitelist mirrors BOTH hub files — transport
+    # AND servicios públicos — or a service deep-link gets silently stripped.
     data = json.load(open(os.path.join(BACKEND, "data", "city_modules.json"), encoding="utf-8"))
-    assert A.CITY_MODULE_IDS == {m["id"] for m in data["modules"]}
-    assert A.CITY_MODULE_IDS == {"transcaribe", "muelle-bodeguita", "monumentos", "coches-electricos",
-                                 "transcaribe-acuatico", "taxis"}
+    svc = json.load(open(os.path.join(BACKEND, "data", "city_services.json"), encoding="utf-8"))
+    assert A.CITY_MODULE_IDS == (
+        {m["id"] for m in data["modules"]} | {m["id"] for m in svc["modules"]}
+    )
+    assert {"transcaribe", "muelle-bodeguita", "monumentos", "coches-electricos",
+            "transcaribe-acuatico", "taxis"} <= A.CITY_MODULE_IDS
+    assert {"emergencias-lineas", "servicios-domiciliarios", "migracion-colombia",
+            "comparendos-simit", "tramites-estado"} <= A.CITY_MODULE_IDS
 
 
 def test_sanitizer_drops_bad_module_id_and_legacy_checkout():
