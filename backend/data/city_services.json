@@ -168,10 +168,30 @@
       "luna": {
         "amo_sells": false,
         "triggers": [
-          "emergencia", "emergencias", "emergency", "urgence", "policía", "policia", "police",
-          "ambulancia", "ambulance", "bomberos", "firefighters", "extorsión", "extorsion",
-          "extortion", "secuestro", "kidnap", "me robaron", "robaron", "me atracaron",
-          "denunciar", "report a crime", "línea 123", "linea 123", "llamar al 123"
+          "emergencia",
+          "emergencias",
+          "emergency",
+          "urgence",
+          "policía",
+          "policia",
+          "police",
+          "ambulancia",
+          "ambulance",
+          "bomberos",
+          "firefighters",
+          "extorsión",
+          "extorsion",
+          "extortion",
+          "secuestro",
+          "kidnap",
+          "me robaron",
+          "robaron",
+          "me atracaron",
+          "denunciar",
+          "report a crime",
+          "línea 123",
+          "linea 123",
+          "llamar al 123"
         ],
         "facts_es": [
           "La línea única de emergencias en Colombia es el 123: gratuita, del Estado, 24/7 — despacha Policía, ambulancia y bomberos (fuente: Policía Nacional).",
@@ -372,12 +392,37 @@
       "luna": {
         "amo_sells": false,
         "triggers": [
-          "se fue la luz", "corte de luz", "apagón", "apagon", "power outage", "blackout",
-          "sin luz", "no hay luz", "afinia", "aguas de cartagena", "acuacar", "surtigas",
-          "fuga de agua", "water leak", "sin agua", "no hay agua", "olor a gas", "gas leak",
-          "fuga de gas", "huele a gas", "smell gas", "smells like gas", "sent le gaz",
-          "cheiro de gás", "cheiro de gas", "recibo de la luz", "recibo del agua",
-          "factura de energía", "factura de energia", "pagar el gas", "pagar la luz",
+          "se fue la luz",
+          "corte de luz",
+          "apagón",
+          "apagon",
+          "power outage",
+          "blackout",
+          "sin luz",
+          "no hay luz",
+          "afinia",
+          "aguas de cartagena",
+          "acuacar",
+          "surtigas",
+          "fuga de agua",
+          "water leak",
+          "sin agua",
+          "no hay agua",
+          "olor a gas",
+          "gas leak",
+          "fuga de gas",
+          "huele a gas",
+          "smell gas",
+          "smells like gas",
+          "sent le gaz",
+          "cheiro de gás",
+          "cheiro de gas",
+          "recibo de la luz",
+          "recibo del agua",
+          "factura de energía",
+          "factura de energia",
+          "pagar el gas",
+          "pagar la luz",
           "pagar el agua"
         ],
         "facts_es": [
@@ -569,10 +614,26 @@
       "luna": {
         "amo_sells": false,
         "triggers": [
-          "migración", "migracion", "immigration", "visa", "prórroga", "prorroga",
-          "extend my stay", "overstay", "180 días", "180 dias", "180 days", "checkmig",
-          "check-mig", "check mig", "permiso de permanencia", "ptp", "pip vencido",
-          "quedarme más tiempo", "quedarme mas tiempo", "stay longer"
+          "migración",
+          "migracion",
+          "immigration",
+          "visa",
+          "prórroga",
+          "prorroga",
+          "extend my stay",
+          "overstay",
+          "180 días",
+          "180 dias",
+          "180 days",
+          "checkmig",
+          "check-mig",
+          "check mig",
+          "permiso de permanencia",
+          "ptp",
+          "pip vencido",
+          "quedarme más tiempo",
+          "quedarme mas tiempo",
+          "stay longer"
         ],
         "facts_es": [
           "La prórroga de permanencia (PTP) para turistas con PIP vigente es 100% virtual en el portal de Migración Colombia: COP 143.000 (tarifa general), resuelve en ~3 días hábiles; tope 180 días por año calendario (fuente oficial, verificado 2026-10-15).",
@@ -585,7 +646,7 @@
         "decline_line_pt": "A AMO não tramita vistos nem prorrogações: faça direto no portal oficial da Migración Colombia (COP 143.000, virtual).",
         "redirect_to": "https://portal.migracioncolombia.gov.co/tramites-y-servicios/tramites-generales/prorroga/permiso-temporal-de-permanencia-ptp-/-prorroga"
       },
-      "research_notes": "2026-10-15: portal.migracioncolombia.gov.co read live — PTP/prórroga card states Virtual / 3 días hábiles / $143.000 COP general (exceptions table exists); Check-Mig '72 horas hasta 1 hora antes del viaje' + land-crossing exemption; línea gratuita 01 8000 51 55 15. Cartagena CFSM street address NOT published on the page read → deliberately linked to the official puntos-de-atencion directory instead of asserting an address. 180-day cap: stated on the trámite description (PIP/PTP framework).",
+      "research_notes": "2026-10-15: portal.migracioncolombia.gov.co read live — PTP/prórroga card states Virtual / 3 días hábiles / $143.000 COP general (exceptions table exists); Check-Mig '72 horas hasta 1 hora antes del viaje' + land-crossing exemption; línea gratuita 01 8000 51 55 15. Cartagena CFSM street address NOT published on the page read → deliberately linked to the official puntos-de-atencion directory instead of asserting an address. 180-day cap: stated on the trámite description (PIP/PTP framework). 180-day/calendar-year cap: Resolución 0937 de 2012 (Cancillería normograma, cited in official guidance): 'ciento ochenta (180) días (continuos o discontinuos) dentro del mismo año calendario' — the claim lives in the fact NOTE; the fee/time/virtual facts are from the trámite page read 2026-10-15.",
       "image": null
     },
     {
@@ -758,9 +819,20 @@
       "luna": {
         "amo_sells": false,
         "triggers": [
-          "comparendo", "comparendos", "multa", "multas", "simit", "fotomulta", "fotomultas",
-          "traffic fine", "traffic ticket", "speeding ticket", "datt", "me multaron",
-          "pagar una multa", "pay a fine"
+          "comparendo",
+          "comparendos",
+          "multa",
+          "multas",
+          "simit",
+          "fotomulta",
+          "fotomultas",
+          "traffic fine",
+          "traffic ticket",
+          "speeding ticket",
+          "datt",
+          "me multaron",
+          "pagar una multa",
+          "pay a fine"
         ],
         "facts_es": [
           "Las multas de tránsito de TODO el país se consultan y pagan en el SIMIT (fcm.org.co/simit), administrado por la Federación Colombiana de Municipios (art. 10, Ley 769 de 2002). Consulta por cédula, pasaporte o placa (verificado 2026-10-15).",
@@ -913,9 +985,21 @@
       "luna": {
         "amo_sells": false,
         "triggers": [
-          "trámite", "tramite", "trámites", "tramites", "gov.co", "govco", "alcaldía",
-          "alcaldia", "pqrs", "city hall", "ventanilla", "impuesto predial", "paz y salvo",
-          "certificado", "antecedentes"
+          "trámite",
+          "tramite",
+          "trámites",
+          "tramites",
+          "gov.co",
+          "govco",
+          "alcaldía",
+          "alcaldia",
+          "pqrs",
+          "city hall",
+          "ventanilla",
+          "impuesto predial",
+          "paz y salvo",
+          "certificado",
+          "antecedentes"
         ],
         "facts_es": [
           "GOV.CO (www.gov.co) es el portal único del Estado: más de 78.000 trámites del Gobierno de Colombia — requisitos, costos oficiales y canal correcto (verificado 2026-10-15).",

@@ -27,6 +27,7 @@ import { useLang } from '../src/context/LanguageContext';
 import { useTr } from '../src/i18n/autoTr';
 import { api } from '../src/constants/api';
 import { openExternal } from '../src/lib/cityModules';
+import { goBackOr } from '../src/lib/nav';
 import {
   CONSENT_TEXT_ES, CONSENT_VERSION, FIELD_ERROR_COPY, MARKETING_TEXT_ES, PRIORITY_LINE_ES,
   PreregFieldError, PreregGender, PreregResult, PreregSource, captureSource, dobIso, failureCopy,
@@ -279,6 +280,17 @@ export default function CmwPreregScreen() {
       <ScrollView ref={scrollRef} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
         {/* ── hero ── */}
         <View style={s.hero}>
+          {/* A cold deep link on native lands here with NO back stack and no tab bar —
+              without this button the screen is a dead end (web has the browser chrome). */}
+          <TouchableOpacity
+            onPress={() => goBackOr(router, '/music-week')}
+            style={s.navBtn}
+            accessibilityRole="button"
+            accessibilityLabel={tr('Volver')}
+            testID="cmw-pre-back"
+          >
+            <Ionicons name="arrow-back" size={20} color={CMW.cream} />
+          </TouchableOpacity>
           <CmwWordmark size="hero" align="left" />
           <Text style={s.heroEyebrow}>{tr('31 dic 2026 — 7 ene 2027 · Cartagena de Indias')}</Text>
           <Text style={[CMW_TYPE.h3, { marginTop: 14 }]} testID="cmw-pre-title">{tr('Preinscríbete a la preventa')}</Text>
@@ -470,14 +482,14 @@ export default function CmwPreregScreen() {
               {show('city') && (
                 <View style={{ flex: 1 }}>
                   <Text style={s.label}>{tr('Ciudad')} <Text style={s.optional}>· {tr('opcional')}</Text></Text>
-                  <TextInput value={city} onChangeText={setCity} placeholder={tr('Ciudad')} placeholderTextColor={CMW.sandFaint}
+                  <TextInput value={city} onChangeText={(v) => { markStarted(); setCity(v); }} placeholder={tr('Ciudad')} placeholderTextColor={CMW.sandFaint}
                     autoCapitalize="words" maxLength={60} style={s.input} testID="cmw-pre-city" />
                 </View>
               )}
               {show('country') && (
                 <View style={{ flex: 1 }}>
                   <Text style={s.label}>{tr('País')} <Text style={s.optional}>· {tr('opcional')}</Text></Text>
-                  <TextInput value={country} onChangeText={setCountry} placeholder={tr('País')} placeholderTextColor={CMW.sandFaint}
+                  <TextInput value={country} onChangeText={(v) => { markStarted(); setCountry(v); }} placeholder={tr('País')} placeholderTextColor={CMW.sandFaint}
                     autoCapitalize="words" maxLength={60} style={s.input} testID="cmw-pre-country" />
                 </View>
               )}
@@ -545,6 +557,7 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: CMW.background },
   scroll: { paddingHorizontal: CMW_GUTTER, paddingTop: 18, paddingBottom: 28, maxWidth: 640, width: '100%', alignSelf: 'center' },
   hero: { marginBottom: 18 },
+  navBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: CMW.surface, borderWidth: 1, borderColor: CMW.line, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
   heroEyebrow: { ...CMW_TYPE.eyebrow, marginTop: 10 },
 
   card: {

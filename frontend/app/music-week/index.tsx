@@ -191,6 +191,15 @@ export default function MusicWeekHub() {
         <CmwWordmark style={{ marginTop: 12 }} />
         <Text style={styles.heroDates} testID="cmw-hero-dates">{dates}</Text>
         <Text style={styles.heroTagline}>{tagline}</Text>
+        {/* CMW-2: the hub is the highest-traffic CMW surface — it must funnel into the
+            presale pre-registration, not only into browsing. Full-width primary CTA. */}
+        <CmwButton
+          label={tr('Preinscríbete a la preventa')}
+          icon="musical-notes-outline"
+          onPress={() => router.push('/cmw' as never)}
+          style={{ marginTop: 14, alignSelf: 'stretch' }}
+          testID="cmw-cta-prereg"
+        />
         <View style={styles.heroCtas}>
           <CmwButton label={tr('Ver programa')} icon="calendar-outline" onPress={jumpToProgram} testID="cmw-cta-program" />
           <CmwButton label={tr('Hablar con concierge')} icon="logo-whatsapp" variant="secondary" onPress={openWhatsApp} testID="cmw-cta-concierge" />
