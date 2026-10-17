@@ -189,7 +189,7 @@ export default function CiudadDetailScreen() {
           <Text style={styles.stateTitle}>{tr('No encontramos este módulo')}</Text>
           <Text style={styles.stateText}>{tr('Puede que el enlace haya cambiado. Mira todos los servicios públicos.')}</Text>
           <TouchableOpacity onPress={goHub} style={styles.primaryBtn} accessibilityRole="link" accessibilityLabel={tr('Volver a Servicios públicos')}>
-            <Ionicons name="bus" size={16} color={COLORS.black} />
+            <Ionicons name="business" size={16} color={COLORS.black} />
             <Text style={styles.primaryBtnText}>{tr('Volver a Servicios públicos')}</Text>
           </TouchableOpacity>
         </View>

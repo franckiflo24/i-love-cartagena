@@ -527,7 +527,10 @@ export default function HomeScreen() {
     const items = [
       // Renamed 2026-10-16 (Franck: the name the city/government asks for). The key
       // stays 'moverse' so historical quick_access analytics stay comparable.
-      { key: 'moverse',   icon: 'bus',      label: tr('Servicios públicos'), color: '#F59E0B',    route: '/ciudad' },
+      // Icon was 'bus': once the category stopped being only transport (it now holds
+      // emergency lines, utilities, migración and trámites) a bus read as "public
+      // transport". A building is the civic signifier; no Ionicons glyph has columns.
+      { key: 'moverse',   icon: 'business', label: tr('Servicios públicos'), color: '#F59E0B',    route: '/ciudad' },
       { key: 'agenda',    icon: 'calendar', label: s('home_agenda'),   color: '#F97316',          route: '/que-pasa' },
       { key: 'explorar',  icon: 'compass',  label: tr('Explorar'),     color: '#3B82F6',          route: '/(tabs)/explore' },
       { key: 'pasaporte', icon: 'ribbon',   label: tr('Pasaporte'),    color: COLORS.primary,     route: '/(tabs)/pasaporte' },

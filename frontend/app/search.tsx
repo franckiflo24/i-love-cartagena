@@ -83,7 +83,7 @@ const INTENT_META: Record<string, { color: string; icon: string; label: string }
   city_pass:  { color: '#12B5A5', icon: 'sparkles',          label: 'City Pass' },
   // 'city' is the backend's intent for the city hub (Transcaribe, pier / islands, monuments,
   // electric cars, taxis): official prices, AMO informs and sells none of it.
-  city:       { color: '#06B6D4', icon: 'bus',               label: 'Ciudad' },
+  city:       { color: '#06B6D4', icon: 'business',          label: 'Ciudad' },
   // Legacy alias: an older backend still deployed may emit 'port_tax' for pier / islands
   // questions; it opens the city-hub module (official pier + park + insurance prices),
   // never a checkout. Drop once every backend maps port_tax → city.
@@ -759,7 +759,9 @@ export default function SearchScreen() {
       show_partners: 'grid',
       show_events: 'calendar-outline',
       open_port_tax_checkout: 'boat',
-      open_city_module: 'bus',
+      // Shares 'business' with open_partner on purpose: the category needs ONE face
+      // across home/search/detail, and these chips always carry their own label.
+      open_city_module: 'business',
       open_city_pass: 'ticket',
       show_itinerary: 'map',
       reservation_link: 'restaurant',
