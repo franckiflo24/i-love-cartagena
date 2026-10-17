@@ -144,7 +144,10 @@ export default function CiudadHubScreen() {
             </TouchableOpacity>
           )}
           <View style={{ flex: 1 }}>
-            <Text style={styles.eyebrow}>{tr('Servicios públicos')}</Text>
+            {/* No eyebrow here: it used to read "Moverse" above "Moverse en
+                Cartagena", and the rename turned that mild echo into a stutter
+                of the whole category name. Single title, as /esenciales,
+                /seguridad and /rutas already do. */}
             <Text style={styles.title}>{tr('Servicios públicos en Cartagena')}</Text>
             {/* "Precios reales" alone under-described the category once emergency
                 lines (which have no price) joined it. */}
@@ -259,7 +262,6 @@ const styles = StyleSheet.create({
   scroll: { paddingBottom: SPACING.xxl },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: SPACING.lg, paddingTop: SPACING.md, paddingBottom: SPACING.md },
   navBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.hairline, alignItems: 'center', justifyContent: 'center' },
-  eyebrow: { ...TYPE.overline, color: COLORS.mustard, marginTop: 4 },
   title: { ...TYPE.title1, color: COLORS.textMain, marginTop: 2 },
   promise: { ...TYPE.subhead, color: COLORS.textMuted, marginTop: 4 },
   list: { paddingHorizontal: SPACING.lg, gap: SPACING.md },
